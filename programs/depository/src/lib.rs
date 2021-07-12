@@ -97,12 +97,12 @@ pub mod depository {
                 deposit_account: daddr,
             })
         }
+
+        pub fn deposit(&self, ctx: Context<Deposit>) -> ProgramResult {
+            Ok(())
+        }
     }
 }
-
-// XXX TODO OK now deposit and withdraw
-// i think the only big open quuestion is if i need to approve the transfer or what
-// umm... hm I can probably do a normal xfer with cpi
 
 #[derive(Accounts)]
 pub struct New<'info> {
@@ -120,4 +120,22 @@ pub struct New<'info> {
     // XXX i hate including this but i need a full account info object for the program
     // and it seems more reasonable to let it do this than do it yourselves
     pub prog: AccountInfo<'info>,
+}
+
+#[derive(Accounts)]
+pub struct Deposit<'info> {
+    // TODO i should use approval and xferfrom so user doesnt sign
+    #[account(signer)]
+    pub user: AccountInfo<'info>,
+    #[account(mut)]
+    pub deposit_account: AccountInfo<'info>,
+    #[account(mut)]
+    pub redeemable_mint: AccountInfo<'info>,
+    #[account(mut)]
+    pub user_coin: AccountInfo<'info>,
+    #[account(mut)]
+    pub user_redeemable: AccountInfo<'info>,
+    // TODO enforce correct
+    pub sys: AccountInfo<'info>,
+    pub tok: AccountInfo<'info>,
 }
