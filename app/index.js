@@ -7,7 +7,7 @@ const spl = require("@solana/spl-token");
 // these i have to change based on the whims of solana
 const PROGRAM_ID = process.argv[2];
 if(!PROGRAM_ID) throw "specify program id";
-const TEST_MINT = "5q1afYmUsviGFyfoLQ1EgiSLfgPwAD7g7QecDfjQGRzh";
+const TEST_MINT = "8teNo9g6MtV5RW7J2fPj1ZrhBgaaTdinSoSPGcCWjxPL";
 
 // this is theoretically constant everywhere
 const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
@@ -28,7 +28,7 @@ async function main() {
     let redeemableMintKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("REDEEMABLE")], programKey))[0];
     let depositAccountKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("DEPOSIT")], programKey))[0];
 
-    await program.rpc.initialize({
+    await program.state.rpc.new({
         accounts: {
             payer: provider.wallet.publicKey,
             redeemableMint: redeemableMintKey,
@@ -55,7 +55,11 @@ async function main() {
         */
     });
 
-    console.log("done!");
+    console.log("initialized!");
+
+    let state = await program.state.fetch();
+
+    console.log("state:", state);
 }
 
 main();

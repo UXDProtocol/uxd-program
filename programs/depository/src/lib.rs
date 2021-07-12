@@ -5,6 +5,7 @@ use spl_token::instruction::{ initialize_account, initialize_mint };
 
 const RSEEDWORD: &[u8] = b"REDEEMABLE";
 const DSEEDWORD: &[u8] = b"DEPOSIT";
+const MINT_DECIMAL: u8 = 9;
 
 // annoyingly the spl program does not expose these as constants
 const MINT_SPAN: u64 = 82;
@@ -37,74 +38,74 @@ pub mod depository {
     // but for deposit and withdraw we cant check that say a btc address is btc
     // whatever. close enough
 
-    /*
     #[state]
     pub struct Depository {
-        pub currency: Pubkey,
+        pub deposit_mint: Pubkey,
+        pub redeemable_mint: Pubkey,
+        pub deposit_account: Pubkey,
     }
 
     impl Depository {
-        pub fn new(ctx: Context<New>, currency: Pubkey) -> Result<Self> {
+        // creates a redeemable mint and a coin account
+        pub fn new(ctx: Context<New>) -> Result<Self, ProgramError> {
+            let accounts = ctx.accounts.to_account_infos();
+
+            // create redeemable token mint
+            // XXX anchor pda abstraction forces you to associate pdas with user wallets
+            // so its do it by hand or hardcode a fake value zzz
+            // XXX anchor also doesnt let you init accounts without a struct i think
+            // regardless they force the discriminator in it so its unsuable
+            // XXX because they want you using their macros they also dont expose create_account
+            let (raddr, rctr) = Pubkey::find_program_address(&[RSEEDWORD], ctx.program_id);
+            let rseed: &[&[&[u8]]] = &[&[RSEEDWORD, &[rctr]]];
+            let rrent = ctx.accounts.rent.minimum_balance(MINT_SPAN as usize);
+            let ix1 = create_account(ctx.accounts.payer.key, &raddr, rrent, MINT_SPAN, ctx.accounts.tok.key);
+            invoke_signed(&ix1, &accounts, rseed)?;
+
+            // now do the same for our account
+            let (daddr, dctr) = Pubkey::find_program_address(&[DSEEDWORD], ctx.program_id);
+            let dseed: &[&[&[u8]]] = &[&[DSEEDWORD, &[dctr]]];
+            let drent = ctx.accounts.rent.minimum_balance(ACCOUNT_SPAN as usize);
+            let ix2 = create_account(ctx.accounts.payer.key, &daddr, drent, ACCOUNT_SPAN, ctx.accounts.tok.key);
+            invoke_signed(&ix2, &accounts, dseed)?;
+
+            // now we initialize them
+            // XXX anchor_spl does not have initialize_mint
+            // and i may as well use the normal thing for both so i dont have more needless clones
+            let ix3 = initialize_mint(
+                &spl_token::ID,
+                &raddr,
+                ctx.program_id,
+                Some(ctx.program_id),
+                MINT_DECIMAL,
+            )?;
+            invoke_signed(&ix3, &accounts, rseed)?;
+
+            // and again
+            let ix4 = initialize_account(
+                &spl_token::ID,
+                &daddr,
+                ctx.accounts.deposit_mint.key,
+                ctx.program_id,
+            )?;
+            invoke_signed(&ix4, &accounts, dseed)?;
+
+            // we store raddr and daddr to avoid recalculating them
+            Ok(Self {
+                deposit_mint: *ctx.accounts.deposit_mint.key,
+                redeemable_mint: raddr,
+                deposit_account: daddr,
+            })
         }
-    }
-    */
-
-    // oook this will be the new fn once i set up state struct but...
-    // for now whats this do. takes a coin mint as a argument
-    // creates a redeemable mint and a coin account
-    pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
-        let accounts = ctx.accounts.to_account_infos();
-
-        // create redeemable token mint
-        // XXX anchor pda abstraction forces you to associate pdas with user wallets
-        // so its do it by hand or hardcode a fake value zzz
-        // XXX anchor also doesnt let you init accounts without a struct i think
-        // regardless they force the discriminator in it so its unsuable
-        // XXX because they want you using their macros they also dont expose create_account
-        let (raddr, rctr) = Pubkey::find_program_address(&[RSEEDWORD], ctx.program_id);
-        let rseed: &[&[&[u8]]] = &[&[RSEEDWORD, &[rctr]]];
-        let rrent = ctx.accounts.rent.minimum_balance(MINT_SPAN as usize);
-        let ix1 = create_account(ctx.accounts.payer.key, &raddr, rrent, MINT_SPAN, ctx.accounts.tok.key);
-        invoke_signed(&ix1, &accounts, rseed)?;
-
-        // now do the same for our account
-        let (daddr, dctr) = Pubkey::find_program_address(&[DSEEDWORD], ctx.program_id);
-        let dseed: &[&[&[u8]]] = &[&[DSEEDWORD, &[dctr]]];
-        let drent = ctx.accounts.rent.minimum_balance(ACCOUNT_SPAN as usize);
-        let ix2 = create_account(ctx.accounts.payer.key, &daddr, drent, ACCOUNT_SPAN, ctx.accounts.tok.key);
-        invoke_signed(&ix2, &accounts, dseed)?;
-
-        // now we initialize them
-        // XXX anchor_spl does not have initialize_mint
-        // and i may as well use the normal thing for both so i dont have more needless clones
-        let ix3 = initialize_mint(
-            &spl_token::ID,
-            &raddr,
-            ctx.program_id,
-            Some(ctx.program_id),
-            9,
-        )?;
-        invoke_signed(&ix3, &accounts, rseed)?;
-
-        // and again
-        let ix4 = initialize_account(
-            &spl_token::ID,
-            &daddr,
-            ctx.accounts.deposit_mint.key,
-            ctx.program_id,
-        )?;
-        invoke_signed(&ix4, &accounts, dseed)?;
-
-        // TODO when i make a state struct store the addresses there
-        // that way we dont need to recalculate them
-        // XXX we cannot use the seeds constraint because it doesnt support bumps. lmao
-
-        Ok(())
     }
 }
 
+// XXX TODO OK now deposit and withdraw
+// i think the only big open quuestion is if i need to approve the transfer or what
+// umm... hm I can probably do a normal xfer with cpi
+
 #[derive(Accounts)]
-pub struct Initialize<'info> {
+pub struct New<'info> {
     #[account(signer, mut)]
     pub payer: AccountInfo<'info>,
     #[account(mut)]
