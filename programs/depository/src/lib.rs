@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, InitializeAccount};
+use anchor_spl::token::{self, MintTo, Transfer};
 use solana_program::{ system_instruction::create_account, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
 
@@ -15,31 +15,10 @@ const ACCOUNT_SPAN: u64 = 165;
 pub mod depository {
     use super::*;
 
-    // XXX oki i can make accounts and initialize them etc what *actually* do i need to do
-    // talked to patrick and he wants to do these as singletons which makes things simple
-    // * new: accept coin mint address. init a redeemable mint and a coin account
-    // * deposit: stick the coins in the account, mint redeemables
-    // * withdraw: take and burn the redeemables, return the coin
-    // we dont need to track user balances or whatever, redeemables are bearer instruments
-    // i think i need to approve the transfer for the program to do it?
-    // or else it may just mean that i dont need the user as a signer
-
-    // uhh ok so how tf does this work
-    // mint and deposit need to be pdas obviously
-    // we pass in the btc mint address in new
-    // then both new accounts are derived from that...
-    // man this is so confusing
-
-    // their pda macros are fucking stupid the way i have to do this is
-    // new: pass in btc mint address, store it in state
-    // create a pda for the redeemable mint and a pda for the btc deposit address
-    // this means we much perform four cpi calls. two creates two inits
-    // we can still use the seed guards i thiiink to make sure our addresses are right
-    // but for deposit and withdraw we cant check that say a btc address is btc
-    // whatever. close enough
-
     #[state]
     pub struct Depository {
+        pub dummy_signer: Pubkey,
+        pub dummy_bump: u8,
         pub deposit_mint: Pubkey,
         pub redeemable_mint: Pubkey,
         pub deposit_account: Pubkey,
@@ -49,6 +28,9 @@ pub mod depository {
         // creates a redeemable mint and a coin account
         pub fn new(ctx: Context<New>) -> Result<Self, ProgramError> {
             let accounts = ctx.accounts.to_account_infos();
+
+            // XXX unless theres a backdoor function im missing, you cant sign for program_id
+            let (dummy_addr, dummy_ctr) = Pubkey::find_program_address(&[], ctx.program_id);
 
             // create redeemable token mint
             // XXX anchor pda abstraction forces you to associate pdas with user wallets
@@ -71,12 +53,13 @@ pub mod depository {
 
             // now we initialize them
             // XXX anchor_spl does not have initialize_mint
-            // and i may as well use the normal thing for both so i dont have more needless clones
+            // TODO impl and pr it later
+            // may as well use the normal thing for both so i dont have more needless clones
             let ix3 = initialize_mint(
                 &spl_token::ID,
                 &raddr,
-                ctx.program_id,
-                Some(ctx.program_id),
+                &dummy_addr,
+                Some(&dummy_addr),
                 MINT_DECIMAL,
             )?;
             invoke_signed(&ix3, &accounts, rseed)?;
@@ -86,28 +69,56 @@ pub mod depository {
                 &spl_token::ID,
                 &daddr,
                 ctx.accounts.deposit_mint.key,
-                ctx.program_id,
+                &dummy_addr,
             )?;
             invoke_signed(&ix4, &accounts, dseed)?;
 
             // we store raddr and daddr to avoid recalculating them
             Ok(Self {
+                dummy_signer: dummy_addr,
+                dummy_bump: dummy_ctr,
                 deposit_mint: *ctx.accounts.deposit_mint.key,
                 redeemable_mint: raddr,
                 deposit_account: daddr,
             })
         }
 
-        pub fn deposit(&self, ctx: Context<Deposit>) -> ProgramResult {
+        // transfer coin from user_coin to deposit_account
+        // mint equivalent amount from redeemable_mint to user_redeemable
+        pub fn deposit(&self, ctx: Context<Deposit>, amount: u64) -> ProgramResult {
+            let transfer_accounts = Transfer {
+                from: ctx.accounts.user_coin.clone(),
+                to: ctx.accounts.deposit_account.clone(),
+                authority: ctx.accounts.user.clone(),
+            };
+
+            let transfer_ctx = CpiContext::new(ctx.accounts.tok.clone(), transfer_accounts);
+            token::transfer(transfer_ctx, amount)?;
+
+            let mint_accounts = MintTo {
+                mint: ctx.accounts.redeemable_mint.clone(),
+                to: ctx.accounts.user_redeemable.clone(),
+                authority: ctx.accounts.dummy.clone(),
+            };
+
+            let dummy_seed: &[&[&[u8]]] = &[&[&[self.dummy_bump]]];
+            let mint_ctx = CpiContext::new_with_signer(ctx.accounts.tok.clone(), mint_accounts, dummy_seed);
+            token::mint_to(mint_ctx, amount)?;
+
             Ok(())
         }
+
+        // TODO withdraw. there is nothing novel its just an inversion of deposit with burn
     }
 }
+
+// TODO for all methods, need to do whatever sanity checks for account bullshit
 
 #[derive(Accounts)]
 pub struct New<'info> {
     #[account(signer, mut)]
     pub payer: AccountInfo<'info>,
+    pub dummy: AccountInfo<'info>,
     #[account(mut)]
     pub redeemable_mint: AccountInfo<'info>,
     #[account(mut)]
@@ -127,6 +138,7 @@ pub struct Deposit<'info> {
     // TODO i should use approval and xferfrom so user doesnt sign
     #[account(signer)]
     pub user: AccountInfo<'info>,
+    pub dummy: AccountInfo<'info>,
     #[account(mut)]
     pub deposit_account: AccountInfo<'info>,
     #[account(mut)]
@@ -138,4 +150,6 @@ pub struct Deposit<'info> {
     // TODO enforce correct
     pub sys: AccountInfo<'info>,
     pub tok: AccountInfo<'info>,
+    // FIXME ok seriously look up how to convert program id to a account info lol
+    pub prog: AccountInfo<'info>,
 }

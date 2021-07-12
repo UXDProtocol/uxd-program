@@ -8,6 +8,7 @@ const spl = require("@solana/spl-token");
 const PROGRAM_ID = process.argv[2];
 if(!PROGRAM_ID) throw "specify program id";
 const TEST_MINT = "8teNo9g6MtV5RW7J2fPj1ZrhBgaaTdinSoSPGcCWjxPL";
+const MINT_DECIMAL = 9;
 
 // this is theoretically constant everywhere
 const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
@@ -38,8 +39,12 @@ async function main() {
 
     // anchor insists on including wallet addresses in derived accounts
     // so i cant use their fucntions intended for this
+    let dummyKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.alloc(0)], programKey))[0];
     let redeemableMintKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("REDEEMABLE")], programKey))[0];
     let depositAccountKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("DEPOSIT")], programKey))[0];
+
+    console.log("program authority:", dummyKey.toString());
+    console.log("redeemable mint:", redeemableMintKey.toString());
 
     // standard spl associated accounts
     let walletCoinKey = await findAssocTokenAddr(provider.wallet.publicKey, depositMintKey);
@@ -50,6 +55,7 @@ async function main() {
     await program.state.rpc.new({
         accounts: {
             payer: provider.wallet.publicKey,
+            dummy: dummyKey,
             redeemableMint: redeemableMintKey,
             depositAccount: depositAccountKey,
             depositMint: depositMintKey,
@@ -89,15 +95,17 @@ async function main() {
         ]
     }
 
-    await program.state.rpc.deposit({
+    await program.state.rpc.deposit(new anchor.BN(1 * 10**MINT_DECIMAL), {
         accounts: {
             user: provider.wallet.publicKey,
+            dummy: dummyKey,
             depositAccount: depositAccountKey,
             redeemableMint: redeemableMintKey,
             userCoin: walletCoinKey,
             userRedeemable: walletRedeemableKey,
             sys: anchor.web3.SystemProgram.programId,
             tok: tokenProgramKey,
+            prog: programKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
