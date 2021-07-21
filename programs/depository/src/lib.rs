@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
+use anchor_lang::Key;
 use anchor_spl::token::{self, Mint, TokenAccount, MintTo, Transfer};
-use solana_program::{ system_instruction::create_account, program::invoke_signed };
+use solana_program::{ system_program, system_instruction::create_account, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
 
 const RSEEDWORD: &[u8] = b"REDEEMABLE";
@@ -33,7 +34,6 @@ pub mod depository {
         // creates a redeemable mint and a coin account
         pub fn new(ctx: Context<New>) -> Result<Self, ProgramError> {
             let accounts = ctx.accounts.to_account_infos();
-            let deposit_mint_addr = ctx.accounts.deposit_mint.to_account_info().key;
 
             // generate an address we can sign for to own the accounts
             let (dummy_addr, dummy_ctr) = Pubkey::find_program_address(&[], ctx.program_id);
@@ -74,7 +74,7 @@ pub mod depository {
             let ix4 = initialize_account(
                 &spl_token::ID,
                 &daddr,
-                deposit_mint_addr,
+                &ctx.accounts.deposit_mint.key(),
                 &dummy_addr,
             )?;
             invoke_signed(&ix4, &accounts, dseed)?;
@@ -83,7 +83,7 @@ pub mod depository {
             Ok(Self {
                 dummy_signer: dummy_addr,
                 dummy_bump: dummy_ctr,
-                deposit_mint: *deposit_mint_addr,
+                deposit_mint: ctx.accounts.deposit_mint.key(),
                 redeemable_mint: raddr,
                 deposit_account: daddr,
             })
@@ -137,8 +137,10 @@ pub struct New<'info> {
     // rent sysvar
     pub rent: Sysvar<'info, Rent>,
     // system program
+    #[account(constraint = sys.key() == system_program::ID)]
     pub sys: AccountInfo<'info>,
     // spl token program
+    #[account(constraint = tok.key() == spl_token::ID)]
     pub tok: AccountInfo<'info>,
     // XXX i hate including this but i need a full account info object for the program
     // and it seems more reasonable to let it do this than do it yourselves
@@ -163,10 +165,13 @@ pub struct Deposit<'info> {
     #[account(mut)]
     pub user_coin: CpiAccount<'info, TokenAccount>,
     // user account to receive redeemables
-    #[account(mut)]
+    #[account(mut, constraint = user_redeemable.mint == redeemable_mint.key())]
     pub user_redeemable: CpiAccount<'info, TokenAccount>,
-    // TODO enforce correct
+    // system program
+    #[account(constraint = sys.key() == system_program::ID)]
     pub sys: AccountInfo<'info>,
+    // spl token program
+    #[account(constraint = tok.key() == spl_token::ID)]
     pub tok: AccountInfo<'info>,
     // FIXME ok seriously look up how to convert program id to a account info lol
     pub prog: AccountInfo<'info>,
