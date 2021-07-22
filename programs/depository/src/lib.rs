@@ -6,7 +6,6 @@ use spl_token::instruction::{ initialize_account, initialize_mint };
 
 const RSEEDWORD: &[u8] = b"REDEEMABLE";
 const DSEEDWORD: &[u8] = b"DEPOSIT";
-const MINT_DECIMAL: u8 = 9;
 
 // annoyingly the spl program does not expose these as constants
 const MINT_SPAN: u64 = 82;
@@ -58,15 +57,14 @@ pub mod depository {
             invoke_signed(&ix2, &accounts, dseed)?;
 
             // now we initialize them
-            // XXX anchor_spl does not have initialize_mint
-            // TODO impl and pr it later
-            // may as well use the normal thing for both so i dont have more needless clones
+            // TODO anchor-spl implemented its own initialize_mint but it's not in a release (as of 7/22)
+            // swap impls when it drops? idk im gonna be honest its more verbose and more copies for no real gain
             let ix3 = initialize_mint(
                 &spl_token::ID,
                 &raddr,
                 &dummy_addr,
                 Some(&dummy_addr),
-                MINT_DECIMAL,
+                ctx.accounts.deposit_mint.decimals,
             )?;
             invoke_signed(&ix3, &accounts, rseed)?;
 
@@ -114,7 +112,9 @@ pub mod depository {
             Ok(())
         }
 
-        // TODO withdraw. there is nothing novel its just an inversion of deposit with burn
+        // burn an amount of 
+        //pub fn withdraw(&self, ctx: Context<Withdraw>, amount: u64) -> ProgramResult {
+        //}
 
     }
 }
@@ -142,8 +142,8 @@ pub struct New<'info> {
     // spl token program
     #[account(constraint = tok.key() == spl_token::ID)]
     pub tok: AccountInfo<'info>,
-    // XXX i hate including this but i need a full account info object for the program
-    // and it seems more reasonable to let it do this than do it yourselves
+    // this program
+    #[account(constraint = prog.key() == *program_id)]
     pub prog: AccountInfo<'info>,
 }
 
@@ -173,6 +173,7 @@ pub struct Deposit<'info> {
     // spl token program
     #[account(constraint = tok.key() == spl_token::ID)]
     pub tok: AccountInfo<'info>,
-    // FIXME ok seriously look up how to convert program id to a account info lol
+    // this program
+    #[account(constraint = prog.key() == *program_id)]
     pub prog: AccountInfo<'info>,
 }
