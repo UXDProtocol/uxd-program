@@ -7,7 +7,7 @@ const spl = require("@solana/spl-token");
 // these i have to change based on the whims of solana
 const PROGRAM_ID = process.argv[2];
 if(!PROGRAM_ID) throw "specify program id";
-const TEST_MINT = "8teNo9g6MtV5RW7J2fPj1ZrhBgaaTdinSoSPGcCWjxPL";
+const TEST_MINT = "AG76P5h5aqw3QWFBhwKz8cFfmFMsHoDeVyhm8exDKh4R";
 const MINT_DECIMAL = 9;
 
 // this is theoretically constant everywhere
@@ -39,11 +39,12 @@ async function main() {
 
     // anchor insists on including wallet addresses in derived accounts
     // so i cant use their fucntions intended for this
-    let dummyKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.alloc(0)], programKey))[0];
+    let stateKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("STATE")], programKey))[0];
     let redeemableMintKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("REDEEMABLE")], programKey))[0];
     let depositAccountKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("DEPOSIT")], programKey))[0];
 
-    console.log("program authority:", dummyKey.toString());
+    console.log("program id:", PROGRAM_ID);
+    console.log("program authority:", stateKey.toString());
     console.log("redeemable mint:", redeemableMintKey.toString());
 
     // standard spl associated accounts
@@ -52,15 +53,15 @@ async function main() {
 
     // set up the program
     // im deploying to a new address each time soo this is fine
-    await program.state.rpc.new({
+    await program.rpc.new({
         accounts: {
             payer: provider.wallet.publicKey,
-            dummy: dummyKey,
+            state: stateKey,
             redeemableMint: redeemableMintKey,
             depositAccount: depositAccountKey,
             depositMint: depositMintKey,
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-            sys: anchor.web3.SystemProgram.programId,
+            systemProgram: anchor.web3.SystemProgram.programId,
             tok: tokenProgramKey,
             prog: programKey,
         },
@@ -69,8 +70,6 @@ async function main() {
     });
 
     console.log("initialized!");
-
-    let state = await program.state.fetch();
 
     // ok now uhh i just wanna deposit and withdraw. may or may not have to set up the redeemable acct
     let redeemState = await provider.connection.getAccountInfo(walletRedeemableKey);
@@ -95,15 +94,15 @@ async function main() {
         ]
     }
 
-    await program.state.rpc.deposit(new anchor.BN(1 * 10**MINT_DECIMAL), {
+    await program.rpc.deposit(new anchor.BN(1 * 10**MINT_DECIMAL), {
         accounts: {
             user: provider.wallet.publicKey,
-            dummy: dummyKey,
+            state: stateKey,
             depositAccount: depositAccountKey,
             redeemableMint: redeemableMintKey,
             userCoin: walletCoinKey,
             userRedeemable: walletRedeemableKey,
-            sys: anchor.web3.SystemProgram.programId,
+            systemProgram: anchor.web3.SystemProgram.programId,
             tok: tokenProgramKey,
             prog: programKey,
         },
