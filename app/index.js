@@ -14,7 +14,8 @@ const MINT_DECIMAL = 9;
 const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 const ASSOC_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 
-const TXN_OPTS = {commitment: "processed", preflightCommitment: "processed", skipPreflight: true};
+const TXN_COMMIT = "processed";
+const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipPreflight: false};
 
 const programKey = new anchor.web3.PublicKey(PROGRAM_ID);
 const depositMintKey = new anchor.web3.PublicKey(TEST_MINT);
@@ -58,12 +59,12 @@ async function main() {
             payer: provider.wallet.publicKey,
             state: stateKey,
             redeemableMint: redeemableMintKey,
-            depositAccount: depositAccountKey,
-            depositMint: depositMintKey,
+            programCoin: depositAccountKey,
+            coinMint: depositMintKey,
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
             systemProgram: anchor.web3.SystemProgram.programId,
-            tok: tokenProgramKey,
-            prog: programKey,
+            tokenProgram: tokenProgramKey,
+            program: programKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
@@ -94,22 +95,27 @@ async function main() {
         ]
     }
 
+    console.log("user token balance before deposit:", (await provider.connection.getTokenAccountBalance(walletCoinKey, TXN_COMMIT))["value"]["uiAmount"]);
+
     await program.rpc.deposit(new anchor.BN(1 * 10**MINT_DECIMAL), {
         accounts: {
             user: provider.wallet.publicKey,
             state: stateKey,
-            depositAccount: depositAccountKey,
+            programCoin: depositAccountKey,
             redeemableMint: redeemableMintKey,
             userCoin: walletCoinKey,
             userRedeemable: walletRedeemableKey,
             systemProgram: anchor.web3.SystemProgram.programId,
-            tok: tokenProgramKey,
-            prog: programKey,
+            tokenProgram: tokenProgramKey,
+            program: programKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
         instructions: depositIxns,
     });
+
+    console.log("user token balance after deposit:", (await provider.connection.getTokenAccountBalance(walletCoinKey, TXN_COMMIT))["value"]["uiAmount"]);
+
 }
 
 main();

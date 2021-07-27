@@ -41,14 +41,14 @@ pub mod depository {
         let (raddr, rctr) = Pubkey::find_program_address(&[RSEEDWORD], ctx.program_id);
         let rseed: &[&[&[u8]]] = &[&[RSEEDWORD, &[rctr]]];
         let rrent = ctx.accounts.rent.minimum_balance(MINT_SPAN as usize);
-        let ix1 = create_account(ctx.accounts.payer.key, &raddr, rrent, MINT_SPAN, ctx.accounts.tok.key);
+        let ix1 = create_account(ctx.accounts.payer.key, &raddr, rrent, MINT_SPAN, ctx.accounts.token_program.key);
         invoke_signed(&ix1, &accounts, rseed)?;
 
         // now do the same for our account
         let (daddr, dctr) = Pubkey::find_program_address(&[DSEEDWORD], ctx.program_id);
         let dseed: &[&[&[u8]]] = &[&[DSEEDWORD, &[dctr]]];
         let drent = ctx.accounts.rent.minimum_balance(ACCOUNT_SPAN as usize);
-        let ix2 = create_account(ctx.accounts.payer.key, &daddr, drent, ACCOUNT_SPAN, ctx.accounts.tok.key);
+        let ix2 = create_account(ctx.accounts.payer.key, &daddr, drent, ACCOUNT_SPAN, ctx.accounts.token_program.key);
         invoke_signed(&ix2, &accounts, dseed)?;
 
         // now we initialize them
@@ -60,7 +60,7 @@ pub mod depository {
             &state_addr,
             // XXX it may be desirable to repudiate freeze
             Some(&state_addr),
-            ctx.accounts.deposit_mint.decimals,
+            ctx.accounts.coin_mint.decimals,
         )?;
         invoke_signed(&ix3, &accounts, rseed)?;
 
@@ -68,30 +68,34 @@ pub mod depository {
         let ix4 = initialize_account(
             &spl_token::ID,
             &daddr,
-            &ctx.accounts.deposit_mint.key(),
+            &ctx.accounts.coin_mint.key(),
             &state_addr,
         )?;
         invoke_signed(&ix4, &accounts, dseed)?;
 
         // store stuff in our state account now
         ctx.accounts.state.bump = state_ctr;
-        ctx.accounts.state.deposit_mint = ctx.accounts.deposit_mint.key();
-        ctx.accounts.state.redeemable_mint = raddr;
-        ctx.accounts.state.deposit_account = daddr;
+        ctx.accounts.state.coin_mint_key = ctx.accounts.coin_mint.key();
+        ctx.accounts.state.redeemable_mint_key = raddr;
+        ctx.accounts.state.program_coin_key = daddr;
 
         Ok(())
     }
 
-    // transfer coin from user_coin to deposit_account
+    // transfer coin from user_coin to program_coin
     // mint equivalent amount from redeemable_mint to user_redeemable
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> ProgramResult {
+        if amount == 0 {
+            return Err(DepositoryError::ZeroDeposit.into());
+        }
+
         let transfer_accounts = Transfer {
             from: ctx.accounts.user_coin.to_account_info(),
-            to: ctx.accounts.deposit_account.to_account_info(),
+            to: ctx.accounts.program_coin.to_account_info(),
             authority: ctx.accounts.user.clone(),
         };
 
-        let transfer_ctx = CpiContext::new(ctx.accounts.tok.clone(), transfer_accounts);
+        let transfer_ctx = CpiContext::new(ctx.accounts.token_program.clone(), transfer_accounts);
         token::transfer(transfer_ctx, amount)?;
 
         let mint_accounts = MintTo {
@@ -101,7 +105,7 @@ pub mod depository {
         };
 
         let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
-        let mint_ctx = CpiContext::new_with_signer(ctx.accounts.tok.clone(), mint_accounts, state_seed);
+        let mint_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.clone(), mint_accounts, state_seed);
         token::mint_to(mint_ctx, amount)?;
 
         Ok(())
@@ -131,20 +135,20 @@ pub struct New<'info> {
     pub redeemable_mint: AccountInfo<'info>,
     // program account that coins are deposited into
     #[account(mut)]
-    pub deposit_account: AccountInfo<'info>,
+    pub program_coin: AccountInfo<'info>,
     // mint for coins this depository accepts
-    pub deposit_mint: CpiAccount<'info, Mint>,
+    pub coin_mint: CpiAccount<'info, Mint>,
     // rent sysvar
     pub rent: Sysvar<'info, Rent>,
     // system program
     #[account(constraint = system_program.key() == system::ID)]
     pub system_program: AccountInfo<'info>,
     // spl token program
-    #[account(constraint = tok.key() == spl_token::ID)]
-    pub tok: AccountInfo<'info>,
+    #[account(constraint = token_program.key() == spl_token::ID)]
+    pub token_program: AccountInfo<'info>,
     // this program
-    #[account(constraint = prog.key() == *program_id)]
-    pub prog: AccountInfo<'info>,
+    #[account(constraint = program.key() == *program_id)]
+    pub program: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -157,7 +161,7 @@ pub struct Deposit<'info> {
     pub state: ProgramAccount<'info, State>,
     // program account for coin deposit
     #[account(mut)]
-    pub deposit_account: CpiAccount<'info, TokenAccount>,
+    pub program_coin: CpiAccount<'info, TokenAccount>,
     // mint for redeemable tokens
     #[account(mut)]
     pub redeemable_mint: CpiAccount<'info, Mint>,
@@ -171,18 +175,26 @@ pub struct Deposit<'info> {
     #[account(constraint = system_program.key() == system::ID)]
     pub system_program: AccountInfo<'info>,
     // spl token program
-    #[account(constraint = tok.key() == spl_token::ID)]
-    pub tok: AccountInfo<'info>,
+    #[account(constraint = token_program.key() == spl_token::ID)]
+    pub token_program: AccountInfo<'info>,
     // this program
-    #[account(constraint = prog.key() == *program_id)]
-    pub prog: AccountInfo<'info>,
+    #[account(constraint = program.key() == *program_id)]
+    pub program: AccountInfo<'info>,
 }
 
 #[account]
 #[derive(Default)]
 pub struct State {
     pub bump: u8,
-    pub deposit_mint: Pubkey,
-    pub redeemable_mint: Pubkey,
-    pub deposit_account: Pubkey,
+    pub coin_mint_key: Pubkey,
+    pub redeemable_mint_key: Pubkey,
+    pub program_coin_key: Pubkey,
+}
+
+#[error]
+pub enum DepositoryError {
+    #[msg("zero deposit not allowed")]
+    ZeroDeposit,
+    #[msg("zero withdraw not allowed")]
+    ZeroWithdraw,
 }
