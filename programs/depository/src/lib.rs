@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
-use anchor_spl::token::{self, Mint, TokenAccount, MintTo, Transfer};
+use anchor_spl::token::{self, Mint, TokenAccount, MintTo, Transfer, Burn};
 use solana_program::{ system_program as system, system_instruction::create_account, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
 
@@ -112,8 +112,36 @@ pub mod depository {
     }
 
     // burn an amount of redeemable in exchange for a withdrawl of coin
-    //pub fn withdraw(&self, ctx: Context<Withdraw>, amount: u64) -> ProgramResult {
-    //}
+    pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> ProgramResult {
+        if amount == 0 {
+            return Err(DepositoryError::ZeroWithdraw.into());
+        }
+
+        if amount > ctx.accounts.user_redeemable.amount {
+            return Err(DepositoryError::InsufficientCredit.into());
+        }
+
+        let burn_accounts = Burn {
+            mint: ctx.accounts.redeemable_mint.to_account_info(),
+            to: ctx.accounts.user_redeemable.to_account_info(),
+            authority: ctx.accounts.user.clone(),
+        };
+
+        let burn_ctx = CpiContext::new(ctx.accounts.token_program.clone(), burn_accounts);
+        token::burn(burn_ctx, amount)?;
+
+        let transfer_accounts = Transfer {
+            from: ctx.accounts.program_coin.to_account_info(),
+            to: ctx.accounts.user_coin.to_account_info(),
+            authority: ctx.accounts.state.to_account_info(),
+        };
+
+        let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
+        let transfer_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.clone(), transfer_accounts, state_seed);
+        token::transfer(transfer_ctx, amount)?;
+
+        Ok(())
+    }
 
 }
 
@@ -182,6 +210,37 @@ pub struct Deposit<'info> {
     pub program: AccountInfo<'info>,
 }
 
+#[derive(Accounts)]
+pub struct Withdraw<'info> {
+    // the user withdrawing funds
+    // TODO i should use approval and xferfrom so user doesnt sign
+    #[account(signer)]
+    pub user: AccountInfo<'info>,
+    // this program signing and state account
+    pub state: ProgramAccount<'info, State>,
+    // program account withdrawing coins from
+    #[account(mut)]
+    pub program_coin: CpiAccount<'info, TokenAccount>,
+    // mint for redeemable tokens
+    #[account(mut)]
+    pub redeemable_mint: CpiAccount<'info, Mint>,
+    // user account for coin withdrawal
+    #[account(mut)]
+    pub user_coin: CpiAccount<'info, TokenAccount>,
+    // user account sending redeemables
+    #[account(mut, constraint = user_redeemable.mint == redeemable_mint.key())]
+    pub user_redeemable: CpiAccount<'info, TokenAccount>,
+    // system program
+    #[account(constraint = system_program.key() == system::ID)]
+    pub system_program: AccountInfo<'info>,
+    // spl token program
+    #[account(constraint = token_program.key() == spl_token::ID)]
+    pub token_program: AccountInfo<'info>,
+    // this program
+    #[account(constraint = program.key() == *program_id)]
+    pub program: AccountInfo<'info>,
+}
+
 #[account]
 #[derive(Default)]
 pub struct State {
@@ -191,10 +250,13 @@ pub struct State {
     pub program_coin_key: Pubkey,
 }
 
+// TODO should i just do all this as constraints?
 #[error]
 pub enum DepositoryError {
     #[msg("zero deposit not allowed")]
     ZeroDeposit,
     #[msg("zero withdraw not allowed")]
     ZeroWithdraw,
+    #[msg("insufficient redeemable balance")]
+    InsufficientCredit,
 }

@@ -52,6 +52,14 @@ async function main() {
     let walletCoinKey = await findAssocTokenAddr(provider.wallet.publicKey, depositMintKey);
     let walletRedeemableKey = await findAssocTokenAddr(provider.wallet.publicKey, redeemableMintKey);
 
+    async function printBalances(skipRed) {
+        let userCoin = (await provider.connection.getTokenAccountBalance(walletCoinKey, TXN_COMMIT))["value"]["uiAmount"];
+        let userRedeemable = skipRed ? 0 : (await provider.connection.getTokenAccountBalance(walletRedeemableKey, TXN_COMMIT))["value"]["uiAmount"];
+        let programCoin = (await provider.connection.getTokenAccountBalance(depositAccountKey, TXN_COMMIT))["value"]["uiAmount"];
+
+        console.log(`* user balance: ${userCoin}\n* user redeemable: ${userRedeemable}\n* program balance: ${programCoin}\n\n`);
+    }
+
     // set up the program
     // im deploying to a new address each time soo this is fine
     await program.rpc.new({
@@ -95,7 +103,8 @@ async function main() {
         ]
     }
 
-    console.log("user token balance before deposit:", (await provider.connection.getTokenAccountBalance(walletCoinKey, TXN_COMMIT))["value"]["uiAmount"]);
+    console.log("BEFORE DEPOSIT");
+    printBalances(true);
 
     await program.rpc.deposit(new anchor.BN(1 * 10**MINT_DECIMAL), {
         accounts: {
@@ -114,7 +123,27 @@ async function main() {
         instructions: depositIxns,
     });
 
-    console.log("user token balance after deposit:", (await provider.connection.getTokenAccountBalance(walletCoinKey, TXN_COMMIT))["value"]["uiAmount"]);
+    console.log("AFTER DEPOSIT");
+    printBalances();
+
+    await program.rpc.withdraw(new anchor.BN(1 * 10**MINT_DECIMAL), {
+        accounts: {
+            user: provider.wallet.publicKey,
+            state: stateKey,
+            programCoin: depositAccountKey,
+            redeemableMint: redeemableMintKey,
+            userCoin: walletCoinKey,
+            userRedeemable: walletRedeemableKey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: tokenProgramKey,
+            program: programKey,
+        },
+        signers: [provider.wallet.payer],
+        options: TXN_OPTS,
+    });
+
+    console.log("AFTER WITHDRAW");
+    printBalances();
 
 }
 
