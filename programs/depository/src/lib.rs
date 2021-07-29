@@ -85,10 +85,6 @@ pub mod depository {
     // transfer coin from user_coin to program_coin
     // mint equivalent amount from redeemable_mint to user_redeemable
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> ProgramResult {
-        if amount == 0 {
-            return Err(DepositoryError::ZeroDeposit.into());
-        }
-
         let transfer_accounts = Transfer {
             from: ctx.accounts.user_coin.to_account_info(),
             to: ctx.accounts.program_coin.to_account_info(),
@@ -113,14 +109,6 @@ pub mod depository {
 
     // burn an amount of redeemable in exchange for a withdrawl of coin
     pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> ProgramResult {
-        if amount == 0 {
-            return Err(DepositoryError::ZeroWithdraw.into());
-        }
-
-        if amount > ctx.accounts.user_redeemable.amount {
-            return Err(DepositoryError::InsufficientCredit.into());
-        }
-
         let burn_accounts = Burn {
             mint: ctx.accounts.redeemable_mint.to_account_info(),
             to: ctx.accounts.user_redeemable.to_account_info(),
@@ -155,7 +143,7 @@ pub struct New<'info> {
         init,
         seeds = [STATE_SEED.as_ref()],
         bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
-        payer = payer
+        payer = payer,
     )]
     pub state: ProgramAccount<'info, State>,
     // mint for bearer tokens representing deposited balances
@@ -180,24 +168,35 @@ pub struct New<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(amount: u64)]
 pub struct Deposit<'info> {
     // the user depositing funds
     // TODO i should use approval and xferfrom so user doesnt sign
     #[account(signer)]
     pub user: AccountInfo<'info>,
     // this program signing and state account
+    #[account(
+        seeds = [STATE_SEED.as_ref()],
+        bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
+        payer = payer,
+    )]
     pub state: ProgramAccount<'info, State>,
     // program account for coin deposit
-    #[account(mut)]
+    #[account(mut, constraint = program_coin.key() == state.program_coin_key)]
     pub program_coin: CpiAccount<'info, TokenAccount>,
     // mint for redeemable tokens
-    #[account(mut)]
+    #[account(mut, constraint = redeemable_mint.key() == state.redeemable_mint_key)]
     pub redeemable_mint: CpiAccount<'info, Mint>,
     // user account depositing coins
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = user_coin.mint == state.coin_mint_key,
+        constraint = amount > 0,
+        constraint = user_coin.amount >= amount,
+    )]
     pub user_coin: CpiAccount<'info, TokenAccount>,
     // user account to receive redeemables
-    #[account(mut, constraint = user_redeemable.mint == redeemable_mint.key())]
+    #[account(mut, constraint = user_redeemable.mint == state.redeemable_mint_key)]
     pub user_redeemable: CpiAccount<'info, TokenAccount>,
     // system program
     #[account(constraint = system_program.key() == system::ID)]
@@ -211,24 +210,39 @@ pub struct Deposit<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(amount: u64)]
 pub struct Withdraw<'info> {
     // the user withdrawing funds
     // TODO i should use approval and xferfrom so user doesnt sign
     #[account(signer)]
     pub user: AccountInfo<'info>,
     // this program signing and state account
+    #[account(
+        seeds = [STATE_SEED.as_ref()],
+        bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
+        payer = payer,
+    )]
     pub state: ProgramAccount<'info, State>,
     // program account withdrawing coins from
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = program_coin.key() == state.program_coin_key,
+        constraint = program_coin.amount >= amount
+    )]
     pub program_coin: CpiAccount<'info, TokenAccount>,
     // mint for redeemable tokens
-    #[account(mut)]
+    #[account(mut, constraint = redeemable_mint.key() == state.redeemable_mint_key)]
     pub redeemable_mint: CpiAccount<'info, Mint>,
     // user account for coin withdrawal
-    #[account(mut)]
+    #[account(mut, constraint = user_coin.mint == state.coin_mint_key)]
     pub user_coin: CpiAccount<'info, TokenAccount>,
     // user account sending redeemables
-    #[account(mut, constraint = user_redeemable.mint == redeemable_mint.key())]
+    #[account(
+        mut,
+        constraint = user_redeemable.mint == state.redeemable_mint_key,
+        constraint = amount > 0,
+        constraint = user_redeemable.amount >= amount,
+    )]
     pub user_redeemable: CpiAccount<'info, TokenAccount>,
     // system program
     #[account(constraint = system_program.key() == system::ID)]
@@ -248,15 +262,4 @@ pub struct State {
     pub coin_mint_key: Pubkey,
     pub redeemable_mint_key: Pubkey,
     pub program_coin_key: Pubkey,
-}
-
-// TODO should i just do all this as constraints?
-#[error]
-pub enum DepositoryError {
-    #[msg("zero deposit not allowed")]
-    ZeroDeposit,
-    #[msg("zero withdraw not allowed")]
-    ZeroWithdraw,
-    #[msg("insufficient redeemable balance")]
-    InsufficientCredit,
 }
