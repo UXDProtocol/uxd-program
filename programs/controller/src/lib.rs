@@ -17,17 +17,17 @@ pub mod controller {
 
     /////// Instruction functions ///////
 
-    pub fn initialize(ctx: Context<New>) -> ProgramResult {
+    pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
         let accounts = ctx.accounts.to_account_infos();
 
         let (dummy_addr, dummy_ctr) = Pubkey::find_program_address(&[], ctx.program_id);
 
-        // // create uxd mint
-        // let (uxd_addr, uxd_ctr) = Pubkey::find_program_address(&[UXDSEEDWORD], ctx.program_id);
-        // let uxd_seed: &[&[&[u8]]] = &[&[UXDSEEDWORD, &[uxd_ctr]]];
-        // let uxd_rent = ctx.accounts.rent.minimum_balance(MINT_SPAN as usize);
-        // let uxd_i1 = create_account(ctx.accounts.payer.key, &uxd_addr, uxd_rent, MINT_SPAN. ctx.accounts.tok.key);
-        // invoke_signed(&uxd_i1, &accounts, uxd_seed)?;
+        // create uxd mint
+        let (uxd_addr, uxd_ctr) = Pubkey::find_program_address(&[UXDSEEDWORD], ctx.program_id);
+        let uxd_seed: &[&[&[u8]]] = &[&[UXDSEEDWORD, &[uxd_ctr]]];
+        let uxd_rent = ctx.accounts.rent.minimum_balance(MINT_SPAN as usize);
+        let uxd_i1 = create_account(ctx.accounts.payer.key, &uxd_addr, uxd_rent, MINT_SPAN, ctx.accounts.tok.key);
+        invoke_signed(&uxd_i1, &accounts, uxd_seed)?;
         //
         // let uxd_i2 = initialize_mint(
         //     &spl_token::ID,
@@ -134,6 +134,7 @@ pub mod controller {
         // single depository version
         #[account(mut)]
         pub depository: AccountInfo<'info>,
+        pub tok: AccountInfo<'info>,
 
         pub prog: AccountInfo<'info>,
     }
