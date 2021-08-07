@@ -26,32 +26,32 @@ pub mod controller {
         let (uxd_addr, uxd_ctr) = Pubkey::find_program_address(&[UXDSEEDWORD], ctx.program_id);
         let uxd_seed: &[&[&[u8]]] = &[&[UXDSEEDWORD, &[uxd_ctr]]];
         let uxd_rent = ctx.accounts.rent.minimum_balance(MINT_SPAN as usize);
-        let uxd_i1 = create_account(ctx.accounts.payer.key, &uxd_addr, uxd_rent, MINT_SPAN, ctx.accounts.tok.key);
+        let uxd_i1 = create_account(ctx.accounts.payer.key, &uxd_addr, uxd_rent, MINT_SPAN, ctx.accounts.token_program.key);
         invoke_signed(&uxd_i1, &accounts, uxd_seed)?;
-        //
-        // let uxd_i2 = initialize_mint(
-        //     &spl_token::ID,
-        //     &uxd_addr,
-        //     &dummy_addr,
-        //     Some(&dummy_addr),
-        //     MINT_DECIMAL,
-        // )?;
-        // invoke_signed(&uxd_i2, &accounts, uxd_seed)?;
-        //
-        // // create proxy account
-        // let (proxy_addr, proxy_ctr) = Pubkey::find_program_address(&[PROXYSEEDWORD], ctx.program_id);
-        // let proxy_seed: &[&[&[u8]]] = &[&[PROXYSEEDWORD, &[proxy_ctr]]];
-        // let proxy_rent = ctx.accounts.rent.minimum_balance(ACCOUNT_SPAN as usize);
-        // let proxy_i1 = create_account(ctx.accounts.payer.key, &proxy_addr, proxy_rent, ACCOUNT_SPAN, ctx.tok.key);
-        // invoke_signed(&proxy_i1, &accounts, dseed)?;
-        //
-        // //initialize proxy account
-        // let proxy_i2 = initialize_account(
-        //     &spl_token::ID,
-        //     &proxy_addr,
-        //     ctx.accounts.proxy_mint.key,
-        //     &dummy_addr,
-        // )?;
+
+        let uxd_i2 = initialize_mint(
+            &spl_token::ID,
+            &uxd_addr,
+            &dummy_addr,
+            Some(&dummy_addr),
+            MINT_DECIMAL,
+        )?;
+        invoke_signed(&uxd_i2, &accounts, uxd_seed)?;
+
+        // create proxy account
+        let (proxy_addr, proxy_ctr) = Pubkey::find_program_address(&[PROXYSEEDWORD], ctx.program_id);
+        let proxy_seed: &[&[&[u8]]] = &[&[PROXYSEEDWORD, &[proxy_ctr]]];
+        let proxy_rent = ctx.accounts.rent.minimum_balance(ACCOUNT_SPAN as usize);
+        let proxy_i1 = create_account(ctx.accounts.payer.key, &proxy_addr, proxy_rent, ACCOUNT_SPAN, ctx.accounts.token_program.key);
+        invoke_signed(&proxy_i1, &accounts, proxy_seed)?;
+
+        //initialize proxy account
+        let proxy_i2 = initialize_account(
+            &spl_token::ID,
+            &proxy_addr,
+            ctx.accounts.proxy_mint.key,
+            &dummy_addr,
+        )?;
 
         // Don't use state because deprecated
 
@@ -134,7 +134,7 @@ pub mod controller {
         // single depository version
         #[account(mut)]
         pub depository: AccountInfo<'info>,
-        pub tok: AccountInfo<'info>,
+        pub token_program: AccountInfo<'info>,
 
         pub prog: AccountInfo<'info>,
     }
