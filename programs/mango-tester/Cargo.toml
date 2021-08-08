@@ -1,0 +1,11 @@
+[package]
+name = "mango-tester"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anchor-lang = "0.11.1"
+anchor-spl = "0.11.1"
+solana-program = "1.7.8"
