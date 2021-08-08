@@ -2,7 +2,9 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, MintTo, Transfer};
 use solana_program::{ system_instruction::create_account, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
-
+// placeholder for figuring out best way
+// use mango::{InitMangoAccount, };
+// use
 
 const MINT_SPAN: u64 = 82;
 const ACCOUNT_SPAN: u64 = 165;
@@ -56,6 +58,26 @@ pub mod controller {
         // Don't use state because deprecated
 
         // initialize mango or equivalent user account
+        // using mango for now as a built in but later make different providers as separate internal functions
+        // called based on a config
+
+        /// Accounts expected by this instruction (4):
+        ///
+        /// 0. `[]` mango_group_ai - MangoGroup that this mango account is for
+        /// 1. `[writable]` mango_account_ai - the mango account data
+        /// 2. `[signer]` owner_ai - Solana account of owner of the mango account
+        /// 3. `[]` rent_ai - Rent sysvar account
+        let mango_cpi_program = ctx.accounts.mango_program.clone();
+        let mango_cpi_accts = InitMangoAccount {
+            mango_group: ctx.accounts.mango_group.clone().into(),
+            mango_account: ctx.accounts.mango_account.clone().into(),
+            owner_account: ctx.accounts.proxy_account.clone().into(),
+            rent: ctx.accounts.rent.minimum_balance(ACCOUNT_SPAN as usize),
+        };
+        let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
+        //placeholder line
+        //mango::cpi::init_mango_account(mango_cpi_ctx, data)
+
 
         // set up rebalance signers in account data
         Ok(())
@@ -124,10 +146,9 @@ pub mod controller {
         #[account(signer, mut)]
         pub payer: AccountInfo<'info>,
         pub dummy: AccountInfo<'info>,
+        pub proxy_account: AccountInfo<'info>,
         #[account(mut)]
         pub uxd_mint: AccountInfo<'info>,
-        #[account(mut)]
-        pub proxy_account: AccountInfo<'info>,
         pub proxy_mint: AccountInfo<'info>,
         pub rent: Sysvar<'info, Rent>,
         pub sys: AccountInfo<'info>,
@@ -135,6 +156,9 @@ pub mod controller {
         #[account(mut)]
         pub depository: AccountInfo<'info>,
         pub token_program: AccountInfo<'info>,
+        pub mango_program: AccountInfo<'info>,
+        pub mango_group: AccountInfo<'info>,
+        pub mango_account: AccountInfo<'info>,
 
         pub prog: AccountInfo<'info>,
     }
