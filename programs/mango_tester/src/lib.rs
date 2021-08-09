@@ -45,8 +45,7 @@ pub struct Initialize<'info> {
 
 #[derive(Accounts)]
 pub struct InitMangoAccount<'info> {
-    #[account]
-    pub mango_group: CpiAccount<'info>,
+    pub mango_group: AccountInfo<'info>,
     #[account(mut)]
     pub mango_account: AccountInfo<'info>,
     #[account(signer)]
