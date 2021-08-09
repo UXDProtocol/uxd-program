@@ -7,7 +7,7 @@ const spl = require("@solana/spl-token");
 // these i have to change based on the whims of solana
 const PROGRAM_ID = process.argv[2];
 if(!PROGRAM_ID) throw "specify program id";
-const TEST_MINT = "AG76P5h5aqw3QWFBhwKz8cFfmFMsHoDeVyhm8exDKh4R";
+const TEST_MINT = "HtGbD91kXRp9oK9TPiBbCVUnaW2jnsW8jLo5LgKA253Z";
 const MINT_DECIMAL = 9;
 
 // this is theoretically constant everywhere
@@ -15,7 +15,7 @@ const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 const ASSOC_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 
 const TXN_COMMIT = "processed";
-const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipPreflight: false};
+const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipPreflight: true};
 
 const programKey = new anchor.web3.PublicKey(PROGRAM_ID);
 const depositMintKey = new anchor.web3.PublicKey(TEST_MINT);
@@ -44,10 +44,6 @@ async function main() {
     let redeemableMintKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("REDEEMABLE")], programKey))[0];
     let depositAccountKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("DEPOSIT")], programKey))[0];
 
-    console.log("program id:", PROGRAM_ID);
-    console.log("program authority:", stateKey.toString());
-    console.log("redeemable mint:", redeemableMintKey.toString());
-
     // standard spl associated accounts
     let walletCoinKey = await findAssocTokenAddr(provider.wallet.publicKey, depositMintKey);
     let walletRedeemableKey = await findAssocTokenAddr(provider.wallet.publicKey, redeemableMintKey);
@@ -59,6 +55,13 @@ async function main() {
 
         console.log(`* user balance: ${userCoin}\n* user redeemable: ${userRedeemable}\n* program balance: ${programCoin}\n\n`);
     }
+
+    console.log("payer:", provider.wallet.publicKey.toString());
+    console.log("state:", stateKey.toString());
+    console.log("redeemable mint:", redeemableMintKey.toString());
+    console.log("program coin:", depositAccountKey.toString());
+    console.log("coin mint:", depositMintKey.toString());
+    console.log("program id:", programKey.toString());
 
     // set up the program
     // im deploying to a new address each time soo this is fine
