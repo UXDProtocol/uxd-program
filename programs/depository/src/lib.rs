@@ -16,16 +16,6 @@ const ACCOUNT_SPAN: u64 = 165;
 pub mod depository {
     use super::*;
 
-    // XXX OK TODO i wanted to impose some safety on this
-    // * switch token shit to cpiaccount
-    // * use seed if state in scope
-    // * impose token mint etc if in scope
-
-    // XXX TODO next thing actually is convert state to a normal account
-    // then bring it in scope for imposing constraints
-    // remember to check that the state struct is owned by us...
-    // its our source of truth so an attacker could swap it wholesale otherwise
-
     // creates a redeemable mint and a coin account
     pub fn new(ctx: Context<New>) -> ProgramResult {
         let accounts = ctx.accounts.to_account_infos();
@@ -33,11 +23,6 @@ pub mod depository {
         let (state_addr, state_ctr) = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id);
 
         // create redeemable token mint
-        // XXX anchor pda abstraction forces you to associate pdas with user wallets
-        // so its do it by hand or hardcode a fake value zzz
-        // XXX anchor also doesnt let you init accounts without a struct i think
-        // regardless they force the discriminator in it so its unsuable
-        // XXX because they want you using their macros they also dont expose create_account
         let (raddr, rctr) = Pubkey::find_program_address(&[RSEEDWORD], ctx.program_id);
         let rseed: &[&[&[u8]]] = &[&[RSEEDWORD, &[rctr]]];
         let rrent = ctx.accounts.rent.minimum_balance(MINT_SPAN as usize);
