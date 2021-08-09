@@ -1,16 +1,16 @@
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
 use anchor_spl::token::{self, Mint, TokenAccount, MintTo, Transfer, Burn};
-use solana_program::{ system_program as system, system_instruction::create_account, program::invoke_signed };
+use solana_program::{ system_program as system, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
 
-const STATE_SEED: &[u8] = b"STATE";
-const RSEEDWORD: &[u8] = b"REDEEMABLE";
-const DSEEDWORD: &[u8] = b"DEPOSIT";
+const STATE_SEED: &[u8]           = b"STATE";
+const REDEEMABLE_MINT_SEED: &[u8] = b"REDEEMABLE";
+const PROGRAM_COIN_SEED: &[u8]    = b"DEPOSIT";
 
 // annoyingly the spl program does not expose these as constants
-const MINT_SPAN: u64 = 82;
-const ACCOUNT_SPAN: u64 = 165;
+const MINT_SPAN: usize    = 82;
+const ACCOUNT_SPAN: usize = 165;
 
 #[program]
 pub mod depository {
@@ -20,49 +20,41 @@ pub mod depository {
     pub fn new(ctx: Context<New>) -> ProgramResult {
         let accounts = ctx.accounts.to_account_infos();
 
-        let (state_addr, state_ctr) = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id);
+        // build the seeds to sign for account initializations
+        let state_ctr = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id).1;
+        let mint_ctr = Pubkey::find_program_address(&[REDEEMABLE_MINT_SEED], ctx.program_id).1;
+        let account_ctr = Pubkey::find_program_address(&[PROGRAM_COIN_SEED], ctx.program_id).1;
 
-        // create redeemable token mint
-        let (raddr, rctr) = Pubkey::find_program_address(&[RSEEDWORD], ctx.program_id);
-        let rseed: &[&[&[u8]]] = &[&[RSEEDWORD, &[rctr]]];
-        let rrent = ctx.accounts.rent.minimum_balance(MINT_SPAN as usize);
-        let ix1 = create_account(ctx.accounts.payer.key, &raddr, rrent, MINT_SPAN, ctx.accounts.token_program.key);
-        invoke_signed(&ix1, &accounts, rseed)?;
+        let mint_seed: &[&[&[u8]]] = &[&[REDEEMABLE_MINT_SEED, &[mint_ctr]]];
+        let account_seed: &[&[&[u8]]] = &[&[PROGRAM_COIN_SEED, &[account_ctr]]];
 
-        // now do the same for our account
-        let (daddr, dctr) = Pubkey::find_program_address(&[DSEEDWORD], ctx.program_id);
-        let dseed: &[&[&[u8]]] = &[&[DSEEDWORD, &[dctr]]];
-        let drent = ctx.accounts.rent.minimum_balance(ACCOUNT_SPAN as usize);
-        let ix2 = create_account(ctx.accounts.payer.key, &daddr, drent, ACCOUNT_SPAN, ctx.accounts.token_program.key);
-        invoke_signed(&ix2, &accounts, dseed)?;
-
-        // now we initialize them
+        // now initialize them
         // TODO anchor-spl implemented its own initialize_mint but it's not in a release (as of 7/22)
         // swap impls when it drops? idk im gonna be honest its more verbose and more copies for no real gain
-        let ix3 = initialize_mint(
+        let ix = initialize_mint(
             &spl_token::ID,
-            &raddr,
-            &state_addr,
+            &ctx.accounts.redeemable_mint.key(),
+            &ctx.accounts.state.key(),
             // XXX it may be desirable to repudiate freeze
-            Some(&state_addr),
+            Some(&ctx.accounts.state.key()),
             ctx.accounts.coin_mint.decimals,
         )?;
-        invoke_signed(&ix3, &accounts, rseed)?;
+        invoke_signed(&ix, &accounts, mint_seed)?;
 
         // and again
-        let ix4 = initialize_account(
+        let ix = initialize_account(
             &spl_token::ID,
-            &daddr,
+            &ctx.accounts.program_coin.key(),
             &ctx.accounts.coin_mint.key(),
-            &state_addr,
+            &ctx.accounts.state.key(),
         )?;
-        invoke_signed(&ix4, &accounts, dseed)?;
+        invoke_signed(&ix, &accounts, account_seed)?;
 
         // store stuff in our state account now
         ctx.accounts.state.bump = state_ctr;
         ctx.accounts.state.coin_mint_key = ctx.accounts.coin_mint.key();
-        ctx.accounts.state.redeemable_mint_key = raddr;
-        ctx.accounts.state.program_coin_key = daddr;
+        ctx.accounts.state.redeemable_mint_key = ctx.accounts.redeemable_mint.key();
+        ctx.accounts.state.program_coin_key = ctx.accounts.program_coin.key();
 
         Ok(())
     }
@@ -132,10 +124,24 @@ pub struct New<'info> {
     )]
     pub state: ProgramAccount<'info, State>,
     // mint for bearer tokens representing deposited balances
-    #[account(mut)]
+    #[account(
+        init,
+        seeds = [REDEEMABLE_MINT_SEED.as_ref()],
+        bump = Pubkey::find_program_address(&[REDEEMABLE_MINT_SEED], program_id).1,
+        payer = payer,
+        owner = spl_token::ID,
+        space = MINT_SPAN,
+    )]
     pub redeemable_mint: AccountInfo<'info>,
     // program account that coins are deposited into
-    #[account(mut)]
+    #[account(
+        init,
+        seeds = [PROGRAM_COIN_SEED.as_ref()],
+        bump = Pubkey::find_program_address(&[PROGRAM_COIN_SEED], program_id).1,
+        payer = payer,
+        owner = spl_token::ID,
+        space = ACCOUNT_SPAN,
+    )]
     pub program_coin: AccountInfo<'info>,
     // mint for coins this depository accepts
     pub coin_mint: CpiAccount<'info, Mint>,
