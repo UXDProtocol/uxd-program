@@ -8,7 +8,7 @@ edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "depository"
+name = "controller"
 
 [features]
 no-entrypoint = []

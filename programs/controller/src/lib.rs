@@ -3,8 +3,10 @@ use anchor_spl::token::{self, MintTo, Transfer};
 use solana_program::{ system_instruction::create_account, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
 // placeholder for figuring out best way
-// use mango::{InitMangoAccount, };
-// use
+mod mango_tester;
+pub use mango_tester::{MangoTester, InitMangoAccount};
+// use mango_tester::{InitMangoAccount, Deposit};
+
 
 const MINT_SPAN: u64 = 82;
 const ACCOUNT_SPAN: u64 = 165;
@@ -72,7 +74,7 @@ pub mod controller {
             mango_group: ctx.accounts.mango_group.clone().into(),
             mango_account: ctx.accounts.mango_account.clone().into(),
             owner_account: ctx.accounts.proxy_account.clone().into(),
-            rent: ctx.accounts.rent.minimum_balance(ACCOUNT_SPAN as usize),
+            rent: ctx.accounts.rent.clone(),
         };
         let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
         //placeholder line
@@ -157,7 +159,7 @@ pub mod controller {
         pub depository: AccountInfo<'info>,
         pub token_program: AccountInfo<'info>,
         pub mango_program: AccountInfo<'info>,
-        pub mango_group: AccountInfo<'info>,
+        pub mango_group: CpiAccount<'info>,
         pub mango_account: AccountInfo<'info>,
 
         pub prog: AccountInfo<'info>,
