@@ -3,8 +3,7 @@ use anchor_spl::token::{self, MintTo, Transfer};
 use solana_program::{ system_instruction::create_account, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
 // placeholder for figuring out best way
-mod mango_tester;
-pub use mango_tester::{MangoTester, InitMangoAccount};
+use mango_tester::{MangoTester, InitMangoAccount};
 // use mango_tester::{InitMangoAccount, Deposit};
 
 
@@ -159,7 +158,7 @@ pub mod controller {
         pub depository: AccountInfo<'info>,
         pub token_program: AccountInfo<'info>,
         pub mango_program: AccountInfo<'info>,
-        pub mango_group: CpiAccount<'info>,
+        pub mango_group: CpiAccount<'info, MangoTester>,
         pub mango_account: AccountInfo<'info>,
 
         pub prog: AccountInfo<'info>,
