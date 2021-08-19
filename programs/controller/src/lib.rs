@@ -70,7 +70,7 @@ pub mod controller {
         /// 3. `[]` rent_ai - Rent sysvar account
         let mango_cpi_program = ctx.accounts.mango_program.clone();
         let mango_cpi_accts = InitMangoAccount {
-            mango_group: ctx.accounts.mango_group.clone().into(),
+            mango_group: ctx.accounts.mango_group.to_account_info(),
             mango_account: ctx.accounts.mango_account.clone().into(),
             owner_account: ctx.accounts.proxy_account.clone().into(),
             rent: ctx.accounts.rent.clone(),
