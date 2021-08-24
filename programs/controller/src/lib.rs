@@ -10,6 +10,8 @@ use mango_tester::{MangoTester, InitMangoAccount};
 const MINT_SPAN: u64 = 82;
 const ACCOUNT_SPAN: u64 = 165;
 const MINT_DECIMAL: u8 = 9;
+
+const STATE_SEED: &[u8] = b"STATE";
 const UXDSEEDWORD: &[u8] = b"STABLECOIN";
 const PROXYSEEDWORD: &[u8] = b"PROXY";
 
@@ -48,35 +50,60 @@ pub mod controller {
     // important that all trasaction costs and price differences *must* be passed onto the user
     // otherwise we open ourselves up to all kind of insane arbitrage attacks
     // since uxd *must* be fungible we cannot maintain accounts for individuals
+    //
+    // oook so... mint has to go like. for a particular depository...
+    // we accept redeemable, proxy transfer coin to us, move coin onto mango (deposit)
+    // create an opposite position on mango (place perp order). and then give uxd to user
+    // for now we take fro granted that all deposited coins have a corresponding perp
+    // if we want to take more esoteric forms of capital we may need to swap on serum
+    //
+    // XXX god this is so confusing, this init design is all wrong
+    // im not sure controller should create uxd... idk what if we redeploy to a new address?
+    // "single depository" design is dumb because we will need to redesign again after...
+    // we should have liek... a function new, to set up the controller with state and owner
+    // and a function register depository to whitelist a depository address
+    // and create the mango account and such
 
     /////// Instruction functions ///////
 
-    pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+    pub fn new(ctx: Context<New>) -> ProgramResult {
         let accounts = ctx.accounts.to_account_infos();
 
-        let (dummy_addr, dummy_ctr) = Pubkey::find_program_address(&[], ctx.program_id);
+        let (state_addr, state_ctr) = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id);
 
         // create uxd mint
         let (uxd_addr, uxd_ctr) = Pubkey::find_program_address(&[UXDSEEDWORD], ctx.program_id);
         let uxd_seed: &[&[&[u8]]] = &[&[UXDSEEDWORD, &[uxd_ctr]]];
         let uxd_rent = ctx.accounts.rent.minimum_balance(MINT_SPAN as usize);
-        let uxd_i1 = create_account(ctx.accounts.payer.key, &uxd_addr, uxd_rent, MINT_SPAN, ctx.accounts.token_program.key);
+        let uxd_i1 = create_account(ctx.accounts.owner.key, &uxd_addr, uxd_rent, MINT_SPAN, ctx.accounts.token_program.key);
         invoke_signed(&uxd_i1, &accounts, uxd_seed)?;
 
         let uxd_i2 = initialize_mint(
             &spl_token::ID,
             &uxd_addr,
-            &dummy_addr,
-            Some(&dummy_addr),
+            &state_addr,
+            None,
             MINT_DECIMAL,
         )?;
         invoke_signed(&uxd_i2, &accounts, uxd_seed)?;
+
+        ctx.accounts.state.owner_key = *ctx.accounts.owner.key;
+        ctx.accounts.state.uxd_mint_key = *ctx.accounts.uxd_mint.key;
+
+        Ok(())
+    }
+
+    pub fn register_depository(ctx: Context<RegisterDepository>) -> ProgramResult {
+    /* TODO this has to take an address of a depository... program? state object?
+       and it creates a mango account tied to the depository mint 
+       for now the existence of that account is sufficient to prove it has been registered....
+       we odnt actually need to receive funds on the controller, just get approval and transfer, i think??
 
         // create proxy account
         let (proxy_addr, proxy_ctr) = Pubkey::find_program_address(&[PROXYSEEDWORD], ctx.program_id);
         let proxy_seed: &[&[&[u8]]] = &[&[PROXYSEEDWORD, &[proxy_ctr]]];
         let proxy_rent = ctx.accounts.rent.minimum_balance(ACCOUNT_SPAN as usize);
-        let proxy_i1 = create_account(ctx.accounts.payer.key, &proxy_addr, proxy_rent, ACCOUNT_SPAN, ctx.accounts.token_program.key);
+        let proxy_i1 = create_account(ctx.accounts.owner.key, &proxy_addr, proxy_rent, ACCOUNT_SPAN, ctx.accounts.token_program.key);
         invoke_signed(&proxy_i1, &accounts, proxy_seed)?;
 
         //initialize proxy account
@@ -84,10 +111,8 @@ pub mod controller {
             &spl_token::ID,
             &proxy_addr,
             ctx.accounts.proxy_mint.key,
-            &dummy_addr,
+            &state_addr,
         )?;
-
-        // Don't use state because deprecated
 
         // initialize mango or equivalent user account
         // using mango for now as a built in but later make different providers as separate internal functions
@@ -110,6 +135,7 @@ pub mod controller {
         //placeholder line
         //mango::cpi::init_mango_account(mango_cpi_ctx, data)
 
+    */
 
         // set up rebalance signers in account data
         Ok(())
@@ -174,17 +200,28 @@ pub mod controller {
 }
 
     #[derive(Accounts)]
-    pub struct Initialize<'info> {
+    pub struct New<'info> {
         #[account(signer, mut)]
-        pub payer: AccountInfo<'info>,
-        pub dummy: AccountInfo<'info>,
-        pub proxy_account: AccountInfo<'info>,
+        pub owner: AccountInfo<'info>,
+        #[account(init)]
+        pub state: ProgramAccount<'info, State>,
         #[account(mut)]
         pub uxd_mint: AccountInfo<'info>,
-        pub proxy_mint: AccountInfo<'info>,
         pub rent: Sysvar<'info, Rent>,
         pub sys: AccountInfo<'info>,
-        // single depository version
+        pub token_program: AccountInfo<'info>,
+        pub prog: AccountInfo<'info>,
+    }
+
+    #[derive(Accounts)]
+    pub struct RegisterDepository<'info> {
+        #[account(signer, mut)]
+        pub owner: AccountInfo<'info>,
+        #[account(init)]
+        pub state: ProgramAccount<'info, State>,
+        pub coin_mint: AccountInfo<'info>,
+        pub rent: Sysvar<'info, Rent>,
+        pub sys: AccountInfo<'info>,
         #[account(mut)]
         pub depository: AccountInfo<'info>,
         pub token_program: AccountInfo<'info>,
@@ -194,3 +231,10 @@ pub mod controller {
 
         pub prog: AccountInfo<'info>,
     }
+
+#[account]
+#[derive(Default)]
+pub struct State {
+    owner_key: Pubkey,
+    uxd_mint_key: Pubkey,
+}
