@@ -12,8 +12,8 @@ const ACCOUNT_SPAN: u64 = 165;
 const MINT_DECIMAL: u8 = 9;
 
 const STATE_SEED: &[u8] = b"STATE";
-const UXDSEEDWORD: &[u8] = b"STABLECOIN";
-const PROXYSEEDWORD: &[u8] = b"PROXY";
+const UXD_SEED:   &[u8] = b"STABLECOIN";
+const PROXY_SEED: &[u8] = b"PROXY";
 
 #[program]
 pub mod controller {
@@ -72,8 +72,8 @@ pub mod controller {
         let (state_addr, state_ctr) = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id);
 
         // create uxd mint
-        let (uxd_addr, uxd_ctr) = Pubkey::find_program_address(&[UXDSEEDWORD], ctx.program_id);
-        let uxd_seed: &[&[&[u8]]] = &[&[UXDSEEDWORD, &[uxd_ctr]]];
+        let (uxd_addr, uxd_ctr) = Pubkey::find_program_address(&[UXD_SEED], ctx.program_id);
+        let uxd_seed: &[&[&[u8]]] = &[&[UXD_SEED, &[uxd_ctr]]];
         let uxd_rent = ctx.accounts.rent.minimum_balance(MINT_SPAN as usize);
         let uxd_i1 = create_account(ctx.accounts.owner.key, &uxd_addr, uxd_rent, MINT_SPAN, ctx.accounts.token_program.key);
         invoke_signed(&uxd_i1, &accounts, uxd_seed)?;
@@ -94,25 +94,27 @@ pub mod controller {
     }
 
     pub fn register_depository(ctx: Context<RegisterDepository>) -> ProgramResult {
-    /* TODO this has to take an address of a depository... program? state object?
-       and it creates a mango account tied to the depository mint 
-       for now the existence of that account is sufficient to prove it has been registered....
-       we odnt actually need to receive funds on the controller, just get approval and transfer, i think??
+       // TODO this has to take an address of a depository... program? state object?
+       // and it creates a mango account tied to the depository mint
+       // for now the existence of that account is sufficient to prove it has been registered....
+       // we odnt actually need to receive funds on the controller, just get approval and transfer, i think??
+        let accounts = ctx.accounts.to_account_infos();
 
         // create proxy account
-        let (proxy_addr, proxy_ctr) = Pubkey::find_program_address(&[PROXYSEEDWORD], ctx.program_id);
-        let proxy_seed: &[&[&[u8]]] = &[&[PROXYSEEDWORD, &[proxy_ctr]]];
-        let proxy_rent = ctx.accounts.rent.minimum_balance(ACCOUNT_SPAN as usize);
-        let proxy_i1 = create_account(ctx.accounts.owner.key, &proxy_addr, proxy_rent, ACCOUNT_SPAN, ctx.accounts.token_program.key);
-        invoke_signed(&proxy_i1, &accounts, proxy_seed)?;
-
+        let (proxy_addr, proxy_ctr) = Pubkey::find_program_address(&[PROXY_SEED], ctx.program_id);
+        let proxy_seed: &[&[&[u8]]] = &[&[PROXY_SEED, &[proxy_ctr]]];
+        // let proxy_rent = ctx.accounts.rent.minimum_balance(ACCOUNT_SPAN as usize);
+        // let proxy_init = create_account(ctx.accounts.owner.key, &proxy_addr, proxy_rent, ACCOUNT_SPAN, ctx.accounts.token_program.key);
+        // invoke_signed(&proxy_init, &accounts, proxy_seed)?;
+        // let depository_coin_key = accounts.coin_mint.key();
         //initialize proxy account
-        let proxy_i2 = initialize_account(
+        let proxy_init = initialize_account(
             &spl_token::ID,
             &proxy_addr,
-            ctx.accounts.proxy_mint.key,
-            &state_addr,
+            ctx.accounts.coin_mint.to_account_info().key,
+            ctx.accounts.state.to_account_info().key,
         )?;
+        invoke_signed(&proxy_init, &accounts, &proxy_seed)?;
 
         // initialize mango or equivalent user account
         // using mango for now as a built in but later make different providers as separate internal functions
@@ -133,14 +135,11 @@ pub mod controller {
         };
         let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
         //placeholder line
-        //mango::cpi::init_mango_account(mango_cpi_ctx, data)
+        mango_tester::cpi::init_mango_account(mango_cpi_ctx);
 
-    */
-
-        // set up rebalance signers in account data
         Ok(())
-
     }
+
 
     // pub fn mint(ctx: Context<Mint>) -> ProgramResult {
     //     // accept depository redeemable token
@@ -223,6 +222,7 @@ pub mod controller {
         pub rent: Sysvar<'info, Rent>,
         pub sys: AccountInfo<'info>,
         #[account(mut)]
+        pub proxy_account: AccountInfo<'info>,
         pub depository: AccountInfo<'info>,
         pub token_program: AccountInfo<'info>,
         pub mango_program: AccountInfo<'info>,
