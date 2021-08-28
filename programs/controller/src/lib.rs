@@ -4,7 +4,6 @@ use solana_program::{ system_instruction::create_account, program::invoke_signed
 use spl_token::instruction::{ initialize_account, initialize_mint };
 // placeholder for figuring out best way
 use mango_tester::{MangoTester, InitMangoAccount};
-// use mango_tester::{InitMangoAccount, Deposit};
 
 
 const MINT_SPAN: u64 = 82;
@@ -57,9 +56,7 @@ pub mod controller {
     // for now we take fro granted that all deposited coins have a corresponding perp
     // if we want to take more esoteric forms of capital we may need to swap on serum
     //
-    // XXX god this is so confusing, this init design is all wrong
     // im not sure controller should create uxd... idk what if we redeploy to a new address?
-    // "single depository" design is dumb because we will need to redesign again after...
     // we should have liek... a function new, to set up the controller with state and owner
     // and a function register depository to whitelist a depository address
     // and create the mango account and such
@@ -89,6 +86,7 @@ pub mod controller {
 
         ctx.accounts.state.owner_key = *ctx.accounts.owner.key;
         ctx.accounts.state.uxd_mint_key = *ctx.accounts.uxd_mint.key;
+        ctx.accounts.state.depository_count = 0;
 
         Ok(())
     }
@@ -120,12 +118,12 @@ pub mod controller {
         // using mango for now as a built in but later make different providers as separate internal functions
         // called based on a config
 
-        /// Accounts expected by this instruction (4):
-        ///
-        /// 0. `[]` mango_group_ai - MangoGroup that this mango account is for
-        /// 1. `[writable]` mango_account_ai - the mango account data
-        /// 2. `[signer]` owner_ai - Solana account of owner of the mango account
-        /// 3. `[]` rent_ai - Rent sysvar account
+        // Accounts expected by this instruction (4):
+        //
+        // 0. `[]` mango_group_ai - MangoGroup that this mango account is for
+        // 1. `[writable]` mango_account_ai - the mango account data
+        // 2. `[signer]` owner_ai - Solana account of owner of the mango account
+        // 3. `[]` rent_ai - Rent sysvar account
         let mango_cpi_program = ctx.accounts.mango_program.clone();
         let mango_cpi_accts = InitMangoAccount {
             mango_group: ctx.accounts.mango_group.to_account_info(),
@@ -134,9 +132,11 @@ pub mod controller {
             rent: ctx.accounts.rent.clone(),
         };
         let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
-        //placeholder line
         mango_tester::cpi::init_mango_account(mango_cpi_ctx);
 
+        let dep_count = ctx.accounts.state.depository_count;
+        ctx.accounts.state.depositories[dep_count as usize] = *ctx.accounts.depository.to_account_info().key;
+        ctx.accounts.state.depository_count = dep_count + 1;
         Ok(())
     }
 
@@ -237,4 +237,7 @@ pub mod controller {
 pub struct State {
     owner_key: Pubkey,
     uxd_mint_key: Pubkey,
+    depositories: [Pubkey; 3],
+    depository_count: u8,
+
 }
