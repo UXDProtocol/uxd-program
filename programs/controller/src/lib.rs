@@ -86,7 +86,6 @@ pub mod controller {
 
         ctx.accounts.state.owner_key = *ctx.accounts.owner.key;
         ctx.accounts.state.uxd_mint_key = *ctx.accounts.uxd_mint.key;
-        ctx.accounts.state.depository_count = 0;
 
         Ok(())
     }
@@ -134,9 +133,6 @@ pub mod controller {
         let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
         mango_tester::cpi::init_mango_account(mango_cpi_ctx);
 
-        let dep_count = ctx.accounts.state.depository_count;
-        ctx.accounts.state.depositories[dep_count as usize] = *ctx.accounts.depository.to_account_info().key;
-        ctx.accounts.state.depository_count = dep_count + 1;
         Ok(())
     }
 
@@ -237,7 +233,4 @@ pub mod controller {
 pub struct State {
     owner_key: Pubkey,
     uxd_mint_key: Pubkey,
-    depositories: [Pubkey; 3],
-    depository_count: u8,
-
 }
