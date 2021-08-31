@@ -3,16 +3,17 @@ use anchor_lang::Key;
 use anchor_spl::token::{self, MintTo, Transfer};
 use solana_program::{ system_program as system, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
+
 // placeholder for figuring out best way
 use mango_tester::{MangoTester, InitMangoAccount};
 
 const MINT_SPAN: usize = 82;
-const ACCOUNT_SPAN: u64 = 165;
+const ACCOUNT_SPAN: usize = 165;
 const MINT_DECIMAL: u8 = 9;
 
-const STATE_SEED: &[u8] = b"STATE";
-const UXD_SEED:   &[u8] = b"STABLECOIN";
-const PROXY_SEED: &[u8] = b"PROXY";
+const STATE_SEED:       &[u8] = b"STATE";
+const UXD_SEED:         &[u8] = b"STABLECOIN";
+const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
 
 #[program]
 pub mod controller {
@@ -99,6 +100,7 @@ pub mod controller {
        // and it creates a mango account tied to the depository mint
        // for now the existence of that account is sufficient to prove it has been registered....
        // we odnt actually need to receive funds on the controller, just get approval and transfer, i think??
+/*
         let accounts = ctx.accounts.to_account_infos();
 
         // create proxy account
@@ -136,6 +138,7 @@ pub mod controller {
         };
         let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
         mango_tester::cpi::init_mango_account(mango_cpi_ctx);
+*/
 
         Ok(())
     }
@@ -204,14 +207,14 @@ pub struct New<'info> {
     pub owner: AccountInfo<'info>,
     #[account(
         init,
-        seeds = [STATE_SEED.as_ref()],
+        seeds = [STATE_SEED],
         bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
         payer = owner,
     )]
     pub state: ProgramAccount<'info, State>,
     #[account(
         init,
-        seeds = [UXD_SEED.as_ref()],
+        seeds = [UXD_SEED],
         bump = Pubkey::find_program_address(&[UXD_SEED], program_id).1,
         payer = owner,
         owner = spl_token::ID,
@@ -231,18 +234,31 @@ pub struct New<'info> {
 pub struct RegisterDepository<'info> {
     #[account(signer, mut)]
     pub owner: AccountInfo<'info>,
-    #[account(init)]
+    #[account(
+        seeds = [STATE_SEED],
+        bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
+    )]
     pub state: ProgramAccount<'info, State>,
+    #[account(init)]
+    pub depository_record: ProgramAccount<'info, DepositoryRecord>,
+    pub depository_state: CpiAccount<'info, depository::State>,
+    #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
     pub coin_mint: AccountInfo<'info>,
+    #[account(
+        init,
+        seeds = [PASSTHROUGH_SEED, coin_mint.key.as_ref()],
+        bump = Pubkey::find_program_address(&[], program_id).1,
+        payer = owner,
+        owner = spl_token::ID,
+        space = ACCOUNT_SPAN,
+    )]
+    pub coin_passthrough: AccountInfo<'info>,
+    //pub mango_group: CpiAccount<'info, MangoTester>,
+    //pub mango_account: AccountInfo<'info>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: AccountInfo<'info>,
-    #[account(mut)]
-    pub proxy_account: AccountInfo<'info>,
-    pub depository: AccountInfo<'info>,
     pub token_program: AccountInfo<'info>,
-    pub mango_program: AccountInfo<'info>,
-    pub mango_group: CpiAccount<'info, MangoTester>,
-    pub mango_account: AccountInfo<'info>,
+    //pub mango_program: AccountInfo<'info>,
     pub program: AccountInfo<'info>,
 }
 
@@ -251,4 +267,10 @@ pub struct RegisterDepository<'info> {
 pub struct State {
     owner_key: Pubkey,
     uxd_mint_key: Pubkey,
+}
+
+#[account]
+#[derive(Default)]
+pub struct DepositoryRecord {
+    state_key: Pubkey,
 }
