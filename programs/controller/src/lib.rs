@@ -1,12 +1,12 @@
 use anchor_lang::prelude::*;
+use anchor_lang::Key;
 use anchor_spl::token::{self, MintTo, Transfer};
-use solana_program::{ system_instruction::create_account, program::invoke_signed };
+use solana_program::{ system_program as system, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
 // placeholder for figuring out best way
 use mango_tester::{MangoTester, InitMangoAccount};
 
-
-const MINT_SPAN: u64 = 82;
+const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: u64 = 165;
 const MINT_DECIMAL: u8 = 9;
 
@@ -63,26 +63,24 @@ pub mod controller {
 
     /////// Instruction functions ///////
 
+    // NEW
+    // create controller state, create uxd (this could happen elsewhere later)
     pub fn new(ctx: Context<New>) -> ProgramResult {
         let accounts = ctx.accounts.to_account_infos();
 
-        let (state_addr, state_ctr) = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id);
+        let state_ctr = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id).1;
+        let uxd_ctr = Pubkey::find_program_address(&[UXD_SEED], ctx.program_id).1;
 
-        // create uxd mint
-        let (uxd_addr, uxd_ctr) = Pubkey::find_program_address(&[UXD_SEED], ctx.program_id);
         let uxd_seed: &[&[&[u8]]] = &[&[UXD_SEED, &[uxd_ctr]]];
-        let uxd_rent = ctx.accounts.rent.minimum_balance(MINT_SPAN as usize);
-        let uxd_i1 = create_account(ctx.accounts.owner.key, &uxd_addr, uxd_rent, MINT_SPAN, ctx.accounts.token_program.key);
-        invoke_signed(&uxd_i1, &accounts, uxd_seed)?;
 
-        let uxd_i2 = initialize_mint(
+        let ix = initialize_mint(
             &spl_token::ID,
-            &uxd_addr,
-            &state_addr,
+            &ctx.accounts.uxd_mint.key(),
+            &ctx.accounts.state.key(),
             None,
             MINT_DECIMAL,
         )?;
-        invoke_signed(&uxd_i2, &accounts, uxd_seed)?;
+        invoke_signed(&ix, &accounts, uxd_seed)?;
 
         ctx.accounts.state.owner_key = *ctx.accounts.owner.key;
         ctx.accounts.state.uxd_mint_key = *ctx.accounts.uxd_mint.key;
@@ -90,6 +88,12 @@ pub mod controller {
         Ok(())
     }
 
+    // REGISTER DEPOSITORY
+    // owner must be a signer and match owner in our state
+    // create a mango account for the coin, create an entry indicating we created and trust this depository
+    // create a proxy account. we need this because the owner (our state account) might sign for mango deposit
+    // and the owner of the mango account and the token account must be the same
+    // and we cant make the depository own the mango account because we need to sign for these accounts
     pub fn register_depository(ctx: Context<RegisterDepository>) -> ProgramResult {
        // TODO this has to take an address of a depository... program? state object?
        // and it creates a mango account tied to the depository mint
@@ -194,39 +198,53 @@ pub mod controller {
 
 }
 
-    #[derive(Accounts)]
-    pub struct New<'info> {
-        #[account(signer, mut)]
-        pub owner: AccountInfo<'info>,
-        #[account(init)]
-        pub state: ProgramAccount<'info, State>,
-        #[account(mut)]
-        pub uxd_mint: AccountInfo<'info>,
-        pub rent: Sysvar<'info, Rent>,
-        pub sys: AccountInfo<'info>,
-        pub token_program: AccountInfo<'info>,
-        pub prog: AccountInfo<'info>,
-    }
+#[derive(Accounts)]
+pub struct New<'info> {
+    #[account(signer, mut)]
+    pub owner: AccountInfo<'info>,
+    #[account(
+        init,
+        seeds = [STATE_SEED.as_ref()],
+        bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
+        payer = owner,
+    )]
+    pub state: ProgramAccount<'info, State>,
+    #[account(
+        init,
+        seeds = [UXD_SEED.as_ref()],
+        bump = Pubkey::find_program_address(&[UXD_SEED], program_id).1,
+        payer = owner,
+        owner = spl_token::ID,
+        space = MINT_SPAN,
+    )]
+    pub uxd_mint: AccountInfo<'info>,
+    pub rent: Sysvar<'info, Rent>,
+    #[account(constraint = system_program.key() == system::ID)]
+    pub system_program: AccountInfo<'info>,
+    #[account(constraint = token_program.key() == spl_token::ID)]
+    pub token_program: AccountInfo<'info>,
+    #[account(constraint = program.key() == *program_id)]
+    pub program: AccountInfo<'info>,
+}
 
-    #[derive(Accounts)]
-    pub struct RegisterDepository<'info> {
-        #[account(signer, mut)]
-        pub owner: AccountInfo<'info>,
-        #[account(init)]
-        pub state: ProgramAccount<'info, State>,
-        pub coin_mint: AccountInfo<'info>,
-        pub rent: Sysvar<'info, Rent>,
-        pub sys: AccountInfo<'info>,
-        #[account(mut)]
-        pub proxy_account: AccountInfo<'info>,
-        pub depository: AccountInfo<'info>,
-        pub token_program: AccountInfo<'info>,
-        pub mango_program: AccountInfo<'info>,
-        pub mango_group: CpiAccount<'info, MangoTester>,
-        pub mango_account: AccountInfo<'info>,
-
-        pub prog: AccountInfo<'info>,
-    }
+#[derive(Accounts)]
+pub struct RegisterDepository<'info> {
+    #[account(signer, mut)]
+    pub owner: AccountInfo<'info>,
+    #[account(init)]
+    pub state: ProgramAccount<'info, State>,
+    pub coin_mint: AccountInfo<'info>,
+    pub rent: Sysvar<'info, Rent>,
+    pub system_program: AccountInfo<'info>,
+    #[account(mut)]
+    pub proxy_account: AccountInfo<'info>,
+    pub depository: AccountInfo<'info>,
+    pub token_program: AccountInfo<'info>,
+    pub mango_program: AccountInfo<'info>,
+    pub mango_group: CpiAccount<'info, MangoTester>,
+    pub mango_account: AccountInfo<'info>,
+    pub program: AccountInfo<'info>,
+}
 
 #[account]
 #[derive(Default)]
