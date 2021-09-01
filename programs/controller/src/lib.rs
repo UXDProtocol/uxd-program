@@ -268,9 +268,12 @@ pub struct RegisterDepository<'info> {
     //pub mango_group: CpiAccount<'info, MangoTester>,
     //pub mango_account: AccountInfo<'info>,
     pub rent: Sysvar<'info, Rent>,
+    #[account(constraint = system_program.key() == system::ID)]
     pub system_program: AccountInfo<'info>,
+    #[account(constraint = token_program.key() == spl_token::ID)]
     pub token_program: AccountInfo<'info>,
     //pub mango_program: AccountInfo<'info>,
+    #[account(constraint = program.key() == *program_id)]
     pub program: AccountInfo<'info>,
 }
 
