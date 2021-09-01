@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
-use anchor_spl::token::{self, MintTo, Transfer};
+use anchor_spl::token::{self, Mint, TokenAccount, MintTo, Transfer};
 use solana_program::{ system_program as system, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
 
@@ -13,6 +13,7 @@ const MINT_DECIMAL: u8 = 9;
 
 const STATE_SEED:       &[u8] = b"STATE";
 const UXD_SEED:         &[u8] = b"STABLECOIN";
+const RECORD_SEED:      &[u8] = b"RECORD";
 const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
 
 #[program]
@@ -83,7 +84,7 @@ pub mod controller {
         )?;
         invoke_signed(&ix, &accounts, uxd_seed)?;
 
-        ctx.accounts.state.owner_key = *ctx.accounts.owner.key;
+        ctx.accounts.state.authority_key = *ctx.accounts.authority.key;
         ctx.accounts.state.uxd_mint_key = *ctx.accounts.uxd_mint.key;
 
         Ok(())
@@ -96,6 +97,34 @@ pub mod controller {
     // and the owner of the mango account and the token account must be the same
     // and we cant make the depository own the mango account because we need to sign for these accounts
     pub fn register_depository(ctx: Context<RegisterDepository>) -> ProgramResult {
+        let accounts = ctx.accounts.to_account_infos();
+        let coin_mint_key = ctx.accounts.coin_mint.key();
+
+        let record_ctr = Pubkey::find_program_address(&[
+            RECORD_SEED,
+            ctx.accounts.depository.key.as_ref(),
+        ], ctx.program_id).1;
+
+        let passthrough_ctr = Pubkey::find_program_address(&[
+            PASSTHROUGH_SEED,
+            coin_mint_key.as_ref()
+        ], ctx.program_id).1;
+
+        let record_seed: &[&[&[u8]]] = &[&[RECORD_SEED, ctx.accounts.depository.key.as_ref(), &[record_ctr]]];
+        let passthrough_seed: &[&[&[u8]]] = &[&[PASSTHROUGH_SEED, coin_mint_key.as_ref(), &[passthrough_ctr]]];
+
+        let ix = initialize_account(
+            &spl_token::ID,
+            &ctx.accounts.coin_passthrough.key(),
+            &coin_mint_key,
+            &ctx.accounts.depository_record.key(),
+        )?;
+        invoke_signed(&ix, &accounts, passthrough_seed)?;
+
+
+
+
+
        // TODO this has to take an address of a depository... program? state object?
        // and it creates a mango account tied to the depository mint
        // for now the existence of that account is sufficient to prove it has been registered....
@@ -204,19 +233,19 @@ pub mod controller {
 #[derive(Accounts)]
 pub struct New<'info> {
     #[account(signer, mut)]
-    pub owner: AccountInfo<'info>,
+    pub authority: AccountInfo<'info>,
     #[account(
         init,
         seeds = [STATE_SEED],
         bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
-        payer = owner,
+        payer = authority,
     )]
     pub state: ProgramAccount<'info, State>,
     #[account(
         init,
         seeds = [UXD_SEED],
         bump = Pubkey::find_program_address(&[UXD_SEED], program_id).1,
-        payer = owner,
+        payer = authority,
         owner = spl_token::ID,
         space = MINT_SPAN,
     )]
@@ -232,23 +261,33 @@ pub struct New<'info> {
 
 #[derive(Accounts)]
 pub struct RegisterDepository<'info> {
-    #[account(signer, mut)]
-    pub owner: AccountInfo<'info>,
+    #[account(signer, mut, constraint = authority.key() == state.authority_key)]
+    pub authority: AccountInfo<'info>,
     #[account(
         seeds = [STATE_SEED],
         bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
     )]
     pub state: ProgramAccount<'info, State>,
-    #[account(init)]
-    pub depository_record: ProgramAccount<'info, DepositoryRecord>,
-    pub depository_state: CpiAccount<'info, depository::State>,
-    #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
-    pub coin_mint: AccountInfo<'info>,
     #[account(
         init,
-        seeds = [PASSTHROUGH_SEED, coin_mint.key.as_ref()],
-        bump = Pubkey::find_program_address(&[], program_id).1,
-        payer = owner,
+        seeds = [RECORD_SEED, depository.key.as_ref()],
+        bump = Pubkey::find_program_address(&[RECORD_SEED, depository.key.as_ref()], program_id).1,
+        payer = authority,
+    )]
+    pub depository_record: ProgramAccount<'info, DepositoryRecord>,
+    pub depository: AccountInfo<'info>,
+    #[account(
+        seeds = [depository::STATE_SEED],
+        bump = Pubkey::find_program_address(&[depository::STATE_SEED], &depository.key()).1,
+    )]
+    pub depository_state: CpiAccount<'info, depository::State>,
+    #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
+    pub coin_mint: CpiAccount<'info, Mint>,
+    #[account(
+        init,
+        seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()],
+        bump = Pubkey::find_program_address(&[PASSTHROUGH_SEED, coin_mint.key().as_ref()], program_id).1,
+        payer = authority,
         owner = spl_token::ID,
         space = ACCOUNT_SPAN,
     )]
@@ -265,7 +304,7 @@ pub struct RegisterDepository<'info> {
 #[account]
 #[derive(Default)]
 pub struct State {
-    owner_key: Pubkey,
+    authority_key: Pubkey,
     uxd_mint_key: Pubkey,
 }
 
