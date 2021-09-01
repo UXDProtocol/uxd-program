@@ -67,6 +67,7 @@ pub mod controller {
 
     // NEW
     // create controller state, create uxd (this could happen elsewhere later)
+    // the key we pass in as authority *must* be retained/protected to add depositories
     pub fn new(ctx: Context<New>) -> ProgramResult {
         let accounts = ctx.accounts.to_account_infos();
 
@@ -91,11 +92,12 @@ pub mod controller {
     }
 
     // REGISTER DEPOSITORY
-    // owner must be a signer and match owner in our state
+    // authority must sign and match authority in our initial state
     // create a mango account for the coin, create an entry indicating we created and trust this depository
-    // create a proxy account. we need this because the owner (our state account) might sign for mango deposit
-    // and the owner of the mango account and the token account must be the same
+    // create a passthrough account for whatever coin corresponds to the depository
+    // we need this because the owner of the mango account and the token account must be the same
     // and we cant make the depository own the mango account because we need to sign for these accounts
+    // it seems prudent for every depository to have its own mango account
     pub fn register_depository(ctx: Context<RegisterDepository>) -> ProgramResult {
         let accounts = ctx.accounts.to_account_infos();
         let coin_mint_key = ctx.accounts.coin_mint.key();
@@ -115,43 +117,9 @@ pub mod controller {
 
         // XXX TODO CREATE MANGO ACCOUNT HERE
         // it should also be owned by the depo record
+        // XXX the below is copy-pasted from patrick code but need to check mango v3 code to see if anything changed
 
-        // set our record up. this later acts as proof we trust a given depository
-        // we also use this to derive the depository state key, from which we get mint and account keys
-        // creating a hierarchy of trust rooted at the authority key that instantiated the controller
-        ctx.accounts.depository_record.depository_key = *ctx.accounts.depository.key;
-
-
-
-
-
-       // TODO this has to take an address of a depository... program? state object?
-       // and it creates a mango account tied to the depository mint
-       // for now the existence of that account is sufficient to prove it has been registered....
-       // we odnt actually need to receive funds on the controller, just get approval and transfer, i think??
 /*
-        let accounts = ctx.accounts.to_account_infos();
-
-        // create proxy account
-        let (proxy_addr, proxy_ctr) = Pubkey::find_program_address(&[PROXY_SEED], ctx.program_id);
-        let proxy_seed: &[&[&[u8]]] = &[&[PROXY_SEED, &[proxy_ctr]]];
-        // let proxy_rent = ctx.accounts.rent.minimum_balance(ACCOUNT_SPAN as usize);
-        // let proxy_init = create_account(ctx.accounts.owner.key, &proxy_addr, proxy_rent, ACCOUNT_SPAN, ctx.accounts.token_program.key);
-        // invoke_signed(&proxy_init, &accounts, proxy_seed)?;
-        // let depository_coin_key = accounts.coin_mint.key();
-        //initialize proxy account
-        let proxy_init = initialize_account(
-            &spl_token::ID,
-            &proxy_addr,
-            ctx.accounts.coin_mint.to_account_info().key,
-            ctx.accounts.state.to_account_info().key,
-        )?;
-        invoke_signed(&proxy_init, &accounts, &proxy_seed)?;
-
-        // initialize mango or equivalent user account
-        // using mango for now as a built in but later make different providers as separate internal functions
-        // called based on a config
-
         // Accounts expected by this instruction (4):
         //
         // 0. `[]` mango_group_ai - MangoGroup that this mango account is for
@@ -168,6 +136,11 @@ pub mod controller {
         let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
         mango_tester::cpi::init_mango_account(mango_cpi_ctx);
 */
+
+        // set our depo record up. this later acts as proof we trust a given depository
+        // we also use this to derive the depository state key, from which we get mint and account keys
+        // creating a hierarchy of trust rooted at the authority key that instantiated the controller
+        ctx.accounts.depository_record.depository_key = *ctx.accounts.depository.key;
 
         Ok(())
     }
