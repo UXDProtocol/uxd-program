@@ -100,19 +100,11 @@ pub mod controller {
         let accounts = ctx.accounts.to_account_infos();
         let coin_mint_key = ctx.accounts.coin_mint.key();
 
-        let record_ctr = Pubkey::find_program_address(&[
-            RECORD_SEED,
-            ctx.accounts.depository.key.as_ref(),
-        ], ctx.program_id).1;
-
-        let passthrough_ctr = Pubkey::find_program_address(&[
-            PASSTHROUGH_SEED,
-            coin_mint_key.as_ref()
-        ], ctx.program_id).1;
-
-        let record_seed: &[&[&[u8]]] = &[&[RECORD_SEED, ctx.accounts.depository.key.as_ref(), &[record_ctr]]];
+        let passthrough_ctr = Pubkey::find_program_address(&[PASSTHROUGH_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
         let passthrough_seed: &[&[&[u8]]] = &[&[PASSTHROUGH_SEED, coin_mint_key.as_ref(), &[passthrough_ctr]]];
 
+        // init the passthrough account we use to move funds between depository and mango
+        // making our depo record rather than the contr state the owner for pleasing namespacing reasons
         let ix = initialize_account(
             &spl_token::ID,
             &ctx.accounts.coin_passthrough.key(),
@@ -120,6 +112,14 @@ pub mod controller {
             &ctx.accounts.depository_record.key(),
         )?;
         invoke_signed(&ix, &accounts, passthrough_seed)?;
+
+        // XXX TODO CREATE MANGO ACCOUNT HERE
+        // it should also be owned by the depo record
+
+        // set our record up. this later acts as proof we trust a given depository
+        // we also use this to derive the depository state key, from which we get mint and account keys
+        // creating a hierarchy of trust rooted at the authority key that instantiated the controller
+        ctx.accounts.depository_record.depository_key = *ctx.accounts.depository.key;
 
 
 
@@ -311,5 +311,5 @@ pub struct State {
 #[account]
 #[derive(Default)]
 pub struct DepositoryRecord {
-    state_key: Pubkey,
+    depository_key: Pubkey,
 }
