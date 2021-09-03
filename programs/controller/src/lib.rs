@@ -85,6 +85,7 @@ pub mod controller {
         )?;
         invoke_signed(&ix, &accounts, uxd_seed)?;
 
+        ctx.accounts.state.bump = state_ctr;
         ctx.accounts.state.authority_key = *ctx.accounts.authority.key;
         ctx.accounts.state.uxd_mint_key = *ctx.accounts.uxd_mint.key;
 
@@ -155,6 +156,27 @@ pub mod controller {
         // CPI call into mango to sell swaps according to ^
         // mint tokens from uxd_mint to user account
 
+        // XXX ok so, simple, we proxy xfer coin which entails redeemable burn, set up mango position, mint uxd
+
+        // TODO PROXY XFER TO PASSTHROUGH HERE
+
+        // XXX im not sure this is right, shouldnt mango tell us the position size?
+        // im also not sure if this is a usdc number or a coin number... assuming its usdc now
+        // we may need an oracle for this. unclear to me, i tink patrick was looking into this
+        let position_size = calc_swap_position(ctx.accounts.coin_mint.key(), amount)?;
+
+        // TODO DEPOSIT TO MANGO AND OPEN POSITION HERE
+
+        let mint_accounts = MintTo {
+            mint: ctx.accounts.uxd_mint.to_account_info(),
+            to: ctx.accounts.user_uxd.to_account_info(),
+            authority: ctx.accounts.state.to_account_info(),
+        };
+
+        let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
+        let mint_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.clone(), mint_accounts, state_seed);
+        token::mint_to(mint_ctx, position_size)?;
+
         Ok(())
     }
 
@@ -193,15 +215,19 @@ pub mod controller {
     //
     // }
     //
-    // /////// internal functions ///////
-    //
-    // fn calc_swap_position(collateral: Pubkey, amount: u64) -> ProgramResult {
-    //     // used by mint and reblance to handle the calculation of swap positions
-    //     // get collateral  oracle price from pyth (fn sig does nto reflect currently)
-    //     // get swap pricing from mango api
-    //     // price swaps/spot and then apply the requested amount
-    // }
 
+}
+
+// determine usdc value of a mango position
+// XXX unclear if we need to precalculate this or get it from mango or oracle or what
+fn calc_swap_position(collateral: Pubkey, amount: u64) -> Result<u64, ProgramError> {
+    // used by mint and reblance to handle the calculation of swap positions
+    // get collateral  oracle price from pyth (fn sig does nto reflect currently)
+    // get swap pricing from mango api
+    // price swaps/spot and then apply the requested amount
+
+    // TODO lol
+    return Ok(1);
 }
 
 #[derive(Accounts)]
@@ -296,6 +322,7 @@ pub struct RegisterDepository<'info> {
 #[derive(Accounts)]
 #[instruction(amount: u64)]
 pub struct MintUxd<'info> {
+    // XXX again we should use approvals so user doesnt need to sign
     #[account(signer)]
     pub user: AccountInfo<'info>,
     #[account(
@@ -323,7 +350,7 @@ pub struct MintUxd<'info> {
         bump = Pubkey::find_program_address(&[PASSTHROUGH_SEED, coin_mint.key().as_ref()], program_id).1,
     )]
     pub coin_passthrough: CpiAccount<'info, TokenAccount>,
-    #[account(constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
+    #[account(mut, constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
     pub redeemable_mint: CpiAccount<'info, Mint>,
     #[account(
         mut,
@@ -354,6 +381,7 @@ pub struct MintUxd<'info> {
 #[account]
 #[derive(Default)]
 pub struct State {
+    bump: u8,
     authority_key: Pubkey,
     uxd_mint_key: Pubkey,
 }
