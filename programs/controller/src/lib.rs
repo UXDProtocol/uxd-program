@@ -145,19 +145,20 @@ pub mod controller {
         Ok(())
     }
 
+    pub fn mint_uxd(ctx: Context<MintUxd>, amount: u64) -> ProgramResult {
+        // accept depository redeemable token
+        // validate user input
+        // call depository proxytransfer or equivalent
+        // with reciever being controller proxy address (or controller mango account)
+        // transfer to controller's Mango user account
+        // call calc_swap_position
+        // CPI call into mango to sell swaps according to ^
+        // mint tokens from uxd_mint to user account
 
-    // pub fn mint(ctx: Context<Mint>) -> ProgramResult {
-    //     // accept depository redeemable token
-    //     // validate user input
-    //     // call depository proxytransfer or equivalent
-    //     // with reciever being controller proxy address (or controller mango account)
-    //     // transfer to controller's Mango user account
-    //     // call calc_swap_position
-    //     // CPI call into mango to sell swaps according to ^
-    //     // mint tokens from uxd_mint to user account
-    // }
-    //
-    // pub fn redeem(ctx: Context<Redeem>) -> ProgramResult {
+        Ok(())
+    }
+
+    // pub fn redeem_uxd(ctx: Context<RedeemUxd>) -> ProgramResult {
     //     // validate user input
     //     // burn user uxd
     //     // exchange depository redeemable token
@@ -241,6 +242,7 @@ pub struct RegisterDepository<'info> {
         bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
     )]
     pub state: ProgramAccount<'info, State>,
+    pub depository: AccountInfo<'info>,
     #[account(
         init,
         seeds = [RECORD_SEED, depository.key.as_ref()],
@@ -248,7 +250,6 @@ pub struct RegisterDepository<'info> {
         payer = authority,
     )]
     pub depository_record: ProgramAccount<'info, DepositoryRecord>,
-    pub depository: AccountInfo<'info>,
     #[account(
         seeds = [depository::STATE_SEED],
         bump = Pubkey::find_program_address(&[depository::STATE_SEED], &depository.key()).1,
@@ -267,6 +268,79 @@ pub struct RegisterDepository<'info> {
     pub coin_passthrough: AccountInfo<'info>,
     //pub mango_group: CpiAccount<'info, MangoTester>,
     //pub mango_account: AccountInfo<'info>,
+    pub rent: Sysvar<'info, Rent>,
+    #[account(constraint = system_program.key() == system::ID)]
+    pub system_program: AccountInfo<'info>,
+    #[account(constraint = token_program.key() == spl_token::ID)]
+    pub token_program: AccountInfo<'info>,
+    //pub mango_program: AccountInfo<'info>,
+    #[account(constraint = program.key() == *program_id)]
+    pub program: AccountInfo<'info>,
+}
+
+// XXX oki this shit is complicated lets see what all is here...
+// basically what we do is take redeemables from the user, take coin from depository
+// send coin to mango, open position, mint uxd to user
+// XXX gahh this means we need our own redeemable account too...
+// this is troublesome... hmm we could theoretically uhh...
+// * user gives mint 1 btc-redeemable
+// * we call proxy transfer which *burns* the redeemable and sends *us* 1 btc
+// * we deposit that 1 btc into the mago account and create a position
+// * we mint the amount of uxd that corresponds to the position size
+// and then in reverse is like
+// * burn the amount of uxd 
+// * close out a corresponding position size and redeem for coin
+// * proxy transfer coin to depository which *mints* redeemable to us
+// * transfer redeemable to user
+// and in fact we may very well just mint directly to user
+#[derive(Accounts)]
+#[instruction(amount: u64)]
+pub struct MintUxd<'info> {
+    #[account(signer)]
+    pub user: AccountInfo<'info>,
+    #[account(
+        seeds = [STATE_SEED],
+        bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
+    )]
+    pub state: ProgramAccount<'info, State>,
+    pub depository: AccountInfo<'info>,
+    #[account(
+        seeds = [RECORD_SEED, depository.key.as_ref()],
+        bump = Pubkey::find_program_address(&[RECORD_SEED, depository.key.as_ref()], program_id).1,
+    )]
+    pub depository_record: ProgramAccount<'info, DepositoryRecord>,
+    #[account(
+        seeds = [depository::STATE_SEED],
+        bump = Pubkey::find_program_address(&[depository::STATE_SEED], &depository.key()).1,
+    )]
+    pub depository_state: CpiAccount<'info, depository::State>,
+    #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
+    pub depository_coin: CpiAccount<'info, TokenAccount>,
+    #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
+    pub coin_mint: CpiAccount<'info, Mint>,
+    #[account(
+        seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()],
+        bump = Pubkey::find_program_address(&[PASSTHROUGH_SEED, coin_mint.key().as_ref()], program_id).1,
+    )]
+    pub coin_passthrough: CpiAccount<'info, TokenAccount>,
+    #[account(constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
+    pub redeemable_mint: CpiAccount<'info, Mint>,
+    #[account(
+        mut,
+        constraint = user_redeemable.mint == depository_state.redeemable_mint_key,
+        constraint = amount > 0,
+        constraint = user_redeemable.amount >= amount,
+    )]
+    pub user_redeemable: CpiAccount<'info, TokenAccount>,
+    // XXX this account should be created by a client instruction
+    #[account(mut, constraint = user_uxd.mint == uxd_mint.key())]
+    pub user_uxd: CpiAccount<'info, TokenAccount>,
+    #[account(
+        seeds = [UXD_SEED],
+        bump = Pubkey::find_program_address(&[UXD_SEED], program_id).1,
+    )]
+    pub uxd_mint: CpiAccount<'info, Mint>,
+    // XXX MANGO ACCOUNTS GO HERE
     pub rent: Sysvar<'info, Rent>,
     #[account(constraint = system_program.key() == system::ID)]
     pub system_program: AccountInfo<'info>,

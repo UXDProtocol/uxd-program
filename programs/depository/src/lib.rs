@@ -4,7 +4,7 @@ use anchor_spl::token::{self, Mint, TokenAccount, MintTo, Transfer, Burn};
 use solana_program::{ system_program as system, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
 
-pub const STATE_SEED: &[u8]           = b"STATE";
+pub const STATE_SEED: &[u8]       = b"STATE";
 const REDEEMABLE_MINT_SEED: &[u8] = b"REDEEMABLE";
 const PROGRAM_COIN_SEED: &[u8]    = b"DEPOSIT";
 
