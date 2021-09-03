@@ -13,6 +13,7 @@ const MINT_SPAN: usize    = 82;
 const ACCOUNT_SPAN: usize = 165;
 
 #[program]
+#[deny(unused_must_use)]
 pub mod depository {
     use super::*;
 
