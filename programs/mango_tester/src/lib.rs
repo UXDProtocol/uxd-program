@@ -38,7 +38,7 @@ use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
-    #[account(init)]
+    // XXX need payer for 14 #[account(init)]
     pub mango_tester: ProgramAccount<'info, MangoTester>,
     pub rent: Sysvar<'info, Rent>,
 }
