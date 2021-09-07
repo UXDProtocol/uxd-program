@@ -18,10 +18,10 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@project-serum/anchor@^0.11.0":
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.11.0.tgz#12b5461a0d88ed3f6e78139b77ae462d7ba7e9d4"
-  integrity sha512-NhD76ETtJimSIL6BB7qfzdo9m++IbJrJCgL/+iL7fdgsOgZLH+g/U6T0ri4xGuSIn2p9yZoIedtF6Z+qhDR0eg==
+"@project-serum/anchor@^0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.14.0.tgz#25ca4d8ac9d8b85ca01a5950c0e5a9154eb43e16"
+  integrity sha512-FqBofCi3O0Y4DAhmCA0SaakXXoMvNHLq9cVTZLP2/3R0bLO2+goRw0wTgFiKsRMW2YkNVr9cbMzd/MiukbyXsQ==
   dependencies:
     "@project-serum/borsh" "^0.2.2"
     "@solana/web3.js" "^1.17.0"

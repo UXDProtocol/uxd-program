@@ -4,10 +4,11 @@ const fs = require("fs");
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
-// these i have to change based on the whims of solana
-const PROGRAM_ID = process.argv[2];
-if(!PROGRAM_ID) throw "specify program id";
-const TEST_MINT = "HtGbD91kXRp9oK9TPiBbCVUnaW2jnsW8jLo5LgKA253Z";
+const depositoryIdl = JSON.parse(fs.readFileSync("/home/hana/work/soteria/solana-usds/target/idl/depository.json"));
+const depositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
+const depository = new anchor.Program(depositoryIdl, depositoryKey);
+
+const TEST_MINT = "Kova7SyXBM216fpWEdPzdtbJ2gb9RTynBYjM9TaphMk";
 const MINT_DECIMAL = 9;
 
 // this is theoretically constant everywhere
@@ -17,7 +18,6 @@ const ASSOC_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 const TXN_COMMIT = "processed";
 const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipPreflight: true};
 
-const programKey = new anchor.web3.PublicKey(PROGRAM_ID);
 const depositMintKey = new anchor.web3.PublicKey(TEST_MINT);
 const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
 const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
@@ -35,14 +35,11 @@ async function findAssocTokenAddr(wallet, mint) {
 }
 
 async function main() {
-    let idl = JSON.parse(fs.readFileSync("/home/hana/work/soteria/solana-usds/target/idl/depository.json"));
-    let program = new anchor.Program(idl, programKey);
-
     // anchor insists on including wallet addresses in derived accounts
     // so i cant use their fucntions intended for this
-    let stateKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("STATE")], programKey))[0];
-    let redeemableMintKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("REDEEMABLE")], programKey))[0];
-    let depositAccountKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("DEPOSIT")], programKey))[0];
+    let depositStateKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("STATE")], depositoryKey))[0];
+    let redeemableMintKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("REDEEMABLE")], depositoryKey))[0];
+    let depositAccountKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("DEPOSIT")], depositoryKey))[0];
 
     // standard spl associated accounts
     let walletCoinKey = await findAssocTokenAddr(provider.wallet.publicKey, depositMintKey);
@@ -57,25 +54,25 @@ async function main() {
     }
 
     console.log("payer:", provider.wallet.publicKey.toString());
-    console.log("state:", stateKey.toString());
+    console.log("state:", depositStateKey.toString());
     console.log("redeemable mint:", redeemableMintKey.toString());
     console.log("program coin:", depositAccountKey.toString());
     console.log("coin mint:", depositMintKey.toString());
-    console.log("program id:", programKey.toString());
+    console.log("depository id:", depositoryKey.toString());
 
-    // set up the program
+    // set up the depository
     // im deploying to a new address each time soo this is fine
-    await program.rpc.new({
+    await depository.rpc.new({
         accounts: {
             payer: provider.wallet.publicKey,
-            state: stateKey,
+            state: depositStateKey,
             redeemableMint: redeemableMintKey,
             programCoin: depositAccountKey,
             coinMint: depositMintKey,
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: tokenProgramKey,
-            program: programKey,
+            program: depositoryKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
@@ -109,17 +106,17 @@ async function main() {
     console.log("BEFORE DEPOSIT");
     printBalances(true);
 
-    await program.rpc.deposit(new anchor.BN(1 * 10**MINT_DECIMAL), {
+    await depository.rpc.deposit(new anchor.BN(1 * 10**MINT_DECIMAL), {
         accounts: {
             user: provider.wallet.publicKey,
-            state: stateKey,
+            state: depositStateKey,
             programCoin: depositAccountKey,
             redeemableMint: redeemableMintKey,
             userCoin: walletCoinKey,
             userRedeemable: walletRedeemableKey,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: tokenProgramKey,
-            program: programKey,
+            program: depositoryKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
@@ -129,17 +126,17 @@ async function main() {
     console.log("AFTER DEPOSIT");
     printBalances();
 
-    await program.rpc.withdraw(new anchor.BN(1 * 10**MINT_DECIMAL), {
+    await depository.rpc.withdraw(new anchor.BN(1 * 10**MINT_DECIMAL), {
         accounts: {
             user: provider.wallet.publicKey,
-            state: stateKey,
+            state: depositStateKey,
             programCoin: depositAccountKey,
             redeemableMint: redeemableMintKey,
             userCoin: walletCoinKey,
             userRedeemable: walletRedeemableKey,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: tokenProgramKey,
-            program: programKey,
+            program: depositoryKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
