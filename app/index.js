@@ -4,6 +4,10 @@ const fs = require("fs");
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
+const controllerIdl = JSON.parse(fs.readFileSync("/home/hana/work/soteria/solana-usds/target/idl/controller.json"));
+const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
+const controller = new anchor.Program(controllerIdl, controllerKey);
+
 const depositoryIdl = JSON.parse(fs.readFileSync("/home/hana/work/soteria/solana-usds/target/idl/depository.json"));
 const depositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
 const depository = new anchor.Program(depositoryIdl, depositoryKey);
@@ -36,11 +40,12 @@ async function findAssocTokenAddr(wallet, mint) {
 }
 
 async function main() {
-    // anchor insists on including wallet addresses in derived accounts
-    // so i cant use their fucntions intended for this
-    let depositStateKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("STATE")], depositoryKey))[0];
-    let redeemableMintKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("REDEEMABLE")], depositoryKey))[0];
-    let depositAccountKey = (await anchor.web3.PublicKey.findProgramAddress([Buffer.from("DEPOSIT")], depositoryKey))[0];
+    let [controlStateKey] = anchor.utils.publicKey.findProgramAddressSync([Buffer.from("STATE")], controllerKey);
+    let [uxdMintKey] = anchor.utils.publicKey.findProgramAddressSync([Buffer.from("STABLECOIN")], controllerKey);
+
+    let [depositStateKey] = anchor.utils.publicKey.findProgramAddressSync([Buffer.from("STATE")], depositoryKey);
+    let [redeemableMintKey] = anchor.utils.publicKey.findProgramAddressSync([Buffer.from("REDEEMABLE")], depositoryKey);
+    let [depositAccountKey] = anchor.utils.publicKey.findProgramAddressSync([Buffer.from("DEPOSIT")], depositoryKey);
 
     // standard spl associated accounts
     let walletCoinKey = await findAssocTokenAddr(provider.wallet.publicKey, depositMintKey);
@@ -55,14 +60,34 @@ async function main() {
     }
 
     console.log("payer:", provider.wallet.publicKey.toString());
-    console.log("state:", depositStateKey.toString());
     console.log("redeemable mint:", redeemableMintKey.toString());
     console.log("program coin:", depositAccountKey.toString());
     console.log("coin mint:", depositMintKey.toString());
+    console.log("uxd mint:", uxdMintKey.toString());
+    console.log("controller id:", controllerKey.toString());
+    console.log("controller state:", controlStateKey.toString());
     console.log("depository id:", depositoryKey.toString());
+    console.log("depository state:", depositStateKey.toString());
+    console.log("\n");
 
-    // set up the depository
-    // im deploying to a new address each time soo this is fine
+    // set up the controller
+    await controller.rpc.new({
+        accounts: {
+            authority: provider.wallet.publicKey,
+            state: controlStateKey,
+            uxdMint: uxdMintKey,
+            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: tokenProgramKey,
+            program: controllerKey,
+        },
+        signers: [provider.wallet.payer],
+        options: TXN_OPTS,
+    });
+
+    console.log("controller initialized!");
+
+    // and set up the depository
     await depository.rpc.new({
         accounts: {
             payer: provider.wallet.publicKey,
@@ -79,7 +104,7 @@ async function main() {
         options: TXN_OPTS,
     });
 
-    console.log("initialized!");
+    console.log("depository initialized!");
 
     // ok now uhh i just wanna deposit and withdraw. may or may not have to set up the redeemable acct
     let redeemState = await provider.connection.getAccountInfo(walletRedeemableKey);
