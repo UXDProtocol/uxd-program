@@ -8,7 +8,8 @@ const depositoryIdl = JSON.parse(fs.readFileSync("/home/hana/work/soteria/solana
 const depositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
 const depository = new anchor.Program(depositoryIdl, depositoryKey);
 
-const TEST_MINT = "Kova7SyXBM216fpWEdPzdtbJ2gb9RTynBYjM9TaphMk";
+const COIN_MINT = process.argv[2];
+if(!COIN_MINT) throw "specify coin mint";
 const MINT_DECIMAL = 9;
 
 // this is theoretically constant everywhere
@@ -18,7 +19,7 @@ const ASSOC_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 const TXN_COMMIT = "processed";
 const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipPreflight: true};
 
-const depositMintKey = new anchor.web3.PublicKey(TEST_MINT);
+const depositMintKey = new anchor.web3.PublicKey(COIN_MINT);
 const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
 const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
 
