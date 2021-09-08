@@ -169,10 +169,7 @@ pub struct Deposit<'info> {
     #[account(signer)]
     pub user: AccountInfo<'info>,
     // this program signing and state account
-    #[account(
-        seeds = [STATE_SEED],
-        bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
-    )]
+    #[account(seeds = [STATE_SEED], bump)]
     pub state: ProgramAccount<'info, State>,
     // program account for coin deposit
     #[account(mut, constraint = program_coin.key() == state.program_coin_key)]
@@ -210,10 +207,7 @@ pub struct Withdraw<'info> {
     #[account(signer)]
     pub user: AccountInfo<'info>,
     // this program signing and state account
-    #[account(
-        seeds = [STATE_SEED],
-        bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
-    )]
+    #[account(seeds = [STATE_SEED], bump)]
     pub state: ProgramAccount<'info, State>,
     // program account withdrawing coins from
     #[account(

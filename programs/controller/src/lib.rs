@@ -246,14 +246,14 @@ pub struct New<'info> {
     #[account(
         init,
         seeds = [STATE_SEED],
-        bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
+        bump,
         payer = authority,
     )]
     pub state: ProgramAccount<'info, State>,
     #[account(
         init,
         seeds = [UXD_SEED],
-        bump = Pubkey::find_program_address(&[UXD_SEED], program_id).1,
+        bump,
         payer = authority,
         owner = spl_token::ID,
         space = MINT_SPAN,
@@ -273,15 +273,12 @@ pub struct New<'info> {
 pub struct RegisterDepository<'info> {
     #[account(signer, mut, constraint = authority.key() == state.authority_key)]
     pub authority: AccountInfo<'info>,
-    #[account(
-        seeds = [STATE_SEED],
-        bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
-    )]
+    #[account(seeds = [STATE_SEED], bump)]
     pub state: ProgramAccount<'info, State>,
     #[account(
         init,
         seeds = [RECORD_SEED, depository_key.as_ref()],
-        bump = Pubkey::find_program_address(&[RECORD_SEED, depository_key.as_ref()], program_id).1,
+        bump,
         payer = authority,
     )]
     pub depository_record: ProgramAccount<'info, DepositoryRecord>,
@@ -294,7 +291,7 @@ pub struct RegisterDepository<'info> {
     #[account(
         init,
         seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()],
-        bump = Pubkey::find_program_address(&[PASSTHROUGH_SEED, coin_mint.key().as_ref()], program_id).1,
+        bump,
         payer = authority,
         owner = spl_token::ID,
         space = ACCOUNT_SPAN,
@@ -333,30 +330,18 @@ pub struct MintUxd<'info> {
     // XXX again we should use approvals so user doesnt need to sign
     #[account(signer)]
     pub user: AccountInfo<'info>,
-    #[account(
-        seeds = [STATE_SEED],
-        bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
-    )]
+    #[account(seeds = [STATE_SEED], bump)]
     pub state: ProgramAccount<'info, State>,
     pub depository: AccountInfo<'info>,
-    #[account(
-        seeds = [RECORD_SEED, depository.key.as_ref()],
-        bump = Pubkey::find_program_address(&[RECORD_SEED, depository.key.as_ref()], program_id).1,
-    )]
+    #[account(seeds = [RECORD_SEED, depository.key.as_ref()], bump)]
     pub depository_record: ProgramAccount<'info, DepositoryRecord>,
-    #[account(
-        seeds = [depository::STATE_SEED],
-        bump = Pubkey::find_program_address(&[depository::STATE_SEED], &depository.key()).1,
-    )]
+    #[account(seeds = [depository::STATE_SEED], bump)]
     pub depository_state: CpiAccount<'info, depository::State>,
     #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
     pub depository_coin: CpiAccount<'info, TokenAccount>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
     pub coin_mint: CpiAccount<'info, Mint>,
-    #[account(
-        seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()],
-        bump = Pubkey::find_program_address(&[PASSTHROUGH_SEED, coin_mint.key().as_ref()], program_id).1,
-    )]
+    #[account(seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
     pub coin_passthrough: CpiAccount<'info, TokenAccount>,
     #[account(mut, constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
     pub redeemable_mint: CpiAccount<'info, Mint>,
@@ -370,11 +355,7 @@ pub struct MintUxd<'info> {
     // XXX this account should be created by a client instruction
     #[account(mut, constraint = user_uxd.mint == uxd_mint.key())]
     pub user_uxd: CpiAccount<'info, TokenAccount>,
-    #[account(
-        mut,
-        seeds = [UXD_SEED],
-        bump = Pubkey::find_program_address(&[UXD_SEED], program_id).1,
-    )]
+    #[account(mut, seeds = [UXD_SEED], bump)]
     pub uxd_mint: CpiAccount<'info, Mint>,
     // XXX MANGO ACCOUNTS GO HERE
     pub rent: Sysvar<'info, Rent>,
@@ -393,30 +374,18 @@ pub struct RedeemUxd<'info> {
     // XXX again we should use approvals so user doesnt need to sign
     #[account(signer)]
     pub user: AccountInfo<'info>,
-    #[account(
-        seeds = [STATE_SEED],
-        bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
-    )]
+    #[account(seeds = [STATE_SEED], bump)]
     pub state: ProgramAccount<'info, State>,
     pub depository: AccountInfo<'info>,
-    #[account(
-        seeds = [RECORD_SEED, depository.key.as_ref()],
-        bump = Pubkey::find_program_address(&[RECORD_SEED, depository.key.as_ref()], program_id).1,
-    )]
+    #[account(seeds = [RECORD_SEED, depository.key.as_ref()], bump)]
     pub depository_record: ProgramAccount<'info, DepositoryRecord>,
-    #[account(
-        seeds = [depository::STATE_SEED],
-        bump = Pubkey::find_program_address(&[depository::STATE_SEED], &depository.key()).1,
-    )]
+    #[account(seeds = [depository::STATE_SEED], bump)]
     pub depository_state: CpiAccount<'info, depository::State>,
     #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
     pub depository_coin: CpiAccount<'info, TokenAccount>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
     pub coin_mint: CpiAccount<'info, Mint>,
-    #[account(
-        seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()],
-        bump = Pubkey::find_program_address(&[PASSTHROUGH_SEED, coin_mint.key().as_ref()], program_id).1,
-    )]
+    #[account(seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
     pub coin_passthrough: CpiAccount<'info, TokenAccount>,
     #[account(mut, constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
     pub redeemable_mint: CpiAccount<'info, Mint>,
@@ -432,11 +401,7 @@ pub struct RedeemUxd<'info> {
         constraint = user_uxd.amount >= uxd_amount,
     )]
     pub user_uxd: CpiAccount<'info, TokenAccount>,
-    #[account(
-        mut,
-        seeds = [UXD_SEED],
-        bump = Pubkey::find_program_address(&[UXD_SEED], program_id).1,
-    )]
+    #[account(mut, seeds = [UXD_SEED], bump)]
     pub uxd_mint: CpiAccount<'info, Mint>,
     // XXX MANGO ACCOUNTS GO HERE
     pub rent: Sysvar<'info, Rent>,
