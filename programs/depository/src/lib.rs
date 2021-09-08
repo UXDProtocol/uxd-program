@@ -18,7 +18,8 @@ pub mod depository {
     use super::*;
 
     // creates a redeemable mint and a coin account
-    pub fn new(ctx: Context<New>) -> ProgramResult {
+    // also registers the controller as an authority to authenticate proxy transfers
+    pub fn new(ctx: Context<New>, controller_key: Pubkey) -> ProgramResult {
         let accounts = ctx.accounts.to_account_infos();
 
         // build the seeds to sign for account initializations
@@ -53,6 +54,7 @@ pub mod depository {
 
         // store stuff in our state account now
         ctx.accounts.state.bump = state_ctr;
+        ctx.accounts.state.controller_key = controller_key;
         ctx.accounts.state.coin_mint_key = ctx.accounts.coin_mint.key();
         ctx.accounts.state.redeemable_mint_key = ctx.accounts.redeemable_mint.key();
         ctx.accounts.state.program_coin_key = ctx.accounts.program_coin.key();
@@ -119,7 +121,7 @@ pub struct New<'info> {
     // stores program config, authority of the redeemable mint and deposit account
     #[account(
         init,
-        seeds = [STATE_SEED.as_ref()],
+        seeds = [STATE_SEED],
         bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
         payer = payer,
     )]
@@ -127,7 +129,7 @@ pub struct New<'info> {
     // mint for bearer tokens representing deposited balances
     #[account(
         init,
-        seeds = [REDEEMABLE_MINT_SEED.as_ref()],
+        seeds = [REDEEMABLE_MINT_SEED],
         bump = Pubkey::find_program_address(&[REDEEMABLE_MINT_SEED], program_id).1,
         payer = payer,
         owner = spl_token::ID,
@@ -137,7 +139,7 @@ pub struct New<'info> {
     // program account that coins are deposited into
     #[account(
         init,
-        seeds = [PROGRAM_COIN_SEED.as_ref()],
+        seeds = [PROGRAM_COIN_SEED],
         bump = Pubkey::find_program_address(&[PROGRAM_COIN_SEED], program_id).1,
         payer = payer,
         owner = spl_token::ID,
@@ -168,7 +170,7 @@ pub struct Deposit<'info> {
     pub user: AccountInfo<'info>,
     // this program signing and state account
     #[account(
-        seeds = [STATE_SEED.as_ref()],
+        seeds = [STATE_SEED],
         bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
     )]
     pub state: ProgramAccount<'info, State>,
@@ -209,7 +211,7 @@ pub struct Withdraw<'info> {
     pub user: AccountInfo<'info>,
     // this program signing and state account
     #[account(
-        seeds = [STATE_SEED.as_ref()],
+        seeds = [STATE_SEED],
         bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
     )]
     pub state: ProgramAccount<'info, State>,
@@ -249,6 +251,7 @@ pub struct Withdraw<'info> {
 #[derive(Default)]
 pub struct State {
     pub bump: u8,
+    pub controller_key: Pubkey,
     pub coin_mint_key: Pubkey,
     pub redeemable_mint_key: Pubkey,
     pub program_coin_key: Pubkey,

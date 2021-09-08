@@ -100,7 +100,7 @@ pub mod controller {
     // we need this because the owner of the mango account and the token account must be the same
     // and we cant make the depository own the mango account because we need to sign for these accounts
     // it seems prudent for every depository to have its own mango account
-    pub fn register_depository(ctx: Context<RegisterDepository>) -> ProgramResult {
+    pub fn register_depository(ctx: Context<RegisterDepository>, depository_key: Pubkey) -> ProgramResult {
         let accounts = ctx.accounts.to_account_infos();
         let coin_mint_key = ctx.accounts.coin_mint.key();
 
@@ -142,7 +142,7 @@ pub mod controller {
         // set our depo record up. this later acts as proof we trust a given depository
         // we also use this to derive the depository state key, from which we get mint and account keys
         // creating a hierarchy of trust rooted at the authority key that instantiated the controller
-        ctx.accounts.depository_record.depository_key = *ctx.accounts.depository.key;
+        ctx.accounts.depository_record.depository_key = depository_key;
 
         Ok(())
     }
@@ -269,6 +269,7 @@ pub struct New<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(depository_key: Pubkey)]
 pub struct RegisterDepository<'info> {
     #[account(signer, mut, constraint = authority.key() == state.authority_key)]
     pub authority: AccountInfo<'info>,
@@ -277,17 +278,15 @@ pub struct RegisterDepository<'info> {
         bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
     )]
     pub state: ProgramAccount<'info, State>,
-    pub depository: AccountInfo<'info>,
     #[account(
         init,
-        seeds = [RECORD_SEED, depository.key.as_ref()],
-        bump = Pubkey::find_program_address(&[RECORD_SEED, depository.key.as_ref()], program_id).1,
+        seeds = [RECORD_SEED, depository_key.as_ref()],
+        bump = Pubkey::find_program_address(&[RECORD_SEED, depository_key.as_ref()], program_id).1,
         payer = authority,
     )]
     pub depository_record: ProgramAccount<'info, DepositoryRecord>,
     #[account(
-        seeds = [depository::STATE_SEED],
-        bump = Pubkey::find_program_address(&[depository::STATE_SEED], &depository.key()).1,
+        constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED], &depository_key).0,
     )]
     pub depository_state: CpiAccount<'info, depository::State>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
