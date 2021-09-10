@@ -332,10 +332,13 @@ pub struct MintUxd<'info> {
     pub user: AccountInfo<'info>,
     #[account(seeds = [STATE_SEED], bump)]
     pub state: ProgramAccount<'info, State>,
+    #[account(constraint = *depository.key == depository_record.depository_key)]
     pub depository: AccountInfo<'info>,
     #[account(seeds = [RECORD_SEED, depository.key.as_ref()], bump)]
     pub depository_record: ProgramAccount<'info, DepositoryRecord>,
-    #[account(seeds = [depository::STATE_SEED], bump)]
+    #[account(
+        constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED], depository.key).0,
+    )]
     pub depository_state: CpiAccount<'info, depository::State>,
     #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
     pub depository_coin: CpiAccount<'info, TokenAccount>,
@@ -376,10 +379,13 @@ pub struct RedeemUxd<'info> {
     pub user: AccountInfo<'info>,
     #[account(seeds = [STATE_SEED], bump)]
     pub state: ProgramAccount<'info, State>,
+    #[account(constraint = *depository.key == depository_record.depository_key)]
     pub depository: AccountInfo<'info>,
     #[account(seeds = [RECORD_SEED, depository.key.as_ref()], bump)]
     pub depository_record: ProgramAccount<'info, DepositoryRecord>,
-    #[account(seeds = [depository::STATE_SEED], bump)]
+    #[account(
+        constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED], depository.key).0,
+    )]
     pub depository_state: CpiAccount<'info, depository::State>,
     #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
     pub depository_coin: CpiAccount<'info, TokenAccount>,

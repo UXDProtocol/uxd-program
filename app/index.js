@@ -36,8 +36,34 @@ function findAddr(seeds, programId) {
 }
 
 // derives the canonical token account address for a given wallet and mint
-function findAssocTokenAddr(wallet, mint) {
-    return findAddr([wallet.toBuffer(), tokenProgramKey.toBuffer(), mint.toBuffer()], assocTokenProgramKey);
+function findAssocTokenAddr(walletKey, mintKey) {
+    return findAddr([walletKey.toBuffer(), tokenProgramKey.toBuffer(), mintKey.toBuffer()], assocTokenProgramKey);
+}
+
+// returns an instruction to create the associated account for a wallet and mint
+function createAssocIxn(walletKey, mintKey) {
+    let assocKey = findAssocTokenAddr(walletKey, mintKey);
+
+    return new anchor.web3.TransactionInstruction({
+        keys: [
+            {pubkey: walletKey, isSigner: true, isWritable: true},
+            {pubkey: assocKey, isSigner: false, isWritable: true},
+            {pubkey: walletKey, isSigner: false, isWritable: false},
+            {pubkey: mintKey, isSigner: false, isWritable: false},
+            {pubkey: anchor.web3.SystemProgram.programId, isSigner: false, isWritable: false},
+            {pubkey: tokenProgramKey, isSigner: false, isWritable: false},
+            {pubkey: anchor.web3.SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false},
+        ],
+        programId: assocTokenProgramKey,
+        data: Buffer.alloc(0),
+    });
+}
+
+// handle the error when an account is uninitialized...
+function getTokenBalance(tokenKey) {
+    return provider.connection.getTokenAccountBalance(tokenKey, TXN_COMMIT)
+           .then(o => o["value"]["uiAmount"])
+           .catch(() => null);
 }
 
 async function main() {
@@ -57,13 +83,20 @@ async function main() {
     // standard spl associated accounts
     let userCoinKey = findAssocTokenAddr(provider.wallet.publicKey, coinMintKey);
     let userRedeemableKey = findAssocTokenAddr(provider.wallet.publicKey, redeemableMintKey);
+    let userUxdKey = findAssocTokenAddr(provider.wallet.publicKey, uxdMintKey);
 
-    async function printBalances(skipRed) {
-        let userCoin = (await provider.connection.getTokenAccountBalance(userCoinKey, TXN_COMMIT))["value"]["uiAmount"];
-        let userRedeemable = skipRed ? 0 : (await provider.connection.getTokenAccountBalance(userRedeemableKey, TXN_COMMIT))["value"]["uiAmount"];
-        let programCoin = (await provider.connection.getTokenAccountBalance(depositAccountKey, TXN_COMMIT))["value"]["uiAmount"];
+    async function printBalances() {
+        let userCoin = await getTokenBalance(userCoinKey);
+        let depositCoin = await getTokenBalance(depositAccountKey);
+        let userRedeemable = await getTokenBalance(userRedeemableKey);
+        let userUxd = await getTokenBalance(userRedeemableKey);
 
-        console.log(`* user balance: ${userCoin}\n* user redeemable: ${userRedeemable}\n* program balance: ${programCoin}\n\n`);
+        console.log(
+`* user balance: ${userCoin}
+* depository balance: ${depositCoin}
+* user redeemable: ${userRedeemable}
+* user uxd: ${userUxd}
+`);
     }
 
     console.log("payer:", provider.wallet.publicKey.toString());
@@ -145,31 +178,14 @@ async function main() {
         console.log("depository registered!");
     }
 
-    // ok now uhh i just wanna deposit and withdraw. may or may not have to set up the redeemable acct
-    let redeemState = await provider.connection.getAccountInfo(userRedeemableKey);
-
-    // anchor will error if you pass [] or null lol
-    var depositIxns = undefined;
-    if(!redeemState) {
-        depositIxns = [
-            new anchor.web3.TransactionInstruction({
-                keys: [
-                    {pubkey: provider.wallet.publicKey, isSigner: true, isWritable: true},
-                    {pubkey: userRedeemableKey, isSigner: false, isWritable: true},
-                    {pubkey: provider.wallet.publicKey, isSigner: false, isWritable: false},
-                    {pubkey: redeemableMintKey, isSigner: false, isWritable: false},
-                    {pubkey: anchor.web3.SystemProgram.programId, isSigner: false, isWritable: false},
-                    {pubkey: tokenProgramKey, isSigner: false, isWritable: false},
-                    {pubkey: anchor.web3.SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false},
-                ],
-                programId: assocTokenProgramKey,
-                data: Buffer.alloc(0),
-            }),
-        ]
-    }
+    // create user account for redeemables if it doesnt exist
+    // note anchor will error if you pass [] or null for the extra ixns
+    let depositIxns = await provider.connection.getAccountInfo(userRedeemableKey)
+                    ? undefined
+                    : [createAssocIxn(provider.wallet.publicKey, redeemableMintKey)];
 
     console.log("BEFORE DEPOSIT");
-    printBalances(true);
+    printBalances();
 
     await depository.rpc.deposit(new anchor.BN(1 * 10**MINT_DECIMAL), {
         accounts: {
@@ -189,6 +205,70 @@ async function main() {
     });
 
     console.log("AFTER DEPOSIT");
+    printBalances();
+
+    // XXX TODO here i need to...
+    // * create user account for uxd
+    // * call mint
+    // * call redeem
+    // * impl proxy xfer
+
+    // create user account for uxd if needed
+    let mintIxns = await provider.connection.getAccountInfo(userUxdKey)
+                   ? undefined
+                   : [createAssocIxn(provider.wallet.publicKey, uxdMintKey)];
+
+    await controller.rpc.mintUxd(new anchor.BN(1 * 10**MINT_DECIMAL), {
+        accounts: {
+            user: provider.wallet.publicKey,
+            state: controlStateKey,
+            depository: depositoryKey,
+            depositoryRecord: depositRecordKey,
+            depositoryState: depositStateKey,
+            depositoryCoin: depositAccountKey,
+            coinMint: coinMintKey,
+            coinPassthrough: coinPassthroughKey,
+            redeemableMint: redeemableMintKey,
+            userRedeemable: userRedeemableKey,
+            userUxd: userUxdKey,
+            uxdMint: uxdMintKey,
+            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: tokenProgramKey,
+            program: controllerKey,
+        },
+        signers: [provider.wallet.payer],
+        options: TXN_OPTS,
+        instructions: mintIxns,
+    });
+
+    console.log("AFTER MINT");
+    printBalances();
+
+    await controller.rpc.redeemUxd(new anchor.BN(1), {
+        accounts: {
+            user: provider.wallet.publicKey,
+            state: controlStateKey,
+            depository: depositoryKey,
+            depositoryRecord: depositRecordKey,
+            depositoryState: depositStateKey,
+            depositoryCoin: depositAccountKey,
+            coinMint: coinMintKey,
+            coinPassthrough: coinPassthroughKey,
+            redeemableMint: redeemableMintKey,
+            userRedeemable: userRedeemableKey,
+            userUxd: userUxdKey,
+            uxdMint: uxdMintKey,
+            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: tokenProgramKey,
+            program: controllerKey,
+        },
+        signers: [provider.wallet.payer],
+        options: TXN_OPTS,
+    });
+
+    console.log("AFTER REDEEM");
     printBalances();
 
     await depository.rpc.withdraw(new anchor.BN(1 * 10**MINT_DECIMAL), {
