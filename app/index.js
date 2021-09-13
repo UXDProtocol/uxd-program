@@ -88,12 +88,14 @@ async function main() {
     async function printBalances() {
         let userCoin = await getTokenBalance(userCoinKey);
         let depositCoin = await getTokenBalance(depositAccountKey);
+        let coinPassthrough = await getTokenBalance(coinPassthroughKey);
         let userRedeemable = await getTokenBalance(userRedeemableKey);
-        let userUxd = await getTokenBalance(userRedeemableKey);
+        let userUxd = await getTokenBalance(userUxdKey);
 
         console.log(
 `* user balance: ${userCoin}
 * depository balance: ${depositCoin}
+* controller balance: ${coinPassthrough}
 * user redeemable: ${userRedeemable}
 * user uxd: ${userUxd}
 `);
@@ -236,6 +238,8 @@ async function main() {
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: tokenProgramKey,
             program: controllerKey,
+            // XXX FIXME temp
+            programCoin: depositAccountKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
@@ -263,6 +267,8 @@ async function main() {
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: tokenProgramKey,
             program: controllerKey,
+            // XXX FIXME temp
+            programCoin: depositAccountKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,

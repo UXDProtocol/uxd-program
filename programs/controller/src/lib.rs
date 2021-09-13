@@ -70,6 +70,7 @@ pub mod controller {
     // create controller state, create uxd (this could happen elsewhere later)
     // the key we pass in as authority *must* be retained/protected to add depositories
     pub fn new(ctx: Context<New>) -> ProgramResult {
+        msg!("controller: new");
         let accounts = ctx.accounts.to_account_infos();
 
         let state_ctr = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id).1;
@@ -101,6 +102,7 @@ pub mod controller {
     // and we cant make the depository own the mango account because we need to sign for these accounts
     // it seems prudent for every depository to have its own mango account
     pub fn register_depository(ctx: Context<RegisterDepository>, depository_key: Pubkey) -> ProgramResult {
+        msg!("controller: register depository");
         let accounts = ctx.accounts.to_account_infos();
         let coin_mint_key = ctx.accounts.coin_mint.key();
 
@@ -142,15 +144,37 @@ pub mod controller {
         // set our depo record up. this later acts as proof we trust a given depository
         // we also use this to derive the depository state key, from which we get mint and account keys
         // creating a hierarchy of trust rooted at the authority key that instantiated the controller
+        ctx.accounts.depository_record.bump = Pubkey::find_program_address(&[
+            RECORD_SEED,
+            depository_key.as_ref()
+        ], ctx.program_id).1;
         ctx.accounts.depository_record.depository_key = depository_key;
 
         Ok(())
     }
 
+    // MINT UXD
+    // swap user redeemable for coin which we take. open a mango position with that
+    // then mint uxd in the amount of the mango position to the user
     pub fn mint_uxd(ctx: Context<MintUxd>, coin_amount: u64) -> ProgramResult {
-        // XXX ok so, simple, we proxy xfer coin which entails redeemable burn, set up mango position, mint uxd
+        msg!("controller: mint uxd");
 
-        // TODO PROXY XFER TO PASSTHROUGH HERE
+        // burn user redeemables and withdraw the coin to our passthrough account
+        //let depo_state: ProgramAccount<depository::State> = ctx.accounts.depository_state.from();
+        let withdraw_accounts = depository::Withdraw {
+            user: ctx.accounts.user.clone(),
+            state: ProgramAccount::<depository::State>::from(ctx.accounts.depository_state.clone()),
+            program_coin: ctx.accounts.program_coin.clone(),
+            redeemable_mint: ctx.accounts.redeemable_mint.clone(),
+            user_coin: ctx.accounts.coin_passthrough.clone(),
+            user_redeemable: ctx.accounts.user_redeemable.clone(),
+            system_program: ctx.accounts.system_program.clone(),
+            token_program: ctx.accounts.token_program.clone(),
+            program: ctx.accounts.depository.clone(),
+        };
+
+        let withdraw_ctx = CpiContext::new(ctx.accounts.depository.clone(), withdraw_accounts);
+        depository::cpi::withdraw(withdraw_ctx, coin_amount)?;
 
         // XXX im not sure this is right, shouldnt mango tell us the position size?
         // im also not sure if this is a usdc number or a coin number... assuming its usdc now
@@ -172,9 +196,13 @@ pub mod controller {
         Ok(())
     }
 
+    // REDEEM UXD
+    // burn uxd that is being redeemed. then close out mango position and return coins to depository
+    // minting redeemables for the user in the process
     pub fn redeem_uxd(ctx: Context<RedeemUxd>, uxd_amount: u64) -> ProgramResult {
-        // XXX burn uxd, close mango position and withdraw, proxy xfer which entails direct redeemable mint
+        msg!("controller: redeem uxd");
 
+        // first burn the uxd theyre giving up
         let burn_accounts = Burn {
             mint: ctx.accounts.uxd_mint.to_account_info(),
             to: ctx.accounts.user_uxd.to_account_info(),
@@ -184,26 +212,41 @@ pub mod controller {
         let burn_ctx = CpiContext::new(ctx.accounts.token_program.clone(), burn_accounts);
         token::burn(burn_ctx, uxd_amount)?;
 
-        // XXX TODO FIXME make sure this actually changes after mango withdraw!!
+        // get current passthrough balance before withdrawing from mango
+        // in theory this should always be zero but better safe
         let passthrough_balance = ctx.accounts.coin_passthrough.amount;
 
         // TODO MANGO CLOSE POSITION AND WITHDRAW COIN HERE
 
-        let collateral_size = ctx.accounts.coin_passthrough.amount - passthrough_balance;
+        // XXX TODO FIXME amount should increase from mango withdraw so we find the difference
+        // for now tho just deposit it all to maintain balance when testing
+        //let collateral_size = ctx.accounts.coin_passthrough.amount - passthrough_balance;
+        let collateral_size = ctx.accounts.coin_passthrough.amount;
 
-        // TODO PROXY XFER TO DEPOSITORY HERE
+        // return mango money back to depository
+        let deposit_accounts = depository::Deposit {
+            user: ctx.accounts.depository_record.to_account_info(),
+            state: ProgramAccount::<depository::State>::from(ctx.accounts.depository_state.clone()),
+            program_coin: ctx.accounts.program_coin.clone(),
+            redeemable_mint: ctx.accounts.redeemable_mint.clone(),
+            user_coin: ctx.accounts.coin_passthrough.clone(),
+            user_redeemable: ctx.accounts.user_redeemable.clone(),
+            system_program: ctx.accounts.system_program.clone(),
+            token_program: ctx.accounts.token_program.clone(),
+            program: ctx.accounts.depository.clone(),
+        };
+
+        let record_seed: &[&[&[u8]]] = &[&[
+            RECORD_SEED,
+            ctx.accounts.depository_record.depository_key.as_ref(),
+            &[ctx.accounts.depository_record.bump]
+        ]];
+        let deposit_ctx = CpiContext::new_with_signer(ctx.accounts.depository.clone(), deposit_accounts, record_seed);
+        depository::cpi::deposit(deposit_ctx, collateral_size)?;
 
         Ok(())
     }
 
-    // fn proxy_transfer(ctx: Context<Proxy_transfer>) -> ProgramResult {
-    //     // called by mint or rebalance
-    //     // takes arguments for depository, amount, and target (if multiple targets)
-    //     // depository has a fixed and short list of acceptable proxy transfer targets
-    //     // CPI call into the depository contract
-    //     // validate funds receipt and depository redeemable burn (on depository side)
-    // }
-    //
     // pub fn rebalance(ctx: Context<Rebalance>) -> ProgramResult {
     //     // validate caller is in rebalance signer(s)
     //     // WARNING DIFFICULT LOGIC
@@ -344,7 +387,7 @@ pub struct MintUxd<'info> {
     pub depository_coin: CpiAccount<'info, TokenAccount>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
     pub coin_mint: CpiAccount<'info, Mint>,
-    #[account(seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
+    #[account(mut, seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
     pub coin_passthrough: CpiAccount<'info, TokenAccount>,
     #[account(mut, constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
     pub redeemable_mint: CpiAccount<'info, Mint>,
@@ -369,6 +412,9 @@ pub struct MintUxd<'info> {
     //pub mango_program: AccountInfo<'info>,
     #[account(constraint = program.key() == *program_id)]
     pub program: AccountInfo<'info>,
+    // XXX FIXME below here is temporary i need to find out how to create accountinfos
+    #[account(mut)]
+    pub program_coin: CpiAccount<'info, TokenAccount>,
 }
 
 #[derive(Accounts)]
@@ -391,7 +437,7 @@ pub struct RedeemUxd<'info> {
     pub depository_coin: CpiAccount<'info, TokenAccount>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
     pub coin_mint: CpiAccount<'info, Mint>,
-    #[account(seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
+    #[account(mut, seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
     pub coin_passthrough: CpiAccount<'info, TokenAccount>,
     #[account(mut, constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
     pub redeemable_mint: CpiAccount<'info, Mint>,
@@ -418,6 +464,9 @@ pub struct RedeemUxd<'info> {
     //pub mango_program: AccountInfo<'info>,
     #[account(constraint = program.key() == *program_id)]
     pub program: AccountInfo<'info>,
+    // XXX FIXME below here is temporary i need to find out how to create accountinfos
+    #[account(mut)]
+    pub program_coin: CpiAccount<'info, TokenAccount>,
 }
 
 #[account]
@@ -431,5 +480,6 @@ pub struct State {
 #[account]
 #[derive(Default)]
 pub struct DepositoryRecord {
+    bump: u8,
     depository_key: Pubkey,
 }

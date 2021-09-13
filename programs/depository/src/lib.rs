@@ -20,6 +20,7 @@ pub mod depository {
     // creates a redeemable mint and a coin account
     // also registers the controller as an authority to authenticate proxy transfers
     pub fn new(ctx: Context<New>, controller_key: Pubkey) -> ProgramResult {
+        msg!("depository: new");
         let accounts = ctx.accounts.to_account_infos();
 
         // build the seeds to sign for account initializations
@@ -65,6 +66,7 @@ pub mod depository {
     // transfer coin from user_coin to program_coin
     // mint equivalent amount from redeemable_mint to user_redeemable
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> ProgramResult {
+        msg!("depository: deposit");
         let transfer_accounts = Transfer {
             from: ctx.accounts.user_coin.to_account_info(),
             to: ctx.accounts.program_coin.to_account_info(),
@@ -89,6 +91,7 @@ pub mod depository {
 
     // burn an amount of redeemable in exchange for a withdrawl of coin
     pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> ProgramResult {
+        msg!("depository: withdraw");
         let burn_accounts = Burn {
             mint: ctx.accounts.redeemable_mint.to_account_info(),
             to: ctx.accounts.user_redeemable.to_account_info(),
