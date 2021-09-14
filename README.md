@@ -3,7 +3,7 @@ Implementation of UXD token on solana
 
 The UXD contract system consists of 2 different classes, the depository which is the input/output point for outside funds
 and the Controller, which manages the deposited funds by calculating positions, distributing funds to external derivatives 
-platforms, establishing and rebalancing managed funds, and closing out positions in the event of withdrawals.
+platforms, establishing and rebalancing derivatives positions, and closing out positions in the event of withdrawals.
 
 Both components are permissionless to the end user but require an authority account to initialize them and setup the relational
 hierarchy of depositories and controller. However the authority account acts only to establish the initial trust relationship 
