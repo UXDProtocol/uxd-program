@@ -4,40 +4,41 @@ use anchor_lang::prelude::*;
  #[program]
  pub mod mango_tester {
      use super::*;
-     pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+     pub fn new<'info>(ctx: Context<New>) -> ProgramResult {
          Ok(())
-
     }
 
-    pub fn init_mango_account(ctx: Context<InitMangoAccount>) -> ProgramResult {
+    pub fn init_mango_account<'a, 'b, 'c, 'info>(
+            ctx:CpiContext<'a, 'b, 'c, 'info, InitMangoAccount<'info>>
+    ) -> ProgramResult {
+        // let ix =
+
         // Add test for account creation
-        Ok(())
+        // Ok(())
         // Accounts expected by this instruction (4):
         // 0. `[]` mango_group_ai - MangoGroup that this mango account is for
         // 1. `[writable]` mango_account_ai - the mango account data
         // 2. `[signer]` owner_ai - Solana account of owner of the mango account
         // 3. `[]` rent_ai - Rent sysvar account
+        let mango_cpi_program = ctx.accounts.mango_program.clone();
+        let mango_cpi_accts = InitMangoAccount {
+            mango_group: ctx.accounts.mango_group.to_account_info(),
+            mango_account: ctx.accounts.mango_account.clone().into(),
+            owner_account: ctx.accounts.proxy_account.clone().into(),
+            rent: ctx.accounts.rent.clone(),
+        };
+        let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
+        // mango_tester::cpi::init_mango_account(mango_cpi_ctx);
+        Ok(())
+
     }
 
-    pub fn deposit(ctx: Context<Deposit>, amount: u64) -> ProgramResult {
-        let mt = &mut ctx.accounts.mango_tester;
-        mt.deposits += 1;
-        Ok(())
-        // Accounts expected by this instruction (8):
-        // 0. `[]` mango_group_ai - MangoGroup that this mango account is for
-        // 1. `[writable]` mango_account_ai - the mango account for this user
-        // 2. `[signer]` owner_ai - Solana account of owner of the mango account
-        // 3. `[]` mango_cache_ai - MangoCache
-        // 4. `[]` root_bank_ai - RootBank owned by MangoGroup
-        // 5. `[writable]` node_bank_ai - NodeBank owned by RootBank
-        // 6. `[writable]` vault_ai - TokenAccount owned by MangoGroup
-        // 7. `[]` token_prog_ai - acc pointed to by SPL token program id
-        // 8. `[writable]` owner_token_account_ai - TokenAccount owned by user which will be sending the funds    }
-    }
+
+
 }
 
 #[derive(Accounts)]
-pub struct Initialize<'info> {
+pub struct New<'info> {
     // XXX need payer for 14 #[account(init)]
     pub mango_tester: ProgramAccount<'info, MangoTester>,
     pub rent: Sysvar<'info, Rent>,
@@ -51,12 +52,6 @@ pub struct InitMangoAccount<'info> {
     #[account(signer)]
     pub owner_account: AccountInfo<'info>,
     pub rent: Sysvar<'info, Rent>,
-}
-
-#[derive(Accounts)]
-pub struct Deposit<'info> {
-    #[account(mut)]
-    pub mango_tester: ProgramAccount<'info, MangoTester>,
 }
 
 #[account]
