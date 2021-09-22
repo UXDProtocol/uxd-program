@@ -691,15 +691,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mango_tester"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "solana-program",
-]
-
-[[package]]
 name = "memchr"
 version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

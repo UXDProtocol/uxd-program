@@ -5,9 +5,6 @@ use solana_program::{ system_program as system, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
 use pyth_client::{ Price };
 
-// placeholder for figuring out best way
-//use mango_tester::{MangoTester, InitMangoAccount};
-
 const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: usize = 165;
 const MINT_DECIMAL: u8 = 9;
