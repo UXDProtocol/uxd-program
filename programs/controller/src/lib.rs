@@ -3,6 +3,7 @@ use anchor_lang::Key;
 use anchor_spl::token::{self, Mint, TokenAccount, MintTo, Transfer, Burn};
 use solana_program::{ system_program as system, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
+use pyth_client::{ Price };
 
 // placeholder for figuring out best way
 //use mango_tester::{MangoTester, InitMangoAccount};
@@ -101,7 +102,7 @@ pub mod controller {
     // we need this because the owner of the mango account and the token account must be the same
     // and we cant make the depository own the mango account because we need to sign for these accounts
     // it seems prudent for every depository to have its own mango account
-    pub fn register_depository(ctx: Context<RegisterDepository>, depository_key: Pubkey) -> ProgramResult {
+    pub fn register_depository(ctx: Context<RegisterDepository>, depository_key: Pubkey, oracle_key: Pubkey) -> ProgramResult {
         msg!("controller: register depository");
         let accounts = ctx.accounts.to_account_infos();
         let coin_mint_key = ctx.accounts.coin_mint.key();
@@ -176,12 +177,21 @@ pub mod controller {
         let withdraw_ctx = CpiContext::new(ctx.accounts.depository.clone(), withdraw_accounts);
         depository::cpi::withdraw(withdraw_ctx, coin_amount)?;
 
-        // XXX im not sure this is right, shouldnt mango tell us the position size?
-        // im also not sure if this is a usdc number or a coin number... assuming its usdc now
-        // we may need an oracle for this. unclear to me, i tink patrick was looking into this
-        let position_size = calc_swap_position(ctx.accounts.coin_mint.key(), coin_amount)?;
-
         // TODO DEPOSIT TO MANGO AND OPEN POSITION HERE
+
+        // XXX temporary hack, we use the registered oracle to get a coin price
+        let oracle_data = ctx.accounts.oracle.try_borrow_data()?;
+        let oracle = pyth_client::cast::<Price>(&oracle_data);
+
+        if oracle.agg.price < 0
+        || oracle.expo < 0
+        || oracle.expo != ctx.accounts.coin_mint.decimals as i32
+        || ctx.accounts.coin_mint.decimals != ctx.accounts.uxd_mint.decimals {
+            panic!("ugh return an error here or check this in constraints");
+        }
+
+        // XXX i hate this so much
+        let position_value = oracle.agg.price as u64 * coin_amount / ctx.accounts.coin_mint.decimals as u64;
 
         let mint_accounts = MintTo {
             mint: ctx.accounts.uxd_mint.to_account_info(),
@@ -191,7 +201,7 @@ pub mod controller {
 
         let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
         let mint_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.clone(), mint_accounts, state_seed);
-        token::mint_to(mint_ctx, position_size)?;
+        token::mint_to(mint_ctx, position_value)?;
 
         Ok(())
     }
@@ -218,10 +228,23 @@ pub mod controller {
 
         // TODO MANGO CLOSE POSITION AND WITHDRAW COIN HERE
 
-        // XXX TODO FIXME amount should increase from mango withdraw so we find the difference
-        // for now tho just deposit it all to maintain balance when testing
+        // XXX TODO FIXME in theory we get a uxd amount, close out that much position, and withdraw whatever collateral results
+        // and then return to the user whatever the passthrough difference is (altho it should normally be 0 balance)
         //let collateral_size = ctx.accounts.coin_passthrough.amount - passthrough_balance;
-        let collateral_size = ctx.accounts.coin_passthrough.amount;
+
+        // XXX but we are dumb and not integrated iwth mango yet so
+        let oracle_data = ctx.accounts.oracle.try_borrow_data()?;
+        let oracle = pyth_client::cast::<Price>(&oracle_data);
+
+        if oracle.agg.price < 0
+        || oracle.expo < 0
+        || oracle.expo != ctx.accounts.coin_mint.decimals as i32
+        || ctx.accounts.coin_mint.decimals != ctx.accounts.uxd_mint.decimals {
+            panic!("ugh return an error here or check this in constraints");
+        }
+
+        // XXX ughhh this is so so stupid
+        let collateral_amount = uxd_amount / oracle.agg.price as u64 * ctx.accounts.coin_mint.decimals as u64;
 
         // return mango money back to depository
         let deposit_accounts = depository::Deposit {
@@ -242,7 +265,7 @@ pub mod controller {
             &[ctx.accounts.depository_record.bump]
         ]];
         let deposit_ctx = CpiContext::new_with_signer(ctx.accounts.depository.clone(), deposit_accounts, record_seed);
-        depository::cpi::deposit(deposit_ctx, collateral_size)?;
+        depository::cpi::deposit(deposit_ctx, collateral_amount)?;
 
         Ok(())
     }
@@ -268,18 +291,6 @@ pub mod controller {
     // }
     //
 
-}
-
-// determine usdc value of a mango position
-// XXX unclear if we need to precalculate this or get it from mango or oracle or what
-fn calc_swap_position(collateral: Pubkey, amount: u64) -> Result<u64, ProgramError> {
-    // used by mint and reblance to handle the calculation of swap positions
-    // get collateral  oracle price from pyth (fn sig does nto reflect currently)
-    // get swap pricing from mango api
-    // price swaps/spot and then apply the requested amount
-
-    // TODO lol
-    return Ok(1);
 }
 
 #[derive(Accounts)]
@@ -412,9 +423,13 @@ pub struct MintUxd<'info> {
     //pub mango_program: AccountInfo<'info>,
     #[account(constraint = program.key() == *program_id)]
     pub program: AccountInfo<'info>,
-    // XXX FIXME below here is temporary i need to find out how to create accountinfos
+    // XXX FIXME below here is temporary
+    // program_coin: i need to find out how to create accountinfos
+    // oracle: dumb hack for devnet, pending mango integration
     #[account(mut)]
     pub program_coin: CpiAccount<'info, TokenAccount>,
+    #[account(constraint = oracle.key() == depository_record.oracle_key)]
+    pub oracle: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -464,9 +479,13 @@ pub struct RedeemUxd<'info> {
     //pub mango_program: AccountInfo<'info>,
     #[account(constraint = program.key() == *program_id)]
     pub program: AccountInfo<'info>,
-    // XXX FIXME below here is temporary i need to find out how to create accountinfos
+    // XXX FIXME below here is temporary
+    // program_coin: i need to find out how to create accountinfos
+    // oracle: dumb hack for devnet, pending mango integration
     #[account(mut)]
     pub program_coin: CpiAccount<'info, TokenAccount>,
+    #[account(constraint = oracle.key() == depository_record.oracle_key)]
+    pub oracle: AccountInfo<'info>,
 }
 
 #[account]
@@ -482,4 +501,6 @@ pub struct State {
 pub struct DepositoryRecord {
     bump: u8,
     depository_key: Pubkey,
+    // XXX temp for devnet
+    oracle_key: Pubkey,
 }

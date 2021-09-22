@@ -372,6 +372,7 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "depository",
+ "pyth-client",
  "solana-program",
  "spl-token",
 ]

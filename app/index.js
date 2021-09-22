@@ -27,6 +27,9 @@ const coinMintKey = new anchor.web3.PublicKey(COIN_MINT);
 const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
 const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
 
+// we should not need this on mainnet but note the addresses change per cluster
+const btcOracleDevnetKey = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
+
 const provider = anchor.Provider.local();
 anchor.setProvider(provider);
 
@@ -134,6 +137,9 @@ async function main() {
     }
 
     // and set up the depository
+    // at the moment i am using one, for a mint we control, plus the btc oracle
+    // devnet we can do real testing with sol (theres no btc/eth faucets, dunno about markets)
+    // but i need to write wrap/unwrap logic
     if(await provider.connection.getAccountInfo(depositStateKey)) {
         console.log("depository already initialized...");
     } else {
@@ -160,7 +166,7 @@ async function main() {
     if(await provider.connection.getAccountInfo(depositRecordKey)) {
         console.log("depository already registered...");
     } else {
-        await controller.rpc.registerDepository(depositoryKey, {
+        await controller.rpc.registerDepository(depositoryKey, btcOracleDevnetKey, {
             accounts: {
                 authority: provider.wallet.publicKey,
                 state: controlStateKey,
@@ -240,6 +246,7 @@ async function main() {
             program: controllerKey,
             // XXX FIXME temp
             programCoin: depositAccountKey,
+            oracle: btcOracleDevnetKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
@@ -269,6 +276,7 @@ async function main() {
             program: controllerKey,
             // XXX FIXME temp
             programCoin: depositAccountKey,
+            oracle: btcOracleDevnetKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
