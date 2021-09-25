@@ -285,7 +285,7 @@ async function main() {
     console.log("AFTER REDEEM");
     printBalances();
 
-    await depository.rpc.withdraw(new anchor.BN(1 * 10**MINT_DECIMAL), {
+    await depository.rpc.withdraw(null, {
         accounts: {
             user: provider.wallet.publicKey,
             state: depositStateKey,

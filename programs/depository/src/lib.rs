@@ -67,6 +67,7 @@ pub mod depository {
     // mint equivalent amount from redeemable_mint to user_redeemable
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> ProgramResult {
         msg!("depository: deposit");
+
         let transfer_accounts = Transfer {
             from: ctx.accounts.user_coin.to_account_info(),
             to: ctx.accounts.program_coin.to_account_info(),
@@ -89,9 +90,15 @@ pub mod depository {
         Ok(())
     }
 
-    // burn an amount of redeemable in exchange for a withdrawl of coin
-    pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> ProgramResult {
+    // burn held redeemables in exchange for a withdrawl of coin
+    pub fn withdraw(ctx: Context<Withdraw>, maybe_amount: Option<u64>) -> ProgramResult {
         msg!("depository: withdraw");
+
+        let amount = match maybe_amount {
+            Some(n) => n,
+            _ => ctx.accounts.user_redeemable.amount,
+        };
+
         let burn_accounts = Burn {
             mint: ctx.accounts.redeemable_mint.to_account_info(),
             to: ctx.accounts.user_redeemable.to_account_info(),
@@ -203,7 +210,7 @@ pub struct Deposit<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(amount: u64)]
+#[instruction(maybe_amount: Option<u64>)]
 pub struct Withdraw<'info> {
     // the user withdrawing funds
     // TODO i should use approval and xferfrom so user doesnt sign
@@ -216,7 +223,7 @@ pub struct Withdraw<'info> {
     #[account(
         mut,
         constraint = program_coin.key() == state.program_coin_key,
-        constraint = program_coin.amount >= amount
+        constraint = program_coin.amount >= user_redeemable.amount
     )]
     pub program_coin: CpiAccount<'info, TokenAccount>,
     // mint for redeemable tokens
@@ -229,8 +236,12 @@ pub struct Withdraw<'info> {
     #[account(
         mut,
         constraint = user_redeemable.mint == state.redeemable_mint_key,
-        constraint = amount > 0,
-        constraint = user_redeemable.amount >= amount,
+        constraint =
+            if let Some(n) = maybe_amount {
+                n > 0 && user_redeemable.amount >= n
+            } else {
+                user_redeemable.amount > 0
+            },
     )]
     pub user_redeemable: CpiAccount<'info, TokenAccount>,
     // system program

@@ -147,6 +147,7 @@ pub mod controller {
             depository_key.as_ref()
         ], ctx.program_id).1;
         ctx.accounts.depository_record.depository_key = depository_key;
+        ctx.accounts.depository_record.oracle_key = oracle_key;
 
         Ok(())
     }
@@ -172,7 +173,7 @@ pub mod controller {
         };
 
         let withdraw_ctx = CpiContext::new(ctx.accounts.depository.clone(), withdraw_accounts);
-        depository::cpi::withdraw(withdraw_ctx, coin_amount)?;
+        depository::cpi::withdraw(withdraw_ctx, Some(coin_amount))?;
 
         // TODO DEPOSIT TO MANGO AND OPEN POSITION HERE
 
