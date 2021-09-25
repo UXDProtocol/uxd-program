@@ -7,15 +7,13 @@ import * as controllerIdlSpec from "./node_modules/controller.json";
 import * as depositoryIdlSpec from "./node_modules/depository.json";
 */
 
-const fs = require("fs");
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
 //const controllerIdl = JSON.parse(fs.readFileSync("../target/idl/controller.json"));
 //const depositoryIdl = JSON.parse(fs.readFileSync("../target/idl/depository.json"));
-const controllerIdl = JSON.parse(fs.readFileSync("/home/hana/work/soteria/solana-usds/target/idl/controller.json"));
-const depositoryIdl = JSON.parse(fs.readFileSync("/home/hana/work/soteria/solana-usds/target/idl/depository.json"));
-console.log("HANA controller:", controllerIdl );
+const controllerIdl = require("../target/idl/controller.json");
+const depositoryIdl = require("../target/idl/depository.json");
 
 // XXX this is temporary until their dns is fixed
 const DEVNET = "http://128.0.113.156";
