@@ -9,9 +9,16 @@ const walletKey = new anchor.web3.PublicKey(new anchor.web3.Keypair()._keypair.p
 const mintKey = new anchor.web3.PublicKey(new anchor.web3.Keypair()._keypair.publicKey);
 const amount = new anchor.BN(1 * 10**9);
 
-let ixns = api.mintUxd(walletKey, mintKey, amount);
+let mintIxns = api.mintUxd(walletKey, mintKey, amount);
 
 console.log("HANA mint ixns:");
-for (let ixn of ixns) {
+for (let ixn of mintIxns) {
+    console.log(ixn);
+}
+
+let redeemIxns = api.redeemUxd(walletKey, mintKey, amount);
+
+console.log("HANA redeem ixns:");
+for (let ixn of redeemIxns) {
     console.log(ixn);
 }

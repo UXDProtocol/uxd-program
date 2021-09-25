@@ -149,6 +149,54 @@ function mintUxd(walletKey, coinMintKey, coinAmount, userCoinKey) {
     return [depositIxn, mintIxn];
 }
 
+// returns a two-instruction array for burning uxd and withdrawing backing collateral
+// uxdAmount is a dollar amount, again as a proper bn. otherwise args are the same
+// frontend should check that the associated token account exists and make the user create it if not
+function redeemUxd(walletKey, coinMintKey, uxdAmount) {
+    let userCoinKey = findAssociatedTokenAddress(walletKey, coinMintKey);
+    let userRedeemableKey = findAssociatedTokenAddress(walletKey, redeemableMintKey);
+    let userUxdKey = findAssociatedTokenAddress(walletKey, uxdMintKey);
+    let coinPassthroughKey = findAddr([Buffer.from("PASSTHROUGH"), coinMintKey.toBuffer()], controllerKey);
+
+    let redeemIxn = controller.instruction.redeemUxd(uxdAmount, {
+        accounts: {
+            user: walletKey,
+            state: controlStateKey,
+            depository: depositoryKey,
+            depositoryRecord: depositRecordKey,
+            depositoryState: depositStateKey,
+            depositoryCoin: depositAccountKey,
+            coinMint: coinMintKey,
+            coinPassthrough: coinPassthroughKey,
+            redeemableMint: redeemableMintKey,
+            userRedeemable: userRedeemableKey,
+            userUxd: userUxdKey,
+            uxdMint: uxdMintKey,
+            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: tokenProgramKey,
+            program: controllerKey,
+            // XXX FIXME temp
+            programCoin: depositAccountKey,
+            oracle: btcOracleDevnetKey,
+    }});
+
+    let withdrawIxn = depository.instruction.withdraw(null, {
+        accounts: {
+            user: walletKey,
+            state: depositStateKey,
+            programCoin: depositAccountKey,
+            redeemableMint: redeemableMintKey,
+            userCoin: userCoinKey,
+            userRedeemable: userRedeemableKey,
+            systemProgram: anchor.web3.SystemProgram.programId,
+            tokenProgram: tokenProgramKey,
+            program: depositoryKey,
+    }});
+
+    return [redeemIxn, withdrawIxn];
+}
+
 // XXX unnodejsify
 //export { TEST_COIN_MINT, connect, findAssociatedTokenAddress, createAssociatedTokenAccount}
 module.exports = {
@@ -156,5 +204,6 @@ module.exports = {
     connect: connect,
     findAssociatedTokenAddress: findAssociatedTokenAddress,
     createAssociatedTokenAccount: createAssociatedTokenAccount,
-    mintUxd: mintUxd
+    mintUxd: mintUxd,
+    redeemUxd: redeemUxd,
 };
