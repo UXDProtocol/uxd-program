@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::Key;
 use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount, Transfer};
-use solana_program::{program::invoke_signed, system_program as system};
+use solana_program::program::invoke_signed;
 use spl_token::instruction::{initialize_account, initialize_mint};
 
 pub const STATE_SEED: &[u8] = b"STATE";

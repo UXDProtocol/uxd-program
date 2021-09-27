@@ -1,9 +1,9 @@
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
 use anchor_spl::token::Token;
-use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount, Transfer};
+use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use pyth_client::Price;
-use solana_program::{program::invoke_signed, system_program as system};
+use solana_program::program::invoke_signed;
 use spl_token::instruction::{initialize_account, initialize_mint};
 
 const MINT_SPAN: usize = 82;
@@ -172,11 +172,11 @@ pub mod controller {
         //let depo_state: Box<Account<depository::State> = ctx.accounts.depository_state.from()>;
         let withdraw_accounts = depository::Withdraw {
             user: ctx.accounts.user.clone(),
-            state: Box::new(ctx.accounts.depository_state.clone()),
-            program_coin: ctx.accounts.program_coin.clone(),
-            redeemable_mint: ctx.accounts.redeemable_mint.clone(),
-            user_coin: ctx.accounts.coin_passthrough.clone(),
-            user_redeemable: ctx.accounts.user_redeemable.clone(),
+            state: ctx.accounts.depository_state.clone(),
+            program_coin: *ctx.accounts.program_coin.clone(),
+            redeemable_mint: *ctx.accounts.redeemable_mint.clone(),
+            user_coin: *ctx.accounts.coin_passthrough.clone(),
+            user_redeemable: *ctx.accounts.user_redeemable.clone(),
             system_program: ctx.accounts.system_program.clone(),
             token_program: ctx.accounts.token_program.clone(),
             program: ctx.accounts.depository.clone(),
@@ -266,11 +266,11 @@ pub mod controller {
         // return mango money back to depository
         let deposit_accounts = depository::Deposit {
             user: ctx.accounts.depository_record.to_account_info(),
-            state: Box::new(ctx.accounts.depository_state.clone()),
-            program_coin: ctx.accounts.program_coin.clone(),
-            redeemable_mint: ctx.accounts.redeemable_mint.clone(),
-            user_coin: ctx.accounts.coin_passthrough.clone(),
-            user_redeemable: ctx.accounts.user_redeemable.clone(),
+            state: ctx.accounts.depository_state.clone(),
+            program_coin: *ctx.accounts.program_coin.clone(),
+            redeemable_mint: *ctx.accounts.redeemable_mint.clone(),
+            user_coin: *ctx.accounts.coin_passthrough.clone(),
+            user_redeemable: *ctx.accounts.user_redeemable.clone(),
             system_program: ctx.accounts.system_program.clone(),
             token_program: ctx.accounts.token_program.clone(),
             program: ctx.accounts.depository.clone(),
@@ -409,27 +409,27 @@ pub struct MintUxd<'info> {
     #[account(
         constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED], depository.key).0,
     )]
-    pub depository_state: Account<'info, depository::State>,
+    pub depository_state: Box<Account<'info, depository::State>>,
     #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
-    pub depository_coin: Account<'info, TokenAccount>,
+    pub depository_coin: Box<Account<'info, TokenAccount>>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
-    pub coin_mint: Account<'info, Mint>,
+    pub coin_mint: Box<Account<'info, Mint>>,
     #[account(mut, seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
-    pub coin_passthrough: Account<'info, TokenAccount>,
+    pub coin_passthrough: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
-    pub redeemable_mint: Account<'info, Mint>,
+    pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         constraint = user_redeemable.mint == depository_state.redeemable_mint_key,
         constraint = coin_amount > 0,
         constraint = user_redeemable.amount >= coin_amount,
     )]
-    pub user_redeemable: Account<'info, TokenAccount>,
+    pub user_redeemable: Box<Account<'info, TokenAccount>>,
     // XXX this account should be created by a client instruction
     #[account(mut, constraint = user_uxd.mint == uxd_mint.key())]
-    pub user_uxd: Account<'info, TokenAccount>,
+    pub user_uxd: Box<Account<'info, TokenAccount>>,
     #[account(mut, seeds = [UXD_SEED], bump)]
-    pub uxd_mint: Account<'info, Mint>,
+    pub uxd_mint: Box<Account<'info, Mint>>,
     // XXX MANGO ACCOUNTS GO HERE
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
@@ -441,7 +441,7 @@ pub struct MintUxd<'info> {
     // program_coin: i need to find out how to create accountinfos
     // oracle: dumb hack for devnet, pending mango integration
     #[account(mut)]
-    pub program_coin: Account<'info, TokenAccount>,
+    pub program_coin: Box<Account<'info, TokenAccount>>,
     #[account(constraint = oracle.key() == depository_record.oracle_key)]
     pub oracle: AccountInfo<'info>,
 }
@@ -461,29 +461,29 @@ pub struct RedeemUxd<'info> {
     #[account(
         constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED], depository.key).0,
     )]
-    pub depository_state: Account<'info, depository::State>,
+    pub depository_state: Box<Account<'info, depository::State>>,
     #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
-    pub depository_coin: Account<'info, TokenAccount>,
+    pub depository_coin: Box<Account<'info, TokenAccount>>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
-    pub coin_mint: Account<'info, Mint>,
+    pub coin_mint: Box<Account<'info, Mint>>,
     #[account(mut, seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
-    pub coin_passthrough: Account<'info, TokenAccount>,
+    pub coin_passthrough: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
-    pub redeemable_mint: Account<'info, Mint>,
+    pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         constraint = user_redeemable.mint == depository_state.redeemable_mint_key,
     )]
-    pub user_redeemable: Account<'info, TokenAccount>,
+    pub user_redeemable: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
         constraint = user_uxd.mint == uxd_mint.key(),
         constraint = uxd_amount > 0,
         constraint = user_uxd.amount >= uxd_amount,
     )]
-    pub user_uxd: Account<'info, TokenAccount>,
+    pub user_uxd: Box<Account<'info, TokenAccount>>,
     #[account(mut, seeds = [UXD_SEED], bump)]
-    pub uxd_mint: Account<'info, Mint>,
+    pub uxd_mint: Box<Account<'info, Mint>>,
     // XXX MANGO ACCOUNTS GO HERE
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
@@ -495,7 +495,7 @@ pub struct RedeemUxd<'info> {
     // program_coin: i need to find out how to create accountinfos
     // oracle: dumb hack for devnet, pending mango integration
     #[account(mut)]
-    pub program_coin: Account<'info, TokenAccount>,
+    pub program_coin: Box<Account<'info, TokenAccount>>,
     #[account(constraint = oracle.key() == depository_record.oracle_key)]
     pub oracle: AccountInfo<'info>,
 }
