@@ -16,7 +16,9 @@ const localOracle = anchor.utils.publicKey.findProgramAddressSync(["BTCUSD"], pr
 const provider = anchor.Provider.local();
 anchor.setProvider(provider);
 
-const program = new anchor.Program(idl, programKey);
+const oracle = anchor.workspace.Oracle;
+
+const btcPrice = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
 
 async function main() {
     console.log("devnet btc price key:", devnetOracle.toString());

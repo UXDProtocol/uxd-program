@@ -1,3 +1,14 @@
 [provider]
 cluster = "localnet"
 wallet = "~/.config/solana/id.json"
+
+[programs.localnet]
+controller = "UXDQ4LWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd"
+depository = "UXD42vTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7"
+oracle = "UXDPgfpzzNq4ZQupr46HPfcbKZFmPcugbSgYvJawgkf"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[scripts]
+test = "./acam.sh" #"npx ts-mocha -p ./tsconfig.json -t 100000 test/smb_mp.ts"

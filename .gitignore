@@ -2,3 +2,4 @@
 /test-ledger
 *.swp
 node_modules/
+.anchor

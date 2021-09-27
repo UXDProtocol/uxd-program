@@ -10,11 +10,6 @@ import * as depositoryIdlSpec from "./node_modules/depository.json";
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
-//const controllerIdl = JSON.parse(fs.readFileSync("../target/idl/controller.json"));
-//const depositoryIdl = JSON.parse(fs.readFileSync("../target/idl/depository.json"));
-const controllerIdl = require("../target/idl/controller.json");
-const depositoryIdl = require("../target/idl/depository.json");
-
 // XXX this is temporary until their dns is fixed
 const DEVNET = "http://128.0.113.156";
 // XXX temporary test token on devnet. ultimately we want to target btc/eth/sol
@@ -30,16 +25,12 @@ const ASSOC_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 
 // controller program
 // XXX unnodejsify
-//const controllerIdl = controllerIdlSpec.default;
-const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
-const controller    = new anchor.Program(controllerIdl, controllerKey, new anchor.Provider(null, null, null));
+const controller = anchor.workspace.Controller;
 
 // depository program
 // TODO we actually need several depository programs depending on allowed mints, sort this after tho
 // XXX unnodejsify
-//const depositoryIdl = depositoryIdlSpec.default;
-const depositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
-const depository    = new anchor.Program(depositoryIdl, depositoryKey, new anchor.Provider(null, null, null));
+const depository = anchor.workspace.Depository;
 
 // static keys with no dependencies
 const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
