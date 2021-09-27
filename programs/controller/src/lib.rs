@@ -181,15 +181,12 @@ pub mod controller {
         let oracle_data = ctx.accounts.oracle.try_borrow_data()?;
         let oracle = pyth_client::cast::<Price>(&oracle_data);
 
-        if oracle.agg.price < 0
-        || oracle.expo < 0
-        || oracle.expo != ctx.accounts.coin_mint.decimals as i32
-        || ctx.accounts.coin_mint.decimals != ctx.accounts.uxd_mint.decimals {
+        if oracle.agg.price < 0 {
             panic!("ugh return an error here or check this in constraints");
         }
 
         // XXX i hate this so much
-        let position_value = oracle.agg.price as u64 * coin_amount / ctx.accounts.coin_mint.decimals as u64;
+        let position_value = coin_amount * (oracle.agg.price.abs() as u64 / u64::pow(10, oracle.expo.abs() as u32));
 
         let mint_accounts = MintTo {
             mint: ctx.accounts.uxd_mint.to_account_info(),
@@ -234,15 +231,12 @@ pub mod controller {
         let oracle_data = ctx.accounts.oracle.try_borrow_data()?;
         let oracle = pyth_client::cast::<Price>(&oracle_data);
 
-        if oracle.agg.price < 0
-        || oracle.expo < 0
-        || oracle.expo != ctx.accounts.coin_mint.decimals as i32
-        || ctx.accounts.coin_mint.decimals != ctx.accounts.uxd_mint.decimals {
+        if oracle.agg.price < 0 {
             panic!("ugh return an error here or check this in constraints");
         }
 
         // XXX ughhh this is so so stupid
-        let collateral_amount = uxd_amount / oracle.agg.price as u64 * ctx.accounts.coin_mint.decimals as u64;
+        let collateral_amount = uxd_amount / (oracle.agg.price.abs() as u64 / u64::pow(10, oracle.expo.abs() as u32));
 
         // return mango money back to depository
         let deposit_accounts = depository::Deposit {
