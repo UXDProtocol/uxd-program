@@ -161,7 +161,7 @@ pub struct New<'info> {
         owner = spl_token::ID,
         space = MINT_SPAN,
     )]
-    pub redeemable_mint: AccountInfo<'info>,
+    pub redeemable_mint: UncheckedAccount<'info>,
     // program account that coins are deposited into
     #[account(
         init,
@@ -171,7 +171,7 @@ pub struct New<'info> {
         owner = spl_token::ID,
         space = ACCOUNT_SPAN,
     )]
-    pub program_coin: AccountInfo<'info>,
+    pub program_coin: UncheckedAccount<'info>,
     // mint for coins this depository accepts
     pub coin_mint: Account<'info, Mint>,
     // rent sysvar
@@ -182,7 +182,7 @@ pub struct New<'info> {
     pub token_program: Program<'info, Token>,
     // this program
     #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
+    pub program: UncheckedAccount<'info>,
 }
 
 #[derive(Accounts)]
@@ -217,7 +217,7 @@ pub struct Deposit<'info> {
     pub token_program: Program<'info, Token>,
     // this program
     #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
+    pub program: UncheckedAccount<'info>,
 }
 
 #[derive(Accounts)]
@@ -260,7 +260,7 @@ pub struct Withdraw<'info> {
     pub token_program: Program<'info, Token>,
     // this program
     #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
+    pub program: UncheckedAccount<'info>,
 }
 
 #[account]

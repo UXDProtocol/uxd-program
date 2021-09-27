@@ -182,7 +182,10 @@ pub mod controller {
             program: ctx.accounts.depository.clone(),
         };
 
-        let withdraw_ctx = CpiContext::new(ctx.accounts.depository.clone(), withdraw_accounts);
+        let withdraw_ctx = CpiContext::new(
+            ctx.accounts.depository.to_account_info().clone(),
+            withdraw_accounts,
+        );
         depository::cpi::withdraw(withdraw_ctx, Some(coin_amount))?;
 
         // TODO DEPOSIT TO MANGO AND OPEN POSITION HERE
@@ -282,7 +285,7 @@ pub mod controller {
             &[ctx.accounts.depository_record.bump],
         ]];
         let deposit_ctx = CpiContext::new_with_signer(
-            ctx.accounts.depository.clone(),
+            ctx.accounts.depository.to_account_info().clone(),
             deposit_accounts,
             record_seed,
         );
@@ -332,12 +335,12 @@ pub struct New<'info> {
         owner = spl_token::ID,
         space = MINT_SPAN,
     )]
-    pub uxd_mint: AccountInfo<'info>,
+    pub uxd_mint: UncheckedAccount<'info>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
+    pub program: UncheckedAccount<'info>,
 }
 
 #[derive(Accounts)]
@@ -368,15 +371,15 @@ pub struct RegisterDepository<'info> {
         owner = spl_token::ID,
         space = ACCOUNT_SPAN,
     )]
-    pub coin_passthrough: AccountInfo<'info>,
+    pub coin_passthrough: UncheckedAccount<'info>,
     //pub mango_group: Account<'info, MangoTester>,
-    //pub mango_account: AccountInfo<'info>,
+    //pub mango_account: UncheckedAccount<'info>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    //pub mango_program: AccountInfo<'info>,
+    //pub mango_program: UncheckedAccount<'info>,
     #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
+    pub program: UncheckedAccount<'info>,
 }
 
 // XXX oki this shit is complicated lets see what all is here...
@@ -402,7 +405,7 @@ pub struct MintUxd<'info> {
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
     #[account(constraint = *depository.key == depository_record.depository_key)]
-    pub depository: AccountInfo<'info>,
+    pub depository: UncheckedAccount<'info>,
     #[account(seeds = [RECORD_SEED, depository.key.as_ref()], bump)]
     pub depository_record: Box<Account<'info, DepositoryRecord>>,
     #[account(
@@ -433,16 +436,16 @@ pub struct MintUxd<'info> {
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    //pub mango_program: AccountInfo<'info>,
+    //pub mango_program: UncheckedAccount<'info>,
     #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
+    pub program: UncheckedAccount<'info>,
     // XXX FIXME below here is temporary
-    // program_coin: i need to find out how to create accountinfos
+    // program_coin: i need to find out how to create UncheckedAccounts
     // oracle: dumb hack for devnet, pending mango integration
     #[account(mut)]
     pub program_coin: Box<Account<'info, TokenAccount>>,
     #[account(constraint = oracle.key() == depository_record.oracle_key)]
-    pub oracle: AccountInfo<'info>,
+    pub oracle: UncheckedAccount<'info>,
 }
 
 #[derive(Accounts)]
@@ -453,7 +456,7 @@ pub struct RedeemUxd<'info> {
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
     #[account(constraint = *depository.key == depository_record.depository_key)]
-    pub depository: AccountInfo<'info>,
+    pub depository: UncheckedAccount<'info>,
     #[account(seeds = [RECORD_SEED, depository.key.as_ref()], bump)]
     pub depository_record: Box<Account<'info, DepositoryRecord>>,
     #[account(
@@ -486,16 +489,16 @@ pub struct RedeemUxd<'info> {
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    //pub mango_program: AccountInfo<'info>,
+    //pub mango_program: UncheckedAccount<'info>,
     #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
+    pub program: UncheckedAccount<'info>,
     // XXX FIXME below here is temporary
-    // program_coin: i need to find out how to create accountinfos
+    // program_coin: i need to find out how to create UncheckedAccounts
     // oracle: dumb hack for devnet, pending mango integration
     #[account(mut)]
     pub program_coin: Box<Account<'info, TokenAccount>>,
     #[account(constraint = oracle.key() == depository_record.oracle_key)]
-    pub oracle: AccountInfo<'info>,
+    pub oracle: UncheckedAccount<'info>,
 }
 
 #[account]
