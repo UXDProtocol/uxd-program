@@ -10,7 +10,7 @@ anchor.setProvider(provider);
 const controller = anchor.workspace.Controller;
 const depository = anchor.workspace.Depository;
 
-const COIN_MINT = process.argv[2];
+const COIN_MINT = process.env.COIN_MINT;
 if(!COIN_MINT) throw "specify coin mint";
 const MINT_DECIMAL = 9;
 

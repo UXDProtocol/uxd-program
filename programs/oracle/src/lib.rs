@@ -1,9 +1,7 @@
 use anchor_lang::prelude::*;
-use anchor_lang::Key;
-use solana_program::{ system_program as system };
-use pyth_client::{ Price };
+use pyth_client::Price;
 
-solana_program::declare_id!("UXDPgfpzzNq4ZQupr46HPfcbKZFmPcugbSgYvJawgkf");
+solana_program::declare_id!("DzmGB2YeeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP");
 
 #[program]
 #[deny(unused_must_use)]
@@ -19,7 +17,6 @@ pub mod oracle {
 
         Ok(())
     }
-
 }
 
 #[derive(Accounts)]
