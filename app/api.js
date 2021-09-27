@@ -32,14 +32,14 @@ const ASSOC_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 // XXX unnodejsify
 //const controllerIdl = controllerIdlSpec.default;
 const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
-const controller    = new anchor.Program(controllerIdl, controllerKey);
+const controller    = new anchor.Program(controllerIdl, controllerKey, new anchor.Provider(null, null, null));
 
 // depository program
 // TODO we actually need several depository programs depending on allowed mints, sort this after tho
 // XXX unnodejsify
 //const depositoryIdl = depositoryIdlSpec.default;
 const depositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
-const depository    = new anchor.Program(depositoryIdl, depositoryKey);
+const depository    = new anchor.Program(depositoryIdl, depositoryKey, new anchor.Provider(null, null, null));
 
 // static keys with no dependencies
 const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
