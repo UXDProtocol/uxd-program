@@ -1,21 +1,20 @@
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
-use anchor_spl::token::{self, Mint, TokenAccount, MintTo, Transfer, Burn};
-use solana_program::{ system_program as system, program::invoke_signed };
-use spl_token::instruction::{ initialize_account, initialize_mint };
-use pyth_client::{ Price };
+use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount, Transfer};
+use pyth_client::Price;
+use solana_program::{program::invoke_signed, system_program as system};
+use spl_token::instruction::{initialize_account, initialize_mint};
 
 const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: usize = 165;
 const MINT_DECIMAL: u8 = 9;
 
-const STATE_SEED:       &[u8] = b"STATE";
-const UXD_SEED:         &[u8] = b"STABLECOIN";
-const RECORD_SEED:      &[u8] = b"RECORD";
+const STATE_SEED: &[u8] = b"STATE";
+const UXD_SEED: &[u8] = b"STABLECOIN";
+const RECORD_SEED: &[u8] = b"RECORD";
 const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
 
-
-solana_program::declare_id!("UXDQ4LWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd");
+solana_program::declare_id!("UXDConWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd");
 
 #[program]
 #[deny(unused_must_use)]
@@ -102,13 +101,22 @@ pub mod controller {
     // we need this because the owner of the mango account and the token account must be the same
     // and we cant make the depository own the mango account because we need to sign for these accounts
     // it seems prudent for every depository to have its own mango account
-    pub fn register_depository(ctx: Context<RegisterDepository>, depository_key: Pubkey, oracle_key: Pubkey) -> ProgramResult {
+    pub fn register_depository(
+        ctx: Context<RegisterDepository>,
+        depository_key: Pubkey,
+        oracle_key: Pubkey,
+    ) -> ProgramResult {
         msg!("controller: register depository");
         let accounts = ctx.accounts.to_account_infos();
         let coin_mint_key = ctx.accounts.coin_mint.key();
 
-        let passthrough_ctr = Pubkey::find_program_address(&[PASSTHROUGH_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
-        let passthrough_seed: &[&[&[u8]]] = &[&[PASSTHROUGH_SEED, coin_mint_key.as_ref(), &[passthrough_ctr]]];
+        let passthrough_ctr = Pubkey::find_program_address(
+            &[PASSTHROUGH_SEED, coin_mint_key.as_ref()],
+            ctx.program_id,
+        )
+        .1;
+        let passthrough_seed: &[&[&[u8]]] =
+            &[&[PASSTHROUGH_SEED, coin_mint_key.as_ref(), &[passthrough_ctr]]];
 
         // init the passthrough account we use to move funds between depository and mango
         // making our depo record rather than the contr state the owner for pleasing namespacing reasons
@@ -124,31 +132,29 @@ pub mod controller {
         // it should also be owned by the depo record
         // XXX the below is copy-pasted from patrick code but need to check mango v3 code to see if anything changed
 
-/*
-        // Accounts expected by this instruction (4):
-        //
-        // 0. `[]` mango_group_ai - MangoGroup that this mango account is for
-        // 1. `[writable]` mango_account_ai - the mango account data
-        // 2. `[signer]` owner_ai - Solana account of owner of the mango account
-        // 3. `[]` rent_ai - Rent sysvar account
-        let mango_cpi_program = ctx.accounts.mango_program.clone();
-        let mango_cpi_accts = InitMangoAccount {
-            mango_group: ctx.accounts.mango_group.to_account_info(),
-            mango_account: ctx.accounts.mango_account.clone().into(),
-            owner_account: ctx.accounts.proxy_account.clone().into(),
-            rent: ctx.accounts.rent.clone(),
-        };
-        let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
-        mango_tester::cpi::init_mango_account(mango_cpi_ctx);
-*/
+        /*
+                // Accounts expected by this instruction (4):
+                //
+                // 0. `[]` mango_group_ai - MangoGroup that this mango account is for
+                // 1. `[writable]` mango_account_ai - the mango account data
+                // 2. `[signer]` owner_ai - Solana account of owner of the mango account
+                // 3. `[]` rent_ai - Rent sysvar account
+                let mango_cpi_program = ctx.accounts.mango_program.clone();
+                let mango_cpi_accts = InitMangoAccount {
+                    mango_group: ctx.accounts.mango_group.to_account_info(),
+                    mango_account: ctx.accounts.mango_account.clone().into(),
+                    owner_account: ctx.accounts.proxy_account.clone().into(),
+                    rent: ctx.accounts.rent.clone(),
+                };
+                let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
+                mango_tester::cpi::init_mango_account(mango_cpi_ctx);
+        */
 
         // set our depo record up. this later acts as proof we trust a given depository
         // we also use this to derive the depository state key, from which we get mint and account keys
         // creating a hierarchy of trust rooted at the authority key that instantiated the controller
-        ctx.accounts.depository_record.bump = Pubkey::find_program_address(&[
-            RECORD_SEED,
-            depository_key.as_ref()
-        ], ctx.program_id).1;
+        ctx.accounts.depository_record.bump =
+            Pubkey::find_program_address(&[RECORD_SEED, depository_key.as_ref()], ctx.program_id).1;
         ctx.accounts.depository_record.depository_key = depository_key;
         ctx.accounts.depository_record.oracle_key = oracle_key;
 
@@ -187,7 +193,6 @@ pub mod controller {
         if oracle.agg.price < 0 {
             panic!("ugh return an error here or check this in constraints");
         }
-
         // XXX i hate this so much
         let position_value = coin_amount * (oracle.agg.price.abs() as u64 / u64::pow(10, oracle.expo.abs() as u32));
 
@@ -196,9 +201,12 @@ pub mod controller {
             to: ctx.accounts.user_uxd.to_account_info(),
             authority: ctx.accounts.state.to_account_info(),
         };
-
         let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
-        let mint_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.clone(), mint_accounts, state_seed);
+        let mint_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.clone(),
+            mint_accounts,
+            state_seed,
+        );
         token::mint_to(mint_ctx, position_value)?;
 
         Ok(())
@@ -257,9 +265,13 @@ pub mod controller {
         let record_seed: &[&[&[u8]]] = &[&[
             RECORD_SEED,
             ctx.accounts.depository_record.depository_key.as_ref(),
-            &[ctx.accounts.depository_record.bump]
+            &[ctx.accounts.depository_record.bump],
         ]];
-        let deposit_ctx = CpiContext::new_with_signer(ctx.accounts.depository.clone(), deposit_accounts, record_seed);
+        let deposit_ctx = CpiContext::new_with_signer(
+            ctx.accounts.depository.clone(),
+            deposit_accounts,
+            record_seed,
+        );
         depository::cpi::deposit(deposit_ctx, collateral_amount)?;
 
         Ok(())
@@ -285,7 +297,6 @@ pub mod controller {
     //
     // }
     //
-
 }
 
 #[derive(Accounts)]
@@ -368,7 +379,7 @@ pub struct RegisterDepository<'info> {
 // * we deposit that 1 btc into the mago account and create a position
 // * we mint the amount of uxd that corresponds to the position size
 // and then in reverse is like
-// * burn the amount of uxd 
+// * burn the amount of uxd
 // * close out a corresponding position size and redeem for coin
 // * proxy transfer coin to depository which *mints* redeemable to us
 // * transfer redeemable to user

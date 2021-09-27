@@ -1,7 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_lang::Key;
-use solana_program::{ system_program as system };
-use pyth_client::{ Price };
+use pyth_client::Price;
 
 const SEED: &[u8] = b"BTCUSD";
 solana_program::declare_id!("UXDPgfpzzNq4ZQupr46HPfcbKZFmPcugbSgYvJawgkf");
