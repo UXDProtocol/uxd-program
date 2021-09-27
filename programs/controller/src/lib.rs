@@ -14,6 +14,9 @@ const UXD_SEED:         &[u8] = b"STABLECOIN";
 const RECORD_SEED:      &[u8] = b"RECORD";
 const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
 
+
+solana_program::declare_id!("UXDQ4LWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd");
+
 #[program]
 #[deny(unused_must_use)]
 pub mod controller {

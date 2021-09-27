@@ -3,6 +3,8 @@ use anchor_lang::Key;
 use solana_program::{ system_program as system };
 use pyth_client::{ Price };
 
+solana_program::declare_id!("UXDPgfpzzNq4ZQupr46HPfcbKZFmPcugbSgYvJawgkf");
+
 #[program]
 #[deny(unused_must_use)]
 pub mod oracle {

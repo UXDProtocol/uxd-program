@@ -4,13 +4,11 @@ const fs = require("fs");
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
-const controllerIdl = JSON.parse(fs.readFileSync("/home/hana/work/soteria/solana-usds/target/idl/controller.json"));
-const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
-const controller = new anchor.Program(controllerIdl, controllerKey);
+const provider = anchor.Provider.local();
+anchor.setProvider(provider);
 
-const depositoryIdl = JSON.parse(fs.readFileSync("/home/hana/work/soteria/solana-usds/target/idl/depository.json"));
-const depositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
-const depository = new anchor.Program(depositoryIdl, depositoryKey);
+const controller = anchor.workspace.Controller;
+const depository = anchor.workspace.Depository;
 
 const COIN_MINT = process.argv[2];
 if(!COIN_MINT) throw "specify coin mint";
@@ -29,9 +27,6 @@ const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
 
 // we should not need this on mainnet but note the addresses change per cluster
 const btcOracleDevnetKey = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
-
-const provider = anchor.Provider.local();
-anchor.setProvider(provider);
 
 // simple shorthand
 function findAddr(seeds, programId) {
@@ -71,17 +66,17 @@ function getTokenBalance(tokenKey) {
 
 async function main() {
     // keys for controller.new
-    let controlStateKey = findAddr([Buffer.from("STATE")], controllerKey);
-    let uxdMintKey = findAddr([Buffer.from("STABLECOIN")], controllerKey);
+    let controlStateKey = findAddr([Buffer.from("STATE")], controller.programId);
+    let uxdMintKey = findAddr([Buffer.from("STABLECOIN")], controller.programId);
 
     // keys for depository.new
-    let depositStateKey = findAddr([Buffer.from("STATE")], depositoryKey);
-    let redeemableMintKey = findAddr([Buffer.from("REDEEMABLE")], depositoryKey);
-    let depositAccountKey = findAddr([Buffer.from("DEPOSIT")], depositoryKey);
+    let depositStateKey = findAddr([Buffer.from("STATE")], depository.programId);
+    let redeemableMintKey = findAddr([Buffer.from("REDEEMABLE")], depository.programId);
+    let depositAccountKey = findAddr([Buffer.from("DEPOSIT")], depository.programId);
 
     // keys for controller.registerDepository
-    let depositRecordKey = findAddr([Buffer.from("RECORD"), depositoryKey.toBuffer()], controllerKey);
-    let coinPassthroughKey = findAddr([Buffer.from("PASSTHROUGH"), coinMintKey.toBuffer()], controllerKey);
+    let depositRecordKey = findAddr([Buffer.from("RECORD"), depository.programId.toBuffer()], controller.programId);
+    let coinPassthroughKey = findAddr([Buffer.from("PASSTHROUGH"), coinMintKey.toBuffer()], controller.programId);
 
     // standard spl associated accounts
     let userCoinKey = findAssocTokenAddr(provider.wallet.publicKey, coinMintKey);
@@ -109,9 +104,9 @@ async function main() {
     console.log("program coin:", depositAccountKey.toString());
     console.log("coin mint:", coinMintKey.toString());
     console.log("uxd mint:", uxdMintKey.toString());
-    console.log("controller id:", controllerKey.toString());
+    console.log("controller id:", controller.programId.toString());
     console.log("controller state:", controlStateKey.toString());
-    console.log("depository id:", depositoryKey.toString());
+    console.log("depository id:", depository.programId.toString());
     console.log("depository state:", depositStateKey.toString());
     console.log("\n");
 
@@ -127,7 +122,7 @@ async function main() {
                 rent: anchor.web3.SYSVAR_RENT_PUBKEY,
                 systemProgram: anchor.web3.SystemProgram.programId,
                 tokenProgram: tokenProgramKey,
-                program: controllerKey,
+                program: controller.programId,
             },
             signers: [provider.wallet.payer],
             options: TXN_OPTS,
@@ -143,7 +138,7 @@ async function main() {
     if(await provider.connection.getAccountInfo(depositStateKey)) {
         console.log("depository already initialized...");
     } else {
-        await depository.rpc.new(controllerKey, {
+        await depository.rpc.new(controller.programId, {
             accounts: {
                 payer: provider.wallet.publicKey,
                 state: depositStateKey,
@@ -153,7 +148,7 @@ async function main() {
                 rent: anchor.web3.SYSVAR_RENT_PUBKEY,
                 systemProgram: anchor.web3.SystemProgram.programId,
                 tokenProgram: tokenProgramKey,
-                program: depositoryKey,
+                program: depository.programId,
             },
             signers: [provider.wallet.payer],
             options: TXN_OPTS,
@@ -166,7 +161,7 @@ async function main() {
     if(await provider.connection.getAccountInfo(depositRecordKey)) {
         console.log("depository already registered...");
     } else {
-        await controller.rpc.registerDepository(depositoryKey, btcOracleDevnetKey, {
+        await controller.rpc.registerDepository(depository.programId, btcOracleDevnetKey, {
             accounts: {
                 authority: provider.wallet.publicKey,
                 state: controlStateKey,
@@ -177,7 +172,7 @@ async function main() {
                 rent: anchor.web3.SYSVAR_RENT_PUBKEY,
                 systemProgram: anchor.web3.SystemProgram.programId,
                 tokenProgram: tokenProgramKey,
-                program: controllerKey,
+                program: controller.programId,
             },
             signers: [provider.wallet.payer],
             options: TXN_OPTS,
@@ -205,7 +200,7 @@ async function main() {
             userRedeemable: userRedeemableKey,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: tokenProgramKey,
-            program: depositoryKey,
+            program: depository.programId,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
@@ -230,7 +225,7 @@ async function main() {
         accounts: {
             user: provider.wallet.publicKey,
             state: controlStateKey,
-            depository: depositoryKey,
+            depository: depository.programId,
             depositoryRecord: depositRecordKey,
             depositoryState: depositStateKey,
             depositoryCoin: depositAccountKey,
@@ -243,7 +238,7 @@ async function main() {
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: tokenProgramKey,
-            program: controllerKey,
+            program: controller.programId,
             // XXX FIXME temp
             programCoin: depositAccountKey,
             oracle: btcOracleDevnetKey,
@@ -260,7 +255,7 @@ async function main() {
         accounts: {
             user: provider.wallet.publicKey,
             state: controlStateKey,
-            depository: depositoryKey,
+            depository: depository.programId,
             depositoryRecord: depositRecordKey,
             depositoryState: depositStateKey,
             depositoryCoin: depositAccountKey,
@@ -273,7 +268,7 @@ async function main() {
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: tokenProgramKey,
-            program: controllerKey,
+            program: controller.programId,
             // XXX FIXME temp
             programCoin: depositAccountKey,
             oracle: btcOracleDevnetKey,
@@ -295,7 +290,7 @@ async function main() {
             userRedeemable: userRedeemableKey,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: tokenProgramKey,
-            program: depositoryKey,
+            program: depository.programId,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,

@@ -8,6 +8,9 @@ pub const STATE_SEED: &[u8]       = b"STATE";
 const REDEEMABLE_MINT_SEED: &[u8] = b"REDEEMABLE";
 const PROGRAM_COIN_SEED: &[u8]    = b"DEPOSIT";
 
+
+solana_program::declare_id!("UXD42vTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7");
+
 // annoyingly the spl program does not expose these as constants
 const MINT_SPAN: usize    = 82;
 const ACCOUNT_SPAN: usize = 165;

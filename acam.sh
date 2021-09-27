@@ -4,12 +4,6 @@ set -euxo pipefail
 
 cd ~/Development/UXD/solana-usds
 
-anchor build --program-name depository
-anchor build --program-name controller
-
-anchor deploy --program-name depository
-anchor deploy --program-name controller
-
 # stupid rust doesnt handle sigpip
 spl-token create-token > /tmp/spl-mint
 COIN_MINT=$(head -1 /tmp/spl-mint | cut -d " " -f 3)
