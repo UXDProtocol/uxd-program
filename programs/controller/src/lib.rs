@@ -228,7 +228,7 @@ pub mod controller {
         let burn_accounts = Burn {
             mint: ctx.accounts.uxd_mint.to_account_info(),
             to: ctx.accounts.user_uxd.to_account_info(),
-            authority: ctx.accounts.user.clone(),
+            authority: ctx.accounts.user.to_account_info().clone(),
         };
 
         let burn_ctx = CpiContext::new(
@@ -265,7 +265,7 @@ pub mod controller {
 
         // return mango money back to depository
         let deposit_accounts = depository::Deposit {
-            user: ctx.accounts.depository_record.to_account_info(),
+            user: Signer::try_from(&ctx.accounts.depository_record.to_account_info())?,
             state: ctx.accounts.depository_state.clone(),
             program_coin: *ctx.accounts.program_coin.clone(),
             redeemable_mint: *ctx.accounts.redeemable_mint.clone(),
@@ -315,8 +315,8 @@ pub mod controller {
 
 #[derive(Accounts)]
 pub struct New<'info> {
-    #[account(signer, mut)]
-    pub authority: AccountInfo<'info>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
     #[account(
         init,
         seeds = [STATE_SEED],
@@ -343,8 +343,8 @@ pub struct New<'info> {
 #[derive(Accounts)]
 #[instruction(depository_key: Pubkey)]
 pub struct RegisterDepository<'info> {
-    #[account(signer, mut, constraint = authority.key() == state.authority_key)]
-    pub authority: AccountInfo<'info>,
+    #[account(mut, constraint = authority.key() == state.authority_key)]
+    pub authority: Signer<'info>,
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
     #[account(
@@ -398,8 +398,7 @@ pub struct RegisterDepository<'info> {
 #[instruction(coin_amount: u64)]
 pub struct MintUxd<'info> {
     // XXX again we should use approvals so user doesnt need to sign
-    #[account(signer)]
-    pub user: AccountInfo<'info>,
+    pub user: Signer<'info>,
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
     #[account(constraint = *depository.key == depository_record.depository_key)]
@@ -450,8 +449,7 @@ pub struct MintUxd<'info> {
 #[instruction(uxd_amount: u64)]
 pub struct RedeemUxd<'info> {
     // XXX again we should use approvals so user doesnt need to sign
-    #[account(signer)]
-    pub user: AccountInfo<'info>,
+    pub user: Signer<'info>,
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
     #[account(constraint = *depository.key == depository_record.depository_key)]

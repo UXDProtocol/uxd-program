@@ -74,7 +74,7 @@ pub mod depository {
         let transfer_accounts = Transfer {
             from: ctx.accounts.user_coin.to_account_info(),
             to: ctx.accounts.program_coin.to_account_info(),
-            authority: ctx.accounts.user.clone(),
+            authority: ctx.accounts.user.to_account_info().clone(),
         };
 
         let transfer_ctx = CpiContext::new(
@@ -112,7 +112,7 @@ pub mod depository {
         let burn_accounts = Burn {
             mint: ctx.accounts.redeemable_mint.to_account_info(),
             to: ctx.accounts.user_redeemable.to_account_info(),
-            authority: ctx.accounts.user.clone(),
+            authority: ctx.accounts.user.to_account_info().clone(),
         };
 
         let burn_ctx = CpiContext::new(
@@ -142,8 +142,8 @@ pub mod depository {
 #[derive(Accounts)]
 pub struct New<'info> {
     // account paying for allocations
-    #[account(signer, mut)]
-    pub payer: AccountInfo<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
     // stores program config, authority of the redeemable mint and deposit account
     #[account(
         init,
@@ -190,8 +190,7 @@ pub struct New<'info> {
 pub struct Deposit<'info> {
     // the user depositing funds
     // TODO i should use approval and xferfrom so user doesnt sign
-    #[account(signer)]
-    pub user: AccountInfo<'info>,
+    pub user: Signer<'info>,
     // this program signing and state account
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
@@ -226,8 +225,7 @@ pub struct Deposit<'info> {
 pub struct Withdraw<'info> {
     // the user withdrawing funds
     // TODO i should use approval and xferfrom so user doesnt sign
-    #[account(signer)]
-    pub user: AccountInfo<'info>,
+    pub user: Signer<'info>,
     // this program signing and state account
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
