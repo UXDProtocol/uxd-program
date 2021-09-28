@@ -1,17 +1,8 @@
 "use strict";
 
-/* XXX unnodejsify, this cjs shit is too smart for me idk
-import * as anchor from "./node_modules/@project-serum/anchor";
-import * as spl from "../node_modules/@solana/spl-token/lib/index.cjs.js";
-import * as controllerIdlSpec from "./node_modules/controller.json";
-import * as depositoryIdlSpec from "./node_modules/depository.json";
-*/
-
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
-//const controllerIdl = JSON.parse(fs.readFileSync("../target/idl/controller.json"));
-//const depositoryIdl = JSON.parse(fs.readFileSync("../target/idl/depository.json"));
 const controllerIdl = require("../target/idl/controller.json");
 const depositoryIdl = require("../target/idl/depository.json");
 
@@ -29,15 +20,11 @@ const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 const ASSOC_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 
 // controller program
-// XXX unnodejsify
-//const controllerIdl = controllerIdlSpec.default;
 const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
 const controller    = new anchor.Program(controllerIdl, controllerKey, new anchor.Provider(null, null, null));
 
 // depository program
 // TODO we actually need several depository programs depending on allowed mints, sort this after tho
-// XXX unnodejsify
-//const depositoryIdl = depositoryIdlSpec.default;
 const depositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
 const depository    = new anchor.Program(depositoryIdl, depositoryKey, new anchor.Provider(null, null, null));
 
@@ -77,7 +64,7 @@ function findAssociatedTokenAddress(walletKey, mintKey) {
     return findAddr([walletKey.toBuffer(), tokenProgramKey.toBuffer(), mintKey.toBuffer()], assocTokenProgramKey);
 }
 
-// returns an instruction to create the associated account for a wallet and mint
+// returns a one-instruction array to create the associated account for a wallet and mint
 // frontend should check if such an account exists and create it for the user if not
 // i have no opinions about how frontend should handle the case if a user has non-canonical account(s)
 // actually i lied about having no opinions, frontend should check for and pull from non-canon accounts for deposits
@@ -85,7 +72,7 @@ function findAssociatedTokenAddress(walletKey, mintKey) {
 function createAssociatedTokenAccount(walletKey, mintKey) {
     let assocKey = findAssociatedTokenAddress(walletKey, mintKey);
 
-    return new anchor.web3.TransactionInstruction({
+    return [new anchor.web3.TransactionInstruction({
         keys: [
             {pubkey: walletKey, isSigner: true, isWritable: true},
             {pubkey: assocKey, isSigner: false, isWritable: true},
@@ -97,7 +84,7 @@ function createAssociatedTokenAccount(walletKey, mintKey) {
         ],
         programId: assocTokenProgramKey,
         data: Buffer.alloc(0),
-    });
+    })];
 }
 
 // returns an two-instruction array for depositing funds and minting uxd
@@ -197,8 +184,6 @@ function redeemUxd(walletKey, coinMintKey, uxdAmount) {
     return [redeemIxn, withdrawIxn];
 }
 
-// XXX unnodejsify
-//export { TEST_COIN_MINT, connect, findAssociatedTokenAddress, createAssociatedTokenAccount}
 module.exports = {
     TEST_COIN_MINT: TEST_COIN_MINT,
     connect: connect,
