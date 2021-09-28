@@ -26,7 +26,7 @@ async function main() {
     console.log(d);
 
     console.log("init");
-    await program.rpc.init({
+    await oracle.rpc.init({
         accounts: {
             wallet: provider.wallet.publicKey,
             buffer: localOracle,
@@ -42,7 +42,7 @@ async function main() {
         let j = i + 512 > d.data.length ? d.data.length : i + 512;
 
         console.log(`put [${i}..${j}]`);
-        await program.rpc.put(new anchor.BN(i), d.data.slice(i, j), {
+        await oracle.rpc.put(new anchor.BN(i), d.data.slice(i, j), {
             accounts: {
                 buffer: localOracle,
             },
@@ -54,7 +54,7 @@ async function main() {
     }
 
     console.log("get");
-    await program.rpc.get({
+    await oracle.rpc.get({
         accounts: {
             oracle: localOracle,
         },
