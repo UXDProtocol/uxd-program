@@ -1,14 +1,13 @@
 "use strict";
 
-const fs = require("fs");
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
-const controllerIdl = JSON.parse(fs.readFileSync("/home/hana/work/soteria/solana-usds/target/idl/controller.json"));
+const controllerIdl = require("../target/idl/controller.json");
 const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
 const controller = new anchor.Program(controllerIdl, controllerKey);
 
-const depositoryIdl = JSON.parse(fs.readFileSync("/home/hana/work/soteria/solana-usds/target/idl/depository.json"));
+const depositoryIdl = require("../target/idl/depository.json");
 const depositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
 const depository = new anchor.Program(depositoryIdl, depositoryKey);
 
@@ -28,7 +27,9 @@ const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
 const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
 
 // we should not need this on mainnet but note the addresses change per cluster
-const btcOracleDevnetKey = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
+// XXX copy data to local
+//const btcOracleDevnetKey = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
+const oracleProgramKey = new anchor.web3.PublicKey(require("../target/idl/oracle.json").metadata.address);
 
 const provider = anchor.Provider.local();
 anchor.setProvider(provider);
@@ -87,6 +88,9 @@ async function main() {
     let userCoinKey = findAssocTokenAddr(provider.wallet.publicKey, coinMintKey);
     let userRedeemableKey = findAssocTokenAddr(provider.wallet.publicKey, redeemableMintKey);
     let userUxdKey = findAssocTokenAddr(provider.wallet.publicKey, uxdMintKey);
+
+    // localnet oracle
+    let localOracleKey = findAddr([Buffer.from("BTCUSD")], oracleProgramKey);
 
     async function printBalances() {
         let userCoin = await getTokenBalance(userCoinKey);
@@ -166,7 +170,7 @@ async function main() {
     if(await provider.connection.getAccountInfo(depositRecordKey)) {
         console.log("depository already registered...");
     } else {
-        await controller.rpc.registerDepository(depositoryKey, btcOracleDevnetKey, {
+        await controller.rpc.registerDepository(depositoryKey, localOracleKey, {
             accounts: {
                 authority: provider.wallet.publicKey,
                 state: controlStateKey,
@@ -193,7 +197,7 @@ async function main() {
                     : [createAssocIxn(provider.wallet.publicKey, redeemableMintKey)];
 
     console.log("BEFORE DEPOSIT");
-    printBalances();
+    await printBalances();
 
     await depository.rpc.deposit(new anchor.BN(1 * 10**MINT_DECIMAL), {
         accounts: {
@@ -213,7 +217,7 @@ async function main() {
     });
 
     console.log("AFTER DEPOSIT");
-    printBalances();
+    await printBalances();
 
     // XXX TODO here i need to...
     // * create user account for uxd
@@ -246,7 +250,7 @@ async function main() {
             program: controllerKey,
             // XXX FIXME temp
             programCoin: depositAccountKey,
-            oracle: btcOracleDevnetKey,
+            oracle: localOracleKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
@@ -254,9 +258,9 @@ async function main() {
     });
 
     console.log("AFTER MINT");
-    printBalances();
+    await printBalances();
 
-    await controller.rpc.redeemUxd(new anchor.BN(1), {
+    await controller.rpc.redeemUxd(new anchor.BN(20000 * 10**MINT_DECIMAL), {
         accounts: {
             user: provider.wallet.publicKey,
             state: controlStateKey,
@@ -276,14 +280,14 @@ async function main() {
             program: controllerKey,
             // XXX FIXME temp
             programCoin: depositAccountKey,
-            oracle: btcOracleDevnetKey,
+            oracle: localOracleKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
     });
 
     console.log("AFTER REDEEM");
-    printBalances();
+    await printBalances();
 
     await depository.rpc.withdraw(null, {
         accounts: {
@@ -302,7 +306,7 @@ async function main() {
     });
 
     console.log("AFTER WITHDRAW");
-    printBalances();
+    await printBalances();
 
 }
 
