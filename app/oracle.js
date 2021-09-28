@@ -3,20 +3,17 @@
 // DzmGB2YeeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP
 
 const anchor = require("@project-serum/anchor");
-const idl = require("../target/idl/oracle.json");
 
 const DEVNET = "http://128.0.113.156";
 const TXN_COMMIT = "processed";
 const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipPreflight: true};
 
-const programKey = new anchor.web3.PublicKey(idl.metadata.address);
+const oracle = anchor.workspace.Oracle;
 const devnetOracle = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
-const localOracle = anchor.utils.publicKey.findProgramAddressSync(["BTCUSD"], programKey)[0];
+const localOracle = anchor.utils.publicKey.findProgramAddressSync(["BTCUSD"], oracle.programId)[0];
 
 const provider = anchor.Provider.local();
 anchor.setProvider(provider);
-
-const oracle = anchor.workspace.Oracle;
 
 const btcPrice = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
 

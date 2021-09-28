@@ -8,6 +8,7 @@ anchor.setProvider(provider);
 
 const controller = anchor.workspace.Controller;
 const depository = anchor.workspace.Depository;
+const oracle = anchor.workspace.Oracle;
 
 const COIN_MINT = process.env.COIN_MINT;
 if(!COIN_MINT) throw "specify coin mint";
@@ -27,7 +28,6 @@ const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
 // we should not need this on mainnet but note the addresses change per cluster
 // XXX copy data to local
 //const btcOracleDevnetKey = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
-const oracleProgramKey = new anchor.web3.PublicKey(require("../target/idl/oracle.json").metadata.address);
 
 // simple shorthand
 function findAddr(seeds, programId) {
@@ -85,7 +85,7 @@ async function main() {
     let userUxdKey = findAssocTokenAddr(provider.wallet.publicKey, uxdMintKey);
 
     // localnet oracle
-    let localOracleKey = findAddr([Buffer.from("BTCUSD")], oracleProgramKey);
+    let localOracleKey = findAddr([Buffer.from("BTCUSD")], oracle.programId);
 
     async function printBalances() {
         let userCoin = await getTokenBalance(userCoinKey);
@@ -100,6 +100,7 @@ async function main() {
 * controller balance: ${coinPassthrough}
 * user redeemable: ${userRedeemable}
 * user uxd: ${userUxd}
+* local oracle BTC key : ${localOracleKey}
 `);
     }
 
@@ -165,7 +166,7 @@ async function main() {
     if(await provider.connection.getAccountInfo(depositRecordKey)) {
         console.log("depository already registered...");
     } else {
-        await controller.rpc.registerDepository(depositoryKey, localOracleKey, {
+        await controller.rpc.registerDepository(depository.programId, localOracleKey, {
             accounts: {
                 authority: provider.wallet.publicKey,
                 state: controlStateKey,
