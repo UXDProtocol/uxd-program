@@ -9,7 +9,7 @@ solana_program::declare_id!("UXDPgfpzzNq4ZQupr46HPfcbKZFmPcugbSgYvJawgkf");
 pub mod oracle {
     use super::*;
 
-    pub fn init(ctx: Context<Init>) -> ProgramResult {
+    pub fn init(_ctx: Context<Init>) -> ProgramResult {
         Ok(())
     }
 

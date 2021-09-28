@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
-use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount, Transfer};
+use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use pyth_client::Price;
 use solana_program::{program::invoke_signed, system_program as system};
 use spl_token::instruction::{initialize_account, initialize_mint};
@@ -194,7 +194,8 @@ pub mod controller {
             panic!("ugh return an error here or check this in constraints");
         }
         // XXX i hate this so much
-        let position_value = coin_amount * (oracle.agg.price.abs() as u64 / u64::pow(10, oracle.expo.abs() as u32));
+        let position_value =
+            coin_amount * (oracle.agg.price.abs() as u64 / u64::pow(10, oracle.expo.abs() as u32));
 
         let mint_accounts = MintTo {
             mint: ctx.accounts.uxd_mint.to_account_info(),
@@ -230,7 +231,7 @@ pub mod controller {
 
         // get current passthrough balance before withdrawing from mango
         // in theory this should always be zero but better safe
-        let passthrough_balance = ctx.accounts.coin_passthrough.amount;
+        let _passthrough_balance = ctx.accounts.coin_passthrough.amount;
 
         // TODO MANGO CLOSE POSITION AND WITHDRAW COIN HERE
 
@@ -247,7 +248,8 @@ pub mod controller {
         }
 
         // XXX ughhh this is so so stupid
-        let collateral_amount = uxd_amount / (oracle.agg.price.abs() as u64 / u64::pow(10, oracle.expo.abs() as u32));
+        let collateral_amount =
+            uxd_amount / (oracle.agg.price.abs() as u64 / u64::pow(10, oracle.expo.abs() as u32));
 
         // return mango money back to depository
         let deposit_accounts = depository::Deposit {
