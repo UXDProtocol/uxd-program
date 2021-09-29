@@ -3,19 +3,11 @@
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
-const controllerIdl = require("../target/idl/controller.json");
-const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
-const controller = new anchor.Program(controllerIdl, controllerKey);
-
-const depositoryIdl = require("../target/idl/depository.json");
-const depositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
-const depository = new anchor.Program(depositoryIdl, depositoryKey);
-
 const COIN_MINT = process.argv[2];
 if(!COIN_MINT) throw "specify coin mint";
 const MINT_DECIMAL = 9;
 
-const DEVNET = process.argv[3] == "devnet" ? true : false;
+const DEVNET = process.argv[3] == "devnet" ? "https://api.devnet.solana.com" : false;
 
 // this is theoretically constant everywhere
 const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
@@ -28,13 +20,21 @@ const coinMintKey = new anchor.web3.PublicKey(COIN_MINT);
 const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
 const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
 
+const provider = anchor.Provider.local(DEVNET || undefined);
+anchor.setProvider(provider);
+
+const controllerIdl = require("../target/idl/controller.json");
+const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
+const controller = new anchor.Program(controllerIdl, controllerKey);
+
+const depositoryIdl = require("../target/idl/depository.json");
+const depositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
+const depository = new anchor.Program(depositoryIdl, depositoryKey);
+
 // we should not need this on mainnet but note the addresses change per cluster
 // oracleprogram is for if we copied data to localnet
 const oracleProgramKey = new anchor.web3.PublicKey(require("../target/idl/oracle.json").metadata.address);
 const devnetOracleKey = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
-
-const provider = anchor.Provider.local();
-anchor.setProvider(provider);
 
 // simple shorthand
 function findAddr(seeds, programId) {
@@ -253,7 +253,6 @@ async function main() {
                 tokenProgram: tokenProgramKey,
                 program: controllerKey,
                 // XXX FIXME temp
-                programCoin: depositAccountKey,
                 oracle: oracleKey,
             },
             signers: [provider.wallet.payer],
@@ -283,7 +282,6 @@ async function main() {
                 tokenProgram: tokenProgramKey,
                 program: controllerKey,
                 // XXX FIXME temp
-                programCoin: depositAccountKey,
                 oracle: oracleKey,
             },
             signers: [provider.wallet.payer],
