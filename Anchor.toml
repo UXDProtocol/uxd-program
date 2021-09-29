@@ -5,7 +5,7 @@ wallet = "~/.config/solana/id.json"
 [programs.localnet]
 controller = "UXDConWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd"
 depository = "UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7"
-# oracle = "UXDPgfpzzNq4ZQupr46HPfcbKZFmPcugbSgYvJawgkf"
+# oracle = "UXDPgfpzzNq4ZQupr46HPfcbKZFmPcugbSgYvJawgkf" # Not used but impotant to find back the right id on devnet 
 
 [programs.devnet]
 oracle = "UXDPgfpzzNq4ZQupr46HPfcbKZFmPcugbSgYvJawgkf"

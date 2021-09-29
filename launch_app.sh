@@ -19,6 +19,4 @@ export COIN_MINT=$COIN_MINT
 # Run oracle first to have prices
 npx mocha -t 50000 app/oracle.js 
 
-npx mocha -t 50000 app/index.js $COIN_MINT
-
-# node app/index.js "$COIN_MINT"
+npx mocha -t 50000 app/index.js
