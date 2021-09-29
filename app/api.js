@@ -19,31 +19,34 @@ const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipP
 const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 const ASSOC_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 
-// controller program
-const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
-const controller    = new anchor.Program(controllerIdl, controllerKey, new anchor.Provider(null, null, null));
-
-// depository program
-// TODO we actually need several depository programs depending on allowed mints, sort this after tho
-const depositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
-const depository    = new anchor.Program(depositoryIdl, depositoryKey, new anchor.Provider(null, null, null));
-
 // static keys with no dependencies
 const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
 const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
+
+// controller program
+const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
+const controller    = new anchor.Program(controllerIdl, controllerKey, new anchor.Provider(null, null, null));
 
 // controller derived keys
 // XXX im not 100% on making the program create the uxd mint on mainnet, maybe it should be separate
 const controlStateKey    = findAddr([Buffer.from("STATE")], controllerKey);
 const uxdMintKey         = findAddr([Buffer.from("STABLECOIN")], controllerKey);
-const depositRecordKey   = findAddr([Buffer.from("RECORD"), depositoryKey.toBuffer()], controllerKey);
 
-// depository derived keys
-const depositStateKey   = findAddr([Buffer.from("STATE")], depositoryKey);
-const redeemableMintKey = findAddr([Buffer.from("REDEEMABLE")], depositoryKey);
-const depositAccountKey = findAddr([Buffer.from("DEPOSIT")], depositoryKey);
-// TODO each depository will have a hardcoded oracle on devnet
-const btcOracleDevnetKey = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
+// depository programs and derived keys
+// record key is technically controller but maps to depository
+// XXX we cant just pull the address from the idl once we have multiple
+// need to store privkeys somewhere and hardcode the pubkeys in files... so ugly ugh
+const testDepositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
+const depositories = {};
+depositories[TEST_COIN_MINT] = {
+    key: testDepositoryKey,
+    program: new anchor.Program(depositoryIdl, testDepositoryKey, new anchor.Provider(null, null, null)),
+    stateKey: findAddr([Buffer.from("STATE")], testDepositoryKey),
+    redeemableMintKey: findAddr([Buffer.from("REDEEMABLE")], testDepositoryKey),
+    depositAccountKey: findAddr([Buffer.from("DEPOSIT")], testDepositoryKey),
+    recordKey: findAddr([Buffer.from("RECORD"), testDepositoryKey.toBuffer()], controllerKey),
+    oracleKey: new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J"),
+};
 
 // simple shorthand
 function findAddr(seeds, programId) {
@@ -92,35 +95,38 @@ function createAssociatedTokenAccount(walletKey, mintKey) {
 // userCoinKey is optional and defaults to the associated account
 // redeemable and uxd are always associated because we create these on behalf of the user
 function mintUxd(walletKey, coinMintKey, coinAmount, userCoinKey) {
+    let d = depositories[coinMintKey.toString()];
+    if(!d) throw `no depository found for mint ${coinMintKey.toString()}`;
+
     if(!userCoinKey) userCoinKey = findAssociatedTokenAddress(walletKey, coinMintKey);
-    let userRedeemableKey = findAssociatedTokenAddress(walletKey, redeemableMintKey);
+    let userRedeemableKey = findAssociatedTokenAddress(walletKey, d.redeemableMintKey);
     let userUxdKey = findAssociatedTokenAddress(walletKey, uxdMintKey);
     let coinPassthroughKey = findAddr([Buffer.from("PASSTHROUGH"), coinMintKey.toBuffer()], controllerKey);
 
-    let depositIxn = depository.instruction.deposit(coinAmount, {
+    let depositIxn = d.program.instruction.deposit(coinAmount, {
         accounts: {
             user: walletKey,
-            state: depositStateKey,
-            programCoin: depositAccountKey,
-            redeemableMint: redeemableMintKey,
+            state: d.stateKey,
+            programCoin: d.depositAccountKey,
+            redeemableMint: d.redeemableMintKey,
             userCoin: userCoinKey,
             userRedeemable: userRedeemableKey,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: tokenProgramKey,
-            program: depositoryKey,
+            program: d.key,
     }});
 
     let mintIxn = controller.instruction.mintUxd(coinAmount, {
         accounts: {
             user: walletKey,
             state: controlStateKey,
-            depository: depositoryKey,
-            depositoryRecord: depositRecordKey,
-            depositoryState: depositStateKey,
-            depositoryCoin: depositAccountKey,
+            depository: d.key,
+            depositoryRecord: d.recordKey,
+            depositoryState: d.stateKey,
+            depositoryCoin: d.depositAccountKey,
             coinMint: coinMintKey,
             coinPassthrough: coinPassthroughKey,
-            redeemableMint: redeemableMintKey,
+            redeemableMint: d.redeemableMintKey,
             userRedeemable: userRedeemableKey,
             userUxd: userUxdKey,
             uxdMint: uxdMintKey,
@@ -129,8 +135,7 @@ function mintUxd(walletKey, coinMintKey, coinAmount, userCoinKey) {
             tokenProgram: tokenProgramKey,
             program: controllerKey,
             // XXX FIXME temp
-            programCoin: depositAccountKey,
-            oracle: btcOracleDevnetKey,
+            oracle: d.oracleKey,
     }});
 
     return [depositIxn, mintIxn];
@@ -140,8 +145,11 @@ function mintUxd(walletKey, coinMintKey, coinAmount, userCoinKey) {
 // uxdAmount is a dollar amount, again as a proper bn. otherwise args are the same
 // frontend should check that the associated token account exists and make the user create it if not
 function redeemUxd(walletKey, coinMintKey, uxdAmount) {
+    let d = depositories[coinMintKey.toString()];
+    if(!d) throw `no depository found for mint ${coinMintKey.toString()}`;
+
     let userCoinKey = findAssociatedTokenAddress(walletKey, coinMintKey);
-    let userRedeemableKey = findAssociatedTokenAddress(walletKey, redeemableMintKey);
+    let userRedeemableKey = findAssociatedTokenAddress(walletKey, d.redeemableMintKey);
     let userUxdKey = findAssociatedTokenAddress(walletKey, uxdMintKey);
     let coinPassthroughKey = findAddr([Buffer.from("PASSTHROUGH"), coinMintKey.toBuffer()], controllerKey);
 
@@ -149,13 +157,13 @@ function redeemUxd(walletKey, coinMintKey, uxdAmount) {
         accounts: {
             user: walletKey,
             state: controlStateKey,
-            depository: depositoryKey,
-            depositoryRecord: depositRecordKey,
-            depositoryState: depositStateKey,
-            depositoryCoin: depositAccountKey,
+            depository: d.key,
+            depositoryRecord: d.recordKey,
+            depositoryState: d.stateKey,
+            depositoryCoin: d.depositAccountKey,
             coinMint: coinMintKey,
             coinPassthrough: coinPassthroughKey,
-            redeemableMint: redeemableMintKey,
+            redeemableMint: d.redeemableMintKey,
             userRedeemable: userRedeemableKey,
             userUxd: userUxdKey,
             uxdMint: uxdMintKey,
@@ -164,21 +172,20 @@ function redeemUxd(walletKey, coinMintKey, uxdAmount) {
             tokenProgram: tokenProgramKey,
             program: controllerKey,
             // XXX FIXME temp
-            programCoin: depositAccountKey,
-            oracle: btcOracleDevnetKey,
+            oracle: d.oracleKey,
     }});
 
-    let withdrawIxn = depository.instruction.withdraw(null, {
+    let withdrawIxn = d.program.instruction.withdraw(null, {
         accounts: {
             user: walletKey,
-            state: depositStateKey,
-            programCoin: depositAccountKey,
-            redeemableMint: redeemableMintKey,
+            state: d.stateKey,
+            programCoin: d.depositAccountKey,
+            redeemableMint: d.redeemableMintKey,
             userCoin: userCoinKey,
             userRedeemable: userRedeemableKey,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: tokenProgramKey,
-            program: depositoryKey,
+            program: d.key,
     }});
 
     return [redeemIxn, withdrawIxn];
