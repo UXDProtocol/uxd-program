@@ -16,6 +16,9 @@ const ASSOC_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 const TXN_COMMIT = "processed";
 const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipPreflight: false};
 
+// whether to run the mint/redeem cycle or not
+const DEPLOY_ONLY = false;
+
 const coinMintKey = new anchor.web3.PublicKey(COIN_MINT);
 const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
 const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
@@ -193,7 +196,7 @@ async function main() {
         console.log("depository registered!");
     }
 
-    if(!DEVNET) {
+    if(!DEPLOY_ONLY) {
         // create user account for redeemables if it doesnt exist
         // note anchor will error if you pass [] or null for the extra ixns
         let depositIxns = await provider.connection.getAccountInfo(userRedeemableKey)

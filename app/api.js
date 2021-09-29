@@ -6,10 +6,9 @@ const spl = require("@solana/spl-token");
 const controllerIdl = require("../target/idl/controller.json");
 const depositoryIdl = require("../target/idl/depository.json");
 
-// XXX this is temporary until their dns is fixed
-const DEVNET = "http://128.0.113.156";
+const DEVNET = "https://api.devnet.solana.com";
 // XXX temporary test token on devnet. ultimately we want to target btc/eth/sol
-const TEST_COIN_MINT = "GCyuZvK4RbemLBCqQgaAWFFt2TEDixXQBgC5PH42iKCW";
+const TEST_COIN_MINT = "7g96eHEa1QhjGMsApCVoUMH28fkh6Yv9AFCeZLZWfqza";
 const testCoinMintKey = new anchor.web3.PublicKey(TEST_COIN_MINT); 
 
 // real constants we intend to keep
