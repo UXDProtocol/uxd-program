@@ -6,8 +6,7 @@ usage() { echo "USAGE: deploy.sh [-u <devnet>] [-v]"; exit 1; }
 NETWORK=
 while getopts ':u:v' opt; do
     case "${opt}" in
-        u) NETWORK=${OPTARG}
-           ((NETWORK == "devnet")) || usage ;;
+        u) NETWORK="$OPTARG" ;;
         v) set -x ;;
         *) usage
     esac

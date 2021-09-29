@@ -163,7 +163,7 @@ pub mod controller {
         let withdraw_accounts = depository::Withdraw {
             user: ctx.accounts.user.clone(),
             state: ProgramAccount::<depository::State>::from(ctx.accounts.depository_state.clone()),
-            program_coin: ctx.accounts.program_coin.clone(),
+            program_coin: ctx.accounts.depository_coin.clone(),
             redeemable_mint: ctx.accounts.redeemable_mint.clone(),
             user_coin: ctx.accounts.coin_passthrough.clone(),
             user_redeemable: ctx.accounts.user_redeemable.clone(),
@@ -242,7 +242,7 @@ pub mod controller {
         let deposit_accounts = depository::Deposit {
             user: ctx.accounts.depository_record.to_account_info(),
             state: ProgramAccount::<depository::State>::from(ctx.accounts.depository_state.clone()),
-            program_coin: ctx.accounts.program_coin.clone(),
+            program_coin: ctx.accounts.depository_coin.clone(),
             redeemable_mint: ctx.accounts.redeemable_mint.clone(),
             user_coin: ctx.accounts.coin_passthrough.clone(),
             user_redeemable: ctx.accounts.user_redeemable.clone(),
@@ -416,10 +416,7 @@ pub struct MintUxd<'info> {
     #[account(constraint = program.key() == *program_id)]
     pub program: AccountInfo<'info>,
     // XXX FIXME below here is temporary
-    // program_coin: i need to find out how to create accountinfos
     // oracle: dumb hack for devnet, pending mango integration
-    #[account(mut)]
-    pub program_coin: CpiAccount<'info, TokenAccount>,
     #[account(constraint = oracle.key() == depository_record.oracle_key)]
     pub oracle: AccountInfo<'info>,
 }
@@ -472,10 +469,7 @@ pub struct RedeemUxd<'info> {
     #[account(constraint = program.key() == *program_id)]
     pub program: AccountInfo<'info>,
     // XXX FIXME below here is temporary
-    // program_coin: i need to find out how to create accountinfos
     // oracle: dumb hack for devnet, pending mango integration
-    #[account(mut)]
-    pub program_coin: CpiAccount<'info, TokenAccount>,
     #[account(constraint = oracle.key() == depository_record.oracle_key)]
     pub oracle: AccountInfo<'info>,
 }
