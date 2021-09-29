@@ -192,6 +192,7 @@ function redeemUxd(walletKey, coinMintKey, uxdAmount) {
 
 module.exports = {
     TEST_COIN_MINT: TEST_COIN_MINT,
+    depositories: depositories,
     connect: connect,
     findAssociatedTokenAddress: findAssociatedTokenAddress,
     createAssociatedTokenAccount: createAssociatedTokenAccount,
