@@ -8,8 +8,6 @@ if(!COIN_MINT) throw "specify coin mint";
 const MINT_DECIMAL = 9;
 const UXD_DECIMAL = 6;
 
-const DEVNET = process.env.NETWORK == "devnet" ? "https://api.devnet.solana.com" : false;
-
 // this is theoretically constant everywhere
 const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 const ASSOC_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
@@ -24,18 +22,12 @@ const coinMintKey = new anchor.web3.PublicKey(COIN_MINT);
 const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
 const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
 
-const provider = anchor.Provider.local(DEVNET || undefined);
+const provider = anchor.Provider.local();
 anchor.setProvider(provider);
 
 const controller = anchor.workspace.Controller;
 const depository = anchor.workspace.Depository;
 const oracle = anchor.workspace.Oracle;
-
-// we should not need this on mainnet but note the addresses change per cluster
-// oracleprogram is for if we copied data to localnet
-// const oracle.programId = new anchor.web3.PublicKey(require("../target/idl/oracle.json").metadata.address);
-// const devnetOracleKey = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
-const devnetOracleKey = oracle.programId;
 
 // simple shorthand
 function findAddr(seeds, programId) {
@@ -93,12 +85,10 @@ async function main() {
     let userUxdKey = findAssocTokenAddr(provider.wallet.publicKey, uxdMintKey);
 
     // btcusd oracle
-    let localOracleKey = findAddr([Buffer.from("BTCUSD")], oracle.programId);
-    let oracleKey = DEVNET ? devnetOracleKey : localOracleKey;
+    let localOraclePriceAccountKey = findAddr([Buffer.from("BTCUSD")], oracle.programId);
     console.log(`
-    * devnet : ${DEVNET}
-    * oracle program key ${oracle.programId}
-    * oracle BTCUSD key : ${oracleKey}
+    * oracle (local) program key ${oracle.programId}
+    * oracle (local) BTCUSD key : ${localOraclePriceAccountKey}
     `);
 
     async function printBalances() {
@@ -179,7 +169,7 @@ async function main() {
     if(await provider.connection.getAccountInfo(depositRecordKey)) {
         console.log("depository already registered...");
     } else {
-        await controller.rpc.registerDepository(depository.programId, oracleKey, {
+        await controller.rpc.registerDepository(depository.programId, localOraclePriceAccountKey, {
             accounts: {
                 authority: provider.wallet.publicKey,
                 state: controlStateKey,
@@ -259,7 +249,7 @@ async function main() {
                 tokenProgram: tokenProgramKey,
                 program: controller.programId,
                 // XXX FIXME temp
-                oracle: oracleKey,
+                oracle: localOraclePriceAccountKey,
             },
             signers: [provider.wallet.payer],
             options: TXN_OPTS,
@@ -288,7 +278,7 @@ async function main() {
                 tokenProgram: tokenProgramKey,
                 program: controller.programId,
                 // XXX FIXME temp
-                oracle: oracleKey,
+                oracle: localOraclePriceAccountKey,
             },
             signers: [provider.wallet.payer],
             options: TXN_OPTS,

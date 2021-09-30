@@ -15,23 +15,24 @@ anchor.setProvider(provider);
 const oracle = anchor.workspace.Oracle;
 
 // const devnetOracle = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
-const testnetOracle = new anchor.web3.PublicKey("DJW6f4ZVqCnpYNN9rNuzqUcCvkVtBgixo8mq9FKSsCbJ");
-const localOracle = anchor.utils.publicKey.findProgramAddressSync(["BTCUSD"], oracle.programId)[0];
+const testnetOraclePriceAccountKey = new anchor.web3.PublicKey("DJW6f4ZVqCnpYNN9rNuzqUcCvkVtBgixo8mq9FKSsCbJ");
+const localOraclePriceAccountKey = anchor.utils.publicKey.findProgramAddressSync(["BTCUSD"], oracle.programId)[0];
 
 async function main() {
-    console.log("testnet btc price key:", testnetOracle.toString());
-    console.log("local btc price key:", localOracle.toString());
+    console.log("testnet btc price key:", testnetOraclePriceAccountKey.toString());
+    console.log("local btc price key:", localOraclePriceAccountKey.toString());
 
     let testnetConn = new anchor.web3.Connection(TESTNET);
-    let testnet_oracle_data = await testnetConn.getAccountInfo(testnetOracle);
+    let testnet_oracle_account = await testnetConn.getAccountInfo(testnetOraclePriceAccountKey);
 
-    console.log(`DATA from TESTNET: ${testnet_oracle_data}`);
+    console.log("DATA FROM TESTNET");
+    console.log(testnet_oracle_account);
 
     console.log("init");
     await oracle.rpc.init({
         accounts: {
             wallet: provider.wallet.publicKey,
-            buffer: localOracle,
+            buffer: localOraclePriceAccountKey,
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
             systemProgram: anchor.web3.SystemProgram.programId,
         },
@@ -41,28 +42,29 @@ async function main() {
 
     var i = 0;
     while(true) {
-        let j = i + 512 > d.data.length ? d.data.length : i + 512;
+        let j = i + 512 > testnet_oracle_account.data.length ? testnet_oracle_account.data.length : i + 512;
 
         console.log(`put [${i}..${j}]`);
-        await oracle.rpc.put(new anchor.BN(i), d.data.slice(i, j), {
+        await oracle.rpc.put(new anchor.BN(i), testnet_oracle_account.data.slice(i, j), {
             accounts: {
-                buffer: localOracle,
+                buffer: localOraclePriceAccountKey,
             },
             options: TXN_OPTS,
         });
 
         i += 512;
-        if(i > d.data.length) break;
+        if(i > testnet_oracle_account.data.length) break;
     }
 
-
-    let local_data = await testnetConn.getAccountInfo(testnetOracle);
-    console.log(`DATA from LOCAL oracle (copied from test net): ${local_data}`);
+    // let localConn = new anchor.web3.Connection("http://127.0.0.1");
+    // let local_oracle_account = await localConn.getAccountInfo(localOraclePriceAccountKey);
+    // console.log("DATA FROM LOCAL ORACLE (copied from test net)");
+    // console.log(local_oracle_account);
 
     console.log("get");
     await oracle.rpc.get({
         accounts: {
-            oracle: localOracle,
+            oracle: localOraclePriceAccountKey,
         },
         options: TXN_OPTS,
     });
