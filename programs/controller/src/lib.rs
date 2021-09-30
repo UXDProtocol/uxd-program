@@ -4,7 +4,7 @@ use anchor_lang::Key;
 use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use pyth_client::Price;
-use solana_program::{program::invoke_signed, system_program as system};
+use solana_program::program::invoke_signed;
 use spl_token::instruction::{initialize_account, initialize_mint};
 
 const MINT_SPAN: usize = 82;
@@ -356,9 +356,9 @@ pub struct RegisterDepository<'info> {
     #[account(
         constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED], &depository_key).0,
     )]
-    pub depository_state: CpiAccount<'info, depository::State>,
+    pub depository_state: Box<Account<'info, depository::State>>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
-    pub coin_mint: CpiAccount<'info, Mint>,
+    pub coin_mint: Box<Account<'info, Mint>>,
     #[account(
         init,
         seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()],
@@ -368,7 +368,7 @@ pub struct RegisterDepository<'info> {
         space = ACCOUNT_SPAN,
     )]
     pub coin_passthrough: AccountInfo<'info>,
-    //pub mango_group: CpiAccount<'info, MangoTester>,
+    //pub mango_group: Box<Account<'info, MangoTester>>,
     //pub mango_account: AccountInfo<'info>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
@@ -407,25 +407,25 @@ pub struct MintUxd<'info> {
     )]
     pub depository_state: Box<Account<'info, depository::State>>,
     #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
-    pub depository_coin: CpiAccount<'info, TokenAccount>,
+    pub depository_coin: Box<Account<'info, TokenAccount>>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
-    pub coin_mint: CpiAccount<'info, Mint>,
+    pub coin_mint: Box<Account<'info, Mint>>,
     #[account(mut, seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
-    pub coin_passthrough: CpiAccount<'info, TokenAccount>,
+    pub coin_passthrough: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
-    pub redeemable_mint: CpiAccount<'info, Mint>,
+    pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         constraint = user_redeemable.mint == depository_state.redeemable_mint_key,
         constraint = coin_amount > 0,
         constraint = user_redeemable.amount >= coin_amount,
     )]
-    pub user_redeemable: CpiAccount<'info, TokenAccount>,
+    pub user_redeemable: Box<Account<'info, TokenAccount>>,
     // XXX this account should be created by a client instruction
     #[account(mut, constraint = user_uxd.mint == uxd_mint.key())]
-    pub user_uxd: CpiAccount<'info, TokenAccount>,
+    pub user_uxd: Box<Account<'info, TokenAccount>>,
     #[account(mut, seeds = [UXD_SEED], bump)]
-    pub uxd_mint: CpiAccount<'info, Mint>,
+    pub uxd_mint: Box<Account<'info, Mint>>,
     // XXX MANGO ACCOUNTS GO HERE
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
@@ -453,27 +453,27 @@ pub struct RedeemUxd<'info> {
     )]
     pub depository_state: Box<Account<'info, depository::State>>,
     #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
-    pub depository_coin: CpiAccount<'info, TokenAccount>,
+    pub depository_coin: Box<Account<'info, TokenAccount>>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
-    pub coin_mint: CpiAccount<'info, Mint>,
+    pub coin_mint: Box<Account<'info, Mint>>,
     #[account(mut, seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
-    pub coin_passthrough: CpiAccount<'info, TokenAccount>,
+    pub coin_passthrough: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
-    pub redeemable_mint: CpiAccount<'info, Mint>,
+    pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         constraint = user_redeemable.mint == depository_state.redeemable_mint_key,
     )]
-    pub user_redeemable: CpiAccount<'info, TokenAccount>,
+    pub user_redeemable: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
         constraint = user_uxd.mint == uxd_mint.key(),
         constraint = uxd_amount > 0,
         constraint = user_uxd.amount >= uxd_amount,
     )]
-    pub user_uxd: CpiAccount<'info, TokenAccount>,
+    pub user_uxd: Box<Account<'info, TokenAccount>>,
     #[account(mut, seeds = [UXD_SEED], bump)]
-    pub uxd_mint: CpiAccount<'info, Mint>,
+    pub uxd_mint: Box<Account<'info, Mint>>,
     // XXX MANGO ACCOUNTS GO HERE
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,

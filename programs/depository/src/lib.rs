@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_lang::Key;
 use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount, Transfer};
-use solana_program::{program::invoke_signed, system_program as system};
+use solana_program::{program::invoke_signed};
 use spl_token::instruction::{initialize_account, initialize_mint};
 
 pub const STATE_SEED: &[u8] = b"STATE";
@@ -115,10 +115,7 @@ pub mod depository {
             authority: ctx.accounts.user.to_account_info(),
         };
 
-        let burn_ctx = CpiContext::new(
-            ctx.accounts.token_program.to_account_info(),
-            burn_accounts,
-        );
+        let burn_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), burn_accounts);
         token::burn(burn_ctx, amount)?;
 
         let transfer_accounts = Transfer {
@@ -173,7 +170,7 @@ pub struct New<'info> {
     )]
     pub program_coin: AccountInfo<'info>,
     // mint for coins this depository accepts
-    pub coin_mint: CpiAccount<'info, Mint>,
+    pub coin_mint: Box<Account<'info, Mint>>,
     // rent sysvar
     pub rent: Sysvar<'info, Rent>,
     // system program
@@ -194,10 +191,10 @@ pub struct Deposit<'info> {
     pub state: Box<Account<'info, State>>,
     // program account for coin deposit
     #[account(mut, constraint = program_coin.key() == state.program_coin_key)]
-    pub program_coin: CpiAccount<'info, TokenAccount>,
+    pub program_coin: Box<Account<'info, TokenAccount>>,
     // mint for redeemable tokens
     #[account(mut, constraint = redeemable_mint.key() == state.redeemable_mint_key)]
-    pub redeemable_mint: CpiAccount<'info, Mint>,
+    pub redeemable_mint: Box<Account<'info, Mint>>,
     // user account depositing coins
     #[account(
         mut,
@@ -205,10 +202,10 @@ pub struct Deposit<'info> {
         constraint = amount > 0,
         constraint = user_coin.amount >= amount,
     )]
-    pub user_coin: CpiAccount<'info, TokenAccount>,
+    pub user_coin: Box<Account<'info, TokenAccount>>,
     // user account to receive redeemables
     #[account(mut, constraint = user_redeemable.mint == state.redeemable_mint_key)]
-    pub user_redeemable: CpiAccount<'info, TokenAccount>,
+    pub user_redeemable: Box<Account<'info, TokenAccount>>,
     // system program
     pub system_program: Program<'info, System>,
     // spl token program
@@ -230,13 +227,13 @@ pub struct Withdraw<'info> {
         constraint = program_coin.key() == state.program_coin_key,
         constraint = program_coin.amount >= user_redeemable.amount
     )]
-    pub program_coin: CpiAccount<'info, TokenAccount>,
+    pub program_coin: Box<Account<'info, TokenAccount>>,
     // mint for redeemable tokens
     #[account(mut, constraint = redeemable_mint.key() == state.redeemable_mint_key)]
-    pub redeemable_mint: CpiAccount<'info, Mint>,
+    pub redeemable_mint: Box<Account<'info, Mint>>,
     // user account for coin withdrawal
     #[account(mut, constraint = user_coin.mint == state.coin_mint_key)]
-    pub user_coin: CpiAccount<'info, TokenAccount>,
+    pub user_coin: Box<Account<'info, TokenAccount>>,
     // user account sending redeemables
     #[account(
         mut,
@@ -248,7 +245,7 @@ pub struct Withdraw<'info> {
                 user_redeemable.amount > 0
             },
     )]
-    pub user_redeemable: CpiAccount<'info, TokenAccount>,
+    pub user_redeemable: Box<Account<'info, TokenAccount>>,
     // system program
     pub system_program: Program<'info, System>,
     // spl token program
