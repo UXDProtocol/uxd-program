@@ -6,6 +6,7 @@ const spl = require("@solana/spl-token");
 const COIN_MINT = process.argv[2];
 if(!COIN_MINT) throw "specify coin mint";
 const MINT_DECIMAL = 9;
+const UXD_DECIMAL = 6;
 
 const DEVNET = process.argv[3] == "devnet" ? "https://api.devnet.solana.com" : false;
 
@@ -266,7 +267,7 @@ async function main() {
         console.log("AFTER MINT", msig);
         await printBalances();
 
-        let rsig = await controller.rpc.redeemUxd(new anchor.BN(20000 * 10**MINT_DECIMAL), {
+        let rsig = await controller.rpc.redeemUxd(new anchor.BN(20000 * 10**UXD_DECIMAL), {
             accounts: {
                 user: provider.wallet.publicKey,
                 state: controlStateKey,

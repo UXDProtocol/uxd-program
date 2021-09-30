@@ -8,7 +8,7 @@ use pyth_client::{ Price };
 
 const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: usize = 165;
-const UXD_DECIMAL: u8 = 9; // XXX TODO FIXME
+const UXD_DECIMAL: u8 = 6;
 
 const STATE_SEED:       &[u8] = b"STATE";
 const UXD_SEED:         &[u8] = b"STABLECOIN";
