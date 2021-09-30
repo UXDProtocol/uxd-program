@@ -1,5 +1,12 @@
 "use strict";
 
+/*
+depository: tzK6m4Uswcqj4ZQFXeKxPxZnneJAFLgtTGvpQGquVA5
+controller: 2jca3qi8Yb4mwCXTe4W9ukDYcLoUE8pRfLwENyKvA99k
+uxd: B1dXqAh9h648sXgwK2S4DUSiEWSeYqRcCcHFazCrSgVa
+fake btc: 7g96eHEa1QhjGMsApCVoUMH28fkh6Yv9AFCeZLZWfqza
+*/
+
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
@@ -10,6 +17,10 @@ const DEVNET = "https://api.devnet.solana.com";
 // XXX temporary test token on devnet. ultimately we want to target btc/eth/sol
 const TEST_COIN_MINT = "7g96eHEa1QhjGMsApCVoUMH28fkh6Yv9AFCeZLZWfqza";
 const testCoinMintKey = new anchor.web3.PublicKey(TEST_COIN_MINT); 
+
+// XXX temp?
+const provider = anchor.Provider.local(DEVNET);
+anchor.setProvider(provider);
 
 // real constants we intend to keep
 // TODO the addresses are probably in libraries tho check that later
@@ -23,8 +34,10 @@ const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
 const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
 
 // controller program
-const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
-const controller    = new anchor.Program(controllerIdl, controllerKey, new anchor.Provider(null, null, null));
+//XXX const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
+//XXX const controller    = new anchor.Program(controllerIdl, controllerKey, new anchor.Provider(null, null, null));
+const controllerKey = new anchor.web3.PublicKey("2jca3qi8Yb4mwCXTe4W9ukDYcLoUE8pRfLwENyKvA99k");
+const controller    = new anchor.Program(controllerIdl, controllerKey);
 
 // controller derived keys
 // XXX im not 100% on making the program create the uxd mint on mainnet, maybe it should be separate
@@ -35,11 +48,13 @@ const uxdMintKey         = findAddr([Buffer.from("STABLECOIN")], controllerKey);
 // record key is technically controller but maps to depository
 // XXX we cant just pull the address from the idl once we have multiple
 // need to store privkeys somewhere and hardcode the pubkeys in files... so ugly ugh
-const testDepositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
+//XXX const testDepositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
+const testDepositoryKey = new anchor.web3.PublicKey("tzK6m4Uswcqj4ZQFXeKxPxZnneJAFLgtTGvpQGquVA5");
 const depositories = {};
 depositories[TEST_COIN_MINT] = {
     key: testDepositoryKey,
-    program: new anchor.Program(depositoryIdl, testDepositoryKey, new anchor.Provider(null, null, null)),
+    //XXX program: new anchor.Program(depositoryIdl, testDepositoryKey, new anchor.Provider(null, null, null)),
+    program: new anchor.Program(depositoryIdl, testDepositoryKey),
     stateKey: findAddr([Buffer.from("STATE")], testDepositoryKey),
     redeemableMintKey: findAddr([Buffer.from("REDEEMABLE")], testDepositoryKey),
     depositAccountKey: findAddr([Buffer.from("DEPOSIT")], testDepositoryKey),
@@ -192,6 +207,7 @@ function redeemUxd(walletKey, coinMintKey, uxdAmount) {
 
 module.exports = {
     TEST_COIN_MINT: TEST_COIN_MINT,
+    provider: provider,
     depositories: depositories,
     connect: connect,
     findAssociatedTokenAddress: findAssociatedTokenAddress,
