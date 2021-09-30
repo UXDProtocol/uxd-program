@@ -1,16 +1,16 @@
 use anchor_lang::prelude::*;
-use anchor_lang::Key;
-use solana_program::{ system_program as system };
-use pyth_client::{ Price };
+use pyth_client::Price;
 
 const SEED: &[u8] = b"BTCUSD";
+
+solana_program::declare_id!("UXDGB2YeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP");
 
 #[program]
 #[deny(unused_must_use)]
 pub mod oracle {
     use super::*;
 
-    pub fn init(ctx: Context<Init>) -> ProgramResult {
+    pub fn init(_ctx: Context<Init>) -> ProgramResult {
         Ok(())
     }
 
@@ -31,7 +31,6 @@ pub mod oracle {
 
         Ok(())
     }
-
 }
 
 #[derive(Accounts)]

@@ -33,4 +33,7 @@ COIN_MINT=$(head -1 /tmp/hana-spl-mint | cut -d " " -f 3)
 spl-token create-account $SOLANA_NET "$COIN_MINT"
 spl-token mint $SOLANA_NET "$COIN_MINT" 100
 
-node app/index.js "$COIN_MINT" "$NETWORK"
+export COIN_MINT=$COIN_MINT
+export NETWORK=$NETWORK
+
+node app/index.js

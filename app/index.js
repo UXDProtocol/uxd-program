@@ -3,12 +3,12 @@
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
-const COIN_MINT = process.argv[2];
+const COIN_MINT = process.env.COIN_MINT;
 if(!COIN_MINT) throw "specify coin mint";
 const MINT_DECIMAL = 9;
 const UXD_DECIMAL = 6;
 
-const DEVNET = process.argv[3] == "devnet" ? "https://api.devnet.solana.com" : false;
+const DEVNET = process.env.NETWORK == "devnet" ? "https://api.devnet.solana.com" : false;
 
 // this is theoretically constant everywhere
 const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";

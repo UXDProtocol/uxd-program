@@ -12,6 +12,8 @@ const PROGRAM_COIN_SEED: &[u8]    = b"DEPOSIT";
 const MINT_SPAN: usize    = 82;
 const ACCOUNT_SPAN: usize = 165;
 
+solana_program::declare_id!("UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7");
+
 #[program]
 #[deny(unused_must_use)]
 pub mod depository {
