@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
-use anchor_spl::token::{self, Mint, TokenAccount, MintTo, Transfer, Burn};
+use anchor_spl::token::{self, Mint, TokenAccount, MintTo, Burn};
 use solana_program::{ system_program as system, program::invoke_signed };
 use spl_token::instruction::{ initialize_account, initialize_mint };
 use pyth_client::{ Price };
@@ -14,6 +14,8 @@ const STATE_SEED:       &[u8] = b"STATE";
 const UXD_SEED:         &[u8] = b"STABLECOIN";
 const RECORD_SEED:      &[u8] = b"RECORD";
 const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
+
+solana_program::declare_id!("UXDConWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd");
 
 #[program]
 #[deny(unused_must_use)]
@@ -228,7 +230,7 @@ pub mod controller {
 
         // get current passthrough balance before withdrawing from mango
         // in theory this should always be zero but better safe
-        let passthrough_balance = ctx.accounts.coin_passthrough.amount;
+        let _passthrough_balance = ctx.accounts.coin_passthrough.amount;
 
         // TODO MANGO CLOSE POSITION AND WITHDRAW COIN HERE
 
