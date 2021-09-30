@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
+use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount, Transfer};
 use solana_program::{program::invoke_signed, system_program as system};
 use spl_token::instruction::{initialize_account, initialize_mint};
@@ -73,10 +74,13 @@ pub mod depository {
         let transfer_accounts = Transfer {
             from: ctx.accounts.user_coin.to_account_info(),
             to: ctx.accounts.program_coin.to_account_info(),
-            authority: ctx.accounts.user.clone(),
+            authority: ctx.accounts.user.to_account_info(),
         };
 
-        let transfer_ctx = CpiContext::new(ctx.accounts.token_program.clone(), transfer_accounts);
+        let transfer_ctx = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            transfer_accounts,
+        );
         token::transfer(transfer_ctx, amount)?;
 
         let mint_accounts = MintTo {
@@ -87,7 +91,7 @@ pub mod depository {
 
         let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
         let mint_ctx = CpiContext::new_with_signer(
-            ctx.accounts.token_program.clone(),
+            ctx.accounts.token_program.to_account_info(),
             mint_accounts,
             state_seed,
         );
@@ -108,10 +112,13 @@ pub mod depository {
         let burn_accounts = Burn {
             mint: ctx.accounts.redeemable_mint.to_account_info(),
             to: ctx.accounts.user_redeemable.to_account_info(),
-            authority: ctx.accounts.user.clone(),
+            authority: ctx.accounts.user.to_account_info(),
         };
 
-        let burn_ctx = CpiContext::new(ctx.accounts.token_program.clone(), burn_accounts);
+        let burn_ctx = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            burn_accounts,
+        );
         token::burn(burn_ctx, amount)?;
 
         let transfer_accounts = Transfer {
@@ -122,7 +129,7 @@ pub mod depository {
 
         let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
         let transfer_ctx = CpiContext::new_with_signer(
-            ctx.accounts.token_program.clone(),
+            ctx.accounts.token_program.to_account_info(),
             transfer_accounts,
             state_seed,
         );
@@ -135,8 +142,8 @@ pub mod depository {
 #[derive(Accounts)]
 pub struct New<'info> {
     // account paying for allocations
-    #[account(signer, mut)]
-    pub payer: AccountInfo<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
     // stores program config, authority of the redeemable mint and deposit account
     #[account(
         init,
@@ -144,7 +151,7 @@ pub struct New<'info> {
         bump = Pubkey::find_program_address(&[STATE_SEED], program_id).1,
         payer = payer,
     )]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
     // mint for bearer tokens representing deposited balances
     #[account(
         init,
@@ -170,11 +177,9 @@ pub struct New<'info> {
     // rent sysvar
     pub rent: Sysvar<'info, Rent>,
     // system program
-    #[account(constraint = system_program.key() == system::ID)]
-    pub system_program: AccountInfo<'info>,
+    pub system_program: Program<'info, System>,
     // spl token program
-    #[account(constraint = token_program.key() == spl_token::ID)]
-    pub token_program: AccountInfo<'info>,
+    pub token_program: Program<'info, Token>,
 }
 
 #[derive(Accounts)]
@@ -186,7 +191,7 @@ pub struct Deposit<'info> {
     pub user: AccountInfo<'info>,
     // this program signing and state account
     #[account(seeds = [STATE_SEED], bump)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
     // program account for coin deposit
     #[account(mut, constraint = program_coin.key() == state.program_coin_key)]
     pub program_coin: CpiAccount<'info, TokenAccount>,
@@ -205,11 +210,9 @@ pub struct Deposit<'info> {
     #[account(mut, constraint = user_redeemable.mint == state.redeemable_mint_key)]
     pub user_redeemable: CpiAccount<'info, TokenAccount>,
     // system program
-    #[account(constraint = system_program.key() == system::ID)]
-    pub system_program: AccountInfo<'info>,
+    pub system_program: Program<'info, System>,
     // spl token program
-    #[account(constraint = token_program.key() == spl_token::ID)]
-    pub token_program: AccountInfo<'info>,
+    pub token_program: Program<'info, Token>,
 }
 
 #[derive(Accounts)]
@@ -217,11 +220,10 @@ pub struct Deposit<'info> {
 pub struct Withdraw<'info> {
     // the user withdrawing funds
     // TODO i should use approval and xferfrom so user doesnt sign
-    #[account(signer)]
-    pub user: AccountInfo<'info>,
+    pub user: Signer<'info>,
     // this program signing and state account
     #[account(seeds = [STATE_SEED], bump)]
-    pub state: ProgramAccount<'info, State>,
+    pub state: Box<Account<'info, State>>,
     // program account withdrawing coins from
     #[account(
         mut,
@@ -248,11 +250,9 @@ pub struct Withdraw<'info> {
     )]
     pub user_redeemable: CpiAccount<'info, TokenAccount>,
     // system program
-    #[account(constraint = system_program.key() == system::ID)]
-    pub system_program: AccountInfo<'info>,
+    pub system_program: Program<'info, System>,
     // spl token program
-    #[account(constraint = token_program.key() == spl_token::ID)]
-    pub token_program: AccountInfo<'info>,
+    pub token_program: Program<'info, Token>,
 }
 
 #[account]
