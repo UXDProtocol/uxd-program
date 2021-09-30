@@ -35,28 +35,28 @@ pub mod oracle {
 
 #[derive(Accounts)]
 pub struct Init<'info> {
-    #[account(signer, mut)]
-    pub wallet: AccountInfo<'info>,
+    #[account(mut)]
+    pub wallet: Signer<'info>,
     #[account(
         init,
         seeds = [SEED],
         bump,
         space = 3312,
         payer = wallet,
-        owner = program_id,
+        owner = *program_id,
     )]
-    pub buffer: AccountInfo<'info>,
+    pub buffer: UncheckedAccount<'info>,
     pub rent: Sysvar<'info, Rent>,
-    pub system_program: AccountInfo<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct Get<'info> {
-    pub oracle: AccountInfo<'info>,
+    pub oracle: UncheckedAccount<'info>,
 }
 
 #[derive(Accounts)]
 pub struct Put<'info> {
     #[account(mut)]
-    pub buffer: AccountInfo<'info>,
+    pub buffer: UncheckedAccount<'info>,
 }
