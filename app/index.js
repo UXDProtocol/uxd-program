@@ -46,7 +46,7 @@ const solOracleKey = new anchor.web3.PublicKey(
   "J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix"
 );
 
-const provider = anchor.Provider.local(DEVNET || undefined);
+const provider = anchor.Provider.local();
 anchor.setProvider(provider);
 
 const controller = anchor.workspace.Controller;
@@ -74,6 +74,12 @@ const solDepositoryKey = new anchor.web3.PublicKey(SOL_DEPOSITORY);
     // // keys for controller.registerDepository
     // let depositRecordKey = findAddr([Buffer.from("RECORD"), depository.programId.toBuffer()], controller.programId);
     // let coinPassthroughKey = findAddr([Buffer.from("PASSTHROUGH"), coinMintKey.toBuffer()], controller.programId);
+        // btcusd oracle
+    // let localOraclePriceAccountKey = findAddr([Buffer.from("BTCUSD")], oracle.programId);
+    // console.log(`
+    // * oracle (local) program key ${oracle.programId}
+    // * oracle (local) BTCUSD key : ${localOraclePriceAccountKey}
+    // `);
 
 // XXX im using the btc oracle for sol but it doesnt matter here im just testing
 const depositories = {};
