@@ -49,17 +49,31 @@ const solOracleKey = new anchor.web3.PublicKey(
 const provider = anchor.Provider.local(DEVNET || undefined);
 anchor.setProvider(provider);
 
-const controllerIdl = require("../target/idl/controller.json");
-const controllerKey = new anchor.web3.PublicKey(CONTROLLER);
-const controller = new anchor.Program(controllerIdl, controllerKey);
+const controller = anchor.workspace.Controller;
+const depository = anchor.workspace.Depository;
+const oracle = anchor.workspace.Oracle;
 
 // controller keys
 const controlStateKey = findAddr([Buffer.from("STATE")], controllerKey);
 const uxdMintKey = findAddr([Buffer.from("STABLECOIN")], controllerKey);
 
-const depositoryIdl = require("../target/idl/depository.json");
 const btcDepositoryKey = new anchor.web3.PublicKey(BTC_DEPOSITORY);
 const solDepositoryKey = new anchor.web3.PublicKey(SOL_DEPOSITORY);
+
+// Was using this, should reuse this and derive the sol and btc depository from their mint with a single depository
+// XXX
+    // // keys for controller.new
+    // let controlStateKey = findAddr([Buffer.from("STATE")], controller.programId);
+    // let uxdMintKey = findAddr([Buffer.from("STABLECOIN")], controller.programId);
+
+    // // keys for depository.new
+    // let depositStateKey = findAddr([Buffer.from("STATE")], depository.programId);
+    // let redeemableMintKey = findAddr([Buffer.from("REDEEMABLE")], depository.programId);
+    // let depositAccountKey = findAddr([Buffer.from("DEPOSIT")], depository.programId);
+
+    // // keys for controller.registerDepository
+    // let depositRecordKey = findAddr([Buffer.from("RECORD"), depository.programId.toBuffer()], controller.programId);
+    // let coinPassthroughKey = findAddr([Buffer.from("PASSTHROUGH"), coinMintKey.toBuffer()], controller.programId);
 
 // XXX im using the btc oracle for sol but it doesnt matter here im just testing
 const depositories = {};

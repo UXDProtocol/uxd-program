@@ -14,4 +14,6 @@ oracle = "UXDGB2YeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP"
 url = "https://anchor.projectserum.com"
 
 [scripts]
-test = "./scripts/setup_test_env.sh"
+test = "./scripts/test.sh"
+
+# test = "./scripts/test.sh -u devnet" # then run with `anchor test --provider.cluster devnet`

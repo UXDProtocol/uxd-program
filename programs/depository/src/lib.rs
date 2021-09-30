@@ -1,15 +1,15 @@
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
-use anchor_spl::token::{self, Mint, TokenAccount, MintTo, Transfer, Burn};
-use solana_program::{ system_program as system, program::invoke_signed };
-use spl_token::instruction::{ initialize_account, initialize_mint };
+use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount, Transfer};
+use solana_program::{program::invoke_signed, system_program as system};
+use spl_token::instruction::{initialize_account, initialize_mint};
 
-pub const STATE_SEED: &[u8]       = b"STATE";
+pub const STATE_SEED: &[u8] = b"STATE";
 const REDEEMABLE_MINT_SEED: &[u8] = b"REDEEMABLE";
-const PROGRAM_COIN_SEED: &[u8]    = b"DEPOSIT";
+const PROGRAM_COIN_SEED: &[u8] = b"DEPOSIT";
 
 // annoyingly the spl program does not expose these as constants
-const MINT_SPAN: usize    = 82;
+const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: usize = 165;
 
 solana_program::declare_id!("UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7");
@@ -86,7 +86,11 @@ pub mod depository {
         };
 
         let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
-        let mint_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.clone(), mint_accounts, state_seed);
+        let mint_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.clone(),
+            mint_accounts,
+            state_seed,
+        );
         token::mint_to(mint_ctx, amount)?;
 
         Ok(())
@@ -117,12 +121,15 @@ pub mod depository {
         };
 
         let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
-        let transfer_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.clone(), transfer_accounts, state_seed);
+        let transfer_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.clone(),
+            transfer_accounts,
+            state_seed,
+        );
         token::transfer(transfer_ctx, amount)?;
 
         Ok(())
     }
-
 }
 
 #[derive(Accounts)]

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-usage() { echo "USAGE: deploy.sh [-u <devnet>] [-v]"; exit 1; }
+usage() { echo "USAGE: deploy.sh [-u <cluster>] [-v]"; exit 1; }
 
 NETWORK=
 while getopts ':u:v' opt; do
