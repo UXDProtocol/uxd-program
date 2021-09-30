@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
 use anchor_spl::token::{self, Mint, TokenAccount, MintTo, Transfer, Burn};
@@ -7,7 +8,7 @@ use pyth_client::{ Price };
 
 const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: usize = 165;
-const MINT_DECIMAL: u8 = 9;
+const UXD_DECIMAL: u8 = 9; // XXX TODO FIXME
 
 const STATE_SEED:       &[u8] = b"STATE";
 const UXD_SEED:         &[u8] = b"STABLECOIN";
@@ -81,7 +82,7 @@ pub mod controller {
             &ctx.accounts.uxd_mint.key(),
             &ctx.accounts.state.key(),
             None,
-            MINT_DECIMAL,
+            UXD_DECIMAL,
         )?;
         invoke_signed(&ix, &accounts, uxd_seed)?;
 
@@ -185,8 +186,16 @@ pub mod controller {
             panic!("ugh return an error here or check this in constraints");
         }
 
-        // XXX i hate this so much
-        let position_value = coin_amount * (oracle.agg.price.abs() as u64 / u64::pow(10, oracle.expo.abs() as u32));
+        // so we take the amount of coin, multiply by price
+        // then divide out the price decimals. we are now in coin decimals
+        // so we multiply by uxd decimals and divide by coin decimals and get a uxd amount
+        // XXX replace unwrap with error when we have custom errors
+        let position_uxd_value =
+            (coin_amount as u128).checked_mul(oracle.agg.price.abs() as u128)
+            .and_then(|n| n.checked_div(u128::pow(10, oracle.expo.abs() as u32)))
+            .and_then(|n| n.checked_mul(u128::pow(10, ctx.accounts.uxd_mint.decimals as u32)))
+            .and_then(|n| n.checked_div(u128::pow(10, ctx.accounts.coin_mint.decimals as u32)))
+            .and_then(|n| u64::try_from(n).ok()).unwrap();
 
         let mint_accounts = MintTo {
             mint: ctx.accounts.uxd_mint.to_account_info(),
@@ -196,7 +205,7 @@ pub mod controller {
 
         let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
         let mint_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.clone(), mint_accounts, state_seed);
-        token::mint_to(mint_ctx, position_value)?;
+        token::mint_to(mint_ctx, position_uxd_value)?;
 
         Ok(())
     }
@@ -235,8 +244,15 @@ pub mod controller {
             panic!("ugh return an error here or check this in constraints");
         }
 
-        // XXX ughhh this is so so stupid
-        let collateral_amount = uxd_amount / (oracle.agg.price.abs() as u64 / u64::pow(10, oracle.expo.abs() as u32));
+        // here we take the amount of uxd, multiply by price decimal
+        // then divide by price, multiply by coin decimal, divide by uxd decimal to get a coin amount
+        // XXX replace unwrap with error when we have custom errors
+        let collateral_amount =
+            (uxd_amount as u128).checked_mul(u128::pow(10, oracle.expo.abs() as u32))
+            .and_then(|n| n.checked_div(oracle.agg.price.abs() as u128))
+            .and_then(|n| n.checked_mul(u128::pow(10, ctx.accounts.coin_mint.decimals as u32)))
+            .and_then(|n| n.checked_div(u128::pow(10, ctx.accounts.uxd_mint.decimals as u32)))
+            .and_then(|n| u64::try_from(n).ok()).unwrap();
 
         // return mango money back to depository
         let deposit_accounts = depository::Deposit {
