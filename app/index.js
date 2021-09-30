@@ -206,7 +206,7 @@ async function main() {
         console.log("BEFORE DEPOSIT");
         await printBalances();
 
-        await depository.rpc.deposit(new anchor.BN(1 * 10**MINT_DECIMAL), {
+        let dsig = await depository.rpc.deposit(new anchor.BN(1 * 10**MINT_DECIMAL), {
             accounts: {
                 user: provider.wallet.publicKey,
                 state: depositStateKey,
@@ -223,7 +223,7 @@ async function main() {
             instructions: depositIxns,
         });
 
-        console.log("AFTER DEPOSIT");
+        console.log("AFTER DEPOSIT", dsig);
         await printBalances();
 
         // XXX TODO here i need to...
@@ -237,7 +237,7 @@ async function main() {
                        ? undefined
                        : [createAssocIxn(provider.wallet.publicKey, uxdMintKey)];
 
-        await controller.rpc.mintUxd(new anchor.BN(1 * 10**MINT_DECIMAL), {
+        let msig = await controller.rpc.mintUxd(new anchor.BN(1 * 10**MINT_DECIMAL), {
             accounts: {
                 user: provider.wallet.publicKey,
                 state: controlStateKey,
@@ -263,10 +263,10 @@ async function main() {
             instructions: mintIxns,
         });
 
-        console.log("AFTER MINT");
+        console.log("AFTER MINT", msig);
         await printBalances();
 
-        await controller.rpc.redeemUxd(new anchor.BN(20000 * 10**MINT_DECIMAL), {
+        let rsig = await controller.rpc.redeemUxd(new anchor.BN(20000 * 10**MINT_DECIMAL), {
             accounts: {
                 user: provider.wallet.publicKey,
                 state: controlStateKey,
@@ -291,10 +291,10 @@ async function main() {
             options: TXN_OPTS,
         });
 
-        console.log("AFTER REDEEM");
+        console.log("AFTER REDEEM", rsig);
         await printBalances();
 
-        await depository.rpc.withdraw(null, {
+        let wsig = await depository.rpc.withdraw(null, {
             accounts: {
                 user: provider.wallet.publicKey,
                 state: depositStateKey,
@@ -310,7 +310,7 @@ async function main() {
             options: TXN_OPTS,
         });
 
-        console.log("AFTER WITHDRAW");
+        console.log("AFTER WITHDRAW", wsig);
         await printBalances();
     }
 }
