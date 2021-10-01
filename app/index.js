@@ -3,16 +3,17 @@
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
-const COIN_MINT = process.argv[2];
-if(!COIN_MINT) throw "specify coin mint";
-const MINT_DECIMAL = 9;
+const CONTROLLER = process.argv[2];
+const BTC_DEPOSITORY = process.argv[3];
+const SOL_DEPOSITORY = process.argv[4];
+const COIN_MINT = process.argv[5];
+if(!(CONTROLLER && BTC_DEPOSITORY && SOL_DEPOSITORY && COIN_MINT)) throw "controller two depositories and a coin mint pls";
+
+const BTC_DECIMAL = 6;
+const SOL_DECIMAL = 9;
 const UXD_DECIMAL = 6;
 
-const DEVNET = process.argv[3] == "devnet" ? "https://api.devnet.solana.com" : false;
-
-// this is theoretically constant everywhere
-const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-const ASSOC_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+const DEVNET = process.argv[6] == "devnet" ? "https://api.devnet.solana.com" : false;
 
 const TXN_COMMIT = "processed";
 const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipPreflight: false};
@@ -21,18 +22,18 @@ const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipP
 const DEPLOY_ONLY = false;
 
 const coinMintKey = new anchor.web3.PublicKey(COIN_MINT);
-const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
-const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
+const tokenProgramKey = spl.TOKEN_PROGRAM_ID;
+const assocTokenProgramKey = spl.ASSOCIATED_TOKEN_PROGRAM_ID;
 
 const provider = anchor.Provider.local(DEVNET || undefined);
 anchor.setProvider(provider);
 
 const controllerIdl = require("../target/idl/controller.json");
-const controllerKey = new anchor.web3.PublicKey(controllerIdl.metadata.address);
+const controllerKey = new anchor.web3.PublicKey(CONTROLLER);
 const controller = new anchor.Program(controllerIdl, controllerKey);
 
 const depositoryIdl = require("../target/idl/depository.json");
-const depositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
+const depositoryKey = new anchor.web3.PublicKey(BTC_DEPOSITORY);
 const depository = new anchor.Program(depositoryIdl, depositoryKey);
 
 // we should not need this on mainnet but note the addresses change per cluster
@@ -207,7 +208,7 @@ async function main() {
         console.log("BEFORE DEPOSIT");
         await printBalances();
 
-        let dsig = await depository.rpc.deposit(new anchor.BN(1 * 10**MINT_DECIMAL), {
+        let dsig = await depository.rpc.deposit(new anchor.BN(1 * 10**BTC_DECIMAL), {
             accounts: {
                 user: provider.wallet.publicKey,
                 state: depositStateKey,
@@ -238,7 +239,7 @@ async function main() {
                        ? undefined
                        : [createAssocIxn(provider.wallet.publicKey, uxdMintKey)];
 
-        let msig = await controller.rpc.mintUxd(new anchor.BN(1 * 10**MINT_DECIMAL), {
+        let msig = await controller.rpc.mintUxd(new anchor.BN(1 * 10**BTC_DECIMAL), {
             accounts: {
                 user: provider.wallet.publicKey,
                 state: controlStateKey,
