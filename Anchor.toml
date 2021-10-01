@@ -16,4 +16,4 @@ url = "https://anchor.projectserum.com"
 [scripts]
 test = "./scripts/test.sh"
 
-# test = "./scripts/test.sh -u devnet" # then run with `anchor test --provider.cluster devnet`
+# test = "./scripts/test.sh -u devnet" # then run with `anchor test --provider.cluster devnet` ? 

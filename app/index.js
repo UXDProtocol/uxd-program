@@ -8,10 +8,6 @@ if(!COIN_MINT) throw "specify coin mint";
 const MINT_DECIMAL = 9;
 const UXD_DECIMAL = 6;
 
-// this is theoretically constant everywhere
-const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-const ASSOC_TOKEN_PROGRAM_ID = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
-
 const TXN_COMMIT = "processed";
 const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipPreflight: false};
 
@@ -19,8 +15,8 @@ const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipP
 const DEPLOY_ONLY = false;
 
 const coinMintKey = new anchor.web3.PublicKey(COIN_MINT);
-const tokenProgramKey = new anchor.web3.PublicKey(TOKEN_PROGRAM_ID);
-const assocTokenProgramKey = new anchor.web3.PublicKey(ASSOC_TOKEN_PROGRAM_ID);
+const tokenProgramKey = new anchor.web3.PublicKey(spl.TOKEN_PROGRAM_ID.toBase58());
+const assocTokenProgramKey = new anchor.web3.PublicKey(spl.ASSOCIATED_TOKEN_PROGRAM_ID.toBase58());
 
 const provider = anchor.Provider.local();
 anchor.setProvider(provider);
@@ -71,9 +67,9 @@ async function main() {
     let uxdMintKey = findAddr([Buffer.from("STABLECOIN")], controller.programId);
 
     // keys for depository.new
-    let depositStateKey = findAddr([Buffer.from("STATE")], depository.programId);
-    let redeemableMintKey = findAddr([Buffer.from("REDEEMABLE")], depository.programId);
-    let depositAccountKey = findAddr([Buffer.from("DEPOSIT")], depository.programId);
+    let depositStateKey = findAddr([Buffer.from("STATE"), coinMintKey.toBuffer()], depository.programId);
+    let redeemableMintKey = findAddr([Buffer.from("REDEEMABLE"), coinMintKey.toBuffer()], depository.programId);
+    let depositAccountKey = findAddr([Buffer.from("DEPOSIT"), coinMintKey.toBuffer()], depository.programId);
 
     // keys for controller.registerDepository
     let depositRecordKey = findAddr([Buffer.from("RECORD"), depository.programId.toBuffer()], controller.programId);
