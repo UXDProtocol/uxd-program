@@ -2,10 +2,6 @@
 
 const anchor = require("@project-serum/anchor");
 const api = require("./api.js");
-const assert = require("assert");
-
-const TXN_COMMIT = "processed";
-const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipPreflight: false};
 
 describe("API Test", () => {
     // XXX these are fake im not actually calling out tho just making sure ixns look right
@@ -26,10 +22,6 @@ describe("API Test", () => {
         let mintTxn = new anchor.web3.Transaction();
         mintTxn.add(mintIxns[0]);
         mintTxn.add(mintIxns[1]);
-        // mintTxn.feePayer = wallet.publicKey;
-        // mintTxn.recentBlockhash = (await api.provider.connection.getRecentBlockhash()).blockhash;
-    
-        // mintTxn = await wallet.signTransaction(mintTxn);
 
         let txId = api.provider.send(mintTxn);
     });
@@ -43,10 +35,6 @@ describe("API Test", () => {
         let redeemTxn = new anchor.web3.Transaction();
         redeemTxn.add(redeemIxns[0]);
         redeemTxn.add(redeemIxns[1]);
-        // redeemTxn.feePayer = wallet.publicKey;
-        // redeemTxn.recentBlockhash = (await api.provider.connection.getRecentBlockhash()).blockhash;
-      
-        // redeemTxn = await wallet.signTransaction(redeemTxn);
 
         let txId = api.provider.send(redeemTxn);
     });

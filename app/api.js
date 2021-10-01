@@ -10,19 +10,15 @@ fake btc: 7g96eHEa1QhjGMsApCVoUMH28fkh6Yv9AFCeZLZWfqza
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
-// const DEVNET = //"https://api.devnet.solana.com";
 const CLUSTER = "http://127.0.0.1:8899";
-// XXX temporary test token on devnet. ultimately we want to target btc/eth/sol
-// const TEST_COIN_MINT = "7g96eHEa1QhjGMsApCVoUMH28fkh6Yv9AFCeZLZWfqza";
+// XXX temporary test token on localnet. ultimately we want to target btc/eth/sol
 const TEST_COIN_MINT = process.env.COIN_MINT;
-// const testCoinMintKey = new anchor.web3.PublicKey(TEST_COIN_MINT); 
 
 // XXX temp?
 const provider = anchor.Provider.local();
 anchor.setProvider(provider);
 
 // real constants we intend to keep
-// TODO the addresses are probably in libraries tho check that later
 const TXN_COMMIT = "confirmed";
 const TXN_OPTS = {commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipPreflight: false};
 
@@ -44,21 +40,19 @@ const uxdMintKey         = findAddr([Buffer.from("STABLECOIN")], controller.prog
 // record key is technically controller but maps to depository
 // XXX we cant just pull the address from the idl once we have multiple
 // need to store privkeys somewhere and hardcode the pubkeys in files... so ugly ugh
-//XXX const testDepositoryKey = new anchor.web3.PublicKey(depositoryIdl.metadata.address);
 //
-// (alex) From what I understand the depository program is used to interact with different depository's
-// states, one of them being the one below. Why do we need to bother with private keys storage? We would
-// have a initiator wallet that does instantiate several depositories for each collaterals, and keep track of which
-// state pubkey for which collateral type, and use permisionless-ly by front end? Or maybe I miss something
+// XXX(alex) From what I understand the depository program is used to interact with different depository configurations (accounts)
+// Why do we need to bother with private keys storage ? We would
+// have a initiator wallet that does instantiate a depository for each collateral mint (so just derive the state/redeemable/deposit accounts),
+// Then anyone (front ends?) can derive a specific depository setup, permisionless-ly. Or maybe I miss something
 // !! Maybe what's missing is to add the Token Mint to the hashing to these? :
-//    let depositStateKey = findAddr([Buffer.from("STATE")], depository.programId);
+// == Seems to work, but I'm not sure I fully understood everything. Will recheck tomorrow - see pr comments on GH
 
 const coinMintKey = new anchor.web3.PublicKey(TEST_COIN_MINT);
 
-// const testCoinMintDepositoryKey = new anchor.web3.PublicKey("UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7");
-
 const depositories = {};
 
+// With these canonical way of retrieving any depository setup for a mint, it make it easily extenssible
 depositories[TEST_COIN_MINT] = {
     key: depository.programId,
     stateKey: findAddr([Buffer.from("STATE"), coinMintKey.toBuffer()], depository.programId),
