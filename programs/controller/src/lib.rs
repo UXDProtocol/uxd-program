@@ -180,7 +180,7 @@ pub mod controller {
             user_redeemable: ctx.accounts.user_redeemable.clone(),
             system_program: ctx.accounts.system_program.clone(),
             token_program: ctx.accounts.token_program.clone(),
-            program: ctx.accounts.depository.clone(),
+            // program: ctx.accounts.depository.clone(),
         };
 
         let withdraw_ctx = CpiContext::new(ctx.accounts.depository.clone(), withdraw_accounts);
@@ -280,7 +280,7 @@ pub mod controller {
             user_redeemable: ctx.accounts.user_redeemable.clone(),
             system_program: ctx.accounts.system_program.clone(),
             token_program: ctx.accounts.token_program.clone(),
-            program: ctx.accounts.depository.clone(),
+            // program: ctx.accounts.depository.clone(),
         };
 
         let record_seed: &[&[&[u8]]] = &[&[
@@ -343,9 +343,6 @@ pub struct New<'info> {
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    // This is weird, look into it
-    #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -383,9 +380,6 @@ pub struct RegisterDepository<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     //pub mango_program: AccountInfo<'info>,
-    // Look into this, why do we pass program. Misnamed or?
-    #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
 }
 
 // XXX oki this shit is complicated lets see what all is here...
@@ -442,9 +436,6 @@ pub struct MintUxd<'info> {
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    //pub mango_program: AccountInfo<'info>,
-    #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
     // XXX FIXME below here is temporary
     // oracle: dumb hack for devnet, pending mango integration
     #[account(constraint = oracle.key() == depository_record.oracle_key)]
@@ -493,8 +484,6 @@ pub struct RedeemUxd<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     //pub mango_program: AccountInfo<'info>,
-    #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
     // XXX FIXME below here is temporary
     // oracle: dumb hack for devnet, pending mango integration
     #[account(constraint = oracle.key() == depository_record.oracle_key)]
