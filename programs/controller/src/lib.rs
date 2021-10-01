@@ -1,4 +1,3 @@
-use std::convert::TryFrom;
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
 use anchor_spl::token::Token;
@@ -6,6 +5,7 @@ use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use pyth_client::Price;
 use solana_program::program::invoke_signed;
 use spl_token::instruction::{initialize_account, initialize_mint};
+use std::convert::TryFrom;
 
 const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: usize = 165;
@@ -200,12 +200,13 @@ pub mod controller {
         // then divide out the price decimals. we are now in coin decimals
         // so we multiply by uxd decimals and divide by coin decimals and get a uxd amount
         // XXX replace unwrap with error when we have custom errors
-        let position_uxd_value =
-            (coin_amount as u128).checked_mul(oracle.agg.price.abs() as u128)
+        let position_uxd_value = (coin_amount as u128)
+            .checked_mul(oracle.agg.price.abs() as u128)
             .and_then(|n| n.checked_div(u128::pow(10, oracle.expo.abs() as u32)))
             .and_then(|n| n.checked_mul(u128::pow(10, ctx.accounts.uxd_mint.decimals as u32)))
             .and_then(|n| n.checked_div(u128::pow(10, ctx.accounts.coin_mint.decimals as u32)))
-            .and_then(|n| u64::try_from(n).ok()).unwrap();
+            .and_then(|n| u64::try_from(n).ok())
+            .unwrap();
 
         let mint_accounts = MintTo {
             mint: ctx.accounts.uxd_mint.to_account_info(),
@@ -214,7 +215,11 @@ pub mod controller {
         };
 
         let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
-        let mint_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.to_account_info(), mint_accounts, state_seed);
+        let mint_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            mint_accounts,
+            state_seed,
+        );
         token::mint_to(mint_ctx, position_uxd_value)?;
 
         Ok(())
@@ -257,12 +262,13 @@ pub mod controller {
         // here we take the amount of uxd, multiply by price decimal
         // then divide by price, multiply by coin decimal, divide by uxd decimal to get a coin amount
         // XXX replace unwrap with error when we have custom errors
-        let collateral_amount =
-            (uxd_amount as u128).checked_mul(u128::pow(10, oracle.expo.abs() as u32))
+        let collateral_amount = (uxd_amount as u128)
+            .checked_mul(u128::pow(10, oracle.expo.abs() as u32))
             .and_then(|n| n.checked_div(oracle.agg.price.abs() as u128))
             .and_then(|n| n.checked_mul(u128::pow(10, ctx.accounts.coin_mint.decimals as u32)))
             .and_then(|n| n.checked_div(u128::pow(10, ctx.accounts.uxd_mint.decimals as u32)))
-            .and_then(|n| u64::try_from(n).ok()).unwrap();
+            .and_then(|n| u64::try_from(n).ok())
+            .unwrap();
 
         // return mango money back to depository
         let deposit_accounts = depository::Deposit {
