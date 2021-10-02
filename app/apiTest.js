@@ -22,8 +22,6 @@ let mintTxn = new anchor.web3.Transaction();
 mintTxn.add(mintIxns[0]);
 mintTxn.add(mintIxns[1]);
 
-api.provider.send(mintTxn).then((s) => console.log("HANA s1:", s));
-
 let redeemIxns = api.redeemUxd(walletKey, mintKey, uxdAmount);
 
 console.log("HANA redeem ixns:");
@@ -35,4 +33,9 @@ let redeemTxn = new anchor.web3.Transaction();
 redeemTxn.add(redeemIxns[0]);
 redeemTxn.add(redeemIxns[1]);
 
-api.provider.send(redeemTxn).then((s) => console.log("HANA s2:", s));
+api.provider.send(mintTxn)
+.then((s) => {
+    console.log("HANA s1:", s);
+    return api.provider.send(redeemTxn);
+})
+.then((s) => console.log("HANA s2:", s));
