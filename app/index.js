@@ -31,7 +31,8 @@ const assocTokenProgramKey = spl.ASSOCIATED_TOKEN_PROGRAM_ID;
 const oracleProgramKey = new anchor.web3.PublicKey(require("../target/idl/oracle.json").metadata.address);
 const devnetBtcOracleKey = new anchor.web3.PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
 const localBtcOracleKey = findAddr([Buffer.from("BTCUSD")], oracleProgramKey);
-const oracleKey = DEVNET ? devnetBtcOracleKey : localBtcOracleKey;
+const btcOracleKey = DEVNET ? devnetBtcOracleKey : localBtcOracleKey;
+const solOracleKey = new anchor.web3.PublicKey("J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix");
 
 const provider = anchor.Provider.local(DEVNET || undefined);
 anchor.setProvider(provider);
@@ -50,8 +51,8 @@ const solDepositoryKey = new anchor.web3.PublicKey(SOL_DEPOSITORY);
 
 // XXX im using the btc oracle for sol but it doesnt matter here im just testing 
 const depositories = {};
-depositories[COIN_MINT] = mkDepository(btcDepositoryKey, btcMintKey, oracleKey);
-depositories[spl.NATIVE_MINT] = mkDepository(solDepositoryKey, solMintKey, oracleKey);
+depositories[COIN_MINT] = mkDepository(btcDepositoryKey, btcMintKey, btcOracleKey);
+depositories[spl.NATIVE_MINT.toString()] = mkDepository(solDepositoryKey, solMintKey, solOracleKey);
 
 // internal function to conveniently init depository key objects
 // record and passthrough are controller keys but they depend on the depository
@@ -132,7 +133,7 @@ async function main() {
     console.log("controller id:", controllerKey.toString());
     console.log("controller state:", controlStateKey.toString());
     console.log("btc depository id:", depositories[COIN_MINT].key.toString());
-    console.log("sol depository id:", depositories[spl.NATIVE_MINT].toString());
+    console.log("sol depository id:", depositories[spl.NATIVE_MINT.toString()].key.toString());
     console.log("\n");
 
     // set up the controller
@@ -206,6 +207,7 @@ async function main() {
     }
 
     if(!DEPLOY_ONLY) {
+        throw "this isnt fixed for multiple depositories but that isnt important rn";
         // create user account for redeemables if it doesnt exist
         // note anchor will error if you pass [] or null for the extra ixns
         let depositIxns = await provider.connection.getAccountInfo(userRedeemableKey)
