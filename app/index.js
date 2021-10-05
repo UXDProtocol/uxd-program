@@ -3,19 +3,17 @@
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
-const CONTROLLER = process.env.CONTROLLER;
-const BTC_DEPOSITORY = process.env.BTC_DEPOSITORY;
-const SOL_DEPOSITORY = process.env.SOL_DEPOSITORY;
-const COIN_MINT = process.env.COIN_MINT;
-if (!(CONTROLLER && BTC_DEPOSITORY && SOL_DEPOSITORY && COIN_MINT))
-  throw "controller two depositories and a coin mint pls";
+const FAKE_BTC_MINT = process.env.FAKE_BTC_MINT;
+if (!FAKE_BTC_MINT) throw "fake btc mint pls";
 
 const BTC_DECIMAL = 6;
 const SOL_DECIMAL = 9;
 const UXD_DECIMAL = 6;
 
-const DEVNET =
-  process.env.DEVNET == "devnet" ? "https://api.devnet.solana.com" : false;
+// const CLUSTER =
+//   process.env.DEVNET == "devnet"
+//     ? "https://api.devnet.solana.com"
+//     : "http://localhost.";
 
 const TXN_COMMIT = "processed";
 const TXN_OPTS = {
@@ -27,24 +25,10 @@ const TXN_OPTS = {
 // whether to run the mint/redeem cycle or not
 const DEPLOY_ONLY = false;
 
-const btcMintKey = new anchor.web3.PublicKey(COIN_MINT);
+const btcMintKey = new anchor.web3.PublicKey(FAKE_BTC_MINT);
 const solMintKey = new anchor.web3.PublicKey(spl.NATIVE_MINT);
 const tokenProgramKey = spl.TOKEN_PROGRAM_ID;
 const assocTokenProgramKey = spl.ASSOCIATED_TOKEN_PROGRAM_ID;
-
-// we should not need this on mainnet but note the addresses change per cluster
-// oracleprogram is for if we copied data to localnet
-const oracleProgramKey = new anchor.web3.PublicKey(
-  require("../target/idl/oracle.json").metadata.address
-);
-const devnetBtcOracleKey = new anchor.web3.PublicKey(
-  "HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J"
-);
-const localBtcOracleKey = findAddr([Buffer.from("BTCUSD")], oracleProgramKey);
-const btcOracleKey = DEVNET ? devnetBtcOracleKey : localBtcOracleKey;
-const solOracleKey = new anchor.web3.PublicKey(
-  "J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix"
-);
 
 const provider = anchor.Provider.local();
 anchor.setProvider(provider);
@@ -53,66 +37,62 @@ const controller = anchor.workspace.Controller;
 const depository = anchor.workspace.Depository;
 const oracle = anchor.workspace.Oracle;
 
-// controller keys
-const controlStateKey = findAddr([Buffer.from("STATE")], controllerKey);
-const uxdMintKey = findAddr([Buffer.from("STABLECOIN")], controllerKey);
-
-const btcDepositoryKey = new anchor.web3.PublicKey(BTC_DEPOSITORY);
-const solDepositoryKey = new anchor.web3.PublicKey(SOL_DEPOSITORY);
-
-// Was using this, should reuse this and derive the sol and btc depository from their mint with a single depository
-// XXX
-    // // keys for controller.new
-    // let controlStateKey = findAddr([Buffer.from("STATE")], controller.programId);
-    // let uxdMintKey = findAddr([Buffer.from("STABLECOIN")], controller.programId);
-
-    // // keys for depository.new
-    // let depositStateKey = findAddr([Buffer.from("STATE")], depository.programId);
-    // let redeemableMintKey = findAddr([Buffer.from("REDEEMABLE")], depository.programId);
-    // let depositAccountKey = findAddr([Buffer.from("DEPOSIT")], depository.programId);
-
-    // // keys for controller.registerDepository
-    // let depositRecordKey = findAddr([Buffer.from("RECORD"), depository.programId.toBuffer()], controller.programId);
-    // let coinPassthroughKey = findAddr([Buffer.from("PASSTHROUGH"), coinMintKey.toBuffer()], controller.programId);
-        // btcusd oracle
-    // let localOraclePriceAccountKey = findAddr([Buffer.from("BTCUSD")], oracle.programId);
-    // console.log(`
-    // * oracle (local) program key ${oracle.programId}
-    // * oracle (local) BTCUSD key : ${localOraclePriceAccountKey}
-    // `);
-
-// XXX im using the btc oracle for sol but it doesnt matter here im just testing
-const depositories = {};
-depositories[COIN_MINT] = mkDepository(
-  btcDepositoryKey,
-  btcMintKey,
-  btcOracleKey
+const btcOraclePriceAccountKey = findAddr(
+  [Buffer.from("BTCUSD")],
+  oracle.programId
 );
-depositories[spl.NATIVE_MINT.toString()] = mkDepository(
-  solDepositoryKey,
+const solOraclePriceAccountKey = findAddr(
+  [Buffer.from("SOLUSD")],
+  oracle.programId
+);
+
+// controller keys
+const controllerStateKey = findAddr(
+  [Buffer.from("STATE")],
+  controller.programId
+);
+const uxdMintKey = findAddr([Buffer.from("STABLECOIN")], controller.programId);
+
+const depositoryStates = {};
+
+depositoryStates[FAKE_BTC_MINT] = makeDepositoryState(
+  btcMintKey,
+  btcOraclePriceAccountKey
+);
+depositoryStates[spl.NATIVE_MINT.toString()] = makeDepositoryState(
   solMintKey,
-  solOracleKey
+  solOraclePriceAccountKey
 );
 
 // internal function to conveniently init depository key objects
 // record and passthrough are controller keys but they depend on the depository
-function mkDepository(depositoryKey, mintKey, oracleKey) {
+function makeDepositoryState(mint, oraclePriceAccountKey) {
   return {
-    key: depositoryKey,
-    program: new anchor.Program(depositoryIdl, depositoryKey),
-    stateKey: findAddr([Buffer.from("STATE")], depositoryKey),
-    coinMintKey: mintKey,
-    redeemableMintKey: findAddr([Buffer.from("REDEEMABLE")], depositoryKey),
-    depositAccountKey: findAddr([Buffer.from("DEPOSIT")], depositoryKey),
+    // XXX THIS IS useless now that we use only one program, and several states
+    // TODO remove and also in the depository program. It's One program Mult states, derived from the mint
+    key: depository.programId,
+    stateKey: findAddr(
+      [Buffer.from("STATE"), mint.toBuffer()],
+      depository.programId
+    ),
+    coinMintKey: mint,
+    redeemableMintKey: findAddr(
+      [Buffer.from("REDEEMABLE"), mint.toBuffer()],
+      depository.programId
+    ),
+    depositAccountKey: findAddr(
+      [Buffer.from("DEPOSIT"), mint.toBuffer()],
+      depository.programId
+    ),
     recordKey: findAddr(
-      [Buffer.from("RECORD"), depositoryKey.toBuffer()],
-      controllerKey
+      [Buffer.from("RECORD"), depository.programId.toBuffer()],
+      controller.programId
     ),
     coinPassthroughKey: findAddr(
-      [Buffer.from("PASSTHROUGH"), mintKey.toBuffer()],
-      controllerKey
+      [Buffer.from("PASSTHROUGH"), mint.toBuffer()],
+      controller.programId
     ),
-    oracleKey: oracleKey,
+    oraclePriceAccountKey: oraclePriceAccountKey,
   };
 }
 
@@ -170,23 +150,45 @@ async function main() {
 
   console.log("payer:", provider.wallet.publicKey.toString());
   console.log("uxd mint:", uxdMintKey.toString());
-  console.log("controller id:", controllerKey.toString());
-  console.log("controller state:", controlStateKey.toString());
-  console.log("btc depository id:", depositories[COIN_MINT].key.toString());
+  console.log("controller id:", controller.programId.toString());
+  console.log("controller state:", controllerStateKey.toString());
+  console.log("depository id", depository.programId.toString());
+  // BTC depository PDAs. One depository program managing several states clusters derived from a mint
   console.log(
-    "sol depository id:",
-    depositories[spl.NATIVE_MINT.toString()].key.toString()
+    " * BTC stateKey :",
+    depositoryStates[FAKE_BTC_MINT].stateKey.toString()
+  );
+  console.log(
+    " * BTC coinMintKey :",
+    depositoryStates[FAKE_BTC_MINT].coinMintKey.toString()
+  );
+  console.log(
+    " * BTC depositAccountKey :",
+    depositoryStates[FAKE_BTC_MINT].depositAccountKey.toString()
+  );
+  // SOL depository PDAs.
+  console.log(
+    " * SOL stateKey :",
+    depositoryStates[spl.NATIVE_MINT].stateKey.toString()
+  );
+  console.log(
+    " * SOL coinMintKey :",
+    depositoryStates[spl.NATIVE_MINT].coinMintKey.toString()
+  );
+  console.log(
+    " * SOL depositAccountKey :",
+    depositoryStates[spl.NATIVE_MINT].depositAccountKey.toString()
   );
   console.log("\n");
 
   // set up the controller
-  if (await provider.connection.getAccountInfo(controlStateKey)) {
+  if (await provider.connection.getAccountInfo(controllerStateKey)) {
     console.log("controller already initialized...");
   } else {
     await controller.rpc.new({
       accounts: {
         authority: provider.wallet.publicKey,
-        state: controlStateKey,
+        state: controllerStateKey,
         uxdMint: uxdMintKey,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
         systemProgram: anchor.web3.SystemProgram.programId,
@@ -199,18 +201,18 @@ async function main() {
     console.log("controller initialized!");
   }
 
-  // and set up the depositories
-  for (let depository of Object.values(depositories)) {
-    if (await provider.connection.getAccountInfo(depository.stateKey)) {
+  // and set up the depositories states
+  for (let depositoryState of Object.values(depositoryStates)) {
+    if (await provider.connection.getAccountInfo(depositoryState.stateKey)) {
       console.log("depository already initialized...");
     } else {
-      await depository.program.rpc.new(controllerKey, {
+      await depository.rpc.new(controller.programId, {
         accounts: {
           payer: provider.wallet.publicKey,
-          state: depository.stateKey,
-          redeemableMint: depository.redeemableMintKey,
-          programCoin: depository.depositAccountKey,
-          coinMint: depository.coinMintKey,
+          state: depositoryState.stateKey,
+          redeemableMint: depositoryState.redeemableMintKey,
+          programCoin: depositoryState.depositAccountKey,
+          coinMint: depositoryState.coinMintKey,
           rent: anchor.web3.SYSVAR_RENT_PUBKEY,
           systemProgram: anchor.web3.SystemProgram.programId,
           tokenProgram: tokenProgramKey,
@@ -223,20 +225,20 @@ async function main() {
     }
 
     // aaand register with the controller
-    if (await provider.connection.getAccountInfo(depository.recordKey)) {
+    if (await provider.connection.getAccountInfo(depositoryState.recordKey)) {
       console.log("depository already registered...");
     } else {
       await controller.rpc.registerDepository(
-        depository.key,
-        depository.oracleKey,
+        depositoryState.key,
+        depositoryState.oraclePriceAccountKey,
         {
           accounts: {
             authority: provider.wallet.publicKey,
-            state: controlStateKey,
-            depositoryRecord: depository.recordKey,
-            depositoryState: depository.stateKey,
-            coinMint: depository.coinMintKey,
-            coinPassthrough: depository.coinPassthroughKey,
+            state: controllerStateKey,
+            depositoryRecord: depositoryState.recordKey,
+            depositoryState: depositoryState.stateKey,
+            coinMint: depositoryState.coinMintKey,
+            coinPassthrough: depositoryState.coinPassthroughKey,
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
             systemProgram: anchor.web3.SystemProgram.programId,
             tokenProgram: tokenProgramKey,
@@ -251,22 +253,24 @@ async function main() {
   }
 
   if (!DEPLOY_ONLY) {
-    let depository = depositories[COIN_MINT];
+    let depositoryState = depositoryStates[FAKE_BTC_MINT];
 
     let userCoinKey = findAssocTokenAddr(
       provider.wallet.publicKey,
-      depository.coinMintKey
+      depositoryState.coinMintKey
     );
     let userRedeemableKey = findAssocTokenAddr(
       provider.wallet.publicKey,
-      depository.redeemableMintKey
+      depositoryState.redeemableMintKey
     );
 
     async function printBalances() {
       let userCoin = await getTokenBalance(userCoinKey);
-      let depositCoin = await getTokenBalance(depository.depositAccountKey);
+      let depositCoin = await getTokenBalance(
+        depositoryState.depositAccountKey
+      );
       let coinPassthrough = await getTokenBalance(
-        depository.coinPassthroughKey
+        depositoryState.coinPassthroughKey
       );
       let userRedeemable = await getTokenBalance(userRedeemableKey);
       let userUxd = await getTokenBalance(userUxdKey);
@@ -290,21 +294,21 @@ async function main() {
       : [
           createAssocIxn(
             provider.wallet.publicKey,
-            depository.redeemableMintKey
+            depositoryState.redeemableMintKey
           ),
         ];
 
     console.log("BEFORE DEPOSIT");
     await printBalances();
 
-    let dsig = await depository.program.rpc.deposit(
+    let dsig = await depository.rpc.deposit(
       new anchor.BN(1 * 10 ** BTC_DECIMAL),
       {
         accounts: {
           user: provider.wallet.publicKey,
-          state: depository.stateKey,
-          programCoin: depository.depositAccountKey,
-          redeemableMint: depository.redeemableMintKey,
+          state: depositoryState.stateKey,
+          programCoin: depositoryState.depositAccountKey,
+          redeemableMint: depositoryState.redeemableMintKey,
           userCoin: userCoinKey,
           userRedeemable: userRedeemableKey,
           systemProgram: anchor.web3.SystemProgram.programId,
@@ -329,14 +333,14 @@ async function main() {
       {
         accounts: {
           user: provider.wallet.publicKey,
-          state: controlStateKey,
-          depository: depository.key,
-          depositoryRecord: depository.recordKey,
-          depositoryState: depository.stateKey,
-          depositoryCoin: depository.depositAccountKey,
-          coinMint: depository.coinMintKey,
-          coinPassthrough: depository.coinPassthroughKey,
-          redeemableMint: depository.redeemableMintKey,
+          state: controllerStateKey,
+          depository: depositoryState.key,
+          depositoryRecord: depositoryState.recordKey,
+          depositoryState: depositoryState.stateKey,
+          depositoryCoin: depositoryState.depositAccountKey,
+          coinMint: depositoryState.coinMintKey,
+          coinPassthrough: depositoryState.coinPassthroughKey,
+          redeemableMint: depositoryState.redeemableMintKey,
           userRedeemable: userRedeemableKey,
           userUxd: userUxdKey,
           uxdMint: uxdMintKey,
@@ -344,7 +348,7 @@ async function main() {
           systemProgram: anchor.web3.SystemProgram.programId,
           tokenProgram: tokenProgramKey,
           // XXX FIXME temp
-          oracle: depository.oracleKey,
+          oracle: depositoryState.oraclePriceAccountKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
@@ -360,14 +364,14 @@ async function main() {
       {
         accounts: {
           user: provider.wallet.publicKey,
-          state: controlStateKey,
-          depository: depository.key,
-          depositoryRecord: depository.recordKey,
-          depositoryState: depository.stateKey,
-          depositoryCoin: depository.depositAccountKey,
-          coinMint: depository.coinMintKey,
-          coinPassthrough: depository.coinPassthroughKey,
-          redeemableMint: depository.redeemableMintKey,
+          state: controllerStateKey,
+          depository: depositoryState.key,
+          depositoryRecord: depositoryState.recordKey,
+          depositoryState: depositoryState.stateKey,
+          depositoryCoin: depositoryState.depositAccountKey,
+          coinMint: depositoryState.coinMintKey,
+          coinPassthrough: depositoryState.coinPassthroughKey,
+          redeemableMint: depositoryState.redeemableMintKey,
           userRedeemable: userRedeemableKey,
           userUxd: userUxdKey,
           uxdMint: uxdMintKey,
@@ -375,7 +379,7 @@ async function main() {
           systemProgram: anchor.web3.SystemProgram.programId,
           tokenProgram: tokenProgramKey,
           // XXX FIXME temp
-          oracle: depository.oracleKey,
+          oracle: depositoryState.oraclePriceAccountKey,
         },
         signers: [provider.wallet.payer],
         options: TXN_OPTS,
@@ -385,12 +389,12 @@ async function main() {
     console.log("AFTER REDEEM", rsig);
     await printBalances();
 
-    let wsig = await depository.program.rpc.withdraw(null, {
+    let wsig = await depository.rpc.withdraw(null, {
       accounts: {
         user: provider.wallet.publicKey,
-        state: depository.stateKey,
-        programCoin: depository.depositAccountKey,
-        redeemableMint: depository.redeemableMintKey,
+        state: depositoryState.stateKey,
+        programCoin: depositoryState.depositAccountKey,
+        redeemableMint: depositoryState.redeemableMintKey,
         userCoin: userCoinKey,
         userRedeemable: userRedeemableKey,
         systemProgram: anchor.web3.SystemProgram.programId,

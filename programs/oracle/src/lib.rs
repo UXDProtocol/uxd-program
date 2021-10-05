@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use pyth_client::Price;
 
-const SEED: &[u8] = b"BTCUSD";
+// const SEED: &[u8] = b"BTCUSD";
 
 solana_program::declare_id!("UXDGB2YeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP");
 
@@ -10,7 +10,7 @@ solana_program::declare_id!("UXDGB2YeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP");
 pub mod oracle {
     use super::*;
 
-    pub fn init(_ctx: Context<Init>) -> ProgramResult {
+    pub fn init(_ctx: Context<Init>, _pair_seed: [u8; 6]) -> ProgramResult {
         Ok(())
     }
 
@@ -34,12 +34,13 @@ pub mod oracle {
 }
 
 #[derive(Accounts)]
+#[instruction(pair_seed: [u8; 6])]
 pub struct Init<'info> {
     #[account(mut)]
     pub wallet: Signer<'info>,
     #[account(
         init,
-        seeds = [SEED],
+        seeds = [pair_seed.as_ref()],
         bump,
         space = 3312,
         payer = wallet,

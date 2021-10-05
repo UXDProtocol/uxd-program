@@ -360,7 +360,7 @@ pub struct RegisterDepository<'info> {
     )]
     pub depository_record: Box<Account<'info, DepositoryRecord>>,
     #[account(
-        constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED], &depository_key).0,
+        constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED, depository_state.coin_mint_key.as_ref()], &depository_key).0,
     )]
     pub depository_state: Box<Account<'info, depository::State>>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
@@ -409,7 +409,7 @@ pub struct MintUxd<'info> {
     #[account(seeds = [RECORD_SEED, depository.key.as_ref()], bump)]
     pub depository_record: Box<Account<'info, DepositoryRecord>>,
     #[account(
-        constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED], depository.key).0,
+        constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED, depository_state.coin_mint_key.as_ref()], depository.key).0,
     )]
     pub depository_state: Box<Account<'info, depository::State>>,
     #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
@@ -455,7 +455,7 @@ pub struct RedeemUxd<'info> {
     #[account(seeds = [RECORD_SEED, depository.key.as_ref()], bump)]
     pub depository_record: Box<Account<'info, DepositoryRecord>>,
     #[account(
-        constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED], depository.key).0,
+        constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED, depository_state.coin_mint_key.as_ref()], depository.key).0,
     )]
     pub depository_state: Box<Account<'info, depository::State>>,
     #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
