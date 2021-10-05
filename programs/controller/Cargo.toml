@@ -17,8 +17,8 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.14.0"
-anchor-spl = "0.14.0"
+anchor-lang = "0.16.2"
+anchor-spl = "0.16.2"
 solana-program = "1.7.11"
 spl-token = "3.1.1"
 pyth-client = "0.2.2"

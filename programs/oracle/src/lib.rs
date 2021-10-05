@@ -1,16 +1,16 @@
 use anchor_lang::prelude::*;
-use anchor_lang::Key;
-use solana_program::{ system_program as system };
-use pyth_client::{ Price };
+use pyth_client::Price;
 
-const SEED: &[u8] = b"BTCUSD";
+// const SEED: &[u8] = b"BTCUSD";
+
+solana_program::declare_id!("UXDGB2YeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP");
 
 #[program]
 #[deny(unused_must_use)]
 pub mod oracle {
     use super::*;
 
-    pub fn init(ctx: Context<Init>) -> ProgramResult {
+    pub fn init(_ctx: Context<Init>, _pair_seed: [u8; 6]) -> ProgramResult {
         Ok(())
     }
 
@@ -31,33 +31,33 @@ pub mod oracle {
 
         Ok(())
     }
-
 }
 
 #[derive(Accounts)]
+#[instruction(pair_seed: [u8; 6])]
 pub struct Init<'info> {
-    #[account(signer, mut)]
-    pub wallet: AccountInfo<'info>,
+    #[account(mut)]
+    pub wallet: Signer<'info>,
     #[account(
         init,
-        seeds = [SEED],
+        seeds = [pair_seed.as_ref()],
         bump,
         space = 3312,
         payer = wallet,
-        owner = program_id,
+        owner = *program_id,
     )]
-    pub buffer: AccountInfo<'info>,
+    pub buffer: UncheckedAccount<'info>,
     pub rent: Sysvar<'info, Rent>,
-    pub system_program: AccountInfo<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct Get<'info> {
-    pub oracle: AccountInfo<'info>,
+    pub oracle: UncheckedAccount<'info>,
 }
 
 #[derive(Accounts)]
 pub struct Put<'info> {
     #[account(mut)]
-    pub buffer: AccountInfo<'info>,
+    pub buffer: UncheckedAccount<'info>,
 }

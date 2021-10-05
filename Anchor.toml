@@ -1,3 +1,19 @@
 [provider]
 cluster = "localnet"
-wallet = "/home/hana/.config/solana/id.json"
+wallet = "~/.config/solana/id.json"
+
+[programs.localnet]
+controller = "UXDConWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd"
+depository = "UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7"
+oracle = "UXDGB2YeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP"
+
+[programs.devnet]
+oracle = "UXDGB2YeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[scripts]
+test = "./scripts/test.sh"
+
+# test = "./scripts/test.sh -u devnet" # then run with `anchor test --provider.cluster devnet`
