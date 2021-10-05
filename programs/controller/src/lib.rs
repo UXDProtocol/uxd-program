@@ -171,16 +171,15 @@ pub mod controller {
 
         // burn user redeemables and withdraw the coin to our passthrough account
         //let depo_state: ProgramAccount<depository::State> = ctx.accounts.depository_state.from();
-        let withdraw_accounts = depository::Withdraw {
-            user: ctx.accounts.user.clone(),
-            state: ctx.accounts.depository_state.clone(),
-            program_coin: ctx.accounts.depository_coin.clone(),
-            redeemable_mint: ctx.accounts.redeemable_mint.clone(),
-            user_coin: ctx.accounts.coin_passthrough.clone(),
-            user_redeemable: ctx.accounts.user_redeemable.clone(),
-            system_program: ctx.accounts.system_program.clone(),
-            token_program: ctx.accounts.token_program.clone(),
-            //XXX program: ctx.accounts.depository.clone(),
+        let withdraw_accounts = depository::cpi::accounts::Withdraw {
+            user: ctx.accounts.user.to_account_info(),
+            state: ctx.accounts.depository_state.to_account_info(),
+            program_coin: ctx.accounts.depository_coin.to_account_info(),
+            redeemable_mint: ctx.accounts.redeemable_mint.to_account_info(),
+            user_coin: ctx.accounts.coin_passthrough.to_account_info(),
+            user_redeemable: ctx.accounts.user_redeemable.to_account_info(),
+            system_program: ctx.accounts.system_program.to_account_info(),
+            token_program: ctx.accounts.token_program.to_account_info(),
         };
 
         let withdraw_ctx = CpiContext::new(ctx.accounts.depository.clone(), withdraw_accounts);
@@ -271,16 +270,15 @@ pub mod controller {
             .unwrap();
 
         // return mango money back to depository
-        let deposit_accounts = depository::Deposit {
+        let deposit_accounts = depository::cpi::accounts::Deposit {
             user: ctx.accounts.depository_record.to_account_info(),
-            state: ctx.accounts.depository_state.clone(),
-            program_coin: ctx.accounts.depository_coin.clone(),
-            redeemable_mint: ctx.accounts.redeemable_mint.clone(),
-            user_coin: ctx.accounts.coin_passthrough.clone(),
-            user_redeemable: ctx.accounts.user_redeemable.clone(),
-            system_program: ctx.accounts.system_program.clone(),
-            token_program: ctx.accounts.token_program.clone(),
-            //XXX program: ctx.accounts.depository.clone(),
+            state: ctx.accounts.depository_state.to_account_info(),
+            program_coin: ctx.accounts.depository_coin.to_account_info(),
+            redeemable_mint: ctx.accounts.redeemable_mint.to_account_info(),
+            user_coin: ctx.accounts.coin_passthrough.to_account_info(),
+            user_redeemable: ctx.accounts.user_redeemable.to_account_info(),
+            system_program: ctx.accounts.system_program.to_account_info(),
+            token_program: ctx.accounts.token_program.to_account_info(),
         };
 
         let record_seed: &[&[&[u8]]] = &[&[
