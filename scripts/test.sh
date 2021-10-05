@@ -12,23 +12,12 @@ export RUST_LOG=solana_runtime::system_instruction_processor=trace,solana_runtim
 set -euo pipefail
 
 
-# Cluster parameter. This should be inferred from the current ANCHOR_ENV (TODO)
+# Cluster parameter. ANCHOR_PROVIDER_URL is defined when running anchor
 ###############################################################################
 
-usage() { echo "USAGE: deploy.sh [-u <cluster>] [-v]"; exit 1; }
-
-NETWORK=
-while getopts ':u:v' opt; do
-    case "${opt}" in
-        u) NETWORK="$OPTARG" ;;
-        v) set -x ;;
-        *) usage
-    esac
-done
-
-if [ -n "$NETWORK" ]; then
-    ANCHOR_NET="--provider.cluster $NETWORK"
-    SOLANA_NET="-u $NETWORK"
+if [ -n "$ANCHOR_PROVIDER_URL" ]; then
+    ANCHOR_NET="--provider.cluster $ANCHOR_PROVIDER_URL"
+    SOLANA_NET="-u $ANCHOR_PROVIDER_URL"
 else
     ANCHOR_NET=
     SOLANA_NET=
@@ -51,7 +40,9 @@ spl-token mint $SOLANA_NET "$FAKE_BTC_MINT" 100
 # Export for JS to access
 ###############################################################################
 export FAKE_BTC_MINT=$FAKE_BTC_MINT
-export NETWORK=$NETWORK
+export NETWORK=$ANCHOR_PROVIDER_URL
+
+echo $ANCHOR_PROVIDER_URL
 
 
 echo "###############################################################################"
@@ -70,8 +61,9 @@ echo "##########################################################################
 ###############################################################################
 node app/index.js -v
 
+## Here is the new version that should replace this script
 
-
+npx ts-mocha -p ./tsconfig.json -t 100000 tests/test_*.ts
 
 # stash
 ###############################################################################
