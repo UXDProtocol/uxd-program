@@ -170,7 +170,7 @@ pub mod controller {
             user_redeemable: ctx.accounts.user_redeemable.clone(),
             system_program: ctx.accounts.system_program.clone(),
             token_program: ctx.accounts.token_program.clone(),
-            program: ctx.accounts.depository.clone(),
+            //XXX program: ctx.accounts.depository.clone(),
         };
 
         let withdraw_ctx = CpiContext::new(ctx.accounts.depository.clone(), withdraw_accounts);
@@ -264,7 +264,7 @@ pub mod controller {
             user_redeemable: ctx.accounts.user_redeemable.clone(),
             system_program: ctx.accounts.system_program.clone(),
             token_program: ctx.accounts.token_program.clone(),
-            program: ctx.accounts.depository.clone(),
+            //XXX program: ctx.accounts.depository.clone(),
         };
 
         let record_seed: &[&[&[u8]]] = &[&[
@@ -326,8 +326,6 @@ pub struct New<'info> {
     pub system_program: AccountInfo<'info>,
     #[account(constraint = token_program.key() == spl_token::ID)]
     pub token_program: AccountInfo<'info>,
-    #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -367,8 +365,6 @@ pub struct RegisterDepository<'info> {
     #[account(constraint = token_program.key() == spl_token::ID)]
     pub token_program: AccountInfo<'info>,
     //pub mango_program: AccountInfo<'info>,
-    #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
 }
 
 // XXX oki this shit is complicated lets see what all is here...
@@ -429,8 +425,6 @@ pub struct MintUxd<'info> {
     #[account(constraint = token_program.key() == spl_token::ID)]
     pub token_program: AccountInfo<'info>,
     //pub mango_program: AccountInfo<'info>,
-    #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
     // XXX FIXME below here is temporary
     // oracle: dumb hack for devnet, pending mango integration
     #[account(constraint = oracle.key() == depository_record.oracle_key)]
@@ -482,8 +476,6 @@ pub struct RedeemUxd<'info> {
     #[account(constraint = token_program.key() == spl_token::ID)]
     pub token_program: AccountInfo<'info>,
     //pub mango_program: AccountInfo<'info>,
-    #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
     // XXX FIXME below here is temporary
     // oracle: dumb hack for devnet, pending mango integration
     #[account(constraint = oracle.key() == depository_record.oracle_key)]

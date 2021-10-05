@@ -166,9 +166,6 @@ pub struct New<'info> {
     // spl token program
     #[account(constraint = token_program.key() == spl_token::ID)]
     pub token_program: AccountInfo<'info>,
-    // this program
-    #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -204,9 +201,6 @@ pub struct Deposit<'info> {
     // spl token program
     #[account(constraint = token_program.key() == spl_token::ID)]
     pub token_program: AccountInfo<'info>,
-    // this program
-    #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -250,9 +244,6 @@ pub struct Withdraw<'info> {
     // spl token program
     #[account(constraint = token_program.key() == spl_token::ID)]
     pub token_program: AccountInfo<'info>,
-    // this program
-    #[account(constraint = program.key() == *program_id)]
-    pub program: AccountInfo<'info>,
 }
 
 #[account]
