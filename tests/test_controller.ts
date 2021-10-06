@@ -31,12 +31,12 @@ describe("Controller Unit Tests", () => {
 
     it("Testing A equals B", async () => {
         // GIVEN
-        let a = 1;
-        let b = 1;
-        let expectedResult = true;
+        const a = 1;
+        const b = 1;
+        const expectedResult = true;
 
         // WHEN
-        let result = (a == b);
+        const result = (a == b);
 
         // THEN
         assert(result == expectedResult, "A and B should be equal");

@@ -21,10 +21,10 @@ export const localBTCOraclePriceAccountKey =
 anchor.utils.publicKey.findProgramAddressSync([btcUsdSeed], oracle.programId)[0];
 
 export async function create_localnet_oracle_mirrored_from_testnet(
-    seed_pair,
-    testnetOraclePriceAccountKey,
-    localOraclePriceAccountKey,
-    wallet
+    seed_pair: String,
+    testnetOraclePriceAccountKey: anchor.web3.PublicKey,
+    localOraclePriceAccountKey: anchor.web3.PublicKey,
+    wallet: anchor.Provider.Wallet
 ) {
   console.log(
     `testnet ${seed_pair} price key:`,
@@ -44,6 +44,8 @@ export async function create_localnet_oracle_mirrored_from_testnet(
   console.log(testnet_oracle_account);
 
   console.log("init");
+  // Should add a get or init if already exists
+  // Also typescript error to fix
   await oracle.rpc
     .init(Buffer.from(seed_pair), {
       accounts: {

@@ -107,7 +107,7 @@ describe("Integration test | Setup && Mint && Redeem", () => {
             "BTCUSD",
             oracle_utils.testnetBTCOraclePriceAccountKey,
             oracle_utils.localBTCOraclePriceAccountKey,
-            anchor.Wallet
+            provider.wallet
         );
 
         // SOL
@@ -115,7 +115,7 @@ describe("Integration test | Setup && Mint && Redeem", () => {
             "SOLUSD",
             oracle_utils.testnetSOLOraclePriceAccountKey,
             oracle_utils.localSOLOraclePriceAccountKey,
-            anchor.Wallet
+            provider.wallet
         );
     });
 
