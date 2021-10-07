@@ -190,10 +190,6 @@ describe("UXD full flow (WIP)", () => {
     // Add some asserts ...
   });
 
-  /// XXX I assumed there was two registration but in fact no. But then I wonder why everything works?
-  /// XXX something is currently working but not supposed too probably... Investigate
-  ///
-  /// Is that's because the coin passthrough at not used yet that we didn't catch it?
   it("Register BTC depository with Controller", async () => {
     await controllerUXD.program.rpc.registerDepository(
       Depository.ProgramId,
@@ -202,7 +198,7 @@ describe("UXD full flow (WIP)", () => {
         accounts: {
           authority: wallet.publicKey,
           state: controllerUXD.statePda,
-          depositoryRecord: controllerUXD.recordPda,
+          depositoryRecord: controllerUXD.depositoryRecordPda(depositoryBTC),
           depositoryState: depositoryBTC.statePda,
           coinMint: depositoryBTC.mint.publicKey,
           coinPassthrough: controllerUXD.coinPassthroughPda(depositoryBTC.mint),
@@ -217,29 +213,28 @@ describe("UXD full flow (WIP)", () => {
     // Add some asserts ...
   });
 
-  // /// XXX isssue here, cause using the same 
-  // it("Register SOL depository with Controller", async () => {
-  //   await controllerUXD.program.rpc.registerDepository(
-  //     Depository.ProgramId,
-  //     depositorySOL.oraclePriceAccount,
-  //     {
-  //       accounts: {
-  //         authority: wallet.publicKey,
-  //         state: controllerUXD.statePda,
-  //         depositoryRecord: controllerUXD.recordPda,
-  //         depositoryState: depositorySOL.statePda,
-  //         coinMint: depositorySOL.mint.publicKey,
-  //         coinPassthrough: controllerUXD.coinPassthroughPda(depositorySOL.mint),
-  //         rent: SYSVAR_RENT_PUBKEY,
-  //         systemProgram: SystemProgram.programId,
-  //         tokenProgram: TOKEN_PROGRAM_ID,
-  //       },
-  //       signers: [wallet.payer],
-  //       options: TXN_OPTS,
-  //     }
-  //   );
-  //   // Add some asserts ...
-  // });
+  it("Register SOL depository with Controller", async () => {
+    await controllerUXD.program.rpc.registerDepository(
+      Depository.ProgramId,
+      depositorySOL.oraclePriceAccount,
+      {
+        accounts: {
+          authority: wallet.publicKey,
+          state: controllerUXD.statePda,
+          depositoryRecord: controllerUXD.depositoryRecordPda(depositorySOL),
+          depositoryState: depositorySOL.statePda,
+          coinMint: depositorySOL.mint.publicKey,
+          coinPassthrough: controllerUXD.coinPassthroughPda(depositorySOL.mint),
+          rent: SYSVAR_RENT_PUBKEY,
+          systemProgram: SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        },
+        signers: [wallet.payer],
+        options: TXN_OPTS,
+      }
+    );
+    // Add some asserts ...
+  });
 
   // Keep going from index.js line 280
 

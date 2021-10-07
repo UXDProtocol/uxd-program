@@ -20,7 +20,6 @@ export class Controller {
   // Pda
   public statePda: PublicKey;
   public uxdMintPda: PublicKey;
-  public recordPda: PublicKey;
 
   public constructor() {
     this.program = anchor.workspace.Controller;
@@ -28,13 +27,14 @@ export class Controller {
     this.statePda = this.findControllerPda(ControllerPDASeed.State);
     this.uxdMintPda = this.findControllerPda(ControllerPDASeed.UXD);
 
-    // XXX exposes an issue, we should change that derivation using the depository, cause there is only one depository
-    // Hana let me know what you think of if I got it right
-    this.recordPda = findAddr(
-      [Buffer.from(ControllerPDASeed.Record), Depository.ProgramId.toBuffer()],
-      Controller.ProgramId
-    );// and use this instead : this.findControllerPda(ControllerPDASeed.Record)
   };
+
+  public depositoryRecordPda(depository: Depository): PublicKey {
+    return findAddr(
+      [Buffer.from(ControllerPDASeed.Record), Depository.ProgramId.toBuffer(), depository.mint.publicKey.toBuffer()],
+      Controller.ProgramId
+    );
+  }
 
   // This pda is function of the depository mint
   public coinPassthroughPda(depositoryMint: Token): PublicKey {
