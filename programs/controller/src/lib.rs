@@ -155,8 +155,11 @@ pub mod controller {
         // set our depo record up. this later acts as proof we trust a given depository
         // we also use this to derive the depository state key, from which we get mint and account keys
         // creating a hierarchy of trust rooted at the authority key that instantiated the controller
-        ctx.accounts.depository_record.bump =
-            Pubkey::find_program_address(&[RECORD_SEED, depository_key.as_ref()], ctx.program_id).1;
+        ctx.accounts.depository_record.bump = Pubkey::find_program_address(&[
+            RECORD_SEED,
+            depository_key.as_ref(),
+            coin_mint_key.as_ref(),
+        ], ctx.program_id).1;
         ctx.accounts.depository_record.depository_key = depository_key;
         ctx.accounts.depository_record.oracle_key = oracle_key;
 
@@ -281,9 +284,11 @@ pub mod controller {
             token_program: ctx.accounts.token_program.to_account_info(),
         };
 
+        let coin_mint_key = ctx.accounts.coin_mint.key();
         let record_seed: &[&[&[u8]]] = &[&[
             RECORD_SEED,
             ctx.accounts.depository_record.depository_key.as_ref(),
+            coin_mint_key.as_ref(),
             &[ctx.accounts.depository_record.bump],
         ]];
         let deposit_ctx = CpiContext::new_with_signer(
@@ -352,7 +357,7 @@ pub struct RegisterDepository<'info> {
     pub state: Box<Account<'info, State>>,
     #[account(
         init,
-        seeds = [RECORD_SEED, depository_key.as_ref()],
+        seeds = [RECORD_SEED, depository_key.as_ref(), coin_mint.key().as_ref()],
         bump,
         payer = authority,
     )]
@@ -404,7 +409,7 @@ pub struct MintUxd<'info> {
     pub state: Box<Account<'info, State>>,
     #[account(constraint = *depository.key == depository_record.depository_key)]
     pub depository: AccountInfo<'info>,
-    #[account(seeds = [RECORD_SEED, depository.key.as_ref()], bump)]
+    #[account(seeds = [RECORD_SEED, depository.key.as_ref(), coin_mint.key().as_ref()], bump)]
     pub depository_record: Box<Account<'info, DepositoryRecord>>,
     #[account(
         constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED, depository_state.coin_mint_key.as_ref()], depository.key).0,
@@ -450,7 +455,7 @@ pub struct RedeemUxd<'info> {
     pub state: Box<Account<'info, State>>,
     #[account(constraint = *depository.key == depository_record.depository_key)]
     pub depository: AccountInfo<'info>,
-    #[account(seeds = [RECORD_SEED, depository.key.as_ref()], bump)]
+    #[account(seeds = [RECORD_SEED, depository.key.as_ref(), coin_mint.key().as_ref()], bump)]
     pub depository_record: Box<Account<'info, DepositoryRecord>>,
     #[account(
         constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED, depository_state.coin_mint_key.as_ref()], depository.key).0,

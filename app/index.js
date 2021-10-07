@@ -3,6 +3,9 @@
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
+const FAKE_BTC_MINT = process.argv[2];
+if(!FAKE_BTC_MINT) throw "need fake btc mint";
+
 const BTC_DECIMAL = 6;
 const SOL_DECIMAL = 9;
 const UXD_DECIMAL = 6;
@@ -77,7 +80,7 @@ function makeDepositoryState(mint, oraclePriceAccountKey) {
       depository.programId
     ),
     recordKey: findAddr(
-      [Buffer.from("RECORD"), depository.programId.toBuffer()],
+      [Buffer.from("RECORD"), depository.programId.toBuffer(), mint.toBuffer()],
       controller.programId
     ),
     coinPassthroughKey: findAddr(

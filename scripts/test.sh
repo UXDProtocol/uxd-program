@@ -59,7 +59,7 @@ echo "##########################################################################
 
 # Run tests
 ###############################################################################
-node app/index.js -v
+node app/index.js "$FAKE_BTC_MINT" -v
 
 ## Here is the new version that should replace this script
 
