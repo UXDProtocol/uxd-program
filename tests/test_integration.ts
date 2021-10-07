@@ -2,32 +2,39 @@ import { TOKEN_PROGRAM_ID, Token, AccountInfo } from "@solana/spl-token";
 import assert from "assert";
 import * as anchor from "@project-serum/anchor";
 import {
-    PublicKey,
-    Keypair,
-    SystemProgram,
-    SYSVAR_RENT_PUBKEY,
-    TransactionInstruction,
+  PublicKey,
+  Keypair,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+  TransactionInstruction,
 } from "@solana/web3.js";
 
-import * as oracle_utils from "./oracle_utils";
+import {
+  BTC_USD,
+  create_localnet_oracle_mirrored_from_testnet,
+  localBTCOraclePriceAccountKey,
+  localSOLOraclePriceAccountKey,
+  oracle,
+  SOL_USD,
+  testnetBTCOraclePriceAccountKey,
+  testnetSOLOraclePriceAccountKey,
+} from "./oracle_utils";
+import { Controller } from "./controller_utils";
+import { connection, wallet } from "./utils";
+import { Depository } from "./depository_utils";
 
 const TXN_COMMIT = "processed";
-const TXN_OPTS = { commitment: TXN_COMMIT, preflightCommitment: TXN_COMMIT, skipPreflight: false };
-
-// THE WALLET - Will follow the local env, you can test with any cluster
-const provider = anchor.Provider.env();
-anchor.setProvider(provider);
+const TXN_OPTS = {
+  commitment: TXN_COMMIT,
+  preflightCommitment: TXN_COMMIT,
+  skipPreflight: false,
+};
 
 // Constants
 const FAKE_BTC_MINT = process.env.FAKE_BTC_MINT;
 const BTC_DECIMAL = 6;
 const SOL_DECIMAL = 9;
 const UXD_DECIMAL = 6;
-
-// Programs
-const depository = anchor.workspace.Depository;
-const controller = anchor.workspace.Controller;
-const oracle = anchor.workspace.Oracle;
 
 // Keypairs
 let payer: Keypair;
@@ -37,108 +44,203 @@ let mintAuthority: Keypair;
 let mintBTC: Token;
 let mintSOL: Token;
 
+// Depositories - They represent the business object that tie a mint to a depository
+let depositoryBTC: Depository;
+let depositorySOL: Depository;
+// Controller
+let controllerUXD: Controller;
+
 // Accounts
 let userBTCTokenAccount: PublicKey;
 let userSOLTokenAccount: PublicKey;
 let userUXDTokenAccount: PublicKey;
-    
+
 const cleanState = async () => {
-    payer = anchor.web3.Keypair.generate();
-    mintAuthority = anchor.web3.Keypair.generate();
+  payer = anchor.web3.Keypair.generate();
+  mintAuthority = anchor.web3.Keypair.generate();
 
-    // Airdropping tokens to the payer.
-    await provider.connection.confirmTransaction(
-        await provider.connection.requestAirdrop(payer.publicKey, 10_000_000_000),
-        "confirmed"
-    );
+  // Airdropping tokens to the payer.
+  await connection.confirmTransaction(
+    await connection.requestAirdrop(payer.publicKey, 10_000_000_000),
+    "confirmed"
+  );
 
-    // Setup BTC mint
-    mintBTC = await Token.createMint(
-        provider.connection,
-        payer,
-        mintAuthority.publicKey,
-        null,
-        BTC_DECIMAL,
-        TOKEN_PROGRAM_ID
-    );
-    // Setup SOL mint
-    mintSOL = await Token.createMint(
-        provider.connection,
-        payer,
-        mintAuthority.publicKey,
-        null,
-        SOL_DECIMAL,
-        TOKEN_PROGRAM_ID
-    );
+  // Setup BTC mint
+  mintBTC = await Token.createMint(
+    connection,
+    payer,
+    mintAuthority.publicKey,
+    null,
+    BTC_DECIMAL,
+    TOKEN_PROGRAM_ID
+  );
+  // Setup SOL mint
+  mintSOL = await Token.createMint(
+    connection,
+    payer,
+    mintAuthority.publicKey,
+    null,
+    SOL_DECIMAL,
+    TOKEN_PROGRAM_ID
+  );
 
-    // Following can be moved to specifics tests instead of applying to all - good for now
+  // Following can be moved to specifics tests instead of applying to all - good for now
 
-    // create token accounts
-    userBTCTokenAccount = await mintBTC.createAccount(provider.wallet.publicKey);
-    userSOLTokenAccount = await mintSOL.createAccount(provider.wallet.publicKey);
+  // create token accounts
+  userBTCTokenAccount = await mintBTC.createAccount(wallet.publicKey);
+  userSOLTokenAccount = await mintSOL.createAccount(wallet.publicKey);
 
-    // mint some tokens
-    await mintBTC.mintTo(
-        userBTCTokenAccount,
-        mintAuthority.publicKey,
-        [mintAuthority],
-        100
-    );
-    await mintSOL.mintTo(
-        userSOLTokenAccount,
-        mintAuthority.publicKey,
-        [mintAuthority],
-        100
-    );
+  // mint some tokens
+  await mintBTC.mintTo(
+    userBTCTokenAccount,
+    mintAuthority.publicKey,
+    [mintAuthority],
+    100
+  );
+  await mintSOL.mintTo(
+    userSOLTokenAccount,
+    mintAuthority.publicKey,
+    [mintAuthority],
+    100
+  );
 };
 
 // Setup Mint Redeem flow
 ///////////////////////////////////////////////////////////////////////////////
-describe("Integration test | Setup && Mint && Redeem", () => {
-    
-    it("Setup", async () => {
-        // tabula rasa
-        await cleanState();
+describe("UXD full flow (WIP)", () => {
+  it("Setup", async () => {
+    // tabula rasa
+    await cleanState();
+  });
+
+  it("Fetch testnet oracle data and deploy localnet oracle", async () => {
+    // BTC
+    await create_localnet_oracle_mirrored_from_testnet(
+      BTC_USD,
+      testnetBTCOraclePriceAccountKey,
+      localBTCOraclePriceAccountKey
+    );
+
+    // SOL
+    await create_localnet_oracle_mirrored_from_testnet(
+      SOL_USD,
+      testnetSOLOraclePriceAccountKey,
+      localSOLOraclePriceAccountKey
+    );
+  });
+
+  it("Setup BTC and SOL Collateral business objects ", async () => {
+    depositoryBTC = new Depository(mintBTC, localBTCOraclePriceAccountKey);
+
+    depositorySOL = new Depository(mintSOL, localSOLOraclePriceAccountKey);
+  });
+
+  it("Initializing controller", async () => {
+    controllerUXD = new Controller();
+
+    await controllerUXD.program.rpc.new({
+      accounts: {
+        authority: wallet.publicKey,
+        state: controllerUXD.statePda,
+        uxdMint: controllerUXD.uxdMintPda,
+        rent: SYSVAR_RENT_PUBKEY,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+      signers: [wallet.payer], // Payer does exist, just a problem of discovery?
+      options: TXN_OPTS,
     });
 
-    it("Fetch testnet oracle data and deploy localnet oracle", async () => {
-        // BTC
-        oracle_utils.create_localnet_oracle_mirrored_from_testnet(
-            "BTCUSD",
-            oracle_utils.testnetBTCOraclePriceAccountKey,
-            oracle_utils.localBTCOraclePriceAccountKey,
-            provider.wallet
-        );
+    // Add some asserts ...
+  });
 
-        // SOL
-        oracle_utils.create_localnet_oracle_mirrored_from_testnet(
-            "SOLUSD",
-            oracle_utils.testnetSOLOraclePriceAccountKey,
-            oracle_utils.localSOLOraclePriceAccountKey,
-            provider.wallet
-        );
+  it("Create BTC depository", async () => {
+    await depositoryBTC.program.rpc.new(Controller.ProgramId, {
+      accounts: {
+        payer: wallet.publicKey,
+        state: depositoryBTC.statePda,
+        redeemableMint: depositoryBTC.redeemableMintPda,
+        programCoin: depositoryBTC.depositPda,
+        coinMint: depositoryBTC.mint.publicKey,
+        rent: SYSVAR_RENT_PUBKEY,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+      signers: [wallet.payer],
+      options: TXN_OPTS,
     });
+    // Add some asserts ...
+  });
 
-    // TODO - rewrite the index.js test here for isntance, can be split up in different parts
-    // The above takes care of all the setup from the test.sh script (that was already doing what deploy.sh was doing, removing what anchor took care of)
-    it("INDEX>JS", async () => {
-        // TODO
+  it("Create SOL depository", async () => {
+    await depositorySOL.program.rpc.new(Controller.ProgramId, {
+      accounts: {
+        payer: wallet.publicKey,
+        state: depositorySOL.statePda,
+        redeemableMint: depositorySOL.redeemableMintPda,
+        programCoin: depositorySOL.depositPda,
+        coinMint: depositorySOL.mint.publicKey,
+        rent: SYSVAR_RENT_PUBKEY,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+      signers: [wallet.payer],
+      options: TXN_OPTS,
     });
+    // Add some asserts ...
+  });
+
+  /// XXX I assumed there was two registration but in fact no. But then I wonder why everything works?
+  /// XXX something is currently working but not supposed too probably... Investigate
+  ///
+  /// Is that's because the coin passthrough at not used yet that we didn't catch it?
+  it("Register BTC depository with Controller", async () => {
+    await controllerUXD.program.rpc.registerDepository(
+      Depository.ProgramId,
+      depositoryBTC.oraclePriceAccount,
+      {
+        accounts: {
+          authority: wallet.publicKey,
+          state: controllerUXD.statePda,
+          depositoryRecord: controllerUXD.recordPda,
+          depositoryState: depositoryBTC.statePda,
+          coinMint: depositoryBTC.mint.publicKey,
+          coinPassthrough: controllerUXD.coinPassthroughPda(depositoryBTC.mint),
+          rent: SYSVAR_RENT_PUBKEY,
+          systemProgram: SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        },
+        signers: [wallet.payer],
+        options: TXN_OPTS,
+      }
+    );
+    // Add some asserts ...
+  });
+
+  // /// XXX isssue here, cause using the same 
+  // it("Register SOL depository with Controller", async () => {
+  //   await controllerUXD.program.rpc.registerDepository(
+  //     Depository.ProgramId,
+  //     depositorySOL.oraclePriceAccount,
+  //     {
+  //       accounts: {
+  //         authority: wallet.publicKey,
+  //         state: controllerUXD.statePda,
+  //         depositoryRecord: controllerUXD.recordPda,
+  //         depositoryState: depositorySOL.statePda,
+  //         coinMint: depositorySOL.mint.publicKey,
+  //         coinPassthrough: controllerUXD.coinPassthroughPda(depositorySOL.mint),
+  //         rent: SYSVAR_RENT_PUBKEY,
+  //         systemProgram: SystemProgram.programId,
+  //         tokenProgram: TOKEN_PROGRAM_ID,
+  //       },
+  //       signers: [wallet.payer],
+  //       options: TXN_OPTS,
+  //     }
+  //   );
+  //   // Add some asserts ...
+  // });
+
+  // Keep going from index.js line 280
+
 });
-
-// // Fail flow A
-// ///////////////////////////////////////////////////////////////////////////////
-// describe("Depository ShouldFail tests", () => {
-//     it("Setup", async () => {
-//         // Do XYz inits
-//     });
-
-//     it("Step A", async () => {
-
-//     });
-
-//     it("Step B", async () => {
-//     });
-
-//     //...
-// });

@@ -3,17 +3,9 @@
 const anchor = require("@project-serum/anchor");
 const spl = require("@solana/spl-token");
 
-const FAKE_BTC_MINT = process.env.FAKE_BTC_MINT;
-if (!FAKE_BTC_MINT) throw "fake btc mint pls";
-
 const BTC_DECIMAL = 6;
 const SOL_DECIMAL = 9;
 const UXD_DECIMAL = 6;
-
-// const CLUSTER =
-//   process.env.DEVNET == "devnet"
-//     ? "https://api.devnet.solana.com"
-//     : "http://localhost.";
 
 const TXN_COMMIT = "processed";
 const TXN_OPTS = {

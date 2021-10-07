@@ -16,6 +16,6 @@ url = "https://anchor.projectserum.com"
 [scripts]
 ## cluster can be specified with --provider.cluster <devnet|testnet|localnet>
 ## value can be accessed through env using `$ANCHOR_PROVIDER_URL`
-test = "./scripts/test.sh"
+# test = "./scripts/test.sh"
 ## When tests are rewritten, we can use this instead
-# test = "npx ts-mocha -p ./tsconfig.json -t 100000 tests/test_*.ts"
+test = "npx ts-mocha -p ./tsconfig.json -t 100000 tests/test_*.ts"
