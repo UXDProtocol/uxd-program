@@ -340,6 +340,37 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
     await printBalances(depositoryBTC, controllerUXD, wallet);
   });
 
+  it("Redeem UXD", async () => {
+    let amountUXD = new anchor.BN(20000 * 10 ** UXD_DECIMAL);
+    let rsig = await controllerUXD.program.rpc.redeemUxd(amountUXD, {
+      accounts: {
+        user: wallet.publicKey,
+        state: controllerUXD.statePda,
+        // This is uneedded now thanks to anchor -- to change
+        depository: Depository.ProgramId,
+        depositoryRecord: controllerUXD.depositoryRecordPda(depositoryBTC),
+        depositoryState: depositoryBTC.statePda,
+        depositoryCoin: depositoryBTC.depositPda,
+        coinMint: depositoryBTC.mint.publicKey,
+        coinPassthrough: controllerUXD.coinPassthroughPda(depositoryBTC),
+        redeemableMint: depositoryBTC.redeemableMintPda,
+        userRedeemable: userBTCDepositoryRedeemableTokenAccount,
+        userUxd: userUXDTokenAccount,
+        uxdMint: controllerUXD.uxdMintPda,
+        rent: SYSVAR_RENT_PUBKEY,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        oracle: depositoryBTC.oraclePriceAccount,
+      },
+      signers: [wallet.payer],
+      options: TXN_OPTS,
+    });
+  });
+
+  it("Balances after redeem /\\", async () => {
+    await printBalances(depositoryBTC, controllerUXD, wallet);
+  });
+
   it("Withdraw UXD (all) (BTC depository)", async () => {
     // GIVEN
     // const _userUXDBalance = await getUserTokenBalance(controllerUXD.uxdMintPda);
@@ -365,24 +396,9 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
     });
   });
 
-  it("Balances after mint /\\", async () => {
+  it("Balances after Withdraw /\\", async () => {
     await printBalances(depositoryBTC, controllerUXD, wallet);
   });
 
   // XXX to work on. Split BTC and SOL. Write
-
-  // it("", async () => {
-
-  //   // Add some asserts ...
-  // });
-
-  // it("", async () => {
-
-  //   // Add some asserts ...
-  // });
-
-  // it("", async () => {
-
-  //   // Add some asserts ...
-  // });
 });

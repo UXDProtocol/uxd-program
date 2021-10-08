@@ -30,6 +30,7 @@ export class Controller {
 
   public depositoryRecordPda(depository: Depository): PublicKey {
     return findAddr(
+      // XXX should remove depository from this
       [Buffer.from(ControllerPDASeed.Record), Depository.ProgramId.toBuffer(), depository.mint.publicKey.toBuffer()],
       Controller.ProgramId
     );
