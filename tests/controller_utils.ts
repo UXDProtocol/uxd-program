@@ -15,17 +15,14 @@ enum ControllerPDASeed {
 export class Controller {
   // keeping this in both class to convey the meaning that there is only ONE of each program,
   //  and this is just an abstraction layer
-  static ProgramId: PublicKey = anchor.workspace.Controller.programId;
+  public static ProgramId: PublicKey = anchor.workspace.Controller.programId;
+  public static rpc: anchor.RpcNamespace = (anchor.workspace.Controller as Program).rpc;
 
-  // The controller Solana program
-  public program: Program;
   // Pda
   public statePda: PublicKey;
   public mintPda: PublicKey;
 
   public constructor() {
-    this.program = anchor.workspace.Controller;
-
     this.statePda = Controller.findControllerPda(ControllerPDASeed.State);
     this.mintPda = Controller.findControllerPda(ControllerPDASeed.UXD);
   }

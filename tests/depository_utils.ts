@@ -27,10 +27,9 @@ enum DepositoryPDASeed {
 export class Depository {
   // keeping this in both class to convey the meaning that there is only ONE of each program,
   //  and this is just an abstraction layer
-  static ProgramId: PublicKey = anchor.workspace.Depository.programId;
+  public static ProgramId: PublicKey = anchor.workspace.Depository.programId;
+  public static rpc: anchor.RpcNamespace = (anchor.workspace.Depository as Program).rpc;
 
-  // The Depository Solana program (pointer)
-  public program: Program;
   // The collateral
   public collateralMint: Token;
   public collateralName: string; // For debug purpose mostly
@@ -41,8 +40,6 @@ export class Depository {
   public depositPda: PublicKey;
 
   public constructor(mint: Token, mintName: string, oraclePriceAccount: PublicKey) {
-    this.program = anchor.workspace.Depository;
-
     this.collateralMint = mint;
     this.collateralName = mintName;
     this.oraclePriceAccount = oraclePriceAccount;

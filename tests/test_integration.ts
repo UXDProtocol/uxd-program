@@ -140,7 +140,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
     controllerUXD = new Controller();
 
     // WHEN
-    await controllerUXD.program.rpc.new({
+    await Controller.rpc.new({
       accounts: {
         authority: wallet.publicKey,
         state: controllerUXD.statePda,
@@ -172,7 +172,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
   });
 
   it("Create BTC depository", async () => {
-    await depositoryBTC.program.rpc.new(Controller.ProgramId, {
+    await Depository.rpc.new(Controller.ProgramId, {
       accounts: {
         payer: wallet.publicKey,
         state: depositoryBTC.statePda,
@@ -191,7 +191,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
   });
 
   it("Create SOL depository", async () => {
-    await depositorySOL.program.rpc.new(Controller.ProgramId, {
+    await Depository.rpc.new(Controller.ProgramId, {
       accounts: {
         payer: wallet.publicKey,
         state: depositorySOL.statePda,
@@ -210,7 +210,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
   });
 
   it("Register BTC depository with Controller", async () => {
-    await controllerUXD.program.rpc.registerDepository(depositoryBTC.oraclePriceAccount, {
+    await Controller.rpc.registerDepository(depositoryBTC.oraclePriceAccount, {
       accounts: {
         authority: wallet.publicKey,
         state: controllerUXD.statePda,
@@ -229,7 +229,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
   });
 
   it("Register SOL depository with Controller", async () => {
-    await controllerUXD.program.rpc.registerDepository(depositorySOL.oraclePriceAccount, {
+    await Controller.rpc.registerDepository(depositorySOL.oraclePriceAccount, {
       accounts: {
         authority: wallet.publicKey,
         state: controllerUXD.statePda,
@@ -259,7 +259,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
 
     // When
     const ix = createAssocTokenIx(wallet, userBTCDepositoryRedeemableTokenAccount, depositoryBTC.redeemableMintPda);
-    const dsig = await depositoryBTC.program.rpc.deposit(depositAmountBTC, {
+    await Depository.rpc.deposit(depositAmountBTC, {
       accounts: {
         user: wallet.publicKey,
         state: depositoryBTC.statePda,
@@ -295,7 +295,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
 
     // WHEN
     const ix = createAssocTokenIx(wallet, userUXDTokenAccount, controllerUXD.mintPda);
-    let msig = await controllerUXD.program.rpc.mintUxd(convertCollateralAmount, {
+    await Controller.rpc.mintUxd(convertCollateralAmount, {
       accounts: {
         user: wallet.publicKey,
         state: controllerUXD.statePda,
@@ -336,7 +336,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
 
   it("Redeem UXD", async () => {
     let amountUXD = new anchor.BN(20000 * 10 ** UXD_DECIMAL);
-    let rsig = await controllerUXD.program.rpc.redeemUxd(amountUXD, {
+    await Controller.rpc.redeemUxd(amountUXD, {
       accounts: {
         user: wallet.publicKey,
         state: controllerUXD.statePda,
@@ -374,7 +374,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
     // const expectedDepositoryBTCBalance = depositoryBTCBalance.sub(convertCollateralAmount);
 
     // WHEN
-    let wsig = await depositoryBTC.program.rpc.withdraw(null, {
+    await Depository.rpc.withdraw(null, {
       accounts: {
         user: wallet.publicKey,
         state: depositoryBTC.statePda,
