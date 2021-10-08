@@ -60,8 +60,9 @@ let userUXDBalance: anchor.BN;
 let depositoryBTCBalance: anchor.BN;
 let depositorySOLBalance: anchor.BN;
 
-// Setup Mint Redeem flow with BTC and SOL
-///////////////////////////////////////////////////////////////////////////////
+// XXX Should remove the BTC and SOL, we just use BTC in the  end.
+// Would simplify then we can program new tests with special case, like trying several depositories for the same controller etc.
+// Mix and Match, this is still just the translation of index.js
 describe("UXD full flow with BTC and SOL collaterals", () => {
   it("Setup - Payer", async () => {
     payer = anchor.web3.Keypair.generate();
