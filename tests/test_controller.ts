@@ -9,20 +9,6 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 
-const TXN_COMMIT = "processed";
-const TXN_OPTS = {
-  commitment: TXN_COMMIT,
-  preflightCommitment: TXN_COMMIT,
-  skipPreflight: false,
-};
-
-// THE WALLET
-const provider = anchor.Provider.env();
-anchor.setProvider(provider);
-
-// THE PROGRAM
-const program = anchor.workspace.Controller;
-
 let payer: Keypair;
 // Add what's needed here
 

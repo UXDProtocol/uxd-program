@@ -1,4 +1,4 @@
-import { TOKEN_PROGRAM_ID, Token, AccountInfo } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, Token } from "@solana/spl-token";
 import assert from "assert";
 import * as anchor from "@project-serum/anchor";
 import {
@@ -6,7 +6,6 @@ import {
   Keypair,
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
-  TransactionInstruction,
 } from "@solana/web3.js";
 
 import {
@@ -19,18 +18,10 @@ import {
   SOL_USD,
 } from "./oracle_utils";
 import { Controller } from "./controller_utils";
-import { connection, MAINNET, wallet } from "./utils";
+import { connection, MAINNET, TXN_OPTS, wallet } from "./utils";
 import { Depository } from "./depository_utils";
 
-const TXN_COMMIT = "processed";
-const TXN_OPTS = {
-  commitment: TXN_COMMIT,
-  preflightCommitment: TXN_COMMIT,
-  skipPreflight: false,
-};
-
 // Constants
-const FAKE_BTC_MINT = process.env.FAKE_BTC_MINT;
 const BTC_DECIMAL = 6;
 const SOL_DECIMAL = 9;
 const UXD_DECIMAL = 6;
@@ -237,6 +228,15 @@ describe("UXD full flow (WIP)", () => {
     // Add some asserts ...
   });
 
-  // Keep going from index.js line 280
+  it("Create user associated token account for Redeemable", async () => {
+
+    // Add some asserts ...
+  });
+
+
+  // it("", async () => {
+
+  //   // Add some asserts ...
+  // });
 
 });
