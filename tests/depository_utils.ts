@@ -7,7 +7,7 @@ import { findAddr } from "./utils";
 enum DepositoryPDASeed {
   State = "STATE",
   RedeemableMint = "REDEEMABLE",
-  ProgramCoin = "DEPOSIT",
+  Deposit = "DEPOSIT",
 }
 
 // Cleaner API to interact with the Depository program
@@ -28,32 +28,32 @@ export class Depository {
 
   // The Depository Solana program (pointer)
   public program: Program;
-  //
+  // The collateral
   public mint: Token;
+  public mintName: string;  // For debug purpose mostly
   public oraclePriceAccount: PublicKey;
-  // Depository PDAs associated to this collateral's mint
+  // Depository PDAs
   public statePda: PublicKey;
   public redeemableMintPda: PublicKey;
   public depositPda: PublicKey;
 
-  public constructor(mint: Token, oraclePriceAccount: PublicKey) {
+  public constructor(mint: Token, mintName: string, oraclePriceAccount: PublicKey) {
     this.program = anchor.workspace.Depository;
 
     this.mint = mint;
+    this.mintName = mintName;
     this.oraclePriceAccount = oraclePriceAccount;
 
     this.statePda = this.findDepositoryPda(DepositoryPDASeed.State);
-    this.redeemableMintPda = this.findDepositoryPda(
-      DepositoryPDASeed.RedeemableMint
-    );
-    this.depositPda = this.findDepositoryPda(DepositoryPDASeed.ProgramCoin);
+    this.redeemableMintPda = this.findDepositoryPda(DepositoryPDASeed.RedeemableMint);
+    this.depositPda = this.findDepositoryPda(DepositoryPDASeed.Deposit);
   }
 
-  // Find the depository program PDA adresse for a given seed
+  // Find the depository program PDA adresse for a given seed - derived from the mint
   private findDepositoryPda(seed: DepositoryPDASeed): PublicKey {
     return findAddr(
       [Buffer.from(seed.toString()), this.mint.publicKey.toBuffer()],
-      this.program.programId
+      Depository.ProgramId
     );
   }
 }

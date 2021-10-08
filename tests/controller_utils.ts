@@ -26,7 +26,6 @@ export class Controller {
 
     this.statePda = this.findControllerPda(ControllerPDASeed.State);
     this.uxdMintPda = this.findControllerPda(ControllerPDASeed.UXD);
-
   };
 
   public depositoryRecordPda(depository: Depository): PublicKey {
@@ -37,9 +36,9 @@ export class Controller {
   }
 
   // This pda is function of the depository mint
-  public coinPassthroughPda(depositoryMint: Token): PublicKey {
+  public coinPassthroughPda(depository: Depository): PublicKey {
     return findAddr(
-      [Buffer.from(ControllerPDASeed.Passthrough), depositoryMint.publicKey.toBuffer()],
+      [Buffer.from(ControllerPDASeed.Passthrough), depository.mint.publicKey.toBuffer()],
       Controller.ProgramId
     );
   };

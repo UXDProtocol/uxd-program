@@ -210,12 +210,14 @@ pub struct Deposit<'info> {
     #[account(seeds = [STATE_SEED, state.coin_mint_key.as_ref()], bump)]
     pub state: Box<Account<'info, State>>,
     // program account for coin deposit
+    // XXX this one would rename `collateral_deposit_pda`
     #[account(mut, constraint = program_coin.key() == state.program_coin_key)]
     pub program_coin: Box<Account<'info, TokenAccount>>,
     // mint for redeemable tokens
     #[account(mut, constraint = redeemable_mint.key() == state.redeemable_mint_key)]
     pub redeemable_mint: Box<Account<'info, Mint>>,
     // user account depositing coins
+    // XXX this one would call user_collateral_deposit
     #[account(
         mut,
         constraint = user_coin.mint == state.coin_mint_key,
@@ -224,6 +226,7 @@ pub struct Deposit<'info> {
     )]
     pub user_coin: Box<Account<'info, TokenAccount>>,
     // user account to receive redeemables
+    // XXX user_redeemable_receive
     #[account(mut, constraint = user_redeemable.mint == state.redeemable_mint_key)]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     // system program
