@@ -15,6 +15,24 @@ const ACCOUNT_SPAN: usize = 165;
 
 solana_program::declare_id!("UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7");
 
+// To expose the Depository like a Token or System in anchor `Program<'info, Depository>`
+#[derive(Clone)]
+pub struct Depository;
+impl anchor_lang::AccountDeserialize for Depository {
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+        Depository::try_deserialize_unchecked(buf)
+    }
+
+    fn try_deserialize_unchecked(_buf: &mut &[u8]) -> Result<Self, ProgramError> {
+        Ok(Depository)
+    }
+}
+impl anchor_lang::Id for Depository {
+    fn id() -> Pubkey {
+        ID
+    }
+}
+
 #[program]
 #[deny(unused_must_use)]
 pub mod depository {
