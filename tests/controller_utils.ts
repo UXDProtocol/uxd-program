@@ -2,7 +2,6 @@ import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { Token } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { Depository } from "./depository_utils";
 import { findAddr } from "./utils";
 
 enum ControllerPDASeed {
@@ -13,8 +12,6 @@ enum ControllerPDASeed {
 }
 
 export class Controller {
-  // keeping this in both class to convey the meaning that there is only ONE of each program,
-  //  and this is just an abstraction layer
   public static ProgramId: PublicKey = anchor.workspace.Controller.programId;
   public static rpc: anchor.RpcNamespace = (anchor.workspace.Controller as Program).rpc;
 

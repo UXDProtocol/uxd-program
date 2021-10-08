@@ -25,16 +25,13 @@ enum DepositoryPDASeed {
 // PDAs derived from a given Mint are a folder of files
 //
 export class Depository {
-  // keeping this in both class to convey the meaning that there is only ONE of each program,
-  //  and this is just an abstraction layer
   public static ProgramId: PublicKey = anchor.workspace.Depository.programId;
   public static rpc: anchor.RpcNamespace = (anchor.workspace.Depository as Program).rpc;
 
-  // The collateral
   public collateralMint: Token;
-  public collateralName: string; // For debug purpose mostly
+  public collateralName: string; // For debug purpose
   public oraclePriceAccount: PublicKey;
-  // Depository PDAs
+  // PDAs
   public statePda: PublicKey;
   public redeemableMintPda: PublicKey;
   public depositPda: PublicKey;

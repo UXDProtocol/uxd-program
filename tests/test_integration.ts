@@ -1,7 +1,7 @@
-import { TOKEN_PROGRAM_ID, Token, MintLayout, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, Token } from "@solana/spl-token";
 import { assert } from "chai";
 import * as anchor from "@project-serum/anchor";
-import { PublicKey, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
+import { PublicKey, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import {
   BTC_USD,
@@ -10,7 +10,6 @@ import {
   localSOLOraclePriceAccountKey,
   mainnetBTCOraclePriceAccountKey,
   mainnetSOLOraclePriceAccountKey,
-  oracle,
   SOL_USD,
 } from "./oracle_utils";
 import { Controller } from "./controller_utils";
@@ -18,10 +17,8 @@ import {
   connection,
   createAssocTokenIx,
   findAssocTokenAddr,
-  getUserTokenBalance,
   MAINNET,
   printBalances,
-  TXN_COMMIT,
   TXN_OPTS,
   wallet,
 } from "./utils";
