@@ -11,16 +11,15 @@ import {
 
 import {
   BTC_USD,
-  create_localnet_oracle_mirrored_from_testnet,
+  create_localnet_oracle_mirrored,
   localBTCOraclePriceAccountKey,
   localSOLOraclePriceAccountKey,
-  oracle,
+  mainnetBTCOraclePriceAccountKey,
+  mainnetSOLOraclePriceAccountKey,
   SOL_USD,
-  testnetBTCOraclePriceAccountKey,
-  testnetSOLOraclePriceAccountKey,
 } from "./oracle_utils";
 import { Controller } from "./controller_utils";
-import { connection, wallet } from "./utils";
+import { connection, MAINNET, wallet } from "./utils";
 import { Depository } from "./depository_utils";
 
 const TXN_COMMIT = "processed";
@@ -115,16 +114,18 @@ describe("UXD full flow (WIP)", () => {
 
   it("Fetch testnet oracle data and deploy localnet oracle", async () => {
     // BTC
-    await create_localnet_oracle_mirrored_from_testnet(
+    await create_localnet_oracle_mirrored(
       BTC_USD,
-      testnetBTCOraclePriceAccountKey,
+      MAINNET,
+      mainnetBTCOraclePriceAccountKey,
       localBTCOraclePriceAccountKey
     );
 
     // SOL
-    await create_localnet_oracle_mirrored_from_testnet(
+    await create_localnet_oracle_mirrored(
       SOL_USD,
-      testnetSOLOraclePriceAccountKey,
+      MAINNET,
+      mainnetSOLOraclePriceAccountKey,
       localSOLOraclePriceAccountKey
     );
   });

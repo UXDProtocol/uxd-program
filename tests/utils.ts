@@ -13,7 +13,10 @@ anchor.setProvider(provider);
 export const wallet = provider.wallet as NodeWallet;
 export const connection = provider.connection;
 
+export const MAINNET = "https://api.mainnet-beta.solana.com";
+export const DEVNET = "https://api.devnet.solana.com";
 export const TESTNET = "https://api.testnet.solana.com";
+export const LOCALNET = "http://127.0.0.1:8899";
 
 export const TXN_COMMIT = "processed";
 export const TXN_OPTS = {
