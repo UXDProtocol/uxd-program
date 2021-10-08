@@ -13,39 +13,48 @@ enum ControllerPDASeed {
 }
 
 export class Controller {
+  // keeping this in both class to convey the meaning that there is only ONE of each program,
+  //  and this is just an abstraction layer
   static ProgramId: PublicKey = anchor.workspace.Controller.programId;
 
   // The controller Solana program
   public program: Program;
   // Pda
   public statePda: PublicKey;
-  public uxdMintPda: PublicKey;
+  public mintPda: PublicKey;
 
   public constructor() {
     this.program = anchor.workspace.Controller;
 
-    this.statePda = this.findControllerPda(ControllerPDASeed.State);
-    this.uxdMintPda = this.findControllerPda(ControllerPDASeed.UXD);
-  };
+    this.statePda = Controller.findControllerPda(ControllerPDASeed.State);
+    this.mintPda = Controller.findControllerPda(ControllerPDASeed.UXD);
+  }
 
-  public depositoryRecordPda(depository: Depository): PublicKey {
+  public static depositoryRecordPda(collateralMint: Token): PublicKey {
     return findAddr(
       // XXX should remove depository from this
-      [Buffer.from(ControllerPDASeed.Record), Depository.ProgramId.toBuffer(), depository.mint.publicKey.toBuffer()],
+      [Buffer.from(ControllerPDASeed.Record), collateralMint.publicKey.toBuffer()],
       Controller.ProgramId
     );
   }
 
   // This pda is function of the depository mint
-  public coinPassthroughPda(depository: Depository): PublicKey {
+  public static coinPassthroughPda(collateralMint: Token): PublicKey {
     return findAddr(
-      [Buffer.from(ControllerPDASeed.Passthrough), depository.mint.publicKey.toBuffer()],
+      [Buffer.from(ControllerPDASeed.Passthrough), collateralMint.publicKey.toBuffer()],
       Controller.ProgramId
     );
-  };
+  }
 
   // Find the depository program PDA adresse for a given seed
-  private findControllerPda(seed: ControllerPDASeed): PublicKey {
+  private static findControllerPda(seed: ControllerPDASeed): PublicKey {
     return findAddr([Buffer.from(seed.toString())], Controller.ProgramId);
-  };
+  }
+
+  public info() {
+    console.log(`\
+      [Controller debug info]
+        * statePda:                                     ${this.statePda}
+        * mintPda:                                      ${this.mintPda}`);
+  }
 }

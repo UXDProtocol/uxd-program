@@ -21,7 +21,6 @@ import {
   getUserTokenBalance,
   MAINNET,
   printBalances,
-  printDepositoryInfo,
   TXN_COMMIT,
   TXN_OPTS,
   wallet,
@@ -145,7 +144,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
       accounts: {
         authority: wallet.publicKey,
         state: controllerUXD.statePda,
-        uxdMint: controllerUXD.uxdMintPda,
+        uxdMint: controllerUXD.mintPda,
         rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -155,7 +154,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
     });
 
     // Find user AssocToken derived adresses (not created yet)
-    userUXDTokenAccount = findAssocTokenAddr(wallet.publicKey, controllerUXD.uxdMintPda);
+    userUXDTokenAccount = findAssocTokenAddr(wallet.publicKey, controllerUXD.mintPda);
 
     // THEN
     // XXX add asserts
@@ -163,17 +162,13 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
         * payer:                              ${wallet.publicKey.toString()}
         * BTC mint:                           ${mintBTC.publicKey.toString()}
         * SOL mint:                           ${mintSOL.publicKey.toString()}
-        * UXD mint:                           ${controllerUXD.uxdMintPda.toString()}
+        * UXD mint:                           ${controllerUXD.mintPda.toString()}
         * user's BTC tokenAcc                 ${userBTCTokenAccount.toString()}
         * user's SOL tokenAcc                 ${userSOLTokenAccount.toString()}
         * ----  (Below 3 not created yet)
         * user's BTCDR tokenAcc               ${userBTCDepositoryRedeemableTokenAccount.toString()}
         * user's SOLDR tokenAcc               ${userSOLDepositoryRedeemableTokenAccount.toString()}
-        * user's UXD tokenAcc                 ${userUXDTokenAccount.toString()}
-        * ----
-        * Controller program:                 ${Controller.ProgramId}
-        *     statePda:                       ${controllerUXD.statePda}
-        * Depository program:                 ${Depository.ProgramId}`);
+        * user's UXD tokenAcc                 ${userUXDTokenAccount.toString()}`);
   });
 
   it("Create BTC depository", async () => {
@@ -183,7 +178,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
         state: depositoryBTC.statePda,
         redeemableMint: depositoryBTC.redeemableMintPda,
         programCoin: depositoryBTC.depositPda,
-        coinMint: depositoryBTC.mint.publicKey,
+        coinMint: depositoryBTC.collateralMint.publicKey,
         rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -192,7 +187,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
       options: TXN_OPTS,
     });
     // Add some asserts ...
-    printDepositoryInfo(depositoryBTC, controllerUXD);
+    depositoryBTC.info();
   });
 
   it("Create SOL depository", async () => {
@@ -202,7 +197,7 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
         state: depositorySOL.statePda,
         redeemableMint: depositorySOL.redeemableMintPda,
         programCoin: depositorySOL.depositPda,
-        coinMint: depositorySOL.mint.publicKey,
+        coinMint: depositorySOL.collateralMint.publicKey,
         rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -211,19 +206,18 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
       options: TXN_OPTS,
     });
     // Add some asserts ...
-
-    printDepositoryInfo(depositorySOL, controllerUXD);
+    depositorySOL.info();
   });
 
   it("Register BTC depository with Controller", async () => {
-    await controllerUXD.program.rpc.registerDepository(Depository.ProgramId, depositoryBTC.oraclePriceAccount, {
+    await controllerUXD.program.rpc.registerDepository(depositoryBTC.oraclePriceAccount, {
       accounts: {
         authority: wallet.publicKey,
         state: controllerUXD.statePda,
-        depositoryRecord: controllerUXD.depositoryRecordPda(depositoryBTC),
+        depositoryRecord: Controller.depositoryRecordPda(depositoryBTC.collateralMint),
         depositoryState: depositoryBTC.statePda,
-        coinMint: depositoryBTC.mint.publicKey,
-        coinPassthrough: controllerUXD.coinPassthroughPda(depositoryBTC),
+        coinMint: depositoryBTC.collateralMint.publicKey,
+        coinPassthrough: Controller.coinPassthroughPda(depositoryBTC.collateralMint),
         rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -235,14 +229,14 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
   });
 
   it("Register SOL depository with Controller", async () => {
-    await controllerUXD.program.rpc.registerDepository(Depository.ProgramId, depositorySOL.oraclePriceAccount, {
+    await controllerUXD.program.rpc.registerDepository(depositorySOL.oraclePriceAccount, {
       accounts: {
         authority: wallet.publicKey,
         state: controllerUXD.statePda,
-        depositoryRecord: controllerUXD.depositoryRecordPda(depositorySOL),
+        depositoryRecord: Controller.depositoryRecordPda(depositorySOL.collateralMint),
         depositoryState: depositorySOL.statePda,
-        coinMint: depositorySOL.mint.publicKey,
-        coinPassthrough: controllerUXD.coinPassthroughPda(depositorySOL),
+        coinMint: depositorySOL.collateralMint.publicKey,
+        coinPassthrough: Controller.coinPassthroughPda(depositorySOL.collateralMint),
         rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -300,21 +294,21 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
     // const expectedDepositoryBTCBalance = depositoryBTCBalance.sub(convertCollateralAmount);
 
     // WHEN
-    const ix = createAssocTokenIx(wallet, userUXDTokenAccount, controllerUXD.uxdMintPda);
+    const ix = createAssocTokenIx(wallet, userUXDTokenAccount, controllerUXD.mintPda);
     let msig = await controllerUXD.program.rpc.mintUxd(convertCollateralAmount, {
       accounts: {
         user: wallet.publicKey,
         state: controllerUXD.statePda,
         depository: Depository.ProgramId,
-        depositoryRecord: controllerUXD.depositoryRecordPda(depositoryBTC),
+        depositoryRecord: Controller.depositoryRecordPda(depositoryBTC.collateralMint),
         depositoryState: depositoryBTC.statePda,
         depositoryCoin: depositoryBTC.depositPda,
-        coinMint: depositoryBTC.mint.publicKey,
-        coinPassthrough: controllerUXD.coinPassthroughPda(depositoryBTC),
+        coinMint: depositoryBTC.collateralMint.publicKey,
+        coinPassthrough: Controller.coinPassthroughPda(depositoryBTC.collateralMint),
         redeemableMint: depositoryBTC.redeemableMintPda,
         userRedeemable: userBTCDepositoryRedeemableTokenAccount,
         userUxd: userUXDTokenAccount,
-        uxdMint: controllerUXD.uxdMintPda,
+        uxdMint: controllerUXD.mintPda,
         rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -348,15 +342,15 @@ describe("UXD full flow with BTC and SOL collaterals", () => {
         state: controllerUXD.statePda,
         // This is uneedded now thanks to anchor -- to change
         depository: Depository.ProgramId,
-        depositoryRecord: controllerUXD.depositoryRecordPda(depositoryBTC),
+        depositoryRecord: Controller.depositoryRecordPda(depositoryBTC.collateralMint),
         depositoryState: depositoryBTC.statePda,
         depositoryCoin: depositoryBTC.depositPda,
-        coinMint: depositoryBTC.mint.publicKey,
-        coinPassthrough: controllerUXD.coinPassthroughPda(depositoryBTC),
+        coinMint: depositoryBTC.collateralMint.publicKey,
+        coinPassthrough: Controller.coinPassthroughPda(depositoryBTC.collateralMint),
         redeemableMint: depositoryBTC.redeemableMintPda,
         userRedeemable: userBTCDepositoryRedeemableTokenAccount,
         userUxd: userUXDTokenAccount,
-        uxdMint: controllerUXD.uxdMintPda,
+        uxdMint: controllerUXD.mintPda,
         rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,

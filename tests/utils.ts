@@ -68,18 +68,20 @@ export function createAssocIxn(walletKey: PublicKey, mintKey: PublicKey): Transa
 
 export async function printBalances(depository: Depository, controller: Controller, wallet: NodeWallet) {
   // XXX why this one doesn't work. Weird stuff I suspect using connection.xyz and mintX.dostuff is not compatible
-  const userCollateralTokenAccount = findAssocTokenAddr(wallet.publicKey, depository.mint.publicKey);
+  const userCollateralTokenAccount = findAssocTokenAddr(wallet.publicKey, depository.collateralMint.publicKey);
   const userRedeemableTokenAccount = findAssocTokenAddr(wallet.publicKey, depository.redeemableMintPda);
-  const userUXDTokenAccount = findAssocTokenAddr(wallet.publicKey, controller.uxdMintPda);
+  const userUXDTokenAccount = findAssocTokenAddr(wallet.publicKey, controller.mintPda);
 
   const userCollateralAmount = await getUserTokenBalance(userCollateralTokenAccount);
   const userRedeemableAmount = await getUserTokenBalance(userRedeemableTokenAccount);
   const userUXDAmount = await getUserTokenBalance(userUXDTokenAccount);
   const depositoryCollateralAmount = await getUserTokenBalance(depository.depositPda);
-  const controllerCollateralAmount = await getUserTokenBalance(controller.coinPassthroughPda(depository));
+  const controllerCollateralAmount = await getUserTokenBalance(
+    Controller.coinPassthroughPda(depository.collateralMint)
+  );
 
   console.log(`\
-      [General balances info - Collateral: ${depository.mintName}]
+      [General balances info - Collateral: ${depository.collateralName}]
         * user balance:
         *     collateral:                   ${userCollateralAmount}
         *     redeemable:                   ${userRedeemableAmount}
@@ -87,17 +89,6 @@ export async function printBalances(depository: Depository, controller: Controll
         * -- 
         * depository collateral balance:    ${depositoryCollateralAmount}
         * controller collateral balance:    ${controllerCollateralAmount} (Passthrough acc)`);
-}
-
-export function printDepositoryInfo(depository: Depository, controller: Controller) {
-  console.log(`\
-      [Depository debug info - Collateral: ${depository.mintName}]
-        * mint (collateral):                            ${depository.mint.publicKey.toString()}
-        * statePda:                                     ${depository.statePda.toString()}
-        * redeemableMintPda:                            ${depository.redeemableMintPda.toString()}
-        * depositPda:                                   ${depository.depositPda.toString()}
-        * controller's associated depositoryRecordPda:  ${controller.depositoryRecordPda(depository).toString()}
-        * controller's associated coinPassthroughPda:   ${controller.coinPassthroughPda(depository).toString()}`);
 }
 
 // returns an instruction to create the associated account for a wallet and mint

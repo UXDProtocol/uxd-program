@@ -2,6 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { Token } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
+import { Controller } from "./controller_utils";
 import { findAddr } from "./utils";
 
 enum DepositoryPDASeed {
@@ -24,13 +25,15 @@ enum DepositoryPDASeed {
 // PDAs derived from a given Mint are a folder of files
 //
 export class Depository {
+  // keeping this in both class to convey the meaning that there is only ONE of each program,
+  //  and this is just an abstraction layer
   static ProgramId: PublicKey = anchor.workspace.Depository.programId;
 
   // The Depository Solana program (pointer)
   public program: Program;
   // The collateral
-  public mint: Token;
-  public mintName: string;  // For debug purpose mostly
+  public collateralMint: Token;
+  public collateralName: string; // For debug purpose mostly
   public oraclePriceAccount: PublicKey;
   // Depository PDAs
   public statePda: PublicKey;
@@ -40,8 +43,8 @@ export class Depository {
   public constructor(mint: Token, mintName: string, oraclePriceAccount: PublicKey) {
     this.program = anchor.workspace.Depository;
 
-    this.mint = mint;
-    this.mintName = mintName;
+    this.collateralMint = mint;
+    this.collateralName = mintName;
     this.oraclePriceAccount = oraclePriceAccount;
 
     this.statePda = this.findDepositoryPda(DepositoryPDASeed.State);
@@ -51,9 +54,21 @@ export class Depository {
 
   // Find the depository program PDA adresse for a given seed - derived from the mint
   private findDepositoryPda(seed: DepositoryPDASeed): PublicKey {
-    return findAddr(
-      [Buffer.from(seed.toString()), this.mint.publicKey.toBuffer()],
-      Depository.ProgramId
-    );
+    return findAddr([Buffer.from(seed.toString()), this.collateralMint.publicKey.toBuffer()], Depository.ProgramId);
+  }
+
+  public info() {
+    console.log(`\
+      [Depository debug info - Collateral mint: ${this.collateralName}]
+        * mint (collateral):                            ${this.collateralMint.publicKey.toString()}
+        * statePda:                                     ${this.statePda.toString()}
+        * redeemableMintPda:                            ${this.redeemableMintPda.toString()}
+        * depositPda:                                   ${this.depositPda.toString()}
+        * controller's associated depositoryRecordPda:  ${Controller.depositoryRecordPda(
+          this.collateralMint
+        ).toString()}
+        * controller's associated coinPassthroughPda:   ${Controller.coinPassthroughPda(
+          this.collateralMint
+        ).toString()}`);
   }
 }
