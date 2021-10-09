@@ -52,3 +52,6 @@ $> yarn
 $> anchor test ## with optional provider --provider.cluster <devnet|localnet|testnet>
 $>
 ```
+
+if issue with the IDL and mismatch between local and project version of anchor-cli
+`cargo install --git https://github.com/project-serum/anchor --tag v0.17.0 anchor-cli --locked`

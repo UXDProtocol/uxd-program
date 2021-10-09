@@ -38,6 +38,7 @@ impl anchor_lang::Id for Depository {
 pub mod depository {
     use super::*;
 
+    // ADMIN - add access control
     // creates a redeemable mint and a coin account
     // also registers the controller as an authority to authenticate proxy transfers
     pub fn new(ctx: Context<New>, controller_key: Pubkey) -> ProgramResult {
@@ -96,6 +97,7 @@ pub mod depository {
         Ok(())
     }
 
+    // USER
     // transfer coin from user_coin to program_coin
     // mint equivalent amount from redeemable_mint to user_redeemable
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> ProgramResult {
@@ -224,7 +226,7 @@ pub struct Deposit<'info> {
     // TODO i should use approval and xferfrom so user doesnt sign
     #[account(signer)]
     pub user: AccountInfo<'info>,
-    // this program signing and state account
+    // this depository signing and state account
     #[account(seeds = [STATE_SEED, state.coin_mint_key.as_ref()], bump)]
     pub state: Box<Account<'info, State>>,
     // program account for coin deposit
@@ -249,7 +251,6 @@ pub struct Deposit<'info> {
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     // system program
     pub system_program: Program<'info, System>,
-    // spl token program
     pub token_program: Program<'info, Token>,
 }
 

@@ -181,8 +181,10 @@ pub mod controller {
             token_program: ctx.accounts.token_program.to_account_info(),
         };
 
-        let withdraw_ctx =
-            CpiContext::new(ctx.accounts.depository.to_account_info(), withdraw_accounts);
+        let withdraw_ctx = CpiContext::new(
+            ctx.accounts.depository_program.to_account_info(),
+            withdraw_accounts,
+        );
         depository::cpi::withdraw(withdraw_ctx, Some(coin_amount))?;
 
         // TODO DEPOSIT TO MANGO AND OPEN POSITION HERE
@@ -288,7 +290,7 @@ pub mod controller {
             &[ctx.accounts.depository_record.bump],
         ]];
         let deposit_ctx = CpiContext::new_with_signer(
-            ctx.accounts.depository.to_account_info(),
+            ctx.accounts.depository_program.to_account_info(),
             deposit_accounts,
             record_seed,
         );
@@ -432,7 +434,7 @@ pub struct MintUxd<'info> {
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    pub depository: Program<'info, Depository>,
+    pub depository_program: Program<'info, Depository>,
     //pub mango_program: AccountInfo<'info>,
     // XXX FIXME below here is temporary
     // oracle: dumb hack for devnet, pending mango integration
@@ -479,7 +481,7 @@ pub struct RedeemUxd<'info> {
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    pub depository: Program<'info, Depository>,
+    pub depository_program: Program<'info, Depository>,
     //pub mango_program: AccountInfo<'info>,
     // XXX FIXME below here is temporary
     // oracle: dumb hack for devnet, pending mango integration

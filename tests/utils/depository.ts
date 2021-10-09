@@ -2,8 +2,8 @@ import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { Token } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { Controller } from "./controller_utils";
-import { findAddr } from "./utils";
+import { ControllerUXD } from "./controller";
+import { testUtils } from "./testutils";
 
 enum DepositoryPDASeed {
   State = "STATE",
@@ -48,7 +48,10 @@ export class Depository {
 
   // Find the depository program PDA adresse for a given seed - derived from the mint
   private findDepositoryPda(seed: DepositoryPDASeed): PublicKey {
-    return findAddr([Buffer.from(seed.toString()), this.collateralMint.publicKey.toBuffer()], Depository.ProgramId);
+    return testUtils.findProgramAddressSync(Depository.ProgramId, [
+      Buffer.from(seed.toString()),
+      this.collateralMint.publicKey.toBuffer(),
+    ])[0];
   }
 
   public info() {
@@ -58,10 +61,10 @@ export class Depository {
         * statePda:                                     ${this.statePda.toString()}
         * redeemableMintPda:                            ${this.redeemableMintPda.toString()}
         * depositPda:                                   ${this.depositPda.toString()}
-        * controller's associated depositoryRecordPda:  ${Controller.depositoryRecordPda(
+        * controller's associated depositoryRecordPda:  ${ControllerUXD.depositoryRecordPda(
           this.collateralMint
         ).toString()}
-        * controller's associated coinPassthroughPda:   ${Controller.coinPassthroughPda(
+        * controller's associated coinPassthroughPda:   ${ControllerUXD.coinPassthroughPda(
           this.collateralMint
         ).toString()}`);
   }
