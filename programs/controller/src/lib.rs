@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
+use anchor_spl::token::InitializeAccount;
 use anchor_spl::token::InitializeMint;
 use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
@@ -109,28 +110,29 @@ pub mod controller {
         oracle_key: Pubkey,
     ) -> ProgramResult {
         msg!("controller: register depository");
-        let accounts = ctx.accounts.to_account_infos();
+
         let coin_mint_key = ctx.accounts.coin_mint.key();
 
-        let passthrough_ctr = Pubkey::find_program_address(
+        // - Initialize Passthrough
+        let passthrough_nonce = Pubkey::find_program_address(
             &[PASSTHROUGH_SEED, coin_mint_key.as_ref()],
             ctx.program_id,
         )
         .1;
-        let passthrough_seed: &[&[&[u8]]] =
-            &[&[PASSTHROUGH_SEED, coin_mint_key.as_ref(), &[passthrough_ctr]]];
-
+        let passthrough_seed: &[&[&[u8]]] = &[&[
+            PASSTHROUGH_SEED,
+            coin_mint_key.as_ref(),
+            &[passthrough_nonce],
+        ]];
         // init the passthrough account we use to move funds between depository and mango
         // making our depo record rather than the contr state the owner for pleasing namespacing reasons
-        let ix = initialize_account(
-            &spl_token::ID,
-            &ctx.accounts.coin_passthrough.key(),
-            &coin_mint_key,
-            &ctx.accounts.depository_record.key(),
+        token::initialize_account(
+            ctx.accounts
+                .into_initialize_passthrough_account_context()
+                .with_signer(passthrough_seed),
         )?;
-        invoke_signed(&ix, &accounts, passthrough_seed)?;
 
-        // XXX TODO CREATE MANGO ACCOUNT HERE
+        // - Create Mango Account TODO
         // it should also be owned by the depo record
         // XXX the below is copy-pasted from patrick code but need to check mango v3 code to see if anything changed
 
@@ -152,7 +154,8 @@ pub mod controller {
                 mango_tester::cpi::init_mango_account(mango_cpi_ctx);
         */
 
-        // set our depo record up. this later acts as proof we trust a given depository
+        // - Set our depo record up
+        // this later acts as proof we trust a given depository
         // we also use this to derive the depository state key, from which we get mint and account keys
         // creating a hierarchy of trust rooted at the authority key that instantiated the controller
         ctx.accounts.depository_record.bump =
@@ -518,6 +521,21 @@ impl<'info> New<'info> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = InitializeMint {
             mint: self.uxd_mint.to_account_info(),
+            rent: self.rent.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+impl<'info> RegisterDepository<'info> {
+    fn into_initialize_passthrough_account_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, InitializeAccount<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = InitializeAccount {
+            account: self.coin_passthrough.to_account_info(),
+            mint: self.coin_mint.to_account_info(),
+            authority: self.depository_record.to_account_info(),
             rent: self.rent.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
