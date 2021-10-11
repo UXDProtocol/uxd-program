@@ -95,7 +95,7 @@ before("Configure user accounts", async () => {
 });
 
 describe("Test user standard interactions with a Depository (BTC)", () => {
-  it("[General balances info] /\\", async () => {
+  afterEach("[General balances info]", async () => {
     await printUserBalance();
     await printSystemBalance(depositoryBTC);
   });
@@ -143,11 +143,6 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     expect(_userBTCDepRedeemableBalance).to.equal(expectedRedeemableBalance);
   });
 
-  it("[General balances info] /\\", async () => {
-    await printUserBalance();
-    await printSystemBalance(depositoryBTC);
-  });
-
   it("Mint UXD (BTC depository)", async () => {
     // GIVEN
     const redeemableAmountToConvert = new anchor.BN(0.4 * 10 ** BTC_DECIMAL);
@@ -193,11 +188,6 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     // );
   });
 
-  it("[General balances info] /\\", async () => {
-    await printUserBalance();
-    await printSystemBalance(depositoryBTC);
-  });
-
   it("Redeem UXD", async () => {
     let amountUXD = new anchor.BN(500 * 10 ** UXD_DECIMAL);
     await ControllerUXD.rpc.redeemUxd(amountUXD, {
@@ -225,12 +215,7 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     });
   });
 
-  it("[General balances info] /\\", async () => {
-    await printUserBalance();
-    await printSystemBalance(depositoryBTC);
-  });
-
-  it("Withdraw UXD (all) (BTC depository)", async () => {
+  it("Withdraw UXD (all) BTC depository", async () => {
     // GIVEN
     // const _userUXDBalance = await getUserTokenBalance(controllerUXD.uxdMintPda);
     // const _depositoryBTCTokenAccount = await mintBTC.getAccountInfo(depositoryBTC.depositPda);
@@ -254,10 +239,4 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
       options: TXN_OPTS,
     });
   });
-
-  it("[General balances info] /\\", async () => {
-    await printUserBalance();
-    await printSystemBalance(depositoryBTC);
-  });
 });
-// USER SPACE ends ------------------------------------------------------------
