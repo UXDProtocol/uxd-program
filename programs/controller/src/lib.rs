@@ -1,11 +1,12 @@
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
+use anchor_spl::token::InitializeMint;
 use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use depository::Depository;
 use pyth_client::Price;
 use solana_program::program::invoke_signed;
-use spl_token::instruction::{initialize_account, initialize_mint};
+use spl_token::instruction::initialize_account;
 use std::convert::TryFrom;
 
 const MINT_SPAN: usize = 82;
@@ -74,25 +75,24 @@ pub mod controller {
     // the key we pass in as authority *must* be retained/protected to add depositories
     pub fn new(ctx: Context<New>) -> ProgramResult {
         msg!("controller: new");
-        let accounts = ctx.accounts.to_account_infos();
 
-        let state_ctr = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id).1;
-        let uxd_ctr = Pubkey::find_program_address(&[UXD_SEED], ctx.program_id).1;
-
-        let uxd_seed: &[&[&[u8]]] = &[&[UXD_SEED, &[uxd_ctr]]];
-
-        let ix = initialize_mint(
-            &spl_token::ID,
-            &ctx.accounts.uxd_mint.key(),
-            &ctx.accounts.state.key(),
-            None,
-            UXD_DECIMAL,
-        )?;
-        invoke_signed(&ix, &accounts, uxd_seed)?;
-
-        ctx.accounts.state.bump = state_ctr;
+        // - Update state
+        let state_nonce = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id).1;
+        ctx.accounts.state.bump = state_nonce;
         ctx.accounts.state.authority_key = *ctx.accounts.authority.key;
         ctx.accounts.state.uxd_mint_key = *ctx.accounts.uxd_mint.key;
+
+        // - Initialize UXD Mint
+        let uxd_mint_nonce = Pubkey::find_program_address(&[UXD_SEED], ctx.program_id).1;
+        let uxd_seed: &[&[&[u8]]] = &[&[UXD_SEED, &[uxd_mint_nonce]]];
+        token::initialize_mint(
+            ctx.accounts
+                .into_initialize_uxd_mint_context()
+                .with_signer(uxd_seed),
+            UXD_DECIMAL,
+            &ctx.accounts.state.key(),
+            None,
+        )?;
 
         Ok(())
     }
@@ -321,6 +321,7 @@ pub mod controller {
     //
 }
 
+// MARK: - Accounts Inputs  ---------------------------------------------------
 #[derive(Accounts)]
 pub struct New<'info> {
     #[account(mut)]
@@ -489,6 +490,8 @@ pub struct RedeemUxd<'info> {
     pub oracle: AccountInfo<'info>,
 }
 
+// MARK: - Accounts  ----------------------------------------------------------
+
 #[account]
 #[derive(Default)]
 pub struct State {
@@ -504,4 +507,19 @@ pub struct DepositoryRecord {
     // XXX temp for devnet
     oracle_key: Pubkey,
     // Seems useless but I realize that it will hold mango stuff. Should rename later? Or my english suck I'm dumb dumb
+}
+
+// MARK: - CONTEXTS  ----------------------------------------------------------
+
+impl<'info> New<'info> {
+    fn into_initialize_uxd_mint_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, InitializeMint<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = InitializeMint {
+            mint: self.uxd_mint.to_account_info(),
+            rent: self.rent.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
 }
