@@ -3,9 +3,9 @@ import { expect } from "chai";
 import * as anchor from "@project-serum/anchor";
 import { SystemProgram, SYSVAR_RENT_PUBKEY, PublicKey } from "@solana/web3.js";
 import { ControllerUXD } from "./utils/controller";
-import { createAssocTokenIx, getBalance, provider, testUtils, TXN_OPTS, wallet } from "./utils/testutils";
+import { createAssocTokenIx, getBalance, provider, testUtils, TXN_OPTS, wallet } from "./utils/utils";
 import { Depository } from "./utils/depository";
-import { BTC_DECIMAL, createTestUser, printSystemBalance, SOL_DECIMAL, TestUser, UXD_DECIMAL } from "./common";
+import { BTC_DECIMAL, createTestUser, SOL_DECIMAL, TestUser, UXD_DECIMAL } from "./utils/utils";
 import { btc, depositoryBTC, depositorySOL, sol } from "./test_integration_admin";
 
 // Identities
@@ -20,7 +20,17 @@ let userBTCTokenAccount: PublicKey;
 let userSOLTokenAccount: PublicKey;
 let userUXDTokenAccount: PublicKey;
 
-export async function printUserBalance() {
+async function printSystemBalance(depository: Depository) {
+  const SYM = depository.collateralName;
+  const passthroughPda = ControllerUXD.coinPassthroughPda(depository.collateralMint);
+  console.log(`\
+        * [depository ${depository.collateralName}]:
+        *     ${SYM}:                                        ${await getBalance(depository.depositPda)}
+        * [controller]
+        *     associated ${SYM} passthrough:                 ${await getBalance(passthroughPda)}`);
+}
+
+async function printUserBalance() {
   console.log(`\
         * [user]:
         *     BTC:                                        ${await getBalance(userBTCTokenAccount)}

@@ -3,7 +3,7 @@ import { Program } from "@project-serum/anchor";
 import { Token } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import { ControllerUXD } from "./controller";
-import { testUtils } from "./testutils";
+import { testUtils } from "./utils";
 
 enum DepositoryPDASeed {
   State = "STATE",
