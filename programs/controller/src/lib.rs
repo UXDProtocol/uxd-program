@@ -6,8 +6,6 @@ use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use depository::Depository;
 use pyth_client::Price;
-use solana_program::program::invoke_signed;
-use spl_token::instruction::initialize_account;
 use std::convert::TryFrom;
 
 const MINT_SPAN: usize = 82;
@@ -171,26 +169,14 @@ pub mod controller {
     pub fn mint_uxd(ctx: Context<MintUxd>, coin_amount: u64) -> ProgramResult {
         msg!("controller: mint uxd");
 
-        // burn user redeemables and withdraw the coin to our passthrough account
-        //let depo_state: ProgramAccount<depository::State> = ctx.accounts.depository_state.from();
-        let withdraw_accounts = depository::cpi::accounts::Withdraw {
-            user: ctx.accounts.user.to_account_info(),
-            state: ctx.accounts.depository_state.to_account_info(),
-            program_coin: ctx.accounts.depository_coin.to_account_info(),
-            redeemable_mint: ctx.accounts.redeemable_mint.to_account_info(),
-            user_coin: ctx.accounts.coin_passthrough.to_account_info(),
-            user_redeemable: ctx.accounts.user_redeemable.to_account_info(),
-            system_program: ctx.accounts.system_program.to_account_info(),
-            token_program: ctx.accounts.token_program.to_account_info(),
-        };
+        // - Burn user redeemables and withdraw the coin to our passthrough account
+        // let depo_state: ProgramAccount<depository::State> = ctx.accounts.depository_state.from();
+        depository::cpi::withdraw(
+            ctx.accounts.into_withdraw_from_depsitory_context(),
+            Some(coin_amount),
+        )?;
 
-        let withdraw_ctx = CpiContext::new(
-            ctx.accounts.depository_program.to_account_info(),
-            withdraw_accounts,
-        );
-        depository::cpi::withdraw(withdraw_ctx, Some(coin_amount))?;
-
-        // TODO DEPOSIT TO MANGO AND OPEN POSITION HERE
+        // - Deposit to mango and open position TODO
 
         // XXX temporary hack, we use the registered oracle to get a coin price
         let oracle_data = ctx.accounts.oracle.try_borrow_data()?;
@@ -212,19 +198,14 @@ pub mod controller {
             .and_then(|n| u64::try_from(n).ok())
             .unwrap();
 
-        let mint_accounts = MintTo {
-            mint: ctx.accounts.uxd_mint.to_account_info(),
-            to: ctx.accounts.user_uxd.to_account_info(),
-            authority: ctx.accounts.state.to_account_info(),
-        };
-
-        let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
-        let mint_ctx = CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
-            mint_accounts,
-            state_seed,
-        );
-        token::mint_to(mint_ctx, position_uxd_value)?;
+        // - Mint UXD for redeemables
+        let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
+        token::mint_to(
+            ctx.accounts
+                .into_mint_uxd_context()
+                .with_signer(state_signer_seed),
+            position_uxd_value,
+        )?;
 
         Ok(())
     }
@@ -537,6 +518,35 @@ impl<'info> RegisterDepository<'info> {
             mint: self.coin_mint.to_account_info(),
             authority: self.depository_record.to_account_info(),
             rent: self.rent.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+impl<'info> MintUxd<'info> {
+    fn into_withdraw_from_depsitory_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, depository::cpi::accounts::Withdraw<'info>> {
+        let cpi_program = self.depository_program.to_account_info();
+        let cpi_accounts = depository::cpi::accounts::Withdraw {
+            user: self.user.to_account_info(),
+            state: self.depository_state.to_account_info(),
+            program_coin: self.depository_coin.to_account_info(),
+            redeemable_mint: self.redeemable_mint.to_account_info(),
+            user_coin: self.coin_passthrough.to_account_info(),
+            user_redeemable: self.user_redeemable.to_account_info(),
+            system_program: self.system_program.to_account_info(),
+            token_program: self.token_program.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    fn into_mint_uxd_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = MintTo {
+            mint: self.uxd_mint.to_account_info(),
+            to: self.user_uxd.to_account_info(),
+            authority: self.state.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
