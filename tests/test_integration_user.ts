@@ -1,87 +1,24 @@
-import { TOKEN_PROGRAM_ID, Token, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { expect } from "chai";
 import * as anchor from "@project-serum/anchor";
-import { PublicKey, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { SystemProgram, SYSVAR_RENT_PUBKEY, PublicKey } from "@solana/web3.js";
 import { ControllerUXD } from "./utils/controller";
-import { createAssocTokenIx, getBalance, TestToken, testUtils, TXN_OPTS, wallet } from "./utils/testutils";
+import { createAssocTokenIx, getBalance, provider, testUtils, TXN_OPTS, wallet } from "./utils/testutils";
 import { Depository } from "./utils/depository";
+import { BTC_DECIMAL, createTestUser, printSystemBalance, SOL_DECIMAL, TestUser, UXD_DECIMAL } from "./common";
+import { btc, depositoryBTC, depositorySOL, sol } from "./test_integration_admin";
 
-// Constants
-const BTC_DECIMAL = 6;
-const SOL_DECIMAL = 9;
-const UXD_DECIMAL = 6;
-
-// The test user, can instantiate several for tests
+// Identities
 let user: TestUser;
 
-// Mints
-let btc: TokenEnv;
-let sol: TokenEnv;
-
-// Depositories - They represent the business object that tie a mint to a depository
-let depositoryBTC: Depository;
-let depositorySOL: Depository;
+// User accounts
+let userBTCDepRedeemableTokenAccount: PublicKey;
+let userSOLDepRedeemableTokenAccount: PublicKey;
 
 // User's SPL Accounts
 let userBTCTokenAccount: PublicKey;
 let userSOLTokenAccount: PublicKey;
-let userBTCDepRedeemableTokenAccount: PublicKey;
-let userSOLDepRedeemableTokenAccount: PublicKey;
 let userUXDTokenAccount: PublicKey;
-
-// HELPERS
-async function createTokenEnv(decimals: number, price: bigint) {
-  let pythPrice = await testUtils.pyth.createPriceAccount();
-  let pythProduct = await testUtils.pyth.createProductAccount();
-
-  await testUtils.pyth.updatePriceAccount(pythPrice, {
-    exponent: -9,
-    aggregatePriceInfo: {
-      price: price * 1000000000n,
-    },
-  });
-  await testUtils.pyth.updateProductAccount(pythProduct, {
-    priceAccount: pythPrice.publicKey,
-    attributes: {
-      quote_currency: "USD",
-    },
-  });
-
-  return {
-    token: await testUtils.createToken(decimals),
-    pythPrice,
-    pythProduct,
-  } as TokenEnv;
-}
-interface TokenEnv {
-  token: TestToken;
-  pythPrice: Keypair;
-  pythProduct: Keypair;
-}
-
-async function createTestUser(assets: Array<TokenEnv>): Promise<TestUser> {
-  const userWallet = wallet.payer; //await testUtils.createWallet(1 * LAMPORTS_PER_SOL); I WISH TO use that.... but idk it doesn't sign
-  // I think it would be neat to have 2 wallets to encure things are tighs, to not have only one GOD wallet that's also the user
-
-  const createUserTokens = async (asset: TokenEnv) => {
-    const tokenAccount = await asset.token.getOrCreateAssociatedAccountInfo(userWallet.publicKey);
-    return tokenAccount.address;
-  };
-
-  let tokenAccounts: Record<string, PublicKey> = {};
-  for (const asset of assets) {
-    tokenAccounts[asset.token.publicKey.toBase58()] = await createUserTokens(asset);
-  }
-
-  return {
-    wallet: userWallet,
-    tokenAccounts,
-  };
-}
-interface TestUser {
-  wallet: Keypair;
-  tokenAccounts: Record<string, PublicKey>;
-}
 
 export async function printUserBalance() {
   console.log(`\
@@ -93,36 +30,21 @@ export async function printUserBalance() {
         *     UXD:                                        ${await getBalance(userUXDTokenAccount)}`);
 }
 
-export async function printSystemBalance(depository: Depository) {
-  const SYM = depository.collateralName;
-  const passthroughPda = ControllerUXD.coinPassthroughPda(depository.collateralMint);
-  console.log(`\
-        * [depository ${depository.collateralName}]:
-        *     ${SYM}:                                        ${await getBalance(depository.depositPda)}
-        * [controller]
-        *     associated ${SYM} passthrough:                 ${await getBalance(passthroughPda)}`);
-}
-
-// This is cool! -- use for fail tests
-// await expect(
-//   userA.client.deposit(
-//     usdc.reserve,
-//     userA.tokenAccounts[usdc.token.publicKey.toBase58()],
-//     Amount.tokens(1)
-//   )
-// ).to.be.rejectedWith("0x142");
-
-// UXD ADMINISTRATION SPACE starts --------------------------------------------
-before("setup", async () => {
-  // GIVEN
-  btc = await createTokenEnv(BTC_DECIMAL, 45000n);
-  sol = await createTokenEnv(SOL_DECIMAL, 180n);
+before("Create user identity", async () => {
   user = await createTestUser([btc, sol]);
-  //
-  userBTCTokenAccount = (await btc.token.getAccountInfo(user.tokenAccounts[btc.token.publicKey.toBase58()])).address;
-  userSOLTokenAccount = (await sol.token.getAccountInfo(user.tokenAccounts[sol.token.publicKey.toBase58()])).address;
+});
+
+before("Configure user accounts", async () => {
+  // GIVEN
   const expectedUserBTCBalance = 1;
   const expectedUserSOLBalance = 15;
+  // Bind every user adresses
+  userBTCTokenAccount = (await btc.token.getAccountInfo(user.tokenAccounts[btc.token.publicKey.toBase58()])).address;
+  userSOLTokenAccount = (await sol.token.getAccountInfo(user.tokenAccounts[sol.token.publicKey.toBase58()])).address;
+  // Find user AssocToken derived adresses (not created yet), for convenience
+  userBTCDepRedeemableTokenAccount = testUtils.findAssocTokenAddressSync(wallet, depositoryBTC.redeemableMintPda)[0];
+  userSOLDepRedeemableTokenAccount = testUtils.findAssocTokenAddressSync(wallet, depositorySOL.redeemableMintPda)[0];
+  userUXDTokenAccount = testUtils.findAssocTokenAddressSync(wallet, ControllerUXD.mintPda)[0];
 
   // WHEN
   await btc.token.mintTo(
@@ -145,118 +67,6 @@ before("setup", async () => {
   expect(_userBTCTokenAccountBalance).to.equal(expectedUserBTCBalance);
   expect(_userSOLTokenAccountBalance).to.equal(expectedUserSOLBalance);
 
-  // Unrelated setup
-  // save that for later, convenience
-
-  depositoryBTC = new Depository(btc.token, "BTC", btc.pythPrice.publicKey);
-  depositorySOL = new Depository(sol.token, "SOL", sol.pythPrice.publicKey);
-});
-
-describe("UXD ADMINISTRATION SPACE - What we would do once to setup the UXD controllers and associated depositories", () => {
-  it("Create UXD Controller", async () => {
-    // WHEN
-    await ControllerUXD.rpc.new({
-      accounts: {
-        authority: wallet.publicKey,
-        state: ControllerUXD.statePda,
-        uxdMint: ControllerUXD.mintPda,
-        rent: SYSVAR_RENT_PUBKEY,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-      signers: [wallet.payer],
-      options: TXN_OPTS,
-    });
-
-    // THEN
-    // XXX add asserts
-  });
-
-  it("Create BTC depository", async () => {
-    await Depository.rpc.new(ControllerUXD.ProgramId, {
-      accounts: {
-        payer: wallet.publicKey,
-        state: depositoryBTC.statePda,
-        redeemableMint: depositoryBTC.redeemableMintPda,
-        programCoin: depositoryBTC.depositPda,
-        coinMint: depositoryBTC.collateralMint.publicKey,
-        rent: SYSVAR_RENT_PUBKEY,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-      signers: [wallet.payer],
-      options: TXN_OPTS,
-    });
-    // Add some asserts ...
-    depositoryBTC.info();
-  });
-
-  it("Create SOL depository (admin)", async () => {
-    await Depository.rpc.new(ControllerUXD.ProgramId, {
-      accounts: {
-        payer: wallet.publicKey,
-        state: depositorySOL.statePda,
-        redeemableMint: depositorySOL.redeemableMintPda,
-        programCoin: depositorySOL.depositPda,
-        coinMint: depositorySOL.collateralMint.publicKey,
-        rent: SYSVAR_RENT_PUBKEY,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-      signers: [wallet.payer],
-      options: TXN_OPTS,
-    });
-    // Add some asserts ...
-    depositorySOL.info();
-  });
-
-  it("Register BTC Depository with Controller", async () => {
-    await ControllerUXD.rpc.registerDepository(depositoryBTC.oraclePriceAccount, {
-      accounts: {
-        authority: wallet.publicKey,
-        state: ControllerUXD.statePda,
-        depositoryRecord: ControllerUXD.depositoryRecordPda(depositoryBTC.collateralMint),
-        depositoryState: depositoryBTC.statePda,
-        coinMint: depositoryBTC.collateralMint.publicKey,
-        coinPassthrough: ControllerUXD.coinPassthroughPda(depositoryBTC.collateralMint),
-        rent: SYSVAR_RENT_PUBKEY,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-      signers: [wallet.payer],
-      options: TXN_OPTS,
-    });
-    // Add some asserts ...
-  });
-
-  it("Register SOL Depository with Controller", async () => {
-    await ControllerUXD.rpc.registerDepository(depositorySOL.oraclePriceAccount, {
-      accounts: {
-        authority: wallet.publicKey,
-        state: ControllerUXD.statePda,
-        depositoryRecord: ControllerUXD.depositoryRecordPda(depositorySOL.collateralMint),
-        depositoryState: depositorySOL.statePda,
-        coinMint: depositorySOL.collateralMint.publicKey,
-        coinPassthrough: ControllerUXD.coinPassthroughPda(depositorySOL.collateralMint),
-        rent: SYSVAR_RENT_PUBKEY,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-      signers: [wallet.payer],
-      options: TXN_OPTS,
-    });
-    // Add some asserts ...
-  });
-});
-// UXD ADMINISTRATION SPACE ends ----------------------------------------------
-
-// USER SPACE starts ----------------------------------------------------------
-before("Configure user accounts and print information before starting USER SPACE tests", async () => {
-  // Find user AssocToken derived adresses (not created yet), for convenience
-  userBTCDepRedeemableTokenAccount = testUtils.findAssocTokenAddressSync(wallet, depositoryBTC.redeemableMintPda)[0];
-  userSOLDepRedeemableTokenAccount = testUtils.findAssocTokenAddressSync(wallet, depositorySOL.redeemableMintPda)[0];
-  userUXDTokenAccount = testUtils.findAssocTokenAddressSync(wallet, ControllerUXD.mintPda)[0];
-
   console.log(`\
     * payer:                              ${wallet.publicKey.toString()}
     * ---- 
@@ -274,7 +84,7 @@ before("Configure user accounts and print information before starting USER SPACE
     * user's UXD tokenAcc                 ${userUXDTokenAccount.toString()} (uninit)`);
 });
 
-describe("USER SPACE - Test interacting with a Depository (BTC)", () => {
+describe("Test user standard interactions with a Depository (BTC)", () => {
   it("[General balances info] /\\", async () => {
     await printUserBalance();
     await printSystemBalance(depositoryBTC);

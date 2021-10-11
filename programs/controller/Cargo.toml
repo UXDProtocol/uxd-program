@@ -4,8 +4,6 @@ version = "0.1.0"
 authors = ["pathoam <pathoam@pm.me>"]
 edition = "2018"
 
-
-
 [lib]
 crate-type = ["cdylib", "lib"]
 name = "controller"
