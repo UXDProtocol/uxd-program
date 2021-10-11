@@ -85,11 +85,11 @@ pub mod controller {
 
         // - Initialize UXD Mint
         let uxd_mint_nonce = Pubkey::find_program_address(&[UXD_SEED], ctx.program_id).1;
-        let uxd_seed: &[&[&[u8]]] = &[&[UXD_SEED, &[uxd_mint_nonce]]];
+        let uxd_mint_signer_seed: &[&[&[u8]]] = &[&[UXD_SEED, &[uxd_mint_nonce]]];
         token::initialize_mint(
             ctx.accounts
                 .into_initialize_uxd_mint_context()
-                .with_signer(uxd_seed),
+                .with_signer(uxd_mint_signer_seed),
             UXD_DECIMAL,
             &ctx.accounts.state.key(),
             None,
@@ -119,7 +119,7 @@ pub mod controller {
             ctx.program_id,
         )
         .1;
-        let passthrough_seed: &[&[&[u8]]] = &[&[
+        let passthrough_signer_seed: &[&[&[u8]]] = &[&[
             PASSTHROUGH_SEED,
             coin_mint_key.as_ref(),
             &[passthrough_nonce],
@@ -129,7 +129,7 @@ pub mod controller {
         token::initialize_account(
             ctx.accounts
                 .into_initialize_passthrough_account_context()
-                .with_signer(passthrough_seed),
+                .with_signer(passthrough_signer_seed),
         )?;
 
         // - Create Mango Account TODO
