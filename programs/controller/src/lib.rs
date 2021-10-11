@@ -216,21 +216,13 @@ pub mod controller {
     pub fn redeem_uxd(ctx: Context<RedeemUxd>, uxd_amount: u64) -> ProgramResult {
         msg!("controller: redeem uxd");
 
-        // first burn the uxd theyre giving up
-        let burn_accounts = Burn {
-            mint: ctx.accounts.uxd_mint.to_account_info(),
-            to: ctx.accounts.user_uxd.to_account_info(),
-            authority: ctx.accounts.user.to_account_info(),
-        };
+        // - First burn the uxd theyre giving up
+        token::burn(ctx.accounts.into_burn_uxd_context(), uxd_amount)?;
 
-        let burn_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), burn_accounts);
-        token::burn(burn_ctx, uxd_amount)?;
-
+        // - Mango close positon and withdraw coin TODO
         // get current passthrough balance before withdrawing from mango
         // in theory this should always be zero but better safe
         let _passthrough_balance = ctx.accounts.coin_passthrough.amount;
-
-        // TODO MANGO CLOSE POSITION AND WITHDRAW COIN HERE
 
         // XXX TODO FIXME in theory we get a uxd amount, close out that much position, and withdraw whatever collateral results
         // and then return to the user whatever the passthrough difference is (altho it should normally be 0 balance)
@@ -255,30 +247,19 @@ pub mod controller {
             .and_then(|n| u64::try_from(n).ok())
             .unwrap();
 
-        // return mango money back to depository
-        let deposit_accounts = depository::cpi::accounts::Deposit {
-            user: ctx.accounts.depository_record.to_account_info(),
-            state: ctx.accounts.depository_state.to_account_info(),
-            program_coin: ctx.accounts.depository_coin.to_account_info(),
-            redeemable_mint: ctx.accounts.redeemable_mint.to_account_info(),
-            user_coin: ctx.accounts.coin_passthrough.to_account_info(),
-            user_redeemable: ctx.accounts.user_redeemable.to_account_info(),
-            system_program: ctx.accounts.system_program.to_account_info(),
-            token_program: ctx.accounts.token_program.to_account_info(),
-        };
-
+        // - Return mango money back to depository
         let coin_mint_key = ctx.accounts.coin_mint.key();
-        let record_seed: &[&[&[u8]]] = &[&[
+        let record_signer_seed: &[&[&[u8]]] = &[&[
             RECORD_SEED,
             coin_mint_key.as_ref(),
             &[ctx.accounts.depository_record.bump],
         ]];
-        let deposit_ctx = CpiContext::new_with_signer(
-            ctx.accounts.depository_program.to_account_info(),
-            deposit_accounts,
-            record_seed,
-        );
-        depository::cpi::deposit(deposit_ctx, collateral_amount)?;
+        depository::cpi::deposit(
+            ctx.accounts
+                .into_return_collateral_context()
+                .with_signer(record_signer_seed),
+            collateral_amount,
+        )?;
 
         Ok(())
     }
@@ -547,6 +528,35 @@ impl<'info> MintUxd<'info> {
             mint: self.uxd_mint.to_account_info(),
             to: self.user_uxd.to_account_info(),
             authority: self.state.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+impl<'info> RedeemUxd<'info> {
+    fn into_burn_uxd_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = Burn {
+            mint: self.uxd_mint.to_account_info(),
+            to: self.user_uxd.to_account_info(),
+            authority: self.user.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    fn into_return_collateral_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, depository::cpi::accounts::Deposit<'info>> {
+        let cpi_program = self.depository_program.to_account_info();
+        let cpi_accounts = depository::cpi::accounts::Deposit {
+            user: self.depository_record.to_account_info(),
+            state: self.depository_state.to_account_info(),
+            program_coin: self.depository_coin.to_account_info(),
+            redeemable_mint: self.redeemable_mint.to_account_info(),
+            user_coin: self.coin_passthrough.to_account_info(),
+            user_redeemable: self.user_redeemable.to_account_info(),
+            system_program: self.system_program.to_account_info(),
+            token_program: self.token_program.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
