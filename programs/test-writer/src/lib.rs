@@ -25,7 +25,7 @@ use std::io::Write as IoWrite;
 
 use anchor_lang::prelude::*;
 
-declare_id!("test2Jds58cDo5cGk8eLFbdhW2doamw9xDAYKjTkbW5");
+declare_id!("testUXDs58cDo5cGk8eLFbdhW2doamw9xDAYKjTkbW5");
 
 #[program]
 pub mod test_writer {
