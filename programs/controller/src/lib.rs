@@ -471,7 +471,6 @@ pub struct DepositoryRecord {
     bump: u8,
     // XXX temp for devnet
     oracle_key: Pubkey,
-    // Seems useless but I realize that it will hold mango stuff. Should rename later? Or my english suck I'm dumb dumb
 }
 
 // MARK: - CONTEXTS  ----------------------------------------------------------

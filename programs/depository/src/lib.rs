@@ -38,7 +38,6 @@ impl anchor_lang::Id for Depository {
 pub mod depository {
     use super::*;
 
-    // ADMIN - add access control
     // creates a redeemable mint and a coin account
     // also registers the controller as an authority to authenticate proxy transfers
     pub fn new(ctx: Context<New>, controller_key: Pubkey) -> ProgramResult {
@@ -97,7 +96,6 @@ pub mod depository {
         Ok(())
     }
 
-    // USER
     // transfer coin from user_coin to program_coin
     // mint equivalent amount from redeemable_mint to user_redeemable
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> ProgramResult {
