@@ -5,6 +5,9 @@ use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount, Transfer};
 use solana_program::program::invoke_signed;
 use spl_token::instruction::{initialize_account, initialize_mint};
 
+pub mod depository_program;
+pub use depository_program::Depository;
+
 pub const STATE_SEED: &[u8] = b"STATE";
 const REDEEMABLE_MINT_SEED: &[u8] = b"REDEEMABLE";
 const PROGRAM_COIN_SEED: &[u8] = b"DEPOSIT";
@@ -14,24 +17,6 @@ const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: usize = 165;
 
 solana_program::declare_id!("UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7");
-
-// To expose the Depository like a Token or System in anchor `Program<'info, Depository>`
-#[derive(Clone)]
-pub struct Depository;
-impl anchor_lang::AccountDeserialize for Depository {
-    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
-        Depository::try_deserialize_unchecked(buf)
-    }
-
-    fn try_deserialize_unchecked(_buf: &mut &[u8]) -> Result<Self, ProgramError> {
-        Ok(Depository)
-    }
-}
-impl anchor_lang::Id for Depository {
-    fn id() -> Pubkey {
-        ID
-    }
-}
 
 #[program]
 #[deny(unused_must_use)]
