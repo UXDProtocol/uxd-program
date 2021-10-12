@@ -15,11 +15,30 @@ const ACCOUNT_SPAN: usize = 165;
 
 solana_program::declare_id!("UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7");
 
+// To expose the Depository like a Token or System in anchor `Program<'info, Depository>`
+#[derive(Clone)]
+pub struct Depository;
+impl anchor_lang::AccountDeserialize for Depository {
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+        Depository::try_deserialize_unchecked(buf)
+    }
+
+    fn try_deserialize_unchecked(_buf: &mut &[u8]) -> Result<Self, ProgramError> {
+        Ok(Depository)
+    }
+}
+impl anchor_lang::Id for Depository {
+    fn id() -> Pubkey {
+        ID
+    }
+}
+
 #[program]
 #[deny(unused_must_use)]
 pub mod depository {
     use super::*;
 
+    // ADMIN - add access control
     // creates a redeemable mint and a coin account
     // also registers the controller as an authority to authenticate proxy transfers
     pub fn new(ctx: Context<New>, controller_key: Pubkey) -> ProgramResult {
@@ -78,6 +97,7 @@ pub mod depository {
         Ok(())
     }
 
+    // USER
     // transfer coin from user_coin to program_coin
     // mint equivalent amount from redeemable_mint to user_redeemable
     pub fn deposit(ctx: Context<Deposit>, amount: u64) -> ProgramResult {
@@ -206,16 +226,18 @@ pub struct Deposit<'info> {
     // TODO i should use approval and xferfrom so user doesnt sign
     #[account(signer)]
     pub user: AccountInfo<'info>,
-    // this program signing and state account
+    // this depository signing and state account
     #[account(seeds = [STATE_SEED, state.coin_mint_key.as_ref()], bump)]
     pub state: Box<Account<'info, State>>,
     // program account for coin deposit
+    // XXX this one would rename `collateral_deposit_pda`
     #[account(mut, constraint = program_coin.key() == state.program_coin_key)]
     pub program_coin: Box<Account<'info, TokenAccount>>,
     // mint for redeemable tokens
     #[account(mut, constraint = redeemable_mint.key() == state.redeemable_mint_key)]
     pub redeemable_mint: Box<Account<'info, Mint>>,
     // user account depositing coins
+    // XXX this one would call user_collateral_deposit
     #[account(
         mut,
         constraint = user_coin.mint == state.coin_mint_key,
@@ -224,11 +246,11 @@ pub struct Deposit<'info> {
     )]
     pub user_coin: Box<Account<'info, TokenAccount>>,
     // user account to receive redeemables
+    // XXX user_redeemable_receive
     #[account(mut, constraint = user_redeemable.mint == state.redeemable_mint_key)]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     // system program
     pub system_program: Program<'info, System>,
-    // spl token program
     pub token_program: Program<'info, Token>,
 }
 
