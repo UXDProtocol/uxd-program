@@ -17,7 +17,7 @@ const UXD_SEED: &[u8] = b"STABLECOIN";
 const RECORD_SEED: &[u8] = b"RECORD";
 const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
 
-solana_program::declare_id!("UXDConWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd");
+solana_program::declare_id!("2PCPrsHdeZq6CsHyqnu3NVMcWtJGjZE8mWKpF6ipTDT4");
 
 #[program]
 #[deny(unused_must_use)]

@@ -11,7 +11,7 @@
 import * as anchor from "@project-serum/anchor";
 import * as web3 from "@solana/web3.js";
 import { Wallet } from "@project-serum/anchor";
-import { Connection, Keypair, PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { Connection, Keypair, SystemProgram, Transaction } from "@solana/web3.js";
 
 const writer = anchor.workspace.TestWriter;
 

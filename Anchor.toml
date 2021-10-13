@@ -3,27 +3,13 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [programs.localnet]
-test_writer = "testUXDs58cDo5cGk8eLFbdhW2doamw9xDAYKjTkbW5"
-controller = "UXDConWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd"
-depository = "UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7"
-oracle = "UXDGB2YeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP"
+test_writer = "G8Y4TADHpevzxUPTZM1uFqUHfBtMRE84JQVVDxfZFWWc"
+controller = "2PCPrsHdeZq6CsHyqnu3NVMcWtJGjZE8mWKpF6ipTDT4"
+depository = "FJjdNskuQnHvRozc7zTQ5GPTyo5HZokgubvXYdR9tKHi"
 
-[programs.testnet]
-test_writer = "testUXDs58cDo5cGk8eLFbdhW2doamw9xDAYKjTkbW5"
-controller = "UXDConWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd"
-depository = "UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7"
-oracle = "UXDGB2YeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP"
-
-[programs.devnet]
-test_writer = "testUXDs58cDo5cGk8eLFbdhW2doamw9xDAYKjTkbW5"
-controller = "UXDConWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd"
-depository = "UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7"
-oracle = "UXDGB2YeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP"
-
-[programs.mainnet]
-controller = "UXDConWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd"
-depository = "UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7"
-oracle = "UXDGB2YeFbSL72cAxYtfQCQXzyyWW2xYPCJ1uSPtNiP"
+# [programs.mainnet]
+# controller = "UXDConWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd"
+# depository = "UXDDepTysvnvAhFyY7tfG793iQAJA8T4ZpyAZyrCLQ7"
 
 [registry]
 url = "https://anchor.projectserum.com"
