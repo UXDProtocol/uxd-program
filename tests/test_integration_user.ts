@@ -3,10 +3,12 @@ import { expect } from "chai";
 import * as anchor from "@project-serum/anchor";
 import { SystemProgram, SYSVAR_RENT_PUBKEY, PublicKey } from "@solana/web3.js";
 import { ControllerUXD } from "./utils/controller";
-import { createAssocTokenIx, getBalance, testUtils, TXN_OPTS, wallet } from "./utils/utils";
+import { createAssocTokenIx, getBalance, utils, TXN_OPTS, wallet } from "./utils/utils";
 import { Depository } from "./utils/depository";
 import { BTC_DECIMAL, createTestUser, SOL_DECIMAL, TestUser, UXD_DECIMAL } from "./utils/utils";
 import { btc, depositoryBTC, depositorySOL, sol } from "./test_integration_admin";
+import {} from "@blockworks-foundation/mango-client";
+import { MANGO_PROGRAM } from "./utils/mango";
 
 // Identities
 let user: TestUser;
@@ -55,9 +57,9 @@ before("Configure user accounts", async () => {
   userBTCTokenAccount = (await btc.token.getAccountInfo(user.tokenAccounts[btc.token.publicKey.toBase58()])).address;
   userSOLTokenAccount = (await sol.token.getAccountInfo(user.tokenAccounts[sol.token.publicKey.toBase58()])).address;
   // Find user AssocToken derived adresses (not created yet), for convenience
-  userBTCDepRedeemableTokenAccount = testUtils.findAssocTokenAddressSync(wallet, depositoryBTC.redeemableMintPda)[0];
-  userSOLDepRedeemableTokenAccount = testUtils.findAssocTokenAddressSync(wallet, depositorySOL.redeemableMintPda)[0];
-  userUXDTokenAccount = testUtils.findAssocTokenAddressSync(wallet, ControllerUXD.mintPda)[0];
+  userBTCDepRedeemableTokenAccount = utils.findAssocTokenAddressSync(wallet, depositoryBTC.redeemableMintPda)[0];
+  userSOLDepRedeemableTokenAccount = utils.findAssocTokenAddressSync(wallet, depositorySOL.redeemableMintPda)[0];
+  userUXDTokenAccount = utils.findAssocTokenAddressSync(wallet, ControllerUXD.mintPda)[0];
 
   // WHEN
   await btc.token.mintTo(
@@ -208,6 +210,7 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         depositoryProgram: Depository.ProgramId,
+        mangoProgram: MANGO_PROGRAM,
         associatedSystemProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         oracle: depositoryBTC.oraclePriceAccount,
       },
@@ -306,6 +309,7 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         depositoryProgram: Depository.ProgramId,
+        mangoProgram: MANGO_PROGRAM,
         associatedSystemProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         oracle: depositoryBTC.oraclePriceAccount,
       },

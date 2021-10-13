@@ -11,6 +11,7 @@ import {
   Commitment,
   TransactionInstruction,
 } from "@solana/web3.js";
+import { devnetCluster, devnetGroup, Mango } from "./mango";
 import { PythUtils } from "./pyth";
 
 // Constants
@@ -65,10 +66,11 @@ export class TestToken extends Token {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-export class TestUtils {
+export class Utils {
   public static readonly pythProgramId = PythUtils.programId;
 
   public pyth: PythUtils;
+  public mango: Mango;
   private conn: Connection;
   private wallet: Wallet;
   private authority: Keypair;
@@ -78,6 +80,11 @@ export class TestUtils {
     this.wallet = funded;
     this.authority = this.wallet.payer;
     this.pyth = new PythUtils(conn, funded);
+    this.mango = new Mango(devnetCluster, devnetGroup);
+  }
+
+  async setupMango() {
+    await this.mango.setupMangoGroup();
   }
 
   /**
@@ -215,16 +222,16 @@ export class TestUtils {
 ///////////////////////////////////////////////////////////////////////////////
 
 export async function createTokenEnv(decimals: number, price: bigint) {
-  let pythPrice = await testUtils.pyth.createPriceAccount();
-  let pythProduct = await testUtils.pyth.createProductAccount();
+  let pythPrice = await utils.pyth.createPriceAccount();
+  let pythProduct = await utils.pyth.createProductAccount();
 
-  await testUtils.pyth.updatePriceAccount(pythPrice, {
+  await utils.pyth.updatePriceAccount(pythPrice, {
     exponent: -9,
     aggregatePriceInfo: {
       price: price * 1000000000n,
     },
   });
-  await testUtils.pyth.updateProductAccount(pythProduct, {
+  await utils.pyth.updateProductAccount(pythProduct, {
     priceAccount: pythPrice.publicKey,
     attributes: {
       quote_currency: "USD",
@@ -232,7 +239,7 @@ export async function createTokenEnv(decimals: number, price: bigint) {
   });
 
   return {
-    token: await testUtils.createToken(decimals),
+    token: await utils.createToken(decimals),
     pythPrice,
     pythProduct,
   } as TokenEnv;
@@ -298,4 +305,4 @@ interface HasPublicKey {
   publicKey: PublicKey;
 }
 
-export const testUtils = new TestUtils(connection, wallet);
+export const utils = new Utils(connection, wallet);

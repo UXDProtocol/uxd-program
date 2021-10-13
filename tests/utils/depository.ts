@@ -3,7 +3,7 @@ import { Program } from "@project-serum/anchor";
 import { Token } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import { ControllerUXD } from "./controller";
-import { testUtils } from "./utils";
+import { utils } from "./utils";
 
 enum DepositoryPDASeed {
   State = "STATE",
@@ -48,7 +48,7 @@ export class Depository {
 
   // Find the depository program PDA adresse for a given seed - derived from the mint
   private findDepositoryPda(seed: DepositoryPDASeed): PublicKey {
-    return testUtils.findProgramAddressSync(Depository.ProgramId, [
+    return utils.findProgramAddressSync(Depository.ProgramId, [
       Buffer.from(seed.toString()),
       this.collateralMint.publicKey.toBuffer(),
     ])[0];

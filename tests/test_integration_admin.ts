@@ -1,9 +1,17 @@
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import { ControllerUXD } from "./utils/controller";
-import { TXN_OPTS } from "./utils/utils";
 import { Depository } from "./utils/depository";
-import { createTokenEnv, BTC_DECIMAL, SOL_DECIMAL, createTestUser, TestUser, TokenEnv } from "./utils/utils";
+import {
+  createTokenEnv,
+  BTC_DECIMAL,
+  SOL_DECIMAL,
+  createTestUser,
+  TestUser,
+  TokenEnv,
+  TXN_OPTS,
+  utils,
+} from "./utils/utils";
 import { expect } from "chai";
 
 // Identities
@@ -19,6 +27,7 @@ export let depositorySOL: Depository;
 
 before("Setup mints and depositories", async () => {
   // GIVEN
+  await utils.setupMango();
   btc = await createTokenEnv(BTC_DECIMAL, 45000n);
   sol = await createTokenEnv(SOL_DECIMAL, 180n);
   admin = await createTestUser([]);

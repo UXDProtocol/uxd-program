@@ -4,9 +4,11 @@ use anchor_spl::token::InitializeMint;
 use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use depository::Depository;
-use mango::Mango;
+use mango_program::Mango;
 use pyth_client::Price;
 use std::convert::TryFrom;
+
+mod mango_program;
 
 const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: usize = 165;
