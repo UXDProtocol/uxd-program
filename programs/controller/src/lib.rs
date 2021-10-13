@@ -1,10 +1,10 @@
 use anchor_lang::prelude::*;
-use anchor_lang::Key;
 use anchor_spl::token::InitializeAccount;
 use anchor_spl::token::InitializeMint;
 use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use depository::Depository;
+use mango::Mango;
 use pyth_client::Price;
 use std::convert::TryFrom;
 
@@ -443,11 +443,11 @@ pub struct RedeemUxd<'info> {
     pub user_uxd: Box<Account<'info, TokenAccount>>,
     #[account(mut, seeds = [UXD_SEED], bump)]
     pub uxd_mint: Box<Account<'info, Mint>>,
-    // XXX MANGO ACCOUNTS GO HERE
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub depository_program: Program<'info, Depository>,
+    pub mango_program: Program<'info, Mango>,
     //pub mango_program: AccountInfo<'info>,
     // XXX FIXME below here is temporary
     // oracle: dumb hack for devnet, pending mango integration

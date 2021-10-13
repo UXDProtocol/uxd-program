@@ -2,7 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { Token } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { testUtils, TestUtils } from "./utils";
+import { testUtils } from "./utils";
 
 enum ControllerPDASeed {
   State = "STATE",

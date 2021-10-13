@@ -1,7 +1,7 @@
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import { ControllerUXD } from "./utils/controller";
-import { provider, TXN_OPTS } from "./utils/utils";
+import { TXN_OPTS } from "./utils/utils";
 import { Depository } from "./utils/depository";
 import { createTokenEnv, BTC_DECIMAL, SOL_DECIMAL, createTestUser, TestUser, TokenEnv } from "./utils/utils";
 import { expect } from "chai";

@@ -18,17 +18,17 @@ export const BTC_DECIMAL = 6;
 export const SOL_DECIMAL = 9;
 export const UXD_DECIMAL = 6;
 
-// WALLET
-export const provider = Provider.local();
+// Provider from the Anchor.toml provider variable
+export const provider = Provider.env();
 setProvider(provider);
 export const wallet = provider.wallet as Wallet;
 export const connection = provider.connection;
 
-// CLUSTERS
-export const MAINNET = "https://api.mainnet-beta.solana.com";
-export const DEVNET = "https://api.devnet.solana.com";
-export const TESTNET = "https://api.testnet.solana.com";
-export const LOCALNET = "https://api.testnet.solana.com";
+// // CLUSTERS
+// export const MAINNET = "https://api.mainnet-beta.solana.com";
+// export const DEVNET = "https://api.devnet.solana.com";
+// export const TESTNET = "https://api.testnet.solana.com";
+// export const LOCALNET = "https://api.testnet.solana.com";
 
 // TXN prefight checks options
 export const TXN_COMMIT: Commitment = "processed";
