@@ -8,7 +8,7 @@ import { Depository } from "./utils/depository";
 import { BTC_DECIMAL, createTestUser, SOL_DECIMAL, TestUser, UXD_DECIMAL } from "./utils/utils";
 import { btc, depositoryBTC, depositorySOL, sol } from "./test_integration_admin";
 import {} from "@blockworks-foundation/mango-client";
-import { MANGO_PROGRAM } from "./utils/mango";
+import { MANGO_PROGRAM_ID } from "./utils/mango";
 
 // Identities
 let user: TestUser;
@@ -210,7 +210,7 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         depositoryProgram: Depository.ProgramId,
-        mangoProgram: MANGO_PROGRAM,
+        mangoProgram: MANGO_PROGRAM_ID,
         associatedSystemProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         oracle: depositoryBTC.oraclePriceAccount,
       },
@@ -309,7 +309,7 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         depositoryProgram: Depository.ProgramId,
-        mangoProgram: MANGO_PROGRAM,
+        mangoProgram: MANGO_PROGRAM_ID,
         associatedSystemProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         oracle: depositoryBTC.oraclePriceAccount,
       },

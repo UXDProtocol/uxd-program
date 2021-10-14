@@ -1,7 +1,8 @@
-use std::str::FromStr;
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
+use std::str::FromStr;
 
+// Temporary, the one I opened PR for when merged https://github.com/blockworks-foundation/mango-v3/pull/67
 #[derive(Clone)]
 pub struct Mango;
 
@@ -17,9 +18,6 @@ impl anchor_lang::AccountDeserialize for Mango {
 
 impl anchor_lang::Id for Mango {
     fn id() -> Pubkey {
-        #[cfg(feature = "devnet")]
         return Pubkey::from_str("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA").unwrap();
-        #[cfg(not(feature = "devnet"))]
-        return Pubkey::from_str("mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68").unwrap();
     }
 }

@@ -300,6 +300,7 @@ pub struct New<'info> {
         payer = authority,
     )]
     pub state: Box<Account<'info, State>>,
+    // Todo can use associated_token here
     #[account(
         init,
         seeds = [UXD_SEED],
@@ -333,6 +334,7 @@ pub struct RegisterDepository<'info> {
     pub depository_state: Box<Account<'info, depository::State>>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
     pub coin_mint: Box<Account<'info, Mint>>,
+    // Todo can use associated_token here
     #[account(
         init,
         seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()],

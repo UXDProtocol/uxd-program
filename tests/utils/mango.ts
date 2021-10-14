@@ -6,7 +6,7 @@ export const devnetCluster: Cluster = "devnet";
 export const devnetGroup = "devnet.2";
 
 // Devnet, but also localnet since we clone with the script ./vonfigure_local_validator.sh
-export const MANGO_PROGRAM = new PublicKey("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
+export const MANGO_PROGRAM_ID = new PublicKey("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
 
 export class Mango {
   mangoGroupKey: PublicKey;
