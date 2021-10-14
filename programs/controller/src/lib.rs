@@ -4,7 +4,6 @@ use anchor_spl::token::InitializeMint;
 use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use depository::Depository;
-use mango_program::Mango;
 use pyth_client::Price;
 use std::convert::TryFrom;
 
@@ -153,6 +152,37 @@ pub mod controller {
                 let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
                 mango_tester::cpi::init_mango_account(mango_cpi_ctx);
         */
+
+        // - Initialize Mango Account
+
+        let depository_record_bump =
+            Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
+        let depository_record_signer_seed: &[&[&[u8]]] = &[&[
+            RECORD_SEED,
+            coin_mint_key.as_ref(),
+            &[depository_record_bump],
+        ]];
+        let instruction = solana_program::instruction::Instruction {
+            program_id: ctx.accounts.mango_program.key(),
+            data: mango::instruction::MangoInstruction::InitMangoAccount.pack(),
+            accounts: vec![
+                AccountMeta::new_readonly(ctx.accounts.mango_group.key(), false),
+                AccountMeta::new(ctx.accounts.mango_account.key(), false),
+                AccountMeta::new_readonly(ctx.accounts.depository_record.key(), true),
+            ],
+        };
+        let account_infos = [
+            ctx.accounts.mango_program.to_account_info(),
+            ctx.accounts.mango_group.to_account_info(),
+            ctx.accounts.mango_account.to_account_info(),
+            ctx.accounts.depository_record.to_account_info(),
+        ];
+
+        solana_program::program::invoke_signed(
+            &instruction,
+            &account_infos,
+            depository_record_signer_seed,
+        )?;
 
         // - Set our depo record up
         // this later acts as proof we trust a given depository
@@ -344,12 +374,26 @@ pub struct RegisterDepository<'info> {
         space = ACCOUNT_SPAN,
     )]
     pub coin_passthrough: AccountInfo<'info>,
-    //pub mango_group: Box<Account<'info, MangoTester>>,
-    //pub mango_account: AccountInfo<'info>,
-    pub rent: Sysvar<'info, Rent>,
+    // The mango group for the mango_account
+    pub mango_group: AccountInfo<'info>,
+    // The mango account, uninitialized // Doesn't work wasn't using the good size 
+    /// Will try to use this later on to have the init in one place, not sure it plays nice with CPI
+    // #[account(
+    //     init,
+    //     seeds = [MANGO_SEED, coin_mint.key().as_ref()],
+    //     bump,
+    //     payer = authority,
+    //     owner = mango::mango_program::Mango::id(),
+    //     space = MANGO_ACCOUNT_SPAN,
+    // )]
+    #[account(mut, signer)] // CPI initialization
+    pub mango_account: AccountInfo<'info>,
+    // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    //pub mango_program: AccountInfo<'info>,
+    pub mango_program: Program<'info, mango_program::Mango>,
+    // sysvar
+    pub rent: Sysvar<'info, Rent>,
 }
 
 // XXX oki this shit is complicated lets see what all is here...
@@ -451,8 +495,6 @@ pub struct RedeemUxd<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub depository_program: Program<'info, Depository>,
-    pub mango_program: Program<'info, Mango>,
-    //pub mango_program: AccountInfo<'info>,
     // XXX FIXME below here is temporary
     // oracle: dumb hack for devnet, pending mango integration
     #[account(constraint = oracle.key() == depository_record.oracle_key)]

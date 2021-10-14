@@ -290,6 +290,10 @@ export function createAssocTokenIx(wallet: PublicKey, account: PublicKey, mint: 
   );
 }
 
+export async function getRentExemption(size: number): Promise<number> {
+  return await provider.connection.getMinimumBalanceForRentExemption(size, TXN_COMMIT);
+}
+
 export function getBalance(tokenAccount: PublicKey): Promise<number> {
   return provider.connection
     .getTokenAccountBalance(tokenAccount, TXN_COMMIT)
