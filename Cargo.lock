@@ -606,9 +606,9 @@ dependencies = [
 
 [[package]]
 name = "half"
-version = "1.7.1"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62aca2aba2d62b4a7f5b33f3712cb1b0692779a56fb510499d5c0aa594daeaf3"
+checksum = "ac5956d4e63858efaec57e0d6c1c2f6a41e1487f830314a324ccd7e2223a7ca0"
 
 [[package]]
 name = "hashbrown"
@@ -763,7 +763,7 @@ dependencies = [
 [[package]]
 name = "mango"
 version = "3.1.0"
-source = "git+https://github.com/acamill/mango-v3?branch=misc/program-id-for-idiomatic-anchor#bc06b99feb360d21f70f0acb60d6046fc49b05f4"
+source = "git+https://github.com/acamill/mango-v3?branch=misc/program-id-for-idiomatic-anchor#078bc30790940781f30a9354b1739d1ec1ff350e"
 dependencies = [
  "anchor-lang",
  "arrayref",
@@ -790,7 +790,7 @@ dependencies = [
 [[package]]
 name = "mango-common"
 version = "3.0.0"
-source = "git+https://github.com/acamill/mango-v3?branch=misc/program-id-for-idiomatic-anchor#bc06b99feb360d21f70f0acb60d6046fc49b05f4"
+source = "git+https://github.com/acamill/mango-v3?branch=misc/program-id-for-idiomatic-anchor#078bc30790940781f30a9354b1739d1ec1ff350e"
 dependencies = [
  "bytemuck",
  "solana-program",
@@ -799,7 +799,7 @@ dependencies = [
 [[package]]
 name = "mango-logs"
 version = "0.1.0"
-source = "git+https://github.com/acamill/mango-v3?branch=misc/program-id-for-idiomatic-anchor#bc06b99feb360d21f70f0acb60d6046fc49b05f4"
+source = "git+https://github.com/acamill/mango-v3?branch=misc/program-id-for-idiomatic-anchor#078bc30790940781f30a9354b1739d1ec1ff350e"
 dependencies = [
  "anchor-lang",
 ]
@@ -807,7 +807,7 @@ dependencies = [
 [[package]]
 name = "mango-macro"
 version = "3.0.0"
-source = "git+https://github.com/acamill/mango-v3?branch=misc/program-id-for-idiomatic-anchor#bc06b99feb360d21f70f0acb60d6046fc49b05f4"
+source = "git+https://github.com/acamill/mango-v3?branch=misc/program-id-for-idiomatic-anchor#078bc30790940781f30a9354b1739d1ec1ff350e"
 dependencies = [
  "bytemuck",
  "mango-common",
@@ -906,9 +906,9 @@ dependencies = [
 
 [[package]]
 name = "ppv-lite86"
-version = "0.2.10"
+version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac74c624d6b2d21f425f752262f42188365d7b8ff1aff74c82e45136510a4857"
+checksum = "c3ca011bd0129ff4ae15cd04c4eef202cadf6c51c21e47aba319b4e0501db741"
 
 [[package]]
 name = "proc-macro-crate"
@@ -1433,9 +1433,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.80"
+version = "1.0.74"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d010a1623fbd906d51d650a9916aaefc05ffa0e4053ff7fe601167f3e715d194"
+checksum = "1873d832550d4588c3dbc20f01361ab00bfe741048f71e3fecf145a7cc18b29c"
 dependencies = [
  "proc-macro2",
  "quote",
