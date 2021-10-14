@@ -1,11 +1,11 @@
 use anchor_lang::prelude::*;
 use anchor_lang::Key;
+use anchor_spl::token::InitializeAccount;
+use anchor_spl::token::InitializeMint;
 use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use depository::Depository;
 use pyth_client::Price;
-use solana_program::program::invoke_signed;
-use spl_token::instruction::{initialize_account, initialize_mint};
 use std::convert::TryFrom;
 
 const MINT_SPAN: usize = 82;
@@ -74,25 +74,24 @@ pub mod controller {
     // the key we pass in as authority *must* be retained/protected to add depositories
     pub fn new(ctx: Context<New>) -> ProgramResult {
         msg!("controller: new");
-        let accounts = ctx.accounts.to_account_infos();
 
-        let state_ctr = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id).1;
-        let uxd_ctr = Pubkey::find_program_address(&[UXD_SEED], ctx.program_id).1;
-
-        let uxd_seed: &[&[&[u8]]] = &[&[UXD_SEED, &[uxd_ctr]]];
-
-        let ix = initialize_mint(
-            &spl_token::ID,
-            &ctx.accounts.uxd_mint.key(),
-            &ctx.accounts.state.key(),
-            None,
-            UXD_DECIMAL,
-        )?;
-        invoke_signed(&ix, &accounts, uxd_seed)?;
-
-        ctx.accounts.state.bump = state_ctr;
+        // - Update state
+        let state_nonce = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id).1;
+        ctx.accounts.state.bump = state_nonce;
         ctx.accounts.state.authority_key = *ctx.accounts.authority.key;
         ctx.accounts.state.uxd_mint_key = *ctx.accounts.uxd_mint.key;
+
+        // - Initialize UXD Mint
+        let uxd_mint_nonce = Pubkey::find_program_address(&[UXD_SEED], ctx.program_id).1;
+        let uxd_mint_signer_seed: &[&[&[u8]]] = &[&[UXD_SEED, &[uxd_mint_nonce]]];
+        token::initialize_mint(
+            ctx.accounts
+                .into_initialize_uxd_mint_context()
+                .with_signer(uxd_mint_signer_seed),
+            UXD_DECIMAL,
+            &ctx.accounts.state.key(),
+            None,
+        )?;
 
         Ok(())
     }
@@ -109,28 +108,29 @@ pub mod controller {
         oracle_key: Pubkey,
     ) -> ProgramResult {
         msg!("controller: register depository");
-        let accounts = ctx.accounts.to_account_infos();
+
         let coin_mint_key = ctx.accounts.coin_mint.key();
 
-        let passthrough_ctr = Pubkey::find_program_address(
+        // - Initialize Passthrough
+        let passthrough_nonce = Pubkey::find_program_address(
             &[PASSTHROUGH_SEED, coin_mint_key.as_ref()],
             ctx.program_id,
         )
         .1;
-        let passthrough_seed: &[&[&[u8]]] =
-            &[&[PASSTHROUGH_SEED, coin_mint_key.as_ref(), &[passthrough_ctr]]];
-
+        let passthrough_signer_seed: &[&[&[u8]]] = &[&[
+            PASSTHROUGH_SEED,
+            coin_mint_key.as_ref(),
+            &[passthrough_nonce],
+        ]];
         // init the passthrough account we use to move funds between depository and mango
         // making our depo record rather than the contr state the owner for pleasing namespacing reasons
-        let ix = initialize_account(
-            &spl_token::ID,
-            &ctx.accounts.coin_passthrough.key(),
-            &coin_mint_key,
-            &ctx.accounts.depository_record.key(),
+        token::initialize_account(
+            ctx.accounts
+                .into_initialize_passthrough_account_context()
+                .with_signer(passthrough_signer_seed),
         )?;
-        invoke_signed(&ix, &accounts, passthrough_seed)?;
 
-        // XXX TODO CREATE MANGO ACCOUNT HERE
+        // - Create Mango Account TODO
         // it should also be owned by the depo record
         // XXX the below is copy-pasted from patrick code but need to check mango v3 code to see if anything changed
 
@@ -152,7 +152,8 @@ pub mod controller {
                 mango_tester::cpi::init_mango_account(mango_cpi_ctx);
         */
 
-        // set our depo record up. this later acts as proof we trust a given depository
+        // - Set our depo record up
+        // this later acts as proof we trust a given depository
         // we also use this to derive the depository state key, from which we get mint and account keys
         // creating a hierarchy of trust rooted at the authority key that instantiated the controller
         ctx.accounts.depository_record.bump =
@@ -168,26 +169,14 @@ pub mod controller {
     pub fn mint_uxd(ctx: Context<MintUxd>, coin_amount: u64) -> ProgramResult {
         msg!("controller: mint uxd");
 
-        // burn user redeemables and withdraw the coin to our passthrough account
-        //let depo_state: ProgramAccount<depository::State> = ctx.accounts.depository_state.from();
-        let withdraw_accounts = depository::cpi::accounts::Withdraw {
-            user: ctx.accounts.user.to_account_info(),
-            state: ctx.accounts.depository_state.to_account_info(),
-            program_coin: ctx.accounts.depository_coin.to_account_info(),
-            redeemable_mint: ctx.accounts.redeemable_mint.to_account_info(),
-            user_coin: ctx.accounts.coin_passthrough.to_account_info(),
-            user_redeemable: ctx.accounts.user_redeemable.to_account_info(),
-            system_program: ctx.accounts.system_program.to_account_info(),
-            token_program: ctx.accounts.token_program.to_account_info(),
-        };
+        // - Burn user redeemables and withdraw the coin to our passthrough account
+        // let depo_state: ProgramAccount<depository::State> = ctx.accounts.depository_state.from();
+        depository::cpi::withdraw(
+            ctx.accounts.into_withdraw_from_depsitory_context(),
+            Some(coin_amount),
+        )?;
 
-        let withdraw_ctx = CpiContext::new(
-            ctx.accounts.depository_program.to_account_info(),
-            withdraw_accounts,
-        );
-        depository::cpi::withdraw(withdraw_ctx, Some(coin_amount))?;
-
-        // TODO DEPOSIT TO MANGO AND OPEN POSITION HERE
+        // - Deposit to mango and open position TODO
 
         // XXX temporary hack, we use the registered oracle to get a coin price
         let oracle_data = ctx.accounts.oracle.try_borrow_data()?;
@@ -209,19 +198,14 @@ pub mod controller {
             .and_then(|n| u64::try_from(n).ok())
             .unwrap();
 
-        let mint_accounts = MintTo {
-            mint: ctx.accounts.uxd_mint.to_account_info(),
-            to: ctx.accounts.user_uxd.to_account_info(),
-            authority: ctx.accounts.state.to_account_info(),
-        };
-
-        let state_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
-        let mint_ctx = CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
-            mint_accounts,
-            state_seed,
-        );
-        token::mint_to(mint_ctx, position_uxd_value)?;
+        // - Mint UXD for redeemables
+        let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
+        token::mint_to(
+            ctx.accounts
+                .into_mint_uxd_context()
+                .with_signer(state_signer_seed),
+            position_uxd_value,
+        )?;
 
         Ok(())
     }
@@ -232,21 +216,13 @@ pub mod controller {
     pub fn redeem_uxd(ctx: Context<RedeemUxd>, uxd_amount: u64) -> ProgramResult {
         msg!("controller: redeem uxd");
 
-        // first burn the uxd theyre giving up
-        let burn_accounts = Burn {
-            mint: ctx.accounts.uxd_mint.to_account_info(),
-            to: ctx.accounts.user_uxd.to_account_info(),
-            authority: ctx.accounts.user.to_account_info(),
-        };
+        // - First burn the uxd theyre giving up
+        token::burn(ctx.accounts.into_burn_uxd_context(), uxd_amount)?;
 
-        let burn_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), burn_accounts);
-        token::burn(burn_ctx, uxd_amount)?;
-
+        // - Mango close positon and withdraw coin TODO
         // get current passthrough balance before withdrawing from mango
         // in theory this should always be zero but better safe
         let _passthrough_balance = ctx.accounts.coin_passthrough.amount;
-
-        // TODO MANGO CLOSE POSITION AND WITHDRAW COIN HERE
 
         // XXX TODO FIXME in theory we get a uxd amount, close out that much position, and withdraw whatever collateral results
         // and then return to the user whatever the passthrough difference is (altho it should normally be 0 balance)
@@ -271,30 +247,19 @@ pub mod controller {
             .and_then(|n| u64::try_from(n).ok())
             .unwrap();
 
-        // return mango money back to depository
-        let deposit_accounts = depository::cpi::accounts::Deposit {
-            user: ctx.accounts.depository_record.to_account_info(),
-            state: ctx.accounts.depository_state.to_account_info(),
-            program_coin: ctx.accounts.depository_coin.to_account_info(),
-            redeemable_mint: ctx.accounts.redeemable_mint.to_account_info(),
-            user_coin: ctx.accounts.coin_passthrough.to_account_info(),
-            user_redeemable: ctx.accounts.user_redeemable.to_account_info(),
-            system_program: ctx.accounts.system_program.to_account_info(),
-            token_program: ctx.accounts.token_program.to_account_info(),
-        };
-
+        // - Return mango money back to depository
         let coin_mint_key = ctx.accounts.coin_mint.key();
-        let record_seed: &[&[&[u8]]] = &[&[
+        let record_signer_seed: &[&[&[u8]]] = &[&[
             RECORD_SEED,
             coin_mint_key.as_ref(),
             &[ctx.accounts.depository_record.bump],
         ]];
-        let deposit_ctx = CpiContext::new_with_signer(
-            ctx.accounts.depository_program.to_account_info(),
-            deposit_accounts,
-            record_seed,
-        );
-        depository::cpi::deposit(deposit_ctx, collateral_amount)?;
+        depository::cpi::deposit(
+            ctx.accounts
+                .into_return_collateral_context()
+                .with_signer(record_signer_seed),
+            collateral_amount,
+        )?;
 
         Ok(())
     }
@@ -321,6 +286,7 @@ pub mod controller {
     //
 }
 
+// MARK: - Accounts Inputs  ---------------------------------------------------
 #[derive(Accounts)]
 pub struct New<'info> {
     #[account(mut)]
@@ -489,6 +455,8 @@ pub struct RedeemUxd<'info> {
     pub oracle: AccountInfo<'info>,
 }
 
+// MARK: - Accounts  ----------------------------------------------------------
+
 #[account]
 #[derive(Default)]
 pub struct State {
@@ -504,4 +472,92 @@ pub struct DepositoryRecord {
     // XXX temp for devnet
     oracle_key: Pubkey,
     // Seems useless but I realize that it will hold mango stuff. Should rename later? Or my english suck I'm dumb dumb
+}
+
+// MARK: - CONTEXTS  ----------------------------------------------------------
+
+impl<'info> New<'info> {
+    fn into_initialize_uxd_mint_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, InitializeMint<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = InitializeMint {
+            mint: self.uxd_mint.to_account_info(),
+            rent: self.rent.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+impl<'info> RegisterDepository<'info> {
+    fn into_initialize_passthrough_account_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, InitializeAccount<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = InitializeAccount {
+            account: self.coin_passthrough.to_account_info(),
+            mint: self.coin_mint.to_account_info(),
+            authority: self.depository_record.to_account_info(),
+            rent: self.rent.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+impl<'info> MintUxd<'info> {
+    fn into_withdraw_from_depsitory_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, depository::cpi::accounts::Withdraw<'info>> {
+        let cpi_program = self.depository_program.to_account_info();
+        let cpi_accounts = depository::cpi::accounts::Withdraw {
+            user: self.user.to_account_info(),
+            state: self.depository_state.to_account_info(),
+            program_coin: self.depository_coin.to_account_info(),
+            redeemable_mint: self.redeemable_mint.to_account_info(),
+            user_coin: self.coin_passthrough.to_account_info(),
+            user_redeemable: self.user_redeemable.to_account_info(),
+            system_program: self.system_program.to_account_info(),
+            token_program: self.token_program.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    fn into_mint_uxd_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = MintTo {
+            mint: self.uxd_mint.to_account_info(),
+            to: self.user_uxd.to_account_info(),
+            authority: self.state.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+impl<'info> RedeemUxd<'info> {
+    fn into_burn_uxd_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = Burn {
+            mint: self.uxd_mint.to_account_info(),
+            to: self.user_uxd.to_account_info(),
+            authority: self.user.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    fn into_return_collateral_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, depository::cpi::accounts::Deposit<'info>> {
+        let cpi_program = self.depository_program.to_account_info();
+        let cpi_accounts = depository::cpi::accounts::Deposit {
+            user: self.depository_record.to_account_info(),
+            state: self.depository_state.to_account_info(),
+            program_coin: self.depository_coin.to_account_info(),
+            redeemable_mint: self.redeemable_mint.to_account_info(),
+            user_coin: self.coin_passthrough.to_account_info(),
+            user_redeemable: self.user_redeemable.to_account_info(),
+            system_program: self.system_program.to_account_info(),
+            token_program: self.token_program.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
 }
