@@ -3,7 +3,7 @@ import { expect } from "chai";
 import * as anchor from "@project-serum/anchor";
 import { SystemProgram, SYSVAR_RENT_PUBKEY, PublicKey } from "@solana/web3.js";
 import { ControllerUXD } from "./utils/controller";
-import { createAssocTokenIx, getBalance, provider, testUtils, TXN_OPTS, wallet } from "./utils/utils";
+import { createAssocTokenIx, getBalance, testUtils, TXN_OPTS, wallet } from "./utils/utils";
 import { Depository } from "./utils/depository";
 import { BTC_DECIMAL, createTestUser, SOL_DECIMAL, TestUser, UXD_DECIMAL } from "./utils/utils";
 import { btc, depositoryBTC, depositorySOL, sol } from "./test_integration_admin";
@@ -19,6 +19,9 @@ let userSOLDepRedeemableTokenAccount: PublicKey;
 let userBTCTokenAccount: PublicKey;
 let userSOLTokenAccount: PublicKey;
 let userUXDTokenAccount: PublicKey;
+
+// TODO add multi users tests, how will the depository behave when managing several users.
+// TODO add should fail tests
 
 async function printSystemBalance(depository: Depository) {
   const SYM = depository.collateralName;
@@ -100,24 +103,22 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     await printSystemBalance(depositoryBTC);
   });
 
-  it("User Deposit BTC collateral first time", async () => {
+  it("User Deposit 0.45 BTC collateral", async () => {
     // Given
-    const depositAmountBTC = new anchor.BN(0.45 * 10 ** BTC_DECIMAL);
-    const expectedUserBTCBalance = 0.55;
-    const expectedDepositoryBTCBalance = 0.45;
-    const expectedRedeemableBalance = 0.45;
+    let _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
+    const depositAmountBTC = 0.45;
+    const _expectedUserBTCBalance = _userBTCTokenAccountBalance - 0.45;
+    const _expectedDepositoryBTCBalance = depositAmountBTC;
+    const _expectedUserRedeemableBalance = depositAmountBTC;
 
     // When
-    // CREATE HIS account cause first time - can be offloaded in the program. I tried, but that force to have a
-    // new program call like "init_user_token_acc", cause this nice idl language don't supper get_or_init behaviour yet
-    // This is not tied to here actually. Should call it elsewhere with a "if not exist do it"
     const ix = createAssocTokenIx(
       user.wallet.publicKey,
       userBTCDepRedeemableTokenAccount,
       depositoryBTC.redeemableMintPda
     );
 
-    await Depository.rpc.deposit(depositAmountBTC, {
+    await Depository.rpc.deposit(new anchor.BN(depositAmountBTC * 10 ** BTC_DECIMAL), {
       accounts: {
         user: user.wallet.publicKey,
         state: depositoryBTC.statePda,
@@ -134,26 +135,25 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     });
 
     // Then
-    const _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
+    _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
     const _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
     const _userBTCDepRedeemableBalance = await getBalance(userBTCDepRedeemableTokenAccount);
 
-    expect(_userBTCTokenAccountBalance).to.equal(expectedUserBTCBalance);
-    expect(_depositoryBTCTokenAccountBalance).to.equal(expectedDepositoryBTCBalance);
-    expect(_userBTCDepRedeemableBalance).to.equal(expectedRedeemableBalance);
+    // Check that the balances are correct
+    expect(_userBTCTokenAccountBalance).to.equal(_expectedUserBTCBalance);
+    expect(_depositoryBTCTokenAccountBalance).to.equal(_expectedDepositoryBTCBalance);
+    expect(_userBTCDepRedeemableBalance).to.equal(_expectedUserRedeemableBalance);
   });
 
-  it("Mint UXD (BTC depository)", async () => {
+  it("Mint UXD worth 0.4 BTC", async () => {
     // GIVEN
-    const redeemableAmountToConvert = new anchor.BN(0.4 * 10 ** BTC_DECIMAL);
-    // XXX TODO get oracle price, and substract value here -- JANKY need to think
-    // const expectedUserUXDBalance = userUXDBalance; //.sub(convertCollateralAmount);// * oraclePrice);
-    // const expectedDepositoryBTCBalance = depositoryBTCBalance.sub(convertCollateralAmount);
+    const redeemableAmountToConvert = 0.4;
+    let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
+    const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - redeemableAmountToConvert;
 
     // WHEN
-    // Same as above
     const ix = createAssocTokenIx(user.wallet.publicKey, userUXDTokenAccount, ControllerUXD.mintPda);
-    await ControllerUXD.rpc.mintUxd(redeemableAmountToConvert, {
+    await ControllerUXD.rpc.mintUxd(new anchor.BN(redeemableAmountToConvert * 10 ** BTC_DECIMAL), {
       accounts: {
         user: user.wallet.publicKey,
         state: ControllerUXD.statePda,
@@ -178,19 +178,20 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     });
 
     // Then
-    // const _userUXDBalance = await getUserTokenBalance(controllerUXD.uxdMintPda);
-    // const _depositoryBTCTokenAccount = await mintBTC.getAccountInfo(depositoryBTC.depositPda);
-    // // assert(_userUXDBalance == expectedUserUXDBalance.toNumber(), "Invalid user's UXD balance");
-    // assert.equal(
-    //   _depositoryBTCTokenAccount.amount.toNumber(),
-    //   expectedDepositoryBTCBalance.toNumber(),
-    //   "Invalid depository's BTC balance"
-    // );
+    _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
+    expect(_depositoryBTCTokenAccountBalance).to.closeTo(_expectedDepositoryBTCBalance, 0.000_000_000_1);
+
+    // TODO check user UXD balance
   });
 
-  it("Redeem UXD", async () => {
-    let amountUXD = new anchor.BN(500 * 10 ** UXD_DECIMAL);
-    await ControllerUXD.rpc.redeemUxd(amountUXD, {
+  it("Redeem 500 UXD", async () => {
+    // GIVEN
+    const amountUXD = 500;
+    let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+    const _expectedUserUXDBalance = _userUXDTokenAccountBalance - amountUXD;
+
+    // WHEN
+    await ControllerUXD.rpc.redeemUxd(new anchor.BN(amountUXD * 10 ** UXD_DECIMAL), {
       accounts: {
         user: user.wallet.publicKey,
         state: ControllerUXD.statePda,
@@ -213,18 +214,120 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
       signers: [user.wallet],
       options: TXN_OPTS,
     });
+
+    // THEN
+    _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+    expect(_userUXDTokenAccountBalance).to.closeTo(_expectedUserUXDBalance, 0.000_000_000_1);
   });
 
-  it("Withdraw UXD (all) BTC depository", async () => {
+  it("Withdraw 0.02 BTC from depository", async () => {
     // GIVEN
-    // const _userUXDBalance = await getUserTokenBalance(controllerUXD.uxdMintPda);
-    // const _depositoryBTCTokenAccount = await mintBTC.getAccountInfo(depositoryBTC.depositPda);
-    // // XXX TODO get oracle price, and substract value here -- JANKY need to think
-    // const expectedUserUXDBalance = userUXDBalance; //.sub(convertCollateralAmount);// * oraclePrice);
-    // const expectedDepositoryBTCBalance = depositoryBTCBalance.sub(convertCollateralAmount);
+    const amountBTC = 0.02;
+    let _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
+    let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
+    const _expectedUserBTCBalance = _userBTCTokenAccountBalance + amountBTC;
+    const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - amountBTC;
 
     // WHEN
-    await Depository.rpc.withdraw(null, {
+    await Depository.rpc.withdraw(new anchor.BN(amountBTC * 10 ** BTC_DECIMAL), {
+      accounts: {
+        user: user.wallet.publicKey,
+        state: depositoryBTC.statePda,
+        programCoin: depositoryBTC.depositPda,
+        redeemableMint: depositoryBTC.redeemableMintPda,
+        userCoin: userBTCTokenAccount,
+        userRedeemable: userBTCDepRedeemableTokenAccount,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+      signers: [user.wallet],
+      options: TXN_OPTS,
+    });
+
+    // THEN
+    _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
+    _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
+    expect(_userBTCTokenAccountBalance).to.closeTo(_expectedUserBTCBalance, 0.000_000_000_1);
+    expect(_depositoryBTCTokenAccountBalance).to.closeTo(_expectedDepositoryBTCBalance, 0.000_000_000_1);
+  });
+
+  it("Withdraw 0.01 BTC from depository", async () => {
+    // GIVEN
+    const amountBTC = 0.01; // <=> to withdraw all
+    let _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
+    let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
+    const _expectedUserBTCBalance = _userBTCTokenAccountBalance + amountBTC;
+    const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - amountBTC;
+
+    // WHEN
+    await Depository.rpc.withdraw(new anchor.BN(amountBTC * 10 ** BTC_DECIMAL), {
+      accounts: {
+        user: user.wallet.publicKey,
+        state: depositoryBTC.statePda,
+        programCoin: depositoryBTC.depositPda,
+        redeemableMint: depositoryBTC.redeemableMintPda,
+        userCoin: userBTCTokenAccount,
+        userRedeemable: userBTCDepRedeemableTokenAccount,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+      signers: [user.wallet],
+      options: TXN_OPTS,
+    });
+
+    // THEN
+    _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
+    _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
+    expect(_userBTCTokenAccountBalance).to.closeTo(_expectedUserBTCBalance, 0.000_000_000_1);
+    expect(_depositoryBTCTokenAccountBalance).to.closeTo(_expectedDepositoryBTCBalance, 0.000_000_000_1);
+  });
+
+  it("Redeem all remaining UXD", async () => {
+    // GIVEN
+    let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+    const amountUXD = _userUXDTokenAccountBalance;
+    const _expectedUserUXDBalance = 0;
+
+    // WHEN
+    await ControllerUXD.rpc.redeemUxd(new anchor.BN(amountUXD * 10 ** UXD_DECIMAL), {
+      accounts: {
+        user: user.wallet.publicKey,
+        state: ControllerUXD.statePda,
+        depositoryRecord: ControllerUXD.depositoryRecordPda(depositoryBTC.collateralMint),
+        depositoryState: depositoryBTC.statePda,
+        depositoryCoin: depositoryBTC.depositPda,
+        coinMint: depositoryBTC.collateralMint.publicKey,
+        coinPassthrough: ControllerUXD.coinPassthroughPda(depositoryBTC.collateralMint),
+        redeemableMint: depositoryBTC.redeemableMintPda,
+        userRedeemable: userBTCDepRedeemableTokenAccount,
+        userUxd: userUXDTokenAccount,
+        uxdMint: ControllerUXD.mintPda,
+        rent: SYSVAR_RENT_PUBKEY,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        depositoryProgram: Depository.ProgramId,
+        associatedSystemProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        oracle: depositoryBTC.oraclePriceAccount,
+      },
+      signers: [user.wallet],
+      options: TXN_OPTS,
+    });
+
+    // THEN
+    _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+    expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
+  });
+
+  it("Withdraw BTC (all) from depository", async () => {
+    // GIVEN
+    const amountBTC = null; // <=> to withdraw all
+    // let _userBTCTokenAccountBalance = await getBalance(userUXDTokenAccount);
+    // let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
+    // const _expectedUserBTCBalance = _userBTCTokenAccountBalance + ;
+    // const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - amountBTC.toNumber();
+
+    // WHEN
+    await Depository.rpc.withdraw(amountBTC, {
       accounts: {
         user: user.wallet.publicKey,
         state: depositoryBTC.statePda,
