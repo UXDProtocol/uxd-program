@@ -20,18 +20,18 @@ export class ControllerUXD {
   public static statePda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.State);
   public static mintPda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.UXD);
 
-  public static depositoryRecordPda(collateralMint: Token): PublicKey {
+  public static depositoryRecordPda(collateralMint: PublicKey): PublicKey {
     return utils.findProgramAddressSync(ControllerUXD.ProgramId, [
       Buffer.from(ControllerPDASeed.Record),
-      collateralMint.publicKey.toBuffer(),
+      collateralMint.toBuffer(),
     ])[0];
   }
 
   // This pda is function of the depository mint
-  public static coinPassthroughPda(collateralMint: Token): PublicKey {
+  public static coinPassthroughPda(collateralMint: PublicKey): PublicKey {
     return utils.findProgramAddressSync(ControllerUXD.ProgramId, [
       Buffer.from(ControllerPDASeed.Passthrough),
-      collateralMint.publicKey.toBuffer(),
+      collateralMint.toBuffer(),
     ])[0];
   }
 

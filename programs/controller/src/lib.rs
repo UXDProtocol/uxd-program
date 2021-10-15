@@ -182,7 +182,8 @@ pub mod controller {
         // - Burn user redeemables and withdraw the coin to our passthrough account
         // let depo_state: ProgramAccount<depository::State> = ctx.accounts.depository_state.from();
         depository::cpi::withdraw(
-            ctx.accounts.into_withdraw_from_depsitory_context(),
+            ctx.accounts
+                .into_withdraw_from_depsitory_to_passthrough_context(),
             Some(coin_amount),
         )?;
 
@@ -219,7 +220,7 @@ pub mod controller {
             ctx.accounts.mango_group.to_account_info(),
             ctx.accounts.mango_account.to_account_info(),
             ctx.accounts.depository_record.to_account_info(),
-            ctx.accounts.mango_vault.to_account_info(),
+            ctx.accounts.mango_cache.to_account_info(),
             ctx.accounts.mango_root_bank.to_account_info(),
             ctx.accounts.mango_node_bank.to_account_info(),
             ctx.accounts.mango_vault.to_account_info(),
@@ -576,7 +577,7 @@ impl<'info> RegisterDepository<'info> {
 }
 
 impl<'info> MintUxd<'info> {
-    fn into_withdraw_from_depsitory_context(
+    fn into_withdraw_from_depsitory_to_passthrough_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, depository::cpi::accounts::Withdraw<'info>> {
         let cpi_program = self.depository_program.to_account_info();

@@ -388,6 +388,7 @@ dependencies = [
  "anchor-spl",
  "depository",
  "mango",
+ "pyth-client",
  "solana-program",
  "spl-token",
 ]
@@ -973,6 +974,12 @@ dependencies = [
  "version_check",
  "yansi",
 ]
+
+[[package]]
+name = "pyth-client"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44de48029c54ec1ca570786b5baeb906b0fc2409c8e0145585e287ee7a526c72"
 
 [[package]]
 name = "quick-protobuf"
