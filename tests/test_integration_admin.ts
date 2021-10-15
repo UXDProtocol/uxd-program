@@ -12,6 +12,7 @@ import {
   TXN_OPTS,
   utils,
   getRentExemption,
+  connection,
 } from "./utils/utils";
 import { expect } from "chai";
 import { MANGO_PROGRAM_ID } from "./utils/mango";
@@ -42,18 +43,24 @@ before("Setup mints and depositories", async () => {
 before("Standard Administrative flow for UXD Controller and depositories", () => {
   it("Create UXD Controller", async () => {
     // WHEN
-    await ControllerUXD.rpc.new({
-      accounts: {
-        authority: admin.wallet.publicKey,
-        state: ControllerUXD.statePda,
-        uxdMint: ControllerUXD.mintPda,
-        rent: SYSVAR_RENT_PUBKEY,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-      signers: [admin.wallet],
-      options: TXN_OPTS,
-    });
+    if (await connection.getAccountInfo(ControllerUXD.statePda)) {
+      // We don't really want to have non exactly reproducible, but with the localnet pinned adresses
+      // Temporary
+      console.log("Controller already initialized...");
+    } else {
+      await ControllerUXD.rpc.new({
+        accounts: {
+          authority: admin.wallet.publicKey,
+          state: ControllerUXD.statePda,
+          uxdMint: ControllerUXD.mintPda,
+          rent: SYSVAR_RENT_PUBKEY,
+          systemProgram: SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        },
+        signers: [admin.wallet],
+        options: TXN_OPTS,
+      });
+    }
 
     // THEN
     // XXX add asserts
@@ -99,7 +106,7 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
 
   it("Register BTC Depository with Controller", async () => {
     // Given
-    const [depositoryRecordPda, _n1] = ControllerUXD.depositoryRecordPda(depositoryBTC.collateralMint);
+    const depositoryRecordPda = ControllerUXD.depositoryRecordPda(depositoryBTC.collateralMint);
     const mangoAccount = new Keypair();
 
     const createMangoAccountIx = SystemProgram.createAccount({

@@ -22,10 +22,9 @@ impl anchor_lang::Id for Mango {
     }
 }
 
-///////////
-/// Might be usefull for other calls
-/// Thing is this PR is light but I tried many differents things, up to rewritting part of mango.. to make it more anchor compatible.
-/// But it doesn't matter, let's just start raw and improve later.
+// Might be usefull for other calls
+// Thing is this PR is light but I tried many differents things, up to rewritting part of mango.. to make it more anchor compatible.
+// But it doesn't matter, let's just start raw and improve later.
 
 // pub fn initialize_mango_account<'a, 'b, 'c, 'info>(
 //     ctx: CpiContext<'a, 'b, 'c, 'info, InitializeMangoAccount<'info>>,
