@@ -125,7 +125,7 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
         depositoryState: depositoryBTC.statePda,
         coinMint: depositoryBTC.collateralMint.publicKey,
         coinPassthrough: ControllerUXD.coinPassthroughPda(depositoryBTC.collateralMint),
-        mangoGroup: utils.mango.mangoGroup.publicKey,
+        mangoGroup: utils.mango.group.publicKey,
         mangoAccount: depositoryBTC.mangoAccount.publicKey,
         rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,

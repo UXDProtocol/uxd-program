@@ -186,10 +186,52 @@ pub mod controller {
             Some(coin_amount),
         )?;
 
-        // - Deposit to mango and open position TODO
+        // - Deposit to mango and open position
+        let coin_mint_key = ctx.accounts.coin_mint.key();
+        let depository_record_bump =
+            Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
+        let depository_record_signer_seed: &[&[&[u8]]] = &[&[
+            RECORD_SEED,
+            coin_mint_key.as_ref(),
+            &[depository_record_bump],
+        ]];
+        let instruction = solana_program::instruction::Instruction {
+            program_id: ctx.accounts.mango_program.key(),
+            data: mango::instruction::MangoInstruction::Deposit {
+                quantity: coin_amount,
+            }
+            .pack(),
+            accounts: vec![
+                AccountMeta::new_readonly(ctx.accounts.mango_group.key(), false),
+                AccountMeta::new(ctx.accounts.mango_account.key(), false),
+                AccountMeta::new_readonly(ctx.accounts.depository_record.key(), true),
+                AccountMeta::new_readonly(ctx.accounts.mango_cache.key(), false),
+                AccountMeta::new_readonly(ctx.accounts.mango_root_bank.key(), false),
+                AccountMeta::new(ctx.accounts.mango_node_bank.key(), false),
+                AccountMeta::new(ctx.accounts.mango_vault.key(), false),
+                AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
+                AccountMeta::new(ctx.accounts.coin_passthrough.key(), false),
+            ],
+        };
 
-        // /////////
-        
+        let account_infos = [
+            ctx.accounts.mango_program.to_account_info(),
+            ctx.accounts.mango_group.to_account_info(),
+            ctx.accounts.mango_account.to_account_info(),
+            ctx.accounts.depository_record.to_account_info(),
+            ctx.accounts.mango_vault.to_account_info(),
+            ctx.accounts.mango_root_bank.to_account_info(),
+            ctx.accounts.mango_node_bank.to_account_info(),
+            ctx.accounts.mango_vault.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            ctx.accounts.coin_passthrough.to_account_info(),
+        ];
+
+        solana_program::program::invoke_signed(
+            &instruction,
+            &account_infos,
+            depository_record_signer_seed,
+        )?;
         // /////////
 
         // XXX temporary hack, we use the registered oracle to get a coin price
@@ -359,7 +401,7 @@ pub struct RegisterDepository<'info> {
     // The mango group for the mango_account
     pub mango_group: AccountInfo<'info>,
     // The mango account, uninitialized
-    #[account(mut, signer)] 
+    #[account(mut, signer)]
     pub mango_account: AccountInfo<'info>,
     // programs
     pub system_program: Program<'info, System>,
@@ -417,14 +459,24 @@ pub struct MintUxd<'info> {
     pub user_uxd: Box<Account<'info, TokenAccount>>,
     #[account(mut, seeds = [UXD_SEED], bump)]
     pub uxd_mint: Box<Account<'info, Mint>>,
-    // XXX MANGO ACCOUNTS GO HERE
+    // XXX start mango ------------------
+    // MangoGroup that this mango account is for
+    pub mango_group: AccountInfo<'info>,
+    // Mango Account of the Depository Record
+    #[account(mut)]
+    pub mango_account: AccountInfo<'info>,
+    pub mango_cache: AccountInfo<'info>,
+    pub mango_root_bank: AccountInfo<'info>,
+    #[account(mut)]
+    pub mango_node_bank: AccountInfo<'info>,
+    #[account(mut)]
+    pub mango_vault: Account<'info, TokenAccount>,
+    // XXX end mango --------------------
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub depository_program: Program<'info, Depository>,
-    //pub mango_program: AccountInfo<'info>,
-    // XXX FIXME below here is temporary
-    // oracle: dumb hack for devnet, pending mango integration
+    pub mango_program: Program<'info, mango_program::Mango>,
     #[account(constraint = oracle.key() == depository_record.oracle_key)]
     pub oracle: AccountInfo<'info>,
 }

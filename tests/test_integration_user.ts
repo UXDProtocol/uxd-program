@@ -3,7 +3,7 @@ import { expect } from "chai";
 import * as anchor from "@project-serum/anchor";
 import { SystemProgram, SYSVAR_RENT_PUBKEY, PublicKey } from "@solana/web3.js";
 import { ControllerUXD } from "./utils/controller";
-import { createAssocTokenIx, getBalance, utils, TXN_OPTS, wallet } from "./utils/utils";
+import { createAssocTokenIx, getBalance, utils, TXN_OPTS, wallet, connection } from "./utils/utils";
 import { Depository } from "./utils/depository";
 import { BTC_DECIMAL, createTestUser, SOL_DECIMAL, TestUser, UXD_DECIMAL } from "./utils/utils";
 import { btc, depositoryBTC, depositorySOL, sol } from "./test_integration_admin";
@@ -154,6 +154,17 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - redeemableAmountToConvert;
 
     // WHEN
+    const depositedTokenMint = depositoryBTC.collateralMint.publicKey;
+    console.log(`* token mint ${depositedTokenMint}`);
+    console.log(`* mango group ${utils.mango.group.publicKey}`);
+    console.log(`* mango acc ${depositoryBTC.mangoAccount.publicKey}`);
+    console.log(`* mango cache ${utils.mango.group.mangoCache}`);
+    const rootBank = await utils.mango.getRootBankForToken(depositedTokenMint);
+    const nodeBank = await utils.mango.getNodeBankFor(depositedTokenMint, rootBank);
+    console.log(`* rootbank ${rootBank.publicKey}`);
+    console.log(`* nodebank ${nodeBank.publicKey}`);
+    console.log(`* vault ${nodeBank.vault}`);
+
     const ix = createAssocTokenIx(user.wallet.publicKey, userUXDTokenAccount, ControllerUXD.mintPda);
     await ControllerUXD.rpc.mintUxd(new anchor.BN(redeemableAmountToConvert * 10 ** BTC_DECIMAL), {
       accounts: {
@@ -168,11 +179,21 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
         userRedeemable: userBTCDepRedeemableTokenAccount,
         userUxd: userUXDTokenAccount,
         uxdMint: ControllerUXD.mintPda,
-        rent: SYSVAR_RENT_PUBKEY,
+        oracle: depositoryBTC.oraclePriceAccount,
+        // mango stuff
+        mangoGroup: utils.mango.group.publicKey,
+        mangoAccount: depositoryBTC.mangoAccount.publicKey,
+        mangoCache: utils.mango.group.mangoCache,
+        mangoRootBank: rootBank.publicKey,
+        mangoNodeBank: nodeBank.publicKey,
+        mangoVault: nodeBank.vault,
+        //
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         depositoryProgram: Depository.ProgramId,
-        oracle: depositoryBTC.oraclePriceAccount,
+        mango_program: MANGO_PROGRAM_ID,
+        //
+        rent: SYSVAR_RENT_PUBKEY,
       },
       signers: [user.wallet],
       options: TXN_OPTS,
@@ -186,164 +207,164 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     // TODO check user UXD balance
   });
 
-  it("Redeem 500 UXD", async () => {
-    // GIVEN
-    const amountUXD = 500;
-    let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-    const _expectedUserUXDBalance = _userUXDTokenAccountBalance - amountUXD;
+  // it("Redeem 500 UXD", async () => {
+  //   // GIVEN
+  //   const amountUXD = 500;
+  //   let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+  //   const _expectedUserUXDBalance = _userUXDTokenAccountBalance - amountUXD;
 
-    // WHEN
-    await ControllerUXD.rpc.redeemUxd(new anchor.BN(amountUXD * 10 ** UXD_DECIMAL), {
-      accounts: {
-        user: user.wallet.publicKey,
-        state: ControllerUXD.statePda,
-        depositoryRecord: ControllerUXD.depositoryRecordPda(depositoryBTC.collateralMint),
-        depositoryState: depositoryBTC.statePda,
-        depositoryCoin: depositoryBTC.depositPda,
-        coinMint: depositoryBTC.collateralMint.publicKey,
-        coinPassthrough: ControllerUXD.coinPassthroughPda(depositoryBTC.collateralMint),
-        redeemableMint: depositoryBTC.redeemableMintPda,
-        userRedeemable: userBTCDepRedeemableTokenAccount,
-        userUxd: userUXDTokenAccount,
-        uxdMint: ControllerUXD.mintPda,
-        rent: SYSVAR_RENT_PUBKEY,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        depositoryProgram: Depository.ProgramId,
-        mangoProgram: MANGO_PROGRAM_ID,
-        associatedSystemProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-        oracle: depositoryBTC.oraclePriceAccount,
-      },
-      signers: [user.wallet],
-      options: TXN_OPTS,
-    });
+  //   // WHEN
+  //   await ControllerUXD.rpc.redeemUxd(new anchor.BN(amountUXD * 10 ** UXD_DECIMAL), {
+  //     accounts: {
+  //       user: user.wallet.publicKey,
+  //       state: ControllerUXD.statePda,
+  //       depositoryRecord: ControllerUXD.depositoryRecordPda(depositoryBTC.collateralMint),
+  //       depositoryState: depositoryBTC.statePda,
+  //       depositoryCoin: depositoryBTC.depositPda,
+  //       coinMint: depositoryBTC.collateralMint.publicKey,
+  //       coinPassthrough: ControllerUXD.coinPassthroughPda(depositoryBTC.collateralMint),
+  //       redeemableMint: depositoryBTC.redeemableMintPda,
+  //       userRedeemable: userBTCDepRedeemableTokenAccount,
+  //       userUxd: userUXDTokenAccount,
+  //       uxdMint: ControllerUXD.mintPda,
+  //       rent: SYSVAR_RENT_PUBKEY,
+  //       systemProgram: SystemProgram.programId,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //       depositoryProgram: Depository.ProgramId,
+  //       mangoProgram: MANGO_PROGRAM_ID,
+  //       associatedSystemProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+  //       oracle: depositoryBTC.oraclePriceAccount,
+  //     },
+  //     signers: [user.wallet],
+  //     options: TXN_OPTS,
+  //   });
 
-    // THEN
-    _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-    expect(_userUXDTokenAccountBalance).to.closeTo(_expectedUserUXDBalance, 0.000_000_000_1);
-  });
+  //   // THEN
+  //   _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+  //   expect(_userUXDTokenAccountBalance).to.closeTo(_expectedUserUXDBalance, 0.000_000_000_1);
+  // });
 
-  it("Withdraw 0.02 BTC from depository", async () => {
-    // GIVEN
-    const amountBTC = 0.02;
-    let _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
-    let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-    const _expectedUserBTCBalance = _userBTCTokenAccountBalance + amountBTC;
-    const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - amountBTC;
+  // it("Withdraw 0.02 BTC from depository", async () => {
+  //   // GIVEN
+  //   const amountBTC = 0.02;
+  //   let _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
+  //   let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
+  //   const _expectedUserBTCBalance = _userBTCTokenAccountBalance + amountBTC;
+  //   const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - amountBTC;
 
-    // WHEN
-    await Depository.rpc.withdraw(new anchor.BN(amountBTC * 10 ** BTC_DECIMAL), {
-      accounts: {
-        user: user.wallet.publicKey,
-        state: depositoryBTC.statePda,
-        programCoin: depositoryBTC.depositPda,
-        redeemableMint: depositoryBTC.redeemableMintPda,
-        userCoin: userBTCTokenAccount,
-        userRedeemable: userBTCDepRedeemableTokenAccount,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-      signers: [user.wallet],
-      options: TXN_OPTS,
-    });
+  //   // WHEN
+  //   await Depository.rpc.withdraw(new anchor.BN(amountBTC * 10 ** BTC_DECIMAL), {
+  //     accounts: {
+  //       user: user.wallet.publicKey,
+  //       state: depositoryBTC.statePda,
+  //       programCoin: depositoryBTC.depositPda,
+  //       redeemableMint: depositoryBTC.redeemableMintPda,
+  //       userCoin: userBTCTokenAccount,
+  //       userRedeemable: userBTCDepRedeemableTokenAccount,
+  //       systemProgram: SystemProgram.programId,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //     },
+  //     signers: [user.wallet],
+  //     options: TXN_OPTS,
+  //   });
 
-    // THEN
-    _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
-    _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-    expect(_userBTCTokenAccountBalance).to.closeTo(_expectedUserBTCBalance, 0.000_000_000_1);
-    expect(_depositoryBTCTokenAccountBalance).to.closeTo(_expectedDepositoryBTCBalance, 0.000_000_000_1);
-  });
+  //   // THEN
+  //   _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
+  //   _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
+  //   expect(_userBTCTokenAccountBalance).to.closeTo(_expectedUserBTCBalance, 0.000_000_000_1);
+  //   expect(_depositoryBTCTokenAccountBalance).to.closeTo(_expectedDepositoryBTCBalance, 0.000_000_000_1);
+  // });
 
-  it("Withdraw 0.01 BTC from depository", async () => {
-    // GIVEN
-    const amountBTC = 0.01; // <=> to withdraw all
-    let _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
-    let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-    const _expectedUserBTCBalance = _userBTCTokenAccountBalance + amountBTC;
-    const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - amountBTC;
+  // it("Withdraw 0.01 BTC from depository", async () => {
+  //   // GIVEN
+  //   const amountBTC = 0.01; // <=> to withdraw all
+  //   let _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
+  //   let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
+  //   const _expectedUserBTCBalance = _userBTCTokenAccountBalance + amountBTC;
+  //   const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - amountBTC;
 
-    // WHEN
-    await Depository.rpc.withdraw(new anchor.BN(amountBTC * 10 ** BTC_DECIMAL), {
-      accounts: {
-        user: user.wallet.publicKey,
-        state: depositoryBTC.statePda,
-        programCoin: depositoryBTC.depositPda,
-        redeemableMint: depositoryBTC.redeemableMintPda,
-        userCoin: userBTCTokenAccount,
-        userRedeemable: userBTCDepRedeemableTokenAccount,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-      signers: [user.wallet],
-      options: TXN_OPTS,
-    });
+  //   // WHEN
+  //   await Depository.rpc.withdraw(new anchor.BN(amountBTC * 10 ** BTC_DECIMAL), {
+  //     accounts: {
+  //       user: user.wallet.publicKey,
+  //       state: depositoryBTC.statePda,
+  //       programCoin: depositoryBTC.depositPda,
+  //       redeemableMint: depositoryBTC.redeemableMintPda,
+  //       userCoin: userBTCTokenAccount,
+  //       userRedeemable: userBTCDepRedeemableTokenAccount,
+  //       systemProgram: SystemProgram.programId,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //     },
+  //     signers: [user.wallet],
+  //     options: TXN_OPTS,
+  //   });
 
-    // THEN
-    _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
-    _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-    expect(_userBTCTokenAccountBalance).to.closeTo(_expectedUserBTCBalance, 0.000_000_000_1);
-    expect(_depositoryBTCTokenAccountBalance).to.closeTo(_expectedDepositoryBTCBalance, 0.000_000_000_1);
-  });
+  //   // THEN
+  //   _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
+  //   _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
+  //   expect(_userBTCTokenAccountBalance).to.closeTo(_expectedUserBTCBalance, 0.000_000_000_1);
+  //   expect(_depositoryBTCTokenAccountBalance).to.closeTo(_expectedDepositoryBTCBalance, 0.000_000_000_1);
+  // });
 
-  it("Redeem all remaining UXD", async () => {
-    // GIVEN
-    let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-    const amountUXD = _userUXDTokenAccountBalance;
-    const _expectedUserUXDBalance = 0;
+  // it("Redeem all remaining UXD", async () => {
+  //   // GIVEN
+  //   let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+  //   const amountUXD = _userUXDTokenAccountBalance;
+  //   const _expectedUserUXDBalance = 0;
 
-    // WHEN
-    await ControllerUXD.rpc.redeemUxd(new anchor.BN(amountUXD * 10 ** UXD_DECIMAL), {
-      accounts: {
-        user: user.wallet.publicKey,
-        state: ControllerUXD.statePda,
-        depositoryRecord: ControllerUXD.depositoryRecordPda(depositoryBTC.collateralMint),
-        depositoryState: depositoryBTC.statePda,
-        depositoryCoin: depositoryBTC.depositPda,
-        coinMint: depositoryBTC.collateralMint.publicKey,
-        coinPassthrough: ControllerUXD.coinPassthroughPda(depositoryBTC.collateralMint),
-        redeemableMint: depositoryBTC.redeemableMintPda,
-        userRedeemable: userBTCDepRedeemableTokenAccount,
-        userUxd: userUXDTokenAccount,
-        uxdMint: ControllerUXD.mintPda,
-        rent: SYSVAR_RENT_PUBKEY,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        depositoryProgram: Depository.ProgramId,
-        mangoProgram: MANGO_PROGRAM_ID,
-        associatedSystemProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-        oracle: depositoryBTC.oraclePriceAccount,
-      },
-      signers: [user.wallet],
-      options: TXN_OPTS,
-    });
+  //   // WHEN
+  //   await ControllerUXD.rpc.redeemUxd(new anchor.BN(amountUXD * 10 ** UXD_DECIMAL), {
+  //     accounts: {
+  //       user: user.wallet.publicKey,
+  //       state: ControllerUXD.statePda,
+  //       depositoryRecord: ControllerUXD.depositoryRecordPda(depositoryBTC.collateralMint),
+  //       depositoryState: depositoryBTC.statePda,
+  //       depositoryCoin: depositoryBTC.depositPda,
+  //       coinMint: depositoryBTC.collateralMint.publicKey,
+  //       coinPassthrough: ControllerUXD.coinPassthroughPda(depositoryBTC.collateralMint),
+  //       redeemableMint: depositoryBTC.redeemableMintPda,
+  //       userRedeemable: userBTCDepRedeemableTokenAccount,
+  //       userUxd: userUXDTokenAccount,
+  //       uxdMint: ControllerUXD.mintPda,
+  //       rent: SYSVAR_RENT_PUBKEY,
+  //       systemProgram: SystemProgram.programId,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //       depositoryProgram: Depository.ProgramId,
+  //       mangoProgram: MANGO_PROGRAM_ID,
+  //       associatedSystemProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+  //       oracle: depositoryBTC.oraclePriceAccount,
+  //     },
+  //     signers: [user.wallet],
+  //     options: TXN_OPTS,
+  //   });
 
-    // THEN
-    _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-    expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
-  });
+  //   // THEN
+  //   _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+  //   expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
+  // });
 
-  it("Withdraw BTC (all) from depository", async () => {
-    // GIVEN
-    const amountBTC = null; // <=> to withdraw all
-    // let _userBTCTokenAccountBalance = await getBalance(userUXDTokenAccount);
-    // let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-    // const _expectedUserBTCBalance = _userBTCTokenAccountBalance + ;
-    // const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - amountBTC.toNumber();
+  // it("Withdraw BTC (all) from depository", async () => {
+  //   // GIVEN
+  //   const amountBTC = null; // <=> to withdraw all
+  //   // let _userBTCTokenAccountBalance = await getBalance(userUXDTokenAccount);
+  //   // let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
+  //   // const _expectedUserBTCBalance = _userBTCTokenAccountBalance + ;
+  //   // const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - amountBTC.toNumber();
 
-    // WHEN
-    await Depository.rpc.withdraw(amountBTC, {
-      accounts: {
-        user: user.wallet.publicKey,
-        state: depositoryBTC.statePda,
-        programCoin: depositoryBTC.depositPda,
-        redeemableMint: depositoryBTC.redeemableMintPda,
-        userCoin: userBTCTokenAccount,
-        userRedeemable: userBTCDepRedeemableTokenAccount,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-      signers: [user.wallet],
-      options: TXN_OPTS,
-    });
-  });
+  //   // WHEN
+  //   await Depository.rpc.withdraw(amountBTC, {
+  //     accounts: {
+  //       user: user.wallet.publicKey,
+  //       state: depositoryBTC.statePda,
+  //       programCoin: depositoryBTC.depositPda,
+  //       redeemableMint: depositoryBTC.redeemableMintPda,
+  //       userCoin: userBTCTokenAccount,
+  //       userRedeemable: userBTCDepRedeemableTokenAccount,
+  //       systemProgram: SystemProgram.programId,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //     },
+  //     signers: [user.wallet],
+  //     options: TXN_OPTS,
+  //   });
+  // });
 });

@@ -12,9 +12,19 @@
 solana-test-validator \
  --reset                                                `: # Reset the test-ledger` \
  --url https://mango.devnet.rpcpool.com                 `: # Cluster from which the below program will be cloned` \
- --clone aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC    `: # Acam wallet account (and its assoc token ones below, add yours too)` \
- --clone 8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN   `: ## USDC` \
- --clone 9KBGW5bbfdLA4zKAXPETwjR5Ub7BR2Zh9gKHsPnrUkUg   `: ## BTC` \
+ --clone aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC    `: # Acam wallet account (add yours too)` \
+ --clone 8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN   `: ## USDC followed bye root/node` \
+ --clone HUBX4iwWEUK5VrXXXcB7uhuKrfT4fpu2T9iZbg712JrN \
+ --clone J2Lmnc1e4frMnBEJARPoHtfpcohLfN67HdK1inXjTFSM \
+ --clone 9KBGW5bbfdLA4zKAXPETwjR5Ub7BR2Zh9gKHsPnrUkUg   `: ## BTC followed bye root/node` \
+ --clone BeEoyDq1v2DYJCoXDQAJKfmrsoRRvfmV856f2ijkXbtp \
+ --clone 4X3nP921qyh6BKJSAohKGNCykSXahFFwg1LxtC993Fai \
+ --clone Bb9bsTQa1bGEtQ5KagGkvSHyuLqDWumFUcRqFusFNJWC   `: ## Mango followed bye root/node` \
+ --clone CY4nMV9huW5KCYFxWChrmoLwGCsZiXoiREeo2PMrBm5o \
+ --clone 6rkPNJTXF37X6Pf5ct5Y6E91PozpZpZNNU1AGATomKjD \
+ --clone So11111111111111111111111111111111111111112    `: ## WSOL followed bye root/node` \
+ --clone 8GC81raaLjhTx3yedctxCJW46qdmmSRybH2s1eFYFFxT \
+ --clone 7mYqCavd1K24fnL3oKTpX3YM66W5gfikmVHJWM3nrWKe \
  --clone Ec2enZyoC4nGpEfu2sUNAa2nUGJHWxoUWYSEJ2hNTWTA   `: # MANGO starts - devnet.2 cluster `\
  --clone 4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA   `: # mangoProgramId `\
  --clone 6eadH6vSsEk5bPiXWPYRq5KRSjohfYd6Ug5HjGbxaWce \
@@ -23,11 +33,8 @@ solana-test-validator \
  --clone 8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN   `: # USDC Mango test Token mint`\
  --clone 3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU   `: # BTC Token mint`\
  --clone HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J   `: # BTC oracle `\
- --clone BeEoyDq1v2DYJCoXDQAJKfmrsoRRvfmV856f2ijkXbtp   `: # BTC rootKey `\
- --clone 4X3nP921qyh6BKJSAohKGNCykSXahFFwg1LxtC993Fai   `: # BTC nodeKey `\
  --clone J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix   `: # SOL oracle `\
- --clone 8GC81raaLjhTx3yedctxCJW46qdmmSRybH2s1eFYFFxT   `: # SOL rootKey `\
- --clone 7mYqCavd1K24fnL3oKTpX3YM66W5gfikmVHJWM3nrWKe   `: # SOL nodeKey `\
+ --clone 8k7F9Xb36oFJsjpCKpsXvg4cgBRoZtwNTc3EzG5Ttd2o   `: # MNGO oracle `\
  --clone FHQtNjRHA9U5ahrH7mWky3gamouhesyQ5QvpeGKrTh2z   `: # BTC Perp market `\
  --clone F1Dcnq6F8NXR3gXADdsYqrXYBUUwoT7pfCtRuQWSyQFd   `: ## bidsKey `\
  --clone BFEBZsLYmEhj4quWDRKbyMKhW1Q9c7gu3LqsnipNGTVn   `: ## asksKey `\
