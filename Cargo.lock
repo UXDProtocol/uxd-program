@@ -388,7 +388,6 @@ dependencies = [
  "anchor-spl",
  "depository",
  "mango",
- "pyth-client",
  "solana-program",
  "spl-token",
 ]
@@ -976,12 +975,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pyth-client"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44de48029c54ec1ca570786b5baeb906b0fc2409c8e0145585e287ee7a526c72"
-
-[[package]]
 name = "quick-protobuf"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1461,13 +1454,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dfed899f0eb03f32ee8c6a0aabdb8a7949659e3466561fc0adf54e26d88c5f4"
 dependencies = [
  "winapi-util",
-]
-
-[[package]]
-name = "test-writer"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
 ]
 
 [[package]]

@@ -12,17 +12,18 @@
 solana-test-validator \
  --reset                                                `: # Reset the test-ledger` \
  --url https://mango.devnet.rpcpool.com                 `: # Cluster from which the below program will be cloned` \
- --clone aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC    `: # Acam wallet account (add yours too)` \
- --clone 8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN   `: ## USDC followed bye root/node` \
+ --clone aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC    `: # Acam wallet add yours too)` \
+ --clone Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi   `: # Test user wallet` \
+ --clone 8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN   `: ## USDC followed by root/node` \
  --clone HUBX4iwWEUK5VrXXXcB7uhuKrfT4fpu2T9iZbg712JrN \
  --clone J2Lmnc1e4frMnBEJARPoHtfpcohLfN67HdK1inXjTFSM \
- --clone 9KBGW5bbfdLA4zKAXPETwjR5Ub7BR2Zh9gKHsPnrUkUg   `: ## BTC followed bye root/node` \
+ --clone 9KBGW5bbfdLA4zKAXPETwjR5Ub7BR2Zh9gKHsPnrUkUg   `: ## BTC followed by root/node` \
  --clone BeEoyDq1v2DYJCoXDQAJKfmrsoRRvfmV856f2ijkXbtp \
  --clone 4X3nP921qyh6BKJSAohKGNCykSXahFFwg1LxtC993Fai \
- --clone Bb9bsTQa1bGEtQ5KagGkvSHyuLqDWumFUcRqFusFNJWC   `: ## Mango followed bye root/node` \
+ --clone Bb9bsTQa1bGEtQ5KagGkvSHyuLqDWumFUcRqFusFNJWC   `: ## Mango followed by root/node` \
  --clone CY4nMV9huW5KCYFxWChrmoLwGCsZiXoiREeo2PMrBm5o \
  --clone 6rkPNJTXF37X6Pf5ct5Y6E91PozpZpZNNU1AGATomKjD \
- --clone So11111111111111111111111111111111111111112    `: ## WSOL followed bye root/node` \
+ --clone So11111111111111111111111111111111111111112    `: ## WSOL followed by root/node` \
  --clone 8GC81raaLjhTx3yedctxCJW46qdmmSRybH2s1eFYFFxT \
  --clone 7mYqCavd1K24fnL3oKTpX3YM66W5gfikmVHJWM3nrWKe \
  --clone Ec2enZyoC4nGpEfu2sUNAa2nUGJHWxoUWYSEJ2hNTWTA   `: # MANGO starts - devnet.2 cluster `\
