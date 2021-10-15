@@ -131,28 +131,6 @@ pub mod controller {
                 .with_signer(passthrough_signer_seed),
         )?;
 
-        // - Create Mango Account TODO
-        // it should also be owned by the depo record
-        // XXX the below is copy-pasted from patrick code but need to check mango v3 code to see if anything changed
-
-        /*
-                // Accounts expected by this instruction (4):
-                //
-                // 0. `[]` mango_group_ai - MangoGroup that this mango account is for
-                // 1. `[writable]` mango_account_ai - the mango account data
-                // 2. `[signer]` owner_ai - Solana account of owner of the mango account
-                // 3. `[]` rent_ai - Rent sysvar account
-                let mango_cpi_program = ctx.accounts.mango_program.clone();
-                let mango_cpi_accts = InitMangoAccount {
-                    mango_group: ctx.accounts.mango_group.to_account_info(),
-                    mango_account: ctx.accounts.mango_account.clone().into(),
-                    owner_account: ctx.accounts.proxy_account.clone().into(),
-                    rent: ctx.accounts.rent.clone(),
-                };
-                let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
-                mango_tester::cpi::init_mango_account(mango_cpi_ctx);
-        */
-
         // - Initialize Mango Account
 
         let depository_record_bump =
@@ -209,6 +187,10 @@ pub mod controller {
         )?;
 
         // - Deposit to mango and open position TODO
+
+        // /////////
+        
+        // /////////
 
         // XXX temporary hack, we use the registered oracle to get a coin price
         let oracle_data = ctx.accounts.oracle.try_borrow_data()?;
@@ -376,17 +358,8 @@ pub struct RegisterDepository<'info> {
     pub coin_passthrough: AccountInfo<'info>,
     // The mango group for the mango_account
     pub mango_group: AccountInfo<'info>,
-    // The mango account, uninitialized // Doesn't work wasn't using the good size 
-    /// Will try to use this later on to have the init in one place, not sure it plays nice with CPI
-    // #[account(
-    //     init,
-    //     seeds = [MANGO_SEED, coin_mint.key().as_ref()],
-    //     bump,
-    //     payer = authority,
-    //     owner = mango::mango_program::Mango::id(),
-    //     space = MANGO_ACCOUNT_SPAN,
-    // )]
-    #[account(mut, signer)] // CPI initialization
+    // The mango account, uninitialized
+    #[account(mut, signer)] 
     pub mango_account: AccountInfo<'info>,
     // programs
     pub system_program: Program<'info, System>,

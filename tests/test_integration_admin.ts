@@ -107,16 +107,15 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
   it("Register BTC Depository with Controller", async () => {
     // Given
     const depositoryRecordPda = ControllerUXD.depositoryRecordPda(depositoryBTC.collateralMint);
-    const mangoAccount = new Keypair();
 
     const createMangoAccountIx = SystemProgram.createAccount({
       programId: MANGO_PROGRAM_ID,
       space: MangoAccountLayout.span,
       lamports: await getRentExemption(MangoAccountLayout.span),
       fromPubkey: admin.wallet.publicKey,
-      newAccountPubkey: mangoAccount.publicKey,
+      newAccountPubkey: depositoryBTC.mangoAccount.publicKey,
     });
-    MangoAccountLayout;
+
     // WHEN
     await ControllerUXD.rpc.registerDepository(depositoryBTC.oraclePriceAccount, {
       accounts: {
@@ -127,13 +126,13 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
         coinMint: depositoryBTC.collateralMint.publicKey,
         coinPassthrough: ControllerUXD.coinPassthroughPda(depositoryBTC.collateralMint),
         mangoGroup: utils.mango.mangoGroup.publicKey,
-        mangoAccount: mangoAccount.publicKey,
+        mangoAccount: depositoryBTC.mangoAccount.publicKey,
         rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         mangoProgram: MANGO_PROGRAM_ID,
       },
-      signers: [admin.wallet, mangoAccount],
+      signers: [admin.wallet, depositoryBTC.mangoAccount],
       options: TXN_OPTS,
       instructions: [createMangoAccountIx],
     });

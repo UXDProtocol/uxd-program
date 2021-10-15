@@ -10,7 +10,6 @@ enum ControllerPDASeed {
   UXD = "STABLECOIN",
   Record = "RECORD",
   Passthrough = "PASSTHROUGH",
-  Mango = "MANGO",
 }
 
 export class ControllerUXD {
@@ -21,11 +20,11 @@ export class ControllerUXD {
   public static statePda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.State);
   public static mintPda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.UXD);
 
-  public static depositoryRecordPda(collateralMint: Token): [PublicKey, number] {
+  public static depositoryRecordPda(collateralMint: Token): PublicKey {
     return utils.findProgramAddressSync(ControllerUXD.ProgramId, [
       Buffer.from(ControllerPDASeed.Record),
       collateralMint.publicKey.toBuffer(),
-    ]);
+    ])[0];
   }
 
   // This pda is function of the depository mint

@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { Token } from "@solana/spl-token";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Keypair } from "@solana/web3.js";
 import { ControllerUXD } from "./controller";
 import { utils } from "./utils";
 
@@ -35,11 +35,14 @@ export class Depository {
   public statePda: PublicKey;
   public redeemableMintPda: PublicKey;
   public depositPda: PublicKey;
+  // Mango account
+  public mangoAccount: Keypair; // Now using a keypair cause the init must be client side, the span of the account is too big to do so in anchor
 
   public constructor(mint: Token, mintName: string, oraclePriceAccount: PublicKey) {
     this.collateralMint = mint;
     this.collateralName = mintName;
     this.oraclePriceAccount = oraclePriceAccount;
+    this.mangoAccount = new Keypair();
 
     this.statePda = this.findDepositoryPda(DepositoryPDASeed.State);
     this.redeemableMintPda = this.findDepositoryPda(DepositoryPDASeed.RedeemableMint);
