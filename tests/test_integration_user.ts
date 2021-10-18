@@ -19,7 +19,7 @@ import {
 import { Depository } from "./utils/depository";
 import { BTC_DECIMAL, SOL_DECIMAL } from "./utils/utils";
 import { depositoryBTC, depositoryWSOL } from "./test_integration_admin";
-import {} from "@blockworks-foundation/mango-client";
+import { MangoAccount } from "@blockworks-foundation/mango-client";
 import { MANGO_PROGRAM_ID } from "./utils/mango";
 
 // User's SPL Accounts
@@ -33,10 +33,10 @@ let userUXDTokenAccount: PublicKey;
 // TODO add should fail tests
 
 async function printSystemBalance(depository: Depository) {
-  const SYM = depository.collateralName;
+  const SYM = depository.collateralSymbol;
   const passthroughPda = ControllerUXD.coinPassthroughPda(depository.collateralMint);
   console.log(`\
-        * [depository ${depository.collateralName}]:
+        * [depository ${depository.collateralSymbol}]:
         *     ${SYM}:                                        ${await getBalance(depository.depositPda)}
         * [controller]
         *     associated ${SYM} passthrough:                 ${await getBalance(passthroughPda)}`);
@@ -132,6 +132,7 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     const mangoRootBankAccount = await utils.mango.getRootBankForToken(depositedTokenIndex);
     const mangoNodeBankAccount = await utils.mango.getNodeBankFor(depositedTokenIndex);
     const mangoDepositedVaultAccount = utils.mango.getVaultFor(depositedTokenIndex);
+    const mangoPerpMarketConfig = utils.mango.getPerpMarketConfigFor(depositoryBTC.collateralSymbol);
     console.log(`* token mint ${depositedTokenMint}`);
     console.log(`* mango group ${utils.mango.group.publicKey}`);
     console.log(`* mango acc ${depositoryBTC.mangoAccount.publicKey}`);
@@ -139,6 +140,10 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     console.log(`* rootbank ${mangoRootBankAccount}`);
     console.log(`* nodebank ${mangoNodeBankAccount}`);
     console.log(`* nodeBank vault ${mangoDepositedVaultAccount}`);
+    console.log(`* mangoPerpMarket ${mangoPerpMarketConfig.publicKey}`);
+    console.log(`* mangoPerpMarket events ${mangoPerpMarketConfig.eventsKey}`);
+    console.log(`* mangoPerpMarket bids ${mangoPerpMarketConfig.bidsKey}`);
+    console.log(`* mangoPerpMarket asks ${mangoPerpMarketConfig.asksKey}`);
 
     // This is just for localnet, on dev/main net the Keeper does it?
     // await utils.mango.runKeeper();
@@ -163,9 +168,15 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
         mangoGroup: utils.mango.group.publicKey,
         mangoAccount: depositoryBTC.mangoAccount.publicKey,
         mangoCache: mangoCacheAccount,
+        // -- for the deposit
         mangoRootBank: mangoRootBankAccount,
         mangoNodeBank: mangoNodeBankAccount,
         mangoVault: mangoDepositedVaultAccount,
+        // -- for the position perp opening
+        mangoPerpMarket: mangoPerpMarketConfig.publicKey,
+        mangoBids: mangoPerpMarketConfig.bidsKey,
+        mangoAsks: mangoPerpMarketConfig.asksKey,
+        mangoEventQueue: mangoPerpMarketConfig.eventsKey,
         //
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -183,8 +194,26 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
     expect(_depositoryBTCTokenAccountBalance).to.closeTo(_expectedDepositoryBTCBalance, 0.000_000_000_1);
 
+    // load group & market
+    const perpMarketConfig = utils.mango.getPerpMarketConfigFor(depositoryBTC.collateralSymbol);
+    const perpMarket = await utils.mango.group.loadPerpMarket(
+      utils.mango.client.connection,
+      perpMarketConfig.marketIndex,
+      perpMarketConfig.baseDecimals,
+      perpMarketConfig.quoteDecimals
+    );
+    // retrieve order for account
+    let _depositoryBTCMangoAccount = await utils.mango.client.getMangoAccountsForOwner(
+      utils.mango.group,
+      depositoryBTC.mangoAccount.publicKey,
+      true
+    )[0];
+    const openOrders = await perpMarket.loadOrdersForAccount(connection, _depositoryBTCMangoAccount);
+    expect(openOrders).equals(0, "No order should be open for that account");
+
+    // TODO check that there was an order that opened the short position
+
     // TODO check user UXD balance
-    // TODO check mango account balance grew
   });
 
   // it("Redeem 500 UXD", async () => {

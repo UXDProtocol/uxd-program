@@ -8,6 +8,7 @@ import {
   TokenConfig,
   makeUpdateRootBankInstruction,
   zeroKey,
+  PerpMarketConfig,
 } from "@blockworks-foundation/mango-client";
 import { PublicKey, Connection, Account, Transaction } from "@solana/web3.js";
 
@@ -91,6 +92,14 @@ export class Mango {
 
   getMangoCache(): PublicKey {
     return this.group.mangoCache;
+  }
+
+  getPerpMarketConfigFor(baseSymbol: string): PerpMarketConfig {
+    const perpMarketConfig = this.groupConfig.perpMarkets.find((p) => p.baseSymbol === baseSymbol);
+    if (!perpMarketConfig) {
+      throw new Error(`Could not find perpMarketConfig for symbol ${baseSymbol}`);
+    }
+    return perpMarketConfig;
   }
 
   async createUpdateRootBankTx(): Promise<Transaction> {

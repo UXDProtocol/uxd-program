@@ -29,7 +29,7 @@ export class Depository {
   public static rpc: anchor.RpcNamespace = (anchor.workspace.Depository as Program).rpc;
 
   public collateralMint: PublicKey;
-  public collateralName: string; // For debug purpose
+  public collateralSymbol: string; 
   public oraclePriceAccount: PublicKey;
   // PDAs
   public statePda: PublicKey;
@@ -40,7 +40,7 @@ export class Depository {
 
   public constructor(mint: PublicKey, mintName: string, oraclePriceAccount: PublicKey) {
     this.collateralMint = mint;
-    this.collateralName = mintName;
+    this.collateralSymbol = mintName;
     this.oraclePriceAccount = oraclePriceAccount; // To remove
     this.mangoAccount = new Keypair();
 
@@ -59,7 +59,7 @@ export class Depository {
 
   public info() {
     console.log(`\
-      [Depository debug info - Collateral mint: ${this.collateralName}]
+      [Depository debug info - Collateral mint: ${this.collateralSymbol}]
         * mint (collateral):                            ${this.collateralMint.toString()}
         * statePda:                                     ${this.statePda.toString()}
         * redeemableMintPda:                            ${this.redeemableMintPda.toString()}

@@ -181,7 +181,7 @@ pub mod controller {
     pub fn mint_uxd(ctx: Context<MintUxd>, coin_amount: u64) -> ProgramResult {
         msg!("controller: mint uxd");
 
-        // - Burn user redeemables and withdraw the coin to our passthrough account
+        msg!("controller: mint uxd [Burn user redeemables and withdraw the coin to our passthrough account]");
         // let depo_state: ProgramAccount<depository::State> = ctx.accounts.depository_state.from();
         depository::cpi::withdraw(
             ctx.accounts
@@ -189,18 +189,11 @@ pub mod controller {
             Some(coin_amount),
         )?;
 
-        // XXX No need for mango accounts check as they are check extensively by their instructions?
+        // XXX No need for mango accounts check as they are checked extensively by their instructions?
         // TBD
 
-        // - Deposit to mango and open position
+        msg!("controller: mint uxd [Deposit to mango]");
         let coin_mint_key = ctx.accounts.coin_mint.key();
-        let depository_record_bump =
-            Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
-        let depository_record_signer_seed: &[&[&[u8]]] = &[&[
-            RECORD_SEED,
-            coin_mint_key.as_ref(),
-            &[depository_record_bump],
-        ]];
         let instruction = solana_program::instruction::Instruction {
             program_id: ctx.accounts.mango_program.key(),
             data: mango::instruction::MangoInstruction::Deposit {
@@ -233,13 +226,20 @@ pub mod controller {
             ctx.accounts.coin_passthrough.to_account_info(),
         ];
 
+        let depository_record_bump =
+            Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
+        let depository_record_signer_seeds: &[&[&[u8]]] = &[&[
+            RECORD_SEED,
+            coin_mint_key.as_ref(),
+            &[depository_record_bump],
+        ]];
         solana_program::program::invoke_signed(
             &instruction,
             &account_infos,
-            depository_record_signer_seed,
+            depository_record_signer_seeds,
         )?;
 
-        // Get oracle price
+        msg!("controller: mint uxd [Open perp position on Mango]");
         let mango_group = mango::state::MangoGroup::load_checked(
             &ctx.accounts.mango_group,
             ctx.accounts.mango_program.key,
@@ -249,6 +249,69 @@ pub mod controller {
             ctx.accounts.mango_program.key,
             &mango_group,
         )?;
+        let market_index = mango_group
+            .find_perp_market_index(ctx.accounts.mango_perp_market.key)
+            .unwrap();
+        let price = mango_cache.price_cache[market_index].price;
+
+        // Issue cause he expect this accouns and account_infos to be 24 accounts in lenghts,
+        // idk asking on discord, maybe be related to the group we are using and cross margin
+        let accounts = [
+            AccountMeta::new_readonly(ctx.accounts.mango_group.key(), false),
+            AccountMeta::new(ctx.accounts.mango_account.key(), false),
+            AccountMeta::new_readonly(ctx.accounts.depository_record.key(), true),
+            AccountMeta::new_readonly(ctx.accounts.mango_cache.key(), false),
+            AccountMeta::new(ctx.accounts.mango_perp_market.key(), false),
+            AccountMeta::new(ctx.accounts.mango_bids.key(), false),
+            AccountMeta::new(ctx.accounts.mango_asks.key(), false),
+            AccountMeta::new(ctx.accounts.mango_event_queue.key(), false),
+        ];
+
+        let account_infos = [
+            ctx.accounts.mango_group.to_account_info(),
+            ctx.accounts.mango_account.to_account_info(),
+            ctx.accounts.depository_record.to_account_info(),
+            ctx.accounts.mango_cache.to_account_info(),
+            ctx.accounts.mango_perp_market.to_account_info(),
+            ctx.accounts.mango_bids.to_account_info(),
+            ctx.accounts.mango_asks.to_account_info(),
+            ctx.accounts.mango_event_queue.to_account_info(),
+        ];
+
+        let instruction = solana_program::instruction::Instruction {
+            program_id: ctx.accounts.mango_program.key(),
+            data: mango::instruction::MangoInstruction::PlacePerpOrder {
+                // The price from the cache
+                price: price.to_num::<i64>(),
+                // Open same size position
+                quantity: I80F48::from_num(coin_amount).to_num::<i64>(),
+                client_order_id: 0,
+                // We are shorting
+                side: mango::matching::Side::Ask,
+                // We want instant settlement, we are the Taker
+                order_type: mango::matching::OrderType::Limit,
+                // We increase the position size
+                reduce_only: false,
+            }
+            .pack(),
+            accounts: accounts,
+        };
+
+        let depository_record_bump =
+            Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
+        let depository_record_signer_seeds: &[&[&[u8]]] = &[&[
+            RECORD_SEED,
+            coin_mint_key.as_ref(),
+            &[depository_record_bump],
+        ]];
+        solana_program::program::invoke_signed(
+            &instruction,
+            &account_infos,
+            depository_record_signer_seeds,
+        )?;
+
+        msg!("controller: mint uxd [Mint UXD for redeemables]");
+        // Get oracle price
         // XXX proper error mangement return Err(ControllerError::RootBankIndexNotFound.into())
         let asset_index = mango_group
             .find_root_bank_index(ctx.accounts.mango_root_bank.key)
@@ -470,7 +533,7 @@ pub struct MintUxd<'info> {
     pub user_uxd: Box<Account<'info, TokenAccount>>,
     #[account(mut, seeds = [UXD_SEED], bump)]
     pub uxd_mint: Box<Account<'info, Mint>>,
-    // XXX start mango ------------------
+    // XXX start mango --------------------------------------------------------
     // MangoGroup that this mango account is for
     pub mango_group: AccountInfo<'info>,
     // Mango Account of the Depository Record
@@ -482,7 +545,16 @@ pub struct MintUxd<'info> {
     pub mango_node_bank: AccountInfo<'info>,
     #[account(mut)]
     pub mango_vault: Account<'info, TokenAccount>,
-    // XXX end mango --------------------
+    // The perp market for `coin_mint` on mango, and the associated required accounts
+    #[account(mut)]
+    pub mango_perp_market: AccountInfo<'info>,
+    #[account(mut)]
+    pub mango_bids: AccountInfo<'info>,
+    #[account(mut)]
+    pub mango_asks: AccountInfo<'info>,
+    #[account(mut)]
+    pub mango_event_queue: AccountInfo<'info>,
+    // XXX end mango ----------------------------------------------------------
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
