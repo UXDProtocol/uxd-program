@@ -11,24 +11,50 @@ import {
   Commitment,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { PythUtils } from "./pyth";
+import { devnetCluster, devnetGroup, Mango } from "./mango";
+// import { PythUtils } from "./pyth";
 
 // Constants
 export const BTC_DECIMAL = 6;
 export const SOL_DECIMAL = 9;
 export const UXD_DECIMAL = 6;
 
-// WALLET
-export const provider = Provider.local();
+// aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC
+const aca3VWSeed = Uint8Array.from([
+  197, 246, 88, 131, 17, 216, 175, 8, 72, 13, 40, 236, 135, 104, 59, 108, 17, 106, 164, 234, 46, 136, 171, 148, 111,
+  176, 32, 136, 59, 253, 224, 247, 8, 156, 98, 175, 196, 123, 178, 151, 182, 220, 253, 138, 191, 233, 135, 182, 173,
+  175, 33, 68, 162, 191, 254, 166, 133, 219, 8, 10, 17, 154, 146, 223,
+]);
+// Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi
+const Eyh77Seed = Uint8Array.from([
+  219, 139, 131, 236, 34, 125, 165, 13, 18, 248, 93, 160, 73, 236, 214, 251, 179, 235, 124, 126, 56, 47, 222, 28, 166,
+  239, 130, 126, 66, 127, 26, 187, 207, 173, 205, 133, 48, 102, 2, 219, 20, 234, 72, 102, 53, 122, 175, 166, 198, 11,
+  198, 248, 59, 40, 137, 208, 193, 138, 197, 171, 147, 124, 212, 175,
+]);
+
+// Identities - both of these are wallets that exists on devnet, we clone them each time and init from the privatekey
+// This is us, the UXD deployment admins // aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC
+let adminKeypair = Keypair.fromSecretKey(aca3VWSeed);
+export let admin = new Wallet(adminKeypair);
+console.log(`ADMIN KEY => ${admin.publicKey}`);
+// This is the user //
+let userKeypair = Keypair.fromSecretKey(Eyh77Seed);
+export let user = new Wallet(userKeypair);
+console.log(`USER KEY => ${admin.publicKey}`);
+
+// Mints cloned from devnet to interact with mango
+export const USDC = new PublicKey("8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN");
+export const BTC = new PublicKey("3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU");
+export const WSOL = new PublicKey("So11111111111111111111111111111111111111112");
+
+export const BTC_ORACLE = new PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
+export const SOL_ORACLE = new PublicKey("J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix");
+
+// Provider
+export const provider = Provider.env();
 setProvider(provider);
 export const wallet = provider.wallet as Wallet;
 export const connection = provider.connection;
-
-// CLUSTERS
-export const MAINNET = "https://api.mainnet-beta.solana.com";
-export const DEVNET = "https://api.devnet.solana.com";
-export const TESTNET = "https://api.testnet.solana.com";
-export const LOCALNET = "https://api.testnet.solana.com";
 
 // TXN prefight checks options
 export const TXN_COMMIT: Commitment = "processed";
@@ -40,35 +66,8 @@ export const TXN_OPTS = {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-export class TestToken extends Token {
-  decimals: number;
-
-  constructor(conn: Connection, token: Token, decimals: number) {
-    super(conn, token.publicKey, token.programId, token.payer);
-    this.decimals = decimals;
-  }
-
-  /**
-   * Convert a token amount to the integer format for the mint
-   * @param token The token mint
-   * @param amount The amount of tokens
-   */
-  amount(amount: BN | number): BN {
-    if (typeof amount == "number") {
-      amount = new BN(amount);
-    }
-
-    const one_unit = new BN(10).pow(new BN(this.decimals));
-    return amount.mul(one_unit);
-  }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-export class TestUtils {
-  public static readonly pythProgramId = PythUtils.programId;
-
-  public pyth: PythUtils;
+export class Utils {
+  public mango: Mango;
   private conn: Connection;
   private wallet: Wallet;
   private authority: Keypair;
@@ -77,25 +76,11 @@ export class TestUtils {
     this.conn = conn;
     this.wallet = funded;
     this.authority = this.wallet.payer;
-    this.pyth = new PythUtils(conn, funded);
+    this.mango = new Mango(devnetCluster, devnetGroup);
   }
 
-  /**
-   * Create a new SPL token
-   * @param decimals The number of decimals for the token.
-   * @param authority The account with authority to mint/freeze tokens.
-   * @returns The new token
-   */
-  async createToken(decimals: number, authority: PublicKey = this.authority.publicKey): Promise<TestToken> {
-    const token = await Token.createMint(this.conn, this.authority, authority, authority, decimals, TOKEN_PROGRAM_ID);
-
-    return new TestToken(this.conn, token, decimals);
-  }
-
-  async createNativeToken(decimals: number = 9) {
-    const token = new Token(this.conn, NATIVE_MINT, TOKEN_PROGRAM_ID, this.authority);
-
-    return new TestToken(this.conn, token, decimals);
+  async setupMango() {
+    await this.mango.setupMangoGroup();
   }
 
   /**
@@ -214,63 +199,6 @@ export class TestUtils {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-export async function createTokenEnv(decimals: number, price: bigint) {
-  let pythPrice = await testUtils.pyth.createPriceAccount();
-  let pythProduct = await testUtils.pyth.createProductAccount();
-
-  await testUtils.pyth.updatePriceAccount(pythPrice, {
-    exponent: -9,
-    aggregatePriceInfo: {
-      price: price * 1000000000n,
-    },
-  });
-  await testUtils.pyth.updateProductAccount(pythProduct, {
-    priceAccount: pythPrice.publicKey,
-    attributes: {
-      quote_currency: "USD",
-    },
-  });
-
-  return {
-    token: await testUtils.createToken(decimals),
-    pythPrice,
-    pythProduct,
-  } as TokenEnv;
-}
-export interface TokenEnv {
-  token: TestToken;
-  pythPrice: Keypair;
-  pythProduct: Keypair;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-export async function createTestUser(assets: Array<TokenEnv>): Promise<TestUser> {
-  const userWallet = wallet.payer; //await testUtils.createWallet(1 * LAMPORTS_PER_SOL); I WISH TO use that.... but idk it doesn't sign
-  // I think it would be neat to have 2 wallets to encure things are tighs, to not have only one GOD wallet that's also the user
-
-  const createUserTokens = async (asset: TokenEnv) => {
-    const tokenAccount = await asset.token.getOrCreateAssociatedAccountInfo(userWallet.publicKey);
-    return tokenAccount.address;
-  };
-
-  let tokenAccounts: Record<string, PublicKey> = {};
-  for (const asset of assets) {
-    tokenAccounts[asset.token.publicKey.toBase58()] = await createUserTokens(asset);
-  }
-
-  return {
-    wallet: userWallet,
-    tokenAccounts,
-  };
-}
-export interface TestUser {
-  wallet: Keypair;
-  tokenAccounts: Record<string, PublicKey>;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 // returns an instruction to create the associated account for a wallet and mint
 export function createAssocTokenIx(wallet: PublicKey, account: PublicKey, mint: PublicKey): TransactionInstruction {
   return Token.createAssociatedTokenAccountInstruction(
@@ -281,6 +209,10 @@ export function createAssocTokenIx(wallet: PublicKey, account: PublicKey, mint: 
     wallet, // owner
     wallet // payer
   );
+}
+
+export async function getRentExemption(size: number): Promise<number> {
+  return await provider.connection.getMinimumBalanceForRentExemption(size, TXN_COMMIT);
 }
 
 export function getBalance(tokenAccount: PublicKey): Promise<number> {
@@ -298,4 +230,4 @@ interface HasPublicKey {
   publicKey: PublicKey;
 }
 
-export const testUtils = new TestUtils(connection, wallet);
+export const utils = new Utils(connection, wallet);

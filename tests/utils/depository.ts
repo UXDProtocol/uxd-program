@@ -1,9 +1,9 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { Token } from "@solana/spl-token";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Keypair } from "@solana/web3.js";
 import { ControllerUXD } from "./controller";
-import { testUtils } from "./utils";
+import { utils } from "./utils";
 
 enum DepositoryPDASeed {
   State = "STATE",
@@ -28,18 +28,21 @@ export class Depository {
   public static ProgramId: PublicKey = anchor.workspace.Depository.programId;
   public static rpc: anchor.RpcNamespace = (anchor.workspace.Depository as Program).rpc;
 
-  public collateralMint: Token;
+  public collateralMint: PublicKey;
   public collateralName: string; // For debug purpose
-  public oraclePriceAccount: PublicKey;
+  public oraclePriceAccount: PublicKey; // TO remove
   // PDAs
   public statePda: PublicKey;
   public redeemableMintPda: PublicKey;
   public depositPda: PublicKey;
+  // Mango account
+  public mangoAccount: Keypair; // Now using a keypair cause the init must be client side, the span of the account is too big to do so in anchor
 
-  public constructor(mint: Token, mintName: string, oraclePriceAccount: PublicKey) {
+  public constructor(mint: PublicKey, mintName: string, oraclePriceAccount: PublicKey) {
     this.collateralMint = mint;
     this.collateralName = mintName;
-    this.oraclePriceAccount = oraclePriceAccount;
+    this.oraclePriceAccount = oraclePriceAccount; // To remove
+    this.mangoAccount = new Keypair();
 
     this.statePda = this.findDepositoryPda(DepositoryPDASeed.State);
     this.redeemableMintPda = this.findDepositoryPda(DepositoryPDASeed.RedeemableMint);
@@ -48,16 +51,16 @@ export class Depository {
 
   // Find the depository program PDA adresse for a given seed - derived from the mint
   private findDepositoryPda(seed: DepositoryPDASeed): PublicKey {
-    return testUtils.findProgramAddressSync(Depository.ProgramId, [
+    return utils.findProgramAddressSync(Depository.ProgramId, [
       Buffer.from(seed.toString()),
-      this.collateralMint.publicKey.toBuffer(),
+      this.collateralMint.toBuffer(),
     ])[0];
   }
 
   public info() {
     console.log(`\
       [Depository debug info - Collateral mint: ${this.collateralName}]
-        * mint (collateral):                            ${this.collateralMint.publicKey.toString()}
+        * mint (collateral):                            ${this.collateralMint.toString()}
         * statePda:                                     ${this.statePda.toString()}
         * redeemableMintPda:                            ${this.redeemableMintPda.toString()}
         * depositPda:                                   ${this.depositPda.toString()}

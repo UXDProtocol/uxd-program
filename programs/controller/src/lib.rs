@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_lang::Key;
 use anchor_spl::token::InitializeAccount;
 use anchor_spl::token::InitializeMint;
 use anchor_spl::token::Token;
@@ -7,6 +6,8 @@ use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use depository::Depository;
 use pyth_client::Price;
 use std::convert::TryFrom;
+
+mod mango_program;
 
 const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: usize = 165;
@@ -17,7 +18,7 @@ const UXD_SEED: &[u8] = b"STABLECOIN";
 const RECORD_SEED: &[u8] = b"RECORD";
 const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
 
-solana_program::declare_id!("UXDConWDuVXUBeDYR5k4PW3nB4MScJ6eKDYqmtZjtAd");
+solana_program::declare_id!("2PCPrsHdeZq6CsHyqnu3NVMcWtJGjZE8mWKpF6ipTDT4");
 
 #[program]
 #[deny(unused_must_use)]
@@ -130,27 +131,36 @@ pub mod controller {
                 .with_signer(passthrough_signer_seed),
         )?;
 
-        // - Create Mango Account TODO
-        // it should also be owned by the depo record
-        // XXX the below is copy-pasted from patrick code but need to check mango v3 code to see if anything changed
+        // - Initialize Mango Account
 
-        /*
-                // Accounts expected by this instruction (4):
-                //
-                // 0. `[]` mango_group_ai - MangoGroup that this mango account is for
-                // 1. `[writable]` mango_account_ai - the mango account data
-                // 2. `[signer]` owner_ai - Solana account of owner of the mango account
-                // 3. `[]` rent_ai - Rent sysvar account
-                let mango_cpi_program = ctx.accounts.mango_program.clone();
-                let mango_cpi_accts = InitMangoAccount {
-                    mango_group: ctx.accounts.mango_group.to_account_info(),
-                    mango_account: ctx.accounts.mango_account.clone().into(),
-                    owner_account: ctx.accounts.proxy_account.clone().into(),
-                    rent: ctx.accounts.rent.clone(),
-                };
-                let mango_cpi_ctx = CpiContext::new(mango_cpi_program, mango_cpi_accts);
-                mango_tester::cpi::init_mango_account(mango_cpi_ctx);
-        */
+        let depository_record_bump =
+            Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
+        let depository_record_signer_seed: &[&[&[u8]]] = &[&[
+            RECORD_SEED,
+            coin_mint_key.as_ref(),
+            &[depository_record_bump],
+        ]];
+        let instruction = solana_program::instruction::Instruction {
+            program_id: ctx.accounts.mango_program.key(),
+            data: mango::instruction::MangoInstruction::InitMangoAccount.pack(),
+            accounts: vec![
+                AccountMeta::new_readonly(ctx.accounts.mango_group.key(), false),
+                AccountMeta::new(ctx.accounts.mango_account.key(), false),
+                AccountMeta::new_readonly(ctx.accounts.depository_record.key(), true),
+            ],
+        };
+        let account_infos = [
+            ctx.accounts.mango_program.to_account_info(),
+            ctx.accounts.mango_group.to_account_info(),
+            ctx.accounts.mango_account.to_account_info(),
+            ctx.accounts.depository_record.to_account_info(),
+        ];
+
+        solana_program::program::invoke_signed(
+            &instruction,
+            &account_infos,
+            depository_record_signer_seed,
+        )?;
 
         // - Set our depo record up
         // this later acts as proof we trust a given depository
@@ -172,11 +182,58 @@ pub mod controller {
         // - Burn user redeemables and withdraw the coin to our passthrough account
         // let depo_state: ProgramAccount<depository::State> = ctx.accounts.depository_state.from();
         depository::cpi::withdraw(
-            ctx.accounts.into_withdraw_from_depsitory_context(),
+            ctx.accounts
+                .into_withdraw_from_depsitory_to_passthrough_context(),
             Some(coin_amount),
         )?;
 
-        // - Deposit to mango and open position TODO
+        // - Deposit to mango and open position
+        let coin_mint_key = ctx.accounts.coin_mint.key();
+        let depository_record_bump =
+            Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
+        let depository_record_signer_seed: &[&[&[u8]]] = &[&[
+            RECORD_SEED,
+            coin_mint_key.as_ref(),
+            &[depository_record_bump],
+        ]];
+        let instruction = solana_program::instruction::Instruction {
+            program_id: ctx.accounts.mango_program.key(),
+            data: mango::instruction::MangoInstruction::Deposit {
+                quantity: coin_amount,
+            }
+            .pack(),
+            accounts: vec![
+                AccountMeta::new_readonly(ctx.accounts.mango_group.key(), false),
+                AccountMeta::new(ctx.accounts.mango_account.key(), false),
+                AccountMeta::new_readonly(ctx.accounts.depository_record.key(), true),
+                AccountMeta::new_readonly(ctx.accounts.mango_cache.key(), false),
+                AccountMeta::new_readonly(ctx.accounts.mango_root_bank.key(), false),
+                AccountMeta::new(ctx.accounts.mango_node_bank.key(), false),
+                AccountMeta::new(ctx.accounts.mango_vault.key(), false),
+                AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
+                AccountMeta::new(ctx.accounts.coin_passthrough.key(), false),
+            ],
+        };
+
+        let account_infos = [
+            ctx.accounts.mango_program.to_account_info(),
+            ctx.accounts.mango_group.to_account_info(),
+            ctx.accounts.mango_account.to_account_info(),
+            ctx.accounts.depository_record.to_account_info(),
+            ctx.accounts.mango_cache.to_account_info(),
+            ctx.accounts.mango_root_bank.to_account_info(),
+            ctx.accounts.mango_node_bank.to_account_info(),
+            ctx.accounts.mango_vault.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            ctx.accounts.coin_passthrough.to_account_info(),
+        ];
+
+        solana_program::program::invoke_signed(
+            &instruction,
+            &account_infos,
+            depository_record_signer_seed,
+        )?;
+        // /////////
 
         // XXX temporary hack, we use the registered oracle to get a coin price
         let oracle_data = ctx.accounts.oracle.try_borrow_data()?;
@@ -298,6 +355,7 @@ pub struct New<'info> {
         payer = authority,
     )]
     pub state: Box<Account<'info, State>>,
+    // Todo can use associated_token here
     #[account(
         init,
         seeds = [UXD_SEED],
@@ -331,6 +389,7 @@ pub struct RegisterDepository<'info> {
     pub depository_state: Box<Account<'info, depository::State>>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
     pub coin_mint: Box<Account<'info, Mint>>,
+    // Todo can use associated_token here
     #[account(
         init,
         seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()],
@@ -340,12 +399,17 @@ pub struct RegisterDepository<'info> {
         space = ACCOUNT_SPAN,
     )]
     pub coin_passthrough: AccountInfo<'info>,
-    //pub mango_group: Box<Account<'info, MangoTester>>,
-    //pub mango_account: AccountInfo<'info>,
-    pub rent: Sysvar<'info, Rent>,
+    // The mango group for the mango_account
+    pub mango_group: AccountInfo<'info>,
+    // The mango account, uninitialized
+    #[account(mut, signer)]
+    pub mango_account: AccountInfo<'info>,
+    // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    //pub mango_program: AccountInfo<'info>,
+    pub mango_program: Program<'info, mango_program::Mango>,
+    // sysvar
+    pub rent: Sysvar<'info, Rent>,
 }
 
 // XXX oki this shit is complicated lets see what all is here...
@@ -396,14 +460,24 @@ pub struct MintUxd<'info> {
     pub user_uxd: Box<Account<'info, TokenAccount>>,
     #[account(mut, seeds = [UXD_SEED], bump)]
     pub uxd_mint: Box<Account<'info, Mint>>,
-    // XXX MANGO ACCOUNTS GO HERE
+    // XXX start mango ------------------
+    // MangoGroup that this mango account is for
+    pub mango_group: AccountInfo<'info>,
+    // Mango Account of the Depository Record
+    #[account(mut)]
+    pub mango_account: AccountInfo<'info>,
+    pub mango_cache: AccountInfo<'info>,
+    pub mango_root_bank: AccountInfo<'info>,
+    #[account(mut)]
+    pub mango_node_bank: AccountInfo<'info>,
+    #[account(mut)]
+    pub mango_vault: Account<'info, TokenAccount>,
+    // XXX end mango --------------------
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub depository_program: Program<'info, Depository>,
-    //pub mango_program: AccountInfo<'info>,
-    // XXX FIXME below here is temporary
-    // oracle: dumb hack for devnet, pending mango integration
+    pub mango_program: Program<'info, mango_program::Mango>,
     #[account(constraint = oracle.key() == depository_record.oracle_key)]
     pub oracle: AccountInfo<'info>,
 }
@@ -443,12 +517,10 @@ pub struct RedeemUxd<'info> {
     pub user_uxd: Box<Account<'info, TokenAccount>>,
     #[account(mut, seeds = [UXD_SEED], bump)]
     pub uxd_mint: Box<Account<'info, Mint>>,
-    // XXX MANGO ACCOUNTS GO HERE
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub depository_program: Program<'info, Depository>,
-    //pub mango_program: AccountInfo<'info>,
     // XXX FIXME below here is temporary
     // oracle: dumb hack for devnet, pending mango integration
     #[account(constraint = oracle.key() == depository_record.oracle_key)]
@@ -504,7 +576,7 @@ impl<'info> RegisterDepository<'info> {
 }
 
 impl<'info> MintUxd<'info> {
-    fn into_withdraw_from_depsitory_context(
+    fn into_withdraw_from_depsitory_to_passthrough_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, depository::cpi::accounts::Withdraw<'info>> {
         let cpi_program = self.depository_program.to_account_info();
