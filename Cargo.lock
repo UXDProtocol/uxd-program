@@ -387,6 +387,7 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "depository",
+ "fixed",
  "mango",
  "pyth-client",
  "solana-program",

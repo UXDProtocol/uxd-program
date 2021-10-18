@@ -4,6 +4,7 @@ use anchor_spl::token::InitializeMint;
 use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use depository::Depository;
+use fixed::types::I80F48;
 use pyth_client::Price;
 use std::convert::TryFrom;
 
@@ -23,6 +24,7 @@ solana_program::declare_id!("2PCPrsHdeZq6CsHyqnu3NVMcWtJGjZE8mWKpF6ipTDT4");
 #[program]
 #[deny(unused_must_use)]
 pub mod controller {
+
     use super::*;
 
     // MANGO API IN BRIEF
@@ -187,6 +189,9 @@ pub mod controller {
             Some(coin_amount),
         )?;
 
+        // XXX No need for mango accounts check as they are check extensively by their instructions?
+        // TBD
+
         // - Deposit to mango and open position
         let coin_mint_key = ctx.accounts.coin_mint.key();
         let depository_record_bump =
@@ -233,27 +238,32 @@ pub mod controller {
             &account_infos,
             depository_record_signer_seed,
         )?;
-        // /////////
 
-        // XXX temporary hack, we use the registered oracle to get a coin price
-        let oracle_data = ctx.accounts.oracle.try_borrow_data()?;
-        let oracle = pyth_client::cast::<Price>(&oracle_data);
-
-        if oracle.agg.price < 0 {
-            panic!("ugh return an error here or check this in constraints");
-        }
-
-        // so we take the amount of coin, multiply by price
-        // then divide out the price decimals. we are now in coin decimals
-        // so we multiply by uxd decimals and divide by coin decimals and get a uxd amount
-        // XXX replace unwrap with error when we have custom errors
-        let position_uxd_value = (coin_amount as u128)
-            .checked_mul(oracle.agg.price.abs() as u128)
-            .and_then(|n| n.checked_div(u128::pow(10, oracle.expo.abs() as u32)))
-            .and_then(|n| n.checked_mul(u128::pow(10, ctx.accounts.uxd_mint.decimals as u32)))
-            .and_then(|n| n.checked_div(u128::pow(10, ctx.accounts.coin_mint.decimals as u32)))
-            .and_then(|n| u64::try_from(n).ok())
+        // Get oracle price
+        let mango_group = mango::state::MangoGroup::load_checked(
+            &ctx.accounts.mango_group,
+            ctx.accounts.mango_program.key,
+        )?;
+        let mango_cache = mango::state::MangoCache::load_checked(
+            &ctx.accounts.mango_cache,
+            ctx.accounts.mango_program.key,
+            &mango_group,
+        )?;
+        // XXX proper error mangement return Err(ControllerError::RootBankIndexNotFound.into())
+        let asset_index = mango_group
+            .find_root_bank_index(ctx.accounts.mango_root_bank.key)
             .unwrap();
+        let asset_price = mango_cache.get_price(asset_index);
+        let coin_amount = I80F48::from_num(coin_amount);
+        let coin_decimals = ctx.accounts.coin_mint.decimals as u32;
+        let uxd_decimals = ctx.accounts.uxd_mint.decimals as u32;
+        let coin_exp = I80F48::from_num(10u64.pow(coin_decimals));
+        let uxd_exp = I80F48::from_num(10u64.pow(uxd_decimals));
+
+        // USD value of deposited coin
+        let coin_usd_value = coin_amount * asset_price;
+        // Converted to UXD amount (we multiply by uxd decimals and divide by coin decimals and get a uxd amount)
+        let position_uxd_amount = (coin_usd_value * uxd_exp) / coin_exp;
 
         // - Mint UXD for redeemables
         let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
@@ -261,7 +271,7 @@ pub mod controller {
             ctx.accounts
                 .into_mint_uxd_context()
                 .with_signer(state_signer_seed),
-            position_uxd_value,
+            position_uxd_amount.to_num(),
         )?;
 
         Ok(())
@@ -478,8 +488,6 @@ pub struct MintUxd<'info> {
     pub token_program: Program<'info, Token>,
     pub depository_program: Program<'info, Depository>,
     pub mango_program: Program<'info, mango_program::Mango>,
-    #[account(constraint = oracle.key() == depository_record.oracle_key)]
-    pub oracle: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -632,4 +640,14 @@ impl<'info> RedeemUxd<'info> {
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
+}
+
+// MARK: - ERRORS  ------------------------------------------------------------
+
+#[error]
+pub enum ControllerError {
+    #[msg("Error while getting the UXD value of the deposited coin amount.")]
+    PositionAmountCalculation,
+    #[msg("The associated mango root bank index cannot be found for the deposited coin..")]
+    RootBankIndexNotFound,
 }

@@ -30,7 +30,7 @@ export class Depository {
 
   public collateralMint: PublicKey;
   public collateralName: string; // For debug purpose
-  public oraclePriceAccount: PublicKey; // TO remove
+  public oraclePriceAccount: PublicKey;
   // PDAs
   public statePda: PublicKey;
   public redeemableMintPda: PublicKey;

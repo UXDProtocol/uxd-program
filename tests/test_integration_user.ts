@@ -159,7 +159,6 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
         userRedeemable: userBTCDepRedeemableTokenAccount,
         userUxd: userUXDTokenAccount,
         uxdMint: ControllerUXD.mintPda,
-        oracle: depositoryBTC.oraclePriceAccount,
         // mango stuff
         mangoGroup: utils.mango.group.publicKey,
         mangoAccount: depositoryBTC.mangoAccount.publicKey,

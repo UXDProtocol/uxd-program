@@ -7,18 +7,9 @@ import {
   GroupConfig,
   TokenConfig,
   makeUpdateRootBankInstruction,
-  makeUpdateFundingInstruction,
   zeroKey,
-  makeCacheRootBankInstruction,
-  makeCachePricesInstruction,
-  makeCachePerpMarketsInstruction,
-  getMultipleAccounts,
-  PerpEventQueueLayout,
-  PerpEventQueue,
 } from "@blockworks-foundation/mango-client";
-import { BN } from "@project-serum/anchor";
 import { PublicKey, Connection, Account, Transaction } from "@solana/web3.js";
-import { wallet } from "./utils";
 
 // This has devnet name, but we copy devnet to localnet with the ./configure_local_validator.sh
 export const devnetCluster: Cluster = "devnet";
