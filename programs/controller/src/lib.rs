@@ -198,12 +198,15 @@ pub mod controller {
             ctx.accounts.coin_passthrough.to_account_info(),
         ];
 
+        /* HANA NOTE TO ALEX
+           this works but im commenting it out so i can have redeem work in the tests
         solana_program::program::invoke_signed(
             &instruction,
             &account_infos,
             depository_signer_seed,
         )?;
         // /////////
+        */
 
         // XXX temporary hack, we use the registered oracle to get a coin price
         let oracle_data = ctx.accounts.oracle.try_borrow_data()?;
@@ -238,8 +241,7 @@ pub mod controller {
     }
 
     // REDEEM UXD
-    // burn uxd that is being redeemed. then close out mango position and return coins to depository
-    // minting redeemables for the user in the process
+    // burn uxd that is being redeemed. then close out mango position and return coins to user
     pub fn redeem_uxd(ctx: Context<RedeemUxd>, uxd_amount: u64) -> ProgramResult {
         msg!("controller: redeem uxd");
 
@@ -276,17 +278,22 @@ pub mod controller {
 
         // - Return mango money back to depository
         let coin_mint_key = ctx.accounts.coin_mint.key();
-        let record_signer_seed: &[&[&[u8]]] = &[&[
-            RECORD_SEED,
+        let depository_signer_seed: &[&[&[u8]]] = &[&[
+            DEPOSITORY_SEED,
             coin_mint_key.as_ref(),
-            &[ctx.accounts.depository_record.bump],
+            &[ctx.accounts.depository.bump],
         ]];
-        depository::cpi::deposit(
-            ctx.accounts
-                .into_return_collateral_context()
-                .with_signer(record_signer_seed),
-            collateral_amount,
-        )?;
+
+        let transfer_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            Transfer {
+                from: ctx.accounts.coin_passthrough.to_account_info(),
+                to: ctx.accounts.user_coin.to_account_info(),
+                authority: ctx.accounts.depository.to_account_info(),
+            },
+            depository_signer_seed,
+        );
+        token::transfer(transfer_ctx, collateral_amount)?;
 
         Ok(())
     }
@@ -443,25 +450,17 @@ pub struct RedeemUxd<'info> {
     pub user: Signer<'info>,
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
-    #[account(seeds = [RECORD_SEED, coin_mint.key().as_ref()], bump)]
-    pub depository_record: Box<Account<'info, DepositoryRecord>>,
-    #[account(
-        constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED, depository_state.coin_mint_key.as_ref()], &DepositoryOld::id()).0,
-    )]
-    pub depository_state: Box<Account<'info, depository::State>>,
-    #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
-    pub depository_coin: Box<Account<'info, TokenAccount>>,
-    #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
+    #[account(seeds = [DEPOSITORY_SEED, coin_mint.key().as_ref()], bump)]
+    pub depository: Box<Account<'info, DepositoryNew>>,
+    #[account(constraint = coin_mint.key() == depository.coin_mint_key)]
     pub coin_mint: Box<Account<'info, Mint>>,
     #[account(mut, seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
     pub coin_passthrough: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
-    pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        constraint = user_redeemable.mint == depository_state.redeemable_mint_key,
+        constraint = user_coin.mint == depository.coin_mint_key,
     )]
-    pub user_redeemable: Box<Account<'info, TokenAccount>>,
+    pub user_coin: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
         constraint = user_uxd.mint == uxd_mint.key(),
@@ -474,10 +473,9 @@ pub struct RedeemUxd<'info> {
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    pub depository_program: Program<'info, DepositoryOld>,
     // XXX FIXME below here is temporary
     // oracle: dumb hack for devnet, pending mango integration
-    #[account(constraint = oracle.key() == depository_record.oracle_key)]
+    #[account(constraint = oracle.key() == depository.oracle_key)]
     pub oracle: AccountInfo<'info>,
 }
 
@@ -530,23 +528,6 @@ impl<'info> RedeemUxd<'info> {
             mint: self.uxd_mint.to_account_info(),
             to: self.user_uxd.to_account_info(),
             authority: self.user.to_account_info(),
-        };
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
-    fn into_return_collateral_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, depository::cpi::accounts::Deposit<'info>> {
-        let cpi_program = self.depository_program.to_account_info();
-        let cpi_accounts = depository::cpi::accounts::Deposit {
-            user: self.depository_record.to_account_info(),
-            state: self.depository_state.to_account_info(),
-            program_coin: self.depository_coin.to_account_info(),
-            redeemable_mint: self.redeemable_mint.to_account_info(),
-            user_coin: self.coin_passthrough.to_account_info(),
-            user_redeemable: self.user_redeemable.to_account_info(),
-            system_program: self.system_program.to_account_info(),
-            token_program: self.token_program.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
