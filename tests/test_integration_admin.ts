@@ -1,5 +1,5 @@
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import { SystemProgram, SYSVAR_RENT_PUBKEY, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { ControllerUXD } from "./utils/controller";
 import { Depository } from "./utils/depository";
 import { TXN_OPTS, utils, getRentExemption, connection, BTC, WSOL, admin, BTC_ORACLE, SOL_ORACLE } from "./utils/utils";
@@ -14,6 +14,9 @@ export let depositoryWSOL: Depository;
 before("Setup mints and depositories", async () => {
   // GIVEN
   await utils.setupMango(); // Async fetch of mango group
+
+  let sig = await connection.requestAirdrop(admin.publicKey, 10 * LAMPORTS_PER_SOL);
+  await connection.confirmTransaction(sig);
 
   depositoryBTC = new Depository(BTC, "BTC", BTC_ORACLE);
   depositoryWSOL = new Depository(WSOL, "WSOL", SOL_ORACLE);
@@ -40,6 +43,7 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
     // XXX add asserts
   });
 
+/*
   it("Create BTC depository", async () => {
     await Depository.rpc.new(ControllerUXD.ProgramId, {
       accounts: {
@@ -58,6 +62,7 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
     // Add some asserts ...
     depositoryBTC.info();
   });
+*/
 
   // it("Create SOL depository", async () => {
   //   if (await connection.getAccountInfo(depositoryWSOL.statePda)) {
@@ -86,7 +91,7 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
 
   it("Register BTC Depository with Controller", async () => {
     // Given
-    const depositoryRecordPda = ControllerUXD.depositoryRecordPda(depositoryBTC.collateralMint);
+    const depositoryPda = ControllerUXD.depositoryPda(depositoryBTC.collateralMint);
 
     const createMangoAccountIx = SystemProgram.createAccount({
       programId: MANGO_PROGRAM_ID,
@@ -101,8 +106,7 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
       accounts: {
         authority: admin.publicKey,
         state: ControllerUXD.statePda,
-        depositoryRecord: depositoryRecordPda,
-        depositoryState: depositoryBTC.statePda,
+        depository: ControllerUXD.depositoryPda(depositoryBTC.collateralMint),
         coinMint: depositoryBTC.collateralMint,
         coinPassthrough: ControllerUXD.coinPassthroughPda(depositoryBTC.collateralMint),
         mangoGroup: utils.mango.group.publicKey,

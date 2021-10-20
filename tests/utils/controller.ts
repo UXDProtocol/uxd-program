@@ -8,6 +8,7 @@ import { utils } from "./utils";
 enum ControllerPDASeed {
   State = "STATE",
   UXD = "STABLECOIN",
+  Depository = "DEPOSITORY",
   Record = "RECORD",
   Passthrough = "PASSTHROUGH",
 }
@@ -20,11 +21,15 @@ export class ControllerUXD {
   public static statePda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.State);
   public static mintPda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.UXD);
 
-  public static depositoryRecordPda(collateralMint: PublicKey): PublicKey {
+  public static depositoryPda(collateralMint: PublicKey): PublicKey {
     return utils.findProgramAddressSync(ControllerUXD.ProgramId, [
-      Buffer.from(ControllerPDASeed.Record),
+      Buffer.from(ControllerPDASeed.Depository),
       collateralMint.toBuffer(),
     ])[0];
+  }
+
+  public static depositoryRecordPda(collateralMint: PublicKey): PublicKey {
+    throw "obselete";
   }
 
   // This pda is function of the depository mint
