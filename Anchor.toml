@@ -4,7 +4,6 @@ wallet = "~/.config/solana/id.json"
 
 [programs.localnet]
 controller = "2PCPrsHdeZq6CsHyqnu3NVMcWtJGjZE8mWKpF6ipTDT4"
-depository = "FJjdNskuQnHvRozc7zTQ5GPTyo5HZokgubvXYdR9tKHi"
 
 [registry]
 url = "https://anchor.projectserum.com"

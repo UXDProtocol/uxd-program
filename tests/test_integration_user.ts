@@ -23,8 +23,6 @@ import {} from "@blockworks-foundation/mango-client";
 import { MANGO_PROGRAM_ID } from "./utils/mango";
 
 // User's SPL Accounts
-let userBTCDepRedeemableTokenAccount: PublicKey;
-let userSOLDepRedeemableTokenAccount: PublicKey;
 let userBTCTokenAccount: PublicKey;
 let userWSOLTokenAccount: PublicKey;
 let userUXDTokenAccount: PublicKey;
@@ -47,8 +45,6 @@ async function printUserBalance() {
         * [user]:
         *     BTC:                                        ${await getBalance(userBTCTokenAccount)}
         *     SOL:                                        ${await getBalance(userWSOLTokenAccount)}
-        *     redeemable from depositoryBTC:              ${await getBalance(userBTCDepRedeemableTokenAccount)}
-        *     redeemable from depositorySOL:              ${await getBalance(userSOLDepRedeemableTokenAccount)}
         *     UXD:                                        ${await getBalance(userUXDTokenAccount)}`);
 }
 
@@ -56,8 +52,6 @@ before("Configure user accounts", async () => {
   // Find every user adresses
   userBTCTokenAccount = utils.findAssocTokenAddressSync(user, BTC)[0];
   userWSOLTokenAccount = utils.findAssocTokenAddressSync(user, WSOL)[0];
-  userBTCDepRedeemableTokenAccount = utils.findAssocTokenAddressSync(user, depositoryBTC.redeemableMintPda)[0];
-  userSOLDepRedeemableTokenAccount = utils.findAssocTokenAddressSync(user, depositoryWSOL.redeemableMintPda)[0];
   userUXDTokenAccount = utils.findAssocTokenAddressSync(user, ControllerUXD.mintPda)[0];
 
   console.log(`\
@@ -69,8 +63,6 @@ before("Configure user accounts", async () => {
     * ---- 
     * user's BTC tokenAcc                 ${userBTCTokenAccount.toString()}
     * user's SOL tokenAcc                 ${userWSOLTokenAccount.toString()} 
-    * user's BTCDR tokenAcc               ${userBTCDepRedeemableTokenAccount.toString()} (uninit)
-    * user's SOLDR tokenAcc               ${userSOLDepRedeemableTokenAccount.toString()} (uninit)
     * user's UXD tokenAcc                 ${userUXDTokenAccount.toString()} (uninit)`);
 });
 

@@ -9,7 +9,6 @@ enum ControllerPDASeed {
   State = "STATE",
   UXD = "STABLECOIN",
   Depository = "DEPOSITORY",
-  Record = "RECORD",
   Passthrough = "PASSTHROUGH",
 }
 
@@ -26,10 +25,6 @@ export class ControllerUXD {
       Buffer.from(ControllerPDASeed.Depository),
       collateralMint.toBuffer(),
     ])[0];
-  }
-
-  public static depositoryRecordPda(collateralMint: PublicKey): PublicKey {
-    throw "obselete";
   }
 
   // This pda is function of the depository mint

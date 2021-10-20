@@ -386,7 +386,6 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
- "depository",
  "mango",
  "pyth-client",
  "solana-program",
@@ -429,16 +428,6 @@ dependencies = [
  "rand_core",
  "subtle",
  "zeroize",
-]
-
-[[package]]
-name = "depository"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "solana-program",
- "spl-token",
 ]
 
 [[package]]
@@ -699,9 +688,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.103"
+version = "0.2.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd8f7255a17a627354f321ef0055d63b898c6fb27eff628af4d1b66b7331edf6"
+checksum = "7b2f96d100e1cf1929e7719b7edb3b90ab5298072638fccd77be9ce942ecdfce"
 
 [[package]]
 name = "libsecp256k1"
@@ -1404,9 +1393,9 @@ dependencies = [
 
 [[package]]
 name = "switchboard-protos"
-version = "0.1.56"
+version = "0.1.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da2cf7f66ae839078ce00a7bcfde25f6b7c069054cea5dbd7ee01e800883e474"
+checksum = "f2f29c3a6f4901d6f3222678b25fa768376372770cfe128909269ca36f987dca"
 dependencies = [
  "bincode",
  "borsh",

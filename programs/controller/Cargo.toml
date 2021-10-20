@@ -20,7 +20,6 @@ anchor-spl = "0.17.0"
 solana-program = "1.7.11"
 spl-token = "3.1.1"
 pyth-client = "0.2.2"
-depository = { path = "../depository", features = ["cpi"] }
 mango = { git = "https://github.com/acamill/mango-v3", branch = "misc/program-id-for-idiomatic-anchor", features = ["no-entrypoint", "declare-id"] } # Don't use that, if no version I guess
 # mango = { git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] } # Don't use that, if no version I guess
 # mango-macro = { git = "https://github.com/blockworks-foundation/mango-v3.git" }

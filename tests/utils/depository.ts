@@ -24,17 +24,13 @@ enum DepositoryPDASeed {
 // Depository program is the Zip program
 // PDAs derived from a given Mint are a folder of files
 //
-export class Depository {
-  public static ProgramId: PublicKey = anchor.workspace.Depository.programId;
-  public static rpc: anchor.RpcNamespace = (anchor.workspace.Depository as Program).rpc;
 
+// XXX this is rather messed up and anemic now but we need something to hold the mints still
+export class Depository {
   public collateralMint: PublicKey;
   public collateralName: string; // For debug purpose
   public oraclePriceAccount: PublicKey; // TO remove
   // PDAs
-  public statePda: PublicKey;
-  public redeemableMintPda: PublicKey;
-  public depositPda: PublicKey;
   // Mango account
   public mangoAccount: Keypair; // Now using a keypair cause the init must be client side, the span of the account is too big to do so in anchor
 
@@ -43,27 +39,12 @@ export class Depository {
     this.collateralName = mintName;
     this.oraclePriceAccount = oraclePriceAccount; // To remove
     this.mangoAccount = new Keypair();
-
-    this.statePda = this.findDepositoryPda(DepositoryPDASeed.State);
-    this.redeemableMintPda = this.findDepositoryPda(DepositoryPDASeed.RedeemableMint);
-    this.depositPda = this.findDepositoryPda(DepositoryPDASeed.Deposit);
-  }
-
-  // Find the depository program PDA adresse for a given seed - derived from the mint
-  private findDepositoryPda(seed: DepositoryPDASeed): PublicKey {
-    return utils.findProgramAddressSync(Depository.ProgramId, [
-      Buffer.from(seed.toString()),
-      this.collateralMint.toBuffer(),
-    ])[0];
   }
 
   public info() {
     console.log(`\
       [Depository debug info - Collateral mint: ${this.collateralName}]
         * mint (collateral):                            ${this.collateralMint.toString()}
-        * statePda:                                     ${this.statePda.toString()}
-        * redeemableMintPda:                            ${this.redeemableMintPda.toString()}
-        * depositPda:                                   ${this.depositPda.toString()}
         * controller's associated depositoryRecordPda:  ${ControllerUXD.depositoryRecordPda(
           this.collateralMint
         ).toString()}
