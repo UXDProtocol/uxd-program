@@ -1,5 +1,5 @@
 [provider]
-cluster = "localnet"
+cluster = "devnet" ## this should also mirror the solana config env
 wallet = "~/.config/solana/id.json"
 
 [programs.localnet]

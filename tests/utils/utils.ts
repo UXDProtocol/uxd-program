@@ -205,8 +205,8 @@ export function createAssocTokenIx(wallet: PublicKey, account: PublicKey, mint: 
   return Token.createAssociatedTokenAccountInstruction(
     ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
-    mint, // reedeemable mint PDA
-    account, // user's reedeemable associated token account
+    mint,
+    account,
     wallet, // owner
     wallet // payer
   );
