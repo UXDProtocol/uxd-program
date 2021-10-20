@@ -80,6 +80,7 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     await printSystemBalance(depositoryBTC);
   });
 
+/*
   it("User Deposit 0.45 BTC collateral", async () => {
     // Given
     let _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
@@ -117,12 +118,11 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     expect(_depositoryBTCTokenAccountBalance).to.equal(_expectedDepositoryBTCBalance);
     expect(_userBTCDepRedeemableBalance).to.equal(_expectedUserRedeemableBalance);
   });
+*/
 
   it("Mint UXD worth 0.4 BTC", async () => {
     // GIVEN
-    const redeemableAmountToConvert = 0.4;
-    let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-    const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - redeemableAmountToConvert;
+    const amountToConvert = 0.4;
 
     // WHEN
     const depositedTokenMint = depositoryBTC.collateralMint;
@@ -146,17 +146,14 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     await sendAndConfirmTransaction(connection, updateRootBanksTx, [admin.payer], TXN_OPTS);
 
     const ix = createAssocTokenIx(user.publicKey, userUXDTokenAccount, ControllerUXD.mintPda);
-    await ControllerUXD.rpc.mintUxd(new anchor.BN(redeemableAmountToConvert * 10 ** BTC_DECIMAL), {
+    await ControllerUXD.rpc.mintUxd(new anchor.BN(amountToConvert * 10 ** BTC_DECIMAL), {
       accounts: {
         user: user.publicKey,
         state: ControllerUXD.statePda,
-        depositoryRecord: ControllerUXD.depositoryRecordPda(depositoryBTC.collateralMint),
-        depositoryState: depositoryBTC.statePda,
-        depositoryCoin: depositoryBTC.depositPda,
+        depository: ControllerUXD.depositoryPda(depositoryBTC.collateralMint),
         coinMint: depositoryBTC.collateralMint,
         coinPassthrough: ControllerUXD.coinPassthroughPda(depositoryBTC.collateralMint),
-        redeemableMint: depositoryBTC.redeemableMintPda,
-        userRedeemable: userBTCDepRedeemableTokenAccount,
+        userCoin: userBTCTokenAccount,
         userUxd: userUXDTokenAccount,
         uxdMint: ControllerUXD.mintPda,
         oracle: depositoryBTC.oraclePriceAccount,
@@ -170,7 +167,6 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
         //
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
-        depositoryProgram: Depository.ProgramId,
         mangoProgram: MANGO_PROGRAM_ID,
         //
         rent: SYSVAR_RENT_PUBKEY,
@@ -181,8 +177,6 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     });
 
     // Then
-    _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-    expect(_depositoryBTCTokenAccountBalance).to.closeTo(_expectedDepositoryBTCBalance, 0.000_000_000_1);
 
     // TODO check user UXD balance
     // TODO check mango account balance grew

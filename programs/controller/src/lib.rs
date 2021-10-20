@@ -1,8 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::InitializeAccount;
-use anchor_spl::token::InitializeMint;
 use anchor_spl::token::Token;
-use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
+use anchor_spl::token::{self, Transfer, Burn, Mint, MintTo, TokenAccount};
 use depository::Depository as DepositoryOld;
 use pyth_client::Price;
 use std::convert::TryFrom;
@@ -144,27 +142,29 @@ pub mod controller {
     }
 
     // MINT UXD
-    // swap user redeemable for coin which we take. open a mango position with that
+    // transfer user coin to our passthrough. open a mango position with that
     // then mint uxd in the amount of the mango position to the user
     pub fn mint_uxd(ctx: Context<MintUxd>, coin_amount: u64) -> ProgramResult {
         msg!("controller: mint uxd");
 
-        // - Burn user redeemables and withdraw the coin to our passthrough account
-        // let depo_state: ProgramAccount<depository::State> = ctx.accounts.depository_state.from();
-        depository::cpi::withdraw(
-            ctx.accounts
-                .into_withdraw_from_depsitory_to_passthrough_context(),
-            Some(coin_amount),
-        )?;
+        let transfer_ctx = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            Transfer {
+                from: ctx.accounts.user_coin.to_account_info(),
+                to: ctx.accounts.coin_passthrough.to_account_info(),
+                authority: ctx.accounts.user.to_account_info(),
+            },
+        );
+        token::transfer(transfer_ctx, coin_amount)?;
 
         // - Deposit to mango and open position
         let coin_mint_key = ctx.accounts.coin_mint.key();
-        let depository_record_bump =
-            Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
-        let depository_record_signer_seed: &[&[&[u8]]] = &[&[
-            RECORD_SEED,
+        let depository_bump =
+            Pubkey::find_program_address(&[DEPOSITORY_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
+        let depository_signer_seed: &[&[&[u8]]] = &[&[
+            DEPOSITORY_SEED,
             coin_mint_key.as_ref(),
-            &[depository_record_bump],
+            &[depository_bump],
         ]];
         let instruction = solana_program::instruction::Instruction {
             program_id: ctx.accounts.mango_program.key(),
@@ -175,7 +175,7 @@ pub mod controller {
             accounts: vec![
                 AccountMeta::new_readonly(ctx.accounts.mango_group.key(), false),
                 AccountMeta::new(ctx.accounts.mango_account.key(), false),
-                AccountMeta::new_readonly(ctx.accounts.depository_record.key(), true),
+                AccountMeta::new_readonly(ctx.accounts.depository.key(), true),
                 AccountMeta::new_readonly(ctx.accounts.mango_cache.key(), false),
                 AccountMeta::new_readonly(ctx.accounts.mango_root_bank.key(), false),
                 AccountMeta::new(ctx.accounts.mango_node_bank.key(), false),
@@ -189,7 +189,7 @@ pub mod controller {
             ctx.accounts.mango_program.to_account_info(),
             ctx.accounts.mango_group.to_account_info(),
             ctx.accounts.mango_account.to_account_info(),
-            ctx.accounts.depository_record.to_account_info(),
+            ctx.accounts.depository.to_account_info(),
             ctx.accounts.mango_cache.to_account_info(),
             ctx.accounts.mango_root_bank.to_account_info(),
             ctx.accounts.mango_node_bank.to_account_info(),
@@ -201,7 +201,7 @@ pub mod controller {
         solana_program::program::invoke_signed(
             &instruction,
             &account_infos,
-            depository_record_signer_seed,
+            depository_signer_seed,
         )?;
         // /////////
 
@@ -358,7 +358,7 @@ pub struct RegisterDepository<'info> {
         seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()],
         bump,
         token::mint = coin_mint,
-        token::authority = state,
+        token::authority = depository,
         payer = authority,
     )]
     pub coin_passthrough: Account<'info, TokenAccount>,
@@ -397,27 +397,19 @@ pub struct MintUxd<'info> {
     pub user: Signer<'info>,
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
-    #[account(seeds = [RECORD_SEED, coin_mint.key().as_ref()], bump)]
-    pub depository_record: Box<Account<'info, DepositoryRecord>>,
-    #[account(
-        constraint = depository_state.key() == Pubkey::find_program_address(&[depository::STATE_SEED, depository_state.coin_mint_key.as_ref()], &DepositoryOld::id()).0,
-    )]
-    pub depository_state: Box<Account<'info, depository::State>>,
-    #[account(mut, constraint = depository_coin.key() == depository_state.program_coin_key)]
-    pub depository_coin: Box<Account<'info, TokenAccount>>,
-    #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
+    #[account(seeds = [DEPOSITORY_SEED, coin_mint.key().as_ref()], bump)]
+    pub depository: Box<Account<'info, DepositoryNew>>,
+    #[account(constraint = coin_mint.key() == depository.coin_mint_key)]
     pub coin_mint: Box<Account<'info, Mint>>,
     #[account(mut, seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
     pub coin_passthrough: Box<Account<'info, TokenAccount>>,
-    #[account(mut, constraint = redeemable_mint.key() == depository_state.redeemable_mint_key)]
-    pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        constraint = user_redeemable.mint == depository_state.redeemable_mint_key,
+        constraint = user_coin.mint == depository.coin_mint_key,
         constraint = coin_amount > 0,
-        constraint = user_redeemable.amount >= coin_amount,
+        constraint = user_coin.amount >= coin_amount,
     )]
-    pub user_redeemable: Box<Account<'info, TokenAccount>>,
+    pub user_coin: Box<Account<'info, TokenAccount>>,
     // XXX this account should be created by a client instruction
     #[account(mut, constraint = user_uxd.mint == uxd_mint.key())]
     pub user_uxd: Box<Account<'info, TokenAccount>>,
@@ -439,9 +431,8 @@ pub struct MintUxd<'info> {
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    pub depository_program: Program<'info, DepositoryOld>,
     pub mango_program: Program<'info, mango_program::Mango>,
-    #[account(constraint = oracle.key() == depository_record.oracle_key)]
+    #[account(constraint = oracle.key() == depository.oracle_key)]
     pub oracle: AccountInfo<'info>,
 }
 
@@ -521,23 +512,6 @@ pub struct DepositoryRecord {
 // MARK: - CONTEXTS  ----------------------------------------------------------
 
 impl<'info> MintUxd<'info> {
-    fn into_withdraw_from_depsitory_to_passthrough_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, depository::cpi::accounts::Withdraw<'info>> {
-        let cpi_program = self.depository_program.to_account_info();
-        let cpi_accounts = depository::cpi::accounts::Withdraw {
-            user: self.user.to_account_info(),
-            state: self.depository_state.to_account_info(),
-            program_coin: self.depository_coin.to_account_info(),
-            redeemable_mint: self.redeemable_mint.to_account_info(),
-            user_coin: self.coin_passthrough.to_account_info(),
-            user_redeemable: self.user_redeemable.to_account_info(),
-            system_program: self.system_program.to_account_info(),
-            token_program: self.token_program.to_account_info(),
-        };
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
     fn into_mint_uxd_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = MintTo {
