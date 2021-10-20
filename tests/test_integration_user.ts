@@ -80,46 +80,6 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     await printSystemBalance(depositoryBTC);
   });
 
-/*
-  it("User Deposit 0.45 BTC collateral", async () => {
-    // Given
-    let _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
-    const depositAmountBTC = 0.45;
-    const _expectedUserBTCBalance = _userBTCTokenAccountBalance - 0.45;
-    const _expectedDepositoryBTCBalance = depositAmountBTC;
-    const _expectedUserRedeemableBalance = depositAmountBTC;
-
-    // When
-    const ix = createAssocTokenIx(user.publicKey, userBTCDepRedeemableTokenAccount, depositoryBTC.redeemableMintPda);
-
-    await Depository.rpc.deposit(new anchor.BN(depositAmountBTC * 10 ** BTC_DECIMAL), {
-      accounts: {
-        user: user.publicKey,
-        state: depositoryBTC.statePda,
-        programCoin: depositoryBTC.depositPda,
-        redeemableMint: depositoryBTC.redeemableMintPda,
-        userCoin: userBTCTokenAccount,
-        userRedeemable: userBTCDepRedeemableTokenAccount,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-      signers: [user.payer],
-      options: TXN_OPTS,
-      instructions: [ix],
-    });
-
-    // Then
-    _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
-    const _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-    const _userBTCDepRedeemableBalance = await getBalance(userBTCDepRedeemableTokenAccount);
-
-    // Check that the balances are correct
-    expect(_userBTCTokenAccountBalance).to.equal(_expectedUserBTCBalance);
-    expect(_depositoryBTCTokenAccountBalance).to.equal(_expectedDepositoryBTCBalance);
-    expect(_userBTCDepRedeemableBalance).to.equal(_expectedUserRedeemableBalance);
-  });
-*/
-
   it("Mint UXD worth 0.4 BTC", async () => {
     // GIVEN
     const amountToConvert = 0.4;
@@ -211,68 +171,6 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     // TODO
   });
 
-  // it("Withdraw 0.02 BTC from depository", async () => {
-  //   // GIVEN
-  //   const amountBTC = 0.02;
-  //   let _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
-  //   let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-  //   const _expectedUserBTCBalance = _userBTCTokenAccountBalance + amountBTC;
-  //   const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - amountBTC;
-
-  //   // WHEN
-  //   await Depository.rpc.withdraw(new anchor.BN(amountBTC * 10 ** BTC_DECIMAL), {
-  //     accounts: {
-  //       user: user.publicKey,
-  //       state: depositoryBTC.statePda,
-  //       programCoin: depositoryBTC.depositPda,
-  //       redeemableMint: depositoryBTC.redeemableMintPda,
-  //       userCoin: userBTCTokenAccount,
-  //       userRedeemable: userBTCDepRedeemableTokenAccount,
-  //       systemProgram: SystemProgram.programId,
-  //       tokenProgram: TOKEN_PROGRAM_ID,
-  //     },
-  //     signers: [user],
-  //     options: TXN_OPTS,
-  //   });
-
-  //   // THEN
-  //   _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
-  //   _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-  //   expect(_userBTCTokenAccountBalance).to.closeTo(_expectedUserBTCBalance, 0.000_000_000_1);
-  //   expect(_depositoryBTCTokenAccountBalance).to.closeTo(_expectedDepositoryBTCBalance, 0.000_000_000_1);
-  // });
-
-  // it("Withdraw 0.01 BTC from depository", async () => {
-  //   // GIVEN
-  //   const amountBTC = 0.01; // <=> to withdraw all
-  //   let _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
-  //   let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-  //   const _expectedUserBTCBalance = _userBTCTokenAccountBalance + amountBTC;
-  //   const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - amountBTC;
-
-  //   // WHEN
-  //   await Depository.rpc.withdraw(new anchor.BN(amountBTC * 10 ** BTC_DECIMAL), {
-  //     accounts: {
-  //       user: user.publicKey,
-  //       state: depositoryBTC.statePda,
-  //       programCoin: depositoryBTC.depositPda,
-  //       redeemableMint: depositoryBTC.redeemableMintPda,
-  //       userCoin: userBTCTokenAccount,
-  //       userRedeemable: userBTCDepRedeemableTokenAccount,
-  //       systemProgram: SystemProgram.programId,
-  //       tokenProgram: TOKEN_PROGRAM_ID,
-  //     },
-  //     signers: [user],
-  //     options: TXN_OPTS,
-  //   });
-
-  //   // THEN
-  //   _userBTCTokenAccountBalance = await getBalance(userBTCTokenAccount);
-  //   _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-  //   expect(_userBTCTokenAccountBalance).to.closeTo(_expectedUserBTCBalance, 0.000_000_000_1);
-  //   expect(_depositoryBTCTokenAccountBalance).to.closeTo(_expectedDepositoryBTCBalance, 0.000_000_000_1);
-  // });
-
   it("Redeem all remaining UXD", async () => {
     // GIVEN
     let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
@@ -304,28 +202,4 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
   });
 
-  // it("Withdraw BTC (all) from depository", async () => {
-  //   // GIVEN
-  //   const amountBTC = null; // <=> to withdraw all
-  //   // let _userBTCTokenAccountBalance = await getBalance(userUXDTokenAccount);
-  //   // let _depositoryBTCTokenAccountBalance = await getBalance(depositoryBTC.depositPda);
-  //   // const _expectedUserBTCBalance = _userBTCTokenAccountBalance + ;
-  //   // const _expectedDepositoryBTCBalance = _depositoryBTCTokenAccountBalance - amountBTC.toNumber();
-
-  //   // WHEN
-  //   await Depository.rpc.withdraw(amountBTC, {
-  //     accounts: {
-  //       user: user.publicKey,
-  //       state: depositoryBTC.statePda,
-  //       programCoin: depositoryBTC.depositPda,
-  //       redeemableMint: depositoryBTC.redeemableMintPda,
-  //       userCoin: userBTCTokenAccount,
-  //       userRedeemable: userBTCDepRedeemableTokenAccount,
-  //       systemProgram: SystemProgram.programId,
-  //       tokenProgram: TOKEN_PROGRAM_ID,
-  //     },
-  //     signers: [user],
-  //     options: TXN_OPTS,
-  //   });
-  // });
 });

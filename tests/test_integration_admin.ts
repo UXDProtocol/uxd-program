@@ -43,52 +43,6 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
     // XXX add asserts
   });
 
-/*
-  it("Create BTC depository", async () => {
-    await Depository.rpc.new(ControllerUXD.ProgramId, {
-      accounts: {
-        payer: admin.publicKey,
-        state: depositoryBTC.statePda,
-        redeemableMint: depositoryBTC.redeemableMintPda,
-        programCoin: depositoryBTC.depositPda,
-        coinMint: depositoryBTC.collateralMint,
-        rent: SYSVAR_RENT_PUBKEY,
-        systemProgram: SystemProgram.programId,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      },
-      signers: [admin.payer],
-      options: TXN_OPTS,
-    });
-    // Add some asserts ...
-    depositoryBTC.info();
-  });
-*/
-
-  // it("Create SOL depository", async () => {
-  //   if (await connection.getAccountInfo(depositoryWSOL.statePda)) {
-  //     // We don't really want to have non exactly reproducible, but with the localnet pinned adresses
-  //     // Temporary
-  //     console.log("DepositoryWSOL already initialized...");
-  //   } else {
-  //     await Depository.rpc.new(ControllerUXD.ProgramId, {
-  //       accounts: {
-  //         payer: admin.publicKey,
-  //         state: depositoryWSOL.statePda,
-  //         redeemableMint: depositoryWSOL.redeemableMintPda,
-  //         programCoin: depositoryWSOL.depositPda,
-  //         coinMint: depositoryWSOL.collateralMint,
-  //         rent: SYSVAR_RENT_PUBKEY,
-  //         systemProgram: SystemProgram.programId,
-  //         tokenProgram: TOKEN_PROGRAM_ID,
-  //       },
-  //       signers: [admin.payer],
-  //       options: TXN_OPTS,
-  //     });
-  //   }
-  //   // Add some asserts ...
-  //   depositoryWSOL.info();
-  // });
-
   it("Register BTC Depository with Controller", async () => {
     // Given
     const depositoryPda = ControllerUXD.depositoryPda(depositoryBTC.collateralMint);

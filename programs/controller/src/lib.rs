@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::Token;
 use anchor_spl::token::{self, Transfer, Burn, Mint, MintTo, TokenAccount};
-use depository::Depository as DepositoryOld;
 use pyth_client::Price;
 use std::convert::TryFrom;
 
@@ -12,7 +11,6 @@ const UXD_DECIMAL: u8 = 6;
 const STATE_SEED: &[u8] = b"STATE";
 const UXD_SEED: &[u8] = b"STABLECOIN";
 const DEPOSITORY_SEED: &[u8] = b"DEPOSITORY";
-const RECORD_SEED: &[u8] = b"RECORD";
 const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
 
 solana_program::declare_id!("2PCPrsHdeZq6CsHyqnu3NVMcWtJGjZE8mWKpF6ipTDT4");
@@ -358,7 +356,7 @@ pub struct RegisterDepository<'info> {
         bump,
         payer = authority,
     )]
-    pub depository: Box<Account<'info, DepositoryNew>>,
+    pub depository: Box<Account<'info, Depository>>,
     pub coin_mint: Box<Account<'info, Mint>>,
     #[account(
         init,
@@ -405,7 +403,7 @@ pub struct MintUxd<'info> {
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
     #[account(seeds = [DEPOSITORY_SEED, coin_mint.key().as_ref()], bump)]
-    pub depository: Box<Account<'info, DepositoryNew>>,
+    pub depository: Box<Account<'info, Depository>>,
     #[account(constraint = coin_mint.key() == depository.coin_mint_key)]
     pub coin_mint: Box<Account<'info, Mint>>,
     #[account(mut, seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
@@ -451,7 +449,7 @@ pub struct RedeemUxd<'info> {
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
     #[account(seeds = [DEPOSITORY_SEED, coin_mint.key().as_ref()], bump)]
-    pub depository: Box<Account<'info, DepositoryNew>>,
+    pub depository: Box<Account<'info, Depository>>,
     #[account(constraint = coin_mint.key() == depository.coin_mint_key)]
     pub coin_mint: Box<Account<'info, Mint>>,
     #[account(mut, seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
@@ -491,19 +489,12 @@ pub struct State {
 
 #[account]
 #[derive(Default)]
-pub struct DepositoryNew {
+pub struct Depository {
     bump: u8,
     coin_mint_key: Pubkey,
     coin_passthrough_key: Pubkey,
     mango_account_key: Pubkey,
     // XXX temp for devnet
-    oracle_key: Pubkey,
-}
-
-#[account]
-#[derive(Default)]
-pub struct DepositoryRecord {
-    bump: u8,
     oracle_key: Pubkey,
 }
 
