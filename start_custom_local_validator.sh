@@ -1,16 +1,11 @@
 #!/bin/bash
 
-# clone_account:
-#   "3m1y5h2uv7EQL3KaJZehvAJa4yDNvgc5yAdL9KPMKwvk" #: BTC/USD Pyth Account
-#   "HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J" #: BTC/USD Pyth Price Account
-#   "3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E" #: SOL/USD Pyth Account
-#   "J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix" #: SOL/USD Pyth Price Account
+
 
  # https://api.devnet.solana.com
 # Reset then configure the local validator to mimi the mango accounts on devnet
 # echo "[Setting up local validator with --cloned accounts...]"
 solana-test-validator \
- --reset                                                `: # Reset the test-ledger` \
  --url https://mango.devnet.rpcpool.com                 `: # Cluster from which the below program will be cloned` \
  --clone TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA    `: # token program` \
  --clone 8mFQbdXsFXt3R3cu3oSNS3bDZRwJRP18vyzd9J278J9z   `: # cache `\
@@ -55,17 +50,28 @@ solana-test-validator \
  --clone 6eadH6vSsEk5bPiXWPYRq5KRSjohfYd6Ug5HjGbxaWce \
  --clone DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY   `: # serumProgramId`\
  --clone AvKzLiE8ezzp6kLVw49nq8drycE89NS1RQaBWjBNeUoF \
- --clone 8k7F9Xb36oFJsjpCKpsXvg4cgBRoZtwNTc3EzG5Ttd2o   `: # switchboard oracle` \
- --clone HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J   `: # oracle` \
- --clone EdVCmQ9FSPcVe5YySXDPCRmc8aDQLKJ9xvYBMZPie1Vw   `: # oracle` \
- --clone J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix   `: # oracle` \
- --clone 992moaMQKs32GKZ9dxi8keyM2bUmbrwBZpK4p2K6X5Vs   `: # oracle` \
- --clone 8PugCXTAHLM9kfLSQWe2njE5pzAgUdpPk3Nx5zSm7BD3   `: # oracle` \
- --clone 4GqTjGm686yihQ1m1YdTsSvfm4mNfadv6xskzgCYWNC5   `: # oracle` \
- --clone 4L6YhY8VvUgmqG5MvJkUJATtzB2rFqdrJwQCmFLv4Jzy   `: # oracle` \
- --clone BLArYBCUYhdWiY8PCUTpvFE21iaJq85dvxLk9bYMobcU   `: # oracle` \
- --clone 6vivTRs5ZPeeXbjo7dfburfaYDWoXjBtdtuYgQRuGfu    `: # oracle` \
- --clone 38xoQ4oeJCBrcVvca2cGk7iV1dAfrmTR1kmhSCJQ8Jto   `: # oracle` \
+ --clone 8k7F9Xb36oFJsjpCKpsXvg4cgBRoZtwNTc3EzG5Ttd2o   `: # ??? these account were needed but idk wtf mango devnet use them for` \
+ --clone 4GqTjGm686yihQ1m1YdTsSvfm4mNfadv6xskzgCYWNC5   `: # oracle xau pyth?` \
+ --clone 8PugCXTAHLM9kfLSQWe2njE5pzAgUdpPk3Nx5zSm7BD3   `: # ? luna pyth?` \
+ --clone 4L6YhY8VvUgmqG5MvJkUJATtzB2rFqdrJwQCmFLv4Jzy   `: # ? doge pyth?` \
+ --clone BLArYBCUYhdWiY8PCUTpvFE21iaJq85dvxLk9bYMobcU   `: # ? btc pyth?` \
+ --clone 6vivTRs5ZPeeXbjo7dfburfaYDWoXjBtdtuYgQRuGfu    `: # ? ftt pyth?` \
+ --clone 3m1y5h2uv7EQL3KaJZehvAJa4yDNvgc5yAdL9KPMKwvk   `: #  BTC/USD Pyth Account`\
+ --clone HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J   `: #: BTC/USD Pyth Price Account`\
+ --clone 3Mnn2fX6rQyUsyELYms1sBJyChWofzSNRoqYzvgMVz5E   `: #: SOL/USD Pyth Account`\
+ --clone J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix   `: #: SOL/USD Pyth Price Account`\
+ --clone EssaQC37YW2LVXTsEVjijNte3FTUw21MJBkZYHDdyakc   `: #: mngo/USD Pyth Account`\
+ --clone DCNw5mwZgjfTcoNsSZWUiXqU61ushNvr3JRQJRi1Nf95   `: #: mngo/USD Pyth Price Account`\
+ --clone 2ciUuGZiee5macAMeQ7bHGTJtwcYTgnt6jdmQnnKZrfu   `: #: eth/USD Pyth Account`\
+ --clone EdVCmQ9FSPcVe5YySXDPCRmc8aDQLKJ9xvYBMZPie1Vw   `: #: eth/USD Pyth Price Account`\
+ --clone 6NpdXrQEpmDZ3jZKmM2rhdmkd3H6QAk23j2x8bkXcHKA   `: #: usdc/USD Pyth Account`\
+ --clone 5SSkXsEKQepHHAewytPVwdej4epN1nxgLVM84L4KXgy7   `: #: usdc/USD Pyth Price Account`\
+ --clone 6MEwdxe4g1NeAF9u6KDG14anJpFsVEa2cvr5H6iriFZ8   `: #: srm/USD Pyth Account`\
+ --clone 992moaMQKs32GKZ9dxi8keyM2bUmbrwBZpK4p2K6X5Vs   `: #: srm/USD Pyth Price Account`\
+ --clone 3BtxtRxitVDcsd7pPUWUnFm9KvmNDy9usS4gE6pUFhpH   `: #: ray/USD Pyth Account`\
+ --clone EhgAdTrgxi4ZoVZLQx1n93vULucPpiFi2BQtz9RJr1y6   `: #: ray/USD Pyth Price Account`\
+ --clone C5wDxND9E61RZ1wZhaSTWkoA8udumaHnoQY6BBsiaVpn   `: #: usdt/USD Pyth Account`\
+ --clone 38xoQ4oeJCBrcVvca2cGk7iV1dAfrmTR1kmhSCJQ8Jto   `: #: usdt/USD Pyth Price Account`\
  --clone FHQtNjRHA9U5ahrH7mWky3gamouhesyQ5QvpeGKrTh2z   `: # BTC Perp market `\
  --clone F1Dcnq6F8NXR3gXADdsYqrXYBUUwoT7pfCtRuQWSyQFd   `: ## bidsKey `\
  --clone BFEBZsLYmEhj4quWDRKbyMKhW1Q9c7gu3LqsnipNGTVn   `: ## asksKey `\
@@ -73,7 +79,37 @@ solana-test-validator \
  --clone 58vac8i9QXStG1hpaa4ouwE1X7ngeDjY9oY7R15hcbKJ   `: # SOL Perp market `\
  --clone 7HRgm8iXEDx2TmSETo3Lq9SXkF954HMVKNiq8t5sKvQS   `: ## bidsKey `\
  --clone 4oNxXQv1Rx3h7aNWjhTs3PWBoXdoPZjCaikSThV4yGb8   `: ## asksKey `\
- --clone CZ5MCRvkN38d5pnZDDEEyMiED3drgDUVpEUjkuJq31Kf   `: ## eventsKey `
+ --clone CZ5MCRvkN38d5pnZDDEEyMiED3drgDUVpEUjkuJq31Kf   `: ## eventsKey `\
+ --clone 8W8Hrj16TZhM4RrFzHBuyWGbh396ig3hJtLPJRGmxPVG   `: # MNGO/USDC Spot market `\
+ --clone Diynh714TQsx3qP2bsUuKZk8P31UtKWS9xU6jAZ7A97q   `: ## bidsKey `\
+ --clone EhgGeUyv42vZkfWTi2Bxk53cUEW9WWDWrt3qURo8Jfzm   `: ## asksKey `\
+ --clone 5vE1a72aw1Hi6JR8sK6ny9mRetWExkryYVxPFQ7zNGY2   `: ## eventsKey `\
+ --clone DW83EpHFywBxCHmyARxwj3nzxJd7MUdSeznmrdzZKNZB   `: # BTC/USDC Spot market `\
+ --clone PuDcnQDEpoR3WwVAi8PqnHJxHbVEwiusM4PnyHEykFT   `: ## bidsKey `\
+ --clone 998DHpQmViDq67vMFKYYXgaHs3CJ5YHEBQSoiwxCjsCW   `: ## asksKey `\
+ --clone CQxwLPMoqAwi5wcfkULzF6Fwh7cf4Aiz8tR6DY4NNCN1   `: ## eventsKey `\
+ --clone BkAraCyL9TTLbeMY3L1VWrPcv32DvSi5QDDQjik1J6Ac   `: # ETH/USDC Spot market `\
+ --clone ETf3PZi9VaBsfpMU5e3SAn4SMjkaM6tyrn2Td9N2kSRx   `: ## bidsKey `\
+ --clone 3pfYeG2GKSh8SSZJEEwjYqgaHwYkq5vvSDET2M33nQAf   `: ## asksKey `\
+ --clone F43gimmdvBPQoGA4eDxt2N2ooiYWHvQ8pEATrtsArKuC   `: ## eventsKey `\
+ --clone 5xWpt56U1NCuHoAEtpLeUrQcxDkEpNfScjfLFaRzLPgR   `: # SOL/USDC Spot market `\
+ --clone 8ezpneRznTJNZWFSLeQvtPCagpsUVWA7djLSzqp3Hx4p   `: ## bidsKey `\
+ --clone 8gJhxSwbLJkDQbqgzbJ6mDvJYnEVWB6NHWEN9oZZkwz7   `: ## asksKey `\
+ --clone 48be6VKEq86awgUjfvbKDmEzXr4WNR7hzDxfF6ZPptmd   `: ## eventsKey `\
+ --clone 249LDNPLLL29nRq8kjBTg9hKdXMcZf4vK2UvxszZYcuZ   `: # SRM/USDC Spot market `\
+ --clone 5p39nxjdx9RXDVjSwTaej9oUgiLHeV8tfUn7PJoJRLgu   `: ## bidsKey `\
+ --clone 2sxkmiwvaMNtuh7eFQPMycJHrwrcJixDASXQFJx79y6C   `: ## asksKey `\
+ --clone F66CSYP3TgxGjVongBJ7Cjbiq9j267Keos7cUUUbBZx7   `: ## eventsKey `\
+ --clone 5xhm43GzigfEh8XAo5PwgoKK3gFkRr2PUgzWAmLzUTv2   `: # RAY/USDC Spot market `\
+ --clone BVDy8YmnbVtfidu8N5YJBDoHXf7vn5B6xnsV6ZLFnFdD   `: ## bidsKey `\
+ --clone 4QpxvtDNetYt4pbC8Ng66i6BZdkJEEtSux8HVdGKZbxh   `: ## asksKey `\
+ --clone DgojAawYqQqp4Wn9RwahP6yXMNGXsAtBfnoLNqNaWeLy   `: ## eventsKey `\
+ --clone E7ch7T7v4DTHcc2YF6ioQow4UPfubbSdpgYqyxoEhiMu   `: # USDT/USDC Spot market `\
+ --clone ELwx9pggHdz9CKDpnyCg6L1b8U67WPGsQ4TTbNsLjZJc   `: ## bidsKey `\
+ --clone Gr9rsX5uGCTDbhSPzCfrzufSt1mTCggSJAgPfwhBBX1r   `: ## asksKey `\
+ --clone H1gJZngRXUtj7N91xnnydC39XqmbU8d2jQZxwqSf21jX   `: ## eventsKey ` \
+ --reset                                                `: # Reset the test-ledger -- Put it at the end to ensure there is no silent error above`
+
 #  > /dev/null 2>&1 &
 
 # sleep 10
