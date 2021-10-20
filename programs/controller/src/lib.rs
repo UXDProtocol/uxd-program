@@ -9,8 +9,6 @@ use std::convert::TryFrom;
 
 mod mango_program;
 
-const MINT_SPAN: usize = 82;
-const ACCOUNT_SPAN: usize = 165;
 const UXD_DECIMAL: u8 = 6;
 
 const STATE_SEED: &[u8] = b"STATE";
@@ -80,20 +78,8 @@ pub mod controller {
         // - Update state
         let state_nonce = Pubkey::find_program_address(&[STATE_SEED], ctx.program_id).1;
         ctx.accounts.state.bump = state_nonce;
-        ctx.accounts.state.authority_key = *ctx.accounts.authority.key;
-        ctx.accounts.state.uxd_mint_key = *ctx.accounts.uxd_mint.key;
-
-        // - Initialize UXD Mint
-        let uxd_mint_nonce = Pubkey::find_program_address(&[UXD_SEED], ctx.program_id).1;
-        let uxd_mint_signer_seed: &[&[&[u8]]] = &[&[UXD_SEED, &[uxd_mint_nonce]]];
-        token::initialize_mint(
-            ctx.accounts
-                .into_initialize_uxd_mint_context()
-                .with_signer(uxd_mint_signer_seed),
-            UXD_DECIMAL,
-            &ctx.accounts.state.key(),
-            None,
-        )?;
+        ctx.accounts.state.authority_key = ctx.accounts.authority.key();
+        ctx.accounts.state.uxd_mint_key = ctx.accounts.uxd_mint.key();
 
         Ok(())
     }
@@ -111,25 +97,6 @@ pub mod controller {
         msg!("controller: register depository");
 
         let coin_mint_key = ctx.accounts.coin_mint.key();
-
-        // - Initialize Passthrough
-        let passthrough_nonce = Pubkey::find_program_address(
-            &[PASSTHROUGH_SEED, coin_mint_key.as_ref()],
-            ctx.program_id,
-        )
-        .1;
-        let passthrough_signer_seed: &[&[&[u8]]] = &[&[
-            PASSTHROUGH_SEED,
-            coin_mint_key.as_ref(),
-            &[passthrough_nonce],
-        ]];
-
-        // init the passthrough account we use to move funds between to mango
-        token::initialize_account(
-            ctx.accounts
-                .into_initialize_passthrough_account_context()
-                .with_signer(passthrough_signer_seed),
-        )?;
 
         // - Initialize Mango Account
 
@@ -362,11 +329,11 @@ pub struct New<'info> {
         init,
         seeds = [UXD_SEED],
         bump,
+        mint::authority = state,
+        mint::decimals = UXD_DECIMAL,
         payer = authority,
-        owner = spl_token::ID,
-        space = MINT_SPAN,
     )]
-    pub uxd_mint: AccountInfo<'info>,
+    pub uxd_mint: Account<'info, Mint>,
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -382,7 +349,7 @@ pub struct RegisterDepository<'info> {
         init,
         seeds = [DEPOSITORY_SEED, coin_mint.key().as_ref()],
         bump,
-        payer = authority
+        payer = authority,
     )]
     pub depository: Box<Account<'info, DepositoryNew>>,
     pub coin_mint: Box<Account<'info, Mint>>,
@@ -390,11 +357,11 @@ pub struct RegisterDepository<'info> {
         init,
         seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()],
         bump,
+        token::mint = coin_mint,
+        token::authority = state,
         payer = authority,
-        owner = spl_token::ID,
-        space = ACCOUNT_SPAN
     )]
-    pub coin_passthrough: UncheckedAccount<'info>,
+    pub coin_passthrough: Account<'info, TokenAccount>,
     // The mango group for the mango_account
     pub mango_group: AccountInfo<'info>,
     // The mango account, uninitialized
@@ -552,34 +519,6 @@ pub struct DepositoryRecord {
 }
 
 // MARK: - CONTEXTS  ----------------------------------------------------------
-
-impl<'info> New<'info> {
-    fn into_initialize_uxd_mint_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, InitializeMint<'info>> {
-        let cpi_program = self.token_program.to_account_info();
-        let cpi_accounts = InitializeMint {
-            mint: self.uxd_mint.to_account_info(),
-            rent: self.rent.to_account_info(),
-        };
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-}
-
-impl<'info> RegisterDepository<'info> {
-    fn into_initialize_passthrough_account_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, InitializeAccount<'info>> {
-        let cpi_program = self.token_program.to_account_info();
-        let cpi_accounts = InitializeAccount {
-            account: self.coin_passthrough.to_account_info(),
-            mint: self.coin_mint.to_account_info(),
-            authority: self.depository.to_account_info(),
-            rent: self.rent.to_account_info(),
-        };
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-}
 
 impl<'info> MintUxd<'info> {
     fn into_withdraw_from_depsitory_to_passthrough_context(
