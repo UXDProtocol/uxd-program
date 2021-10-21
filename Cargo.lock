@@ -763,8 +763,8 @@ dependencies = [
 
 [[package]]
 name = "mango"
-version = "3.1.0"
-source = "git+https://github.com/acamill/mango-v3?branch=misc/program-id-for-idiomatic-anchor#078bc30790940781f30a9354b1739d1ec1ff350e"
+version = "3.1.2"
+source = "git+https://github.com/blockworks-foundation/mango-v3#5f82c8b8ddf38528e0c09dee46608feab21553d2"
 dependencies = [
  "anchor-lang",
  "arrayref",
@@ -791,7 +791,7 @@ dependencies = [
 [[package]]
 name = "mango-common"
 version = "3.0.0"
-source = "git+https://github.com/acamill/mango-v3?branch=misc/program-id-for-idiomatic-anchor#078bc30790940781f30a9354b1739d1ec1ff350e"
+source = "git+https://github.com/blockworks-foundation/mango-v3#5f82c8b8ddf38528e0c09dee46608feab21553d2"
 dependencies = [
  "bytemuck",
  "solana-program",
@@ -800,7 +800,7 @@ dependencies = [
 [[package]]
 name = "mango-logs"
 version = "0.1.0"
-source = "git+https://github.com/acamill/mango-v3?branch=misc/program-id-for-idiomatic-anchor#078bc30790940781f30a9354b1739d1ec1ff350e"
+source = "git+https://github.com/blockworks-foundation/mango-v3#5f82c8b8ddf38528e0c09dee46608feab21553d2"
 dependencies = [
  "anchor-lang",
 ]
@@ -808,7 +808,7 @@ dependencies = [
 [[package]]
 name = "mango-macro"
 version = "3.0.0"
-source = "git+https://github.com/acamill/mango-v3?branch=misc/program-id-for-idiomatic-anchor#078bc30790940781f30a9354b1739d1ec1ff350e"
+source = "git+https://github.com/blockworks-foundation/mango-v3#5f82c8b8ddf38528e0c09dee46608feab21553d2"
 dependencies = [
  "bytemuck",
  "mango-common",

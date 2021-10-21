@@ -1,5 +1,5 @@
 import * as anchor from "@project-serum/anchor";
-import { Program } from "@project-serum/anchor";
+import { Program, Wallet } from "@project-serum/anchor";
 import { Token } from "@solana/spl-token";
 import { PublicKey, Keypair } from "@solana/web3.js";
 import { ControllerUXD } from "./controller";
@@ -29,20 +29,17 @@ export class Depository {
   public static rpc: anchor.RpcNamespace = (anchor.workspace.Depository as Program).rpc;
 
   public collateralMint: PublicKey;
-  public collateralSymbol: string; 
+  public collateralSymbol: string;
   public oraclePriceAccount: PublicKey;
   // PDAs
   public statePda: PublicKey;
   public redeemableMintPda: PublicKey;
   public depositPda: PublicKey;
-  // Mango account
-  public mangoAccount: Keypair; // Now using a keypair cause the init must be client side, the span of the account is too big to do so in anchor
 
   public constructor(mint: PublicKey, mintName: string, oraclePriceAccount: PublicKey) {
     this.collateralMint = mint;
     this.collateralSymbol = mintName;
     this.oraclePriceAccount = oraclePriceAccount; // To remove
-    this.mangoAccount = new Keypair();
 
     this.statePda = this.findDepositoryPda(DepositoryPDASeed.State);
     this.redeemableMintPda = this.findDepositoryPda(DepositoryPDASeed.RedeemableMint);
@@ -69,6 +66,8 @@ export class Depository {
         ).toString()}
         * controller's associated coinPassthroughPda:   ${ControllerUXD.coinPassthroughPda(
           this.collateralMint
-        ).toString()}`);
+        ).toString()}
+        * controller's associated MangoAccountPda:      ${ControllerUXD.mangoPda(this.collateralMint).toString()}
+        `);
   }
 }
