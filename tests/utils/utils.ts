@@ -40,7 +40,7 @@ console.log(`ADMIN KEY => ${admin.publicKey}`);
 // This is the user //
 let userKeypair = Keypair.fromSecretKey(Eyh77Seed);
 export let user = new Wallet(userKeypair);
-console.log(`USER KEY => ${admin.publicKey}`);
+console.log(`USER KEY => ${user.publicKey}`);
 
 // Mints cloned from devnet to interact with mango
 export const USDC = new PublicKey("8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN");
@@ -205,15 +205,11 @@ export function createAssocTokenIx(wallet: PublicKey, account: PublicKey, mint: 
   return Token.createAssociatedTokenAccountInstruction(
     ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
-    mint, // reedeemable mint PDA
-    account, // user's reedeemable associated token account
+    mint,
+    account,
     wallet, // owner
     wallet // payer
   );
-}
-
-export async function getRentExemption(size: number): Promise<number> {
-  return await provider.connection.getMinimumBalanceForRentExemption(size, TXN_COMMIT);
 }
 
 export function getBalance(tokenAccount: PublicKey): Promise<number> {

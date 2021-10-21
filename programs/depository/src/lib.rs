@@ -14,7 +14,7 @@ const PROGRAM_COIN_SEED: &[u8] = b"DEPOSIT";
 const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: usize = 165;
 
-solana_program::declare_id!("FJjdNskuQnHvRozc7zTQ5GPTyo5HZokgubvXYdR9tKHi");
+solana_program::declare_id!("Feo4PLuC3PB33zj2uU4zZA4dpCRwX7KipB7dHKf83o7d");
 
 #[program]
 #[deny(unused_must_use)]

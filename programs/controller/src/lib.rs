@@ -5,21 +5,25 @@ use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use depository::Depository;
 use fixed::types::I80F48;
+use mango::state::{MangoAccount, MangoCache, MangoGroup, MAX_PAIRS};
 use pyth_client::Price;
 use std::convert::TryFrom;
+use std::mem::size_of;
 
 mod mango_program;
 
 const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: usize = 165;
+const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 const UXD_DECIMAL: u8 = 6;
 
 const STATE_SEED: &[u8] = b"STATE";
 const UXD_SEED: &[u8] = b"STABLECOIN";
 const RECORD_SEED: &[u8] = b"RECORD";
+const MANGO_SEED: &[u8] = b"MANGO";
 const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
 
-solana_program::declare_id!("2PCPrsHdeZq6CsHyqnu3NVMcWtJGjZE8mWKpF6ipTDT4");
+solana_program::declare_id!("137dXnDWhuEqfSbJGrWSbaKxcDE3sk8A8V8ze5LTb9TX");
 
 #[program]
 #[deny(unused_must_use)]
@@ -114,33 +118,32 @@ pub mod controller {
 
         let coin_mint_key = ctx.accounts.coin_mint.key();
 
-        // - Initialize Passthrough
-        let passthrough_nonce = Pubkey::find_program_address(
+        msg!("controller: register depository [initialize Passthrough]");
+        let passthrough_bump_seed = Pubkey::find_program_address(
             &[PASSTHROUGH_SEED, coin_mint_key.as_ref()],
             ctx.program_id,
         )
         .1;
-        let passthrough_signer_seed: &[&[&[u8]]] = &[&[
+        let passthrough_pda_signer_seeds: &[&[&[u8]]] = &[&[
             PASSTHROUGH_SEED,
             coin_mint_key.as_ref(),
-            &[passthrough_nonce],
+            &[passthrough_bump_seed],
         ]];
         // init the passthrough account we use to move funds between depository and mango
         // making our depo record rather than the contr state the owner for pleasing namespacing reasons
         token::initialize_account(
             ctx.accounts
                 .into_initialize_passthrough_account_context()
-                .with_signer(passthrough_signer_seed),
+                .with_signer(passthrough_pda_signer_seeds),
         )?;
 
-        // - Initialize Mango Account
-
-        let depository_record_bump =
+        msg!("controller: register depository [initialize Mango Account]");
+        let depository_record_bump_seed =
             Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
-        let depository_record_signer_seed: &[&[&[u8]]] = &[&[
+        let depository_record_pda_signer_seeds: &[&[&[u8]]] = &[&[
             RECORD_SEED,
             coin_mint_key.as_ref(),
-            &[depository_record_bump],
+            &[depository_record_bump_seed],
         ]];
         let instruction = solana_program::instruction::Instruction {
             program_id: ctx.accounts.mango_program.key(),
@@ -149,6 +152,7 @@ pub mod controller {
                 AccountMeta::new_readonly(ctx.accounts.mango_group.key(), false),
                 AccountMeta::new(ctx.accounts.mango_account.key(), false),
                 AccountMeta::new_readonly(ctx.accounts.depository_record.key(), true),
+                AccountMeta::new_readonly(ctx.accounts.rent.key(), false),
             ],
         };
         let account_infos = [
@@ -156,12 +160,13 @@ pub mod controller {
             ctx.accounts.mango_group.to_account_info(),
             ctx.accounts.mango_account.to_account_info(),
             ctx.accounts.depository_record.to_account_info(),
+            ctx.accounts.rent.to_account_info(),
         ];
 
         solana_program::program::invoke_signed(
             &instruction,
             &account_infos,
-            depository_record_signer_seed,
+            depository_record_pda_signer_seeds,
         )?;
 
         // - Set our depo record up
@@ -181,7 +186,7 @@ pub mod controller {
     pub fn mint_uxd(ctx: Context<MintUxd>, coin_amount: u64) -> ProgramResult {
         msg!("controller: mint uxd");
 
-        // - Burn user redeemables and withdraw the coin to our passthrough account
+        msg!("controller: mint uxd [Burn user redeemables and withdraw the coin to our passthrough account]");
         // let depo_state: ProgramAccount<depository::State> = ctx.accounts.depository_state.from();
         depository::cpi::withdraw(
             ctx.accounts
@@ -189,18 +194,11 @@ pub mod controller {
             Some(coin_amount),
         )?;
 
-        // XXX No need for mango accounts check as they are check extensively by their instructions?
+        // XXX No need for mango accounts check as they are checked extensively by their instructions?
         // TBD
 
-        // - Deposit to mango and open position
+        msg!("controller: mint uxd [Deposit to mango]");
         let coin_mint_key = ctx.accounts.coin_mint.key();
-        let depository_record_bump =
-            Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
-        let depository_record_signer_seed: &[&[&[u8]]] = &[&[
-            RECORD_SEED,
-            coin_mint_key.as_ref(),
-            &[depository_record_bump],
-        ]];
         let instruction = solana_program::instruction::Instruction {
             program_id: ctx.accounts.mango_program.key(),
             data: mango::instruction::MangoInstruction::Deposit {
@@ -233,35 +231,166 @@ pub mod controller {
             ctx.accounts.coin_passthrough.to_account_info(),
         ];
 
+        let depository_record_bump =
+            Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
+        let depository_record_signer_seeds: &[&[&[u8]]] = &[&[
+            RECORD_SEED,
+            coin_mint_key.as_ref(),
+            &[depository_record_bump],
+        ]];
         solana_program::program::invoke_signed(
             &instruction,
             &account_infos,
-            depository_record_signer_seed,
+            depository_record_signer_seeds,
         )?;
 
-        // Get oracle price
-        let mango_group = mango::state::MangoGroup::load_checked(
-            &ctx.accounts.mango_group,
+        msg!("controller: mint uxd [Open perp position on Mango]");
+        let mango_account = MangoAccount::load_checked(
+            &ctx.accounts.mango_account,
             ctx.accounts.mango_program.key,
+            &ctx.accounts.mango_group.key,
         )?;
-        let mango_cache = mango::state::MangoCache::load_checked(
+        let basket_open_orders_pks = get_open_orders_in_basket(&mango_account);
+
+        let mut accounts = vec![
+            AccountMeta::new_readonly(ctx.accounts.mango_group.key(), false),
+            AccountMeta::new(ctx.accounts.mango_account.key(), false),
+            AccountMeta::new_readonly(ctx.accounts.depository_record.key(), true),
+            AccountMeta::new_readonly(ctx.accounts.mango_cache.key(), false),
+            AccountMeta::new(ctx.accounts.mango_perp_market.key(), false),
+            AccountMeta::new(ctx.accounts.mango_bids.key(), false),
+            AccountMeta::new(ctx.accounts.mango_asks.key(), false),
+            AccountMeta::new(ctx.accounts.mango_event_queue.key(), false),
+        ];
+        // Should be 0 but we have to pass the expected size
+        accounts.extend(
+            basket_open_orders_pks
+                .iter()
+                .map(|pubkey| AccountMeta::new_readonly(pubkey.clone(), false)),
+        );
+
+        let account_infos = [
+            ctx.accounts.mango_group.to_account_info(),
+            ctx.accounts.mango_account.to_account_info(),
+            ctx.accounts.depository_record.to_account_info(),
+            ctx.accounts.mango_cache.to_account_info(),
+            ctx.accounts.mango_perp_market.to_account_info(),
+            ctx.accounts.mango_bids.to_account_info(),
+            ctx.accounts.mango_asks.to_account_info(),
+            ctx.accounts.mango_event_queue.to_account_info(),
+        ];
+
+        let mango_group =
+            MangoGroup::load_checked(&ctx.accounts.mango_group, ctx.accounts.mango_program.key)?;
+        let mango_cache = MangoCache::load_checked(
             &ctx.accounts.mango_cache,
             ctx.accounts.mango_program.key,
             &mango_group,
         )?;
-        // XXX proper error mangement return Err(ControllerError::RootBankIndexNotFound.into())
-        let asset_index = mango_group
-            .find_root_bank_index(ctx.accounts.mango_root_bank.key)
+
+        // PERP
+        let perp_market_index = mango_group
+            .find_perp_market_index(ctx.accounts.mango_perp_market.key)
             .unwrap();
-        let asset_price = mango_cache.get_price(asset_index);
-        let coin_amount = I80F48::from_num(coin_amount);
+        let coin_perp_value = mango_cache.price_cache[perp_market_index].price;
+        // msg!("coin_perp_value: {}", coin_perp_value);
+
+        let base_decimals = mango_group.tokens[perp_market_index].decimals;
+        let base_unit = 10u64.pow(base_decimals.into());
+        let base_lot_size =
+            I80F48::from_num(mango_group.perp_markets[perp_market_index].base_lot_size);
+        // msg!("base_decimals: {}", base_decimals);
+        // msg!("base_unit: {}", base_unit);
+        // msg!("base_lot_size: {}", base_lot_size);
+
+        let quote_decimals = mango_group.tokens[mango::state::QUOTE_INDEX].decimals;
+        let quote_unit = 10u64.pow(quote_decimals.into());
+        let quote_lot_size =
+            I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
+        // msg!("quote_decimals: {}", quote_decimals);
+        // msg!("quote_unit: {}", quote_unit);
+        // msg!("quote_lot_size: {}", quote_lot_size);
+
+        let price = coin_perp_value // Using perp value here
+            .checked_mul(I80F48::from_num(quote_unit))
+            .unwrap()
+            .checked_mul(base_lot_size)
+            .unwrap()
+            .checked_div(quote_lot_size)
+            .unwrap()
+            .checked_div(I80F48::from_num(base_unit))
+            .unwrap();
+        // msg!("price in quote lot unit: {}", price);
+
+        let coin_amount_fixed = I80F48::from_num(coin_amount);
+        let exposure_delta = coin_perp_value
+            .checked_mul(coin_amount_fixed)
+            .unwrap()
+            .checked_div(quote_lot_size)
+            .unwrap();
+        // msg!("exposure delta in quote lot unit: {}", exposure_delta);
+
+        let quantity = exposure_delta.checked_div(price).unwrap();
+        msg!("perp quantity to adjust in base lot unit: {}", quantity);
+
+        //
+
+        let instruction = solana_program::instruction::Instruction {
+            program_id: ctx.accounts.mango_program.key(),
+            data: mango::instruction::MangoInstruction::PlacePerpOrder {
+                price: price.to_num::<i64>(),
+                quantity: quantity.abs().to_num::<i64>(),
+                client_order_id: 0,
+                // We are shorting
+                side: mango::matching::Side::Ask,
+                // We need instant settlement, we are the Taker
+                //
+                // TODO
+                // SHOULD be a Fill or kill or similar, or ImmediateOrCancel and retrieve how
+                // much have been purchased and only mint that (Not great for UX),
+                // OR look into the order book to find the good order to match IN THE RANGE allowed by the slippage
+                order_type: mango::matching::OrderType::Market,
+                reduce_only: false,
+            }
+            .pack(),
+            accounts: accounts,
+        };
+
+        // AND SINCE we take a market order or Limit cancel, we canot mint the same amout of UXD,
+        //  we need some feedback about how much got executed
+
+        let depository_record_bump =
+            Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
+        let depository_record_signer_seeds: &[&[&[u8]]] = &[&[
+            RECORD_SEED,
+            coin_mint_key.as_ref(),
+            &[depository_record_bump],
+        ]];
+        msg!(
+            "controller: mint uxd [asset price {:}]",
+            coin_perp_value.to_num::<i64>()
+        );
+        msg!(
+            "controller: mint uxd [quantity {:}]",
+            coin_amount_fixed.to_num::<i64>()
+        );
+        drop(mango_group);
+        drop(mango_cache);
+        drop(mango_account);
+        solana_program::program::invoke_signed(
+            &instruction,
+            &account_infos,
+            depository_record_signer_seeds,
+        )?;
+
+        msg!("controller: mint uxd [Mint UXD for redeemables]");
         let coin_decimals = ctx.accounts.coin_mint.decimals as u32;
         let uxd_decimals = ctx.accounts.uxd_mint.decimals as u32;
         let coin_exp = I80F48::from_num(10u64.pow(coin_decimals));
         let uxd_exp = I80F48::from_num(10u64.pow(uxd_decimals));
 
         // USD value of deposited coin
-        let coin_usd_value = coin_amount * asset_price;
+        let coin_usd_value = coin_amount_fixed * coin_perp_value;
         // Converted to UXD amount (we multiply by uxd decimals and divide by coin decimals and get a uxd amount)
         let position_uxd_amount = (coin_usd_value * uxd_exp) / coin_exp;
 
@@ -353,6 +482,22 @@ pub mod controller {
     //
 }
 
+// MARK: - Helpers  -----------------------------------------------------------
+
+// Retrieve the pubkeys for open orders of that account
+pub fn get_open_orders_in_basket(
+    mango_account: &mango::state::MangoAccount,
+) -> [Pubkey; MAX_PAIRS] {
+    let mut pks_in_basket = [Pubkey::default(); MAX_PAIRS];
+    for i in 0..MAX_PAIRS {
+        if mango_account.in_margin_basket[i] {
+            msg!("Found an open order");
+            pks_in_basket[i] = mango_account.spot_open_orders[i];
+        }
+    }
+    pks_in_basket
+}
+
 // MARK: - Accounts Inputs  ---------------------------------------------------
 #[derive(Accounts)]
 pub struct New<'info> {
@@ -399,7 +544,6 @@ pub struct RegisterDepository<'info> {
     pub depository_state: Box<Account<'info, depository::State>>,
     #[account(constraint = coin_mint.key() == depository_state.coin_mint_key)]
     pub coin_mint: Box<Account<'info, Mint>>,
-    // Todo can use associated_token here
     #[account(
         init,
         seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()],
@@ -411,8 +555,15 @@ pub struct RegisterDepository<'info> {
     pub coin_passthrough: AccountInfo<'info>,
     // The mango group for the mango_account
     pub mango_group: AccountInfo<'info>,
-    // The mango account, uninitialized
-    #[account(mut, signer)]
+    // The mango PDA
+    #[account(
+        init,
+        seeds = [MANGO_SEED, coin_mint.key().as_ref()],
+        bump,
+        owner = mango_program::Mango::id(),
+        payer = authority,
+        space = MANGO_ACCOUNT_SPAN,
+    )]
     pub mango_account: AccountInfo<'info>,
     // programs
     pub system_program: Program<'info, System>,
@@ -470,7 +621,7 @@ pub struct MintUxd<'info> {
     pub user_uxd: Box<Account<'info, TokenAccount>>,
     #[account(mut, seeds = [UXD_SEED], bump)]
     pub uxd_mint: Box<Account<'info, Mint>>,
-    // XXX start mango ------------------
+    // XXX start mango --------------------------------------------------------
     // MangoGroup that this mango account is for
     pub mango_group: AccountInfo<'info>,
     // Mango Account of the Depository Record
@@ -482,7 +633,16 @@ pub struct MintUxd<'info> {
     pub mango_node_bank: AccountInfo<'info>,
     #[account(mut)]
     pub mango_vault: Account<'info, TokenAccount>,
-    // XXX end mango --------------------
+    // The perp market for `coin_mint` on mango, and the associated required accounts
+    #[account(mut)]
+    pub mango_perp_market: AccountInfo<'info>,
+    #[account(mut)]
+    pub mango_bids: AccountInfo<'info>,
+    #[account(mut)]
+    pub mango_asks: AccountInfo<'info>,
+    #[account(mut)]
+    pub mango_event_queue: AccountInfo<'info>,
+    // XXX end mango ----------------------------------------------------------
     pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -551,7 +711,7 @@ pub struct DepositoryRecord {
     bump: u8,
     // XXX temp for devnet
     oracle_key: Pubkey,
-    // Seems useless but I realize that it will hold mango stuff. Should rename later? Or my english suck I'm dumb dumb
+    mango_account: Pubkey,
 }
 
 // MARK: - CONTEXTS  ----------------------------------------------------------
