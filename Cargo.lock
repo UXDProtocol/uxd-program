@@ -386,7 +386,6 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
- "depository",
  "fixed",
  "mango",
  "pyth-client",
@@ -430,16 +429,6 @@ dependencies = [
  "rand_core",
  "subtle",
  "zeroize",
-]
-
-[[package]]
-name = "depository"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "solana-program",
- "spl-token",
 ]
 
 [[package]]
@@ -607,9 +596,9 @@ dependencies = [
 
 [[package]]
 name = "half"
-version = "1.8.0"
+version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac5956d4e63858efaec57e0d6c1c2f6a41e1487f830314a324ccd7e2223a7ca0"
+checksum = "3bd566f08830dd1fa75b2a5f1d8def8336de7f08b2692a9a71efbe7188aea36f"
 
 [[package]]
 name = "hashbrown"
@@ -700,9 +689,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.103"
+version = "0.2.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd8f7255a17a627354f321ef0055d63b898c6fb27eff628af4d1b66b7331edf6"
+checksum = "7b2f96d100e1cf1929e7719b7edb3b90ab5298072638fccd77be9ce942ecdfce"
 
 [[package]]
 name = "libsecp256k1"
@@ -1060,9 +1049,9 @@ checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
 
 [[package]]
 name = "rust_decimal"
-version = "1.16.0"
+version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0f1028de22e436bb35fce070310ee57d57b5e59ae77b4e3f24ce4773312b813"
+checksum = "353775f96a1f400edcca737f843cb201af3645912e741e64456a257c770173e8"
 dependencies = [
  "arrayvec",
  "num-traits",
@@ -1071,9 +1060,9 @@ dependencies = [
 
 [[package]]
 name = "rust_decimal_macros"
-version = "1.16.0"
+version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5732c6adfbb4bbf262b7625832174ef76ccec1786bf8badfcfd11c494214f1a9"
+checksum = "d0847e5bbcded958275518f18a567fea27e53b22b52b549cc3557c88d780b22e"
 dependencies = [
  "quote",
  "rust_decimal",
@@ -1389,9 +1378,9 @@ checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
 name = "switchboard-program"
-version = "0.1.52"
+version = "0.1.54"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c08347bc116d36c35c331c0a3be70d1768408a48fe0d3188349bc04ef9c76f5a"
+checksum = "9c2a54e47e186fcdb01779c99a5d64fd71c31a53b7a3f1bcd76ea4e240e0179d"
 dependencies = [
  "bincode",
  "borsh",
@@ -1405,9 +1394,9 @@ dependencies = [
 
 [[package]]
 name = "switchboard-protos"
-version = "0.1.56"
+version = "0.1.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da2cf7f66ae839078ce00a7bcfde25f6b7c069054cea5dbd7ee01e800883e474"
+checksum = "f2f29c3a6f4901d6f3222678b25fa768376372770cfe128909269ca36f987dca"
 dependencies = [
  "bincode",
  "borsh",
@@ -1417,9 +1406,9 @@ dependencies = [
 
 [[package]]
 name = "switchboard-utils"
-version = "0.1.26"
+version = "0.1.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2702ff533aa6b1dfa78504f4aa3dab67ecbcd5acbf23cbc73bcc95ac7c78ddf"
+checksum = "e66c0cf6a7dec4bd2170932dafb545b8f7cc79abd0c5fc8802b513cce5cf5479"
 dependencies = [
  "bincode",
  "borsh",
@@ -1577,9 +1566,9 @@ checksum = "9fc79f4a1e39857fc00c3f662cbf2651c771f00e9c15fe2abc341806bd46bd71"
 
 [[package]]
 name = "zerocopy"
-version = "0.3.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6580539ad917b7c026220c4b3f2c08d52ce54d6ce0dc491e66002e35388fab46"
+checksum = "ae0f717764196a220d8c58500e3a3595e2c9054f95d66267f9fd5f6e74ad0fec"
 dependencies = [
  "byteorder",
  "zerocopy-derive",
@@ -1587,9 +1576,9 @@ dependencies = [
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d498dbd1fd7beb83c86709ae1c33ca50942889473473d287d56ce4770a18edfb"
+checksum = "0af017aca1fa6181f5dd7a802456fe6f7666ecdcc18d0910431f0fc89d474e51"
 dependencies = [
  "proc-macro2",
  "syn",

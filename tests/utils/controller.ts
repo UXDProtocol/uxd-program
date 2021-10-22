@@ -8,8 +8,8 @@ import { utils } from "./utils";
 enum ControllerPDASeed {
   State = "STATE",
   UXD = "STABLECOIN",
-  Record = "RECORD",
   Mango = "MANGO",
+  Depository = "DEPOSITORY",
   Passthrough = "PASSTHROUGH",
 }
 
@@ -21,11 +21,9 @@ export class ControllerUXD {
   public static statePda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.State);
   public static mintPda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.UXD);
 
-  // Todo factorisation
-
-  public static depositoryRecordPda(collateralMint: PublicKey): PublicKey {
+  public static depositoryPda(collateralMint: PublicKey): PublicKey {
     return utils.findProgramAddressSync(ControllerUXD.ProgramId, [
-      Buffer.from(ControllerPDASeed.Record),
+      Buffer.from(ControllerPDASeed.Depository),
       collateralMint.toBuffer(),
     ])[0];
   }
