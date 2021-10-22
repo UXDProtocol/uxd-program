@@ -5,7 +5,7 @@ use anchor_spl::token::Token;
 use anchor_spl::token::{self, Burn, Mint, MintTo, TokenAccount};
 use depository::Depository;
 use fixed::types::I80F48;
-use mango::state::{MangoAccount, MangoCache, MangoGroup, MAX_PAIRS};
+use mango::state::{MangoAccount, MangoCache, MangoGroup};
 use pyth_client::Price;
 use std::convert::TryFrom;
 use std::mem::size_of;
@@ -202,40 +202,8 @@ pub mod controller {
         // XXX No need for mango accounts check as they are checked extensively by their instructions?
         // TBD
 
-        msg!("controller: mint uxd [Deposit to mango]");
+        msg!("controller: mint uxd [Deposit Mango CPI]");
         let coin_mint_key = ctx.accounts.coin_mint.key();
-        let instruction = solana_program::instruction::Instruction {
-            program_id: ctx.accounts.mango_program.key(),
-            data: mango::instruction::MangoInstruction::Deposit {
-                quantity: coin_amount,
-            }
-            .pack(),
-            accounts: vec![
-                AccountMeta::new_readonly(ctx.accounts.mango_group.key(), false),
-                AccountMeta::new(ctx.accounts.mango_account.key(), false),
-                AccountMeta::new_readonly(ctx.accounts.depository_record.key(), true),
-                AccountMeta::new_readonly(ctx.accounts.mango_cache.key(), false),
-                AccountMeta::new_readonly(ctx.accounts.mango_root_bank.key(), false),
-                AccountMeta::new(ctx.accounts.mango_node_bank.key(), false),
-                AccountMeta::new(ctx.accounts.mango_vault.key(), false),
-                AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
-                AccountMeta::new(ctx.accounts.coin_passthrough.key(), false),
-            ],
-        };
-
-        let account_infos = [
-            ctx.accounts.mango_program.to_account_info(),
-            ctx.accounts.mango_group.to_account_info(),
-            ctx.accounts.mango_account.to_account_info(),
-            ctx.accounts.depository_record.to_account_info(),
-            ctx.accounts.mango_cache.to_account_info(),
-            ctx.accounts.mango_root_bank.to_account_info(),
-            ctx.accounts.mango_node_bank.to_account_info(),
-            ctx.accounts.mango_vault.to_account_info(),
-            ctx.accounts.token_program.to_account_info(),
-            ctx.accounts.coin_passthrough.to_account_info(),
-        ];
-
         let depository_record_bump =
             Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
         let depository_record_signer_seeds: &[&[&[u8]]] = &[&[
@@ -243,48 +211,19 @@ pub mod controller {
             coin_mint_key.as_ref(),
             &[depository_record_bump],
         ]];
-        solana_program::program::invoke_signed(
-            &instruction,
-            &account_infos,
-            depository_record_signer_seeds,
+        mango_program::deposit(
+            ctx.accounts
+                .into_deposit_to_mango_context()
+                .with_signer(depository_record_signer_seeds),
+            coin_amount,
         )?;
 
-        msg!("controller: mint uxd [Open perp position on Mango]");
+        msg!("controller: mint uxd [calculation for perp position opening]");
         let mango_account = MangoAccount::load_checked(
             &ctx.accounts.mango_account,
             ctx.accounts.mango_program.key,
             &ctx.accounts.mango_group.key,
         )?;
-        let basket_open_orders_pks = get_open_orders_in_basket(&mango_account);
-
-        let mut accounts = vec![
-            AccountMeta::new_readonly(ctx.accounts.mango_group.key(), false),
-            AccountMeta::new(ctx.accounts.mango_account.key(), false),
-            AccountMeta::new_readonly(ctx.accounts.depository_record.key(), true),
-            AccountMeta::new_readonly(ctx.accounts.mango_cache.key(), false),
-            AccountMeta::new(ctx.accounts.mango_perp_market.key(), false),
-            AccountMeta::new(ctx.accounts.mango_bids.key(), false),
-            AccountMeta::new(ctx.accounts.mango_asks.key(), false),
-            AccountMeta::new(ctx.accounts.mango_event_queue.key(), false),
-        ];
-        // Should be 0 but we have to pass the expected size
-        accounts.extend(
-            basket_open_orders_pks
-                .iter()
-                .map(|pubkey| AccountMeta::new_readonly(pubkey.clone(), false)),
-        );
-
-        let account_infos = [
-            ctx.accounts.mango_group.to_account_info(),
-            ctx.accounts.mango_account.to_account_info(),
-            ctx.accounts.depository_record.to_account_info(),
-            ctx.accounts.mango_cache.to_account_info(),
-            ctx.accounts.mango_perp_market.to_account_info(),
-            ctx.accounts.mango_bids.to_account_info(),
-            ctx.accounts.mango_asks.to_account_info(),
-            ctx.accounts.mango_event_queue.to_account_info(),
-        ];
-
         let mango_group =
             MangoGroup::load_checked(&ctx.accounts.mango_group, ctx.accounts.mango_program.key)?;
         let mango_cache = MangoCache::load_checked(
@@ -292,13 +231,11 @@ pub mod controller {
             ctx.accounts.mango_program.key,
             &mango_group,
         )?;
-
         // PERP
         let perp_market_index = mango_group
             .find_perp_market_index(ctx.accounts.mango_perp_market.key)
             .unwrap();
         let coin_perp_value = mango_cache.price_cache[perp_market_index].price;
-
         // base and quote details
         let base_decimals = mango_group.tokens[perp_market_index].decimals;
         let base_unit = 10u64.pow(base_decimals.into());
@@ -308,7 +245,6 @@ pub mod controller {
         let quote_unit = 10u64.pow(quote_decimals.into());
         let quote_lot_size =
             I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
-
         // Slippage calulation
         let slippage = I80F48::from_num(slippage);
         let slippage_basis = I80F48::from_num(SLIPPAGE_BASIS);
@@ -323,11 +259,9 @@ pub mod controller {
             .unwrap()
             .checked_div(I80F48::from_num(base_unit))
             .unwrap();
-        msg!("price in quote lot unit: {}", price);
-
+        // msg!("price in quote lot unit: {}", price);
         price -= price.checked_mul(slippage_ratio).unwrap();
         msg!("price in quote lot unit (w/ sleepage): {}", price);
-
         let coin_amount = I80F48::from_num(coin_amount);
         // HANA EXPERT o/
         // Not sure should I use the price calculated above here instead of the coin perp
@@ -336,35 +270,23 @@ pub mod controller {
             .unwrap()
             .checked_div(quote_lot_size)
             .unwrap();
-        msg!("exposure delta in quote lot unit: {}", exposure_delta);
-
+        // msg!("exposure delta in quote lot unit: {}", exposure_delta);
         let execution_quantity = exposure_delta.checked_div(price).unwrap().abs();
-        msg!(
-            "perp execution_quantity in base lot unit: {}",
-            execution_quantity
-        );
-
-        let instruction = solana_program::instruction::Instruction {
-            program_id: ctx.accounts.mango_program.key(),
-            data: mango::instruction::MangoInstruction::PlacePerpOrder {
-                price: price.to_num::<i64>(), // Worst exec price
-                quantity: execution_quantity.to_num::<i64>(),
-                client_order_id: 0,
-                // We are shorting
-                side: mango::matching::Side::Ask,
-                // We need instant settlement
-                order_type: mango::matching::OrderType::ImmediateOrCancel,
-                reduce_only: false,
-            }
-            .pack(),
-            accounts: accounts,
-        };
-
+        // msg!(
+        //     "perp execution_quantity in base lot unit: {}",
+        //     execution_quantity
+        // );
         // We now calculate the amount pre perp opening, in order to define after if it got 100% filled or not
         let pre_position = {
             let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
             perp_account.base_position + perp_account.taker_base
         };
+
+        msg!("controller: mint uxd [Open perp position Mango CPI]");
+        // Drop ref cause they are also used in the Mango CPI destination
+        drop(mango_group);
+        drop(mango_cache);
+        drop(mango_account);
 
         let depository_record_bump =
             Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
@@ -373,21 +295,20 @@ pub mod controller {
             coin_mint_key.as_ref(),
             &[depository_record_bump],
         ]];
-        drop(mango_group);
-        drop(mango_cache);
-        drop(mango_account);
-        msg!(
-            "Opening perp with quantity: {} and worse execution price: {}",
-            execution_quantity,
-            price
-        );
-        solana_program::program::invoke_signed(
-            &instruction,
-            &account_infos,
-            depository_record_signer_seeds,
+        // Call Mango CPI
+        mango_program::place_perp_order(
+            ctx.accounts
+                .into_open_mango_short_perp_context()
+                .with_signer(depository_record_signer_seeds),
+            price.to_num::<i64>(),
+            execution_quantity.to_num::<i64>(),
+            0,
+            mango::matching::Side::Ask,
+            mango::matching::OrderType::ImmediateOrCancel,
+            false,
         )?;
 
-        // Need to reopen these as we dropped the ref prior to Mango CPI
+        msg!("verify that the order got 100% filled");
         let mango_account = MangoAccount::load_checked(
             &ctx.accounts.mango_account,
             ctx.accounts.mango_program.key,
@@ -396,18 +317,9 @@ pub mod controller {
         let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
         let post_position = perp_account.base_position + perp_account.taker_base;
         let real_execution_quantity = post_position - pre_position;
-        msg!(
-            "Execution quant {} ({} - {})",
-            real_execution_quantity.abs(),
-            post_position,
-            pre_position,
-        );
-        msg!("expected execution amount {}", execution_quantity);
-        // The position must be fully filled else error
         if !(execution_quantity.to_num::<i64>() == real_execution_quantity.abs()) {
             return Err(ControllerError::PerpPartialFill.into());
         }
-
         // TODO NEED TO DETERMINE THE REAL EXECUTION PRICE, else we might hoard the difference on each trades
         //   This value should then be the minted value
         //
@@ -420,18 +332,12 @@ pub mod controller {
         let uxd_decimals = ctx.accounts.uxd_mint.decimals as u32;
         let coin_exp = I80F48::from_num(10u64.pow(coin_decimals));
         let uxd_exp = I80F48::from_num(10u64.pow(uxd_decimals));
-
         // USD value of delta position
-        let delta_position_usd_value = execution_quantity * real_execution_price;
+        let position_usd_value = execution_quantity * real_execution_price;
         // Converted to UXD amount (we multiply by uxd decimals and divide by coin decimals and get a uxd amount)
-        let position_uxd_amount = (delta_position_usd_value * uxd_exp) / coin_exp;
+        let position_uxd_amount = (position_usd_value * uxd_exp) / coin_exp;
 
-        msg!(
-            "Minting {} uxd (real execution price was {})",
-            delta_position_usd_value,
-            real_execution_price
-        );
-        // - Mint UXD for redeemables
+        msg!("minting {} UXD for redeemables", position_usd_value,);
         let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
         token::mint_to(
             ctx.accounts
@@ -521,18 +427,58 @@ pub mod controller {
 
 // MARK: - Helpers  -----------------------------------------------------------
 
+// Keep here in case it can serve, but we always FillOrKill kind of. So should never have anything pending.
 // Retrieve the pubkeys for open orders of that account
-pub fn get_open_orders_in_basket(
-    mango_account: &mango::state::MangoAccount,
-) -> [Pubkey; MAX_PAIRS] {
-    let mut pks_in_basket = [Pubkey::default(); MAX_PAIRS];
-    for i in 0..MAX_PAIRS {
-        if mango_account.in_margin_basket[i] {
-            msg!("Found an open order");
-            pks_in_basket[i] = mango_account.spot_open_orders[i];
-        }
+// pub fn get_open_orders_in_basket(
+//     mango_account: &mango::state::MangoAccount,
+// ) -> [Pubkey; MAX_PAIRS] {
+//     let mut pks_in_basket = [Pubkey::default(); MAX_PAIRS];
+//     for i in 0..MAX_PAIRS {
+//         if mango_account.in_margin_basket[i] {
+//             msg!("Found an open order");
+//             pks_in_basket[i] = mango_account.spot_open_orders[i];
+//         }
+//     }
+//     pks_in_basket
+// }
+
+// MARK: - Contextes  ---------------------------------------------------------
+
+impl<'info> MintUxd<'info> {
+    fn into_deposit_to_mango_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, mango_program::Deposit<'info>> {
+        let cpi_accounts = mango_program::Deposit {
+            mango_group: self.mango_group.to_account_info(),
+            mango_account: self.mango_account.to_account_info(),
+            owner: self.depository_record.to_account_info(),
+            mango_cache: self.mango_cache.to_account_info(),
+            mango_root_bank: self.mango_root_bank.to_account_info(),
+            mango_node_bank: self.mango_node_bank.to_account_info(),
+            mango_vault: self.mango_vault.to_account_info(),
+            token_program: self.token_program.to_account_info(),
+            owner_token_account: self.coin_passthrough.to_account_info(),
+        };
+        let cpi_program = self.mango_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
     }
-    pks_in_basket
+
+    fn into_open_mango_short_perp_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, mango_program::PlacePerpOrder<'info>> {
+        let cpi_accounts = mango_program::PlacePerpOrder {
+            mango_group: self.mango_group.to_account_info(),
+            mango_account: self.mango_account.to_account_info(),
+            owner: self.depository_record.to_account_info(),
+            mango_cache: self.mango_cache.to_account_info(),
+            mango_perp_market: self.mango_perp_market.to_account_info(),
+            mango_bids: self.mango_bids.to_account_info(),
+            mango_asks: self.mango_asks.to_account_info(),
+            mango_event_queue: self.mango_event_queue.to_account_info(),
+        };
+        let cpi_program = self.mango_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
 }
 
 // MARK: - Accounts Inputs  ---------------------------------------------------
