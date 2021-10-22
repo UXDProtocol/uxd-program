@@ -11,7 +11,6 @@ use std::convert::TryFrom;
 use std::mem::size_of;
 
 mod mango_program;
-
 const MINT_SPAN: usize = 82;
 const ACCOUNT_SPAN: usize = 165;
 const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
@@ -23,11 +22,15 @@ const RECORD_SEED: &[u8] = b"RECORD";
 const MANGO_SEED: &[u8] = b"MANGO";
 const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
 
+const SLIPPAGE_BASIS: u32 = 1000;
+
 solana_program::declare_id!("137dXnDWhuEqfSbJGrWSbaKxcDE3sk8A8V8ze5LTb9TX");
 
 #[program]
 #[deny(unused_must_use)]
 pub mod controller {
+
+    use mango::state::PerpAccount;
 
     use super::*;
 
@@ -181,9 +184,11 @@ pub mod controller {
     }
 
     // MINT UXD
-    // swap user redeemable for coin which we take. open a mango position with that
-    // then mint uxd in the amount of the mango position to the user
-    pub fn mint_uxd(ctx: Context<MintUxd>, coin_amount: u64) -> ProgramResult {
+    // swap user redeemable for coin which we take
+    // open a mango position with that using the slippage
+    // then mint uxd in the amount of the mango position to the user    #[access_control(
+    #[access_control(valid_slippage(slippage))]
+    pub fn mint_uxd(ctx: Context<MintUxd>, coin_amount: u64, slippage: u32) -> ProgramResult {
         msg!("controller: mint uxd");
 
         msg!("controller: mint uxd [Burn user redeemables and withdraw the coin to our passthrough account]");
@@ -293,25 +298,23 @@ pub mod controller {
             .find_perp_market_index(ctx.accounts.mango_perp_market.key)
             .unwrap();
         let coin_perp_value = mango_cache.price_cache[perp_market_index].price;
-        // msg!("coin_perp_value: {}", coin_perp_value);
 
+        // base and quote details
         let base_decimals = mango_group.tokens[perp_market_index].decimals;
         let base_unit = 10u64.pow(base_decimals.into());
         let base_lot_size =
             I80F48::from_num(mango_group.perp_markets[perp_market_index].base_lot_size);
-        // msg!("base_decimals: {}", base_decimals);
-        // msg!("base_unit: {}", base_unit);
-        // msg!("base_lot_size: {}", base_lot_size);
-
         let quote_decimals = mango_group.tokens[mango::state::QUOTE_INDEX].decimals;
         let quote_unit = 10u64.pow(quote_decimals.into());
         let quote_lot_size =
             I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
-        // msg!("quote_decimals: {}", quote_decimals);
-        // msg!("quote_unit: {}", quote_unit);
-        // msg!("quote_lot_size: {}", quote_lot_size);
 
-        let price = coin_perp_value // Using perp value here
+        // Slippage calulation
+        let slippage = I80F48::from_num(slippage);
+        let slippage_basis = I80F48::from_num(SLIPPAGE_BASIS);
+        let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
+        // price in quote lot unit
+        let mut price = coin_perp_value
             .checked_mul(I80F48::from_num(quote_unit))
             .unwrap()
             .checked_mul(base_lot_size)
@@ -320,44 +323,48 @@ pub mod controller {
             .unwrap()
             .checked_div(I80F48::from_num(base_unit))
             .unwrap();
-        // msg!("price in quote lot unit: {}", price);
+        msg!("price in quote lot unit: {}", price);
 
-        let coin_amount_fixed = I80F48::from_num(coin_amount);
+        price -= price.checked_mul(slippage_ratio).unwrap();
+        msg!("price in quote lot unit (w/ sleepage): {}", price);
+
+        let coin_amount = I80F48::from_num(coin_amount);
+        // HANA EXPERT o/
+        // Not sure should I use the price calculated above here instead of the coin perp
         let exposure_delta = coin_perp_value
-            .checked_mul(coin_amount_fixed)
+            .checked_mul(coin_amount)
             .unwrap()
             .checked_div(quote_lot_size)
             .unwrap();
-        // msg!("exposure delta in quote lot unit: {}", exposure_delta);
+        msg!("exposure delta in quote lot unit: {}", exposure_delta);
 
-        let quantity = exposure_delta.checked_div(price).unwrap();
-        msg!("perp quantity to adjust in base lot unit: {}", quantity);
-
-        //
+        let execution_quantity = exposure_delta.checked_div(price).unwrap().abs();
+        msg!(
+            "perp execution_quantity in base lot unit: {}",
+            execution_quantity
+        );
 
         let instruction = solana_program::instruction::Instruction {
             program_id: ctx.accounts.mango_program.key(),
             data: mango::instruction::MangoInstruction::PlacePerpOrder {
-                price: price.to_num::<i64>(),
-                quantity: quantity.abs().to_num::<i64>(),
+                price: price.to_num::<i64>(), // Worst exec price
+                quantity: execution_quantity.to_num::<i64>(),
                 client_order_id: 0,
                 // We are shorting
                 side: mango::matching::Side::Ask,
-                // We need instant settlement, we are the Taker
-                //
-                // TODO
-                // SHOULD be a Fill or kill or similar, or ImmediateOrCancel and retrieve how
-                // much have been purchased and only mint that (Not great for UX),
-                // OR look into the order book to find the good order to match IN THE RANGE allowed by the slippage
-                order_type: mango::matching::OrderType::Market,
+                // We need instant settlement
+                order_type: mango::matching::OrderType::ImmediateOrCancel,
                 reduce_only: false,
             }
             .pack(),
             accounts: accounts,
         };
 
-        // AND SINCE we take a market order or Limit cancel, we canot mint the same amout of UXD,
-        //  we need some feedback about how much got executed
+        // We now calculate the amount pre perp opening, in order to define after if it got 100% filled or not
+        let pre_position = {
+            let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
+            perp_account.base_position + perp_account.taker_base
+        };
 
         let depository_record_bump =
             Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
@@ -366,22 +373,47 @@ pub mod controller {
             coin_mint_key.as_ref(),
             &[depository_record_bump],
         ]];
-        msg!(
-            "controller: mint uxd [asset price {:}]",
-            coin_perp_value.to_num::<i64>()
-        );
-        msg!(
-            "controller: mint uxd [quantity {:}]",
-            coin_amount_fixed.to_num::<i64>()
-        );
         drop(mango_group);
         drop(mango_cache);
         drop(mango_account);
+        msg!(
+            "Opening perp with quantity: {} and worse execution price: {}",
+            execution_quantity,
+            price
+        );
         solana_program::program::invoke_signed(
             &instruction,
             &account_infos,
             depository_record_signer_seeds,
         )?;
+
+        // Need to reopen these as we dropped the ref prior to Mango CPI
+        let mango_account = MangoAccount::load_checked(
+            &ctx.accounts.mango_account,
+            ctx.accounts.mango_program.key,
+            ctx.accounts.mango_group.key,
+        )?;
+        let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
+        let post_position = perp_account.base_position + perp_account.taker_base;
+        let real_execution_quantity = post_position - pre_position;
+        msg!(
+            "Execution quant {} ({} - {})",
+            real_execution_quantity.abs(),
+            post_position,
+            pre_position,
+        );
+        msg!("expected execution amount {}", execution_quantity);
+        // The position must be fully filled else error
+        if !(execution_quantity.to_num::<i64>() == real_execution_quantity.abs()) {
+            return Err(ControllerError::PerpPartialFill.into());
+        }
+
+        // TODO NEED TO DETERMINE THE REAL EXECUTION PRICE, else we might hoard the difference on each trades
+        //   This value should then be the minted value
+        //
+        // Determine the filled price to define how much UXD we need to mint
+        // let real_execution_price = mango_group.perp_markets[perp_market_index].perp_market
+        let real_execution_price = price; //
 
         msg!("controller: mint uxd [Mint UXD for redeemables]");
         let coin_decimals = ctx.accounts.coin_mint.decimals as u32;
@@ -389,11 +421,16 @@ pub mod controller {
         let coin_exp = I80F48::from_num(10u64.pow(coin_decimals));
         let uxd_exp = I80F48::from_num(10u64.pow(uxd_decimals));
 
-        // USD value of deposited coin
-        let coin_usd_value = coin_amount_fixed * coin_perp_value;
+        // USD value of delta position
+        let delta_position_usd_value = execution_quantity * real_execution_price;
         // Converted to UXD amount (we multiply by uxd decimals and divide by coin decimals and get a uxd amount)
-        let position_uxd_amount = (coin_usd_value * uxd_exp) / coin_exp;
+        let position_uxd_amount = (delta_position_usd_value * uxd_exp) / coin_exp;
 
+        msg!(
+            "Minting {} uxd (real execution price was {})",
+            delta_position_usd_value,
+            real_execution_price
+        );
         // - Mint UXD for redeemables
         let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
         token::mint_to(
@@ -680,7 +717,7 @@ pub struct RedeemUxd<'info> {
         mut,
         constraint = user_uxd.mint == uxd_mint.key(),
         constraint = uxd_amount > 0,
-        constraint = user_uxd.amount >= uxd_amount,
+        constraint = user_uxd.amount >= uxd_amount, // THESE SHOULD USE the custom error to avoid ` custom program error: 0x8f ` -- OR the access_control
     )]
     pub user_uxd: Box<Account<'info, TokenAccount>>,
     #[account(mut, seeds = [UXD_SEED], bump)]
@@ -810,4 +847,19 @@ pub enum ControllerError {
     PositionAmountCalculation,
     #[msg("The associated mango root bank index cannot be found for the deposited coin..")]
     RootBankIndexNotFound,
+    #[msg("The slippage value is invalid. Must be in the [0...1000] range points.")]
+    InvalidSlippage,
+    #[msg("The perp position could not be fully opened with the provided slippage.")]
+    PerpPartialFill,
+}
+
+// MARK: - ACCESS CONTROL  ----------------------------------------------------
+
+// Asserts that the amount of usdc for the operation is above 0.
+// Asserts that the amount of usdc is available in the user account.
+fn valid_slippage<'info>(slippage: u32) -> ProgramResult {
+    if !(slippage <= SLIPPAGE_BASIS) {
+        return Err(ControllerError::InvalidSlippage.into());
+    }
+    Ok(())
 }

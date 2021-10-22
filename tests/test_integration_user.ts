@@ -157,7 +157,9 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
       // Create the token account for user's UXD if not exists
       ixs = [createAssocTokenIx(user.publicKey, userUXDTokenAccount, ControllerUXD.mintPda)];
     }
-    await ControllerUXD.rpc.mintUxd(new anchor.BN(redeemableAmountToConvert * 10 ** BTC_DECIMAL), {
+    let slippage = 10; // point based (1000 <=> 100%, 0.1% granularity)
+    let coinAmount = new anchor.BN(redeemableAmountToConvert * 10 ** BTC_DECIMAL);
+    await ControllerUXD.rpc.mintUxd(coinAmount, slippage, {
       accounts: {
         user: user.publicKey,
         state: ControllerUXD.statePda,
