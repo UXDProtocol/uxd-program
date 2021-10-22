@@ -24,7 +24,7 @@ const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
 
 const SLIPPAGE_BASIS: u32 = 1000;
 
-solana_program::declare_id!("137dXnDWhuEqfSbJGrWSbaKxcDE3sk8A8V8ze5LTb9TX");
+solana_program::declare_id!("64eEt3XbPEgtuh7A7m9Z5F5La2KWGRg2J1MK57UGQt4Z");
 
 #[program]
 #[deny(unused_must_use)]
@@ -117,8 +117,6 @@ pub mod controller {
         ctx: Context<RegisterDepository>,
         oracle_key: Pubkey,
     ) -> ProgramResult {
-        msg!("controller: register depository");
-
         let coin_mint_key = ctx.accounts.coin_mint.key();
 
         msg!("controller: register depository [initialize Passthrough]");
@@ -148,28 +146,10 @@ pub mod controller {
             coin_mint_key.as_ref(),
             &[depository_record_bump_seed],
         ]];
-        let instruction = solana_program::instruction::Instruction {
-            program_id: ctx.accounts.mango_program.key(),
-            data: mango::instruction::MangoInstruction::InitMangoAccount.pack(),
-            accounts: vec![
-                AccountMeta::new_readonly(ctx.accounts.mango_group.key(), false),
-                AccountMeta::new(ctx.accounts.mango_account.key(), false),
-                AccountMeta::new_readonly(ctx.accounts.depository_record.key(), true),
-                AccountMeta::new_readonly(ctx.accounts.rent.key(), false),
-            ],
-        };
-        let account_infos = [
-            ctx.accounts.mango_program.to_account_info(),
-            ctx.accounts.mango_group.to_account_info(),
-            ctx.accounts.mango_account.to_account_info(),
-            ctx.accounts.depository_record.to_account_info(),
-            ctx.accounts.rent.to_account_info(),
-        ];
-
-        solana_program::program::invoke_signed(
-            &instruction,
-            &account_infos,
-            depository_record_pda_signer_seeds,
+        mango_program::initialize_mango_account(
+            ctx.accounts
+                .into_mango_account_initialization_context()
+                .with_signer(depository_record_pda_signer_seeds),
         )?;
 
         // - Set our depo record up
@@ -189,20 +169,14 @@ pub mod controller {
     // then mint uxd in the amount of the mango position to the user    #[access_control(
     #[access_control(valid_slippage(slippage))]
     pub fn mint_uxd(ctx: Context<MintUxd>, coin_amount: u64, slippage: u32) -> ProgramResult {
-        msg!("controller: mint uxd");
-
         msg!("controller: mint uxd [Burn user redeemables and withdraw the coin to our passthrough account]");
-        // let depo_state: ProgramAccount<depository::State> = ctx.accounts.depository_state.from();
         depository::cpi::withdraw(
             ctx.accounts
                 .into_withdraw_from_depsitory_to_passthrough_context(),
             Some(coin_amount),
         )?;
 
-        // XXX No need for mango accounts check as they are checked extensively by their instructions?
-        // TBD
-
-        msg!("controller: mint uxd [Deposit Mango CPI]");
+        // msg!("controller: mint uxd [Deposit Mango CPI]");
         let coin_mint_key = ctx.accounts.coin_mint.key();
         let depository_record_bump =
             Pubkey::find_program_address(&[RECORD_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
@@ -218,7 +192,7 @@ pub mod controller {
             coin_amount,
         )?;
 
-        msg!("controller: mint uxd [calculation for perp position opening]");
+        // msg!("controller: mint uxd [calculation for perp position opening]");
         let mango_account = MangoAccount::load_checked(
             &ctx.accounts.mango_account,
             ctx.accounts.mango_program.key,
@@ -261,7 +235,7 @@ pub mod controller {
             .unwrap();
         // msg!("price in quote lot unit: {}", price);
         price -= price.checked_mul(slippage_ratio).unwrap();
-        msg!("price in quote lot unit (w/ sleepage): {}", price);
+        // msg!("price in quote lot unit (w/ sleepage): {}", price);
         let coin_amount = I80F48::from_num(coin_amount);
         // HANA EXPERT o/
         // Not sure should I use the price calculated above here instead of the coin perp
@@ -282,7 +256,7 @@ pub mod controller {
             perp_account.base_position + perp_account.taker_base
         };
 
-        msg!("controller: mint uxd [Open perp position Mango CPI]");
+        // msg!("controller: mint uxd [Open perp position Mango CPI]");
         // Drop ref cause they are also used in the Mango CPI destination
         drop(mango_group);
         drop(mango_cache);
@@ -327,17 +301,23 @@ pub mod controller {
         // let real_execution_price = mango_group.perp_markets[perp_market_index].perp_market
         let real_execution_price = price; //
 
-        msg!("controller: mint uxd [Mint UXD for redeemables]");
+        // msg!("controller: mint uxd [Mint UXD for redeemables]");
         let coin_decimals = ctx.accounts.coin_mint.decimals as u32;
         let uxd_decimals = ctx.accounts.uxd_mint.decimals as u32;
         let coin_exp = I80F48::from_num(10u64.pow(coin_decimals));
         let uxd_exp = I80F48::from_num(10u64.pow(uxd_decimals));
         // USD value of delta position
-        let position_usd_value = execution_quantity * real_execution_price;
+        let position_usd_value = execution_quantity
+            .checked_mul(real_execution_price)
+            .unwrap();
         // Converted to UXD amount (we multiply by uxd decimals and divide by coin decimals and get a uxd amount)
-        let position_uxd_amount = (position_usd_value * uxd_exp) / coin_exp;
+        let position_uxd_amount = position_usd_value
+            .checked_mul(uxd_exp)
+            .unwrap()
+            .checked_div(coin_exp)
+            .unwrap();
 
-        msg!("minting {} UXD for redeemables", position_usd_value,);
+        // msg!("minting {} UXD for redeemables", position_usd_value,);
         let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
         token::mint_to(
             ctx.accounts
@@ -425,24 +405,22 @@ pub mod controller {
     //
 }
 
-// MARK: - Helpers  -----------------------------------------------------------
-
-// Keep here in case it can serve, but we always FillOrKill kind of. So should never have anything pending.
-// Retrieve the pubkeys for open orders of that account
-// pub fn get_open_orders_in_basket(
-//     mango_account: &mango::state::MangoAccount,
-// ) -> [Pubkey; MAX_PAIRS] {
-//     let mut pks_in_basket = [Pubkey::default(); MAX_PAIRS];
-//     for i in 0..MAX_PAIRS {
-//         if mango_account.in_margin_basket[i] {
-//             msg!("Found an open order");
-//             pks_in_basket[i] = mango_account.spot_open_orders[i];
-//         }
-//     }
-//     pks_in_basket
-// }
-
 // MARK: - Contextes  ---------------------------------------------------------
+
+impl<'info> RegisterDepository<'info> {
+    fn into_mango_account_initialization_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, mango_program::InitMangoAccount<'info>> {
+        let cpi_accounts = mango_program::InitMangoAccount {
+            mango_group: self.mango_group.to_account_info(),
+            mango_account: self.mango_account.to_account_info(),
+            owner: self.depository_record.to_account_info(),
+            rent: self.rent.to_account_info(),
+        };
+        let cpi_program = self.mango_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
 
 impl<'info> MintUxd<'info> {
     fn into_deposit_to_mango_context(
@@ -594,6 +572,7 @@ pub struct MintUxd<'info> {
     pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
+        // TODO - Move these to custom constraint (see new PR on anchor) - or access_control
         constraint = user_redeemable.mint == depository_state.redeemable_mint_key,
         constraint = coin_amount > 0,
         constraint = user_redeemable.amount >= coin_amount,

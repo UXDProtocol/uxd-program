@@ -40,6 +40,9 @@ pub fn check_program_account(mango_program_id: &Pubkey) -> ProgramResult {
     Ok(())
 }
 
+// MARK: -  InitMangoAccount --------------------------------------------------
+
+
 // MARK: -  PlacePerpOrder ----------------------------------------------------
 #[derive(Accounts)]
 pub struct PlacePerpOrder<'info> {
