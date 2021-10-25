@@ -102,14 +102,14 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     // TODO check user UXD balance
   });
 
-  // it("Redeem 200 UXD", async () => {
-  //   // GIVEN
-  //   const amountUXD = 200;
-  //   const slippage = 10; // <=> 1%
+  it("Redeem 200 UXD", async () => {
+    // GIVEN
+    const amountUXD = 200;
+    const slippage = 10; // <=> 1%
 
-  //   // WHEN
-  //   await ControllerUXD.redeemUXD(amountUXD, slippage, depositoryBTC, user);
-  // });
+    // WHEN
+    await ControllerUXD.redeemUXD(amountUXD, slippage, depositoryBTC, user);
+  });
 
   // it("Redeem all remaining UXD", async () => {
   //   // GIVEN

@@ -100,11 +100,12 @@ export class Mango {
     return perpMarketConfig;
   }
 
-  getSpotMarketConfigFor(baseSymbol: string): PerpMarketConfig {
-    const spotMarketConfig = this.groupConfig.spotMarkets.find((p) => p.baseSymbol === baseSymbol);
-    if (!spotMarketConfig) {
-      throw new Error(`Could not find spotMarketConfig for symbol ${baseSymbol}`);
-    }
-    return spotMarketConfig;
-  }
+  // They are the same - not just on devnet right?
+  // getSpotMarketConfigFor(baseSymbol: string): PerpMarketConfig {
+  //   const spotMarketConfig = this.groupConfig.spotMarkets.find((p) => p.baseSymbol === baseSymbol);
+  //   if (!spotMarketConfig) {
+  //     throw new Error(`Could not find spotMarketConfig for symbol ${baseSymbol}`);
+  //   }
+  //   return spotMarketConfig;
+  // }
 }

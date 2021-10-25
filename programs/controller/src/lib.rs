@@ -27,7 +27,7 @@ const MANGO_SEED: &[u8] = b"MANGO";
 
 const SLIPPAGE_BASIS: u32 = 1000;
 
-solana_program::declare_id!("Lnt4iMnDF4pwsqtNfaNdJjfnxeiYqBqqZixFs21S3uh");
+solana_program::declare_id!("Cx1TEt85BEbdaRrBQKrwApi4N9qGxN1Ja5NkmpSEt2v2");
 
 #[program]
 #[deny(unused_must_use)]
@@ -179,9 +179,6 @@ pub mod controller {
             &mango_group,
         )?;
         // PERP
-        let spot_market_index = mango_group
-            .find_spot_market_index(ctx.accounts.mango_spot_market.key)
-            .unwrap();
         let perp_market_index = mango_group
             .find_perp_market_index(ctx.accounts.mango_perp_market.key)
             .unwrap();
@@ -218,15 +215,13 @@ pub mod controller {
         msg!("price (after slippage calculation): {}", price);
 
         // Exposure delta calculation
-        let spot_value = mango_cache.price_cache[spot_market_index].price;
         let deposited_value = collateral_amount
             .checked_div(base_unit)
             .unwrap()
-            .checked_mul(spot_value)
+            .checked_mul(perp_value)
             .unwrap();
         // Not sure about this one, might need to be mul by perp? or spot..
-        let exposure_delta = collateral_amount.checked_mul(spot_value).unwrap();
-        msg!("collateral_spot_value: {}", spot_value);
+        let exposure_delta = collateral_amount.checked_mul(perp_value).unwrap();
         msg!("collateral_deposited_value: {}", deposited_value); // Is this valus good with decimals? To check
         msg!("exposure_delta: {}", exposure_delta);
 
@@ -237,7 +232,7 @@ pub mod controller {
         );
 
         // price in quote lot unit
-        let price_qlu = price
+        let order_price_qlu = price
             .checked_mul(quote_unit)
             .unwrap()
             .checked_mul(base_lot_size)
@@ -246,11 +241,14 @@ pub mod controller {
             .unwrap()
             .checked_div(base_unit)
             .unwrap();
-        msg!("price_qlu (in quote lot unit): {}", price_qlu);
+        msg!("price_qlu (in quote lot unit): {}", order_price_qlu);
 
         // Execution quantity
-        let execution_quantity_blu = exposure_delta_qlu.checked_div(price_qlu).unwrap().abs();
-        msg!("exec_qty_blu (base lot unit): {}", execution_quantity_blu);
+        let order_quantity_blu = exposure_delta_qlu
+            .checked_div(order_price_qlu)
+            .unwrap()
+            .abs();
+        msg!("exec_qty_blu (base lot unit): {}", order_quantity_blu);
 
         // We now calculate the amount pre perp opening, in order to define after if it got 100% filled or not
         let pre_position = {
@@ -274,13 +272,8 @@ pub mod controller {
             &[depository_record_bump],
         ]];
         // Call Mango CPI
-        let order_price = price_qlu.to_num::<i64>();
-        let order_quantity = execution_quantity_blu.to_num::<i64>();
-        msg!(
-            "place_perp_order CPI: order_price {} && order_quantity {}",
-            order_price,
-            order_quantity
-        );
+        let order_price = order_price_qlu.to_num::<i64>();
+        let order_quantity = order_quantity_blu.to_num::<i64>();
         mango_program::place_perp_order(
             ctx.accounts
                 .into_open_mango_short_perp_context()
@@ -301,39 +294,38 @@ pub mod controller {
         )?;
         let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
         let post_position = perp_account.base_position + perp_account.taker_base;
-        let actual_execution_quantity = (post_position - pre_position).abs();
-        if !(execution_quantity_blu.to_num::<i64>() == actual_execution_quantity) {
+        let execution_quantity = (post_position - pre_position).abs();
+        if !(order_quantity == execution_quantity) {
             return Err(ControllerError::PerpPartiallyFilled.into());
         }
-        // XXX Here we taking the worse price, but it might have found a better exec price, and we should get that else
-        // the diff will fill the insurance fund each time, and people will always pay max slippage.
-        //
-        // Determine the filled price to define how much UXD we need to mint
-        let real_execution_price = price; //
+        // // XXX Here we taking the worse price, but it might have found a better exec price, and we should get that else
+        // // the diff will fill the insurance fund each time, and people will always pay max slippage.
+        // //
+        // // Determine the filled price to define how much UXD we need to mint
+        // let execution_price_qlu = order_price_qlu; //
 
-        // msg!("controller: mint uxd [Mint UXD for redeemables]");
-        let uxd_decimals = ctx.accounts.uxd_mint.decimals as u32;
-        let uxd_unit = I80F48::from_num(10u64.pow(uxd_decimals));
-        // USD value of delta position
-        let perp_order_usd_value = actual_execution_quantity
-            .checked_mul(real_execution_price)
-            .unwrap();
-        msg!("perp_order_usd_value : {}", perp_order_usd_value);
+        // // msg!("controller: mint uxd [Mint UXD for redeemables]");
+        // let uxd_decimals = ctx.accounts.uxd_mint.decimals as u32;
+        // let uxd_unit = I80F48::from_num(10u64.pow(uxd_decimals));
+        // // USD value of delta position
+        // let perp_order_uxd_value = order_quantity_blu.checked_mul(execution_price_qlu).unwrap();
+        // msg!("perp_order_uxd_value : {}", perp_order_uxd_value);
         // Converted to UXD amount (we multiply by uxd decimals and divide by coin decimals and get a uxd amount)
-        let position_uxd_amount = collateral_amount
-            .checked_mul(uxd_unit)
-            .unwrap()
-            .checked_div(base_unit) // Can use base decimal instead of the collateral (coin) mint here
-            .unwrap();
-        msg!("position_uxd_amount : {}", position_uxd_amount);
+        // let position_uxd_amount = perp_order_uxd_value
+        //     .checked_mul(uxd_unit)
+        //     .unwrap()
+        //     .checked_div(base_unit)
+        //     .unwrap();
+        // msg!("position_uxd_amount : {}", position_uxd_amount);
 
-        // msg!("minting {} UXD for redeemables", position_usd_value,);
+        // For now give him for the worth slippage, see above
+        let uxd_amount = collateral_amount.checked_mul(price).unwrap();
         let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
         token::mint_to(
             ctx.accounts
                 .into_mint_uxd_context()
                 .with_signer(state_signer_seed),
-            position_uxd_amount.to_num(),
+            uxd_amount.to_num(), // deposited_value best vs uxd_amount worse
         )?;
 
         Ok(())
@@ -373,7 +365,6 @@ pub mod controller {
         let perp_market_index = mango_group
             .find_perp_market_index(ctx.accounts.mango_perp_market.key)
             .unwrap();
-        let coin_perp_value = mango_cache.price_cache[perp_market_index].price;
         // base and quote details
         let base_decimals = mango_group.tokens[perp_market_index].decimals;
         let base_unit = I80F48::from_num(10u64.pow(base_decimals.into()));
@@ -383,12 +374,29 @@ pub mod controller {
         let quote_unit = I80F48::from_num(10u64.pow(quote_decimals.into()));
         let quote_lot_size =
             I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
+
         // Slippage calulation
+        let perp_value = mango_cache.price_cache[perp_market_index].price;
         let slippage = I80F48::from_num(slippage);
         let slippage_basis = I80F48::from_num(SLIPPAGE_BASIS);
         let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
+        let slippage_amount = perp_value.checked_mul(slippage_ratio).unwrap();
+        let price = perp_value.checked_sub(slippage_amount).unwrap();
+        msg!("perp_value: {}", perp_value);
+        msg!("price (after slippage calculation): {}", price);
+
+        // Exposure delta calculation
+        let exposure_delta = I80F48::from_num(uxd_amount);
+        msg!("exposure_delta: {} (redeem value)", exposure_delta);
+
+        let exposure_delta_qlu = exposure_delta.checked_div(quote_lot_size).unwrap();
+        msg!(
+            "exposure_delta_qlu (in quote lot unit): {}",
+            exposure_delta_qlu
+        );
+
         // price in quote lot unit
-        let mut price = coin_perp_value
+        let order_price_qlu = price
             .checked_mul(quote_unit)
             .unwrap()
             .checked_mul(base_lot_size)
@@ -397,22 +405,14 @@ pub mod controller {
             .unwrap()
             .checked_div(base_unit)
             .unwrap();
-        msg!("price in quote lot unit: {}", price);
+        msg!("price_qlu (in quote lot unit): {}", order_price_qlu);
 
-        let slippage_amount = price.checked_mul(slippage_ratio).unwrap();
-        price = price.checked_add(slippage_amount).unwrap();
-        msg!("price in quote lot unit (w/ sleepage): {}", price);
-        let uxd_amount = I80F48::from_num(uxd_amount);
-        // Convert the UXD amount to base amount
-        let coin_amount = uxd_amount.checked_div(coin_perp_value).unwrap();
-        // HANA EXPERT o/
-        // Not sure should I use the price calculated above here instead of the coin perp
-        let exposure_delta = coin_perp_value
-            .checked_mul(coin_amount)
+        // Execution quantity
+        let order_quantity_blu = exposure_delta_qlu
+            .checked_div(order_price_qlu)
             .unwrap()
-            .checked_div(quote_lot_size)
-            .unwrap();
-        msg!("exposure delta in quote lot unit: {}", exposure_delta);
+            .abs();
+        msg!("exec_qty_blu (base lot unit): {}", order_quantity_blu);
         let execution_quantity = exposure_delta.checked_div(price).unwrap().abs();
         msg!(
             "perp execution_quantity in base lot unit: {}",
@@ -441,12 +441,14 @@ pub mod controller {
         ]];
 
         // Call Mango CPI to place the order that closes short position
+        let order_price = order_price_qlu.to_num::<i64>();
+        let order_quantity = order_quantity_blu.to_num::<i64>();
         mango_program::place_perp_order(
             ctx.accounts
                 .into_close_mango_short_perp_context()
                 .with_signer(depository_signer_seeds),
-            price.to_num::<i64>(),
-            execution_quantity.to_num::<i64>(),
+            order_price,
+            order_quantity,
             0,
             mango::matching::Side::Bid,
             mango::matching::OrderType::ImmediateOrCancel,
@@ -461,14 +463,15 @@ pub mod controller {
         )?;
         let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
         let post_position = perp_account.base_position + perp_account.taker_base;
-        let actual_execution_quantity = (post_position - pre_position).abs();
-        if !(execution_quantity.to_num::<i64>() == actual_execution_quantity) {
+        let execution_quantity = (post_position - pre_position).abs();
+        if !(order_quantity == execution_quantity) {
             return Err(ControllerError::PerpPartiallyFilled.into());
         }
 
+        let collateral_amount = exposure_delta_qlu.checked_div(order_price_qlu).unwrap();
         msg!(
-            "withdraw {} collateral from mango back to passthrough account",
-            execution_quantity
+            "withdraw {} collateral_amount from mango back to passthrough account",
+            collateral_amount
         );
         let depository_record_bump = Pubkey::find_program_address(
             &[DEPOSITORY_SEED, coin_mint_key.as_ref()],
@@ -480,7 +483,6 @@ pub mod controller {
             coin_mint_key.as_ref(),
             &[depository_record_bump],
         ]];
-
         // Call mango CPI to withdraw collateral
         // Drop ref cause they are also used in the Mango CPI destination
         drop(mango_account);
@@ -488,7 +490,7 @@ pub mod controller {
             ctx.accounts
                 .into_withdraw_from_mango_context()
                 .with_signer(depository_signer_seeds),
-            execution_quantity.to_num(),
+            collateral_amount.to_num(),
             false,
         )?;
 
@@ -516,12 +518,6 @@ pub mod controller {
             depository_signer_seed,
         );
         token::transfer(transfer_ctx, collateral_amount_to_redeem.to_num())?;
-
-        msg!(
-            "redeemed {} UXD for {} collateral",
-            uxd_amount,
-            actual_execution_quantity
-        );
         Ok(())
     }
 
@@ -783,8 +779,6 @@ pub struct MintUxd<'info> {
     #[account(mut)]
     pub mango_vault: Account<'info, TokenAccount>,
     // The spot/perp market for `coin_mint` on mango, and the associated required accounts
-    #[account(mut)]
-    pub mango_spot_market: AccountInfo<'info>,
     #[account(mut)]
     pub mango_perp_market: AccountInfo<'info>,
     #[account(mut)]

@@ -28,7 +28,6 @@ export class ControllerUXD {
     const mangoRootBankAccount = utils.mango.getRootBankForToken(depositedTokenIndex);
     const mangoNodeBankAccount = utils.mango.getNodeBankFor(depositedTokenIndex);
     const mangoDepositedVaultAccount = utils.mango.getVaultFor(depositedTokenIndex);
-    const mangoSpotMarketConfig = utils.mango.getSpotMarketConfigFor(depository.collateralSymbol);
     const mangoPerpMarketConfig = utils.mango.getPerpMarketConfigFor(depository.collateralSymbol);
 
     const userCollateralTokenAccount = utils.findAssocTokenAddressSync(user, depository.collateralMint)[0];
@@ -58,8 +57,7 @@ export class ControllerUXD {
         mangoNodeBank: mangoNodeBankAccount,
         mangoVault: mangoDepositedVaultAccount,
         // -- for the position perp opening
-        mangoSpotMarket: mangoSpotMarketConfig.publicKey, // For the collateral
-        mangoPerpMarket: mangoPerpMarketConfig.publicKey, // For the collateral
+        mangoPerpMarket: mangoPerpMarketConfig.publicKey,
         mangoBids: mangoPerpMarketConfig.bidsKey,
         mangoAsks: mangoPerpMarketConfig.asksKey,
         mangoEventQueue: mangoPerpMarketConfig.eventsKey,
