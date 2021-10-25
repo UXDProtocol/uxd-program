@@ -27,7 +27,7 @@ const MANGO_SEED: &[u8] = b"MANGO";
 
 const SLIPPAGE_BASIS: u32 = 1000;
 
-solana_program::declare_id!("Cx1TEt85BEbdaRrBQKrwApi4N9qGxN1Ja5NkmpSEt2v2");
+solana_program::declare_id!("5BkgzsnpEzcbftbtQZ86zb3qi4S9ZfcYhpwuWKTp9nHB");
 
 #[program]
 #[deny(unused_must_use)]
@@ -347,7 +347,7 @@ pub mod controller {
 
         ///////////////
 
-        msg!("controller: redeem uxd [calculation for perp position closing]");
+        // msg!("controller: redeem uxd [calculation for perp position closing]");
         let coin_mint_key = ctx.accounts.coin_mint.key();
         let mango_account = MangoAccount::load_checked(
             &ctx.accounts.mango_account,
@@ -381,19 +381,19 @@ pub mod controller {
         let slippage_basis = I80F48::from_num(SLIPPAGE_BASIS);
         let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
         let slippage_amount = perp_value.checked_mul(slippage_ratio).unwrap();
-        let price = perp_value.checked_sub(slippage_amount).unwrap();
-        msg!("perp_value: {}", perp_value);
-        msg!("price (after slippage calculation): {}", price);
+        let price = perp_value.checked_add(slippage_amount).unwrap();
+        // msg!("perp_value: {}", perp_value);
+        // msg!("price (after slippage calculation): {}", price);
 
         // Exposure delta calculation
         let exposure_delta = I80F48::from_num(uxd_amount);
-        msg!("exposure_delta: {} (redeem value)", exposure_delta);
+        // msg!("exposure_delta: {} (redeem value)", exposure_delta);
 
         let exposure_delta_qlu = exposure_delta.checked_div(quote_lot_size).unwrap();
-        msg!(
-            "exposure_delta_qlu (in quote lot unit): {}",
-            exposure_delta_qlu
-        );
+        // msg!(
+        //     "exposure_delta_qlu (in quote lot unit): {}",
+        //     exposure_delta_qlu
+        // );
 
         // price in quote lot unit
         let order_price_qlu = price
@@ -405,19 +405,19 @@ pub mod controller {
             .unwrap()
             .checked_div(base_unit)
             .unwrap();
-        msg!("price_qlu (in quote lot unit): {}", order_price_qlu);
+        // msg!("price_qlu (in quote lot unit): {}", order_price_qlu);
 
         // Execution quantity
         let order_quantity_blu = exposure_delta_qlu
             .checked_div(order_price_qlu)
             .unwrap()
             .abs();
-        msg!("exec_qty_blu (base lot unit): {}", order_quantity_blu);
+        // msg!("exec_qty_blu (base lot unit): {}", order_quantity_blu);
         let execution_quantity = exposure_delta.checked_div(price).unwrap().abs();
-        msg!(
-            "perp execution_quantity in base lot unit: {}",
-            execution_quantity
-        );
+        // msg!(
+        //     "perp execution_quantity in base lot unit: {}",
+        //     execution_quantity
+        // );
 
         // We now calculate the amount pre perp closing, in order to define after if it got 100% filled or not
         let pre_position = {
@@ -455,7 +455,7 @@ pub mod controller {
             true,
         )?;
 
-        msg!("verify that the order got 100% filled");
+        // msg!("verify that the order got 100% filled");
         let mango_account = MangoAccount::load_checked(
             &ctx.accounts.mango_account,
             ctx.accounts.mango_program.key,
@@ -469,10 +469,10 @@ pub mod controller {
         }
 
         let collateral_amount = exposure_delta_qlu.checked_div(order_price_qlu).unwrap();
-        msg!(
-            "withdraw {} collateral_amount from mango back to passthrough account",
-            collateral_amount
-        );
+        // msg!(
+        //     "withdraw {} collateral_amount from mango back to passthrough account",
+        //     collateral_amount
+        // );
         let depository_record_bump = Pubkey::find_program_address(
             &[DEPOSITORY_SEED, coin_mint_key.as_ref()],
             ctx.program_id,
