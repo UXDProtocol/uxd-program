@@ -1,9 +1,10 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
-import { Token } from "@solana/spl-token";
-import { PublicKey } from "@solana/web3.js";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import { Depository } from "./depository";
 import { MANGO_PROGRAM_ID } from "./mango";
-import { utils } from "./utils";
+import { connection, createAssocTokenIx, TXN_OPTS, utils, UXD_DECIMALS } from "./utils";
 
 enum ControllerPDASeed {
   State = "STATE",
@@ -20,6 +21,108 @@ export class ControllerUXD {
   // Pda
   public static statePda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.State);
   public static mintPda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.UXD);
+
+  public static async mintUXD(collateralAmount: number, slippage: number, depository: Depository, user: anchor.Wallet) {
+    const depositedTokenIndex = utils.mango.group.getTokenIndex(depository.collateralMint);
+    const mangoCacheAccount = utils.mango.getMangoCache();
+    const mangoRootBankAccount = utils.mango.getRootBankForToken(depositedTokenIndex);
+    const mangoNodeBankAccount = utils.mango.getNodeBankFor(depositedTokenIndex);
+    const mangoDepositedVaultAccount = utils.mango.getVaultFor(depositedTokenIndex);
+    const mangoSpotMarketConfig = utils.mango.getSpotMarketConfigFor(depository.collateralSymbol);
+    const mangoPerpMarketConfig = utils.mango.getPerpMarketConfigFor(depository.collateralSymbol);
+
+    const userCollateralTokenAccount = utils.findAssocTokenAddressSync(user, depository.collateralMint)[0];
+    const userUXDTokenAccount = utils.findAssocTokenAddressSync(user, ControllerUXD.mintPda)[0];
+    let ixs = undefined;
+    if (!(await connection.getAccountInfo(userUXDTokenAccount))) {
+      // Create the token account for user's UXD if not exists
+      ixs = [createAssocTokenIx(user.publicKey, userUXDTokenAccount, ControllerUXD.mintPda)];
+    }
+    const collateralAmountBN = new anchor.BN(collateralAmount * 10 ** depository.decimals);
+    await ControllerUXD.rpc.mintUxd(collateralAmountBN, slippage, {
+      accounts: {
+        user: user.publicKey,
+        state: ControllerUXD.statePda,
+        depository: ControllerUXD.depositoryPda(depository.collateralMint),
+        coinMint: depository.collateralMint,
+        coinPassthrough: ControllerUXD.coinPassthroughPda(depository.collateralMint),
+        userCoin: userCollateralTokenAccount,
+        userUxd: userUXDTokenAccount,
+        uxdMint: ControllerUXD.mintPda,
+        // mango stuff
+        mangoGroup: utils.mango.group.publicKey,
+        mangoAccount: ControllerUXD.mangoPda(depository.collateralMint),
+        mangoCache: mangoCacheAccount,
+        // -- for the deposit
+        mangoRootBank: mangoRootBankAccount,
+        mangoNodeBank: mangoNodeBankAccount,
+        mangoVault: mangoDepositedVaultAccount,
+        // -- for the position perp opening
+        mangoSpotMarket: mangoSpotMarketConfig.publicKey, // For the collateral
+        mangoPerpMarket: mangoPerpMarketConfig.publicKey, // For the collateral
+        mangoBids: mangoPerpMarketConfig.bidsKey,
+        mangoAsks: mangoPerpMarketConfig.asksKey,
+        mangoEventQueue: mangoPerpMarketConfig.eventsKey,
+        //
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        mangoProgram: MANGO_PROGRAM_ID,
+        //
+        rent: SYSVAR_RENT_PUBKEY,
+      },
+      signers: [user.payer],
+      options: TXN_OPTS,
+      instructions: ixs,
+    });
+  }
+
+  public static async redeemUXD(amountUXD: number, slippage: number, depository: Depository, user: anchor.Wallet) {
+    const depositedTokenIndex = utils.mango.group.getTokenIndex(depository.collateralMint);
+    const mangoCacheAccount = utils.mango.getMangoCache();
+    const mangoGroupSigner = utils.mango.group.signerKey;
+    const mangoRootBankAccount = utils.mango.getRootBankForToken(depositedTokenIndex);
+    const mangoNodeBankAccount = utils.mango.getNodeBankFor(depositedTokenIndex);
+    const mangoDepositedVaultAccount = utils.mango.getVaultFor(depositedTokenIndex);
+    const mangoPerpMarketConfig = utils.mango.getPerpMarketConfigFor(depository.collateralSymbol);
+    const userCollateralTokenAccount = utils.findAssocTokenAddressSync(user, depository.collateralMint)[0];
+    const userUXDTokenAccount = utils.findAssocTokenAddressSync(user, ControllerUXD.mintPda)[0];
+    const redeemAmount = new anchor.BN(amountUXD * 10 ** UXD_DECIMALS);
+    // const slippage = 10; // point based (1000 <=> 100%, 0.1% granularity)
+    await ControllerUXD.rpc.redeemUxd(redeemAmount, slippage, {
+      accounts: {
+        user: user.publicKey,
+        state: ControllerUXD.statePda,
+        depository: ControllerUXD.depositoryPda(depository.collateralMint),
+        coinMint: depository.collateralMint,
+        coinPassthrough: ControllerUXD.coinPassthroughPda(depository.collateralMint),
+        userCoin: userCollateralTokenAccount,
+        userUxd: userUXDTokenAccount,
+        uxdMint: ControllerUXD.mintPda,
+        // mango stuff
+        mangoGroup: utils.mango.group.publicKey,
+        mangoAccount: ControllerUXD.mangoPda(depository.collateralMint),
+        mangoCache: mangoCacheAccount,
+        mangoSigner: mangoGroupSigner,
+        // -- for the withdraw
+        mangoRootBank: mangoRootBankAccount,
+        mangoNodeBank: mangoNodeBankAccount,
+        mangoVault: mangoDepositedVaultAccount,
+        // -- for the perp position closing
+        mangoPerpMarket: mangoPerpMarketConfig.publicKey,
+        mangoBids: mangoPerpMarketConfig.bidsKey,
+        mangoAsks: mangoPerpMarketConfig.asksKey,
+        mangoEventQueue: mangoPerpMarketConfig.eventsKey,
+        //
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        mangoProgram: MANGO_PROGRAM_ID,
+        //
+        rent: SYSVAR_RENT_PUBKEY,
+      },
+      signers: [user.payer],
+      options: TXN_OPTS,
+    });
+  }
 
   public static depositoryPda(collateralMint: PublicKey): PublicKey {
     return utils.findProgramAddressSync(ControllerUXD.ProgramId, [

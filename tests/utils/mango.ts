@@ -100,11 +100,11 @@ export class Mango {
     return perpMarketConfig;
   }
 
-  // getSpotMarketConfigFor(baseSymbol: string): PerpMarketConfig {
-  //   const spotMarketConfig = this.groupConfig.spotMarkets.find((p) => p.baseSymbol === baseSymbol);
-  //   if (!spotMarketConfig) {
-  //     throw new Error(`Could not find perpMarketConfig for symbol ${baseSymbol}`);
-  //   }
-  //   return spotMarketConfig;
-  // }
+  getSpotMarketConfigFor(baseSymbol: string): PerpMarketConfig {
+    const spotMarketConfig = this.groupConfig.spotMarkets.find((p) => p.baseSymbol === baseSymbol);
+    if (!spotMarketConfig) {
+      throw new Error(`Could not find spotMarketConfig for symbol ${baseSymbol}`);
+    }
+    return spotMarketConfig;
+  }
 }

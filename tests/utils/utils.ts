@@ -12,12 +12,11 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import { devnetCluster, devnetGroup, Mango } from "./mango";
-// import { PythUtils } from "./pyth";
 
 // Constants
-export const BTC_DECIMAL = 6;
-export const SOL_DECIMAL = 9;
-export const UXD_DECIMAL = 6;
+export const BTC_DECIMALS = 6;
+export const SOL_DECIMALS = 9;
+export const UXD_DECIMALS = 6;
 
 // aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC
 const aca3VWSeed = Uint8Array.from([
@@ -46,10 +45,6 @@ console.log(`USER KEY => ${user.publicKey}`);
 export const USDC = new PublicKey("8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN");
 export const BTC = new PublicKey("3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU");
 export const WSOL = new PublicKey("So11111111111111111111111111111111111111112");
-
-// On devnet, copied on localnet
-export const BTC_ORACLE = new PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
-export const SOL_ORACLE = new PublicKey("J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix");
 
 // Provider
 export const provider = Provider.env();

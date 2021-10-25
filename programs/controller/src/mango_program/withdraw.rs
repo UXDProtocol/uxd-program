@@ -8,7 +8,7 @@ use solana_program::pubkey::Pubkey;
 use super::anchor_mango::check_program_account;
 
 #[derive(Accounts)]
-pub struct Deposit<'info> {
+pub struct Withdraw<'info> {
     pub mango_group: AccountInfo<'info>,
     pub mango_account: AccountInfo<'info>,
     pub owner: AccountInfo<'info>,
@@ -16,24 +16,28 @@ pub struct Deposit<'info> {
     pub mango_root_bank: AccountInfo<'info>,
     pub mango_node_bank: AccountInfo<'info>,
     pub mango_vault: AccountInfo<'info>,
+    pub token_account: AccountInfo<'info>,
+    pub mango_signer: AccountInfo<'info>,
     pub token_program: AccountInfo<'info>,
-    pub owner_token_account: AccountInfo<'info>,
 }
 
-/// Deposit funds into mango account
+/// Withdraw funds that were deposited earlier.
 ///
-/// Accounts expected by this instruction (8):
+/// Accounts expected by this instruction (10):
 ///
-/// 0. `[]` mango_group_ai - MangoGroup that this mango account is for
-/// 1. `[writable]` mango_account_ai - the mango account for this user
-/// 2. `[signer]` owner_ai - Solana account of owner of the mango account
-/// 3. `[]` mango_cache_ai - MangoCache
-/// 4. `[]` root_bank_ai - RootBank owned by MangoGroup
-/// 5. `[writable]` node_bank_ai - NodeBank owned by RootBank
-/// 6. `[writable]` vault_ai - TokenAccount owned by MangoGroup
-/// 7. `[]` token_prog_ai - acc pointed to by SPL token program id
-/// 8. `[writable]` owner_token_account_ai - TokenAccount owned by user which will be sending the funds
-fn deposit_instruction(
+/// 0. `[read]` mango_group_ai,   -
+/// 1. `[write]` mango_account_ai, -
+/// 2. `[read]` owner_ai,         -
+/// 3. `[read]` mango_cache_ai,   -
+/// 4. `[read]` root_bank_ai,     -
+/// 5. `[write]` node_bank_ai,     -
+/// 6. `[write]` vault_ai,         -
+/// 7. `[write]` token_account_ai, -
+/// 8. `[read]` signer_ai,        -
+/// 9. `[read]` token_prog_ai,    -
+/// 10. `[read]` clock_ai,         - // Seems its not here anymore from the source !!
+/// 11..+ `[]` open_orders_accs - open orders for each of the spot market
+fn withdraw_instruction(
     mango_program_id: &Pubkey,
     mango_group_pubkey: &Pubkey,
     mango_account_pubkey: &Pubkey,
@@ -42,30 +46,44 @@ fn deposit_instruction(
     mango_root_bank_pubkey: &Pubkey,
     mango_node_bank_pubkey: &Pubkey,
     mango_vault_pubkey: &Pubkey,
+    token_account_pubkey: &Pubkey,
+    mango_signer_pubkey: &Pubkey,
     token_program_id: &Pubkey,
-    owner_token_account_pubkey: &Pubkey,
     signer_pubkeys: &[&Pubkey],
     quantity: u64,
+    allow_borrow: bool,
 ) -> Result<Instruction, ProgramError> {
     check_program_account(mango_program_id)?;
-    let data = mango::instruction::MangoInstruction::Deposit { quantity }.pack();
+    let data = mango::instruction::MangoInstruction::Withdraw {
+        quantity,
+        allow_borrow,
+    }
+    .pack();
 
-    let mut accounts = Vec::with_capacity(8 + MAX_PAIRS + signer_pubkeys.len());
+    let mut accounts = Vec::with_capacity(10 + MAX_PAIRS + signer_pubkeys.len());
     accounts.push(AccountMeta::new_readonly(*mango_group_pubkey, false));
     accounts.push(AccountMeta::new(*mango_account_pubkey, false));
-    accounts.push(AccountMeta::new_readonly(
-        *owner_pubkey,
-        signer_pubkeys.is_empty(),
-    ));
+    accounts.push(AccountMeta::new_readonly(*owner_pubkey, false));
     accounts.push(AccountMeta::new_readonly(*mango_cache_pubkey, false));
     accounts.push(AccountMeta::new_readonly(*mango_root_bank_pubkey, false));
     accounts.push(AccountMeta::new(*mango_node_bank_pubkey, false));
     accounts.push(AccountMeta::new(*mango_vault_pubkey, false));
+    accounts.push(AccountMeta::new(*token_account_pubkey, false));
+    accounts.push(AccountMeta::new_readonly(*mango_signer_pubkey, false));
     accounts.push(AccountMeta::new_readonly(*token_program_id, false));
-    accounts.push(AccountMeta::new(*owner_token_account_pubkey, false));
-    for signer_pubkey in signer_pubkeys.iter() {
-        accounts.push(AccountMeta::new_readonly(**signer_pubkey, true));
-    }
+    // accounts.push(AccountMeta::new_readonly(*clock_sysvar_id, false));
+    accounts.extend(
+        signer_pubkeys
+            .iter()
+            .map(|signer_pubkey| AccountMeta::new_readonly(**signer_pubkey, true)),
+    );
+    accounts.extend(
+        [Pubkey::default(); MAX_PAIRS]
+            .iter()
+            .map(|default_open_order_pubkey| {
+                AccountMeta::new_readonly(*default_open_order_pubkey, false)
+            }),
+    );
 
     Ok(Instruction {
         program_id: *mango_program_id,
@@ -74,11 +92,12 @@ fn deposit_instruction(
     })
 }
 
-pub fn deposit<'a, 'b, 'c, 'info>(
-    ctx: CpiContext<'a, 'b, 'c, 'info, Deposit<'info>>,
+pub fn withdraw<'a, 'b, 'c, 'info>(
+    ctx: CpiContext<'a, 'b, 'c, 'info, Withdraw<'info>>,
     quantity: u64,
+    allow_borrow: bool,
 ) -> ProgramResult {
-    let ix = deposit_instruction(
+    let ix = withdraw_instruction(
         ctx.program.key,
         ctx.accounts.mango_group.key,
         ctx.accounts.mango_account.key,
@@ -87,10 +106,13 @@ pub fn deposit<'a, 'b, 'c, 'info>(
         ctx.accounts.mango_root_bank.key,
         ctx.accounts.mango_node_bank.key,
         ctx.accounts.mango_vault.key,
+        ctx.accounts.token_account.key,
+        ctx.accounts.mango_signer.key,
         ctx.accounts.token_program.key,
-        ctx.accounts.owner_token_account.key,
+        // ctx.accounts.clock_sysvar.key,
         &[ctx.accounts.owner.key],
         quantity,
+        allow_borrow,
     )?;
     solana_program::program::invoke_signed(
         &ix,
@@ -103,8 +125,10 @@ pub fn deposit<'a, 'b, 'c, 'info>(
             ctx.accounts.mango_root_bank.clone(),
             ctx.accounts.mango_node_bank.clone(),
             ctx.accounts.mango_vault.clone(),
+            ctx.accounts.token_account.clone(),
+            ctx.accounts.mango_signer.clone(),
             ctx.accounts.token_program.clone(),
-            ctx.accounts.owner_token_account.clone(),
+            // ctx.accounts.clock_sysvar.clone(),
         ],
         ctx.signer_seeds,
     )

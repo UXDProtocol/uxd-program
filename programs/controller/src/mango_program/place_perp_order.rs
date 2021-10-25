@@ -6,7 +6,7 @@ use solana_program::instruction::Instruction;
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
 
-use super::utils::check_program_account;
+use super::anchor_mango::check_program_account;
 
 #[derive(Accounts)]
 pub struct PlacePerpOrder<'info> {

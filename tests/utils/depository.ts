@@ -1,9 +1,5 @@
-import * as anchor from "@project-serum/anchor";
-import { Program, Wallet } from "@project-serum/anchor";
-import { Token } from "@solana/spl-token";
-import { PublicKey, Keypair } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { ControllerUXD } from "./controller";
-import { utils } from "./utils";
 
 enum DepositoryPDASeed {
   State = "STATE",
@@ -29,12 +25,12 @@ enum DepositoryPDASeed {
 export class Depository {
   public collateralMint: PublicKey;
   public collateralSymbol: string;
-  public oraclePriceAccount: PublicKey;
+  public decimals: number;
 
-  public constructor(mint: PublicKey, mintName: string, oraclePriceAccount: PublicKey) {
+  public constructor(mint: PublicKey, mintName: string, decimals: number) {
     this.collateralMint = mint;
     this.collateralSymbol = mintName;
-    this.oraclePriceAccount = oraclePriceAccount; // To remove
+    this.decimals = decimals;
   }
 
   public info() {
