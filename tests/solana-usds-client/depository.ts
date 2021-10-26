@@ -7,21 +7,7 @@ enum DepositoryPDASeed {
   Deposit = "DEPOSIT",
 }
 
-// Cleaner API to interact with the Depository program
-// To reason in term of collateral, less confusing.
-//
-// Mints act as Sub Domains for each PDA-cluster, managee by the single stateless head, the Depository program.
-//
-// == (One)             |    Depository Program
-// == (# mints)         |     Mint A                    Mint B                    Mint C
-// == (# mints * # PDA) |      XaPDA + YaPDA + ZaPDA     XbPDA + YbPDA + ZbPDA     XcPDA + YcPDA + ZcPDA
-//
-// FS analogie :
-// Depository program is the Zip program
-// PDAs derived from a given Mint are a folder of files
-//
-
-// XXX this is rather messed up and anemic now but we need something to hold the mints still
+// XXX this is rather messed up and anemic now but we need something to hold the mints still.
 export class Depository {
   public collateralMint: PublicKey;
   public collateralSymbol: string;

@@ -1,30 +1,32 @@
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { ControllerUXD } from "./utils/controller";
-import { Depository } from "./utils/depository";
-import { utils, BTC, admin, provider, connection, BTC_DECIMALS } from "./utils/utils";
+import { ControllerUXD } from "./solana-usds-client/controller";
+import { Depository } from "./solana-usds-client/depository";
+import { BTC, admin } from "./identities";
 import { expect, util } from "chai";
+import { BTC_DECIMALS } from "./solana-usds-client/utils";
+import { TXN_OPTS, provider } from "./provider";
 
 // Depositories - They represent the business object that tie a mint to a depository
-export let depositoryBTC: Depository;
+export let depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS);
+export let controller = new ControllerUXD("devnet");
 
-before("Setup mints and depositories", async () => {
+before("Airdrop and config", async () => {
   // GIVEN
-  await utils.setupMango(); // Async fetch of mango group
+  await controller.mango.setupMangoGroup(); // Async fetch of mango group
 
-  let sig = await connection.requestAirdrop(admin.publicKey, 10 * LAMPORTS_PER_SOL);
-  await connection.confirmTransaction(sig);
-
-  depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS);
+  let sig = await provider.connection.requestAirdrop(admin.publicKey, 10 * LAMPORTS_PER_SOL);
+  await provider.connection.confirmTransaction(sig);
 });
 
 before("Standard Administrative flow for UXD Controller and depositories", () => {
   it("Create UXD Controller", async () => {
-    // WHEN
-    // WHEN solana 1.8 and anchor 1.8 we can handle that program side, but not sure that's desirable? maybe less explicit
+    // GIVEN
+
+    // WHEN - solana 1.8 and anchor 1.8 we can handle that program side, but not sure that's desirable? maybe less explicit
     if (await provider.connection.getAccountInfo(ControllerUXD.statePda)) {
       console.log("already initialized.");
     } else {
-      await ControllerUXD.initialize(admin);
+      await controller.initialize(admin, TXN_OPTS);
     }
 
     // THEN
@@ -40,7 +42,7 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
     ) {
       console.log("already registered.");
     } else {
-      await ControllerUXD.register(depositoryBTC, admin);
+      await controller.register(depositoryBTC, admin, TXN_OPTS);
     }
   });
 });

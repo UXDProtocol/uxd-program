@@ -8,37 +8,47 @@ import {
   TokenConfig,
   PerpMarketConfig,
 } from "@blockworks-foundation/mango-client";
+import { Provider } from "@project-serum/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
 
-// This has devnet name, but we copy devnet to localnet with the ./configure_local_validator.sh
-export const devnetCluster: Cluster = "devnet";
 export const devnetGroup = "devnet.2";
+export const mainnetGroup = "mainnet.1";
+export const MANGO_PROGRAM_ID_DEVNET = new PublicKey("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
+export const MANGO_PROGRAM_ID_MAINNET = new PublicKey("mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68");
 
-// Devnet, but also localnet since we clone with the script ./vonfigure_local_validator.sh
-export const MANGO_PROGRAM_ID = new PublicKey("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
-
-// READ https://mirror.xyz/0x9fEcc73Da3f8bd2aC436547a72f8Dd32326D90dc/u05KU4oE4tnlI4Z5Yj-TAQSq8bgZuu4Mv2s3wblpkTs
 export class Mango {
   mangoGroupKey: PublicKey;
-  groupConfig: GroupConfig;
+  groupConfig: GroupConfig | undefined;
   public client: MangoClient;
   public group: MangoGroup;
+  public programId: PublicKey;
 
-  public constructor(cluster: Cluster, group: string) {
+  public constructor(provider: Provider, cluster: Cluster) {
+    let mangoGroup: string;
+    switch (cluster) {
+      case "devnet":
+        mangoGroup = devnetGroup;
+        this.programId = MANGO_PROGRAM_ID_DEVNET;
+        break;
+      case "mainnet":
+        mangoGroup = mainnetGroup;
+        this.programId = MANGO_PROGRAM_ID_MAINNET;
+        break;
+    }
     const config = new Config(IDS);
-    this.groupConfig = config.getGroup(cluster, group);
+    this.groupConfig = config.getGroup(cluster, mangoGroup);
     if (!this.groupConfig) {
       throw new Error("unable to get mango group config");
     }
     this.mangoGroupKey = this.groupConfig.publicKey;
 
     const clusterData = IDS.groups.find((g) => {
-      return g.name == group && g.cluster == cluster;
+      return g.name == mangoGroup && g.cluster == cluster;
     });
     const mangoProgramIdPk = new PublicKey(clusterData.mangoProgramId);
-    const clusterUrl = IDS.cluster_urls[cluster];
-    const connection = new Connection(clusterUrl, "singleGossip");
-    this.client = new MangoClient(connection, mangoProgramIdPk);
+    // const clusterUrl = IDS.cluster_urls[cluster];
+    // const connection = new Connection(clusterUrl, "singleGossip");
+    this.client = new MangoClient(provider.connection, mangoProgramIdPk);
   }
 
   async setupMangoGroup() {
@@ -99,13 +109,4 @@ export class Mango {
     }
     return perpMarketConfig;
   }
-
-  // They are the same - not just on devnet right?
-  // getSpotMarketConfigFor(baseSymbol: string): PerpMarketConfig {
-  //   const spotMarketConfig = this.groupConfig.spotMarkets.find((p) => p.baseSymbol === baseSymbol);
-  //   if (!spotMarketConfig) {
-  //     throw new Error(`Could not find spotMarketConfig for symbol ${baseSymbol}`);
-  //   }
-  //   return spotMarketConfig;
-  // }
 }

@@ -1,16 +1,11 @@
 import { expect } from "chai";
 import { PublicKey } from "@solana/web3.js";
-import { ControllerUXD } from "./utils/controller";
-import {
-  getBalance,
-  utils,
-  wallet,
-  user,
-  BTC,
-} from "./utils/utils";
-import { Depository } from "./utils/depository";
-import { depositoryBTC } from "./test_integration_admin";
-import { MANGO_PROGRAM_ID } from "./utils/mango";
+import { ControllerUXD } from "./solana-usds-client/controller";
+import { user, BTC } from "./identities";
+import { Depository } from "./solana-usds-client/depository";
+import { controller, depositoryBTC } from "./test_integration_admin";
+import { TXN_COMMIT, TXN_OPTS, provider } from "./provider";
+import { findAssocTokenAddressSync } from "./solana-usds-client/utils";
 
 // User's SPL Accounts
 let userBTCTokenAccount: PublicKey;
@@ -18,6 +13,13 @@ let userUXDTokenAccount: PublicKey;
 
 // TODO add multi users tests, how will the depository behave when managing several users.
 // TODO add should fail tests
+
+function getBalance(tokenAccount: PublicKey): Promise<number> {
+  return provider.connection
+    .getTokenAccountBalance(tokenAccount, TXN_COMMIT)
+    .then((o) => o["value"]["uiAmount"])
+    .catch(() => null);
+}
 
 async function printSystemBalance(depository: Depository) {
   const SYM = depository.collateralSymbol;
@@ -32,9 +34,9 @@ async function printSystemBalance(depository: Depository) {
 
 async function printMangoPDAInfo(depository: Depository) {
   const mangoPda = ControllerUXD.mangoPda(depository.collateralMint);
-  const mangoGroup = utils.mango.group;
-  const mangoCache = await mangoGroup.loadCache(utils.mango.client.connection);
-  const mangoAccount = await utils.mango.client.getMangoAccount(mangoPda, MANGO_PROGRAM_ID);
+  const mangoGroup = controller.mango.group;
+  const mangoCache = await mangoGroup.loadCache(controller.mango.client.connection);
+  const mangoAccount = await controller.mango.client.getMangoAccount(mangoPda, controller.mango.programId);
   const mangoHealthRatio = mangoAccount.getHealthRatio(mangoGroup, mangoCache, "Maint");
   const mangoLeverage = mangoAccount.getLeverage(mangoGroup, mangoCache).toNumber();
   const assetsVal = mangoAccount.getAssetsVal(mangoGroup, mangoCache, "Maint").toNumber();
@@ -59,12 +61,10 @@ async function printUserBalance() {
 
 before("Configure user accounts", async () => {
   // Find every user adresses
-  userBTCTokenAccount = utils.findAssocTokenAddressSync(user, BTC)[0];
-  userUXDTokenAccount = utils.findAssocTokenAddressSync(user, ControllerUXD.mintPda)[0];
+  userBTCTokenAccount = findAssocTokenAddressSync(user, BTC)[0];
+  userUXDTokenAccount = findAssocTokenAddressSync(user, ControllerUXD.mintPda)[0];
 
   console.log(`\
-    * payer:                              ${wallet.publicKey.toString()}
-    * ---- 
     * BTC mint:                           ${BTC.toString()}
     * UXD mint:                           ${ControllerUXD.mintPda.toString()}
     * ---- 
@@ -88,7 +88,7 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     // const _expectedDepositoryBTCBalance = (await getBalance(ControllerUXD.depositoryPda(depositoryBTC.collateralMint))) + amountToConvert;
 
     // WHEN
-    await ControllerUXD.mintUXD(collateralAmount, slippage, depositoryBTC, user);
+    await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
 
     // Then
     // const _depositoryBTCTokenAccountBalance = await getBalance(ControllerUXD.depositoryPda(depositoryBTC.collateralMint));
@@ -102,7 +102,7 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     const slippage = 10; // <=> 1%
 
     // WHEN
-    await ControllerUXD.redeemUXD(amountUXD, slippage, depositoryBTC, user);
+    await controller.redeemUXD(amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
   });
 
   // it("Redeem all remaining UXD", async () => {
