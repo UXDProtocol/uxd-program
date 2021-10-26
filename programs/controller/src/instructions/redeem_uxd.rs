@@ -28,17 +28,17 @@ pub struct RedeemUxd<'info> {
     pub user: Signer<'info>,
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
-    #[account(seeds = [DEPOSITORY_SEED, coin_mint.key().as_ref()], bump)]
+    #[account(seeds = [DEPOSITORY_SEED, collateral_mint.key().as_ref()], bump)]
     pub depository: Box<Account<'info, Depository>>,
-    #[account(constraint = coin_mint.key() == depository.coin_mint_key)]
-    pub coin_mint: Box<Account<'info, Mint>>,
-    #[account(mut, seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
-    pub coin_passthrough: Box<Account<'info, TokenAccount>>,
+    #[account(constraint = collateral_mint.key() == depository.collateral_mint_key)]
+    pub collateral_mint: Box<Account<'info, Mint>>,
+    #[account(mut, seeds = [PASSTHROUGH_SEED, collateral_mint.key().as_ref()], bump)]
+    pub collateral_passthrough: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        constraint = user_coin.mint == depository.coin_mint_key,
+        constraint = user_collateral.mint == depository.collateral_mint_key,
     )]
-    pub user_coin: Box<Account<'info, TokenAccount>>,
+    pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
         constraint = user_uxd.mint == uxd_mint.key(),
@@ -62,7 +62,7 @@ pub struct RedeemUxd<'info> {
     pub mango_node_bank: AccountInfo<'info>,
     #[account(mut)]
     pub mango_vault: Account<'info, TokenAccount>,
-    // The perp market for `coin_mint` on mango, and the associated required accounts
+    // The perp market for `collateral_mint` on mango, and the associated required accounts
     #[account(mut)]
     pub mango_perp_market: AccountInfo<'info>,
     #[account(mut)]
@@ -84,15 +84,15 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     // - First burn the uxd they'r giving up
     token::burn(ctx.accounts.into_burn_uxd_context(), uxd_amount)?;
 
-    // - Mango close positon and withdraw coin TODO
+    // - Mango close positon and withdraw collateral TODO
     // get current passthrough balance before withdrawing from mango
     // in theory this should always be zero but better safe
-    let initial_passthrough_balance = I80F48::from_num(ctx.accounts.coin_passthrough.amount);
+    let initial_passthrough_balance = I80F48::from_num(ctx.accounts.collateral_passthrough.amount);
 
     ///////////////
 
     // msg!("controller: redeem uxd [calculation for perp position closing]");
-    let coin_mint_key = ctx.accounts.coin_mint.key();
+    let collateral_mint_key = ctx.accounts.collateral_mint.key();
     let mango_account = MangoAccount::load_checked(
         &ctx.accounts.mango_account,
         ctx.accounts.mango_program.key,
@@ -167,11 +167,14 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     drop(mango_cache);
     drop(mango_account);
 
-    let depository_record_bump =
-        Pubkey::find_program_address(&[DEPOSITORY_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
+    let depository_record_bump = Pubkey::find_program_address(
+        &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
+        ctx.program_id,
+    )
+    .1;
     let depository_signer_seeds: &[&[&[u8]]] = &[&[
         DEPOSITORY_SEED,
-        coin_mint_key.as_ref(),
+        collateral_mint_key.as_ref(),
         &[depository_record_bump],
     ]];
 
@@ -208,11 +211,14 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     //     "withdraw {} collateral_amount from mango back to passthrough account",
     //     collateral_amount
     // );
-    let depository_record_bump =
-        Pubkey::find_program_address(&[DEPOSITORY_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
+    let depository_record_bump = Pubkey::find_program_address(
+        &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
+        ctx.program_id,
+    )
+    .1;
     let depository_signer_seeds: &[&[&[u8]]] = &[&[
         DEPOSITORY_SEED,
-        coin_mint_key.as_ref(),
+        collateral_mint_key.as_ref(),
         &[depository_record_bump],
     ]];
     // Call mango CPI to withdraw collateral
@@ -227,24 +233,23 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     )?;
 
     // diff of the passthrough balance and return it
-    let current_passthrough_balance = I80F48::from_num(ctx.accounts.coin_passthrough.amount);
+    let current_passthrough_balance = I80F48::from_num(ctx.accounts.collateral_passthrough.amount);
     let collateral_amount_to_redeem = current_passthrough_balance
         .checked_sub(initial_passthrough_balance)
         .unwrap();
 
     // - Return collateral back to user
-    let coin_mint_key = ctx.accounts.coin_mint.key();
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         DEPOSITORY_SEED,
-        coin_mint_key.as_ref(),
+        collateral_mint_key.as_ref(),
         &[ctx.accounts.depository.bump],
     ]];
 
     let transfer_ctx = CpiContext::new_with_signer(
         ctx.accounts.token_program.to_account_info(),
         Transfer {
-            from: ctx.accounts.coin_passthrough.to_account_info(),
-            to: ctx.accounts.user_coin.to_account_info(),
+            from: ctx.accounts.collateral_passthrough.to_account_info(),
+            to: ctx.accounts.user_collateral.to_account_info(),
             authority: ctx.accounts.depository.to_account_info(),
         },
         depository_signer_seed,
@@ -252,6 +257,8 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     token::transfer(transfer_ctx, collateral_amount_to_redeem.to_num())?;
     Ok(())
 }
+
+// MARK: - Contexts -----
 
 impl<'info> RedeemUxd<'info> {
     pub fn into_burn_uxd_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
@@ -292,7 +299,7 @@ impl<'info> RedeemUxd<'info> {
             mango_root_bank: self.mango_root_bank.to_account_info(),
             mango_node_bank: self.mango_node_bank.to_account_info(),
             mango_vault: self.mango_vault.to_account_info(),
-            token_account: self.coin_passthrough.to_account_info(),
+            token_account: self.collateral_passthrough.to_account_info(),
             mango_signer: self.mango_signer.to_account_info(),
             token_program: self.token_program.to_account_info(),
         };

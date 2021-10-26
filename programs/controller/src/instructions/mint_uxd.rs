@@ -21,9 +21,8 @@ use crate::SLIPPAGE_BASIS;
 use crate::STATE_SEED;
 use crate::UXD_SEED;
 
+// First iteration
 // XXX oki this shit is complicated lets see what all is here...
-// basically what we do is take redeemables from the user, take coin from depository
-// send coin to mango, open position, mint uxd to user
 // XXX gahh this means we need our own redeemable account too...
 // this is troublesome... hmm we could theoretically uhh...
 // * user gives mint 1 btc-redeemable
@@ -36,31 +35,52 @@ use crate::UXD_SEED;
 // * proxy transfer coin to depository which *mints* redeemable to us
 // * transfer redeemable to user
 // and in fact we may very well just mint directly to user
+
+// Second iteration
+// Take Collateral from the user
+// Deposit collateral on Mango (long half)
+// Place immediate perp order on mango using our deposited collateral for borrowing (short half)
+//   if it does not fill withing slippage, we abort
+// Mint equivalent amount of UXD as the position is covering for
+// basically what we do is take redeemables from the user, take coin from depository
+// send coin to mango, open position, mint uxd to user
+
 #[derive(Accounts)]
-#[instruction(coin_amount: u64)]
 pub struct MintUxd<'info> {
     // XXX again we should use approvals so user doesnt need to sign
     pub user: Signer<'info>,
     #[account(seeds = [STATE_SEED], bump)]
     pub state: Box<Account<'info, State>>,
-    #[account(seeds = [DEPOSITORY_SEED, coin_mint.key().as_ref()], bump)]
+    #[account(
+        seeds = [DEPOSITORY_SEED, collateral_mint.key().as_ref()],
+        bump
+    )]
     pub depository: Box<Account<'info, Depository>>,
-    #[account(constraint = coin_mint.key() == depository.coin_mint_key)]
-    pub coin_mint: Box<Account<'info, Mint>>,
-    #[account(mut, seeds = [PASSTHROUGH_SEED, coin_mint.key().as_ref()], bump)]
-    pub coin_passthrough: Box<Account<'info, TokenAccount>>,
+    // TODO use commented custom errors in 1.8.0 anchor and 1.8.0 solana mainnet
+    #[account(constraint = collateral_mint.key() == depository.collateral_mint_key)] //@ ControllerError::MintMismatchCollateral)]
+    pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        // TODO - Move these to custom constraint (see new PR on anchor) - or access_control
-        constraint = user_coin.mint == depository.coin_mint_key,
-        constraint = coin_amount > 0,
-        constraint = user_coin.amount >= coin_amount,
+        seeds = [PASSTHROUGH_SEED, collateral_mint.key().as_ref()],
+        bump
     )]
-    pub user_coin: Box<Account<'info, TokenAccount>>,
-    // XXX this account should be created by a client instruction
-    #[account(mut, constraint = user_uxd.mint == uxd_mint.key())]
+    pub collateral_passthrough: Box<Account<'info, TokenAccount>>,
+    #[account(
+        mut,
+        constraint = user_collateral.mint == depository.collateral_mint_key //@ ControllerError::UnexpectedCollateralMint
+    )]
+    pub user_collateral: Box<Account<'info, TokenAccount>>,
+    #[account(
+        mut,
+        constraint = user_uxd.mint == state.uxd_mint_key //@ ControllerError::InvalidUserUXDAssocTokenAccount
+    )]
     pub user_uxd: Box<Account<'info, TokenAccount>>,
-    #[account(mut, seeds = [UXD_SEED], bump)]
+    #[account(
+        mut,
+        seeds = [UXD_SEED], 
+        bump,
+        constraint = uxd_mint.key() == state.uxd_mint_key //@ ControllerError::MintMismatchUXD
+    )]
     pub uxd_mint: Box<Account<'info, Mint>>,
     // XXX start mango --------------------------------------------------------
     // MangoGroup that this mango account is for
@@ -91,32 +111,39 @@ pub struct MintUxd<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<MintUxd>, coin_amount: u64, slippage: u32) -> ProgramResult {
+// HANDLER
+pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> ProgramResult {
     let transfer_ctx = CpiContext::new(
         ctx.accounts.token_program.to_account_info(),
         Transfer {
-            from: ctx.accounts.user_coin.to_account_info(),
-            to: ctx.accounts.coin_passthrough.to_account_info(),
+            from: ctx.accounts.user_collateral.to_account_info(),
+            to: ctx.accounts.collateral_passthrough.to_account_info(),
             authority: ctx.accounts.user.to_account_info(),
         },
     );
-    token::transfer(transfer_ctx, coin_amount)?;
+    token::transfer(transfer_ctx, collateral_amount)?;
 
     msg!("controller: mint uxd [Deposit Mango CPI]");
-    let coin_mint_key = ctx.accounts.coin_mint.key();
-    let depository_bump =
-        Pubkey::find_program_address(&[DEPOSITORY_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
-    let depository_signer_seeds: &[&[&[u8]]] =
-        &[&[DEPOSITORY_SEED, coin_mint_key.as_ref(), &[depository_bump]]];
+    let collateral_mint_key = ctx.accounts.collateral_mint.key();
+    let depository_bump = Pubkey::find_program_address(
+        &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
+        ctx.program_id,
+    )
+    .1;
+    let depository_signer_seeds: &[&[&[u8]]] = &[&[
+        DEPOSITORY_SEED,
+        collateral_mint_key.as_ref(),
+        &[depository_bump],
+    ]];
     mango_program::deposit(
         ctx.accounts
             .into_deposit_to_mango_context()
             .with_signer(depository_signer_seeds),
-        coin_amount,
+        collateral_amount,
     )?;
 
     // msg!("controller: mint uxd [calculation for perp position opening]");
-    let collateral_amount = I80F48::from_num(coin_amount);
+    let collateral_amount = I80F48::from_num(collateral_amount);
 
     let mango_account = MangoAccount::load_checked(
         &ctx.accounts.mango_account,
@@ -212,11 +239,14 @@ pub fn handler(ctx: Context<MintUxd>, coin_amount: u64, slippage: u32) -> Progra
     drop(mango_cache);
     drop(mango_account);
 
-    let depository_record_bump =
-        Pubkey::find_program_address(&[DEPOSITORY_SEED, coin_mint_key.as_ref()], ctx.program_id).1;
+    let depository_record_bump = Pubkey::find_program_address(
+        &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
+        ctx.program_id,
+    )
+    .1;
     let depository_signer_seeds: &[&[&[u8]]] = &[&[
         DEPOSITORY_SEED,
-        coin_mint_key.as_ref(),
+        collateral_mint_key.as_ref(),
         &[depository_record_bump],
     ]];
     // Call Mango CPI
@@ -291,7 +321,7 @@ impl<'info> MintUxd<'info> {
             mango_node_bank: self.mango_node_bank.to_account_info(),
             mango_vault: self.mango_vault.to_account_info(),
             token_program: self.token_program.to_account_info(),
-            owner_token_account: self.coin_passthrough.to_account_info(),
+            owner_token_account: self.collateral_passthrough.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)

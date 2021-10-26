@@ -43,17 +43,24 @@ pub mod controller {
         instructions::register_depository::handler(ctx)
     }
 
-    // MINT UXD
-    // transfer user coin to our passthrough. open a mango position with that
-    // then mint uxd in the amount of the mango position to the user
-    #[access_control(valid_slippage(slippage))]
-    pub fn mint_uxd(ctx: Context<MintUxd>, coin_amount: u64, slippage: u32) -> ProgramResult {
+    /// MINT UXD
+    /// deposit collateral to mango
+    /// open equivalent short perp (within slippage else fails. FoK behavior)
+    /// mints uxd in the amount of the mango position to the user
+    #[access_control(
+        valid_slippage(slippage)
+        check_amount_constraints(&ctx, collateral_amount)
+    )]
+    pub fn mint_uxd(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> ProgramResult {
         msg!("mint_uxd starts");
-        instructions::mint_uxd::handler(ctx, coin_amount, slippage)
+        instructions::mint_uxd::handler(ctx, collateral_amount, slippage)
     }
 
-    // REDEEM UXD
-    // burn uxd that is being redeemed. then close out mango position and return coins to user
+    /// REDEEM UXD
+    /// burn the amount of UXD
+    /// close equivalent value of mango perp short position (withing slippage else fails. FoK behavior)
+    /// withdraw equivalent value of collateral from mango
+    /// return the collateral amount quivalent to the burnt UXD value to the user
     #[access_control(valid_slippage(slippage))]
     pub fn redeem_uxd(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> ProgramResult {
         msg!("redeem_uxd starts");
@@ -91,6 +98,19 @@ const SLIPPAGE_BASIS: u32 = 1000;
 fn valid_slippage<'info>(slippage: u32) -> ProgramResult {
     if !(slippage <= SLIPPAGE_BASIS) {
         return Err(ControllerError::InvalidSlippage.into());
+    }
+    Ok(())
+}
+
+pub fn check_amount_constraints<'info>(
+    ctx: &Context<MintUxd<'info>>,
+    collateral_amount: u64,
+) -> ProgramResult {
+    if !(collateral_amount > 0) {
+        return Err(ControllerError::InvalidCollateralAmount.into());
+    }
+    if !(ctx.accounts.user_collateral.amount >= collateral_amount) {
+        return Err(ControllerError::InsuficientCollateralAmount.into());
     }
     Ok(())
 }
