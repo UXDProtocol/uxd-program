@@ -88,7 +88,7 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     // const _expectedDepositoryBTCBalance = (await getBalance(ControllerUXD.depositoryPda(depositoryBTC.collateralMint))) + amountToConvert;
 
     // WHEN
-    // await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
+    await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
 
     // Then
     // const _depositoryBTCTokenAccountBalance = await getBalance(ControllerUXD.depositoryPda(depositoryBTC.collateralMint));
