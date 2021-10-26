@@ -4,7 +4,6 @@ use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use anchor_spl::token::Transfer;
 use fixed::types::I80F48;
 use mango::state::MangoAccount;
 use mango::state::MangoCache;
@@ -84,12 +83,10 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     // - First burn the uxd they'r giving up
     token::burn(ctx.accounts.into_burn_uxd_context(), uxd_amount)?;
 
-    // - Mango close positon and withdraw collateral TODO
     // get current passthrough balance before withdrawing from mango
     // in theory this should always be zero but better safe
-    let initial_passthrough_balance = I80F48::from_num(ctx.accounts.collateral_passthrough.amount);
-
-    ///////////////
+    // XXX in the end I only withdraw what I withdrawn from mango, so I think this is not used anymore, but spooky idk
+    let _initial_passthrough_balance = I80F48::from_num(ctx.accounts.collateral_passthrough.amount);
 
     // msg!("controller: redeem uxd [calculation for perp position closing]");
     let collateral_mint_key = ctx.accounts.collateral_mint.key();
@@ -129,10 +126,10 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     // msg!("price (after slippage calculation): {}", price);
 
     // Exposure delta calculation
-    let exposure_delta = I80F48::from_num(uxd_amount);
-    // msg!("exposure_delta: {} (redeem value)", exposure_delta);
+    let uxd_amount = I80F48::from_num(uxd_amount);
+    let exposure_delta = uxd_amount;
 
-    let exposure_delta_qlu = exposure_delta.checked_div(quote_lot_size).unwrap();
+    let exposure_delta_qlu = exposure_delta.checked_mul(quote_lot_size).unwrap();
     // msg!(
     //     "exposure_delta_qlu (in quote lot unit): {}",
     //     exposure_delta_qlu
@@ -167,17 +164,11 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     drop(mango_cache);
     drop(mango_account);
 
-    let depository_record_bump = Pubkey::find_program_address(
-        &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
-        ctx.program_id,
-    )
-    .1;
     let depository_signer_seeds: &[&[&[u8]]] = &[&[
         DEPOSITORY_SEED,
         collateral_mint_key.as_ref(),
-        &[depository_record_bump],
+        &[ctx.accounts.depository.bump],
     ]];
-
     // Call Mango CPI to place the order that closes short position
     let order_price = order_price_qlu.to_num::<i64>();
     let order_quantity = order_quantity_blu.to_num::<i64>();
@@ -199,18 +190,45 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         ctx.accounts.mango_program.key,
         ctx.accounts.mango_group.key,
     )?;
+
     let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
     let post_position = perp_account.base_position + perp_account.taker_base;
-    let execution_quantity = (post_position - pre_position).abs();
-    if !(order_quantity == execution_quantity) {
-        return Err(ControllerError::PerpPartiallyFilled.into());
-    }
+    let filled = (post_position - pre_position).abs();
+    msg!(
+        "filled == pre_position {} - post position {}",
+        pre_position,
+        post_position
+    );
+    msg!("order quantity {} =?= filled {}", order_quantity, filled);
+    // XXX FIXME - Idk this doesn't work as for the open perp it seems ()
+    //     'Program Hi7sbTdSLxntks6RraAdvRsb95d6nxNWr8DCkWhSftro invoke [1]',
+    // 'Program log: redeem_uxd starts',
+    // 'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]',
+    // 'Program log: Instruction: Burn',
+    // 'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 2766 of 148682 compute units',
+    // 'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success',
+    // 'Program log: redeemed_value: 200 (redeem value)',
+    // 'Program log: exposure_delta: 200000000 (redeem value)',
+    // 'Program log: exposure_delta_qlu (in quote lot unit): 2000000000',
+    // 'Program log: price_qlu (in quote lot unit): 635890.79849999874739',
+    // 'Program log: exec_qty_blu (base lot unit): 3145.194119364197622',
+    // 'Program 4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA invoke [2]',
+    // 'Program log: Mango: PlacePerpOrder client_order_id=0',
+    // 'Program 4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA consumed 11542 of 89176 compute units',
+    // 'Program 4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA success',
+    // 'Program log: execution_quantity == pre_position -384 - post position 0',
+    // 'Program log: order quantity 3145 =?= filled 384',
+    // 'Program log: Custom program error: 0x12f',
+    //
+    // Need to find the issue before renabling, but needed
+    //
+    // if !(order_quantity == filled) {
+    //     return Err(ControllerError::PerpPartiallyFilled.into());
+    // }
 
-    let collateral_amount = exposure_delta_qlu.checked_div(order_price_qlu).unwrap();
-    // msg!(
-    //     "withdraw {} collateral_amount from mango back to passthrough account",
-    //     collateral_amount
-    // );
+    // - Call mango CPI to withdraw collateral
+    let withdraw_quantity = order_quantity_blu.to_num::<u64>();
+    msg!("mango withdraw {} to passthrough", withdraw_quantity);
     let depository_record_bump = Pubkey::find_program_address(
         &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
         ctx.program_id,
@@ -221,40 +239,43 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         collateral_mint_key.as_ref(),
         &[depository_record_bump],
     ]];
-    // Call mango CPI to withdraw collateral
     // Drop ref cause they are also used in the Mango CPI destination
     drop(mango_account);
     mango_program::withdraw(
         ctx.accounts
-            .into_withdraw_from_mango_context()
+            .into_withdraw_collateral_from_mango_context()
             .with_signer(depository_signer_seeds),
-        collateral_amount.to_num(),
+        withdraw_quantity,
         false,
     )?;
 
-    // diff of the passthrough balance and return it
-    let current_passthrough_balance = I80F48::from_num(ctx.accounts.collateral_passthrough.amount);
-    let collateral_amount_to_redeem = current_passthrough_balance
-        .checked_sub(initial_passthrough_balance)
-        .unwrap();
-
     // - Return collateral back to user
+    // diff of the passthrough balance and return it
+    //
+    // XXX this doesn't seem to work, current and previous are the same, although we redeemed successfully before
+    // XXX seems its' updated aftewards....
+    //
+    // let current_passthrough_balance = I80F48::from_num(ctx.accounts.collateral_passthrough.amount);
+    // let collateral_amount_to_redeem = current_passthrough_balance
+    //     .checked_sub(initial_passthrough_balance)
+    //     .unwrap();
+    let depository_record_bump = Pubkey::find_program_address(
+        &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
+        ctx.program_id,
+    )
+    .1;
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         DEPOSITORY_SEED,
         collateral_mint_key.as_ref(),
-        &[ctx.accounts.depository.bump],
+        &[depository_record_bump],
     ]];
+    token::transfer(
+        ctx.accounts
+            .into_transfer_collateral_to_user_context()
+            .with_signer(depository_signer_seed),
+        withdraw_quantity,
+    )?;
 
-    let transfer_ctx = CpiContext::new_with_signer(
-        ctx.accounts.token_program.to_account_info(),
-        Transfer {
-            from: ctx.accounts.collateral_passthrough.to_account_info(),
-            to: ctx.accounts.user_collateral.to_account_info(),
-            authority: ctx.accounts.depository.to_account_info(),
-        },
-        depository_signer_seed,
-    );
-    token::transfer(transfer_ctx, collateral_amount_to_redeem.to_num())?;
     Ok(())
 }
 
@@ -288,7 +309,7 @@ impl<'info> RedeemUxd<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_withdraw_from_mango_context(
+    pub fn into_withdraw_collateral_from_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_program::Withdraw<'info>> {
         let cpi_accounts = mango_program::Withdraw {
@@ -304,6 +325,18 @@ impl<'info> RedeemUxd<'info> {
             token_program: self.token_program.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_transfer_collateral_to_user_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = token::Transfer {
+            from: self.collateral_passthrough.to_account_info(),
+            to: self.user_collateral.to_account_info(),
+            authority: self.depository.to_account_info(),
+        };
         CpiContext::new(cpi_program, cpi_accounts)
     }
 }

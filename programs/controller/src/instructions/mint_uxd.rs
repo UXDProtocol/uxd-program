@@ -125,15 +125,11 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
 
     msg!("controller: mint uxd [Deposit Mango CPI]");
     let collateral_mint_key = ctx.accounts.collateral_mint.key();
-    let depository_bump = Pubkey::find_program_address(
-        &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
-        ctx.program_id,
-    )
-    .1;
+
     let depository_signer_seeds: &[&[&[u8]]] = &[&[
         DEPOSITORY_SEED,
         collateral_mint_key.as_ref(),
-        &[depository_bump],
+        &[ctx.accounts.depository.bump],
     ]];
     mango_program::deposit(
         ctx.accounts
@@ -198,7 +194,6 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
         .unwrap()
         .checked_mul(perp_value)
         .unwrap();
-    // Not sure about this one, might need to be mul by perp? or spot..
     let exposure_delta = collateral_amount.checked_mul(perp_value).unwrap();
     msg!("collateral_deposited_value: {}", deposited_value); // Is this valus good with decimals? To check
     msg!("exposure_delta: {}", exposure_delta);
@@ -272,8 +267,8 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     )?;
     let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
     let post_position = perp_account.base_position + perp_account.taker_base;
-    let execution_quantity = (post_position - pre_position).abs();
-    if !(order_quantity == execution_quantity) {
+    let filled = (post_position - pre_position).abs();
+    if !(order_quantity == filled) {
         return Err(ControllerError::PerpPartiallyFilled.into());
     }
     // // XXX Here we taking the worse price, but it might have found a better exec price, and we should get that else
@@ -295,7 +290,7 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     //     .unwrap();
     // msg!("position_uxd_amount : {}", position_uxd_amount);
 
-    // For now give him for the worth slippage, see above
+    // For now give him for the worth exec price (full slippage), see above
     let uxd_amount = collateral_amount.checked_mul(price).unwrap();
     let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
     token::mint_to(

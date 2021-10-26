@@ -26,8 +26,6 @@ async function printSystemBalance(depository: Depository) {
   const passthroughPda = ControllerUXD.collateralPassthroughPda(depository.collateralMint);
   const depositoryPda = ControllerUXD.depositoryPda(depository.collateralMint);
   console.log(`\
-        * [depository ${depository.collateralSymbol}]:
-        *     ${SYM}:                                        ${await getBalance(depositoryPda)}
         * [controller]
         *     associated ${SYM} passthrough:                 ${await getBalance(passthroughPda)}`);
 }
@@ -79,7 +77,9 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     await printMangoPDAInfo(depositoryBTC);
   });
 
-  it("Initial balances", async () => {});
+  it("Initial balances", async () => {
+    /* noop - prints after each */
+  });
 
   it("Mint UXD worth 0.1 BTC", async () => {
     // GIVEN
@@ -88,7 +88,7 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
     // const _expectedDepositoryBTCBalance = (await getBalance(ControllerUXD.depositoryPda(depositoryBTC.collateralMint))) + amountToConvert;
 
     // WHEN
-    await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
+    // await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
 
     // Then
     // const _depositoryBTCTokenAccountBalance = await getBalance(ControllerUXD.depositoryPda(depositoryBTC.collateralMint));
@@ -109,11 +109,11 @@ describe("Test user standard interactions with a Depository (BTC)", () => {
   //   // GIVEN
   //   let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
   //   const amountUXD = _userUXDTokenAccountBalance;
-  //   const slippage = 10; // <=> 1%
+  //   const slippage = 20; // <=> 1%
   //   const _expectedUserUXDBalance = 0;
 
   //   // WHEN
-  //   await ControllerUXD.redeemUXD(amountUXD, slippage, depositoryBTC, user);
+  //   await controller.redeemUXD(amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
 
   //   // THEN
   //   _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
