@@ -1,18 +1,12 @@
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { expect } from "chai";
-import * as anchor from "@project-serum/anchor";
-import { SystemProgram, SYSVAR_RENT_PUBKEY, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { ControllerUXD } from "./utils/controller";
 import {
   getBalance,
   utils,
-  TXN_OPTS,
   wallet,
   user,
   BTC,
-  provider,
-  createAssocTokenIx,
-  BTC_DECIMALS,
 } from "./utils/utils";
 import { Depository } from "./utils/depository";
 import { depositoryBTC } from "./test_integration_admin";
@@ -27,7 +21,7 @@ let userUXDTokenAccount: PublicKey;
 
 async function printSystemBalance(depository: Depository) {
   const SYM = depository.collateralSymbol;
-  const passthroughPda = ControllerUXD.coinPassthroughPda(depository.collateralMint);
+  const passthroughPda = ControllerUXD.collateralPassthroughPda(depository.collateralMint);
   const depositoryPda = ControllerUXD.depositoryPda(depository.collateralMint);
   console.log(`\
         * [depository ${depository.collateralSymbol}]:

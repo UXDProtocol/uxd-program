@@ -38,7 +38,7 @@ export class Depository {
       [Depository debug info - Collateral mint: ${this.collateralSymbol}]
         * mint (collateral):                            ${this.collateralMint.toString()}
         * controller's associated depositoryRecordPda:  ${ControllerUXD.depositoryPda(this.collateralMint).toString()}
-        * controller's associated coinPassthroughPda:   ${ControllerUXD.coinPassthroughPda(
+        * controller's associated coinPassthroughPda:   ${ControllerUXD.collateralPassthroughPda(
           this.collateralMint
         ).toString()}
         * controller's associated MangoAccountPda:      ${ControllerUXD.mangoPda(this.collateralMint).toString()}

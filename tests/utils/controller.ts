@@ -16,11 +16,44 @@ enum ControllerPDASeed {
 
 export class ControllerUXD {
   public static ProgramId: PublicKey = anchor.workspace.Controller.programId;
-  public static rpc: anchor.RpcNamespace = (anchor.workspace.Controller as Program).rpc;
+  static rpc: anchor.RpcNamespace = (anchor.workspace.Controller as Program).rpc;
+  static statePda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.State);
+  static mintPda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.UXD);
 
-  // Pda
-  public static statePda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.State);
-  public static mintPda: PublicKey = ControllerUXD.findControllerPda(ControllerPDASeed.UXD);
+  public static async initialize(admin: anchor.Wallet) {
+    await ControllerUXD.rpc.initialize({
+      accounts: {
+        authority: admin.publicKey,
+        state: ControllerUXD.statePda,
+        uxdMint: ControllerUXD.mintPda,
+        rent: SYSVAR_RENT_PUBKEY,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      },
+      signers: [admin.payer],
+      options: TXN_OPTS,
+    });
+  }
+
+  public static async register(depository: Depository, admin: anchor.Wallet) {
+    await ControllerUXD.rpc.registerDepository({
+      accounts: {
+        authority: admin.publicKey,
+        state: ControllerUXD.statePda,
+        depository: ControllerUXD.depositoryPda(depository.collateralMint),
+        collateralMint: depository.collateralMint,
+        collateralPassthrough: ControllerUXD.collateralPassthroughPda(depository.collateralMint),
+        mangoGroup: utils.mango.group.publicKey,
+        mangoAccount: ControllerUXD.mangoPda(depository.collateralMint),
+        rent: SYSVAR_RENT_PUBKEY,
+        systemProgram: SystemProgram.programId,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        mangoProgram: MANGO_PROGRAM_ID,
+      },
+      signers: [admin.payer],
+      options: TXN_OPTS,
+    });
+  }
 
   public static async mintUXD(collateralAmount: number, slippage: number, depository: Depository, user: anchor.Wallet) {
     const depositedTokenIndex = utils.mango.group.getTokenIndex(depository.collateralMint);
@@ -43,11 +76,11 @@ export class ControllerUXD {
         user: user.publicKey,
         state: ControllerUXD.statePda,
         depository: ControllerUXD.depositoryPda(depository.collateralMint),
-        coinMint: depository.collateralMint,
-        coinPassthrough: ControllerUXD.coinPassthroughPda(depository.collateralMint),
-        userCoin: userCollateralTokenAccount,
-        userUxd: userUXDTokenAccount,
+        collateralMint: depository.collateralMint,
         uxdMint: ControllerUXD.mintPda,
+        userCollateral: userCollateralTokenAccount,
+        userUxd: userUXDTokenAccount,
+        collateralPassthrough: ControllerUXD.collateralPassthroughPda(depository.collateralMint),
         // mango stuff
         mangoGroup: utils.mango.group.publicKey,
         mangoAccount: ControllerUXD.mangoPda(depository.collateralMint),
@@ -91,11 +124,11 @@ export class ControllerUXD {
         user: user.publicKey,
         state: ControllerUXD.statePda,
         depository: ControllerUXD.depositoryPda(depository.collateralMint),
-        coinMint: depository.collateralMint,
-        coinPassthrough: ControllerUXD.coinPassthroughPda(depository.collateralMint),
-        userCoin: userCollateralTokenAccount,
-        userUxd: userUXDTokenAccount,
+        collateralMint: depository.collateralMint,
         uxdMint: ControllerUXD.mintPda,
+        userCollateral: userCollateralTokenAccount,
+        userUxd: userUXDTokenAccount,
+        collateralPassthrough: ControllerUXD.collateralPassthroughPda(depository.collateralMint),
         // mango stuff
         mangoGroup: utils.mango.group.publicKey,
         mangoAccount: ControllerUXD.mangoPda(depository.collateralMint),
@@ -130,7 +163,7 @@ export class ControllerUXD {
   }
 
   // This pda is function of the depository mint
-  public static coinPassthroughPda(collateralMint: PublicKey): PublicKey {
+  public static collateralPassthroughPda(collateralMint: PublicKey): PublicKey {
     return utils.findProgramAddressSync(ControllerUXD.ProgramId, [
       Buffer.from(ControllerPDASeed.Passthrough),
       collateralMint.toBuffer(),
