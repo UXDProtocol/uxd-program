@@ -157,6 +157,7 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     let perp_market_index = mango_group
         .find_perp_market_index(ctx.accounts.mango_perp_market.key)
         .unwrap();
+    let taker_fee = mango_group.perp_markets[perp_market_index].taker_fee;
     // base and quote details
     let base_decimals = mango_group.tokens[perp_market_index].decimals;
     let base_unit = I80F48::from_num(10u64.pow(base_decimals.into()));
@@ -165,18 +166,18 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     let quote_unit = I80F48::from_num(10u64.pow(quote_decimals.into()));
     let quote_lot_size =
         I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
-    msg!(
-        "base decimals: {} - base unit: {} - base lot size: {}",
-        base_decimals,
-        base_unit,
-        base_lot_size
-    );
-    msg!(
-        "quote decimals: {} - quote unit: {} - quote lot size: {}",
-        quote_decimals,
-        quote_unit,
-        quote_lot_size
-    );
+    // msg!(
+    //     "base decimals: {} - base unit: {} - base lot size: {}",
+    //     base_decimals,
+    //     base_unit,
+    //     base_lot_size
+    // );
+    // msg!(
+    //     "quote decimals: {} - quote unit: {} - quote lot size: {}",
+    //     quote_decimals,
+    //     quote_unit,
+    //     quote_lot_size
+    // );
 
     // Slippage calulation
     let perp_value = mango_cache.price_cache[perp_market_index].price;
@@ -185,8 +186,8 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
     let slippage_amount = perp_value.checked_mul(slippage_ratio).unwrap();
     let price = perp_value.checked_sub(slippage_amount).unwrap();
-    msg!("collateral_perp_value: {}", perp_value);
-    msg!("price (after slippage calculation): {}", price);
+    // msg!("collateral_perp_value: {}", perp_value);
+    // msg!("price (after slippage calculation): {}", price);
 
     // Exposure delta calculation
     let deposited_value = collateral_amount
@@ -195,14 +196,14 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
         .checked_mul(perp_value)
         .unwrap();
     let exposure_delta = collateral_amount.checked_mul(perp_value).unwrap();
-    msg!("collateral_deposited_value: {}", deposited_value); // Is this valus good with decimals? To check
-    msg!("exposure_delta: {}", exposure_delta);
+    // msg!("collateral_deposited_value: {}", deposited_value); // Is this valus good with decimals? To check
+    // msg!("exposure_delta: {}", exposure_delta);
 
     let exposure_delta_qlu = exposure_delta.checked_div(quote_lot_size).unwrap();
-    msg!(
-        "exposure_delta_qlu (in quote lot unit): {}",
-        exposure_delta_qlu
-    );
+    // msg!(
+    //     "exposure_delta_qlu (in quote lot unit): {}",
+    //     exposure_delta_qlu
+    // );
 
     // price in quote lot unit
     let order_price_qlu = price
@@ -214,14 +215,14 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
         .unwrap()
         .checked_div(base_unit)
         .unwrap();
-    msg!("price_qlu (in quote lot unit): {}", order_price_qlu);
+    // msg!("price_qlu (in quote lot unit): {}", order_price_qlu);
 
     // Execution quantity
     let order_quantity_blu = exposure_delta_qlu
         .checked_div(order_price_qlu)
         .unwrap()
         .abs();
-    msg!("exec_qty_blu (base lot unit): {}", order_quantity_blu);
+    // msg!("exec_qty_blu (base lot unit): {}", order_quantity_blu);
 
     // We now calculate the amount pre perp opening, in order to define after if it got 100% filled or not
     let pre_position = {
@@ -271,27 +272,11 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     if !(order_quantity == filled) {
         return Err(ControllerError::PerpPartiallyFilled.into());
     }
-    // // XXX Here we taking the worse price, but it might have found a better exec price, and we should get that else
-    // // the diff will fill the insurance fund each time, and people will always pay max slippage.
-    // //
-    // // Determine the filled price to define how much UXD we need to mint
-    // let execution_price_qlu = order_price_qlu; //
-    // // msg!("controller: mint uxd [Mint UXD for redeemables]");
-    // let uxd_decimals = ctx.accounts.uxd_mint.decimals as u32;
-    // let uxd_unit = I80F48::from_num(10u64.pow(uxd_decimals));
-    // // USD value of delta position
-    // let perp_order_uxd_value = order_quantity_blu.checked_mul(execution_price_qlu).unwrap();
-    // msg!("perp_order_uxd_value : {}", perp_order_uxd_value);
-    // Converted to UXD amount (we multiply by uxd decimals and divide by coin decimals and get a uxd amount)
-    // let position_uxd_amount = perp_order_uxd_value
-    //     .checked_mul(uxd_unit)
-    //     .unwrap()
-    //     .checked_div(base_unit)
-    //     .unwrap();
-    // msg!("position_uxd_amount : {}", position_uxd_amount);
 
-    // For now give him for the worth exec price (full slippage), see above
-    let uxd_amount = collateral_amount.checked_mul(price).unwrap();
+    // real execution price (minus the fees)
+    let quote = I80F48::from_num(perp_account.taker_quote).checked_mul(quote_lot_size).unwrap();
+    let fees = quote.abs() * taker_fee;
+    let uxd_amount = quote - fees;// worth exec price ==> collateral_amount.checked_mul(price).unwrap();
     let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
     token::mint_to(
         ctx.accounts
