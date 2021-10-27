@@ -220,8 +220,7 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     // Execution quantity
     let order_quantity_blu = exposure_delta_qlu
         .checked_div(order_price_qlu)
-        .unwrap()
-        .abs();
+        .unwrap();
     // msg!("exec_qty_blu (base lot unit): {}", order_quantity_blu);
 
     // We now calculate the amount pre perp opening, in order to define after if it got 100% filled or not

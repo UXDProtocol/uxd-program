@@ -5,6 +5,7 @@ import { BTC, admin } from "./identities";
 import { expect, util } from "chai";
 import { BTC_DECIMALS } from "./solana-usds-client/utils";
 import { TXN_OPTS, provider } from "./provider";
+import { PerpMarket } from "@blockworks-foundation/mango-client";
 
 // Depositories - They represent the business object that tie a mint to a depository
 export let depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS);
@@ -14,8 +15,18 @@ before("Airdrop and config", async () => {
   // GIVEN
   await controller.mango.setupMangoGroup(); // Async fetch of mango group
 
-  let sig = await provider.connection.requestAirdrop(admin.publicKey, 10 * LAMPORTS_PER_SOL);
-  await provider.connection.confirmTransaction(sig);
+  let perpMarketConfigBTC = controller.mango.getPerpMarketConfigFor(depositoryBTC.collateralSymbol);
+  let perpMarketIndexBTC = perpMarketConfigBTC.marketIndex;
+  let perpMarketBTC = await controller.mango.group.loadPerpMarket(
+    controller.mango.client.connection,
+    perpMarketIndexBTC,
+    perpMarketConfigBTC.baseDecimals,
+    perpMarketConfigBTC.quoteDecimals
+  );
+  console.log("--- Printing the Mango BTC perp market informations ---------------- ");
+  console.log(perpMarketBTC.toPrettyString(perpMarketConfigBTC));
+  console.log("-------------------------------------------------------------------- \n");
+  console.log("--------------------------- START TESTS ---------------------------- \n");
 });
 
 before("Standard Administrative flow for UXD Controller and depositories", () => {

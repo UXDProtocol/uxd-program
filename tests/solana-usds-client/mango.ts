@@ -54,7 +54,6 @@ export class Mango {
   async setupMangoGroup() {
     this.group = await this.client.getMangoGroup(this.mangoGroupKey);
     this.group.rootBankAccounts = await this.group.loadRootBanks(this.client.connection);
-    this.group.mangoCache = (await this.group.loadCache(this.client.connection)).publicKey;
   }
 
   getTokenIndex(tokenMint: PublicKey): number {

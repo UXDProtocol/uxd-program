@@ -1,3 +1,5 @@
+use std::ops::Div;
+
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
@@ -85,8 +87,8 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
 
     // get current passthrough balance before withdrawing from mango
     // in theory this should always be zero but better safe
-    // XXX in the end I only withdraw what I withdrawn from mango, so I think this is not used anymore, but spooky idk
-    let _initial_passthrough_balance = I80F48::from_num(ctx.accounts.collateral_passthrough.amount);
+    // XXX cannot be updated and read through this program, only if we would be doing ledger operations.
+    // let _initial_passthrough_balance = I80F48::from_num(ctx.accounts.collateral_passthrough.amount);
 
     // msg!("controller: redeem uxd [calculation for perp position closing]");
     let collateral_mint_key = ctx.accounts.collateral_mint.key();
@@ -106,6 +108,7 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     let perp_market_index = mango_group
         .find_perp_market_index(ctx.accounts.mango_perp_market.key)
         .unwrap();
+    let taker_fee = mango_group.perp_markets[perp_market_index].taker_fee;
     // base and quote details
     let base_decimals = mango_group.tokens[perp_market_index].decimals;
     let base_unit = I80F48::from_num(10u64.pow(base_decimals.into()));
@@ -114,6 +117,12 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     let quote_unit = I80F48::from_num(10u64.pow(quote_decimals.into()));
     let quote_lot_size =
         I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
+    // msg!("-----");
+    // msg!("base_unit {}", base_unit);
+    // msg!("base_lot_size {}", base_lot_size);
+    // msg!("quote_unit {}", quote_unit);
+    // msg!("quote_lot_size {}", quote_lot_size);
+    // msg!("-----");
 
     // Slippage calulation
     let perp_value = mango_cache.price_cache[perp_market_index].price;
@@ -128,8 +137,9 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     // Exposure delta calculation
     let uxd_amount = I80F48::from_num(uxd_amount);
     let exposure_delta = uxd_amount;
+    // msg!("exposure_delta (in native quote unit): {}", exposure_delta);
 
-    let exposure_delta_qlu = exposure_delta.checked_mul(quote_lot_size).unwrap();
+    let exposure_delta_qlu = exposure_delta.checked_div(quote_lot_size).unwrap();
     // msg!(
     //     "exposure_delta_qlu (in quote lot unit): {}",
     //     exposure_delta_qlu
@@ -145,20 +155,27 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         .unwrap()
         .checked_div(base_unit)
         .unwrap();
-    // msg!("price_qlu (in quote lot unit): {}", order_price_qlu);
+    // msg!("order_price_qlu (in quote lot unit): {}", order_price_qlu);
 
     // Execution quantity
-    let order_quantity_blu = exposure_delta_qlu
-        .checked_div(order_price_qlu)
-        .unwrap()
-        .abs();
-    // msg!("exec_qty_blu (base lot unit): {}", order_quantity_blu);
+    let order_quantity_blu = exposure_delta_qlu.checked_div(order_price_qlu).unwrap();
+    // msg!(
+    //     "order_quantity_blu (short perp quantity to close, in base lot unit): {}",
+    //     order_quantity_blu
+    // );
 
     // We now calculate the amount pre perp closing, in order to define after if it got 100% filled or not
     let pre_position = {
         let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
+        // msg!("-----");
+        // msg!("base_position {}", perp_account.base_position);
+        // msg!("quote_position {}", perp_account.quote_position);
+        // msg!("taker_base {}", perp_account.taker_base);
+        // msg!("taker_quote {}", perp_account.taker_quote);
+        // msg!("-----");
         perp_account.base_position + perp_account.taker_base
     };
+    // msg!("pre_position {}", pre_position);
     // Drop ref cause they are also used in the Mango CPI destination
     drop(mango_group);
     drop(mango_cache);
@@ -184,51 +201,55 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         true,
     )?;
 
+    // Seems we need to settle that order in order to know the real filled quantity? :/
+    // -> https://github.com/UXDProtocol/solana-usds/issues/33
+
     // msg!("verify that the order got 100% filled");
     let mango_account = MangoAccount::load_checked(
         &ctx.accounts.mango_account,
         ctx.accounts.mango_program.key,
         ctx.accounts.mango_group.key,
     )?;
-
     let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
+
+    // msg!("-----");
     let post_position = perp_account.base_position + perp_account.taker_base;
+    // msg!("base_position {}", perp_account.base_position);
+    // msg!("quote_position {}", perp_account.quote_position);
+    // msg!("taker_base {}", perp_account.taker_base);
+    // msg!("taker_quote {}", perp_account.taker_quote);
+    // msg!("-----");
+    // msg!("pre_position {}", pre_position);
+    // msg!("post_position {}", post_position);
+    // msg!("-----");
     let filled = (post_position - pre_position).abs();
-    msg!(
-        "filled == pre_position {} - post position {}",
-        pre_position,
-        post_position
-    );
-    msg!("order quantity {} =?= filled {}", order_quantity, filled);
-    // XXX FIXME - Idk this doesn't work as for the open perp it seems ()
-    //     'Program Hi7sbTdSLxntks6RraAdvRsb95d6nxNWr8DCkWhSftro invoke [1]',
-    // 'Program log: redeem_uxd starts',
-    // 'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]',
-    // 'Program log: Instruction: Burn',
-    // 'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 2766 of 148682 compute units',
-    // 'Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success',
-    // 'Program log: redeemed_value: 200 (redeem value)',
-    // 'Program log: exposure_delta: 200000000 (redeem value)',
-    // 'Program log: exposure_delta_qlu (in quote lot unit): 2000000000',
-    // 'Program log: price_qlu (in quote lot unit): 635890.79849999874739',
-    // 'Program log: exec_qty_blu (base lot unit): 3145.194119364197622',
-    // 'Program 4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA invoke [2]',
-    // 'Program log: Mango: PlacePerpOrder client_order_id=0',
-    // 'Program 4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA consumed 11542 of 89176 compute units',
-    // 'Program 4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA success',
-    // 'Program log: execution_quantity == pre_position -384 - post position 0',
-    // 'Program log: order quantity 3145 =?= filled 384',
-    // 'Program log: Custom program error: 0x12f',
-    //
-    // Need to find the issue before renabling, but needed
-    //
-    // if !(order_quantity == filled) {
-    //     return Err(ControllerError::PerpPartiallyFilled.into());
-    // }
+    // msg!("filled {}", filled);
+    // msg!("order quantity {} =?= filled {}", order_quantity, filled);
+    // msg!("-----");
+    if !(order_quantity == filled) {
+        return Err(ControllerError::PerpPartiallyFilled.into());
+    }
 
     // - Call mango CPI to withdraw collateral
-    let withdraw_quantity = order_quantity_blu.to_num::<u64>();
-    msg!("mango withdraw {} to passthrough", withdraw_quantity);
+    // msg!("-----");
+    let quote = I80F48::from_num(perp_account.taker_quote)
+        .checked_mul(quote_lot_size)
+        .unwrap()
+        .abs();
+    let fees = quote.checked_mul(taker_fee).unwrap();
+    // msg!("quote {}", quote);
+    // msg!("fees {}", fees);
+
+    // In USDC
+    let quote_withdraw_amount = quote - fees;
+    let collateral_withdraw_amount = quote_withdraw_amount
+        .checked_div(perp_value)
+        .unwrap()
+        .to_num();
+    // msg!("quote_withdraw_amount {}", quote_withdraw_amount);
+    // msg!("collateral_withdraw_amount {}", collateral_withdraw_amount);
+    // msg!("-----");
+
     let depository_record_bump = Pubkey::find_program_address(
         &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
         ctx.program_id,
@@ -245,20 +266,15 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         ctx.accounts
             .into_withdraw_collateral_from_mango_context()
             .with_signer(depository_signer_seeds),
-        withdraw_quantity,
+        collateral_withdraw_amount,
         false,
     )?;
 
     // - Return collateral back to user
     // diff of the passthrough balance and return it
-    //
-    // XXX this doesn't seem to work, current and previous are the same, although we redeemed successfully before
-    // XXX seems its' updated aftewards....
-    //
+    // XXX Doing it this way is not updated yet, cannot - this would work if we were doing the ledger change manually
     // let current_passthrough_balance = I80F48::from_num(ctx.accounts.collateral_passthrough.amount);
-    // let collateral_amount_to_redeem = current_passthrough_balance
-    //     .checked_sub(initial_passthrough_balance)
-    //     .unwrap();
+
     let depository_record_bump = Pubkey::find_program_address(
         &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
         ctx.program_id,
@@ -273,7 +289,7 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         ctx.accounts
             .into_transfer_collateral_to_user_context()
             .with_signer(depository_signer_seed),
-        withdraw_quantity,
+        collateral_withdraw_amount,
     )?;
 
     Ok(())

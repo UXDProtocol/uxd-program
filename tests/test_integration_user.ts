@@ -6,6 +6,8 @@ import { Depository } from "./solana-usds-client/depository";
 import { controller, depositoryBTC } from "./test_integration_admin";
 import { TXN_COMMIT, TXN_OPTS, provider } from "./provider";
 import { findAssocTokenAddressSync } from "./solana-usds-client/utils";
+import { printMangoPDAInfo } from "./debug_printers";
+import { sleep } from "@blockworks-foundation/mango-client";
 
 // User's SPL Accounts
 let userBTCTokenAccount: PublicKey;
@@ -30,26 +32,6 @@ async function printSystemBalance(depository: Depository) {
         *     associated ${SYM} passthrough:                 ${await getBalance(passthroughPda)}`);
 }
 
-async function printMangoPDAInfo(depository: Depository) {
-  const mangoPda = ControllerUXD.mangoPda(depository.collateralMint);
-  const mangoGroup = controller.mango.group;
-  const mangoCache = await mangoGroup.loadCache(controller.mango.client.connection);
-  const mangoAccount = await controller.mango.client.getMangoAccount(mangoPda, controller.mango.programId);
-  const mangoHealthRatio = mangoAccount.getHealthRatio(mangoGroup, mangoCache, "Maint");
-  const mangoLeverage = mangoAccount.getLeverage(mangoGroup, mangoCache).toNumber();
-  const assetsVal = mangoAccount.getAssetsVal(mangoGroup, mangoCache, "Maint").toNumber();
-  const computeValue = mangoAccount.computeValue(mangoGroup, mangoCache).toNumber();
-  const liabsValue = mangoAccount.getLiabsVal(mangoGroup, mangoCache, "Maint").toNumber();
-
-  console.log(`\
-        * [MangoPDA (for ${depository.collateralSymbol} depository)]
-        *     value                                       ${computeValue}
-        *     assets value                                ${assetsVal}
-        *     liabilities value                           ${liabsValue}
-        *     leverage                                    x${mangoLeverage}
-        *     health ratio:                               ${mangoHealthRatio.toNumber()} `);
-}
-
 async function printUserBalance() {
   console.log(`\
         * [user]:
@@ -70,53 +52,101 @@ before("Configure user accounts", async () => {
     * user's UXD tokenAcc                 ${userUXDTokenAccount.toString()} (uninit)`);
 });
 
-describe("Test user standard interactions with a Depository (BTC)", () => {
+describe("Mint then redeem all", () => {
   afterEach("[General balances info]", async () => {
+    // seems we have unreliable result sometimes, idk if I need to update a cache or sleep or what
+    await sleep(3000);
+    // Get fresh cash and info from mango
+    await controller.mango.setupMangoGroup();
     await printUserBalance();
     await printSystemBalance(depositoryBTC);
     await printMangoPDAInfo(depositoryBTC);
+    console.log("\n\n\n");
   });
 
   it("Initial balances", async () => {
     /* noop - prints after each */
   });
 
-  it("Mint UXD worth 0.1 BTC", async () => {
+  // it("Mint UXD worth 0.001 BTC with 1% max slippage", async () => {
+  //   // GIVEN
+  //   const collateralAmount = 0.001;
+  //   const slippage = 10; // <=> 1%
+  //   // WHEN
+  //   await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
+
+  //   // Then
+  //   // const userUXDBalance = await getBalance(userUXDTokenAccount);
+  // });
+
+  it("Redeem all remaining UXD", async () => {
     // GIVEN
-    const collateralAmount = 0.1;
+    let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+    const amountUXD = _userUXDTokenAccountBalance;
     const slippage = 10; // <=> 1%
-    // const _expectedDepositoryBTCBalance = (await getBalance(ControllerUXD.depositoryPda(depositoryBTC.collateralMint))) + amountToConvert;
+    const _expectedUserUXDBalance = 0;
 
-    // WHEN
-    await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
-
-    // Then
-    // const _depositoryBTCTokenAccountBalance = await getBalance(ControllerUXD.depositoryPda(depositoryBTC.collateralMint));
-    // expect(_depositoryBTCTokenAccountBalance).to.be.closeTo(_expectedDepositoryBTCBalance, 0.000_000_000_1);
-    // TODO check user UXD balance
-  });
-
-  it("Redeem 200 UXD", async () => {
-    // GIVEN
-    const amountUXD = 200;
-    const slippage = 10; // <=> 1%
+    console.log(`     > reedeem amount : ${amountUXD}`);
 
     // WHEN
     await controller.redeemUXD(amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
+
+    // THEN
+    _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+    expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
   });
-
-  // it("Redeem all remaining UXD", async () => {
-  //   // GIVEN
-  //   let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-  //   const amountUXD = _userUXDTokenAccountBalance;
-  //   const slippage = 20; // <=> 1%
-  //   const _expectedUserUXDBalance = 0;
-
-  //   // WHEN
-  //   await controller.redeemUXD(amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
-
-  //   // THEN
-  //   _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-  //   expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
-  // });
 });
+
+// describe("Mint then redeem, a bit, then redeem all", () => {
+//   afterEach("[General balances info]", async () => {
+//     // seems we have unreliable result sometimes, idk if I need to update a cache or sleep or what
+//     await sleep(1000);
+//     // Get fresh cash and info from mango
+//     await controller.mango.setupMangoGroup();
+//     await printUserBalance();
+//     await printSystemBalance(depositoryBTC);
+//     await printMangoPDAInfo(depositoryBTC);
+//     console.log("\n\n\n");
+//   });
+
+//   it("Initial balances", async () => {
+//     /* noop - prints after each */
+//   });
+
+//   it("Mint UXD worth 0.001 BTC with 1% max slippage", async () => {
+//     // GIVEN
+//     const collateralAmount = 0.001;
+//     const slippage = 10; // <=> 1%
+//     // WHEN
+//     await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
+
+//     // Then
+//     // const userUXDBalance = await getBalance(userUXDTokenAccount);
+//   });
+
+//   it("Redeem 25 UXD with 1% max slippage", async () => {
+//     // GIVEN
+//     const amountUXD = 25;
+//     const slippage = 10; // <=> 1%
+
+//     // WHEN
+//     await controller.redeemUXD(amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
+//   });
+
+//   it("Redeem all remaining UXD", async () => {
+//     // GIVEN
+//     let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+//     const amountUXD = _userUXDTokenAccountBalance;
+//     const slippage = 10; // <=> 1%
+//     const _expectedUserUXDBalance = 0;
+
+//     console.log(`     > reedeem amount : ${amountUXD}`);
+
+//     // WHEN
+//     await controller.redeemUXD(amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
+
+//     // THEN
+//     _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+//     expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
+//   });
+// });

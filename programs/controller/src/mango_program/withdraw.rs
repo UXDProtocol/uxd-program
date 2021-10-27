@@ -60,17 +60,19 @@ fn withdraw_instruction(
     }
     .pack();
 
-    let mut accounts = Vec::with_capacity(10 + MAX_PAIRS + signer_pubkeys.len());
-    accounts.push(AccountMeta::new_readonly(*mango_group_pubkey, false));
-    accounts.push(AccountMeta::new(*mango_account_pubkey, false));
-    accounts.push(AccountMeta::new_readonly(*owner_pubkey, false));
-    accounts.push(AccountMeta::new_readonly(*mango_cache_pubkey, false));
-    accounts.push(AccountMeta::new_readonly(*mango_root_bank_pubkey, false));
-    accounts.push(AccountMeta::new(*mango_node_bank_pubkey, false));
-    accounts.push(AccountMeta::new(*mango_vault_pubkey, false));
-    accounts.push(AccountMeta::new(*token_account_pubkey, false));
-    accounts.push(AccountMeta::new_readonly(*mango_signer_pubkey, false));
-    accounts.push(AccountMeta::new_readonly(*token_program_id, false));
+    // let mut accounts = Vec::with_capacity(10 + MAX_PAIRS + signer_pubkeys.len());
+    let mut accounts = vec![
+        AccountMeta::new_readonly(*mango_group_pubkey, false),
+        AccountMeta::new(*mango_account_pubkey, false),
+        AccountMeta::new_readonly(*owner_pubkey, false),
+        AccountMeta::new_readonly(*mango_cache_pubkey, false),
+        AccountMeta::new_readonly(*mango_root_bank_pubkey, false),
+        AccountMeta::new(*mango_node_bank_pubkey, false),
+        AccountMeta::new(*mango_vault_pubkey, false),
+        AccountMeta::new(*token_account_pubkey, false),
+        AccountMeta::new_readonly(*mango_signer_pubkey, false),
+        AccountMeta::new_readonly(*token_program_id, false),
+    ];
     // accounts.push(AccountMeta::new_readonly(*clock_sysvar_id, false));
     accounts.extend(
         signer_pubkeys
