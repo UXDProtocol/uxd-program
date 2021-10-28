@@ -1,15 +1,11 @@
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { ControllerUXD } from "./solana-usds-client/controller";
-import { Depository } from "./solana-usds-client/depository";
+import { ControllerUXD, Depository, BTC_DECIMALS } from "@uxdprotocol/solana-usds-client";
 import { BTC, admin } from "./identities";
 import { expect, util } from "chai";
-import { BTC_DECIMALS } from "./solana-usds-client/utils";
 import { TXN_OPTS, provider } from "./provider";
-import { PerpMarket } from "@blockworks-foundation/mango-client";
 
 // Depositories - They represent the business object that tie a mint to a depository
 export let depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS);
-export let controller = new ControllerUXD("devnet");
+export let controller = new ControllerUXD(provider, "devnet");
 
 before("Airdrop and config", async () => {
   // GIVEN

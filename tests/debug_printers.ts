@@ -14,8 +14,7 @@ import {
   ZERO_I80F48,
 } from "@blockworks-foundation/mango-client";
 import { BN } from "@project-serum/anchor";
-import { ControllerUXD } from "./solana-usds-client/controller";
-import { Depository } from "./solana-usds-client/depository";
+import { ControllerUXD, Depository } from "@uxdprotocol/solana-usds-client";
 import { controller } from "./test_integration_admin";
 import { PublicKey } from "@solana/web3.js";
 import { EOL } from "os";

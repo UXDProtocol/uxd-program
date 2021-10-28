@@ -1,13 +1,10 @@
 import { expect } from "chai";
 import { PublicKey } from "@solana/web3.js";
-import { ControllerUXD } from "./solana-usds-client/controller";
+import { ControllerUXD, Depository, findAssocTokenAddressSync } from "@uxdprotocol/solana-usds-client";
 import { user, BTC } from "./identities";
-import { Depository } from "./solana-usds-client/depository";
 import { controller, depositoryBTC } from "./test_integration_admin";
 import { TXN_COMMIT, TXN_OPTS, provider } from "./provider";
-import { findAssocTokenAddressSync } from "./solana-usds-client/utils";
 import { printMangoPDAInfo } from "./debug_printers";
-import { sleep } from "@blockworks-foundation/mango-client";
 
 // User's SPL Accounts
 let userBTCTokenAccount: PublicKey;
@@ -15,6 +12,10 @@ let userUXDTokenAccount: PublicKey;
 
 // TODO add multi users tests, how will the depository behave when managing several users.
 // TODO add should fail tests
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function getBalance(tokenAccount: PublicKey): Promise<number> {
   return provider.connection
@@ -26,7 +27,6 @@ function getBalance(tokenAccount: PublicKey): Promise<number> {
 async function printSystemBalance(depository: Depository) {
   const SYM = depository.collateralSymbol;
   const passthroughPda = ControllerUXD.collateralPassthroughPda(depository.collateralMint);
-  const depositoryPda = ControllerUXD.depositoryPda(depository.collateralMint);
   console.log(`\
         * [controller]
         *     associated ${SYM} passthrough:                 ${await getBalance(passthroughPda)}`);
@@ -55,7 +55,7 @@ before("Configure user accounts", async () => {
 describe("Mint then redeem all", () => {
   afterEach("[General balances info]", async () => {
     // seems we have unreliable result sometimes, idk if I need to update a cache or sleep or what
-    await sleep(3000);
+    await sleep(2500);
     // Get fresh cash and info from mango
     await controller.mango.setupMangoGroup();
     await printUserBalance();
