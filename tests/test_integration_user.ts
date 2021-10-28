@@ -88,7 +88,7 @@ describe("Mint then redeem all", () => {
     console.log(`     > reedeem amount : ${amountUXD}`);
 
     // WHEN
-    await controller.redeemUXD(amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
+    await controller.redeemUXD(provider, amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
 
     // THEN
     _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);

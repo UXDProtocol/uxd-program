@@ -270,10 +270,10 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@uxdprotocol/solana-usds-client@^0.15.0":
-  version "0.15.0"
-  resolved "https://npm.pkg.github.com/download/@uxdprotocol/solana-usds-client/0.15.0/29255f78ebb65417eb7bf2773895814cd92abb4ad65503c917a2cf2bfcd4c8b6#a2610122304898aa1a67d2415835d1c46e75d656"
-  integrity sha512-VQrejsFYaffcJ1FvhWcMjDEDVqNyLu9HjYU6uBoKPERYQn7n90F74/48/0fvH3BJ6NdZM01Ix0u42LTIS4qPLw==
+"@uxdprotocol/solana-usds-client@^0.16.0":
+  version "0.16.0"
+  resolved "https://npm.pkg.github.com/download/@uxdprotocol/solana-usds-client/0.16.0/5ae22a0807920e2333e64b74d7e821c5d9c348247b47bcb42b86366821a576a5#287f6706e8a4368af4113c36b478596149e3e050"
+  integrity sha512-TUqqdeBQFl4RX6PrWakMvVRWfYNhostUsvl9vUR53UgXhP/mqK/yuPMP3MhV21RJWZAor0/V/xIFaUC2FczLKQ==
   dependencies:
     "@blockworks-foundation/mango-client" "^3.2.1"
     "@project-serum/anchor" "^0.17.0"

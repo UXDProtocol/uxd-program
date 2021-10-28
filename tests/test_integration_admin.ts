@@ -7,7 +7,6 @@ import { Program, workspace } from "@project-serum/anchor";
 // Depositories - They represent the business object that tie a mint to a depository
 const controllerProgram = workspace.Controller as Program;
 export let depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS);
-console.log(controllerProgram.programId);
 export let controller = new ControllerUXD(provider, controllerProgram, "devnet");
 
 before("Airdrop and config", async () => {
