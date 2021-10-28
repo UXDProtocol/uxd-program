@@ -181,7 +181,7 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     drop(mango_cache);
     drop(mango_account);
 
-    let depository_signer_seeds: &[&[&[u8]]] = &[&[
+    let depository_signer_seed: &[&[&[u8]]] = &[&[
         DEPOSITORY_SEED,
         collateral_mint_key.as_ref(),
         &[ctx.accounts.depository.bump],
@@ -192,7 +192,7 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     mango_program::place_perp_order(
         ctx.accounts
             .into_close_mango_short_perp_context()
-            .with_signer(depository_signer_seeds),
+            .with_signer(depository_signer_seed),
         order_price,
         order_quantity,
         0,
@@ -250,22 +250,12 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     // msg!("collateral_withdraw_amount {}", collateral_withdraw_amount);
     // msg!("-----");
 
-    let depository_record_bump = Pubkey::find_program_address(
-        &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
-        ctx.program_id,
-    )
-    .1;
-    let depository_signer_seeds: &[&[&[u8]]] = &[&[
-        DEPOSITORY_SEED,
-        collateral_mint_key.as_ref(),
-        &[depository_record_bump],
-    ]];
     // Drop ref cause they are also used in the Mango CPI destination
     drop(mango_account);
     mango_program::withdraw(
         ctx.accounts
             .into_withdraw_collateral_from_mango_context()
-            .with_signer(depository_signer_seeds),
+            .with_signer(depository_signer_seed),
         collateral_withdraw_amount,
         false,
     )?;
@@ -275,16 +265,6 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     // XXX Doing it this way is not updated yet, cannot - this would work if we were doing the ledger change manually
     // let current_passthrough_balance = I80F48::from_num(ctx.accounts.collateral_passthrough.amount);
 
-    let depository_record_bump = Pubkey::find_program_address(
-        &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
-        ctx.program_id,
-    )
-    .1;
-    let depository_signer_seed: &[&[&[u8]]] = &[&[
-        DEPOSITORY_SEED,
-        collateral_mint_key.as_ref(),
-        &[depository_record_bump],
-    ]];
     token::transfer(
         ctx.accounts
             .into_transfer_collateral_to_user_context()
