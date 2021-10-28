@@ -1,12 +1,13 @@
 [provider]
-cluster = "localnet"
-wallet = "~/.config/solana/id.json"
+cluster = "devnet" ## this should also mirror the solana config env
+wallet = "~/.config/solana/uxd.json"
 
 [programs.localnet]
-controller = "2PCPrsHdeZq6CsHyqnu3NVMcWtJGjZE8mWKpF6ipTDT4"
+controller = "7P7EdkNmaxtSJ3Q3imdCfq2ycMKaVaTphcxdx2BxuP24"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [scripts]
 test = "yarn ts-mocha -p ./tsconfig.json -t 100000 tests/test_*.ts"
+ 
