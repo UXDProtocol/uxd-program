@@ -64,8 +64,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - run: npm install
-      - run: npm install @project-serum/anchor -g
+      - run: yarn
+      - run: yarn add @project-serum/anchor -g
       - run: solana-keygen new --no-bip39-passphrase
 # No test and it doesn't work cause of mango-v3 using a nightly build toolchain,
 # I think we want to test building again the standard one 
