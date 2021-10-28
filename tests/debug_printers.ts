@@ -14,15 +14,14 @@ import {
   ZERO_I80F48,
 } from "@blockworks-foundation/mango-client";
 import { BN } from "@project-serum/anchor";
-import { ControllerUXD, Depository } from "@uxdprotocol/solana-usds-client";
 import { controller } from "./test_integration_admin";
 import { PublicKey } from "@solana/web3.js";
 import { EOL } from "os";
-import { provider } from "./provider";
+import { ControllerUXD, Depository } from "@uxdprotocol/solana-usds-client";
 
-export async function printMangoPDAInfo(depository: Depository) {
+export async function printMangoPDAInfo(depository: Depository, controller: ControllerUXD) {
   const mango = controller.mango;
-  const mangoPda = ControllerUXD.mangoPda(depository.collateralMint);
+  const mangoPda = controller.mangoPda(depository.collateralMint);
   const groupConfig = mango.groupConfig;
   const mangoGroup = mango.group;
   const cache = await mango.group.loadCache(mango.client.connection);
@@ -81,14 +80,12 @@ export async function printMangoPDAInfo(depository: Depository) {
       if (mangoGroup.perpMarkets[i].perpMarket.equals(zeroKey)) {
         continue;
       }
-      const market = getMarketByPublicKey(groupConfig, mangoGroup.perpMarkets[i].perpMarket) as PerpMarketConfig;
-
+      // const market = getMarketByPublicKey(groupConfig, mangoGroup.perpMarkets[i].perpMarket) as PerpMarketConfig;
       const perpAccount = mangoAccount.perpAccounts[i];
       const perpMarketInfo = mangoGroup.perpMarkets[i];
       lines.push(
-        `PERP - ${market.name}:   [Base Pos: ${getBasePositionUiWithGroup(mangoAccount, i, mangoGroup).toFixed(
-          6
-        )}] / [Quote Pos: ${(
+        //${market.name}: fail sometimes ...
+        `PERP -   [Base Pos: ${getBasePositionUiWithGroup(mangoAccount, i, mangoGroup).toFixed(6)}] / [Quote Pos: ${(
           perpAccount.getQuotePosition(cache.perpMarketCache[i]).toNumber() / quoteAdj.toNumber()
         ).toFixed(4)}] / [Unsettled Funding: ${(
           perpAccount.getUnsettledFunding(cache.perpMarketCache[i]).toNumber() / quoteAdj.toNumber()
@@ -105,7 +102,7 @@ export async function printMangoPDAInfo(depository: Depository) {
       );
     }
     console.log(`        * [Depository ${depository.collateralSymbol} Mango Account informations]`);
-    console.log(lines.map((line, index) => `        *       ${line.replace(":", ":  ")}`).join(EOL));
+    console.log(lines.map((line, _index) => `        *       ${line.replace(":", ":  ")}`).join(EOL));
   }
 }
 

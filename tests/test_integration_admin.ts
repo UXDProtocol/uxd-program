@@ -2,10 +2,13 @@ import { ControllerUXD, Depository, BTC_DECIMALS } from "@uxdprotocol/solana-usd
 import { BTC, admin } from "./identities";
 import { expect, util } from "chai";
 import { TXN_OPTS, provider } from "./provider";
+import { Program, workspace } from "@project-serum/anchor";
 
 // Depositories - They represent the business object that tie a mint to a depository
+const controllerProgram = workspace.Controller as Program;
 export let depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS);
-export let controller = new ControllerUXD(provider, "devnet");
+console.log(controllerProgram.programId);
+export let controller = new ControllerUXD(provider, controllerProgram, "devnet");
 
 before("Airdrop and config", async () => {
   // GIVEN
@@ -30,7 +33,7 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
     // GIVEN
 
     // WHEN - solana 1.8 and anchor 1.8 we can handle that program side, but not sure that's desirable? maybe less explicit
-    if (await provider.connection.getAccountInfo(ControllerUXD.statePda)) {
+    if (await provider.connection.getAccountInfo(controller.statePda)) {
       console.log("already initialized.");
     } else {
       await controller.initialize(admin, TXN_OPTS);
@@ -44,9 +47,7 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
     // GIVEN
 
     // WHEN
-    if (
-      await provider.connection.getAccountInfo(ControllerUXD.collateralPassthroughPda(depositoryBTC.collateralMint))
-    ) {
+    if (await provider.connection.getAccountInfo(controller.collateralPassthroughPda(depositoryBTC.collateralMint))) {
       console.log("already registered.");
     } else {
       await controller.register(depositoryBTC, admin, TXN_OPTS);

@@ -190,11 +190,6 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     // msg!("price (after slippage calculation): {}", price);
 
     // Exposure delta calculation
-    let deposited_value = collateral_amount
-        .checked_div(base_unit)
-        .unwrap()
-        .checked_mul(perp_value)
-        .unwrap();
     let exposure_delta = collateral_amount.checked_mul(perp_value).unwrap();
     // msg!("collateral_deposited_value: {}", deposited_value); // Is this valus good with decimals? To check
     // msg!("exposure_delta: {}", exposure_delta);

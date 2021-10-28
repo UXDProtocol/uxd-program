@@ -26,7 +26,7 @@ function getBalance(tokenAccount: PublicKey): Promise<number> {
 
 async function printSystemBalance(depository: Depository) {
   const SYM = depository.collateralSymbol;
-  const passthroughPda = ControllerUXD.collateralPassthroughPda(depository.collateralMint);
+  const passthroughPda = controller.collateralPassthroughPda(depository.collateralMint);
   console.log(`\
         * [controller]
         *     associated ${SYM} passthrough:                 ${await getBalance(passthroughPda)}`);
@@ -42,11 +42,11 @@ async function printUserBalance() {
 before("Configure user accounts", async () => {
   // Find every user adresses
   userBTCTokenAccount = findAssocTokenAddressSync(user, BTC)[0];
-  userUXDTokenAccount = findAssocTokenAddressSync(user, ControllerUXD.mintPda)[0];
+  userUXDTokenAccount = findAssocTokenAddressSync(user, controller.mintPda)[0];
 
   console.log(`\
     * BTC mint:                           ${BTC.toString()}
-    * UXD mint:                           ${ControllerUXD.mintPda.toString()}
+    * UXD mint:                           ${controller.mintPda.toString()}
     * ---- 
     * user's BTC tokenAcc                 ${userBTCTokenAccount.toString()}
     * user's UXD tokenAcc                 ${userUXDTokenAccount.toString()} (uninit)`);
@@ -60,24 +60,23 @@ describe("Mint then redeem all", () => {
     await controller.mango.setupMangoGroup();
     await printUserBalance();
     await printSystemBalance(depositoryBTC);
-    await printMangoPDAInfo(depositoryBTC);
+    await printMangoPDAInfo(depositoryBTC, controller);
     console.log("\n\n\n");
   });
 
   it("Initial balances", async () => {
-    /* noop - prints after each */
+    /* no-op - prints after each */
   });
 
-  // it("Mint UXD worth 0.001 BTC with 1% max slippage", async () => {
-  //   // GIVEN
-  //   const collateralAmount = 0.001;
-  //   const slippage = 10; // <=> 1%
-  //   // WHEN
-  //   await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
+  it("Mint UXD worth 0.001 BTC with 1% max slippage", async () => {
+    // GIVEN
+    const collateralAmount = 0.001;
+    const slippage = 10; // <=> 1%
+    // WHEN
+    await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
 
-  //   // Then
-  //   // const userUXDBalance = await getBalance(userUXDTokenAccount);
-  // });
+    // Then
+  });
 
   it("Redeem all remaining UXD", async () => {
     // GIVEN
