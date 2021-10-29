@@ -1,12 +1,14 @@
-import { ControllerUXD, Depository, BTC_DECIMALS } from "@uxdprotocol/solana-usds-client";
-import { BTC, admin } from "./identities";
+import { ControllerUXD, Depository, BTC_DECIMALS, SOL_DECIMALS } from "@uxdprotocol/solana-usds-client";
+import { BTC, admin, WSOL } from "./identities";
 import { expect, util } from "chai";
 import { TXN_OPTS, provider } from "./provider";
 import { Program, workspace } from "@project-serum/anchor";
 
-// Depositories - They represent the business object that tie a mint to a depository
 const controllerProgram = workspace.Controller as Program;
+
+// Depositories - They represent the business object that tie a mint to a depository
 export let depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS);
+export let depositoryWSOL = new Depository(WSOL, "WSOL", SOL_DECIMALS);
 export let controller = new ControllerUXD(provider, controllerProgram, "devnet");
 
 before("Airdrop and config", async () => {
@@ -51,5 +53,18 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
     } else {
       await controller.register(depositoryBTC, admin, TXN_OPTS);
     }
+    depositoryBTC.info(controller);
+  });
+
+  it("Register WSOL Depository with Controller", async () => {
+    // GIVEN
+
+    // WHEN
+    if (await provider.connection.getAccountInfo(controller.collateralPassthroughPda(depositoryWSOL.collateralMint))) {
+      console.log("already registered.");
+    } else {
+      await controller.register(depositoryWSOL, admin, TXN_OPTS);
+    }
+    depositoryWSOL.info(controller);
   });
 });
