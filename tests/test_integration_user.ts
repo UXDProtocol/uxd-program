@@ -1,13 +1,14 @@
 import { expect } from "chai";
 import { PublicKey } from "@solana/web3.js";
 import { ControllerUXD, Depository, findAssocTokenAddressSync } from "@uxdprotocol/solana-usds-client";
-import { user, BTC } from "./identities";
-import { controller, depositoryBTC } from "./test_integration_admin";
+import { user, BTC, WSOL } from "./identities";
+import { controller, depositoryBTC, depositoryWSOL } from "./test_integration_admin";
 import { TXN_COMMIT, TXN_OPTS, provider } from "./provider";
 import { printMangoPDAInfo } from "./debug_printers";
 
 // User's SPL Accounts
 let userBTCTokenAccount: PublicKey;
+let userWSOLTokenAccount: PublicKey;
 let userUXDTokenAccount: PublicKey;
 
 // TODO add multi users tests, how will the depository behave when managing several users.
@@ -36,26 +37,30 @@ async function printUserBalance() {
   console.log(`\
         * [user]:
         *     BTC:                                        ${await getBalance(userBTCTokenAccount)}
+        *     WSOL:                                       ${await getBalance(userWSOLTokenAccount)}
         *     UXD:                                        ${await getBalance(userUXDTokenAccount)}`);
 }
 
 before("Configure user accounts", async () => {
   // Find every user adresses
   userBTCTokenAccount = findAssocTokenAddressSync(user, BTC)[0];
+  userWSOLTokenAccount = findAssocTokenAddressSync(user, WSOL)[0];
   userUXDTokenAccount = findAssocTokenAddressSync(user, controller.mintPda)[0];
 
   console.log(`\
     * BTC mint:                           ${BTC.toString()}
+    * WSOL mint:                          ${WSOL.toString()}
     * UXD mint:                           ${controller.mintPda.toString()}
     * ---- 
     * user's BTC tokenAcc                 ${userBTCTokenAccount.toString()}
-    * user's UXD tokenAcc                 ${userUXDTokenAccount.toString()} (uninit)`);
+    * user's WSOL tokenAcc                ${userWSOLTokenAccount.toString()}
+    * user's UXD tokenAcc                 ${userUXDTokenAccount.toString()}`);
 });
 
-describe("Mint then redeem all", () => {
+describe("Mint then redeem all BTC", () => {
   afterEach("[General balances info]", async () => {
     // seems we have unreliable result sometimes, idk if I need to update a cache or sleep or what
-    await sleep(2500);
+    await sleep(3000);
     // Get fresh cash and info from mango
     await controller.mango.setupMangoGroup();
     await printUserBalance();
@@ -68,10 +73,10 @@ describe("Mint then redeem all", () => {
     /* no-op - prints after each */
   });
 
-  it("Mint UXD worth 0.001 BTC with 1% max slippage", async () => {
+  it("Mint UXD worth 0.01 BTC with 1% max slippage", async () => {
     // GIVEN
-    const collateralAmount = 0.001;
-    const slippage = 10; // <=> 1%
+    const collateralAmount = 0.01;
+    const slippage = 70; // <=> 7%
     // WHEN
     await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
 
@@ -82,7 +87,7 @@ describe("Mint then redeem all", () => {
     // GIVEN
     let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
     const amountUXD = _userUXDTokenAccountBalance;
-    const slippage = 10; // <=> 1%
+    const slippage = 70; // <=> 7%
     const _expectedUserUXDBalance = 0;
 
     console.log(`     > reedeem amount : ${amountUXD}`);
@@ -94,6 +99,50 @@ describe("Mint then redeem all", () => {
     _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
     expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
   });
+});
+
+describe("Mint then redeem all WSOL", () => {
+  afterEach("[General balances info]", async () => {
+    // seems we have unreliable result sometimes, idk if I need to update a cache or sleep or what
+    await sleep(3000);
+    // Get fresh cash and info from mango
+    await controller.mango.setupMangoGroup();
+    await printUserBalance();
+    await printSystemBalance(depositoryWSOL);
+    await printMangoPDAInfo(depositoryWSOL, controller);
+    console.log("\n\n\n");
+  });
+
+  it("Initial balances", async () => {
+    /* no-op - prints after each */
+  });
+
+  // it("Mint UXD worth 1 WSOL with 1% max slippage", async () => {
+  //   // GIVEN
+  //   const collateralAmount = 1;
+  //   const slippage = 70; // <=> 77%
+  //   // WHEN
+  //   await controller.mintUXD(provider, collateralAmount, slippage, depositoryWSOL, user, TXN_OPTS);
+
+  //   // Then
+  // });
+
+  // it("Redeem all remaining UXD", async () => {
+  //   // GIVEN
+  //   let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+  //   const amountUXD = _userUXDTokenAccountBalance;
+  //   const slippage = 70; // <=> 7%
+  //   const _expectedUserUXDBalance = 0;
+
+  //   console.log(`     > reedeem amount : ${amountUXD}`);
+
+  //   // WHEN
+  //   await controller.redeemUXD(provider, amountUXD, slippage, depositoryWSOL, user, TXN_OPTS);
+
+  //   // THEN
+  //   _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+  //   expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
+  // });
 });
 
 // describe("Mint then redeem, a bit, then redeem all", () => {

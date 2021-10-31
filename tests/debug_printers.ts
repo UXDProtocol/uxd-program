@@ -76,7 +76,7 @@ export async function printMangoPDAInfo(depository: Depository, controller: Cont
         .toFixed(4)}] / [Quote In Orders: ${quoteInOrders.toNumber().toFixed(4)}]`
     );
 
-    for (let i = 0; i < 2 /*mangoAccount.perpAccounts.length*/; i++) {
+    for (let i = 0; i < mangoAccount.perpAccounts.length; i++) {
       if (mangoGroup.perpMarkets[i].perpMarket.equals(zeroKey)) {
         continue;
       }

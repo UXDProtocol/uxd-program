@@ -139,7 +139,7 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     )?;
 
     // msg!("controller: mint uxd [calculation for perp position opening]");
-    let collateral_amount = I80F48::from_num(collateral_amount);
+    let collateral_amount_native_unit = I80F48::from_num(collateral_amount);
 
     let mango_account = MangoAccount::load_checked(
         &ctx.accounts.mango_account,
@@ -166,61 +166,53 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     let quote_unit = I80F48::from_num(10u64.pow(quote_decimals.into()));
     let quote_lot_size =
         I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
-    // msg!(
-    //     "base decimals: {} - base unit: {} - base lot size: {}",
-    //     base_decimals,
-    //     base_unit,
-    //     base_lot_size
-    // );
-    // msg!(
-    //     "quote decimals: {} - quote unit: {} - quote lot size: {}",
-    //     quote_decimals,
-    //     quote_unit,
-    //     quote_lot_size
-    // );
+    msg!("-----");
+    msg!("base_unit {}", base_unit);
+    msg!("base_lot_size {}", base_lot_size);
+    msg!("quote_unit {}", quote_unit);
+    msg!("quote_lot_size {}", quote_lot_size);
+    msg!("-----");
 
     // Slippage calulation
-    let perp_value = mango_cache.price_cache[perp_market_index].price;
+    // price: I80F48 - native quote per native base - THIS IS IMPORTANT - Equivalent to price per lamport for sol, or price per satoshi
+    let price = mango_cache.price_cache[perp_market_index].price;
     let slippage = I80F48::from_num(slippage);
     let slippage_basis = I80F48::from_num(SLIPPAGE_BASIS);
     let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
-    let slippage_amount = perp_value.checked_mul(slippage_ratio).unwrap();
-    let price = perp_value.checked_sub(slippage_amount).unwrap();
-    // msg!("collateral_perp_value: {}", perp_value);
-    // msg!("price (after slippage calculation): {}", price);
+    let slippage_amount = price.checked_mul(slippage_ratio).unwrap();
+    let price_adjusted = price.checked_sub(slippage_amount).unwrap();
+    msg!("price (native quote per native base): {}", price);
+    msg!("price_adjusted (after slippage calculation): {}", price_adjusted); // This is the UI price, in UI amount
+    
+    // 0.191875 * 1000000 / 100 <====> perp_price * quote_unit / quote_lot_size == base_lot_native_unit
 
-    // Exposure delta calculation
-    let exposure_delta = collateral_amount.checked_mul(perp_value).unwrap();
-    // msg!("collateral_deposited_value: {}", deposited_value); // Is this valus good with decimals? To check
-    // msg!("exposure_delta: {}", exposure_delta);
+    // == 1918.75 USDC native units  <=> 0.001919 usdc par SOL lot
+    // 1 sol lot == 10000000 lamports
 
-    let exposure_delta_qlu = exposure_delta.checked_div(quote_lot_size).unwrap();
-    // msg!(
-    //     "exposure_delta_qlu (in quote lot unit): {}",
-    //     exposure_delta_qlu
-    // );
+    // This is the price of one base lot in quote native units
+    let base_lot_price_in_quote_lot_unit = price_adjusted 
+        .checked_mul(quote_unit).unwrap() // to quote native amount
+        .checked_div(base_unit).unwrap() // price for 1 decimal unit (1 satoshi for btc for instance)
+        .checked_mul(base_lot_size).unwrap() // price for a lot (100 sat for btc for instance)
+        .checked_div(quote_lot_size).unwrap(); // price for a lot in quote_lot_unit
+    // let base_lot_price_in_quote_native_units = price_adjusted // price for one native unit of BASE in native units of QUOTE
+    //     .checked_mul(base_lot_size).unwrap(); // multiply by the number of native units of BASE in a lot
+    // let base_lot_price_in_quote_lot_unit = base_lot_price_in_quote_native_units.checked_mul(quote_lot_size).unwrap();
+    msg!("base_lot_price_in_quote_native_units: {}", base_lot_price_in_quote_lot_unit);
 
-    // price in quote lot unit
-    let order_price_qlu = price
-        .checked_mul(quote_unit)
-        .unwrap()
-        .checked_mul(base_lot_size)
-        .unwrap()
-        .checked_div(quote_lot_size)
-        .unwrap()
-        .checked_div(base_unit)
-        .unwrap();
-    // msg!("price_qlu (in quote lot unit): {}", order_price_qlu);
-
-    // Execution quantity
-    let order_quantity_blu = exposure_delta_qlu
-        .checked_div(order_price_qlu)
-        .unwrap();
-    // msg!("exec_qty_blu (base lot unit): {}", order_quantity_blu);
+    //XXX assuming USDC and UXD have same decimals, need to fix
+    let quantity_base_lot = collateral_amount_native_unit.checked_div(base_lot_size).unwrap();
+    msg!("quantity_base_lot: {}", quantity_base_lot);
 
     // We now calculate the amount pre perp opening, in order to define after if it got 100% filled or not
     let pre_position = {
-        let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
+        let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];    
+        msg!("-----");
+        msg!("base_position {}", perp_account.base_position);
+        msg!("quote_position {}", perp_account.quote_position);
+        msg!("taker_base {}", perp_account.taker_base);
+        msg!("taker_quote {}", perp_account.taker_quote);
+        msg!("-----");
         perp_account.base_position + perp_account.taker_base
     };
 
@@ -240,8 +232,10 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
         &[depository_record_bump],
     ]];
     // Call Mango CPI
-    let order_price = order_price_qlu.to_num::<i64>();
-    let order_quantity = order_quantity_blu.to_num::<i64>();
+    let order_price = base_lot_price_in_quote_lot_unit.to_num::<i64>();
+    let order_quantity = quantity_base_lot.to_num::<i64>();
+    msg!("order_price {}", order_price);
+    msg!("order_quantity {}", order_quantity);
     mango_program::place_perp_order(
         ctx.accounts
             .into_open_mango_short_perp_context()
@@ -263,14 +257,23 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
     let post_position = perp_account.base_position + perp_account.taker_base;
     let filled = (post_position - pre_position).abs();
+    msg!("-----");
+    msg!("base_position {}", perp_account.base_position);
+    msg!("quote_position {}", perp_account.quote_position);
+    msg!("taker_base {}", perp_account.taker_base);
+    msg!("taker_quote {}", perp_account.taker_quote);
+    msg!("-----");
+    msg!("post_position {}", post_position);
     if !(order_quantity == filled) {
         return Err(ControllerError::PerpPartiallyFilled.into());
     }
 
     // real execution price (minus the fees)
-    let quote = I80F48::from_num(perp_account.taker_quote).checked_mul(quote_lot_size).unwrap();
-    let fees = quote.abs() * taker_fee;
-    let uxd_amount = quote - fees;// worth exec price ==> collateral_amount.checked_mul(price).unwrap();
+    let order_price_native_unit = I80F48::from_num(perp_account.taker_quote).checked_mul(quote_lot_size).unwrap();
+    let fees = order_price_native_unit.abs() * taker_fee;
+    // XXX here it's considering UXD and USDC have same decimals -- FIX LATER
+    let uxd_amount = order_price_native_unit - fees;
+    msg!("uxd_amount {}", uxd_amount);
     let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
     token::mint_to(
         ctx.accounts

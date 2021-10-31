@@ -8,10 +8,10 @@ const controllerProgram = workspace.Controller as Program;
 
 // Depositories - They represent the business object that tie a mint to a depository
 export let depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS);
-export let depositoryWSOL = new Depository(WSOL, "WSOL", SOL_DECIMALS);
+export let depositoryWSOL = new Depository(WSOL, "SOL", SOL_DECIMALS);
 export let controller = new ControllerUXD(provider, controllerProgram, "devnet");
 
-before("Airdrop and config", async () => {
+before("Initial configuration", async () => {
   // GIVEN
   await controller.mango.setupMangoGroup(); // Async fetch of mango group
 

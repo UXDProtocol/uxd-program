@@ -80,9 +80,6 @@ pub struct RedeemUxd<'info> {
 }
 
 pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> ProgramResult {
-    // - First burn the uxd they'r giving up
-    token::burn(ctx.accounts.into_burn_uxd_context(), uxd_amount)?;
-
     // get current passthrough balance before withdrawing from mango
     // in theory this should always be zero but better safe
     // XXX cannot be updated and read through this program, only if we would be doing ledger operations.
@@ -115,65 +112,128 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     let quote_unit = I80F48::from_num(10u64.pow(quote_decimals.into()));
     let quote_lot_size =
         I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
-    // msg!("-----");
-    // msg!("base_unit {}", base_unit);
-    // msg!("base_lot_size {}", base_lot_size);
-    // msg!("quote_unit {}", quote_unit);
-    // msg!("quote_lot_size {}", quote_lot_size);
-    // msg!("-----");
+    msg!("-----");
+    msg!("base_unit {}", base_unit);
+    msg!("base_lot_size {}", base_lot_size);
+    msg!("quote_unit {}", quote_unit);
+    msg!("quote_lot_size {}", quote_lot_size);
+    msg!("-----");
+
+    // About Mango (Serum) lots, tokens decimals and how to do the conversions
+    //
+    // The base is a left part of our PERP, here BTC
+    // The quote is the asset it trade against, here USDC
+    // Lot_size is an arbitrary minimum amount of base asset native units for trades
+    // Base asset native unit his it's smallest split, like a satoshi for BTC
+    //
+    // Let's make an example with BTC:
+    //
+    // BTC has 8 decimals
+    // so 1BTC == to 100_000_000 BTC native units (satoshis)
+    //
+    // Mango base lot size for BTC is 100 (arbitrary, probably from Serum)
+    // That means that mango smallest amount for trades in BTC is 10 satoshis (0.00_000_1)
+    //
+    // If you want to trade BTC with mango, you need to think in lot size,
+    //  hence take your native units, and divide them by base_lot_size for that perp
+    //
+    // I want to place a perp order long for 0.05 BTC :
+    //
+    // BTC should be called base below for genericity, but here we will use base and btc intechangably for clarity
+    //
+    // First we calculate the quantity, that will be in [Base Lot] - BASE IS BTC
+    //  - base_unit ==                  10 ** base_decimals         -> 100_000_000 (although it's 6 on solana iirc, for for the sake of this example doesn't matter)
+    //  - btc_amount ==                 0.05_000_000
+    //  - btc_amount_native_unit ==     btc_amount * base_unit      -> 5_000_000
+    //  - btc_amount_base_lot_unit ==   5_000_000 / base_lot_size   -> 5000
+    //
+    // Then we calculate the price, that will be in [Quote Lot]  - QUOTE IS USDC
+    //    * lots and decimals can vary from on asset to another *
+    //  Get it from mango,
+    //  - perp_quote_price ==           mango_cache.price_cache[perp_market_index].price;
+    //
+    // Now can call `place_perp_order(quantity: btc_amount_base_lot_unit, price: perp_quote_price);`
+    //
+    // Let's say the order is filled 100%, then you bought
+    //
+    // quantity_bought_in_btc_base_unit ==  btc_amount_base_lot_unit * base_lot_size
+    // quantity_bought_in_btc_ui ==         quantity_bought_in_btc_base_unit / base_unit
+    //
+    //// XXX this part stil sketchy here need to refine
+    // If you want to know how much you paid in quote native unit (USDC for our example), or you wanna do conversions to buy Xusd amount of BTC (reorg the steps) :
+    //
+    //  - quote_unit ==                         10 ** quote_decimals                                                -> 1_000_000 for USDC (6 decimals on solana)
+    //  - quote_lot_size ==                     100                                                                 -> arbitrary from Mango (or Serum). Minimum amount you can trade
+    //  - total_paid_in_quote_native_unit ==    (btc_amount_native_unit / base_unit) * btc_amount_base_lot_unit     -> (5_000_000 * 5000) == 25_000_000_000
+
+    //  - btc_price_quote_native_unit ==        60_000_000_000                                                      <=> (60k usdc, but time the decimals)
+    //  - btc_price_quote_lot_unit ==           btc_price_quote_native_unit / (quote_unit / quote_lot_size)         -> 60_000_000_000 / (1_000_000 / 100) == 6_000_000          <=> the price for a full BTC in qlu
+    //
 
     // Slippage calulation
-    let perp_value = mango_cache.price_cache[perp_market_index].price;
+    let price = mango_cache.price_cache[perp_market_index].price;
     let slippage = I80F48::from_num(slippage);
     let slippage_basis = I80F48::from_num(SLIPPAGE_BASIS);
     let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
-    let slippage_amount = perp_value.checked_mul(slippage_ratio).unwrap();
-    let price = perp_value.checked_add(slippage_amount).unwrap();
-    // msg!("perp_value: {}", perp_value);
-    // msg!("price (after slippage calculation): {}", price);
+    let slippage_amount = price.checked_mul(slippage_ratio).unwrap();
+    let price_adjusted = price.checked_add(slippage_amount).unwrap();
+    msg!("price (native quote per native base): {}", price);
+    msg!(
+        "price_adjusted (after slippage calculation): {}",
+        price_adjusted
+    ); // This is the UI price, in UI amount
 
-    // Exposure delta calculation
-    let uxd_amount = I80F48::from_num(uxd_amount);
-    let exposure_delta = uxd_amount;
-    // msg!("exposure_delta (in native quote unit): {}", exposure_delta);
-
-    let exposure_delta_qlu = exposure_delta.checked_div(quote_lot_size).unwrap();
-    // msg!(
-    //     "exposure_delta_qlu (in quote lot unit): {}",
-    //     exposure_delta_qlu
-    // );
-
-    // price in quote lot unit
-    let order_price_qlu = price
+    // This is the price of one base lot in quote native units
+    let base_lot_price_in_quote_lot_unit = price_adjusted
         .checked_mul(quote_unit)
-        .unwrap()
-        .checked_mul(base_lot_size)
-        .unwrap()
-        .checked_div(quote_lot_size)
-        .unwrap()
+        .unwrap() // to quote native amount
         .checked_div(base_unit)
-        .unwrap();
-    // msg!("order_price_qlu (in quote lot unit): {}", order_price_qlu);
+        .unwrap() // price for 1 decimal unit (1 satoshi for btc for instance)
+        .checked_mul(base_lot_size)
+        .unwrap() // price for a lot (100 sat for btc for instance)
+        .checked_div(quote_lot_size)
+        .unwrap(); // price for a lot in quote_lot_unit
+    msg!(
+        "price_base_lot_in_quote_lot: {}",
+        base_lot_price_in_quote_lot_unit
+    );
 
-    // Execution quantity
-    let order_quantity_blu = exposure_delta_qlu.checked_div(order_price_qlu).unwrap();
+    let uxd_amount_native_unit = I80F48::from_num(uxd_amount);
+    // XXX considering UXD and USDC same decimals, fix later
+    let exposure_delta_quote_lot_unit = uxd_amount_native_unit.checked_div(quote_lot_size).unwrap();
+    msg!("uxd_amount_native_unit: {}", uxd_amount_native_unit);
+    msg!(
+        "exposure_delta_quote_lot_unit: {}",
+        exposure_delta_quote_lot_unit
+    );
+    // let collateral_native_amount = uxd_amount_native_unit
+    //     .checked_div(price_adjusted).unwrap() // back to base ui amount
+    //     .checked_mul(base_unit).unwrap() // back to base native amount
+    //     ;
     // msg!(
-    //     "order_quantity_blu (short perp quantity to close, in base lot unit): {}",
-    //     order_quantity_blu
+    //     "collateral_native_amount equivalent: {}",
+    //     collateral_native_amount
     // );
+    let quantity_base_lot_unit = exposure_delta_quote_lot_unit
+        .checked_div(base_lot_price_in_quote_lot_unit)
+        .unwrap();
+    msg!(
+        "================= quantity_base_lot_unit: {}",
+        quantity_base_lot_unit
+    );
 
     // We now calculate the amount pre perp closing, in order to define after if it got 100% filled or not
     let pre_position = {
         let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
-        // msg!("-----");
-        // msg!("base_position {}", perp_account.base_position);
-        // msg!("quote_position {}", perp_account.quote_position);
-        // msg!("taker_base {}", perp_account.taker_base);
-        // msg!("taker_quote {}", perp_account.taker_quote);
-        // msg!("-----");
+        msg!("-----");
+        msg!("base_position {}", perp_account.base_position);
+        msg!("quote_position {}", perp_account.quote_position);
+        msg!("taker_base {}", perp_account.taker_base);
+        msg!("taker_quote {}", perp_account.taker_quote);
+        msg!("-----");
         perp_account.base_position + perp_account.taker_base
     };
-    // msg!("pre_position {}", pre_position);
+
     // Drop ref cause they are also used in the Mango CPI destination
     drop(mango_group);
     drop(mango_cache);
@@ -185,8 +245,10 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         &[ctx.accounts.depository.bump],
     ]];
     // Call Mango CPI to place the order that closes short position
-    let order_price = order_price_qlu.to_num::<i64>();
-    let order_quantity = order_quantity_blu.to_num::<i64>();
+    let order_price = base_lot_price_in_quote_lot_unit.to_num::<i64>();
+    let order_quantity = quantity_base_lot_unit.to_num::<i64>();
+    msg!("order_price {}", order_price);
+    msg!("order_quantity {}", order_quantity);
     mango_program::place_perp_order(
         ctx.accounts
             .into_close_mango_short_perp_context()
@@ -199,9 +261,6 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         true,
     )?;
 
-    // Seems we need to settle that order in order to know the real filled quantity? :/
-    // -> https://github.com/UXDProtocol/solana-usds/issues/33
-
     // msg!("verify that the order got 100% filled");
     let mango_account = MangoAccount::load_checked(
         &ctx.accounts.mango_account,
@@ -210,41 +269,64 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     )?;
     let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
 
-    // msg!("-----");
+    msg!("-----");
     let post_position = perp_account.base_position + perp_account.taker_base;
     // msg!("base_position {}", perp_account.base_position);
     // msg!("quote_position {}", perp_account.quote_position);
-    // msg!("taker_base {}", perp_account.taker_base);
+    msg!("taker_base {}", perp_account.taker_base);
     // msg!("taker_quote {}", perp_account.taker_quote);
-    // msg!("-----");
-    // msg!("pre_position {}", pre_position);
-    // msg!("post_position {}", post_position);
-    // msg!("-----");
+    msg!("-----");
+    msg!("post_position {}", post_position);
     let filled = (post_position - pre_position).abs();
-    // msg!("filled {}", filled);
-    // msg!("order quantity {} =?= filled {}", order_quantity, filled);
-    // msg!("-----");
     if !(order_quantity == filled) {
         return Err(ControllerError::PerpPartiallyFilled.into());
     }
 
+    // THIS IS THE REAL AMOUNT OF UXD we should burn.
+    // XXX SHOULD MAKE THE decimal conversions from USDC/UXD to be safe
+    let order_amount_quote_native_unit = I80F48::from_num(perp_account.taker_quote.abs());
+    msg!("UXD burn amount {}", order_amount_quote_native_unit);
+    // - Burn the uxd they'r giving up
+    token::burn(
+        ctx.accounts.into_burn_uxd_context(),
+        order_amount_quote_native_unit.to_num(),
+    )?;
+
+    // XXX can reuse stuff from before probably to save computing
     // - Call mango CPI to withdraw collateral
-    // msg!("-----");
-    let quote = I80F48::from_num(perp_account.taker_quote)
-        .checked_mul(quote_lot_size)
+    // XXXlike price * 0.98 == price minus fees
+    let fees = I80F48::ONE
+        .checked_sub(taker_fee.checked_div(I80F48::ONE).unwrap())
+        .unwrap();
+    let base_amount_to_withdraw_native_unit = I80F48::from_num(perp_account.taker_base.abs())
+        .checked_mul(base_lot_size)
         .unwrap()
-        .abs();
-    let fees = quote.checked_mul(taker_fee).unwrap();
-    // msg!("quote {}", quote);
+        .checked_mul(price_adjusted)
+        .unwrap()
+        // MINUS FEES
+        .checked_mul(fees)
+        .unwrap()
+        .to_num::<u64>();
+    msg!(
+        "base_amount_to_withdraw_native_unit {}",
+        base_amount_to_withdraw_native_unit
+    );
+    // let fees = order_amount_quote_native_unit
+    //     .checked_mul(taker_fee)
+    //     .unwrap();
+    // msg!("amount to withdraw {}", order_amount_quote_native_unit);
     // msg!("fees {}", fees);
 
-    // In USDC
-    let quote_withdraw_amount = quote - fees;
-    let collateral_withdraw_amount = quote_withdraw_amount
-        .checked_div(perp_value)
-        .unwrap()
-        .to_num();
-    // msg!("quote_withdraw_amount {}", quote_withdraw_amount);
+    // // In USDC
+    // let withdraw_amount_quote_native_unit = order_amount_quote_native_unit - fees;
+    // msg!(
+    //     "withdraw_amount_quote_native_unit (after fees) {}",
+    //     withdraw_amount_quote_native_unit
+    // );
+    // let withdraw_amount_in_collateral_native_unit = withdraw_amount_quote_native_unit
+    //     .checked_div(price_adjusted)
+    //     .unwrap()
+    //     .to_num();
     // msg!("collateral_withdraw_amount {}", collateral_withdraw_amount);
     // msg!("-----");
 
@@ -254,7 +336,7 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         ctx.accounts
             .into_withdraw_collateral_from_mango_context()
             .with_signer(depository_signer_seed),
-        collateral_withdraw_amount,
+        base_amount_to_withdraw_native_unit,
         false,
     )?;
 
@@ -267,7 +349,7 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         ctx.accounts
             .into_transfer_collateral_to_user_context()
             .with_signer(depository_signer_seed),
-        collateral_withdraw_amount,
+        base_amount_to_withdraw_native_unit,
     )?;
 
     Ok(())
