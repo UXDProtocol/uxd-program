@@ -73,32 +73,31 @@ describe("Mint then redeem all BTC", () => {
     /* no-op - prints after each */
   });
 
-  it("Mint UXD worth 0.01 BTC with 1% max slippage", async () => {
-    // GIVEN
-    const collateralAmount = 0.01;
-    const slippage = 70; // <=> 7%
-    // WHEN
-    await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
+  // it("Mint UXD worth 0.01 BTC with 5% max slippage", async () => {
+  //   // GIVEN
+  //   const collateralAmount = 0.01;
+  //   const slippage = 50; // <=> 5%
+  //   // WHEN
+  //   await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
 
-    // Then
-  });
+  //   // Then
+  // });
 
-  it("Redeem all remaining UXD", async () => {
-    // GIVEN
-    let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-    const amountUXD = _userUXDTokenAccountBalance;
-    const slippage = 70; // <=> 7%
-    const _expectedUserUXDBalance = 0;
+  // it("Redeem all remaining UXD with 5% max slippage", async () => {
+  //   // GIVEN
+  //   let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+  //   const amountUXD = _userUXDTokenAccountBalance;
+  //   const slippage = 50; // <=> 5%
+  //   // const _expectedUserUXDBalance = 0;
 
-    console.log(`     > reedeem amount : ${amountUXD}`);
+  //   console.log(`     > reedeem amount : ${amountUXD}`);
+  //   // WHEN
+  //   await controller.redeemUXD(provider, amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
 
-    // WHEN
-    await controller.redeemUXD(provider, amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
-
-    // THEN
-    _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-    expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
-  });
+  //   // THEN
+  //   // _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+  //   // expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
+  // });
 });
 
 describe("Mint then redeem all WSOL", () => {
@@ -117,32 +116,32 @@ describe("Mint then redeem all WSOL", () => {
     /* no-op - prints after each */
   });
 
-  // it("Mint UXD worth 1 WSOL with 1% max slippage", async () => {
+  // it("Mint UXD worth 1 WSOL with 10% max slippage", async () => {
   //   // GIVEN
   //   const collateralAmount = 1;
-  //   const slippage = 70; // <=> 77%
+  //   const slippage = 100; // <=> 10%
   //   // WHEN
   //   await controller.mintUXD(provider, collateralAmount, slippage, depositoryWSOL, user, TXN_OPTS);
 
   //   // Then
   // });
 
-  // it("Redeem all remaining UXD", async () => {
-  //   // GIVEN
-  //   let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-  //   const amountUXD = _userUXDTokenAccountBalance;
-  //   const slippage = 70; // <=> 7%
-  //   const _expectedUserUXDBalance = 0;
+  it("Redeem all remaining UXD with 10% max slippage", async () => {
+    // GIVEN
+    let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+    const amountUXD = _userUXDTokenAccountBalance;
+    const slippage = 100; // <=> 10%
+    // const _expectedUserUXDBalance = 0;
 
-  //   console.log(`     > reedeem amount : ${amountUXD}`);
+    console.log(`     > reedeem amount : ${amountUXD}`);
 
-  //   // WHEN
-  //   await controller.redeemUXD(provider, amountUXD, slippage, depositoryWSOL, user, TXN_OPTS);
+    // WHEN
+    await controller.redeemUXD(provider, amountUXD, slippage, depositoryWSOL, user, TXN_OPTS);
 
-  //   // THEN
-  //   _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-  //   expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
-  // });
+    // THEN
+    // _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+    // expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
+  });
 });
 
 // describe("Mint then redeem, a bit, then redeem all", () => {

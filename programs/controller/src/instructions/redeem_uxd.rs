@@ -112,10 +112,10 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     let quote_unit = I80F48::from_num(10u64.pow(quote_decimals.into()));
     let quote_lot_size =
         I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
-    msg!("-----");
-    msg!("base_unit {}", base_unit);
+    // msg!("-----");
+    // msg!("base_unit {}", base_unit);
     msg!("base_lot_size {}", base_lot_size);
-    msg!("quote_unit {}", quote_unit);
+    // msg!("quote_unit {}", quote_unit);
     msg!("quote_lot_size {}", quote_lot_size);
     msg!("-----");
 
@@ -177,11 +177,11 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
     let slippage_amount = price.checked_mul(slippage_ratio).unwrap();
     let price_adjusted = price.checked_add(slippage_amount).unwrap();
-    msg!("price (native quote per native base): {}", price);
-    msg!(
-        "price_adjusted (after slippage calculation): {}",
-        price_adjusted
-    ); // This is the UI price, in UI amount
+    // msg!("price (native quote per native base): {}", price);
+    // msg!(
+    //     "price_adjusted (after slippage calculation): {}",
+    //     price_adjusted
+    // ); // This is the UI price, in UI amount
 
     // This is the price of one base lot in quote native units
     let base_lot_price_in_quote_lot_unit = price_adjusted
@@ -193,19 +193,19 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         .unwrap() // price for a lot (100 sat for btc for instance)
         .checked_div(quote_lot_size)
         .unwrap(); // price for a lot in quote_lot_unit
-    msg!(
-        "price_base_lot_in_quote_lot: {}",
-        base_lot_price_in_quote_lot_unit
-    );
+                   // msg!(
+                   //     "price_base_lot_in_quote_lot: {}",
+                   //     base_lot_price_in_quote_lot_unit
+                   // );
 
     let uxd_amount_native_unit = I80F48::from_num(uxd_amount);
     // XXX considering UXD and USDC same decimals, fix later
     let exposure_delta_quote_lot_unit = uxd_amount_native_unit.checked_div(quote_lot_size).unwrap();
-    msg!("uxd_amount_native_unit: {}", uxd_amount_native_unit);
-    msg!(
-        "exposure_delta_quote_lot_unit: {}",
-        exposure_delta_quote_lot_unit
-    );
+    // msg!("uxd_amount_native_unit: {}", uxd_amount_native_unit);
+    // msg!(
+    //     "exposure_delta_quote_lot_unit: {}",
+    //     exposure_delta_quote_lot_unit
+    // );
     // let collateral_native_amount = uxd_amount_native_unit
     //     .checked_div(price_adjusted).unwrap() // back to base ui amount
     //     .checked_mul(base_unit).unwrap() // back to base native amount
@@ -217,20 +217,20 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     let quantity_base_lot_unit = exposure_delta_quote_lot_unit
         .checked_div(base_lot_price_in_quote_lot_unit)
         .unwrap();
-    msg!(
-        "================= quantity_base_lot_unit: {}",
-        quantity_base_lot_unit
-    );
+    // msg!(
+    //     "================= quantity_base_lot_unit: {}",
+    //     quantity_base_lot_unit
+    // );
 
     // We now calculate the amount pre perp closing, in order to define after if it got 100% filled or not
     let pre_position = {
         let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
-        msg!("-----");
-        msg!("base_position {}", perp_account.base_position);
-        msg!("quote_position {}", perp_account.quote_position);
-        msg!("taker_base {}", perp_account.taker_base);
-        msg!("taker_quote {}", perp_account.taker_quote);
-        msg!("-----");
+        // msg!("-----");
+        // msg!("base_position {}", perp_account.base_position);
+        // msg!("quote_position {}", perp_account.quote_position);
+        // msg!("taker_base {}", perp_account.taker_base);
+        // msg!("taker_quote {}", perp_account.taker_quote);
+        // msg!("-----");
         perp_account.base_position + perp_account.taker_base
     };
 
@@ -269,22 +269,28 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     )?;
     let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
 
-    msg!("-----");
     let post_position = perp_account.base_position + perp_account.taker_base;
-    // msg!("base_position {}", perp_account.base_position);
-    // msg!("quote_position {}", perp_account.quote_position);
+    msg!("base_position {}", perp_account.base_position);
+    msg!("quote_position {}", perp_account.quote_position);
     msg!("taker_base {}", perp_account.taker_base);
-    // msg!("taker_quote {}", perp_account.taker_quote);
+    msg!("taker_quote {}", perp_account.taker_quote);
     msg!("-----");
     msg!("post_position {}", post_position);
     let filled = (post_position - pre_position).abs();
+    msg!("filled {}", filled);
     if !(order_quantity == filled) {
         return Err(ControllerError::PerpPartiallyFilled.into());
     }
 
-    // THIS IS THE REAL AMOUNT OF UXD we should burn.
+    // Real execution amount of base and quote
+    let order_amount_quote_native_unit = I80F48::from_num(perp_account.taker_quote.abs())
+        .checked_mul(quote_lot_size)
+        .unwrap();
+    let order_amount_base_native_unit = I80F48::from_num(perp_account.taker_base.abs())
+        .checked_mul(base_lot_size)
+        .unwrap();
+
     // XXX SHOULD MAKE THE decimal conversions from USDC/UXD to be safe
-    let order_amount_quote_native_unit = I80F48::from_num(perp_account.taker_quote.abs());
     msg!("UXD burn amount {}", order_amount_quote_native_unit);
     // - Burn the uxd they'r giving up
     token::burn(
@@ -292,43 +298,23 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         order_amount_quote_native_unit.to_num(),
     )?;
 
-    // XXX can reuse stuff from before probably to save computing
     // - Call mango CPI to withdraw collateral
-    // XXXlike price * 0.98 == price minus fees
+    // XXX like price * 0.98 == price minus fees
     let fees = I80F48::ONE
         .checked_sub(taker_fee.checked_div(I80F48::ONE).unwrap())
         .unwrap();
-    let base_amount_to_withdraw_native_unit = I80F48::from_num(perp_account.taker_base.abs())
-        .checked_mul(base_lot_size)
-        .unwrap()
-        .checked_mul(price_adjusted)
-        .unwrap()
-        // MINUS FEES
+    msg!("fees {}", fees);
+
+    // Now calculate the quote amount to withdraw
+    let amount_to_withdraw_base_native_unit = order_amount_base_native_unit
+        // Minus fees
         .checked_mul(fees)
         .unwrap()
-        .to_num::<u64>();
+        .to_num();
     msg!(
-        "base_amount_to_withdraw_native_unit {}",
-        base_amount_to_withdraw_native_unit
+        "amount_to_withdraw_base_native_unit {}",
+        amount_to_withdraw_base_native_unit
     );
-    // let fees = order_amount_quote_native_unit
-    //     .checked_mul(taker_fee)
-    //     .unwrap();
-    // msg!("amount to withdraw {}", order_amount_quote_native_unit);
-    // msg!("fees {}", fees);
-
-    // // In USDC
-    // let withdraw_amount_quote_native_unit = order_amount_quote_native_unit - fees;
-    // msg!(
-    //     "withdraw_amount_quote_native_unit (after fees) {}",
-    //     withdraw_amount_quote_native_unit
-    // );
-    // let withdraw_amount_in_collateral_native_unit = withdraw_amount_quote_native_unit
-    //     .checked_div(price_adjusted)
-    //     .unwrap()
-    //     .to_num();
-    // msg!("collateral_withdraw_amount {}", collateral_withdraw_amount);
-    // msg!("-----");
 
     // Drop ref cause they are also used in the Mango CPI destination
     drop(mango_account);
@@ -336,20 +322,16 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         ctx.accounts
             .into_withdraw_collateral_from_mango_context()
             .with_signer(depository_signer_seed),
-        base_amount_to_withdraw_native_unit,
+        amount_to_withdraw_base_native_unit,
         false,
     )?;
 
     // - Return collateral back to user
-    // diff of the passthrough balance and return it
-    // XXX Doing it this way is not updated yet, cannot - this would work if we were doing the ledger change manually
-    // let current_passthrough_balance = I80F48::from_num(ctx.accounts.collateral_passthrough.amount);
-
     token::transfer(
         ctx.accounts
             .into_transfer_collateral_to_user_context()
             .with_signer(depository_signer_seed),
-        base_amount_to_withdraw_native_unit,
+        amount_to_withdraw_base_native_unit,
     )?;
 
     Ok(())

@@ -183,11 +183,6 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     let price_adjusted = price.checked_sub(slippage_amount).unwrap();
     msg!("price (native quote per native base): {}", price);
     msg!("price_adjusted (after slippage calculation): {}", price_adjusted); // This is the UI price, in UI amount
-    
-    // 0.191875 * 1000000 / 100 <====> perp_price * quote_unit / quote_lot_size == base_lot_native_unit
-
-    // == 1918.75 USDC native units  <=> 0.001919 usdc par SOL lot
-    // 1 sol lot == 10000000 lamports
 
     // This is the price of one base lot in quote native units
     let base_lot_price_in_quote_lot_unit = price_adjusted 
@@ -195,9 +190,6 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
         .checked_div(base_unit).unwrap() // price for 1 decimal unit (1 satoshi for btc for instance)
         .checked_mul(base_lot_size).unwrap() // price for a lot (100 sat for btc for instance)
         .checked_div(quote_lot_size).unwrap(); // price for a lot in quote_lot_unit
-    // let base_lot_price_in_quote_native_units = price_adjusted // price for one native unit of BASE in native units of QUOTE
-    //     .checked_mul(base_lot_size).unwrap(); // multiply by the number of native units of BASE in a lot
-    // let base_lot_price_in_quote_lot_unit = base_lot_price_in_quote_native_units.checked_mul(quote_lot_size).unwrap();
     msg!("base_lot_price_in_quote_native_units: {}", base_lot_price_in_quote_lot_unit);
 
     //XXX assuming USDC and UXD have same decimals, need to fix
@@ -272,6 +264,7 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     let order_price_native_unit = I80F48::from_num(perp_account.taker_quote).checked_mul(quote_lot_size).unwrap();
     let fees = order_price_native_unit.abs() * taker_fee;
     // XXX here it's considering UXD and USDC have same decimals -- FIX LATER
+    // THIS SHOULD BE THE SPOT MARKET VALUE MINTED AND NOT THE PERP VALUE CAUSE ELSE IT'S TOO MUCH
     let uxd_amount = order_price_native_unit - fees;
     msg!("uxd_amount {}", uxd_amount);
     let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];

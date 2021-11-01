@@ -16,7 +16,7 @@ pub const DEPOSITORY_SEED: &[u8] = b"DEPOSITORY";
 pub const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
 pub const MANGO_SEED: &[u8] = b"MANGO";
 
-solana_program::declare_id!("C4mHWrSD5DLLNJkZS8X3h8z28UoPyBz2hVeXmB3L9VFG");
+solana_program::declare_id!("3BXK1imSNy3ep3yRJxd3umAF3HmC6SC6XjScfoJamvaZ");
 
 #[program]
 #[deny(unused_must_use)]
