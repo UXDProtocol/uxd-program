@@ -119,56 +119,66 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     msg!("quote_lot_size {}", quote_lot_size);
     msg!("-----");
 
-    // About Mango (Serum) lots, tokens decimals and how to do the conversions
+    // About Mango (Serum) lots size, native units, life and the universe
     //
-    // The base is a left part of our PERP, here BTC
-    // The quote is the asset it trade against, here USDC
-    // Lot_size is an arbitrary minimum amount of base asset native units for trades
-    // Base asset native unit his it's smallest split, like a satoshi for BTC
+    // First some context:
     //
-    // Let's make an example with BTC:
+    // A part is defined as BASE/QUOTE, base being the asset valued using quote
+    // BASE and QUOTE are both SPL tokens, and have varying decimals.
+    //
+    // `lot_size` are an abritrary amount, the minimum amount of `unit`, previously described, tradable
+    // both QUOTE and BASE has a specific lot size, for BTC it's 10 and USDC it's 100.
+    // `base_unit` and `quote_unit` are simply `10^respective_decimals`.
+    // Meaning you cannot trade smaller chunks that 10 units.
+    //
+    // So let's take BTC/USDC perp for instance :
     //
     // BTC has 8 decimals
-    // so 1BTC == to 100_000_000 BTC native units (satoshis)
+    // so 1BTC == to  100_000_000 BTC   native units (satoshis)
     //
-    // Mango base lot size for BTC is 100 (arbitrary, probably from Serum)
-    // That means that mango smallest amount for trades in BTC is 10 satoshis (0.00_000_1)
+    // USDC has 6 decimals
+    // so 1USDC == to   1_000_000 USDC  native units (tinycents idk)
+    //
+    // Mango base lot size for BTC is 10 (arbitrary, probably from Serum)
+    // That means that mango smallest amount for trades in BTC is 10 satoshis (0.00_000_010)
+    // For USDC it's 100, meaning 0.00_0100
     //
     // If you want to trade BTC with mango, you need to think in lot size,
     //  hence take your native units, and divide them by base_lot_size for that perp
     //
     // I want to place a perp order long for 0.05 BTC :
     //
-    // BTC should be called base below for genericity, but here we will use base and btc intechangably for clarity
-    //
-    // First we calculate the quantity, that will be in [Base Lot] - BASE IS BTC
+    // First we calculate the quantity, that will be in [Base Lot]
     //  - base_unit ==                  10 ** base_decimals         -> 100_000_000 (although it's 6 on solana iirc, for for the sake of this example doesn't matter)
     //  - btc_amount ==                 0.05_000_000
-    //  - btc_amount_native_unit ==     btc_amount * base_unit      -> 5_000_000
-    //  - btc_amount_base_lot_unit ==   5_000_000 / base_lot_size   -> 5000
+    //  - btc_amount_native_unit ==     btc_amount * base_unit      ->   5_000_000
+    //  - btc_amount_base_lot_unit ==   5_000_000 / base_lot_size   ->     500_000
     //
-    // Then we calculate the price, that will be in [Quote Lot]  - QUOTE IS USDC
-    //    * lots and decimals can vary from on asset to another *
-    //  Get it from mango,
+    // Then we calculate the price, that will be in [Quote Lot]
+    //
+    //  What we get from mango is the price of one `base unit` expressed in `quote units`
+    // so for btc is how much quote unit for a satoshi
+    //
     //  - perp_quote_price ==           mango_cache.price_cache[perp_market_index].price;
     //
-    // Now can call `place_perp_order(quantity: btc_amount_base_lot_unit, price: perp_quote_price);`
+    //  Mango deal in lots (Serum actually), so you need to run some conversions
+    //
+    // let base_lot_price_in_quote_unit = perp_price.checked_mul(base_lot_size)
+    //
+    // let base_lot_order_quantity = order_amount_in_quote_unit.checked_div(base_lot_price_in_quote_unit)
+    //
+    // let base_lot_price_in_quote_lot = base_lot_price_in_quote_unit.checked_div(quote_lot_size)
+    //
+    //  === Now can call `place_perp_order(quantity: base_lot_order_quantity, price: base_lot_price_in_quote_lot);`
     //
     // Let's say the order is filled 100%, then you bought
     //
-    // quantity_bought_in_btc_base_unit ==  btc_amount_base_lot_unit * base_lot_size
-    // quantity_bought_in_btc_ui ==         quantity_bought_in_btc_base_unit / base_unit
+    // quantity_bought_in_btc_base_unit ==  perp_order.taker_base * base_lot_size
+    // usdc spent                       ==  perp_order.taker_quote * quote_lot_size
     //
-    //// XXX this part stil sketchy here need to refine
-    // If you want to know how much you paid in quote native unit (USDC for our example), or you wanna do conversions to buy Xusd amount of BTC (reorg the steps) :
-    //
-    //  - quote_unit ==                         10 ** quote_decimals                                                -> 1_000_000 for USDC (6 decimals on solana)
-    //  - quote_lot_size ==                     100                                                                 -> arbitrary from Mango (or Serum). Minimum amount you can trade
-    //  - total_paid_in_quote_native_unit ==    (btc_amount_native_unit / base_unit) * btc_amount_base_lot_unit     -> (5_000_000 * 5000) == 25_000_000_000
-
-    //  - btc_price_quote_native_unit ==        60_000_000_000                                                      <=> (60k usdc, but time the decimals)
-    //  - btc_price_quote_lot_unit ==           btc_price_quote_native_unit / (quote_unit / quote_lot_size)         -> 60_000_000_000 / (1_000_000 / 100) == 6_000_000          <=> the price for a full BTC in qlu
-    //
+    // And to that you can also calculate the fees
+    //     let taker_fee = mango_group.perp_markets[perp_market_index].taker_fee;
+    // then you do the calculation
 
     // Slippage calulation
     let price = mango_cache.price_cache[perp_market_index].price;
@@ -177,76 +187,52 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
     let slippage_amount = price.checked_mul(slippage_ratio).unwrap();
     let price_adjusted = price.checked_add(slippage_amount).unwrap();
-    // msg!("price (native quote per native base): {}", price);
-    // msg!(
-    //     "price_adjusted (after slippage calculation): {}",
-    //     price_adjusted
-    // ); // This is the UI price, in UI amount
+    msg!("price (base unit value expressed in quote unit): {}", price);
+    msg!(
+        "price_adjusted (after slippage calculation): {}",
+        price_adjusted
+    );
 
-    // This is the price of one base lot in quote native units
-    let base_lot_price_in_quote_lot_unit = price_adjusted
-        .checked_mul(quote_unit)
-        .unwrap() // to quote native amount
-        .checked_div(base_unit)
-        .unwrap() // price for 1 decimal unit (1 satoshi for btc for instance)
-        .checked_mul(base_lot_size)
-        .unwrap() // price for a lot (100 sat for btc for instance)
-        .checked_div(quote_lot_size)
-        .unwrap(); // price for a lot in quote_lot_unit
-                   // msg!(
-                   //     "price_base_lot_in_quote_lot: {}",
-                   //     base_lot_price_in_quote_lot_unit
-                   // );
-
-    let uxd_amount_native_unit = I80F48::from_num(uxd_amount);
     // XXX considering UXD and USDC same decimals, fix later
-    let exposure_delta_quote_lot_unit = uxd_amount_native_unit.checked_div(quote_lot_size).unwrap();
-    // msg!("uxd_amount_native_unit: {}", uxd_amount_native_unit);
-    // msg!(
-    //     "exposure_delta_quote_lot_unit: {}",
-    //     exposure_delta_quote_lot_unit
-    // );
-    // let collateral_native_amount = uxd_amount_native_unit
-    //     .checked_div(price_adjusted).unwrap() // back to base ui amount
-    //     .checked_mul(base_unit).unwrap() // back to base native amount
-    //     ;
-    // msg!(
-    //     "collateral_native_amount equivalent: {}",
-    //     collateral_native_amount
-    // );
-    let quantity_base_lot_unit = exposure_delta_quote_lot_unit
-        .checked_div(base_lot_price_in_quote_lot_unit)
+    let exposure_delta_in_quote_unit = I80F48::from_num(uxd_amount);
+    msg!(
+        "+++ exposure_delta_in_quote_unit {}",
+        exposure_delta_in_quote_unit
+    );
+
+    let base_lot_price_in_quote_unit = price_adjusted.checked_mul(base_lot_size).unwrap();
+    msg!(
+        "+++ base_lot_price_in_quote_unit {}",
+        base_lot_price_in_quote_unit
+    );
+
+    let base_lot_order_quantity = exposure_delta_in_quote_unit
+        .checked_div(base_lot_price_in_quote_unit)
         .unwrap();
-    // msg!(
-    //     "================= quantity_base_lot_unit: {}",
-    //     quantity_base_lot_unit
-    // );
+    msg!("+++ base_lot_order_quantity {}", base_lot_order_quantity);
+
+    let quote_lot_order_price = base_lot_price_in_quote_unit
+        .checked_div(quote_lot_size)
+        .unwrap();
+    msg!("+++ quote_lot_order_price {}", quote_lot_order_price);
 
     // We now calculate the amount pre perp closing, in order to define after if it got 100% filled or not
     let pre_position = {
         let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_market_index];
-        // msg!("-----");
-        // msg!("base_position {}", perp_account.base_position);
-        // msg!("quote_position {}", perp_account.quote_position);
-        // msg!("taker_base {}", perp_account.taker_base);
-        // msg!("taker_quote {}", perp_account.taker_quote);
-        // msg!("-----");
         perp_account.base_position + perp_account.taker_base
     };
-
     // Drop ref cause they are also used in the Mango CPI destination
     drop(mango_group);
     drop(mango_cache);
     drop(mango_account);
-
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         DEPOSITORY_SEED,
         collateral_mint_key.as_ref(),
         &[ctx.accounts.depository.bump],
     ]];
     // Call Mango CPI to place the order that closes short position
-    let order_price = base_lot_price_in_quote_lot_unit.to_num::<i64>();
-    let order_quantity = quantity_base_lot_unit.to_num::<i64>();
+    let order_price = quote_lot_order_price.to_num::<i64>();
+    let order_quantity = base_lot_order_quantity.to_num::<i64>();
     msg!("order_price {}", order_price);
     msg!("order_quantity {}", order_quantity);
     mango_program::place_perp_order(

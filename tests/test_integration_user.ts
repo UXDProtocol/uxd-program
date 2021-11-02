@@ -58,6 +58,8 @@ before("Configure user accounts", async () => {
 });
 
 describe("Mint then redeem all BTC", () => {
+  let uxdLeftOver;
+
   afterEach("[General balances info]", async () => {
     // seems we have unreliable result sometimes, idk if I need to update a cache or sleep or what
     await sleep(3000);
@@ -70,37 +72,40 @@ describe("Mint then redeem all BTC", () => {
   });
 
   it("Initial balances", async () => {
+    uxdLeftOver = await getBalance(userUXDTokenAccount);
     /* no-op - prints after each */
   });
 
-  // it("Mint UXD worth 0.01 BTC with 5% max slippage", async () => {
-  //   // GIVEN
-  //   const collateralAmount = 0.01;
-  //   const slippage = 50; // <=> 5%
-  //   // WHEN
-  //   await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
+  it("Mint UXD worth 0.01 BTC with 1% max slippage", async () => {
+    // GIVEN
+    const collateralAmount = 0.01;
+    const slippage = 10; // <=> 1%
+    // WHEN
+    await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
 
-  //   // Then
-  // });
+    // Then
+  });
 
-  // it("Redeem all remaining UXD with 5% max slippage", async () => {
-  //   // GIVEN
-  //   let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-  //   const amountUXD = _userUXDTokenAccountBalance;
-  //   const slippage = 50; // <=> 5%
-  //   // const _expectedUserUXDBalance = 0;
+  it("Redeem all remaining UXD with 1% max slippage", async () => {
+    // GIVEN
+    let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+    const amountUXD = _userUXDTokenAccountBalance - uxdLeftOver;
+    const slippage = 10; // <=> 1%
+    // const _expectedUserUXDBalance = 0;
 
-  //   console.log(`     > reedeem amount : ${amountUXD}`);
-  //   // WHEN
-  //   await controller.redeemUXD(provider, amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
+    console.log(`     > reedeem amount : ${amountUXD}`);
+    // WHEN
+    await controller.redeemUXD(provider, amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
 
-  //   // THEN
-  //   // _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-  //   // expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
-  // });
+    // THEN
+    // _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
+    // expect(_userUXDTokenAccountBalance).to.equal(_expectedUserUXDBalance);
+  });
 });
 
 describe("Mint then redeem all WSOL", () => {
+  let uxdLeftOver;
+
   afterEach("[General balances info]", async () => {
     // seems we have unreliable result sometimes, idk if I need to update a cache or sleep or what
     await sleep(3000);
@@ -113,24 +118,25 @@ describe("Mint then redeem all WSOL", () => {
   });
 
   it("Initial balances", async () => {
+    uxdLeftOver = await getBalance(userUXDTokenAccount);
     /* no-op - prints after each */
   });
 
-  // it("Mint UXD worth 1 WSOL with 10% max slippage", async () => {
-  //   // GIVEN
-  //   const collateralAmount = 1;
-  //   const slippage = 100; // <=> 10%
-  //   // WHEN
-  //   await controller.mintUXD(provider, collateralAmount, slippage, depositoryWSOL, user, TXN_OPTS);
+  it("Mint UXD worth 1 WSOL with 1% max slippage", async () => {
+    // GIVEN
+    const collateralAmount = 1;
+    const slippage = 10; // <=> 1%
+    // WHEN
+    await controller.mintUXD(provider, collateralAmount, slippage, depositoryWSOL, user, TXN_OPTS);
 
-  //   // Then
-  // });
+    // Then
+  });
 
-  it("Redeem all remaining UXD with 10% max slippage", async () => {
+  it("Redeem all remaining UXD with 1% max slippage", async () => {
     // GIVEN
     let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-    const amountUXD = _userUXDTokenAccountBalance;
-    const slippage = 100; // <=> 10%
+    const amountUXD = _userUXDTokenAccountBalance - uxdLeftOver;
+    const slippage = 10; // <=> 1%
     // const _expectedUserUXDBalance = 0;
 
     console.log(`     > reedeem amount : ${amountUXD}`);
