@@ -104,12 +104,12 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
         .find_perp_market_index(ctx.accounts.mango_perp_market.key)
         .unwrap();
     let taker_fee = mango_group.perp_markets[perp_market_index].taker_fee;
-    // base and quote details
-    let base_decimals = mango_group.tokens[perp_market_index].decimals;
-    let base_unit = I80F48::from_num(10u64.pow(base_decimals.into()));
+    // base and quote details - Some unused for now but will need to update when using the right decimals
+    // let base_decimals = mango_group.tokens[perp_market_index].decimals;
+    // let base_unit = I80F48::from_num(10u64.pow(base_decimals.into()));
     let base_lot_size = I80F48::from_num(mango_group.perp_markets[perp_market_index].base_lot_size);
-    let quote_decimals = mango_group.tokens[mango::state::QUOTE_INDEX].decimals;
-    let quote_unit = I80F48::from_num(10u64.pow(quote_decimals.into()));
+    // let quote_decimals = mango_group.tokens[mango::state::QUOTE_INDEX].decimals;
+    // let quote_unit = I80F48::from_num(10u64.pow(quote_decimals.into()));
     let quote_lot_size =
         I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
     // msg!("-----");

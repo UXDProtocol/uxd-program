@@ -81,7 +81,7 @@ describe("Mint then redeem all BTC", () => {
     const collateralAmount = 0.01;
     const slippage = 10; // <=> 1%
     // WHEN
-    await controller.mintUXD(provider, collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
+    await controller.mintUXD(collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
 
     // Then
   });
@@ -95,7 +95,7 @@ describe("Mint then redeem all BTC", () => {
 
     console.log(`     > reedeem amount : ${amountUXD}`);
     // WHEN
-    await controller.redeemUXD(provider, amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
+    await controller.redeemUXD(amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
 
     // THEN
     // _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
@@ -127,7 +127,7 @@ describe("Mint then redeem all WSOL", () => {
     const collateralAmount = 1;
     const slippage = 10; // <=> 1%
     // WHEN
-    await controller.mintUXD(provider, collateralAmount, slippage, depositoryWSOL, user, TXN_OPTS);
+    await controller.mintUXD(collateralAmount, slippage, depositoryWSOL, user, TXN_OPTS);
 
     // Then
   });
@@ -142,7 +142,7 @@ describe("Mint then redeem all WSOL", () => {
     console.log(`     > reedeem amount : ${amountUXD}`);
 
     // WHEN
-    await controller.redeemUXD(provider, amountUXD, slippage, depositoryWSOL, user, TXN_OPTS);
+    await controller.redeemUXD(amountUXD, slippage, depositoryWSOL, user, TXN_OPTS);
 
     // THEN
     // _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
