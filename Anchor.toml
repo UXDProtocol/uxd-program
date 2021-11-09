@@ -3,7 +3,7 @@ cluster = "devnet" ## this should also mirror the solana config env
 wallet = "~/.config/solana/id.json"
 
 [programs.localnet]
-controller = "CFMXGuNuHror1iGfuJvkbdYAzxr1GcYr6nSppxBYg38j"
+controller = "6FLLMJxPwo12b28fQL4DgMMRi4TkceRVnbm2iYZHZ4Wn"
 
 [registry]
 url = "https://anchor.projectserum.com"

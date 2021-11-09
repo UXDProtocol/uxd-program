@@ -80,11 +80,6 @@ pub struct RedeemUxd<'info> {
 }
 
 pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> ProgramResult {
-    // get current passthrough balance before withdrawing from mango
-    // in theory this should always be zero but better safe
-    // XXX cannot be updated and read through this program, only if we would be doing ledger operations.
-    // let _initial_passthrough_balance = I80F48::from_num(ctx.accounts.collateral_passthrough.amount);
-
     // msg!("controller: redeem uxd [calculation for perp position closing]");
     let collateral_mint_key = ctx.accounts.collateral_mint.key();
     let mango_account = MangoAccount::load_checked(
