@@ -1,5 +1,13 @@
 # solana-usds
 
+## Installation
+
+Recommended to use https://github.com/mozilla/sccache to build faster, follow install instruction there.
+
+The project uses a few line of optimisation for building taken from the Discord, but that need to be investigated further. (See the workspace cargo.toml)
+
+## how it work (Deprecated - needs update)
+
 Implementation of UXD token on solana
 
 The UXD contract system consists of 2 different classes, the depository which is the input/output point for outside funds
