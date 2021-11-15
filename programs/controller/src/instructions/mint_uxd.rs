@@ -6,6 +6,7 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 use fixed::types::I80F48;
+use mango::error::MangoResult;
 use mango::state::MangoAccount;
 use mango::state::MangoCache;
 use mango::state::MangoGroup;
@@ -116,6 +117,8 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
 
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
+    // - 1 [TRANSFER COLLATERAL TO MANGO (LONG)] ------------------------------
+
     // msg!("Transfering user collateral to the passthrough account");
     token::transfer(ctx.accounts.into_transfer_user_collateral_to_passthrough_context(), collateral_amount)?;
 
@@ -133,52 +136,33 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
         collateral_amount,
     )?;
 
-    // msg!("controller: mint uxd [calculation for perp position opening]");
-    let collateral_amount_native_unit = I80F48::from_num(collateral_amount);
-    // - load Mango's accounts
-    let mango_account = MangoAccount::load_checked(
-        &ctx.accounts.mango_account,
-        ctx.accounts.mango_program.key,
-        &ctx.accounts.mango_group.key,
-    )?;
+    // - 2 [OPEN SAME SIZE SHORT POSITION ] -----------------------------------
 
-    // - object aggregating all the perpetuals informations
-    let perp_info = ctx.accounts.get_perpetual_info();
-    // msg!("Perpetual informations: {:}", perp_info);
+    // - [Get perp informations]
+    let perp_info = ctx.accounts.perpetual_info();
+    msg!("Perpetual informations: {:?}", perp_info);
 
-    // This is the price of one base lot in quote lot units
-    let mut base_lot_price_in_quote_lot_unit = perp_info.base_lot_price_in_quote_lot_unit();
-    msg!("base_lot_price_in_quote_lot_units: {}", base_lot_price_in_quote_lot_unit);
-
-    // - slippage calulation
-    //  price: I80F48 - native quote per native base - THIS IS IMPORTANT - Equivalent to price per lamport for sol, or price per satoshi
-    base_lot_price_in_quote_lot_unit = slippage_deduction(base_lot_price_in_quote_lot_unit, slippage);
+    // - [Slippage calculation]
+    // This is the price of one base lot in quote lot units : `perp_info.base_lot_price_in_quote_lot_unit()`
+    let base_lot_price_in_quote_lot_unit = slippage_deduction(perp_info.base_lot_price_in_quote_lot_unit(), slippage);
     msg!("base_lot_price_in_quote_lot_unit (after slippage deduction): {}", base_lot_price_in_quote_lot_unit);
 
-    //XXX assuming USDC and UXD have same decimals, need to fix
+    // - [Calculates the quantity of base lot to purchase] 
+    // XXX assuming USDC and UXD have same decimals, need to fix
+    let collateral_amount_native_unit = I80F48::from_num(collateral_amount);
     let quantity_base_lot = collateral_amount_native_unit.checked_div(perp_info.base_lot_size).unwrap();
     msg!("quantity_base_lot: {}", quantity_base_lot);
 
-    // We now calculate the amount pre perp opening, in order to define after if it got 100% filled or not
-    let pre_position = {
-        let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_info.market_index];    
-        msg!("-----");
-        msg!("base_position {}", perp_account.base_position);
-        msg!("quote_position {}", perp_account.quote_position);
-        msg!("taker_base {}", perp_account.taker_base);
-        msg!("taker_quote {}", perp_account.taker_quote);
-        msg!("-----");
-        perp_account.base_position + perp_account.taker_base
-    };
+    // - [Position PRE perp opening to calculate the % filled later on]
+    let perp_account = ctx.accounts.perp_account(&perp_info)?;
+    let pre_position = perp_base_position(&perp_account);
 
-    // Drop ref cause they are also used in the Mango CPI destination
-    drop(mango_account);
-
-    // Call Mango CPI
+    // - [Call mango CPI to open the perp short position]
     let order_price = base_lot_price_in_quote_lot_unit.to_num::<i64>();
     let order_quantity = quantity_base_lot.to_num::<i64>();
     msg!("order_price {}", order_price);
     msg!("order_quantity {}", order_quantity);
+
     mango_program::place_perp_order(
         ctx.accounts
             .into_open_mango_short_perp_context()
@@ -191,33 +175,18 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
         false,
     )?;
 
-    msg!("verify that the order got 100% filled");
-    let mango_account = MangoAccount::load_checked(
-        &ctx.accounts.mango_account,
-        ctx.accounts.mango_program.key,
-        ctx.accounts.mango_group.key,
-    )?;
-    let perp_account: &PerpAccount = &mango_account.perp_accounts[perp_info.market_index];
-    let post_position = perp_account.base_position + perp_account.taker_base;
-    let filled = (post_position - pre_position).abs();
-    msg!("-----");
-    msg!("base_position {}", perp_account.base_position);
-    msg!("quote_position {}", perp_account.quote_position);
-    msg!("taker_base {}", perp_account.taker_base);
-    msg!("taker_quote {}", perp_account.taker_quote);
-    msg!("-----");
+    // - [Position POST perp opening to calculate the % filled later on]
+    let perp_account = ctx.accounts.perp_account(&perp_info)?;
+    let post_position = perp_base_position(&perp_account);
     msg!("post_position {}", post_position);
-    if !(order_quantity == filled) {
-        return Err(ControllerError::PerpPartiallyFilled.into());
-    }
 
-    // real execution price (minus the fees)
-    let order_price_native_unit = I80F48::from_num(perp_account.taker_quote).checked_mul(perp_info.quote_lot_size).unwrap();
-    let fees = order_price_native_unit.abs() * perp_info.taker_fee;
-    // XXX here it's considering UXD and USDC have same decimals -- FIX LATER
-    // THIS SHOULD BE THE SPOT MARKET VALUE MINTED AND NOT THE PERP VALUE CAUSE ELSE IT'S TOO MUCH
-    let uxd_amount = order_price_native_unit - fees;
+    // - [Verify that the order has been 100% filled]
+    check_short_perp_order_fully_filled(order_quantity, pre_position, post_position)?;
+
+    // - 3 [MINTS THE HEDGED AMOUNT OF UXD] -----------------------------------
+    let uxd_amount = derive_uxd_amount(&perp_info, &perp_account);
     msg!("uxd_amount {}", uxd_amount);
+
     let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
     token::mint_to(
         ctx.accounts
@@ -288,7 +257,8 @@ impl<'info> MintUxd<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    fn get_perpetual_info(&self) -> PerpetualInformation {
+    // Return general information about the perpetual related to the collateral in use
+    fn perpetual_info(&self) -> PerpInfo {
         let mango_group =
             MangoGroup::load_checked(&self.mango_group, self.mango_program.key).unwrap();
         let mango_cache = MangoCache::load_checked(
@@ -302,7 +272,7 @@ impl<'info> MintUxd<'info> {
         let base_decimals = mango_group.tokens[perp_market_index].decimals;
         let quote_decimals = mango_group.tokens[mango::state::QUOTE_INDEX].decimals;
 
-        PerpetualInformation {
+        PerpInfo {
             market_index: perp_market_index,
             price: mango_cache.price_cache[perp_market_index].price,
             base_unit: I80F48::from_num(10u64.pow(base_decimals.into())),
@@ -311,6 +281,17 @@ impl<'info> MintUxd<'info> {
             quote_lot_size: I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size),
             taker_fee: mango_group.perp_markets[perp_market_index].taker_fee,
         }
+    }
+
+    // Return the uncommited PerpAccount that represent the account balances
+    fn perp_account(&self, perp_info: &PerpInfo) -> MangoResult<PerpAccount> {
+        // - loads Mango's accounts
+        let mango_account = MangoAccount::load_checked(
+            &self.mango_account,
+            self.mango_program.key,
+            self.mango_group.key,
+        )?;
+        Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 }
 
@@ -323,8 +304,49 @@ fn slippage_deduction(price: I80F48, slippage: u32) -> I80F48 {
     price.checked_sub(slippage_amount).unwrap()
 }
 
+// Return the current base position
+fn perp_base_position(perp_account: &PerpAccount) -> i64 {
+    msg!("  -----");
+    msg!("  base_position {}", perp_account.base_position);
+    msg!("  quote_position {}", perp_account.quote_position);
+    msg!("  taker_base {}", perp_account.taker_base);
+    msg!("  taker_quote {}", perp_account.taker_quote);
+    msg!("  -----");
+    perp_account.base_position.checked_add(perp_account.taker_base).unwrap()
+}
+
+// Verify that the order quantity matches the base position delta
+fn check_short_perp_order_fully_filled(order_quantity: i64, pre_position: i64, post_position: i64) -> ProgramResult {
+    let filled_amount = (post_position.checked_sub(pre_position).unwrap()).abs();
+    if !(order_quantity == filled_amount) {
+        return Err(ControllerError::PerpPartiallyFilled.into());
+    }
+    Ok(())
+}
+
+// Find out how much UXD the program mints for the user, derived from the outcome of the perp short opening
+fn derive_uxd_amount(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
+    // Need to add a check to make sure we don't mint more UXD than collateral value `collateral_amount_native_unit` (stupid?)
+    // - 
+    // What is the valuation of the collateral? When we enter the instruction, do we value it from Base/ Perp price?
+    // - 
+    // We Open a short position that tries to match that deposited collateral, but it might be smaller due to slippage.
+    // We then mint on the value on this short position (To make sure everything that's minted is hedged)
+
+    // - [Calculate the actual execution price (minus the mango fees)]
+    let order_price_native_unit = I80F48::from_num(perp_account.taker_quote).checked_mul(perp_info.quote_lot_size).unwrap();
+    msg!("  derive_uxd_amount() - order_price_native_unit {}", order_price_native_unit);
+
+    let fees = order_price_native_unit.abs() * perp_info.taker_fee;
+    msg!("  derive_uxd_amount() - fees {}", fees);
+
+    // XXX here it's considering UXD and USDC have same decimals -- FIX LATER
+    // THIS SHOULD BE THE SPOT MARKET VALUE MINTED AND NOT THE PERP VALUE CAUSE ELSE IT'S TOO MUCH
+    order_price_native_unit.checked_sub(fees).unwrap()
+}
+
 #[derive(Debug)]
-struct PerpetualInformation {
+struct PerpInfo {
     market_index: usize,
     price: I80F48,
     base_unit: I80F48,
@@ -334,8 +356,9 @@ struct PerpetualInformation {
     taker_fee: I80F48,
 }
 
-impl PerpetualInformation {
+impl PerpInfo {
     fn base_lot_price_in_quote_lot_unit(&self) -> I80F48 {
+    //  price: I80F48 - native quote per native base - THIS IS IMPORTANT - Equivalent to price per lamport for sol, or price per satoshi
     self.price 
         .checked_mul(self.quote_unit).unwrap() // to quote native amount
         .checked_div(self.base_unit).unwrap() // price for 1 decimal unit (1 satoshi for btc for instance)
