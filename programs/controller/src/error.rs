@@ -9,7 +9,7 @@ pub enum ControllerError {
     #[msg("The slippage value is invalid. Must be in the [0...1000] range points.")]
     InvalidSlippage,
     #[msg("The perp position could not be fully filled with the provided slippage.")]
-    PerpPartiallyFilled,
+    PerpOrderPartiallyFilled,
     #[msg("The provided collateral mint does not match the depository's collateral mint.")]
     UnexpectedCollateralMint,
     #[msg("Collateral amount must be > 0 in order to mint.")]
