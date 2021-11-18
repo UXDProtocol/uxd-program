@@ -2,9 +2,9 @@ import { ControllerUXD, Depository, BTC_DECIMALS, SOL_DECIMALS } from "@uxdproto
 import { BTC, admin, WSOL } from "./identities";
 import { expect, util } from "chai";
 import { TXN_OPTS, provider } from "./provider";
-import { Program, workspace } from "@project-serum/anchor";
+import { workspace } from "@project-serum/anchor";
 
-const controllerProgram = workspace.Controller as Program;
+const controllerProgram = workspace.Controller;
 
 // Depositories - They represent the business object that tie a mint to a depository
 export let depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS);
@@ -48,10 +48,10 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
     // GIVEN
 
     // WHEN
-    if (await provider.connection.getAccountInfo(controller.collateralPassthroughPda(depositoryBTC.collateralMint))) {
+    if (await provider.connection.getAccountInfo(controller.collateralPassthroughPda(depositoryBTC.collateralMint)[0])) {
       console.log("already registered.");
     } else {
-      await controller.register(depositoryBTC, admin, TXN_OPTS);
+      await controller.registerDepository(depositoryBTC, admin, TXN_OPTS);
     }
     depositoryBTC.info(controller);
   });
@@ -60,10 +60,10 @@ before("Standard Administrative flow for UXD Controller and depositories", () =>
     // GIVEN
 
     // WHEN
-    if (await provider.connection.getAccountInfo(controller.collateralPassthroughPda(depositoryWSOL.collateralMint))) {
+    if (await provider.connection.getAccountInfo(controller.collateralPassthroughPda(depositoryWSOL.collateralMint)[0])) {
       console.log("already registered.");
     } else {
-      await controller.register(depositoryWSOL, admin, TXN_OPTS);
+      await controller.registerDepository(depositoryWSOL, admin, TXN_OPTS);
     }
     depositoryWSOL.info(controller);
   });

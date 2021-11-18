@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { PublicKey } from "@solana/web3.js";
-import { ControllerUXD, Depository, findAssocTokenAddressSync } from "@uxdprotocol/solana-usds-client";
+import { Depository, findATAAddrSync, findATAAddr } from "@uxdprotocol/solana-usds-client";
 import { user, BTC, WSOL } from "./identities";
 import { controller, depositoryBTC, depositoryWSOL } from "./test_integration_admin";
 import { TXN_COMMIT, TXN_OPTS, provider } from "./provider";
@@ -27,7 +27,7 @@ function getBalance(tokenAccount: PublicKey): Promise<number> {
 
 async function printSystemBalance(depository: Depository) {
   const SYM = depository.collateralSymbol;
-  const passthroughPda = controller.collateralPassthroughPda(depository.collateralMint);
+  const passthroughPda = controller.collateralPassthroughPda(depository.collateralMint)[0];
   console.log(`\
         * [controller]
         *     associated ${SYM} passthrough:                 ${await getBalance(passthroughPda)}`);
@@ -43,14 +43,14 @@ async function printUserBalance() {
 
 before("Configure user accounts", async () => {
   // Find every user adresses
-  userBTCTokenAccount = findAssocTokenAddressSync(user, BTC)[0];
-  userWSOLTokenAccount = findAssocTokenAddressSync(user, WSOL)[0];
-  userUXDTokenAccount = findAssocTokenAddressSync(user, controller.mintPda)[0];
+  userBTCTokenAccount = await findATAAddrSync(user, BTC)[0];
+  userWSOLTokenAccount = await findATAAddrSync(user, WSOL)[0];
+  userUXDTokenAccount = await findATAAddrSync(user, controller.uxdMintPda)[0];
 
   console.log(`\
     * BTC mint:                           ${BTC.toString()}
     * WSOL mint:                          ${WSOL.toString()}
-    * UXD mint:                           ${controller.mintPda.toString()}
+    * UXD mint:                           ${controller.uxdMintPda.toString()}
     * ---- 
     * user's BTC tokenAcc                 ${userBTCTokenAccount.toString()}
     * user's WSOL tokenAcc                ${userWSOLTokenAccount.toString()}
