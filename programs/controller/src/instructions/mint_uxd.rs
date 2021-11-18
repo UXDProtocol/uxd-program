@@ -5,6 +5,7 @@ use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
+use anchor_lang::Discriminator;
 use fixed::types::I80F48;
 use mango::error::MangoResult;
 use mango::state::MangoAccount;
@@ -14,15 +15,13 @@ use mango::state::PerpAccount;
 
 use crate::PerpInfo;
 use crate::mango_program;
-use crate::ControllerError;
+use crate::UXDError;
 use crate::Depository;
 use crate::State;
-use crate::DEPOSITORY_SEED;
-use crate::PASSTHROUGH_SEED;
 use crate::SLIPPAGE_BASIS;
-use crate::STATE_SEED;
-use crate::UXD_SEED;
 use crate::perp_base_position;
+use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
+use crate::UXD_MINT_NAMESPACE;
 
 // First iteration
 // XXX oki this shit is complicated lets see what all is here...
@@ -50,39 +49,43 @@ use crate::perp_base_position;
 
 #[derive(Accounts)]
 pub struct MintUxd<'info> {
-    // XXX again we should use approvals so user doesnt need to sign
+    // XXX again we should use approvals so user doesnt need to sign - not sure what this old comment refers to
     pub user: Signer<'info>,
-    #[account(seeds = [STATE_SEED], bump)]
+    #[account(
+        seeds = [&State::discriminator()[..]],
+         bump = state.bump
+    )]
     pub state: Box<Account<'info, State>>,
     #[account(
-        seeds = [DEPOSITORY_SEED, collateral_mint.key().as_ref()],
-        bump
+        seeds = [&Depository::discriminator()[..], collateral_mint.key().as_ref()],
+        bump = depository.bump
     )]
     pub depository: Box<Account<'info, Depository>>,
-    // TODO use commented custom errors in 1.8.0 anchor and 1.8.0 solana mainnet
-    #[account(constraint = collateral_mint.key() == depository.collateral_mint_key)] //@ ControllerError::MintMismatchCollateral)]
+    #[account(
+        constraint = collateral_mint.key() == depository.collateral_mint @UXDError::MintMismatchCollateral
+    )]
     pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        seeds = [PASSTHROUGH_SEED, collateral_mint.key().as_ref()],
-        bump
+        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
+        bump = depository.collateral_passthrough_bump,
     )]
     pub collateral_passthrough: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        constraint = user_collateral.mint == depository.collateral_mint_key //@ ControllerError::UnexpectedCollateralMint
+        constraint = user_collateral.mint == depository.collateral_mint @UXDError::UnexpectedCollateralMint
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        constraint = user_uxd.mint == state.uxd_mint_key //@ ControllerError::InvalidUserUXDAssocTokenAccount
+        constraint = user_uxd.mint == state.uxd_mint @UXDError::InvalidUserUXDAssocTokenAccount
     )]
     pub user_uxd: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        seeds = [UXD_SEED], 
-        bump,
-        constraint = uxd_mint.key() == state.uxd_mint_key //@ ControllerError::MintMismatchUXD
+        seeds = [UXD_MINT_NAMESPACE], 
+        bump = state.uxd_mint_bump,
+        constraint = uxd_mint.key() == state.uxd_mint @UXDError::InvalidUxdMint
     )]
     pub uxd_mint: Box<Account<'info, Mint>>,
     // XXX start mango --------------------------------------------------------
@@ -115,12 +118,17 @@ pub struct MintUxd<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
+// Q for Max: when we open a short perp on mango, where are the feed taken from/paid from?
+// for intance, I create a new account on devnet with 10sol, I open a short perp of 10sol, get fees of 1$, don't appear anywhere. Is it directly in the perp PNL?
+//
+// How to constrain mango account? anythins special to do?
+
 // HANDLER
 pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> ProgramResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
     let depository_signer_seeds: &[&[&[u8]]] = &[&[
-        DEPOSITORY_SEED,
+        &Depository::discriminator()[..],
         collateral_mint.as_ref(),
         &[ctx.accounts.depository.bump],
     ]];
@@ -186,7 +194,7 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     let uxd_amount = derive_uxd_amount(&perp_info, &perp_account);
     msg!("uxd_amount minted {}", uxd_amount);
 
-    let state_signer_seed: &[&[&[u8]]] = &[&[STATE_SEED, &[ctx.accounts.state.bump]]];
+    let state_signer_seed: &[&[&[u8]]] = &[&[&State::discriminator()[..], &[ctx.accounts.state.bump]]];
     token::mint_to(
         ctx.accounts
             .into_mint_uxd_context()
@@ -299,7 +307,7 @@ fn slippage_deduction(price: I80F48, slippage: u32) -> I80F48 {
 fn check_short_perp_open_order_fully_filled(order_quantity: i64, pre_position: i64, post_position: i64) -> ProgramResult {
     let filled_amount = (post_position.checked_sub(pre_position).unwrap()).abs();
     if !(order_quantity == filled_amount) {
-        return Err(ControllerError::PerpOrderPartiallyFilled.into());
+        return Err(UXDError::PerpOrderPartiallyFilled.into());
     }
     Ok(())
 }
@@ -323,4 +331,9 @@ fn derive_uxd_amount(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48
     // XXX here it's considering UXD and USDC have same decimals -- FIX LATER
     // THIS SHOULD BE THE SPOT MARKET VALUE MINTED AND NOT THE PERP VALUE CAUSE ELSE IT'S TOO MUCH
     order_price_native_unit.checked_sub(fees).unwrap()
+}
+
+#[cfg(test)]
+struct Test {
+    
 }

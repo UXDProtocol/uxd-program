@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_lang::Discriminator;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
@@ -13,42 +14,56 @@ use mango::state::PerpAccount;
 
 use crate::mango_program;
 use crate::perp_base_position;
-use crate::ControllerError;
 use crate::Depository;
 use crate::PerpInfo;
 use crate::State;
-use crate::DEPOSITORY_SEED;
-use crate::PASSTHROUGH_SEED;
+use crate::UXDError;
+use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::SLIPPAGE_BASIS;
-use crate::STATE_SEED;
-use crate::UXD_SEED;
+use crate::UXD_MINT_NAMESPACE;
 
 #[derive(Accounts)]
 #[instruction(uxd_amount: u64)]
 pub struct RedeemUxd<'info> {
-    // XXX again we should use approvals so user doesnt need to sign
+    // XXX again we should use approvals so user doesnt need to sign - wut, asking hana
     pub user: Signer<'info>,
-    #[account(seeds = [STATE_SEED], bump)]
+    #[account(
+        seeds = [&State::discriminator()[..]],
+        bump = state.bump
+    )]
     pub state: Box<Account<'info, State>>,
-    #[account(seeds = [DEPOSITORY_SEED, collateral_mint.key().as_ref()], bump)]
+    #[account(
+        seeds = [&Depository::discriminator()[..], collateral_mint.key().as_ref()],
+        bump = depository.bump
+    )]
     pub depository: Box<Account<'info, Depository>>,
-    #[account(constraint = collateral_mint.key() == depository.collateral_mint_key)]
+    #[account(
+        constraint = collateral_mint.key() == depository.collateral_mint @UXDError::MintMismatchCollateral
+    )]
     pub collateral_mint: Box<Account<'info, Mint>>,
-    #[account(mut, seeds = [PASSTHROUGH_SEED, collateral_mint.key().as_ref()], bump)]
+    #[account(
+        mut,
+        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
+        bump = depository.collateral_passthrough_bump,
+    )]
     pub collateral_passthrough: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        constraint = user_collateral.mint == depository.collateral_mint_key,
+        constraint = user_collateral.mint == depository.collateral_mint @UXDError::MintMismatchCollateral
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        constraint = user_uxd.mint == uxd_mint.key(),
-        constraint = uxd_amount > 0,
-        constraint = user_uxd.amount >= uxd_amount, // THESE SHOULD USE the custom error to avoid ` custom program error: 0x8f ` -- OR the access_control
+        constraint = user_uxd.mint == uxd_mint.key() @UXDError::InvalidUxdMint,
+        constraint = uxd_amount > 0 @UXDError::InvalidUxdRedeemAmount,
+        constraint = user_uxd.amount >= uxd_amount @UXDError::InsuficientUxdAmount
     )]
     pub user_uxd: Box<Account<'info, TokenAccount>>,
-    #[account(mut, seeds = [UXD_SEED], bump)]
+    #[account(
+        mut,
+        seeds = [UXD_MINT_NAMESPACE],
+        bump = state.uxd_mint_bump,
+    )]
     pub uxd_mint: Box<Account<'info, Mint>>,
     // XXX start mango --------------------------------------------------------
     // XXX All these account should be properly constrained
@@ -147,7 +162,7 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
     let depository_signer_seed: &[&[&[u8]]] = &[&[
-        DEPOSITORY_SEED,
+        &Depository::discriminator()[..],
         collateral_mint.as_ref(),
         &[ctx.accounts.depository.bump],
     ]];
@@ -161,7 +176,7 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     let price_adjusted = slippage_addition(perp_info.price, slippage);
 
     let base_lot_price_in_quote_unit = price_adjusted.checked_mul(perp_info.base_lot_size).unwrap();
-    msg!("base_lot_price_in_quote_unit {}", base_lot_price_in_quote_unit);
+    // msg!("base_lot_price_in_quote_unit {}", base_lot_price_in_quote_unit);
 
     // - [Calculates the quantity of short to close]
     // XXX assuming USDC and UXD have same decimals, need to fix
@@ -349,7 +364,7 @@ fn check_short_perp_close_order_fully_filled(
 ) -> ProgramResult {
     let filled_amount = (post_position.checked_sub(pre_position).unwrap()).abs();
     if !(order_quantity == filled_amount) {
-        return Err(ControllerError::PerpOrderPartiallyFilled.into());
+        return Err(UXDError::PerpOrderPartiallyFilled.into());
     }
     Ok(())
 }

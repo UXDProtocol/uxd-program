@@ -1,12 +1,10 @@
 import {
-  getMarketByPublicKey,
   getTokenByMint,
   MangoAccount,
   MangoCache,
   MangoGroup,
   nativeI80F48ToUi,
   PerpMarket,
-  PerpMarketConfig,
   QUOTE_INDEX,
   TokenConfig,
   zeroKey,
@@ -14,14 +12,13 @@ import {
   ZERO_I80F48,
 } from "@blockworks-foundation/mango-client";
 import { BN } from "@project-serum/anchor";
-import { controller } from "./test_integration_admin";
 import { PublicKey } from "@solana/web3.js";
 import { EOL } from "os";
 import { ControllerUXD, Depository } from "@uxdprotocol/solana-usds-client";
 
 export async function printMangoPDAInfo(depository: Depository, controller: ControllerUXD) {
   const mango = controller.mango;
-  const mangoPda = controller.mangoPda(depository.collateralMint);
+  const mangoPda = controller.mangoAccountPda(depository.collateralMint)[0];
   const groupConfig = mango.groupConfig;
   const mangoGroup = mango.group;
   const cache = await mango.group.loadCache(mango.client.connection);
@@ -85,7 +82,7 @@ export async function printMangoPDAInfo(depository: Depository, controller: Cont
       const perpMarketInfo = mangoGroup.perpMarkets[i];
       lines.push(
         //${market.name}: fail sometimes ...
-        `PERP -   [Base Pos: ${getBasePositionUiWithGroup(mangoAccount, i, mangoGroup).toFixed(6)}] / [Quote Pos: ${(
+        `PERP -  [Base Pos: ${getBasePositionUiWithGroup(mangoAccount, i, mangoGroup).toFixed(6)}] / [Quote Pos: ${(
           perpAccount.getQuotePosition(cache.perpMarketCache[i]).toNumber() / quoteAdj.toNumber()
         ).toFixed(4)}] / [Unsettled Funding: ${(
           perpAccount.getUnsettledFunding(cache.perpMarketCache[i]).toNumber() / quoteAdj.toNumber()

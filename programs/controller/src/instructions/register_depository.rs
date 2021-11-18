@@ -4,35 +4,46 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use mango::state::MangoAccount;
 use std::mem::size_of;
+use anchor_lang::Discriminator;
 
 use crate::mango_program;
 use crate::Depository;
 use crate::State;
-use crate::DEPOSITORY_SEED;
-use crate::MANGO_SEED;
-use crate::PASSTHROUGH_SEED;
-use crate::STATE_SEED;
+use crate::UXDError;
+use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
+use crate::MANGO_ACCOUNT_NAMESPACE;
 
 const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
 #[derive(Accounts)]
+#[instruction(
+    depository_bump: u8,
+    collateral_passthrough_bump: u8
+)]
 pub struct RegisterDepository<'info> {
-    #[account(mut, constraint = authority.key() == state.authority_key)]
+    #[account(
+        mut, 
+        constraint = authority.key() == state.authority @UXDError::InvalidAuthority
+    )]
     pub authority: Signer<'info>,
-    #[account(seeds = [STATE_SEED], bump)]
+    #[account(
+        seeds = [&State::discriminator()[..]],
+        bump,
+        has_one = authority,
+        )]
     pub state: Box<Account<'info, State>>,
     #[account(
         init,
-        seeds = [DEPOSITORY_SEED, collateral_mint.key().as_ref()],
-        bump,
+        seeds = [&Depository::discriminator()[..], collateral_mint.key().as_ref()],
+        bump = depository_bump,
         payer = authority,
     )]
     pub depository: Box<Account<'info, Depository>>,
     pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         init,
-        seeds = [PASSTHROUGH_SEED, collateral_mint.key().as_ref()],
-        bump,
+        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
+        bump = collateral_passthrough_bump,
         token::mint = collateral_mint,
         token::authority = depository,
         payer = authority,
@@ -43,7 +54,7 @@ pub struct RegisterDepository<'info> {
     // The mango PDA
     #[account(
         init,
-        seeds = [MANGO_SEED, collateral_mint.key().as_ref()],
+        seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
         bump,
         owner = mango_program::Mango::id(),
         payer = authority,
@@ -58,19 +69,13 @@ pub struct RegisterDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<RegisterDepository>) -> ProgramResult {
-    let collateral_mint_key = ctx.accounts.collateral_mint.key();
+pub fn handler(ctx: Context<RegisterDepository>, depository_bump: u8, collateral_passthrough_bump: u8) -> ProgramResult {
+    let collateral_mint = ctx.accounts.collateral_mint.key();
 
     // - Initialize Mango Account
-
-    let depository_bump = Pubkey::find_program_address(
-        &[DEPOSITORY_SEED, collateral_mint_key.as_ref()],
-        ctx.program_id,
-    )
-    .1;
     let depository_signer_seed: &[&[&[u8]]] = &[&[
-        DEPOSITORY_SEED,
-        collateral_mint_key.as_ref(),
+        &Depository::discriminator()[..],
+        collateral_mint.as_ref(),
         &[depository_bump],
     ]];
     mango_program::initialize_mango_account(
@@ -84,9 +89,10 @@ pub fn handler(ctx: Context<RegisterDepository>) -> ProgramResult {
     // we also use this to derive the depository state key, from which we get mint and account keys
     // creating a hierarchy of trust rooted at the authority key that instantiated the controller
     ctx.accounts.depository.bump = depository_bump;
-    ctx.accounts.depository.collateral_mint_key = collateral_mint_key;
-    ctx.accounts.depository.collateral_passthrough_key = ctx.accounts.collateral_passthrough.key();
-    ctx.accounts.depository.mango_account_key = ctx.accounts.mango_account.key();
+    ctx.accounts.depository.collateral_mint = collateral_mint;
+    ctx.accounts.depository.collateral_passthrough = ctx.accounts.collateral_passthrough.key();
+    ctx.accounts.depository.collateral_passthrough_bump = collateral_passthrough_bump;
+    ctx.accounts.depository.mango_account = ctx.accounts.mango_account.key();
 
     Ok(())
 }

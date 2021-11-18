@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 #[derive(Default)]
 pub struct State {
     pub bump: u8,
-    pub authority_key: Pubkey,
-    pub uxd_mint_key: Pubkey,
+    pub authority: Pubkey,
+    pub uxd_mint: Pubkey,
+    pub uxd_mint_bump: u8,
 }
