@@ -176,10 +176,7 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     let price_adjusted = slippage_addition(perp_info.price, slippage);
 
     let base_lot_price_in_quote_unit = price_adjusted.checked_mul(perp_info.base_lot_size).unwrap();
-    msg!(
-        "base_lot_price_in_quote_unit {}",
-        base_lot_price_in_quote_unit
-    );
+    // msg!("base_lot_price_in_quote_unit {}", base_lot_price_in_quote_unit);
 
     // - [Calculates the quantity of short to close]
     // XXX assuming USDC and UXD have same decimals, need to fix

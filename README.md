@@ -5,10 +5,10 @@
 ```Zsh
 $> yarn
 ```
-
 Recommended to use https://github.com/mozilla/sccache to build faster, follow install instruction there.
 
 The project uses a few line of optimisation for building taken from the Discord, but that need to be investigated further. (See the workspace cargo.toml)
+
 
 ## Running tests
 
