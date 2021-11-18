@@ -1,7 +1,9 @@
 use anchor_lang::prelude::*;
 
 #[error]
-pub enum ControllerError {
+pub enum UXDError {
+    #[msg("Only the Program initializer authority can access this instructions.")]
+    InvalidAuthority,
     #[msg("Error while getting the UXD value of the deposited coin amount.")]
     PositionAmountCalculation,
     #[msg("The associated mango root bank index cannot be found for the deposited coin..")]
@@ -14,14 +16,16 @@ pub enum ControllerError {
     UnexpectedCollateralMint,
     #[msg("Collateral amount must be > 0 in order to mint.")]
     InvalidCollateralAmount,
-    #[msg(
-        "The balance of the collateral account if not enough to fulfill the desired mint quantity."
-    )]
+    #[msg("The balance of the collateral ATA is not enough to fulfill the desired mint quantity.")]
     InsuficientCollateralAmount,
-    #[msg("The UXD Mint provided does not match the one from the state.")]
-    MintMismatchUXD,
+    #[msg("The redeem amount must be superior to 0.")]
+    InvalidUxdRedeemAmount,
+    #[msg("The balance of the uxd ATA is not enough to fulfill the desired mint quantity.")]
+    InsuficientUxdAmount,
+    #[msg("The provided UXD Mint provided is not valid.")]
+    InvalidUxdMint,
     #[msg("The Collateral Mint provided does not match the one from the depository.")]
     MintMismatchCollateral,
-    #[msg("The UXD Assoc Token account does not have the right mint.")]
+    #[msg("The UXD ATA does not have the right mint.")]
     InvalidUserUXDAssocTokenAccount,
 }

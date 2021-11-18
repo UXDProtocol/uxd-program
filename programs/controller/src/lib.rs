@@ -5,18 +5,19 @@ pub mod instructions;
 pub mod mango_program;
 pub mod state;
 
-pub use crate::error::ControllerError;
+pub use crate::error::UXDError;
 pub use crate::instructions::*;
 pub use crate::state::*;
 
 pub const UXD_DECIMAL: u8 = 6;
-pub const STATE_SEED: &[u8] = b"STATE";
-pub const UXD_SEED: &[u8] = b"STABLECOIN";
-pub const DEPOSITORY_SEED: &[u8] = b"DEPOSITORY";
-pub const PASSTHROUGH_SEED: &[u8] = b"PASSTHROUGH";
-pub const MANGO_SEED: &[u8] = b"MANGO";
 
-solana_program::declare_id!("ApVgX5qusyJraPNwctnTQMv9wUE7GEV7eBNdCfkaJack");
+// These are just namespaces for the PDA creations. When possible we use
+// anchor discriminator of the underlaying account, else these.
+pub const UXD_MINT_NAMESPACE: &[u8] = b"Stablecoin";
+pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"Passthrough";
+pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MangoAccount";
+
+solana_program::declare_id!("2LPRW9PfkbeaoHEu1YJwVSvnU84NgfpWx2x6bVdoYh4U");
 
 #[program]
 #[deny(unused_must_use)]
@@ -25,11 +26,16 @@ pub mod controller {
     use super::*;
 
     // INITIALIZE
-    // create controller state, create uxd (this could happen elsewhere later)
-    // the key we pass in as authority *must* be retained/protected to add depositories
-    pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+    // configure the main state account of the program, and the UXD mint under it's authority
+    // the authority is set (the signer of this call), any other admin operation will be
+    // only accessible through the same signer later on. (Use a multisig/mango DAO for it)
+    pub fn initialize(
+        ctx: Context<Initialize>,
+        state_bump: u8,
+        uxd_mint_bump: u8,
+    ) -> ProgramResult {
         msg!("initialize starts");
-        instructions::initialize::handler(ctx)
+        instructions::initialize::handler(ctx, state_bump, uxd_mint_bump)
     }
 
     // REGISTER DEPOSITORY
@@ -38,9 +44,17 @@ pub mod controller {
     // create a passthrough account for whatever coin corresponds to this depository
     // we need this because the owner of the mango account and the token account must be the same
     // so we cant move funds directly from the user to mango
-    pub fn register_depository(ctx: Context<RegisterDepository>) -> ProgramResult {
+    pub fn register_depository(
+        ctx: Context<RegisterDepository>,
+        depository_bump: u8,
+        collateral_passthrough_bump: u8,
+    ) -> ProgramResult {
         msg!("register_depository starts");
-        instructions::register_depository::handler(ctx)
+        instructions::register_depository::handler(
+            ctx,
+            depository_bump,
+            collateral_passthrough_bump,
+        )
     }
 
     /// MINT UXD
@@ -97,7 +111,7 @@ const SLIPPAGE_BASIS: u32 = 1000;
 // Asserts that the amount of usdc is available in the user account.
 fn valid_slippage<'info>(slippage: u32) -> ProgramResult {
     if !(slippage <= SLIPPAGE_BASIS) {
-        return Err(ControllerError::InvalidSlippage.into());
+        return Err(UXDError::InvalidSlippage.into());
     }
     Ok(())
 }
@@ -107,10 +121,10 @@ pub fn check_amount_constraints<'info>(
     collateral_amount: u64,
 ) -> ProgramResult {
     if !(collateral_amount > 0) {
-        return Err(ControllerError::InvalidCollateralAmount.into());
+        return Err(UXDError::InvalidCollateralAmount.into());
     }
     if !(ctx.accounts.user_collateral.amount >= collateral_amount) {
-        return Err(ControllerError::InsuficientCollateralAmount.into());
+        return Err(UXDError::InsuficientCollateralAmount.into());
     }
     Ok(())
 }
