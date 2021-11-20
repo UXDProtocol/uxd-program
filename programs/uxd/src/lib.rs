@@ -18,7 +18,7 @@ pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"RedeemableMint";
 pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"CollateralPassthrough";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MangoAccount";
 
-solana_program::declare_id!("2iX8NM3dAyx3nhE89WfU6XZjYXFsSuLjqceyequCDn9i");
+solana_program::declare_id!("7JLxwYKpmqe2fMKmU9EmSWEehG32NUkcPLnCBXcViSeG");
 
 #[program]
 #[deny(unused_must_use)]

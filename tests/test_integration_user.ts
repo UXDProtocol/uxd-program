@@ -182,7 +182,7 @@ async function printDepositoryInfo(depository: Depository, mango: Mango) {
         *     collateral_passthrough:                 ${await getBalance(depository.collateralPassthroughPda)}`);
   console.log("------------------------------------------------------");
   let mangoAccount = await mango.load(depository.mangoAccountPda); // might do that in the TS object then reload idk
-  mango.printAccountInfo(mangoAccount);
+  await mango.printAccountInfo(mangoAccount);
   console.log("------------------------------------------------------");
 }
 

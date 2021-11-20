@@ -9,10 +9,10 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@blockworks-foundation/mango-client@^3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@blockworks-foundation/mango-client/-/mango-client-3.2.1.tgz#0a9edcfcb57e488f2774b7e9965f6e3263b23ff5"
-  integrity sha512-04aGeG6q+WoKsFengSKyH5+Jdifb2t7cZ4xxtH1tjxu4NnsSowXlpZ3C5ETKhCKzlVmvdO5ZdN6OLslaCQjE1g==
+"@blockworks-foundation/mango-client@^3.2.7":
+  version "3.2.7"
+  resolved "https://registry.yarnpkg.com/@blockworks-foundation/mango-client/-/mango-client-3.2.7.tgz#ad7e568b7955d6bf88158ef03572640e9b593c03"
+  integrity sha512-J16W652E8XVCA4E5oYJCo/opfpa33LtoA7n3S6qjl7MPsu6M5fzaSdxVltCjH9r4x5aKt9muDDQUzP4Yu9YyMw==
   dependencies:
     "@project-serum/anchor" "^0.16.2"
     "@project-serum/serum" "0.13.55"
@@ -175,7 +175,7 @@
     superstruct "^0.14.2"
     tweetnacl "^1.0.0"
 
-"@solana/web3.js@^1.17.0", "@solana/web3.js@^1.21.0":
+"@solana/web3.js@1.30.2", "@solana/web3.js@^1.17.0", "@solana/web3.js@^1.21.0":
   version "1.30.2"
   resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.30.2.tgz#e85da75e0825dc64f53eb64a1ff0115b27bec135"
   integrity sha512-hznCj+rkfvM5taRP3Z+l5lumB7IQnDrB4l55Wpsg4kDU9Zds8pE5YOH5Z9bbF/pUzZJKQjyBjnY/6kScBm3Ugg==
@@ -270,15 +270,15 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@uxdprotocol/uxd-client@^1.36.0":
-  version "1.36.0"
-  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/1.36.0/0c0e0f2dd18434196e41b679c8a376499db28a5c6da22dd42ecaa9f04022dbfb#04407e831f48b7bc01b31a5b6ef55fd7f103b875"
-  integrity sha512-W1UNcvRDrkXk2bXx+62tYIQCPAE43PXYSM1S5rRbIGu0o9Nu+dBPGbIgXh0pwXVcZl5rpO87xyX8fLe70VY1cg==
+"@uxdprotocol/uxd-client@^1.38.0":
+  version "1.38.0"
+  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/1.38.0/b91bda70336a2b391a44334489bc18eb1c6bec8cc6241fd5fc96f41c9e072446#876c8a25025675e8511575f20841d6f376e53276"
+  integrity sha512-1wPbjCb6rfr/QcqWg2CHVyxaJEj8ZiMUScZefbsdbyyis2vthJ8fJQbvxyw5WdGDuiVypY9d/rPcQFIWQXkjYQ==
   dependencies:
-    "@blockworks-foundation/mango-client" "^3.2.1"
+    "@blockworks-foundation/mango-client" "^3.2.7"
     "@project-serum/anchor" "^0.18.2"
     "@solana/spl-token" "^0.1.8"
-    "@solana/web3.js" "1.21.0"
+    "@solana/web3.js" "1.30.2"
 
 JSONStream@^1.3.5:
   version "1.3.5"

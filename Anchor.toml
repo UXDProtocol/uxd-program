@@ -3,10 +3,10 @@ cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [programs.devnet]
-uxd = "2iX8NM3dAyx3nhE89WfU6XZjYXFsSuLjqceyequCDn9i"
+uxd = "7JLxwYKpmqe2fMKmU9EmSWEehG32NUkcPLnCBXcViSeG"
 
 [programs.mainnet]
-uxd = "2iX8NM3dAyx3nhE89WfU6XZjYXFsSuLjqceyequCDn9i"
+uxd = "7JLxwYKpmqe2fMKmU9EmSWEehG32NUkcPLnCBXcViSeG"
 
 [registry]
 url = "https://anchor.projectserum.com"

@@ -13,7 +13,7 @@ before("Load Mango + print perpMarketConfig for BTC", async () => {
   const perpMarketIndexBTC = perpMarketConfigBTC.marketIndex;
   const perpMarketBTC = await mango.group.loadPerpMarket(provider.connection, perpMarketIndexBTC, perpMarketConfigBTC.baseDecimals, perpMarketConfigBTC.quoteDecimals);
   console.log("--- Printing the Mango BTC perp market informations ---------------- ");
-  console.log(perpMarketBTC.toPrettyString(perpMarketConfigBTC));
+  console.log(perpMarketBTC.toPrettyString(mango.group, perpMarketConfigBTC));
   console.log("--------------------------- START TESTS ---------------------------- \n");
 });
 
