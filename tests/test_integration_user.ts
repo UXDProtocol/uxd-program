@@ -1,59 +1,62 @@
 import { expect } from "chai";
 import { PublicKey } from "@solana/web3.js";
-import { ControllerUXD, Depository, findATAAddrSync } from "@uxdprotocol/solana-usds-client";
+import { Controller, createAndInitializeMango, Depository, findATAAddrSync, Mango } from "@uxdprotocol/uxd-client";
 import { user, BTC, WSOL } from "./identities";
-import { controllerUXD, depositoryBTC, depositoryWSOL } from "./test_integration_permissionned";
+import { controllerUXD, depositoryBTC, depositoryWSOL, mintWithMangoDepository, redeemFromMangoDepository } from "./uxdApi";
 import { TXN_COMMIT, TXN_OPTS, provider } from "./provider";
-import { printMangoPDAInfo } from "./debug_printers";
+
+// Util object to interact with Mango, dependency for MangoDepositories
+let mango: Mango;
 
 // User's SPL Accounts
 let userBTCTokenAccount: PublicKey = findATAAddrSync(user, BTC)[0];
 let userWSOLTokenAccount: PublicKey = findATAAddrSync(user, WSOL)[0];
-let userUXDTokenAccount: PublicKey = findATAAddrSync(user, controllerUXD.uxdMintPda)[0];
+let userUXDTokenAccount: PublicKey = findATAAddrSync(user, controllerUXD.mintPda)[0];
 
-before("World state", async () => {
-  printEnvironment();
+before("initialize Mango + print world state", async () => {
+  mango = await createAndInitializeMango(provider, `devnet`);
+  printWorldInfo();
+  await printUserBalances();
 });
 
 describe("Mint then redeem all BTC", () => {
+
   let uxdLeftOver;
 
-  afterEach("[General balances info]", async () => {
-    // seems we have unreliable result sometimes, idk if I need to update a cache or sleep or what
-    await sleep(3000);
-    // Get fresh cash and info from mango
-    await controllerUXD.mango.setupMangoGroup();
-    await printUserBalance();
-    await printSystemBalance(depositoryBTC);
-    await printMangoPDAInfo(depositoryBTC, controllerUXD);
-    console.log("\n\n\n");
+  afterEach("Balances info", async () => {
+    await printUserBalances();
+    await printDepositoryInfo(depositoryBTC, mango);
+    console.log("\n\n");
   });
 
-  it("Take initial UXD balance to offset the checks", async () => {
+  it("Fetch initial UXD balance", async () => {
     uxdLeftOver = await getBalance(userUXDTokenAccount);
-    /* no-op */
   });
 
   it("Mint UXD worth 0.01 BTC with 1% max slippage", async () => {
     // GIVEN
-    const collateralAmount = 0.01;
+    const caller = user;
     const slippage = 10; // <=> 1%
+    const collateralAmount = 0.01; // in BTC
+    const depository = depositoryBTC;
+    const controller = controllerUXD;
+
     // WHEN
-    await controllerUXD.mintUXD(collateralAmount, slippage, depositoryBTC, user, TXN_OPTS);
+    await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
 
     // Then
   });
 
   it("Redeem all remaining UXD with 1% max slippage", async () => {
     // GIVEN
-    let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-    const amountUXD = _userUXDTokenAccountBalance - uxdLeftOver;
+    const caller = user;
     const slippage = 10; // <=> 1%
-    // const _expectedUserUXDBalance = 0;
+    const amountRedeemable = (await getBalance(userUXDTokenAccount)) - uxdLeftOver; // In UXD
+    const depository = depositoryBTC;
+    const controller = controllerUXD;
 
-    console.log(`     > reedeem amount : ${amountUXD}`);
     // WHEN
-    await controllerUXD.redeemUXD(amountUXD, slippage, depositoryBTC, user, TXN_OPTS);
+    await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
 
     // THEN
     // _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
@@ -62,45 +65,44 @@ describe("Mint then redeem all BTC", () => {
 });
 
 describe("Mint then redeem all WSOL", () => {
+
   let uxdLeftOver;
 
-  afterEach("[General balances info]", async () => {
-    // seems we have unreliable result sometimes, idk if I need to update a cache or sleep or what
-    await sleep(3000);
-    // Get fresh cash and info from mango
-    await controllerUXD.mango.setupMangoGroup();
-    await printUserBalance();
-    await printSystemBalance(depositoryWSOL);
-    await printMangoPDAInfo(depositoryWSOL, controllerUXD);
-    console.log("\n\n\n");
+  afterEach("Balances info", async () => {
+    await printUserBalances();
+    await printDepositoryInfo(depositoryWSOL, mango);
+    console.log("\n\n");
   });
 
-  it("Initial balances", async () => {
+  it("Fetch initial UXD balances", async () => {
     uxdLeftOver = await getBalance(userUXDTokenAccount);
-    /* no-op - prints after each */
   });
 
   it("Mint UXD worth 1 WSOL with 1% max slippage", async () => {
     // GIVEN
-    const collateralAmount = 1;
+    const caller = user;
     const slippage = 10; // <=> 1%
+    const collateralAmount = 1; // in WSol
+    const depository = depositoryWSOL;
+    const controller = controllerUXD;
+
     // WHEN
-    await controllerUXD.mintUXD(collateralAmount, slippage, depositoryWSOL, user, TXN_OPTS);
+    await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
 
     // Then
   });
 
   it("Redeem all remaining UXD with 1% max slippage", async () => {
     // GIVEN
-    let _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
-    const amountUXD = _userUXDTokenAccountBalance - uxdLeftOver;
+    const caller = user;
     const slippage = 10; // <=> 1%
-    // const _expectedUserUXDBalance = 0;
-
-    console.log(`     > reedeem amount : ${amountUXD}`);
+    const amountRedeemable = (await getBalance(userUXDTokenAccount)) - uxdLeftOver; // In UXD
+    const depository = depositoryWSOL;
+    const controller = controllerUXD;
 
     // WHEN
-    await controllerUXD.redeemUXD(amountUXD, slippage, depositoryWSOL, user, TXN_OPTS);
+    console.log(`     > reedeem amount : ${amountRedeemable}`);
+    await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
 
     // THEN
     // _userUXDTokenAccountBalance = await getBalance(userUXDTokenAccount);
@@ -162,9 +164,9 @@ describe("Mint then redeem all WSOL", () => {
 //   });
 // });
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// function sleep(ms) {
+//   return new Promise((resolve) => setTimeout(resolve, ms));
+// }
 
 function getBalance(tokenAccount: PublicKey): Promise<number> {
   return provider.connection
@@ -173,29 +175,28 @@ function getBalance(tokenAccount: PublicKey): Promise<number> {
     .catch(() => null);
 }
 
-function printEnvironment() {
+async function printDepositoryInfo(depository: Depository, mango: Mango) {
+  const SYM = depository.collateralMintSymbol;
   console.log(`\
-    * BTC mint:                           ${BTC.toString()}
-    * WSOL mint:                          ${WSOL.toString()}
-    * UXD mint:                           ${controllerUXD.uxdMintPda.toString()}
-    * ---- 
-    * user's BTC tokenAcc                 ${userBTCTokenAccount.toString()}
-    * user's WSOL tokenAcc                ${userWSOLTokenAccount.toString()}
-    * user's UXD tokenAcc                 ${userUXDTokenAccount.toString()}`);
+        * [Depository ${SYM}]
+        *     collateral_passthrough:                 ${await getBalance(depository.collateralPassthroughPda)}`);
+  console.log("------------------------------------------------------");
+  let mangoAccount = await mango.load(depository.mangoAccountPda); // might do that in the TS object then reload idk
+  mango.printAccountInfo(mangoAccount);
+  console.log("------------------------------------------------------");
 }
 
-async function printSystemBalance(depository: Depository) {
-  const SYM = depository.collateralSymbol;
-  const passthroughPda = controllerUXD.collateralPassthroughPda(depository.collateralMint)[0];
-  console.log(`\
-        * [controller]
-        *     associated ${SYM} passthrough:                 ${await getBalance(passthroughPda)}`);
-}
-
-async function printUserBalance() {
+async function printUserBalances() {
   console.log(`\
         * [user]:
         *     BTC:                                        ${await getBalance(userBTCTokenAccount)}
         *     WSOL:                                       ${await getBalance(userWSOLTokenAccount)}
         *     UXD:                                        ${await getBalance(userUXDTokenAccount)}`);
+}
+
+function printWorldInfo() {
+  console.log(`\
+    * BTC mint:                           ${BTC.toString()}
+    * WSOL mint:                          ${WSOL.toString()}
+    * UXD mint:                           ${controllerUXD.mintPda.toString()}`);
 }

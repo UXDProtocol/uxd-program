@@ -18,7 +18,7 @@ pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"RedeemableMint";
 pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"CollateralPassthrough";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MangoAccount";
 
-solana_program::declare_id!("HTP8ZHRKEANYbJ9nZqoGNDihPdrAdyEiKg8yyzvPae7j");
+solana_program::declare_id!("2iX8NM3dAyx3nhE89WfU6XZjYXFsSuLjqceyequCDn9i");
 
 #[program]
 #[deny(unused_must_use)]
@@ -71,7 +71,7 @@ pub mod uxd {
     // A `Depository` account owns a `collateral_passthrough` PDA as the owner of the mango account and
     //   the token account must be the same so we can't move fund directly from the use to Mango.
     // A `Depository` account own a `mango_account` PDA to deposit, withdraw, and open orders on Mango Market.
-    pub fn register_depository_mango(
+    pub fn register_mango_depository(
         ctx: Context<RegisterMangoDepository>,
         depository_bump: u8,
         collateral_passthrough_bump: u8,
@@ -92,11 +92,12 @@ pub mod uxd {
         valid_slippage(slippage)
         check_amount_constraints(&ctx, collateral_amount)
     )]
-    pub fn mint_on_mango_depository(
+    pub fn mint_with_mango_depository(
         ctx: Context<MintWithMangoDepository>,
         collateral_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
+        msg!("MINT");
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, slippage)
     }
 
