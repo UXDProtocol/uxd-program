@@ -1,4 +1,4 @@
-# solana-usds
+# UXD-Program
 
 ## Installation
 
