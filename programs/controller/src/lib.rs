@@ -17,7 +17,7 @@ pub const UXD_MINT_NAMESPACE: &[u8] = b"Stablecoin";
 pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"Passthrough";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MangoAccount";
 
-solana_program::declare_id!("2LPRW9PfkbeaoHEu1YJwVSvnU84NgfpWx2x6bVdoYh4U");
+solana_program::declare_id!("8LwByH5dsDPpW2TdqKWAbZ9X4bQQifnq3UT9wJjmcpWv");
 
 #[program]
 #[deny(unused_must_use)]
