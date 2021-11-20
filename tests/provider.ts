@@ -11,5 +11,5 @@ export const TXN_OPTS = {
 };
 
 // Provider
-export const provider = Provider.local("https://api.devnet.solana.com", TXN_OPTS); // should use provider from env
+export const provider = Provider.env();
 setProvider(provider);

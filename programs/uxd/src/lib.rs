@@ -31,15 +31,15 @@ pub mod uxd {
     // In the case of UXD, the redeemable_mint is the UXD's mint.
     pub fn initialize_controller(
         ctx: Context<InitializeController>,
-        controller_bump: u8,
+        bump: u8,
         redeemable_mint_bump: u8,
         redeemable_mint_decimals: u8,
     ) -> ProgramResult {
         instructions::initialize_controller::handler(
             ctx,
-            redeemable_mint_decimals,
-            controller_bump,
+            bump,
             redeemable_mint_bump,
+            redeemable_mint_decimals,
         )
     }
 
@@ -73,14 +73,10 @@ pub mod uxd {
     // A `Depository` account own a `mango_account` PDA to deposit, withdraw, and open orders on Mango Market.
     pub fn register_mango_depository(
         ctx: Context<RegisterMangoDepository>,
-        depository_bump: u8,
+        bump: u8,
         collateral_passthrough_bump: u8,
     ) -> ProgramResult {
-        instructions::register_mango_depository::handler(
-            ctx,
-            depository_bump,
-            collateral_passthrough_bump,
-        )
+        instructions::register_mango_depository::handler(ctx, bump, collateral_passthrough_bump)
     }
 
     /// Mint UXD through a Depository using MangoMarkets.

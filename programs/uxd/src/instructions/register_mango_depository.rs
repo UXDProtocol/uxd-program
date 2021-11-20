@@ -18,7 +18,7 @@ const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 #[derive(Accounts)]
 #[instruction(
     depository_bump: u8,
-    collateral_passthrough_bump: u8
+    depository_collateral_passthrough_bump: u8
 )]
 pub struct RegisterMangoDepository<'info> {
     #[account(
@@ -27,10 +27,10 @@ pub struct RegisterMangoDepository<'info> {
     )]
     pub authority: Signer<'info>,
     #[account(
-        seeds = [&Controller::discriminator()[..]],
+        seeds = [&Controller::discriminator()[..]], 
         bump,
         has_one = authority,
-        )]
+    )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
         init,
@@ -43,7 +43,7 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         init,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = collateral_passthrough_bump,
+        bump = depository_collateral_passthrough_bump,
         token::mint = collateral_mint,
         token::authority = depository,
         payer = authority,
@@ -70,14 +70,18 @@ pub struct RegisterMangoDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<RegisterMangoDepository>, depository_bump: u8, collateral_passthrough_bump: u8) -> ProgramResult {
+pub fn handler(
+    ctx: Context<RegisterMangoDepository>,
+    bump: u8, 
+    collateral_passthrough_bump: u8
+) -> ProgramResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
     // - Initialize Mango Account
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         &MangoDepository::discriminator()[..],
         collateral_mint.as_ref(),
-        &[depository_bump],
+        &[bump],
     ]];
     mango_program::initialize_mango_account(
         ctx.accounts
@@ -89,7 +93,7 @@ pub fn handler(ctx: Context<RegisterMangoDepository>, depository_bump: u8, colla
     // this later acts as proof we trust a given depository
     // we also use this to derive the depository state key, from which we get mint and account keys
     // creating a hierarchy of trust rooted at the authority key that instantiated the controller
-    ctx.accounts.depository.bump = depository_bump;
+    ctx.accounts.depository.bump = bump;
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
     ctx.accounts.depository.collateral_passthrough_bump = collateral_passthrough_bump;

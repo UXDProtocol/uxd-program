@@ -45,11 +45,11 @@ pub struct InitializeController<'info> {
 
 pub fn handler(
     ctx: Context<InitializeController>,
-    redeemable_mint_decimals: u8,
-    controller_bump: u8,
+    bump: u8,
     redeemable_mint_bump: u8,
+    redeemable_mint_decimals: u8,
 ) -> ProgramResult {
-    ctx.accounts.controller.bump = controller_bump;
+    ctx.accounts.controller.bump = bump;
     ctx.accounts.controller.authority = ctx.accounts.authority.key();
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
     ctx.accounts.controller.redeemable_mint_bump = redeemable_mint_bump;
