@@ -13,15 +13,15 @@ use mango::state::MangoCache;
 use mango::state::MangoGroup;
 use mango::state::PerpAccount;
 
-use crate::PerpInfo;
 use crate::mango_program;
 use crate::UXDError;
-use crate::Depository;
-use crate::State;
+use crate::MangoDepository;
+use crate::Controller;
 use crate::SLIPPAGE_BASIS;
-use crate::perp_base_position;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
-use crate::UXD_MINT_NAMESPACE;
+use crate::REDEEMABLE_MINT_NAMESPACE;
+use crate::utils::PerpInfo;
+use crate::utils::perp_base_position;
 
 // First iteration
 // XXX oki this shit is complicated lets see what all is here...
@@ -44,64 +44,62 @@ use crate::UXD_MINT_NAMESPACE;
 // Place immediate perp order on mango using our deposited collateral for borrowing (short half)
 //   if it does not fill withing slippage, we abort
 // Mint equivalent amount of UXD as the position is covering for
-// basically what we do is take redeemables from the user, take coin from depository
-// send coin to mango, open position, mint uxd to user
 
 #[derive(Accounts)]
-pub struct MintUxd<'info> {
-    // XXX again we should use approvals so user doesnt need to sign - not sure what this old comment refers to
+pub struct MintWithMangoDepository<'info> {
+    // XXX again we should use approvals so user doesnt need to sign
     pub user: Signer<'info>,
     #[account(
-        seeds = [&State::discriminator()[..]],
-         bump = state.bump
+        seeds = [&Controller::discriminator()[..]],
+         bump = controller.bump
     )]
-    pub state: Box<Account<'info, State>>,
+    pub controller: Box<Account<'info, Controller>>,
     #[account(
-        seeds = [&Depository::discriminator()[..], collateral_mint.key().as_ref()],
+        seeds = [&MangoDepository::discriminator()[..], collateral_mint.key().as_ref()],
         bump = depository.bump
     )]
-    pub depository: Box<Account<'info, Depository>>,
+    pub depository: Box<Account<'info, MangoDepository>>,
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @UXDError::MintMismatchCollateral
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = depository.collateral_passthrough_bump,
-    )]
-    pub collateral_passthrough: Box<Account<'info, TokenAccount>>,
-    #[account(
-        mut,
-        constraint = user_collateral.mint == depository.collateral_mint @UXDError::UnexpectedCollateralMint
+        constraint = user_collateral.mint == depository.collateral_mint @UXDError::InvalidCollateralMint
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        constraint = user_uxd.mint == state.uxd_mint @UXDError::InvalidUserUXDAssocTokenAccount
+        constraint = user_redeemable.mint == controller.redeemable_mint @UXDError::InvalidUserRedeemableATAMint
     )]
-    pub user_uxd: Box<Account<'info, TokenAccount>>,
+    pub user_redeemable: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        seeds = [UXD_MINT_NAMESPACE], 
-        bump = state.uxd_mint_bump,
-        constraint = uxd_mint.key() == state.uxd_mint @UXDError::InvalidUxdMint
+        seeds = [REDEEMABLE_MINT_NAMESPACE], 
+        bump = controller.redeemable_mint_bump,
+        constraint = redeemable_mint.key() == controller.redeemable_mint @UXDError::InvalidRedeemableMint
     )]
-    pub uxd_mint: Box<Account<'info, Mint>>,
-    // XXX start mango --------------------------------------------------------
+    pub redeemable_mint: Box<Account<'info, Mint>>,
+    #[account(
+        mut,
+        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
+        bump = depository.collateral_passthrough_bump,
+    )]
+    pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
+    #[account(
+        mut
+        // TODO ADD SOME KIND OF CHECKS HERE I ASSUME
+    )]
+    pub depository_mango_account: AccountInfo<'info>,
+    // Mango related accounts -------------------------------------------------
     // XXX All these account should be properly constrained
-    // MangoGroup that this mango account is for
     pub mango_group: AccountInfo<'info>,
-    // Mango Account of the Depository Record
-    #[account(mut)]
-    pub mango_account: AccountInfo<'info>,
     pub mango_cache: AccountInfo<'info>,
     pub mango_root_bank: AccountInfo<'info>,
     #[account(mut)]
     pub mango_node_bank: AccountInfo<'info>,
     #[account(mut)]
     pub mango_vault: Account<'info, TokenAccount>,
-    // The spot/perp market for `coin_mint` on mango, and the associated required accounts
     #[account(mut)]
     pub mango_perp_market: AccountInfo<'info>,
     #[account(mut)]
@@ -110,25 +108,21 @@ pub struct MintUxd<'info> {
     pub mango_asks: AccountInfo<'info>,
     #[account(mut)]
     pub mango_event_queue: AccountInfo<'info>,
-    // XXX end mango ----------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub mango_program: Program<'info, mango_program::Mango>,
-    //
+    // sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
-// Q for Max: when we open a short perp on mango, where are the feed taken from/paid from?
-// for intance, I create a new account on devnet with 10sol, I open a short perp of 10sol, get fees of 1$, don't appear anywhere. Is it directly in the perp PNL?
-//
-// How to constrain mango account? anythins special to do?
-
 // HANDLER
-pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> ProgramResult {
+pub fn handler(ctx: Context<MintWithMangoDepository>, collateral_amount: u64, slippage: u32) -> ProgramResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
     let depository_signer_seeds: &[&[&[u8]]] = &[&[
-        &Depository::discriminator()[..],
+        &MangoDepository::discriminator()[..],
         collateral_mint.as_ref(),
         &[ctx.accounts.depository.bump],
     ]];
@@ -138,7 +132,7 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     // msg!("Transfering user collateral to the passthrough account");
     token::transfer(ctx.accounts.into_transfer_user_collateral_to_passthrough_context(), collateral_amount)?;
 
-    // msg!("controller: mint uxd [Deposit Mango CPI]");
+    // msg!("uxd: mint uxd [Deposit Mango CPI]");
     mango_program::deposit(
         ctx.accounts
             .into_deposit_to_mango_context()
@@ -158,7 +152,7 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     // msg!("base_lot_price_in_quote_lot_unit (after slippage deduction): {}", base_lot_price_in_quote_lot_unit);
 
     // - [Calculates the quantity of base lot to open short] 
-    // XXX assuming USDC and UXD have same decimals, need to fix
+    // XXX assuming USDC and Redeemable (UXD) have same decimals, need to fix
     let collateral_amount_native_unit = I80F48::from_num(collateral_amount);
     let quantity_base_lot = collateral_amount_native_unit.checked_div(perp_info.base_lot_size).unwrap();
     // msg!("quantity_base_lot: {}", quantity_base_lot);
@@ -190,29 +184,29 @@ pub fn handler(ctx: Context<MintUxd>, collateral_amount: u64, slippage: u32) -> 
     // - [Verify that the order has been 100% filled]
     check_short_perp_open_order_fully_filled(order_quantity, pre_position, post_position)?;
 
-    // - 3 [MINTS THE HEDGED AMOUNT OF UXD] -----------------------------------
-    let uxd_amount = derive_uxd_amount(&perp_info, &perp_account);
-    msg!("uxd_amount minted {}", uxd_amount);
+    // - 3 [MINTS THE HEDGED AMOUNT OF REDEEMABLE] ----------------------------
+    let redeemable_amount = derive_redeemable_amount(&perp_info, &perp_account);
+    msg!("redeemable_amount minted {}", redeemable_amount);
 
-    let state_signer_seed: &[&[&[u8]]] = &[&[&State::discriminator()[..], &[ctx.accounts.state.bump]]];
+    let state_signer_seed: &[&[&[u8]]] = &[&[&Controller::discriminator()[..], &[ctx.accounts.controller.bump]]];
     token::mint_to(
         ctx.accounts
-            .into_mint_uxd_context()
+            .into_mint_redeemable_context()
             .with_signer(state_signer_seed),
-        uxd_amount.to_num(), // deposited_value best vs uxd_amount worse
+        redeemable_amount.to_num(), // deposited_value best vs uxd_amount worse
     )?;
 
     Ok(())
 }
 
-impl<'info> MintUxd<'info> {
+impl<'info> MintWithMangoDepository<'info> {
 
     pub fn into_transfer_user_collateral_to_passthrough_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
             from: self.user_collateral.to_account_info(),
-            to: self.collateral_passthrough.to_account_info(),
+            to: self.depository_collateral_passthrough_account.to_account_info(),
             authority: self.user.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
@@ -224,14 +218,14 @@ impl<'info> MintUxd<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, mango_program::Deposit<'info>> {
         let cpi_accounts = mango_program::Deposit {
             mango_group: self.mango_group.to_account_info(),
-            mango_account: self.mango_account.to_account_info(),
+            mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
             mango_root_bank: self.mango_root_bank.to_account_info(),
             mango_node_bank: self.mango_node_bank.to_account_info(),
             mango_vault: self.mango_vault.to_account_info(),
             token_program: self.token_program.to_account_info(),
-            owner_token_account: self.collateral_passthrough.to_account_info(),
+            owner_token_account: self.depository_collateral_passthrough_account.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -242,7 +236,7 @@ impl<'info> MintUxd<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, mango_program::PlacePerpOrder<'info>> {
         let cpi_accounts = mango_program::PlacePerpOrder {
             mango_group: self.mango_group.to_account_info(),
-            mango_account: self.mango_account.to_account_info(),
+            mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
             mango_perp_market: self.mango_perp_market.to_account_info(),
@@ -254,19 +248,19 @@ impl<'info> MintUxd<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_mint_uxd_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+    pub fn into_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = MintTo {
-            mint: self.uxd_mint.to_account_info(),
-            to: self.user_uxd.to_account_info(),
-            authority: self.state.to_account_info(),
+            mint: self.redeemable_mint.to_account_info(),
+            to: self.user_redeemable.to_account_info(),
+            authority: self.controller.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
 }
 
 // Additional convenience methods related to the inputed accounts
-impl<'info> MintUxd<'info> {
+impl<'info> MintWithMangoDepository<'info> {
     // Return general information about the perpetual related to the collateral in use
     fn perpetual_info(&self) -> PerpInfo {
         let mango_group =
@@ -286,7 +280,7 @@ impl<'info> MintUxd<'info> {
     fn perp_account(&self, perp_info: &PerpInfo) -> MangoResult<PerpAccount> {
         // - loads Mango's accounts
         let mango_account = MangoAccount::load_checked(
-            &self.mango_account,
+            &self.depository_mango_account,
             self.mango_program.key,
             self.mango_group.key,
         )?;
@@ -312,8 +306,8 @@ fn check_short_perp_open_order_fully_filled(order_quantity: i64, pre_position: i
     Ok(())
 }
 
-// Find out how much UXD the program mints for the user, derived from the outcome of the perp short opening
-fn derive_uxd_amount(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
+// Find out the amount of redeemable the program mints for the user, derived from the outcome of the perp short opening
+fn derive_redeemable_amount(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
     // Need to add a check to make sure we don't mint more UXD than collateral value `collateral_amount_native_unit` (stupid?)
     // - 
     // What is the valuation of the collateral? When we enter the instruction, do we value it from Base/ Perp price?
@@ -323,10 +317,10 @@ fn derive_uxd_amount(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48
 
     // - [Calculate the actual execution price (minus the mango fees)]
     let order_price_native_unit = I80F48::from_num(perp_account.taker_quote).checked_mul(perp_info.quote_lot_size).unwrap();
-    msg!("  derive_uxd_amount() - order_price_native_unit {}", order_price_native_unit);
+    msg!("  derive_redeemable_amount() - order_price_native_unit {}", order_price_native_unit);
 
     let fees = order_price_native_unit.abs() * perp_info.taker_fee;
-    msg!("  derive_uxd_amount() - fees {}", fees);
+    msg!("  derive_redeemable_amount() - fees {}", fees);
 
     // XXX here it's considering UXD and USDC have same decimals -- FIX LATER
     // THIS SHOULD BE THE SPOT MARKET VALUE MINTED AND NOT THE PERP VALUE CAUSE ELSE IT'S TOO MUCH

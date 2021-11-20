@@ -1,8 +1,7 @@
 /target/**
 !/target/deploy
 /target/deploy/*.so
-!/target/deploy/controller-keypair.json
-!/target/deploy/depository-keypair.json
+!/target/deploy/uxd-keypair.json
 *.swp
 node_modules/
 test-ledger/
