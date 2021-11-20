@@ -7,8 +7,8 @@ use std::mem::size_of;
 use anchor_lang::Discriminator;
 
 use crate::mango_program;
-use crate::Depository;
-use crate::State;
+use crate::MangoDepository;
+use crate::Controller;
 use crate::UXDError;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -20,25 +20,25 @@ const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
     depository_bump: u8,
     collateral_passthrough_bump: u8
 )]
-pub struct RegisterDepository<'info> {
+pub struct RegisterMangoDepository<'info> {
     #[account(
         mut, 
-        constraint = authority.key() == state.authority @UXDError::InvalidAuthority
+        constraint = authority.key() == controller.authority @UXDError::InvalidAuthority
     )]
     pub authority: Signer<'info>,
     #[account(
-        seeds = [&State::discriminator()[..]],
+        seeds = [&Controller::discriminator()[..]],
         bump,
         has_one = authority,
         )]
-    pub state: Box<Account<'info, State>>,
+    pub controller: Box<Account<'info, Controller>>,
     #[account(
         init,
-        seeds = [&Depository::discriminator()[..], collateral_mint.key().as_ref()],
+        seeds = [&MangoDepository::discriminator()[..], collateral_mint.key().as_ref()],
         bump = depository_bump,
         payer = authority,
     )]
-    pub depository: Box<Account<'info, Depository>>,
+    pub depository: Box<Account<'info, MangoDepository>>,
     pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         init,
@@ -48,10 +48,7 @@ pub struct RegisterDepository<'info> {
         token::authority = depository,
         payer = authority,
     )]
-    pub collateral_passthrough: Account<'info, TokenAccount>,
-    // The mango group for the mango_account
-    pub mango_group: AccountInfo<'info>,
-    // The mango PDA
+    pub depository_collateral_passthrough_account: Account<'info, TokenAccount>,
     #[account(
         init,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
@@ -60,7 +57,11 @@ pub struct RegisterDepository<'info> {
         payer = authority,
         space = MANGO_ACCOUNT_SPAN,
     )]
-    pub mango_account: AccountInfo<'info>,
+    pub depository_mango_account: AccountInfo<'info>,
+    // Mango related accounts -------------------------------------------------
+    // XXX Should be properly constrained
+    pub mango_group: AccountInfo<'info>,
+    // ------------------------------------------------------------------------
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -69,12 +70,12 @@ pub struct RegisterDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<RegisterDepository>, depository_bump: u8, collateral_passthrough_bump: u8) -> ProgramResult {
+pub fn handler(ctx: Context<RegisterMangoDepository>, depository_bump: u8, collateral_passthrough_bump: u8) -> ProgramResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
     // - Initialize Mango Account
     let depository_signer_seed: &[&[&[u8]]] = &[&[
-        &Depository::discriminator()[..],
+        &MangoDepository::discriminator()[..],
         collateral_mint.as_ref(),
         &[depository_bump],
     ]];
@@ -90,20 +91,20 @@ pub fn handler(ctx: Context<RegisterDepository>, depository_bump: u8, collateral
     // creating a hierarchy of trust rooted at the authority key that instantiated the controller
     ctx.accounts.depository.bump = depository_bump;
     ctx.accounts.depository.collateral_mint = collateral_mint;
-    ctx.accounts.depository.collateral_passthrough = ctx.accounts.collateral_passthrough.key();
+    ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
     ctx.accounts.depository.collateral_passthrough_bump = collateral_passthrough_bump;
-    ctx.accounts.depository.mango_account = ctx.accounts.mango_account.key();
+    ctx.accounts.depository.mango_account = ctx.accounts.depository_mango_account.key();
 
     Ok(())
 }
 
-impl<'info> RegisterDepository<'info> {
+impl<'info> RegisterMangoDepository<'info> {
     pub fn into_mango_account_initialization_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_program::InitMangoAccount<'info>> {
         let cpi_accounts = mango_program::InitMangoAccount {
             mango_group: self.mango_group.to_account_info(),
-            mango_account: self.mango_account.to_account_info(),
+            mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             rent: self.rent.to_account_info(),
         };

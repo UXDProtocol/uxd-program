@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 #[account]
 #[derive(Default)]
-pub struct Depository {
+pub struct MangoDepository {
     pub bump: u8,
     pub collateral_mint: Pubkey,
     pub collateral_passthrough: Pubkey,

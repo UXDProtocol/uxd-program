@@ -1,6 +1,8 @@
 use fixed::types::I80F48;
 use mango::state::{MangoCache, MangoGroup, PerpAccount};
 
+// mngo not to collide with mango
+
 #[derive(Debug)]
 pub struct PerpInfo {
     pub market_index: usize,
@@ -64,4 +66,9 @@ pub fn perp_base_position(perp_account: &PerpAccount) -> i64 {
         .base_position
         .checked_add(perp_account.taker_base)
         .unwrap()
+}
+
+#[cfg(test)]
+struct Test {
+    // TODO
 }

@@ -5,10 +5,10 @@
 ```Zsh
 $> yarn
 ```
-Recommended to use https://github.com/mozilla/sccache to build faster, follow install instruction there.
+
+Recommended to use <https://github.com/mozilla/sccache> to build faster, follow install instruction there.
 
 The project uses a few line of optimisation for building taken from the Discord, but that need to be investigated further. (See the workspace cargo.toml)
-
 
 ## Running tests
 
@@ -24,7 +24,7 @@ To do so the easiest is to redeploy the whole thing and work with new Accounts (
 
 ```Zsh
 # This will override the current deployment key in the target/deploy folder, it's fine this is not used anywhere never except for testing
-$> solana-keygen new -o ./target/deploy/controller-keypair.json --force
+$> solana-keygen new -o ./target/deploy/uxd-keypair.json --force
 ```
 
 Press enter for no password and you'r good.
@@ -40,7 +40,7 @@ solana_program::declare_id!("G8QatVyH14hwT6h8Q6Ld5q9D1CbivErcf6syzukREFs3");
 ```Yaml
 # In Anchor.toml this line :
 [programs.localnet]
-controller = "G8QatVyH14hwT6h8Q6Ld5q9D1CbivErcf6syzukREFs3"
+uxd = "G8QatVyH14hwT6h8Q6Ld5q9D1CbivErcf6syzukREFs3"
 ```
 
 You'r then good to go to run `anchor test --skip-local-validator` (As the validator is devnet in our case)
@@ -54,10 +54,11 @@ $> anchor deploy ... TODO
 ```
 
 _____
-# Architecture
 
-The program is contained in `programs/controller/`.
-Its instructions are in `programs/controller/src/instructions/`.
+## Architecture
+
+The program is contained in `programs/uxd/`.
+Its instructions are in `programs/uxd/src/instructions/`.
 
 The project follows the code org as done in [Jet protocol](https://github.com/jet-lab/jet-v1) codebase.
 
@@ -110,6 +111,14 @@ This initialize the State of the program. Called once, the signer becomes the au
 
 Instantiate a new `Depisitory` PDA for a given collateral mint.
 A depository is a vault in charge a Collateral type, the associated mango account and insurance fund.
+
+### `TransferAuthority`
+
+Update the Controller authority
+
+### `TransferMintAuthority`
+
+Eject the mint auth from the program, ending the program. Maybe should be "deinitialize", need to think.
 
 ### `RebalanceDepository` (Todo)
 
@@ -172,7 +181,7 @@ We burn the same value of UXD from what the user sent
 We withdraw the collateral amount equivalent to the perpshort that has been closed previously (post taxes calculation)
 We send that back to the user (and his remaining UXD are back too, if any)
 
-______
+_____
 
 ## how it work (Deprecated from Hana/Patrick - The R tokens are gone, thoughs? we removed them with Hana already)
 

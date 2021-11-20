@@ -13,40 +13,34 @@ use mango::state::MangoGroup;
 use mango::state::PerpAccount;
 
 use crate::mango_program;
-use crate::perp_base_position;
-use crate::Depository;
-use crate::PerpInfo;
-use crate::State;
+use crate::utils::perp_base_position;
+use crate::utils::PerpInfo;
+use crate::Controller;
+use crate::MangoDepository;
 use crate::UXDError;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
+use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SLIPPAGE_BASIS;
-use crate::UXD_MINT_NAMESPACE;
 
 #[derive(Accounts)]
-#[instruction(uxd_amount: u64)]
-pub struct RedeemUxd<'info> {
+#[instruction(redeemable_amount: u64)]
+pub struct RedeemFromMangoDepository<'info> {
     // XXX again we should use approvals so user doesnt need to sign - wut, asking hana
     pub user: Signer<'info>,
     #[account(
-        seeds = [&State::discriminator()[..]],
-        bump = state.bump
+        seeds = [&Controller::discriminator()[..]],
+        bump = controller.bump
     )]
-    pub state: Box<Account<'info, State>>,
+    pub controller: Box<Account<'info, Controller>>,
     #[account(
-        seeds = [&Depository::discriminator()[..], collateral_mint.key().as_ref()],
+        seeds = [&MangoDepository::discriminator()[..], collateral_mint.key().as_ref()],
         bump = depository.bump
     )]
-    pub depository: Box<Account<'info, Depository>>,
+    pub depository: Box<Account<'info, MangoDepository>>,
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @UXDError::MintMismatchCollateral
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
-    #[account(
-        mut,
-        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = depository.collateral_passthrough_bump,
-    )]
-    pub collateral_passthrough: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
         constraint = user_collateral.mint == depository.collateral_mint @UXDError::MintMismatchCollateral
@@ -54,33 +48,38 @@ pub struct RedeemUxd<'info> {
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        constraint = user_uxd.mint == uxd_mint.key() @UXDError::InvalidUxdMint,
-        constraint = uxd_amount > 0 @UXDError::InvalidUxdRedeemAmount,
-        constraint = user_uxd.amount >= uxd_amount @UXDError::InsuficientUxdAmount
+        constraint = user_redeemable.mint == redeemable_mint.key() @UXDError::InvalidRedeemableMint,
+        constraint = redeemable_amount > 0 @UXDError::InvalidRedeemAmount,
+        constraint = user_redeemable.amount >= redeemable_amount @UXDError::InsuficientRedeemableAmount
     )]
-    pub user_uxd: Box<Account<'info, TokenAccount>>,
+    pub user_redeemable: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        seeds = [UXD_MINT_NAMESPACE],
-        bump = state.uxd_mint_bump,
+        seeds = [REDEEMABLE_MINT_NAMESPACE],
+        bump = controller.redeemable_mint_bump,
     )]
-    pub uxd_mint: Box<Account<'info, Mint>>,
-    // XXX start mango --------------------------------------------------------
+    pub redeemable_mint: Box<Account<'info, Mint>>,
+    #[account(
+        mut,
+        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
+        bump = depository.collateral_passthrough_bump,
+    )]
+    pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
+    #[account(
+        mut
+        // TODO ADD SOME KIND OF CHECKS HERE I ASSUME
+    )]
+    pub depository_mango_account: AccountInfo<'info>,
+    // Mango related accounts -------------------------------------------------
     // XXX All these account should be properly constrained
-    // MangoGroup that this mango account is for
     pub mango_group: AccountInfo<'info>,
-    // Mango Account of the Depository Record
-    #[account(mut)]
-    pub mango_account: AccountInfo<'info>,
     pub mango_cache: AccountInfo<'info>,
-    // This is some mango internal stuff - name is misleading
     pub mango_signer: AccountInfo<'info>,
     pub mango_root_bank: AccountInfo<'info>,
     #[account(mut)]
     pub mango_node_bank: AccountInfo<'info>,
     #[account(mut)]
     pub mango_vault: Account<'info, TokenAccount>,
-    // The perp market for `collateral_mint` on mango, and the associated required accounts
     #[account(mut)]
     pub mango_perp_market: AccountInfo<'info>,
     #[account(mut)]
@@ -89,7 +88,7 @@ pub struct RedeemUxd<'info> {
     pub mango_asks: AccountInfo<'info>,
     #[account(mut)]
     pub mango_event_queue: AccountInfo<'info>,
-    // XXX end mango ----------------------------------------------------------
+    // ------------------------------------------------------------------------
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -98,71 +97,15 @@ pub struct RedeemUxd<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-// About Mango (Serum) lots size, native units, life and the universe
-//
-// First some context:
-//
-// A part is defined as BASE/QUOTE, base being the asset valued using quote
-// BASE and QUOTE are both SPL tokens, and have varying decimals.
-//
-// `lot_size` are an abritrary amount, the minimum amount of `unit`, previously described, tradable
-// both QUOTE and BASE has a specific lot size, for BTC it's 10 and USDC it's 100.
-// `base_unit` and `quote_unit` are simply `10^respective_decimals`.
-// Meaning you cannot trade smaller chunks that 10 units.
-//
-// So let's take BTC/USDC perp for instance :
-//
-// BTC has 8 decimals
-// so 1BTC == to  100_000_000 BTC   native units (satoshis)
-//
-// USDC has 6 decimals
-// so 1USDC == to   1_000_000 USDC  native units (tinycents idk)
-//
-// Mango base lot size for BTC is 10 (arbitrary, probably from Serum)
-// That means that mango smallest amount for trades in BTC is 10 satoshis (0.00_000_010)
-// For USDC it's 100, meaning 0.00_0100
-//
-// If you want to trade BTC with mango, you need to think in lot size,
-//  hence take your native units, and divide them by base_lot_size for that perp
-//
-// I want to place a perp order long for 0.05 BTC :
-//
-// First we calculate the quantity, that will be in [Base Lot]
-//  - base_unit ==                  10 ** base_decimals         -> 100_000_000 (although it's 6 on solana iirc, for for the sake of this example doesn't matter)
-//  - btc_amount ==                 0.05_000_000
-//  - btc_amount_native_unit ==     btc_amount * base_unit      ->   5_000_000
-//  - btc_amount_base_lot_unit ==   5_000_000 / base_lot_size   ->     500_000
-//
-// Then we calculate the price, that will be in [Quote Lot]
-//
-//  What we get from mango is the price of one `base unit` expressed in `quote units`
-// so for btc is how much quote unit for a satoshi
-//
-//  - perp_quote_price ==           mango_cache.price_cache[perp_market_index].price;
-//
-//  Mango deal in lots (Serum actually), so you need to run some conversions
-//
-// let base_lot_price_in_quote_unit = perp_price.checked_mul(base_lot_size)
-//
-// let base_lot_order_quantity = order_amount_in_quote_unit.checked_div(base_lot_price_in_quote_unit)
-//
-// let base_lot_price_in_quote_lot = base_lot_price_in_quote_unit.checked_div(quote_lot_size)
-//
-//  === Now can call `place_perp_order(quantity: base_lot_order_quantity, price: base_lot_price_in_quote_lot);`
-//
-// Let's say the order is filled 100%, then you bought
-//
-// quantity_bought_in_btc_base_unit ==  perp_order.taker_base * base_lot_size
-// usdc spent                       ==  perp_order.taker_quote * quote_lot_size
-//
-// And to that you can also calculate the fees
-//     let taker_fee = mango_group.perp_markets[perp_market_index].taker_fee;
-// then you do the calculation
-pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> ProgramResult {
+pub fn handler(
+    ctx: Context<RedeemFromMangoDepository>,
+    redeemable_amount: u64,
+    slippage: u32,
+) -> ProgramResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
     let depository_signer_seed: &[&[&[u8]]] = &[&[
-        &Depository::discriminator()[..],
+        &MangoDepository::discriminator()[..],
         collateral_mint.as_ref(),
         &[ctx.accounts.depository.bump],
     ]];
@@ -179,8 +122,8 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     // msg!("base_lot_price_in_quote_unit {}", base_lot_price_in_quote_unit);
 
     // - [Calculates the quantity of short to close]
-    // XXX assuming USDC and UXD have same decimals, need to fix
-    let exposure_delta_in_quote_unit = I80F48::from_num(uxd_amount);
+    // XXX assuming USDC and redeemable (UXD) have same decimals, need to fix
+    let exposure_delta_in_quote_unit = I80F48::from_num(redeemable_amount);
     let quantity_base_lot_unit = exposure_delta_in_quote_unit
         .checked_div(base_lot_price_in_quote_unit)
         .unwrap();
@@ -216,15 +159,15 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
     // - 2 [BURN THE EQUIVALENT AMOUT OF UXD] ---------------------------------
 
     // Real execution amount of base and quote
-    // XXX Assuming same decimals for USDC/UXD - To fix
+    // XXX Assuming same decimals for USDC/Redeemable(UXD) - To fix
     let order_amount_quote_native_unit = I80F48::from_num(perp_account.taker_quote.abs())
         .checked_mul(perp_info.quote_lot_size)
         .unwrap();
     token::burn(
-        ctx.accounts.into_burn_uxd_context(),
+        ctx.accounts.into_burn_redeemable_context(),
         order_amount_quote_native_unit.to_num(),
     )?;
-    msg!("UXD burnt amount {}", order_amount_quote_native_unit);
+    msg!("Redeemable burnt amount {}", order_amount_quote_native_unit);
 
     // - 3 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
 
@@ -256,12 +199,12 @@ pub fn handler(ctx: Context<RedeemUxd>, uxd_amount: u64, slippage: u32) -> Progr
 
 // MARK: - Contexts -----
 
-impl<'info> RedeemUxd<'info> {
-    pub fn into_burn_uxd_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+impl<'info> RedeemFromMangoDepository<'info> {
+    pub fn into_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
-            mint: self.uxd_mint.to_account_info(),
-            to: self.user_uxd.to_account_info(),
+            mint: self.redeemable_mint.to_account_info(),
+            to: self.user_redeemable.to_account_info(),
             authority: self.user.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
@@ -272,7 +215,7 @@ impl<'info> RedeemUxd<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, mango_program::PlacePerpOrder<'info>> {
         let cpi_accounts = mango_program::PlacePerpOrder {
             mango_group: self.mango_group.to_account_info(),
-            mango_account: self.mango_account.to_account_info(),
+            mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
             mango_perp_market: self.mango_perp_market.to_account_info(),
@@ -289,13 +232,15 @@ impl<'info> RedeemUxd<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, mango_program::Withdraw<'info>> {
         let cpi_accounts = mango_program::Withdraw {
             mango_group: self.mango_group.to_account_info(),
-            mango_account: self.mango_account.to_account_info(),
+            mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
             mango_root_bank: self.mango_root_bank.to_account_info(),
             mango_node_bank: self.mango_node_bank.to_account_info(),
             mango_vault: self.mango_vault.to_account_info(),
-            token_account: self.collateral_passthrough.to_account_info(),
+            token_account: self
+                .depository_collateral_passthrough_account
+                .to_account_info(),
             mango_signer: self.mango_signer.to_account_info(),
             token_program: self.token_program.to_account_info(),
         };
@@ -308,7 +253,9 @@ impl<'info> RedeemUxd<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = token::Transfer {
-            from: self.collateral_passthrough.to_account_info(),
+            from: self
+                .depository_collateral_passthrough_account
+                .to_account_info(),
             to: self.user_collateral.to_account_info(),
             authority: self.depository.to_account_info(),
         };
@@ -317,7 +264,7 @@ impl<'info> RedeemUxd<'info> {
 }
 
 // Additional convenience methods related to the inputed accounts
-impl<'info> RedeemUxd<'info> {
+impl<'info> RedeemFromMangoDepository<'info> {
     // Return general information about the perpetual related to the collateral in use
     fn perpetual_info(&self) -> PerpInfo {
         let mango_group =
@@ -337,7 +284,7 @@ impl<'info> RedeemUxd<'info> {
     fn perp_account(&self, perp_info: &PerpInfo) -> MangoResult<PerpAccount> {
         // - loads Mango's accounts
         let mango_account = MangoAccount::load_checked(
-            &self.mango_account,
+            &self.depository_mango_account,
             self.mango_program.key,
             self.mango_group.key,
         )?;

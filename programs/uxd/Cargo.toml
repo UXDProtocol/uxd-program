@@ -1,12 +1,12 @@
 [package]
-name = "controller"
+name = "uxd"
 version = "0.1.0"
 authors = ["pathoam <pathoam@pm.me>"]
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "controller"
+name = "uxd"
 
 [features]
 no-entrypoint = []

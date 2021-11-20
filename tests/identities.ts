@@ -1,4 +1,4 @@
-import { Provider, setProvider, Wallet } from "@project-serum/anchor";
+import { Wallet } from "@project-serum/anchor";
 import { PublicKey, Keypair } from "@solana/web3.js";
 
 // TESTING wallets for convenience (The user and admin). To remove when going open source
