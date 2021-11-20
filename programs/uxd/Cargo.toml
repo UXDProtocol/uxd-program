@@ -1,7 +1,8 @@
 [package]
 name = "uxd"
-version = "0.1.0"
-authors = ["pathoam <pathoam@pm.me>"]
+version = "1.0.0"
+authors = ["acammm <alexcamill@gmail.com>"]
+description = "UXDProtocol program for minting and redeeming of UXD tokens."
 edition = "2018"
 
 [lib]
@@ -19,6 +20,6 @@ anchor-lang = "0.18.2"
 anchor-spl = "0.18.2"
 solana-program = "1.8.4"
 spl-token = "3.2.0"
-fixed = "1.9.0"
+fixed = "1.10.0"
 # Asked the mango guys why no version, maybe we should pin it to a commit then
 mango = { git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
