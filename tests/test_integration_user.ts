@@ -15,21 +15,15 @@ before("Initial world state", async () => {
   await printUserBalances();
 });
 
+afterEach("", () => {
+  console.log("\n=====================================\n");
+});
+
 describe("Mint then redeem all BTC", () => {
 
-  let redeemablesLeftOver;
-
-  before("", () => {
-    console.log("\n=====================================\n");
-  });
-
-  beforeEach("-", async () => {
-    console.log("\n\n")
-  });
+  let redeemablesLeftOver: number;
 
   afterEach("", async () => {
-    // Sleep waiting for mango market update
-    sleep(2000);
     await printUserBalances();
     await printDepositoryInfo(depositoryBTC, mango);
   });
@@ -71,19 +65,9 @@ describe("Mint then redeem all BTC", () => {
 
 describe("Mint then redeem all WSOL", () => {
 
-  let redeemablesLeftOver;
-
-  before("", () => {
-    console.log("\n=====================================\n");
-  });
-
-  beforeEach("-", async () => {
-    console.log("\n\n")
-  });
+  let redeemablesLeftOver: number;
 
   afterEach("", async () => {
-    // Sleep waiting for mango market update
-    sleep(2000);
     await printUserBalances();
     await printDepositoryInfo(depositoryWSOL, mango);
   });
@@ -136,6 +120,8 @@ function getBalance(tokenAccount: PublicKey): Promise<number> {
 }
 
 async function printDepositoryInfo(depository: Depository, mango: Mango) {
+  // Sleep waiting for mango market update
+  await sleep(3000);
   const SYM = depository.collateralMintSymbol;
   console.log(`\
         * [Depository ${SYM}]
