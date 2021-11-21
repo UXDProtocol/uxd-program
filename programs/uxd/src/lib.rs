@@ -10,15 +10,14 @@ pub use crate::error::UXDError;
 pub use crate::instructions::*;
 pub use crate::state::*;
 
-pub const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
+// These are just "namespaces" seeds for the PDA creations.
+pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
+pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"PASSTHROUGH";
+pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
+pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
+pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
 
-// These are just namespaces for the PDA creations. When possible we use
-// anchor discriminator of the underlaying account, else these.
-pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"RedeemableMint";
-pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"CollateralPassthrough";
-pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MangoAccount";
-
-solana_program::declare_id!("7JLxwYKpmqe2fMKmU9EmSWEehG32NUkcPLnCBXcViSeG");
+solana_program::declare_id!("3THBD1DWAvjQiZEtrmTg5oDgNGZTWdunV6dYnyFhHuCq");
 
 #[program]
 #[deny(unused_must_use)]
@@ -29,12 +28,14 @@ pub mod uxd {
     // Initialize a Controller instance.
     // The Controller holds the Redeemable Mint and the authority identity.
     // In the case of UXD, the redeemable_mint is the UXD's mint.
+    #[access_control(valid_redeemable_mint_decimals(redeemable_mint_decimals))]
     pub fn initialize_controller(
         ctx: Context<InitializeController>,
         bump: u8,
         redeemable_mint_bump: u8,
         redeemable_mint_decimals: u8,
     ) -> ProgramResult {
+        msg!("UXD initialize_controller");
         instructions::initialize_controller::handler(
             ctx,
             bump,
@@ -75,13 +76,21 @@ pub mod uxd {
         ctx: Context<RegisterMangoDepository>,
         bump: u8,
         collateral_passthrough_bump: u8,
+        mango_account_bump: u8,
     ) -> ProgramResult {
-        instructions::register_mango_depository::handler(ctx, bump, collateral_passthrough_bump)
+        msg!("UXD register_mango_depository");
+        instructions::register_mango_depository::handler(
+            ctx,
+            bump,
+            collateral_passthrough_bump,
+            mango_account_bump,
+        )
     }
 
     /// Mint UXD through a Depository using MangoMarkets.
     ///
-    /// Deposits collateral to mango.
+    /// Through Depository configured for a specific collateral and using Mango Market v3
+    /// Deposits user's collateral to mango
     /// open equivalent short perp (within slippage else fails. FoK behavior)
     /// mints uxd in the amount of the mango position to the user
     #[access_control(
@@ -93,7 +102,7 @@ pub mod uxd {
         collateral_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
-        msg!("MINT");
+        msg!("UXD mint_with_mango_depository");
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, slippage)
     }
 
@@ -109,6 +118,7 @@ pub mod uxd {
         uxd_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
+        msg!("UXD redeem_from_mango_depository");
         instructions::redeem_from_mango_depository::handler(ctx, uxd_amount, slippage)
     }
 
@@ -137,6 +147,15 @@ pub mod uxd {
 // MARK: - ACCESS CONTROL  ----------------------------------------------------
 
 const SLIPPAGE_BASIS: u32 = 1000;
+const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
+
+// Asserts that the redeemable mint decimals is between 0 and 9.
+fn valid_redeemable_mint_decimals<'info>(decimals: u8) -> ProgramResult {
+    if !(decimals <= SOLANA_MAX_MINT_DECIMALS) {
+        return Err(UXDError::InvalidRedeemableMintDecimals.into());
+    }
+    Ok(())
+}
 
 // Asserts that the amount of usdc for the operation is above 0.
 // Asserts that the amount of usdc is available in the user account.

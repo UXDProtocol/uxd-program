@@ -270,10 +270,10 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@uxdprotocol/uxd-client@^1.38.0":
-  version "1.38.0"
-  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/1.38.0/b91bda70336a2b391a44334489bc18eb1c6bec8cc6241fd5fc96f41c9e072446#876c8a25025675e8511575f20841d6f376e53276"
-  integrity sha512-1wPbjCb6rfr/QcqWg2CHVyxaJEj8ZiMUScZefbsdbyyis2vthJ8fJQbvxyw5WdGDuiVypY9d/rPcQFIWQXkjYQ==
+"@uxdprotocol/uxd-client@^1.52.0":
+  version "1.52.0"
+  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/1.52.0/25c88f73d871e49367def8f0ee5e204c3381c86db0a19c297ae2003313cdf613#dd483030ae9b8edd3202276b1f359ec960a8b64b"
+  integrity sha512-aTeDpgVcqEsfKwqmHB8pxLycgRLPHfaM0whn+zKtWI36Rei652kF+U1Z6eGjuizKVo4T3FZ+6QSVzE6J8E0yRA==
   dependencies:
     "@blockworks-foundation/mango-client" "^3.2.7"
     "@project-serum/anchor" "^0.18.2"
@@ -952,7 +952,7 @@ mkdirp@^0.5.1:
   dependencies:
     minimist "^1.2.5"
 
-mocha@^9.0.3:
+mocha@^9.1.3:
   version "9.1.3"
   resolved "https://registry.yarnpkg.com/mocha/-/mocha-9.1.3.tgz#8a623be6b323810493d8c8f6f7667440fa469fdb"
   integrity sha512-Xcpl9FqXOAYqI3j79pEtHBBnQgVXIhpULjGQa7DVb0Po+VzmSIK9kanAiWLHoRR/dbZ2qpdPshuXr8l1VaHCzw==
@@ -1283,10 +1283,10 @@ type-detect@^4.0.0, type-detect@^4.0.5:
   resolved "https://registry.yarnpkg.com/type-detect/-/type-detect-4.0.8.tgz#7646fb5f18871cfbb7749e69bd39a6388eb7450c"
   integrity sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==
 
-typescript@^4.3.5:
-  version "4.4.4"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.4.4.tgz#2cd01a1a1f160704d3101fd5a58ff0f9fcb8030c"
-  integrity sha512-DqGhF5IKoBl8WNf8C1gu8q0xZSInh9j1kJJMqT3a94w1JzVaBU4EXOSMrz9yDqMT0xt3selp83fuFMQ0uzv6qA==
+typescript@^4.5.2:
+  version "4.5.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.2.tgz#8ac1fba9f52256fdb06fb89e4122fa6a346c2998"
+  integrity sha512-5BlMof9H1yGt0P8/WF+wPNw6GfctgGjXp5hkblpyT+8rkASSmkUKMXrxR0Xg8ThVCi/JnHQiKXeBaEwCeQwMFw==
 
 utf-8-validate@^5.0.2:
   version "5.0.7"

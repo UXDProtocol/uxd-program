@@ -1,28 +1,33 @@
 
-import { Controller, Depository, BTC_DECIMALS, SOL_DECIMALS, UXD, UXD_DECIMALS, Mango } from "@uxdprotocol/uxd-client";
+import { Controller, Depository, BTC_DECIMALS, SOL_DECIMALS, UXD, UXD_DECIMALS, Mango, createAndInitializeMango } from "@uxdprotocol/uxd-client";
 import { BTC, WSOL } from "./identities";
 import { workspace } from "@project-serum/anchor";
 import { TXN_OPTS, provider } from "./provider";
 import { NodeWallet } from "@project-serum/anchor/dist/cjs/provider";
 
 const uxdProgram = workspace.Uxd;
-const uxdProgramId = uxdProgram.programId;
 
-console.log(`UXD PROGRAM ID == ${uxdProgramId}`);
+export let mango: Mango;
 
-// Controller - The UXD mint keeper, authority
-export const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
+before("initialize Mango", async () => {
+    mango = await createAndInitializeMango(provider, `devnet`);
+});
+
+console.log(`UXD PROGRAM ID == ${uxdProgram.programId}`);
+
+// Controller - The UXD mint keeper
+export const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgram.programId);
 
 // Depositories - An account that manage a Collateral mint for the controller
-export const depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS, uxdProgramId);
-export const depositoryWSOL = new Depository(WSOL, "SOL", SOL_DECIMALS, uxdProgramId);
+export const depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS, uxdProgram.programId);
+export const depositoryWSOL = new Depository(WSOL, "SOL", SOL_DECIMALS, uxdProgram.programId);
 
 // Interface to the Web3 call to `UXD-Program`
 export const uxd = new UXD(provider, uxdProgram);
 
 // Permissionned Calls --------------------------------------------------------
 
-export async function initializeControllerIfNeeded(authority: NodeWallet, controller: Controller, mango: Mango): Promise<string> {
+export async function initializeControllerIfNeeded(authority: NodeWallet, controller: Controller): Promise<string> {
     if (await provider.connection.getAccountInfo(controller.pda)) {
         console.log("Already initialized.");
     } else {

@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_lang::Discriminator;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
@@ -19,6 +18,9 @@ use crate::Controller;
 use crate::MangoDepository;
 use crate::UXDError;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
+use crate::CONTROLLER_NAMESPACE;
+use crate::MANGO_ACCOUNT_NAMESPACE;
+use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SLIPPAGE_BASIS;
 
@@ -28,15 +30,15 @@ pub struct RedeemFromMangoDepository<'info> {
     // XXX again we should use approvals so user doesnt need to sign - wut, asking hana
     pub user: Signer<'info>,
     #[account(
-        seeds = [&Controller::discriminator()[..]],
+        seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: Account<'info, Controller>,
     #[account(
-        seeds = [&MangoDepository::discriminator()[..], collateral_mint.key().as_ref()],
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.bump
     )]
-    pub depository: Box<Account<'info, MangoDepository>>,
+    pub depository: Account<'info, MangoDepository>,
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @UXDError::MintMismatchCollateral
     )]
@@ -66,8 +68,9 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
-        mut
-        // TODO ADD SOME KIND OF CHECKS HERE I ASSUME
+        mut,
+        seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
+        bump = depository.mango_account_bump,
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango related accounts -------------------------------------------------
@@ -105,7 +108,7 @@ pub fn handler(
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
     let depository_signer_seed: &[&[&[u8]]] = &[&[
-        &MangoDepository::discriminator()[..],
+        MANGO_DEPOSITORY_NAMESPACE,
         collateral_mint.as_ref(),
         &[ctx.accounts.depository.bump],
     ]];

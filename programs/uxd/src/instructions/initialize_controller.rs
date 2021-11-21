@@ -1,9 +1,9 @@
 use anchor_lang::prelude::*;
-use anchor_lang::Discriminator;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 
 use crate::Controller;
+use crate::CONTROLLER_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SOLANA_MAX_MINT_DECIMALS;
 
@@ -13,9 +13,9 @@ use crate::SOLANA_MAX_MINT_DECIMALS;
 
 #[derive(Accounts)]
 #[instruction(
+    bump: u8,
+    redeemable_mint_bump: u8,
     redeemable_mint_decimals: u8,
-    controller_bump: u8,
-    redeemable_mint_bump: u8
 )]
 pub struct InitializeController<'info> {
     // This account is important, only this identity will be able to do admin calls in the future. Choose wisely
@@ -23,11 +23,11 @@ pub struct InitializeController<'info> {
     pub authority: Signer<'info>,
     #[account(
         init,
-        seeds = [&Controller::discriminator()[..]],
-        bump = controller_bump,
+        seeds = [CONTROLLER_NAMESPACE],
+        bump = bump,
         payer = authority,
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: Account<'info, Controller>,
     #[account(
         init,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
@@ -50,10 +50,16 @@ pub fn handler(
     redeemable_mint_decimals: u8,
 ) -> ProgramResult {
     ctx.accounts.controller.bump = bump;
+    ctx.accounts.controller.redeemable_mint_bump = redeemable_mint_bump;
     ctx.accounts.controller.authority = ctx.accounts.authority.key();
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
-    ctx.accounts.controller.redeemable_mint_bump = redeemable_mint_bump;
     ctx.accounts.controller.redeemable_mint_decimals = redeemable_mint_decimals;
+
+    msg!("CONTROLLER");
+    msg!("bump {}", bump);
+    msg!("PDA {}", ctx.accounts.controller.key());
+    msg!("redeemable_mint_bump {}", redeemable_mint_bump);
+    msg!("redeemable_mint PDA {}", ctx.accounts.controller.redeemable_mint);
 
     Ok(())
 }

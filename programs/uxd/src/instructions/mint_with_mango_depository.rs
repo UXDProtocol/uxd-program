@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_lang::Discriminator;
 use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::MintTo;
@@ -20,54 +19,37 @@ use crate::Controller;
 use crate::MangoDepository;
 use crate::UXDError;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
+use crate::CONTROLLER_NAMESPACE;
+use crate::MANGO_ACCOUNT_NAMESPACE;
+use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SLIPPAGE_BASIS;
-
-// First iteration
-// XXX oki this shit is complicated lets see what all is here...
-// XXX gahh this means we need our own redeemable account too...
-// this is troublesome... hmm we could theoretically uhh...
-// * user gives mint 1 btc-redeemable
-// * we call proxy transfer which *burns* the redeemable and sends *us* 1 btc
-// * we deposit that 1 btc into the mago account and create a position
-// * we mint the amount of uxd that corresponds to the position size
-// and then in reverse is like
-// * burn the amount of uxd
-// * close out a corresponding position size and redeem for coin
-// * proxy transfer coin to depository which *mints* redeemable to us
-// * transfer redeemable to user
-// and in fact we may very well just mint directly to user
-
-// Second iteration
-// Take Collateral from the user
-// Deposit collateral on Mango (long half)
-// Place immediate perp order on mango using our deposited collateral for borrowing (short half)
-//   if it does not fill withing slippage, we abort
-// Mint equivalent amount of UXD as the position is covering for
 
 #[derive(Accounts)]
 pub struct MintWithMangoDepository<'info> {
     // XXX again we should use approvals so user doesnt need to sign
     pub user: Signer<'info>,
     #[account(
-        seeds = [
-            &Controller::discriminator()[..]
-        ],
-         bump = controller.bump
+        seeds = [CONTROLLER_NAMESPACE],
+        bump = controller.bump
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: Account<'info, Controller>,
     #[account(
-        seeds = [
-            &MangoDepository::discriminator()[..],
-            collateral_mint.key().as_ref()
-        ],
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.bump
     )]
-    pub depository: Box<Account<'info, MangoDepository>>,
+    pub depository: Account<'info, MangoDepository>,
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @UXDError::MintMismatchCollateral
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
+    #[account(
+        mut,
+        seeds = [REDEEMABLE_MINT_NAMESPACE],
+        bump = controller.redeemable_mint_bump,
+        constraint = redeemable_mint.key() == controller.redeemable_mint @UXDError::InvalidRedeemableMint
+    )]
+    pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         constraint = user_collateral.mint == depository.collateral_mint @UXDError::InvalidCollateralMint
@@ -79,23 +61,15 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     #[account(
-        seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = controller.redeemable_mint_bump,
-        constraint = redeemable_mint.key() == controller.redeemable_mint @UXDError::InvalidRedeemableMint
-    )]
-    pub redeemable_mint: Box<Account<'info, Mint>>,
-    #[account(
         mut,
-        seeds = [
-            COLLATERAL_PASSTHROUGH_NAMESPACE,
-            collateral_mint.key().as_ref()
-        ],
+        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.collateral_passthrough_bump,
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
-        mut
-        // TODO ADD SOME KIND OF CHECKS HERE I ASSUME
+        mut,
+        seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
+        bump = depository.mango_account_bump,
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango related accounts -------------------------------------------------
@@ -133,7 +107,7 @@ pub fn handler(
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
     let depository_signer_seeds: &[&[&[u8]]] = &[&[
-        &MangoDepository::discriminator()[..],
+        MANGO_DEPOSITORY_NAMESPACE,
         collateral_mint.as_ref(),
         &[ctx.accounts.depository.bump],
     ]];
@@ -206,15 +180,13 @@ pub fn handler(
     let redeemable_amount = derive_redeemable_amount(&perp_info, &perp_account);
     msg!("redeemable_amount minted {}", redeemable_amount);
 
-    let controller_signer_seed: &[&[&[u8]]] = &[&[
-        &Controller::discriminator()[..],
-        &[ctx.accounts.controller.bump],
-    ]];
+    let controller_signer_seed: &[&[&[u8]]] =
+        &[&[CONTROLLER_NAMESPACE, &[ctx.accounts.controller.bump]]];
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
             .with_signer(controller_signer_seed),
-        redeemable_amount.to_num(), 
+        redeemable_amount.to_num(),
     )?;
 
     Ok(())

@@ -2,6 +2,8 @@ use anchor_lang::prelude::*;
 
 #[error]
 pub enum UXDError {
+    #[msg("The redeemable mint decimals must be between 0 and 9 (inclusive).")]
+    InvalidRedeemableMintDecimals,
     #[msg("Only the Program initializer authority can access this instructions.")]
     InvalidAuthority,
     #[msg("Error while getting the redeemable value of the deposited coin amount.")]

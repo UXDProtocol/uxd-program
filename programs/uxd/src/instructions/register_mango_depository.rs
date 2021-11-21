@@ -4,12 +4,13 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use mango::state::MangoAccount;
 use std::mem::size_of;
-use anchor_lang::Discriminator;
 
 use crate::mango_program;
 use crate::MangoDepository;
 use crate::Controller;
 use crate::UXDError;
+use crate::CONTROLLER_NAMESPACE;
+use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 
@@ -17,8 +18,9 @@ const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
 #[derive(Accounts)]
 #[instruction(
-    depository_bump: u8,
-    depository_collateral_passthrough_bump: u8
+    bump: u8,
+    collateral_passthrough_bump: u8,
+    mango_account_bump: u8,
 )]
 pub struct RegisterMangoDepository<'info> {
     #[account(
@@ -27,23 +29,23 @@ pub struct RegisterMangoDepository<'info> {
     )]
     pub authority: Signer<'info>,
     #[account(
-        seeds = [&Controller::discriminator()[..]], 
-        bump,
+        seeds = [CONTROLLER_NAMESPACE], 
+        bump = controller.bump,
         has_one = authority,
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: Account<'info, Controller>,
     #[account(
         init,
-        seeds = [&MangoDepository::discriminator()[..], collateral_mint.key().as_ref()],
-        bump = depository_bump,
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
+        bump = bump,
         payer = authority,
     )]
-    pub depository: Box<Account<'info, MangoDepository>>,
+    pub depository: Account<'info, MangoDepository>,
     pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         init,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = depository_collateral_passthrough_bump,
+        bump = collateral_passthrough_bump,
         token::mint = collateral_mint,
         token::authority = depository,
         payer = authority,
@@ -52,7 +54,7 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         init,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
-        bump,
+        bump = mango_account_bump,
         owner = mango_program::Mango::id(),
         payer = authority,
         space = MANGO_ACCOUNT_SPAN,
@@ -73,13 +75,14 @@ pub struct RegisterMangoDepository<'info> {
 pub fn handler(
     ctx: Context<RegisterMangoDepository>,
     bump: u8, 
-    collateral_passthrough_bump: u8
+    collateral_passthrough_bump: u8,
+    mango_account_bump: u8
 ) -> ProgramResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
     // - Initialize Mango Account
     let depository_signer_seed: &[&[&[u8]]] = &[&[
-        &MangoDepository::discriminator()[..],
+        MANGO_DEPOSITORY_NAMESPACE,
         collateral_mint.as_ref(),
         &[bump],
     ]];
@@ -94,10 +97,25 @@ pub fn handler(
     // we also use this to derive the depository state key, from which we get mint and account keys
     // creating a hierarchy of trust rooted at the authority key that instantiated the controller
     ctx.accounts.depository.bump = bump;
+    ctx.accounts.depository.collateral_passthrough_bump = collateral_passthrough_bump;
+    ctx.accounts.depository.mango_account_bump = mango_account_bump;
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
-    ctx.accounts.depository.collateral_passthrough_bump = collateral_passthrough_bump;
     ctx.accounts.depository.mango_account = ctx.accounts.depository_mango_account.key();
+
+    msg!("DEPOSITORY");
+    msg!("collateral_mint {}", collateral_mint);
+    msg!("bump {}", bump);
+    msg!("pda {}", ctx.accounts.depository.key());
+    msg!("collateral_passthrough PDA {}", ctx.accounts.depository.collateral_passthrough);
+    msg!("collateral_passthrough_bump {}", collateral_passthrough_bump);
+    msg!("mango_acc PDA {}", ctx.accounts.depository.mango_account);
+
+    msg!("CONTROLLER");
+    msg!("controller PDA {}", ctx.accounts.controller.key());
+    msg!("controller bump {}", ctx.accounts.controller.bump);
+    msg!("redeemable_mint PDA {}", ctx.accounts.controller.redeemable_mint);
+    msg!("redeemable_mint_bump {}", ctx.accounts.controller.redeemable_mint_bump);
 
     Ok(())
 }

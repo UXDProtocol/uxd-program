@@ -33,7 +33,7 @@ Once you ran this, you need to take the pubkey from the output `pubkey: G8QatVyH
 Replace the program adress in anchor and the program doing so :
 
 ```Rust
-// In lib.rs this line at the beggining : 
+// In lib.rs this line at the beggining :
 solana_program::declare_id!("G8QatVyH14hwT6h8Q6Ld5q9D1CbivErcf6syzukREFs3");
 ```
 
