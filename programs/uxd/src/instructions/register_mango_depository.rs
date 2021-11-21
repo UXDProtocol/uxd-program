@@ -103,20 +103,6 @@ pub fn handler(
     ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
     ctx.accounts.depository.mango_account = ctx.accounts.depository_mango_account.key();
 
-    msg!("DEPOSITORY");
-    msg!("collateral_mint {}", collateral_mint);
-    msg!("bump {}", bump);
-    msg!("pda {}", ctx.accounts.depository.key());
-    msg!("collateral_passthrough PDA {}", ctx.accounts.depository.collateral_passthrough);
-    msg!("collateral_passthrough_bump {}", collateral_passthrough_bump);
-    msg!("mango_acc PDA {}", ctx.accounts.depository.mango_account);
-
-    msg!("CONTROLLER");
-    msg!("controller PDA {}", ctx.accounts.controller.key());
-    msg!("controller bump {}", ctx.accounts.controller.bump);
-    msg!("redeemable_mint PDA {}", ctx.accounts.controller.redeemable_mint);
-    msg!("redeemable_mint_bump {}", ctx.accounts.controller.redeemable_mint_bump);
-
     Ok(())
 }
 

@@ -15,10 +15,6 @@ before("Initial world state", async () => {
   await printUserBalances();
 });
 
-afterEach("", () => {
-  console.log("\n=====================================\n");
-});
-
 describe("Mint then redeem all BTC", () => {
 
   let redeemablesLeftOver: number;

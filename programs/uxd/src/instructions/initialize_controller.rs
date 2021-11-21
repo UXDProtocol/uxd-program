@@ -55,11 +55,5 @@ pub fn handler(
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
     ctx.accounts.controller.redeemable_mint_decimals = redeemable_mint_decimals;
 
-    msg!("CONTROLLER");
-    msg!("bump {}", bump);
-    msg!("PDA {}", ctx.accounts.controller.key());
-    msg!("redeemable_mint_bump {}", redeemable_mint_bump);
-    msg!("redeemable_mint PDA {}", ctx.accounts.controller.redeemable_mint);
-
     Ok(())
 }

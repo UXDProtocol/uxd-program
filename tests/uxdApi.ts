@@ -9,6 +9,10 @@ const uxdProgram = workspace.Uxd;
 
 export let mango: Mango;
 
+afterEach("", () => {
+    console.log("\n=====================================\n");
+});
+
 before("initialize Mango", async () => {
     mango = await createAndInitializeMango(provider, `devnet`);
 });
