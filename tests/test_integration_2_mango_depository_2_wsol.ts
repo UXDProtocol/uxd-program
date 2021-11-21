@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { user } from "./identities";
-import { controllerUXD, depositoryWSOL, mintWithMangoDepository, redeemFromMangoDepository, mango, collateralUIPriceInMangoQuote } from "./uxdApi";
+import { controllerUXD, depositoryWSOL, mintWithMangoDepository, redeemFromMangoDepository, mango, collateralUIPriceInMangoQuote } from "./test_integration_0_setup_uxd_api";
 import { printWorldInfo, printUserBalances, printDepositoryInfo, getBalance, userWSOLATA, userUXDATA } from "./integration_test_utils";
 
 before("Initial world state", async () => {
@@ -8,8 +8,8 @@ before("Initial world state", async () => {
     await printUserBalances();
 });
 
-describe(" ======= [Suite one : Mint then redeem all WSOL (2 op)] ======= ", () => {
-
+describe(" ======= [Suite 2-2 : Mint then redeem all WSOL (2 op)] ======= ", () => {
+    beforeEach("\n", async () => { });
     afterEach("", async () => {
         await printUserBalances();
         await printDepositoryInfo(depositoryWSOL, mango);
@@ -45,7 +45,7 @@ describe(" ======= [Suite one : Mint then redeem all WSOL (2 op)] ======= ", () 
         expect(op1_amountWsolUsed).equals(collateralAmount * -1, "The collateral amount paid doesn't match the user wallet delta");
         expect(op1_amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
-        console.log(`<<<<<>>>>> ==> [Minted ${op1_amountUxdMinted} for ${op1_amountWsolUsed} WSOL (prefect was ${maxAmountUxdMinted})]`);
+        console.log(`    ==> [Minted ${op1_amountUxdMinted} for ${op1_amountWsolUsed} WSOL (prefect was ${maxAmountUxdMinted})]`);
     });
 
     // OP2
@@ -74,6 +74,6 @@ describe(" ======= [Suite one : Mint then redeem all WSOL (2 op)] ======= ", () 
         expect(op2_amountUxdRedeemed).closeTo(maxAmountUxdRedeemed, maxAmountUxdRedeemed * (slippage), "The UXD amount redeemed is out of the slippage range");
         expect(op2_amountWsolReceived).closeTo(maxAmountWsolReceived, maxAmountWsolReceived * (slippage), "The WSOL amount received is out of the slippage range");
 
-        console.log(`<<<<<>>>>> ==> [Redeemed ${op2_amountUxdRedeemed} UXD for ${op2_amountWsolReceived} WSOL (perfect was ${maxAmountWsolReceived})]`);
+        console.log(`    ==> [Redeemed ${op2_amountUxdRedeemed} UXD for ${op2_amountWsolReceived} WSOL (perfect was ${maxAmountWsolReceived})]`);
     });
 });
