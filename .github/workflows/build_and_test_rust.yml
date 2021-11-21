@@ -71,5 +71,5 @@ jobs:
 # I think we want to test building again the standard one 
 #       - run: cargo test
 #       # This would beed to be done on devnet, and we would need some work to sed stuff in 
-#       - run: anchor test --skip-local-validator
+      - run: anchor test --skip-local-validator
       - run: cargo fmt -- --check
