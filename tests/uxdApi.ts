@@ -29,6 +29,13 @@ export const depositoryWSOL = new Depository(WSOL, "SOL", SOL_DECIMALS, uxdProgr
 // Interface to the Web3 call to `UXD-Program`
 export const uxd = new UXD(provider, uxdProgram);
 
+
+// Utils Calls ----------------------------------------------------------------
+
+export async function collateralUIPriceInMangoQuote(user: NodeWallet, depository: Depository, mango: Mango): Promise<number> {
+    return uxd.perpUIPriceInQuote(mango, depository)
+}
+
 // Permissionned Calls --------------------------------------------------------
 
 export async function initializeControllerIfNeeded(authority: NodeWallet, controller: Controller): Promise<string> {
