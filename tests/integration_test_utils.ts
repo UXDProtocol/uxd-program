@@ -1,7 +1,7 @@
 import { Depository, findATAAddrSync, Mango } from "@uxdprotocol/uxd-client";
 import { BTC, user, WSOL } from "./identities";
 import { provider, TXN_COMMIT } from "./provider";
-import { controllerUXD } from "./uxdApi";
+import { controllerUXD } from "./test_integration_0_setup_uxd_api";
 import { PublicKey } from "@solana/web3.js";
 
 // User's SPL Accounts
