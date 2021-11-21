@@ -17,7 +17,7 @@ pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
 
-solana_program::declare_id!("AR5PYJhAPThQ7kCbEVQYiA7C1kA9JvAWTCiPNhjBzeM");
+solana_program::declare_id!("AHp3NnPe1HnLMsr4X6VVCPtinSJN1AUiBQnU9iMmunUp");
 
 #[program]
 #[deny(unused_must_use)]
