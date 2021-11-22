@@ -23,3 +23,6 @@ spl-token = "3.2.0"
 fixed = "1.9.0"
 # Asked the mango guys why no version, maybe we should pin it to a commit then
 mango = { git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
+
+[dev-dependencies]
+proptest = "1.0.0"

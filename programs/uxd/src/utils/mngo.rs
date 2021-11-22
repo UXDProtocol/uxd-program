@@ -67,8 +67,3 @@ pub fn perp_base_position(perp_account: &PerpAccount) -> i64 {
         .checked_add(perp_account.taker_base)
         .unwrap()
 }
-
-#[cfg(test)]
-struct Test {
-    // TODO
-}

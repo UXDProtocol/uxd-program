@@ -9,4 +9,7 @@ pub struct Controller {
     pub authority: Pubkey,
     pub redeemable_mint: Pubkey,
     pub redeemable_mint_decimals: u8,
+    // The total amount of UXD that can be in circulation, variable, to limit risks, do progressive rollout.
+    //  in redeemable UI amount without decimals
+    pub redeemable_global_supply_cap: u64,
 }

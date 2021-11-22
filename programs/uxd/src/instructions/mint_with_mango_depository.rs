@@ -11,6 +11,7 @@ use mango::state::MangoAccount;
 use mango::state::MangoCache;
 use mango::state::MangoGroup;
 use mango::state::PerpAccount;
+use mango::utils::pow_i80f48;
 
 use crate::mango_program;
 use crate::utils::perp_base_position;
@@ -178,7 +179,11 @@ pub fn handler(
 
     // - 3 [MINTS THE HEDGED AMOUNT OF REDEEMABLE] ----------------------------
     let redeemable_amount = derive_redeemable_amount(&perp_info, &perp_account);
-    msg!("redeemable_amount minted {}", redeemable_amount);
+    msg!("redeemable_amount to mint {}", redeemable_amount);
+
+    // - [Verify that the minting won't exceed the global supply cap for the redeemable]
+    ctx.accounts
+        .check_is_below_redeemable_global_supply_cap(redeemable_amount)?;
 
     let controller_signer_seed: &[&[&[u8]]] =
         &[&[CONTROLLER_NAMESPACE, &[ctx.accounts.controller.bump]]];
@@ -280,6 +285,32 @@ impl<'info> MintWithMangoDepository<'info> {
         )?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
+
+    // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
+    fn check_is_below_redeemable_global_supply_cap(
+        &self,
+        redeemable_amount_to_mint: I80F48,
+    ) -> ProgramResult {
+        let redeemable_mint_decimals = self.redeemable_mint.decimals;
+        let redeemable_mint_units = pow_i80f48(I80F48::from(10_u8), redeemable_mint_decimals);
+        let redeemable_amount_to_mint_ui = redeemable_amount_to_mint
+            .checked_div(redeemable_mint_units)
+            .unwrap();
+        let redeemable_supply = I80F48::from(self.redeemable_mint.supply);
+        let redeemable_supply_ui = redeemable_supply
+            .checked_div(redeemable_mint_units)
+            .unwrap();
+        let redeemable_global_supply_cap_ui = self.controller.redeemable_global_supply_cap;
+        let projected_supply_ui = redeemable_supply_ui
+            .checked_add(redeemable_amount_to_mint_ui)
+            .unwrap();
+        // msg!("redeemable_global_supply_cap_ui {}", redeemable_global_supply_cap_ui);
+        // msg!("projected_supply {}", projected_supply_ui);
+        if !(projected_supply_ui <= redeemable_global_supply_cap_ui) {
+            return Err(UXDError::RedeemableGlobalSupplyCapReached.into());
+        }
+        Ok(())
+    }
 }
 
 // Returns price after slippage deduction
@@ -329,6 +360,3 @@ fn derive_redeemable_amount(perp_info: &PerpInfo, perp_account: &PerpAccount) ->
     // THIS SHOULD BE THE SPOT MARKET VALUE MINTED AND NOT THE PERP VALUE CAUSE ELSE IT'S TOO MUCH
     order_price_native_unit.checked_sub(fees).unwrap()
 }
-
-#[cfg(test)]
-struct Test {}

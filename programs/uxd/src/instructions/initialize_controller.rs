@@ -4,6 +4,7 @@ use anchor_spl::token::Token;
 
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
+use crate::DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SOLANA_MAX_MINT_DECIMALS;
 
@@ -54,6 +55,43 @@ pub fn handler(
     ctx.accounts.controller.authority = ctx.accounts.authority.key();
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
     ctx.accounts.controller.redeemable_mint_decimals = redeemable_mint_decimals;
+    // Default to 100T - converted to redeemable native unit
+    ctx.accounts.controller.redeemable_global_supply_cap = DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP;
 
     Ok(())
 }
+
+// fn to_native_amount(ui_amount: u64, mint_decimals: u8) -> u64 {
+//     let redeemable_mint_unit = 10_u64.pow(u32::from(mint_decimals));
+//     ui_amount
+//         .checked_mul(redeemable_mint_unit)
+//         .unwrap()
+//         .checked_to_num()
+//         .unwrap()
+// }
+
+// #[cfg(test)]
+// mod test {
+//     use crate::MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP;
+
+//     use super::*;
+//     use proptest::prelude::*;
+
+//     proptest! {
+
+//         #[test]
+//         fn proptest_to_native_amount(ui_amount in u64::MIN..MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP, decimals in 0u8..SOLANA_MAX_MINT_DECIMALS) {
+//             // GIVEN
+
+//             // WHEN
+//             let expected_native_amount: u64 = ui_amount.checked_mul(10u64.pow(u32::from(decimals))).unwrap();
+//             let actual_native_amount = to_native_amount(ui_amount, decimals);
+
+//             // THEN
+//             assert_eq!(
+//                 expected_native_amount, actual_native_amount,
+//                 "mismatch for ui_amount {} and decimals {}", ui_amount, decimals
+//             );
+//         }
+//     }
+// }
