@@ -1,0 +1,76 @@
+   
+# name: build
+# env:
+#   cli-id: anchor-v0.18.2.dev-75c2085-solana-1.8.2
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#     branches:
+#       - '*'
+# jobs:
+#   build-cli-deps:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - id: cache-cli-deps
+#         uses: actions/cache@v2
+#         with:
+#           key: $${{ env.cli-id }}
+#           path: |
+#             ~/.local/share/solana
+#             ~/.cargo
+#             ~/.rustup
+#             ~/.cargo/bin/anchor
+#       - id: install-os-deps
+#         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
+#         run: sudo apt-get update && sudo apt-get install -y pkg-config build-essential libudev-dev
+
+#       - id: install-rust-toolchain
+#         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
+#         uses: actions-rs/toolchain@v1
+#         with:
+#           toolchain: stable
+
+#       - id: install-solana-tools
+#         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
+#         run: sh -c "$(curl -sSfL https://release.solana.com/v1.7.8/install)"
+
+#       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_ENV
+
+#       - id: install-anchor-cli
+#         if: steps.cache-cli-deps.outputs.cache-hit != 'true'
+#         run: cargo install --git https://github.com/UXDProtocol/anchor anchor-cli --locked
+
+#   build:
+#     runs-on: ubuntu-latest
+#     needs: [build-cli-deps]
+#     steps:
+#       - id: cache-cli-deps
+#         uses: actions/cache@v2
+#         with:
+#           key: $${{ env.cli-id }}
+#           path: |
+#             ~/.local/share/solana
+#             ~/.cargo
+#             ~/.rustup
+#             ~/.cargo/bin/anchor
+#       - run: echo "PATH=$HOME/.local/share/solana/install/active_release/bin:$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
+
+#       - uses: actions/setup-node@v2
+#         with:
+#           node-version: '16'
+
+#       - uses: actions/checkout@v2
+#         with:
+#           fetch-depth: 0
+
+#       - run: yarn
+#       - run: yarn add @project-serum/anchor -g
+#       - run: solana-keygen new --no-bip39-passphrase
+# # No test and it doesn't work cause of mango-v3 using a nightly build toolchain,
+# # I think we want to test building again the standard one 
+# #       - run: cargo test
+# #       # This would beed to be done on devnet, and we would need some work to sed stuff in 
+#       - run: anchor test --skip-local-validator
+#       - run: cargo fmt -- --check
