@@ -4,6 +4,8 @@ use anchor_lang::prelude::*;
 pub enum UXDError {
     #[msg("The redeemable mint decimals must be between 0 and 9 (inclusive).")]
     InvalidRedeemableMintDecimals,
+    #[msg("The redeemable global supply cap must be below MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.")]
+    InvalidRedeemableGlobalSupplyCap,
     #[msg("Only the Program initializer authority can access this instructions.")]
     InvalidAuthority,
     #[msg("Error while getting the redeemable value of the deposited coin amount.")]
@@ -13,6 +15,8 @@ pub enum UXDError {
     RootBankIndexNotFound,
     #[msg("The slippage value is invalid. Must be in the [0...1000] range points.")]
     InvalidSlippage,
+    #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
+    RedeemableGlobalSupplyCapReached,
     #[msg("The perp position could not be fully filled with the provided slippage.")]
     PerpOrderPartiallyFilled,
     #[msg("The provided collateral mint does not match the depository's collateral mint.")]

@@ -12,7 +12,13 @@ The project uses a few line of optimisation for building taken from the Discord,
 
 ## Running tests
 
-The basic is :
+Running rust unit tests :
+
+```Zsh
+$> cargo test --tests 
+```
+
+Running integration test in JS from the tests folder :
 
 ```Zsh
 $> anchor test 

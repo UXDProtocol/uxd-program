@@ -17,7 +17,10 @@ pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
 
-solana_program::declare_id!("AHp3NnPe1HnLMsr4X6VVCPtinSJN1AUiBQnU9iMmunUp");
+pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u64 = u64::MAX; // 9,223,372,036,854,775,807 UI units
+pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u64 = 1_000_000; // 1 Million redeemables UI units
+
+solana_program::declare_id!("BrwsiQVRA9aH5EqSEc9avtFDLF2c8QchPqVzcCUHVYvy");
 
 #[program]
 #[deny(unused_must_use)]
@@ -53,12 +56,21 @@ pub mod uxd {
     // through the Governance program, seems accepable that way.
     // pub fn transfer_uxd_mint_authority() -> ProgramResult {}
 
-    // Set the UXD supply Hard cap.
+    // Set the Redeemable global supply cap.
     //
-    // As a conservative measure, UXD will have a virtual limit to it's supply, enforced through the program.
-    // The goal is to roll out UXD progressively for safer and smoother begginings.
-    // This would be lifted fully at some point.
-    // pub fn set_uxd_hard_cap() -> ProgramResult {}
+    // Goal is to roll out progressively, and limit risks.
+    // If this is set below the current circulating supply of UXD, it would effectively pause Minting.
+    #[access_control(valid_redeemable_global_supply_cap(redeemable_global_supply_cap))]
+    pub fn set_redeemable_global_supply_cap(
+        ctx: Context<SetRedeemableGlobalSupplyCap>,
+        redeemable_global_supply_cap: u64,
+    ) -> ProgramResult {
+        msg!(
+            "UXD set_redeemable_global_supply_cap to {}",
+            redeemable_global_supply_cap
+        );
+        instructions::set_redeemable_global_supply_cap::handler(ctx, redeemable_global_supply_cap)
+    }
 
     // Set the UXD mint/redeem Soft cap.
     //
@@ -153,6 +165,14 @@ const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 fn valid_redeemable_mint_decimals<'info>(decimals: u8) -> ProgramResult {
     if !(decimals <= SOLANA_MAX_MINT_DECIMALS) {
         return Err(UXDError::InvalidRedeemableMintDecimals.into());
+    }
+    Ok(())
+}
+
+// Asserts that the redeemable global supply cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
+fn valid_redeemable_global_supply_cap<'info>(redeemable_global_supply_cap: u64) -> ProgramResult {
+    if !(redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP) {
+        return Err(UXDError::InvalidRedeemableGlobalSupplyCap.into());
     }
     Ok(())
 }

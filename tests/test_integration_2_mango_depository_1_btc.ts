@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { user } from "./identities";
-import { controllerUXD, depositoryBTC, mintWithMangoDepository, redeemFromMangoDepository, mango, collateralUIPriceInMangoQuote } from "./test_integration_0_setup_uxd_api";
+import { controllerUXD, depositoryBTC, mintWithMangoDepository, redeemFromMangoDepository, mango, collateralUIPriceInMangoQuote, slippageBase } from "./test_integration_0_setup_uxd_api";
 import { printWorldInfo, printUserBalances, printDepositoryInfo, getBalance, userBTCATA, userUXDATA } from "./integration_test_utils";
 
 before("Initial world state", async () => {
@@ -15,7 +15,6 @@ describe(" ======= [Suite 2-1 : Mint then redeem all BTC (2 op)] ======= ", () =
     await printDepositoryInfo(depositoryBTC, mango);
   });
 
-  const slippageBase = 1000;
   const slippage = 10; // <=> 1%
   const slippagePercentage = slippage / slippageBase;
 

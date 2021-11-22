@@ -4,8 +4,11 @@ import { BTC, WSOL } from "./identities";
 import { workspace } from "@project-serum/anchor";
 import { TXN_OPTS, provider } from "./provider";
 import { NodeWallet } from "@project-serum/anchor/dist/cjs/provider";
+import { ControllerAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
 
 const uxdProgram = workspace.Uxd;
+
+export const slippageBase = 1000;
 
 export let mango: Mango;
 
@@ -26,43 +29,55 @@ export const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgram.prog
 export const depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS, uxdProgram.programId);
 export const depositoryWSOL = new Depository(WSOL, "SOL", SOL_DECIMALS, uxdProgram.programId);
 
-// Interface to the Web3 call to `UXD-Program`
-export const uxd = new UXD(provider, uxdProgram);
+// Client interface to the Web3 call to `UXD-Program`
+export const uxdClient = new UXD(provider, uxdProgram);
 
 // Utils Calls ----------------------------------------------------------------
 
 export async function collateralUIPriceInMangoQuote(user: NodeWallet, depository: Depository, mango: Mango): Promise<number> {
-    return uxd.perpUIPriceInQuote(mango, depository)
+    return uxdClient.perpUIPriceInQuote(mango, depository)
+}
+
+export async function redeemableCirculatinSupply(controller: Controller): Promise<number> {
+    return uxdClient.redeemableCirculatinSupply(controller, TXN_OPTS)
+}
+
+export async function getControllerAccount(controller: Controller): Promise<ControllerAccount> {
+    return uxdClient.getControllerAccount(controller, TXN_OPTS)
 }
 
 // Permissionned Calls --------------------------------------------------------
 
 export async function initializeController(authority: NodeWallet, controller: Controller): Promise<string> {
-    return uxd.initializeController(controller, authority, TXN_OPTS);
+    return uxdClient.initializeController(controller, authority, TXN_OPTS);
 }
 
 export async function registerMangoDepository(authority: NodeWallet, controller: Controller, depository: Depository, mango: Mango): Promise<string> {
-    return uxd.registerMangoDepository(controller, depository, mango, authority, TXN_OPTS);
+    return uxdClient.registerMangoDepository(controller, depository, mango, authority, TXN_OPTS);
+}
+
+export async function setRedeemableGlobalSupplyCap(authority: NodeWallet, controller: Controller, supplyCapUiAmount: number): Promise<string> {
+    return uxdClient.setRedeemableGlobalSupplyCap(controller, authority, supplyCapUiAmount, TXN_OPTS);
 }
 
 // User Facing Permissionless Calls -------------------------------------------
 
 export function mintWithMangoDepository(user: NodeWallet, slippage: number, collateralAmount: number, controller: Controller, depository: Depository, mango: Mango): Promise<string> {
-    return uxd.mintWithMangoDepository(collateralAmount, slippage, controller, depository, mango, user, TXN_OPTS);
+    return uxdClient.mintWithMangoDepository(collateralAmount, slippage, controller, depository, mango, user, TXN_OPTS);
 }
 
 export function redeemFromMangoDepository(user: NodeWallet, slippage: number, amountRedeemable: number, controller: Controller, depository: Depository, mango: Mango): Promise<string> {
-    return uxd.redeemFromMangoDepository(amountRedeemable, slippage, controller, depository, mango, user, TXN_OPTS);
+    return uxdClient.redeemFromMangoDepository(amountRedeemable, slippage, controller, depository, mango, user, TXN_OPTS);
 }
 
 // ----------------------------------------------------------------------------
 
 before("PerpMarketConfig for BTC", async () => {
-  const perpMarketConfigBTC = mango.getPerpMarketConfigFor(depositoryBTC.collateralMintSymbol);
-  const perpMarketIndexBTC = perpMarketConfigBTC.marketIndex;
-  const perpMarketBTC = await mango.group.loadPerpMarket(provider.connection, perpMarketIndexBTC, perpMarketConfigBTC.baseDecimals, perpMarketConfigBTC.quoteDecimals);
-  console.log("--- Printing the Mango BTC perp market informations ---------------- ");
-  console.log(perpMarketBTC.toPrettyString(mango.group, perpMarketConfigBTC));
+    const perpMarketConfigBTC = mango.getPerpMarketConfigFor(depositoryBTC.collateralMintSymbol);
+    const perpMarketIndexBTC = perpMarketConfigBTC.marketIndex;
+    const perpMarketBTC = await mango.group.loadPerpMarket(provider.connection, perpMarketIndexBTC, perpMarketConfigBTC.baseDecimals, perpMarketConfigBTC.quoteDecimals);
+    console.log("--- Printing the Mango BTC perp market informations ---------------- ");
+    console.log(perpMarketBTC.toPrettyString(mango.group, perpMarketConfigBTC));
 });
 
 before("PerpMarketConfig for WSOL", async () => {
