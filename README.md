@@ -126,9 +126,9 @@ Update the Controller authority
 
 Eject the mint auth from the program, ending the program. Maybe should be "deinitialize", need to think.
 
-### `RebalanceDepository` (Todo)
+### `RebalanceMangoDepository`
 
-Rebalance the health of one repository.
+Rebalance the health of a Mango Depository.
 Short Perp PNL will change over time. When it does, other users can settle match us (forcing the update of our balance, as this unsettle PnL is virtual, i.e. we don't pay interests on it)
 
 When settled on a negative PnL, account's USDC balance will become negative, effectively borrowing fund at the current rate.
