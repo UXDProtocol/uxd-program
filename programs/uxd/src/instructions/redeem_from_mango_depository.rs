@@ -48,6 +48,12 @@ pub struct RedeemFromMangoDepository<'info> {
     pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
+        seeds = [REDEEMABLE_MINT_NAMESPACE],
+        bump = controller.redeemable_mint_bump,
+    )]
+    pub redeemable_mint: Box<Account<'info, Mint>>,
+    #[account(
+        mut,
         constraint = user_collateral.mint == depository.collateral_mint @ErrorCode::InvalidUserCollateralATAMint
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
@@ -58,12 +64,6 @@ pub struct RedeemFromMangoDepository<'info> {
         constraint = user_redeemable.amount >= redeemable_amount @ErrorCode::InsuficientRedeemableAmount
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
-    #[account(
-        mut,
-        seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = controller.redeemable_mint_bump,
-    )]
-    pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
