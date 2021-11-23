@@ -57,10 +57,12 @@ pub fn handler(
     ctx.accounts.controller.redeemable_mint_decimals = redeemable_mint_decimals;
     // Default to 100T - converted to redeemable native unit
     ctx.accounts.controller.redeemable_global_supply_cap = DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP;
+    ctx.accounts.controller.redeemable_circulating_supply = u128::MIN;
 
     Ok(())
 }
 
+// Keep here to remmeber how to test later, useless now here
 // fn to_native_amount(ui_amount: u64, mint_decimals: u8) -> u64 {
 //     let redeemable_mint_unit = 10_u64.pow(u32::from(mint_decimals));
 //     ui_amount

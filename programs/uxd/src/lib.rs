@@ -17,10 +17,10 @@ pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
 
-pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u64 = u64::MAX; // 9,223,372,036,854,775,807 UI units
-pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u64 = 1_000_000; // 1 Million redeemables UI units
+pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
+pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemables UI units
 
-solana_program::declare_id!("6h5Ws3aNTJ3QPWwb3uQvZDA9oQdtQkq4MfmwUaU6Fu61");
+solana_program::declare_id!("CPDGtzxfhmbTTM6DXHMPHyz3gHNwhsXPAGaCECvk5dqg");
 
 #[program]
 #[deny(unused_must_use)]
@@ -63,7 +63,7 @@ pub mod uxd {
     #[access_control(valid_redeemable_global_supply_cap(redeemable_global_supply_cap))]
     pub fn set_redeemable_global_supply_cap(
         ctx: Context<SetRedeemableGlobalSupplyCap>,
-        redeemable_global_supply_cap: u64,
+        redeemable_global_supply_cap: u128,
     ) -> ProgramResult {
         msg!(
             "UXD set_redeemable_global_supply_cap to {}",
@@ -170,7 +170,7 @@ fn valid_redeemable_mint_decimals<'info>(decimals: u8) -> ProgramResult {
 }
 
 // Asserts that the redeemable global supply cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
-fn valid_redeemable_global_supply_cap<'info>(redeemable_global_supply_cap: u64) -> ProgramResult {
+fn valid_redeemable_global_supply_cap<'info>(redeemable_global_supply_cap: u128) -> ProgramResult {
     if !(redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP) {
         return Err(ErrorCode::InvalidRedeemableGlobalSupplyCap.into());
     }

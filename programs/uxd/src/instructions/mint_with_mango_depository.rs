@@ -5,17 +5,19 @@ use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
+use fixed::traits::ToFixed;
 use fixed::types::I80F48;
+use fixed::types::U64F0;
 use mango::error::MangoResult;
 use mango::state::MangoAccount;
 use mango::state::MangoCache;
 use mango::state::MangoGroup;
 use mango::state::PerpAccount;
-use mango::utils::pow_i80f48;
 
 use crate::mango_program;
 use crate::utils::perp_base_position;
 use crate::utils::PerpInfo;
+use crate::AccountingEvent;
 use crate::Controller;
 use crate::ErrorCode;
 use crate::MangoDepository;
@@ -31,15 +33,17 @@ pub struct MintWithMangoDepository<'info> {
     // XXX again we should use approvals so user doesnt need to sign
     pub user: Signer<'info>,
     #[account(
+        mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump
     )]
-    pub controller: Account<'info, Controller>,
+    pub controller: Box<Account<'info, Controller>>,
     #[account(
+        mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.bump
     )]
-    pub depository: Account<'info, MangoDepository>,
+    pub depository: Box<Account<'info, MangoDepository>>,
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @ErrorCode::InvalidCollateralMint
     )]
@@ -175,15 +179,13 @@ pub fn handler(
     let post_position = perp_base_position(&perp_account);
 
     // - [Verify that the order has been 100% filled]
-    check_short_perp_open_order_fully_filled(order_quantity, pre_position, post_position)?;
+    let filled_amount = (post_position.checked_sub(pre_position).unwrap()).abs();
+    check_short_perp_open_order_fully_filled(order_quantity, filled_amount)?;
 
     // - 3 [MINTS THE HEDGED AMOUNT OF REDEEMABLE] ----------------------------
-    let redeemable_amount = derive_redeemable_amount(&perp_info, &perp_account);
-    msg!("redeemable_amount to mint {}", redeemable_amount);
-
-    // - [Verify that the minting won't exceed the global supply cap for the redeemable]
-    ctx.accounts
-        .check_is_below_redeemable_global_supply_cap(redeemable_amount)?;
+    let redeemable_amount_fixed = derive_redeemable_amount(&perp_info, &perp_account);
+    let redeemable_delta = redeemable_amount_fixed.to_num::<u64>();
+    msg!("redeemable_amount to mint {}", redeemable_delta);
 
     let controller_signer_seed: &[&[&[u8]]] =
         &[&[CONTROLLER_NAMESPACE, &[ctx.accounts.controller.bump]]];
@@ -191,8 +193,16 @@ pub fn handler(
         ctx.accounts
             .into_mint_redeemable_context()
             .with_signer(controller_signer_seed),
-        redeemable_amount.to_num(),
+        redeemable_delta,
     )?;
+
+    // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
+    let collateral_delta = derive_collateral_delta(filled_amount, &perp_info);
+    ctx.accounts
+        .check_and_update_accounting(collateral_delta, redeemable_delta)?;
+
+    // - 5 [ENSURE MINTING DOESN'T OVERFLOW THE GLOBAL REDEEMABLE SUPPLY CAP] -
+    ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
     Ok(())
 }
@@ -287,28 +297,32 @@ impl<'info> MintWithMangoDepository<'info> {
     }
 
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
-    fn check_is_below_redeemable_global_supply_cap(
-        &self,
-        redeemable_amount_to_mint: I80F48,
-    ) -> ProgramResult {
-        let redeemable_mint_decimals = self.redeemable_mint.decimals;
-        let redeemable_mint_units = pow_i80f48(I80F48::from(10_u8), redeemable_mint_decimals);
-        let redeemable_amount_to_mint_ui = redeemable_amount_to_mint
-            .checked_div(redeemable_mint_units)
-            .unwrap();
-        let redeemable_supply = I80F48::from(self.redeemable_mint.supply);
-        let redeemable_supply_ui = redeemable_supply
-            .checked_div(redeemable_mint_units)
-            .unwrap();
-        let redeemable_global_supply_cap_ui = self.controller.redeemable_global_supply_cap;
-        let projected_supply_ui = redeemable_supply_ui
-            .checked_add(redeemable_amount_to_mint_ui)
-            .unwrap();
-        // msg!("redeemable_global_supply_cap_ui {}", redeemable_global_supply_cap_ui);
-        // msg!("projected_supply {}", projected_supply_ui);
-        if !(projected_supply_ui <= redeemable_global_supply_cap_ui) {
+    fn check_redeemable_global_supply_cap_overflow(&self) -> ProgramResult {
+        if !(self.controller.redeemable_circulating_supply
+            <= self.controller.redeemable_global_supply_cap)
+        {
             return Err(ErrorCode::RedeemableGlobalSupplyCapReached.into());
         }
+        Ok(())
+    }
+
+    // Update the accounting in the Depository and Controller Accounts to reflect changes
+    fn check_and_update_accounting(
+        &mut self,
+        collateral_delta: u64,
+        redeemable_delta: u64,
+    ) -> ProgramResult {
+        // Mango Depository
+        self.depository
+            .update_collateral_amount_deposited(AccountingEvent::Mint, collateral_delta);
+        self.depository
+            .update_redeemable_amount_under_management(AccountingEvent::Mint, redeemable_delta);
+        // Controller
+        self.controller
+            .update_redeemable_circulating_supply(AccountingEvent::Mint, redeemable_delta);
+
+        // TODO catch errors above and make explicit error
+
         Ok(())
     }
 }
@@ -325,10 +339,8 @@ fn slippage_deduction(price: I80F48, slippage: u32) -> I80F48 {
 // Verify that the order quantity matches the base position delta
 fn check_short_perp_open_order_fully_filled(
     order_quantity: i64,
-    pre_position: i64,
-    post_position: i64,
+    filled_amount: i64,
 ) -> ProgramResult {
-    let filled_amount = (post_position.checked_sub(pre_position).unwrap()).abs();
     if !(order_quantity == filled_amount) {
         return Err(ErrorCode::PerpOrderPartiallyFilled.into());
     }
@@ -359,4 +371,16 @@ fn derive_redeemable_amount(perp_info: &PerpInfo, perp_account: &PerpAccount) ->
     // XXX here it's considering UXD and USDC have same decimals -- FIX LATER
     // THIS SHOULD BE THE SPOT MARKET VALUE MINTED AND NOT THE PERP VALUE CAUSE ELSE IT'S TOO MUCH
     order_price_native_unit.checked_sub(fees).unwrap()
+}
+
+fn derive_collateral_delta(base_lot_amount: i64, perp_info: &PerpInfo) -> u64 {
+    base_lot_amount
+        .checked_mul(perp_info.base_lot_size.to_num()) // Back from lot to native units
+        .unwrap()
+        .checked_abs()
+        .unwrap()
+        .checked_to_fixed::<U64F0>()
+        .unwrap()
+        .to_num()
+    // msg!("collateral_delta {}", collateral_delta);
 }
