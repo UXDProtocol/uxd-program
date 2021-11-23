@@ -24,7 +24,7 @@ pub enum ErrorCode {
     InsuficientRedeemableAmount,
     //
     #[msg("The Redeemable Mint provided does not match the Controller's one.")]
-    InvalidRedeemableMint = 220,
+    InvalidRedeemableMint = 20,
     #[msg("The user's Redeemable ATA's mint does not match the Controller's one.")]
     InvalidUserRedeemableATAMint,
     #[msg("The user's Collateral ATA's mint does not match the Depository's one.")]
@@ -34,5 +34,5 @@ pub enum ErrorCode {
     #[msg("Error while getting the redeemable value of the deposited coin amount.")]
     PositionAmountCalculation,
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
-    RedeemableGlobalSupplyCapReached,
+    RedeemableGlobalSupplyCapReached, // 0xe1
 }
