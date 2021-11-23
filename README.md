@@ -81,11 +81,36 @@ The initial state is initialized through calling `initialize`, from there a mint
 It owns the UXD Mint currentely (TBD and though about).
 
 ```Rust
-pub struct State {
+#[account]
+#[derive(Default)]
+pub struct Controller {
     pub bump: u8,
+    pub redeemable_mint_bump: u8,
+    // The account that initialize this struct. Only this account can call permissionned instructions.
     pub authority: Pubkey,
-    pub uxd_mint: Pubkey,
-    pub uxd_mint_bump: u8,
+    pub redeemable_mint: Pubkey,
+    pub redeemable_mint_decimals: u8,
+    //
+    // The Mango Depositories registered with this Controller
+    pub registered_mango_depositories: [Pubkey; 16], // MAX_REGISTERED_MANGO_DEPOSITORIES id always bug with constant...
+    pub registered_mango_depositories_count: u8,
+    //
+    // Progressive roll out and safety ----------
+    //
+    // The total amount of UXD that can be in circulation, variable
+    //  in redeemable Redeemable Native Amount (careful, usually Mint express this in full token, UI amount, u64)
+    pub redeemable_global_supply_cap: u128,
+    //
+    // The max ammount of Redeemable affected by Mint and Redeem operations on `MangoDepository` instances, variable
+    //  in redeemable Redeemable Native Amount
+    pub mango_depositories_redeemable_soft_cap: u64,
+    //
+    // Accounting -------------------------------
+    //
+    // The actual circulating supply of Redeemable (Also available through TokenProgram info on the mint)
+    // This should always be equal to the sum of all Depositories' `redeemable_under_management`
+    //  in redeemable Redeemable Native Amount
+    pub redeemable_circulating_supply: u128,
 }
 ```
 
@@ -93,12 +118,37 @@ The `authority` (admin) must then register some `Depository`/ies by calling `reg
 One State is tied to many `Depository` accounts, each of them being a vault for a given Collateral Mint.
 
 ```Rust
-pub struct Depository {
+#[account]
+#[derive(Default)]
+pub struct MangoDepository {
     pub bump: u8,
+    pub collateral_passthrough_bump: u8,
+    pub mango_account_bump: u8,
     pub collateral_mint: Pubkey,
     pub collateral_passthrough: Pubkey,
-    pub collateral_passthrough_bump: u8,
     pub mango_account: Pubkey,
+    //
+    // The Controller instance for which this Depository works for
+    pub controller: Pubkey,
+    //
+    // Accounting -------------------------------
+    // Note : To keep track of the in and out of a depository
+    // Note : collateral and base are technically interchangeable as one Depository manage a single collateral
+    //
+    // The amount of USDC InsuranceFund deposited/withdrawn by Authority on the underlying Mango Account - It doesn't represent the actual amount that varies based on Mango Account
+    // Updated after each deposit/withdraw insurance fund
+    // In Collateral native units
+    pub insurance_amount_deposited: u128,
+    //
+    // The amount of collateral deposited by users to mint UXD - The optimal size of the basis trade
+    // Updated after each mint/redeem
+    // In Collateral native units
+    pub collateral_amount_deposited: u128,
+    //
+    // The total amount of Redeemable Tokens this Depository instance is currently Hedging/Managing
+    // Updated after each mint/redeem
+    // In Redeemable native units
+    pub redeemable_amount_under_management: u128,
 }
 ```
 
@@ -155,9 +205,14 @@ Withdraw need to be specific cause it's PDA own accounts.
 
 This would be used to add USDC to a depository mango account to fund it's insurance fund.
 
-### `setUXDHardCap` (Todo)
+### `setRedeemableGlobalSupplyCap`
 
-This would be to edit a hard cap of total UXP minted, past this minting would be unavailable.
+Change the value of the global supply cap (virtual, not on the mint) for the Redeemable controller by the Controller.
+
+### `setMangoDepositoriesRedeemableSoftCap`
+
+Change the value of the Mango Repositories operation Redeemable cap, prevent minting/redeeming over this limit.
+
 
 ### `Freeze` (Todo? No like)
 

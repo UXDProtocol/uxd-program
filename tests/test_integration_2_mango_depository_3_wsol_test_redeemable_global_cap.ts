@@ -12,7 +12,7 @@ before("Initial world state", async () => {
 });
 
 // Here we setup the 
-describe(" ======= [Suite 2-3 : test mint beyond redeemable global supply cap (2 op)] ======= ", () => {
+describe(" ======= [Suite 2-3 : test mint beyond redeemable global supply cap (3 op)] ======= ", () => {
     beforeEach("\n", async () => { });
     afterEach("", async () => {
         await printUserBalances();
@@ -21,9 +21,9 @@ describe(" ======= [Suite 2-3 : test mint beyond redeemable global supply cap (2
 
     const slippagePercentage = slippage / slippageBase;
 
-    const supplyCapUIAmountLow = 2_000; // 2_000 redeemable token UI amount
+    const supplyCapUIAmountLow = 2_000; // UI amount
     // OP1
-    it(`Set redeemable supply amount cap at ${supplyCapUIAmountLow} UXD`, async () => {
+    it(`1 - Set redeemable supply amount cap at ${supplyCapUIAmountLow} UXD`, async () => {
         // GIVEN
         const caller = authority;
         const controller = controllerUXD;
@@ -38,7 +38,7 @@ describe(" ======= [Suite 2-3 : test mint beyond redeemable global supply cap (2
     });
 
     // OP2
-    it(`Mint UXD worth 15 WSOL with ${slippagePercentage * 100}% max slippage - SHOULD FAIL`, async () => {
+    it(`2 - Mint UXD worth 15 WSOL with ${slippagePercentage * 100}% max slippage - SHOULD FAIL`, async () => {
         // GIVEN
         const caller = user;
         const collateralAmount = 15; // in WSOL
@@ -64,7 +64,7 @@ describe(" ======= [Suite 2-3 : test mint beyond redeemable global supply cap (2
 
     const supplyCapUIAmountHigh = 10_000_000; // 10_000_000 redeemable token UI amount
     // OP3
-    it(`Set redeemable supply amount cap back at ${supplyCapUIAmountHigh} UXD`, async () => {
+    it(`3 - Set redeemable supply amount cap back at ${supplyCapUIAmountHigh} UXD`, async () => {
         // GIVEN
         const caller = authority;
         const controller = controllerUXD;

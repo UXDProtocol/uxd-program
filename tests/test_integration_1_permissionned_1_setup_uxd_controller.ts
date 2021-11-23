@@ -7,7 +7,7 @@ before(" ======= [Suite 1-1 : Test setup UXD controller (permissionned) (1 op)] 
   beforeEach("\n", async () => { });
   afterEach("\n", async () => { });
 
-  it("Initialize Controller for UXD", async () => {
+  it("1 - Initialize Controller for UXD", async () => {
     // GIVEN
     const caller = authority;
     const controller = controllerUXD;

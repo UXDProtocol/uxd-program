@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::AccountingEvent;
+use crate::{AccountingEvent, ErrorCode, MAX_REGISTERED_MANGO_DEPOSITORIES};
 
 #[account]
 #[derive(Default)]
@@ -12,11 +12,21 @@ pub struct Controller {
     pub redeemable_mint: Pubkey,
     pub redeemable_mint_decimals: u8,
     //
-    // Accounting -------------------------------
+    // The Mango Depositories registered with this Controller
+    pub registered_mango_depositories: [Pubkey; 16], // MAX_REGISTERED_MANGO_DEPOSITORIES id always bug with constant...
+    pub registered_mango_depositories_count: u8,
     //
-    // The total amount of UXD that can be in circulation, variable, to limit risks, do progressive rollout.
+    // Progressive roll out and safety ----------
+    //
+    // The total amount of UXD that can be in circulation, variable
     //  in redeemable Redeemable Native Amount (careful, usually Mint express this in full token, UI amount, u64)
     pub redeemable_global_supply_cap: u128,
+    //
+    // The max ammount of Redeemable affected by Mint and Redeem operations on `MangoDepository` instances, variable
+    //  in redeemable Redeemable Native Amount
+    pub mango_depositories_redeemable_soft_cap: u64,
+    //
+    // Accounting -------------------------------
     //
     // The actual circulating supply of Redeemable (Also available through TokenProgram info on the mint)
     // This should always be equal to the sum of all Depositories' `redeemable_under_management`
@@ -40,5 +50,24 @@ impl Controller {
                 .checked_sub(amount.into())
                 .unwrap(),
         }
+    }
+
+    pub fn add_registered_mango_depository_entry(
+        &mut self,
+        mango_depository_id: Pubkey,
+    ) -> ProgramResult {
+        let current_size = usize::from(self.registered_mango_depositories_count);
+        if !(current_size < MAX_REGISTERED_MANGO_DEPOSITORIES) {
+            return Err(ErrorCode::MaxNumberOfMangoDepositoriesRegisteredReached.into());
+        }
+        // Increment registered Mango Depositories count
+        self.registered_mango_depositories_count = self
+            .registered_mango_depositories_count
+            .checked_add(1)
+            .unwrap();
+        // Add the new Mango Depository ID to the array of registered Depositories
+        let new_entry_index = current_size;
+        self.registered_mango_depositories[new_entry_index] = mango_depository_id;
+        Ok(())
     }
 }

@@ -9,7 +9,7 @@ before(" ======= [Suite 1-3 : Test setting the redeemable global supply cap (1 o
 
     const supplyCapUIAmount = 100_000; // 100_000 redeemable token UI amount
 
-    it(`Set redeemable global supply to ${supplyCapUIAmount}`, async () => {
+    it(`1 - Set redeemable global supply cap to ${supplyCapUIAmount}`, async () => {
         // GIVEN
         const caller = authority;
         const controller = controllerUXD;

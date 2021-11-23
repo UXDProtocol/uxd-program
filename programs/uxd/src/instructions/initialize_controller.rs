@@ -4,6 +4,7 @@ use anchor_spl::token::Token;
 
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
+use crate::DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
 use crate::DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SOLANA_MAX_MINT_DECIMALS;
@@ -28,7 +29,7 @@ pub struct InitializeController<'info> {
         bump = bump,
         payer = authority,
     )]
-    pub controller: Account<'info, Controller>,
+    pub controller: Box<Account<'info, Controller>>,
     #[account(
         init,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
@@ -55,8 +56,12 @@ pub fn handler(
     ctx.accounts.controller.authority = ctx.accounts.authority.key();
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
     ctx.accounts.controller.redeemable_mint_decimals = redeemable_mint_decimals;
-    // Default to 100T - converted to redeemable native unit
+    // Default to 1 Million
     ctx.accounts.controller.redeemable_global_supply_cap = DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP;
+    // Default to 1 Thousand
+    ctx.accounts
+        .controller
+        .mango_depositories_redeemable_soft_cap = DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
     ctx.accounts.controller.redeemable_circulating_supply = u128::MIN;
 
     Ok(())

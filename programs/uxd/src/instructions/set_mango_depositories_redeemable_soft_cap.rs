@@ -5,7 +5,7 @@ use crate::ErrorCode;
 use crate::CONTROLLER_NAMESPACE;
 
 #[derive(Accounts)]
-pub struct SetRedeemableGlobalSupplyCap<'info> {
+pub struct SetMangoDepositoriesRedeemableSoftCap<'info> {
     #[account(
         constraint = authority.key() == controller.authority @ErrorCode::InvalidAuthority
     )]
@@ -20,9 +20,9 @@ pub struct SetRedeemableGlobalSupplyCap<'info> {
 }
 
 pub fn handler(
-    ctx: Context<SetRedeemableGlobalSupplyCap>,
-    redeemable_global_supply_cap: u128, // In Redeemable Native amount
+    ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
+    redeemable_soft_cap: u64, // In Redeemable Native amount
 ) -> ProgramResult {
-    ctx.accounts.controller.redeemable_global_supply_cap = redeemable_global_supply_cap;
+    ctx.accounts.controller.mango_depositories_redeemable_soft_cap = redeemable_soft_cap;
     Ok(())
 }
