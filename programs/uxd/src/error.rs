@@ -22,14 +22,15 @@ pub enum ErrorCode {
     InvalidRedeemAmount,
     #[msg("The balance of the redeemable ATA is not enough to fulfill the redeem operation.")]
     InsuficientRedeemableAmount,
+    //
     #[msg("The Redeemable Mint provided does not match the Controller's one.")]
-    InvalidRedeemableMint,
+    InvalidRedeemableMint = 220,
     #[msg("The user's Redeemable ATA's mint does not match the Controller's one.")]
     InvalidUserRedeemableATAMint,
     #[msg("The user's Collateral ATA's mint does not match the Depository's one.")]
     InvalidUserCollateralATAMint,
     #[msg("The perp position could not be fully filled with the provided slippage.")]
-    PerpOrderPartiallyFilled = 220,
+    PerpOrderPartiallyFilled,
     #[msg("Error while getting the redeemable value of the deposited coin amount.")]
     PositionAmountCalculation,
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
