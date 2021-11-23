@@ -42,7 +42,7 @@ describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 o
         console.log(controllerAccount);
     });
 
-    const validCollateralAmount = 0.5 // in WSOL
+    const validCollateralAmount = 0.2 // in WSOL
     // OP2
     it(`2 - Mint UXD worth ${validCollateralAmount} WSOL with ${slippagePercentage * 100}% max slippage`, async () => {
         // GIVEN
