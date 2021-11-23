@@ -1651,6 +1651,7 @@ dependencies = [
  "proptest",
  "solana-program",
  "spl-token",
+ "thiserror",
 ]
 
 [[package]]

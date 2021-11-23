@@ -8,7 +8,7 @@ use std::mem::size_of;
 use crate::mango_program;
 use crate::MangoDepository;
 use crate::Controller;
-use crate::UXDError;
+use crate::ErrorCode;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
@@ -25,7 +25,7 @@ const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 pub struct RegisterMangoDepository<'info> {
     #[account(
         mut, 
-        constraint = authority.key() == controller.authority @UXDError::InvalidAuthority
+        constraint = authority.key() == controller.authority @ErrorCode::InvalidAuthority
     )]
     pub authority: Signer<'info>,
     #[account(

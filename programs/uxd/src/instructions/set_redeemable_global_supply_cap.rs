@@ -1,14 +1,14 @@
 use anchor_lang::prelude::*;
 
 use crate::Controller;
-use crate::UXDError;
+use crate::ErrorCode;
 use crate::CONTROLLER_NAMESPACE;
 
 #[derive(Accounts)]
 pub struct SetRedeemableGlobalSupplyCap<'info> {
     #[account(
         mut, 
-        constraint = authority.key() == controller.authority @UXDError::InvalidAuthority
+        constraint = authority.key() == controller.authority @ErrorCode::InvalidAuthority
     )]
     pub authority: Signer<'info>,
     #[account(

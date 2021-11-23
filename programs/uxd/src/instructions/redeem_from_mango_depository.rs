@@ -15,8 +15,8 @@ use crate::mango_program;
 use crate::utils::perp_base_position;
 use crate::utils::PerpInfo;
 use crate::Controller;
+use crate::ErrorCode;
 use crate::MangoDepository;
-use crate::UXDError;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -27,7 +27,7 @@ use crate::SLIPPAGE_BASIS;
 #[derive(Accounts)]
 #[instruction(redeemable_amount: u64)]
 pub struct RedeemFromMangoDepository<'info> {
-    // XXX again we should use approvals so user doesnt need to sign - wut, asking hana
+    // XXX again we should use approvals so user doesnt need to sign
     pub user: Signer<'info>,
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
@@ -40,19 +40,19 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub depository: Account<'info, MangoDepository>,
     #[account(
-        constraint = collateral_mint.key() == depository.collateral_mint @UXDError::MintMismatchCollateral
+        constraint = collateral_mint.key() == depository.collateral_mint @ErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        constraint = user_collateral.mint == depository.collateral_mint @UXDError::MintMismatchCollateral
+        constraint = user_collateral.mint == depository.collateral_mint @ErrorCode::InvalidUserCollateralATAMint
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        constraint = user_redeemable.mint == redeemable_mint.key() @UXDError::InvalidRedeemableMint,
-        constraint = redeemable_amount > 0 @UXDError::InvalidRedeemAmount,
-        constraint = user_redeemable.amount >= redeemable_amount @UXDError::InsuficientRedeemableAmount
+        constraint = user_redeemable.mint == redeemable_mint.key() @ErrorCode::InvalidRedeemableMint,
+        constraint = redeemable_amount > 0 @ErrorCode::InvalidRedeemAmount,
+        constraint = user_redeemable.amount >= redeemable_amount @ErrorCode::InsuficientRedeemableAmount
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     #[account(
@@ -74,7 +74,7 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango related accounts -------------------------------------------------
-    // XXX All these account should be properly constrained
+    // XXX All these account should be properly constrained if possible
     pub mango_group: AccountInfo<'info>,
     pub mango_cache: AccountInfo<'info>,
     pub mango_signer: AccountInfo<'info>,
@@ -314,7 +314,7 @@ fn check_short_perp_close_order_fully_filled(
 ) -> ProgramResult {
     let filled_amount = (post_position.checked_sub(pre_position).unwrap()).abs();
     if !(order_quantity == filled_amount) {
-        return Err(UXDError::PerpOrderPartiallyFilled.into());
+        return Err(ErrorCode::PerpOrderPartiallyFilled.into());
     }
     Ok(())
 }
