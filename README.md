@@ -126,6 +126,11 @@ Update the Controller authority
 
 Eject the mint auth from the program, ending the program. Maybe should be "deinitialize", need to think.
 
+
+### `SettlePositiveFundingMangoDepository`
+
+part of the IX below
+
 ### `RebalanceMangoDepository`
 
 Rebalance the health of a Mango Depository.

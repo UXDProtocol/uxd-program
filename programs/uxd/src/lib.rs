@@ -99,8 +99,12 @@ pub mod uxd {
         )
     }
 
-    // Rebalance the health of one depository.
-    // Short Perp PNL will change over time. When it does, other users can settle match us (forcing the update of our balance, as this unsettle PnL is virtual, i.e. we don't pay interests on it)
+    // Rebalance the leverage of one depository.
+    //
+    // When the price of the underlying asset of the delta neutral position changes,
+    // the leverage also changes. To adjust this, the Rebalance Instruction is executed
+    // at regular intervals or whenever a specific leverage value is exceeded to set the target leverage.
+    // (And it doesn't take into account the insurance fund)
     pub fn rebalance_mango_depository(ctx: Context<RebalanceMangoDepository>) -> ProgramResult {
         msg!("UXD rebalance_mango_depository");
         instructions::rebalance_mango_depository::handler(ctx)

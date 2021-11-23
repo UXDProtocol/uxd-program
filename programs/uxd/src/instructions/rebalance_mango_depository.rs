@@ -86,12 +86,64 @@ pub struct RebalanceMangoDepository<'info> {
     pub mango_program: Program<'info, mango_program::Mango>,
 }
 
+// Since the leverage is not 1:1 (depend of collateral iirc), price change in the underlying
+// asset will create imbalance between the long collateral and the short perp
+// - First, short perp Base Pos should be equal to Spot net balance (we only care about one collateral per depository)
+//   any excess is the result of fees, odd lot size etc (Should there be any remains also, or is that an issue from the other logic?)
+// - then, when the price of the base asset go higher, the leverage will increase as the perp 
+//
+// From MangoMarket.Daffy :
+//
+// Is there any liquidation risk for buying spot and shorting an equal amount of perpetuals?
+//
+// Yes there is still liquidation risk with the basis trade.
+// The reason is because as the oracle price goes up, you accrue USDC losses on the perp which have a weight of 1,
+// and the value of your token increases the same amount, but that has a weight less than 1.
+//
+// So the liquidation price on the basis trade is this: 
+//
+// liq_price = position_price / (maint_liab_weight_perp - maint_asset_weight_token)
+//
+// For example, for BTC-PERP basis trade of +1 BTC token and -1 BTC-PERP at position price of 60k, 
+// your liquidation price would be 60,000 / (1.025 - 0.9)  = 480,000
+//
 pub fn handler(ctx: Context<RebalanceMangoDepository>) -> ProgramResult {
-    
 
+    // getConfirmedAdressTo - give you all the transactions that touch a certain accoun
+    //      check the event to know what actually happened and do the accounting
+
+    // NOTE : what about when we are settle by other parties as the Mango engine works this way, how to keep track of this?
+    //          Does that invalidate the pseudo code below?
+
+    // Check unsettled funding for the collateral short perp
+    //
+    //  if positive
+    //      - Settle positive funding ? (maybe another IX, also might not be fully needed here)
+    //      - END (We earn interests on it, let it in the balance)
+    //  NOTE : seems hard to do that, cause the pending positive funding will be mixed up with the insurance fund in the 
+    //          account's USDC balance. Might just also rebalance
+    //
+    //  if negative
+    //      - convert   value of unsettled funding in QUOTE to BASE     `unsettled_funding_in_base_amount` (using SPOT price)
+    //      - close     an equivalent amount of                         `unsettled_funding_in_base_amount` of the short perp
+    //      - sell spot an equivalent amount of                         `unsettled_funding_in_base_amount` of BASE pos
+    //      - settle    
+    //  NOTE: the overall position size should stay the same.
+    //  NOTE: wanted to wait to settle later, but that would make things very hard to track between the
+    //         unsettled funding waiting to be settled and the Insurance fund that will be laying in the USDC balance
+    //
+    //  NOTE: how to get the "Unrealized PnL" displayed on the platform?
+    //         that's what I assumed as unsettled_funding in the above text, probably wrongly
+
+    // - 1 [CHECK UNSETTLED FUNDING] ------------------------------------------
+
+    // - [Get perp informations]
+    let perp_info = ctx.accounts.perpetual_info();
 
     Ok(())
 }
+
+// DO DOUBLE ACCOUNTING with the values in the depository state
 
 // impl<'info> RebalanceMangoDepository<'info> {
 //     pub fn into_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
@@ -104,3 +156,21 @@ pub fn handler(ctx: Context<RebalanceMangoDepository>) -> ProgramResult {
 //         CpiContext::new(cpi_program, cpi_accounts)
 //     }
 // }
+
+// Additional convenience methods related to the inputed accounts
+impl<'info> RebalanceMangoDepository<'info> {
+    // Return general information about the perpetual related to the collateral in use
+    fn perpetual_info(&self) -> PerpInfo {
+        let mango_group =
+            MangoGroup::load_checked(&self.mango_group, self.mango_program.key).unwrap();
+        let mango_cache =
+            MangoCache::load_checked(&self.mango_cache, self.mango_program.key, &mango_group)
+                .unwrap();
+        let perp_market_index = mango_group
+            .find_perp_market_index(self.mango_perp_market.key)
+            .unwrap();
+        let perp_info = PerpInfo::init(&mango_group, &mango_cache, perp_market_index);
+        msg!("Perpetual informations: {:?}", perp_info);
+        return perp_info;
+    }
+}
