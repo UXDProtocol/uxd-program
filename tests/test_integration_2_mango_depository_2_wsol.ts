@@ -1,7 +1,9 @@
 import { expect } from "chai";
 import { user } from "./identities";
-import { controllerUXD, depositoryWSOL, mintWithMangoDepository, redeemFromMangoDepository, mango, collateralUIPriceInMangoQuote, slippageBase } from "./test_integration_0_setup_uxd_api";
+import { mintWithMangoDepository, redeemFromMangoDepository, collateralUIPriceInMangoQuote } from "./test_integration_0_uxd_api";
 import { printWorldInfo, printUserBalances, printDepositoryInfo, getBalance, userWSOLATA, userUXDATA } from "./integration_test_utils";
+import { slippage } from "./test_integration_2_consts";
+import { depositoryWSOL, mango, slippageBase, controllerUXD } from "./test_integration_0_consts";
 
 before("Initial world state", async () => {
     printWorldInfo();
@@ -15,7 +17,6 @@ describe(" ======= [Suite 2-2 : Mint then redeem all WSOL (2 op)] ======= ", () 
         await printDepositoryInfo(depositoryWSOL, mango);
     });
 
-    const slippage = 10; // <=> 1%
     const slippagePercentage = slippage / slippageBase;
 
     // OP1
@@ -34,7 +35,7 @@ describe(" ======= [Suite 2-2 : Mint then redeem all WSOL (2 op)] ======= ", () 
 
         // Then
         // Could be wrong cause there is a diff between the oracle fetch price and the operation, but let's ignore that for now
-        const maxAmountUxdMinted = (await collateralUIPriceInMangoQuote(caller, depository, mango)) * collateralAmount;
+        const maxAmountUxdMinted = (await collateralUIPriceInMangoQuote(depository, mango)) * collateralAmount;
         const _userUxdBalancePostOp = await getBalance(userUXDATA);
         const _userWsolBalancePostOp = await getBalance(userWSOLATA);
 
@@ -63,7 +64,7 @@ describe(" ======= [Suite 2-2 : Mint then redeem all WSOL (2 op)] ======= ", () 
 
         // THEN
         const maxAmountUxdRedeemed = op1_amountUxdMinted;
-        const maxAmountWsolReceived = Number((maxAmountUxdRedeemed / (await collateralUIPriceInMangoQuote(caller, depository, mango))).toPrecision(depository.collateralMintdecimals));
+        const maxAmountWsolReceived = Number((maxAmountUxdRedeemed / (await collateralUIPriceInMangoQuote(depository, mango))).toPrecision(depository.collateralMintdecimals));
         const _userUxdBalancePostOp = await getBalance(userUXDATA);
         const _userWsolBalancePostOp = await getBalance(userWSOLATA);
 

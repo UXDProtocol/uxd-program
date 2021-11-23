@@ -92,16 +92,15 @@ pub fn handler(
             .with_signer(depository_signer_seed),
     )?;
 
-    // - Set our depo record up
-    // this later acts as proof we trust a given depository
-    // we also use this to derive the depository state key, from which we get mint and account keys
-    // creating a hierarchy of trust rooted at the authority key that instantiated the controller
+    // - Initialize Depository state
     ctx.accounts.depository.bump = bump;
     ctx.accounts.depository.collateral_passthrough_bump = collateral_passthrough_bump;
     ctx.accounts.depository.mango_account_bump = mango_account_bump;
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
     ctx.accounts.depository.mango_account = ctx.accounts.depository_mango_account.key();
+    ctx.accounts.depository.insurance_amount_deposited = u128::MIN;
+    ctx.accounts.depository.collateral_amount_deposited = u128::MIN;
 
     Ok(())
 }

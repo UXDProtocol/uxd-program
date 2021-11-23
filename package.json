@@ -2,7 +2,7 @@
     "dependencies": {
         "@project-serum/anchor": "^0.18.2",
         "@solana/spl-token": "^0.1.8",
-        "@uxdprotocol/uxd-client": "^2.10.0"
+        "@uxdprotocol/uxd-client": "^2.11.0"
     },
     "devDependencies": {
         "@types/chai": "^4.2.22",

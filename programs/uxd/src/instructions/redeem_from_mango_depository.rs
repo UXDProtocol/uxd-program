@@ -14,6 +14,7 @@ use mango::state::PerpAccount;
 use crate::mango_program;
 use crate::utils::perp_base_position;
 use crate::utils::PerpInfo;
+use crate::AccountingEvent;
 use crate::Controller;
 use crate::ErrorCode;
 use crate::MangoDepository;
@@ -30,15 +31,17 @@ pub struct RedeemFromMangoDepository<'info> {
     // XXX again we should use approvals so user doesnt need to sign
     pub user: Signer<'info>,
     #[account(
+        mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump
     )]
-    pub controller: Account<'info, Controller>,
+    pub controller: Box<Account<'info, Controller>>,
     #[account(
+        mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.bump
     )]
-    pub depository: Account<'info, MangoDepository>,
+    pub depository: Box<Account<'info, MangoDepository>>,
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @ErrorCode::InvalidCollateralMint
     )]
@@ -166,9 +169,10 @@ pub fn handler(
     let order_amount_quote_native_unit = I80F48::from_num(perp_account.taker_quote.abs())
         .checked_mul(perp_info.quote_lot_size)
         .unwrap();
+    let redeemable_delta = order_amount_quote_native_unit.to_num();
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
-        order_amount_quote_native_unit.to_num(),
+        redeemable_delta,
     )?;
     msg!("Redeemable burnt amount {}", order_amount_quote_native_unit);
 
@@ -192,10 +196,11 @@ pub fn handler(
         collateral_amount,
     )?;
 
-    msg!(
-        "collateral withdrawn then returned amount {}",
-        collateral_amount
-    );
+    // msg!("collateral_amount withdrawn then returned amount {}", collateral_amount);
+
+    // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
+    ctx.accounts
+        .check_and_update_accounting(collateral_amount, redeemable_delta)?;
 
     Ok(())
 }
@@ -292,6 +297,26 @@ impl<'info> RedeemFromMangoDepository<'info> {
             self.mango_group.key,
         )?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
+    }
+
+    // Update the accounting in the Depository and Controller Accounts to reflect changes
+    fn check_and_update_accounting(
+        &mut self,
+        collateral_delta: u64,
+        redeemable_delta: u64,
+    ) -> ProgramResult {
+        // Mango Depository
+        self.depository
+            .update_collateral_amount_deposited(AccountingEvent::Redeem, collateral_delta);
+        self.depository
+            .update_redeemable_amount_under_management(AccountingEvent::Redeem, redeemable_delta);
+        // Controller
+        self.controller
+            .update_redeemable_circulating_supply(AccountingEvent::Redeem, redeemable_delta);
+
+        // TODO catch errors above and make explicit error
+
+        Ok(())
     }
 }
 

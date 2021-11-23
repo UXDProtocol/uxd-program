@@ -1,8 +1,8 @@
 import { Depository, findATAAddrSync, Mango } from "@uxdprotocol/uxd-client";
 import { BTC, user, WSOL } from "./identities";
 import { provider, TXN_COMMIT } from "./provider";
-import { controllerUXD } from "./test_integration_0_setup_uxd_api";
 import { PublicKey } from "@solana/web3.js";
+import { controllerUXD } from "./test_integration_0_consts";
 
 // User's SPL Accounts
 export const userBTCATA: PublicKey = findATAAddrSync(user, BTC)[0];
