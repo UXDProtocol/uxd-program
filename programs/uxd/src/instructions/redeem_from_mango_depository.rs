@@ -39,7 +39,9 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = depository.bump
+        bump = depository.bump,
+        has_one = controller @ErrorCode::InvalidController,
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @ErrorCode::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
     #[account(
@@ -54,7 +56,6 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(
         mut,
         constraint = user_redeemable.mint == redeemable_mint.key() @ErrorCode::InvalidRedeemableMint,
-        constraint = redeemable_amount > 0 @ErrorCode::InvalidRedeemAmount,
         constraint = user_redeemable.amount >= redeemable_amount @ErrorCode::InsuficientRedeemableAmount
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
@@ -202,6 +203,10 @@ pub fn handler(
     ctx.accounts
         .check_and_update_accounting(collateral_amount, redeemable_delta)?;
 
+    // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
+    ctx.accounts
+        .check_mango_depositories_redeemable_soft_cap_overflow(redeemable_delta)?;
+
     Ok(())
 }
 
@@ -316,6 +321,16 @@ impl<'info> RedeemFromMangoDepository<'info> {
 
         // TODO catch errors above and make explicit error
 
+        Ok(())
+    }
+
+    fn check_mango_depositories_redeemable_soft_cap_overflow(
+        &self,
+        redeemable_delta: u64,
+    ) -> ProgramResult {
+        if !(redeemable_delta <= self.controller.mango_depositories_redeemable_soft_cap) {
+            return Err(ErrorCode::MangoDepositoriesSoftCapOverflow.into());
+        }
         Ok(())
     }
 }

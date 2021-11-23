@@ -29,18 +29,19 @@ pub struct RegisterMangoDepository<'info> {
     )]
     pub authority: Signer<'info>,
     #[account(
+        mut,
         seeds = [CONTROLLER_NAMESPACE], 
         bump = controller.bump,
         has_one = authority,
     )]
-    pub controller: Account<'info, Controller>,
+    pub controller: Box<Account<'info, Controller>>,
     #[account(
         init,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
         bump = bump,
         payer = authority,
     )]
-    pub depository: Account<'info, MangoDepository>,
+    pub depository: Box<Account<'info, MangoDepository>>,
     pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         init,
@@ -99,8 +100,12 @@ pub fn handler(
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
     ctx.accounts.depository.mango_account = ctx.accounts.depository_mango_account.key();
+    ctx.accounts.depository.controller = ctx.accounts.controller.key();
     ctx.accounts.depository.insurance_amount_deposited = u128::MIN;
     ctx.accounts.depository.collateral_amount_deposited = u128::MIN;
+
+    // - Update Controller state
+    ctx.accounts.add_new_registered_mango_depository_entry_to_controller()?;
 
     Ok(())
 }
@@ -117,5 +122,16 @@ impl<'info> RegisterMangoDepository<'info> {
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+
+impl<'info> RegisterMangoDepository<'info> {
+    pub fn add_new_registered_mango_depository_entry_to_controller(
+        &mut self,
+    ) -> ProgramResult {
+        let mango_depository_id = self.depository.key();
+        self.controller.add_registered_mango_depository_entry(mango_depository_id)?;
+        Ok(())
     }
 }

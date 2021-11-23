@@ -18,9 +18,14 @@ pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
-pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemables UI units
+pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
 
-solana_program::declare_id!("CPDGtzxfhmbTTM6DXHMPHyz3gHNwhsXPAGaCECvk5dqg");
+pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
+pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
+
+pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 16;
+
+solana_program::declare_id!("6xwXPEr7e7Vmc4NzDLaVaVNnDqH6ecZCX8yKmBH9K1hw");
 
 #[program]
 #[deny(unused_must_use)]
@@ -72,6 +77,22 @@ pub mod uxd {
         instructions::set_redeemable_global_supply_cap::handler(ctx, redeemable_global_supply_cap)
     }
 
+    // Set Mango Depositories Redeemable soft cap.
+    //
+    // Goal is to roll out progressively, and limit risks.
+    // If this is set to 0, it would effectively pause Redeeming and Minting. (This seems unnacceptable, but will handled by DAO)
+    #[access_control(valid_mango_depositories_redeemable_soft_cap(redeemable_soft_cap))]
+    pub fn set_mango_depositories_redeemable_soft_cap(
+        ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
+        redeemable_soft_cap: u64,
+    ) -> ProgramResult {
+        msg!(
+            "UXD set_mango_depositories_redeemable_soft_cap to {}",
+            redeemable_soft_cap
+        );
+        instructions::set_mango_depositories_redeemable_soft_cap::handler(ctx, redeemable_soft_cap)
+    }
+
     // Set the UXD mint/redeem Soft cap.
     //
     // As a conservative measure, UXD will limit the amount of UXD mintable/redeemable to make sure things go smooth
@@ -107,14 +128,17 @@ pub mod uxd {
     /// mints uxd in the amount of the mango position to the user
     #[access_control(
         valid_slippage(slippage)
-        check_amount_constraints(&ctx, collateral_amount)
+        check_collateral_amount_constraints(&ctx, collateral_amount)
     )]
     pub fn mint_with_mango_depository(
         ctx: Context<MintWithMangoDepository>,
         collateral_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
-        msg!("UXD mint_with_mango_depository");
+        msg!(
+            "UXD mint_with_mango_depository - collateral_amount : {}",
+            collateral_amount
+        );
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, slippage)
     }
 
@@ -124,14 +148,20 @@ pub mod uxd {
     /// close equivalent value of mango perp short position (withing slippage else fails. FoK behavior)
     /// withdraw equivalent value of collateral from mango
     /// return the collateral amount quivalent to the burnt UXD value to the user
-    #[access_control(valid_slippage(slippage))]
+    #[access_control(
+        valid_slippage(slippage)
+        check_redeemable_amount_constraints(&ctx, redeemable_amount)
+    )]
     pub fn redeem_from_mango_depository(
         ctx: Context<RedeemFromMangoDepository>,
-        uxd_amount: u64,
+        redeemable_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
-        msg!("UXD redeem_from_mango_depository");
-        instructions::redeem_from_mango_depository::handler(ctx, uxd_amount, slippage)
+        msg!(
+            "UXD redeem_from_mango_depository - redeemable_amount : {}",
+            redeemable_amount
+        );
+        instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, slippage)
     }
 
     // pub fn rebalance(ctx: Context<Rebalance>) -> ProgramResult {
@@ -177,6 +207,14 @@ fn valid_redeemable_global_supply_cap<'info>(redeemable_global_supply_cap: u128)
     Ok(())
 }
 
+// Asserts that the Mango Depositories redeemable soft cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
+fn valid_mango_depositories_redeemable_soft_cap<'info>(redeemable_soft_cap: u64) -> ProgramResult {
+    if !(redeemable_soft_cap <= MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP) {
+        return Err(ErrorCode::InvalidRedeemableGlobalSupplyCap.into());
+    }
+    Ok(())
+}
+
 // Asserts that the amount of usdc for the operation is above 0.
 // Asserts that the amount of usdc is available in the user account.
 fn valid_slippage<'info>(slippage: u32) -> ProgramResult {
@@ -186,7 +224,7 @@ fn valid_slippage<'info>(slippage: u32) -> ProgramResult {
     Ok(())
 }
 
-pub fn check_amount_constraints<'info>(
+pub fn check_collateral_amount_constraints<'info>(
     ctx: &Context<MintWithMangoDepository<'info>>,
     collateral_amount: u64,
 ) -> ProgramResult {
@@ -195,6 +233,19 @@ pub fn check_amount_constraints<'info>(
     }
     if !(ctx.accounts.user_collateral.amount >= collateral_amount) {
         return Err(ErrorCode::InsuficientCollateralAmount.into());
+    }
+    Ok(())
+}
+
+pub fn check_redeemable_amount_constraints<'info>(
+    ctx: &Context<RedeemFromMangoDepository<'info>>,
+    redeemable_amount: u64,
+) -> ProgramResult {
+    if !(redeemable_amount > 0) {
+        return Err(ErrorCode::InvalidRedeemableAmount.into());
+    }
+    if !(ctx.accounts.user_redeemable.amount >= redeemable_amount) {
+        return Err(ErrorCode::InsuficientRedeemableAmount.into());
     }
     Ok(())
 }

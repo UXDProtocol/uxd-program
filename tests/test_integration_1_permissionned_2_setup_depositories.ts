@@ -3,11 +3,11 @@ import { provider } from "./provider";
 import { controllerUXD, depositoryBTC, mango, depositoryWSOL } from "./test_integration_0_consts";
 import { registerMangoDepository } from "./test_integration_0_uxd_api";
 
-before(" ======= [Suite 1-2 : Test setup UXD controller (permissionned) (1 op)] ======= ", () => {
+before(" ======= [Suite 1-2 : Test setup UXD controller (permissionned) (2 op)] ======= ", () => {
     beforeEach("\n", async () => { });
     afterEach("\n", async () => { });
 
-    it("Register BTC Depository to the Controller", async () => {
+    it("1 - Register BTC Depository to the Controller", async () => {
         // GIVEN
         const caller = authority;
         const controller = controllerUXD;
@@ -25,7 +25,7 @@ before(" ======= [Suite 1-2 : Test setup UXD controller (permissionned) (1 op)] 
         depository.info();
     });
 
-    it("Register WSOL Depository to the Controller", async () => {
+    it("1 - Register WSOL Depository to the Controller", async () => {
         // GIVEN
         const caller = authority;
         const controller = controllerUXD;

@@ -41,7 +41,9 @@ pub struct MintWithMangoDepository<'info> {
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = depository.bump
+        bump = depository.bump,
+        has_one = controller @ErrorCode::InvalidController,
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @ErrorCode::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
     #[account(
@@ -201,8 +203,14 @@ pub fn handler(
     ctx.accounts
         .check_and_update_accounting(collateral_delta, redeemable_delta)?;
 
+    // Note - 5 and 6 could be done before, but to save computing I'm doing it here for now as I've everything avalable
+
     // - 5 [ENSURE MINTING DOESN'T OVERFLOW THE GLOBAL REDEEMABLE SUPPLY CAP] -
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
+
+    // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
+    ctx.accounts
+        .check_mango_depositories_redeemable_soft_cap_overflow(redeemable_delta)?;
 
     Ok(())
 }
@@ -302,6 +310,16 @@ impl<'info> MintWithMangoDepository<'info> {
             <= self.controller.redeemable_global_supply_cap)
         {
             return Err(ErrorCode::RedeemableGlobalSupplyCapReached.into());
+        }
+        Ok(())
+    }
+
+    fn check_mango_depositories_redeemable_soft_cap_overflow(
+        &self,
+        redeemable_delta: u64,
+    ) -> ProgramResult {
+        if !(redeemable_delta <= self.controller.mango_depositories_redeemable_soft_cap) {
+            return Err(ErrorCode::MangoDepositoriesSoftCapOverflow.into());
         }
         Ok(())
     }

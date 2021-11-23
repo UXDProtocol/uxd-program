@@ -10,6 +10,9 @@ pub struct MangoDepository {
     pub collateral_passthrough: Pubkey,
     pub mango_account: Pubkey,
     //
+    // The Controller instance for which this Depository works for
+    pub controller: Pubkey,
+    //
     // Accounting -------------------------------
     // Note : To keep track of the in and out of a depository
     // Note : collateral and base are technically interchangeable as one Depository manage a single collateral
@@ -18,10 +21,12 @@ pub struct MangoDepository {
     // Updated after each deposit/withdraw insurance fund
     // In Collateral native units
     pub insurance_amount_deposited: u128,
+    //
     // The amount of collateral deposited by users to mint UXD - The optimal size of the basis trade
     // Updated after each mint/redeem
     // In Collateral native units
     pub collateral_amount_deposited: u128,
+    //
     // The total amount of Redeemable Tokens this Depository instance is currently Hedging/Managing
     // Updated after each mint/redeem
     // In Redeemable native units

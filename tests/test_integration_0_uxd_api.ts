@@ -39,6 +39,10 @@ export async function setRedeemableGlobalSupplyCap(authority: NodeWallet, contro
     return uxdClient.setRedeemableGlobalSupplyCap(controller, authority, supplyCapUiAmount, TXN_OPTS);
 }
 
+export async function setMangoDepositoriesRedeemableSoftCap(authority: NodeWallet, controller: Controller, supplySoftCapUiAmount: number): Promise<string> {
+    return uxdClient.setMangoDepositoriesRedeemableSoftCap(controller, authority, supplySoftCapUiAmount, TXN_OPTS);
+}
+
 // User Facing Permissionless Calls -------------------------------------------
 
 export function mintWithMangoDepository(user: NodeWallet, slippage: number, collateralAmount: number, controller: Controller, depository: Depository, mango: Mango): Promise<string> {

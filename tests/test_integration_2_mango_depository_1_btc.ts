@@ -21,7 +21,7 @@ describe(" ======= [Suite 2-1 : Mint then redeem all BTC (2 op)] ======= ", () =
 
   // OP1
   let op1_amountUxdMinted: number;
-  it(`Mint UXD worth 0.01 BTC with ${slippagePercentage * 100}% max slippage`, async () => {
+  it(`1 - Mint UXD worth 0.01 BTC with ${slippagePercentage * 100}% max slippage`, async () => {
     // GIVEN
     const caller = user;
     const collateralAmount = 0.01; // in BTC
@@ -50,7 +50,7 @@ describe(" ======= [Suite 2-1 : Mint then redeem all BTC (2 op)] ======= ", () =
 
   // OP2
   let op2_amountUxdRedeemed: number;
-  it(`Redeem ${op1_amountUxdMinted} UXD with ${slippagePercentage * 100}% max slippage`, async () => {
+  it(`2 - Redeem ${op1_amountUxdMinted} UXD with ${slippagePercentage * 100}% max slippage`, async () => {
     // GIVEN
     const caller = user;
     const amountRedeemable = op1_amountUxdMinted; // In UXD
