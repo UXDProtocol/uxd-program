@@ -6,7 +6,7 @@ pub mod mango_program;
 pub mod state;
 pub mod utils;
 
-pub use crate::error::UXDError;
+pub use crate::error::ErrorCode;
 pub use crate::instructions::*;
 pub use crate::state::*;
 
@@ -20,7 +20,7 @@ pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u64 = u64::MAX; // 9,223,372,036,854,775,807 UI units
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u64 = 1_000_000; // 1 Million redeemables UI units
 
-solana_program::declare_id!("BrwsiQVRA9aH5EqSEc9avtFDLF2c8QchPqVzcCUHVYvy");
+solana_program::declare_id!("6h5Ws3aNTJ3QPWwb3uQvZDA9oQdtQkq4MfmwUaU6Fu61");
 
 #[program]
 #[deny(unused_must_use)]
@@ -164,7 +164,7 @@ const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 // Asserts that the redeemable mint decimals is between 0 and 9.
 fn valid_redeemable_mint_decimals<'info>(decimals: u8) -> ProgramResult {
     if !(decimals <= SOLANA_MAX_MINT_DECIMALS) {
-        return Err(UXDError::InvalidRedeemableMintDecimals.into());
+        return Err(ErrorCode::InvalidRedeemableMintDecimals.into());
     }
     Ok(())
 }
@@ -172,7 +172,7 @@ fn valid_redeemable_mint_decimals<'info>(decimals: u8) -> ProgramResult {
 // Asserts that the redeemable global supply cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
 fn valid_redeemable_global_supply_cap<'info>(redeemable_global_supply_cap: u64) -> ProgramResult {
     if !(redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP) {
-        return Err(UXDError::InvalidRedeemableGlobalSupplyCap.into());
+        return Err(ErrorCode::InvalidRedeemableGlobalSupplyCap.into());
     }
     Ok(())
 }
@@ -181,7 +181,7 @@ fn valid_redeemable_global_supply_cap<'info>(redeemable_global_supply_cap: u64) 
 // Asserts that the amount of usdc is available in the user account.
 fn valid_slippage<'info>(slippage: u32) -> ProgramResult {
     if !(slippage <= SLIPPAGE_BASIS) {
-        return Err(UXDError::InvalidSlippage.into());
+        return Err(ErrorCode::InvalidSlippage.into());
     }
     Ok(())
 }
@@ -191,10 +191,10 @@ pub fn check_amount_constraints<'info>(
     collateral_amount: u64,
 ) -> ProgramResult {
     if !(collateral_amount > 0) {
-        return Err(UXDError::InvalidCollateralAmount.into());
+        return Err(ErrorCode::InvalidCollateralAmount.into());
     }
     if !(ctx.accounts.user_collateral.amount >= collateral_amount) {
-        return Err(UXDError::InsuficientCollateralAmount.into());
+        return Err(ErrorCode::InsuficientCollateralAmount.into());
     }
     Ok(())
 }

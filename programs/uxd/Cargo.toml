@@ -21,6 +21,7 @@ anchor-spl = "0.18.2"
 solana-program = "1.8.4"
 spl-token = "3.2.0"
 fixed = "1.9.0"
+thiserror = "1.0"
 # Asked the mango guys why no version, maybe we should pin it to a commit then
 mango = { git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
 

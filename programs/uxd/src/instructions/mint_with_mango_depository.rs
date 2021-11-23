@@ -17,8 +17,8 @@ use crate::mango_program;
 use crate::utils::perp_base_position;
 use crate::utils::PerpInfo;
 use crate::Controller;
+use crate::ErrorCode;
 use crate::MangoDepository;
-use crate::UXDError;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -41,24 +41,24 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub depository: Account<'info, MangoDepository>,
     #[account(
-        constraint = collateral_mint.key() == depository.collateral_mint @UXDError::MintMismatchCollateral
+        constraint = collateral_mint.key() == depository.collateral_mint @ErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
         bump = controller.redeemable_mint_bump,
-        constraint = redeemable_mint.key() == controller.redeemable_mint @UXDError::InvalidRedeemableMint
+        constraint = redeemable_mint.key() == controller.redeemable_mint @ErrorCode::InvalidRedeemableMint
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        constraint = user_collateral.mint == depository.collateral_mint @UXDError::InvalidCollateralMint
+        constraint = user_collateral.mint == depository.collateral_mint @ErrorCode::InvalidUserCollateralATAMint
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        constraint = user_redeemable.mint == controller.redeemable_mint @UXDError::InvalidUserRedeemableATAMint
+        constraint = user_redeemable.mint == controller.redeemable_mint @ErrorCode::InvalidUserRedeemableATAMint
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     #[account(
@@ -307,7 +307,7 @@ impl<'info> MintWithMangoDepository<'info> {
         // msg!("redeemable_global_supply_cap_ui {}", redeemable_global_supply_cap_ui);
         // msg!("projected_supply {}", projected_supply_ui);
         if !(projected_supply_ui <= redeemable_global_supply_cap_ui) {
-            return Err(UXDError::RedeemableGlobalSupplyCapReached.into());
+            return Err(ErrorCode::RedeemableGlobalSupplyCapReached.into());
         }
         Ok(())
     }
@@ -330,7 +330,7 @@ fn check_short_perp_open_order_fully_filled(
 ) -> ProgramResult {
     let filled_amount = (post_position.checked_sub(pre_position).unwrap()).abs();
     if !(order_quantity == filled_amount) {
-        return Err(UXDError::PerpOrderPartiallyFilled.into());
+        return Err(ErrorCode::PerpOrderPartiallyFilled.into());
     }
     Ok(())
 }
