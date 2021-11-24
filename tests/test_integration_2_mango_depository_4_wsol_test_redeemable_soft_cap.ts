@@ -38,8 +38,8 @@ describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 o
         const _postRedeemableSoftCapUIAmount = controllerAccount.mangoDepositoriesRedeemableSoftCap.toNumber() / (10 ** controller.redeemableMintDecimals);
         expect(_postRedeemableSoftCapUIAmount).equals(supplyCapUIAmountLow, "The redeemable soft cap hasn't been updated.");
         console.log(`    ==> Previous soft cap was ${_preRedeemableSoftCap}, now is ${_postRedeemableSoftCapUIAmount}`);
-        controller.info();
-        console.log(controllerAccount);
+        // controller.info();
+        // console.log(controllerAccount);
     });
 
     const validCollateralAmount = 0.2 // in WSOL
@@ -111,8 +111,8 @@ describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 o
         const _postRedeemableSoftCapUIAmount = controllerAccount.mangoDepositoriesRedeemableSoftCap.toNumber() / (10 ** controller.redeemableMintDecimals);
         expect(_postRedeemableSoftCapUIAmount).equals(supplyCapUIAmountHigh, "The redeemable soft cap hasn't been updated.");
         console.log(`    ==> Previous soft cap was ${_preRedeemableSoftCap}, now is ${_postRedeemableSoftCapUIAmount}`);
-        controller.info();
-        console.log(controllerAccount);
+        // controller.info();
+        // console.log(controllerAccount);
     });
 
     // ADD test to close the supply when overminted already and see the behaviour

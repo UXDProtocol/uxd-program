@@ -31,6 +31,8 @@ pub struct MangoDepository {
     // Updated after each mint/redeem
     // In Redeemable native units
     pub redeemable_amount_under_management: u128,
+    //
+    // Should add padding? or migrate?
 }
 
 pub enum AccountingEvent {

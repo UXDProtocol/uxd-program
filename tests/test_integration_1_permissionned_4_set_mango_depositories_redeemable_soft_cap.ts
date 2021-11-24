@@ -25,6 +25,6 @@ before(" ======= [Suite 1-4 : Test setting the mango depositories redeemable sof
         expect(_postRedeemableSoftCapUIAmount).equals(supplySoftCapUIAmount, "The mango depositories redeemable soft cap hasn't been updated.");
         console.log(`    ==> Previous mango depositories redeemable soft cap was ${_preRedeemableSoftCap}, now is ${_postRedeemableSoftCapUIAmount}`);
         controller.info();
-        console.log(controllerAccount);
+        // console.log(controllerAccount);
     });
 });

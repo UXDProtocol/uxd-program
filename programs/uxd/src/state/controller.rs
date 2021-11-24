@@ -13,7 +13,7 @@ pub struct Controller {
     pub redeemable_mint_decimals: u8,
     //
     // The Mango Depositories registered with this Controller
-    pub registered_mango_depositories: [Pubkey; 16], // MAX_REGISTERED_MANGO_DEPOSITORIES id always bug with constant...
+    pub registered_mango_depositories: [Pubkey; 8], // MAX_REGISTERED_MANGO_DEPOSITORIES - IDL bug with constant...
     pub registered_mango_depositories_count: u8,
     //
     // Progressive roll out and safety ----------
@@ -32,6 +32,8 @@ pub struct Controller {
     // This should always be equal to the sum of all Depositories' `redeemable_under_management`
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
+    //
+    // Should add padding? or migrate?
 }
 
 impl Controller {

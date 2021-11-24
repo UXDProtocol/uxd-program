@@ -26,6 +26,6 @@ before(" ======= [Suite 1-3 : Test setting the redeemable global supply cap (1 o
         expect(_postRedeemableGlobalSupplyCapUIAmount).equals(supplyCapUIAmount, "The redeemable global supply cap hasn't been updated.");
         console.log(`    ==> Previous cap was ${_preRedeemableGlobalSupplyCap}, now is ${_postRedeemableGlobalSupplyCapUIAmount} (circulating supply ${_redeemableCirculatingSupplyUIAmount})`);
         controller.info();
-        console.log(controllerAccount);
+        // console.log(controllerAccount);
     });
 });
