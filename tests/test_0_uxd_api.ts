@@ -3,7 +3,7 @@ import { Controller, Depository, Mango } from "@uxdprotocol/uxd-client";
 import { TXN_OPTS, provider } from "./provider";
 import { NodeWallet } from "@project-serum/anchor/dist/cjs/provider";
 import { ControllerAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
-import { uxdClient } from "./test_integration_0_consts";
+import { uxdClient } from "./test_0_consts";
 
 
 afterEach("", () => {

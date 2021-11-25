@@ -1,7 +1,7 @@
 import { authority } from "./identities";
 import { provider } from "./provider";
-import { controllerUXD } from "./test_integration_0_consts";
-import { initializeController, getControllerAccount } from "./test_integration_0_uxd_api";
+import { controllerUXD } from "./test_0_consts";
+import { initializeController, getControllerAccount } from "./test_0_uxd_api";
 
 before(" ======= [Suite 1-1 : Test setup UXD controller (permissionned) (1 op)] ======= ", () => {
   beforeEach("\n", async () => { });

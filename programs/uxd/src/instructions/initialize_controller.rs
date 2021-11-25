@@ -51,19 +51,22 @@ pub fn handler(
     redeemable_mint_bump: u8,
     redeemable_mint_decimals: u8,
 ) -> ProgramResult {
+    let redeemable_mint_unit = 10_u64.pow(redeemable_mint_decimals.into());
     ctx.accounts.controller.bump = bump;
     ctx.accounts.controller.redeemable_mint_bump = redeemable_mint_bump;
     ctx.accounts.controller.authority = ctx.accounts.authority.key();
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
     ctx.accounts.controller.redeemable_mint_decimals = redeemable_mint_decimals;
     // Default to 1 Million
-    ctx.accounts.controller.redeemable_global_supply_cap =
-        DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP.pow(redeemable_mint_decimals.into());
+    ctx.accounts.controller.redeemable_global_supply_cap = DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP
+        .checked_mul(redeemable_mint_unit.into())
+        .unwrap();
     // Default to 1 Thousand
     ctx.accounts
         .controller
-        .mango_depositories_redeemable_soft_cap =
-        DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP.pow(redeemable_mint_decimals.into());
+        .mango_depositories_redeemable_soft_cap = DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP
+        .checked_mul(redeemable_mint_unit)
+        .unwrap();
     ctx.accounts.controller.redeemable_circulating_supply = u128::MIN;
 
     Ok(())

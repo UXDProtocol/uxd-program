@@ -6,10 +6,13 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use fixed::types::I80F48;
 use mango::error::MangoResult;
+use mango::matching::Book;
+use mango::matching::Order;
 use mango::state::MangoAccount;
 use mango::state::MangoCache;
 use mango::state::MangoGroup;
 use mango::state::PerpAccount;
+use mango::state::PerpMarket;
 
 use crate::mango_program;
 use crate::utils::perp_base_position;
@@ -63,6 +66,7 @@ pub struct RedeemFromMangoDepository<'info> {
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
         bump = controller.redeemable_mint_bump,
+        constraint = redeemable_mint.key() == controller.redeemable_mint @ErrorCode::InvalidRedeemableMint
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
@@ -122,51 +126,79 @@ pub fn handler(
     // - [Get perp informations]
     let perp_info = ctx.accounts.perpetual_info();
 
-    // - [Slippage calculation]
-    let price_adjusted = slippage_addition(perp_info.price, slippage);
-
-    let base_lot_price_in_quote_unit = price_adjusted.checked_mul(perp_info.base_lot_size).unwrap();
-    // msg!("base_lot_price_in_quote_unit {}", base_lot_price_in_quote_unit);
-
     // - [Calculates the quantity of short to close]
-    // XXX assuming USDC and redeemable (UXD) have same decimals, need to fix
     let exposure_delta_in_quote_unit = I80F48::from_num(redeemable_amount);
-    let quantity_base_lot_unit = exposure_delta_in_quote_unit
-        .checked_div(base_lot_price_in_quote_unit)
-        .unwrap();
-    msg!("quantity_base_lot: {}", quantity_base_lot_unit);
 
-    // - [Position PRE perp opening to calculate the % filled later on]
+    // - [Perp account state PRE perp position opening]
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
-    let pre_position = perp_base_position(&perp_account);
 
-    // - [Call Mango CPI to place the order that closes short position]
-    let order_price = base_lot_price_in_quote_unit.to_num::<i64>();
-    let order_quantity = quantity_base_lot_unit.to_num::<i64>();
-    // msg!("order_price {} - order_quantity {}", order_price, order_quantity);
+    // - [Base depository's position size in native units PRE perp opening (to calculate the % filled later on)]
+    let initial_base_position = perp_base_position(&perp_account);
+
+    // - [Find out how the best price and quantity for our order]
+    let exposure_delta_in_quote_lot_unit = exposure_delta_in_quote_unit
+        .checked_div(perp_info.quote_lot_size)
+        .unwrap();
+    let best_order = ctx
+        .accounts
+        .get_best_price_and_quantity_for_quote_amount_from_order_book(
+            mango::matching::Side::Ask,
+            exposure_delta_in_quote_lot_unit.to_num(),
+        )?
+        .unwrap();
+    msg!(
+        "best_order: [quantity {} - price {}]",
+        best_order.quantity,
+        best_order.price
+    );
+
+    // - [Checks that the best price found is withing slippage range]
+    let market_price = perp_info.price;
+    let market_price_slippage_adjusted = slippage_addition(market_price, slippage);
+    if best_order.price
+        > market_price_slippage_adjusted
+            .checked_mul(perp_info.base_lot_size)
+            .unwrap()
+            .checked_div(perp_info.quote_lot_size)
+            .unwrap()
+    {
+        msg!("Error- The best order price is beyond slippage");
+        return Err(ErrorCode::InvalidSlippage.into());
+    }
+
+    // - [Place perp order CPI to Mango Market v3]
+    let base_lot_quantity = best_order.quantity;
+    let base_lot_price_in_quote_lot_unit = best_order
+        .price
+        .checked_mul(perp_info.quote_lot_size.to_num())
+        .unwrap();
     mango_program::place_perp_order(
         ctx.accounts
             .into_close_mango_short_perp_context()
             .with_signer(depository_signer_seed),
-        order_price,
-        order_quantity,
+        base_lot_price_in_quote_lot_unit,
+        base_lot_quantity,
         0,
         mango::matching::Side::Bid,
         mango::matching::OrderType::ImmediateOrCancel,
         true,
     )?;
 
-    // - [Position POST perp opening to calculate the % filled later on]
+    // - [Perp account state POST perp position opening]
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
-    let post_position = perp_base_position(&perp_account);
 
-    // - [Verify that the order has been 100% filled]
-    check_short_perp_close_order_fully_filled(order_quantity, pre_position, post_position)?;
+    // - [Checks that the order was fully filled]
+    let post_position = perp_base_position(&perp_account);
+    check_short_perp_close_order_fully_filled(
+        best_order.quantity,
+        initial_base_position,
+        post_position,
+    )?;
 
     // - 2 [BURN THE EQUIVALENT AMOUT OF UXD] ---------------------------------
 
     // Real execution amount of base and quote
-    // XXX Assuming same decimals for USDC/Redeemable(UXD) - To fix
+    // Note : Assuming same decimals for USDC/Redeemable(UXD) - To fix
     let order_amount_quote_native_unit = I80F48::from_num(perp_account.taker_quote.abs())
         .checked_mul(perp_info.quote_lot_size)
         .unwrap();
@@ -302,6 +334,52 @@ impl<'info> RedeemFromMangoDepository<'info> {
             self.mango_group.key,
         )?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
+    }
+
+    // Walk up the book quantity units and return the price at that level. If quantity units not on book, return None
+    // fn get_impact_price_from_perp_order_book(
+    //     &self,
+    //     side: mango::matching::Side,
+    //     quantity: i64,
+    // ) -> MangoResult<Option<i64>> {
+    //     let perp_market = PerpMarket::load_checked(
+    //         &self.mango_perp_market,
+    //         self.mango_program.key,
+    //         self.mango_group.key,
+    //     )?;
+    //     let bids_ai = self.mango_bids.to_account_info();
+    //     let asks_ai = self.mango_asks.to_account_info();
+    //     let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
+    //     Ok(book.get_impact_price(side, quantity))
+    // }
+
+    // fn get_asks_size_below_from_perp_order_book(&self, price: i64) -> MangoResult<i64> {
+    //     let perp_market = PerpMarket::load_checked(
+    //         &self.mango_perp_market,
+    //         self.mango_program.key,
+    //         self.mango_group.key,
+    //     )?;
+    //     let bids_ai = self.mango_bids.to_account_info();
+    //     let asks_ai = self.mango_asks.to_account_info();
+    //     let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
+    //     Ok(book.get_asks_size_below(price, 32))
+    // }
+
+    fn get_best_price_and_quantity_for_quote_amount_from_order_book(
+        &self,
+        side: mango::matching::Side,
+        quote_amount: i64,
+    ) -> MangoResult<Option<Order>> {
+        // Load book
+        let perp_market = PerpMarket::load_checked(
+            &self.mango_perp_market,
+            self.mango_program.key,
+            self.mango_group.key,
+        )?;
+        let bids_ai = self.mango_bids.to_account_info();
+        let asks_ai = self.mango_asks.to_account_info();
+        let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
+        Ok(book.get_best_order_for_quote_lot_amount(side, quote_amount))
     }
 
     // Update the accounting in the Depository and Controller Accounts to reflect changes

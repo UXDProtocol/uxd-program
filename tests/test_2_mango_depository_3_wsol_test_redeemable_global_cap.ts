@@ -1,15 +1,11 @@
 import { expect } from "chai";
 import { authority, user } from "./identities";
-import { mintWithMangoDepository } from "./test_integration_0_uxd_api";
-import { printWorldInfo, printUserBalances, printDepositoryInfo, sleep } from "./integration_test_utils";
-import { getControllerAccount, setRedeemableGlobalSupplyCap } from "./test_integration_0_uxd_api";
-import { slippage } from "./test_integration_2_consts";
-import { depositoryWSOL, mango, slippageBase, controllerUXD } from "./test_integration_0_consts";
-
-before("Initial world state", async () => {
-    printWorldInfo();
-    await printUserBalances();
-});
+import { mintWithMangoDepository } from "./test_0_uxd_api";
+import { printUserBalances, printDepositoryInfo } from "./integration_test_utils";
+import { getControllerAccount, setRedeemableGlobalSupplyCap } from "./test_0_uxd_api";
+import { slippage } from "./test_2_consts";
+import { depositoryWSOL, mango, slippageBase, controllerUXD } from "./test_0_consts";
+import { BN } from "@project-serum/anchor";
 
 // Here we setup the 
 describe(" ======= [Suite 2-3 : test mint beyond redeemable global supply cap (3 op)] ======= ", () => {
@@ -18,6 +14,8 @@ describe(" ======= [Suite 2-3 : test mint beyond redeemable global supply cap (3
         await printUserBalances();
         await printDepositoryInfo(depositoryWSOL, mango);
     });
+
+    it(`0 - initial state`, async () => { /* no-op */ });
 
     const slippagePercentage = slippage / slippageBase;
 
@@ -33,8 +31,8 @@ describe(" ======= [Suite 2-3 : test mint beyond redeemable global supply cap (3
         console.log(txId);
 
         // THEN
-        const _postRedeemableGlobalSupplyCapUIAmount = (await getControllerAccount(controller)).redeemableGlobalSupplyCap.toNumber() / (10 ** controller.redeemableMintDecimals);
-        expect(_postRedeemableGlobalSupplyCapUIAmount).equals(supplyCapUIAmountLow, "The redeemable global supply cap hasn't been updated.");
+        const _postRedeemableGlobalSupplyCapUIAmount = (await getControllerAccount(controller)).redeemableGlobalSupplyCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        expect(_postRedeemableGlobalSupplyCapUIAmount.toNumber()).equals(supplyCapUIAmountLow, "The redeemable global supply cap hasn't been updated.");
     });
 
     // OP2
@@ -74,8 +72,8 @@ describe(" ======= [Suite 2-3 : test mint beyond redeemable global supply cap (3
         console.log(txId);
 
         // THEN
-        const _postRedeemableGlobalSupplyCapUIAmount = (await getControllerAccount(controller)).redeemableGlobalSupplyCap.toNumber() / (10 ** controller.redeemableMintDecimals);
-        expect(_postRedeemableGlobalSupplyCapUIAmount).equals(supplyCapUIAmountHigh, "The redeemable global supply cap hasn't been updated.");
+        const _postRedeemableGlobalSupplyCapUIAmount = (await getControllerAccount(controller)).redeemableGlobalSupplyCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        expect(_postRedeemableGlobalSupplyCapUIAmount.toNumber()).equals(supplyCapUIAmountHigh, "The redeemable global supply cap hasn't been updated.");
     });
 
     // ADD test to close the supply when overminted already and see the behaviour

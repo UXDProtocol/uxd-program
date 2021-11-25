@@ -1,7 +1,8 @@
 import { authority } from "./identities";
 import { expect } from "chai";
-import { setRedeemableGlobalSupplyCap, getControllerAccount, setMangoDepositoriesRedeemableSoftCap } from "./test_integration_0_uxd_api";
-import { controllerUXD } from "./test_integration_0_consts";
+import { getControllerAccount, setMangoDepositoriesRedeemableSoftCap } from "./test_0_uxd_api";
+import { controllerUXD } from "./test_0_consts";
+import { BN } from "@project-serum/anchor";
 
 before(" ======= [Suite 1-4 : Test setting the mango depositories redeemable soft cap (1 op)] ======= ", () => {
     beforeEach("\n", async () => { });
@@ -13,7 +14,7 @@ before(" ======= [Suite 1-4 : Test setting the mango depositories redeemable sof
         // GIVEN
         const caller = authority;
         const controller = controllerUXD;
-        const _preRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.toNumber();
+        const _preRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
 
         // WHEN
         const txId = await setMangoDepositoriesRedeemableSoftCap(caller, controller, supplySoftCapUIAmount);
@@ -21,9 +22,9 @@ before(" ======= [Suite 1-4 : Test setting the mango depositories redeemable sof
 
         // THEN
         const controllerAccount = await getControllerAccount(controller);
-        const _postRedeemableSoftCapUIAmount = controllerAccount.mangoDepositoriesRedeemableSoftCap.toNumber() / (10 ** controller.redeemableMintDecimals);
-        expect(_postRedeemableSoftCapUIAmount).equals(supplySoftCapUIAmount, "The mango depositories redeemable soft cap hasn't been updated.");
-        console.log(`    ==> Previous mango depositories redeemable soft cap was ${_preRedeemableSoftCap}, now is ${_postRedeemableSoftCapUIAmount}`);
+        const _postRedeemableSoftCapUIAmount = controllerAccount.mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        expect(_postRedeemableSoftCapUIAmount.toNumber()).equals(supplySoftCapUIAmount, "The mango depositories redeemable soft cap hasn't been updated.");
+        console.log(`    ==> Previous mango depositories redeemable soft cap was ${_preRedeemableSoftCap.toString()}, now is ${_postRedeemableSoftCapUIAmount.toString()}`);
         controller.info();
         // console.log(controllerAccount);
     });

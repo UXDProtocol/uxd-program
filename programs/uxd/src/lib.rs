@@ -25,7 +25,7 @@ pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Th
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
-solana_program::declare_id!("EBqxjc7zF6VZDybmTYBE8a92YknfNMxgnfTHk8h2MqQK");
+solana_program::declare_id!("EmfJW8BLnbndy7NMuFKz8grbN48FvCTAv99xiLGoBu8B");
 
 #[program]
 #[deny(unused_must_use)]

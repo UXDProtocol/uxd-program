@@ -21,10 +21,10 @@ pub enum ErrorCode {
     #[msg("The redeemable amount for redeem must be superior to 0.")]
     InvalidRedeemableAmount,
     #[msg("The balance of the redeemable ATA is not enough to fulfill the redeem operation.")]
-    InsuficientRedeemableAmount, // 0xd1
+    InsuficientRedeemableAmount, // 0xd1 - 209
     //
     #[msg("The Redeemable Mint provided does not match the Controller's one.")]
-    InvalidRedeemableMint = 10,
+    InvalidRedeemableMint = 10, // - 210
     #[msg("The user's Redeemable ATA's mint does not match the Controller's one.")]
     InvalidUserRedeemableATAMint,
     #[msg("The user's Collateral ATA's mint does not match the Depository's one.")]
@@ -34,12 +34,12 @@ pub enum ErrorCode {
     #[msg("Error while getting the redeemable value of the deposited coin amount.")]
     PositionAmountCalculation,
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
-    RedeemableGlobalSupplyCapReached,
+    RedeemableGlobalSupplyCapReached, // 0xd7 - 215
     #[msg("Operation not allowed due to being over the Redeemable soft Cap.")]
-    MangoDepositoriesSoftCapOverflow, // 0xd8
+    MangoDepositoriesSoftCapOverflow, // 0xd8 - 216
     //
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
-    MaxNumberOfMangoDepositoriesRegisteredReached = 20,
+    MaxNumberOfMangoDepositoriesRegisteredReached = 20, // - 220
     #[msg("The Depository's controller doesn't match the provided Controller")]
     InvalidController,
     #[msg("The Depository provided is not registered with the Controller")]

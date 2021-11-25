@@ -1,15 +1,11 @@
 import { expect } from "chai";
 import { authority, user } from "./identities";
-import { collateralUIPriceInMangoQuote, mintWithMangoDepository, setMangoDepositoriesRedeemableSoftCap } from "./test_integration_0_uxd_api";
-import { printWorldInfo, printUserBalances, printDepositoryInfo, sleep, getBalance, userUXDATA, userWSOLATA } from "./integration_test_utils";
-import { getControllerAccount, setRedeemableGlobalSupplyCap } from "./test_integration_0_uxd_api";
-import { slippage } from "./test_integration_2_consts";
-import { depositoryWSOL, mango, slippageBase, controllerUXD } from "./test_integration_0_consts";
-
-before("Initial world state", async () => {
-    printWorldInfo();
-    await printUserBalances();
-});
+import { collateralUIPriceInMangoQuote, mintWithMangoDepository, setMangoDepositoriesRedeemableSoftCap } from "./test_0_uxd_api";
+import { printUserBalances, printDepositoryInfo, getBalance, userUXDATA, userWSOLATA } from "./integration_test_utils";
+import { getControllerAccount } from "./test_0_uxd_api";
+import { slippage } from "./test_2_consts";
+import { depositoryWSOL, mango, slippageBase, controllerUXD } from "./test_0_consts";
+import { BN } from "@project-serum/anchor";
 
 // Here we setup the 
 describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 op)] ======= ", () => {
@@ -19,6 +15,8 @@ describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 o
         await printDepositoryInfo(depositoryWSOL, mango);
     });
 
+    it(`0 - initial state`, async () => { /* no-op */ });
+
     const slippagePercentage = slippage / slippageBase;
 
     const supplyCapUIAmountLow = 100; // redeemable token UI amount
@@ -27,7 +25,7 @@ describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 o
         // GIVEN
         const caller = authority;
         const controller = controllerUXD;
-        const _preRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.toNumber();
+        const _preRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
 
         // WHEN
         const txId = await setMangoDepositoriesRedeemableSoftCap(caller, controller, supplyCapUIAmountLow);
@@ -35,9 +33,9 @@ describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 o
 
         // THEN
         const controllerAccount = await getControllerAccount(controller);
-        const _postRedeemableSoftCapUIAmount = controllerAccount.mangoDepositoriesRedeemableSoftCap.toNumber() / (10 ** controller.redeemableMintDecimals);
-        expect(_postRedeemableSoftCapUIAmount).equals(supplyCapUIAmountLow, "The redeemable soft cap hasn't been updated.");
-        console.log(`    ==> Previous soft cap was ${_preRedeemableSoftCap}, now is ${_postRedeemableSoftCapUIAmount}`);
+        const _postRedeemableSoftCapUIAmount = controllerAccount.mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        expect(_postRedeemableSoftCapUIAmount.toNumber()).equals(supplyCapUIAmountLow, "The redeemable soft cap hasn't been updated.");
+        console.log(`    ==> Previous soft cap was ${_preRedeemableSoftCap.toString()}, now is ${_postRedeemableSoftCapUIAmount.toString()}`);
         // controller.info();
         // console.log(controllerAccount);
     });
@@ -61,10 +59,10 @@ describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 o
         const _userUxdBalancePostOp = await getBalance(userUXDATA);
         const _userWsolBalancePostOp = await getBalance(userWSOLATA);
 
-        let amountUxdMinted = Number((_userUxdBalancePostOp - _userUxdBalancePreOp).toPrecision(controller.redeemableMintDecimals));
-        let amountWsolUsed = Number((_userWsolBalancePostOp - _userWsolBalancePreOp).toPrecision(depository.collateralMintdecimals));
+        let amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
+        let amountWsolUsed = _userWsolBalancePreOp - _userWsolBalancePostOp;
 
-        expect(amountWsolUsed).equals(validCollateralAmount * -1, "The collateral amount paid doesn't match the user wallet delta");
+        expect(amountWsolUsed).closeTo(validCollateralAmount, Math.pow(10, -depository.collateralMintdecimals), "The collateral amount paid doesn't match the user wallet delta");
         expect(amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
         console.log(`    ==> [Minted ${amountUxdMinted} for ${amountWsolUsed} WSOL (prefect was ${maxAmountUxdMinted})]`);
@@ -100,17 +98,17 @@ describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 o
         // GIVEN
         const caller = authority;
         const controller = controllerUXD;
-        const _preRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.toNumber();
+        const _preRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
 
         // WHEN
         const txId = await setMangoDepositoriesRedeemableSoftCap(caller, controller, supplyCapUIAmountHigh);
         console.log(`txId : ${txId}`);
 
-        // THEN
+        // 
         const controllerAccount = await getControllerAccount(controller);
-        const _postRedeemableSoftCapUIAmount = controllerAccount.mangoDepositoriesRedeemableSoftCap.toNumber() / (10 ** controller.redeemableMintDecimals);
-        expect(_postRedeemableSoftCapUIAmount).equals(supplyCapUIAmountHigh, "The redeemable soft cap hasn't been updated.");
-        console.log(`    ==> Previous soft cap was ${_preRedeemableSoftCap}, now is ${_postRedeemableSoftCapUIAmount}`);
+        const _postRedeemableSoftCapUIAmount = controllerAccount.mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        expect(_postRedeemableSoftCapUIAmount.toNumber()).equals(supplyCapUIAmountHigh, "The redeemable soft cap hasn't been updated.");
+        console.log(`    ==> Previous soft cap was ${_preRedeemableSoftCap.toString()}, now is ${_postRedeemableSoftCapUIAmount.toString()}`);
         // controller.info();
         // console.log(controllerAccount);
     });
