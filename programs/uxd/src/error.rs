@@ -36,7 +36,7 @@ pub enum ErrorCode {
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
     RedeemableGlobalSupplyCapReached,
     #[msg("Operation not allowed due to being over the Redeemable soft Cap.")]
-    MangoDepositoriesSoftCapOverflow,
+    MangoDepositoriesSoftCapOverflow, // 0xd8
     //
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
     MaxNumberOfMangoDepositoriesRegisteredReached = 20,

@@ -57,11 +57,13 @@ pub fn handler(
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
     ctx.accounts.controller.redeemable_mint_decimals = redeemable_mint_decimals;
     // Default to 1 Million
-    ctx.accounts.controller.redeemable_global_supply_cap = DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP;
+    ctx.accounts.controller.redeemable_global_supply_cap =
+        DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP.pow(redeemable_mint_decimals.into());
     // Default to 1 Thousand
     ctx.accounts
         .controller
-        .mango_depositories_redeemable_soft_cap = DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
+        .mango_depositories_redeemable_soft_cap =
+        DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP.pow(redeemable_mint_decimals.into());
     ctx.accounts.controller.redeemable_circulating_supply = u128::MIN;
 
     Ok(())

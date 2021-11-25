@@ -3,7 +3,7 @@ cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [programs.devnet]
-uxd = "6xwXPEr7e7Vmc4NzDLaVaVNnDqH6ecZCX8yKmBH9K1hw"
+uxd = "EBqxjc7zF6VZDybmTYBE8a92YknfNMxgnfTHk8h2MqQK"
 
 # [programs.mainnet]
 # uxd = ""
@@ -12,5 +12,8 @@ uxd = "6xwXPEr7e7Vmc4NzDLaVaVNnDqH6ecZCX8yKmBH9K1hw"
 url = "https://anchor.projectserum.com"
 
 [scripts]
+# Test the whole integration (Default)
 test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_*.ts"
+# Test a single test
+# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_integration_2_mango_depository_1_btc.ts"
  
