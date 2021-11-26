@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import { authority, user } from "./identities";
 import { mintWithMangoDepository } from "./test_0_uxd_api";
-import { printUserBalances, printDepositoryInfo } from "./integration_test_utils";
+import { printUserBalances, printDepositoryInfo, sleep } from "./integration_test_utils";
 import { getControllerAccount, setRedeemableGlobalSupplyCap } from "./test_0_uxd_api";
 import { slippage } from "./test_2_consts";
-import { depositoryWSOL, mango, slippageBase, controllerUXD } from "./test_0_consts";
+import { depositoryWSOL, mango, slippageBase, controllerUXD, accountUpdateSleepingInterval } from "./test_0_consts";
 import { BN } from "@project-serum/anchor";
 
 // Here we setup the 
@@ -66,13 +66,16 @@ describe(" ======= [Suite 2-3 : test mint beyond redeemable global supply cap (3
         // GIVEN
         const caller = authority;
         const controller = controllerUXD;
+        const _preRedeemableGlobalSupplyCapUIAmount = (await getControllerAccount(controller)).redeemableGlobalSupplyCap.div(new BN(10 ** controller.redeemableMintDecimals));
 
         // WHEN
         let txId = await setRedeemableGlobalSupplyCap(caller, controller, supplyCapUIAmountHigh);
         console.log(txId);
 
         // THEN
+        await sleep(accountUpdateSleepingInterval);
         const _postRedeemableGlobalSupplyCapUIAmount = (await getControllerAccount(controller)).redeemableGlobalSupplyCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        console.log(`    ==> Previous global supply cap was ${_preRedeemableGlobalSupplyCapUIAmount.toString()}, now is ${_postRedeemableGlobalSupplyCapUIAmount.toString()}`);
         expect(_postRedeemableGlobalSupplyCapUIAmount.toNumber()).equals(supplyCapUIAmountHigh, "The redeemable global supply cap hasn't been updated.");
     });
 

@@ -36,6 +36,7 @@ describe(" ======= [Suite 2-2 : Mint then redeem all WSOL (4 op)] ======= ", () 
         const _userUxdBalancePostOp = await getBalance(userUXDATA);
         const _userWsolBalancePostOp = await getBalance(userWSOLATA);
 
+        console.log(`BALANCE pre ${_userUxdBalancePreOp} -- post ${_userUxdBalancePostOp} -- delta ${_userUxdBalancePostOp - _userUxdBalancePreOp}`);
         op1_amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
         const op_amountWsolUsed = _userWsolBalancePostOp - _userWsolBalancePreOp;
 
@@ -100,7 +101,7 @@ describe(" ======= [Suite 2-2 : Mint then redeem all WSOL (4 op)] ======= ", () 
         op3_amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
         const op_amountWsolUsed = _userWsolBalancePostOp - _userWsolBalancePreOp;
 
-        expect(op_amountWsolUsed).equals(collateralAmount * -1, "The collateral amount paid doesn't match the user wallet delta");
+        expect(op_amountWsolUsed).closeTo(collateralAmount * -1, Math.pow(10, -depository.collateralMintdecimals), "The collateral amount paid doesn't match the user wallet delta");
         expect(op3_amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
         console.log(`    ==> [Minted ${op3_amountUxdMinted} for ${op_amountWsolUsed} WSOL (prefect was ${maxAmountUxdMinted})]`);

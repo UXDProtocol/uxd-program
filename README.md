@@ -172,7 +172,7 @@ A depository is a vault in charge a Collateral type, the associated mango accoun
 
 Update the Controller authority
 
-### `TransferMintAuthority`
+### `TransferMintAuthority` (Todo, maybe)
 
 Eject the mint auth from the program, ending the program. Maybe should be "deinitialize", need to think.
 
@@ -197,13 +197,13 @@ We then sell this amount of collateral at market price, and that put us a positi
 Would rebalance the amount of collateral available inside each depository so that the pools don't become one sided (everyone deposit sol, then redeem BTC).
 Would also allow for yield optimisation depending of the current values.
 
-### `DepositInsurance` / `WidthdrawInsurance` (Todo)
+### `DepositInsuranceToMangoDepository` / `WidthdrawInsuranceFromMangoDepository`
 
 Deposit can just use the default Mango deposit. But that's better to use a interface doing it all through the program for coherence.
 
 Withdraw need to be specific cause it's PDA own accounts.
 
-This would be used to add USDC to a depository mango account to fund it's insurance fund.
+This would be used to add USDC to a depository mango account to fund it's insurance fund in UXD case.
 
 ### `setRedeemableGlobalSupplyCap`
 

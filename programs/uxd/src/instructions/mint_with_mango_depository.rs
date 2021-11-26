@@ -71,12 +71,15 @@ pub struct MintWithMangoDepository<'info> {
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.collateral_passthrough_bump,
+        constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @ErrorCode::InvalidCollateralPassthroughAccount,
+        constraint = depository_collateral_passthrough_account.mint == collateral_mint.key() @ErrorCode::InvalidCollateralPassthroughATAMint
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.mango_account_bump,
+        constraint = depository.mango_account == depository_mango_account.key() @ErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango related accounts -------------------------------------------------
@@ -352,12 +355,12 @@ impl<'info> MintWithMangoDepository<'info> {
     ) -> ProgramResult {
         // Mango Depository
         self.depository
-            .update_collateral_amount_deposited(AccountingEvent::Mint, collateral_delta);
+            .update_collateral_amount_deposited(AccountingEvent::Deposit, collateral_delta);
         self.depository
-            .update_redeemable_amount_under_management(AccountingEvent::Mint, redeemable_delta);
+            .update_redeemable_amount_under_management(AccountingEvent::Deposit, redeemable_delta);
         // Controller
         self.controller
-            .update_redeemable_circulating_supply(AccountingEvent::Mint, redeemable_delta);
+            .update_redeemable_circulating_supply(AccountingEvent::Deposit, redeemable_delta);
 
         // TODO catch errors above and make explicit error
 

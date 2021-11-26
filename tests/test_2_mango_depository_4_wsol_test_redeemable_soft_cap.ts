@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import { authority, user } from "./identities";
 import { collateralUIPriceInMangoQuote, mintWithMangoDepository, setMangoDepositoriesRedeemableSoftCap } from "./test_0_uxd_api";
-import { printUserBalances, printDepositoryInfo, getBalance, userUXDATA, userWSOLATA } from "./integration_test_utils";
+import { printUserBalances, printDepositoryInfo, getBalance, userUXDATA, userWSOLATA, sleep } from "./integration_test_utils";
 import { getControllerAccount } from "./test_0_uxd_api";
 import { slippage } from "./test_2_consts";
-import { depositoryWSOL, mango, slippageBase, controllerUXD } from "./test_0_consts";
+import { depositoryWSOL, mango, slippageBase, controllerUXD, accountUpdateSleepingInterval } from "./test_0_consts";
 import { BN } from "@project-serum/anchor";
 
 // Here we setup the 
@@ -105,10 +105,11 @@ describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 o
         console.log(`txId : ${txId}`);
 
         // 
+        await sleep(accountUpdateSleepingInterval);
         const controllerAccount = await getControllerAccount(controller);
         const _postRedeemableSoftCapUIAmount = controllerAccount.mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
-        expect(_postRedeemableSoftCapUIAmount.toNumber()).equals(supplyCapUIAmountHigh, "The redeemable soft cap hasn't been updated.");
         console.log(`    ==> Previous soft cap was ${_preRedeemableSoftCap.toString()}, now is ${_postRedeemableSoftCapUIAmount.toString()}`);
+        expect(_postRedeemableSoftCapUIAmount.toNumber()).equals(supplyCapUIAmountHigh, "The redeemable soft cap hasn't been updated.");
         // controller.info();
         // console.log(controllerAccount);
     });

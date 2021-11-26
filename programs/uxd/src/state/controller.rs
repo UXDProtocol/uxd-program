@@ -45,11 +45,11 @@ impl Controller {
         amount: u64,
     ) {
         self.redeemable_circulating_supply = match event_type {
-            AccountingEvent::Mint => self
+            AccountingEvent::Deposit => self
                 .redeemable_circulating_supply
                 .checked_add(amount.into())
                 .unwrap(),
-            AccountingEvent::Redeem => self
+            AccountingEvent::Withdraw => self
                 .redeemable_circulating_supply
                 .checked_sub(amount.into())
                 .unwrap(),

@@ -73,12 +73,15 @@ pub struct RedeemFromMangoDepository<'info> {
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.collateral_passthrough_bump,
+        constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @ErrorCode::InvalidCollateralPassthroughAccount,
+        constraint = depository_collateral_passthrough_account.mint == collateral_mint.key() @ErrorCode::InvalidCollateralPassthroughATAMint
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.mango_account_bump,
+        constraint = depository.mango_account == depository_mango_account.key() @ErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango related accounts -------------------------------------------------
@@ -115,7 +118,7 @@ pub fn handler(
 ) -> ProgramResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
-    let depository_signer_seed: &[&[&[u8]]] = &[&[
+    let depository_signer_seeds: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         collateral_mint.as_ref(),
         &[ctx.accounts.depository.bump],
@@ -175,7 +178,7 @@ pub fn handler(
     mango_program::place_perp_order(
         ctx.accounts
             .into_close_mango_short_perp_context()
-            .with_signer(depository_signer_seed),
+            .with_signer(depository_signer_seeds),
         base_lot_price_in_quote_lot_unit,
         base_lot_quantity,
         0,
@@ -216,7 +219,7 @@ pub fn handler(
     mango_program::withdraw(
         ctx.accounts
             .into_withdraw_collateral_from_mango_context()
-            .with_signer(depository_signer_seed),
+            .with_signer(depository_signer_seeds),
         collateral_amount,
         false,
     )?;
@@ -225,7 +228,7 @@ pub fn handler(
     token::transfer(
         ctx.accounts
             .into_transfer_collateral_to_user_context()
-            .with_signer(depository_signer_seed),
+            .with_signer(depository_signer_seeds),
         collateral_amount,
     )?;
 
@@ -380,12 +383,12 @@ impl<'info> RedeemFromMangoDepository<'info> {
     ) -> ProgramResult {
         // Mango Depository
         self.depository
-            .update_collateral_amount_deposited(AccountingEvent::Redeem, collateral_delta);
+            .update_collateral_amount_deposited(AccountingEvent::Withdraw, collateral_delta);
         self.depository
-            .update_redeemable_amount_under_management(AccountingEvent::Redeem, redeemable_delta);
+            .update_redeemable_amount_under_management(AccountingEvent::Withdraw, redeemable_delta);
         // Controller
         self.controller
-            .update_redeemable_circulating_supply(AccountingEvent::Redeem, redeemable_delta);
+            .update_redeemable_circulating_supply(AccountingEvent::Withdraw, redeemable_delta);
 
         // TODO catch errors above and make explicit error
 
@@ -410,7 +413,7 @@ fn slippage_addition(price: I80F48, slippage: u32) -> I80F48 {
     let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
     let slippage_amount = price.checked_mul(slippage_ratio).unwrap();
     let price_adjusted = price.checked_add(slippage_amount).unwrap();
-    msg!("price after slippage deduction: {}", price_adjusted);
+    msg!("price after slippage addition: {}", price_adjusted);
     return price_adjusted;
 }
 
