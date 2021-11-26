@@ -5,6 +5,7 @@ use anchor_spl::token::TokenAccount;
 use mango::state::MangoAccount;
 use std::mem::size_of;
 
+use crate::PROGRAM_VERSION;
 use crate::mango_program;
 use crate::MangoDepository;
 use crate::Controller;
@@ -97,6 +98,7 @@ pub fn handler(
     ctx.accounts.depository.bump = bump;
     ctx.accounts.depository.collateral_passthrough_bump = collateral_passthrough_bump;
     ctx.accounts.depository.mango_account_bump = mango_account_bump;
+    ctx.accounts.depository.version = PROGRAM_VERSION;
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
     ctx.accounts.depository.mango_account = ctx.accounts.depository_mango_account.key();

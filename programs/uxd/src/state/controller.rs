@@ -7,6 +7,8 @@ use crate::{AccountingEvent, ErrorCode, MAX_REGISTERED_MANGO_DEPOSITORIES};
 pub struct Controller {
     pub bump: u8,
     pub redeemable_mint_bump: u8,
+    // Version used - for migrations later if needed
+    pub version: u8,
     // The account that initialize this struct. Only this account can call permissionned instructions.
     pub authority: Pubkey,
     pub redeemable_mint: Pubkey,
