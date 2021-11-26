@@ -22,15 +22,15 @@ solana-program = "1.8.4"
 spl-token = "3.2.0"
 fixed = "1.9.0"
 thiserror = "1.0"
-# mango = { git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
-# mango = { git = "https://github.com/UXDProtocol/mango-v3", rev = "5186b99b9bfbaca292bd6c3d66ce20287460af40", features = ["no-entrypoint"] }
+# mango = { git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] } // waiting for PR merge
+mango = { git = "https://github.com/UXDProtocol/mango-v3", branch = "feature/get_best_order_for_amount", features = ["no-entrypoint"] }
 
-[dependencies.mango]
-# git = "https://github.com/UXDProtocol/mango-v3"
-name = "mango"
-path = "./../../../mango-v3/program/"
-# branch = "get-best-price-and-quantity-for-quote-amount"
-features = ["no-entrypoint"]
+# [dependencies.mango]
+# name = "mango"
+# path = "./../../../mango-v3/program/"
+# # git = "https://github.com/UXDProtocol/mango-v3"
+# branch = "feature/get_best_order_for_amount"
+# features = ["no-entrypoint"]
 
 [dev-dependencies]
 proptest = "1.0.0"
