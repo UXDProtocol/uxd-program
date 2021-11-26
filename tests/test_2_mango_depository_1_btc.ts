@@ -1,14 +1,9 @@
 import { expect } from "chai";
 import { user } from "./identities";
-import { mintWithMangoDepository, redeemFromMangoDepository, collateralUIPriceInMangoQuote } from "./test_integration_0_uxd_api";
-import { printWorldInfo, printUserBalances, printDepositoryInfo, getBalance, userBTCATA, userUXDATA } from "./integration_test_utils";
-import { slippage } from "./test_integration_2_consts";
-import { depositoryBTC, mango, slippageBase, controllerUXD } from "./test_integration_0_consts";
-
-before("Initial world state", async () => {
-  printWorldInfo();
-  await printUserBalances();
-});
+import { mintWithMangoDepository, redeemFromMangoDepository, collateralUIPriceInMangoQuote } from "./test_0_uxd_api";
+import { printUserBalances, printDepositoryInfo, getBalance, userBTCATA, userUXDATA } from "./integration_test_utils";
+import { slippage } from "./test_2_consts";
+import { depositoryBTC, mango, slippageBase, controllerUXD } from "./test_0_consts";
 
 describe(" ======= [Suite 2-1 : Mint then redeem all BTC (2 op)] ======= ", () => {
   beforeEach("\n", async () => { });
@@ -16,6 +11,9 @@ describe(" ======= [Suite 2-1 : Mint then redeem all BTC (2 op)] ======= ", () =
     await printUserBalances();
     await printDepositoryInfo(depositoryBTC, mango);
   });
+
+
+  it(`0 - initial state`, async () => { /* no-op */ });
 
   const slippagePercentage = slippage / slippageBase;
 
@@ -39,10 +37,10 @@ describe(" ======= [Suite 2-1 : Mint then redeem all BTC (2 op)] ======= ", () =
     const _userUxdBalancePostOp = await getBalance(userUXDATA);
     const _userBtcBalancePostOp = await getBalance(userBTCATA);
 
-    op1_amountUxdMinted = Number((_userUxdBalancePostOp - _userUxdBalancePreOp).toPrecision(controller.redeemableMintDecimals));
-    let op1_amountBtcUsed = Number((_userBtcBalancePostOp - _userBtcBalancePreOp).toPrecision(depository.collateralMintdecimals));
+    op1_amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
+    let op1_amountBtcUsed = _userBtcBalancePreOp - _userBtcBalancePostOp;
 
-    expect(op1_amountBtcUsed).equals(collateralAmount * -1, "The collateral amount paid doesn't match the user wallet delta");
+    expect(op1_amountBtcUsed).closeTo(collateralAmount, Math.pow(10, -controller.redeemableMintDecimals), "The collateral amount paid doesn't match the user wallet delta");
     expect(op1_amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
     console.log(`    ==> [Minted ${op1_amountUxdMinted} for ${op1_amountBtcUsed} BTC (prefect was ${maxAmountUxdMinted})]`);
@@ -64,16 +62,19 @@ describe(" ======= [Suite 2-1 : Mint then redeem all BTC (2 op)] ======= ", () =
 
     // THEN
     const maxAmountUxdRedeemed = op1_amountUxdMinted;
-    const maxAmountBtcReceived = Number((maxAmountUxdRedeemed / (await collateralUIPriceInMangoQuote(depository, mango))).toPrecision(depository.collateralMintdecimals));
+    const maxAmountBtcReceived = maxAmountUxdRedeemed / (await collateralUIPriceInMangoQuote(depository, mango));
     const _userUxdBalancePostOp = await getBalance(userUXDATA);
     const _userBtcBalancePostOp = await getBalance(userBTCATA);
 
-    op2_amountUxdRedeemed = Number((_userUxdBalancePreOp - _userUxdBalancePostOp).toPrecision(controller.redeemableMintDecimals));
-    let op2_amountBtcReceived = Number((_userBtcBalancePostOp - _userBtcBalancePreOp).toPrecision(depository.collateralMintdecimals));
+    op2_amountUxdRedeemed = _userUxdBalancePreOp - _userUxdBalancePostOp;
+    let op2_amountBtcReceived = _userBtcBalancePostOp - _userBtcBalancePreOp;
+    // The amount of UXD that couldn't be redeemed due to odd lot size
+    const unredeemedUXDAmount = amountRedeemable - op2_amountUxdRedeemed;
 
     expect(op2_amountUxdRedeemed).closeTo(maxAmountUxdRedeemed, maxAmountUxdRedeemed * (slippage), "The UXD amount redeemed is out of the slippage range");
     expect(op2_amountBtcReceived).closeTo(maxAmountBtcReceived, maxAmountBtcReceived * (slippage), "The BTC amount received is out of the slippage range");
+    expect(_userUxdBalancePostOp).closeTo(_userUxdBalancePreOp - maxAmountUxdRedeemed + unredeemedUXDAmount, Math.pow(10, -controller.redeemableMintDecimals), "The amount of UXD carried over isn't right");
 
-    console.log(`    ==> [Redeemed ${op2_amountUxdRedeemed} UXD for ${op2_amountBtcReceived} BTC (perfect was ${maxAmountBtcReceived})]`);
+    console.log(`    ==> [Redeemed ${op2_amountUxdRedeemed} UXD for ${op2_amountBtcReceived} BTC (perfect was ${maxAmountBtcReceived}, returned UXD cause of odd lot ${unredeemedUXDAmount})]`);
   });
 });

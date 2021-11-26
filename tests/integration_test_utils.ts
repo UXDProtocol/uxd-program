@@ -2,7 +2,7 @@ import { Depository, findATAAddrSync, Mango } from "@uxdprotocol/uxd-client";
 import { BTC, user, WSOL } from "./identities";
 import { provider, TXN_COMMIT } from "./provider";
 import { PublicKey } from "@solana/web3.js";
-import { controllerUXD } from "./test_integration_0_consts";
+import { accountUpdateSleepingInterval, controllerUXD } from "./test_0_consts";
 
 // User's SPL Accounts
 export const userBTCATA: PublicKey = findATAAddrSync(user, BTC)[0];
@@ -22,7 +22,7 @@ export function getBalance(tokenAccount: PublicKey): Promise<number> {
 
 export async function printDepositoryInfo(depository: Depository, mango: Mango) {
     // Sleep waiting for mango market update
-    await sleep(3000);
+    await sleep(accountUpdateSleepingInterval);
     const SYM = depository.collateralMintSymbol;
     console.log(`\
         * [Depository ${SYM}]

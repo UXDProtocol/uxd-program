@@ -1,7 +1,7 @@
 import { authority } from "./identities";
 import { provider } from "./provider";
-import { controllerUXD, depositoryBTC, mango, depositoryWSOL } from "./test_integration_0_consts";
-import { registerMangoDepository } from "./test_integration_0_uxd_api";
+import { controllerUXD, depositoryBTC, mango, depositoryWSOL } from "./test_0_consts";
+import { registerMangoDepository } from "./test_0_uxd_api";
 
 before(" ======= [Suite 1-2 : Test setup UXD controller (permissionned) (2 op)] ======= ", () => {
     beforeEach("\n", async () => { });

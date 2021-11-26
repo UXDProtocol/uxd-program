@@ -146,7 +146,10 @@ pub fn handler(
     // This is the price of one base lot in quote lot units : `perp_info.base_lot_price_in_quote_lot_unit()`
     let base_lot_price_in_quote_lot_unit =
         slippage_deduction(perp_info.base_lot_price_in_quote_lot_unit(), slippage);
-    // msg!("base_lot_price_in_quote_lot_unit (after slippage deduction): {}", base_lot_price_in_quote_lot_unit);
+    msg!(
+        "base_lot_price_in_quote_lot_unit (after slippage deduction): {}",
+        base_lot_price_in_quote_lot_unit
+    );
 
     // - [Calculates the quantity of base lot to open short]
     // XXX assuming USDC and Redeemable (UXD) have same decimals, need to fix
@@ -154,21 +157,25 @@ pub fn handler(
     let quantity_base_lot = collateral_amount_native_unit
         .checked_div(perp_info.base_lot_size)
         .unwrap();
-    // msg!("quantity_base_lot: {}", quantity_base_lot);
+    msg!("quantity_base_lot: {}", quantity_base_lot);
 
     // - [Position PRE perp opening to calculate the % filled later on]
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
     let pre_position = perp_base_position(&perp_account);
 
     // - [Call mango CPI to open the perp short position]
-    let order_price = base_lot_price_in_quote_lot_unit.to_num::<i64>();
+    let limit_order_worst_price = base_lot_price_in_quote_lot_unit.to_num::<i64>();
     let order_quantity = quantity_base_lot.to_num::<i64>();
-    // msg!("order_price {} - order_quantity {}", order_price, order_quantity);
+    msg!(
+        "order_price {} - order_quantity {}",
+        limit_order_worst_price,
+        order_quantity
+    );
     mango_program::place_perp_order(
         ctx.accounts
             .into_open_mango_short_perp_context()
             .with_signer(depository_signer_seeds),
-        order_price,
+        limit_order_worst_price,
         order_quantity,
         0,
         mango::matching::Side::Ask,
@@ -306,6 +313,14 @@ impl<'info> MintWithMangoDepository<'info> {
 
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
     fn check_redeemable_global_supply_cap_overflow(&self) -> ProgramResult {
+        msg!(
+            "controller.redeemable_circulating_supply {}",
+            self.controller.redeemable_circulating_supply
+        );
+        msg!(
+            "self.controller.redeemable_global_supply_cap {}",
+            self.controller.redeemable_global_supply_cap
+        );
         if !(self.controller.redeemable_circulating_supply
             <= self.controller.redeemable_global_supply_cap)
         {
@@ -318,6 +333,11 @@ impl<'info> MintWithMangoDepository<'info> {
         &self,
         redeemable_delta: u64,
     ) -> ProgramResult {
+        msg!("redeemable_delta {}", redeemable_delta);
+        msg!(
+            "self.controller.mango_depositories_redeemable_soft_cap {}",
+            self.controller.mango_depositories_redeemable_soft_cap
+        );
         if !(redeemable_delta <= self.controller.mango_depositories_redeemable_soft_cap) {
             return Err(ErrorCode::MangoDepositoriesSoftCapOverflow.into());
         }
@@ -392,13 +412,14 @@ fn derive_redeemable_amount(perp_info: &PerpInfo, perp_account: &PerpAccount) ->
 }
 
 fn derive_collateral_delta(base_lot_amount: i64, perp_info: &PerpInfo) -> u64 {
-    base_lot_amount
+    let collateral_delta = base_lot_amount
         .checked_mul(perp_info.base_lot_size.to_num()) // Back from lot to native units
         .unwrap()
         .checked_abs()
         .unwrap()
         .checked_to_fixed::<U64F0>()
         .unwrap()
-        .to_num()
-    // msg!("collateral_delta {}", collateral_delta);
+        .to_num();
+    msg!("collateral_delta {}", collateral_delta);
+    collateral_delta
 }

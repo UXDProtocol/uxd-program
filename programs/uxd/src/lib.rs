@@ -23,9 +23,9 @@ pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million r
 pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
 
-pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 16;
+pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
-solana_program::declare_id!("6xwXPEr7e7Vmc4NzDLaVaVNnDqH6ecZCX8yKmBH9K1hw");
+solana_program::declare_id!("EmfJW8BLnbndy7NMuFKz8grbN48FvCTAv99xiLGoBu8B");
 
 #[program]
 #[deny(unused_must_use)]

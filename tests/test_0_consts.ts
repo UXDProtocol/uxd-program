@@ -21,6 +21,8 @@ export const depositoryWSOL = new Depository(WSOL, "SOL", SOL_DECIMALS, uxdProgr
 // Client interface to the Web3 call to `UXD-Program`
 export const uxdClient = new UXD(provider, uxdProgram);
 
+export const accountUpdateSleepingInterval = 2000; // In milliseconds
+
 // ----------------------------------------------------------------------------
 
 before(" ======= [Suite 0 : Initialize mango (1 op)] ======= ", async () => {
