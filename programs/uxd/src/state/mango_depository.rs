@@ -5,11 +5,14 @@ use anchor_lang::prelude::*;
 pub struct MangoDepository {
     pub bump: u8,
     pub collateral_passthrough_bump: u8,
+    pub insurance_passthrough_bump: u8,
     pub mango_account_bump: u8,
     // Version used - for migrations later if needed
     pub version: u8,
     pub collateral_mint: Pubkey,
     pub collateral_passthrough: Pubkey,
+    pub insurance_mint: Pubkey,
+    pub insurance_passthrough: Pubkey,
     pub mango_account: Pubkey,
     //
     // The Controller instance for which this Depository works for
@@ -38,29 +41,31 @@ pub struct MangoDepository {
 }
 
 pub enum AccountingEvent {
-    Mint,
-    Redeem,
+    Deposit,
+    Withdraw,
 }
 
 impl MangoDepository {
-    // pub fn update_insurance_deposited(&mut self, event_type: BalanceUpdateType, amount: u64) {
-    //     self.insurance_amount_deposited = match event_type {
-    //         BalanceUpdateType::Deposit => {
-    //             self.insurance_amount_deposited.checked_add(amount.into()).unwrap()
-    //         }
-    //         BalanceUpdateType::Withdraw => {
-    //             self.insurance_amount_deposited.checked_sub(amount.into()).unwrap()
-    //         }
-    //     }
-    // }
+    pub fn update_insurance_amount_deposited(&mut self, event_type: AccountingEvent, amount: u64) {
+        self.insurance_amount_deposited = match event_type {
+            AccountingEvent::Deposit => self
+                .insurance_amount_deposited
+                .checked_add(amount.into())
+                .unwrap(),
+            AccountingEvent::Withdraw => self
+                .insurance_amount_deposited
+                .checked_sub(amount.into())
+                .unwrap(),
+        }
+    }
 
     pub fn update_collateral_amount_deposited(&mut self, event_type: AccountingEvent, amount: u64) {
         self.collateral_amount_deposited = match event_type {
-            AccountingEvent::Mint => self
+            AccountingEvent::Deposit => self
                 .collateral_amount_deposited
                 .checked_add(amount.into())
                 .unwrap(),
-            AccountingEvent::Redeem => self
+            AccountingEvent::Withdraw => self
                 .collateral_amount_deposited
                 .checked_sub(amount.into())
                 .unwrap(),
@@ -73,11 +78,11 @@ impl MangoDepository {
         amount: u64,
     ) {
         self.redeemable_amount_under_management = match event_type {
-            AccountingEvent::Mint => self
+            AccountingEvent::Deposit => self
                 .redeemable_amount_under_management
                 .checked_add(amount.into())
                 .unwrap(),
-            AccountingEvent::Redeem => self
+            AccountingEvent::Withdraw => self
                 .redeemable_amount_under_management
                 .checked_sub(amount.into())
                 .unwrap(),

@@ -6,15 +6,12 @@ use crate::CONTROLLER_NAMESPACE;
 
 #[derive(Accounts)]
 pub struct SetRedeemableGlobalSupplyCap<'info> {
-    #[account(
-        constraint = authority.key() == controller.authority @ErrorCode::InvalidAuthority
-    )]
     pub authority: Signer<'info>,
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE], 
         bump = controller.bump,
-        has_one = authority,
+        has_one = authority @ErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
 }

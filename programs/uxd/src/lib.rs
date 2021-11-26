@@ -15,7 +15,8 @@ pub const PROGRAM_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
 pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
-pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"PASSTHROUGH";
+pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"COLLATERALPASSTHROUGH";
+pub const INSURANCE_PASSTHROUGH_NAMESPACE: &[u8] = b"INSURANCEPASSTHROUGH";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
@@ -28,7 +29,7 @@ pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Th
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
-solana_program::declare_id!("8prHt4QgTwDiLLg13Nj8NKUkTbWqm16Xn7FgTLVvMdDV");
+solana_program::declare_id!("DGJczz5Z3ShDoKTprXvcT11enjhHKbqZQxJiKrFWnXE8");
 
 #[program]
 #[deny(unused_must_use)]
@@ -96,13 +97,6 @@ pub mod uxd {
         instructions::set_mango_depositories_redeemable_soft_cap::handler(ctx, redeemable_soft_cap)
     }
 
-    // Set the UXD mint/redeem Soft cap.
-    //
-    // As a conservative measure, UXD will limit the amount of UXD mintable/redeemable to make sure things go smooth
-    // or in case of issues we would cause on Mango.
-    // This would be lifted fully at some point.
-    // pub fn set_uxd_soft_cap() -> ProgramResult {}
-
     // Create and Register a new `Depository` to a `Controller`.
     // Each `Depository` account manages a specific collateral mint.
     // A `Depository` account owns a `collateral_passthrough` PDA as the owner of the mango account and
@@ -112,6 +106,7 @@ pub mod uxd {
         ctx: Context<RegisterMangoDepository>,
         bump: u8,
         collateral_passthrough_bump: u8,
+        insurance_passthrough_bump: u8,
         mango_account_bump: u8,
     ) -> ProgramResult {
         msg!("UXD register_mango_depository");
@@ -119,8 +114,35 @@ pub mod uxd {
             ctx,
             bump,
             collateral_passthrough_bump,
+            insurance_passthrough_bump,
             mango_account_bump,
         )
+    }
+
+    #[access_control(
+        check_deposit_insurance_amount_constraints(&ctx, insurance_amount)
+    )]
+    pub fn deposit_insurance_to_mango_depository(
+        ctx: Context<DepositInsuranceToMangoDepository>,
+        insurance_amount: u64,
+    ) -> ProgramResult {
+        msg!(
+            "UXD deposit_insurance_to_mango_depository amount: {}",
+            insurance_amount
+        );
+        instructions::deposit_insurance_to_mango_depository::handler(ctx, insurance_amount)
+    }
+
+    #[access_control(check_withdraw_insurance_amount_constraints(insurance_amount))]
+    pub fn withdraw_insurance_from_mango_depository(
+        ctx: Context<WithdrawInsuranceFromMangoDepository>,
+        insurance_amount: u64,
+    ) -> ProgramResult {
+        msg!(
+            "UXD withdraw_insurance_from_mango_depository amount: {}",
+            insurance_amount
+        );
+        instructions::withdraw_insurance_from_mango_depository::handler(ctx, insurance_amount)
     }
 
     /// Mint UXD through a Depository using MangoMarkets.
@@ -250,5 +272,26 @@ pub fn check_redeemable_amount_constraints<'info>(
     if !(ctx.accounts.user_redeemable.amount >= redeemable_amount) {
         return Err(ErrorCode::InsuficientRedeemableAmount.into());
     }
+    Ok(())
+}
+
+pub fn check_deposit_insurance_amount_constraints<'info>(
+    ctx: &Context<DepositInsuranceToMangoDepository<'info>>,
+    insurance_amount: u64,
+) -> ProgramResult {
+    if !(insurance_amount > 0) {
+        return Err(ErrorCode::InvalidInsuranceAmount.into());
+    }
+    if !(ctx.accounts.authority_insurance.amount >= insurance_amount) {
+        return Err(ErrorCode::InsuficientAuthorityInsuranceAmount.into());
+    }
+    Ok(())
+}
+
+pub fn check_withdraw_insurance_amount_constraints<'info>(insurance_amount: u64) -> ProgramResult {
+    if !(insurance_amount > 0) {
+        return Err(ErrorCode::InvalidInsuranceAmount.into());
+    }
+    // Mango withdraw will fail with proper error cause disabled borrow if not enough there.
     Ok(())
 }
