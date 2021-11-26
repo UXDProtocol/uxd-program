@@ -6,6 +6,8 @@ pub struct MangoDepository {
     pub bump: u8,
     pub collateral_passthrough_bump: u8,
     pub mango_account_bump: u8,
+    // Version used - for migrations later if needed
+    pub version: u8,
     pub collateral_mint: Pubkey,
     pub collateral_passthrough: Pubkey,
     pub mango_account: Pubkey,

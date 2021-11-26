@@ -40,8 +40,8 @@ pub enum ErrorCode {
     //
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
     MaxNumberOfMangoDepositoriesRegisteredReached = 20, // - 220
-    #[msg("The Depository's controller doesn't match the provided Controller")]
+    #[msg("The Depository's controller doesn't match the provided Controller.")]
     InvalidController,
-    #[msg("The Depository provided is not registered with the Controller")]
+    #[msg("The Depository provided is not registered with the Controller.")]
     InvalidDepository,
 }

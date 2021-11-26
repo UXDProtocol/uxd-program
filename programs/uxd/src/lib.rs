@@ -10,6 +10,9 @@ pub use crate::error::ErrorCode;
 pub use crate::instructions::*;
 pub use crate::state::*;
 
+// Version used for accounts structure and future migrations
+pub const PROGRAM_VERSION: u8 = 1;
+
 // These are just "namespaces" seeds for the PDA creations.
 pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
 pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"PASSTHROUGH";
@@ -25,7 +28,7 @@ pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Th
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
-solana_program::declare_id!("EmfJW8BLnbndy7NMuFKz8grbN48FvCTAv99xiLGoBu8B");
+solana_program::declare_id!("8prHt4QgTwDiLLg13Nj8NKUkTbWqm16Xn7FgTLVvMdDV");
 
 #[program]
 #[deny(unused_must_use)]

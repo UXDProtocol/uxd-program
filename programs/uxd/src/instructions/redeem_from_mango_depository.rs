@@ -336,6 +336,8 @@ impl<'info> RedeemFromMangoDepository<'info> {
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
+    // Could use this to do a quick check - might end up using computing for no reason, let's keep that here.
+    //
     // Walk up the book quantity units and return the price at that level. If quantity units not on book, return None
     // fn get_impact_price_from_perp_order_book(
     //     &self,
@@ -351,18 +353,6 @@ impl<'info> RedeemFromMangoDepository<'info> {
     //     let asks_ai = self.mango_asks.to_account_info();
     //     let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
     //     Ok(book.get_impact_price(side, quantity))
-    // }
-
-    // fn get_asks_size_below_from_perp_order_book(&self, price: i64) -> MangoResult<i64> {
-    //     let perp_market = PerpMarket::load_checked(
-    //         &self.mango_perp_market,
-    //         self.mango_program.key,
-    //         self.mango_group.key,
-    //     )?;
-    //     let bids_ai = self.mango_bids.to_account_info();
-    //     let asks_ai = self.mango_asks.to_account_info();
-    //     let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
-    //     Ok(book.get_asks_size_below(price, 32))
     // }
 
     fn get_best_price_and_quantity_for_quote_amount_from_order_book(
