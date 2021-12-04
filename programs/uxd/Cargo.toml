@@ -22,8 +22,8 @@ solana-program = "1.8.4"
 spl-token = "3.2.0"
 fixed = "1.9.0"
 thiserror = "1.0"
-# mango = { git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] } // waiting for PR merge
-mango = { git = "https://github.com/UXDProtocol/mango-v3", branch = "feature/get_best_order_for_amount", features = ["no-entrypoint"] }
+mango = { git = "https://github.com/blockworks-foundation/mango-v3", branch = "v3.2.7", features = ["no-entrypoint"] }
+# mango = { git = "https://github.com/UXDProtocol/mango-v3", branch = "feature/get_best_order_for_amount", features = ["no-entrypoint"] }
 
 # [dependencies.mango]
 # name = "mango"

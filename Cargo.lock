@@ -789,8 +789,8 @@ dependencies = [
 
 [[package]]
 name = "mango"
-version = "3.2.6"
-source = "git+https://github.com/UXDProtocol/mango-v3?branch=feature/get_best_order_for_amount#5dda1a27716bf10c773ad1cf51e74a12cb2ce438"
+version = "3.2.7"
+source = "git+https://github.com/blockworks-foundation/mango-v3?branch=v3.2.7#7ce81dfcb20559d686c5dde4db92c93147b606cf"
 dependencies = [
  "anchor-lang",
  "arrayref",
@@ -817,7 +817,7 @@ dependencies = [
 [[package]]
 name = "mango-common"
 version = "3.0.0"
-source = "git+https://github.com/UXDProtocol/mango-v3?branch=feature/get_best_order_for_amount#5dda1a27716bf10c773ad1cf51e74a12cb2ce438"
+source = "git+https://github.com/blockworks-foundation/mango-v3?branch=v3.2.7#7ce81dfcb20559d686c5dde4db92c93147b606cf"
 dependencies = [
  "bytemuck",
  "solana-program",
@@ -826,7 +826,7 @@ dependencies = [
 [[package]]
 name = "mango-logs"
 version = "0.1.0"
-source = "git+https://github.com/UXDProtocol/mango-v3?branch=feature/get_best_order_for_amount#5dda1a27716bf10c773ad1cf51e74a12cb2ce438"
+source = "git+https://github.com/blockworks-foundation/mango-v3?branch=v3.2.7#7ce81dfcb20559d686c5dde4db92c93147b606cf"
 dependencies = [
  "anchor-lang",
 ]
@@ -834,7 +834,7 @@ dependencies = [
 [[package]]
 name = "mango-macro"
 version = "3.0.0"
-source = "git+https://github.com/UXDProtocol/mango-v3?branch=feature/get_best_order_for_amount#5dda1a27716bf10c773ad1cf51e74a12cb2ce438"
+source = "git+https://github.com/blockworks-foundation/mango-v3?branch=v3.2.7#7ce81dfcb20559d686c5dde4db92c93147b606cf"
 dependencies = [
  "bytemuck",
  "mango-common",
