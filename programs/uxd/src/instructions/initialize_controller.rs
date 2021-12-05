@@ -21,14 +21,15 @@ use crate::SOLANA_MAX_MINT_DECIMALS;
     redeemable_mint_decimals: u8,
 )]
 pub struct InitializeController<'info> {
-    // This account is important, only this identity will be able to do admin calls in the future. Choose wisely
-    #[account(mut)]
     pub authority: Signer<'info>,
+    // In order to use with governance program, as the PDA cannot be the payer in nested TX.
+    #[account(mut)]
+    pub payer: Signer<'info>,
     #[account(
         init,
         seeds = [CONTROLLER_NAMESPACE],
         bump = bump,
-        payer = authority,
+        payer = payer,
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
@@ -37,7 +38,7 @@ pub struct InitializeController<'info> {
         bump = redeemable_mint_bump,
         mint::authority = controller,
         mint::decimals = redeemable_mint_decimals,
-        payer = authority,
+        payer = payer,
         constraint = redeemable_mint_decimals <= SOLANA_MAX_MINT_DECIMALS
     )]
     pub redeemable_mint: Account<'info, Mint>,

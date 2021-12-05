@@ -26,8 +26,10 @@ const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
     mango_account_bump: u8,
 )]
 pub struct RegisterMangoDepository<'info> {
-    #[account(mut)]
     pub authority: Signer<'info>,
+    // In order to use with governance program, as the PDA cannot be the payer in nested TX.
+    #[account(mut)]
+    pub payer: Signer<'info>,
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE], 
@@ -39,7 +41,7 @@ pub struct RegisterMangoDepository<'info> {
         init,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
         bump = bump,
-        payer = authority,
+        payer = payer,
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
     pub collateral_mint: Box<Account<'info, Mint>>,
@@ -50,7 +52,7 @@ pub struct RegisterMangoDepository<'info> {
         bump = collateral_passthrough_bump,
         token::mint = collateral_mint,
         token::authority = depository,
-        payer = authority,
+        payer = payer,
     )]
     pub depository_collateral_passthrough_account: Account<'info, TokenAccount>,
     #[account(
@@ -59,7 +61,7 @@ pub struct RegisterMangoDepository<'info> {
         bump = insurance_passthrough_bump,
         token::mint = insurance_mint,
         token::authority = depository,
-        payer = authority,
+        payer = payer,
     )]
     pub depository_insurance_passthrough_account: Account<'info, TokenAccount>,
     #[account(
@@ -67,7 +69,7 @@ pub struct RegisterMangoDepository<'info> {
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
         bump = mango_account_bump,
         owner = mango_program::Mango::id(),
-        payer = authority,
+        payer = payer,
         space = MANGO_ACCOUNT_SPAN,
     )]
     pub depository_mango_account: AccountInfo<'info>,
