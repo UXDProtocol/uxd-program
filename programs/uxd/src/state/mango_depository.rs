@@ -27,7 +27,7 @@ pub struct MangoDepository {
     // In Collateral native units
     pub insurance_amount_deposited: u128,
     //
-    // The amount of collateral deposited by users to mint UXD - The optimal size of the basis trade
+    // The amount of collateral deposited by users to mint UXD
     // Updated after each mint/redeem
     // In Collateral native units
     pub collateral_amount_deposited: u128,

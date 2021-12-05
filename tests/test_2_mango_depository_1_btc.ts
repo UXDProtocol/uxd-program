@@ -43,7 +43,7 @@ describe(" ======= [Suite 2-1 : Mint then redeem all BTC (2 op)] ======= ", () =
     expect(op1_amountBtcUsed).closeTo(collateralAmount, Math.pow(10, -controller.redeemableMintDecimals), "The collateral amount paid doesn't match the user wallet delta");
     expect(op1_amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
-    console.log(`    ==> [Minted ${op1_amountUxdMinted} for ${op1_amountBtcUsed} BTC (prefect was ${maxAmountUxdMinted})]`);
+    console.log(`    ==> [Minted ${op1_amountUxdMinted} for ${op1_amountBtcUsed} BTC (approximperfect was ${maxAmountUxdMinted})]`);
   });
 
   // OP2

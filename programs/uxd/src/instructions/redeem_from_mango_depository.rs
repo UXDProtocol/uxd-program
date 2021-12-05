@@ -5,9 +5,7 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use fixed::types::I80F48;
-use mango::error::MangoResult;
 use mango::matching::Book;
-use mango::matching::Order;
 use mango::state::MangoAccount;
 use mango::state::MangoCache;
 use mango::state::MangoGroup;
@@ -15,12 +13,15 @@ use mango::state::PerpAccount;
 use mango::state::PerpMarket;
 
 use crate::mango_program;
+use crate::utils::get_best_order_for_quote_lot_amount;
 use crate::utils::perp_base_position;
+use crate::utils::Order;
 use crate::utils::PerpInfo;
 use crate::AccountingEvent;
 use crate::Controller;
 use crate::ErrorCode;
 use crate::MangoDepository;
+use crate::UxdResult;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -127,10 +128,18 @@ pub fn handler(
     // - 1 [CLOSE THE EQUIVALENT PERP SHORT ON MANGO] -------------------------
 
     // - [Get perp informations]
-    let perp_info = ctx.accounts.perpetual_info();
+    let perp_info = ctx.accounts.perpetual_info()?;
 
     // - [Calculates the quantity of short to close]
-    let exposure_delta_in_quote_unit = I80F48::from_num(redeemable_amount);
+    let mut exposure_delta_in_quote_unit = I80F48::from_num(redeemable_amount);
+
+    // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees doesn't overflow the redeemed amount]
+    let max_fee_amount = exposure_delta_in_quote_unit
+        .checked_mul(perp_info.taker_fee)
+        .unwrap();
+    exposure_delta_in_quote_unit = exposure_delta_in_quote_unit
+        .checked_sub(max_fee_amount)
+        .unwrap();
 
     // - [Perp account state PRE perp position opening]
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
@@ -147,40 +156,18 @@ pub fn handler(
         .get_best_price_and_quantity_for_quote_amount_from_order_book(
             mango::matching::Side::Ask,
             exposure_delta_in_quote_lot_unit.to_num(),
-        )?
-        .unwrap();
-    msg!(
-        "best_order: [quantity {} - price {}]",
-        best_order.quantity,
-        best_order.price
-    );
+        )?;
 
     // - [Checks that the best price found is withing slippage range]
-    let market_price = perp_info.price;
-    let market_price_slippage_adjusted = slippage_addition(market_price, slippage);
-    if best_order.price
-        > market_price_slippage_adjusted
-            .checked_mul(perp_info.base_lot_size)
-            .unwrap()
-            .checked_div(perp_info.quote_lot_size)
-            .unwrap()
-    {
-        msg!("Error- The best order price is beyond slippage");
-        return Err(ErrorCode::InvalidSlippage.into());
-    }
+    check_short_perp_close_order_is_within_slippage_range(&perp_info, &best_order, slippage)?;
 
     // - [Place perp order CPI to Mango Market v3]
-    let base_lot_quantity = best_order.quantity;
-    let base_lot_price_in_quote_lot_unit = best_order
-        .price
-        .checked_mul(perp_info.quote_lot_size.to_num())
-        .unwrap();
     mango_program::place_perp_order(
         ctx.accounts
             .into_close_mango_short_perp_context()
             .with_signer(depository_signer_seeds),
-        base_lot_price_in_quote_lot_unit,
-        base_lot_quantity,
+        best_order.price,
+        best_order.quantity,
         0,
         mango::matching::Side::Bid,
         mango::matching::OrderType::ImmediateOrCancel,
@@ -199,44 +186,42 @@ pub fn handler(
     )?;
 
     // - 2 [BURN THE EQUIVALENT AMOUT OF UXD] ---------------------------------
-
-    // Real execution amount of base and quote
-    // Note : Assuming same decimals for USDC/Redeemable(UXD) - To fix
-    let order_amount_quote_native_unit = I80F48::from_num(perp_account.taker_quote.abs())
-        .checked_mul(perp_info.quote_lot_size)
-        .unwrap();
-    let redeemable_delta = order_amount_quote_native_unit.to_num();
+    let redeemable_delta =
+        derive_redeemable_delta_plus_taker_fees(&perp_info, &perp_account).to_num();
+    msg!("redeemable_delta (Burn) {}", redeemable_delta);
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         redeemable_delta,
     )?;
-    msg!("Redeemable burnt amount {}", order_amount_quote_native_unit);
 
     // - 3 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
-
-    let collateral_amount = derive_collateral_amount(&perp_info, &perp_account).to_num();
-    // - mango withdraw
+    let collateral_delta =
+        derive_collateral_delta_minus_taker_fees(&perp_info, &perp_account).to_num();
+    msg!(
+        "collateral_delta (Withdrawn from Depository) {}",
+        collateral_delta
+    );
+    // - [Mango withdraw CPI]
     mango_program::withdraw(
         ctx.accounts
             .into_withdraw_collateral_from_mango_context()
             .with_signer(depository_signer_seeds),
-        collateral_amount,
+        collateral_delta,
         false,
     )?;
 
-    // - Return collateral back to user
+    // - [Return collateral back to user]
+    msg!("collateral_delta (Transfered to user) {}", collateral_delta);
     token::transfer(
         ctx.accounts
             .into_transfer_collateral_to_user_context()
             .with_signer(depository_signer_seeds),
-        collateral_amount,
+        collateral_delta,
     )?;
-
-    // msg!("collateral_amount withdrawn then returned amount {}", collateral_amount);
 
     // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts
-        .check_and_update_accounting(collateral_amount, redeemable_delta)?;
+        .check_and_update_accounting(collateral_delta, redeemable_delta)?;
 
     // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
     ctx.accounts
@@ -314,65 +299,77 @@ impl<'info> RedeemFromMangoDepository<'info> {
 // Additional convenience methods related to the inputed accounts
 impl<'info> RedeemFromMangoDepository<'info> {
     // Return general information about the perpetual related to the collateral in use
-    fn perpetual_info(&self) -> PerpInfo {
-        let mango_group =
-            MangoGroup::load_checked(&self.mango_group, self.mango_program.key).unwrap();
+    fn perpetual_info(&self) -> UxdResult<PerpInfo> {
+        let mango_group = match MangoGroup::load_checked(&self.mango_group, self.mango_program.key)
+        {
+            Ok(it) => it,
+            Err(_err) => return Err(ErrorCode::MangoGroupLoading),
+        };
         let mango_cache =
-            MangoCache::load_checked(&self.mango_cache, self.mango_program.key, &mango_group)
-                .unwrap();
-        let perp_market_index = mango_group
-            .find_perp_market_index(self.mango_perp_market.key)
-            .unwrap();
+            match MangoCache::load_checked(&self.mango_cache, self.mango_program.key, &mango_group)
+            {
+                Ok(it) => it,
+                Err(_err) => return Err(ErrorCode::MangoCacheLoading),
+            };
+        let perp_market_index = match mango_group.find_perp_market_index(self.mango_perp_market.key)
+        {
+            Some(it) => it,
+            None => return Err(ErrorCode::MangoPerpMarketIndexNotFound),
+        };
         let perp_info = PerpInfo::init(&mango_group, &mango_cache, perp_market_index);
         msg!("Perpetual informations: {:?}", perp_info);
-        return perp_info;
+        Ok(perp_info)
     }
 
     // Return the uncommited PerpAccount that represent the account balances
-    fn perp_account(&self, perp_info: &PerpInfo) -> MangoResult<PerpAccount> {
+    fn perp_account(&self, perp_info: &PerpInfo) -> UxdResult<PerpAccount> {
         // - loads Mango's accounts
-        let mango_account = MangoAccount::load_checked(
+        let mango_account = match MangoAccount::load_checked(
             &self.depository_mango_account,
             self.mango_program.key,
             self.mango_group.key,
-        )?;
+        ) {
+            Ok(it) => it,
+            Err(_err) => return Err(ErrorCode::MangoOrderBookLoading),
+        };
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
-
-    // Could use this to do a quick check - might end up using computing for no reason, let's keep that here.
-    //
-    // Walk up the book quantity units and return the price at that level. If quantity units not on book, return None
-    // fn get_impact_price_from_perp_order_book(
-    //     &self,
-    //     side: mango::matching::Side,
-    //     quantity: i64,
-    // ) -> MangoResult<Option<i64>> {
-    //     let perp_market = PerpMarket::load_checked(
-    //         &self.mango_perp_market,
-    //         self.mango_program.key,
-    //         self.mango_group.key,
-    //     )?;
-    //     let bids_ai = self.mango_bids.to_account_info();
-    //     let asks_ai = self.mango_asks.to_account_info();
-    //     let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
-    //     Ok(book.get_impact_price(side, quantity))
-    // }
 
     fn get_best_price_and_quantity_for_quote_amount_from_order_book(
         &self,
         side: mango::matching::Side,
         quote_amount: i64,
-    ) -> MangoResult<Option<Order>> {
+    ) -> UxdResult<Order> {
         // Load book
-        let perp_market = PerpMarket::load_checked(
+        let perp_market = match PerpMarket::load_checked(
             &self.mango_perp_market,
             self.mango_program.key,
             self.mango_group.key,
-        )?;
+        ) {
+            Ok(it) => it,
+            Err(_err) => return Err(ErrorCode::MangoOrderBookLoading),
+        };
         let bids_ai = self.mango_bids.to_account_info();
         let asks_ai = self.mango_asks.to_account_info();
-        let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
-        Ok(book.get_best_order_for_quote_lot_amount(side, quote_amount))
+        let book =
+            match Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market) {
+                Ok(it) => it,
+                Err(_err) => return Err(ErrorCode::MangoOrderBookLoading),
+            };
+        let best_order = get_best_order_for_quote_lot_amount(&book, side, quote_amount);
+
+        return match best_order {
+            Some(best_order) => {
+                msg!(
+                    "best_order: [quantity {} - price {} - size {}]",
+                    best_order.quantity,
+                    best_order.price,
+                    best_order.size
+                );
+                Ok(best_order)
+            }
+            None => Err(ErrorCode::InsuficentOrderBookDepth),
+        };
     }
 
     // Update the accounting in the Depository and Controller Accounts to reflect changes
@@ -380,7 +377,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
         &mut self,
         collateral_delta: u64,
         redeemable_delta: u64,
-    ) -> ProgramResult {
+    ) -> UxdResult {
         // Mango Depository
         self.depository
             .update_collateral_amount_deposited(AccountingEvent::Withdraw, collateral_delta);
@@ -398,9 +395,9 @@ impl<'info> RedeemFromMangoDepository<'info> {
     fn check_mango_depositories_redeemable_soft_cap_overflow(
         &self,
         redeemable_delta: u64,
-    ) -> ProgramResult {
+    ) -> UxdResult {
         if !(redeemable_delta <= self.controller.mango_depositories_redeemable_soft_cap) {
-            return Err(ErrorCode::MangoDepositoriesSoftCapOverflow.into());
+            return Err(ErrorCode::MangoDepositoriesSoftCapOverflow);
         }
         Ok(())
     }
@@ -417,35 +414,66 @@ fn slippage_addition(price: I80F48, slippage: u32) -> I80F48 {
     return price_adjusted;
 }
 
+fn check_short_perp_close_order_is_within_slippage_range(
+    perp_info: &PerpInfo,
+    order: &Order,
+    slippage: u32,
+) -> UxdResult {
+    let market_price = perp_info.price;
+    let market_price_slippage_adjusted = slippage_addition(market_price, slippage);
+    if order.price
+        > market_price_slippage_adjusted
+            .checked_mul(perp_info.base_lot_size)
+            .unwrap()
+            .checked_div(perp_info.quote_lot_size)
+            .unwrap()
+    {
+        return Err(ErrorCode::InvalidSlippage);
+    }
+    Ok(())
+}
+
 // Verify that the order quantity matches the base position delta
 fn check_short_perp_close_order_fully_filled(
     order_quantity: i64,
     pre_position: i64,
     post_position: i64,
-) -> ProgramResult {
+) -> UxdResult {
     let filled_amount = (post_position.checked_sub(pre_position).unwrap()).abs();
     if !(order_quantity == filled_amount) {
-        return Err(ErrorCode::PerpOrderPartiallyFilled.into());
+        return Err(ErrorCode::PerpOrderPartiallyFilled);
     }
     Ok(())
 }
 
-// Find out how much UXD the program mints for the user, derived from the outcome of the perp short opening
-fn derive_collateral_amount(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
+pub fn derive_redeemable_delta_plus_taker_fees(
+    perp_info: &PerpInfo,
+    perp_account: &PerpAccount,
+) -> I80F48 {
+    let order_amount_quote_native_unit = I80F48::from_num(perp_account.taker_quote.abs())
+        .checked_mul(perp_info.quote_lot_size)
+        .unwrap();
+    let fee_amount = order_amount_quote_native_unit
+        .checked_mul(perp_info.taker_fee)
+        .unwrap();
+    let amount_plus_fees = order_amount_quote_native_unit
+        .checked_add(fee_amount)
+        .unwrap();
+    amount_plus_fees
+}
+
+pub fn derive_collateral_delta_minus_taker_fees(
+    perp_info: &PerpInfo,
+    perp_account: &PerpAccount,
+) -> I80F48 {
     let order_amount_base_native_unit = I80F48::from_num(perp_account.taker_base.abs())
         .checked_mul(perp_info.base_lot_size)
         .unwrap();
-    msg!(
-        "order_amount_base_native_unit {}",
-        order_amount_base_native_unit
-    );
-    let fees = I80F48::ONE
-        .checked_sub(perp_info.taker_fee.checked_div(I80F48::ONE).unwrap())
+    let fee_amount = order_amount_base_native_unit
+        .checked_mul(perp_info.taker_fee)
         .unwrap();
-    msg!("fees {}", fees);
-
-    order_amount_base_native_unit
-        .checked_mul(fees)
-        .unwrap()
-        .to_num()
+    let amount_minus_fees = order_amount_base_native_unit
+        .checked_sub(fee_amount)
+        .unwrap();
+    amount_minus_fees
 }

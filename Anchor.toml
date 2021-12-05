@@ -3,7 +3,7 @@ cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [programs.devnet]
-uxd = "DGJczz5Z3ShDoKTprXvcT11enjhHKbqZQxJiKrFWnXE8"
+uxd = "7GUxJFwD3eGgN1AZzYMTY7m4fPJbS93wwapce7UityQt"
 
 # [programs.mainnet]
 # uxd = ""
@@ -15,5 +15,5 @@ url = "https://anchor.projectserum.com"
 # Test the whole integration (Default)
 test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_*.ts"
 # Test a single test
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_5_deposit_insurance_on_mango_depository_wsol.ts"
+# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_2_mango_depository_1_btc.ts"
  
