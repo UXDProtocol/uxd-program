@@ -44,18 +44,6 @@ impl PerpInfo {
             taker_fee: mango_group.perp_markets[perp_market_index].taker_fee,
         }
     }
-
-    pub fn base_lot_price_in_quote_lot_unit(&self) -> I80F48 {
-        self.price
-            .checked_mul(self.quote_unit)
-            .unwrap() // to quote native amount
-            .checked_div(self.base_unit)
-            .unwrap() // price for 1 decimal unit (1 satoshi for btc for instance)
-            .checked_mul(self.base_lot_size)
-            .unwrap() // price for a lot (100 sat for btc for instance)
-            .checked_div(self.quote_lot_size)
-            .unwrap() // price for a lot in quote_lot_unit
-    }
 }
 
 // Return the current base position for a given PerpAccount
@@ -77,7 +65,7 @@ pub struct Order {
     pub quantity: i64,
     // The price to place the order at, in quote (per base_lot)
     pub price: i64,
-    // The resulting total amount that will be spent, in quote_lot
+    // The resulting total amount that will be spent, in quote_lot (without fees)
     pub size: i64,
 }
 

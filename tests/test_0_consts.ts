@@ -21,7 +21,7 @@ export const depositoryWSOL = new Depository(WSOL, "SOL", SOL_DECIMALS, USDC, "U
 // Client interface to the Web3 call to `UXD-Program`
 export const uxdClient = new UXD(provider, uxdProgram);
 
-export const accountUpdateSleepingInterval = 2000; // In milliseconds
+export const accountUpdateSleepingInterval = 2500; // In milliseconds
 
 // ----------------------------------------------------------------------------
 

@@ -150,7 +150,7 @@ pub fn handler(
     let perp_info = ctx.accounts.perpetual_info();
     msg!("Perpetual informations: {:?}", perp_info);
 
-    // - [Get the amount of Base Lots required]
+    // - [Get the amount of Base Lots for the perp order]
     let base_lot_amount = I80F48::from_num(collateral_amount)
         .checked_div(perp_info.base_lot_size)
         .unwrap();
@@ -197,20 +197,11 @@ pub fn handler(
     )?;
 
     // - 3 [MINTS THE HEDGED AMOUNT OF REDEEMABLE] ----------------------------
-    let order_amount_quote_native_unit = I80F48::from_num(perp_account.taker_quote.abs())
-        .checked_mul(perp_info.quote_lot_size)
-        .unwrap();
-    let taker_fee_amount = order_amount_quote_native_unit.abs() * perp_info.taker_fee;
-    let redeemable_delta = order_amount_quote_native_unit
-        .checked_sub(taker_fee_amount)
-        .unwrap()
-        .to_num();
-    msg!(
-        "redeemable_delta {} - (before fees was {})",
-        redeemable_delta,
-        order_amount_quote_native_unit
-    );
-
+    // Note : by removing a the fees from the emitted UXD, the delta neutral position will hedge more than the circulating UXD,
+    //   this difference is for the system to offset the fees and will be handled by the rebalancing
+    let redeemable_delta =
+        derive_redeemable_delta_minus_taker_fees(&perp_info, &perp_account).to_num();
+    msg!("redeemable_delta (Mint Redeemables) {}", redeemable_delta);
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
@@ -219,10 +210,10 @@ pub fn handler(
     )?;
 
     // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
-    let collateral_delta = I80F48::from_num(perp_account.taker_base.abs())
-        .checked_mul(perp_info.base_lot_size)
-        .unwrap()
-        .to_num();
+    // Note : the aforementionned fees won't be reflected in the accounting as they are not related to the delta neutral position
+    let collateral_delta =
+        derive_collateral_delta_minus_taker_fees(&perp_info, &perp_account).to_num();
+    msg!("collateral_delta (Update accounting) {}", redeemable_delta);
     ctx.accounts
         .check_and_update_accounting(collateral_delta, redeemable_delta)?;
 
@@ -463,32 +454,34 @@ fn check_short_perp_open_order_fully_filled(
     Ok(())
 }
 
-// // Find out the amount of redeemable the program mints for the user, derived from the outcome of the perp short opening
-// fn derive_redeemable_amount(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
-//     // Need to add a check to make sure we don't mint more UXD than collateral value `collateral_amount_native_unit` (stupid?)
-//     // -
-//     // What is the valuation of the collateral? When we enter the instruction, do we value it from Base/ Perp price?
-//     // -
-//     // We Open a short position that tries to match that deposited collateral, but it might be smaller due to slippage.
-//     // We then mint on the value on this short position (To make sure everything that's minted is hedged)
+pub fn derive_redeemable_delta_minus_taker_fees(
+    perp_info: &PerpInfo,
+    perp_account: &PerpAccount,
+) -> I80F48 {
+    let order_amount_quote_native_unit = I80F48::from_num(perp_account.taker_quote.abs())
+        .checked_mul(perp_info.quote_lot_size)
+        .unwrap();
+    let fee_amount = order_amount_quote_native_unit
+        .checked_mul(perp_info.taker_fee)
+        .unwrap();
+    let amount_minus_fees = order_amount_quote_native_unit
+        .checked_sub(fee_amount)
+        .unwrap();
+    amount_minus_fees
+}
 
-//     // - [Calculate the actual execution price (minus the mango fees)]
-//     let order_price_native_unit = I80F48::from_num(perp_account.taker_quote)
-//         .checked_mul(perp_info.quote_lot_size)
-//         .unwrap();
-//     msg!(
-//         "  derive_redeemable_amount() - order_price_native_unit {}",
-//         order_price_native_unit
-//     );
-
-//     let fees = order_price_native_unit.abs() * perp_info.taker_fee;
-//     msg!("  derive_redeemable_amount() - fees {}", fees);
-
-//     // XXX here it's considering UXD and USDC have same decimals -- FIX LATER
-//     // THIS SHOULD BE THE SPOT MARKET VALUE MINTED AND NOT THE PERP VALUE CAUSE ELSE IT'S TOO MUCH
-//     order_price_native_unit.checked_sub(fees).unwrap()
-// }
-
-// fn derive_collateral_delta(base_lot_amount: i64, perp_info: &PerpInfo) -> u64 {
-
-// }
+pub fn derive_collateral_delta_minus_taker_fees(
+    perp_info: &PerpInfo,
+    perp_account: &PerpAccount,
+) -> I80F48 {
+    let order_amount_base_native_unit = I80F48::from_num(perp_account.taker_base.abs())
+        .checked_mul(perp_info.base_lot_size)
+        .unwrap();
+    let fee_amount = order_amount_base_native_unit
+        .checked_mul(perp_info.taker_fee)
+        .unwrap();
+    let amount_minus_fees = order_amount_base_native_unit
+        .checked_sub(fee_amount)
+        .unwrap();
+    amount_minus_fees
+}

@@ -131,7 +131,15 @@ pub fn handler(
     let perp_info = ctx.accounts.perpetual_info()?;
 
     // - [Calculates the quantity of short to close]
-    let exposure_delta_in_quote_unit = I80F48::from_num(redeemable_amount);
+    let mut exposure_delta_in_quote_unit = I80F48::from_num(redeemable_amount);
+
+    // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees doesn't overflow the redeemed amount]
+    let max_fee_amount = exposure_delta_in_quote_unit
+        .checked_mul(perp_info.taker_fee)
+        .unwrap();
+    exposure_delta_in_quote_unit = exposure_delta_in_quote_unit
+        .checked_sub(max_fee_amount)
+        .unwrap();
 
     // - [Perp account state PRE perp position opening]
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
@@ -178,7 +186,8 @@ pub fn handler(
     )?;
 
     // - 2 [BURN THE EQUIVALENT AMOUT OF UXD] ---------------------------------
-    let redeemable_delta = derive_redeemable_delta(&perp_info, &perp_account).to_num();
+    let redeemable_delta =
+        derive_redeemable_delta_plus_taker_fees(&perp_info, &perp_account).to_num();
     msg!("redeemable_delta (Burn) {}", redeemable_delta);
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
@@ -186,9 +195,13 @@ pub fn handler(
     )?;
 
     // - 3 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
-    let collateral_delta = derive_collateral_delta(&perp_info, &perp_account).to_num();
-    msg!("collateral_delta (Withdrawn) {}", collateral_delta);
-    // - [mango withdraw]
+    let collateral_delta =
+        derive_collateral_delta_minus_taker_fees(&perp_info, &perp_account).to_num();
+    msg!(
+        "collateral_delta (Withdrawn from Depository) {}",
+        collateral_delta
+    );
+    // - [Mango withdraw CPI]
     mango_program::withdraw(
         ctx.accounts
             .into_withdraw_collateral_from_mango_context()
@@ -198,6 +211,7 @@ pub fn handler(
     )?;
 
     // - [Return collateral back to user]
+    msg!("collateral_delta (Transfered to user) {}", collateral_delta);
     token::transfer(
         ctx.accounts
             .into_transfer_collateral_to_user_context()
@@ -432,43 +446,34 @@ fn check_short_perp_close_order_fully_filled(
     Ok(())
 }
 
-fn derive_redeemable_delta(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
+pub fn derive_redeemable_delta_plus_taker_fees(
+    perp_info: &PerpInfo,
+    perp_account: &PerpAccount,
+) -> I80F48 {
     let order_amount_quote_native_unit = I80F48::from_num(perp_account.taker_quote.abs())
         .checked_mul(perp_info.quote_lot_size)
         .unwrap();
-    msg!(
-        "order_amount_quote_native_unit {}",
-        order_amount_quote_native_unit
-    );
     let fee_amount = order_amount_quote_native_unit
         .checked_mul(perp_info.taker_fee)
         .unwrap();
     let amount_plus_fees = order_amount_quote_native_unit
         .checked_add(fee_amount)
-        .unwrap()
-        .to_num();
-
-    msg!("amount_plus_fees {}", amount_plus_fees);
+        .unwrap();
     amount_plus_fees
 }
 
-// Find out how much collateral the program unhedged for the user, derived from the outcome of the perp short opening, removing fees
-fn derive_collateral_delta(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
+pub fn derive_collateral_delta_minus_taker_fees(
+    perp_info: &PerpInfo,
+    perp_account: &PerpAccount,
+) -> I80F48 {
     let order_amount_base_native_unit = I80F48::from_num(perp_account.taker_base.abs())
         .checked_mul(perp_info.base_lot_size)
         .unwrap();
-    msg!(
-        "order_amount_base_native_unit {}",
-        order_amount_base_native_unit
-    );
     let fee_amount = order_amount_base_native_unit
         .checked_mul(perp_info.taker_fee)
         .unwrap();
     let amount_minus_fees = order_amount_base_native_unit
         .checked_sub(fee_amount)
-        .unwrap()
-        .to_num();
-
-    msg!("amount_minus_fees {}", amount_minus_fees);
+        .unwrap();
     amount_minus_fees
 }
