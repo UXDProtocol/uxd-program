@@ -91,7 +91,6 @@ pub fn handler(
 
     // - 1 [WITHDRAW INSURANCE FROM MANGO THEN RETURN TO USER] ---------------
 
-    msg!("HERE");
     // - mango withdraw insurance_amount
     mango_program::withdraw(
         ctx.accounts

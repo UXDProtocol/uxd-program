@@ -38,7 +38,7 @@ pub enum ErrorCode {
     #[msg("The Depository Insurance Passthrough ATA's mint does not match the Depository's one.")]
     InvalidInsurancePassthroughATAMint, // 0xd8 - 216
     #[msg("The perp position could not be fully filled with the provided slippage.")]
-    PerpOrderPartiallyFilled,
+    PerpOrderPartiallyFilled, // 0xd9 - 217
     #[msg("Error while getting the redeemable value of the deposited coin amount.")]
     PositionAmountCalculation,
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
