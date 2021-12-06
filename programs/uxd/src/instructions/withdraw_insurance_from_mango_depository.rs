@@ -73,6 +73,7 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     pub mango_vault: Account<'info, TokenAccount>,
     // ------------------------------------------------------------------------
     // programs
+    pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub mango_program: Program<'info, mango_program::Mango>
 }
@@ -83,7 +84,7 @@ pub fn handler(
 ) -> ProgramResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
-    let depository_signer_seeds: &[&[&[u8]]] = &[&[
+    let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         collateral_mint.as_ref(),
         &[ctx.accounts.depository.bump],
@@ -95,7 +96,7 @@ pub fn handler(
     mango_program::withdraw(
         ctx.accounts
             .into_withdraw_insurance_from_mango_context()
-            .with_signer(depository_signer_seeds),
+            .with_signer(depository_signer_seed),
         insurance_amount,
         false,
     )?;
@@ -104,7 +105,7 @@ pub fn handler(
     token::transfer(
         ctx.accounts
             .into_transfer_insurance_to_authority_context()
-            .with_signer(depository_signer_seeds),
+            .with_signer(depository_signer_seed),
         insurance_amount,
     )?;
 

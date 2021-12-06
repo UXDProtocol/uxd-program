@@ -32,7 +32,6 @@ use crate::SLIPPAGE_BASIS;
 
 #[derive(Accounts)]
 pub struct MintWithMangoDepository<'info> {
-    // XXX again we should use approvals so user doesnt need to sign
     pub user: Signer<'info>,
     #[account(
         mut,
