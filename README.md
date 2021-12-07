@@ -30,7 +30,7 @@ To do so the easiest is to redeploy the whole thing and work with new Accounts (
 
 ```Zsh
 # This will override the current deployment key in the target/deploy folder, it's fine this is not used anywhere never except for testing
-$> solana-keygen new -o ./target/deploy/uxd-keypair.json --force
+$> solana-keygen new -o ./target/deploy/uxd-keypair.json --force --no-bip39-passphrase
 ```
 
 Press enter for no password and you'r good.

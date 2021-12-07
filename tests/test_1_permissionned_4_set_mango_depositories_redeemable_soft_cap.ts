@@ -4,7 +4,7 @@ import { getControllerAccount, setMangoDepositoriesRedeemableSoftCap } from "./t
 import { controllerUXD } from "./test_0_consts";
 import { BN } from "@project-serum/anchor";
 
-before(" ======= [Suite 1-4 : Test setting the mango depositories redeemable soft cap (1 op)] ======= ", () => {
+describe(" ======= [Suite 1-4 : Test setting the mango depositories redeemable soft cap (1 op)] ======= ", () => {
     beforeEach("\n", async () => { });
     afterEach("\n", async () => { });
 

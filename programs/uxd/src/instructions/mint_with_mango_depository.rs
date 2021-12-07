@@ -149,13 +149,18 @@ pub fn handler(
     let perp_info = ctx.accounts.perpetual_info();
     msg!("Perpetual informations: {:?}", perp_info);
 
+    // - [Perp account state PRE perp position opening]
+    let perp_account = ctx.accounts.perp_account(&perp_info)?;
+
+    // - [Make sure that the PerpAccount crank has been run previously to this instruction by the uxd-client so that pending changes are updated in mango]
+    if perp_account.taker_base != 0 || perp_account.taker_quote != 0 {
+        return Err(ErrorCode::InvalidPerpAccountState.into());
+    }
+
     // - [Get the amount of Base Lots for the perp order]
     let base_lot_amount = I80F48::from_num(collateral_amount)
         .checked_div(perp_info.base_lot_size)
         .unwrap();
-
-    // - [Perp account state PRE perp position opening]
-    let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Base depository's position size in native units PRE perp opening (to calculate the % filled later on)]
     let initial_base_position = perp_base_position(&perp_account);

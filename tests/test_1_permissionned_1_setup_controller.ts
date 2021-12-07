@@ -3,7 +3,7 @@ import { provider } from "./provider";
 import { controllerUXD } from "./test_0_consts";
 import { initializeController, getControllerAccount } from "./test_0_uxd_api";
 
-before(" ======= [Suite 1-1 : Test setup UXD controller (permissionned) (1 op)] ======= ", () => {
+describe(" ======= [Suite 1-1 : Test setup UXD controller (permissionned) (1 op)] ======= ", () => {
   beforeEach("\n", async () => { });
   afterEach("\n", async () => { });
 
