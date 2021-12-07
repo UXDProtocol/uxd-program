@@ -129,6 +129,14 @@ pub fn handler(
     // - [Get perp informations]
     let perp_info = ctx.accounts.perpetual_info()?;
 
+    // - [Perp account state PRE perp position opening]
+    let perp_account = ctx.accounts.perp_account(&perp_info)?;
+
+    // - [Make sure that the PerpAccount crank has been run previously to this instruction by the uxd-client so that pending changes are updated in mango]
+    if perp_account.taker_base != 0 || perp_account.taker_quote != 0 {
+        return Err(ErrorCode::InvalidPerpAccountState.into());
+    }
+
     // - [Calculates the quantity of short to close]
     let mut exposure_delta_in_quote_unit = I80F48::from_num(redeemable_amount);
 
@@ -139,9 +147,6 @@ pub fn handler(
     exposure_delta_in_quote_unit = exposure_delta_in_quote_unit
         .checked_sub(max_fee_amount)
         .unwrap();
-
-    // - [Perp account state PRE perp position opening]
-    let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Base depository's position size in native units PRE perp opening (to calculate the % filled later on)]
     let initial_base_position = perp_base_position(&perp_account);

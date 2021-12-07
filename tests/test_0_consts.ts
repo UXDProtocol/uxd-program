@@ -31,20 +31,20 @@ before(" ======= [Suite 0 : Initialize mango (1 op)] ======= ", async () => {
 
 // ----------------------------------------------------------------------------
 
-before("PerpMarketConfig for BTC", async () => {
-    const perpMarketConfigBTC = mango.getPerpMarketConfigFor(depositoryBTC.collateralMintSymbol);
-    const perpMarketIndexBTC = perpMarketConfigBTC.marketIndex;
-    const perpMarketBTC = await mango.group.loadPerpMarket(provider.connection, perpMarketIndexBTC, perpMarketConfigBTC.baseDecimals, perpMarketConfigBTC.quoteDecimals);
-    console.log("--- Printing the Mango BTC perp market informations ---------------- ");
-    console.log(perpMarketBTC.toPrettyString(mango.group, perpMarketConfigBTC));
-});
+// before("PerpMarketConfig for BTC", async () => {
+//     const perpMarketConfigBTC = mango.getPerpMarketConfigFor(depositoryBTC.collateralMintSymbol);
+//     const perpMarketIndexBTC = perpMarketConfigBTC.marketIndex;
+//     const perpMarketBTC = await mango.group.loadPerpMarket(provider.connection, perpMarketIndexBTC, perpMarketConfigBTC.baseDecimals, perpMarketConfigBTC.quoteDecimals);
+//     console.log("--- Printing the Mango BTC perp market informations ---------------- ");
+//     console.log(perpMarketBTC.toPrettyString(mango.group, perpMarketConfigBTC));
+// });
 
-before("PerpMarketConfig for WSOL", async () => {
-    const perpMarketConfigWSOL = mango.getPerpMarketConfigFor(depositoryWSOL.collateralMintSymbol);
-    const perpMarketIndexWSOL = perpMarketConfigWSOL.marketIndex;
-    const perpMarketWSOL = await mango.group.loadPerpMarket(provider.connection, perpMarketIndexWSOL, perpMarketConfigWSOL.baseDecimals, perpMarketConfigWSOL.quoteDecimals);
-    console.log("--- Printing the Mango BTC perp market informations ---------------- ");
-    console.log(perpMarketWSOL.toPrettyString(mango.group, perpMarketConfigWSOL));
-});
+// before("PerpMarketConfig for WSOL", async () => {
+//     const perpMarketConfigWSOL = mango.getPerpMarketConfigFor(depositoryWSOL.collateralMintSymbol);
+//     const perpMarketIndexWSOL = perpMarketConfigWSOL.marketIndex;
+//     const perpMarketWSOL = await mango.group.loadPerpMarket(provider.connection, perpMarketIndexWSOL, perpMarketConfigWSOL.baseDecimals, perpMarketConfigWSOL.quoteDecimals);
+//     console.log("--- Printing the Mango BTC perp market informations ---------------- ");
+//     console.log(perpMarketWSOL.toPrettyString(mango.group, perpMarketConfigWSOL));
+// });
 
 // ----------------------------------------------------------------------------

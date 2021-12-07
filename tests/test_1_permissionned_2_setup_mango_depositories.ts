@@ -3,7 +3,7 @@ import { provider } from "./provider";
 import { controllerUXD, depositoryBTC, mango, depositoryWSOL } from "./test_0_consts";
 import { registerMangoDepository } from "./test_0_uxd_api";
 
-before(" ======= [Suite 1-2 : Test setup UXD controller (permissionned) (2 op)] ======= ", () => {
+describe(" ======= [Suite 1-2 : Test setup UXD controller (permissionned) (2 op)] ======= ", () => {
     beforeEach("\n", async () => { });
     afterEach("\n", async () => { });
 

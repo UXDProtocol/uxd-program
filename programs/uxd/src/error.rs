@@ -79,4 +79,6 @@ pub enum ErrorCode {
     MangoAccountLoading,
     #[msg("Could not find the perp market index for the given collateral.")]
     MangoPerpMarketIndexNotFound,
+    #[msg("The Mango PerpAccount has uncommitted changes post place_perp_order, crank should be ran first.")]
+    InvalidPerpAccountState
 }

@@ -4,7 +4,7 @@ import { setRedeemableGlobalSupplyCap, getControllerAccount } from "./test_0_uxd
 import { controllerUXD } from "./test_0_consts";
 import BN from "bn.js";
 
-before(" ======= [Suite 1-3 : Test setting the redeemable global supply cap (1 op)] ======= ", () => {
+describe(" ======= [Suite 1-3 : Test setting the redeemable global supply cap (1 op)] ======= ", () => {
     beforeEach("\n", async () => { });
     afterEach("\n", async () => { });
 

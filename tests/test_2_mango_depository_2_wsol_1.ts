@@ -5,7 +5,7 @@ import { printUserBalances, printDepositoryInfo, getBalance, userWSOLATA, userUX
 import { slippage } from "./test_2_consts";
 import { depositoryWSOL, mango, slippageBase, controllerUXD } from "./test_0_consts";
 
-describe(" ======= [Suite 2-2 : Mint then redeem all WSOL (4 op)] ======= ", () => {
+describe(" ======= [Suite 2-2-1 : Mint then redeem all WSOL (4 op)] ======= ", () => {
     beforeEach("\n", async () => { });
     afterEach("", async () => {
         await printUserBalances();

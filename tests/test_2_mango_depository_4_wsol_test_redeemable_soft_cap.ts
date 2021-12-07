@@ -32,6 +32,7 @@ describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 o
         console.log(`txId : ${txId}`);
 
         // THEN
+        await sleep(accountUpdateSleepingInterval);
         const controllerAccount = await getControllerAccount(controller);
         const _postRedeemableSoftCapUIAmount = controllerAccount.mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
         expect(_postRedeemableSoftCapUIAmount.toNumber()).equals(supplyCapUIAmountLow, "The redeemable soft cap hasn't been updated.");
