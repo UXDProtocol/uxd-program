@@ -58,9 +58,11 @@ pub mod uxd {
         )
     }
 
+    // Note : Add later if needed
     // Transafer Controller authority to another entity.
     // pub fn transfer_controller_authority() -> ProgramResult {}
 
+    // Note : Add later if needed
     // Transfer the UXD mint authority that is held by the controller to the provided account
     //
     // This might be an important safety, the program will be fully controlled and initialize
@@ -191,26 +193,31 @@ pub mod uxd {
         instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, slippage)
     }
 
-    // pub fn rebalance(ctx: Context<Rebalance>) -> ProgramResult {
-    //     // validate caller is in rebalance signer(s)
-    //     // WARNING DIFFICULT LOGIC
-    //     // rebalance needs borrow/lending rate, outstanding pnl balance in an array across collateral types
-    //     // probably better for it to just call by depository/collateral type for now,
-    //     // since we're going for the single collateral version first
-    //     // estimates rebalance cost eg transaction fees
-    //     // uses some settable estimation constant (e?) for what the timescale to consider
-    //     // if borrow * e * net pnl > est rebalance cost then rebal should go ahead
-    //     // rebal for single collateral just amounts to settling some or all of the pnl and rehedging
-    //     // for multi collateral there are two versions,
-    //     // 1. that single collat balances in parallel for n depositories
-    //         // could be a public function
-    //     // 2. that optimizes for market rates across range of collateral types
-    //         // will change portfolio balances in order to get the highest return on the basis trade
-    //         // weighted array of parameters like liquidity, mkt cap, stability
-    //         // Not a priority
+    // Bring back the Mango Depository Collateral Perp position in line with it's accounting.
+    // This can be called by anyone to incentivize external rebalancing bots. It will handout 0.X% of the rebalancing profits to the caller, capped at Y. (Thinking about it)
     //
-    // }
-    //
+    // Settle any unsettled funding.
+    // Calculate how much short collateral perp need to be closed to go back to the accounting value `collateralAmountDeposited`.
+    // Calculate how much long collateral spot need to be sold to go back to the accounting value `collateralAmountDeposited`.
+    //  (The above will also convert collateral surplus here due to mint/redeem mango taker_fees payments)
+    // Verify that the total cost of the above orders placements is below the amount that will be generated, else abort.
+    // Go forth with placing the perp then spot orders.
+    // Update accounting, check accounting.
+    #[access_control(
+        valid_slippage(slippage)
+        check_max_rebalancing_amount_constraints(max_rebalancing_amount)
+    )]
+    pub fn rebalance_mango_depository(
+        ctx: Context<RebalanceMangoDepository>,
+        max_rebalancing_amount: u64,
+        slippage: u32,
+    ) -> ProgramResult {
+        msg!(
+            "UXD rebalance_mango_depository - max_rebalancing_amount {}",
+            max_rebalancing_amount
+        );
+        instructions::rebalance_mango_depository::handler(ctx, max_rebalancing_amount, slippage)
+    }
 }
 
 // MARK: - ACCESS CONTROL  ----------------------------------------------------
@@ -295,5 +302,12 @@ pub fn check_withdraw_insurance_amount_constraints<'info>(insurance_amount: u64)
         return Err(ErrorCode::InvalidInsuranceAmount.into());
     }
     // Mango withdraw will fail with proper error cause disabled borrow if not enough there.
+    Ok(())
+}
+
+pub fn check_max_rebalancing_amount_constraints(max_rebalancing_amount: u64) -> ProgramResult {
+    if !(max_rebalancing_amount > 0) {
+        return Err(ErrorCode::InvalidRebalancingAmount.into());
+    }
     Ok(())
 }

@@ -62,10 +62,13 @@ pub enum ErrorCode {
     InvalidInsuranceAmount,
     #[msg("The Insurance ATA from authority doesn't have enough balance.")]
     InsuficientAuthorityInsuranceAmount,
+    #[msg("The max amount to rebalance must be superior to zero..")]
+    InvalidRebalancingAmount,
     #[msg("Insuficcent order book depth for order.")]
     InsuficentOrderBookDepth,
     #[msg("The executed order size does not match the expected one.")]
     InvalidExecutedOrderSize,
+    
     // Mango Errors Wrappers
     #[msg("Could not load Mango Order book.")]
     MangoOrderBookLoading = 80,
