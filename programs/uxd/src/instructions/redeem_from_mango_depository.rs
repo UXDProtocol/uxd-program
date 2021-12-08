@@ -31,7 +31,6 @@ use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SLIPPAGE_BASIS;
 
 #[derive(Accounts)]
-#[instruction(redeemable_amount: u64)]
 pub struct RedeemFromMangoDepository<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
@@ -66,8 +65,7 @@ pub struct RedeemFromMangoDepository<'info> {
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        constraint = user_redeemable.mint == redeemable_mint.key() @ErrorCode::InvalidRedeemableMint,
-        constraint = user_redeemable.amount >= redeemable_amount @ErrorCode::InsuficientRedeemableAmount
+        constraint = user_redeemable.mint == redeemable_mint.key() @ErrorCode::InvalidRedeemableMint
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     #[account(
@@ -142,7 +140,7 @@ pub fn handler(
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Make sure that the PerpAccount crank has been run previously to this instruction by the uxd-client so that pending changes are updated in mango]
-    if perp_account.taker_base != 0 || perp_account.taker_quote != 0 {
+    if !(perp_account.taker_base == 0 && perp_account.taker_quote == 0) {
         return Err(ErrorCode::InvalidPerpAccountState.into());
     }
 

@@ -161,7 +161,7 @@ pub fn handler(
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Make sure that the PerpAccount crank has been run previously to this instruction by the uxd-client so that pending changes are updated in mango]
-    if perp_account.taker_base != 0 || perp_account.taker_quote != 0 {
+    if !(perp_account.taker_base == 0 && perp_account.taker_quote == 0) {
         return Err(ErrorCode::InvalidPerpAccountState.into());
     }
 
