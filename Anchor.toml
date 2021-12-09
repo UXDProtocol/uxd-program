@@ -13,7 +13,7 @@ url = "https://anchor.projectserum.com"
 
 [scripts]
 ### Test the whole integration (Default)
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_*.ts"
+test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_*.ts"
 
 ### Test a single test - Just uncomment the test to run with `anchor test`
 ##
@@ -31,7 +31,7 @@ url = "https://anchor.projectserum.com"
 
 ## Others
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_2_mango_depository_1_btc.ts"
-test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_2_mango_depository_2_wsol_1.ts"
+# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_2_mango_depository_2_wsol_1.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_2_mango_depository_3_wsol_test_redeemable_global_cap.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_2_mango_depository_4_wsol_test_redeemable_soft_cap.ts"
  

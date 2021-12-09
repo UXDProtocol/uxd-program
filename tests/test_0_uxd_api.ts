@@ -120,10 +120,15 @@ export async function mintWithMangoDepository(user: Signer, slippage: number, co
     }
 
     tx.instructions.push(mintWithMangoDepositoryIx);
-    // tx.instructions.push(mangoConsumeEventsIx);
     signers.push(user);
 
-    return provider.send(tx, signers, TXN_OPTS);
+    let txId = await provider.send(tx, signers, TXN_OPTS);
+
+    let tx2 = new Transaction();
+    tx2.instructions.push(mangoConsumeEventsIx);
+    provider.send(tx2, [], TXN_OPTS);
+
+    return txId;
 }
 
 export async function redeemFromMangoDepository(user: Signer, slippage: number, amountRedeemable: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
@@ -138,8 +143,13 @@ export async function redeemFromMangoDepository(user: Signer, slippage: number, 
     }
 
     tx.instructions.push(redeemFromMangoDepositoryIx);
-    // tx.instructions.push(mangoConsumeEventsIx);
     signers.push(user);
 
-    return provider.send(tx, signers, TXN_OPTS);
+    let txId = await provider.send(tx, signers, TXN_OPTS);
+
+    let tx2 = new Transaction();
+    tx2.instructions.push(mangoConsumeEventsIx);
+    provider.send(tx2, [], TXN_OPTS);
+
+    return txId;
 }
