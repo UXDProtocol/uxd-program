@@ -1,5 +1,4 @@
-import { Wallet } from "@project-serum/anchor";
-import { PublicKey, Keypair } from "@solana/web3.js";
+import { PublicKey, Keypair, Signer } from "@solana/web3.js";
 
 // TESTING wallets for convenience (The user and admin). To remove when going open source
 
@@ -19,11 +18,11 @@ const Eyh77Seed = Uint8Array.from([
 // Identities - both of these are wallets that exists on devnet, we clone them each time and init from the privatekey
 // This is us, the UXD deployment admins // aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC
 let adminKeypair = Keypair.fromSecretKey(aca3VWSeed);
-export let authority = new Wallet(adminKeypair);
+export let authority: Signer = adminKeypair;
 console.log(`CONTROLLER AUTHORITY KEY => ${authority.publicKey}`);
 // This is the user //
 let userKeypair = Keypair.fromSecretKey(Eyh77Seed);
-export let user = new Wallet(userKeypair);
+export let user: Signer = userKeypair;
 console.log(`USER KEY => ${user.publicKey}`);
 
 // Devnet

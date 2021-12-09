@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+// use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
@@ -32,6 +33,7 @@ use crate::SLIPPAGE_BASIS;
 #[derive(Accounts)]
 #[instruction(redeemable_amount: u64)]
 pub struct RedeemFromMangoDepository<'info> {
+    #[account(mut)]
     pub user: Signer<'info>,
     #[account(
         mut,
@@ -51,6 +53,12 @@ pub struct RedeemFromMangoDepository<'info> {
         constraint = collateral_mint.key() == depository.collateral_mint @ErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
+    // #[account(
+    //     init_if_needed,
+    //     payer = user,
+    //     token::mint = redeemable_mint,
+    //     token::authority = user,
+    // )]
     #[account(
         mut,
         constraint = user_collateral.mint == depository.collateral_mint @ErrorCode::InvalidUserCollateralATAMint
@@ -106,6 +114,7 @@ pub struct RedeemFromMangoDepository<'info> {
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
+    // pub associated_token_program: Program<'info, AssociatedToken>,
     pub mango_program: Program<'info, mango_program::Mango>,
     // sysvars
     pub rent: Sysvar<'info, Rent>,
