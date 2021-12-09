@@ -1,16 +1,15 @@
-import { Depository, findATAAddrSync, Mango } from "@uxdprotocol/uxd-client";
+import { MangoDepository, findATAAddrSync, Mango } from "@uxdprotocol/uxd-client";
 import { BTC, user, WSOL } from "./identities";
 import { provider, TXN_COMMIT, TXN_OPTS } from "./provider";
 import { PublicKey } from "@solana/web3.js";
-import { accountUpdateSleepingInterval, controllerUXD, uxdClient } from "./test_0_consts";
-import { assert } from "chai";
+import { controllerUXD, uxdClient, uxdHelpers } from "./test_0_consts";
 
 // User's SPL Accounts
-export const userBTCATA: PublicKey = findATAAddrSync(user, BTC)[0];
-export const userWSOLATA: PublicKey = findATAAddrSync(user, WSOL)[0];
-export const userUXDATA: PublicKey = findATAAddrSync(user, controllerUXD.redeemableMintPda)[0];
+export const userBTCATA: PublicKey = findATAAddrSync(user.publicKey, BTC)[0];
+export const userWSOLATA: PublicKey = findATAAddrSync(user.publicKey, WSOL)[0];
+export const userUXDATA: PublicKey = findATAAddrSync(user.publicKey, controllerUXD.redeemableMintPda)[0];
 
-export function sleep(ms) {
+export function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -21,7 +20,7 @@ export function getBalance(tokenAccount: PublicKey): Promise<number> {
         .catch(() => null);
 }
 
-export async function printDepositoryInfo(depository: Depository, mango: Mango) {
+export async function printDepositoryInfo(depository: MangoDepository, mango: Mango) {
     // Sleep waiting for mango market update
     // await sleep(accountUpdateSleepingInterval);
 
@@ -32,13 +31,13 @@ export async function printDepositoryInfo(depository: Depository, mango: Mango) 
     const mangoAccount = await mango.load(depository.mangoAccountPda); // might do that in the TS object then reload idk
     await mango.printAccountInfo(mangoAccount);
 
-    let depositoryAccount = await uxdClient.getMangoDepositoryAccount(depository, TXN_OPTS);
+    let depositoryAccount = await uxdHelpers.getMangoDepositoryAccount(provider, uxdClient.program, depository, TXN_OPTS);
     console.log("=================");
     console.log(`Depository insuranceAmountDeposited            ${depositoryAccount.insuranceAmountDeposited.toNumber()}`);
     console.log(`Depository collateralAmountDeposited           ${depositoryAccount.collateralAmountDeposited.toNumber()}`);
     console.log(`Depository redeemableAmountUnderManagement     ${depositoryAccount.redeemableAmountUnderManagement.toNumber()}`);
 
-    let controllerAccount = await uxdClient.getControllerAccount(controllerUXD, TXN_OPTS);
+    let controllerAccount = await uxdHelpers.getControllerAccount(provider, uxdClient.program, controllerUXD, TXN_OPTS);
     console.log("=================");
     console.log(`Controller redeemableCirculatingSupply         ${controllerAccount.redeemableCirculatingSupply.toNumber()}`);
 }

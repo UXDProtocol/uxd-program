@@ -1,5 +1,5 @@
 import { workspace } from "@project-serum/anchor";
-import { Mango, Controller, UXD_DECIMALS, Depository, BTC_DECIMALS, SOL_DECIMALS, UXD, createAndInitializeMango, USDC_DECIMALS } from "@uxdprotocol/uxd-client";
+import { Mango, Controller, UXD_DECIMALS, MangoDepository, BTC_DECIMALS, SOL_DECIMALS, UXD, createAndInitializeMango, USDC_DECIMALS, UXDHelpers } from "@uxdprotocol/uxd-client";
 import { BTC, USDC, WSOL } from "./identities";
 import { provider } from "./provider";
 
@@ -15,11 +15,12 @@ console.log(`UXD PROGRAM ID == ${uxdProgram.programId}`);
 export const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgram.programId);
 
 // Depositories - An account that manage a Collateral mint for the controller
-export const depositoryBTC = new Depository(BTC, "BTC", BTC_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgram.programId);
-export const depositoryWSOL = new Depository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgram.programId);
+export const depositoryBTC = new MangoDepository(BTC, "BTC", BTC_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgram.programId);
+export const depositoryWSOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgram.programId);
 
 // Client interface to the Web3 call to `UXD-Program`
-export const uxdClient = new UXD(provider, uxdProgram);
+export const uxdClient = new UXD(uxdProgram);
+export const uxdHelpers = new UXDHelpers();
 
 export const accountUpdateSleepingInterval = 2500; // In milliseconds
 
