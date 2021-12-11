@@ -156,7 +156,7 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
     ) -> ProgramResult {
         // Mango Depository
         self.depository
-            .update_insurance_amount_deposited(AccountingEvent::Deposit, insurance_delta);
+            .update_insurance_amount_deposited(&AccountingEvent::Deposit, insurance_delta);
         Ok(())
     }
 }

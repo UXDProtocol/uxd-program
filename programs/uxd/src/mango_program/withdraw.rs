@@ -94,8 +94,8 @@ fn withdraw_instruction(
     })
 }
 
-pub fn withdraw<'a, 'b, 'c, 'info>(
-    ctx: CpiContext<'a, 'b, 'c, 'info, Withdraw<'info>>,
+pub fn withdraw<'info>(
+    ctx: CpiContext<'_, '_, '_, 'info, Withdraw<'info>>,
     quantity: u64,
     allow_borrow: bool,
 ) -> ProgramResult {

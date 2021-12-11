@@ -49,8 +49,8 @@ fn initialize_mango_account_instruction(
     })
 }
 
-pub fn initialize_mango_account<'a, 'b, 'c, 'info>(
-    ctx: CpiContext<'a, 'b, 'c, 'info, InitMangoAccount<'info>>,
+pub fn initialize_mango_account<'info>(
+    ctx: CpiContext<'_, '_, '_, 'info, InitMangoAccount<'info>>,
 ) -> ProgramResult {
     let ix = initialize_mango_account_instruction(
         ctx.program.key,

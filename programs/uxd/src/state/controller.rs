@@ -41,7 +41,7 @@ pub struct Controller {
 impl Controller {
     pub fn update_redeemable_circulating_supply(
         &mut self,
-        event_type: AccountingEvent,
+        event_type: &AccountingEvent,
         amount: u64,
     ) {
         self.redeemable_circulating_supply = match event_type {
@@ -53,6 +53,7 @@ impl Controller {
                 .redeemable_circulating_supply
                 .checked_sub(amount.into())
                 .unwrap(),
+            AccountingEvent::Rebalance => return,
         }
     }
 

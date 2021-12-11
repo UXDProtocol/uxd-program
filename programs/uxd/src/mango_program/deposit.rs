@@ -74,8 +74,8 @@ fn deposit_instruction(
     })
 }
 
-pub fn deposit<'a, 'b, 'c, 'info>(
-    ctx: CpiContext<'a, 'b, 'c, 'info, Deposit<'info>>,
+pub fn deposit<'info>(
+    ctx: CpiContext<'_, '_, '_, 'info, Deposit<'info>>,
     quantity: u64,
 ) -> ProgramResult {
     let ix = deposit_instruction(
