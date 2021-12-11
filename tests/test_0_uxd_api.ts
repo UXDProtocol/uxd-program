@@ -3,7 +3,8 @@ import { Controller, MangoDepository, Mango, findATAAddrSync, createAssocTokenIx
 import { provider, TXN_COMMIT, TXN_OPTS } from "./provider";
 import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
 import { controllerUXD, uxdClient, uxdHelpers } from "./test_0_consts";
-import { Signer, Transaction } from '@solana/web3.js';
+import { Account, Signer, Transaction } from '@solana/web3.js';
+import { user } from "./identities";
 
 afterEach("", () => {
     console.log("\n=====================================\n");
@@ -35,6 +36,28 @@ export async function getMangoDepositoryCollateralBalance(mangoDepository: Mango
 // DOESNT WORK in uxd-client- to fix
 export async function getMangoDepositoryInsuranceBalance(mangoDepository: MangoDepository, mango: Mango): Promise<number> {
     return uxdHelpers.getMangoDepositoryInsuranceBalance(mangoDepository, mango);
+}
+
+export async function settleMangoDepositoryMangoAccountPnl(depository: MangoDepository, mango: Mango): Promise<string> {
+    const mangoAccount = await mango.load(depository.mangoAccountPda);
+    const perpMarketConfig = mango.getPerpMarketConfigFor(depository.collateralMintSymbol);
+    const cache = await mango.group.loadCache(provider.connection);
+    const perpMarket = await mango.client.getPerpMarket(perpMarketConfig.publicKey, perpMarketConfig.baseDecimals, perpMarketConfig.quoteDecimals);
+    const quoteRootBank = await mango.getQuoteRootBank();
+
+    const caller = new Account(user.secretKey);
+
+    return mango.client.settlePnl(mango.group, cache, mangoAccount, perpMarket, quoteRootBank, cache.priceCache[perpMarketConfig.marketIndex].price, caller);
+}
+
+export async function settleMangoDepositoryMangoAccountFees(depository: MangoDepository, mango: Mango): Promise<string> {
+    const mangoAccount = await mango.load(depository.mangoAccountPda);
+    const perpMarketConfig = mango.getPerpMarketConfigFor(depository.collateralMintSymbol);
+    const perpMarket = await mango.client.getPerpMarket(perpMarketConfig.publicKey, perpMarketConfig.baseDecimals, perpMarketConfig.quoteDecimals);
+    const quoteRootBank = await mango.getQuoteRootBank();
+
+    const caller = new Account(user.secretKey);
+    return mango.client.settleFees(mango.group, mangoAccount, perpMarket, quoteRootBank, caller);
 }
 
 // Permissionned Calls --------------------------------------------------------
