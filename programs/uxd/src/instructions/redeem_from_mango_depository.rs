@@ -81,7 +81,7 @@ pub struct RedeemFromMangoDepository<'info> {
         constraint = depository.mango_account == depository_mango_account.key() @ErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
-    // Mango related accounts -------------------------------------------------
+    // Mango CPI accounts
     pub mango_group: AccountInfo<'info>,
     pub mango_cache: AccountInfo<'info>,
     pub mango_signer: AccountInfo<'info>,
@@ -98,7 +98,6 @@ pub struct RedeemFromMangoDepository<'info> {
     pub mango_asks: AccountInfo<'info>,
     #[account(mut)]
     pub mango_event_queue: AccountInfo<'info>,
-    // ------------------------------------------------------------------------
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

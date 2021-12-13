@@ -73,9 +73,8 @@ pub struct RegisterMangoDepository<'info> {
         space = MANGO_ACCOUNT_SPAN,
     )]
     pub depository_mango_account: AccountInfo<'info>,
-    // Mango related accounts -------------------------------------------------
+    // Mango CPI
     pub mango_group: AccountInfo<'info>,
-    // ------------------------------------------------------------------------
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

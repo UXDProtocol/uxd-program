@@ -41,7 +41,6 @@ pub struct DepositInsuranceToMangoDepository<'info> {
         constraint = insurance_mint.key() == depository.insurance_mint @ErrorCode::InvalidInsuranceMint
     )]
     pub insurance_mint: Box<Account<'info, Mint>>,
-    // The account that contains the funds to deposit
     #[account(
         mut,
         constraint = authority_insurance.mint == depository.insurance_mint @ErrorCode::InvalidAuthorityInsuranceATAMint
@@ -62,7 +61,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
         constraint = depository.mango_account == depository_mango_account.key() @ErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
-    // Mango CPI related accounts ---------------------------------------------
+    // Mango CPI accounts
     pub mango_group: AccountInfo<'info>,
     pub mango_cache: AccountInfo<'info>,
     pub mango_root_bank: AccountInfo<'info>,
@@ -70,7 +69,6 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     pub mango_node_bank: AccountInfo<'info>,
     #[account(mut)]
     pub mango_vault: Account<'info, TokenAccount>,
-    // ------------------------------------------------------------------------
     // programs
     pub token_program: Program<'info, Token>,
     pub mango_program: Program<'info, mango_program::Mango>,

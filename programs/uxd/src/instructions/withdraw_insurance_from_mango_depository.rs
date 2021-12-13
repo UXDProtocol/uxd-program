@@ -61,7 +61,7 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
         constraint = depository.mango_account == depository_mango_account.key() @ErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
-    // Mango related accounts -------------------------------------------------
+    // Mango CPI accounts
     pub mango_group: AccountInfo<'info>,
     pub mango_cache: AccountInfo<'info>,
     pub mango_signer: AccountInfo<'info>,
@@ -70,7 +70,6 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     pub mango_node_bank: AccountInfo<'info>,
     #[account(mut)]
     pub mango_vault: Account<'info, TokenAccount>,
-    // ------------------------------------------------------------------------
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
