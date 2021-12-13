@@ -62,8 +62,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
         constraint = depository.mango_account == depository_mango_account.key() @ErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
-    // Mango related accounts -------------------------------------------------
-    // XXX All these account should be properly constrained
+    // Mango CPI related accounts ---------------------------------------------
     pub mango_group: AccountInfo<'info>,
     pub mango_cache: AccountInfo<'info>,
     pub mango_root_bank: AccountInfo<'info>,
@@ -79,7 +78,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
 
 pub fn handler(
     ctx: Context<DepositInsuranceToMangoDepository>,
-    insurance_amount: u64, // In Mative Units
+    insurance_amount: u64, // native units
 ) -> ProgramResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 

@@ -1,9 +1,9 @@
 [package]
 name = "uxd"
-version = "1.0.0"
+version = "1.1.0"
 authors = ["acammm <alexcamill@gmail.com>"]
-description = "UXDProtocol program for minting and redeeming of UXD tokens."
-edition = "2018"
+description = "UXD Program for managing a redeemable mint backed by a delta neutral position."
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
@@ -21,15 +21,5 @@ anchor-spl = "0.19.0"
 solana-program = "1.8.8"
 spl-token = "3.2.0"
 fixed = "1.9.0"
-thiserror = "1.0"
+thiserror = "1.0.30"
 mango = { git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
-
-# [dependencies.mango]
-# name = "mango"
-# path = "./../../../mango-v3/program/"
-# # git = "https://github.com/UXDProtocol/mango-v3"
-# branch = "feature/get_best_order_for_amount"
-# features = ["no-entrypoint"]
-
-[dev-dependencies]
-proptest = "1.0.0"

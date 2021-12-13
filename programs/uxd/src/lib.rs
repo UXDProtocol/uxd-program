@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 pub mod error;
 pub mod instructions;
 pub mod mango_program;
+pub mod serum_dex_program;
 pub mod state;
 pub mod utils;
 
@@ -29,7 +30,7 @@ pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Th
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
-solana_program::declare_id!("6MyDeX84UMJv98Py9Ndyjsrqwed3hmWm1CXXNruqnBVp");
+solana_program::declare_id!("3bXdJTckxviQowu29xA4vSYg9rinpCVXDi36PCCKkFG2");
 
 pub type UxdResult<T = ()> = Result<T, ErrorCode>;
 
@@ -49,7 +50,6 @@ pub mod uxd {
         redeemable_mint_bump: u8,
         redeemable_mint_decimals: u8,
     ) -> ProgramResult {
-        msg!("UXD initialize_controller");
         instructions::initialize_controller::handler(
             ctx,
             bump,
@@ -78,10 +78,6 @@ pub mod uxd {
         ctx: Context<SetRedeemableGlobalSupplyCap>,
         redeemable_global_supply_cap: u128,
     ) -> ProgramResult {
-        msg!(
-            "UXD set_redeemable_global_supply_cap to {}",
-            redeemable_global_supply_cap
-        );
         instructions::set_redeemable_global_supply_cap::handler(ctx, redeemable_global_supply_cap)
     }
 
@@ -94,10 +90,6 @@ pub mod uxd {
         ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
         redeemable_soft_cap: u64,
     ) -> ProgramResult {
-        msg!(
-            "UXD set_mango_depositories_redeemable_soft_cap to {}",
-            redeemable_soft_cap
-        );
         instructions::set_mango_depositories_redeemable_soft_cap::handler(ctx, redeemable_soft_cap)
     }
 
@@ -113,7 +105,6 @@ pub mod uxd {
         insurance_passthrough_bump: u8,
         mango_account_bump: u8,
     ) -> ProgramResult {
-        msg!("UXD register_mango_depository");
         instructions::register_mango_depository::handler(
             ctx,
             bump,
@@ -130,10 +121,6 @@ pub mod uxd {
         ctx: Context<DepositInsuranceToMangoDepository>,
         insurance_amount: u64,
     ) -> ProgramResult {
-        msg!(
-            "UXD deposit_insurance_to_mango_depository amount: {}",
-            insurance_amount
-        );
         instructions::deposit_insurance_to_mango_depository::handler(ctx, insurance_amount)
     }
 
@@ -142,17 +129,36 @@ pub mod uxd {
         ctx: Context<WithdrawInsuranceFromMangoDepository>,
         insurance_amount: u64,
     ) -> ProgramResult {
-        msg!(
-            "UXD withdraw_insurance_from_mango_depository amount: {}",
-            insurance_amount
-        );
         instructions::withdraw_insurance_from_mango_depository::handler(ctx, insurance_amount)
     }
+
+    // Currently cannot be done in an instruction due to solana account limit size
+    // https://docs.solana.com/proposals/transactions-v2#other-proposals
+    // Program will remain hard capped in term of redeemable until this is implemented.
+    // This will allow to prevent liquidation thanks to the repurposed insurance fund in the meantime.
+    //
+    // Reduce or increase the delta neutral position size to account for it's current PnL.
+    // Update accounting, check accounting.
+    // #[access_control(
+    //     valid_slippage(slippage)
+    //     check_max_rebalancing_amount_constraints(max_rebalancing_amount)
+    // )]
+    // pub fn rebalance_mango_depository(
+    //     ctx: Context<RebalanceMangoDepository>,
+    //     max_rebalancing_amount: u64,
+    //     slippage: u32,
+    // ) -> ProgramResult {
+    //     msg!(
+    //         "UXD rebalance_mango_depository - max_rebalancing_amount {}",
+    //         max_rebalancing_amount
+    //     );
+    //     instructions::rebalance_mango_depository::handler(ctx, max_rebalancing_amount, slippage)
+    // }
 
     /// Mint UXD through a Depository using MangoMarkets.
     ///
     /// Through Depository configured for a specific collateral and using Mango Market v3
-    /// Deposits user's collateral to mango
+    /// Deposits user's collateral to Mango
     /// open equivalent short perp (within slippage else fails. FoK behavior)
     /// mints uxd in the amount of the mango position to the user
     #[access_control(
@@ -164,10 +170,6 @@ pub mod uxd {
         collateral_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
-        msg!(
-            "UXD mint_with_mango_depository - collateral_amount : {}",
-            collateral_amount
-        );
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, slippage)
     }
 
@@ -186,37 +188,7 @@ pub mod uxd {
         redeemable_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
-        msg!(
-            "UXD redeem_from_mango_depository - redeemable_amount : {}",
-            redeemable_amount
-        );
         instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, slippage)
-    }
-
-    // Bring back the Mango Depository Collateral Perp position in line with it's accounting.
-    // This can be called by anyone to incentivize external rebalancing bots. It will handout 0.X% of the rebalancing profits to the caller, capped at Y. (Thinking about it)
-    //
-    // Settle any unsettled funding.
-    // Calculate how much short collateral perp need to be closed to go back to the accounting value `collateralAmountDeposited`.
-    // Calculate how much long collateral spot need to be sold to go back to the accounting value `collateralAmountDeposited`.
-    //  (The above will also convert collateral surplus here due to mint/redeem mango taker_fees payments)
-    // Verify that the total cost of the above orders placements is below the amount that will be generated, else abort.
-    // Go forth with placing the perp then spot orders.
-    // Update accounting, check accounting.
-    #[access_control(
-        valid_slippage(slippage)
-        check_max_rebalancing_amount_constraints(max_rebalancing_amount)
-    )]
-    pub fn rebalance_mango_depository(
-        ctx: Context<RebalanceMangoDepository>,
-        max_rebalancing_amount: u64,
-        slippage: u32,
-    ) -> ProgramResult {
-        msg!(
-            "UXD rebalance_mango_depository - max_rebalancing_amount {}",
-            max_rebalancing_amount
-        );
-        instructions::rebalance_mango_depository::handler(ctx, max_rebalancing_amount, slippage)
     }
 }
 

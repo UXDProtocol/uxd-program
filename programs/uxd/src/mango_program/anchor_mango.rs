@@ -3,7 +3,6 @@ use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
 use std::str::FromStr;
 
-// Temporary, the one I opened PR for when merged https://github.com/blockworks-foundation/mango-v3/pull/67a
 #[derive(Clone)]
 pub struct Mango;
 

@@ -68,7 +68,7 @@ pub enum ErrorCode {
     InsuficentOrderBookDepth,
     #[msg("The executed order size does not match the expected one.")]
     InvalidExecutedOrderSize,
-    
+
     // Mango Errors Wrappers
     #[msg("Could not load Mango Order book.")]
     MangoOrderBookLoading = 80,
@@ -82,6 +82,8 @@ pub enum ErrorCode {
     MangoAccountLoading,
     #[msg("Could not find the perp market index for the given collateral.")]
     MangoPerpMarketIndexNotFound,
-    #[msg("The Mango PerpAccount has uncommitted changes post place_perp_order, crank should be ran first.")]
-    InvalidPerpAccountState
+    #[msg("The Mango PerpAccount has uncommitted changes.")]
+    InvalidPerpAccountState,
+    #[msg("The Depository accounting is in an invalid state.")]
+    InvalidDepositoryAccounting,
 }
