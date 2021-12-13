@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-// use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
@@ -13,7 +12,7 @@ use mango::state::PerpMarket;
 
 use crate::mango_program;
 use crate::utils::get_best_order_for_quote_lot_amount;
-use crate::utils::perp_base_position;
+use crate::utils::uncommitted_perp_base_position;
 use crate::utils::Order;
 use crate::utils::PerpInfo;
 use crate::AccountingEvent;
@@ -50,12 +49,6 @@ pub struct RedeemFromMangoDepository<'info> {
         constraint = collateral_mint.key() == depository.collateral_mint @ErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
-    // #[account(
-    //     init_if_needed,
-    //     payer = user,
-    //     token::mint = redeemable_mint,
-    //     token::authority = user,
-    // )]
     #[account(
         mut,
         constraint = user_collateral.mint == depository.collateral_mint @ErrorCode::InvalidUserCollateralATAMint
@@ -88,8 +81,7 @@ pub struct RedeemFromMangoDepository<'info> {
         constraint = depository.mango_account == depository_mango_account.key() @ErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
-    // Mango related accounts -------------------------------------------------
-    // XXX All these account should be properly constrained if possible
+    // Mango CPI accounts
     pub mango_group: AccountInfo<'info>,
     pub mango_cache: AccountInfo<'info>,
     pub mango_signer: AccountInfo<'info>,
@@ -106,11 +98,9 @@ pub struct RedeemFromMangoDepository<'info> {
     pub mango_asks: AccountInfo<'info>,
     #[account(mut)]
     pub mango_event_queue: AccountInfo<'info>,
-    // ------------------------------------------------------------------------
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    // pub associated_token_program: Program<'info, AssociatedToken>,
     pub mango_program: Program<'info, mango_program::Mango>,
     // sysvars
     pub rent: Sysvar<'info, Rent>,
@@ -154,7 +144,7 @@ pub fn handler(
         .unwrap();
 
     // - [Base depository's position size in native units PRE perp opening (to calculate the % filled later on)]
-    let initial_base_position = perp_base_position(&perp_account);
+    let initial_base_position = perp_account.base_position;
 
     // - [Find out how the best price and quantity for our order]
     let exposure_delta_in_quote_lot_unit = exposure_delta_in_quote_unit
@@ -187,7 +177,7 @@ pub fn handler(
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Checks that the order was fully filled]
-    let post_position = perp_base_position(&perp_account);
+    let post_position = uncommitted_perp_base_position(&perp_account);
     check_short_perp_close_order_fully_filled(
         best_order.quantity,
         initial_base_position,
@@ -209,10 +199,6 @@ pub fn handler(
     // - 3 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
     // Note : The amount of collateral returned to the user
     let collateral_delta = derive_collateral_delta(&perp_info, &perp_account).to_num();
-    msg!(
-        "collateral_delta (Withdrawn from Depository) {}",
-        collateral_delta
-    );
     // - [Mango withdraw CPI]
     mango_program::withdraw(
         ctx.accounts

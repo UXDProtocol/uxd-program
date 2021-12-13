@@ -18,7 +18,7 @@ pub struct SetMangoDepositoriesRedeemableSoftCap<'info> {
 
 pub fn handler(
     ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
-    redeemable_soft_cap: u64, // In Redeemable Native amount
+    redeemable_soft_cap: u64, // native amount
 ) -> ProgramResult {
     ctx.accounts.controller.mango_depositories_redeemable_soft_cap = redeemable_soft_cap;
     Ok(())

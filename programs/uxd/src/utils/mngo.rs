@@ -25,6 +25,7 @@ pub struct PerpInfo {
 }
 
 impl PerpInfo {
+    // Make sure that this is called in an instruction where a Mango CPI that validate cache is also called, else the cache may be not up to date.
     pub fn new(
         mango_group_ai: &AccountInfo,
         mango_cache_ai: &AccountInfo,
@@ -44,10 +45,6 @@ impl PerpInfo {
             Some(it) => it,
             None => return Err(ErrorCode::MangoPerpMarketIndexNotFound),
         };
-
-        // let now_ts = Clock::get()?.unix_timestamp as u64;
-        // Might have to check for valid mango cache here (check_valid)
-        //  in the case I don't call any mango instruction afterward (currently they all check the cache validity)
 
         Ok(PerpInfo::init(
             &mango_group,
@@ -79,14 +76,8 @@ impl PerpInfo {
     }
 }
 
-// Return the current base position for a given PerpAccount
-pub fn perp_base_position(perp_account: &PerpAccount) -> i64 {
-    msg!("  -----");
-    msg!("  base_position {}", perp_account.base_position);
-    msg!("  quote_position {}", perp_account.quote_position);
-    msg!("  taker_base {}", perp_account.taker_base);
-    msg!("  taker_quote {}", perp_account.taker_quote);
-    msg!("  -----");
+// Return the current uncommitted base position for a given PerpAccount
+pub fn uncommitted_perp_base_position(perp_account: &PerpAccount) -> i64 {
     perp_account
         .base_position
         .checked_add(perp_account.taker_base)
@@ -198,7 +189,6 @@ pub fn get_best_order_for_base_lot_quantity<'a>(
             // Update how much we spent so far
             cmlv_quote_lot_amount_spent = cmlv_quote_lot_amount_spent.checked_add(spent).unwrap();
         }
-        // msg!("cmlv_quote_lot_amount_spent {} -- execution_price {} -- base_lot_quantity_left_to_order {}", cmlv_quote_lot_amount_spent, execution_price, base_lot_quantity_left_to_order);
         // Check if we need to go deeper in the book or if we'r done
         if base_lot_quantity_left_to_order == 0 || spent == 0 {
             // success

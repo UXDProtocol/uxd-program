@@ -3,7 +3,6 @@ use anchor_lang::prelude::*;
 pub mod error;
 pub mod instructions;
 pub mod mango_program;
-pub mod serum_dex_program;
 pub mod state;
 pub mod utils;
 
@@ -30,7 +29,7 @@ pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Th
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
-solana_program::declare_id!("3bXdJTckxviQowu29xA4vSYg9rinpCVXDi36PCCKkFG2");
+solana_program::declare_id!("8KQep7PJnRhjPzEm4ySK9TgSdbGz9Y66VtEzXHxNx1u6");
 
 pub type UxdResult<T = ()> = Result<T, ErrorCode>;
 
@@ -124,6 +123,7 @@ pub mod uxd {
         instructions::deposit_insurance_to_mango_depository::handler(ctx, insurance_amount)
     }
 
+    // Withdraw insurance previously deposited, if any available.
     #[access_control(check_withdraw_insurance_amount_constraints(insurance_amount))]
     pub fn withdraw_insurance_from_mango_depository(
         ctx: Context<WithdrawInsuranceFromMangoDepository>,
@@ -132,7 +132,9 @@ pub mod uxd {
         instructions::withdraw_insurance_from_mango_depository::handler(ctx, insurance_amount)
     }
 
-    // Currently cannot be done in an instruction due to solana account limit size
+    // WIP on branch : feature/rebalancing
+    //
+    // Currently on hold due to solana account limit per transaction
     // https://docs.solana.com/proposals/transactions-v2#other-proposals
     // Program will remain hard capped in term of redeemable until this is implemented.
     // This will allow to prevent liquidation thanks to the repurposed insurance fund in the meantime.
@@ -155,12 +157,8 @@ pub mod uxd {
     //     instructions::rebalance_mango_depository::handler(ctx, max_rebalancing_amount, slippage)
     // }
 
-    /// Mint UXD through a Depository using MangoMarkets.
-    ///
-    /// Through Depository configured for a specific collateral and using Mango Market v3
-    /// Deposits user's collateral to Mango
-    /// open equivalent short perp (within slippage else fails. FoK behavior)
-    /// mints uxd in the amount of the mango position to the user
+    // Mint Redeemable tokens by depositing Collateral to mango and opening the equivalent short perp position.
+    // Callers pays taker_fees, that are added to the delta neutral position.
     #[access_control(
         valid_slippage(slippage)
         check_collateral_amount_constraints(&ctx, collateral_amount)
@@ -173,12 +171,8 @@ pub mod uxd {
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, slippage)
     }
 
-    /// Exchange UXD for the underlaying collateral from a depository using MangoMarkets.
-    ///
-    /// Burn the amount of UXD
-    /// close equivalent value of mango perp short position (withing slippage else fails. FoK behavior)
-    /// withdraw equivalent value of collateral from mango
-    /// return the collateral amount quivalent to the burnt UXD value to the user
+    // Burn Redeemable tokens and return the equivalent quote value of Collateral by unwinding a part of the delta neutral position.
+    // Callers pays taker_fees, that are added to the delta neutral position.
     #[access_control(
         valid_slippage(slippage)
         check_redeemable_amount_constraints(&ctx, redeemable_amount)
