@@ -6,3 +6,6 @@
 node_modules/
 test-ledger/
 .anchor/
+/programs/uxd/.coderrect/**
+/programs/uxd/target/**
+/programs/uxd/Cargo.lock

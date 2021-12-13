@@ -2,7 +2,7 @@
 name = "uxd"
 version = "1.1.0"
 authors = ["acammm <alexcamill@gmail.com>"]
-description = "UXD Program for managing a redeemable mint backed by a delta neutral position."
+description = "UXDProtocol Program, managing a redeemable mint backed by a delta neutral position."
 edition = "2021"
 
 [lib]
