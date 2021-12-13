@@ -21,10 +21,8 @@ pub struct MangoDepository {
     //
     // Accounting -------------------------------
     // Note : To keep track of the in and out of a depository
-    // Note : collateral and base are technically interchangeable as one Depository manage a single collateral
     //
-    // The amount of USDC InsuranceFund deposited/withdrawn by Authority on the underlying Mango Account - It doesn't represent the actual amount that varies based on Mango Account
-    // Updated after each deposit/withdraw insurance fund
+    // The amount of USDC InsuranceFund deposited/withdrawn by Authority on the underlying Mango Account - The actual amount might be lower/higher depending of funding rate changes
     // In Collateral native units
     pub insurance_amount_deposited: u128,
     //
@@ -33,9 +31,7 @@ pub struct MangoDepository {
     // In Collateral native units
     pub collateral_amount_deposited: u128,
     //
-    // The total amount of Redeemable Tokens this Depository instance is currently Hedging/Managing
-    // This should always be equal to `delta_neutral_quote_position` - `delta_neutral_quote_fee_offset`
-    // This is equivalent to the circulating supply or Redeemable that this depository is hedging
+    // The amount of delta neutral position that is backing circulating redeemables.
     // Updated after each mint/redeem
     // In Redeemable native units
     pub redeemable_amount_under_management: u128,
@@ -44,25 +40,24 @@ pub struct MangoDepository {
     //
     // This represent the amount of the delta neutral position that is locked, accounting for fees settlements.
     // Fee are paid in USDC, and so we keep a piece of the delta neutral quote position to account for them during each minting/redeeming operations.
-    // This is done because that's the only way we can make sure to have the same amount of money now or in 2 months, if we take base as fee payment we need to settle instantly,
-    // involving more computing and fees.
-    // The settlement of fees is permissionless and anyone could settle us at any time, but the equivalent value required will always be here waiting to be unwinded to account for them.
-    // Updated after each mint/redeem/rebalance
+    //
+    // Updated after each mint/redeem (/rebalance_fees when implemented)
     // In Redeemable native units
     pub delta_neutral_quote_fee_offset: u128,
     //
-    // The amount of delta neutral position that is backing circulating redeemables.
-    // Updated after each mint/redeem/rebalance
+    // The total amount of Redeemable Tokens this Depository instance hold
+    // This should always be equal to `delta_neutral_quote_position` - `delta_neutral_quote_fee_offset`
+    // This is equivalent to the circulating supply or Redeemable that this depository is hedging
+    // Updated after each mint/redeem (/rebalance_fees/rebalance when implemented)
     // In Redeemable native units
     pub delta_neutral_quote_position: u128,
     //
-    // Should add padding? or migrate?
+    // Should add padding?
 }
 
 pub enum AccountingEvent {
     Deposit,
     Withdraw,
-    Rebalance,
 }
 
 impl MangoDepository {
@@ -88,11 +83,14 @@ impl MangoDepository {
                 .insurance_amount_deposited
                 .checked_sub(amount.into())
                 .unwrap(),
-            AccountingEvent::Rebalance => return,
         }
     }
 
-    pub fn update_collateral_amount_deposited(&mut self, event_type: &AccountingEvent, amount: u64) {
+    pub fn update_collateral_amount_deposited(
+        &mut self,
+        event_type: &AccountingEvent,
+        amount: u64,
+    ) {
         self.collateral_amount_deposited = match event_type {
             AccountingEvent::Deposit => self
                 .collateral_amount_deposited
@@ -102,7 +100,6 @@ impl MangoDepository {
                 .collateral_amount_deposited
                 .checked_sub(amount.into())
                 .unwrap(),
-            AccountingEvent::Rebalance => return,
         }
     }
 
@@ -120,7 +117,6 @@ impl MangoDepository {
                 .redeemable_amount_under_management
                 .checked_sub(amount.into())
                 .unwrap(),
-            AccountingEvent::Rebalance => return,
         }
     }
 
@@ -137,10 +133,6 @@ impl MangoDepository {
             AccountingEvent::Withdraw => self
                 .delta_neutral_quote_fee_offset
                 .checked_add(amount.into())
-                .unwrap(),
-            AccountingEvent::Rebalance => self
-                .delta_neutral_quote_fee_offset
-                .checked_sub(amount.into())
                 .unwrap(),
         }
     }
@@ -159,7 +151,6 @@ impl MangoDepository {
                 .delta_neutral_quote_position
                 .checked_sub(amount.into())
                 .unwrap(),
-            AccountingEvent::Rebalance => todo!(),
         }
     }
 }

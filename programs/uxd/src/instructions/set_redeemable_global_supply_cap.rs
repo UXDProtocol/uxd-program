@@ -18,7 +18,7 @@ pub struct SetRedeemableGlobalSupplyCap<'info> {
 
 pub fn handler(
     ctx: Context<SetRedeemableGlobalSupplyCap>,
-    redeemable_global_supply_cap: u128, // In Redeemable Native amount
+    redeemable_global_supply_cap: u128, // native amount
 ) -> ProgramResult {
     ctx.accounts.controller.redeemable_global_supply_cap = redeemable_global_supply_cap;
     Ok(())

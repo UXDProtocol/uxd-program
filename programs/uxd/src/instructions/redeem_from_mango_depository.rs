@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-// use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
@@ -50,12 +49,6 @@ pub struct RedeemFromMangoDepository<'info> {
         constraint = collateral_mint.key() == depository.collateral_mint @ErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
-    // #[account(
-    //     init_if_needed,
-    //     payer = user,
-    //     token::mint = redeemable_mint,
-    //     token::authority = user,
-    // )]
     #[account(
         mut,
         constraint = user_collateral.mint == depository.collateral_mint @ErrorCode::InvalidUserCollateralATAMint
@@ -89,7 +82,6 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango related accounts -------------------------------------------------
-    // XXX All these account should be properly constrained if possible
     pub mango_group: AccountInfo<'info>,
     pub mango_cache: AccountInfo<'info>,
     pub mango_signer: AccountInfo<'info>,
@@ -110,7 +102,6 @@ pub struct RedeemFromMangoDepository<'info> {
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    // pub associated_token_program: Program<'info, AssociatedToken>,
     pub mango_program: Program<'info, mango_program::Mango>,
     // sysvars
     pub rent: Sysvar<'info, Rent>,
@@ -209,10 +200,6 @@ pub fn handler(
     // - 3 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
     // Note : The amount of collateral returned to the user
     let collateral_delta = derive_collateral_delta(&perp_info, &perp_account).to_num();
-    msg!(
-        "collateral_delta (Withdrawn from Depository) {}",
-        collateral_delta
-    );
     // - [Mango withdraw CPI]
     mango_program::withdraw(
         ctx.accounts

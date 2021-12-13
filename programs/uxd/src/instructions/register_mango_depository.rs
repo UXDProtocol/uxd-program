@@ -74,7 +74,6 @@ pub struct RegisterMangoDepository<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango related accounts -------------------------------------------------
-    // XXX Should be properly constrained
     pub mango_group: AccountInfo<'info>,
     // ------------------------------------------------------------------------
     // programs

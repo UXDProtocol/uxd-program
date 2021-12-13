@@ -30,8 +30,8 @@ pub struct Controller {
     //
     // Accounting -------------------------------
     //
-    // The actual circulating supply of Redeemable (Also available through TokenProgram info on the mint)
-    // This should always be equal to the sum of all Depositories' `redeemable_under_management`
+    // The actual circulating supply of Redeemable
+    // This should always be equal to the sum of all Depositories' `redeemable_amount_under_management`
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
     //
@@ -53,7 +53,6 @@ impl Controller {
                 .redeemable_circulating_supply
                 .checked_sub(amount.into())
                 .unwrap(),
-            AccountingEvent::Rebalance => return,
         }
     }
 

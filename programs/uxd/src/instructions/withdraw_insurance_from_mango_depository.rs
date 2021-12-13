@@ -62,7 +62,6 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango related accounts -------------------------------------------------
-    // XXX All these account should be properly constrained
     pub mango_group: AccountInfo<'info>,
     pub mango_cache: AccountInfo<'info>,
     pub mango_signer: AccountInfo<'info>,
@@ -80,7 +79,7 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
 
 pub fn handler(
     ctx: Context<WithdrawInsuranceFromMangoDepository>,
-    insurance_amount: u64, // In Mative Units
+    insurance_amount: u64, // native units
 ) -> ProgramResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 

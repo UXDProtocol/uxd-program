@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-// use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::MintTo;
@@ -63,11 +62,6 @@ pub struct MintWithMangoDepository<'info> {
         constraint = user_collateral.mint == depository.collateral_mint @ErrorCode::InvalidUserCollateralATAMint
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
-    // init_if_needed,
-    //     payer = user,
-    //     token::mint = redeemable_mint,
-    //     token::authority = user,
-    // )]
     #[account(
         mut,
         constraint = user_redeemable.mint == controller.redeemable_mint @ErrorCode::InvalidUserRedeemableATAMint
@@ -108,16 +102,14 @@ pub struct MintWithMangoDepository<'info> {
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    // pub associated_token_program: Program<'info, AssociatedToken>,
     pub mango_program: Program<'info, mango_program::Mango>,
     // sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
-// HANDLER
 pub fn handler(
     ctx: Context<MintWithMangoDepository>,
-    collateral_amount: u64,
+    collateral_amount: u64, // native units
     slippage: u32,
 ) -> ProgramResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
@@ -148,7 +140,7 @@ pub fn handler(
         collateral_amount,
     )?;
 
-    // - 2 [OPEN SAME SIZE SHORT POSITION] ------------------------------------
+    // - 2 [OPEN SHORT POSITION] ----------------------------------------------
 
     // - [Get perp informations]
     let perp_info = ctx.accounts.perpetual_info()?;
@@ -240,7 +232,6 @@ pub fn handler(
     ctx.accounts
         .check_mango_depositories_redeemable_soft_cap_overflow(redeemable_delta)?;
 
-    // return Err(ErrorCode::InvalidSlippage.into());
     Ok(())
 }
 
@@ -360,15 +351,7 @@ impl<'info> MintWithMangoDepository<'info> {
         let best_order = get_best_order_for_base_lot_quantity(&book, side, base_amount);
 
         return match best_order {
-            Some(best_order) => {
-                // msg!(
-                //     "best_order: [quantity {} - price {} - size {}]",
-                //     best_order.quantity,
-                //     best_order.price,
-                //     best_order.size
-                // );
-                Ok(best_order)
-            }
+            Some(best_order) => Ok(best_order),
             None => Err(ErrorCode::InsuficentOrderBookDepth),
         };
     }
