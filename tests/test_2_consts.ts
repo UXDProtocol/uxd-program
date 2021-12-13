@@ -1,3 +1,3 @@
 
 
-export const slippage = 20; // 10 points <=> 1%
+export const slippage = 30; // 10 points <=> 1%

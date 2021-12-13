@@ -9,7 +9,7 @@ describe(" ======= [Suite 1-6 : Test withdrawing insurance from the mango WSOL d
     beforeEach("\n", async () => { });
     afterEach("\n", async () => { });
 
-    const insurance_amount = 95; // insurance token UI amount
+    const insurance_amount = 99; // insurance token UI amount
 
     it(`1 - Withdraw ${insurance_amount} from the WSOL mango Depository`, async () => {
         // GIVEN

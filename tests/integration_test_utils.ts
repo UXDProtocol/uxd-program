@@ -31,15 +31,14 @@ export async function printDepositoryInfo(depository: MangoDepository, mango: Ma
     const mangoAccount = await mango.load(depository.mangoAccountPda); // might do that in the TS object then reload idk
     await mango.printAccountInfo(mangoAccount);
 
+    let controllerAccount = await uxdHelpers.getControllerAccount(provider, uxdClient.program, controllerUXD, TXN_OPTS);
     let depositoryAccount = await uxdHelpers.getMangoDepositoryAccount(provider, uxdClient.program, depository, TXN_OPTS);
     console.log("=================");
-    console.log(`Depository insuranceAmountDeposited            ${depositoryAccount.insuranceAmountDeposited.toNumber()}`);
+    console.log(`Depository deltaNeutralQuotePosition           ${depositoryAccount.deltaNeutralQuotePosition.toNumber()} (${depositoryAccount.redeemableAmountUnderManagement.toNumber()} + ${depositoryAccount.deltaNeutralQuoteFeeOffset.toNumber()} <> redeemableAmountUnderManagement + deltaNeutralQuoteFeeOffset)`);
     console.log(`Depository collateralAmountDeposited           ${depositoryAccount.collateralAmountDeposited.toNumber()}`);
-    console.log(`Depository redeemableAmountUnderManagement     ${depositoryAccount.redeemableAmountUnderManagement.toNumber()}`);
-
-    let controllerAccount = await uxdHelpers.getControllerAccount(provider, uxdClient.program, controllerUXD, TXN_OPTS);
-    console.log("=================");
-    console.log(`Controller redeemableCirculatingSupply         ${controllerAccount.redeemableCirculatingSupply.toNumber()}`);
+    // console.log(`Depository deltaNeutralQuoteFeeOffset          ${depositoryAccount.deltaNeutralQuoteFeeOffset.toNumber()}`);
+    console.log(`Depository redeemableAmountUnderManagement     ${depositoryAccount.redeemableAmountUnderManagement.toNumber()} / ${controllerAccount.redeemableCirculatingSupply.toNumber()} (controller.redeemableCirculatingSupply)`);
+    console.log(`Depository insuranceAmountDeposited            ${depositoryAccount.insuranceAmountDeposited.toNumber()}`);
 }
 
 export async function printUserBalances() {

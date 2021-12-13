@@ -160,7 +160,7 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
     ) -> ProgramResult {
         // Mango Depository
         self.depository
-            .update_insurance_amount_deposited(AccountingEvent::Withdraw, insurance_delta);
+            .update_insurance_amount_deposited(&AccountingEvent::Withdraw, insurance_delta);
         Ok(())
     }
 }

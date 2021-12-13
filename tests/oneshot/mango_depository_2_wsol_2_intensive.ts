@@ -1,9 +1,9 @@
 import { expect } from "chai";
-import { user } from "./identities";
-import { mintWithMangoDepository, redeemFromMangoDepository, collateralUIPriceInMangoQuote } from "./test_0_uxd_api";
-import { printUserBalances, printDepositoryInfo, getBalance, userWSOLATA, userUXDATA } from "./integration_test_utils";
-import { slippage } from "./test_2_consts";
-import { depositoryWSOL, mango, slippageBase, controllerUXD } from "./test_0_consts";
+import { user } from "../identities";
+import { mintWithMangoDepository, redeemFromMangoDepository, collateralUIPriceInMangoQuote } from "../test_0_uxd_api";
+import { printUserBalances, printDepositoryInfo, getBalance, userWSOLATA, userUXDATA } from "../integration_test_utils";
+import { slippage } from "../test_2_consts";
+import { depositoryWSOL, mango, slippageBase, controllerUXD } from "../test_0_consts";
 
 describe(" ============== ", () => {
     beforeEach("\n", async () => { });

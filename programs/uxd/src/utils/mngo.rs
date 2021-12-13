@@ -1,9 +1,12 @@
+use anchor_lang::prelude::{AccountInfo, Pubkey};
 use fixed::types::I80F48;
 use mango::{
     matching::{Book, Side},
     state::{MangoCache, MangoGroup, PerpAccount},
 };
 use solana_program::msg;
+
+use crate::{ErrorCode, UxdResult};
 
 // mngo not to collide with mango
 
@@ -22,6 +25,36 @@ pub struct PerpInfo {
 }
 
 impl PerpInfo {
+    pub fn new(
+        mango_group_ai: &AccountInfo,
+        mango_cache_ai: &AccountInfo,
+        perp_market_key: &Pubkey,
+        mango_program_key: &Pubkey,
+    ) -> UxdResult<Self> {
+        let mango_group = match MangoGroup::load_checked(mango_group_ai, mango_program_key) {
+            Ok(it) => it,
+            Err(_err) => return Err(ErrorCode::MangoGroupLoading),
+        };
+        let mango_cache =
+            match MangoCache::load_checked(&mango_cache_ai, mango_program_key, &mango_group) {
+                Ok(it) => it,
+                Err(_err) => return Err(ErrorCode::MangoCacheLoading),
+            };
+        let perp_market_index = match mango_group.find_perp_market_index(perp_market_key) {
+            Some(it) => it,
+            None => return Err(ErrorCode::MangoPerpMarketIndexNotFound),
+        };
+
+        // let now_ts = Clock::get()?.unix_timestamp as u64;
+        // Might have to check for valid mango cache here (check_valid)
+        //  in the case I don't call any mango instruction afterward (currently they all check the cache validity)
+
+        Ok(PerpInfo::init(
+            &mango_group,
+            &mango_cache,
+            perp_market_index,
+        ))
+    }
     pub fn init(
         mango_group: &MangoGroup,
         mango_cache: &MangoCache,

@@ -91,8 +91,8 @@ fn place_perp_order_instruction(
     })
 }
 
-pub fn place_perp_order<'a, 'b, 'c, 'info>(
-    ctx: CpiContext<'a, 'b, 'c, 'info, PlacePerpOrder<'info>>,
+pub fn place_perp_order<'info>(
+    ctx: CpiContext<'_, '_, '_, 'info, PlacePerpOrder<'info>>,
     price: i64,
     quantity: i64,
     client_order_id: u64,

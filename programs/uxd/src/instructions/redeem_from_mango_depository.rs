@@ -8,8 +8,6 @@ use anchor_spl::token::TokenAccount;
 use fixed::types::I80F48;
 use mango::matching::Book;
 use mango::state::MangoAccount;
-use mango::state::MangoCache;
-use mango::state::MangoGroup;
 use mango::state::PerpAccount;
 use mango::state::PerpMarket;
 
@@ -31,7 +29,6 @@ use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SLIPPAGE_BASIS;
 
 #[derive(Accounts)]
-#[instruction(redeemable_amount: u64)]
 pub struct RedeemFromMangoDepository<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
@@ -66,8 +63,7 @@ pub struct RedeemFromMangoDepository<'info> {
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        constraint = user_redeemable.mint == redeemable_mint.key() @ErrorCode::InvalidRedeemableMint,
-        constraint = user_redeemable.amount >= redeemable_amount @ErrorCode::InsuficientRedeemableAmount
+        constraint = user_redeemable.mint == redeemable_mint.key() @ErrorCode::InvalidRedeemableMint
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     #[account(
@@ -127,7 +123,7 @@ pub fn handler(
 ) -> ProgramResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
-    let depository_signer_seeds: &[&[&[u8]]] = &[&[
+    let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         collateral_mint.as_ref(),
         &[ctx.accounts.depository.bump],
@@ -138,11 +134,11 @@ pub fn handler(
     // - [Get perp informations]
     let perp_info = ctx.accounts.perpetual_info()?;
 
-    // - [Perp account state PRE perp position opening]
+    // - [Perp account state PRE perp order]
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Make sure that the PerpAccount crank has been run previously to this instruction by the uxd-client so that pending changes are updated in mango]
-    if perp_account.taker_base != 0 || perp_account.taker_quote != 0 {
+    if !(perp_account.taker_base == 0 && perp_account.taker_quote == 0) {
         return Err(ErrorCode::InvalidPerpAccountState.into());
     }
 
@@ -178,7 +174,7 @@ pub fn handler(
     mango_program::place_perp_order(
         ctx.accounts
             .into_close_mango_short_perp_context()
-            .with_signer(depository_signer_seeds),
+            .with_signer(depository_signer_seed),
         best_order.price,
         best_order.quantity,
         0,
@@ -187,7 +183,7 @@ pub fn handler(
         true,
     )?;
 
-    // - [Perp account state POST perp position opening]
+    // - [Perp account state POST perp order]
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Checks that the order was fully filled]
@@ -199,17 +195,20 @@ pub fn handler(
     )?;
 
     // - 2 [BURN THE EQUIVALENT AMOUT OF UXD] ---------------------------------
-    let redeemable_delta =
-        derive_redeemable_delta_plus_taker_fees(&perp_info, &perp_account).to_num();
-    msg!("redeemable_delta (Burn) {}", redeemable_delta);
+    // Note : In order to account for the perp order fees, we burn extra redeemable for the perp order fees (total corresponding to the amount redeemed + fees).
+    //  This will make the delta neutral position is bit bigger thant the redeemable in circulation it actually hedges, but will be settled during rebalancing.
+    let (order_delta, fee_delta) =
+        derive_redeemable_order_and_fee_deltas(&perp_info, &perp_account);
+    let redeemable_to_burn = order_delta.checked_add(fee_delta).unwrap().to_num();
+    msg!("redeemable_to_burn (Burn) {}", redeemable_to_burn);
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
-        redeemable_delta,
+        redeemable_to_burn,
     )?;
 
     // - 3 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
-    let collateral_delta =
-        derive_collateral_delta_minus_taker_fees(&perp_info, &perp_account).to_num();
+    // Note : The amount of collateral returned to the user
+    let collateral_delta = derive_collateral_delta(&perp_info, &perp_account).to_num();
     msg!(
         "collateral_delta (Withdrawn from Depository) {}",
         collateral_delta
@@ -218,7 +217,7 @@ pub fn handler(
     mango_program::withdraw(
         ctx.accounts
             .into_withdraw_collateral_from_mango_context()
-            .with_signer(depository_signer_seeds),
+            .with_signer(depository_signer_seed),
         collateral_delta,
         false,
     )?;
@@ -228,13 +227,18 @@ pub fn handler(
     token::transfer(
         ctx.accounts
             .into_transfer_collateral_to_user_context()
-            .with_signer(depository_signer_seeds),
+            .with_signer(depository_signer_seed),
         collateral_delta,
     )?;
 
     // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
-    ctx.accounts
-        .check_and_update_accounting(collateral_delta, redeemable_delta)?;
+    let redeemable_delta = order_delta.to_num();
+    let redeemable_fee_delta = fee_delta.to_num();
+    ctx.accounts.update_onchain_accounting(
+        collateral_delta,
+        redeemable_delta,
+        redeemable_fee_delta,
+    )?;
 
     // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
     ctx.accounts
@@ -313,23 +317,12 @@ impl<'info> RedeemFromMangoDepository<'info> {
 impl<'info> RedeemFromMangoDepository<'info> {
     // Return general information about the perpetual related to the collateral in use
     fn perpetual_info(&self) -> UxdResult<PerpInfo> {
-        let mango_group = match MangoGroup::load_checked(&self.mango_group, self.mango_program.key)
-        {
-            Ok(it) => it,
-            Err(_err) => return Err(ErrorCode::MangoGroupLoading),
-        };
-        let mango_cache =
-            match MangoCache::load_checked(&self.mango_cache, self.mango_program.key, &mango_group)
-            {
-                Ok(it) => it,
-                Err(_err) => return Err(ErrorCode::MangoCacheLoading),
-            };
-        let perp_market_index = match mango_group.find_perp_market_index(self.mango_perp_market.key)
-        {
-            Some(it) => it,
-            None => return Err(ErrorCode::MangoPerpMarketIndexNotFound),
-        };
-        let perp_info = PerpInfo::init(&mango_group, &mango_cache, perp_market_index);
+        let perp_info = PerpInfo::new(
+            &self.mango_group,
+            &self.mango_cache,
+            &self.mango_perp_market.key,
+            self.mango_program.key,
+        )?;
         msg!("Perpetual informations: {:?}", perp_info);
         Ok(perp_info)
     }
@@ -386,21 +379,29 @@ impl<'info> RedeemFromMangoDepository<'info> {
     }
 
     // Update the accounting in the Depository and Controller Accounts to reflect changes
-    fn check_and_update_accounting(
+    fn update_onchain_accounting(
         &mut self,
         collateral_delta: u64,
         redeemable_delta: u64,
+        redeemable_fee_delta: u64,
     ) -> UxdResult {
+        let fee_delta = redeemable_fee_delta;
+        let circulating_supply_delta = redeemable_delta.checked_sub(fee_delta).unwrap();
         // Mango Depository
+        let event = AccountingEvent::Withdraw;
         self.depository
-            .update_collateral_amount_deposited(AccountingEvent::Withdraw, collateral_delta);
+            .update_collateral_amount_deposited(&event, collateral_delta);
         self.depository
-            .update_redeemable_amount_under_management(AccountingEvent::Withdraw, redeemable_delta);
+            .update_delta_neutral_quote_fee_offset(&event, fee_delta);
+        self.depository
+            .update_delta_neutral_quote_position(&event, redeemable_delta);
+        self.depository
+            .update_redeemable_amount_under_management(&event, circulating_supply_delta);
         // Controller
         self.controller
-            .update_redeemable_circulating_supply(AccountingEvent::Withdraw, redeemable_delta);
+            .update_redeemable_circulating_supply(&event, circulating_supply_delta);
 
-        // TODO catch errors above and make explicit error
+        self.depository.sanity_check()?;
 
         Ok(())
     }
@@ -427,7 +428,7 @@ fn slippage_addition(price: I80F48, slippage: u32) -> I80F48 {
     return price_adjusted;
 }
 
-fn check_short_perp_close_order_is_within_slippage_range(
+pub fn check_short_perp_close_order_is_within_slippage_range(
     perp_info: &PerpInfo,
     order: &Order,
     slippage: u32,
@@ -447,7 +448,7 @@ fn check_short_perp_close_order_is_within_slippage_range(
 }
 
 // Verify that the order quantity matches the base position delta
-fn check_short_perp_close_order_fully_filled(
+pub fn check_short_perp_close_order_fully_filled(
     order_quantity: i64,
     pre_position: i64,
     post_position: i64,
@@ -459,34 +460,22 @@ fn check_short_perp_close_order_fully_filled(
     Ok(())
 }
 
-pub fn derive_redeemable_delta_plus_taker_fees(
+fn derive_redeemable_order_and_fee_deltas(
     perp_info: &PerpInfo,
     perp_account: &PerpAccount,
-) -> I80F48 {
+) -> (I80F48, I80F48) {
     let order_amount_quote_native_unit = I80F48::from_num(perp_account.taker_quote.abs())
         .checked_mul(perp_info.quote_lot_size)
         .unwrap();
     let fee_amount = order_amount_quote_native_unit
         .checked_mul(perp_info.taker_fee)
         .unwrap();
-    let amount_plus_fees = order_amount_quote_native_unit
-        .checked_add(fee_amount)
-        .unwrap();
-    amount_plus_fees
+    (order_amount_quote_native_unit, fee_amount)
 }
 
-pub fn derive_collateral_delta_minus_taker_fees(
-    perp_info: &PerpInfo,
-    perp_account: &PerpAccount,
-) -> I80F48 {
+fn derive_collateral_delta(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
     let order_amount_base_native_unit = I80F48::from_num(perp_account.taker_base.abs())
         .checked_mul(perp_info.base_lot_size)
         .unwrap();
-    let fee_amount = order_amount_base_native_unit
-        .checked_mul(perp_info.taker_fee)
-        .unwrap();
-    let amount_minus_fees = order_amount_base_native_unit
-        .checked_sub(fee_amount)
-        .unwrap();
-    amount_minus_fees
+    order_amount_base_native_unit
 }

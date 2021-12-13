@@ -10,10 +10,6 @@ use crate::PROGRAM_VERSION;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SOLANA_MAX_MINT_DECIMALS;
 
-// Here we should set a deployer authority for the first person who init the UXD program stack, like mango IDO?
-// Not sure it matter but then we should double check what happen when several version are instantiated with the way seed are defined
-// pub const DEPLOYER_AUTHORITY = "";
-
 #[derive(Accounts)]
 #[instruction(
     bump: u8,
@@ -22,7 +18,6 @@ use crate::SOLANA_MAX_MINT_DECIMALS;
 )]
 pub struct InitializeController<'info> {
     pub authority: Signer<'info>,
-    // In order to use with governance program, as the PDA cannot be the payer in nested TX.
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(
@@ -61,11 +56,11 @@ pub fn handler(
     ctx.accounts.controller.authority = ctx.accounts.authority.key();
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
     ctx.accounts.controller.redeemable_mint_decimals = redeemable_mint_decimals;
-    // Default to 1 Million
+    // Default to 1 Million redeemable total cap
     ctx.accounts.controller.redeemable_global_supply_cap = DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP
         .checked_mul(redeemable_mint_unit.into())
         .unwrap();
-    // Default to 1 Thousand
+    // Default to 10 Thousand redeemable per mint/redeem
     ctx.accounts
         .controller
         .mango_depositories_redeemable_soft_cap = DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP
@@ -75,39 +70,3 @@ pub fn handler(
 
     Ok(())
 }
-
-// Keep here to remmeber how to test later, useless now here
-// fn to_native_amount(ui_amount: u64, mint_decimals: u8) -> u64 {
-//     let redeemable_mint_unit = 10_u64.pow(u32::from(mint_decimals));
-//     ui_amount
-//         .checked_mul(redeemable_mint_unit)
-//         .unwrap()
-//         .checked_to_num()
-//         .unwrap()
-// }
-
-// #[cfg(test)]
-// mod test {
-//     use crate::MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP;
-
-//     use super::*;
-//     use proptest::prelude::*;
-
-//     proptest! {
-
-//         #[test]
-//         fn proptest_to_native_amount(ui_amount in u64::MIN..MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP, decimals in 0u8..SOLANA_MAX_MINT_DECIMALS) {
-//             // GIVEN
-
-//             // WHEN
-//             let expected_native_amount: u64 = ui_amount.checked_mul(10u64.pow(u32::from(decimals))).unwrap();
-//             let actual_native_amount = to_native_amount(ui_amount, decimals);
-
-//             // THEN
-//             assert_eq!(
-//                 expected_native_amount, actual_native_amount,
-//                 "mismatch for ui_amount {} and decimals {}", ui_amount, decimals
-//             );
-//         }
-//     }
-// }
