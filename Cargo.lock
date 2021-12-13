@@ -1645,6 +1645,7 @@ dependencies = [
  "anchor-spl",
  "fixed",
  "mango",
+ "serum_dex",
  "solana-program",
  "spl-token",
  "thiserror",

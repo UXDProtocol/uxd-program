@@ -139,21 +139,21 @@ pub mod uxd {
     //
     // Reduce or increase the delta neutral position size to account for it's current PnL.
     // Update accounting, check accounting.
-    // #[access_control(
-    //     valid_slippage(slippage)
-    //     check_max_rebalancing_amount_constraints(max_rebalancing_amount)
-    // )]
-    // pub fn rebalance_mango_depository(
-    //     ctx: Context<RebalanceMangoDepository>,
-    //     max_rebalancing_amount: u64,
-    //     slippage: u32,
-    // ) -> ProgramResult {
-    //     msg!(
-    //         "UXD rebalance_mango_depository - max_rebalancing_amount {}",
-    //         max_rebalancing_amount
-    //     );
-    //     instructions::rebalance_mango_depository::handler(ctx, max_rebalancing_amount, slippage)
-    // }
+    #[access_control(
+        valid_slippage(slippage)
+        check_max_rebalancing_amount_constraints(max_rebalancing_amount)
+    )]
+    pub fn rebalance_mango_depository(
+        ctx: Context<RebalanceMangoDepository>,
+        max_rebalancing_amount: u64,
+        slippage: u32,
+    ) -> ProgramResult {
+        msg!(
+            "UXD rebalance_mango_depository - max_rebalancing_amount {}",
+            max_rebalancing_amount
+        );
+        instructions::rebalance_mango_depository::handler(ctx, max_rebalancing_amount, slippage)
+    }
 
     /// Mint UXD through a Depository using MangoMarkets.
     ///
