@@ -3,7 +3,7 @@ name = "uxd"
 version = "1.0.0"
 authors = ["acammm <alexcamill@gmail.com>"]
 description = "UXDProtocol program for minting and redeeming of UXD tokens."
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
