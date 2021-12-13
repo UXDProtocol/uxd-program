@@ -12,7 +12,7 @@ use mango::state::PerpMarket;
 
 use crate::mango_program;
 use crate::utils::get_best_order_for_quote_lot_amount;
-use crate::utils::perp_base_position;
+use crate::utils::uncommitted_perp_base_position;
 use crate::utils::Order;
 use crate::utils::PerpInfo;
 use crate::AccountingEvent;
@@ -144,7 +144,7 @@ pub fn handler(
         .unwrap();
 
     // - [Base depository's position size in native units PRE perp opening (to calculate the % filled later on)]
-    let initial_base_position = perp_base_position(&perp_account);
+    let initial_base_position = perp_account.base_position;
 
     // - [Find out how the best price and quantity for our order]
     let exposure_delta_in_quote_lot_unit = exposure_delta_in_quote_unit
@@ -177,7 +177,7 @@ pub fn handler(
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Checks that the order was fully filled]
-    let post_position = perp_base_position(&perp_account);
+    let post_position = uncommitted_perp_base_position(&perp_account);
     check_short_perp_close_order_fully_filled(
         best_order.quantity,
         initial_base_position,

@@ -79,14 +79,8 @@ impl PerpInfo {
     }
 }
 
-// Return the current base position for a given PerpAccount
-pub fn perp_base_position(perp_account: &PerpAccount) -> i64 {
-    // msg!("  -----");
-    // msg!("  base_position {}", perp_account.base_position);
-    // msg!("  quote_position {}", perp_account.quote_position);
-    // msg!("  taker_base {}", perp_account.taker_base);
-    // msg!("  taker_quote {}", perp_account.taker_quote);
-    // msg!("  -----");
+// Return the current uncommittedbase position for a given PerpAccount
+pub fn uncommitted_perp_base_position(perp_account: &PerpAccount) -> i64 {
     perp_account
         .base_position
         .checked_add(perp_account.taker_base)

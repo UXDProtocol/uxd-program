@@ -13,7 +13,7 @@ use mango::state::PerpMarket;
 
 use crate::mango_program;
 use crate::utils::get_best_order_for_base_lot_quantity;
-use crate::utils::perp_base_position;
+use crate::utils::uncommitted_perp_base_position;
 use crate::utils::Order;
 use crate::utils::PerpInfo;
 use crate::AccountingEvent;
@@ -139,7 +139,7 @@ pub fn handler(
         collateral_amount,
     )?;
 
-    // - 2 [OPEN SHORT POSITION] ----------------------------------------------
+    // - 2 [OPEN SHORT PERP POSITION] -----------------------------------------
 
     // - [Get perp informations]
     let perp_info = ctx.accounts.perpetual_info()?;
@@ -147,7 +147,7 @@ pub fn handler(
     // - [Perp account state PRE perp order]
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
-    // - [Make sure that the PerpAccount crank has been run previously to this instruction by the uxd-client so that pending changes are updated in mango]
+    // - [Make sure that the PerpAccount crank has been ran previously to this instruction by the uxd-client so that pending changes are updated in mango]
     if !(perp_account.taker_base == 0 && perp_account.taker_quote == 0) {
         return Err(ErrorCode::InvalidPerpAccountState.into());
     }
@@ -158,7 +158,7 @@ pub fn handler(
         .unwrap();
 
     // - [Base depository's position size in native units PRE perp opening (to calculate the % filled later on)]
-    let initial_base_position = perp_base_position(&perp_account);
+    let initial_base_position = perp_account.base_position;
 
     // - [Find the best order]
     let best_order = ctx
@@ -184,11 +184,11 @@ pub fn handler(
         false,
     )?;
 
-    // - [Perp account state POST perp perp order]
+    // - [Perp account state POST perp order]
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Checks that the order was fully filled]
-    let post_position = perp_base_position(&perp_account);
+    let post_position = uncommitted_perp_base_position(&perp_account);
     check_short_perp_open_order_fully_filled(
         best_order.quantity,
         initial_base_position,
