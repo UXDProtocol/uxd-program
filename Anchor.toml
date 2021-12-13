@@ -3,7 +3,7 @@ cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [programs.devnet]
-uxd = "8KQep7PJnRhjPzEm4ySK9TgSdbGz9Y66VtEzXHxNx1u6"
+uxd = "GWsap1WJ2oabJWc61XNHFa1n3M6oGujf1sTjuSQTZcbi"
 
 # [programs.mainnet]
 # uxd = ""
