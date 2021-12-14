@@ -12,10 +12,10 @@
 //     it(`0 - initial state`, async () => { /* no-op */ });
 
 
-//     it(`1 - Settle WSOL depository PNL (mango client permissionless call)`, async () => {
-//         await settleMangoDepositoryMangoAccountPnl(depositoryWSOL, mango);
-//     });
-//     it(`2 - Settle WSOL depository FEES (mango client permissionless call)`, async () => {
-//         await settleMangoDepositoryMangoAccountFees(depositoryWSOL, mango);
-//     });
+//     // it(`1 - Settle WSOL depository PNL (mango client permissionless call)`, async () => {
+//     //     await settleMangoDepositoryMangoAccountPnl(depositoryWSOL, mango);
+//     // });
+//     // it(`2 - Settle WSOL depository FEES (mango client permissionless call)`, async () => {
+//     //     await settleMangoDepositoryMangoAccountFees(depositoryWSOL, mango);
+//     // });
 // });

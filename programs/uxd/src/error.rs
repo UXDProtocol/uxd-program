@@ -44,7 +44,7 @@ pub enum ErrorCode {
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
     RedeemableGlobalSupplyCapReached,
     #[msg("Operation not allowed due to being over the Redeemable soft Cap.")]
-    MangoDepositoriesSoftCapOverflow,
+    MangoDepositoriesSoftCapOverflow, // 0xdc - 220
     //
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
     MaxNumberOfMangoDepositoriesRegisteredReached = 30, // - 230
@@ -83,7 +83,7 @@ pub enum ErrorCode {
     #[msg("Could not find the perp market index for the given collateral.")]
     MangoPerpMarketIndexNotFound,
     #[msg("The Mango PerpAccount has uncommitted changes.")]
-    InvalidPerpAccountState,
+    InvalidPerpAccountState, // 0x11e - 286
     #[msg("The Depository accounting is in an invalid state.")]
     InvalidDepositoryAccounting, // 0x11f - 287
 }

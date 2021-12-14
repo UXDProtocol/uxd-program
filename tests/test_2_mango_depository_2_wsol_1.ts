@@ -39,7 +39,8 @@ describe(" ======= [Suite 2-2-1 : Mint then redeem all WSOL (4 op)] ======= ", (
         op1_amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
         const op_amountWsolUsed = _userWsolBalancePostOp - _userWsolBalancePreOp;
 
-        expect(op_amountWsolUsed).equals(collateralAmount * -1, "The collateral amount paid doesn't match the user wallet delta");
+        // Due to it following the best perp order size found and not hoarding supplemnental collateral
+        expect(op_amountWsolUsed).closeTo(collateralAmount * -1, collateralAmount * 0.05, "The collateral amount paid doesn't match the user wallet delta");
         expect(op1_amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
         console.log(`    ==> [Minted ${op1_amountUxdMinted} for ${op_amountWsolUsed} WSOL (prefect was ${maxAmountUxdMinted})]`);
@@ -100,7 +101,7 @@ describe(" ======= [Suite 2-2-1 : Mint then redeem all WSOL (4 op)] ======= ", (
         op3_amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
         const op_amountWsolUsed = _userWsolBalancePostOp - _userWsolBalancePreOp;
 
-        expect(op_amountWsolUsed).closeTo(collateralAmount * -1, Math.pow(10, -depository.collateralMintdecimals), "The collateral amount paid doesn't match the user wallet delta");
+        expect(op_amountWsolUsed).closeTo(collateralAmount * -1, collateralAmount * 0.05, "The collateral amount paid doesn't match the user wallet delta");
         expect(op3_amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
         console.log(`    ==> [Minted ${op3_amountUxdMinted} for ${op_amountWsolUsed} WSOL (perfect was ${maxAmountUxdMinted})]`);

@@ -42,7 +42,7 @@ describe(` Just mint ${amountToMint} `, () => {
         amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
         const op_amountWsolUsed = _userWsolBalancePostOp - _userWsolBalancePreOp;
 
-        expect(op_amountWsolUsed).closeTo(collateralAmount * -1, Math.pow(10, -depository.collateralMintdecimals), "The collateral amount paid doesn't match the user wallet delta");
+        expect(op_amountWsolUsed).closeTo(collateralAmount * -1, collateralAmount * 0.05, "The collateral amount paid doesn't match the user wallet delta");
         expect(amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
         console.log(`    ==> [Minted ${amountUxdMinted} for ${op_amountWsolUsed} WSOL (prefect was ${maxAmountUxdMinted})]`);

@@ -23,8 +23,9 @@ describe(` Just mint ${amountToMint} `, () => {
     const depository = depositoryWSOL;
 
     // OP2
-    let amountUxdMinted = 1914;
+    let amountUxdMinted = 6.145723;
     it(`1 - Redeem ${amountUxdMinted} UXD with ${slippagePercentage * 100}% max slippage`, async () => {
+        console.log(controllerUXD.redeemableMintPda.toString());
         // GIVEN
         const amountRedeemable = amountUxdMinted; // In UXD
         const _userUxdBalancePreOp = await getBalance(userUXDATA);
