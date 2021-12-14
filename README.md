@@ -61,7 +61,7 @@ $> anchor deploy ... TODO
 
 _____
 
-## Architecture
+## Codebase org
 
 The program is contained in `programs/uxd/`.
 Its instructions are in `programs/uxd/src/instructions/`.
@@ -72,27 +72,29 @@ The project uses `Anchor` IDL for safety and readability (over the finest perfor
 
 The project relies on `Mango Markets` [program](https://github.com/blockworks-foundation/mango-v3), a decentralised derivative exchange platform build on Solana, and controlled by a DAO.
 
-This program contains 2 set of instructions, one for administration and one for front facing users.
+This program contains 2 set of instructions, one permissionned and one permissionless
 
-## Program flow
+## Program Architecture
+
+![uxd schema](uxd.jpg)
 
 The initial state is initialized through calling `initialize`, from there a mint is created for UXD, the signer is kept as the administrative authority, and that's it.
 
 It owns the UXD Mint currentely (TBD and though about).
 
 ```Rust
-#[account]
-#[derive(Default)]
 pub struct Controller {
     pub bump: u8,
     pub redeemable_mint_bump: u8,
+    // Version used - for migrations later if needed
+    pub version: u8,
     // The account that initialize this struct. Only this account can call permissionned instructions.
     pub authority: Pubkey,
     pub redeemable_mint: Pubkey,
     pub redeemable_mint_decimals: u8,
     //
     // The Mango Depositories registered with this Controller
-    pub registered_mango_depositories: [Pubkey; 16], // MAX_REGISTERED_MANGO_DEPOSITORIES id always bug with constant...
+    pub registered_mango_depositories: [Pubkey; 8], // MAX_REGISTERED_MANGO_DEPOSITORIES - IDL bug with constant...
     pub registered_mango_depositories_count: u8,
     //
     // Progressive roll out and safety ----------
@@ -107,10 +109,12 @@ pub struct Controller {
     //
     // Accounting -------------------------------
     //
-    // The actual circulating supply of Redeemable (Also available through TokenProgram info on the mint)
-    // This should always be equal to the sum of all Depositories' `redeemable_under_management`
+    // The actual circulating supply of Redeemable
+    // This should always be equal to the sum of all Depositories' `redeemable_amount_under_management`
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
+    //
+    // Should add padding? or migrate?
 }
 ```
 
@@ -118,14 +122,17 @@ The `authority` (admin) must then register some `Depository`/ies by calling `reg
 One State is tied to many `Depository` accounts, each of them being a vault for a given Collateral Mint.
 
 ```Rust
-#[account]
-#[derive(Default)]
 pub struct MangoDepository {
     pub bump: u8,
     pub collateral_passthrough_bump: u8,
+    pub insurance_passthrough_bump: u8,
     pub mango_account_bump: u8,
+    // Version used - for migrations later if needed
+    pub version: u8,
     pub collateral_mint: Pubkey,
     pub collateral_passthrough: Pubkey,
+    pub insurance_mint: Pubkey,
+    pub insurance_passthrough: Pubkey,
     pub mango_account: Pubkey,
     //
     // The Controller instance for which this Depository works for
@@ -133,22 +140,38 @@ pub struct MangoDepository {
     //
     // Accounting -------------------------------
     // Note : To keep track of the in and out of a depository
-    // Note : collateral and base are technically interchangeable as one Depository manage a single collateral
     //
-    // The amount of USDC InsuranceFund deposited/withdrawn by Authority on the underlying Mango Account - It doesn't represent the actual amount that varies based on Mango Account
-    // Updated after each deposit/withdraw insurance fund
+    // The amount of USDC InsuranceFund deposited/withdrawn by Authority on the underlying Mango Account - The actual amount might be lower/higher depending of funding rate changes
     // In Collateral native units
     pub insurance_amount_deposited: u128,
     //
-    // The amount of collateral deposited by users to mint UXD - The optimal size of the basis trade
+    // The amount of collateral deposited by users to mint UXD
     // Updated after each mint/redeem
     // In Collateral native units
     pub collateral_amount_deposited: u128,
     //
-    // The total amount of Redeemable Tokens this Depository instance is currently Hedging/Managing
+    // The amount of delta neutral position that is backing circulating redeemables.
     // Updated after each mint/redeem
     // In Redeemable native units
     pub redeemable_amount_under_management: u128,
+    //
+    // The amount of delta neutral position accounting for taker fees during mint and redeem operations, so with no equivalence circulating as redeemable.
+    //
+    // This represent the amount of the delta neutral position that is locked, accounting for fees settlements.
+    // Fee are paid in USDC, and so we keep a piece of the delta neutral quote position to account for them during each minting/redeeming operations.
+    //
+    // Updated after each mint/redeem (/rebalance_fees when implemented)
+    // In Redeemable native units
+    pub delta_neutral_quote_fee_offset: u128,
+    //
+    // The total amount of Redeemable Tokens this Depository instance hold
+    // This should always be equal to `delta_neutral_quote_position` - `delta_neutral_quote_fee_offset`
+    // This is equivalent to the circulating supply or Redeemable that this depository is hedging
+    // Updated after each mint/redeem (/rebalance_fees/rebalance when implemented)
+    // In Redeemable native units
+    pub delta_neutral_quote_position: u128,
+    //
+    // Should add padding?
 }
 ```
 
