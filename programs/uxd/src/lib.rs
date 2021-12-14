@@ -123,7 +123,7 @@ pub mod uxd {
         instructions::deposit_insurance_to_mango_depository::handler(ctx, insurance_amount)
     }
 
-    // Withdraw insurance previously deposited, if any available.
+    // Withdraw insurance previously deposited, if any available, in the limit of mango health.
     #[access_control(check_withdraw_insurance_amount_constraints(insurance_amount))]
     pub fn withdraw_insurance_from_mango_depository(
         ctx: Context<WithdrawInsuranceFromMangoDepository>,
@@ -267,7 +267,7 @@ pub fn check_withdraw_insurance_amount_constraints<'info>(insurance_amount: u64)
     if !(insurance_amount > 0) {
         return Err(ErrorCode::InvalidInsuranceAmount.into());
     }
-    // Mango withdraw will fail with proper error cause disabled borrow if not enough there.
+    // Mango withdraw will fail with proper error thankt to  `disabled borrow` set to true if the balance is not enough.
     Ok(())
 }
 
