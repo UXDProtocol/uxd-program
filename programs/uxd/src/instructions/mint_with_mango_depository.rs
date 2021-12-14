@@ -163,7 +163,7 @@ pub fn handler(
     // - [Find the best order]
     let best_order = ctx
         .accounts
-        .get_best_price_and_amount_for_base_lot_quantity_from_order_book(
+        .get_best_order_for_base_lot_quantity_from_order_book(
             mango::matching::Side::Bid,
             base_lot_amount.to_num(),
         )?;
@@ -214,7 +214,7 @@ pub fn handler(
     // Seems that the display of the mango account doesn't display the fees in the perp pos... investigating
 
     // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
-    let collateral_delta = derive_collateral_delta(&perp_info, &perp_account).to_num();
+    let collateral_delta = collateral_delta(&perp_info, &perp_account).to_num();
     let redeemable_fee_delta = fee_delta.to_num();
     msg!("collateral_delta {}", collateral_delta);
     msg!("redeemable_fee_delta {}", redeemable_fee_delta);
@@ -325,10 +325,10 @@ impl<'info> MintWithMangoDepository<'info> {
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
-    fn get_best_price_and_amount_for_base_lot_quantity_from_order_book(
+    fn get_best_order_for_base_lot_quantity_from_order_book(
         &self,
         side: mango::matching::Side,
-        base_amount: i64,
+        base_lot_amount: i64,
     ) -> UxdResult<Order> {
         // Load book
         let perp_market = match PerpMarket::load_checked(
@@ -347,7 +347,7 @@ impl<'info> MintWithMangoDepository<'info> {
                 Err(_) => return Err(ErrorCode::MangoOrderBookLoading),
             };
 
-        let best_order = get_best_order_for_base_lot_quantity(&book, side, base_amount);
+        let best_order = get_best_order_for_base_lot_quantity(&book, side, base_lot_amount);
 
         return match best_order {
             Some(best_order) => Ok(best_order),
@@ -460,7 +460,7 @@ pub fn derive_redeemable_order_and_fee_deltas(
     (order_amount_quote_native_unit, fee_amount)
 }
 
-pub fn derive_collateral_delta(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
+pub fn collateral_delta(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
     let order_amount_base_native_unit = I80F48::from_num(perp_account.taker_base.abs())
         .checked_mul(perp_info.base_lot_size)
         .unwrap();

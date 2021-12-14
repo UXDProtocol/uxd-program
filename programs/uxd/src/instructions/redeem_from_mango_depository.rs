@@ -152,7 +152,7 @@ pub fn handler(
         .unwrap();
     let best_order = ctx
         .accounts
-        .get_best_price_and_quantity_for_quote_amount_from_order_book(
+        .get_best_order_for_quote_lot_amount_from_order_book(
             mango::matching::Side::Ask,
             exposure_delta_in_quote_lot_unit.to_num(),
         )?;
@@ -184,21 +184,32 @@ pub fn handler(
         post_position,
     )?;
 
-    // - 2 [BURN THE EQUIVALENT AMOUT OF UXD] ---------------------------------
+    // - 2 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
     // Note : In order to account for the perp order fees, we burn extra redeemable for the perp order fees (total corresponding to the amount redeemed + fees).
     //  This will make the delta neutral position is bit bigger thant the redeemable in circulation it actually hedges, but will be settled during rebalancing.
-    let (order_delta, fee_delta) =
+    let (order_quote_delta, fee_quote_delta) =
         derive_redeemable_order_and_fee_deltas(&perp_info, &perp_account);
-    let redeemable_to_burn = order_delta.checked_add(fee_delta).unwrap().to_num();
-    msg!("redeemable_to_burn (Burn) {}", redeemable_to_burn);
+    let redeemable_circulating_supply_delta = order_quote_delta
+        .checked_sub(fee_quote_delta)
+        .unwrap()
+        .to_num();
+
+    ctx.accounts
+        .check_mango_depositories_redeemable_soft_cap_overflow(
+            redeemable_circulating_supply_delta,
+        )?;
+
+    // - 3 [BURN THE EQUIVALENT AMOUT OF UXD] ---------------------------------
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
-        redeemable_to_burn,
+        redeemable_circulating_supply_delta,
     )?;
 
-    // - 3 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
+    // - 4 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
     // Note : The amount of collateral returned to the user
-    let collateral_delta = derive_collateral_delta(&perp_info, &perp_account).to_num();
+    let collateral_delta = collateral_delta(&perp_info, &perp_account).to_num();
+    msg!("collateral_delta (Transfered to user) {}", collateral_delta);
+
     // - [Mango withdraw CPI]
     mango_program::withdraw(
         ctx.accounts
@@ -209,7 +220,6 @@ pub fn handler(
     )?;
 
     // - [Return collateral back to user]
-    msg!("collateral_delta (Transfered to user) {}", collateral_delta);
     token::transfer(
         ctx.accounts
             .into_transfer_collateral_to_user_context()
@@ -217,18 +227,13 @@ pub fn handler(
         collateral_delta,
     )?;
 
-    // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
-    let redeemable_delta = order_delta.to_num();
-    let redeemable_fee_delta = fee_delta.to_num();
+    // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
+
     ctx.accounts.update_onchain_accounting(
         collateral_delta,
-        redeemable_delta,
-        redeemable_fee_delta,
+        order_quote_delta.to_num(),
+        fee_quote_delta.to_num(),
     )?;
-
-    // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
-    ctx.accounts
-        .check_mango_depositories_redeemable_soft_cap_overflow(redeemable_delta)?;
 
     Ok(())
 }
@@ -327,10 +332,10 @@ impl<'info> RedeemFromMangoDepository<'info> {
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
-    fn get_best_price_and_quantity_for_quote_amount_from_order_book(
+    fn get_best_order_for_quote_lot_amount_from_order_book(
         &self,
         side: mango::matching::Side,
-        quote_amount: i64,
+        quote_lot_amount: i64,
     ) -> UxdResult<Order> {
         // Load book
         let perp_market = match PerpMarket::load_checked(
@@ -348,18 +353,10 @@ impl<'info> RedeemFromMangoDepository<'info> {
                 Ok(it) => it,
                 Err(_err) => return Err(ErrorCode::MangoOrderBookLoading),
             };
-        let best_order = get_best_order_for_quote_lot_amount(&book, side, quote_amount);
+        let best_order = get_best_order_for_quote_lot_amount(&book, side, quote_lot_amount);
 
         return match best_order {
-            Some(best_order) => {
-                msg!(
-                    "best_order: [quantity {} - price {} - size {}]",
-                    best_order.quantity,
-                    best_order.price,
-                    best_order.size
-                );
-                Ok(best_order)
-            }
+            Some(best_order) => Ok(best_order),
             None => Err(ErrorCode::InsuficentOrderBookDepth),
         };
     }
@@ -373,6 +370,9 @@ impl<'info> RedeemFromMangoDepository<'info> {
     ) -> UxdResult {
         let fee_delta = redeemable_fee_delta;
         let circulating_supply_delta = redeemable_delta.checked_sub(fee_delta).unwrap();
+        // Minus the circulating_supply_delta burnt, but adding the order fees.
+        let quote_position_delta = circulating_supply_delta.checked_sub(fee_delta).unwrap();
+        self.depository.sanity_check()?;
         // Mango Depository
         let event = AccountingEvent::Withdraw;
         self.depository
@@ -380,7 +380,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
         self.depository
             .update_delta_neutral_quote_fee_offset(&event, fee_delta);
         self.depository
-            .update_delta_neutral_quote_position(&event, redeemable_delta);
+            .update_delta_neutral_quote_position(&event, quote_position_delta);
         self.depository
             .update_redeemable_amount_under_management(&event, circulating_supply_delta);
         // Controller
@@ -459,7 +459,7 @@ fn derive_redeemable_order_and_fee_deltas(
     (order_amount_quote_native_unit, fee_amount)
 }
 
-fn derive_collateral_delta(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
+fn collateral_delta(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
     let order_amount_base_native_unit = I80F48::from_num(perp_account.taker_base.abs())
         .checked_mul(perp_info.base_lot_size)
         .unwrap();

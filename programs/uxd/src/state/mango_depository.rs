@@ -62,6 +62,28 @@ pub enum AccountingEvent {
 
 impl MangoDepository {
     pub fn sanity_check(&self) -> UxdResult {
+        msg!(
+            "redeemable_amount_under_management {}",
+            self.redeemable_amount_under_management
+        );
+        msg!(
+            "delta_neutral_quote_fee_offset {}",
+            self.delta_neutral_quote_fee_offset
+        );
+        msg!(
+            "delta_neutral_quote_position {}",
+            self.delta_neutral_quote_position
+        );
+        let delta_neutral_quote_position_minus_fees = self
+                .delta_neutral_quote_position
+                .checked_sub(self.delta_neutral_quote_fee_offset)
+                .unwrap();
+        msg!(
+            "delta_neutral_quote_position_minus_fees {} should equal redeemable_amount_under_management {} (diff {})",
+            delta_neutral_quote_position_minus_fees, 
+            self.redeemable_amount_under_management,
+            self.redeemable_amount_under_management - delta_neutral_quote_position_minus_fees
+        );
         if !(self.redeemable_amount_under_management
             == self
                 .delta_neutral_quote_position

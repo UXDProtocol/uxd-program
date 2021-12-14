@@ -85,5 +85,5 @@ pub enum ErrorCode {
     #[msg("The Mango PerpAccount has uncommitted changes.")]
     InvalidPerpAccountState,
     #[msg("The Depository accounting is in an invalid state.")]
-    InvalidDepositoryAccounting,
+    InvalidDepositoryAccounting, // 0x11f - 287
 }
