@@ -313,3 +313,7 @@ can apply to arbitrarily many Depositories irrespective of the underlying perpet
 The UXD token is fully fungible and any holder can redeem it at any time for a proportional share of the underlying collateral
 value. On a high level, the redemption process consists of buying back swaps equal to the intended redemption value (plus fees)
 and releasing the collateral r-token to the user which can be exchanged for the initial collateral back.
+
+## Between dev and prod
+- change de mango program ID in anchor_mango.rs
+- change the program id in lib.rs and anchor.toml back to the mainnet one

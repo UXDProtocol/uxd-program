@@ -29,7 +29,7 @@ pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Th
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
-solana_program::declare_id!("4nKXhWEQYovdGm9cpv1bCea98TLzqpnp4RqNhvQh81MH");
+solana_program::declare_id!("UXDQDbkAeGMPR7gqDykDNu22D9DnYrKdvZhvNmMu6QX");
 
 pub type UxdResult<T = ()> = Result<T, ErrorCode>;
 
@@ -41,7 +41,6 @@ pub mod uxd {
 
     // Initialize a Controller instance.
     // The Controller holds the Redeemable Mint and the authority identity.
-    // In the case of UXD, the redeemable_mint is the UXD's mint.
     #[access_control(valid_redeemable_mint_decimals(redeemable_mint_decimals))]
     pub fn initialize_controller(
         ctx: Context<InitializeController>,

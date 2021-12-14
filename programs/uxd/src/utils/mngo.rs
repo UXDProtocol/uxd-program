@@ -7,8 +7,6 @@ use mango::{
 
 use crate::{ErrorCode, UxdResult};
 
-// mngo not to collide with mango
-
 #[derive(Debug)]
 pub struct PerpInfo {
     pub market_index: usize,

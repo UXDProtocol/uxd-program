@@ -1,13 +1,21 @@
 use anchor_lang::prelude::ProgramResult;
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
-use std::str::FromStr;
 
 #[derive(Clone)]
 pub struct Mango;
 
-// if the mango program use declare_id we can get ride of that
-const MANGO_ID: &str = "4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA";
+pub mod anchor_mango {
+    // if the mango program use declare_id we can get ride of that
+    use solana_program::declare_id;
+
+    // Swap back if developping
+    declare_id!("mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68");
+    //     #[cfg(feature = "devnet")]
+    //     declare_id!("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
+    //     #[cfg(not(feature = "devnet"))]
+    //     declare_id!("mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68");
+}
 
 impl anchor_lang::AccountDeserialize for Mango {
     fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
@@ -21,13 +29,13 @@ impl anchor_lang::AccountDeserialize for Mango {
 
 impl anchor_lang::Id for Mango {
     fn id() -> Pubkey {
-        return Pubkey::from_str(MANGO_ID).unwrap();
+        anchor_mango::ID
     }
 }
 
 /// Checks that the supplied program ID is the correct one
 pub fn check_program_account(mango_program_id: &Pubkey) -> ProgramResult {
-    if mango_program_id != &Pubkey::from_str(MANGO_ID).unwrap() {
+    if mango_program_id != &anchor_mango::ID {
         return Err(ProgramError::IncorrectProgramId);
     }
     Ok(())
