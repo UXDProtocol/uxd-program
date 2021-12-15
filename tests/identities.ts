@@ -4,9 +4,7 @@ import { PublicKey, Keypair, Signer } from "@solana/web3.js";
 
 // aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC
 const aca3VWSeed = Uint8Array.from([
-  197, 246, 88, 131, 17, 216, 175, 8, 72, 13, 40, 236, 135, 104, 59, 108, 17, 106, 164, 234, 46, 136, 171, 148, 111,
-  176, 32, 136, 59, 253, 224, 247, 8, 156, 98, 175, 196, 123, 178, 151, 182, 220, 253, 138, 191, 233, 135, 182, 173,
-  175, 33, 68, 162, 191, 254, 166, 133, 219, 8, 10, 17, 154, 146, 223,
+here replace with the authority - Normally it's the DAO but I used my personnal one for the test
 ]);
 // Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi
 const Eyh77Seed = Uint8Array.from([
@@ -25,7 +23,13 @@ let userKeypair = Keypair.fromSecretKey(Eyh77Seed);
 export let user: Signer = userKeypair;
 console.log(`USER KEY => ${user.publicKey}`);
 
-// Devnet
-export const USDC = new PublicKey("8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN");
-export const BTC = new PublicKey("3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU");
+
 export const WSOL = new PublicKey("So11111111111111111111111111111111111111112");
+
+// Devnet
+// export const USDC = new PublicKey("8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN");
+// export const BTC = new PublicKey("3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU");
+
+// Mainnet 
+export const USDC = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+export const BTC = new PublicKey("9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E");

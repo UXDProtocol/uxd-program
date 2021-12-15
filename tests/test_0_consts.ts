@@ -27,7 +27,7 @@ export const accountUpdateSleepingInterval = 2500; // In milliseconds
 // ----------------------------------------------------------------------------
 
 before(" ======= [Suite 0 : Initialize mango (1 op)] ======= ", async () => {
-    mango = await createAndInitializeMango(provider, `devnet`);
+    mango = await createAndInitializeMango(provider, `mainnet`);
 });
 
 // ----------------------------------------------------------------------------
