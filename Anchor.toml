@@ -18,7 +18,7 @@ url = "https://anchor.projectserum.com"
 ### Test a single test - Just uncomment the test to run with `anchor test`
 ##
 # One shot
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/print_balances_wsol_depository.ts"
+test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/print_balances_wsol_depository.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/mango_depository_2_wsol_2_intensive.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/rebalance_wsol_depository.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/mint_wsol.ts"
@@ -26,7 +26,7 @@ url = "https://anchor.projectserum.com"
 
 ## Permissionned
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_1_setup_controller.ts"
-test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_2_setup_mango_depositories.ts"
+# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_2_setup_mango_depositories.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_3_set_redeemable_global_supply_cap.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_4_set_mango_depositories_redeemable_soft_cap.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_5_deposit_insurance_on_mango_depository_wsol.ts"

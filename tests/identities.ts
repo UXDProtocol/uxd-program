@@ -4,7 +4,7 @@ import { PublicKey, Keypair, Signer } from "@solana/web3.js";
 
 // aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC
 const aca3VWSeed = Uint8Array.from([
-here replace with the authority - Normally it's the DAO but I used my personnal one for the test
+  here replace with the authority - Normally it's the DAO but I used my personnal one for the test
 ]);
 // Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi
 const Eyh77Seed = Uint8Array.from([

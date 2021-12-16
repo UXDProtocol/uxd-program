@@ -9,7 +9,7 @@ describe(" ======= [Suite 1-5 : Test depositing insurance on the mango WSOL depo
     beforeEach("\n", async () => { });
     afterEach("\n", async () => { });
 
-    const insurance_amount = 100; // insurance token UI amount
+    const insurance_amount = 15; // insurance token UI amount
 
     it(`1 - Deposit ${insurance_amount} to the WSOL mango Depository`, async () => {
         // GIVEN
