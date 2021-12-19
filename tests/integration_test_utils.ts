@@ -38,17 +38,16 @@ export async function printDepositoryInfo(depository: MangoDepository, mango: Ma
     const pa = mangoAccount.perpAccounts[pmi];
     const pm = await mango.getPerpMarket(SYM);
     const cache = await mango.group.loadCache(provider.connection);
-
     const accountValue = mangoAccount.computeValue(mango.group, cache).toBig();
     const collateralValue = mangoAccount.getCollateralValueUi(mango.group, cache);
     const accountingInsuranceDepositedValue = nativeToUi(depositoryAccount.insuranceAmountDeposited.toNumber(), 6);
+
     console.log("        * - underlying mango account -");
-    console.log(`        *     value                                       ${accountValue.toFixed(6)} (${(accountValue - accountingInsuranceDepositedValue).toFixed(6)} minus ins.)`);
-    console.log(`        *     collateral value                            ${collateralValue.toFixed(6)} (${(accountValue - collateralValue).toFixed(6)} minus ins.)`);
-    // console.log(`        *     fees??                                      ${}`);
+    console.log(`        *     value                                       ${accountValue.toFixed(6)} (${(accountValue - accountingInsuranceDepositedValue).toFixed(6)} minus insurance)`);
+    console.log(`        *     collateral value                            ${collateralValue.toFixed(6)} (${(collateralValue - accountingInsuranceDepositedValue).toFixed(6)} minus insurance)`);
     console.log("        *");
-    console.log(`        *     ${SYM}-SPOT BASE Pos                           ${nativeI80F48ToUi(mangoAccount.getNet(cache.rootBankCache[smi], sti), 9).toFixed(6)}`);
-    console.log(`        *     ${SYM}-PERP BASE Pos                          ${nativeToUi(pm.baseLotsToNative(pa.basePosition).toNumber(), 9).toFixed(6)}`);
+    console.log(`        *     ${SYM}-SPOT BASE Pos                           ${nativeI80F48ToUi(mangoAccount.getNet(cache.rootBankCache[smi], sti), 9).toFixed(9)}`);
+    console.log(`        *     ${SYM}-PERP BASE Pos                          ${nativeToUi(pm.baseLotsToNative(pa.basePosition).toNumber(), 9).toFixed(9)}`);
     console.log("        *");
     console.log(`        *     ${SYM}-PERP Quote Pos                          ${nativeI80F48ToUi(pa.quotePosition, 6).toNumber().toFixed(6)}`);
     console.log(`        *     ${SYM}-PERP Unsettled Funding                  ${nativeI80F48ToUi(pa.getUnsettledFunding(cache.perpMarketCache[pmi]), 6).toNumber().toFixed(6)}`);
@@ -62,15 +61,11 @@ export async function printDepositoryInfo(depository: MangoDepository, mango: Ma
     // console.log(`        *     mngoAccrued                                 ${nativeToUi(pa.mngoAccrued.toNumber(), 9)}`);
     // console.log(`        *     longSettledFunding                          ${nativeI80F48ToUi(pa.longSettledFunding, 6).toNumber().toFixed(6)}`);
     // console.log(`        *     shortSettledFunding                         ${nativeI80F48ToUi(pa.shortSettledFunding, 6).toNumber().toFixed(6)}`);
-    //
-
-
-    console.log("        * - onchain accounting -")
-    console.log(`        *     deltaNeutralQuotePosition                   ${nativeToUi(depositoryAccount.deltaNeutralQuotePosition.toNumber(), 6)} (${nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), 6)} + ${nativeToUi(depositoryAccount.deltaNeutralQuoteFeeOffset.toNumber(), 6)} <> redeemableAmountUnderManagement + deltaNeutralQuoteFeeOffset)`);
-    console.log(`        *     collateralAmountDeposited                   ${nativeToUi(depositoryAccount.collateralAmountDeposited.toNumber(), 9).toFixed(6)}`);
-    // console.log(`        *     deltaNeutralQuoteFeeOffset                  ${depositoryAccount.deltaNeutralQuoteFeeOffset.toNumber()}`);
-    console.log(`        *     redeemableAmountUnderManagement             ${nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), 6)} / ${nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), 6)} (controller.redeemableCirculatingSupply)`);
+    console.log("        * - onchain accounting -");
     console.log(`        *     insuranceAmountDeposited                    ${accountingInsuranceDepositedValue}`);
+    console.log(`        *     collateralAmountDeposited                   ${nativeToUi(depositoryAccount.collateralAmountDeposited.toNumber(), 9).toFixed(9)}`);
+    console.log(`        *     redeemableAmountUnderManagement             ${nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), 6)} / ${nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), 6)} (controller.redeemableCirculatingSupply)`);
+    console.log(`        *     totalAmountPaidTakerFee                     ${nativeToUi(depositoryAccount.totalAmountPaidTakerFee.toNumber(), 6)}`);
 }
 
 export async function printUserBalances() {

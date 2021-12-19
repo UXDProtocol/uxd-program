@@ -3,7 +3,7 @@ cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [programs.devnet]
-uxd = "FYMP2ZbWMaAxEG4NtbDVCH7tpschGNCyGazcYNGXyCbX"
+uxd = "9J7bbqUpEjocLEeTxMF5frKvpLYJwj47M2HZjC4cP1uo"
 
 [programs.mainnet]
 uxd = "UXDQDbkAeGMPR7gqDykDNu22D9DnYrKdvZhvNmMu6QX"
@@ -19,9 +19,11 @@ url = "https://anchor.projectserum.com"
 ##
 # One shot
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/setup_stack.ts"
+#
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/print_balances_wsol_depository.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/mango_depository_2_wsol_2_intensive.ts"
+# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/wsol_mint_redeem_intensive.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/rebalance_wsol_depository.ts"
+#
 test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/mint_wsol.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/redeem_wsol.ts"
 

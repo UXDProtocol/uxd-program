@@ -12,9 +12,11 @@ use mango::state::PerpAccount;
 use mango::state::PerpMarket;
 
 use crate::mango_program;
+use crate::utils::derive_order_delta;
 use crate::utils::get_best_order_for_base_lot_quantity;
 use crate::utils::uncommitted_perp_base_position;
 use crate::utils::Order;
+use crate::utils::OrderDelta;
 use crate::utils::PerpInfo;
 use crate::AccountingEvent;
 use crate::Controller;
@@ -160,19 +162,19 @@ pub fn handler(
     //        collateral deposited is used as leverage for opening the perp short.
 
     // This value is verified after by checking if the perp order was fully filled
-    let collateral_delta = I80F48::checked_from_num(best_order.quantity)
+    let planned_collateral_delta = I80F48::checked_from_num(best_order.quantity)
         .unwrap()
         .checked_mul(perp_info.base_lot_size)
         .unwrap()
         .checked_to_num()
         .unwrap();
-    msg!("collateral_delta {}", collateral_delta);
+    msg!("collateral_delta {}", planned_collateral_delta);
 
     // - [Transfering user collateral to the passthrough account]
     token::transfer(
         ctx.accounts
             .into_transfer_user_collateral_to_passthrough_context(),
-        collateral_delta,
+        planned_collateral_delta,
     )?;
 
     // - [Deposit to Mango CPI]
@@ -180,7 +182,7 @@ pub fn handler(
         ctx.accounts
             .into_deposit_to_mango_context()
             .with_signer(depository_signer_seed),
-        collateral_delta,
+        planned_collateral_delta,
     )?;
 
     // - 3 [OPEN SHORT PERP] --------------------------------------------------
@@ -212,46 +214,27 @@ pub fn handler(
         post_position,
     )?;
 
-    // - 3 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus fees)] ---------------
+    // - 3[ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
+    let order_delta = derive_order_delta(&perp_account, &perp_info);
+    ctx.accounts
+        .check_mango_depositories_redeemable_soft_cap_overflow(order_delta.redeemable)?;
 
-    // Note : by removing the fees from the emitted UXD, the delta neutral position will hedge more than the circulating UXD,
-
-    //   this difference is for the system to offset for the orders placement fees and will be "settled" during rebalancing operations
-    let (order_quote_delta, fee_quote_delta) = derive_order_quote_deltas(&perp_info, &perp_account);
-    let quote_position_delta = order_quote_delta.checked_to_num().unwrap();
-    let quote_position_fee_delta = fee_quote_delta.checked_to_num().unwrap();
-    let circulating_supply_delta = order_quote_delta
-        .checked_sub(fee_quote_delta)
-        .unwrap()
-        .checked_to_num()
-        .unwrap();
-    msg!("quote_position_delta {}", quote_position_delta);
-    msg!("quote_position_fee_delta {}", quote_position_fee_delta);
-    msg!("circulating_supply_delta {}", circulating_supply_delta);
+    // - 4 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus fees)] ---------------
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
             .with_signer(controller_signer_seed),
-        circulating_supply_delta,
+        order_delta.redeemable,
     )?;
 
     // Seems that the display of the mango account doesn't display the fees in the perp pos... investigating
 
-    // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
+    // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
 
-    ctx.accounts.update_onchain_accounting(
-        collateral_delta,
-        quote_position_delta,
-        quote_position_fee_delta,
-        circulating_supply_delta,
-    )?;
+    ctx.accounts.update_onchain_accounting(&order_delta)?;
 
-    // - 5 [ENSURE MINTING DOESN'T OVERFLOW THE GLOBAL REDEEMABLE SUPPLY CAP] -
+    // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE GLOBAL REDEEMABLE SUPPLY CAP] -
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
-
-    // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
-    ctx.accounts
-        .check_mango_depositories_redeemable_soft_cap_overflow(quote_position_delta)?;
 
     Ok(())
 }
@@ -398,29 +381,19 @@ impl<'info> MintWithMangoDepository<'info> {
     }
 
     // Update the accounting in the Depository and Controller Accounts to reflect changes
-    fn update_onchain_accounting(
-        &mut self,
-        collateral_delta: u64,
-        quote_position_delta: u64,
-        quote_position_fee_delta: u64,
-        circulating_supply_delta: u64,
-    ) -> UxdResult {
+    fn update_onchain_accounting(&mut self, order_delta: &OrderDelta) -> UxdResult {
         // Mango Depository
         let event = AccountingEvent::Deposit;
         self.depository
-            .update_collateral_amount_deposited(&event, collateral_delta);
+            .update_collateral_amount_deposited(&event, order_delta.collateral);
         self.depository
-            .update_redeemable_amount_under_management(&event, circulating_supply_delta);
+            .update_redeemable_amount_under_management(&event, order_delta.redeemable);
         self.depository
-            .update_delta_neutral_quote_fee_offset(&event, quote_position_fee_delta);
-        self.depository
-            .update_delta_neutral_quote_position(&event, quote_position_delta);
+            .update_total_amount_paid_taker_fee(order_delta.fee);
 
         // Controller
         self.controller
-            .update_redeemable_circulating_supply(&event, circulating_supply_delta);
-
-        self.depository.sanity_check()?;
+            .update_redeemable_circulating_supply(&event, order_delta.redeemable);
 
         Ok(())
     }
@@ -467,30 +440,4 @@ fn check_short_perp_open_order_fully_filled(
         return Err(ErrorCode::PerpOrderPartiallyFilled);
     }
     Ok(())
-}
-
-pub fn derive_order_quote_deltas(
-    perp_info: &PerpInfo,
-    perp_account: &PerpAccount,
-) -> (I80F48, I80F48) {
-    let order_amount_quote_native_unit =
-        I80F48::checked_from_num(perp_account.taker_quote.checked_abs().unwrap())
-            .unwrap()
-            .checked_mul(perp_info.quote_lot_size)
-            .unwrap();
-    let fee_amount = order_amount_quote_native_unit
-        .checked_mul(perp_info.taker_fee)
-        .unwrap()
-        .checked_round()
-        .unwrap();
-    (order_amount_quote_native_unit, fee_amount)
-}
-
-pub fn collateral_delta(perp_info: &PerpInfo, perp_account: &PerpAccount) -> I80F48 {
-    let order_amount_base_native_unit =
-        I80F48::checked_from_num(perp_account.taker_base.checked_abs().unwrap())
-            .unwrap()
-            .checked_mul(perp_info.base_lot_size)
-            .unwrap();
-    order_amount_base_native_unit
 }
