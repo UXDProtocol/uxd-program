@@ -171,7 +171,7 @@ pub fn handler(
         .unwrap()
         .checked_to_num()
         .unwrap();
-    msg!("collateral_delta {}", planned_collateral_delta);
+    msg!("planned_collateral_delta {}", planned_collateral_delta);
 
     // - [Transfering user collateral to the passthrough account]
     token::transfer(

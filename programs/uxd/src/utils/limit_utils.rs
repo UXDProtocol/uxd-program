@@ -1,11 +1,11 @@
+use super::Order;
+use super::PerpInfo;
 use crate::ErrorCode;
 use crate::UxdResult;
 use crate::SLIPPAGE_BASIS;
 use fixed::types::I80F48;
 use mango::matching::Side;
 use mango::state::PerpAccount;
-use super::Order;
-use super::PerpInfo;
 
 // Worse execution price for a provided slippage and side
 pub fn limit_price(price: I80F48, slippage: u32, side: Side) -> I80F48 {
