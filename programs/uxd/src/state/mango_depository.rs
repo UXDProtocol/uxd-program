@@ -38,7 +38,7 @@ pub struct MangoDepository {
     // The amount of taker fee paid in quote while placing perp orders
     pub total_amount_paid_taker_fee: u128,
     //
-    // Should add padding?
+    _padding: MangoDepositoryPadding,
 }
 
 pub enum AccountingEvent {
@@ -99,5 +99,26 @@ impl MangoDepository {
             .total_amount_paid_taker_fee
             .checked_add(amount.into())
             .unwrap();
+    }
+}
+
+#[derive(Clone)]
+pub struct MangoDepositoryPadding([u8; 512]);
+
+impl AnchorSerialize for MangoDepositoryPadding {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        writer.write_all(&self.0)
+    }
+}
+
+impl AnchorDeserialize for MangoDepositoryPadding {
+    fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
+        Ok(Self([0u8; 512]))
+    }
+}
+
+impl Default for MangoDepositoryPadding {
+    fn default() -> Self {
+        MangoDepositoryPadding { 0: [0u8; 512] }
     }
 }

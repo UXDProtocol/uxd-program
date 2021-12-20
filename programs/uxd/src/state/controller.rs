@@ -35,7 +35,7 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
     //
-    // Should add padding? or migrate?
+    _padding: ControllerPadding,
 }
 
 impl Controller {
@@ -73,5 +73,26 @@ impl Controller {
         let new_entry_index = current_size;
         self.registered_mango_depositories[new_entry_index] = mango_depository_id;
         Ok(())
+    }
+}
+
+#[derive(Clone)]
+pub struct ControllerPadding([u8; 1024]);
+
+impl AnchorSerialize for ControllerPadding {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        writer.write_all(&self.0)
+    }
+}
+
+impl AnchorDeserialize for ControllerPadding {
+    fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
+        Ok(Self([0u8; 1024]))
+    }
+}
+
+impl Default for ControllerPadding {
+    fn default() -> Self {
+        ControllerPadding { 0: [0u8; 1024] }
     }
 }
