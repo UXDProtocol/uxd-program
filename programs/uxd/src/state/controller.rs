@@ -35,7 +35,7 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
     //
-    _padding: ControllerPadding,
+    _reserved: ControllerPadding,
 }
 
 impl Controller {

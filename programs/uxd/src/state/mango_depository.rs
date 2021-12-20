@@ -38,7 +38,7 @@ pub struct MangoDepository {
     // The amount of taker fee paid in quote while placing perp orders
     pub total_amount_paid_taker_fee: u128,
     //
-    _padding: MangoDepositoryPadding,
+    _reserved: MangoDepositoryPadding,
 }
 
 pub enum AccountingEvent {
