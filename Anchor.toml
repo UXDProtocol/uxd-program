@@ -2,10 +2,10 @@
 cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
-[programs.devnet]
-uxd = "9J7bbqUpEjocLEeTxMF5frKvpLYJwj47M2HZjC4cP1uo"
-
 [programs.mainnet]
+uxd = "UXDQDbkAeGMPR7gqDykDNu22D9DnYrKdvZhvNmMu6QX"
+
+[programs.devnet]
 uxd = "UXDQDbkAeGMPR7gqDykDNu22D9DnYrKdvZhvNmMu6QX"
 
 [registry]
@@ -13,7 +13,7 @@ url = "https://anchor.projectserum.com"
 
 [scripts]
 ### Test the whole integration (Default)
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_*.ts"
+test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_*.ts"
 
 ### Test a single test - Just uncomment the test to run with `anchor test`
 ##
@@ -24,7 +24,7 @@ url = "https://anchor.projectserum.com"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/wsol_mint_redeem_intensive.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/rebalance_wsol_depository.ts"
 #
-test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/mint_wsol.ts"
+# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/mint_wsol.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/redeem_wsol.ts"
 
 ## Permissionned

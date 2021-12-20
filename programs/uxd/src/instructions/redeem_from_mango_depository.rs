@@ -192,7 +192,7 @@ pub fn handler(
     ctx.accounts
         .check_mango_depositories_redeemable_soft_cap_overflow(order_delta.redeemable)?;
 
-    // - 3 [BURN THE EQUIVALENT AMOUT OF UXD] ---------------------------------
+    // - 3 [BURN REDEEMABLES] -------------------------------------------------
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         order_delta.redeemable,

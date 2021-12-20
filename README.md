@@ -186,12 +186,14 @@ Only the `authority_key` can interact with these calls.
 
 This initialize the State of the program. Called once, the signer becomes the authority, should be done by a multisig/DAO.
 
+### `Deinitialize`  (Todo, maybe)
+
 ### `RegisterDepository`
 
 Instantiate a new `Depisitory` PDA for a given collateral mint.
 A depository is a vault in charge a Collateral type, the associated mango account and insurance fund.
 
-### `TransferAuthority`
+### `TransferAuthority` (Todo, maybe)
 
 Update the Controller authority
 
@@ -235,11 +237,6 @@ Change the value of the global supply cap (virtual, not on the mint) for the Red
 ### `setMangoDepositoriesRedeemableSoftCap`
 
 Change the value of the Mango Repositories operation Redeemable cap, prevent minting/redeeming over this limit.
-
-
-### `Freeze` (Todo? No like)
-
-This would prevent all Minting and Redeem in case of issue (Centralized AF, I don't want that but I think we mentionned it once?)
 
 ## User instructions
 
