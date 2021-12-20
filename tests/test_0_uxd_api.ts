@@ -40,7 +40,7 @@ export async function getMangoDepositoryInsuranceBalance(mangoDepository: MangoD
 
 export async function settleMangoDepositoryMangoAccountPnl(depository: MangoDepository, mango: Mango): Promise<string> {
     const mangoAccount = await mango.load(depository.mangoAccountPda);
-    const perpMarketConfig = mango.getPerpMarketConfigFor(depository.collateralMintSymbol);
+    const perpMarketConfig = mango.getPerpMarketConfig(depository.collateralMintSymbol);
     const cache = await mango.group.loadCache(provider.connection);
     const perpMarket = await mango.client.getPerpMarket(perpMarketConfig.publicKey, perpMarketConfig.baseDecimals, perpMarketConfig.quoteDecimals);
     const quoteRootBank = await mango.getQuoteRootBank();
@@ -52,7 +52,7 @@ export async function settleMangoDepositoryMangoAccountPnl(depository: MangoDepo
 
 export async function settleMangoDepositoryMangoAccountFees(depository: MangoDepository, mango: Mango): Promise<string> {
     const mangoAccount = await mango.load(depository.mangoAccountPda);
-    const perpMarketConfig = mango.getPerpMarketConfigFor(depository.collateralMintSymbol);
+    const perpMarketConfig = mango.getPerpMarketConfig(depository.collateralMintSymbol);
     const perpMarket = await mango.client.getPerpMarket(perpMarketConfig.publicKey, perpMarketConfig.baseDecimals, perpMarketConfig.quoteDecimals);
     const quoteRootBank = await mango.getQuoteRootBank();
 
@@ -133,7 +133,7 @@ export function setMangoDepositoriesRedeemableSoftCap(authority: Signer, control
 
 export async function mintWithMangoDepository(user: Signer, slippage: number, collateralAmount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const mintWithMangoDepositoryIx = uxdClient.createMintWithMangoDepositoryInstruction(collateralAmount, slippage, controller, depository, mango, user.publicKey, TXN_OPTS);
-    const mangoConsumeEventsIx = await mango.createConsumeEventInstruction(depository.mangoAccountPda, mango.getPerpMarketConfigFor(depository.collateralMintSymbol), `sell`);
+    const mangoConsumeEventsIx = await mango.createPerpMarketConsumeEventInstruction(depository.mangoAccountPda, depository.collateralMintSymbol, `sell`);
     let signers = [];
     let tx = new Transaction();
 
@@ -156,7 +156,7 @@ export async function mintWithMangoDepository(user: Signer, slippage: number, co
 
 export async function redeemFromMangoDepository(user: Signer, slippage: number, amountRedeemable: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const redeemFromMangoDepositoryIx = uxdClient.createRedeemFromMangoDepositoryInstruction(amountRedeemable, slippage, controller, depository, mango, user.publicKey, TXN_OPTS);
-    const mangoConsumeEventsIx = await mango.createConsumeEventInstruction(depository.mangoAccountPda, mango.getPerpMarketConfigFor(depository.collateralMintSymbol), `buy`);
+    const mangoConsumeEventsIx = await mango.createPerpMarketConsumeEventInstruction(depository.mangoAccountPda, depository.collateralMintSymbol, `buy`);
     let signers = [];
     let tx = new Transaction();
 

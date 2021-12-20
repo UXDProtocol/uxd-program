@@ -5,9 +5,7 @@ import { printUserBalances, printDepositoryInfo, getBalance, userWSOLATA, userUX
 import { slippage } from "../test_2_consts";
 import { depositoryWSOL, mango, slippageBase, controllerUXD } from "../test_0_consts";
 
-const amountToMint = 1;
-
-describe(` Just mint ${amountToMint} `, () => {
+describe(` just redeem`, () => {
     beforeEach("\n", async () => { });
     afterEach("", async () => {
         await printUserBalances();
@@ -23,7 +21,7 @@ describe(` Just mint ${amountToMint} `, () => {
     const depository = depositoryWSOL;
 
     // OP2
-    let amountUxdMinted = 6.145723;
+    let amountUxdMinted = 171.064425;
     it(`1 - Redeem ${amountUxdMinted} UXD with ${slippagePercentage * 100}% max slippage`, async () => {
         console.log(controllerUXD.redeemableMintPda.toString());
         // GIVEN
