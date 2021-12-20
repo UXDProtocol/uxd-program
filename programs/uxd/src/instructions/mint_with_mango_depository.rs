@@ -7,11 +7,13 @@ use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 use fixed::types::I80F48;
 use mango::matching::Book;
+use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 use mango::state::PerpMarket;
 
 use crate::mango_program;
+use crate::utils::check_effective_order_price_versus_limit_price;
 use crate::utils::derive_order_delta;
 use crate::utils::get_best_order_for_base_lot_quantity;
 use crate::utils::uncommitted_perp_base_position;
@@ -28,7 +30,6 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
-use crate::SLIPPAGE_BASIS;
 
 #[derive(Accounts)]
 pub struct MintWithMangoDepository<'info> {
@@ -138,22 +139,24 @@ pub fn handler(
     }
 
     // - [Get the amount of Base Lots for the perp order]
-    // Note : round down
     let base_lot_amount = I80F48::checked_from_num(collateral_amount)
         .unwrap()
         .checked_div(perp_info.base_lot_size)
+        .unwrap()
+        // Round down
+        .checked_floor()
         .unwrap();
 
     // - [Find the best order]
     let best_order = ctx
         .accounts
         .get_best_order_for_base_lot_quantity_from_order_book(
-            mango::matching::Side::Bid,
+            Side::Bid,
             base_lot_amount.checked_to_num().unwrap(),
         )?;
 
     // - [Checks that the best price found is withing slippage range]
-    check_short_perp_open_order_is_within_slippage_range(&perp_info, &best_order, slippage)?;
+    check_effective_order_price_versus_limit_price(&perp_info, &best_order, slippage)?;
 
     // - 2 [TRANSFER COLLATERAL TO MANGO (LONG)] ------------------------------
 
@@ -397,34 +400,6 @@ impl<'info> MintWithMangoDepository<'info> {
 
         Ok(())
     }
-}
-
-// Returns price after slippage deduction
-fn slippage_deduction(price: I80F48, slippage: u32) -> I80F48 {
-    let slippage = I80F48::checked_from_num(slippage).unwrap();
-    let slippage_basis = I80F48::checked_from_num(SLIPPAGE_BASIS).unwrap();
-    let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
-    let slippage_amount = price.checked_mul(slippage_ratio).unwrap();
-    price.checked_sub(slippage_amount).unwrap()
-}
-
-fn check_short_perp_open_order_is_within_slippage_range(
-    perp_info: &PerpInfo,
-    order: &Order,
-    slippage: u32,
-) -> UxdResult {
-    let market_price = perp_info.price;
-    let market_price_slippage_adjusted = slippage_deduction(market_price, slippage);
-    if order.price
-        < market_price_slippage_adjusted
-            .checked_mul(perp_info.base_lot_size)
-            .unwrap()
-            .checked_div(perp_info.quote_lot_size)
-            .unwrap()
-    {
-        return Err(ErrorCode::InvalidSlippage);
-    }
-    Ok(())
 }
 
 // Verify that the order quantity matches the base position delta

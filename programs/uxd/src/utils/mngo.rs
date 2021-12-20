@@ -6,7 +6,7 @@ use mango::{
 };
 use solana_program::msg;
 
-use crate::{ErrorCode, UxdResult};
+use crate::{ErrorCode, UxdResult, SLIPPAGE_BASIS};
 
 #[derive(Debug)]
 pub struct PerpInfo {
@@ -88,10 +88,11 @@ pub fn uncommitted_perp_base_position(perp_account: &PerpAccount) -> i64 {
 pub struct Order {
     // The quantity, in base_lot
     pub quantity: i64,
-    // The price to place the order at, in quote (per base_lot)
+    // Marginal Price, the price to place the order at, in quote (per base_lot)
     pub price: i64,
     // The resulting total amount that will be spent, in quote_lot (without fees)
     pub size: i64,
+    pub side: Side,
 }
 
 /// Walk through the book and find the best quantity and price to spend a given amount of quote.
@@ -138,10 +139,16 @@ pub fn get_best_order_for_quote_lot_amount<'a>(
             let quote_lot_spent = quote_lot_amount_to_spend
                 .checked_sub(quote_lot_left_to_spend)
                 .unwrap();
+            // Side is the matched side, invert for order side
+            let order_side = match side {
+                Side::Bid => Side::Ask,
+                Side::Ask => Side::Bid,
+            };
             return Some(Order {
                 quantity: cmlv_quantity,
                 price: execution_price,
                 size: quote_lot_spent,
+                side: order_side,
             });
         }
     }
@@ -200,6 +207,7 @@ pub fn get_best_order_for_base_lot_quantity<'a>(
                 quantity: base_lot_quantity,
                 price: execution_price,
                 size: cmlv_quote_lot_amount_spent,
+                side,
             });
         }
     }
@@ -248,4 +256,44 @@ pub fn derive_order_delta(perp_account: &PerpAccount, perp_info: &PerpInfo) -> O
         redeemable: redeemable_delta,
         fee: fee_delta,
     }
+}
+
+// Worse execution price for a provided slippage and side
+pub fn limit_price(price: I80F48, slippage: u32, side: Side) -> I80F48 {
+    let slippage = I80F48::checked_from_num(slippage).unwrap();
+    let slippage_basis = I80F48::checked_from_num(SLIPPAGE_BASIS).unwrap();
+    let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
+    let slippage_amount = price.checked_mul(slippage_ratio).unwrap();
+    return match side {
+        Side::Bid => price.checked_add(slippage_amount).unwrap(),
+        Side::Ask => price.checked_sub(slippage_amount).unwrap(),
+    };
+}
+
+// Check if the provided order is valid given the slippage and side
+pub fn check_effective_order_price_versus_limit_price(
+    perp_info: &PerpInfo,
+    order: &Order,
+    slippage: u32,
+) -> UxdResult {
+    let market_price = perp_info.price;
+    let limit_price = limit_price(market_price, slippage, order.side);
+    let effective_order_price = limit_price
+        .checked_mul(perp_info.base_lot_size)
+        .unwrap()
+        .checked_div(perp_info.quote_lot_size)
+        .unwrap();
+    match order.side {
+        Side::Bid => {
+            if order.price < effective_order_price {
+                return Ok(());
+            }
+        }
+        Side::Ask => {
+            if order.price > effective_order_price {
+                return Ok(());
+            }
+        }
+    };
+    Err(ErrorCode::InvalidSlippage)
 }
