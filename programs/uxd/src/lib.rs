@@ -4,7 +4,7 @@ pub mod error;
 pub mod instructions;
 pub mod mango_program;
 pub mod state;
-pub mod utils;
+pub mod mango_utils;
 
 pub use crate::error::ErrorCode;
 pub use crate::instructions::*;
