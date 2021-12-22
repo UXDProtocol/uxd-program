@@ -84,9 +84,9 @@ This program contains 2 set of instructions, one permissionned and one permissio
 
 ![uxd schema](uxd.jpg)
 
-The initial state is initialized through calling `initialize`, from there a mint is created for UXD, the signer is kept as the administrative authority, and that's it.
+The initial state is initialized through calling `initializeController`, from there a mint is created for Redeemable, the signer is kept as the administrative authority, and that's it.
 
-It owns the UXD Mint currentely (TBD and though about).
+It owns the Redeemable Mint currently. In the future there could be added instruction to transfer Authority/Mint to another program due to migration, if needs be.
 
 ```Rust
 pub struct Controller {
@@ -151,7 +151,7 @@ pub struct MangoDepository {
     // In Collateral native units
     pub insurance_amount_deposited: u128,
     //
-    // The amount of collateral deposited by users to mint UXD
+    // The amount of collateral deposited by users to mint Redeemables
     // Updated after each mint/redeem
     // In Collateral native units
     pub collateral_amount_deposited: u128,
@@ -166,7 +166,7 @@ pub struct MangoDepository {
 }
 ```
 
-Each `Depository` is used to `mint()` and `redeem()` UXD with a specific collateral mint, and to do so each instantiate a Mango PDA that is used to deposit/withdraw collateral to mango and open/close short perp.
+Each `Depository` is used to `mint()` and `redeem()` Redeemables with a specific collateral mint, and to do so each instantiate a Mango PDA that is used to deposit/withdraw collateral to mango and open/close short perp.
 
 ## Admin instructions
 
@@ -222,7 +222,7 @@ Change the value of the Mango Depositories operations (Mint/Redeem) Redeemable c
 
 ## User instructions
 
-They allow end users to mint and redeem UXD, they are permissionless.
+They allow end users to mint and redeem Redeemables, they are permissionless.
 Keep in mind all described steps are done during an atomic instruction, one fails and it's all aborted.
 
 ### `mint_uxd`
