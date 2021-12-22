@@ -56,7 +56,8 @@ You can then rerun this as many time as you want, but if you want a clean slate,
 ## Deployment
 
 ```Zsh
-$> anchor deploy ... TODO
+$> anchor build
+$> solana program deploy ...
 ```
 
 _____
@@ -191,15 +192,9 @@ This initialize the State of the program. Called once, the signer becomes the au
 Instantiate a new `Depisitory` PDA for a given collateral mint.
 A depository is a vault in charge a Collateral type, the associated mango account and insurance fund.
 
-### `TransferAuthority`
-
-Update the Controller authority
-
-### `TransferMintAuthority` (Todo, maybe)
-
 Eject the mint auth from the program, ending the program. Maybe should be "deinitialize", need to think.
 
-### `RebalanceDepository` (Todo)
+### `RebalanceDepository` (TODO - Planned post release as the first capped release will be protected from liquidation by the insurance in the event of overweighted positions)
 
 Rebalance the health of one repository.
 Short Perp PNL will change over time. When it does, other users can settle match us (forcing the update of our balance, as this unsettle PnL is virtual, i.e. we don't pay interests on it)
@@ -215,7 +210,7 @@ We then sell this amount of collateral at market price, and that put us a positi
 > This balance is technically not ours, cause at any time we could be settled by the algorythm, but we don't want to initiate this action because we gain interests from letting it pending (0% APR borrow and 5-30% APY lending).
 > At the same time we are safe and ready to be settled, cause our USDC balance reflect te outstanding negative PnL. (Also it contains the insurance fund, so we should do good accounting of these)
 
-### `RebalanceAllDepositories` (Todo)
+### `RebalanceAllDepositories` (TODO - In the future to balance collateral + optimize yield)
 
 Would rebalance the amount of collateral available inside each depository so that the pools don't become one sided (everyone deposit sol, then redeem BTC).
 Would also allow for yield optimisation depending of the current values.
@@ -235,11 +230,6 @@ Change the value of the global supply cap (virtual, not on the mint) for the Red
 ### `setMangoDepositoriesRedeemableSoftCap`
 
 Change the value of the Mango Repositories operation Redeemable cap, prevent minting/redeeming over this limit.
-
-
-### `Freeze` (Todo? No like)
-
-This would prevent all Minting and Redeem in case of issue (Centralized AF, I don't want that but I think we mentionned it once?)
 
 ## User instructions
 

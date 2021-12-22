@@ -2,10 +2,10 @@
 cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
-[programs.devnet]
+[programs.mainnet]
 uxd = "UXDQDbkAeGMPR7gqDykDNu22D9DnYrKdvZhvNmMu6QX"
 
-[programs.mainnet]
+[programs.devnet]
 uxd = "UXDQDbkAeGMPR7gqDykDNu22D9DnYrKdvZhvNmMu6QX"
 
 [registry]
@@ -18,9 +18,12 @@ test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_*.ts"
 ### Test a single test - Just uncomment the test to run with `anchor test`
 ##
 # One shot
+# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/setup_stack.ts"
+#
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/print_balances_wsol_depository.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/mango_depository_2_wsol_2_intensive.ts"
+# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/wsol_mint_redeem_intensive.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/rebalance_wsol_depository.ts"
+#
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/mint_wsol.ts"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/redeem_wsol.ts"
 
