@@ -138,9 +138,6 @@ pub mod uxd {
     //     max_rebalancing_amount: u64,
     //     slippage: u32,
     // ) -> ProgramResult {
-    //     msg!(
-    //         max_rebalancing_amount
-    //     );
     //     instructions::rebalance_mango_depository::handler(ctx, max_rebalancing_amount, slippage)
     // }
 
