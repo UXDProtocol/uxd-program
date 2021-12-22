@@ -3,8 +3,8 @@ use anchor_lang::prelude::*;
 pub mod error;
 pub mod instructions;
 pub mod mango_program;
+pub mod mango_utils;
 pub mod state;
-pub mod utils;
 
 pub use crate::error::ErrorCode;
 pub use crate::instructions::*;
@@ -40,7 +40,6 @@ pub mod uxd {
     use super::*;
 
     // Initialize a Controller instance.
-    // The Controller holds the Redeemable Mint and the authority identity.
     #[access_control(valid_redeemable_mint_decimals(redeemable_mint_decimals))]
     pub fn initialize_controller(
         ctx: Context<InitializeController>,
@@ -55,17 +54,6 @@ pub mod uxd {
             redeemable_mint_decimals,
         )
     }
-
-    // Note : Add later if needed
-    // Transafer Controller authority to another entity.
-    // pub fn transfer_controller_authority() -> ProgramResult {}
-
-    // Note : Add later if needed
-    // Transfer the UXD mint authority that is held by the controller to the provided account
-    //
-    // This might be an important safety, the program will be fully controlled and initialize
-    // through the Governance program, seems accepable that way.
-    // pub fn transfer_uxd_mint_authority() -> ProgramResult {}
 
     // Set the Redeemable global supply cap.
     //
@@ -91,7 +79,7 @@ pub mod uxd {
         instructions::set_mango_depositories_redeemable_soft_cap::handler(ctx, redeemable_soft_cap)
     }
 
-    // Create and Register a new `Depository` to a `Controller`.
+    // Create and Register a new `MangoDepository` to the `Controller`.
     // Each `Depository` account manages a specific collateral mint.
     // A `Depository` account owns a `collateral_passthrough` PDA as the owner of the mango account and
     //   the token account must be the same so we can't move fund directly from the use to Mango.
@@ -132,6 +120,7 @@ pub mod uxd {
     }
 
     // WIP on branch : feature/rebalancing
+    // This is intended to be in the later version of UXD - At release we will cap the UXD supply and secure with the insurance fund.
     //
     // Currently on hold due to solana account limit per transaction
     // https://docs.solana.com/proposals/transactions-v2#other-proposals
@@ -157,7 +146,7 @@ pub mod uxd {
     // }
 
     // Mint Redeemable tokens by depositing Collateral to mango and opening the equivalent short perp position.
-    // Callers pays taker_fees, that are added to the delta neutral position.
+    // Callers pays taker_fees, that are deducted from the returned redeemables (and part of the delta neutral position)
     #[access_control(
         valid_slippage(slippage)
         check_collateral_amount_constraints(&ctx, collateral_amount)
@@ -171,7 +160,7 @@ pub mod uxd {
     }
 
     // Burn Redeemable tokens and return the equivalent quote value of Collateral by unwinding a part of the delta neutral position.
-    // Callers pays taker_fees, that are added to the delta neutral position.
+    // Callers pays taker_fees.
     #[access_control(
         valid_slippage(slippage)
         check_redeemable_amount_constraints(&ctx, redeemable_amount)
@@ -266,7 +255,7 @@ pub fn check_withdraw_insurance_amount_constraints<'info>(insurance_amount: u64)
     if !(insurance_amount > 0) {
         return Err(ErrorCode::InvalidInsuranceAmount.into());
     }
-    // Mango withdraw will fail with proper error thankt to  `disabled borrow` set to true if the balance is not enough.
+    // Mango withdraw will fail with proper error thanks to  `disabled borrow` set to true if the balance is not enough.
     Ok(())
 }
 

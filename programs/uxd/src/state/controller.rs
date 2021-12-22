@@ -35,7 +35,8 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
     //
-    // Should add padding? or migrate?
+    // WARNING TODO Should add padding over having to migrate
+    // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
 }
 
 impl Controller {

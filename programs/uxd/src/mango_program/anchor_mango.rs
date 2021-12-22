@@ -9,12 +9,11 @@ pub mod anchor_mango {
     // if the mango program use declare_id we can get ride of that
     use solana_program::declare_id;
 
-    // Swap back if releasing
-    declare_id!("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA"); // devnet
-    //     #[cfg(feature = "devnet")]
-    //     declare_id!("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
-    //     #[cfg(not(feature = "devnet"))]
-    //     declare_id!("mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68");
+    // Select depending on cluster
+    // - devnet
+    declare_id!("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
+    // - mainnet
+    // declare_id!("mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68");
 }
 
 impl anchor_lang::AccountDeserialize for Mango {

@@ -3,7 +3,7 @@ members = [
     "programs/*"
 ]
 
-# Might lengthen the build process but improve computing usage. Use sccache to improve
+# Might lengthen the build process but improve computing usage. Use sccache to offset
 [profile.release]
 lto = "fat"
 codegen-units = 1

@@ -55,6 +55,11 @@ You can then rerun this as many time as you want, but if you want a clean slate,
 
 ## Deployment
 
+### Between dev and prod
+
+- change de mango program ID in anchor_mango.rs
+- change the program id in lib.rs and anchor.toml
+
 ```Zsh
 $> anchor build
 $> solana program deploy ...
@@ -156,23 +161,8 @@ pub struct MangoDepository {
     // In Redeemable native units
     pub redeemable_amount_under_management: u128,
     //
-    // The amount of delta neutral position accounting for taker fees during mint and redeem operations, so with no equivalence circulating as redeemable.
-    //
-    // This represent the amount of the delta neutral position that is locked, accounting for fees settlements.
-    // Fee are paid in USDC, and so we keep a piece of the delta neutral quote position to account for them during each minting/redeeming operations.
-    //
-    // Updated after each mint/redeem (/rebalance_fees when implemented)
-    // In Redeemable native units
-    pub delta_neutral_quote_fee_offset: u128,
-    //
-    // The total amount of Redeemable Tokens this Depository instance hold
-    // This should always be equal to `delta_neutral_quote_position` - `delta_neutral_quote_fee_offset`
-    // This is equivalent to the circulating supply or Redeemable that this depository is hedging
-    // Updated after each mint/redeem (/rebalance_fees/rebalance when implemented)
-    // In Redeemable native units
-    pub delta_neutral_quote_position: u128,
-    //
-    // Should add padding?
+    // The amount of taker fee paid in quote while placing perp orders
+    pub total_amount_paid_taker_fee: u128,
 }
 ```
 
@@ -181,15 +171,16 @@ Each `Depository` is used to `mint()` and `redeem()` UXD with a specific collate
 ## Admin instructions
 
 They setup the UXD account stack and provide management option related to insurance fund and capping.
-Only the `authority_key` can interact with these calls.
+Only the `authority` can interact with these calls.
 
 ### `Initialize`
 
-This initialize the State of the program. Called once, the signer becomes the authority, should be done by a multisig/DAO.
+This initialize the State of the program by instantiating a `Controller`. Called once, the signer becomes the authority, will be done through the DAO.
+Only one controller can exist at anytime.
 
-### `RegisterDepository`
+### `RegisterMangoDepository`
 
-Instantiate a new `Depisitory` PDA for a given collateral mint.
+Instantiate a new `MangoDepository` PDA for a given collateral mint.
 A depository is a vault in charge a Collateral type, the associated mango account and insurance fund.
 
 Eject the mint auth from the program, ending the program. Maybe should be "deinitialize", need to think.
@@ -204,11 +195,11 @@ We don't want this because that cost us.
 At the same time, if we settle a positive PnL, the account USDC ba;ance become positive, effectively lending fund at the current rate and accruing interests (We want that obviously)
 
 The strategy here of this rebalance call would be to resize the long and short positions to account for the unsettled negative PnL if any. (resize is a reduce in that case)
-By doing so, we close some short perp, hence we are overcollateralized in the collateral mint.
+By doing so, we close a given short perp, hence we are overcollateralized in the collateral mint.
 We then sell this amount of collateral at market price, and that put us a positive balance of USDC, that accrue interest.
 
-> This balance is technically not ours, cause at any time we could be settled by the algorythm, but we don't want to initiate this action because we gain interests from letting it pending (0% APR borrow and 5-30% APY lending).
-> At the same time we are safe and ready to be settled, cause our USDC balance reflect te outstanding negative PnL. (Also it contains the insurance fund, so we should do good accounting of these)
+THIS IS CURRENTLY PENDING due to the fact that it need to be done in a single atomic IX and that's impossible within 200k computing units. In Q1 2022 Solana will implement Adress map (accepted proposal).
+At that point this will be possible and we will be able to raise the hard cap or redeemables.
 
 ### `RebalanceAllDepositories` (TODO - In the future to balance collateral + optimize yield)
 
@@ -217,32 +208,31 @@ Would also allow for yield optimisation depending of the current values.
 
 ### `DepositInsuranceToMangoDepository` / `WidthdrawInsuranceFromMangoDepository`
 
-Deposit can just use the default Mango deposit. But that's better to use a interface doing it all through the program for coherence.
-
 Withdraw need to be specific cause it's PDA own accounts.
 
 This would be used to add USDC to a depository mango account to fund it's insurance fund in UXD case.
 
 ### `setRedeemableGlobalSupplyCap`
 
-Change the value of the global supply cap (virtual, not on the mint) for the Redeemable controller by the Controller.
+Change the value of the global supply cap (virtual, not on the mint) for the Redeemable by the Controller.
 
 ### `setMangoDepositoriesRedeemableSoftCap`
 
-Change the value of the Mango Repositories operation Redeemable cap, prevent minting/redeeming over this limit.
+Change the value of the Mango Depositories operations (Mint/Redeem) Redeemable cap, prevent minting/redeeming over this limit.
 
 ## User instructions
 
 They allow end users to mint and redeem UXD, they are permissionless.
-Keep in mind all described steps are done during an atomic instruction, one fails and it's all abort.
+Keep in mind all described steps are done during an atomic instruction, one fails and it's all aborted.
 
 ### `mint_uxd`
 
 Send collateral to the `Depository` taking that given mint
+Estimate how much fill we can get to know how much collateral need to be actually deposited to mango to improve efficiency
 Open equivalent perp position (FoK with the provided slippage)
 Check that the position was fully openned else abort
-Deduct perp opnening fees
-Mint equivalent amount of UXD to user (as the value of the short perp)
+Deduct perp opnening fees from the quote amount
+Mint equivalent amount of UXD to user (as the value of the short perp - taker fees)
 
 ### `redeem_uxd`
 
@@ -255,38 +245,10 @@ We burn the same value of UXD from what the user sent
 We withdraw the collateral amount equivalent to the perpshort that has been closed previously (post taxes calculation)
 We send that back to the user (and his remaining UXD are back too, if any)
 
-_____
-
-## how it work (Deprecated from Hana/Patrick - The R tokens are gone, thoughs? we removed them with Hana already)
-
-Implementation of UXD token on solana
-
-The UXD contract system consists of 2 different classes, the depository which is the input/output point for outside funds
-and the Controller, which manages the deposited funds by calculating positions, distributing funds to external derivatives
-platforms, establishing and rebalancing derivatives positions, and closing out positions in the event of withdrawals.
-
-Both components are permissionless to the end user but require an authority account to initialize them and setup the relational
-hierarchy of depositories and controller. However the authority account acts only to establish the initial trust relationship
-between components and does not at any point have access to user funds.
-
-Depository
-
-- Accepts user funds and issues redeemable tokens
-- One Depository per collateral type
-- Must be matched to a perpetual swap market for that same collateral token
-- Multiple Depositories can operate in concert with one controller
-
-Controller
-
-- Interacts with user funds via depositories and swap venues
-- Exposes Mint and Redeem instructions to users
-- Does Not directly hold user funds or control withdrawals, but does handle the operations that underlie them.
-- Has sole permissions to control UXD token mint
-
 Interface
 
 - Web app allows user to deposit, withdraw collateral
-- Options to mint, redeem usdx and view user account dashboard
+- Options to mint, redeem UXD and view user account dashboard
 
 There are two different tokens involved in the direct operation of the system (not counting the governance token UXP)
 Each Depository issues its own redeemable token as an accounting system that can be ingested by the controller as proof
@@ -303,7 +265,3 @@ can apply to arbitrarily many Depositories irrespective of the underlying perpet
 The UXD token is fully fungible and any holder can redeem it at any time for a proportional share of the underlying collateral
 value. On a high level, the redemption process consists of buying back swaps equal to the intended redemption value (plus fees)
 and releasing the collateral r-token to the user which can be exchanged for the initial collateral back.
-
-## Between dev and prod
-- change de mango program ID in anchor_mango.rs
-- change the program id in lib.rs and anchor.toml back to the mainnet one

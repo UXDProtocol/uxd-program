@@ -35,7 +35,7 @@ pub struct Withdraw<'info> {
 /// 7. `[write]` token_account_ai, -
 /// 8. `[read]` signer_ai,        -
 /// 9. `[read]` token_prog_ai,    -
-/// 10. `[read]` clock_ai,         - // Seems its not here anymore from the source !!
+/// 10. `[read]` clock_ai,         -
 /// 11..+ `[]` open_orders_accs - open orders for each of the spot market
 fn withdraw_instruction(
     mango_program_id: &Pubkey,
