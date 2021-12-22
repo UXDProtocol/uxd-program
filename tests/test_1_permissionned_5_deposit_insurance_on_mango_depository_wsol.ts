@@ -35,7 +35,6 @@ describe(" ======= [Suite 1-5 : Test depositing insurance on the mango WSOL depo
         await sleep(accountUpdateSleepingInterval);
 
         // Check that the accounting match the actual balances
-        // NOTE : doesn't work on devnet idk maybe try later
         // expect(_postInsuranceAmount.toNumber()).closeTo(_postDepositoryMangoAccountInsuranceBalance, Math.pow(10, -depository.insuranceMintdecimals), "Accounting and Balance mismatch");
 
         // Check actual balance // Not getting the good one, check later

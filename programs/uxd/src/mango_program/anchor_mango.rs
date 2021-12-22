@@ -10,7 +10,7 @@ pub mod anchor_mango {
     use solana_program::declare_id;
 
     // Swap back if releasing
-    declare_id!("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
+    declare_id!("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA"); // devnet
     //     #[cfg(feature = "devnet")]
     //     declare_id!("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
     //     #[cfg(not(feature = "devnet"))]
