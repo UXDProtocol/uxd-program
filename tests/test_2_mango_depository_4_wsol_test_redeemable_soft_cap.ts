@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { authority, user } from "./identities";
 import { collateralUIPriceInMangoQuote, mintWithMangoDepository, setMangoDepositoriesRedeemableSoftCap } from "./test_0_uxd_api";
-import { printUserBalances, printDepositoryInfo, getBalance, userUXDATA, userWSOLATA, sleep } from "./integration_test_utils";
+import { printUserBalances, printDepositoryInfo, getBalance, userUXDATA, userWSOLATA, sleep, getSolBalance } from "./integration_test_utils";
 import { getControllerAccount } from "./test_0_uxd_api";
 import { slippage } from "./test_2_consts";
 import { depositoryWSOL, mango, slippageBase, controllerUXD, accountUpdateSleepingInterval } from "./test_0_consts";
@@ -41,38 +41,39 @@ describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 o
         // console.log(controllerAccount);
     });
 
-    const validCollateralAmount = 0.2 // in WSOL
-    // OP2
-    it(`2 - Mint UXD worth ${validCollateralAmount} WSOL with ${slippagePercentage * 100}% max slippage`, async () => {
+    let collateralAmount = 0.2;
+    let amountUxdMinted: number;
+    it(`2 - Mint UXD worth ${collateralAmount} SOL with ${slippagePercentage * 100}% max slippage`, async () => {
         // GIVEN
         const caller = user;
         const controller = controllerUXD;
         const depository = depositoryWSOL;
         const _userUxdBalancePreOp = await getBalance(userUXDATA);
-        const _userWsolBalancePreOp = await getBalance(userWSOLATA);
+        const _userSolBalancePreOp = await getSolBalance(caller.publicKey);
 
         // WHEN
-        await mintWithMangoDepository(caller, slippage, validCollateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
 
         // Then
         // Could be wrong cause there is a diff between the oracle fetch price and the operation, but let's ignore that for now
-        const maxAmountUxdMinted = (await collateralUIPriceInMangoQuote(depository, mango)) * validCollateralAmount;
+        const maxAmountUxdMinted = (await collateralUIPriceInMangoQuote(depository, mango)) * collateralAmount;
         const _userUxdBalancePostOp = await getBalance(userUXDATA);
-        const _userWsolBalancePostOp = await getBalance(userWSOLATA);
+        const _userSolBalancePostOp = await getSolBalance(caller.publicKey);
 
-        let amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
-        let amountWsolUsed = _userWsolBalancePreOp - _userWsolBalancePostOp;
+        amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
+        const solUsed = _userSolBalancePreOp - _userSolBalancePostOp;
 
-        expect(amountWsolUsed).closeTo(validCollateralAmount, Math.pow(10, -depository.collateralMintdecimals), "The collateral amount paid doesn't match the user wallet delta");
+        // + 0.00204 to create wsol ata
+        expect(solUsed).lessThanOrEqual(collateralAmount + 0.00204, "The collateral amount paid doesn't match the user wallet delta");
         expect(amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
-        console.log(`    ==> [Minted ${amountUxdMinted} for ${amountWsolUsed} WSOL (prefect was ${maxAmountUxdMinted})]`);
+        console.log(`    ==> [Minted ${amountUxdMinted} for ${solUsed} SOL (perfect was ${maxAmountUxdMinted})]`);
     });
 
-    const invalidCollateralAmount = 5; // in WSOL
+    const invalidCollateralAmount = 5; // in SOL
     // OP3
     it(`3 - Mint UXD worth ${invalidCollateralAmount} WSOL with ${slippagePercentage * 100}% max slippage - SHOULD FAIL`, async () => {
-        // GIVEN
+        // GIVEN      
         const caller = user;
         const controller = controllerUXD;
         const depository = depositoryWSOL;

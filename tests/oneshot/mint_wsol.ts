@@ -1,13 +1,13 @@
 import { expect } from "chai";
 import { user } from "../identities";
 import { mintWithMangoDepository, collateralUIPriceInMangoQuote } from "../test_0_uxd_api";
-import { printUserBalances, printDepositoryInfo, getBalance, userWSOLATA, userUXDATA } from "../integration_test_utils";
+import { printUserBalances, printDepositoryInfo, getBalance, userUXDATA, getSolBalance } from "../integration_test_utils";
 import { slippage } from "../test_2_consts";
 import { depositoryWSOL, mango, slippageBase, controllerUXD } from "../test_0_consts";
 
 const amountToMint = 1;
 
-describe(` Just mint ${amountToMint} `, () => {
+describe(` mint ${amountToMint} SOL`, () => {
     beforeEach("\n", async () => { });
     afterEach("", async () => {
         await printUserBalances();
@@ -23,12 +23,12 @@ describe(` Just mint ${amountToMint} `, () => {
     const depository = depositoryWSOL;
 
     // OP1
-    let collateralAmount = amountToMint; // in WSOL
+    let collateralAmount = amountToMint; // in SOL
     let amountUxdMinted: number;
-    it(`1 - Mint UXD worth ${collateralAmount} WSOL with ${slippagePercentage * 100}% max slippage`, async () => {
+    it(`1 - Mint UXD worth ${collateralAmount} SOL with ${slippagePercentage * 100}% max slippage`, async () => {
         // GIVEN
         const _userUxdBalancePreOp = await getBalance(userUXDATA);
-        const _userWsolBalancePreOp = await getBalance(userWSOLATA);
+        const _userSolBalancePreOp = await getSolBalance(caller.publicKey);
 
         // WHEN
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
@@ -37,14 +37,15 @@ describe(` Just mint ${amountToMint} `, () => {
         // Could be wrong cause there is a diff between the oracle fetch price and the operation, but let's ignore that for now
         const maxAmountUxdMinted = (await collateralUIPriceInMangoQuote(depository, mango)) * collateralAmount;
         const _userUxdBalancePostOp = await getBalance(userUXDATA);
-        const _userWsolBalancePostOp = await getBalance(userWSOLATA);
+        const _userSolBalancePostOp = await getSolBalance(caller.publicKey);
 
         amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
-        const op_amountWsolUsed = _userWsolBalancePostOp - _userWsolBalancePreOp;
+        const solUsed = _userSolBalancePreOp - _userSolBalancePostOp;
 
-        expect(op_amountWsolUsed).closeTo(collateralAmount * -1, collateralAmount * 0.05, "The collateral amount paid doesn't match the user wallet delta");
+        // + 0.00204 to create wsol ata
+        expect(solUsed).lessThanOrEqual(collateralAmount + 0.00204, "The collateral amount paid doesn't match the user wallet delta");
         expect(amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
-        console.log(`    ==> [Minted ${amountUxdMinted} for ${op_amountWsolUsed} WSOL (prefect was ${maxAmountUxdMinted})]`);
+        console.log(`    ==> [Minted ${amountUxdMinted} for ${solUsed} SOL (perfect was ${maxAmountUxdMinted})]`);
     });
 });

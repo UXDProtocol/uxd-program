@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
+use anchor_spl::token::CloseAccount;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
@@ -196,13 +197,19 @@ pub fn handler(
         false,
     )?;
 
-    // - [Return collateral back to user]
-    token::transfer(
-        ctx.accounts
-            .into_transfer_collateral_to_user_context()
-            .with_signer(depository_signer_seed),
-        order_delta.collateral,
-    )?;
+    // - [If wrapped sol (hedge case)]
+    if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
+        token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
+    }
+    // - [Else return collateral back to user]
+    else {
+        token::transfer(
+            ctx.accounts
+                .into_transfer_collateral_to_user_context()
+                .with_signer(depository_signer_seed),
+            order_delta.collateral,
+        )?;
+    }
 
     // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
 
@@ -272,6 +279,18 @@ impl<'info> RedeemFromMangoDepository<'info> {
                 .to_account_info(),
             to: self.user_collateral.to_account_info(),
             authority: self.depository.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_unwrap_wsol_by_closing_ata_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, CloseAccount<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = CloseAccount {
+            account: self.user_collateral.to_account_info(),
+            destination: self.user.to_account_info(),
+            authority: self.user.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }

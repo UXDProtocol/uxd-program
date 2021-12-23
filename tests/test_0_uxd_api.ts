@@ -1,10 +1,12 @@
 
 import { Controller, MangoDepository, Mango, findATAAddrSync, createAssocTokenIx } from "@uxdprotocol/uxd-client";
-import { provider, TXN_COMMIT, TXN_OPTS } from "./provider";
-import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
+import { provider, TXN_OPTS } from "./provider";
 import { controllerUXD, uxdClient, uxdHelpers } from "./test_0_consts";
 import { Account, Signer, Transaction } from '@solana/web3.js';
 import { user } from "./identities";
+import { NATIVE_MINT } from "@solana/spl-token";
+import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
+import { prepareWrappedSolTokenAccount } from "./wsol-utils";
 
 afterEach("", () => {
     console.log("\n=====================================\n");
@@ -140,6 +142,16 @@ export async function mintWithMangoDepository(user: Signer, slippage: number, co
     const userRedeemableATA = findATAAddrSync(user.publicKey, controllerUXD.redeemableMintPda)[0];
     if (!(await provider.connection.getAccountInfo(userRedeemableATA))) {
         tx.instructions.push(createAssocTokenIx(user.publicKey, userRedeemableATA, controllerUXD.redeemableMintPda));
+    }
+
+    if (depository.collateralMint.equals(NATIVE_MINT)) {
+        const nativeAmount = collateralAmount * 10 ** depository.collateralMintdecimals;
+        const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
+            provider.connection,
+            user.publicKey,
+            nativeAmount
+        );
+        tx.instructions.push(...prepareWrappedSolIxs);
     }
 
     tx.instructions.push(mintWithMangoDepositoryIx);

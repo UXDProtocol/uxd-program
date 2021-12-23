@@ -1,7 +1,7 @@
-import { MangoDepository, findATAAddrSync, Mango } from "@uxdprotocol/uxd-client";
+import { MangoDepository, findATAAddrSync, Mango, SOL_DECIMALS } from "@uxdprotocol/uxd-client";
 import { BTC, user, WSOL } from "./identities";
 import { provider, TXN_COMMIT, TXN_OPTS } from "./provider";
-import { Account, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { controllerUXD, uxdClient, uxdHelpers } from "./test_0_consts";
 import { nativeI80F48ToUi, nativeToUi } from "@blockworks-foundation/mango-client";
 import { BN } from "@project-serum/anchor";
@@ -13,6 +13,12 @@ export const userUXDATA: PublicKey = findATAAddrSync(user.publicKey, controllerU
 
 export function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function getSolBalance(wallet: PublicKey): Promise<number> {
+    const lamports = await provider.connection
+        .getBalance(wallet, TXN_COMMIT);
+    return nativeToUi(lamports, SOL_DECIMALS);
 }
 
 export function getBalance(tokenAccount: PublicKey): Promise<number> {
@@ -58,7 +64,7 @@ export async function printDepositoryInfo(depository: MangoDepository, mango: Ma
     console.log(`        *     ${SYM}-PERP Unsettled Funding                  ${nativeI80F48ToUi(pa.getUnsettledFunding(cache.perpMarketCache[pmi]), 6).toNumber().toFixed(6)}`);
     // console.log(`        *     getLiabsVal                                 ${nativeI80F48ToUi(pa.getLiabsVal(mango.group.perpMarkets[pmi], cache.priceCache[pmi].price, pm.shortFunding, pm.longFunding), 6).toNumber().toFixed(6)}`);
     // console.log(`        *     getAssetVal                                 ${nativeI80F48ToUi(pa.getAssetVal(mango.group.perpMarkets[pmi], cache.priceCache[pmi].price, pm.shortFunding, pm.longFunding), 6).toNumber().toFixed(6)}`);
-    console.log(`        *     ${SYM}-PERP PnL                                ${nativeI80F48ToUi(pa.getPnl(mango.group.perpMarkets[pmi], cache.perpMarketCache[pmi], cache.priceCache[pmi].price), 6).toNumber().toFixed(6)}            ((perp_quote_pos + unsettled_funding) - liabsVal)`);
+    // console.log(`        *     ${SYM}-PERP PnL                                ${nativeI80F48ToUi(pa.getPnl(mango.group.perpMarkets[pmi], cache.perpMarketCache[pmi], cache.priceCache[pmi].price), 6).toNumber().toFixed(6)}            ((perp_quote_pos + unsettled_funding) - liabsVal)`);
     // console.log("takerBase ", pm.baseLotsToNative(pa.takerBase).toFixed(9));
     // console.log("takerQuote ", nativeToUi(pa.takerQuote.toNumber(), 6).toFixed(6));
     // console.log("- bidsQuantity ", nativeToUi(pa.bidsQuantity.toNumber(), 6));
@@ -80,6 +86,7 @@ export async function printUserBalances() {
     console.log(`\
         * [user]:
         *     BTC:                                        ${await getBalance(userBTCATA)}
+        *     SOL:                                        ${await getSolBalance(user.publicKey)}
         *     WSOL:                                       ${await getBalance(userWSOLATA)}
         *     UXD:                                        ${await getBalance(userUXDATA)}`);
 }
