@@ -12,6 +12,8 @@ The project uses a few line of optimization for building taken from the Discord,
 
 ## Running tests
 
+CHANGE ACCOUNTS CASE in the anchor json IDL. The ts idl case is different and is used as the source of truth in the uxd-client
+
 Running rust unit tests :
 
 ```Zsh
