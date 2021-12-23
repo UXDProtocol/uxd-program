@@ -362,16 +362,6 @@ impl<'info> RedeemFromMangoDepository<'info> {
 
         Ok(())
     }
-
-    fn check_mango_depositories_redeemable_soft_cap_overflow(
-        &self,
-        redeemable_delta: u64,
-    ) -> UxdResult {
-        if !(redeemable_delta <= self.controller.mango_depositories_redeemable_soft_cap) {
-            return Err(ErrorCode::MangoDepositoriesSoftCapOverflow);
-        }
-        Ok(())
-    }
 }
 
 // Verify that the order quantity matches the base position delta
