@@ -42,16 +42,12 @@ pub struct RedeemFromMangoDepository<'info> {
     pub controller: Box<Account<'info, Controller>>,
     #[account(
         mut,
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.bump,
         has_one = controller @ErrorCode::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @ErrorCode::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
-    #[account(
-        constraint = collateral_mint.key() == depository.collateral_mint @ErrorCode::InvalidCollateralMint
-    )]
-    pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         constraint = user_collateral.mint == depository.collateral_mint @ErrorCode::InvalidUserCollateralATAMint
@@ -71,15 +67,15 @@ pub struct RedeemFromMangoDepository<'info> {
     pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
+        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.collateral_passthrough_bump,
         constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @ErrorCode::InvalidCollateralPassthroughAccount,
-        constraint = depository_collateral_passthrough_account.mint == collateral_mint.key() @ErrorCode::InvalidCollateralPassthroughATAMint
+        constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @ErrorCode::InvalidCollateralPassthroughATAMint
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
+        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.mango_account_bump,
         constraint = depository.mango_account == depository_mango_account.key() @ErrorCode::InvalidMangoAccount,
     )]
@@ -114,11 +110,9 @@ pub fn handler(
     redeemable_amount: u64,
     slippage: u32,
 ) -> ProgramResult {
-    let collateral_mint = ctx.accounts.collateral_mint.key();
-
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
-        collateral_mint.as_ref(),
+        ctx.accounts.depository.collateral_mint.as_ref(),
         &[ctx.accounts.depository.bump],
     ]];
 
@@ -181,11 +175,7 @@ pub fn handler(
 
     // - [Checks that the order was fully filled]
     let post_position = uncommitted_perp_base_position(&perp_account);
-    check_short_perp_order_fully_filled(
-        best_order.quantity,
-        initial_base_position,
-        post_position,
-    )?;
+    check_short_perp_order_fully_filled(best_order.quantity, initial_base_position, post_position)?;
 
     // - 2 [BURN REDEEMABLE] -------------------------------------------------
     let order_delta = derive_order_delta(&perp_account, &perp_info);
@@ -364,4 +354,3 @@ impl<'info> RedeemFromMangoDepository<'info> {
         Ok(())
     }
 }
-
