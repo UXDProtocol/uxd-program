@@ -67,10 +67,11 @@ pub mod uxd {
         instructions::set_redeemable_global_supply_cap::handler(ctx, redeemable_global_supply_cap)
     }
 
-    // Set Mango Depositories Redeemable soft cap.
+    // Set Mango Depositories Redeemable soft cap (for Minting operation).
     //
     // Goal is to roll out progressively, and limit risks.
-    // If this is set to 0, it would effectively pause Redeeming and Minting. (This seems unnacceptable, but will handled by DAO)
+    // If this is set to 0, it would effectively pause Minting.
+    // Note : This would effectively pause minting.
     #[access_control(valid_mango_depositories_redeemable_soft_cap(redeemable_soft_cap))]
     pub fn set_mango_depositories_redeemable_soft_cap(
         ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
@@ -142,7 +143,7 @@ pub mod uxd {
     // }
 
     // Mint Redeemable tokens by depositing Collateral to mango and opening the equivalent short perp position.
-    // Callers pays taker_fees, that are deducted from the returned redeemables (and part of the delta neutral position)
+    // Callers pays taker_fees, that are deducted from the returned redeemable tokens (and part of the delta neutral position)
     #[access_control(
         valid_slippage(slippage)
         check_collateral_amount_constraints(&ctx, collateral_amount)
@@ -216,7 +217,7 @@ pub fn check_collateral_amount_constraints<'info>(
         return Err(ErrorCode::InvalidCollateralAmount.into());
     }
     if !(ctx.accounts.user_collateral.amount >= collateral_amount) {
-        return Err(ErrorCode::InsuficientCollateralAmount.into());
+        return Err(ErrorCode::InsufficientCollateralAmount.into());
     }
     Ok(())
 }
@@ -229,7 +230,7 @@ pub fn check_redeemable_amount_constraints<'info>(
         return Err(ErrorCode::InvalidRedeemableAmount.into());
     }
     if !(ctx.accounts.user_redeemable.amount >= redeemable_amount) {
-        return Err(ErrorCode::InsuficientRedeemableAmount.into());
+        return Err(ErrorCode::InsufficientRedeemableAmount.into());
     }
     Ok(())
 }
@@ -242,7 +243,7 @@ pub fn check_deposit_insurance_amount_constraints<'info>(
         return Err(ErrorCode::InvalidInsuranceAmount.into());
     }
     if !(ctx.accounts.authority_insurance.amount >= insurance_amount) {
-        return Err(ErrorCode::InsuficientAuthorityInsuranceAmount.into());
+        return Err(ErrorCode::InsufficientAuthorityInsuranceAmount.into());
     }
     Ok(())
 }
@@ -257,7 +258,7 @@ pub fn check_withdraw_insurance_amount_constraints<'info>(insurance_amount: u64)
 
 pub fn check_max_rebalancing_amount_constraints(max_rebalancing_amount: u64) -> ProgramResult {
     if !(max_rebalancing_amount > 0) {
-        return Err(ErrorCode::InvalidRebalancingAmount.into());
+        return Err(ErrorCode::InvalidRebalancedAmount.into());
     }
     Ok(())
 }

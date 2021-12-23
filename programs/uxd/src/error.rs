@@ -17,11 +17,11 @@ pub enum ErrorCode {
     #[msg("Collateral amount must be > 0 in order to mint.")]
     InvalidCollateralAmount,
     #[msg("The balance of the collateral ATA is not enough to fulfill the mint operation.")]
-    InsuficientCollateralAmount,
+    InsufficientCollateralAmount,
     #[msg("The redeemable amount for redeem must be superior to 0.")]
     InvalidRedeemableAmount, // 0xd0 - 208
     #[msg("The balance of the redeemable ATA is not enough to fulfill the redeem operation.")]
-    InsuficientRedeemableAmount, // 0xd1 - 209
+    InsufficientRedeemableAmount, // 0xd1 - 209
     //
     #[msg("Only the Program initializer authority can access this instructions.")]
     InvalidAuthority = 10, // - 210
@@ -52,20 +52,20 @@ pub enum ErrorCode {
     InvalidController,
     #[msg("The Depository provided is not registered with the Controller.")]
     InvalidDepository,
-    #[msg("The Collateral Passthrough Account isn't the Deposiroty one.")]
+    #[msg("The Collateral Passthrough Account isn't the Depository one.")]
     InvalidCollateralPassthroughAccount,
-    #[msg("The Insurance Passthrough Account isn't the Deposiroty one.")]
+    #[msg("The Insurance Passthrough Account isn't the Depository one.")]
     InvalidInsurancePassthroughAccount,
-    #[msg("The Mango Account isn't the Deposiroty one.")]
+    #[msg("The Mango Account isn't the Depository one.")]
     InvalidMangoAccount,
     #[msg("The amount to withdraw from the Insurance Fund must be superior to zero..")]
     InvalidInsuranceAmount,
     #[msg("The Insurance ATA from authority doesn't have enough balance.")]
-    InsuficientAuthorityInsuranceAmount,
-    #[msg("The max amount to rebalance must be superior to zero..")]
-    InvalidRebalancingAmount,
-    #[msg("Insuficcent order book depth for order.")]
-    InsuficentOrderBookDepth,
+    InsufficientAuthorityInsuranceAmount,
+    #[msg("The rebalanced amount must be superior to zero..")]
+    InvalidRebalancedAmount,
+    #[msg("Insufficient order book depth for order.")]
+    InsufficientOrderBookDepth,
     #[msg("The executed order size does not match the expected one.")]
     InvalidExecutedOrderSize,
 

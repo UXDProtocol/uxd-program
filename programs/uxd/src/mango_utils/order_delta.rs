@@ -10,8 +10,10 @@ pub struct OrderDelta {
 }
 
 // Note : removes the taker fees from the redeemable_delta.
-//  They are not registered in mango unless the EventQueue fill event is consumed (later on)
-//  The amount minted/redeemed is offseted accordingly to reflect that change that will be settled in the future.
+//  The fees are not reflected right away in the PerpAccount (uncommitted changes).
+//  Mango system needs to call (after this ix, by the user or anyone) the consumeEvents ix, that will process the `fillEvent` in that case
+//  and update all mango internals / resolve the uncommitted balance change, and process fees.
+//  The amount minted/redeemed offsets accordingly to reflect that change that will be settled in the future.
 pub fn derive_order_delta(perp_account: &PerpAccount, perp_info: &PerpInfo) -> OrderDelta {
     let order_value = I80F48::checked_from_num(perp_account.taker_quote)
         .unwrap()
@@ -30,7 +32,6 @@ pub fn derive_order_delta(perp_account: &PerpAccount, perp_info: &PerpInfo) -> O
             .unwrap()
             .checked_mul(perp_info.base_lot_size)
             .unwrap();
-    // --
     let collateral_delta = collateral_amount.checked_to_num().unwrap();
     let redeemable_delta = order_value
         .checked_sub(fee_amount)

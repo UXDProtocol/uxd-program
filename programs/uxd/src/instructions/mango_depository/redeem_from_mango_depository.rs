@@ -12,6 +12,7 @@ use mango::state::PerpMarket;
 
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
+use crate::mango_utils::check_short_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::get_best_order_for_quote_lot_amount;
 use crate::mango_utils::uncommitted_perp_base_position;
@@ -104,7 +105,7 @@ pub struct RedeemFromMangoDepository<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub mango_program: Program<'info, mango_program::Mango>,
-    // sysvars
+    // sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -123,7 +124,7 @@ pub fn handler(
 
     // - 1 [CLOSE THE EQUIVALENT PERP SHORT ON MANGO] -------------------------
 
-    // - [Get perp informations]
+    // - [Get perp information]
     let perp_info = ctx.accounts.perpetual_info()?;
 
     // - [Perp account state PRE perp order]
@@ -180,25 +181,21 @@ pub fn handler(
 
     // - [Checks that the order was fully filled]
     let post_position = uncommitted_perp_base_position(&perp_account);
-    check_short_perp_close_order_fully_filled(
+    check_short_perp_order_fully_filled(
         best_order.quantity,
         initial_base_position,
         post_position,
     )?;
 
-    // - 2 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
+    // - 2 [BURN REDEEMABLE] -------------------------------------------------
     let order_delta = derive_order_delta(&perp_account, &perp_info);
 
-    ctx.accounts
-        .check_mango_depositories_redeemable_soft_cap_overflow(order_delta.redeemable)?;
-
-    // - 3 [BURN REDEEMABLES] -------------------------------------------------
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         order_delta.redeemable,
     )?;
 
-    // - 4 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
+    // - 3 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
 
     // - [Mango withdraw CPI]
     mango_program::withdraw(
@@ -217,7 +214,7 @@ pub fn handler(
         order_delta.collateral,
     )?;
 
-    // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
+    // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
 
     ctx.accounts.update_onchain_accounting(&order_delta)?;
 
@@ -290,7 +287,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
     }
 }
 
-// Additional convenience methods related to the inputed accounts
+// Additional convenience methods related to the inputted accounts
 impl<'info> RedeemFromMangoDepository<'info> {
     // Return general information about the perpetual related to the collateral in use
     fn perpetual_info(&self) -> UxdResult<PerpInfo> {
@@ -304,7 +301,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
         Ok(perp_info)
     }
 
-    // Return the uncommited PerpAccount that represent the account balances
+    // Return the uncommitted PerpAccount that represent the account balances
     fn perp_account(&self, perp_info: &PerpInfo) -> UxdResult<PerpAccount> {
         // - loads Mango's accounts
         let mango_account = match MangoAccount::load_checked(
@@ -343,7 +340,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
 
         return match best_order {
             Some(best_order) => Ok(best_order),
-            None => Err(ErrorCode::InsuficentOrderBookDepth),
+            None => Err(ErrorCode::InsufficientOrderBookDepth),
         };
     }
 
@@ -366,29 +363,5 @@ impl<'info> RedeemFromMangoDepository<'info> {
 
         Ok(())
     }
-
-    fn check_mango_depositories_redeemable_soft_cap_overflow(
-        &self,
-        redeemable_delta: u64,
-    ) -> UxdResult {
-        if !(redeemable_delta <= self.controller.mango_depositories_redeemable_soft_cap) {
-            return Err(ErrorCode::MangoDepositoriesSoftCapOverflow);
-        }
-        Ok(())
-    }
 }
 
-// Verify that the order quantity matches the base position delta
-pub fn check_short_perp_close_order_fully_filled(
-    order_quantity: i64,
-    pre_position: i64,
-    post_position: i64,
-) -> UxdResult {
-    let filled_amount = (post_position.checked_sub(pre_position).unwrap())
-        .checked_abs()
-        .unwrap();
-    if !(order_quantity == filled_amount) {
-        return Err(ErrorCode::PerpOrderPartiallyFilled);
-    }
-    Ok(())
-}

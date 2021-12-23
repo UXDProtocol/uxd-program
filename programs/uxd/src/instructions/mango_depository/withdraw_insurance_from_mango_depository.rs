@@ -150,7 +150,7 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
     }
 }
 
-// Additional convenience methods related to the inputed accounts
+// Additional convenience methods related to the inputted accounts
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
     fn update_accounting(
         &mut self,

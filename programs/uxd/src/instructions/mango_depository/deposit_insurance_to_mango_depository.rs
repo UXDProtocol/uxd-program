@@ -145,7 +145,7 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
     }
 }
 
-// Additional convenience methods related to the inputed accounts
+// Additional convenience methods related to the inputted accounts
 impl<'info> DepositInsuranceToMangoDepository<'info> {
     fn update_accounting(
         &mut self,

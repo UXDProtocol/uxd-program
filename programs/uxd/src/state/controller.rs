@@ -9,13 +9,13 @@ pub struct Controller {
     pub redeemable_mint_bump: u8,
     // Version used - for migrations later if needed
     pub version: u8,
-    // The account that initialize this struct. Only this account can call permissionned instructions.
+    // The account with authority over the UXD stack
     pub authority: Pubkey,
     pub redeemable_mint: Pubkey,
     pub redeemable_mint_decimals: u8,
     //
     // The Mango Depositories registered with this Controller
-    pub registered_mango_depositories: [Pubkey; 8], // MAX_REGISTERED_MANGO_DEPOSITORIES - IDL bug with constant...
+    pub registered_mango_depositories: [Pubkey; 8], // MAX_REGISTERED_MANGO_DEPOSITORIES - IDL bug with constant, so hard 8 literal.
     pub registered_mango_depositories_count: u8,
     //
     // Progressive roll out and safety ----------
@@ -24,7 +24,7 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount (careful, usually Mint express this in full token, UI amount, u64)
     pub redeemable_global_supply_cap: u128,
     //
-    // The max ammount of Redeemable affected by Mint and Redeem operations on `MangoDepository` instances, variable
+    // The max amount of Redeemable affected by Mint and Redeem operations on `MangoDepository` instances, variable
     //  in redeemable Redeemable Native Amount
     pub mango_depositories_redeemable_soft_cap: u64,
     //
