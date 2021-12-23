@@ -9,11 +9,11 @@ use mango::state::MangoGroup;
 #[derive(Debug)]
 pub struct PerpInfo {
     pub market_index: usize,
-    //  price: I80F48 - native quote per native base - THIS IS IMPORTANT - Equivalent to price per lamport for sol, or price per satoshi
+    //  price: I80F48 - native quote per native base - IMPORTANT - Equivalent to price per Lamport for SOL, or price per Satoshi
     pub price: I80F48,
-    // How many native unit of base totalling for a base ui unit (i.e. how many sat per BTC)
+    // How many native unit of base totalling for a base ui unit (i.e. how many Satoshi per BTC)
     pub base_unit: I80F48,
-    // Size of trading lots in native unit (i.e. satoshi for btc)
+    // Size of trading lots in native unit (i.e. Satoshi for BTC)
     pub base_lot_size: I80F48,
     pub quote_unit: I80F48,
     pub quote_lot_size: I80F48,

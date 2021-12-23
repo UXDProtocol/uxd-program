@@ -88,7 +88,7 @@ pub fn get_best_order_for_base_lot_quantity<'a>(
     for order in book_side {
         // This current order size
         let order_size = order.quantity;
-        // What's the value of this purchsase in quote_lot
+        // What's the value of this purchase in quote_lot
         let spent = {
             if base_lot_quantity_left_to_order < order_size {
                 // we can finish the operation by purchasing this order partially

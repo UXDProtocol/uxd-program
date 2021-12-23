@@ -30,7 +30,7 @@ pub struct MangoDepository {
     // In Collateral native units
     pub collateral_amount_deposited: u128,
     //
-    // The amount of delta neutral position that is backing circulating redeemables.
+    // The amount of delta neutral position that is backing circulating redeemable.
     // Updated after each mint/redeem
     // In Redeemable native units
     pub redeemable_amount_under_management: u128,

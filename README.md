@@ -8,7 +8,7 @@ $> yarn
 
 Recommended to use <https://github.com/mozilla/sccache> to build faster, follow install instruction there.
 
-The project uses a few line of optimisation for building taken from the Discord, but that need to be investigated further. (See the workspace cargo.toml)
+The project uses a few line of optimization for building taken from the Discord, but that need to be investigated further. (See the workspace cargo.toml)
 
 ## Running tests
 
@@ -36,10 +36,10 @@ $> solana-keygen new -o ./target/deploy/uxd-keypair.json --force --no-bip39-pass
 Press enter for no password and you'r good.
 
 Once you ran this, you need to take the pubkey from the output `pubkey: G8QatVyH14hwT6h8Q6Ld5q9D1CbivErcf6syzukREFs3`
-Replace the program adress in anchor and the program doing so :
+Replace the program address in anchor and the program doing so :
 
 ```Rust
-// In lib.rs this line at the beggining :
+// In lib.rs this line at the beginning :
 solana_program::declare_id!("G8QatVyH14hwT6h8Q6Ld5q9D1CbivErcf6syzukREFs3");
 ```
 
@@ -76,7 +76,7 @@ The project follows the code org as done in [Jet protocol](https://github.com/je
 
 The project uses `Anchor` IDL for safety and readability (over the finest performance tunning).
 
-The project relies on `Mango Markets` [program](https://github.com/blockworks-foundation/mango-v3), a decentralised derivative exchange platform build on Solana, and controlled by a DAO.
+The project relies on `Mango Markets` [program](https://github.com/blockworks-foundation/mango-v3), a decentralized derivative exchange platform build on Solana, and controlled by a DAO.
 
 This program contains 2 set of instructions, one permissionned and one permissionless
 
@@ -109,7 +109,7 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount (careful, usually Mint express this in full token, UI amount, u64)
     pub redeemable_global_supply_cap: u128,
     //
-    // The max ammount of Redeemable affected by Mint and Redeem operations on `MangoDepository` instances, variable
+    // The max amount of Redeemable affected by Mint and Redeem operations on `MangoDepository` instances, variable
     //  in redeemable Redeemable Native Amount
     pub mango_depositories_redeemable_soft_cap: u64,
     //
@@ -151,12 +151,12 @@ pub struct MangoDepository {
     // In Collateral native units
     pub insurance_amount_deposited: u128,
     //
-    // The amount of collateral deposited by users to mint Redeemables
+    // The amount of collateral deposited by users to mint redeemable tokens
     // Updated after each mint/redeem
     // In Collateral native units
     pub collateral_amount_deposited: u128,
     //
-    // The amount of delta neutral position that is backing circulating redeemables.
+    // The amount of delta neutral position that is backing circulating redeemable tokens.
     // Updated after each mint/redeem
     // In Redeemable native units
     pub redeemable_amount_under_management: u128,
@@ -166,7 +166,7 @@ pub struct MangoDepository {
 }
 ```
 
-Each `Depository` is used to `mint()` and `redeem()` Redeemables with a specific collateral mint, and to do so each instantiate a Mango PDA that is used to deposit/withdraw collateral to mango and open/close short perp.
+Each `Depository` is used to `mint()` and `redeem()` Redeemable tokens with a specific collateral mint, and to do so each instantiate a Mango PDA that is used to deposit/withdraw collateral to mango and open/close short perp.
 
 ## Admin instructions
 
@@ -183,30 +183,28 @@ Only one controller can exist at anytime.
 Instantiate a new `MangoDepository` PDA for a given collateral mint.
 A depository is a vault in charge a Collateral type, the associated mango account and insurance fund.
 
-Eject the mint auth from the program, ending the program. Maybe should be "deinitialize", need to think.
-
-### `RebalanceDepository` (TODO - Planned post release as the first capped release will be protected from liquidation by the insurance in the event of overweighted positions)
+### `RebalanceDepository` (TODO - Planned post release as the first capped release will be protected from liquidation by the insurance in the event of overweighed positions)
 
 Rebalance the health of one repository.
 Short Perp PNL will change over time. When it does, other users can settle match us (forcing the update of our balance, as this unsettle PnL is virtual, i.e. we don't pay interests on it)
 
 When settled on a negative PnL, account's USDC balance will become negative, effectively borrowing fund at the current rate.
 We don't want this because that cost us.
-At the same time, if we settle a positive PnL, the account USDC ba;ance become positive, effectively lending fund at the current rate and accruing interests (We want that obviously)
+At the same time, if we settle a positive PnL, the account USDC balance become positive, effectively lending fund at the current rate and accruing interests (We want that obviously)
 
 The strategy here of this rebalance call would be to resize the long and short positions to account for the unsettled negative PnL if any. (resize is a reduce in that case)
-By doing so, we close a given short perp, hence we are overcollateralized in the collateral mint.
+By doing so, we close a given short perp, hence we are over-collateralized in the collateral mint.
 We then sell this amount of collateral at market price, and that put us a positive balance of USDC, that accrue interest.
 
-THIS IS CURRENTLY PENDING due to the fact that it need to be done in a single atomic IX and that's impossible within 200k computing units. In Q1 2022 Solana will implement Adress map (accepted proposal).
-At that point this will be possible and we will be able to raise the hard cap or redeemables.
+THIS IS CURRENTLY PENDING due to the fact that it need to be done in a single atomic IX and that's impossible within 200k computing units. In Q1 2022 Solana will implement Address map (accepted proposal).
+At that point this will be possible and we will be able to raise the hard cap or redeemable tokens.
 
 ### `RebalanceAllDepositories` (TODO - In the future to balance collateral + optimize yield)
 
 Would rebalance the amount of collateral available inside each depository so that the pools don't become one sided (everyone deposit sol, then redeem BTC).
-Would also allow for yield optimisation depending of the current values.
+Would also allow for yield optimization depending of the current values.
 
-### `DepositInsuranceToMangoDepository` / `WidthdrawInsuranceFromMangoDepository`
+### `DepositInsuranceToMangoDepository` / `WithdrawInsuranceFromMangoDepository`
 
 Withdraw need to be specific cause it's PDA own accounts.
 
@@ -222,7 +220,7 @@ Change the value of the Mango Depositories operations (Mint/Redeem) Redeemable c
 
 ## User instructions
 
-They allow end users to mint and redeem Redeemables, they are permissionless.
+They allow end users to mint and redeem redeemable tokens, they are permissionless.
 Keep in mind all described steps are done during an atomic instruction, one fails and it's all aborted.
 
 ### `mint_uxd`
@@ -230,8 +228,8 @@ Keep in mind all described steps are done during an atomic instruction, one fail
 Send collateral to the `Depository` taking that given mint
 Estimate how much fill we can get to know how much collateral need to be actually deposited to mango to improve efficiency
 Open equivalent perp position (FoK with the provided slippage)
-Check that the position was fully openned else abort
-Deduct perp opnening fees from the quote amount
+Check that the position was fully opened else abort
+Deduct perp opening fees from the quote amount
 Mint equivalent amount of UXD to user (as the value of the short perp - taker fees)
 
 ### `redeem_uxd`
@@ -242,7 +240,7 @@ We create a Perp Short Close FoK order in that range
 We check that it got filled 100%
 We calculate how much USDC value that was, deduct fees
 We burn the same value of UXD from what the user sent
-We withdraw the collateral amount equivalent to the perpshort that has been closed previously (post taxes calculation)
+We withdraw the collateral amount equivalent to the perp short that has been closed previously (post taxes calculation)
 We send that back to the user (and his remaining UXD are back too, if any)
 
 Interface
@@ -255,11 +253,11 @@ Each Depository issues its own redeemable token as an accounting system that can
 of collateral without actually directly owning and managing the collateral itself. This allows the attack surface of the
 system as a whole to be reduced and creates a segmented risk profile such that all collateral tokens are not put in jeopardy
 due to any vulnerability that arises in relation to any specific collateral type. These tokens can referred to as r-tokens
-although the everyday user shouldn't have any need to refer to them at all since their primiary use is in the system back end
+although the everyday user shouldn't have any need to refer to them at all since their primary use is in the system back end
 and the user facing mint function encompasses both the depository facing deposit instruction as well as the controller
 facing mint function.
 
-The Controller issues the UXD token itself and has sole priviledge and authority over the UXD mint, which it exercises to
+The Controller issues the UXD token itself and has sole privilege and authority over the UXD mint, which it exercises to
 create new uxd obligations proportional to underlying basis trade positions. The same UXD token mint and controller combo
 can apply to arbitrarily many Depositories irrespective of the underlying perpetual swap markets, venues, mango groups, etc.
 The UXD token is fully fungible and any holder can redeem it at any time for a proportional share of the underlying collateral
