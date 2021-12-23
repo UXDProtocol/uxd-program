@@ -1,6 +1,9 @@
 use mango::matching::Book;
 use mango::matching::Side;
 
+use crate::ErrorCode;
+use crate::UxdResult;
+
 pub struct Order {
     // The quantity, in base_lot
     pub quantity: i64,
@@ -128,4 +131,19 @@ pub fn get_best_order_for_base_lot_quantity<'a>(
         }
     }
     None
+}
+
+// Verify that the order quantity matches the base position delta
+pub fn check_short_perp_order_fully_filled(
+    order_quantity: i64,
+    pre_position: i64,
+    post_position: i64,
+) -> UxdResult {
+    let filled_amount = (post_position.checked_sub(pre_position).unwrap())
+        .checked_abs()
+        .unwrap();
+    if !(order_quantity == filled_amount) {
+        return Err(ErrorCode::PerpOrderPartiallyFilled);
+    }
+    Ok(())
 }

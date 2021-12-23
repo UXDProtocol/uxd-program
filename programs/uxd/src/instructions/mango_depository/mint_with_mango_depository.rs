@@ -14,6 +14,7 @@ use mango::state::PerpMarket;
 
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
+use crate::mango_utils::check_short_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::get_best_order_for_base_lot_quantity;
 use crate::mango_utils::uncommitted_perp_base_position;
@@ -211,11 +212,7 @@ pub fn handler(
 
     // - [Checks that the order was fully filled]
     let post_position = uncommitted_perp_base_position(&perp_account);
-    check_short_perp_open_order_fully_filled(
-        best_order.quantity,
-        initial_base_position,
-        post_position,
-    )?;
+    check_short_perp_order_fully_filled(best_order.quantity, initial_base_position, post_position)?;
 
     // - 3[ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
 
@@ -401,19 +398,4 @@ impl<'info> MintWithMangoDepository<'info> {
 
         Ok(())
     }
-}
-
-// Verify that the order quantity matches the base position delta
-fn check_short_perp_open_order_fully_filled(
-    order_quantity: i64,
-    pre_position: i64,
-    post_position: i64,
-) -> UxdResult {
-    let filled_amount = (post_position.checked_sub(pre_position).unwrap())
-        .checked_abs()
-        .unwrap();
-    if !(order_quantity == filled_amount) {
-        return Err(ErrorCode::PerpOrderPartiallyFilled);
-    }
-    Ok(())
 }

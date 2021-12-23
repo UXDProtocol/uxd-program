@@ -12,6 +12,7 @@ use mango::state::PerpMarket;
 
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
+use crate::mango_utils::check_short_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::get_best_order_for_quote_lot_amount;
 use crate::mango_utils::uncommitted_perp_base_position;
@@ -180,7 +181,7 @@ pub fn handler(
 
     // - [Checks that the order was fully filled]
     let post_position = uncommitted_perp_base_position(&perp_account);
-    check_short_perp_close_order_fully_filled(
+    check_short_perp_order_fully_filled(
         best_order.quantity,
         initial_base_position,
         post_position,
@@ -364,17 +365,3 @@ impl<'info> RedeemFromMangoDepository<'info> {
     }
 }
 
-// Verify that the order quantity matches the base position delta
-pub fn check_short_perp_close_order_fully_filled(
-    order_quantity: i64,
-    pre_position: i64,
-    post_position: i64,
-) -> UxdResult {
-    let filled_amount = (post_position.checked_sub(pre_position).unwrap())
-        .checked_abs()
-        .unwrap();
-    if !(order_quantity == filled_amount) {
-        return Err(ErrorCode::PerpOrderPartiallyFilled);
-    }
-    Ok(())
-}
