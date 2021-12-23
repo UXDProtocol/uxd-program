@@ -2,6 +2,10 @@
 !/target/deploy
 /target/deploy/*.so
 !/target/deploy/uxd-keypair.json
+!/target/idl/
+!/target/idl/uxd.json
+!/target/types
+!/target/types/uxd.ts
 *.swp
 node_modules/
 test-ledger/
