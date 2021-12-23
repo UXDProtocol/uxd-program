@@ -262,3 +262,43 @@ pub fn check_max_rebalancing_amount_constraints(max_rebalancing_amount: u64) -> 
     }
     Ok(())
 }
+
+#[cfg(test)]
+pub mod test {
+    use super::*;
+    use proptest::prelude::*;
+
+    // - valid_redeemable_mint_decimals
+    proptest! {
+        #[test]
+        fn valid_redeemable_mint_decimals_ok(n in u8::MIN..SOLANA_MAX_MINT_DECIMALS) {
+            valid_redeemable_mint_decimals(n).unwrap();
+        }
+
+        #[test]
+        fn valid_redeemable_mint_decimals_ko(n in (SOLANA_MAX_MINT_DECIMALS + 1)..u8::MAX) {
+            let result = valid_redeemable_mint_decimals(n);
+            prop_assert!(result.is_err());
+        }
+    }
+
+    // - valid_redeemable_global_supply_cap
+    #[test]
+    fn test_valid_redeemable_global_supply_cap_ok() {
+        valid_redeemable_global_supply_cap(u128::MIN).unwrap();
+        valid_redeemable_global_supply_cap(u128::MAX).unwrap();
+    }
+
+    // proptest! {
+    //     #[test]
+    //     fn valid_redeemable_global_supply_cap_ok(n in u128::MIN..u128::MAX ) {
+    //         valid_redeemable_global_supply_cap(n).unwrap();
+    //     }
+
+    //     #[test]
+    //     fn valid_redeemable_global_supply_cap_ko(n in (SOLANA_MAX_MINT_DECIMALS + 1)..u8::MAX) {
+    //         let result = valid_redeemable_global_supply_cap(n);
+    //         prop_assert!(result.is_err());
+    //     }
+    // }
+}

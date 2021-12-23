@@ -21,3 +21,7 @@ spl-token = "3.2.0"
 fixed = "1.9.0"
 thiserror = "1.0.30"
 mango = { git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
+
+
+[dev-dependencies]
+proptest = "1.0.0"
