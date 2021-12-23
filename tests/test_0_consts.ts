@@ -1,9 +1,12 @@
 import { workspace } from "@project-serum/anchor";
+// import { Program } from "@project-serum/anchor";
 import { Mango, Controller, UXD_DECIMALS, MangoDepository, BTC_DECIMALS, SOL_DECIMALS, UXD, createAndInitializeMango, USDC_DECIMALS, UXDHelpers } from "@uxdprotocol/uxd-client";
+// import { IDL } from "../target/types/uxd";
 import { BTC, USDC, WSOL } from "./identities";
 import { provider } from "./provider";
 
 const uxdProgram = workspace.Uxd;
+// import { workspace } from "@project-serum/anchor";
 
 export const slippageBase = 1000;
 
