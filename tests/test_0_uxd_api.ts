@@ -164,6 +164,14 @@ export async function mintWithMangoDepository(user: Signer, slippage: number, co
     provider.send(tx2, [], TXN_OPTS);
 
     return txId;
+
+    // tx.instructions.push(mangoConsumeEventsIx);
+
+    // // To check the size. Currently 1101 bytes
+    // tx.recentBlockhash = (await provider.connection.getRecentBlockhash(TXN_COMMIT)).blockhash;
+    // tx.sign(...signers);
+    // console.log(tx.serialize().byteLength);
+    // return provider.send(tx, signers, TXN_OPTS);
 }
 
 export async function redeemFromMangoDepository(user: Signer, slippage: number, amountRedeemable: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
@@ -178,6 +186,6 @@ export async function redeemFromMangoDepository(user: Signer, slippage: number, 
     // To check the size. Currently 1101 bytes
     // tx.recentBlockhash = (await provider.connection.getRecentBlockhash(TXN_COMMIT)).blockhash;
     // tx.sign(...signers);
-    // console.log("test", tx.serialize().byteLength);
-    return provider.send(tx, [user], TXN_OPTS);
+    // console.log(tx.serialize().byteLength);
+    return provider.send(tx, signers, TXN_OPTS);
 }

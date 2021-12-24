@@ -17,7 +17,7 @@ use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_short_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::get_best_order_for_quote_lot_amount;
-use crate::mango_utils::uncommitted_perp_base_position;
+use crate::mango_utils::unsettled_base_amount;
 use crate::mango_utils::Order;
 use crate::mango_utils::OrderDelta;
 use crate::mango_utils::PerpInfo;
@@ -52,7 +52,7 @@ pub struct RedeemFromMangoDepository<'info> {
     pub depository: Box<Account<'info, MangoDepository>>,
     #[account(
         init_if_needed,
-        associated_token::mint = collateral_mint,
+        associated_token::mint = collateral_mint, // @ErrorCode::InvalidCollateralATAMint
         associated_token::authority = user,
         payer = user,
     )]
@@ -97,7 +97,7 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(mut)]
     pub mango_node_bank: AccountInfo<'info>,
     #[account(mut)]
-    pub mango_vault: Account<'info, TokenAccount>,
+    pub mango_vault: AccountInfo<'info>,
     #[account(mut)]
     pub mango_perp_market: AccountInfo<'info>,
     #[account(mut)]
@@ -184,8 +184,8 @@ pub fn handler(
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Checks that the order was fully filled]
-    let post_position = uncommitted_perp_base_position(&perp_account);
-    check_short_perp_order_fully_filled(best_order.quantity, initial_base_position, post_position)?;
+    let post_perp_order_base_position = unsettled_base_amount(&perp_account);
+    check_short_perp_order_fully_filled(best_order.quantity, initial_base_position, post_perp_order_base_position)?;
 
     // - 2 [BURN REDEEMABLE] -------------------------------------------------
     let order_delta = derive_order_delta(&perp_account, &perp_info);

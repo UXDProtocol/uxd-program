@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::MintTo;
@@ -17,7 +18,6 @@ use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_short_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::get_best_order_for_base_lot_quantity;
-use crate::mango_utils::uncommitted_perp_base_position;
 use crate::mango_utils::Order;
 use crate::mango_utils::OrderDelta;
 use crate::mango_utils::PerpInfo;
@@ -31,6 +31,7 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
+use crate::mango_utils::unsettled_base_amount;
 
 #[derive(Accounts)]
 pub struct MintWithMangoDepository<'info> {
@@ -59,12 +60,15 @@ pub struct MintWithMangoDepository<'info> {
     pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        constraint = user_collateral.mint == depository.collateral_mint @ErrorCode::InvalidUserCollateralATAMint
+        associated_token::mint = depository.collateral_mint, // @ErrorCode::InvalidUserCollateralATAMint
+        associated_token::authority = user,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
-        mut,
-        constraint = user_redeemable.mint == controller.redeemable_mint @ErrorCode::InvalidUserRedeemableATAMint
+        init_if_needed,
+        associated_token::mint = redeemable_mint, // @ErrorCode::InvalidUserRedeemableATAMint
+        associated_token::authority = user,
+        payer = user,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     #[account(
@@ -89,7 +93,7 @@ pub struct MintWithMangoDepository<'info> {
     #[account(mut)]
     pub mango_node_bank: AccountInfo<'info>,
     #[account(mut)]
-    pub mango_vault: Account<'info, TokenAccount>,
+    pub mango_vault: AccountInfo<'info>,
     #[account(mut)]
     pub mango_perp_market: AccountInfo<'info>,
     #[account(mut)]
@@ -101,6 +105,7 @@ pub struct MintWithMangoDepository<'info> {
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub mango_program: Program<'info, mango_program::Mango>,
     // sysvar
     pub rent: Sysvar<'info, Rent>,
@@ -205,11 +210,10 @@ pub fn handler(
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Checks that the order was fully filled]
-    let post_position = uncommitted_perp_base_position(&perp_account);
-    check_short_perp_order_fully_filled(best_order.quantity, initial_base_position, post_position)?;
+    let post_perp_order_base_position = unsettled_base_amount(&perp_account);
+    check_short_perp_order_fully_filled(best_order.quantity, initial_base_position, post_perp_order_base_position)?;
 
-    // - 3[ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
-
+    // - 3 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
     let order_delta = derive_order_delta(&perp_account, &perp_info);
     ctx.accounts
         .check_mango_depositories_redeemable_soft_cap_overflow(order_delta.redeemable)?;
@@ -221,8 +225,6 @@ pub fn handler(
             .with_signer(controller_signer_seed),
         order_delta.redeemable,
     )?;
-
-    // Seems that the display of the mango account doesn't display the fees in the perp pos... investigating
 
     // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
 
@@ -295,6 +297,20 @@ impl<'info> MintWithMangoDepository<'info> {
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
+
+    // pub fn into_consume_events_context(
+    //     &self,
+    // ) -> CpiContext<'_, '_, '_, 'info, ConsumeEvents<'info>> {
+    //     let cpi_program = self.mango_program.to_account_info();
+    //     let cpi_accounts = ConsumeEvents {
+    //         mango_group: self.mango_group.to_account_info(),
+    //         mango_cache: self.mango_cache.to_account_info(),
+    //         perp_market: self.mango_perp_market.to_account_info(),
+    //         event_queue: self.mango_event_queue.to_account_info(),
+    //         mango_account: self.depository_mango_account.to_account_info(),
+    //     };
+    //     CpiContext::new(cpi_program, cpi_accounts)
+    // }
 }
 
 // Additional convenience methods related to the inputted accounts
@@ -311,7 +327,7 @@ impl<'info> MintWithMangoDepository<'info> {
         Ok(perp_info)
     }
 
-    // Return the uncommitted PerpAccount that represent the account balances
+    // Return the PerpAccount that represent the account balances (Quote and Taker, Taker is the part that is waiting settlement)
     fn perp_account(&self, perp_info: &PerpInfo) -> UxdResult<PerpAccount> {
         // - loads Mango's accounts
         let mango_account = match MangoAccount::load_checked(
