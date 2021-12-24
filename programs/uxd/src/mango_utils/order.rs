@@ -139,11 +139,40 @@ pub fn check_short_perp_order_fully_filled(
     pre_position: i64,
     post_position: i64,
 ) -> UxdResult {
-    let filled_amount = (post_position.checked_sub(pre_position).unwrap())
-        .checked_abs()
-        .unwrap();
+    let filled_amount = (post_position
+        .checked_sub(pre_position)
+        .expect("checked_sub returns None"))
+    .checked_abs()
+    .expect("checked_abs returns None");
     if !(order_quantity == filled_amount) {
         return Err(ErrorCode::PerpOrderPartiallyFilled);
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+
+    mod check_short_perp_order_fully_filled {
+        use super::super::*;
+        // order_quantity is ignored in this case.
+        #[test]
+        #[should_panic(expected = "checked_sub returns None")]
+        fn test_specific_panic() {
+            let _quantity = 0;
+            // returning None if overflow occurred.
+            // see: https://doc.rust-lang.org/std/primitive.i64.html#method.checked_sub
+            let _ = check_short_perp_order_fully_filled(_quantity, 1, std::i64::MIN);
+        }
+
+        // order_quantity is ignored in this case.
+        #[test]
+        #[should_panic(expected = "checked_abs returns None")]
+        fn test_specific_panic2() {
+            let _quantity = 0;
+            // checked_abs returns None if self == MIN.
+            // see: https://doc.rust-lang.org/std/primitive.i64.html#method.checked_abs
+            let _ = check_short_perp_order_fully_filled(_quantity, 0, std::i64::MIN);
+        }
+    }
 }
