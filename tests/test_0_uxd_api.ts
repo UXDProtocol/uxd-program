@@ -1,6 +1,6 @@
 
 import { Controller, MangoDepository, Mango, findATAAddrSync, createAssocTokenIx } from "@uxdprotocol/uxd-client";
-import { provider, TXN_OPTS } from "./provider";
+import { provider, TXN_COMMIT, TXN_OPTS } from "./provider";
 import { controllerUXD, uxdClient, uxdHelpers } from "./test_0_consts";
 import { Account, Signer, Transaction } from '@solana/web3.js';
 import { user } from "./identities";
@@ -18,15 +18,15 @@ export async function collateralUIPriceInMangoQuote(depository: MangoDepository,
     return uxdHelpers.perpUIPriceInQuote(mango, depository);
 }
 
-export async function redeemableCirculatinSupply(controller: Controller): Promise<number> {
-    return uxdHelpers.redeemableCirculatinSupply(provider, controller, TXN_OPTS);
+export async function redeemableCirculatingSupply(controller: Controller): Promise<number> {
+    return uxdHelpers.redeemableCirculatingSupply(provider, controller, TXN_OPTS);
 }
 
 export async function getControllerAccount(controller: Controller): Promise<ControllerAccount> {
     return uxdHelpers.getControllerAccount(provider, uxdClient.program, controller, TXN_OPTS);
 }
 
-export async function getmangoDepositoryAccount(mangoDepository: MangoDepository): Promise<MangoDepositoryAccount> {
+export async function getMangoDepositoryAccount(mangoDepository: MangoDepository): Promise<MangoDepositoryAccount> {
     return uxdHelpers.getMangoDepositoryAccount(provider, uxdClient.program, mangoDepository, TXN_OPTS);
 }
 
@@ -145,7 +145,7 @@ export async function mintWithMangoDepository(user: Signer, slippage: number, co
     }
 
     if (depository.collateralMint.equals(NATIVE_MINT)) {
-        const nativeAmount = collateralAmount * 10 ** depository.collateralMintdecimals;
+        const nativeAmount = collateralAmount * 10 ** depository.collateralMintDecimals;
         const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
             provider.connection,
             user.publicKey,
@@ -172,19 +172,12 @@ export async function redeemFromMangoDepository(user: Signer, slippage: number, 
     let signers = [];
     let tx = new Transaction();
 
-    const userCollateralATA = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
-    if (!(await provider.connection.getAccountInfo(userCollateralATA))) {
-        tx.instructions.push(createAssocTokenIx(user.publicKey, userCollateralATA, depository.collateralMint));
-    }
-
     tx.instructions.push(redeemFromMangoDepositoryIx);
     signers.push(user);
-
-    let txId = await provider.send(tx, signers, TXN_OPTS);
-
-    let tx2 = new Transaction();
-    tx2.instructions.push(mangoConsumeEventsIx);
-    provider.send(tx2, [], TXN_OPTS);
-
-    return txId;
+    tx.instructions.push(mangoConsumeEventsIx);
+    // To check the size. Currently 1101 bytes
+    // tx.recentBlockhash = (await provider.connection.getRecentBlockhash(TXN_COMMIT)).blockhash;
+    // tx.sign(...signers);
+    // console.log("test", tx.serialize().byteLength);
+    return provider.send(tx, [user], TXN_OPTS);
 }
