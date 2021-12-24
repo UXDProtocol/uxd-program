@@ -43,7 +43,8 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     pub insurance_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        constraint = authority_insurance.mint == depository.insurance_mint @ErrorCode::InvalidAuthorityInsuranceATAMint
+        associated_token::mint = insurance_mint, //  @ErrorCode::InvalidAuthorityInsuranceATAMint
+        associated_token::authority = authority,
     )]
     pub authority_insurance: Box<Account<'info, TokenAccount>>,
     #[account(
