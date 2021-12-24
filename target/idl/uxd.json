@@ -472,6 +472,11 @@
           "isSigner": false
         },
         {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "mangoProgram",
           "isMut": false,
           "isSigner": false
@@ -973,8 +978,5 @@
       "name": "InvalidDepositoryAccounting",
       "msg": "The Depository accounting is in an invalid state."
     }
-  ],
-  "metadata": {
-    "address": "UXDQDbkAeGMPR7gqDykDNu22D9DnYrKdvZhvNmMu6QX"
-  }
+  ]
 }
