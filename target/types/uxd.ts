@@ -472,6 +472,11 @@ export type Uxd = {
           "isSigner": false
         },
         {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "mangoProgram",
           "isMut": false,
           "isSigner": false
@@ -1446,6 +1451,11 @@ export const IDL: Uxd = {
         },
         {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false
         },
