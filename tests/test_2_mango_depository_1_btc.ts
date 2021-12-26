@@ -40,8 +40,7 @@ describe(" ======= [Suite 2-1 : Mint then redeem all BTC (2 op)] ======= ", () =
     op1_amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
     const btcUsed = _userBtcBalancePreOp - _userBtcBalancePostOp;
 
-    // + 0.00204 to create wsol ata 
-    expect(btcUsed).lessThanOrEqual(collateralAmount + 0.00204, "The collateral amount paid doesn't match the user wallet delta");
+    expect(btcUsed).lessThanOrEqual(collateralAmount, "The collateral amount paid doesn't match the user wallet delta");
     expect(op1_amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
     console.log(`    ==> [Minted ${op1_amountUxdMinted} for ${btcUsed} BTC (approximperfect was ${maxAmountUxdMinted})]`);

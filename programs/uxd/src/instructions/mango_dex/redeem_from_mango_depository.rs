@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
 use anchor_spl::token::CloseAccount;
@@ -16,7 +17,7 @@ use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_short_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::get_best_order_for_quote_lot_amount;
-use crate::mango_utils::uncommitted_perp_base_position;
+use crate::mango_utils::unsettled_base_amount;
 use crate::mango_utils::Order;
 use crate::mango_utils::OrderDelta;
 use crate::mango_utils::PerpInfo;
@@ -50,15 +51,22 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
     #[account(
-        mut,
-        constraint = user_collateral.mint == depository.collateral_mint @ErrorCode::InvalidUserCollateralATAMint
+        init_if_needed,
+        associated_token::mint = collateral_mint, // @ErrorCode::InvalidCollateralATAMint
+        associated_token::authority = user,
+        payer = user,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        constraint = user_redeemable.mint == redeemable_mint.key() @ErrorCode::InvalidRedeemableMint
+        associated_token::mint = redeemable_mint.key(),
+        associated_token::authority = user,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
+    #[account(
+        constraint = collateral_mint.key() == depository.collateral_mint @ErrorCode::InvalidCollateralMint
+    )]
+    pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
@@ -89,7 +97,7 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(mut)]
     pub mango_node_bank: AccountInfo<'info>,
     #[account(mut)]
-    pub mango_vault: Account<'info, TokenAccount>,
+    pub mango_vault: AccountInfo<'info>,
     #[account(mut)]
     pub mango_perp_market: AccountInfo<'info>,
     #[account(mut)]
@@ -101,6 +109,7 @@ pub struct RedeemFromMangoDepository<'info> {
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub mango_program: Program<'info, mango_program::Mango>,
     // sysvar
     pub rent: Sysvar<'info, Rent>,
@@ -175,8 +184,8 @@ pub fn handler(
     let perp_account = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Checks that the order was fully filled]
-    let post_position = uncommitted_perp_base_position(&perp_account);
-    check_short_perp_order_fully_filled(best_order.quantity, initial_base_position, post_position)?;
+    let post_perp_order_base_position = unsettled_base_amount(&perp_account);
+    check_short_perp_order_fully_filled(best_order.quantity, initial_base_position, post_perp_order_base_position)?;
 
     // - 2 [BURN REDEEMABLE] -------------------------------------------------
     let order_delta = derive_order_delta(&perp_account, &perp_info);

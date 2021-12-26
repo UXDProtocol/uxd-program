@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "1.3.2",
+  "version": "1.3.3",
   "name": "uxd",
   "instructions": [
     {
@@ -472,6 +472,11 @@ export type Uxd = {
           "isSigner": false
         },
         {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "mangoProgram",
           "isMut": false,
           "isSigner": false
@@ -519,6 +524,11 @@ export type Uxd = {
         {
           "name": "userRedeemable",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -593,6 +603,11 @@ export type Uxd = {
         },
         {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -967,7 +982,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "1.3.2",
+  "version": "1.3.3",
   "name": "uxd",
   "instructions": [
     {
@@ -1440,6 +1455,11 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "mangoProgram",
           "isMut": false,
           "isSigner": false
@@ -1487,6 +1507,11 @@ export const IDL: Uxd = {
         {
           "name": "userRedeemable",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1561,6 +1586,11 @@ export const IDL: Uxd = {
         },
         {
           "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false
         },
