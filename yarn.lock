@@ -86,10 +86,10 @@
     snake-case "^3.0.4"
     toml "^3.0.0"
 
-"@project-serum/anchor@^0.19.0":
-  version "0.19.0"
-  resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.19.0.tgz#79f1fbe7c3134860ccbfe458a0e09daf79644885"
-  integrity sha512-cs0LBmJOrL9eJ8MRNqitnzbpCT5QEzVdJmiIjfNV5YaGn1K9vISR7DtISj3Bdl3KBdLqii4CTw1mpHdi8iXUCg==
+"@project-serum/anchor@^0.19.1-beta.1":
+  version "0.19.1-beta.1"
+  resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.19.1-beta.1.tgz#516b78432acabd8563831c3b9df4628ca34dba28"
+  integrity sha512-TzkgS5a4WUDJotmur9/pQhqeqa5W14h++ppF+oGZVoR0EkcLbW7SKpx/z80XhsHCIhWz9/1hBAkbKElXdKUUiw==
   dependencies:
     "@project-serum/borsh" "^0.2.2"
     "@solana/web3.js" "^1.17.0"
@@ -267,10 +267,10 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@uxdprotocol/uxd-client@^3.10.1":
-  version "3.10.1"
-  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/3.10.1/c7063a76318112fdd9d1d43b2a23b28c53ad9a7cd99a52ebfc52c52538355010#d838b04c3543c11b5e7811ba0c670590b3ee554c"
-  integrity sha512-i5svwipZJRlN8gf8TLdsqcXk19dp+VV8XQSKtSrGi02x7KymNkmm3fNqFKK/Ax/tMy+DTk1chIaNOUeIy+bViQ==
+"@uxdprotocol/uxd-client@^3.11.1":
+  version "3.11.1"
+  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/3.11.1/a6ce80431e926e664c83016841b1a1ae9cfe5b3eed96867fdefb532a69597e2d#b654b1d8af4fd7aab68c962ea992dac7651d19f1"
+  integrity sha512-jVqQNA3W/wwisRuvmrZn+6fJXo5Ox+NRNjlGh1fGAu50BblkBhueiQcjWqPYO1XJd3f5A1PoKZZvF60HwS9plA==
   dependencies:
     "@blockworks-foundation/mango-client" "3.2.15"
 
