@@ -11,6 +11,10 @@ name = "uxd"
 
 [features]
 no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
 test-bpf = []
 
 [dependencies]
