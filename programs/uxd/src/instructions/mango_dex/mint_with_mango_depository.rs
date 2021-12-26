@@ -18,6 +18,7 @@ use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_short_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::get_best_order_for_base_lot_quantity;
+use crate::mango_utils::unsettled_base_amount;
 use crate::mango_utils::Order;
 use crate::mango_utils::OrderDelta;
 use crate::mango_utils::PerpInfo;
@@ -31,7 +32,6 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
-use crate::mango_utils::unsettled_base_amount;
 
 #[derive(Accounts)]
 pub struct MintWithMangoDepository<'info> {
@@ -211,7 +211,11 @@ pub fn handler(
 
     // - [Checks that the order was fully filled]
     let post_perp_order_base_position = unsettled_base_amount(&perp_account);
-    check_short_perp_order_fully_filled(best_order.quantity, initial_base_position, post_perp_order_base_position)?;
+    check_short_perp_order_fully_filled(
+        best_order.quantity,
+        initial_base_position,
+        post_perp_order_base_position,
+    )?;
 
     // - 3 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
     let order_delta = derive_order_delta(&perp_account, &perp_info);
