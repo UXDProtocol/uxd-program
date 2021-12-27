@@ -61,10 +61,9 @@ describe(" ======= [Suite 2-4 : test mango depositories redeemable soft cap (4 o
         const _userSolBalancePostOp = await getSolBalance(caller.publicKey);
 
         amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
-        const solUsed = _userSolBalancePreOp - _userSolBalancePostOp;
+        const solUsed = (_userSolBalancePreOp - _userSolBalancePostOp);
 
-        // + 0.00204 to create wsol ata
-        expect(solUsed).lessThanOrEqual(collateralAmount + 0.00204, "The collateral amount paid doesn't match the user wallet delta");
+        expect(solUsed).closeTo(collateralAmount, Math.pow(10, -depository.insuranceMintDecimals),  "The collateral amount paid doesn't match the user wallet delta");
         expect(amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
         console.log(`    ==> [Minted ${amountUxdMinted} for ${solUsed} SOL (perfect was ${maxAmountUxdMinted})]`);

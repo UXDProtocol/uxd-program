@@ -40,8 +40,7 @@ describe(" ======= [Suite 2-2-1 : Mint then redeem all SOL (4 op)] ======= ", ()
         amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
         const solUsed = _userSolBalancePreOp - _userSolBalancePostOp;
 
-        // + 0.00204 to create wsol ata
-        expect(solUsed).lessThanOrEqual(collateralAmount + 0.00204, "The collateral amount paid doesn't match the user wallet delta");
+        expect(solUsed).closeTo(collateralAmount, Math.pow(10, -depository.insuranceMintDecimals), "The collateral amount paid doesn't match the user wallet delta");
         expect(amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
         console.log(`    ==> [Minted ${amountUxdMinted} for ${solUsed} SOL (perfect was ${maxAmountUxdMinted})]`);
@@ -96,8 +95,7 @@ describe(" ======= [Suite 2-2-1 : Mint then redeem all SOL (4 op)] ======= ", ()
         amountUxdMintedB = _userUxdBalancePostOp - _userUxdBalancePreOp;
         const solUsed = _userSolBalancePreOp - _userSolBalancePostOp;
 
-        // + 0.00204 to create wsol assoc accounts
-        expect(solUsed).lessThanOrEqual(collateralAmountB + 0.00204, "The collateral amount paid doesn't match the user wallet delta");
+        expect(solUsed).closeTo(collateralAmountB, Math.pow(10, -depository.insuranceMintDecimals), "The collateral amount paid doesn't match the user wallet delta");
         expect(amountUxdMintedB).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
         console.log(`    ==> [Minted ${amountUxdMintedB} for ${solUsed} SOL (perfect was ${maxAmountUxdMinted})]`);
