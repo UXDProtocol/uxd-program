@@ -17,7 +17,7 @@ use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_short_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::get_best_order_for_quote_lot_amount;
-use crate::mango_utils::unsettled_base_amount;
+use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::Order;
 use crate::mango_utils::OrderDelta;
 use crate::mango_utils::PerpInfo;
@@ -131,27 +131,24 @@ pub fn handler(
     // - [Get perp information]
     let perp_info = ctx.accounts.perpetual_info()?;
 
-    // - [Perp account state PRE perp order]
-    let perp_account = ctx.accounts.perp_account(&perp_info)?;
-
-    // - [Make sure that the PerpAccount crank has been run previously to this instruction by the uxd-client so that pending changes are updated in mango]
-    if !(perp_account.taker_base == 0 && perp_account.taker_quote == 0) {
-        return Err(ErrorCode::InvalidPerpAccountState.into());
-    }
-
     // - [Calculates the quantity of short to close]
     let mut exposure_delta_in_quote_unit = I80F48::checked_from_num(redeemable_amount).unwrap();
 
     // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees doesn't overflow the redeemed amount]
     let max_fee_amount = exposure_delta_in_quote_unit
         .checked_mul(perp_info.taker_fee)
+        .unwrap()
+        .checked_ceil()
         .unwrap();
     exposure_delta_in_quote_unit = exposure_delta_in_quote_unit
         .checked_sub(max_fee_amount)
         .unwrap();
 
+    // - [Perp account state PRE perp order]
+    let pre_pa = ctx.accounts.perp_account(&perp_info)?;
+
     // - [Base depository's position size in native units PRE perp opening (to calculate the % filled later on)]
-    let initial_base_position = perp_account.base_position;
+    let initial_base_lot_position = total_perp_base_lot_position(&pre_pa);
 
     // - [Find out how the best price and quantity for our order]
     let exposure_delta_in_quote_lot_unit = exposure_delta_in_quote_unit
@@ -181,14 +178,18 @@ pub fn handler(
     )?;
 
     // - [Perp account state POST perp order]
-    let perp_account = ctx.accounts.perp_account(&perp_info)?;
+    let post_pa = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Checks that the order was fully filled]
-    let post_perp_order_base_position = unsettled_base_amount(&perp_account);
-    check_short_perp_order_fully_filled(best_order.quantity, initial_base_position, post_perp_order_base_position)?;
+    let post_perp_order_base_lot_position = total_perp_base_lot_position(&post_pa);
+    check_short_perp_order_fully_filled(
+        best_order.quantity,
+        initial_base_lot_position,
+        post_perp_order_base_lot_position,
+    )?;
 
     // - 2 [BURN REDEEMABLE] -------------------------------------------------
-    let order_delta = derive_order_delta(&perp_account, &perp_info);
+    let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info);
 
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),

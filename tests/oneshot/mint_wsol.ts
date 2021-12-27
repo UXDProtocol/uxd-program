@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { user } from "../identities";
-import { mintWithMangoDepository, collateralUIPriceInMangoQuote } from "../test_0_uxd_api";
+import { mintWithMangoDepository, collateralUIPriceInMangoQuote, redeemFromMangoDepository } from "../test_0_uxd_api";
 import { printUserBalances, printDepositoryInfo, getBalance, userUXDATA, getSolBalance } from "../integration_test_utils";
 import { slippage } from "../test_2_consts";
 import { depositoryWSOL, mango, slippageBase, controllerUXD } from "../test_0_consts";
@@ -49,32 +49,35 @@ describe(` mint ${amountToMint} SOL`, () => {
         console.log(`    ==> [Minted ${amountUxdMinted} for ${solUsed} SOL (perfect was ${maxAmountUxdMinted})]`);
     });
 
-    it(`2 - Mint UXD worth ${collateralAmount} SOL with ${slippagePercentage * 100}% max slippage 5 times`, async () => {
-        // // GIVEN
-        // const _userUxdBalancePreOp = await getBalance(userUXDATA);
-        // const _userSolBalancePreOp = await getSolBalance(caller.publicKey);
+    it(`mint 10 times`, async () => {
+        let amountRedeemable = 69.69;
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
 
-        // WHEN
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
 
-        // // Then
-        // // Could be wrong cause there is a diff between the oracle fetch price and the operation, but let's ignore that for now
-        // const maxAmountUxdMinted = (await collateralUIPriceInMangoQuote(depository, mango)) * collateralAmount * 5;
-        // const _userUxdBalancePostOp = await getBalance(userUXDATA);
-        // const _userSolBalancePostOp = await getSolBalance(caller.publicKey);
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
 
-        // amountUxdMinted = _userUxdBalancePostOp - _userUxdBalancePreOp;
-        // const solUsed = _userSolBalancePreOp - _userSolBalancePostOp;
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
 
-        // // + 0.00204 to create wsol ata
-        // expect(solUsed).lessThanOrEqual(collateralAmount + 0.00204, "The collateral amount paid doesn't match the user wallet delta");
-        // expect(amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
 
-        // console.log(`    ==> [Minted ${amountUxdMinted} for ${solUsed} SOL (perfect was ${maxAmountUxdMinted})]`);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
     });
     
 });
