@@ -30,12 +30,12 @@ export async function getMangoDepositoryAccount(mangoDepository: MangoDepository
     return uxdHelpers.getMangoDepositoryAccount(provider, uxdClient.program, mangoDepository, TXN_OPTS);
 }
 
-// DOESNT WORK in uxd-client- to fix
+// DOESN'T WORK in uxd-client- to fix
 export async function getMangoDepositoryCollateralBalance(mangoDepository: MangoDepository, mango: Mango): Promise<number> {
     return uxdHelpers.getMangoDepositoryCollateralBalance(mangoDepository, mango);
 }
 
-// DOESNT WORK in uxd-client- to fix
+// DOESN'T WORK in uxd-client- to fix
 export async function getMangoDepositoryInsuranceBalance(mangoDepository: MangoDepository, mango: Mango): Promise<number> {
     return uxdHelpers.getMangoDepositoryInsuranceBalance(mangoDepository, mango);
 }
@@ -135,14 +135,9 @@ export function setMangoDepositoriesRedeemableSoftCap(authority: Signer, control
 
 export async function mintWithMangoDepository(user: Signer, slippage: number, collateralAmount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const mintWithMangoDepositoryIx = uxdClient.createMintWithMangoDepositoryInstruction(collateralAmount, slippage, controller, depository, mango, user.publicKey, TXN_OPTS);
-    const mangoConsumeEventsIx = await mango.createPerpMarketConsumeEventInstruction(depository.mangoAccountPda, depository.collateralMintSymbol, `sell`);
+    // const mangoConsumeEventsIx = await mango.createPerpMarketConsumeEventInstruction(depository.mangoAccountPda, depository.collateralMintSymbol, `sell`);
     let signers = [];
     let tx = new Transaction();
-
-    const userRedeemableATA = findATAAddrSync(user.publicKey, controllerUXD.redeemableMintPda)[0];
-    if (!(await provider.connection.getAccountInfo(userRedeemableATA))) {
-        tx.instructions.push(createAssocTokenIx(user.publicKey, userRedeemableATA, controllerUXD.redeemableMintPda));
-    }
 
     if (depository.collateralMint.equals(NATIVE_MINT)) {
         const nativeAmount = collateralAmount * 10 ** depository.collateralMintDecimals;
@@ -159,33 +154,21 @@ export async function mintWithMangoDepository(user: Signer, slippage: number, co
 
     let txId = await provider.send(tx, signers, TXN_OPTS);
 
-    let tx2 = new Transaction();
-    tx2.instructions.push(mangoConsumeEventsIx);
-    provider.send(tx2, [], TXN_OPTS);
+    // let tx2 = new Transaction();
+    // tx2.instructions.push(mangoConsumeEventsIx);
+    // await provider.send(tx2, [], TXN_OPTS);
 
     return txId;
-
-    // tx.instructions.push(mangoConsumeEventsIx);
-
-    // // To check the size. Currently 1101 bytes
-    // tx.recentBlockhash = (await provider.connection.getRecentBlockhash(TXN_COMMIT)).blockhash;
-    // tx.sign(...signers);
-    // console.log(tx.serialize().byteLength);
-    // return provider.send(tx, signers, TXN_OPTS);
 }
 
 export async function redeemFromMangoDepository(user: Signer, slippage: number, amountRedeemable: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const redeemFromMangoDepositoryIx = uxdClient.createRedeemFromMangoDepositoryInstruction(amountRedeemable, slippage, controller, depository, mango, user.publicKey, TXN_OPTS);
-    const mangoConsumeEventsIx = await mango.createPerpMarketConsumeEventInstruction(depository.mangoAccountPda, depository.collateralMintSymbol, `buy`);
+    // const mangoConsumeEventsIx = await mango.createPerpMarketConsumeEventInstruction(depository.mangoAccountPda, depository.collateralMintSymbol, `buy`);
     let signers = [];
     let tx = new Transaction();
 
     tx.instructions.push(redeemFromMangoDepositoryIx);
     signers.push(user);
-    tx.instructions.push(mangoConsumeEventsIx);
-    // To check the size. Currently 1101 bytes
-    // tx.recentBlockhash = (await provider.connection.getRecentBlockhash(TXN_COMMIT)).blockhash;
-    // tx.sign(...signers);
-    // console.log(tx.serialize().byteLength);
+    // tx.instructions.push(mangoConsumeEventsIx);
     return provider.send(tx, signers, TXN_OPTS);
 }

@@ -38,7 +38,7 @@ export async function printDepositoryInfo(depository: MangoDepository, mango: Ma
     let depositoryAccount = await uxdHelpers.getMangoDepositoryAccount(provider, uxdClient.program, depository, TXN_OPTS);
     //
     const mangoAccount = await mango.load(depository.mangoAccountPda);
-    // await mango.printAccountInfo(mangoAccount);
+    await mango.printAccountInfo(mangoAccount);
     const pmi = mango.getPerpMarketConfig(SYM).marketIndex;
     const smi = mango.getSpotMarketConfig(SYM).marketIndex;
     const sti = mango.getTokenIndex(depository.collateralMint);
@@ -46,7 +46,6 @@ export async function printDepositoryInfo(depository: MangoDepository, mango: Ma
     const pm = await mango.getPerpMarket(SYM);
     const cache = await mango.group.loadCache(provider.connection);
     const accountValue = mangoAccount.computeValue(mango.group, cache).toBig();
-    const collateralValue = mangoAccount.getCollateralValueUi(mango.group, cache);
     const accountingInsuranceDepositedValue = nativeToUi(depositoryAccount.insuranceAmountDeposited.toNumber(), 6);
     const collateralSpotAmount = mangoAccount.getNet(cache.rootBankCache[smi], sti);
     const collateralDepositInterests = new BN(collateralSpotAmount.toNumber()).sub(depositoryAccount.collateralAmountDeposited);
@@ -55,12 +54,14 @@ export async function printDepositoryInfo(depository: MangoDepository, mango: Ma
 
     console.log("        * - underlying mango account -");
     console.log(`        *     value                                       ${accountValue.toFixed(6)} (${(accountValueMinusInsurance).toFixed(6)} minus insurance)`);
-    console.log(`        *     collateral value                            ${collateralValue.toFixed(6)} (${(collateralValue - accountingInsuranceDepositedValue).toFixed(6)} minus insurance)`);
     console.log("        *");
     console.log(`        *     ${SYM}-SPOT BASE Pos                           ${nativeI80F48ToUi(collateralSpotAmount, 9).toFixed(9)}`);
-    console.log(`        *     ${SYM}-PERP BASE Pos                          ${nativeToUi(pm.baseLotsToNative(pa.basePosition).toNumber(), 9).toFixed(9)}`);
     console.log("        *");
-    console.log(`        *     ${SYM}-PERP Quote Pos                          ${nativeI80F48ToUi(pa.quotePosition, 6).toNumber().toFixed(6)}`);
+    console.log(`        *     ${SYM}-PERP BASE Pos                          ${nativeToUi(pm.baseLotsToNative(pa.basePosition).toNumber(), 9).toFixed(9)}`);
+    console.log(`        *     ${SYM}-PERP Quote Pos (lot)                    ${nativeToUi(pa.quotePosition, 6).toFixed(6)}`);
+    console.log(`        *     ${SYM}-PERP BASE Tak                          ${nativeToUi(pm.baseLotsToNative(pa.takerBase).toNumber(), 9).toFixed(9)} (pending settlement)`);
+    console.log(`        *     ${SYM}-PERP Quote Tak (lot)                    ${nativeToUi(pa.takerQuote, 6).toFixed(6)} (pending settlement`);
+    console.log("        *");
     console.log(`        *     ${SYM}-PERP Unsettled Funding                  ${nativeI80F48ToUi(pa.getUnsettledFunding(cache.perpMarketCache[pmi]), 6).toNumber().toFixed(6)}`);
     // console.log(`        *     getLiabsVal                                 ${nativeI80F48ToUi(pa.getLiabsVal(mango.group.perpMarkets[pmi], cache.priceCache[pmi].price, pm.shortFunding, pm.longFunding), 6).toNumber().toFixed(6)}`);
     // console.log(`        *     getAssetVal                                 ${nativeI80F48ToUi(pa.getAssetVal(mango.group.perpMarkets[pmi], cache.priceCache[pmi].price, pm.shortFunding, pm.longFunding), 6).toNumber().toFixed(6)}`);
