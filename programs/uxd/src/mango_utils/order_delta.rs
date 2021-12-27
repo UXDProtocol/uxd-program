@@ -1,3 +1,5 @@
+use crate::mango_utils::total_perp_base_lot_position;
+
 use super::PerpInfo;
 use fixed::types::I80F48;
 use mango::state::PerpAccount;
@@ -10,29 +12,47 @@ pub struct OrderDelta {
 }
 
 // Note : removes the taker fees from the redeemable_delta.
-//  The fees are not reflected right away in the PerpAccount (uncommitted changes).
+//  The fees are not reflected right away in the PerpAccount (uncommitted changes), so we do it manually.
 //  Mango system needs to call (after this ix, by the user or anyone) the consumeEvents ix, that will process the `fillEvent` in that case
-//  and update all mango internals / resolve the uncommitted balance change, and process fees.
+//  and update all mango internals / resolve the unsettled balance change, and process fees.
 //  The amount minted/redeemed offsets accordingly to reflect that change that will be settled in the future.
-pub fn derive_order_delta(perp_account: &PerpAccount, perp_info: &PerpInfo) -> OrderDelta {
-    let order_value = I80F48::checked_from_num(perp_account.taker_quote)
-        .unwrap()
+pub fn derive_order_delta(
+    pre_pa: &PerpAccount,
+    post_pa: &PerpAccount,
+    perp_info: &PerpInfo,
+) -> OrderDelta {
+    // [QUOTE]
+    // The order delta in quote lot
+    let order_quote_lot_delta = pre_pa.taker_quote.checked_sub(post_pa.taker_quote).unwrap();
+    // ... to quote native units.
+    let order_value = I80F48::from_num(order_quote_lot_delta)
         .checked_mul(perp_info.quote_lot_size)
         .unwrap();
-    // Rounded UP
+    msg!("order_value {}", order_value);
+
+    // [QUOTE FEES] (Rounded UP)
     let fee_amount = order_value
         .checked_mul(perp_info.taker_fee)
         .unwrap()
-        .checked_ceil()
-        .unwrap()
         .checked_abs()
+        .unwrap()
+        .checked_ceil()
         .unwrap();
-    let collateral_amount =
-        I80F48::checked_from_num(perp_account.taker_base.checked_abs().unwrap())
-            .unwrap()
-            .checked_mul(perp_info.base_lot_size)
-            .unwrap();
-    let collateral_delta = collateral_amount.checked_to_num().unwrap();
+
+    // [BASE]
+    let pre_base_lot_position = total_perp_base_lot_position(pre_pa);
+    let post_base_lot_position = total_perp_base_lot_position(post_pa);
+    let base_lot_delta = pre_base_lot_position
+        .checked_sub(post_base_lot_position)
+        .unwrap()
+        .abs();
+
+    // [DELTAS]
+    let collateral_delta = I80F48::from_num(base_lot_delta)
+        .checked_mul(perp_info.base_lot_size)
+        .unwrap()
+        .checked_to_num()
+        .unwrap();
     let redeemable_delta = order_value
         .checked_sub(fee_amount)
         .unwrap()
