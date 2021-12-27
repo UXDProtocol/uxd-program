@@ -23,7 +23,9 @@ pub fn derive_order_delta(
 ) -> OrderDelta {
     // [QUOTE]
     // The order delta in quote lot
-    let order_quote_lot_delta = pre_pa.taker_quote.checked_sub(post_pa.taker_quote).unwrap();
+    let pre_taker_quote = I80F48::from_num(pre_pa.taker_quote);
+    let post_taker_quote = I80F48::from_num(post_pa.taker_quote);
+    let order_quote_lot_delta = pre_taker_quote.dist(post_taker_quote);
     // ... to quote native units.
     let order_value = I80F48::from_num(order_quote_lot_delta)
         .checked_mul(perp_info.quote_lot_size)
@@ -40,12 +42,9 @@ pub fn derive_order_delta(
         .unwrap();
 
     // [BASE]
-    let pre_base_lot_position = total_perp_base_lot_position(pre_pa);
-    let post_base_lot_position = total_perp_base_lot_position(post_pa);
-    let base_lot_delta = pre_base_lot_position
-        .checked_sub(post_base_lot_position)
-        .unwrap()
-        .abs();
+    let pre_base_lot_position = I80F48::from_num(total_perp_base_lot_position(pre_pa));
+    let post_base_lot_position = I80F48::from_num(total_perp_base_lot_position(post_pa));
+    let base_lot_delta = pre_base_lot_position.dist(post_base_lot_position);
 
     // [DELTAS]
     let collateral_delta = I80F48::from_num(base_lot_delta)
