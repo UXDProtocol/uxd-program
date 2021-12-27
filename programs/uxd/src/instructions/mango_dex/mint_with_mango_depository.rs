@@ -20,7 +20,6 @@ use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::get_best_order_for_base_lot_quantity;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::Order;
-use crate::mango_utils::OrderDelta;
 use crate::mango_utils::PerpInfo;
 use crate::AccountingEvent;
 use crate::Controller;
@@ -215,15 +214,17 @@ pub fn handler(
     // - 3 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
 
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info);
+    let redeemable_delta = order_delta.quote.checked_sub(order_delta.fee).unwrap();
+    msg!("redeemable_delta {}", redeemable_delta);
     ctx.accounts
-        .check_mango_depositories_redeemable_soft_cap_overflow(order_delta.redeemable)?;
+        .check_mango_depositories_redeemable_soft_cap_overflow(redeemable_delta)?;
 
     // - 4 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus fees)] ---------------
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
             .with_signer(controller_signer_seed),
-        order_delta.redeemable,
+        redeemable_delta,
     )?;
 
     // - [If ATA mint is WSOL, unwrap]
@@ -231,8 +232,8 @@ pub fn handler(
         token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
     }
 
-    // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
-    ctx.accounts.update_onchain_accounting(&order_delta)?;
+    ctx.accounts
+        .update_onchain_accounting(order_delta.collateral, redeemable_delta, order_delta.fee)?;
 
     // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE GLOBAL REDEEMABLE SUPPLY CAP] -
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
@@ -394,19 +395,24 @@ impl<'info> MintWithMangoDepository<'info> {
     }
 
     // Update the accounting in the Depository and Controller Accounts to reflect changes
-    fn update_onchain_accounting(&mut self, order_delta: &OrderDelta) -> UxdResult {
+    fn update_onchain_accounting(
+        &mut self,
+        collateral_delta: u64,
+        redeemable_delta: u64,
+        fee_delta: u64,
+    ) -> UxdResult {
         // Mango Depository
         let event = AccountingEvent::Deposit;
         self.depository
-            .update_collateral_amount_deposited(&event, order_delta.collateral);
+            .update_collateral_amount_deposited(&event, collateral_delta);
         self.depository
-            .update_redeemable_amount_under_management(&event, order_delta.redeemable);
+            .update_redeemable_amount_under_management(&event, redeemable_delta);
         self.depository
-            .update_total_amount_paid_taker_fee(order_delta.fee);
+            .update_total_amount_paid_taker_fee(fee_delta);
 
         // Controller
         self.controller
-            .update_redeemable_circulating_supply(&event, order_delta.redeemable);
+            .update_redeemable_circulating_supply(&event, redeemable_delta);
 
         Ok(())
     }

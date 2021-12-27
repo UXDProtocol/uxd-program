@@ -19,7 +19,6 @@ use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::get_best_order_for_quote_lot_amount;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::Order;
-use crate::mango_utils::OrderDelta;
 use crate::mango_utils::PerpInfo;
 use crate::AccountingEvent;
 use crate::Controller;
@@ -190,10 +189,11 @@ pub fn handler(
 
     // - 2 [BURN REDEEMABLE] -------------------------------------------------
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info);
-
+    let redeemable_delta = order_delta.quote.checked_add(order_delta.fee).unwrap();
+    msg!("redeemable_delta {}", redeemable_delta);
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
-        order_delta.redeemable,
+        redeemable_delta,
     )?;
 
     // - 3 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
@@ -222,7 +222,11 @@ pub fn handler(
 
     // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
 
-    ctx.accounts.update_onchain_accounting(&order_delta)?;
+    ctx.accounts.update_onchain_accounting(
+        order_delta.collateral,
+        redeemable_delta,
+        order_delta.fee,
+    )?;
 
     Ok(())
 }
@@ -363,21 +367,26 @@ impl<'info> RedeemFromMangoDepository<'info> {
     }
 
     // Update the accounting in the Depository and Controller Accounts to reflect changes
-    fn update_onchain_accounting(&mut self, order_delta: &OrderDelta) -> UxdResult {
+    fn update_onchain_accounting(
+        &mut self,
+        collateral_delta: u64,
+        redeemable_delta: u64,
+        fee_delta: u64,
+    ) -> UxdResult {
         // Mango Depository
         let event = AccountingEvent::Withdraw;
         self.depository
-            .update_collateral_amount_deposited(&event, order_delta.collateral);
+            .update_collateral_amount_deposited(&event, collateral_delta);
         // Circulating supply delta
         self.depository
-            .update_redeemable_amount_under_management(&event, order_delta.redeemable);
+            .update_redeemable_amount_under_management(&event, redeemable_delta);
         // Amount of fees taken by the system so far to calculate efficiency
         self.depository
-            .update_total_amount_paid_taker_fee(order_delta.fee);
+            .update_total_amount_paid_taker_fee(fee_delta);
 
         // Controller
         self.controller
-            .update_redeemable_circulating_supply(&event, order_delta.redeemable);
+            .update_redeemable_circulating_supply(&event, redeemable_delta);
 
         Ok(())
     }
