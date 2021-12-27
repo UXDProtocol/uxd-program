@@ -29,7 +29,7 @@ pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Th
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
-solana_program::declare_id!("UXDQDbkAeGMPR7gqDykDNu22D9DnYrKdvZhvNmMu6QX");
+solana_program::declare_id!("END6mkBxPKKNhspSSycXwtScD8zW61mispKMvmUSyYhn");
 
 pub type UxdResult<T = ()> = Result<T, ErrorCode>;
 

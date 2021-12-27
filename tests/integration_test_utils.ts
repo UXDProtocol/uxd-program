@@ -32,13 +32,14 @@ export async function printDepositoryInfo(depository: MangoDepository, mango: Ma
     const SYM = depository.collateralMintSymbol;
     console.log(`\
         * [Depository ${SYM}]
-        *     collateral_passthrough:                     ${await getBalance(depository.collateralPassthroughPda)}`);
+        *     collateral_passthrough:                     ${await getBalance(depository.collateralPassthroughPda)}
+        *     insurance_passthrough:                      ${await getBalance(depository.insurancePassthroughPda)}`);
     //
     let controllerAccount = await uxdHelpers.getControllerAccount(provider, uxdClient.program, controllerUXD, TXN_OPTS);
     let depositoryAccount = await uxdHelpers.getMangoDepositoryAccount(provider, uxdClient.program, depository, TXN_OPTS);
     //
     const mangoAccount = await mango.load(depository.mangoAccountPda);
-    await mango.printAccountInfo(mangoAccount);
+    // await mango.printAccountInfo(mangoAccount);
     const pmi = mango.getPerpMarketConfig(SYM).marketIndex;
     const smi = mango.getSpotMarketConfig(SYM).marketIndex;
     const sti = mango.getTokenIndex(depository.collateralMint);
@@ -58,7 +59,7 @@ export async function printDepositoryInfo(depository: MangoDepository, mango: Ma
     console.log(`        *     ${SYM}-SPOT BASE Pos                           ${nativeI80F48ToUi(collateralSpotAmount, 9).toFixed(9)}`);
     console.log("        *");
     console.log(`        *     ${SYM}-PERP BASE Pos                          ${nativeToUi(pm.baseLotsToNative(pa.basePosition).toNumber(), 9).toFixed(9)}`);
-    console.log(`        *     ${SYM}-PERP Quote Pos (lot)                    ${nativeToUi(pa.quotePosition, 6).toFixed(6)}`);
+    console.log(`        *     ${SYM}-PERP Quote Pos                          ${nativeToUi(pa.quotePosition, 6).toFixed(6)}`);
     console.log(`        *     ${SYM}-PERP BASE Tak                          ${nativeToUi(pm.baseLotsToNative(pa.takerBase).toNumber(), 9).toFixed(9)} (pending settlement)`);
     console.log(`        *     ${SYM}-PERP Quote Tak (lot)                    ${nativeToUi(pa.takerQuote, 6).toFixed(6)} (pending settlement`);
     console.log("        *");

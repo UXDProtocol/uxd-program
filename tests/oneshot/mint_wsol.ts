@@ -49,34 +49,37 @@ describe(` mint ${amountToMint} SOL`, () => {
         console.log(`    ==> [Minted ${amountUxdMinted} for ${solUsed} SOL (perfect was ${maxAmountUxdMinted})]`);
     });
 
-    it(`mint 10 times`, async () => {
-        let amountRedeemable = 69.69;
-        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
-
-        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
-
+    it(`mint 30 times`, async () => {
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
-
-        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
-        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
-        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
-        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
-
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
-
-        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
-
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
-
-        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
-        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
-        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
-
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
         await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
     });
     

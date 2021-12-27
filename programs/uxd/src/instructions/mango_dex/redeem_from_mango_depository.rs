@@ -207,18 +207,17 @@ pub fn handler(
         false,
     )?;
 
-    // - [If wrapped sol (hedge case)]
+    // - [Else return collateral back to user ATA]
+    token::transfer(
+        ctx.accounts
+            .into_transfer_collateral_to_user_context()
+            .with_signer(depository_signer_seed),
+        order_delta.collateral,
+    )?;
+
+    // - [If ATA mint is WSOL, unwrap]
     if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
         token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
-    }
-    // - [Else return collateral back to user]
-    else {
-        token::transfer(
-            ctx.accounts
-                .into_transfer_collateral_to_user_context()
-                .with_signer(depository_signer_seed),
-            order_delta.collateral,
-        )?;
     }
 
     // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
