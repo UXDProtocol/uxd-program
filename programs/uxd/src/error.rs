@@ -42,7 +42,7 @@ pub enum ErrorCode {
     #[msg("Error while getting the redeemable value of the deposited coin amount.")]
     PositionAmountCalculation,
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
-    RedeemableGlobalSupplyCapReached,
+    RedeemableGlobalSupplyCapReached, // 0xdb - 219
     #[msg("Operation not allowed due to being over the Redeemable soft Cap.")]
     MangoDepositoriesSoftCapOverflow, // 0xdc - 220
     //

@@ -297,20 +297,6 @@ impl<'info> MintWithMangoDepository<'info> {
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
-
-    // pub fn into_consume_events_context(
-    //     &self,
-    // ) -> CpiContext<'_, '_, '_, 'info, ConsumeEvents<'info>> {
-    //     let cpi_program = self.mango_program.to_account_info();
-    //     let cpi_accounts = ConsumeEvents {
-    //         mango_group: self.mango_group.to_account_info(),
-    //         mango_cache: self.mango_cache.to_account_info(),
-    //         perp_market: self.mango_perp_market.to_account_info(),
-    //         event_queue: self.mango_event_queue.to_account_info(),
-    //         mango_account: self.depository_mango_account.to_account_info(),
-    //     };
-    //     CpiContext::new(cpi_program, cpi_accounts)
-    // }
 }
 
 // Additional convenience methods related to the inputted accounts
