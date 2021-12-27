@@ -21,7 +21,7 @@ describe(` just redeem`, () => {
     const depository = depositoryWSOL;
 
     // OP2
-    let amountUxdMinted = 6400.1698;
+    let amountUxdMinted = 2574.439826;
     it(`1 - Redeem ${amountUxdMinted} UXD with ${slippagePercentage * 100}% max slippage`, async () => {
         console.log(controllerUXD.redeemableMintPda.toString());
         // GIVEN
@@ -44,8 +44,7 @@ describe(` just redeem`, () => {
         const unredeemedUXDAmount = amountRedeemable - amountUxdRedeemed;
 
         expect(amountUxdRedeemed).closeTo(maxAmountUxdRedeemed, maxAmountUxdRedeemed * (slippage), "The UXD amount redeemed is out of the slippage range");
-        // + 0.00204 to create wsol ata
-        expect(collateralAmountReceived).closeTo(maxAmountSolReceived, maxAmountSolReceived * (slippage) + 0.00204, "The SOL amount received is out of the slippage range");
+        expect(collateralAmountReceived).closeTo(maxAmountSolReceived, maxAmountSolReceived * (slippage), "The SOL amount received is out of the slippage range");
         expect(_userUxdBalancePostOp).closeTo(_userUxdBalancePreOp - maxAmountUxdRedeemed + unredeemedUXDAmount, Math.pow(10, -controller.redeemableMintDecimals), "The amount of UXD carried over isn't right");
 
         console.log(`    ==> [Redeemed ${amountUxdRedeemed} UXD for ${collateralAmountReceived} SOL (perfect was ${maxAmountSolReceived}, returned UXD cause of odd lot ${unredeemedUXDAmount})]`);
