@@ -7,7 +7,7 @@ use solana_program::msg;
 
 pub struct OrderDelta {
     pub collateral: u64,
-    pub redeemable: u64,
+    pub quote: u64,
     pub fee: u64,
 }
 
@@ -25,49 +25,39 @@ pub fn derive_order_delta(
     // The order delta in quote lot
     let pre_taker_quote = I80F48::from_num(pre_pa.taker_quote);
     let post_taker_quote = I80F48::from_num(post_pa.taker_quote);
-    let order_quote_lot_delta = pre_taker_quote.dist(post_taker_quote);
-    // ... to quote native units.
-    let order_value = I80F48::from_num(order_quote_lot_delta)
+    let quote_lot_delta = pre_taker_quote.dist(post_taker_quote);
+
+    let quote_delta = I80F48::from_num(quote_lot_delta)
         .checked_mul(perp_info.quote_lot_size)
         .unwrap();
-    msg!("order_value {}", order_value);
 
     // [QUOTE FEES] (Rounded UP)
-    let fee_amount = order_value
+    let fee_amount = quote_delta
         .checked_mul(perp_info.taker_fee)
-        .unwrap()
-        .checked_abs()
         .unwrap()
         .checked_ceil()
         .unwrap();
 
+    let fee_delta = fee_amount.checked_to_num().unwrap();
+
     // [BASE]
     let pre_base_lot_position = I80F48::from_num(total_perp_base_lot_position(pre_pa));
     let post_base_lot_position = I80F48::from_num(total_perp_base_lot_position(post_pa));
-    let base_lot_delta = pre_base_lot_position.dist(post_base_lot_position);
+    let base_lot_delta = I80F48::from_num(pre_base_lot_position.dist(post_base_lot_position));
 
-    // [DELTAS]
-    let collateral_delta = I80F48::from_num(base_lot_delta)
+    let collateral_delta = base_lot_delta
         .checked_mul(perp_info.base_lot_size)
         .unwrap()
         .checked_to_num()
         .unwrap();
-    let redeemable_delta = order_value
-        .checked_sub(fee_amount)
-        .unwrap()
-        .checked_abs()
-        .unwrap()
-        .checked_to_num()
-        .unwrap();
-    let fee_delta = fee_amount.checked_to_num().unwrap();
 
     msg!("collateral_delta {}", collateral_delta);
-    msg!("redeemable_delta {}", redeemable_delta);
+    msg!("quote_delta {}", quote_delta);
     msg!("fee_delta {}", fee_delta);
 
     OrderDelta {
         collateral: collateral_delta,
-        redeemable: redeemable_delta,
+        quote: quote_delta.checked_to_num().unwrap(),
         fee: fee_delta,
     }
 }
