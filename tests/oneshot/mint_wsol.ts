@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { user } from "../identities";
-import { mintWithMangoDepository, collateralUIPriceInMangoQuote } from "../test_0_uxd_api";
+import { mintWithMangoDepository, collateralUIPriceInMangoQuote, redeemFromMangoDepository, mangoConsumeEvents } from "../test_0_uxd_api";
 import { printUserBalances, printDepositoryInfo, getBalance, userWSOLATA, userUXDATA } from "../integration_test_utils";
 import { slippage } from "../test_2_consts";
 import { depositoryWSOL, mango, slippageBase, controllerUXD } from "../test_0_consts";
@@ -46,5 +46,39 @@ describe(` Just mint ${amountToMint} `, () => {
         expect(amountUxdMinted).closeTo(maxAmountUxdMinted, maxAmountUxdMinted * (slippage), "The amount minted is out of the slippage range");
 
         console.log(`    ==> [Minted ${amountUxdMinted} for ${op_amountWsolUsed} WSOL (prefect was ${maxAmountUxdMinted})]`);
+        await mangoConsumeEvents(depository, mango);
+    });
+
+    it(`mint 10 times`, async () => {
+        let amountRedeemable = 69.69;
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+        await redeemFromMangoDepository(caller, slippage, amountRedeemable, controller, depository, mango);
+
+        await mintWithMangoDepository(caller, slippage, collateralAmount, controller, depository, mango);
+
+        await mangoConsumeEvents(depository, mango);
     });
 });

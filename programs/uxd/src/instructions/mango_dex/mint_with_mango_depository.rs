@@ -17,7 +17,7 @@ use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_short_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::get_best_order_for_base_lot_quantity;
-use crate::mango_utils::uncommitted_perp_base_position;
+use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::Order;
 use crate::mango_utils::OrderDelta;
 use crate::mango_utils::PerpInfo;
@@ -131,14 +131,6 @@ pub fn handler(
     // - [Get perp information]
     let perp_info = ctx.accounts.perpetual_info()?;
 
-    // - [Perp account state PRE perp order]
-    let perp_account = ctx.accounts.perp_account(&perp_info)?;
-
-    // - [Make sure that the PerpAccount crank has been ran previously to this instruction by the uxd-client so that pending changes are updated in mango]
-    if !(perp_account.taker_base == 0 && perp_account.taker_quote == 0) {
-        return Err(ErrorCode::InvalidPerpAccountState.into());
-    }
-
     // - [Get the amount of Base Lots for the perp order]
     let base_lot_amount = I80F48::checked_from_num(collateral_amount)
         .unwrap()
@@ -156,7 +148,7 @@ pub fn handler(
             base_lot_amount.checked_to_num().unwrap(),
         )?;
 
-    // - [Checks that the best price found is withing slippage range]
+    // - [Checks that the best price found is within slippage range]
     check_effective_order_price_versus_limit_price(&perp_info, &best_order, slippage)?;
 
     // - 2 [TRANSFER COLLATERAL TO MANGO (LONG)] ------------------------------
@@ -191,8 +183,11 @@ pub fn handler(
 
     // - 3 [OPEN SHORT PERP] --------------------------------------------------
 
+    // - [Perp account state PRE perp order]
+    let pre_pa = ctx.accounts.perp_account(&perp_info)?;
+
     // - [Base depository's position size in native units PRE perp opening (to calculate the % filled later on)]
-    let initial_base_position = perp_account.base_position;
+    let initial_base_position = total_perp_base_lot_position(&pre_pa);
 
     // - [Place perp order CPI to Mango Market v3]
     mango_program::place_perp_order(
@@ -208,15 +203,19 @@ pub fn handler(
     )?;
 
     // - [Perp account state POST perp order]
-    let perp_account = ctx.accounts.perp_account(&perp_info)?;
+    let post_pa = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Checks that the order was fully filled]
-    let post_position = uncommitted_perp_base_position(&perp_account);
-    check_short_perp_order_fully_filled(best_order.quantity, initial_base_position, post_position)?;
+    let post_perp_order_base_lot_position = total_perp_base_lot_position(&post_pa);
+    check_short_perp_order_fully_filled(
+        best_order.quantity,
+        initial_base_position,
+        post_perp_order_base_lot_position,
+    )?;
 
-    // - 3[ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
+    // - 3 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
 
-    let order_delta = derive_order_delta(&perp_account, &perp_info);
+    let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info);
     ctx.accounts
         .check_mango_depositories_redeemable_soft_cap_overflow(order_delta.redeemable)?;
 
@@ -227,8 +226,6 @@ pub fn handler(
             .with_signer(controller_signer_seed),
         order_delta.redeemable,
     )?;
-
-    // Seems that the display of the mango account doesn't display the fees in the perp pos... investigating
 
     // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
 
