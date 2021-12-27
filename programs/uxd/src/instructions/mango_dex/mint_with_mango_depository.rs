@@ -226,8 +226,12 @@ pub fn handler(
         order_delta.redeemable,
     )?;
 
-    // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
+    // - [If ATA mint is WSOL, unwrap]
+    if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
+        token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
+    }
 
+    // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_onchain_accounting(&order_delta)?;
 
     // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE GLOBAL REDEEMABLE SUPPLY CAP] -
@@ -294,6 +298,18 @@ impl<'info> MintWithMangoDepository<'info> {
             mint: self.redeemable_mint.to_account_info(),
             to: self.user_redeemable.to_account_info(),
             authority: self.controller.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_unwrap_wsol_by_closing_ata_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, token::CloseAccount<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = token::CloseAccount {
+            account: self.user_collateral.to_account_info(),
+            destination: self.user.to_account_info(),
+            authority: self.user.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
