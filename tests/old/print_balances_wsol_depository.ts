@@ -1,5 +1,5 @@
-import { printUserBalances, printDepositoryInfo } from "../integration_test_utils";
-import { depositoryWSOL, mango } from "../test_0_consts";
+import { printUserBalances, printDepositoryInfo } from "../utils";
+import { depositoryWSOL, mango } from "../constants";
 
 describe("==== print balances info ====", () => {
     it("", async () => {

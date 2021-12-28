@@ -4,7 +4,7 @@
         "@solana/web3.js": "^1.31.0",
         "@project-serum/anchor": "^0.19.1-beta.1",
         "@solana/spl-token": "^0.1.8",
-        "@uxdprotocol/uxd-client": "^3.11.1"
+        "@uxdprotocol/uxd-client": "^3.11.0"
     },
     "devDependencies": {
         "@types/chai": "^4.2.22",

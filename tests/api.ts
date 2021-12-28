@@ -1,16 +1,10 @@
-
-import { Controller, MangoDepository, Mango, findATAAddrSync, createAssocTokenIx } from "@uxdprotocol/uxd-client";
-import { provider, TXN_COMMIT, TXN_OPTS } from "./provider";
-import { controllerUXD, uxdClient, uxdHelpers } from "./test_0_consts";
+import { provider, TXN_OPTS } from "./provider";
+import { user, uxdClient, uxdHelpers } from "./constants";
 import { Account, Signer, Transaction } from '@solana/web3.js';
-import { user } from "./identities";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
-import { prepareWrappedSolTokenAccount } from "./wsol-utils";
-
-afterEach("", () => {
-    console.log("\n=====================================\n");
-});
+import { prepareWrappedSolTokenAccount } from "./utils";
+import { MangoDepository, Mango, Controller } from "@uxdprotocol/uxd-client";
 
 // Utils Calls ----------------------------------------------------------------
 

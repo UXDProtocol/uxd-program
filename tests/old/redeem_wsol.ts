@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import { user } from "../identities";
-import { collateralUIPriceInMangoQuote, redeemFromMangoDepository } from "../test_0_uxd_api";
-import { printUserBalances, printDepositoryInfo, getBalance, userUXDATA, getSolBalance } from "../integration_test_utils";
+import { collateralUIPriceInMangoQuote, redeemFromMangoDepository } from "../api";
+import { printUserBalances, printDepositoryInfo, getBalance, userUXDATA, getSolBalance } from "../utils";
 import { slippage } from "../test_2_consts";
-import { depositoryWSOL, mango, slippageBase, controllerUXD } from "../test_0_consts";
+import { depositoryWSOL, mango, slippageBase, controllerUXD } from "../constants";
 
 describe(` just redeem`, () => {
     beforeEach("\n", async () => { });

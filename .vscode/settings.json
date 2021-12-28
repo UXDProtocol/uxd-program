@@ -2,6 +2,7 @@
     "cSpell.words": [
         "accs",
         "blockhash",
+        "BTCATA",
         "cmlv",
         "collateralized",
         "deinitialize",
@@ -20,6 +21,8 @@
         "satoshi",
         "SOLANA",
         "struct",
-        "sysvars"
+        "sysvars",
+        "UXDATA",
+        "WSOLATA"
     ]
 }
