@@ -48,7 +48,7 @@ pub fn handler(
     redeemable_mint_bump: u8,
     redeemable_mint_decimals: u8,
 ) -> ProgramResult {
-    let redeemable_mint_unit = 10_u64.pow(redeemable_mint_decimals.into());
+    let redeemable_mint_unit = 10_u64.checked_pow(redeemable_mint_decimals.into()).unwrap();
 
     ctx.accounts.controller.bump = bump;
     ctx.accounts.controller.redeemable_mint_bump = redeemable_mint_bump;

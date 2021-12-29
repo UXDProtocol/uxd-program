@@ -44,7 +44,7 @@ pub fn derive_order_delta(
     // [BASE]
     let pre_base_lot_position = I80F48::from_num(total_perp_base_lot_position(pre_pa));
     let post_base_lot_position = I80F48::from_num(total_perp_base_lot_position(post_pa));
-    let base_lot_delta = I80F48::from_num(pre_base_lot_position.dist(post_base_lot_position));
+    let base_lot_delta = pre_base_lot_position.dist(post_base_lot_position);
 
     let collateral_delta = base_lot_delta
         .checked_mul(perp_info.base_lot_size)

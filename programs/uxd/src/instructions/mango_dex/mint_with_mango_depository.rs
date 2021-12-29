@@ -130,8 +130,7 @@ pub fn handler(
     let perp_info = ctx.accounts.perpetual_info()?;
 
     // - [Get the amount of Base Lots for the perp order]
-    let base_lot_amount = I80F48::checked_from_num(collateral_amount)
-        .unwrap()
+    let base_lot_amount = I80F48::from_num(collateral_amount)
         .checked_div(perp_info.base_lot_size)
         .unwrap()
         // Round down
@@ -156,8 +155,7 @@ pub fn handler(
     //        collateral deposited is used as leverage for opening the perp short.
 
     // This value is verified after by checking if the perp order was fully filled
-    let planned_collateral_delta = I80F48::checked_from_num(best_order.quantity)
-        .unwrap()
+    let planned_collateral_delta = I80F48::from_num(best_order.quantity)
         .checked_mul(perp_info.base_lot_size)
         .unwrap()
         .checked_to_num()

@@ -8,8 +8,8 @@ use mango::matching::Side;
 
 // Worse execution price for a provided slippage and side
 pub fn limit_price(price: I80F48, slippage: u32, side: Side) -> I80F48 {
-    let slippage = I80F48::checked_from_num(slippage).unwrap();
-    let slippage_basis = I80F48::checked_from_num(SLIPPAGE_BASIS).unwrap();
+    let slippage = I80F48::from_num(slippage);
+    let slippage_basis = I80F48::from_num(SLIPPAGE_BASIS);
     let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
     let slippage_amount = price.checked_mul(slippage_ratio).unwrap();
     return match side {

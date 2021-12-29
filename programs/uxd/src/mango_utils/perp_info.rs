@@ -55,14 +55,12 @@ impl PerpInfo {
     ) -> Self {
         let base_decimals = mango_group.tokens[perp_market_index].decimals;
         let quote_decimals = mango_group.tokens[mango::state::QUOTE_INDEX].decimals;
-        let base_unit = I80F48::checked_from_num(10u64.pow(base_decimals.into())).unwrap();
+        let base_unit = I80F48::from_num(10u64.checked_pow(base_decimals.into()).unwrap());
         let base_lot_size =
-            I80F48::checked_from_num(mango_group.perp_markets[perp_market_index].base_lot_size)
-                .unwrap();
-        let quote_unit = I80F48::checked_from_num(10u64.pow(quote_decimals.into())).unwrap();
+            I80F48::from_num(mango_group.perp_markets[perp_market_index].base_lot_size);
+        let quote_unit = I80F48::from_num(10u64.checked_pow(quote_decimals.into()).unwrap());
         let quote_lot_size =
-            I80F48::checked_from_num(mango_group.perp_markets[perp_market_index].quote_lot_size)
-                .unwrap();
+            I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
         PerpInfo {
             market_index: perp_market_index,
             price: mango_cache.price_cache[perp_market_index].price,
