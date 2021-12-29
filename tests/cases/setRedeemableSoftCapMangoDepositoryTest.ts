@@ -3,6 +3,7 @@ import { Signer } from "@solana/web3.js";
 import { Controller } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { getControllerAccount, setMangoDepositoriesRedeemableSoftCap } from "../api";
+import { CLUSTER } from "../constants";
 
 export const setRedeemableSoftCapMangoDepositoryTest = async (softCapAmount: number, authority: Signer, controller: Controller) => {
     console.groupCollapsed("🧭 setRedeemableSoftCapMangoDepositoryTest");
@@ -11,7 +12,7 @@ export const setRedeemableSoftCapMangoDepositoryTest = async (softCapAmount: num
 
     // WHEN
     const txId = await setMangoDepositoriesRedeemableSoftCap(authority, controller, softCapAmount);
-    console.log(`🔗 'https://explorer.solana.com/address/${txId}?cluster=devnet'`);
+    console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN
     const controllerAccount = await getControllerAccount(controller);

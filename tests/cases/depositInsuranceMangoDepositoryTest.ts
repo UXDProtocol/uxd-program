@@ -4,7 +4,7 @@ import { Signer } from "@solana/web3.js";
 import { Controller, Mango, MangoDepository } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { depositInsuranceToMangoDepository, getMangoDepositoryAccount } from "../api";
-import { mangoCrankInterval } from "../constants";
+import { CLUSTER, mangoCrankInterval } from "../constants";
 import { sleep } from "../utils";
 
 export const depositInsuranceMangoDepositoryTest = async (amount: number, authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango) => {
@@ -14,7 +14,7 @@ export const depositInsuranceMangoDepositoryTest = async (amount: number, author
 
     // WHEN
     const txId = await depositInsuranceToMangoDepository(authority, amount, controller, depository, mango);
-    console.log(`🔗 'https://explorer.solana.com/address/${txId}?cluster=devnet'`);
+console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN
     const insuranceDepositedAmount_post = (await getMangoDepositoryAccount(depository)).insuranceAmountDeposited.div(new BN(10 ** depository.insuranceMintDecimals));

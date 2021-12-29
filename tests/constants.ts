@@ -31,8 +31,7 @@ export let user: Signer = userKeypair;
 console.log(`USER KEY => ${user.publicKey}`);
 
 // Get this from anchor.toml TODO
-export const CLUSTER = "devnet"; // "mainnet"
-export const MANGO_CLUSTER = 'devnet'; // 'mainnet'
+export const CLUSTER = 'devnet'; // "mainnet"
 
 // Swap these depending of CLUSTER TODO
 export const WSOL = new PublicKey("So11111111111111111111111111111111111111112");

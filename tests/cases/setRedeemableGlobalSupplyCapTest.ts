@@ -3,6 +3,7 @@ import { Signer } from "@solana/web3.js";
 import { Controller } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { getControllerAccount, setRedeemableGlobalSupplyCap } from "../api";
+import { CLUSTER } from "../constants";
 
 export const setRedeemableGlobalSupplyCapTest = async (supplyCapAmount: number, authority: Signer, controller: Controller) => {
     console.groupCollapsed("🧭 setRedeemableGlobalSupplyCapTest");
@@ -11,7 +12,7 @@ export const setRedeemableGlobalSupplyCapTest = async (supplyCapAmount: number, 
 
     // WHEN
     const txId = await setRedeemableGlobalSupplyCap(authority, controller, supplyCapAmount);
-    console.log(`🔗 'https://explorer.solana.com/address/${txId}?cluster=devnet'`);
+    console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN
     const controllerAccount = await getControllerAccount(controller);

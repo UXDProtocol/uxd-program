@@ -4,7 +4,7 @@ import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, Mango, MangoDepository, findATAAddrSync } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { collateralUIPriceInMangoQuote, mintWithMangoDepository } from "../api";
-import { MANGO_QUOTE_DECIMALS, slippageBase, uxdHelpers } from "../constants";
+import { CLUSTER, MANGO_QUOTE_DECIMALS, slippageBase, uxdHelpers } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
 export const mintWithMangoDepositoryTest = async (collateralAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango): Promise<number> => {
@@ -26,7 +26,7 @@ export const mintWithMangoDepositoryTest = async (collateralAmount: number, slip
     // - Get the perp price at the same moment to have the less diff between exec and test price
     const mangoPerpPrice = await collateralUIPriceInMangoQuote(depository, mango);
     console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(MANGO_QUOTE_DECIMALS)));
-    console.log(`🔗 'https://explorer.solana.com/address/${txId}?cluster=devnet'`);
+    console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN
     const userRedeemableBalance_post = await getBalance(userRedeemableATA);
