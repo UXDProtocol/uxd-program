@@ -14,7 +14,7 @@ export const depositInsuranceMangoDepositoryTest = async (amount: number, author
 
     // WHEN
     const txId = await depositInsuranceToMangoDepository(authority, amount, controller, depository, mango);
-console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
+    console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN
     const insuranceDepositedAmount_post = (await getMangoDepositoryAccount(depository)).insuranceAmountDeposited.div(new BN(10 ** depository.insuranceMintDecimals));
