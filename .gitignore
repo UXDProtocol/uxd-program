@@ -15,3 +15,4 @@ test-ledger/
 /programs/uxd/Cargo.lock
 # Only used for devnet. Mainnet is under dao control
 UXDQDbkAeGMPR7gqDykDNu22D9DnYrKdvZhvNmMu6QX.json
+yarn-error.log

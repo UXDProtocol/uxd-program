@@ -12,8 +12,6 @@ The project uses a few line of optimization for building taken from the Discord,
 
 ## Running tests
 
-CHANGE ACCOUNTS CASE in the anchor json IDL. The ts idl case is different and is used as the source of truth in the uxd-client
-
 Running rust unit tests :
 
 ```Zsh
@@ -23,10 +21,13 @@ $> cargo test --tests
 Running integration test in JS from the tests folder :
 
 ```Zsh
+$> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) yarn keeper # in a https://github.com/blockworks-foundation/mango-client-v3 repo
 $> anchor test 
 ```
 
-But usually you want a full clean test env, with new Program state, and depositories, new mango accounts etc.
+The keeper is mandatory to run on Devnet, as there might not be another running. This is the process settling events and cranking mango state.
+
+Usually you want with a clean test env, with new Program state, and depositories, new mango accounts etc.
 
 To do so the easiest is to redeploy the whole thing and work with new Accounts (we do test on Devnet cause we need the mango stack, and doing so on localnet, although possible is tedious).
 
