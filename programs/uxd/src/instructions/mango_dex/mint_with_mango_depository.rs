@@ -15,7 +15,7 @@ use mango::state::PerpMarket;
 
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
-use crate::mango_utils::check_short_perp_order_fully_filled;
+use crate::mango_utils::check_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::get_best_order_for_base_lot_quantity;
 use crate::mango_utils::total_perp_base_lot_position;
@@ -205,7 +205,7 @@ pub fn handler(
 
     // - [Checks that the order was fully filled]
     let post_perp_order_base_lot_position = total_perp_base_lot_position(&post_pa);
-    check_short_perp_order_fully_filled(
+    check_perp_order_fully_filled(
         best_order.quantity,
         initial_base_position,
         post_perp_order_base_lot_position,
@@ -213,6 +213,11 @@ pub fn handler(
 
     // - 3 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
 
+    // ensure current context make sense as the derive_order_delta is generic
+    assert!(
+        pre_pa.taker_quote.lt(&post_pa.taker_quote),
+        "Invalid order direction"
+    );
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info);
     let redeemable_delta = order_delta.quote.checked_sub(order_delta.fee).unwrap();
     msg!("redeemable_delta {}", redeemable_delta);
@@ -232,8 +237,11 @@ pub fn handler(
         token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
     }
 
-    ctx.accounts
-        .update_onchain_accounting(order_delta.collateral, redeemable_delta, order_delta.fee)?;
+    ctx.accounts.update_onchain_accounting(
+        order_delta.collateral,
+        redeemable_delta,
+        order_delta.fee,
+    )?;
 
     // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE GLOBAL REDEEMABLE SUPPLY CAP] -
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;

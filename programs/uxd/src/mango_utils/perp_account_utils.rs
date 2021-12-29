@@ -5,13 +5,6 @@ use mango::state::PerpAccount;
 
 use super::PerpInfo;
 
-pub fn unsettled_base_amount(perp_account: &PerpAccount) -> i64 {
-    perp_account
-        .base_position
-        .checked_add(perp_account.taker_base)
-        .unwrap()
-}
-
 // Return the base position + the amount that's on EventQueue waiting to be processed
 pub fn total_perp_base_lot_position(perp_account: &PerpAccount) -> i64 {
     perp_account
