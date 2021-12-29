@@ -27,6 +27,7 @@ pub fn derive_order_delta(
     let post_taker_quote = I80F48::from_num(post_pa.taker_quote);
     let quote_lot_delta = pre_taker_quote.dist(post_taker_quote);
 
+    assert!(!quote_lot_delta.is_zero(), "quote_lot_delta can't be 0");
     let quote_delta = I80F48::from_num(quote_lot_delta)
         .checked_mul(perp_info.quote_lot_size)
         .unwrap();
