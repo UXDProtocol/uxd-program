@@ -60,35 +60,41 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
     console.group("[Depository", SYM, "]");
     console.log("collateralPassthrough", "\t\t\t\t\t", await getBalance(depository.collateralPassthroughPda));
     console.log("insurancePassthroughPda", "\t\t\t\t\t", await getBalance(depository.insurancePassthroughPda));
+    console.groupEnd()
 
-    console.group("[Derived Information]");
-    console.log("depository PnL", "\t\t\t\t\t\t", Number((accountValueMinusTotalInsuranceDeposited - redeemableUnderManagement).toFixed(MANGO_QUOTE_DECIMALS)));
-    console.log("collateral deposit interests", "\t\t\t\t", Number(nativeToUi(collateralDepositInterests, depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol);
-    console.log("insurance deposit interests", "\t\t\t\t", Number(nativeToUi(insuranceDepositInterests.toNumber(), depository.insuranceMintDecimals).toFixed(depository.insuranceMintDecimals)), depository.insuranceMintSymbol);
-    console.groupEnd();
-
-    console.group("[On Chain Accounting]");
-    console.log("insuranceAmountDeposited", "\t\t\t\t\t", accountingInsuranceDepositedValue);
-    console.log("collateralAmountDeposited", "\t\t\t\t\t", nativeToUi(depositoryAccount.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals));
-    console.log("redeemableAmountUnderManagement", "\t\t\t\t", redeemableUnderManagement, "/", nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals), "(controller.redeemableCirculatingSupply)");
-    console.log("totalAmountPaidTakerFee", "\t\t\t\t\t", nativeToUi(depositoryAccount.totalAmountPaidTakerFee.toNumber(), MANGO_QUOTE_DECIMALS));
-    console.groupEnd();
-
+    console.group("[Derived Information from onchain accounting and mango account] :");
     console.table({
-        "Mango account (Program owned)": {
-            ["spot_base_position"]: Number(nativeI80F48ToUi(collateralSpotAmount, depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-            ["account value (minus insurance)"]: Number(accountValueMinusTotalInsuranceDeposited.toFixed(MANGO_QUOTE_DECIMALS)),
-            ["account value"]: Number(accountValue.toFixed(MANGO_QUOTE_DECIMALS))
-        }
+        ["PnL (Quote)"]: Number((accountValueMinusTotalInsuranceDeposited - redeemableUnderManagement).toFixed(MANGO_QUOTE_DECIMALS)),
+        [`collateral deposit interests (${SYM})`]: Number(nativeToUi(collateralDepositInterests, depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
+        [`insurance deposit interests (${depository.insuranceMintSymbol})`]: Number(nativeToUi(insuranceDepositInterests.toNumber(), depository.insuranceMintDecimals).toFixed(depository.insuranceMintDecimals)),
     });
+    console.groupEnd();
+
+    console.group("[OnChain Accounting (Program)] :");
     console.table({
-        "MangoAccount PerpAccount": {
-            ["perp_base_position"]: Number(nativeToUi(pm.baseLotsToNative(pa.basePosition).toNumber(), depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-            ["perp_quote_position"]: Number(nativeI80F48ToUi(pa.quotePosition, MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
-            ["perp_taker_base"]: Number(nativeToUi(pm.baseLotsToNative(pa.takerBase).toNumber(), depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-            ["perp_taker_quote"]: Number(nativeToUi(pa.takerQuote.toNumber(), MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
-            ["perp_unsettled_funding"]: Number(nativeI80F48ToUi(pa.getUnsettledFunding(cache.perpMarketCache[pmi]), MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
-        }
+        [`insuranceAmountDeposited (${depository.insuranceMintSymbol})`]: accountingInsuranceDepositedValue,
+        [`collateralAmountDeposited (${SYM})`]: nativeToUi(depositoryAccount.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals),
+        [`depository.redeemableAmountUnderManagement (${controller.redeemableMintSymbol})`]: redeemableUnderManagement,
+        [`controller.redeemableCirculatingSupply (${controller.redeemableMintSymbol})`]: nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals),
+        ["totalAmountPaidTakerFee (Quote)"]: nativeToUi(depositoryAccount.totalAmountPaidTakerFee.toNumber(), MANGO_QUOTE_DECIMALS)
+    });
+    console.groupEnd()
+
+    console.group("[MangoAccount (Program owned)] :");
+    console.table({
+        [`spot_base_position (${SYM})`]: Number(nativeI80F48ToUi(collateralSpotAmount, depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
+        ["account value (minus insurance) (Quote)"]: Number(accountValueMinusTotalInsuranceDeposited.toFixed(MANGO_QUOTE_DECIMALS)),
+        ["account value (Quote)"]: Number(accountValue.toFixed(MANGO_QUOTE_DECIMALS))
+    });
+    console.groupEnd()
+
+    console.group("[MangoAccount's PerpAccount (Program owned)] :");
+    console.table({
+        ["perp_base_position"]: Number(nativeToUi(pm.baseLotsToNative(pa.basePosition).toNumber(), depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
+        ["perp_quote_position"]: Number(nativeI80F48ToUi(pa.quotePosition, MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
+        ["perp_taker_base"]: Number(nativeToUi(pm.baseLotsToNative(pa.takerBase).toNumber(), depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
+        ["perp_taker_quote"]: Number(nativeToUi(pa.takerQuote.toNumber(), MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
+        ["perp_unsettled_funding (Quote)"]: Number(nativeI80F48ToUi(pa.getUnsettledFunding(cache.perpMarketCache[pmi]), MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
     });
     console.groupEnd();
 }
