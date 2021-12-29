@@ -12,44 +12,19 @@ uxd = "H3tyF9SuGqxNoS4xWcUcS15wspMtXDMxqcAGu3ytH2KY"
 url = "https://anchor.projectserum.com"
 
 [scripts]
-# ALL TESTS
-test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_*.ts"
+# Run all tests
+# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_*.ts"
 
 # Integration tests for SOL collateral
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_integration_sol.ts"
 
-# Mint and Redeem tests for SOL collateral
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_mint_redeem_sol.ts"
+# Integration tests for BTC collateral only
+# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_integration_btc.ts"
 
-## UTILS
+## UTILS - fragment of logic for testing during development
+
 # Setup a Controller + Depository (SOL) and deposit 100 USDC insurance
 # test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/util_setup_controller_depository_sol.ts"
 
-
-### Test a single test - Just uncomment the test to run with `anchor test`
-##
-# One shot
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/setup_stack.ts"
-#
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/print_balances_wsol_depository.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/wsol_mint_redeem_intensive.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/rebalance_wsol_depository.ts"
-#
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/mint_wsol.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/redeem_wsol.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/oneshot/wsol_intensive.ts"
-
-## Permissionned
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_1_setup_controller.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_2_setup_mango_depositories.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_3_set_redeemable_global_supply_cap.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_4_set_mango_depositories_redeemable_soft_cap.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_5_deposit_insurance_on_mango_depository_wsol.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_1_permissionned_6_withdraw_insurance_from_mango_depository_wsol.ts"
-
-## Others
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_2_mango_depository_1_btc.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_2_mango_depository_2_wsol_1.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_2_mango_depository_3_wsol_test_redeemable_global_cap.ts"
-# test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/test_2_mango_depository_4_wsol_test_redeemable_soft_cap.ts"
- 
+# Mint and Redeem tests for SOL collateral
+test = "yarn ts-mocha -p ./tsconfig.json -t 50000 tests/util_mint_redeem_sol.ts"

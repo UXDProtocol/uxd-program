@@ -2,9 +2,9 @@ import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS 
 import { authority, USDC, user, WSOL, uxdProgram } from "./constants";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 
-const depositoryWSOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgram.programId);
+const depositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgram.programId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgram.programId);
 
 describe("SOL Mint/Redeem tests", () => {
-    mangoDepositoryMintRedeemSuite(authority, user, controllerUXD, depositoryWSOL);
+    mangoDepositoryMintRedeemSuite(authority, user, controllerUXD, depositorySOL);
 });

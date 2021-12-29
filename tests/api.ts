@@ -4,11 +4,11 @@ import { Account, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
 import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, Controller, I80F48 } from "@uxdprotocol/uxd-client";
 
 // Utils Calls ----------------------------------------------------------------
 
-export async function collateralUIPriceInMangoQuote(depository: MangoDepository, mango: Mango): Promise<number> {
+export async function collateralUIPriceInMangoQuote(depository: MangoDepository, mango: Mango): Promise<I80F48> {
     return uxdHelpers.perpUIPriceInQuote(mango, depository);
 }
 
@@ -25,12 +25,12 @@ export async function getMangoDepositoryAccount(mangoDepository: MangoDepository
 }
 
 // DOESN'T WORK in uxd-client- to fix
-export async function getMangoDepositoryCollateralBalance(mangoDepository: MangoDepository, mango: Mango): Promise<number> {
+export async function getMangoDepositoryCollateralBalance(mangoDepository: MangoDepository, mango: Mango): Promise<I80F48> {
     return uxdHelpers.getMangoDepositoryCollateralBalance(mangoDepository, mango);
 }
 
 // DOESN'T WORK in uxd-client- to fix
-export async function getMangoDepositoryInsuranceBalance(mangoDepository: MangoDepository, mango: Mango): Promise<number> {
+export async function getMangoDepositoryInsuranceBalance(mangoDepository: MangoDepository, mango: Mango): Promise<I80F48> {
     return uxdHelpers.getMangoDepositoryInsuranceBalance(mangoDepository, mango);
 }
 
