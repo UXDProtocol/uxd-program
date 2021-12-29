@@ -45,18 +45,10 @@ export const BTC = new PublicKey("3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU")
 
 // ----------------------------------------------------------------------------
 
-// export const uxdProgram = workspace.Uxd;
-// export const uxdProgram = workspace.Uxd;
 export const uxdProgram = new Program(IDL, jsonIdl["metadata"]["address"], provider) as Program<Idl>; // Used for anchor test because case is not the same in idl and types.
 console.debug(`UXD PROGRAM ID == ${uxdProgram.programId}`);
-
-// Client interface to the Web3 call to `UXD-Program`
 export const uxdClient = new UXD(uxdProgram);
 export const uxdHelpers = new UXDHelpers();
 
 export const mangoCrankInterval = 1000; // In milliseconds - Run KEEPER else useless
-
 export const slippageBase = 1000;
-
-// Depositories - An account that manage a Collateral mint for the controller
-// export const depositoryBTC = new MangoDepository(BTC, "BTC", BTC_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgram.programId);

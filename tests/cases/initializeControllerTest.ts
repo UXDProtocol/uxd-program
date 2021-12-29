@@ -7,7 +7,7 @@ export const initializeControllerTest = async (authority: Signer, controller: Co
     console.groupCollapsed("⏱ initializeControllerTest");
     // WHEN
     if (await provider.connection.getAccountInfo(controller.pda)) {
-        console.log("ℹ️ Already initialized.");
+        console.log("🚧 Already initialized.");
     } else {
         const txId = await initializeController(authority, controller);
         console.log(`🔗 'https://explorer.solana.com/address/${txId}?cluster=devnet'`);

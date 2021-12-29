@@ -9,5 +9,3 @@ const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgram.programId);
 describe("Controller + Depository setup (SOL), deposit 100 USDC", () => {
     setupControllerAndMangoDepositorySolSuite(authority, controllerUXD, depositoryWSOL);
 });
-
-

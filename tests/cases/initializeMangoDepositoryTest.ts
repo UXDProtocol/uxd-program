@@ -7,7 +7,7 @@ export const initializeMangoDepositoryTest = async (authority: Signer, controlle
     console.groupCollapsed("🧭 initializeMangoDepositoryTest");
     // WHEN
     if (await provider.connection.getAccountInfo(depository.mangoAccountPda)) {
-        console.log("ℹ️ Already registered.");
+        console.log("🚧 Already registered.");
     } else {
         const txId = await registerMangoDepository(authority, controller, depository, mango);
         console.log(`🔗 'https://explorer.solana.com/address/${txId}?cluster=devnet'`);
