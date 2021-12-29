@@ -22,12 +22,12 @@ const Eyh77Seed = Uint8Array.from([
 
 // Identities - both of these are wallets that exists on devnet, we clone them each time and init from the privatekey
 // This is us, the UXD deployment admins // aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC
-let adminKeypair = Keypair.fromSecretKey(aca3VWSeed);
-export let authority: Signer = adminKeypair;
+const adminKeypair = Keypair.fromSecretKey(aca3VWSeed);
+export const authority: Signer = adminKeypair;
 console.log(`CONTROLLER AUTHORITY KEY => ${authority.publicKey}`);
 // This is the user //
-let userKeypair = Keypair.fromSecretKey(Eyh77Seed);
-export let user: Signer = userKeypair;
+const userKeypair = Keypair.fromSecretKey(Eyh77Seed);
+export const user: Signer = userKeypair;
 console.log(`USER KEY => ${user.publicKey}`);
 
 // Get this from anchor.toml TODO
