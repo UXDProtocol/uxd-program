@@ -15,16 +15,16 @@ export const setupControllerAndMangoDepositorySolSuite = (authority: Signer, con
         mango = await createAndInitializeMango(provider, CLUSTER);
     });
 
-    it("Initialize Controller", async () => {
-        await initializeControllerTest(authority, controller);
+    it("Initialize Controller", () => {
+        initializeControllerTest(authority, controller);
     });
 
-    it("Initialize SOL Depository", async () => {
-        await initializeMangoDepositoryTest(authority, controller, depository, mango);
+    it("Initialize SOL Depository", () => {
+        initializeMangoDepositoryTest(authority, controller, depository, mango);
     });
 
-    it("Deposit 100 USDC of insurance", async () => {
-        await depositInsuranceMangoDepositoryTest(100, authority, controller, depository, mango);
+    it("Deposit 100 USDC of insurance", () => {
+        depositInsuranceMangoDepositoryTest(100, authority, controller, depository, mango);
     });
 
 };

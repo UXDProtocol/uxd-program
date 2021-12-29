@@ -74,21 +74,22 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
     console.log("totalAmountPaidTakerFee", "\t\t\t\t\t", nativeToUi(depositoryAccount.totalAmountPaidTakerFee.toNumber(), MANGO_QUOTE_DECIMALS));
     console.groupEnd();
 
-    console.group("[Depository mango account (Program owned)]");
-    console.log("account value", "\t\t\t\t\t\t", Number(accountValue.toFixed(MANGO_QUOTE_DECIMALS)));
-    console.log("account value minus insurance", "\t\t\t\t", Number(accountValueMinusTotalInsuranceDeposited.toFixed(MANGO_QUOTE_DECIMALS)), "(equal to perp_quote_position +/- pnl)");
-    console.table([
-        {
-            spot_base_position: Number(nativeI80F48ToUi(collateralSpotAmount, depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-            perp_base_position: Number(nativeToUi(pm.baseLotsToNative(pa.basePosition).toNumber(), depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-            perp_quote_position: Number(nativeI80F48ToUi(pa.quotePosition, MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
-            perp_taker_base: Number(nativeToUi(pm.baseLotsToNative(pa.takerBase).toNumber(), depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-            perp_taker_quote: Number(nativeToUi(pa.takerQuote.toNumber(), MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
-            perp_unsettled_funding: Number(nativeI80F48ToUi(pa.getUnsettledFunding(cache.perpMarketCache[pmi]), MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
+    console.table({
+        "Mango account (Program owned)": {
+            ["spot_base_position"]: Number(nativeI80F48ToUi(collateralSpotAmount, depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
+            ["account value (minus insurance)"]: Number(accountValueMinusTotalInsuranceDeposited.toFixed(MANGO_QUOTE_DECIMALS)),
+            ["account value"]: Number(accountValue.toFixed(MANGO_QUOTE_DECIMALS))
         }
-    ]);
-    console.groupEnd()
-    console.groupEnd();
+    });
+    console.table({
+        "MangoAccount PerpAccount": {
+            ["perp_base_position"]: Number(nativeToUi(pm.baseLotsToNative(pa.basePosition).toNumber(), depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
+            ["perp_quote_position"]: Number(nativeI80F48ToUi(pa.quotePosition, MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
+            ["perp_taker_base"]: Number(nativeToUi(pm.baseLotsToNative(pa.takerBase).toNumber(), depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
+            ["perp_taker_quote"]: Number(nativeToUi(pa.takerQuote.toNumber(), MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
+            ["perp_unsettled_funding"]: Number(nativeI80F48ToUi(pa.getUnsettledFunding(cache.perpMarketCache[pmi]), MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
+        }
+    });
     console.groupEnd();
 }
 

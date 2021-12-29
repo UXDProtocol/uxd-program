@@ -22,21 +22,21 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
         mango = await createAndInitializeMango(provider, CLUSTER);
     });
 
-    it("Initialize Controller", async () => {
-        await initializeControllerTest(authority, controller);
+    it("Initialize Controller", () => {
+        initializeControllerTest(authority, controller);
     });
 
-    it("Initialize SOL Depository", async () => {
-        await initializeMangoDepositoryTest(authority, controller, depository, mango);
+    it("Initialize SOL Depository", () => {
+        initializeMangoDepositoryTest(authority, controller, depository, mango);
     });
 
     // SET REDEEMABLE CAPS (as they should be by default at launch)
-    it("Set Global Redeemable supply cap to 1_000_000", async () => {
-        await setRedeemableGlobalSupplyCapTest(1_000_000, authority, controller);
+    it("Set Global Redeemable supply cap to 1_000_000", () => {
+        setRedeemableGlobalSupplyCapTest(1_000_000, authority, controller);
     });
 
-    it("Set MangoDepositories Redeemable Soft cap to 10_000", async () => {
-        await setRedeemableSoftCapMangoDepositoryTest(10_000, authority, controller);
+    it("Set MangoDepositories Redeemable Soft cap to 10_000", () => {
+        setRedeemableSoftCapMangoDepositoryTest(10_000, authority, controller);
     });
 
     // TEST INSURANCE DEPOSIT
@@ -50,8 +50,8 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
         expect(false, "Should have failed - Amount is 0");
     });
 
-    it("Deposit 100 USDC of insurance", async () => {
-        await depositInsuranceMangoDepositoryTest(100, authority, controller, depository, mango);
+    it("Deposit 100 USDC of insurance", () => {
+        depositInsuranceMangoDepositoryTest(100, authority, controller, depository, mango);
     });
 
     // TEST MINT/REDEEM
@@ -106,7 +106,7 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
 
     it("Mint 1 SOL worth of UXD (2% slippage) then redeem the outcome 10 times (stress test)", async () => {
         for (var _i = 0; _i < 10; _i++) {
-            let mintedAmount = await mintWithMangoDepositoryTest(1, 20, user, controller, depository, mango);
+            const mintedAmount = await mintWithMangoDepositoryTest(1, 20, user, controller, depository, mango);
             await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
         }
         await printUserInfo(user.publicKey, controller, depository);
@@ -159,8 +159,8 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
         await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
     });
 
-    it("Reset Global Redeemable supply cap back to 1_000_000", async () => {
-        await setRedeemableGlobalSupplyCapTest(1_000_000, authority, controller);
+    it("Reset Global Redeemable supply cap back to 1_000_000", () => {
+        setRedeemableGlobalSupplyCapTest(1_000_000, authority, controller);
     });
 
     // TEST MANGO DEPOSITORIES SOFT CAP
@@ -186,8 +186,8 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
         await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
     });
 
-    it("Reset MangoDepositories Redeemable Soft cap back to 10_000", async () => {
-        await setRedeemableSoftCapMangoDepositoryTest(10_000, authority, controller);
+    it("Reset MangoDepositories Redeemable Soft cap back to 10_000", () => {
+        setRedeemableSoftCapMangoDepositoryTest(10_000, authority, controller);
     });
 
     // TEST INSURANCE WITHDRAWAL
