@@ -14,9 +14,7 @@ export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, sl
     const userRedeemableATA: PublicKey = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
     const perpMarketTakerFee = uxdHelpers.getMangoTakerFeeForPerp(depository, mango);
     const userRedeemableBalance = await getBalance(userRedeemableATA);
-    let userCollateralBalance: number = 0;
-
-    userCollateralBalance = await getBalance(userCollateralATA);
+    let userCollateralBalance: number = await getBalance(userCollateralATA);
     if (NATIVE_MINT.equals(depository.collateralMint)) {
         // use SOL + WSOL balance
         userCollateralBalance += await getSolBalance(user.publicKey);

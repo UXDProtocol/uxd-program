@@ -1,4 +1,3 @@
-import { BN } from "@project-serum/anchor";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, Mango, MangoDepository, findATAAddrSync } from "@uxdprotocol/uxd-client";
@@ -13,9 +12,7 @@ export const mintWithMangoDepositoryTest = async (collateralAmount: number, slip
     const userCollateralATA: PublicKey = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
     const userRedeemableATA: PublicKey = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
     const userRedeemableBalance = await getBalance(userRedeemableATA);
-    let userCollateralBalance: number = 0;
-
-    userCollateralBalance = await getBalance(userCollateralATA);
+    let userCollateralBalance: number = await getBalance(userCollateralATA);;
     if (NATIVE_MINT.equals(depository.collateralMint)) {
         // use SOL + WSOL balance
         userCollateralBalance += await getSolBalance(user.publicKey);
