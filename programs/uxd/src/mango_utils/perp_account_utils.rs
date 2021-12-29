@@ -1,5 +1,3 @@
-use std::ops::{Mul, Sub};
-
 use fixed::types::I80F48;
 use mango::state::PerpAccount;
 
@@ -18,8 +16,8 @@ pub fn total_perp_quote_position(perp_account: &PerpAccount, perp_info: &PerpInf
     let taker_quote = I80F48::from_num(perp_account.taker_quote)
         .checked_mul(perp_info.quote_lot_size)
         .unwrap();
-    let fee_amount = taker_quote.abs().mul(perp_info.taker_fee);
-    let quote_change = taker_quote.sub(fee_amount);
+    let fee_amount = taker_quote.abs().checked_mul(perp_info.taker_fee).unwrap();
+    let quote_change = taker_quote.checked_sub(fee_amount).unwrap();
     let total_quote_position = perp_account
         .quote_position
         .checked_add(quote_change)

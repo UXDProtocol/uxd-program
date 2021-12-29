@@ -131,7 +131,7 @@ pub fn handler(
     let perp_info = ctx.accounts.perpetual_info()?;
 
     // - [Calculates the quantity of short to close]
-    let mut exposure_delta_in_quote_unit = I80F48::checked_from_num(redeemable_amount).unwrap();
+    let mut exposure_delta_in_quote_unit = I80F48::from_num(redeemable_amount);
 
     // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees doesn't overflow the redeemed amount]
     let max_fee_amount = exposure_delta_in_quote_unit
