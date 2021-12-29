@@ -1,20 +1,14 @@
-
-import { Controller, MangoDepository, Mango, findATAAddrSync, createAssocTokenIx } from "@uxdprotocol/uxd-client";
-import { provider, TXN_COMMIT, TXN_OPTS } from "./provider";
-import { controllerUXD, uxdClient, uxdHelpers } from "./test_0_consts";
+import { provider, TXN_OPTS } from "./provider";
+import { user, uxdClient, uxdHelpers } from "./constants";
 import { Account, Signer, Transaction } from '@solana/web3.js';
-import { user } from "./identities";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
-import { prepareWrappedSolTokenAccount } from "./wsol-utils";
-
-afterEach("", () => {
-    console.log("\n=====================================\n");
-});
+import { prepareWrappedSolTokenAccount } from "./utils";
+import { MangoDepository, Mango, Controller, I80F48 } from "@uxdprotocol/uxd-client";
 
 // Utils Calls ----------------------------------------------------------------
 
-export async function collateralUIPriceInMangoQuote(depository: MangoDepository, mango: Mango): Promise<number> {
+export async function collateralUIPriceInMangoQuote(depository: MangoDepository, mango: Mango): Promise<I80F48> {
     return uxdHelpers.perpUIPriceInQuote(mango, depository);
 }
 
@@ -31,12 +25,12 @@ export async function getMangoDepositoryAccount(mangoDepository: MangoDepository
 }
 
 // DOESN'T WORK in uxd-client- to fix
-export async function getMangoDepositoryCollateralBalance(mangoDepository: MangoDepository, mango: Mango): Promise<number> {
+export async function getMangoDepositoryCollateralBalance(mangoDepository: MangoDepository, mango: Mango): Promise<I80F48> {
     return uxdHelpers.getMangoDepositoryCollateralBalance(mangoDepository, mango);
 }
 
 // DOESN'T WORK in uxd-client- to fix
-export async function getMangoDepositoryInsuranceBalance(mangoDepository: MangoDepository, mango: Mango): Promise<number> {
+export async function getMangoDepositoryInsuranceBalance(mangoDepository: MangoDepository, mango: Mango): Promise<I80F48> {
     return uxdHelpers.getMangoDepositoryInsuranceBalance(mangoDepository, mango);
 }
 
