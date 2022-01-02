@@ -1,3 +1,26 @@
+use crate::check_assert;
+use crate::declare_check_assert_macros;
+use crate::error::SourceFileId;
+use crate::error::UxdErrorCode;
+use crate::error::UxdIdlErrorCode;
+use crate::mango_program;
+use crate::mango_utils::check_effective_order_price_versus_limit_price;
+use crate::mango_utils::check_perp_order_fully_filled;
+use crate::mango_utils::derive_order_delta;
+use crate::mango_utils::get_best_order_for_quote_lot_amount;
+use crate::mango_utils::total_perp_base_lot_position;
+use crate::mango_utils::Order;
+use crate::mango_utils::PerpInfo;
+use crate::AccountingEvent;
+use crate::Controller;
+use crate::MangoDepository;
+use crate::UxdError;
+use crate::UxdResult;
+use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
+use crate::CONTROLLER_NAMESPACE;
+use crate::MANGO_ACCOUNT_NAMESPACE;
+use crate::MANGO_DEPOSITORY_NAMESPACE;
+use crate::REDEEMABLE_MINT_NAMESPACE;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
@@ -12,24 +35,7 @@ use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 use mango::state::PerpMarket;
 
-use crate::mango_program;
-use crate::mango_utils::check_effective_order_price_versus_limit_price;
-use crate::mango_utils::check_perp_order_fully_filled;
-use crate::mango_utils::derive_order_delta;
-use crate::mango_utils::get_best_order_for_quote_lot_amount;
-use crate::mango_utils::total_perp_base_lot_position;
-use crate::mango_utils::Order;
-use crate::mango_utils::PerpInfo;
-use crate::AccountingEvent;
-use crate::Controller;
-use crate::ErrorCode;
-use crate::MangoDepository;
-use crate::UxdResult;
-use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
-use crate::CONTROLLER_NAMESPACE;
-use crate::MANGO_ACCOUNT_NAMESPACE;
-use crate::MANGO_DEPOSITORY_NAMESPACE;
-use crate::REDEEMABLE_MINT_NAMESPACE;
+declare_check_assert_macros!(SourceFileId::InstructionMangoDexRedeemFromMangoDepository);
 
 #[derive(Accounts)]
 pub struct RedeemFromMangoDepository<'info> {
@@ -45,13 +51,13 @@ pub struct RedeemFromMangoDepository<'info> {
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.bump,
-        has_one = controller @ErrorCode::InvalidController,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @ErrorCode::InvalidDepository
+        has_one = controller @UxdIdlErrorCode::InvalidController,
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
     #[account(
         init_if_needed,
-        associated_token::mint = collateral_mint, // @ErrorCode::InvalidCollateralATAMint
+        associated_token::mint = collateral_mint, // @UxdIdlErrorCode::InvalidCollateralATAMint
         associated_token::authority = user,
         payer = user,
     )]
@@ -63,29 +69,29 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     #[account(
-        constraint = collateral_mint.key() == depository.collateral_mint @ErrorCode::InvalidCollateralMint
+        constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
         bump = controller.redeemable_mint_bump,
-        constraint = redeemable_mint.key() == controller.redeemable_mint @ErrorCode::InvalidRedeemableMint
+        constraint = redeemable_mint.key() == controller.redeemable_mint @UxdIdlErrorCode::InvalidRedeemableMint
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.collateral_passthrough_bump,
-        constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @ErrorCode::InvalidCollateralPassthroughAccount,
-        constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @ErrorCode::InvalidCollateralPassthroughATAMint
+        constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdIdlErrorCode::InvalidCollateralPassthroughAccount,
+        constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralPassthroughATAMint
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.mango_account_bump,
-        constraint = depository.mango_account == depository_mango_account.key() @ErrorCode::InvalidMangoAccount,
+        constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango CPI accounts
@@ -118,7 +124,7 @@ pub fn handler(
     ctx: Context<RedeemFromMangoDepository>,
     redeemable_amount: u64,
     slippage: u32,
-) -> ProgramResult {
+) -> UxdResult {
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         ctx.accounts.depository.collateral_mint.as_ref(),
@@ -136,28 +142,30 @@ pub fn handler(
     // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees doesn't overflow the redeemed amount]
     let max_fee_amount = exposure_delta_in_quote_unit
         .checked_mul(perp_info.taker_fee)
-        .unwrap()
+        .ok_or(math_err!())?
         .checked_ceil()
-        .unwrap();
+        .ok_or(math_err!())?;
     exposure_delta_in_quote_unit = exposure_delta_in_quote_unit
         .checked_sub(max_fee_amount)
-        .unwrap();
+        .ok_or(math_err!())?;
 
     // - [Perp account state PRE perp order]
     let pre_pa = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Base depository's position size in native units PRE perp opening (to calculate the % filled later on)]
-    let initial_base_lot_position = total_perp_base_lot_position(&pre_pa);
+    let initial_base_lot_position = total_perp_base_lot_position(&pre_pa)?;
 
     // - [Find out how the best price and quantity for our order]
     let exposure_delta_in_quote_lot_unit = exposure_delta_in_quote_unit
         .checked_div(perp_info.quote_lot_size)
-        .unwrap();
+        .ok_or(math_err!())?;
     let best_order = ctx
         .accounts
         .get_best_order_for_quote_lot_amount_from_order_book(
             mango::matching::Side::Ask,
-            exposure_delta_in_quote_lot_unit.checked_to_num().unwrap(),
+            exposure_delta_in_quote_lot_unit
+                .checked_to_num()
+                .ok_or(math_err!())?,
         )?;
 
     // - [Checks that the best price found is withing slippage range]
@@ -180,7 +188,7 @@ pub fn handler(
     let post_pa = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Checks that the order was fully filled]
-    let post_perp_order_base_lot_position = total_perp_base_lot_position(&post_pa);
+    let post_perp_order_base_lot_position = total_perp_base_lot_position(&post_pa)?;
     check_perp_order_fully_filled(
         best_order.quantity,
         initial_base_lot_position,
@@ -188,12 +196,15 @@ pub fn handler(
     )?;
 
     // - 2 [BURN REDEEMABLE] -------------------------------------------------
-    assert!(
-        pre_pa.taker_quote.gt(&post_pa.taker_quote),
-        "Invalid order direction"
-    );
-    let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info);
-    let redeemable_delta = order_delta.quote.checked_add(order_delta.fee).unwrap();
+    check!(
+        pre_pa.taker_quote > post_pa.taker_quote,
+        UxdErrorCode::InvalidOrderDirection
+    )?;
+    let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;
+    let redeemable_delta = order_delta
+        .quote
+        .checked_add(order_delta.fee)
+        .ok_or(math_err!())?;
     msg!("redeemable_delta {}", redeemable_delta);
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
@@ -330,14 +341,11 @@ impl<'info> RedeemFromMangoDepository<'info> {
     // Return the uncommitted PerpAccount that represent the account balances
     fn perp_account(&self, perp_info: &PerpInfo) -> UxdResult<PerpAccount> {
         // - loads Mango's accounts
-        let mango_account = match MangoAccount::load_checked(
+        let mango_account = MangoAccount::load_checked(
             &self.depository_mango_account,
             self.mango_program.key,
             self.mango_group.key,
-        ) {
-            Ok(it) => it,
-            Err(_err) => return Err(ErrorCode::MangoOrderBookLoading),
-        };
+        )?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
@@ -347,27 +355,17 @@ impl<'info> RedeemFromMangoDepository<'info> {
         quote_lot_amount: i64,
     ) -> UxdResult<Order> {
         // Load book
-        let perp_market = match PerpMarket::load_checked(
+        let perp_market = PerpMarket::load_checked(
             &self.mango_perp_market,
             self.mango_program.key,
             self.mango_group.key,
-        ) {
-            Ok(it) => it,
-            Err(_err) => return Err(ErrorCode::MangoOrderBookLoading),
-        };
+        )?;
         let bids_ai = self.mango_bids.to_account_info();
         let asks_ai = self.mango_asks.to_account_info();
-        let book =
-            match Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market) {
-                Ok(it) => it,
-                Err(_err) => return Err(ErrorCode::MangoOrderBookLoading),
-            };
-        let best_order = get_best_order_for_quote_lot_amount(&book, side, quote_lot_amount);
+        let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
+        let best_order = get_best_order_for_quote_lot_amount(&book, side, quote_lot_amount)?;
 
-        return match best_order {
-            Some(best_order) => Ok(best_order),
-            None => Err(ErrorCode::InsufficientOrderBookDepth),
-        };
+        Ok(best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))?)
     }
 
     // Update the accounting in the Depository and Controller Accounts to reflect changes
@@ -380,18 +378,16 @@ impl<'info> RedeemFromMangoDepository<'info> {
         // Mango Depository
         let event = AccountingEvent::Withdraw;
         self.depository
-            .update_collateral_amount_deposited(&event, collateral_delta);
+            .update_collateral_amount_deposited(&event, collateral_delta)?;
         // Circulating supply delta
         self.depository
-            .update_redeemable_amount_under_management(&event, redeemable_delta);
+            .update_redeemable_amount_under_management(&event, redeemable_delta)?;
         // Amount of fees taken by the system so far to calculate efficiency
         self.depository
-            .update_total_amount_paid_taker_fee(fee_delta);
-
+            .update_total_amount_paid_taker_fee(fee_delta)?;
         // Controller
         self.controller
-            .update_redeemable_circulating_supply(&event, redeemable_delta);
-
+            .update_redeemable_circulating_supply(&event, redeemable_delta)?;
         Ok(())
     }
 }

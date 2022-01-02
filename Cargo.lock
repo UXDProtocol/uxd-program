@@ -1744,6 +1744,7 @@ dependencies = [
  "anchor-spl",
  "fixed",
  "mango",
+ "num_enum",
  "solana-program",
  "spl-token",
  "thiserror",

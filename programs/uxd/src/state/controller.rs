@@ -1,6 +1,14 @@
+use crate::declare_check_assert_macros;
+use crate::error::check_assert;
+use crate::error::SourceFileId;
+use crate::error::UxdError;
+use crate::error::UxdErrorCode;
+use crate::AccountingEvent;
+use crate::UxdResult;
+use crate::MAX_REGISTERED_MANGO_DEPOSITORIES;
 use anchor_lang::prelude::*;
 
-use crate::{AccountingEvent, ErrorCode, MAX_REGISTERED_MANGO_DEPOSITORIES};
+declare_check_assert_macros!(SourceFileId::StateController);
 
 #[account]
 #[derive(Default)]
@@ -44,17 +52,18 @@ impl Controller {
         &mut self,
         event_type: &AccountingEvent,
         amount: u64,
-    ) {
+    ) -> UxdResult {
         self.redeemable_circulating_supply = match event_type {
             AccountingEvent::Deposit => self
                 .redeemable_circulating_supply
                 .checked_add(amount.into())
-                .unwrap(),
+                .ok_or(math_err!())?,
             AccountingEvent::Withdraw => self
                 .redeemable_circulating_supply
                 .checked_sub(amount.into())
-                .unwrap(),
-        }
+                .ok_or(math_err!())?,
+        };
+        Ok(())
     }
 
     pub fn add_registered_mango_depository_entry(
@@ -62,14 +71,15 @@ impl Controller {
         mango_depository_id: Pubkey,
     ) -> ProgramResult {
         let current_size = usize::from(self.registered_mango_depositories_count);
-        if !(current_size < MAX_REGISTERED_MANGO_DEPOSITORIES) {
-            return Err(ErrorCode::MaxNumberOfMangoDepositoriesRegisteredReached.into());
-        }
+        check!(
+            current_size < MAX_REGISTERED_MANGO_DEPOSITORIES,
+            UxdErrorCode::MaxNumberOfMangoDepositoriesRegisteredReached
+        )?;
         // Increment registered Mango Depositories count
         self.registered_mango_depositories_count = self
             .registered_mango_depositories_count
             .checked_add(1)
-            .unwrap();
+            .ok_or(math_err!())?;
         // Add the new Mango Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_mango_depositories[new_entry_index] = mango_depository_id;
