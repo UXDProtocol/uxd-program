@@ -121,7 +121,6 @@ pub fn handler(
     collateral_amount: u64, // native units
     slippage: u32,
 ) -> UxdResult {
-    check!(false, UxdErrorCode::InsufficientCollateralAmount)?;
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         ctx.accounts.depository.collateral_mint.as_ref(),
