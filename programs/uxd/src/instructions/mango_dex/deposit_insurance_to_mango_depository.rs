@@ -7,7 +7,8 @@ use anchor_spl::token::Transfer;
 
 use crate::AccountingEvent;
 use crate::Controller;
-use crate::ErrorCode;
+use crate::UxdResult;
+use crate::error::UxdIdlErrorCode;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -22,28 +23,28 @@ pub struct DepositInsuranceToMangoDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE], 
         bump = controller.bump,
-        has_one = authority @ErrorCode::InvalidAuthority,
+        has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.bump,
-        has_one = controller @ErrorCode::InvalidController,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @ErrorCode::InvalidDepository
+        has_one = controller @UxdIdlErrorCode::InvalidController,
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
     #[account(
-        constraint = collateral_mint.key() == depository.collateral_mint @ErrorCode::InvalidCollateralMint
+        constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
     #[account(
-        constraint = insurance_mint.key() == depository.insurance_mint @ErrorCode::InvalidInsuranceMint
+        constraint = insurance_mint.key() == depository.insurance_mint @UxdIdlErrorCode::InvalidInsuranceMint
     )]
     pub insurance_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
-        associated_token::mint = insurance_mint, //  @ErrorCode::InvalidAuthorityInsuranceATAMint
+        associated_token::mint = insurance_mint, // @UxdIdlErrorCode::InvalidAuthorityInsuranceATAMint
         associated_token::authority = authority,
     )]
     pub authority_insurance: Box<Account<'info, TokenAccount>>,
@@ -51,15 +52,15 @@ pub struct DepositInsuranceToMangoDepository<'info> {
         mut,
         seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
         bump = depository.insurance_passthrough_bump,
-        constraint = depository.insurance_passthrough == depository_insurance_passthrough_account.key() @ErrorCode::InvalidInsurancePassthroughAccount,
-        constraint = depository_insurance_passthrough_account.mint == insurance_mint.key() @ErrorCode::InvalidInsurancePassthroughATAMint,
+        constraint = depository.insurance_passthrough == depository_insurance_passthrough_account.key() @UxdIdlErrorCode::InvalidInsurancePassthroughAccount,
+        constraint = depository_insurance_passthrough_account.mint == insurance_mint.key() @UxdIdlErrorCode::InvalidInsurancePassthroughATAMint,
     )]
     pub depository_insurance_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.mango_account_bump,
-        constraint = depository.mango_account == depository_mango_account.key() @ErrorCode::InvalidMangoAccount,
+        constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango CPI accounts
@@ -78,7 +79,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
 pub fn handler(
     ctx: Context<DepositInsuranceToMangoDepository>,
     insurance_amount: u64, // native units
-) -> ProgramResult {
+) -> UxdResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
     let depository_signer_seeds: &[&[&[u8]]] = &[&[
@@ -153,7 +154,7 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
         insurance_delta: u64,
     ) -> ProgramResult {
         self.depository
-            .update_insurance_amount_deposited(&AccountingEvent::Deposit, insurance_delta);
+            .update_insurance_amount_deposited(&AccountingEvent::Deposit, insurance_delta)?;
         Ok(())
     }
 }

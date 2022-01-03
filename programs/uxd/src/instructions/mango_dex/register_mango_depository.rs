@@ -6,10 +6,11 @@ use mango::state::MangoAccount;
 use std::mem::size_of;
 
 use crate::PROGRAM_VERSION;
+use crate::UxdResult;
 use crate::mango_program;
 use crate::MangoDepository;
 use crate::Controller;
-use crate::ErrorCode;
+use crate::error::UxdIdlErrorCode;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
@@ -34,7 +35,7 @@ pub struct RegisterMangoDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE], 
         bump = controller.bump,
-        has_one = authority @ErrorCode::InvalidAuthority,
+        has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
@@ -89,7 +90,7 @@ pub fn handler(
     collateral_passthrough_bump: u8,
     insurance_passthrough_bump: u8,
     mango_account_bump: u8
-) -> ProgramResult {
+) -> UxdResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
     let insurance_mint = ctx.accounts.insurance_mint.key();
 
