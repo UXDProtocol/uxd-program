@@ -1030,7 +1030,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "1.3.3",
+  "version": "1.3.31",
   "name": "uxd",
   "instructions": [
     {
