@@ -8,7 +8,7 @@ import { CLUSTER, mangoCrankInterval } from "../constants";
 import { sleep } from "../utils";
 
 export const depositInsuranceMangoDepositoryTest = async (amount: number, authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango) => {
-    console.groupCollapsed("⏱ depositInsuranceMangoDepositoryTest");
+    console.group("⏱ depositInsuranceMangoDepositoryTest");
     // GIVEN
     const insuranceDepositedAmount = (await getMangoDepositoryAccount(depository)).insuranceAmountDeposited.toNumber() / (10 ** depository.insuranceMintDecimals);
 

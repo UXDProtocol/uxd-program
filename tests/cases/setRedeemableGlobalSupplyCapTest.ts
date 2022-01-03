@@ -6,7 +6,7 @@ import { getControllerAccount, setRedeemableGlobalSupplyCap } from "../api";
 import { CLUSTER } from "../constants";
 
 export const setRedeemableGlobalSupplyCapTest = async (supplyCapAmount: number, authority: Signer, controller: Controller) => {
-    console.groupCollapsed("🧭 setRedeemableGlobalSupplyCapTest");
+    console.group("🧭 setRedeemableGlobalSupplyCapTest");
     // GIVEN
     const redeemableGlobalSupplyCap = (await getControllerAccount(controller)).redeemableGlobalSupplyCap.div(new BN(10 ** controller.redeemableMintDecimals));
 

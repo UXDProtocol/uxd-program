@@ -5,7 +5,7 @@ import { CLUSTER } from "../constants";
 import { provider } from "../provider";
 
 export const initializeMangoDepositoryTest = async (authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango) => {
-    console.groupCollapsed("🧭 initializeMangoDepositoryTest");
+    console.group("🧭 initializeMangoDepositoryTest");
     // WHEN
     if (await provider.connection.getAccountInfo(depository.mangoAccountPda)) {
         console.log("🚧 Already registered.");
