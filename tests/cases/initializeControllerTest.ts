@@ -5,7 +5,7 @@ import { CLUSTER } from "../constants";
 import { provider } from "../provider";
 
 export const initializeControllerTest = async (authority: Signer, controller: Controller) => {
-    console.groupCollapsed("⏱ initializeControllerTest");
+    console.group("⏱ initializeControllerTest");
     // WHEN
     if (await provider.connection.getAccountInfo(controller.pda)) {
         console.log("🚧 Already initialized.");

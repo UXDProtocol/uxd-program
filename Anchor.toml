@@ -6,7 +6,7 @@ wallet = "~/.config/solana/id.json"
 uxd = "UXDQDbkAeGMPR7gqDykDNu22D9DnYrKdvZhvNmMu6QX"
 
 [programs.devnet]
-uxd = "H3tyF9SuGqxNoS4xWcUcS15wspMtXDMxqcAGu3ytH2KY"
+uxd = "6ezUuRjD4CgSSygfmCFvvMTi8Rg2LC21Tr7zVKk4vNDu"
 
 [registry]
 url = "https://anchor.projectserum.com"
@@ -16,7 +16,7 @@ url = "https://anchor.projectserum.com"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_*.ts"
 
 # Integration tests for SOL collateral
-# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_sol.ts"
+test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_sol.ts"
 
 # Integration tests for BTC collateral only
 # test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_btc.ts"
@@ -27,4 +27,4 @@ url = "https://anchor.projectserum.com"
 # test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/util_setup_controller_depository_sol.ts"
 
 # Mint and Redeem tests for SOL collateral
-test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/util_mint_redeem_sol.ts"
+# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/util_mint_redeem_sol.ts"

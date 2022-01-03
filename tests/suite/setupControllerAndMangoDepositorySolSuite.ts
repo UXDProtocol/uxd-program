@@ -12,19 +12,19 @@ export const setupControllerAndMangoDepositorySolSuite = (authority: Signer, con
     beforeEach("\n", () => { console.log("=============================================\n\n") });
 
     before("setup", async () => {
-        mango = await createAndInitializeMango(provider, CLUSTER);
+        mango = await createAndInitializeMango(provider.connection, CLUSTER);
     });
 
-    it("Initialize Controller", () => {
-        initializeControllerTest(authority, controller);
+    it("Initialize Controller", async () => {
+        await initializeControllerTest(authority, controller);
     });
 
-    it("Initialize SOL Depository", () => {
-        initializeMangoDepositoryTest(authority, controller, depository, mango);
+    it("Initialize SOL Depository", async () => {
+        await initializeMangoDepositoryTest(authority, controller, depository, mango);
     });
 
-    it("Deposit 100 USDC of insurance", () => {
-        depositInsuranceMangoDepositoryTest(100, authority, controller, depository, mango);
+    it("Deposit 100 USDC of insurance", async () => {
+        await depositInsuranceMangoDepositoryTest(100, authority, controller, depository, mango);
     });
 
 };

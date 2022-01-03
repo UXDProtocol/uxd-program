@@ -6,7 +6,7 @@ import { getControllerAccount, setMangoDepositoriesRedeemableSoftCap } from "../
 import { CLUSTER } from "../constants";
 
 export const setRedeemableSoftCapMangoDepositoryTest = async (softCapAmount: number, authority: Signer, controller: Controller) => {
-    console.groupCollapsed("🧭 setRedeemableSoftCapMangoDepositoryTest");
+    console.group("🧭 setRedeemableSoftCapMangoDepositoryTest");
     // GIVEN
     const mangoDepositoryRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
 

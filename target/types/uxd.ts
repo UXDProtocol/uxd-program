@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "1.3.3",
+  "version": "1.3.31",
   "name": "uxd",
   "instructions": [
     {

@@ -14,6 +14,8 @@ pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
 
+solana_program::declare_id!("6ezUuRjD4CgSSygfmCFvvMTi8Rg2LC21Tr7zVKk4vNDu");
+
 // Version used for accounts structure and future migrations
 pub const PROGRAM_VERSION: u8 = 1;
 
@@ -32,8 +34,6 @@ pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
-
-solana_program::declare_id!("H3tyF9SuGqxNoS4xWcUcS15wspMtXDMxqcAGu3ytH2KY");
 
 pub type UxdResult<T = ()> = Result<T, UxdError>;
 
