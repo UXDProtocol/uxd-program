@@ -13,6 +13,7 @@ pub mod instructions;
 pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
+pub mod events;
 
 solana_program::declare_id!("6ezUuRjD4CgSSygfmCFvvMTi8Rg2LC21Tr7zVKk4vNDu");
 

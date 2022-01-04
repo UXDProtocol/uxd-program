@@ -1,9 +1,9 @@
-use crate::UxdResult;
 use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::Controller;
 use crate::UxdError;
 use crate::UxdErrorCode;
+use crate::UxdResult;
 use crate::CONTROLLER_NAMESPACE;
 use crate::DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
 use crate::DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP;
@@ -13,6 +13,7 @@ use crate::SOLANA_MAX_MINT_DECIMALS;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
+use crate::events::InitializeControllerEvent;
 
 declare_check_assert_macros!(SourceFileId::InstructionInitializeController);
 
@@ -76,5 +77,9 @@ pub fn handler(
         .ok_or(math_err!())?;
     ctx.accounts.controller.redeemable_circulating_supply = u128::MIN;
 
+    emit!(InitializeControllerEvent {
+        controller: ctx.accounts.controller.key(),
+        authority: ctx.accounts.authority.key(),
+    });
     Ok(())
 }
