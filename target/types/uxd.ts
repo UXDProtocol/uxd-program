@@ -785,7 +785,7 @@ export type Uxd = {
             "name": "InstructionSetMangoDepositoriesRedeemableSoftCap"
           },
           {
-            "name": "InstructionMangoDexRegisterMangoDepository"
+            "name": "InstructionRegisterMangoDepository"
           },
           {
             "name": "InstructionMangoDexMintWithMangoDepository"
@@ -978,6 +978,11 @@ export type Uxd = {
       "name": "InitializeControllerEvent",
       "fields": [
         {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
           "name": "controller",
           "type": "publicKey",
           "index": false
@@ -993,6 +998,11 @@ export type Uxd = {
       "name": "SetRedeemableGlobalSupplyCapEvent",
       "fields": [
         {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
           "name": "controller",
           "type": "publicKey",
           "index": false
@@ -1005,8 +1015,48 @@ export type Uxd = {
       ]
     },
     {
+      "name": "RegisterMangoDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mangoAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
       "name": "SetMangoDepositoryRedeemableSoftCapEvent",
       "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
         {
           "name": "controller",
           "type": "publicKey",
@@ -1032,6 +1082,11 @@ export type Uxd = {
     {
       "name": "DepositInsuranceToMangoDepositoryEvent",
       "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
         {
           "name": "controller",
           "type": "publicKey",
@@ -1063,6 +1118,11 @@ export type Uxd = {
       "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
       "fields": [
         {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
           "name": "controller",
           "type": "publicKey",
           "index": false
@@ -1092,6 +1152,11 @@ export type Uxd = {
     {
       "name": "MintWithMangoDepositoryEvent",
       "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
         {
           "name": "controller",
           "type": "publicKey",
@@ -1137,6 +1202,11 @@ export type Uxd = {
     {
       "name": "RedeemFromMangoDepositoryEvent",
       "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
         {
           "name": "controller",
           "type": "publicKey",
@@ -2031,7 +2101,7 @@ export const IDL: Uxd = {
             "name": "InstructionSetMangoDepositoriesRedeemableSoftCap"
           },
           {
-            "name": "InstructionMangoDexRegisterMangoDepository"
+            "name": "InstructionRegisterMangoDepository"
           },
           {
             "name": "InstructionMangoDexMintWithMangoDepository"
@@ -2224,6 +2294,11 @@ export const IDL: Uxd = {
       "name": "InitializeControllerEvent",
       "fields": [
         {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
           "name": "controller",
           "type": "publicKey",
           "index": false
@@ -2239,6 +2314,11 @@ export const IDL: Uxd = {
       "name": "SetRedeemableGlobalSupplyCapEvent",
       "fields": [
         {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
           "name": "controller",
           "type": "publicKey",
           "index": false
@@ -2251,8 +2331,48 @@ export const IDL: Uxd = {
       ]
     },
     {
+      "name": "RegisterMangoDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mangoAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
       "name": "SetMangoDepositoryRedeemableSoftCapEvent",
       "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
         {
           "name": "controller",
           "type": "publicKey",
@@ -2278,6 +2398,11 @@ export const IDL: Uxd = {
     {
       "name": "DepositInsuranceToMangoDepositoryEvent",
       "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
         {
           "name": "controller",
           "type": "publicKey",
@@ -2309,6 +2434,11 @@ export const IDL: Uxd = {
       "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
       "fields": [
         {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
           "name": "controller",
           "type": "publicKey",
           "index": false
@@ -2338,6 +2468,11 @@ export const IDL: Uxd = {
     {
       "name": "MintWithMangoDepositoryEvent",
       "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
         {
           "name": "controller",
           "type": "publicKey",
@@ -2383,6 +2518,11 @@ export const IDL: Uxd = {
     {
       "name": "RedeemFromMangoDepositoryEvent",
       "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
         {
           "name": "controller",
           "type": "publicKey",

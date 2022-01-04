@@ -785,7 +785,7 @@
             "name": "InstructionSetMangoDepositoriesRedeemableSoftCap"
           },
           {
-            "name": "InstructionMangoDexRegisterMangoDepository"
+            "name": "InstructionRegisterMangoDepository"
           },
           {
             "name": "InstructionMangoDexMintWithMangoDepository"
@@ -978,6 +978,11 @@
       "name": "InitializeControllerEvent",
       "fields": [
         {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
           "name": "controller",
           "type": "publicKey",
           "index": false
@@ -993,6 +998,11 @@
       "name": "SetRedeemableGlobalSupplyCapEvent",
       "fields": [
         {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
           "name": "controller",
           "type": "publicKey",
           "index": false
@@ -1005,8 +1015,48 @@
       ]
     },
     {
+      "name": "RegisterMangoDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mangoAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
       "name": "SetMangoDepositoryRedeemableSoftCapEvent",
       "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
         {
           "name": "controller",
           "type": "publicKey",
@@ -1032,6 +1082,11 @@
     {
       "name": "DepositInsuranceToMangoDepositoryEvent",
       "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
         {
           "name": "controller",
           "type": "publicKey",
@@ -1063,6 +1118,11 @@
       "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
       "fields": [
         {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
           "name": "controller",
           "type": "publicKey",
           "index": false
@@ -1092,6 +1152,11 @@
     {
       "name": "MintWithMangoDepositoryEvent",
       "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
         {
           "name": "controller",
           "type": "publicKey",
@@ -1137,6 +1202,11 @@
     {
       "name": "RedeemFromMangoDepositoryEvent",
       "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
         {
           "name": "controller",
           "type": "publicKey",
