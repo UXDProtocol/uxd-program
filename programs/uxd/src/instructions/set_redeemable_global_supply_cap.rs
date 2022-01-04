@@ -22,6 +22,7 @@ pub fn handler(
 ) -> UxdResult {
     ctx.accounts.controller.redeemable_global_supply_cap = redeemable_global_supply_cap;
     emit!(SetRedeemableGlobalSupplyCapEvent {
+        version: ctx.accounts.controller.version,
         controller: ctx.accounts.controller.key(),
         redeemable_global_supply_cap
     });

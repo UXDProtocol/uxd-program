@@ -13,7 +13,7 @@ pub enum SourceFileId {
     InstructionInitializeController = 0,
     InstructionSetRedeemableGlobalSupplyCap = 1,
     InstructionSetMangoDepositoriesRedeemableSoftCap = 2,
-    InstructionMangoDexRegisterMangoDepository = 3,
+    InstructionRegisterMangoDepository = 3,
     InstructionMangoDexMintWithMangoDepository = 4,
     InstructionMangoDexRedeemFromMangoDepository = 5,
     InstructionMangoDexDepositInsuranceToMangoDepository = 6,
@@ -49,8 +49,8 @@ impl std::fmt::Display for SourceFileId {
                     "src/instructions/set_mango_depositories_redeemable_soft_cap.rs"
                 )
             }
-            SourceFileId::InstructionMangoDexRegisterMangoDepository => {
-                write!(f, "src/instructions/mango_dex/register_mango_depository.rs")
+            SourceFileId::InstructionRegisterMangoDepository => {
+                write!(f, "src/instructions/register_mango_depository.rs")
             }
             SourceFileId::InstructionMangoDexMintWithMangoDepository => {
                 write!(

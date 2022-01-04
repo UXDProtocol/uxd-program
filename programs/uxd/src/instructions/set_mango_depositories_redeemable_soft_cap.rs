@@ -22,6 +22,7 @@ pub fn handler(
 ) -> UxdResult {
     ctx.accounts.controller.mango_depositories_redeemable_soft_cap = redeemable_soft_cap;
     emit!(SetMangoDepositoryRedeemableSoftCapEvent {
+        version: ctx.accounts.controller.version,
         controller: ctx.accounts.controller.key(),
         redeemable_mint_decimals: ctx.accounts.controller.redeemable_mint_decimals,
         redeemable_mint: ctx.accounts.controller.redeemable_mint,

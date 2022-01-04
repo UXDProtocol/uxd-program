@@ -6,14 +6,12 @@ use crate::error::UxdError;
 use crate::error::UxdErrorCode;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::UxdResult;
-use anchor_lang::prelude::*;
 use fixed::types::I80F48;
 use mango::state::PerpAccount;
 use solana_program::msg;
 
 declare_check_assert_macros!(SourceFileId::MangoUtilsOrderDelta);
 
-#[derive(AnchorSerialize, AnchorDeserialize, Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub struct OrderDelta {
     pub collateral: u64,
     pub quote: u64,

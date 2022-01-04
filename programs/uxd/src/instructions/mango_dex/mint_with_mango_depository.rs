@@ -254,11 +254,15 @@ pub fn handler(
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
     emit!(MintWithMangoDepositoryEvent {
+        version: ctx.accounts.controller.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
         collateral_amount,
         slippage,
-        order_delta,
+        collateral_delta: order_delta.collateral,
+        redeemable_delta,
+        fee_delta: order_delta.fee,
     });
 
     Ok(())

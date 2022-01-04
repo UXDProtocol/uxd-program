@@ -78,6 +78,7 @@ pub fn handler(
     ctx.accounts.controller.redeemable_circulating_supply = u128::MIN;
 
     emit!(InitializeControllerEvent {
+        version: ctx.accounts.controller.version,
         controller: ctx.accounts.controller.key(),
         authority: ctx.accounts.authority.key(),
     });

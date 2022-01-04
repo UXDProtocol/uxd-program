@@ -111,6 +111,7 @@ pub fn handler(
     ctx.accounts.update_accounting(insurance_amount)?;
 
     emit!(WithdrawInsuranceFromMangoDeposirotyEvent {
+        version: ctx.accounts.controller.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         insurance_mint: ctx.accounts.depository.insurance_mint,

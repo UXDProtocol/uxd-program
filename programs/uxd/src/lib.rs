@@ -15,7 +15,7 @@ pub mod mango_utils;
 pub mod state;
 pub mod events;
 
-solana_program::declare_id!("6ezUuRjD4CgSSygfmCFvvMTi8Rg2LC21Tr7zVKk4vNDu");
+solana_program::declare_id!("5SQ5BDA42axXMrmX2An6LdzWZn6Th7oUCqs4E2T9iGzk");
 
 // Version used for accounts structure and future migrations
 pub const PROGRAM_VERSION: u8 = 1;
