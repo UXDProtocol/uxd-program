@@ -13,7 +13,7 @@ use crate::MangoDepository;
 use crate::UxdResult;
 use crate::mango_program;
 use crate::error::UxdIdlErrorCode;
-
+use crate::events::WithdrawInsuranceFromMangoDeposirotyEvent;
 #[derive(Accounts)]
 pub struct WithdrawInsuranceFromMangoDepository<'info> {
     pub authority: Signer<'info>,
@@ -110,6 +110,14 @@ pub fn handler(
     // - 2 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_accounting(insurance_amount)?;
 
+    emit!(WithdrawInsuranceFromMangoDeposirotyEvent {
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        insurance_mint: ctx.accounts.depository.insurance_mint,
+        insurance_mint_decimals: ctx.accounts.depository.insurance_mint_decimals,
+        withdrawn_amount: insurance_amount,
+    });
+    
     Ok(())
 }
 
