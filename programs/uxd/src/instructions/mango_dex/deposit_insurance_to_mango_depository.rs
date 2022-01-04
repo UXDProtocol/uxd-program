@@ -14,6 +14,7 @@ use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
 use crate::MangoDepository;
 use crate::mango_program;
+use crate::events::DepositInsuranceToMangoDepositoryEvent;
 
 #[derive(Accounts)]
 pub struct DepositInsuranceToMangoDepository<'info> {
@@ -106,6 +107,13 @@ pub fn handler(
 
     // - 2 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_accounting(insurance_amount)?;
+
+    emit!(DepositInsuranceToMangoDepositoryEvent {
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        insurance_mint: ctx.accounts.insurance_mint.key(),
+        deposited_amount: insurance_amount,
+    });
 
     Ok(())
 }

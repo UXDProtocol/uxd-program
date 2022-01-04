@@ -33,3 +33,18 @@ pub struct SetMangoDepositoryRedeemableSoftCapEvent {
 }
 
 // - Mango Depositories -------------------------------------------------------
+
+/// Event called in [instructions::mango_dex::deposit_insurance_to_mango_depository::handler].
+#[event]
+pub struct DepositInsuranceToMangoDepositoryEvent {
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    // The insurance mint. 
+    pub insurance_mint: Pubkey,
+    // The deposited amount in native units.
+    pub deposited_amount: u64,
+}
