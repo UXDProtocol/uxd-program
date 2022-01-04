@@ -12,10 +12,10 @@ use thiserror::Error;
 pub enum SourceFileId {
     InstructionInitializeController = 0,
     InstructionSetRedeemableGlobalSupplyCap = 1,
-    InstructionMangoDexRegisterMangoDepository = 2,
-    InstructionMangoDexMintWithMangoDepository = 3,
-    InstructionMangoDexRedeemFromMangoDepository = 4,
-    InstructionMangoDexSetMangoDepositoriesRedeemableSoftCap = 5,
+    InstructionSetMangoDepositoriesRedeemableSoftCap = 2,
+    InstructionMangoDexRegisterMangoDepository = 3,
+    InstructionMangoDexMintWithMangoDepository = 4,
+    InstructionMangoDexRedeemFromMangoDepository = 5,
     InstructionMangoDexDepositInsuranceToMangoDepository = 6,
     InstructionMangoDexWithdrawInsuranceFromMangoDepository = 7,
     MangoProgramAnchorMango = 8,
@@ -43,49 +43,81 @@ impl std::fmt::Display for SourceFileId {
             SourceFileId::InstructionSetRedeemableGlobalSupplyCap => {
                 write!(f, "src/instructions/set_redeemable_global_supply_cap.rs")
             }
+            SourceFileId::InstructionSetMangoDepositoriesRedeemableSoftCap => {
+                write!(
+                    f,
+                    "src/instructions/set_mango_depositories_redeemable_soft_cap.rs"
+                )
+            }
             SourceFileId::InstructionMangoDexRegisterMangoDepository => {
                 write!(f, "src/instructions/mango_dex/register_mango_depository.rs")
             }
-            SourceFileId::InstructionMangoDexMintWithMangoDepository => write!(
-                f,
-                "src/instructions/mango_dex/mint_with_mango_depository.rs"
-            ),
-            SourceFileId::InstructionMangoDexRedeemFromMangoDepository => write!(
-                f,
-                "src/instructions/mango_dex/redeem_from_mango_depository.rs"
-            ),
-            SourceFileId::InstructionMangoDexSetMangoDepositoriesRedeemableSoftCap => write!(
-                f,
-                "src/instructions/mango_dex/set_mango_depositories_redeemable_soft_cap.rs"
-            ),
-            SourceFileId::InstructionMangoDexDepositInsuranceToMangoDepository => write!(
-                f,
-                "src/instructions/mango_dex/deposit_insurance_to_mango_depository.rs"
-            ),
-            SourceFileId::InstructionMangoDexWithdrawInsuranceFromMangoDepository => write!(
-                f,
-                "src/instructions/mango_dex/withdraw_insurance_from_mango_depository.rs"
-            ),
-            SourceFileId::MangoProgramAnchorMango => write!(f, "src/mango_program/anchor_mango.rs"),
-            SourceFileId::MangoProgramDeposit => write!(f, "src/mango_program/deposit.rs"),
+            SourceFileId::InstructionMangoDexMintWithMangoDepository => {
+                write!(
+                    f,
+                    "src/instructions/mango_dex/mint_with_mango_depository.rs"
+                )
+            }
+            SourceFileId::InstructionMangoDexRedeemFromMangoDepository => {
+                write!(
+                    f,
+                    "src/instructions/mango_dex/redeem_from_mango_depository.rs"
+                )
+            }
+            SourceFileId::InstructionMangoDexDepositInsuranceToMangoDepository => {
+                write!(
+                    f,
+                    "src/instructions/mango_dex/deposit_insurance_to_mango_depository.rs"
+                )
+            }
+            SourceFileId::InstructionMangoDexWithdrawInsuranceFromMangoDepository => {
+                write!(
+                    f,
+                    "src/instructions/mango_dex/withdraw_insurance_from_mango_depository.rs"
+                )
+            }
+            SourceFileId::MangoProgramAnchorMango => {
+                write!(f, "src/mango_program/anchor_mango.rs")
+            }
+            SourceFileId::MangoProgramDeposit => {
+                write!(f, "src/mango_program/deposit.rs")
+            }
             SourceFileId::MangoProgramInitMangoAccount => {
                 write!(f, "src/mango_program/init_mango_account.rs")
             }
             SourceFileId::MangoProgramPlacePerpOrder => {
                 write!(f, "src/mango_program/place_perp_order.rs")
             }
-            SourceFileId::MangoProgramWithdraw => write!(f, "src/mango_program/withdraw.rs"),
-            SourceFileId::MangoUtilsLimitUtils => write!(f, "src/mango_utils/limit_utils.rs"),
-            SourceFileId::MangoUtilsOrderDelta => write!(f, "src/mango_utils/order_delta.rs"),
-            SourceFileId::MangoUtilsOrder => write!(f, "src/mango_utils/order.rs"),
+            SourceFileId::MangoProgramWithdraw => {
+                write!(f, "src/mango_program/withdraw.rs")
+            }
+            SourceFileId::MangoUtilsLimitUtils => {
+                write!(f, "src/mango_utils/limit_utils.rs")
+            }
+            SourceFileId::MangoUtilsOrderDelta => {
+                write!(f, "src/mango_utils/order_delta.rs")
+            }
+            SourceFileId::MangoUtilsOrder => {
+                write!(f, "src/mango_utils/order.rs")
+            }
             SourceFileId::MangoUtilsPerpAccountUtils => {
                 write!(f, "src/mango_utils/perp_account_utils.rs")
             }
-            SourceFileId::MangoUtilsPerpInfo => write!(f, "src/mango_utils/perp_info.rs"),
-            SourceFileId::StateController => write!(f, "src/state/controller.rs"),
-            SourceFileId::StateMangoDepository => write!(f, "src/state/mango_depository.rs"),
-            SourceFileId::Error => write!(f, "src/error.rs"),
-            SourceFileId::Lib => write!(f, "src/lib.rs"),
+            SourceFileId::MangoUtilsPerpInfo => {
+                write!(f, "src/mango_utils/perp_info.rs")
+            }
+            SourceFileId::StateController => {
+                write!(f, "src/state/controller.rs")
+            }
+            SourceFileId::StateMangoDepository => {
+                write!(f, "src/state/mango_depository.rs")
+            }
+            SourceFileId::Error => {
+                write!(f, "src/error.rs")
+            }
+            SourceFileId::Lib => {
+                write!(f, "src/lib.rs")
+            }
         }
     }
 }
