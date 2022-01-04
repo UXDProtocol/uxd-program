@@ -111,7 +111,8 @@ pub fn handler(
     emit!(DepositInsuranceToMangoDepositoryEvent {
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
-        insurance_mint: ctx.accounts.insurance_mint.key(),
+        insurance_mint: ctx.accounts.depository.insurance_mint,
+        insurance_mint_decimals: ctx.accounts.depository.insurance_mint_decimals,
         deposited_amount: insurance_amount,
     });
 

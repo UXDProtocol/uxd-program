@@ -17,9 +17,11 @@ pub struct MangoDepository {
     // Version used - for migrations later if needed
     pub version: u8,
     pub collateral_mint: Pubkey,
+    pub collateral_mint_decimals: u8,
     pub collateral_passthrough: Pubkey,
     pub insurance_mint: Pubkey,
     pub insurance_passthrough: Pubkey,
+    pub insurance_mint_decimals: u8,
     pub mango_account: Pubkey,
     //
     // The Controller instance for which this Depository works for

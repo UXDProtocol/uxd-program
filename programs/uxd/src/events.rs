@@ -28,6 +28,10 @@ pub struct SetMangoDepositoryRedeemableSoftCapEvent {
     /// The controller.
     #[index]
     pub controller: Pubkey,
+    // The redeemable mint.
+    pub redeemable_mint: Pubkey,
+    // The redeemable mint decimals. 
+    pub redeemable_mint_decimals: u8,
     // The new cap.
     pub redeemable_soft_cap: u64,
 }
@@ -43,8 +47,27 @@ pub struct DepositInsuranceToMangoDepositoryEvent {
     /// The depository.
     #[index]
     pub depository: Pubkey,
-    // The insurance mint. 
+    // The insurance mint.
     pub insurance_mint: Pubkey,
+    // The insurance mint decimals.
+    pub insurance_mint_decimals: u8,
     // The deposited amount in native units.
     pub deposited_amount: u64,
+}
+
+/// Event called in [instructions::mango_dex::withdraw_insurance_from_mango_depository::handler].
+#[event]
+pub struct WithdrawInsuranceFromMangoDeposirotyEvent {
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    // The insurance mint.
+    pub insurance_mint: Pubkey,
+    // The insurance mint decimals.
+    pub insurance_mint_decimals: u8,
+    // The deposited amount in native units.
+    pub withdrawn_amount: u64,
 }

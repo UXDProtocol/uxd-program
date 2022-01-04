@@ -113,8 +113,10 @@ pub fn handler(
     ctx.accounts.depository.mango_account_bump = mango_account_bump;
     ctx.accounts.depository.version = PROGRAM_VERSION;
     ctx.accounts.depository.collateral_mint = collateral_mint;
+    ctx.accounts.depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
     ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
     ctx.accounts.depository.insurance_mint = insurance_mint;
+    ctx.accounts.depository.insurance_mint_decimals = ctx.accounts.insurance_mint.decimals;
     ctx.accounts.depository.insurance_passthrough = ctx.accounts.depository_insurance_passthrough_account.key();
     ctx.accounts.depository.mango_account = ctx.accounts.depository_mango_account.key();
     ctx.accounts.depository.controller = ctx.accounts.controller.key();

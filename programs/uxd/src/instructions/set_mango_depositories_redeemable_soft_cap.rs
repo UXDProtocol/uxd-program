@@ -23,6 +23,8 @@ pub fn handler(
     ctx.accounts.controller.mango_depositories_redeemable_soft_cap = redeemable_soft_cap;
     emit!(SetMangoDepositoryRedeemableSoftCapEvent {
         controller: ctx.accounts.controller.key(),
+        redeemable_mint_decimals: ctx.accounts.controller.redeemable_mint_decimals,
+        redeemable_mint: ctx.accounts.controller.redeemable_mint,
         redeemable_soft_cap
     });
     Ok(())
