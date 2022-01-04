@@ -1,4 +1,5 @@
-use crate::*;
+use crate::mango_utils::OrderDelta;
+use anchor_lang::prelude::*;
 
 // - Global Events ------------------------------------------------------------
 
@@ -30,7 +31,7 @@ pub struct SetMangoDepositoryRedeemableSoftCapEvent {
     pub controller: Pubkey,
     // The redeemable mint.
     pub redeemable_mint: Pubkey,
-    // The redeemable mint decimals. 
+    // The redeemable mint decimals.
     pub redeemable_mint_decimals: u8,
     // The new cap.
     pub redeemable_soft_cap: u64,
@@ -68,6 +69,23 @@ pub struct WithdrawInsuranceFromMangoDeposirotyEvent {
     pub insurance_mint: Pubkey,
     // The insurance mint decimals.
     pub insurance_mint_decimals: u8,
-    // The deposited amount in native units.
+    // The withdrawn amount in native units.
     pub withdrawn_amount: u64,
+}
+
+/// Event called in [instructions::mango_dex::mint_with_mango_depository::handler].
+#[event]
+pub struct MintWithMangoDepositoryEvent {
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    // The collateral amount in native units.
+    pub collateral_amount: u64,
+    // The user selected slippage.
+    pub slippage: u32,
+    // The different deltas after successful minting operation.
+    pub order_delta: OrderDelta,
 }
