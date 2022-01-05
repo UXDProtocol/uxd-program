@@ -34,6 +34,10 @@ jobs:
         with:
           node-version: "14"
           cache: "yarn"
+          registry-url: 'https://npm.pkg.github.com'
+          # These following two lines are the key:
+          always-auth: true
+          scope: '@UXDProtocol'
           
       # Cache Cargo registry + index 
       - uses: actions/cache@v2
