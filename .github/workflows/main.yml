@@ -40,7 +40,7 @@ jobs:
           registry-url: 'https://npm.pkg.github.com'
           # These following two lines are the key:
           always-auth: true
-          scope: '@UXDProtocol'
+          scope: '@UXDProtocol/uxd-client'
           
       # Cache Cargo registry + index 
       - uses: actions/cache@v2
