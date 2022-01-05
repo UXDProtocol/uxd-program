@@ -117,7 +117,7 @@ jobs:
       
       - name: Create NPMRC
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.PACKAGES_TOKEN }}" >> ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" >> ~/.npmrc
           echo "@you-scope:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo 'registry "https://registry.yarnpkg.com"' >> ~/.yarnrc
       - name: Yarn install + run tests
