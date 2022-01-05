@@ -122,7 +122,7 @@ jobs:
           echo 'registry "https://registry.yarnpkg.com"' >> ~/.yarnrc
       - name: Yarn install + run tests
         run: |
-          yarn login --scope=@UXDProtocol --registry=https://npm.pkg.github.com
+          yarn login --scope=@UXDProtocol --registry=https://npm.pkg.github.com --username acamill --password ${{ github.token }}
           yarn install
           npx @project-serum/anchor-cli@${{ env.anchor_version }} test
 
