@@ -17,7 +17,7 @@ env:
   solana_verion: 1.8.11
   anchor_version: 0.19.0
   cluster: devnet
-  runner_wallet_path: /home/runner/work/uxd-program/uxd-program/.config/solana/id.json
+  runner_wallet_path: /home/runner/.config/solana/id.json
   mango_account_mm: 8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -95,7 +95,7 @@ jobs:
       - name: setup solana
         run: |
           solana --version
-          solana-keygen new --outfile ${{ env.runner_wallet_path }}
+          solana-keygen new -o ${{ env.runner_wallet_path }}
           
       # Checkout MangoClient-v3, install dependencies, and run MM bot devnet SOL perp + Keeper
       - name: Checkout
