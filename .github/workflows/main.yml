@@ -16,6 +16,7 @@ on:
 env:
   solana_verion: 1.8.11
   anchor_version: 0.19.0
+  NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
