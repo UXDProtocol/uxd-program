@@ -115,10 +115,15 @@ jobs:
           GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} MANGO_ACCOUNT_PUBKEY=${{ env.mango_account_mm }} MARKET=SOL yarn mm &
           cd -
       
-      # Install UXD dependencies
-      - run: yarn install
-      # Run Anchor test
-      - run: npx @project-serum/anchor-cli@${{ env.anchor_version }} test
+      - name: Create NPMRC
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.PACKAGES_TOKEN }}" >> ~/.npmrc
+          echo "@you-scope:registry=https://npm.pkg.github.com" >> ~/.npmrc
+          echo 'registry "https://registry.yarnpkg.com"' >> ~/.yarnrc
+      - name: Yarn install + run tests
+        run: |
+          yarn install
+          npx @project-serum/anchor-cli@${{ env.anchor_version }} test
 
 #       # Runs a single command using the runners shell
 #       - name: Run a one-line script
