@@ -4,7 +4,6 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use mango::state::MangoAccount;
 use std::mem::size_of;
-
 use crate::PROGRAM_VERSION;
 use crate::UxdResult;
 use crate::mango_program;
@@ -16,6 +15,7 @@ use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
+use crate::events::RegisterMangoDepositoryEvent;
 
 const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
@@ -113,8 +113,10 @@ pub fn handler(
     ctx.accounts.depository.mango_account_bump = mango_account_bump;
     ctx.accounts.depository.version = PROGRAM_VERSION;
     ctx.accounts.depository.collateral_mint = collateral_mint;
+    ctx.accounts.depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
     ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
     ctx.accounts.depository.insurance_mint = insurance_mint;
+    ctx.accounts.depository.insurance_mint_decimals = ctx.accounts.insurance_mint.decimals;
     ctx.accounts.depository.insurance_passthrough = ctx.accounts.depository_insurance_passthrough_account.key();
     ctx.accounts.depository.mango_account = ctx.accounts.depository_mango_account.key();
     ctx.accounts.depository.controller = ctx.accounts.controller.key();
@@ -124,6 +126,15 @@ pub fn handler(
 
     // - Update Controller state
     ctx.accounts.add_new_registered_mango_depository_entry_to_controller()?;
+
+    emit!(RegisterMangoDepositoryEvent {
+        version: ctx.accounts.controller.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        collateral_mint: ctx.accounts.collateral_mint.key(),
+        insurance_mint: ctx.accounts.insurance_mint.key(),
+        mango_account: ctx.accounts.depository_mango_account.key(),
+    });
 
     Ok(())
 }

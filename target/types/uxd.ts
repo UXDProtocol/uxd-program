@@ -722,6 +722,10 @@ export type Uxd = {
             "type": "publicKey"
           },
           {
+            "name": "collateralMintDecimals",
+            "type": "u8"
+          },
+          {
             "name": "collateralPassthrough",
             "type": "publicKey"
           },
@@ -732,6 +736,10 @@ export type Uxd = {
           {
             "name": "insurancePassthrough",
             "type": "publicKey"
+          },
+          {
+            "name": "insuranceMintDecimals",
+            "type": "u8"
           },
           {
             "name": "mangoAccount",
@@ -774,16 +782,16 @@ export type Uxd = {
             "name": "InstructionSetRedeemableGlobalSupplyCap"
           },
           {
-            "name": "InstructionMangoDexRegisterMangoDepository"
+            "name": "InstructionSetMangoDepositoriesRedeemableSoftCap"
+          },
+          {
+            "name": "InstructionRegisterMangoDepository"
           },
           {
             "name": "InstructionMangoDexMintWithMangoDepository"
           },
           {
             "name": "InstructionMangoDexRedeemFromMangoDepository"
-          },
-          {
-            "name": "InstructionMangoDexSetMangoDepositoriesRedeemableSoftCap"
           },
           {
             "name": "InstructionMangoDexDepositInsuranceToMangoDepository"
@@ -963,6 +971,283 @@ export type Uxd = {
           }
         ]
       }
+    }
+  ],
+  "events": [
+    {
+      "name": "InitializeControllerEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "authority",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "SetRedeemableGlobalSupplyCapEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "redeemableGlobalSupplyCap",
+          "type": "u128",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RegisterMangoDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mangoAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "SetMangoDepositoryRedeemableSoftCapEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "redeemableMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "redeemableMintDecimals",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "redeemableSoftCap",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "DepositInsuranceToMangoDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMintDecimals",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositedAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMintDecimals",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "withdrawnAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "MintWithMangoDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "slippage",
+          "type": "u32",
+          "index": false
+        },
+        {
+          "name": "collateralDelta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "redeemableDelta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "feeDelta",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RedeemFromMangoDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "redeemableAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "slippage",
+          "type": "u32",
+          "index": false
+        },
+        {
+          "name": "collateralDelta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "redeemableDelta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "feeDelta",
+          "type": "u64",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -1753,6 +2038,10 @@ export const IDL: Uxd = {
             "type": "publicKey"
           },
           {
+            "name": "collateralMintDecimals",
+            "type": "u8"
+          },
+          {
             "name": "collateralPassthrough",
             "type": "publicKey"
           },
@@ -1763,6 +2052,10 @@ export const IDL: Uxd = {
           {
             "name": "insurancePassthrough",
             "type": "publicKey"
+          },
+          {
+            "name": "insuranceMintDecimals",
+            "type": "u8"
           },
           {
             "name": "mangoAccount",
@@ -1805,16 +2098,16 @@ export const IDL: Uxd = {
             "name": "InstructionSetRedeemableGlobalSupplyCap"
           },
           {
-            "name": "InstructionMangoDexRegisterMangoDepository"
+            "name": "InstructionSetMangoDepositoriesRedeemableSoftCap"
+          },
+          {
+            "name": "InstructionRegisterMangoDepository"
           },
           {
             "name": "InstructionMangoDexMintWithMangoDepository"
           },
           {
             "name": "InstructionMangoDexRedeemFromMangoDepository"
-          },
-          {
-            "name": "InstructionMangoDexSetMangoDepositoriesRedeemableSoftCap"
           },
           {
             "name": "InstructionMangoDexDepositInsuranceToMangoDepository"
@@ -1994,6 +2287,283 @@ export const IDL: Uxd = {
           }
         ]
       }
+    }
+  ],
+  "events": [
+    {
+      "name": "InitializeControllerEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "authority",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "SetRedeemableGlobalSupplyCapEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "redeemableGlobalSupplyCap",
+          "type": "u128",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RegisterMangoDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mangoAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "SetMangoDepositoryRedeemableSoftCapEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "redeemableMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "redeemableMintDecimals",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "redeemableSoftCap",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "DepositInsuranceToMangoDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMintDecimals",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositedAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMintDecimals",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "withdrawnAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "MintWithMangoDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "slippage",
+          "type": "u32",
+          "index": false
+        },
+        {
+          "name": "collateralDelta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "redeemableDelta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "feeDelta",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RedeemFromMangoDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "redeemableAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "slippage",
+          "type": "u32",
+          "index": false
+        },
+        {
+          "name": "collateralDelta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "redeemableDelta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "feeDelta",
+          "type": "u64",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [

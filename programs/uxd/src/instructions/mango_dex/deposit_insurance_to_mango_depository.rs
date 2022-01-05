@@ -4,7 +4,6 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
-
 use crate::AccountingEvent;
 use crate::Controller;
 use crate::UxdResult;
@@ -15,6 +14,7 @@ use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
 use crate::MangoDepository;
 use crate::mango_program;
+use crate::events::DepositInsuranceToMangoDepositoryEvent;
 
 #[derive(Accounts)]
 pub struct DepositInsuranceToMangoDepository<'info> {
@@ -107,6 +107,15 @@ pub fn handler(
 
     // - 2 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_accounting(insurance_amount)?;
+
+    emit!(DepositInsuranceToMangoDepositoryEvent {
+        version: ctx.accounts.controller.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        insurance_mint: ctx.accounts.depository.insurance_mint,
+        insurance_mint_decimals: ctx.accounts.depository.insurance_mint_decimals,
+        deposited_amount: insurance_amount,
+    });
 
     Ok(())
 }
