@@ -108,8 +108,7 @@ jobs:
           path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
       - name: Install MangoClient-v3 dependencies then runs Mango Keeper and MM bot on devnet for SOL perp
         run: |
-          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3 
-          yarn login --scope=@UXDProtocol --registry=https://npm.pkg.github.com
+          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
           yarn install
           solana airdrop 1 -u d
           GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} yarn keeper &
@@ -123,6 +122,7 @@ jobs:
           echo 'registry "https://registry.yarnpkg.com"' >> ~/.yarnrc
       - name: Yarn install + run tests
         run: |
+          yarn login --scope=@UXDProtocol --registry=https://npm.pkg.github.com
           yarn install
           npx @project-serum/anchor-cli@${{ env.anchor_version }} test
 
