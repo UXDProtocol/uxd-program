@@ -95,10 +95,10 @@ jobs:
         uses: actions/checkout@v2.4.0
         with:
           repository: blockworks-foundation/mango-client-v3
-          path: /home/runner/work/uxd-program/third-party/mango-client-v3
+          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
       - name: Install MangoClient-v3 dependencies then runs Mango Keeper and MM bot on devnet for SOL perp
         run: |
-          cd /home/runner/work/uxd-program/third-party/mango-client-v3
+          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
           yarn install
           solana airdrop 1 -u d
           solana airdrop 1 -u d
