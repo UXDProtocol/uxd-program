@@ -3,6 +3,7 @@ use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdErrorCode;
 use crate::error::UxdIdlErrorCode;
+use crate::events::RedeemFromMangoDepositoryEvent;
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
@@ -242,6 +243,18 @@ pub fn handler(
         redeemable_delta,
         order_delta.fee,
     )?;
+
+    emit!(RedeemFromMangoDepositoryEvent {
+        version: ctx.accounts.controller.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        redeemable_amount,
+        slippage,
+        collateral_delta: order_delta.collateral,
+        redeemable_delta,
+        fee_delta: order_delta.fee,
+    });
 
     Ok(())
 }

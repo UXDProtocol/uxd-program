@@ -2,6 +2,7 @@ use crate::check_assert;
 use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
+use crate::events::MintWithMangoDepositoryEvent;
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
@@ -251,6 +252,18 @@ pub fn handler(
 
     // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE GLOBAL REDEEMABLE SUPPLY CAP] -
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
+
+    emit!(MintWithMangoDepositoryEvent {
+        version: ctx.accounts.controller.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        collateral_amount,
+        slippage,
+        collateral_delta: order_delta.collateral,
+        redeemable_delta,
+        fee_delta: order_delta.fee,
+    });
 
     Ok(())
 }
