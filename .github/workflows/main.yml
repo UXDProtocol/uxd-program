@@ -20,9 +20,9 @@ permissions:
 env:
   solana_verion: 1.8.11
   anchor_version: 0.19.0
-  cluster: devnet
-  runner_wallet_path: /home/runner/.config/solana/id.json
-  mango_account_mm: 8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w
+  cluster: "devnet"
+  runner_wallet_path: "/home/runner/.config/solana/id.json"
+  mango_account_mm: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -33,22 +33,17 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/labeler@v2
-        with:
-          repo-token: ${{ github.token }}
           
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
       # Node 14
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v2.5
         with:
           node-version: "14"
           cache: "yarn"
           registry-url: 'https://npm.pkg.github.com'
-          # These following two lines are the key:
-          always-auth: true
-          scope: '@UXDProtocol/uxd-client'
+          scope: "@UXDProtocol"
           
       # Cache Cargo registry + index 
       - uses: actions/cache@v2
