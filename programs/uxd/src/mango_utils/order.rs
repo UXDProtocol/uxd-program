@@ -134,7 +134,7 @@ pub fn get_best_order_for_base_lot_quantity<'a>(
 }
 
 // Verify that the order quantity matches the base position delta
-pub fn check_short_perp_order_fully_filled(
+pub fn check_perp_order_fully_filled(
     order_quantity: i64,
     pre_position: i64,
     post_position: i64,
