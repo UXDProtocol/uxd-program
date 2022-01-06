@@ -23,6 +23,7 @@ env:
   cluster: "devnet"
   runner_wallet_path: "/home/runner/.config/solana/id.json"
   mango_account_mm: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
+  NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -44,6 +45,7 @@ jobs:
           cache: "yarn"
           registry-url: 'https://npm.pkg.github.com'
           scope: "@UXDProtocol"
+          always-auth: true
           
       # Cache Cargo registry + index 
       - uses: actions/cache@v2
@@ -117,9 +119,8 @@ jobs:
       
       - name: Create NPMRC
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" >> ~/.npmrc
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
-          echo 'registry "https://registry.yarnpkg.com"' >> ~/.yarnrc
+          echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
       - name: Yarn install + run tests
         run: |
           yarn install
