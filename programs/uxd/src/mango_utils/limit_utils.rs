@@ -73,7 +73,7 @@ mod test {
     proptest! {
         #[test]
         fn test_limit_price_bid(price in 0..1000000i128, slippage in 0..u32::MAX) {
-            // create random fraction from 0..10000 with 9 decimals
+            // create random fraction with 9 decimals
             let fractional_price = I80F48::from_bits(price << 48-9);
             // println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
 
@@ -88,7 +88,7 @@ mod test {
 
         #[test]
         fn test_limit_price_ask(price in 0..1000000i128, slippage in 0..u32::MAX) {
-            // create random fraction from 0..10000 with 9 decimals
+            // create random fraction with 9 decimals
             let fractional_price = I80F48::from_bits(price << 48-9);
             // println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
 
