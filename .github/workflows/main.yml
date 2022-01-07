@@ -124,8 +124,8 @@ jobs:
       - name: Yarn install + run tests
         run: |
           yarn install
-          ./home/runner/work/uxd-program/uxd-program/uxd-program/scripts/run_integration_tests.sh
-        #npx @project-serum/anchor-cli@${{ env.anchor_version }} test
+          ./home/runner/work/uxd-program/uxd-program/uxd-program/scripts/reset_program_id.sh
+          npx @project-serum/anchor-cli@${{ env.anchor_version }} test
 
 #       # Runs a single command using the runners shell
 #       - name: Run a one-line script
