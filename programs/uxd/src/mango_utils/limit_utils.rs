@@ -54,3 +54,51 @@ pub fn uncommitted_perp_base_position(perp_account: &PerpAccount) -> i64 {
         .checked_add(perp_account.taker_base)
         .unwrap()
 }
+
+// test
+#[cfg(test)]
+mod test {
+    use crate::{mango_utils::limit_price, SLIPPAGE_BASIS};
+    use fixed::types::I80F48;
+    use mango::matching::Side;
+    use proptest::prelude::*;
+
+    fn cal_slippage(price: I80F48, slippage: u32) -> I80F48 {
+        let slippage = I80F48::checked_from_num(slippage).unwrap();
+        let slippage_basis = I80F48::checked_from_num(SLIPPAGE_BASIS).unwrap();
+        let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
+        return price.checked_mul(slippage_ratio).unwrap();
+    }
+
+    proptest! {
+        #[test]
+        fn test_limit_price_bid(price in 0..1000000i128, slippage in 0..u32::MAX) {
+            // create random fraction from 0..10000 with 9 decimals
+            let fractional_price = I80F48::from_bits(price << 48-9);
+            // println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
+
+            let limit_price = limit_price(fractional_price, slippage, Side::Bid);
+
+            let slippage_amount = cal_slippage(fractional_price, slippage);
+            // expected limit price
+            let price_plus_slippage = fractional_price.checked_add(slippage_amount).unwrap();
+
+            prop_assert_eq!(limit_price, price_plus_slippage);
+        }
+
+        #[test]
+        fn test_limit_price_ask(price in 0..1000000i128, slippage in 0..u32::MAX) {
+            // create random fraction from 0..10000 with 9 decimals
+            let fractional_price = I80F48::from_bits(price << 48-9);
+            // println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
+
+            let limit_price = limit_price(fractional_price, slippage, Side::Ask);
+
+            let slippage_amount = cal_slippage(fractional_price, slippage);
+            // expected limit price
+            let price_minus_slippage = fractional_price.checked_sub(slippage_amount).unwrap();
+            
+            prop_assert_eq!(limit_price, price_minus_slippage);
+        }
+    }
+}
