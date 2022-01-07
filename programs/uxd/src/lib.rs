@@ -9,12 +9,15 @@ use error::UxdError;
 #[macro_use]
 pub mod error;
 
+pub mod events;
 pub mod instructions;
 pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
-pub mod events;
 
+// Devnet
+// solana_program::declare_id!("Fg3rbt12K1hjAH1qbnue6UQ57eQT3P6XWMhAe2gDcB5K");
+// Mainnet
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
 // Version used for accounts structure and future migrations
