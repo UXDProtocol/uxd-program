@@ -244,6 +244,7 @@ pub fn handler(
         token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
     }
 
+    // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_onchain_accounting(
         order_delta.collateral,
         redeemable_delta,
