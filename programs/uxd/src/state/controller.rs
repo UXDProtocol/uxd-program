@@ -9,6 +9,8 @@ use anchor_lang::prelude::*;
 
 declare_check_assert_macros!(SourceFileId::StateController);
 
+pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
+
 #[account]
 #[derive(Default)]
 pub struct Controller {
