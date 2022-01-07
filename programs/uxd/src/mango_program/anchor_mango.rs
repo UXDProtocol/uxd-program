@@ -17,9 +17,9 @@ pub mod anchor_mango {
 
     // Select depending on cluster
     // - devnet
-    declare_id!("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
+    // declare_id!("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
     // - mainnet
-    // declare_id!("mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68");
+    declare_id!("mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68");
 }
 
 impl anchor_lang::AccountDeserialize for Mango {

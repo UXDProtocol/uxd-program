@@ -5,7 +5,6 @@ use crate::error::UxdError;
 use crate::error::UxdErrorCode;
 use crate::AccountingEvent;
 use crate::UxdResult;
-use crate::MAX_REGISTERED_MANGO_DEPOSITORIES;
 use anchor_lang::prelude::*;
 
 declare_check_assert_macros!(SourceFileId::StateController);
@@ -23,7 +22,7 @@ pub struct Controller {
     pub redeemable_mint_decimals: u8,
     //
     // The Mango Depositories registered with this Controller
-    pub registered_mango_depositories: [Pubkey; 8], // MAX_REGISTERED_MANGO_DEPOSITORIES - IDL bug with constant, so hard 8 literal.
+    pub registered_mango_depositories: [Pubkey; 8], //  - IDL bug with constant, so hard 8 literal. -- Still not working in 0.20.0 although it should
     pub registered_mango_depositories_count: u8,
     //
     // Progressive roll out and safety ----------
