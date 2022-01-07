@@ -16,9 +16,9 @@ pub mod mango_utils;
 pub mod state;
 
 // Devnet
-// solana_program::declare_id!("Fg3rbt12K1hjAH1qbnue6UQ57eQT3P6XWMhAe2gDcB5K");
+solana_program::declare_id!("2KwsXPAnAEMqTfXrB4EFnhRMwEn75ELugieoCnHXre2W");
 // Mainnet
-solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
+// solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
 // Version used for accounts structure and future migrations
 pub const PROGRAM_VERSION: u8 = 1;
