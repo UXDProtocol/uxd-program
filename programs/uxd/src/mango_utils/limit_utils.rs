@@ -5,7 +5,6 @@ use crate::UxdResult;
 use crate::SLIPPAGE_BASIS;
 use fixed::types::I80F48;
 use mango::matching::Side;
-use mango::state::PerpAccount;
 
 // Worse execution price for a provided slippage and side
 pub fn limit_price(price: I80F48, slippage: u32, side: Side) -> I80F48 {
@@ -45,14 +44,6 @@ pub fn check_effective_order_price_versus_limit_price(
         }
     };
     Err(ErrorCode::InvalidSlippage)
-}
-
-// Return the current uncommitted base position for a given PerpAccount
-pub fn uncommitted_perp_base_position(perp_account: &PerpAccount) -> i64 {
-    perp_account
-        .base_position
-        .checked_add(perp_account.taker_base)
-        .unwrap()
 }
 
 // test
