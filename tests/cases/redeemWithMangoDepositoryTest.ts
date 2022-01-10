@@ -1,4 +1,3 @@
-import { BN } from "@project-serum/anchor";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, Mango, MangoDepository, findATAAddrSync } from "@uxdprotocol/uxd-client";

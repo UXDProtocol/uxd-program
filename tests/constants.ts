@@ -44,9 +44,10 @@ export const BTC = new PublicKey("3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU")
 
 // ----------------------------------------------------------------------------
 
-export const uxdProgram = new Program(IDL, jsonIdl["metadata"]["address"], provider) as Program<Idl>; // Used for anchor test because case is not the same in idl and types.
-console.debug(`UXD PROGRAM ID == ${uxdProgram.programId}`);
-export const uxdClient = new UXD(uxdProgram);
+// export const uxdProgram = new Program(IDL, , provider); // Used for anchor test because case is not the same in idl and types.
+export const uxdProgramId: PublicKey = new PublicKey(jsonIdl["metadata"]["address"]);
+console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
+export const uxdClient = new UXD(uxdProgramId);
 export const uxdHelpers = new UXDHelpers();
 
 export const mangoCrankInterval = 1000; // In milliseconds - Run KEEPER else useless

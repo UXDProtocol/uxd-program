@@ -59,6 +59,11 @@ You can then rerun this as many time as you want, but if you want a clean slate,
 
 ## Deployment
 
+By default the program builds with the `development` feature, and the ProgramID for devnet.
+Building for mainnet uses `anchor build -- --no-default-features --features production`
+
+Then iniital deployment is done regularly, transfer ownership to DAO, dao proceeds to upgrades later on.
+
 ### Between dev and prod
 
 - change de mango program ID in anchor_mango.rs

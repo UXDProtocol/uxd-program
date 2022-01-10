@@ -1,6 +1,6 @@
 import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller } from "@uxdprotocol/uxd-client";
 import { PublicKey } from "@solana/web3.js";
-import { MANGO_QUOTE_DECIMALS, uxdClient, uxdHelpers } from "./constants";
+import { MANGO_QUOTE_DECIMALS, uxdHelpers } from "./constants";
 import { nativeI80F48ToUi, nativeToUi } from "@blockworks-foundation/mango-client";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -36,8 +36,8 @@ export async function printUserInfo(user: PublicKey, controller: Controller, dep
 
 export async function printDepositoryInfo(controller: Controller, depository: MangoDepository, mango: Mango) {
     const SYM = depository.collateralMintSymbol;
-    const controllerAccount = await uxdHelpers.getControllerAccount(provider, uxdClient.program, controller, TXN_OPTS);
-    const depositoryAccount = await uxdHelpers.getMangoDepositoryAccount(provider, uxdClient.program, depository, TXN_OPTS);
+    const controllerAccount = await uxdHelpers.getControllerAccount(provider, controller, TXN_OPTS);
+    const depositoryAccount = await uxdHelpers.getMangoDepositoryAccount(provider, depository, TXN_OPTS);
     const mangoAccount = await mango.load(depository.mangoAccountPda);
     const pmi = mango.getPerpMarketConfig(SYM).marketIndex;
     const pa = mangoAccount.perpAccounts[pmi];
@@ -120,6 +120,7 @@ export const prepareWrappedSolTokenAccount = async (
         if (balanceNative < amountNative) {
             return [
                 transferSolItx(userKey, wsolTokenKey, amountNative - balanceNative),
+                // @ts-expect-error not sure why but it's not in their interface
                 Token.createSyncNativeInstruction(TOKEN_PROGRAM_ID, wsolTokenKey),
             ];
         } else {

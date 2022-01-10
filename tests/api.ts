@@ -17,11 +17,11 @@ export async function redeemableCirculatingSupply(controller: Controller): Promi
 }
 
 export async function getControllerAccount(controller: Controller): Promise<ControllerAccount> {
-    return uxdHelpers.getControllerAccount(provider, uxdClient.program, controller, TXN_OPTS);
+    return uxdHelpers.getControllerAccount(provider, controller, TXN_OPTS);
 }
 
 export async function getMangoDepositoryAccount(mangoDepository: MangoDepository): Promise<MangoDepositoryAccount> {
-    return uxdHelpers.getMangoDepositoryAccount(provider, uxdClient.program, mangoDepository, TXN_OPTS);
+    return uxdHelpers.getMangoDepositoryAccount(provider, mangoDepository, TXN_OPTS);
 }
 
 // DOESN'T WORK in uxd-client- to fix
