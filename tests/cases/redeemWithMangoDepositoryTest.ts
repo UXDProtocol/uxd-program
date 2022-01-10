@@ -12,7 +12,6 @@ export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, sl
     // GIVEN
     const userCollateralATA: PublicKey = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
     const userRedeemableATA: PublicKey = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
-    const perpMarketTakerFee = uxdHelpers.getMangoTakerFeeForPerp(depository, mango);
     const userRedeemableBalance = await getBalance(userRedeemableATA);
     let userCollateralBalance: number = await getBalance(userCollateralATA);
     if (NATIVE_MINT.equals(depository.collateralMint)) {
@@ -41,6 +40,8 @@ export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, sl
 
     const redeemableDelta = userRedeemableBalance - userRedeemableBalance_post;
     const collateralDelta = userCollateralBalance_post - userCollateralBalance;
+    const mangoTakerFee = await uxdHelpers.getMangoTakerFeeForPerp(depository, mango);
+    const maxTakerFee = mangoTakerFee.toNumber() * redeemableAmount;
     // The amount of UXD that couldn't be redeemed due to odd lot size
     const unprocessedRedeemable = redeemableAmount - redeemableDelta;
 
@@ -48,14 +49,16 @@ export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, sl
         `🧾 Redeemed`, Number(redeemableDelta.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol,
         "for", Number(collateralDelta.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
         "(perfect was", Number(redeemableAmount.toFixed(controller.redeemableMintDecimals)),
-        "|| ~ returned unprocessed Redeemable due to odd lot (includes fees) ", Number(unprocessedRedeemable.toFixed(controller.redeemableMintDecimals)),
+        "|| ~ returned unprocessed Redeemable due to odd lot ", Number(unprocessedRedeemable.toFixed(controller.redeemableMintDecimals)),
+        "|| ~ max taker fees were", Number(maxTakerFee.toFixed(controller.redeemableMintDecimals)),
+        "|| ~ loss in slippage", Number((maxCollateralDelta - (collateralDelta)).toFixed(depository.collateralMintDecimals)),
         ")"
     );
     console.groupEnd();
 
     expect(redeemableDelta + unprocessedRedeemable).closeTo(redeemableAmount, redeemableMintNativePrecision, "Some Redeemable tokens are missing the count.");
-    expect(redeemableDelta).closeTo(redeemableAmount - unprocessedRedeemable, redeemableAmount * perpMarketTakerFee.toBig(), "The Redeemable delta is out of odd lot range");
-    expect(collateralDelta).closeTo(maxCollateralDelta, maxCollateralDelta * (slippage), "The Collateral delta is out of the slippage range");
+    expect(redeemableDelta).closeTo(redeemableAmount - unprocessedRedeemable, maxTakerFee, "The Redeemable delta is out of odd lot range");
+    expect(collateralDelta).closeTo(maxCollateralDelta, maxCollateralDelta * (slippage) + maxTakerFee, "The Collateral delta is out of the slippage range");
     expect(userRedeemableBalance_post).closeTo(userRedeemableBalance - redeemableAmount + unprocessedRedeemable, redeemableMintNativePrecision, "The amount of UnprocessedRedeemable carried over is wrong");
     return redeemableDelta;
 }
