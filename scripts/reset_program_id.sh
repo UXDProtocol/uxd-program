@@ -12,5 +12,6 @@ NEW_PUBKEY=`solana-keygen pubkey ./target/deploy/uxd-keypair.json`
 echo $NEW_PUBKEY
 
 # Replace
-sed -i '.bak' "s/$OLD_PUBKEY/$NEW_PUBKEY/g" ./Anchor.toml
-sed -i '.bak' "s/$OLD_PUBKEY/$NEW_PUBKEY/g" ./programs/uxd/src/lib.rs
+sed -i.bak "s/$OLD_PUBKEY/$NEW_PUBKEY/g" ./Anchor.toml
+sed -i.bak "s/$OLD_PUBKEY/$NEW_PUBKEY/g" ./programs/uxd/src/lib.rs
+sed -i.bak "s/$OLD_PUBKEY/$NEW_PUBKEY/g" ./target/idl/uxd.json
