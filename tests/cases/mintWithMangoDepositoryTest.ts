@@ -35,7 +35,7 @@ export const mintWithMangoDepositoryTest = async (collateralAmount: number, slip
     const redeemableDelta = userRedeemableBalance_post - userRedeemableBalance;
     const collateralDelta = userCollateralBalance - userCollateralBalance_post;
     const collateralLeftOver = collateralAmount - collateralDelta;
-    const maxRedeemableDelta = collateralDelta * mangoPerpPrice;
+    const maxRedeemableDelta = collateralDelta * mangoPerpPrice.toBig();
     // Will be a bit over
     const mangoTakerFee = await uxdHelpers.getMangoTakerFeeForPerp(depository, mango);
     const maxTakerFee = mangoTakerFee.toNumber() * maxRedeemableDelta;
@@ -51,9 +51,8 @@ export const mintWithMangoDepositoryTest = async (collateralAmount: number, slip
         ")"
     );
     console.groupEnd();
-
     expect(collateralLeftOver + collateralDelta).closeTo(collateralAmount, collateralNativeUnitPrecision, "The amount of collateral used for redeem + carried over should be equal to the inputted amount.")
-    expect(redeemableDelta).closeTo(maxRedeemableDelta, (maxRedeemableDelta * (slippage / slippageBase)) - maxTakerFee, "The amount minted is out of the slippage range");
+    expect(redeemableDelta).closeTo(maxRedeemableDelta, (maxRedeemableDelta * (slippage / slippageBase)) + maxTakerFee, "The amount minted is out of the slippage range");
     expect(collateralDelta).closeTo(collateralAmount - collateralLeftOver, collateralNativeUnitPrecision, "The collateral amount paid doesn't match the user wallet delta");
 
     return redeemableDelta;
