@@ -5,9 +5,9 @@ name: CI
 # Controls when the workflow will run
 on:
   push:
-    branches: [ main, dev, enhancement/remove-unneeded-accounts ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main, dev, enhancement/remove-unneeded-accounts ]
+    branches: [ main, dev ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
