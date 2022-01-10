@@ -1,7 +1,7 @@
 import { Provider, setProvider } from "@project-serum/anchor";
 import { Commitment } from "@solana/web3.js";
 
-// TXN prefight checks options
+// TXN preflight checks options
 export const TXN_COMMIT: Commitment = "processed";
 
 export const TXN_OPTS = {

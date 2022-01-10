@@ -1,8 +1,13 @@
+use crate::declare_check_assert_macros;
+use crate::error::check_assert;
+use crate::error::SourceFileId;
+use crate::error::UxdError;
+use crate::error::UxdErrorCode;
+use crate::UxdResult;
 use mango::matching::Book;
 use mango::matching::Side;
 
-use crate::ErrorCode;
-use crate::UxdResult;
+declare_check_assert_macros!(SourceFileId::MangoUtilsOrder);
 
 pub struct Order {
     // The quantity, in base_lot
@@ -19,7 +24,7 @@ pub fn get_best_order_for_quote_lot_amount<'a>(
     book: &Book<'a>,
     side: Side,
     quote_lot_amount_to_spend: i64,
-) -> Option<Order> {
+) -> UxdResult<Option<Order>> {
     let book_side = match side {
         Side::Bid => book.bids.iter(),
         Side::Ask => book.asks.iter(),
@@ -30,48 +35,59 @@ pub fn get_best_order_for_quote_lot_amount<'a>(
 
     for order in book_side {
         // This order total value in quote lots
-        let order_size = order.quantity.checked_mul(order.price()).unwrap();
+        let order_size = order
+            .quantity
+            .checked_mul(order.price())
+            .ok_or(math_err!())?;
         // How much base_lot we can fill for this order size
         let quantity_matched = {
             if quote_lot_left_to_spend < order_size {
                 // we can finish the operation by purchasing this order partially
                 // find out how much quantity that is in base lots
-                quote_lot_left_to_spend.checked_div(order.price()).unwrap()
+                quote_lot_left_to_spend
+                    .checked_div(order.price())
+                    .ok_or(math_err!())?
             } else {
                 // we eat this order
                 order.quantity
             }
         };
         // How much quote_lot were spent
-        let spent = quantity_matched.checked_mul(order.price()).unwrap();
+        let spent = quantity_matched
+            .checked_mul(order.price())
+            .ok_or(math_err!())?;
         if spent > 0 {
             // Current best execution price in quote_lot
             execution_price = order.price();
         }
         //
-        cmlv_quantity = cmlv_quantity.checked_add(quantity_matched).unwrap();
-        quote_lot_left_to_spend = quote_lot_left_to_spend.checked_sub(spent).unwrap();
+        cmlv_quantity = cmlv_quantity
+            .checked_add(quantity_matched)
+            .ok_or(math_err!())?;
+        quote_lot_left_to_spend = quote_lot_left_to_spend
+            .checked_sub(spent)
+            .ok_or(math_err!())?;
 
         // when the amount left to spend is inferior to the price of a base lot, or if we are fully filled
         if quote_lot_left_to_spend == 0 || spent == 0 {
             // success
             let quote_lot_spent = quote_lot_amount_to_spend
                 .checked_sub(quote_lot_left_to_spend)
-                .unwrap();
+                .ok_or(math_err!())?;
             // Side is the matched side, invert for order side
             let order_side = match side {
                 Side::Bid => Side::Ask,
                 Side::Ask => Side::Bid,
             };
-            return Some(Order {
+            return Ok(Some(Order {
                 quantity: cmlv_quantity,
                 price: execution_price,
                 size: quote_lot_spent,
                 side: order_side,
-            });
+            }));
         }
     }
-    None
+    Ok(None)
 }
 
 /// Walk through the book and find the price and total amount spent to order a given quantity of base_lot.
@@ -79,7 +95,7 @@ pub fn get_best_order_for_base_lot_quantity<'a>(
     book: &Book<'a>,
     side: Side,
     base_lot_quantity_to_order: i64,
-) -> Option<Order> {
+) -> UxdResult<Option<Order>> {
     let book_side = match side {
         Side::Bid => book.bids.iter(),
         Side::Ask => book.asks.iter(),
@@ -98,15 +114,15 @@ pub fn get_best_order_for_base_lot_quantity<'a>(
                 // find out how much we spend by doing so
                 let spent = base_lot_quantity_left_to_order
                     .checked_mul(order.price())
-                    .unwrap();
+                    .ok_or(math_err!())?;
                 base_lot_quantity_left_to_order = 0;
                 spent
             } else {
                 // we eat this order
-                let spent = order_size.checked_mul(order.price()).unwrap();
+                let spent = order_size.checked_mul(order.price()).ok_or(math_err!())?;
                 base_lot_quantity_left_to_order = base_lot_quantity_left_to_order
                     .checked_sub(order_size)
-                    .unwrap();
+                    .ok_or(math_err!())?;
                 spent
             }
         };
@@ -114,23 +130,25 @@ pub fn get_best_order_for_base_lot_quantity<'a>(
             // Update the current execution price
             execution_price = order.price();
             // Update how much we spent so far
-            cmlv_quote_lot_amount_spent = cmlv_quote_lot_amount_spent.checked_add(spent).unwrap();
+            cmlv_quote_lot_amount_spent = cmlv_quote_lot_amount_spent
+                .checked_add(spent)
+                .ok_or(math_err!())?;
         }
         // Check if we need to go deeper in the book or if we'r done
         if base_lot_quantity_left_to_order == 0 || spent == 0 {
             // success
             let base_lot_quantity = base_lot_quantity_to_order
                 .checked_sub(base_lot_quantity_left_to_order)
-                .unwrap();
-            return Some(Order {
+                .ok_or(math_err!())?;
+            return Ok(Some(Order {
                 quantity: base_lot_quantity,
                 price: execution_price,
                 size: cmlv_quote_lot_amount_spent,
                 side,
-            });
+            }));
         }
     }
-    None
+    Ok(None)
 }
 
 // Verify that the order quantity matches the base position delta
@@ -139,11 +157,13 @@ pub fn check_perp_order_fully_filled(
     pre_position: i64,
     post_position: i64,
 ) -> UxdResult {
-    let filled_amount = (post_position.checked_sub(pre_position).unwrap())
+    let filled_amount = (post_position.checked_sub(pre_position).ok_or(math_err!())?)
         .checked_abs()
-        .unwrap();
-    if !(order_quantity == filled_amount) {
-        return Err(ErrorCode::PerpOrderPartiallyFilled);
-    }
+        .ok_or(math_err!())?;
+    check_eq!(
+        order_quantity,
+        filled_amount,
+        UxdErrorCode::PerpOrderPartiallyFilled
+    )?;
     Ok(())
 }

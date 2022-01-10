@@ -1,6 +1,10 @@
-use anchor_lang::prelude::{AccountInfo, AccountMeta, Accounts, ProgramResult};
-use anchor_lang::CpiContext;
-use mango::matching::{OrderType, Side};
+use anchor_lang::prelude::AccountInfo;
+use anchor_lang::prelude::AccountMeta;
+use anchor_lang::prelude::Accounts;
+use anchor_lang::prelude::CpiContext;
+use anchor_lang::prelude::ProgramResult;
+use mango::matching::OrderType;
+use mango::matching::Side;
 use mango::state::MAX_PAIRS;
 use solana_program::instruction::Instruction;
 use solana_program::program_error::ProgramError;

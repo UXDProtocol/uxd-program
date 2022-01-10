@@ -1,40 +1,36 @@
-
-import { Controller, MangoDepository, Mango, findATAAddrSync, createAssocTokenIx } from "@uxdprotocol/uxd-client";
-import { provider, TXN_COMMIT, TXN_OPTS } from "./provider";
-import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
-import { controllerUXD, uxdClient, uxdHelpers } from "./test_0_consts";
+import { provider, TXN_OPTS } from "./provider";
+import { user, uxdClient, uxdHelpers } from "./constants";
 import { Account, Signer, Transaction } from '@solana/web3.js';
-import { user } from "./identities";
-
-afterEach("", () => {
-    console.log("\n=====================================\n");
-});
+import { NATIVE_MINT } from "@solana/spl-token";
+import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
+import { prepareWrappedSolTokenAccount } from "./utils";
+import { MangoDepository, Mango, Controller, I80F48 } from "@uxdprotocol/uxd-client";
 
 // Utils Calls ----------------------------------------------------------------
 
-export async function collateralUIPriceInMangoQuote(depository: MangoDepository, mango: Mango): Promise<number> {
+export async function collateralUIPriceInMangoQuote(depository: MangoDepository, mango: Mango): Promise<I80F48> {
     return uxdHelpers.perpUIPriceInQuote(mango, depository);
 }
 
-export async function redeemableCirculatinSupply(controller: Controller): Promise<number> {
-    return uxdHelpers.redeemableCirculatinSupply(provider, controller, TXN_OPTS);
+export async function redeemableCirculatingSupply(controller: Controller): Promise<number> {
+    return uxdHelpers.redeemableCirculatingSupply(provider, controller, TXN_OPTS);
 }
 
 export async function getControllerAccount(controller: Controller): Promise<ControllerAccount> {
     return uxdHelpers.getControllerAccount(provider, uxdClient.program, controller, TXN_OPTS);
 }
 
-export async function getmangoDepositoryAccount(mangoDepository: MangoDepository): Promise<MangoDepositoryAccount> {
+export async function getMangoDepositoryAccount(mangoDepository: MangoDepository): Promise<MangoDepositoryAccount> {
     return uxdHelpers.getMangoDepositoryAccount(provider, uxdClient.program, mangoDepository, TXN_OPTS);
 }
 
-// DOESNT WORK in uxd-client- to fix
-export async function getMangoDepositoryCollateralBalance(mangoDepository: MangoDepository, mango: Mango): Promise<number> {
+// DOESN'T WORK in uxd-client- to fix
+export async function getMangoDepositoryCollateralBalance(mangoDepository: MangoDepository, mango: Mango): Promise<I80F48> {
     return uxdHelpers.getMangoDepositoryCollateralBalance(mangoDepository, mango);
 }
 
-// DOESNT WORK in uxd-client- to fix
-export async function getMangoDepositoryInsuranceBalance(mangoDepository: MangoDepository, mango: Mango): Promise<number> {
+// DOESN'T WORK in uxd-client- to fix
+export async function getMangoDepositoryInsuranceBalance(mangoDepository: MangoDepository, mango: Mango): Promise<I80F48> {
     return uxdHelpers.getMangoDepositoryInsuranceBalance(mangoDepository, mango);
 }
 
@@ -133,13 +129,17 @@ export function setMangoDepositoriesRedeemableSoftCap(authority: Signer, control
 
 export async function mintWithMangoDepository(user: Signer, slippage: number, collateralAmount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const mintWithMangoDepositoryIx = uxdClient.createMintWithMangoDepositoryInstruction(collateralAmount, slippage, controller, depository, mango, user.publicKey, TXN_OPTS);
-    const mangoConsumeEventsIx = await mango.createPerpMarketConsumeEventInstruction(depository.mangoAccountPda, depository.collateralMintSymbol, `sell`);
     let signers = [];
     let tx = new Transaction();
 
-    const userRedeemableATA = findATAAddrSync(user.publicKey, controllerUXD.redeemableMintPda)[0];
-    if (!(await provider.connection.getAccountInfo(userRedeemableATA))) {
-        tx.instructions.push(createAssocTokenIx(user.publicKey, userRedeemableATA, controllerUXD.redeemableMintPda));
+    if (depository.collateralMint.equals(NATIVE_MINT)) {
+        const nativeAmount = collateralAmount * 10 ** depository.collateralMintDecimals;
+        const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
+            provider.connection,
+            user.publicKey,
+            nativeAmount
+        );
+        tx.instructions.push(...prepareWrappedSolIxs);
     }
 
     tx.instructions.push(mintWithMangoDepositoryIx);
@@ -147,32 +147,16 @@ export async function mintWithMangoDepository(user: Signer, slippage: number, co
 
     let txId = await provider.send(tx, signers, TXN_OPTS);
 
-    let tx2 = new Transaction();
-    tx2.instructions.push(mangoConsumeEventsIx);
-    provider.send(tx2, [], TXN_OPTS);
-
     return txId;
 }
 
 export async function redeemFromMangoDepository(user: Signer, slippage: number, amountRedeemable: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const redeemFromMangoDepositoryIx = uxdClient.createRedeemFromMangoDepositoryInstruction(amountRedeemable, slippage, controller, depository, mango, user.publicKey, TXN_OPTS);
-    const mangoConsumeEventsIx = await mango.createPerpMarketConsumeEventInstruction(depository.mangoAccountPda, depository.collateralMintSymbol, `buy`);
+
     let signers = [];
     let tx = new Transaction();
 
-    const userCollateralATA = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
-    if (!(await provider.connection.getAccountInfo(userCollateralATA))) {
-        tx.instructions.push(createAssocTokenIx(user.publicKey, userCollateralATA, depository.collateralMint));
-    }
-
     tx.instructions.push(redeemFromMangoDepositoryIx);
     signers.push(user);
-
-    let txId = await provider.send(tx, signers, TXN_OPTS);
-
-    let tx2 = new Transaction();
-    tx2.instructions.push(mangoConsumeEventsIx);
-    provider.send(tx2, [], TXN_OPTS);
-
-    return txId;
+    return provider.send(tx, signers, TXN_OPTS);
 }

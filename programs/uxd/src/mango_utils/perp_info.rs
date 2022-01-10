@@ -1,10 +1,15 @@
-use crate::ErrorCode;
+use crate::declare_check_assert_macros;
+use crate::error::SourceFileId;
+use crate::error::UxdError;
+use crate::error::UxdErrorCode;
 use crate::UxdResult;
 use anchor_lang::prelude::AccountInfo;
 use anchor_lang::prelude::Pubkey;
 use fixed::types::I80F48;
 use mango::state::MangoCache;
 use mango::state::MangoGroup;
+
+declare_check_assert_macros!(SourceFileId::MangoUtilsPerpInfo);
 
 #[derive(Debug)]
 pub struct PerpInfo {
@@ -28,42 +33,38 @@ impl PerpInfo {
         perp_market_key: &Pubkey,
         mango_program_key: &Pubkey,
     ) -> UxdResult<Self> {
-        let mango_group = match MangoGroup::load_checked(mango_group_ai, mango_program_key) {
-            Ok(it) => it,
-            Err(_err) => return Err(ErrorCode::MangoGroupLoading),
-        };
+        let mango_group = MangoGroup::load_checked(mango_group_ai, mango_program_key)?;
         let mango_cache =
-            match MangoCache::load_checked(&mango_cache_ai, mango_program_key, &mango_group) {
-                Ok(it) => it,
-                Err(_err) => return Err(ErrorCode::MangoCacheLoading),
-            };
-        let perp_market_index = match mango_group.find_perp_market_index(perp_market_key) {
-            Some(it) => it,
-            None => return Err(ErrorCode::MangoPerpMarketIndexNotFound),
-        };
+            MangoCache::load_checked(&mango_cache_ai, mango_program_key, &mango_group)?;
+        let perp_market_index = mango_group
+            .find_perp_market_index(perp_market_key)
+            .ok_or(throw_err!(UxdErrorCode::MangoPerpMarketIndexNotFound))?;
 
         Ok(PerpInfo::init(
             &mango_group,
             &mango_cache,
             perp_market_index,
-        ))
+        )?)
     }
     pub fn init(
         mango_group: &MangoGroup,
         mango_cache: &MangoCache,
         perp_market_index: usize,
-    ) -> Self {
+    ) -> UxdResult<Self> {
         let base_decimals = mango_group.tokens[perp_market_index].decimals;
         let quote_decimals = mango_group.tokens[mango::state::QUOTE_INDEX].decimals;
-        let base_unit = I80F48::checked_from_num(10u64.pow(base_decimals.into())).unwrap();
+        let base_unit =
+            I80F48::from_num(10u64.checked_pow(base_decimals.into()).ok_or(math_err!())?);
         let base_lot_size =
-            I80F48::checked_from_num(mango_group.perp_markets[perp_market_index].base_lot_size)
-                .unwrap();
-        let quote_unit = I80F48::checked_from_num(10u64.pow(quote_decimals.into())).unwrap();
+            I80F48::from_num(mango_group.perp_markets[perp_market_index].base_lot_size);
+        let quote_unit = I80F48::from_num(
+            10u64
+                .checked_pow(quote_decimals.into())
+                .ok_or(math_err!())?,
+        );
         let quote_lot_size =
-            I80F48::checked_from_num(mango_group.perp_markets[perp_market_index].quote_lot_size)
-                .unwrap();
-        PerpInfo {
+            I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
+        Ok(PerpInfo {
             market_index: perp_market_index,
             price: mango_cache.price_cache[perp_market_index].price,
             base_unit,
@@ -71,6 +72,6 @@ impl PerpInfo {
             quote_unit,
             quote_lot_size,
             taker_fee: mango_group.perp_markets[perp_market_index].taker_fee,
-        }
+        })
     }
 }
