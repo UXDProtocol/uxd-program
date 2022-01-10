@@ -688,6 +688,12 @@
           {
             "name": "redeemableCirculatingSupply",
             "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "defined": "ControllerPadding"
+            }
           }
         ]
       }
@@ -764,6 +770,12 @@
           {
             "name": "totalAmountPaidTakerFee",
             "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "defined": "MangoDeposirotyPadding"
+            }
           }
         ]
       }
@@ -1313,6 +1325,6 @@
     }
   ],
   "metadata": {
-    "address": "H2LdmNBoD2a1y5RZZxbgv2APeU1vXP7va1aCsnxgEZW6"
+    "address": "Hto7hH47haUP3Vrinym98BHkVdC3jtYWLXUhmfBSBT5N"
   }
 }

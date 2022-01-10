@@ -49,6 +49,28 @@ pub struct MangoDepository {
     //
     // WARNING TODO Should add padding
     // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
+    pub _reserved: MangoDeposirotyPadding,
+}
+
+#[derive(Clone)]
+pub struct MangoDeposirotyPadding([u8; 512]);
+
+impl AnchorSerialize for MangoDeposirotyPadding {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        writer.write_all(&self.0)
+    }
+}
+
+impl AnchorDeserialize for MangoDeposirotyPadding {
+    fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
+        Ok(Self([0u8; 512]))
+    }
+}
+
+impl Default for MangoDeposirotyPadding {
+    fn default() -> Self {
+        MangoDeposirotyPadding { 0: [0u8; 512] }
+    }
 }
 
 pub enum AccountingEvent {

@@ -688,6 +688,12 @@ export type Uxd = {
           {
             "name": "redeemableCirculatingSupply",
             "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "defined": "ControllerPadding"
+            }
           }
         ]
       }
@@ -764,6 +770,12 @@ export type Uxd = {
           {
             "name": "totalAmountPaidTakerFee",
             "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "defined": "MangoDeposirotyPadding"
+            }
           }
         ]
       }
@@ -2004,6 +2016,12 @@ export const IDL: Uxd = {
           {
             "name": "redeemableCirculatingSupply",
             "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "defined": "ControllerPadding"
+            }
           }
         ]
       }
@@ -2080,6 +2098,12 @@ export const IDL: Uxd = {
           {
             "name": "totalAmountPaidTakerFee",
             "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "defined": "MangoDeposirotyPadding"
+            }
           }
         ]
       }

@@ -46,6 +46,28 @@ pub struct Controller {
     //
     // WARNING TODO Should add padding over having to migrate
     // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
+    pub _reserved: ControllerPadding,
+}
+
+#[derive(Clone)]
+pub struct ControllerPadding([u8; 512]);
+
+impl AnchorSerialize for ControllerPadding {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        writer.write_all(&self.0)
+    }
+}
+
+impl AnchorDeserialize for ControllerPadding {
+    fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
+        Ok(Self([0u8; 512]))
+    }
+}
+
+impl Default for ControllerPadding {
+    fn default() -> Self {
+        ControllerPadding { 0: [0u8; 512] }
+    }
 }
 
 impl Controller {
