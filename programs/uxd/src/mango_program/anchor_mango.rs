@@ -12,14 +12,10 @@ declare_check_assert_macros!(SourceFileId::MangoProgramAnchorMango);
 pub struct Mango;
 
 pub mod anchor_mango {
-    // if the mango program use declare_id we can get ride of that
-    use solana_program::declare_id;
-
-    // Select depending on cluster
-    // - devnet
-    // declare_id!("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
-    // - mainnet
-    declare_id!("mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68");
+    #[cfg(feature = "development")]
+    solana_program::declare_id!("4skJ85cdxQAFVKbcGgfun8iZPL7BadVYXG3kGEGkufqA");
+    #[cfg(feature = "production")]
+    solana_program::declare_id!("mv3ekLzLbnVPNxjSKvqBpU3ZeZXPQdEC3bp5MDEBG68");
 }
 
 impl anchor_lang::AccountDeserialize for Mango {

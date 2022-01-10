@@ -14,8 +14,10 @@ no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
 cpi = ["no-entrypoint"]
-default = []
 test-bpf = []
+default = ["development"] # anchor build -- --no-default-features --features production to override for instance
+production = []
+development = []
 
 [dependencies]
 anchor-lang = "0.20.0"

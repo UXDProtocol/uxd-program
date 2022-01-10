@@ -15,9 +15,9 @@ pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
 
-// Devnet
-// solana_program::declare_id!("Fg3rbt12K1hjAH1qbnue6UQ57eQT3P6XWMhAe2gDcB5K");
-// Mainnet
+#[cfg(feature = "development")]
+solana_program::declare_id!("H2LdmNBoD2a1y5RZZxbgv2APeU1vXP7va1aCsnxgEZW6");
+#[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
 // Version used for accounts structure and future migrations
