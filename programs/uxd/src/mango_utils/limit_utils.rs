@@ -8,14 +8,18 @@ use mango::matching::Side;
 
 // Worse execution price for a provided slippage and side
 pub fn limit_price(price: I80F48, slippage: u32, side: Side) -> I80F48 {
-    let slippage = I80F48::checked_from_num(slippage).unwrap();
-    let slippage_basis = I80F48::checked_from_num(SLIPPAGE_BASIS).unwrap();
-    let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
-    let slippage_amount = price.checked_mul(slippage_ratio).unwrap();
+    let slippage_amount = cal_slippage_amount(price, slippage);
     return match side {
         Side::Bid => price.checked_add(slippage_amount).unwrap(),
         Side::Ask => price.checked_sub(slippage_amount).unwrap(),
     };
+}
+
+fn cal_slippage_amount(price: I80F48, slippage: u32) -> I80F48 {
+    let slippage = I80F48::checked_from_num(slippage).unwrap();
+    let slippage_basis = I80F48::checked_from_num(SLIPPAGE_BASIS).unwrap();
+    let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
+    return price.checked_mul(slippage_ratio).unwrap();
 }
 
 // Check if the provided order is valid given the slippage and side
@@ -49,46 +53,50 @@ pub fn check_effective_order_price_versus_limit_price(
 // test
 #[cfg(test)]
 mod test {
-    use crate::{mango_utils::limit_price, SLIPPAGE_BASIS};
+    use crate::mango_utils::{limit_price, limit_utils::cal_slippage_amount};
     use fixed::types::I80F48;
     use mango::matching::Side;
     use proptest::prelude::*;
 
-    fn cal_slippage(price: I80F48, slippage: u32) -> I80F48 {
-        let slippage = I80F48::checked_from_num(slippage).unwrap();
-        let slippage_basis = I80F48::checked_from_num(SLIPPAGE_BASIS).unwrap();
-        let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
-        return price.checked_mul(slippage_ratio).unwrap();
+    #[test]
+    fn test_cal_slippage_amount() {
+        // // create random fraction with 9 decimals
+        // let fractional_price = I80F48::from_bits(price << 48 - 9);
+        // let slippage_amount = cal_slippage_amount(fractional_price, slippage);
+        // println!("slippage_amount = {}", slippage_amount);
     }
 
     proptest! {
         #[test]
-        fn test_limit_price_bid(price in 0..1000000i128, slippage in 0..u32::MAX) {
+        fn test_limit_price_bid(price in 0..10000000000i128, slippage in 0..u32::MAX) {
             // create random fraction with 9 decimals
-            let fractional_price = I80F48::from_bits(price << 48-9);
-            // println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
+            let fractional_price = I80F48::checked_from_num(price as f64/1000000000 as f64).unwrap();
+            println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
 
             let limit_price = limit_price(fractional_price, slippage, Side::Bid);
 
-            let slippage_amount = cal_slippage(fractional_price, slippage);
+            let slippage_amount = cal_slippage_amount(fractional_price, slippage);
             // expected limit price
             let price_plus_slippage = fractional_price.checked_add(slippage_amount).unwrap();
 
             prop_assert_eq!(limit_price, price_plus_slippage);
         }
 
+    }
+
+    proptest! {
         #[test]
-        fn test_limit_price_ask(price in 0..1000000i128, slippage in 0..u32::MAX) {
+        fn test_limit_price_ask(price in 0..100000000000000i128, slippage in 0..u32::MAX) {
             // create random fraction with 9 decimals
-            let fractional_price = I80F48::from_bits(price << 48-9);
-            // println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
+            let fractional_price = I80F48::checked_from_num(price).unwrap().checked_div(I80F48::from_num(10000000000i128)).unwrap();
+            println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
 
             let limit_price = limit_price(fractional_price, slippage, Side::Ask);
 
-            let slippage_amount = cal_slippage(fractional_price, slippage);
+            let slippage_amount = cal_slippage_amount(fractional_price, slippage);
             // expected limit price
             let price_minus_slippage = fractional_price.checked_sub(slippage_amount).unwrap();
-            
+
             prop_assert_eq!(limit_price, price_minus_slippage);
         }
     }
