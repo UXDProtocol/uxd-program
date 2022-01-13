@@ -12,8 +12,14 @@ use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
 use crate::MangoDepository;
 use crate::UxdResult;
 use crate::mango_program;
+use crate::error::check_assert;
+use crate::error::UxdErrorCode;
+use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
 use crate::events::WithdrawInsuranceFromMangoDeposirotyEvent;
+
+declare_check_assert_macros!(SourceFileId::InstructionMangoDexWithdrawInsuranceFromMangoDepository);
+
 #[derive(Accounts)]
 pub struct WithdrawInsuranceFromMangoDepository<'info> {
     pub authority: Signer<'info>,
@@ -168,6 +174,18 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
         // Mango Depository
         self.depository
             .update_insurance_amount_deposited(&AccountingEvent::Withdraw, insurance_delta)?;
+        Ok(())
+    }
+}
+
+// Validate
+impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
+    pub fn validate(
+        &self,
+        insurance_amount: u64,
+    ) -> ProgramResult {
+        check!(insurance_amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;
+        // Mango withdraw will fail with proper error thanks to  `disabled borrow` set to true if the balance is not enough.
         Ok(())
     }
 }
