@@ -17,6 +17,7 @@ use crate::MangoDepository;
 use crate::UxdError;
 use crate::UxdErrorCode;
 use crate::UxdResult;
+use crate::SLIPPAGE_BASIS;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -37,7 +38,7 @@ use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 use mango::state::PerpMarket;
 
-declare_check_assert_macros!(SourceFileId::InstructionMangoDexRedeemFromMangoDepository);
+declare_check_assert_macros!(SourceFileId::InstructionMangoDexMintWithMangoDepository);
 
 #[derive(Accounts)]
 pub struct MintWithMangoDepository<'info> {
@@ -426,6 +427,25 @@ impl<'info> MintWithMangoDepository<'info> {
         // Controller
         self.controller
             .update_redeemable_circulating_supply(&event, redeemable_delta)?;
+        Ok(())
+    }
+}
+
+// Validate
+impl<'info> MintWithMangoDepository<'info> {
+    pub fn validate(
+        &self, 
+        collateral_amount: u64, 
+        slippage: u32
+    ) -> ProgramResult {
+        // Valid slippage check
+        check!(slippage <= SLIPPAGE_BASIS, UxdErrorCode::InvalidSlippage)?;
+
+        check!(collateral_amount > 0, UxdErrorCode::InvalidCollateralAmount)?;
+        check!(
+            self.user_collateral.amount >= collateral_amount,
+            UxdErrorCode::InsufficientCollateralAmount
+        )?;
         Ok(())
     }
 }

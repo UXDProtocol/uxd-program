@@ -17,6 +17,7 @@ use crate::Controller;
 use crate::MangoDepository;
 use crate::UxdError;
 use crate::UxdResult;
+use crate::SLIPPAGE_BASIS;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -401,6 +402,25 @@ impl<'info> RedeemFromMangoDepository<'info> {
         // Controller
         self.controller
             .update_redeemable_circulating_supply(&event, redeemable_delta)?;
+        Ok(())
+    }
+}
+
+// Validate
+impl<'info> RedeemFromMangoDepository<'info> {
+    pub fn validate(
+        &self,
+        redeemable_amount: u64,
+        slippage: u32,
+    ) -> ProgramResult {
+        // Valid slippage check
+        check!(slippage <= SLIPPAGE_BASIS, UxdErrorCode::InvalidSlippage)?;
+
+        check!(redeemable_amount > 0, UxdErrorCode::InvalidRedeemableAmount)?;
+        check!(
+            self.user_redeemable.amount >= redeemable_amount,
+            UxdErrorCode::InsufficientRedeemableAmount
+        )?;
         Ok(())
     }
 }
