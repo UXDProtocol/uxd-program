@@ -48,7 +48,7 @@ pub mod uxd {
     use super::*;
 
     // Initialize a Controller instance.
-    // #[access_control(ctx.accounts.validate(redeemable_mint_decimals))]
+    #[access_control(ctx.accounts.validate(redeemable_mint_decimals))]
     pub fn initialize_controller(
         ctx: Context<InitializeController>,
         bump: u8,
