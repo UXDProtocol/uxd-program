@@ -17,6 +17,7 @@ use crate::MangoDepository;
 use crate::UxdError;
 use crate::UxdErrorCode;
 use crate::UxdResult;
+use crate::SLIPPAGE_BASIS;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -428,8 +429,18 @@ impl<'info> MintWithMangoDepository<'info> {
             .update_redeemable_circulating_supply(&event, redeemable_delta)?;
         Ok(())
     }
+}
 
-    pub fn validate(&self, collateral_amount: u64) -> ProgramResult {
+// Validate
+impl<'info> MintWithMangoDepository<'info> {
+    pub fn validate(
+        &self, 
+        collateral_amount: u64, 
+        slippage: u32
+    ) -> ProgramResult {
+        // Valid slippage check
+        check!(slippage <= SLIPPAGE_BASIS, UxdErrorCode::InvalidSlippage)?;
+
         check!(collateral_amount > 0, UxdErrorCode::InvalidCollateralAmount)?;
         check!(
             self.user_collateral.amount >= collateral_amount,

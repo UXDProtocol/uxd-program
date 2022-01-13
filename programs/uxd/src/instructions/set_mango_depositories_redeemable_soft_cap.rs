@@ -1,6 +1,9 @@
 use anchor_lang::prelude::*;
-use crate::{Controller, UxdResult, MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP};
-use crate::error::{check_assert, UxdErrorCode};
+use crate::Controller;
+use crate::UxdResult;
+use crate::MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
+use crate::error::check_assert;
+use crate::error::UxdErrorCode;
 use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
 use crate::CONTROLLER_NAMESPACE;
@@ -35,6 +38,7 @@ pub fn handler(
     Ok(())
 }
 
+// Validate
 impl<'info> SetMangoDepositoriesRedeemableSoftCap<'info> {
     // Asserts that the Mango Depositories redeemable soft cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
     pub fn validate(

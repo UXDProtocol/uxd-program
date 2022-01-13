@@ -86,6 +86,7 @@ pub fn handler(
     Ok(())
 }
 
+// Validate
 impl<'info> InitializeController<'info> {
     // Asserts that the redeemable mint decimals is between 0 and 9.
     pub fn validate(

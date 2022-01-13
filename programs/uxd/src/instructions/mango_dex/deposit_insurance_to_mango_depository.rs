@@ -7,7 +7,8 @@ use anchor_spl::token::Transfer;
 use crate::AccountingEvent;
 use crate::Controller;
 use crate::UxdResult;
-use crate::error::{check_assert, UxdErrorCode};
+use crate::error::check_assert;
+use crate::error::UxdErrorCode;
 use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
 use crate::CONTROLLER_NAMESPACE;
@@ -170,7 +171,10 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
             .update_insurance_amount_deposited(&AccountingEvent::Deposit, insurance_delta)?;
         Ok(())
     }
-    
+}
+
+// Validate
+impl<'info> DepositInsuranceToMangoDepository<'info> {
     pub fn validate(
         &self,
         insurance_amount: u64,

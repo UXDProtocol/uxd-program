@@ -16,7 +16,7 @@ pub mod mango_utils;
 pub mod state;
 
 #[cfg(feature = "development")]
-solana_program::declare_id!("8BbXNxaJfBzyuQhyuAFfNrn8U1ToiGxXe2FrRcF7gzQM");
+solana_program::declare_id!("4jv7rFE2DJ7HXDtJ812xLLnugXjPTU4iSpBUq8Dm6uEM");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -36,6 +36,9 @@ pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million r
 
 pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
+
+const SLIPPAGE_BASIS: u32 = 1000;
+const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 
 pub type UxdResult<T = ()> = Result<T, UxdError>;
 
@@ -176,8 +179,7 @@ pub mod uxd {
     // Mint Redeemable tokens by depositing Collateral to mango and opening the equivalent short perp position.
     // Callers pays taker_fees, that are deducted from the returned redeemable tokens (and part of the delta neutral position)
     #[access_control(
-        valid_slippage(slippage)
-        ctx.accounts.validate(collateral_amount)
+        ctx.accounts.validate(collateral_amount, slippage)
     )]
     pub fn mint_with_mango_depository(
         ctx: Context<MintWithMangoDepository>,
@@ -195,8 +197,7 @@ pub mod uxd {
     // Burn Redeemable tokens and return the equivalent quote value of Collateral by unwinding a part of the delta neutral position.
     // Callers pays taker_fees.
     #[access_control(
-        valid_slippage(slippage)
-        ctx.accounts.validate(redeemable_amount)
+        ctx.accounts.validate(redeemable_amount, slippage)
     )]
     pub fn redeem_from_mango_depository(
         ctx: Context<RedeemFromMangoDepository>,
@@ -211,17 +212,6 @@ pub mod uxd {
     }
 }
 
-// MARK: - HELPERS  -----------------------------------------------------------
-
-const SLIPPAGE_BASIS: u32 = 1000;
-const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
-
-// Asserts that the amount of usdc for the operation is above 0.
-// Asserts that the amount of usdc is available in the user account.
-fn valid_slippage<'info>(slippage: u32) -> ProgramResult {
-    check!(slippage <= SLIPPAGE_BASIS, UxdErrorCode::InvalidSlippage)?;
-    Ok(())
-}
 // WIP: on branch : feature/rebalancing
 // More info above with rebalance_mango_depository function
 // pub fn check_max_rebalancing_amount_constraints(max_rebalancing_amount: u64) -> ProgramResult {
