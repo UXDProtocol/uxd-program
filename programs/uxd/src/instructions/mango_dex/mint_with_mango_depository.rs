@@ -37,7 +37,7 @@ use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 use mango::state::PerpMarket;
 
-declare_check_assert_macros!(SourceFileId::InstructionMangoDexRedeemFromMangoDepository);
+declare_check_assert_macros!(SourceFileId::InstructionMangoDexMintWithMangoDepository);
 
 #[derive(Accounts)]
 pub struct MintWithMangoDepository<'info> {
@@ -426,6 +426,15 @@ impl<'info> MintWithMangoDepository<'info> {
         // Controller
         self.controller
             .update_redeemable_circulating_supply(&event, redeemable_delta)?;
+        Ok(())
+    }
+
+    pub fn validate(&self, collateral_amount: u64) -> ProgramResult {
+        check!(collateral_amount > 0, UxdErrorCode::InvalidCollateralAmount)?;
+        check!(
+            self.user_collateral.amount >= collateral_amount,
+            UxdErrorCode::InsufficientCollateralAmount
+        )?;
         Ok(())
     }
 }

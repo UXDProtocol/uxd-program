@@ -7,6 +7,8 @@ use anchor_spl::token::Transfer;
 use crate::AccountingEvent;
 use crate::Controller;
 use crate::UxdResult;
+use crate::error::{check_assert, UxdErrorCode};
+use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
@@ -15,6 +17,8 @@ use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
 use crate::MangoDepository;
 use crate::mango_program;
 use crate::events::DepositInsuranceToMangoDepositoryEvent;
+
+declare_check_assert_macros!(SourceFileId::InstructionMangoDexDepositInsuranceToMangoDepository);
 
 #[derive(Accounts)]
 pub struct DepositInsuranceToMangoDepository<'info> {
@@ -164,6 +168,18 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
     ) -> ProgramResult {
         self.depository
             .update_insurance_amount_deposited(&AccountingEvent::Deposit, insurance_delta)?;
+        Ok(())
+    }
+    
+    pub fn validate(
+        &self,
+        insurance_amount: u64,
+    ) -> ProgramResult {
+        check!(insurance_amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;
+        check!(
+            self.authority_insurance.amount >= insurance_amount,
+            UxdErrorCode::InsufficientAuthorityInsuranceAmount
+        )?;
         Ok(())
     }
 }

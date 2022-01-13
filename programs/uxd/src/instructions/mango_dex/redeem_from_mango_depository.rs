@@ -403,4 +403,16 @@ impl<'info> RedeemFromMangoDepository<'info> {
             .update_redeemable_circulating_supply(&event, redeemable_delta)?;
         Ok(())
     }
+
+    pub fn validate(
+        &self,
+        redeemable_amount: u64,
+    ) -> ProgramResult {
+        check!(redeemable_amount > 0, UxdErrorCode::InvalidRedeemableAmount)?;
+        check!(
+            self.user_redeemable.amount >= redeemable_amount,
+            UxdErrorCode::InsufficientRedeemableAmount
+        )?;
+        Ok(())
+    }
 }

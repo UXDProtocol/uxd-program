@@ -1,4 +1,5 @@
 use crate::declare_check_assert_macros;
+use crate::error::check_assert;
 use crate::error::SourceFileId;
 use crate::Controller;
 use crate::UxdError;
@@ -83,4 +84,18 @@ pub fn handler(
         authority: ctx.accounts.authority.key(),
     });
     Ok(())
+}
+
+impl<'info> InitializeController<'info> {
+    // Asserts that the redeemable mint decimals is between 0 and 9.
+    pub fn validate(
+        &self,
+        decimals: u8,
+    ) -> ProgramResult {
+        check!(
+            decimals <= SOLANA_MAX_MINT_DECIMALS,
+            UxdErrorCode::InvalidRedeemableMintDecimals
+        )?;
+        Ok(())
+    }
 }

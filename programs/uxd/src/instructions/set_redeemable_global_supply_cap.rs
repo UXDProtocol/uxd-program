@@ -1,8 +1,12 @@
 use anchor_lang::prelude::*;
-use crate::{Controller, UxdResult};
+use crate::{Controller, UxdResult, MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP};
+use crate::error::{check_assert, UxdErrorCode};
+use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
 use crate::CONTROLLER_NAMESPACE;
 use crate::events::SetRedeemableGlobalSupplyCapEvent;
+
+declare_check_assert_macros!(SourceFileId::InstructionSetRedeemableGlobalSupplyCap);
 
 #[derive(Accounts)]
 pub struct SetRedeemableGlobalSupplyCap<'info> {
@@ -27,4 +31,18 @@ pub fn handler(
         redeemable_global_supply_cap
     });
     Ok(())
+}
+
+impl<'info> SetRedeemableGlobalSupplyCap<'info> {
+    // Asserts that the redeemable global supply cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
+    pub fn validate(
+        &self,
+        redeemable_global_supply_cap: u128,
+    ) -> ProgramResult {
+        check!(
+            redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP,
+            UxdErrorCode::InvalidRedeemableGlobalSupplyCap
+        )?;
+        Ok(())
+    }
 }
