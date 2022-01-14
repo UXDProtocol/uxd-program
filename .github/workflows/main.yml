@@ -78,7 +78,6 @@ jobs:
           toolchain: nightly
           override: true
 
-      # Install Solana
       - name: install solana
         if: steps.cache-solana.outputs.cache-hit != 'true'
         run: |
@@ -86,34 +85,38 @@ jobs:
           sudo apt-get install -y pkg-config build-essential libudev-dev
           sh -c "$(curl -sSfL https://release.solana.com/v${{ env.solana_version }}/install)"
 
-      - name: Setup solana and keys
+      - name: Setup solana 
         run: |
           solana --version
           solana config set -u d
           solana config get
+
+      - name: Create keypair and funds it
+        run: |
           solana-keygen new -o ${{ env.runner_wallet_path }}
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
           
       - name: Checkout MangoClient-v3
         uses: actions/checkout@v2
         with:
           repository: blockworks-foundation/mango-client-v3
           path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
+
       - name: Install MangoClient-v3 dependencies then runs Mango Keeper and MM bot on devnet for SOL perp
         run: |
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
           yarn install
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
           GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} yarn keeper &
           GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} MANGO_ACCOUNT_PUBKEY=${{ env.mango_account_mm }} MARKET=SOL yarn mm &
           cd -
