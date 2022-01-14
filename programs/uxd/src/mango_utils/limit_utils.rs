@@ -60,17 +60,16 @@ mod test {
 
     #[test]
     fn test_cal_slippage_amount() {
-        // // create random fraction with 9 decimals
-        // let fractional_price = I80F48::from_bits(price << 48 - 9);
-        // let slippage_amount = cal_slippage_amount(fractional_price, slippage);
+        // let price = I80F48::checked_from_num(1024u8).unwrap();
+        // let slippage = 0.2u32;
         // println!("slippage_amount = {}", slippage_amount);
     }
 
     proptest! {
         #[test]
-        fn test_limit_price_bid(price in 0..10000000000i128, slippage in 0..u32::MAX) {
-            // create random fraction with 9 decimals
-            let fractional_price = I80F48::checked_from_num(price as f64/1000000000 as f64).unwrap();
+        fn test_limit_price_bid(price in 0..1000000000000i128, slippage in 0..u32::MAX) {
+            // create random price in lamport range from 0 to 1000 equivalent uiAmount
+            let fractional_price = I80F48::checked_from_num(price).unwrap();
             println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
 
             let limit_price = limit_price(fractional_price, slippage, Side::Bid);
@@ -86,9 +85,9 @@ mod test {
 
     proptest! {
         #[test]
-        fn test_limit_price_ask(price in 0..100000000000000i128, slippage in 0..u32::MAX) {
-            // create random fraction with 9 decimals
-            let fractional_price = I80F48::checked_from_num(price).unwrap().checked_div(I80F48::from_num(10000000000i128)).unwrap();
+        fn test_limit_price_ask(price in 0..1000000000000i128, slippage in 0..u32::MAX) {
+            // create random price in lamport range from 0 to 1000 equivalent uiAmount
+            let fractional_price = I80F48::checked_from_num(price).unwrap();
             println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
 
             let limit_price = limit_price(fractional_price, slippage, Side::Ask);
