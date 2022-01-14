@@ -136,4 +136,4 @@ jobs:
       - name: Wrap up uninstalling program and returning sols to the faucet
         run: |
           solana program close $(solana-keygen pubkey ./target/deploy/uxd-keypair.json)
-          solana transfer ${{ env.DEVNET_FAUCET }} $(solana balance --lamports | awk '{print $1;}' | echo {print $1;} - 5000 | bc)
+          solana transfer ${{ env.DEVNET_FAUCET }} $(solana balance --lamports | awk '{print $1;}' | echo '{print $1;}' '- 5000' | bc)
