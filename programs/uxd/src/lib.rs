@@ -1,5 +1,4 @@
 use crate::error::check_assert;
-use crate::error::SourceFileId;
 use crate::error::UxdErrorCode;
 use crate::instructions::*;
 use crate::state::*;
@@ -16,7 +15,7 @@ pub mod mango_utils;
 pub mod state;
 
 #[cfg(feature = "development")]
-solana_program::declare_id!("4jv7rFE2DJ7HXDtJ812xLLnugXjPTU4iSpBUq8Dm6uEM");
+solana_program::declare_id!("647Hhf6mZfMZEhxBfD6WxebZibkkvfpGCM7eYfAC5dq4");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -74,12 +73,14 @@ pub mod uxd {
     //
     // Goal is to roll out progressively, and limit risks.
     // If this is set below the current circulating supply of UXD, it would effectively pause Minting.
-    #[access_control(ctx.accounts.validate(redeemable_global_supply_cap))]
+    #[access_control(
+        ctx.accounts.validate_set_redeemable_global_supply_cap(redeemable_global_supply_cap)
+    )]
     pub fn set_redeemable_global_supply_cap(
-        ctx: Context<SetRedeemableGlobalSupplyCap>,
+        ctx: Context<UpdateProgramSettings>,
         redeemable_global_supply_cap: u128,
     ) -> ProgramResult {
-        instructions::set_redeemable_global_supply_cap::handler(ctx, redeemable_global_supply_cap)
+        instructions::update_program_settings::handler_set_redeemable_global_supply_cap(ctx, redeemable_global_supply_cap)
             .map_err(|e| {
                 msg!("<*> {}", e); // log the error
                 e.into() // convert UxdError to generic ProgramError
@@ -91,12 +92,14 @@ pub mod uxd {
     // Goal is to roll out progressively, and limit risks.
     // If this is set to 0, it would effectively pause Minting.
     // Note : This would effectively pause minting.
-    #[access_control(ctx.accounts.validate(redeemable_soft_cap))]
+    #[access_control(
+        ctx.accounts.validate_set_mango_depositories_redeemable_soft_cap(redeemable_soft_cap)
+    )]
     pub fn set_mango_depositories_redeemable_soft_cap(
-        ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
+        ctx: Context<UpdateProgramSettings>,
         redeemable_soft_cap: u64,
     ) -> ProgramResult {
-        instructions::set_mango_depositories_redeemable_soft_cap::handler(ctx, redeemable_soft_cap)
+        instructions::update_program_settings::handler_set_mango_depositories_redeemable_soft_cap(ctx, redeemable_soft_cap)
             .map_err(|e| {
                 msg!("<*> {}", e); // log the error
                 e.into() // convert UxdError to generic ProgramError

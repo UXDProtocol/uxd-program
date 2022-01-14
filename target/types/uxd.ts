@@ -791,10 +791,7 @@ export type Uxd = {
             "name": "InstructionInitializeController"
           },
           {
-            "name": "InstructionSetRedeemableGlobalSupplyCap"
-          },
-          {
-            "name": "InstructionSetMangoDepositoriesRedeemableSoftCap"
+            "name": "InstructionUpdateProgramSettings"
           },
           {
             "name": "InstructionRegisterMangoDepository"
@@ -2119,10 +2116,7 @@ export const IDL: Uxd = {
             "name": "InstructionInitializeController"
           },
           {
-            "name": "InstructionSetRedeemableGlobalSupplyCap"
-          },
-          {
-            "name": "InstructionSetMangoDepositoriesRedeemableSoftCap"
+            "name": "InstructionUpdateProgramSettings"
           },
           {
             "name": "InstructionRegisterMangoDepository"

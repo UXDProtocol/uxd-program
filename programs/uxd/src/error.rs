@@ -11,27 +11,26 @@ use thiserror::Error;
 #[derive(Debug, Clone, Eq, PartialEq, Copy)]
 pub enum SourceFileId {
     InstructionInitializeController = 0,
-    InstructionSetRedeemableGlobalSupplyCap = 1,
-    InstructionSetMangoDepositoriesRedeemableSoftCap = 2,
-    InstructionRegisterMangoDepository = 3,
-    InstructionMangoDexMintWithMangoDepository = 4,
-    InstructionMangoDexRedeemFromMangoDepository = 5,
-    InstructionMangoDexDepositInsuranceToMangoDepository = 6,
-    InstructionMangoDexWithdrawInsuranceFromMangoDepository = 7,
-    MangoProgramAnchorMango = 8,
-    MangoProgramDeposit = 9,
-    MangoProgramInitMangoAccount = 10,
-    MangoProgramPlacePerpOrder = 11,
-    MangoProgramWithdraw = 12,
-    MangoUtilsLimitUtils = 13,
-    MangoUtilsOrderDelta = 14,
-    MangoUtilsOrder = 15,
-    MangoUtilsPerpAccountUtils = 16,
-    MangoUtilsPerpInfo = 17,
-    StateController = 18,
-    StateMangoDepository = 19,
-    Error = 20,
-    Lib = 21,
+    InstructionUpdateProgramSettings = 1,
+    InstructionRegisterMangoDepository = 2,
+    InstructionMangoDexMintWithMangoDepository = 3,
+    InstructionMangoDexRedeemFromMangoDepository = 4,
+    InstructionMangoDexDepositInsuranceToMangoDepository = 5,
+    InstructionMangoDexWithdrawInsuranceFromMangoDepository = 6,
+    MangoProgramAnchorMango = 7,
+    MangoProgramDeposit = 8,
+    MangoProgramInitMangoAccount = 9,
+    MangoProgramPlacePerpOrder = 10,
+    MangoProgramWithdraw = 11,
+    MangoUtilsLimitUtils = 12,
+    MangoUtilsOrderDelta = 13,
+    MangoUtilsOrder = 14,
+    MangoUtilsPerpAccountUtils = 15,
+    MangoUtilsPerpInfo = 16,
+    StateController = 17,
+    StateMangoDepository = 18,
+    Error = 19,
+    Lib = 20,
 }
 
 impl std::fmt::Display for SourceFileId {
@@ -40,14 +39,8 @@ impl std::fmt::Display for SourceFileId {
             SourceFileId::InstructionInitializeController => {
                 write!(f, "src/instructions/initialize_controller.rs")
             }
-            SourceFileId::InstructionSetRedeemableGlobalSupplyCap => {
-                write!(f, "src/instructions/set_redeemable_global_supply_cap.rs")
-            }
-            SourceFileId::InstructionSetMangoDepositoriesRedeemableSoftCap => {
-                write!(
-                    f,
-                    "src/instructions/set_mango_depositories_redeemable_soft_cap.rs"
-                )
+            SourceFileId::InstructionUpdateProgramSettings => {
+                write!(f, "src/instructions/update_program_settings.rs")
             }
             SourceFileId::InstructionRegisterMangoDepository => {
                 write!(f, "src/instructions/register_mango_depository.rs")

@@ -791,10 +791,7 @@
             "name": "InstructionInitializeController"
           },
           {
-            "name": "InstructionSetRedeemableGlobalSupplyCap"
-          },
-          {
-            "name": "InstructionSetMangoDepositoriesRedeemableSoftCap"
+            "name": "InstructionUpdateProgramSettings"
           },
           {
             "name": "InstructionRegisterMangoDepository"
@@ -1325,6 +1322,6 @@
     }
   ],
   "metadata": {
-    "address": "4jv7rFE2DJ7HXDtJ812xLLnugXjPTU4iSpBUq8Dm6uEM"
+    "address": "647Hhf6mZfMZEhxBfD6WxebZibkkvfpGCM7eYfAC5dq4"
   }
 }
