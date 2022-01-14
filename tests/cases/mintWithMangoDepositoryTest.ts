@@ -37,7 +37,7 @@ export const mintWithMangoDepositoryTest = async (collateralAmount: number, slip
     const collateralLeftOver = collateralAmount - collateralDelta;
     const maxRedeemableDelta = collateralDelta * mangoPerpPrice.toBig();
     // Will be a bit over
-    const mangoTakerFee = await uxdHelpers.getMangoTakerFeeForPerp(depository, mango);
+    const mangoTakerFee = uxdHelpers.getMangoTakerFeeForPerp(depository, mango);
     const maxTakerFee = mangoTakerFee.toNumber() * maxRedeemableDelta;
     const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
 

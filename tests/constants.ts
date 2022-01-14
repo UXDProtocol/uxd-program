@@ -23,9 +23,9 @@ const adminKeypair = Keypair.fromSecretKey(aca3VWSeed);
 export const authority: Signer = adminKeypair;
 console.log(`CONTROLLER AUTHORITY KEY => ${authority.publicKey}`);
 // This is the user //
-const userKeypair = Keypair.fromSecretKey(Eyh77Seed);
-export const user: Signer = userKeypair;
-console.log(`USER KEY => ${user.publicKey}`);
+const bankKeypair = Keypair.fromSecretKey(Eyh77Seed);
+export const bank: Signer = bankKeypair;
+console.log(`BANK KEY => ${bank.publicKey}`);
 
 // Get this from anchor.toml TODO
 export const CLUSTER = 'devnet'; // "mainnet"

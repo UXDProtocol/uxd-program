@@ -1,5 +1,5 @@
 import { provider, TXN_OPTS } from "./provider";
-import { user, uxdClient, uxdHelpers } from "./constants";
+import { bank, uxdClient, uxdHelpers } from "./constants";
 import { Account, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
@@ -41,7 +41,7 @@ export async function settleMangoDepositoryMangoAccountPnl(depository: MangoDepo
     const perpMarket = await mango.client.getPerpMarket(perpMarketConfig.publicKey, perpMarketConfig.baseDecimals, perpMarketConfig.quoteDecimals);
     const quoteRootBank = await mango.getQuoteRootBank();
 
-    const caller = new Account(user.secretKey);
+    const caller = new Account(bank.secretKey);
 
     return mango.client.settlePnl(mango.group, cache, mangoAccount, perpMarket, quoteRootBank, cache.priceCache[perpMarketConfig.marketIndex].price, caller);
 }
@@ -52,7 +52,7 @@ export async function settleMangoDepositoryMangoAccountFees(depository: MangoDep
     const perpMarket = await mango.client.getPerpMarket(perpMarketConfig.publicKey, perpMarketConfig.baseDecimals, perpMarketConfig.quoteDecimals);
     const quoteRootBank = await mango.getQuoteRootBank();
 
-    const caller = new Account(user.secretKey);
+    const caller = new Account(bank.secretKey);
     return mango.client.settleFees(mango.group, mangoAccount, perpMarket, quoteRootBank, caller);
 }
 
