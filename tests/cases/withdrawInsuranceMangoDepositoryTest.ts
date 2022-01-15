@@ -4,6 +4,7 @@ import { Controller, MangoDepository, Mango } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { getMangoDepositoryAccount, withdrawInsuranceFromMangoDepository } from "../api";
 import { CLUSTER, mangoCrankInterval } from "../constants";
+import { provider } from "../provider";
 import { sleep } from "../utils";
 
 export const withdrawInsuranceMangoDepositoryTest = async (amount: number, authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango) => {
@@ -13,6 +14,8 @@ export const withdrawInsuranceMangoDepositoryTest = async (amount: number, autho
 
     // WHEN
     const txId = await withdrawInsuranceFromMangoDepository(authority, amount, controller, depository, mango);
+    await provider.connection.confirmTransaction(txId, 'confirmed');
+
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN

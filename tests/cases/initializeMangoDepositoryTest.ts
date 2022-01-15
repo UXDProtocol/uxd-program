@@ -11,6 +11,7 @@ export const initializeMangoDepositoryTest = async (authority: Signer, controlle
         console.log("🚧 Already registered.");
     } else {
         const txId = await registerMangoDepository(authority, controller, depository, mango);
+        await provider.connection.confirmTransaction(txId, 'confirmed');
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
     }
 
