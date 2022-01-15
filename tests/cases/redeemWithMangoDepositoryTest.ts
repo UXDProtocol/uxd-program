@@ -19,9 +19,9 @@ export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, sl
     }
 
     // WHEN
-    const txId = await redeemFromMangoDepository(user, slippage, redeemableAmount, controller, depository, mango);
     // - Get the perp price at the same moment to have the less diff between exec and test price
     const mangoPerpPrice = await collateralUIPriceInMangoQuote(depository, mango);
+    const txId = await redeemFromMangoDepository(user, slippage, redeemableAmount, controller, depository, mango);
     console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(MANGO_QUOTE_DECIMALS)));
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
@@ -38,6 +38,9 @@ export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, sl
     }
 
     const redeemableDelta = userRedeemableBalance - userRedeemableBalance_post;
+    // There will be issues due to the TX fee + account creation fee, in some case that will fail the slippage test
+    // So for now, until we implement a separate payer/user for mint and redeem, don't use tiny amounts for test where the 0.00203928 
+    // could create a fail positive for wrong slippage
     const collateralDelta = userCollateralBalance_post - userCollateralBalance;
     const mangoTakerFee = await uxdHelpers.getMangoTakerFeeForPerp(depository, mango);
     const maxTakerFee = mangoTakerFee.toNumber() * redeemableAmount;

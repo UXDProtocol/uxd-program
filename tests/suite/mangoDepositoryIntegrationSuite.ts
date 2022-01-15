@@ -56,15 +56,15 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
 
     // TEST MINT/REDEEM
 
-    it("Mint 0.2 SOL worth of UXD (2% slippage) then redeem the outcome", async () => {
-        const mintedAmount = await mintWithMangoDepositoryTest(0.2, 20, user, controller, depository, mango);
+    it("Mint 1 SOL worth of UXD (2% slippage) then redeem the outcome", async () => {
+        const mintedAmount = await mintWithMangoDepositoryTest(1, 20, user, controller, depository, mango);
         await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
     });
 
-    it("Mint 2 SOL worth of UXD (2% slippage) then redeem the outcome", async () => {
-        const mintedAmount = await mintWithMangoDepositoryTest(2, 20, user, controller, depository, mango);
+    it("Mint 5 SOL worth of UXD (2% slippage) then redeem the outcome", async () => {
+        const mintedAmount = await mintWithMangoDepositoryTest(5, 20, user, controller, depository, mango);
         await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
