@@ -69,7 +69,7 @@ export async function initializeController(authority: Signer, controller: Contro
 
     const signature = await provider.send(tx, signers, TXN_OPTS);
     await provider.connection.confirmTransaction(signature);
-    return signature
+    return signature;
 }
 
 export async function registerMangoDepository(authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
@@ -82,7 +82,7 @@ export async function registerMangoDepository(authority: Signer, controller: Con
 
     const signature = await provider.send(tx, signers, TXN_OPTS);
     await provider.connection.confirmTransaction(signature);
-    return signature
+    return signature;
 }
 
 export async function depositInsuranceToMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
@@ -95,7 +95,7 @@ export async function depositInsuranceToMangoDepository(authority: Signer, amoun
 
     const signature = await provider.send(tx, signers, TXN_OPTS);
     await provider.connection.confirmTransaction(signature);
-    return signature
+    return signature;
 }
 
 export async function withdrawInsuranceFromMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
@@ -108,7 +108,7 @@ export async function withdrawInsuranceFromMangoDepository(authority: Signer, am
 
     const signature = await provider.send(tx, signers, TXN_OPTS);
     await provider.connection.confirmTransaction(signature);
-    return signature
+    return signature;
 }
 
 export async function setRedeemableGlobalSupplyCap(authority: Signer, controller: Controller, supplyCapUiAmount: number): Promise<string> {
@@ -121,7 +121,7 @@ export async function setRedeemableGlobalSupplyCap(authority: Signer, controller
 
     const signature = await provider.send(tx, signers, TXN_OPTS);
     await provider.connection.confirmTransaction(signature);
-    return signature
+    return signature;
 }
 
 export async function setMangoDepositoriesRedeemableSoftCap(authority: Signer, controller: Controller, supplySoftCapUiAmount: number): Promise<string> {
@@ -134,7 +134,7 @@ export async function setMangoDepositoriesRedeemableSoftCap(authority: Signer, c
 
     const signature = await provider.send(tx, signers, TXN_OPTS);
     await provider.connection.confirmTransaction(signature);
-    return signature
+    return signature;
 }
 
 // User Facing Permissionless Calls -------------------------------------------
@@ -159,7 +159,7 @@ export async function mintWithMangoDepository(user: Signer, slippage: number, co
 
     const signature = await provider.send(tx, signers, TXN_OPTS);
     await provider.connection.confirmTransaction(signature);
-    return signature
+    return signature;
 }
 
 export async function redeemFromMangoDepository(user: Signer, slippage: number, amountRedeemable: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
@@ -172,5 +172,5 @@ export async function redeemFromMangoDepository(user: Signer, slippage: number, 
     signers.push(user);
     const signature = await provider.send(tx, signers, TXN_OPTS);
     await provider.connection.confirmTransaction(signature);
-    return signature
+    return signature;
 }

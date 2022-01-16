@@ -45,7 +45,7 @@ console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
 export const uxdClient = new UXD(uxdProgramId);
 export const uxdHelpers = new UXDHelpers();
 
-export const mangoCrankInterval = 1000; // In milliseconds - Run KEEPER else useless
+export const mangoCrankInterval = 3000; // In milliseconds - Run KEEPER else useless - ~1000 on mainnet
 export const slippageBase = 1000;
 
 export const MANGO_QUOTE_DECIMALS = 6; // USDC

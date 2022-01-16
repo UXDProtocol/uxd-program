@@ -26,7 +26,6 @@ export const mintWithMangoDepositoryTest = async (collateralAmount: number, slip
     console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(MANGO_QUOTE_DECIMALS)));
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
-    await provider.connection.confirmTransaction(txId, 'confirmed');
     // THEN
     const userRedeemableBalance_post = await getBalance(userRedeemableATA);
     let userCollateralBalance_post = await getBalance(userCollateralATA);
