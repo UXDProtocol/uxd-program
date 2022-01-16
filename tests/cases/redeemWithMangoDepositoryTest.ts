@@ -4,7 +4,6 @@ import { Controller, Mango, MangoDepository, findATAAddrSync } from "@uxdprotoco
 import { expect } from "chai";
 import { collateralUIPriceInMangoQuote, redeemFromMangoDepository } from "../api";
 import { CLUSTER, MANGO_QUOTE_DECIMALS, uxdHelpers } from "../constants";
-import { provider } from "../provider";
 import { getSolBalance, getBalance } from "../utils";
 
 export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango): Promise<number> => {
@@ -23,8 +22,6 @@ export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, sl
     // - Get the perp price at the same moment to have the less diff between exec and test price
     const mangoPerpPrice = await collateralUIPriceInMangoQuote(depository, mango);
     const txId = await redeemFromMangoDepository(user, slippage, redeemableAmount, controller, depository, mango);
-    await provider.connection.confirmTransaction(txId, 'confirmed');
-    
     console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(MANGO_QUOTE_DECIMALS)));
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 

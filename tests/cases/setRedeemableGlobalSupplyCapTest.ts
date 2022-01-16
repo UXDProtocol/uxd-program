@@ -4,7 +4,6 @@ import { Controller } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { getControllerAccount, setRedeemableGlobalSupplyCap } from "../api";
 import { CLUSTER } from "../constants";
-import { provider } from "../provider";
 
 export const setRedeemableGlobalSupplyCapTest = async (supplyCapAmount: number, authority: Signer, controller: Controller) => {
     console.group("🧭 setRedeemableGlobalSupplyCapTest");
@@ -13,8 +12,6 @@ export const setRedeemableGlobalSupplyCapTest = async (supplyCapAmount: number, 
 
     // WHEN
     const txId = await setRedeemableGlobalSupplyCap(authority, controller, supplyCapAmount);
-    await provider.connection.confirmTransaction(txId, 'confirmed');
-    
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN

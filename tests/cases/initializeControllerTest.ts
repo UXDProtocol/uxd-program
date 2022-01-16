@@ -11,7 +11,6 @@ export const initializeControllerTest = async (authority: Signer, controller: Co
         console.log("🚧 Already initialized.");
     } else {
         const txId = await initializeController(authority, controller);
-        await provider.connection.confirmTransaction(txId, 'confirmed');
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
     }
 

@@ -67,10 +67,12 @@ export async function initializeController(authority: Signer, controller: Contro
     tx.instructions.push(initControllerIx);
     signers.push(authority);
 
-    return provider.send(tx, signers, TXN_OPTS);
+    const signature = await provider.send(tx, signers, TXN_OPTS);
+    await provider.connection.confirmTransaction(signature);
+    return signature
 }
 
-export function registerMangoDepository(authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
+export async function registerMangoDepository(authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const registerMangoDepositoryIx = uxdClient.createRegisterMangoDepositoryInstruction(controller, depository, mango, authority.publicKey, TXN_OPTS);
     let signers = [];
     let tx = new Transaction();
@@ -78,10 +80,12 @@ export function registerMangoDepository(authority: Signer, controller: Controlle
     tx.instructions.push(registerMangoDepositoryIx);
     signers.push(authority);
 
-    return provider.send(tx, signers, TXN_OPTS);
+    const signature = await provider.send(tx, signers, TXN_OPTS);
+    await provider.connection.confirmTransaction(signature);
+    return signature
 }
 
-export function depositInsuranceToMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
+export async function depositInsuranceToMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const depositInsuranceToMangoDepositoryIx = uxdClient.createDepositInsuranceToMangoDepositoryInstruction(amount, controller, depository, mango, authority.publicKey, TXN_OPTS);
     let signers = [];
     let tx = new Transaction();
@@ -89,10 +93,12 @@ export function depositInsuranceToMangoDepository(authority: Signer, amount: num
     tx.instructions.push(depositInsuranceToMangoDepositoryIx);
     signers.push(authority);
 
-    return provider.send(tx, signers, TXN_OPTS);
+    const signature = await provider.send(tx, signers, TXN_OPTS);
+    await provider.connection.confirmTransaction(signature);
+    return signature
 }
 
-export function withdrawInsuranceFromMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
+export async function withdrawInsuranceFromMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const withdrawInsuranceFromMangoDepository = uxdClient.createWithdrawInsuranceFromMangoDepositoryInstruction(amount, controller, depository, mango, authority.publicKey, TXN_OPTS);
     let signers = [];
     let tx = new Transaction();
@@ -100,10 +106,12 @@ export function withdrawInsuranceFromMangoDepository(authority: Signer, amount: 
     tx.instructions.push(withdrawInsuranceFromMangoDepository);
     signers.push(authority);
 
-    return provider.send(tx, signers, TXN_OPTS);
+    const signature = await provider.send(tx, signers, TXN_OPTS);
+    await provider.connection.confirmTransaction(signature);
+    return signature
 }
 
-export function setRedeemableGlobalSupplyCap(authority: Signer, controller: Controller, supplyCapUiAmount: number): Promise<string> {
+export async function setRedeemableGlobalSupplyCap(authority: Signer, controller: Controller, supplyCapUiAmount: number): Promise<string> {
     const setRedeemableGlobalSupplyCapIx = uxdClient.createSetRedeemableGlobalSupplyCapInstruction(controller, authority.publicKey, supplyCapUiAmount, TXN_OPTS);
     let signers = [];
     let tx = new Transaction();
@@ -111,10 +119,12 @@ export function setRedeemableGlobalSupplyCap(authority: Signer, controller: Cont
     tx.instructions.push(setRedeemableGlobalSupplyCapIx);
     signers.push(authority);
 
-    return provider.send(tx, signers, TXN_OPTS);
+    const signature = await provider.send(tx, signers, TXN_OPTS);
+    await provider.connection.confirmTransaction(signature);
+    return signature
 }
 
-export function setMangoDepositoriesRedeemableSoftCap(authority: Signer, controller: Controller, supplySoftCapUiAmount: number): Promise<string> {
+export async function setMangoDepositoriesRedeemableSoftCap(authority: Signer, controller: Controller, supplySoftCapUiAmount: number): Promise<string> {
     const setMangoDepositoriesRedeemableSoftCapIx = uxdClient.createSetMangoDepositoriesRedeemableSoftCapInstruction(controller, authority.publicKey, supplySoftCapUiAmount, TXN_OPTS);
     let signers = [];
     let tx = new Transaction();
@@ -122,7 +132,9 @@ export function setMangoDepositoriesRedeemableSoftCap(authority: Signer, control
     tx.instructions.push(setMangoDepositoriesRedeemableSoftCapIx);
     signers.push(authority);
 
-    return provider.send(tx, signers, TXN_OPTS);
+    const signature = await provider.send(tx, signers, TXN_OPTS);
+    await provider.connection.confirmTransaction(signature);
+    return signature
 }
 
 // User Facing Permissionless Calls -------------------------------------------
@@ -145,9 +157,9 @@ export async function mintWithMangoDepository(user: Signer, slippage: number, co
     tx.instructions.push(mintWithMangoDepositoryIx);
     signers.push(user);
 
-    let txId = await provider.send(tx, signers, TXN_OPTS);
-
-    return txId;
+    const signature = await provider.send(tx, signers, TXN_OPTS);
+    await provider.connection.confirmTransaction(signature);
+    return signature
 }
 
 export async function redeemFromMangoDepository(user: Signer, slippage: number, amountRedeemable: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
@@ -158,5 +170,7 @@ export async function redeemFromMangoDepository(user: Signer, slippage: number, 
 
     tx.instructions.push(redeemFromMangoDepositoryIx);
     signers.push(user);
-    return provider.send(tx, signers, TXN_OPTS);
+    const signature = await provider.send(tx, signers, TXN_OPTS);
+    await provider.connection.confirmTransaction(signature);
+    return signature
 }

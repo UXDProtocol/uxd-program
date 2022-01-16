@@ -4,7 +4,6 @@ import { Controller } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { getControllerAccount, setMangoDepositoriesRedeemableSoftCap } from "../api";
 import { CLUSTER } from "../constants";
-import { provider } from "../provider";
 
 export const setRedeemableSoftCapMangoDepositoryTest = async (softCapAmount: number, authority: Signer, controller: Controller) => {
     console.group("🧭 setRedeemableSoftCapMangoDepositoryTest");
@@ -13,8 +12,6 @@ export const setRedeemableSoftCapMangoDepositoryTest = async (softCapAmount: num
 
     // WHEN
     const txId = await setMangoDepositoriesRedeemableSoftCap(authority, controller, softCapAmount);
-    await provider.connection.confirmTransaction(txId, 'confirmed');
-    
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN

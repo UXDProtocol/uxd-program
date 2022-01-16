@@ -23,11 +23,10 @@ export const mintWithMangoDepositoryTest = async (collateralAmount: number, slip
     // - Get the perp price at the same moment to have the less diff between exec and test price
     const mangoPerpPrice = await collateralUIPriceInMangoQuote(depository, mango);
     const txId = await mintWithMangoDepository(user, slippage, collateralAmount, controller, depository, mango);
-    await provider.connection.confirmTransaction(txId, 'confirmed');
-
     console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(MANGO_QUOTE_DECIMALS)));
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
+    await provider.connection.confirmTransaction(txId, 'confirmed');
     // THEN
     const userRedeemableBalance_post = await getBalance(userRedeemableATA);
     let userCollateralBalance_post = await getBalance(userCollateralATA);
