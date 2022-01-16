@@ -74,13 +74,13 @@ pub mod uxd {
     // Goal is to roll out progressively, and limit risks.
     // If this is set below the current circulating supply of UXD, it would effectively pause Minting.
     #[access_control(
-        ctx.accounts.validate_set_redeemable_global_supply_cap(redeemable_global_supply_cap)
+        ctx.accounts.validate(args)
     )]
     pub fn set_redeemable_global_supply_cap(
         ctx: Context<UpdateProgramSettings>,
-        redeemable_global_supply_cap: u128,
+        args: UpdateProgramSettingsArgs,
     ) -> ProgramResult {
-        instructions::update_program_settings::handler_set_redeemable_global_supply_cap(ctx, redeemable_global_supply_cap)
+        instructions::update_program_settings::handler(ctx, args)
             .map_err(|e| {
                 msg!("<*> {}", e); // log the error
                 e.into() // convert UxdError to generic ProgramError
@@ -93,16 +93,31 @@ pub mod uxd {
     // If this is set to 0, it would effectively pause Minting.
     // Note : This would effectively pause minting.
     #[access_control(
-        ctx.accounts.validate_set_mango_depositories_redeemable_soft_cap(redeemable_soft_cap)
+        ctx.accounts.validate(args)
     )]
     pub fn set_mango_depositories_redeemable_soft_cap(
         ctx: Context<UpdateProgramSettings>,
-        redeemable_soft_cap: u64,
+        args: UpdateProgramSettingsArgs,
     ) -> ProgramResult {
-        instructions::update_program_settings::handler_set_mango_depositories_redeemable_soft_cap(ctx, redeemable_soft_cap)
+        instructions::update_program_settings::handler(ctx, args)
             .map_err(|e| {
                 msg!("<*> {}", e); // log the error
                 e.into() // convert UxdError to generic ProgramError
+            })
+    }
+
+    // Update Program Settings
+    //
+    // Goal is to roll out progressively, and limit risks.
+    #[access_control(ctx.accounts.validate(args))]
+    pub fn update_program_settings(
+        ctx: Context<UpdateProgramSettings>,
+        args: UpdateProgramSettingsArgs,
+    ) -> ProgramResult {
+        instructions::update_program_settings::handler(ctx, args)
+            .map_err(|e| {
+                msg!("<*> {}", e);
+                e.into()
             })
     }
 

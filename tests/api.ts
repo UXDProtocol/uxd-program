@@ -125,6 +125,10 @@ export function setMangoDepositoriesRedeemableSoftCap(authority: Signer, control
     return provider.send(tx, signers, TXN_OPTS);
 }
 
+export function updateProgramSettings(authority: Signer, controller: Controller, args: ): Promise<string> {
+    const 
+}
+
 // User Facing Permissionless Calls -------------------------------------------
 
 export async function mintWithMangoDepository(user: Signer, slippage: number, collateralAmount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
