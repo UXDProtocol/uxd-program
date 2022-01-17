@@ -220,13 +220,3 @@ pub mod uxd {
             })
     }
 }
-
-// WIP: on branch : feature/rebalancing
-// More info above with rebalance_mango_depository function
-// pub fn check_max_rebalancing_amount_constraints(max_rebalancing_amount: u64) -> ProgramResult {
-//     check!(
-//         max_rebalancing_amount > 0,
-//         UxdErrorCode::InvalidRebalancedAmount
-//     )?;
-//     Ok(())
-// }
