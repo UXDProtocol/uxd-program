@@ -4,7 +4,7 @@ import { Account, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
 import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller, I80F48 } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, Controller, ProgramSettings, I80F48 } from "@uxdprotocol/uxd-client";
 import { web3 } from "@project-serum/anchor";
 
 // Utils Calls ----------------------------------------------------------------
@@ -121,6 +121,17 @@ export async function setMangoDepositoriesRedeemableSoftCap(authority: Signer, c
     let tx = new Transaction();
 
     tx.instructions.push(setMangoDepositoriesRedeemableSoftCapIx);
+    signers.push(authority);
+
+    return web3.sendAndConfirmTransaction(provider.connection, tx, signers, TXN_OPTS);
+}
+
+export async function updateProgramSettings(authority: Signer, controller: Controller, program_settings: ProgramSettings): Promise<String> {
+    const updateProgramSettingsIx = uxdClient.createUpdateProgramSettingsInstruction(controller, authority.publicKey, program_settings, TXN_OPTS);
+    let signers = [];
+    let tx = new Transaction();
+
+    tx.instructions.push(updateProgramSettingsIx);
     signers.push(authority);
 
     return web3.sendAndConfirmTransaction(provider.connection, tx, signers, TXN_OPTS);

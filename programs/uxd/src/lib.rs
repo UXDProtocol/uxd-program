@@ -80,7 +80,7 @@ pub mod uxd {
         ctx: Context<UpdateProgramSettings>,
         redeemable_global_supply_cap: u128,
     ) -> ProgramResult {
-        instructions::update_program_settings::handler(ctx, UpdateProgramSettingsArgs {
+        instructions::update_program_settings::handler(ctx, ProgramSettings {
             redeemable_soft_cap: None,
             redeemable_global_supply_cap: Some(redeemable_global_supply_cap),
         })
@@ -102,10 +102,22 @@ pub mod uxd {
         ctx: Context<UpdateProgramSettings>,
         redeemable_soft_cap: u64,
     ) -> ProgramResult {
-        instructions::update_program_settings::handler(ctx, UpdateProgramSettingsArgs {
+        instructions::update_program_settings::handler(ctx, ProgramSettings {
             redeemable_soft_cap: Some(redeemable_soft_cap),
             redeemable_global_supply_cap: None,
         })
+            .map_err(|e| {
+                msg!("<*> {}", e); // log the error
+                e.into() // convert UxdError to generic ProgramError
+            })
+    }
+
+    #[access_control(ctx.accounts.validate(program_settings))]
+    pub fn update_program_settings(
+        ctx: Context<UpdateProgramSettings>,
+        program_settings: ProgramSettings,
+    ) -> ProgramResult {
+        instructions::update_program_settings::handler(ctx, program_settings)
             .map_err(|e| {
                 msg!("<*> {}", e); // log the error
                 e.into() // convert UxdError to generic ProgramError
