@@ -1,8 +1,5 @@
-import { Idl, Program } from "@project-serum/anchor";
 import { Keypair, PublicKey, Signer } from "@solana/web3.js";
-// import { workspace } from "@project-serum/anchor";
-import { IDL, UXD, UXDHelpers } from "@uxdprotocol/uxd-client";
-import { provider } from "./provider";
+import { UXD, UXDHelpers } from "@uxdprotocol/uxd-client";
 import * as jsonIdl from "../target/idl/uxd.json";
 
 // TESTING wallets for convenience (The user and admin). To remove when going open source
@@ -26,9 +23,9 @@ const adminKeypair = Keypair.fromSecretKey(aca3VWSeed);
 export const authority: Signer = adminKeypair;
 console.log(`CONTROLLER AUTHORITY KEY => ${authority.publicKey}`);
 // This is the user //
-const userKeypair = Keypair.fromSecretKey(Eyh77Seed);
-export const user: Signer = userKeypair;
-console.log(`USER KEY => ${user.publicKey}`);
+const bankKeypair = Keypair.fromSecretKey(Eyh77Seed);
+export const bank: Signer = bankKeypair;
+console.log(`BANK KEY => ${bank.publicKey}`);
 
 // Get this from anchor.toml TODO
 export const CLUSTER = 'devnet'; // "mainnet"
@@ -43,14 +40,12 @@ export const BTC = new PublicKey("3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU")
 // export const BTC = new PublicKey("9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E");
 
 // ----------------------------------------------------------------------------
-
-// export const uxdProgram = new Program(IDL, , provider); // Used for anchor test because case is not the same in idl and types.
 export const uxdProgramId: PublicKey = new PublicKey(jsonIdl["metadata"]["address"]);
 console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
 export const uxdClient = new UXD(uxdProgramId);
 export const uxdHelpers = new UXDHelpers();
 
-export const mangoCrankInterval = 1000; // In milliseconds - Run KEEPER else useless
+export const mangoCrankInterval = 3000; // In milliseconds - Run KEEPER else useless - ~1000 on mainnet
 export const slippageBase = 1000;
 
 export const MANGO_QUOTE_DECIMALS = 6; // USDC

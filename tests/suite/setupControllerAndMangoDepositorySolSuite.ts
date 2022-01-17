@@ -26,5 +26,4 @@ export const setupControllerAndMangoDepositorySolSuite = (authority: Signer, con
     it("Deposit 100 USDC of insurance", async () => {
         await depositInsuranceMangoDepositoryTest(100, authority, controller, depository, mango);
     });
-
 };
