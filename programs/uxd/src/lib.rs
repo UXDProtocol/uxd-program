@@ -1,5 +1,4 @@
 use crate::error::check_assert;
-use crate::error::SourceFileId;
 use crate::error::UxdErrorCode;
 use crate::instructions::*;
 use crate::state::*;
@@ -16,7 +15,7 @@ pub mod mango_utils;
 pub mod state;
 
 #[cfg(feature = "development")]
-solana_program::declare_id!("4jv7rFE2DJ7HXDtJ812xLLnugXjPTU4iSpBUq8Dm6uEM");
+solana_program::declare_id!("6C8eDdJfrf8o5aMKMtExez73brMcL4c9i3TufkZueMjV");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -213,13 +212,3 @@ pub mod uxd {
             })
     }
 }
-
-// WIP: on branch : feature/rebalancing
-// More info above with rebalance_mango_depository function
-// pub fn check_max_rebalancing_amount_constraints(max_rebalancing_amount: u64) -> ProgramResult {
-//     check!(
-//         max_rebalancing_amount > 0,
-//         UxdErrorCode::InvalidRebalancedAmount
-//     )?;
-//     Ok(())
-// }

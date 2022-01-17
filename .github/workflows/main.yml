@@ -1,15 +1,10 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
-# Controls when the workflow will run
 on:
   push:
     branches: [ main, dev ]
   pull_request:
     branches: [ main, dev ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
   
 permissions:
@@ -23,22 +18,20 @@ env:
   runner_wallet_path: "/home/runner/.config/solana/id.json"
   mango_account_mm: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
   NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+  DEVNET_FAUCET: "9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g"
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+
   build:
-    # The type of runner that the job will run on
+
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
           
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Node 14
-      - uses: actions/setup-node@v2.5.1
+      - uses: actions/setup-node@v2
+        name: Node 14 installation
         with:
           node-version: "14"
           cache: "yarn"
@@ -46,7 +39,6 @@ jobs:
           scope: "@UXDProtocol"
           always-auth: true
           
-      # Cache Cargo registry + index 
       - uses: actions/cache@v2
         name: Cache Cargo registry + index
         id: cache-anchor
@@ -58,11 +50,9 @@ jobs:
             ~/.cargo/git/db/
           key: cargo-${{ runner.os }}-v0000-${{ hashFiles('**/Cargo.lock') }}
           
-      # Add Solana to PATH
       - name: Add Solana to PATH
         run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
         
-      # Cache Solana Tool Suite
       - uses: actions/cache@v2
         name: Cache Solana Tool Suite
         id: cache-solana
@@ -72,7 +62,6 @@ jobs:
             ~/.local/share/solana/
           key: solana-${{ runner.os }}-v0000-${{ env.solana_version }}
 
-      # Cache Target Folder
       - uses: actions/cache@v2
         name: Cache target folder
         id: cache-programs
@@ -83,13 +72,12 @@ jobs:
             ./target/bpfel-unknown-unknown
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
 
-      # Rust toolchain
       - uses: actions-rs/toolchain@v1
+        name: Rust toolchain installation
         with:
           toolchain: nightly
           override: true
 
-      # Install Solana
       - name: install solana
         if: steps.cache-solana.outputs.cache-hit != 'true'
         run: |
@@ -97,36 +85,37 @@ jobs:
           sudo apt-get install -y pkg-config build-essential libudev-dev
           sh -c "$(curl -sSfL https://release.solana.com/v${{ env.solana_version }}/install)"
 
-      # Setup Solana
-      - name: setup solana
+      - name: Setup solana 
         run: |
           solana --version
           solana config set -u d
-          solana config get
+
+      - name: Create keypair and funds it
+        run: |
           solana-keygen new -o ${{ env.runner_wallet_path }}
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
+          solana airdrop 1 -u d
           
-      # Checkout MangoClient-v3, install dependencies, and run MM bot devnet SOL perp + Keeper
-      - name: Checkout
-        uses: actions/checkout@v2.4.0
+      - name: Checkout MangoClient-v3
+        uses: actions/checkout@v2
         with:
           repository: blockworks-foundation/mango-client-v3
           path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
+
       - name: Install MangoClient-v3 dependencies then runs Mango Keeper and MM bot on devnet for SOL perp
         run: |
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
           yarn install
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
           GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} yarn keeper &
           GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} MANGO_ACCOUNT_PUBKEY=${{ env.mango_account_mm }} MARKET=SOL yarn mm &
           cd -
@@ -135,6 +124,7 @@ jobs:
         run: |
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
+
       - name: Yarn install + run tests
         run: |
           yarn install
@@ -142,12 +132,7 @@ jobs:
           ./scripts/reset_program_id.sh
           npx @project-serum/anchor-cli@${{ env.anchor_version }} test --skip-local-validator
 
-#       # Runs a single command using the runners shell
-#       - name: Run a one-line script
-#         run: echo Hello, world!
-
-#       # Runs a set of commands using the runners shell
-#       - name: Run a multi-line script
-#         run: |
-#           echo Add other actions to build,
-#           echo test, and deploy your project.
+      - name: Wrap up uninstalling program and returning sols to the faucet
+        run: |
+          solana program close $(solana-keygen pubkey ./target/deploy/uxd-keypair.json) --recipient ${{ env.DEVNET_FAUCET }}
+          solana transfer ${{ env.DEVNET_FAUCET }} $(echo $(solana balance | awk '{print $1}') - 0.000005 | bc)
