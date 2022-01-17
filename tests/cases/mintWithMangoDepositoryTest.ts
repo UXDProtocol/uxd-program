@@ -4,7 +4,6 @@ import { Controller, Mango, MangoDepository, findATAAddrSync } from "@uxdprotoco
 import { expect } from "chai";
 import { collateralUIPriceInMangoQuote, mintWithMangoDepository } from "../api";
 import { CLUSTER, MANGO_QUOTE_DECIMALS, slippageBase, uxdHelpers } from "../constants";
-import { provider } from "../provider";
 import { getSolBalance, getBalance } from "../utils";
 
 export const mintWithMangoDepositoryTest = async (collateralAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango): Promise<number> => {
