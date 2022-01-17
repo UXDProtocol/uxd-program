@@ -15,19 +15,6 @@ pub struct InitializeControllerEvent {
     pub authority: Pubkey,
 }
 
-// /// Event called in [instructions::set_redeemable_global_supply_cap::handler].
-// #[event]
-// pub struct SetRedeemableGlobalSupplyCapEvent {
-//     /// The program version.
-//     #[index]
-//     pub version: u8,
-//     /// The controller.
-//     #[index]
-//     pub controller: Pubkey,
-//     // The new cap.
-//     pub redeemable_global_supply_cap: u128,
-// }
-
 /// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
 #[event]
 pub struct RegisterMangoDepositoryEvent {
@@ -47,23 +34,6 @@ pub struct RegisterMangoDepositoryEvent {
     // The MangoAccount PDA.
     pub mango_account: Pubkey,
 }
-
-// /// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
-// #[event]
-// pub struct SetMangoDepositoryRedeemableSoftCapEvent {
-//     /// The program version.
-//     #[index]
-//     pub version: u8,
-//     /// The controller.
-//     #[index]
-//     pub controller: Pubkey,
-//     // The redeemable mint.
-//     pub redeemable_mint: Pubkey,
-//     // The redeemable mint decimals.
-//     pub redeemable_mint_decimals: u8,
-//     // The new cap.
-//     pub redeemable_soft_cap: u64,
-// }
 
 /// Event called in [instructions::update_program_settings::handler].
 #[event]
