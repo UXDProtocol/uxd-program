@@ -60,9 +60,23 @@ mod test {
 
     #[test]
     fn test_cal_slippage_amount() {
-        // let price = I80F48::checked_from_num(1024u8).unwrap();
-        // let slippage = 0.2u32;
-        // println!("slippage_amount = {}", slippage_amount);
+        // general param
+        let lamport_basis = I80F48::from_num(10u32.pow(9));
+
+        // given price is 24
+        let ui_price = I80F48::from_num(24);
+        let price = ui_price.checked_mul(lamport_basis).unwrap();
+
+        // given slippage is 10%
+        let slippage = 100u32;
+
+        // expected slippage amount
+        let expected = I80F48::from_num(2400000000u64);
+        
+        assert_eq!(
+            cal_slippage_amount(price, slippage).overflowing_round(),
+            (expected, false)
+        );
     }
 
     proptest! {
@@ -70,7 +84,7 @@ mod test {
         fn test_limit_price_bid(price in 0..1000000000000i128, slippage in 0..u32::MAX) {
             // create random price in lamport range from 0 to 1000 equivalent uiAmount
             let fractional_price = I80F48::checked_from_num(price).unwrap();
-            println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
+            // println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
 
             let limit_price = limit_price(fractional_price, slippage, Side::Bid);
 
@@ -88,7 +102,7 @@ mod test {
         fn test_limit_price_ask(price in 0..1000000000000i128, slippage in 0..u32::MAX) {
             // create random price in lamport range from 0 to 1000 equivalent uiAmount
             let fractional_price = I80F48::checked_from_num(price).unwrap();
-            println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
+            // println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
 
             let limit_price = limit_price(fractional_price, slippage, Side::Ask);
 
