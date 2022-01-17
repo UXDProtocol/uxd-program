@@ -37,11 +37,11 @@ pub fn handler(
     args: UpdateProgramSettingsArgs,
 ) -> UxdResult {
     // Check to see if a setting was inputted to be updataed. Else, keep last value.
-    ctx.accounts.controller.mango_depositories_redeemable_soft_cap = args.redeemable_soft_cap.unwrap_or(
-        ctx.accounts.controller.mango_depositories_redeemable_soft_cap
+    ctx.accounts.controller.mango_depositories_redeemable_soft_cap = args.redeemable_soft_cap.unwrap_or_else(
+        || ctx.accounts.controller.mango_depositories_redeemable_soft_cap
     );
-    ctx.accounts.controller.redeemable_global_supply_cap = args.redeemable_global_supply_cap.unwrap_or(
-        ctx.accounts.controller.redeemable_global_supply_cap
+    ctx.accounts.controller.redeemable_global_supply_cap = args.redeemable_global_supply_cap.unwrap_or_else(
+        || ctx.accounts.controller.redeemable_global_supply_cap
     );
 
     emit!(UpdateProgramSettingsEvent {
@@ -49,11 +49,11 @@ pub fn handler(
         controller: ctx.accounts.controller.key(),
         redeemable_mint: ctx.accounts.controller.redeemable_mint,
         redeemable_mint_decimals: ctx.accounts.controller.redeemable_mint_decimals,
-        redeemable_soft_cap: args.redeemable_soft_cap.unwrap_or(
-            ctx.accounts.controller.mango_depositories_redeemable_soft_cap
+        redeemable_soft_cap: args.redeemable_soft_cap.unwrap_or_else(
+            || ctx.accounts.controller.mango_depositories_redeemable_soft_cap
         ),
-        redeemable_global_supply_cap: args.redeemable_global_supply_cap.unwrap_or(
-            ctx.accounts.controller.redeemable_global_supply_cap
+        redeemable_global_supply_cap: args.redeemable_global_supply_cap.unwrap_or_else(
+            || ctx.accounts.controller.redeemable_global_supply_cap
         ),
     });
     Ok(())
