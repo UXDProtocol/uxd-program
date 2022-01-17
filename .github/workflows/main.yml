@@ -130,13 +130,9 @@ jobs:
           yarn install
           chmod +x ./scripts/reset_program_id.sh
           ./scripts/reset_program_id.sh
-          npx @project-serum/anchor-cli@${{ env.anchor_version }} build
-          npx @project-serum/anchor-cli@${{ env.anchor_version }} deploy 
-          
-  # npx @project-serum/anchor-cli@${{ env.anchor_version }} test --skip-local-validator
+          npx @project-serum/anchor-cli@${{ env.anchor_version }} test --skip-local-validator
 
       - name: Wrap up uninstalling program and returning sols to the faucet
         run: |
-          solana program close $(solana-keygen pubkey ./target/deploy/uxd-keypair.json)
-          sleep 5
+          solana program close $(solana-keygen pubkey ./target/deploy/uxd-keypair.json) --recipient ${{ env.DEVNET_FAUCET }}
           solana transfer ${{ env.DEVNET_FAUCET }} $(echo $(solana balance --lamports | awk '{print $1}') - 50000 | bc)
