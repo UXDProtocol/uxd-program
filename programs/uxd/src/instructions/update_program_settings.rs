@@ -8,8 +8,6 @@ use crate::error::UxdErrorCode;
 use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
 use crate::CONTROLLER_NAMESPACE;
-// use crate::events::SetRedeemableGlobalSupplyCapEvent;
-// use crate::events::SetMangoDepositoryRedeemableSoftCapEvent;
 use crate::events::UpdateProgramSettingsEvent;
 use crate::borsh::BorshSerialize;
 use crate::borsh::BorshDeserialize;
@@ -30,98 +28,60 @@ pub struct UpdateProgramSettings<'info> {
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Copy)]
 pub struct UpdateProgramSettingsArgs {
-    pub redeemable_soft_cap: u64,
-    pub redeemable_global_supply_cap: u128,
+    pub redeemable_soft_cap: Option<u64>,
+    pub redeemable_global_supply_cap: Option<u128>,
 }
 
 pub fn handler(
     ctx: Context<UpdateProgramSettings>,
     args: UpdateProgramSettingsArgs,
 ) -> UxdResult {
-    ctx.accounts.controller.mango_depositories_redeemable_soft_cap = args.redeemable_soft_cap;
-    ctx.accounts.controller.redeemable_global_supply_cap = args.redeemable_global_supply_cap;
+    // Check to see if a setting was inputted to be updataed. Else, keep last value.
+    ctx.accounts.controller.mango_depositories_redeemable_soft_cap = args.redeemable_soft_cap.unwrap_or(
+        ctx.accounts.controller.mango_depositories_redeemable_soft_cap
+    );
+    ctx.accounts.controller.redeemable_global_supply_cap = args.redeemable_global_supply_cap.unwrap_or(
+        ctx.accounts.controller.redeemable_global_supply_cap
+    );
 
     emit!(UpdateProgramSettingsEvent {
         version: ctx.accounts.controller.version,
         controller: ctx.accounts.controller.key(),
         redeemable_mint: ctx.accounts.controller.redeemable_mint,
         redeemable_mint_decimals: ctx.accounts.controller.redeemable_mint_decimals,
-        redeemable_soft_cap: args.redeemable_soft_cap,
-        redeemable_global_supply_cap: args.redeemable_global_supply_cap,
+        redeemable_soft_cap: args.redeemable_soft_cap.unwrap_or(
+            ctx.accounts.controller.mango_depositories_redeemable_soft_cap
+        ),
+        redeemable_global_supply_cap: args.redeemable_global_supply_cap.unwrap_or(
+            ctx.accounts.controller.redeemable_global_supply_cap
+        ),
     });
     Ok(())
 }
 
-// pub fn handler_set_mango_depositories_redeemable_soft_cap(
-//     ctx: Context<UpdateProgramSettings>,
-//     redeemable_soft_cap: u64, // native amount
-// ) -> UxdResult {
-//     ctx.accounts.controller.mango_depositories_redeemable_soft_cap = redeemable_soft_cap;
-//     emit!(SetMangoDepositoryRedeemableSoftCapEvent {
-//         version: ctx.accounts.controller.version,
-//         controller: ctx.accounts.controller.key(),
-//         redeemable_mint_decimals: ctx.accounts.controller.redeemable_mint_decimals,
-//         redeemable_mint: ctx.accounts.controller.redeemable_mint,
-//         redeemable_soft_cap
-//     });
-//     Ok(())
-// }
-
-// pub fn handler_set_redeemable_global_supply_cap(
-//     ctx: Context<UpdateProgramSettings>,
-//     redeemable_global_supply_cap: u128, // native amount
-// ) -> UxdResult {
-//     ctx.accounts.controller.redeemable_global_supply_cap = redeemable_global_supply_cap;
-//     emit!(SetRedeemableGlobalSupplyCapEvent {
-//         version: ctx.accounts.controller.version,
-//         controller: ctx.accounts.controller.key(),
-//         redeemable_global_supply_cap
-//     });
-//     Ok(())
-// }
-
-// Validate
+// Validate : There is one validate function per program setting.
 impl<'info> UpdateProgramSettings<'info> {
-    // // Asserts that the Mango Depositories redeemable soft cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
-    // pub fn validate_set_mango_depositories_redeemable_soft_cap(
-    //     &self,
-    //     redeemable_soft_cap: u64,
-    // ) -> ProgramResult {
-    //     check!(
-    //         redeemable_soft_cap <= MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP,
-    //         UxdErrorCode::InvalidMangoDepositoriesRedeemableSoftCap
-    //     )?;
-    //     Ok(())
-    // }
-
-    // // Asserts that the redeemable global supply cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
-    // pub fn validate_set_redeemable_global_supply_cap(
-    //     &self,
-    //     redeemable_global_supply_cap: u128,
-    // ) -> ProgramResult {
-    //     check!(
-    //         redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP,
-    //         UxdErrorCode::InvalidRedeemableGlobalSupplyCap
-    //     )?;
-    //     Ok(())
-    // }
-
-    pub fn validate(
+    // Asserts that the Mango Depositories redeemable soft cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
+    pub fn validate_set_mango_depositories_redeemable_soft_cap(
         &self,
-        args: UpdateProgramSettingsArgs,
+        redeemable_soft_cap: u64,
     ) -> ProgramResult {
-        // Asserts that the Mango Depositories redeemable soft cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
         check!(
-            args.redeemable_soft_cap <= MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP,
+            redeemable_soft_cap <= MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP,
             UxdErrorCode::InvalidMangoDepositoriesRedeemableSoftCap
         )?;
+        Ok(())
+    }
 
-        // Asserts that the redeemable global supply cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
+    // Asserts that the redeemable global supply cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
+    pub fn validate_set_redeemable_global_supply_cap(
+        &self,
+        redeemable_global_supply_cap: u128,
+    ) -> ProgramResult {
         check!(
-            args.redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP,
+            redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP,
             UxdErrorCode::InvalidRedeemableGlobalSupplyCap
         )?;
-
         Ok(())
     }
 }

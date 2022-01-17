@@ -1004,26 +1004,6 @@
       ]
     },
     {
-      "name": "SetRedeemableGlobalSupplyCapEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "redeemableGlobalSupplyCap",
-          "type": "u128",
-          "index": false
-        }
-      ]
-    },
-    {
       "name": "RegisterMangoDepositoryEvent",
       "fields": [
         {
@@ -1059,7 +1039,7 @@
       ]
     },
     {
-      "name": "SetMangoDepositoryRedeemableSoftCapEvent",
+      "name": "UpdateProgramSettingsEvent",
       "fields": [
         {
           "name": "version",
@@ -1084,6 +1064,11 @@
         {
           "name": "redeemableSoftCap",
           "type": "u64",
+          "index": false
+        },
+        {
+          "name": "redeemableGlobalSupplyCap",
+          "type": "u128",
           "index": false
         }
       ]
@@ -1322,6 +1307,6 @@
     }
   ],
   "metadata": {
-    "address": "647Hhf6mZfMZEhxBfD6WxebZibkkvfpGCM7eYfAC5dq4"
+    "address": "GuQoohxBNceCMbLKkpd2MnyXr1R6T9zhfqDddhtfPivE"
   }
 }

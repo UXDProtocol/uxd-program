@@ -1004,26 +1004,6 @@ export type Uxd = {
       ]
     },
     {
-      "name": "SetRedeemableGlobalSupplyCapEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "redeemableGlobalSupplyCap",
-          "type": "u128",
-          "index": false
-        }
-      ]
-    },
-    {
       "name": "RegisterMangoDepositoryEvent",
       "fields": [
         {
@@ -1059,7 +1039,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "SetMangoDepositoryRedeemableSoftCapEvent",
+      "name": "UpdateProgramSettingsEvent",
       "fields": [
         {
           "name": "version",
@@ -1084,6 +1064,11 @@ export type Uxd = {
         {
           "name": "redeemableSoftCap",
           "type": "u64",
+          "index": false
+        },
+        {
+          "name": "redeemableGlobalSupplyCap",
+          "type": "u128",
           "index": false
         }
       ]
@@ -2329,26 +2314,6 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "SetRedeemableGlobalSupplyCapEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "redeemableGlobalSupplyCap",
-          "type": "u128",
-          "index": false
-        }
-      ]
-    },
-    {
       "name": "RegisterMangoDepositoryEvent",
       "fields": [
         {
@@ -2384,7 +2349,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "SetMangoDepositoryRedeemableSoftCapEvent",
+      "name": "UpdateProgramSettingsEvent",
       "fields": [
         {
           "name": "version",
@@ -2409,6 +2374,11 @@ export const IDL: Uxd = {
         {
           "name": "redeemableSoftCap",
           "type": "u64",
+          "index": false
+        },
+        {
+          "name": "redeemableGlobalSupplyCap",
+          "type": "u128",
           "index": false
         }
       ]
