@@ -10,6 +10,9 @@ const depositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 const user = new Keypair();
+const authority = new Keypair();
+
+console.log("USER =>", user.publicKey.toString());
 
 describe("SOL integration tests", () => {
     before("Transfer 20 sol from bank to test user", async () => {

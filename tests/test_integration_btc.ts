@@ -11,6 +11,8 @@ const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 const user = new Keypair();
 
+console.log("USER =>", user.publicKey.toString());
+
 describe("BTC integration tests", () => {
     before("Transfer 20 sol from bank to test user", async () => {
         const transaction = new web3.Transaction().add(

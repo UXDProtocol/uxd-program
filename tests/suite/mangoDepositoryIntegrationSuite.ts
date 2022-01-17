@@ -154,11 +154,6 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
         expect(false, "Should have failed - Amount beyond global supply cap");
     });
 
-    it("Mint 0.5 sol then redeem with the Global Redeemable supply cap at 500", async () => {
-        const mintedAmount = await mintWithMangoDepositoryTest(0.5, 20, user, controller, depository, mango);
-        await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
-    });
-
     it("Reset Global Redeemable supply cap back to 1_000_000", async () => {
         await setRedeemableGlobalSupplyCapTest(1_000_000, authority, controller);
     });

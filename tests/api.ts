@@ -5,6 +5,7 @@ import { NATIVE_MINT } from "@solana/spl-token";
 import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
 import { prepareWrappedSolTokenAccount } from "./utils";
 import { MangoDepository, Mango, Controller, I80F48 } from "@uxdprotocol/uxd-client";
+import { web3 } from "@project-serum/anchor";
 
 // Utils Calls ----------------------------------------------------------------
 
@@ -13,15 +14,15 @@ export async function collateralUIPriceInMangoQuote(depository: MangoDepository,
 }
 
 export async function redeemableCirculatingSupply(controller: Controller): Promise<number> {
-    return uxdHelpers.redeemableCirculatingSupply(provider, controller, TXN_OPTS);
+    return uxdHelpers.redeemableCirculatingSupplyNoProvider(provider.connection, controller, TXN_OPTS);
 }
 
 export async function getControllerAccount(controller: Controller): Promise<ControllerAccount> {
-    return uxdHelpers.getControllerAccount(provider, controller, TXN_OPTS);
+    return uxdHelpers.getControllerAccountNoProvider(provider.connection, controller, TXN_OPTS);
 }
 
 export async function getMangoDepositoryAccount(mangoDepository: MangoDepository): Promise<MangoDepositoryAccount> {
-    return uxdHelpers.getMangoDepositoryAccount(provider, mangoDepository, TXN_OPTS);
+    return uxdHelpers.getMangoDepositoryAccountNoProvider(provider.connection, mangoDepository, TXN_OPTS);
 }
 
 // DOESN'T WORK in uxd-client- to fix
@@ -67,9 +68,7 @@ export async function initializeController(authority: Signer, controller: Contro
     tx.instructions.push(initControllerIx);
     signers.push(authority);
 
-    const signature = await provider.send(tx, signers, TXN_OPTS);
-    await provider.connection.confirmTransaction(signature);
-    return signature;
+    return web3.sendAndConfirmTransaction(provider.connection, tx, signers, TXN_OPTS);
 }
 
 export async function registerMangoDepository(authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
@@ -80,9 +79,7 @@ export async function registerMangoDepository(authority: Signer, controller: Con
     tx.instructions.push(registerMangoDepositoryIx);
     signers.push(authority);
 
-    const signature = await provider.send(tx, signers, TXN_OPTS);
-    await provider.connection.confirmTransaction(signature);
-    return signature;
+    return web3.sendAndConfirmTransaction(provider.connection, tx, signers, TXN_OPTS);
 }
 
 export async function depositInsuranceToMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
@@ -93,9 +90,7 @@ export async function depositInsuranceToMangoDepository(authority: Signer, amoun
     tx.instructions.push(depositInsuranceToMangoDepositoryIx);
     signers.push(authority);
 
-    const signature = await provider.send(tx, signers, TXN_OPTS);
-    await provider.connection.confirmTransaction(signature);
-    return signature;
+    return web3.sendAndConfirmTransaction(provider.connection, tx, signers, TXN_OPTS);
 }
 
 export async function withdrawInsuranceFromMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
@@ -106,9 +101,7 @@ export async function withdrawInsuranceFromMangoDepository(authority: Signer, am
     tx.instructions.push(withdrawInsuranceFromMangoDepository);
     signers.push(authority);
 
-    const signature = await provider.send(tx, signers, TXN_OPTS);
-    await provider.connection.confirmTransaction(signature);
-    return signature;
+    return web3.sendAndConfirmTransaction(provider.connection, tx, signers, TXN_OPTS);
 }
 
 export async function setRedeemableGlobalSupplyCap(authority: Signer, controller: Controller, supplyCapUiAmount: number): Promise<string> {
@@ -119,9 +112,7 @@ export async function setRedeemableGlobalSupplyCap(authority: Signer, controller
     tx.instructions.push(setRedeemableGlobalSupplyCapIx);
     signers.push(authority);
 
-    const signature = await provider.send(tx, signers, TXN_OPTS);
-    await provider.connection.confirmTransaction(signature);
-    return signature;
+    return web3.sendAndConfirmTransaction(provider.connection, tx, signers, TXN_OPTS);
 }
 
 export async function setMangoDepositoriesRedeemableSoftCap(authority: Signer, controller: Controller, supplySoftCapUiAmount: number): Promise<string> {
@@ -132,9 +123,7 @@ export async function setMangoDepositoriesRedeemableSoftCap(authority: Signer, c
     tx.instructions.push(setMangoDepositoriesRedeemableSoftCapIx);
     signers.push(authority);
 
-    const signature = await provider.send(tx, signers, TXN_OPTS);
-    await provider.connection.confirmTransaction(signature);
-    return signature;
+    return web3.sendAndConfirmTransaction(provider.connection, tx, signers, TXN_OPTS);
 }
 
 // User Facing Permissionless Calls -------------------------------------------
@@ -157,9 +146,7 @@ export async function mintWithMangoDepository(user: Signer, slippage: number, co
     tx.instructions.push(mintWithMangoDepositoryIx);
     signers.push(user);
 
-    const signature = await provider.send(tx, signers, TXN_OPTS);
-    await provider.connection.confirmTransaction(signature);
-    return signature;
+    return web3.sendAndConfirmTransaction(provider.connection, tx, signers, TXN_OPTS);
 }
 
 export async function redeemFromMangoDepository(user: Signer, slippage: number, amountRedeemable: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
@@ -170,7 +157,6 @@ export async function redeemFromMangoDepository(user: Signer, slippage: number, 
 
     tx.instructions.push(redeemFromMangoDepositoryIx);
     signers.push(user);
-    const signature = await provider.send(tx, signers, TXN_OPTS);
-    await provider.connection.confirmTransaction(signature);
-    return signature;
+
+    return web3.sendAndConfirmTransaction(provider.connection, tx, signers, TXN_OPTS);
 }

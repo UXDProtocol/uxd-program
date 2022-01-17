@@ -7,20 +7,25 @@ import { CLUSTER } from "../constants";
 
 export const setRedeemableSoftCapMangoDepositoryTest = async (softCapAmount: number, authority: Signer, controller: Controller) => {
     console.group("🧭 setRedeemableSoftCapMangoDepositoryTest");
-    // GIVEN
-    const mangoDepositoryRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
+    try {
+        // GIVEN
+        const mangoDepositoryRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
 
-    // WHEN
-    const txId = await setMangoDepositoriesRedeemableSoftCap(authority, controller, softCapAmount);
-    console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
+        // WHEN
+        const txId = await setMangoDepositoriesRedeemableSoftCap(authority, controller, softCapAmount);
+        console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
-    // THEN
-    const controllerAccount = await getControllerAccount(controller);
-    const mangoDepositoryRedeemableSoftCap_post = controllerAccount.mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
-    const redeemableCirculatingSupply = controllerAccount.redeemableCirculatingSupply.div(new BN(10 ** controller.redeemableMintDecimals));
+        // THEN
+        const controllerAccount = await getControllerAccount(controller);
+        const mangoDepositoryRedeemableSoftCap_post = controllerAccount.mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        const redeemableCirculatingSupply = controllerAccount.redeemableCirculatingSupply.div(new BN(10 ** controller.redeemableMintDecimals));
 
-    expect(mangoDepositoryRedeemableSoftCap_post.toNumber()).equals(softCapAmount, "The redeemable mango depository soft cap hasn't been updated.");
-    console.log(`🧾 Previous mango depositories soft cap was`, mangoDepositoryRedeemableSoftCap.toString(), "now is", mangoDepositoryRedeemableSoftCap_post.toString(), "(circulating supply", redeemableCirculatingSupply.toString(), ")");
-    controller.info();
-    console.groupEnd();
+        expect(mangoDepositoryRedeemableSoftCap_post.toNumber()).equals(softCapAmount, "The redeemable mango depository soft cap hasn't been updated.");
+        console.log(`🧾 Previous mango depositories soft cap was`, mangoDepositoryRedeemableSoftCap.toString(), "now is", mangoDepositoryRedeemableSoftCap_post.toString(), "(circulating supply", redeemableCirculatingSupply.toString(), ")");
+        controller.info();
+        console.groupEnd();
+    } catch (error) {
+        console.groupEnd();
+        throw error;
+    }
 }
