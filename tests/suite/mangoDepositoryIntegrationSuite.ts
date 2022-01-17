@@ -125,7 +125,6 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
 
     it("Mint 10 SOL worth of UXD (2% slippage) then redeem the outcome in 3 times", async () => {
         const mintedAmount = await mintWithMangoDepositoryTest(10, 20, user, controller, depository, mango);
-
         const redeemAmountPartial = mintedAmount / 3;
         await redeemWithMangoDepositoryTest(redeemAmountPartial, 20, user, controller, depository, mango);
         await redeemWithMangoDepositoryTest(redeemAmountPartial, 20, user, controller, depository, mango);
@@ -174,11 +173,6 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
             expect(true, "Failing as planned");
         }
         expect(false, "Should have failed - Amount beyond global supply cap");
-    });
-
-    it("Mint 0.5 sol then redeem with the MangoDepositories Redeemable Soft cap at 500", async () => {
-        const mintedAmount = await mintWithMangoDepositoryTest(0.5, 20, user, controller, depository, mango);
-        await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
     });
 
     it("Reset MangoDepositories Redeemable Soft cap back to 10_000", async () => {
