@@ -4,20 +4,20 @@ import { MANGO_QUOTE_DECIMALS, uxdHelpers } from "./constants";
 import { nativeI80F48ToUi, nativeToUi } from "@blockworks-foundation/mango-client";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { provider, TXN_COMMIT, TXN_OPTS } from "./provider";
+import { getProvider, TXN_COMMIT, TXN_OPTS } from "./provider";
 
 export function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function getSolBalance(wallet: PublicKey): Promise<number> {
-    const lamports = await provider.connection
+    const lamports = await getProvider().connection
         .getBalance(wallet, TXN_COMMIT);
     return nativeToUi(lamports, SOL_DECIMALS);
 }
 
 export function getBalance(tokenAccount: PublicKey): Promise<number> {
-    return provider.connection
+    return getProvider().connection
         .getTokenAccountBalance(tokenAccount, TXN_COMMIT)
         .then((o) => o["value"]["uiAmount"])
         .catch(() => 0);
@@ -35,6 +35,7 @@ export async function printUserInfo(user: PublicKey, controller: Controller, dep
 }
 
 export async function printDepositoryInfo(controller: Controller, depository: MangoDepository, mango: Mango) {
+    const provider = getProvider();
     const SYM = depository.collateralMintSymbol;
     const controllerAccount = await uxdHelpers.getControllerAccount(provider, controller, TXN_OPTS);
     const depositoryAccount = await uxdHelpers.getMangoDepositoryAccount(provider, depository, TXN_OPTS);
