@@ -4,7 +4,7 @@ import { depositInsuranceMangoDepositoryTest } from "../cases/depositInsuranceMa
 import { initializeControllerTest } from "../cases/initializeControllerTest";
 import { initializeMangoDepositoryTest } from "../cases/initializeMangoDepositoryTest";
 import { CLUSTER } from "../constants";
-import { provider } from "../provider";
+import { getProvider } from "../provider";
 
 export const setupControllerAndMangoDepositorySolSuite = (authority: Signer, controller: Controller, depository: MangoDepository) => {
     let mango: Mango;
@@ -12,7 +12,7 @@ export const setupControllerAndMangoDepositorySolSuite = (authority: Signer, con
     beforeEach("\n", () => { console.log("=============================================\n\n") });
 
     before("setup", async () => {
-        mango = await createAndInitializeMango(provider.connection, CLUSTER);
+        mango = await createAndInitializeMango(getProvider().connection, CLUSTER);
     });
 
     it("Initialize Controller", async () => {

@@ -6,7 +6,7 @@ import { initializeMangoDepositoryTest } from "../cases/initializeMangoDepositor
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { redeemWithMangoDepositoryTest } from "../cases/redeemWithMangoDepositoryTest";
 import { CLUSTER } from "../constants";
-import { provider } from "../provider";
+import { getProvider } from "../provider";
 import { getBalance, printDepositoryInfo, printUserInfo } from "../utils";
 
 export const mangoDepositoryMintRedeemSuite = (authority: Signer, user: Signer, controller: Controller, depository: MangoDepository) => {
@@ -15,7 +15,7 @@ export const mangoDepositoryMintRedeemSuite = (authority: Signer, user: Signer, 
     beforeEach("\n", () => { console.log("=============================================\n\n") });
 
     before("setup", async () => {
-        mango = await createAndInitializeMango(provider.connection, CLUSTER);
+        mango = await createAndInitializeMango(getProvider().connection, CLUSTER);
     });
 
     it("Initialize Controller", async () => {

@@ -2,9 +2,11 @@ import { web3 } from "@project-serum/anchor";
 import { Keypair } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS } from "@uxdprotocol/uxd-client";
 import { authority, USDC, bank, WSOL, uxdProgramId } from "./constants";
-import { provider } from "./provider";
+import { getProvider } from "./provider";
 import { mangoDepositoryIntegrationSuite } from "./suite/mangoDepositoryIntegrationSuite";
 import { getSolBalance } from "./utils";
+
+
 
 const depositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
@@ -22,7 +24,7 @@ describe("SOL integration tests", () => {
                 lamports: web3.LAMPORTS_PER_SOL * 20
             }),
         );
-        await web3.sendAndConfirmTransaction(provider.connection, transaction, [
+        await web3.sendAndConfirmTransaction(getProvider().connection, transaction, [
             bank,
         ]);
     });
@@ -40,7 +42,7 @@ describe("SOL integration tests", () => {
                 lamports: web3.LAMPORTS_PER_SOL * userBalance - 50000
             }),
         );
-        await web3.sendAndConfirmTransaction(provider.connection, transaction, [
+        await web3.sendAndConfirmTransaction(getProvider().connection, transaction, [
             user,
         ]);
     });

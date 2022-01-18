@@ -10,7 +10,7 @@ import { setRedeemableGlobalSupplyCapTest } from "../cases/setRedeemableGlobalSu
 import { setRedeemableSoftCapMangoDepositoryTest } from "../cases/setRedeemableSoftCapMangoDepositoryTest";
 import { withdrawInsuranceMangoDepositoryTest } from "../cases/withdrawInsuranceMangoDepositoryTest";
 import { CLUSTER } from "../constants";
-import { provider } from "../provider";
+import { getProvider } from "../provider";
 import { getBalance, printDepositoryInfo, printUserInfo } from "../utils";
 
 export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer, controller: Controller, depository: MangoDepository) => {
@@ -19,7 +19,7 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
     beforeEach("\n", () => { console.log("=============================================\n\n") });
 
     before("setup", async () => {
-        mango = await createAndInitializeMango(provider.connection, CLUSTER);
+        mango = await createAndInitializeMango(getProvider().connection, CLUSTER);
     });
 
     it("Initialize Controller", async () => {

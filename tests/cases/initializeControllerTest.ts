@@ -2,13 +2,13 @@ import { Signer } from "@solana/web3.js";
 import { Controller } from "@uxdprotocol/uxd-client";
 import { initializeController, getControllerAccount } from "../api";
 import { CLUSTER } from "../constants";
-import { provider } from "../provider";
+import { getProvider } from "../provider";
 
 export const initializeControllerTest = async (authority: Signer, controller: Controller) => {
     console.group("⏱ initializeControllerTest");
     try {
         // WHEN
-        if (await provider.connection.getAccountInfo(controller.pda)) {
+        if (await getProvider().connection.getAccountInfo(controller.pda)) {
             console.log("🚧 Already initialized.");
         } else {
             const txId = await initializeController(authority, controller);
