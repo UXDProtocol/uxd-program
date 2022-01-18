@@ -126,8 +126,8 @@ export async function setMangoDepositoriesRedeemableSoftCap(authority: Signer, c
     return web3.sendAndConfirmTransaction(provider.connection, tx, signers, TXN_OPTS);
 }
 
-export async function updateProgramSettings(authority: Signer, controller: Controller, program_settings: ProgramSettings): Promise<String> {
-    const updateProgramSettingsIx = uxdClient.createUpdateProgramSettingsInstruction(controller, authority.publicKey, program_settings, TXN_OPTS);
+export async function updateProgramSettings(authority: Signer, controller: Controller, programSettings: ProgramSettings): Promise<String> {
+    const updateProgramSettingsIx = uxdClient.createUpdateProgramSettingsInstruction(controller, authority.publicKey, programSettings, TXN_OPTS);
     let signers = [];
     let tx = new Transaction();
 

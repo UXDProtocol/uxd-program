@@ -1,13 +1,14 @@
+import { BN } from "@project-serum/anchor";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, Mango, createAndInitializeMango, findATAAddrSync } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, Mango, createAndInitializeMango, ProgramSettings, findATAAddrSync } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
+import { getControllerAccount } from "../api";
 import { depositInsuranceMangoDepositoryTest } from "../cases/depositInsuranceMangoDepositoryTest";
 import { initializeControllerTest } from "../cases/initializeControllerTest";
 import { initializeMangoDepositoryTest } from "../cases/initializeMangoDepositoryTest";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { redeemWithMangoDepositoryTest } from "../cases/redeemWithMangoDepositoryTest";
-import { setRedeemableGlobalSupplyCapTest } from "../cases/setRedeemableGlobalSupplyCapTest";
-import { setRedeemableSoftCapMangoDepositoryTest } from "../cases/setRedeemableSoftCapMangoDepositoryTest";
+import { updateProgramSettingsTest } from "../cases/updateProgramSettingsTest";
 import { withdrawInsuranceMangoDepositoryTest } from "../cases/withdrawInsuranceMangoDepositoryTest";
 import { CLUSTER } from "../constants";
 import { provider } from "../provider";
@@ -32,11 +33,21 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
 
     // SET REDEEMABLE CAPS (as they should be by default at launch)
     it("Set Global Redeemable supply cap to 1_000_000", async () => {
-        await setRedeemableGlobalSupplyCapTest(1_000_000, authority, controller);
+        const currentMangoDepositoryRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        let programSettings = new ProgramSettings(
+            new BN(1_000_000),
+            currentMangoDepositoryRedeemableSoftCap,
+        );
+        await updateProgramSettingsTest(programSettings, authority, controller);
     });
 
     it("Set MangoDepositories Redeemable Soft cap to 10_000", async () => {
-        await setRedeemableSoftCapMangoDepositoryTest(10_000, authority, controller);
+        const currentRedeemableGlobalSupplyCap = (await getControllerAccount(controller)).redeemableGlobalSupplyCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        let programSettings = new ProgramSettings(
+            currentRedeemableGlobalSupplyCap,
+            new BN(10_000),
+        );
+        await updateProgramSettingsTest(programSettings, authority, controller);
     });
 
     // TEST INSURANCE DEPOSIT
@@ -138,13 +149,23 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
     // TEST GLOBAL REDEEMABLE CAP
 
     it("Mint 2 SOL worth of UXD (2% slippage) then Set Global Redeemable supply cap to 0 and redeem", async () => {
+        const currentMangoDepositoryRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        let programSettings = new ProgramSettings(
+            new BN(0),
+            currentMangoDepositoryRedeemableSoftCap,
+        );
         const mintedAmount = await mintWithMangoDepositoryTest(2, 20, user, controller, depository, mango);
-        await setRedeemableGlobalSupplyCapTest(0, authority, controller);
+        await updateProgramSettingsTest(programSettings, authority, controller);
         await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
     });
 
     it("Set Global Redeemable supply cap to 500 then Mint 10 SOL worth of UXD (2% slippage) (should fail)", async () => {
-        await setRedeemableGlobalSupplyCapTest(500, authority, controller);
+        const currentMangoDepositoryRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        let programSettings = new ProgramSettings(
+            new BN(500),
+            currentMangoDepositoryRedeemableSoftCap,
+        );
+        await updateProgramSettingsTest(programSettings, authority, controller);
         try {
             await mintWithMangoDepositoryTest(10, 20, user, controller, depository, mango);
         } catch {
@@ -154,19 +175,34 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
     });
 
     it("Reset Global Redeemable supply cap back to 1_000_000", async () => {
-        await setRedeemableGlobalSupplyCapTest(1_000_000, authority, controller);
+        const currentMangoDepositoryRedeemableSoftCap = (await getControllerAccount(controller)).mangoDepositoriesRedeemableSoftCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        let programSettings = new ProgramSettings(
+            new BN(1_000_000),
+            currentMangoDepositoryRedeemableSoftCap,
+        );
+        await updateProgramSettingsTest(programSettings, authority, controller);
     });
 
     // TEST MANGO DEPOSITORIES SOFT CAP
 
     it("Mint 2 SOL worth of UXD (2% slippage) then set the MangoDepositories Redeemable Soft cap to 0 and redeem", async () => {
+        const currentRedeemableGlobalSupplyCap = (await getControllerAccount(controller)).redeemableGlobalSupplyCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        let programSettings = new ProgramSettings(
+            currentRedeemableGlobalSupplyCap,
+            new BN(0),
+        );
         const mintedAmount = await mintWithMangoDepositoryTest(2, 20, user, controller, depository, mango);
-        await setRedeemableSoftCapMangoDepositoryTest(0, authority, controller);
+        await updateProgramSettingsTest(programSettings, authority, controller);
         await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
     });
 
     it("Set the MangoDepositories Redeemable Soft cap to 500 then Mint 10 SOL worth of UXD (2% slippage) (should fail)", async () => {
-        await setRedeemableSoftCapMangoDepositoryTest(500, authority, controller);
+        const currentRedeemableGlobalSupplyCap = (await getControllerAccount(controller)).redeemableGlobalSupplyCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        let programSettings = new ProgramSettings(
+            currentRedeemableGlobalSupplyCap,
+            new BN(500),
+        );
+        await updateProgramSettingsTest(programSettings, authority, controller);
         try {
             await mintWithMangoDepositoryTest(10, 20, user, controller, depository, mango);
         } catch {
@@ -176,7 +212,12 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
     });
 
     it("Reset MangoDepositories Redeemable Soft cap back to 10_000", async () => {
-        await setRedeemableSoftCapMangoDepositoryTest(10_000, authority, controller);
+        const currentRedeemableGlobalSupplyCap = (await getControllerAccount(controller)).redeemableGlobalSupplyCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        let programSettings = new ProgramSettings(
+            currentRedeemableGlobalSupplyCap,
+            new BN(10_000),
+        );
+        await updateProgramSettingsTest(programSettings, authority, controller);
     });
 
     // TEST INSURANCE WITHDRAWAL

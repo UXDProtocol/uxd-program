@@ -57,7 +57,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "setRedeemableGlobalSupplyCap",
+      "name": "updateProgramSettings",
       "accounts": [
         {
           "name": "authority",
@@ -72,29 +72,10 @@ export type Uxd = {
       ],
       "args": [
         {
-          "name": "redeemableGlobalSupplyCap",
-          "type": "u128"
-        }
-      ]
-    },
-    {
-      "name": "setMangoDepositoriesRedeemableSoftCap",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "redeemableSoftCap",
-          "type": "u64"
+          "name": "programSettings",
+          "type": {
+            "defined": "ProgramSettings"
+          }
         }
       ]
     },
@@ -1367,7 +1348,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "setRedeemableGlobalSupplyCap",
+      "name": "updateProgramSettings",
       "accounts": [
         {
           "name": "authority",
@@ -1382,29 +1363,10 @@ export const IDL: Uxd = {
       ],
       "args": [
         {
-          "name": "redeemableGlobalSupplyCap",
-          "type": "u128"
-        }
-      ]
-    },
-    {
-      "name": "setMangoDepositoriesRedeemableSoftCap",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "redeemableSoftCap",
-          "type": "u64"
+          "name": "programSettings",
+          "type": {
+            "defined": "ProgramSettings"
+          }
         }
       ]
     },

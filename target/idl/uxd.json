@@ -57,7 +57,7 @@
       ]
     },
     {
-      "name": "setRedeemableGlobalSupplyCap",
+      "name": "updateProgramSettings",
       "accounts": [
         {
           "name": "authority",
@@ -72,29 +72,10 @@
       ],
       "args": [
         {
-          "name": "redeemableGlobalSupplyCap",
-          "type": "u128"
-        }
-      ]
-    },
-    {
-      "name": "setMangoDepositoriesRedeemableSoftCap",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "redeemableSoftCap",
-          "type": "u64"
+          "name": "programSettings",
+          "type": {
+            "defined": "ProgramSettings"
+          }
         }
       ]
     },
@@ -1307,6 +1288,6 @@
     }
   ],
   "metadata": {
-    "address": "FAsWaEKgTnjLga6HTfdfwnRo3ohj9g8scgCp5oJrZM6R"
+    "address": "BCpk7A3bHHxj7qj3yaBQzmx5dPUrdPvERTPtYV49dQm9"
   }
 }

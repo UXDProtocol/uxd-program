@@ -15,7 +15,7 @@ pub mod mango_utils;
 pub mod state;
 
 #[cfg(feature = "development")]
-solana_program::declare_id!("FAsWaEKgTnjLga6HTfdfwnRo3ohj9g8scgCp5oJrZM6R");
+solana_program::declare_id!("BCpk7A3bHHxj7qj3yaBQzmx5dPUrdPvERTPtYV49dQm9");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -69,48 +69,48 @@ pub mod uxd {
         })
     }
 
-    // Set the Redeemable global supply cap.
-    //
-    // Goal is to roll out progressively, and limit risks.
-    // If this is set below the current circulating supply of UXD, it would effectively pause Minting.
-    #[access_control(
-        ctx.accounts.validate_set_redeemable_global_supply_cap(redeemable_global_supply_cap)
-    )]
-    pub fn set_redeemable_global_supply_cap(
-        ctx: Context<UpdateProgramSettings>,
-        redeemable_global_supply_cap: u128,
-    ) -> ProgramResult {
-        instructions::update_program_settings::handler(ctx, ProgramSettings {
-            redeemable_soft_cap: None,
-            redeemable_global_supply_cap: Some(redeemable_global_supply_cap),
-        })
-            .map_err(|e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            })
-    }
+    // // Set the Redeemable global supply cap.
+    // //
+    // // Goal is to roll out progressively, and limit risks.
+    // // If this is set below the current circulating supply of UXD, it would effectively pause Minting.
+    // #[access_control(
+    //     ctx.accounts.validate_set_redeemable_global_supply_cap(redeemable_global_supply_cap)
+    // )]
+    // pub fn set_redeemable_global_supply_cap(
+    //     ctx: Context<UpdateProgramSettings>,
+    //     redeemable_global_supply_cap: u128,
+    // ) -> ProgramResult {
+    //     instructions::update_program_settings::handler(ctx, ProgramSettings {
+    //         redeemable_soft_cap: None,
+    //         redeemable_global_supply_cap: Some(redeemable_global_supply_cap),
+    //     })
+    //         .map_err(|e| {
+    //             msg!("<*> {}", e); // log the error
+    //             e.into() // convert UxdError to generic ProgramError
+    //         })
+    // }
 
-    // Set Mango Depositories Redeemable soft cap (for Minting operation).
-    //
-    // Goal is to roll out progressively, and limit risks.
-    // If this is set to 0, it would effectively pause Minting.
-    // Note : This would effectively pause minting.
-    #[access_control(
-        ctx.accounts.validate_set_mango_depositories_redeemable_soft_cap(redeemable_soft_cap)
-    )]
-    pub fn set_mango_depositories_redeemable_soft_cap(
-        ctx: Context<UpdateProgramSettings>,
-        redeemable_soft_cap: u64,
-    ) -> ProgramResult {
-        instructions::update_program_settings::handler(ctx, ProgramSettings {
-            redeemable_soft_cap: Some(redeemable_soft_cap),
-            redeemable_global_supply_cap: None,
-        })
-            .map_err(|e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            })
-    }
+    // // Set Mango Depositories Redeemable soft cap (for Minting operation).
+    // //
+    // // Goal is to roll out progressively, and limit risks.
+    // // If this is set to 0, it would effectively pause Minting.
+    // // Note : This would effectively pause minting.
+    // #[access_control(
+    //     ctx.accounts.validate_set_mango_depositories_redeemable_soft_cap(redeemable_soft_cap)
+    // )]
+    // pub fn set_mango_depositories_redeemable_soft_cap(
+    //     ctx: Context<UpdateProgramSettings>,
+    //     redeemable_soft_cap: u64,
+    // ) -> ProgramResult {
+    //     instructions::update_program_settings::handler(ctx, ProgramSettings {
+    //         redeemable_soft_cap: Some(redeemable_soft_cap),
+    //         redeemable_global_supply_cap: None,
+    //     })
+    //         .map_err(|e| {
+    //             msg!("<*> {}", e); // log the error
+    //             e.into() // convert UxdError to generic ProgramError
+    //         })
+    // }
 
     #[access_control(ctx.accounts.validate(program_settings))]
     pub fn update_program_settings(
