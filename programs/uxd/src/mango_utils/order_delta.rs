@@ -8,7 +8,6 @@ use crate::mango_utils::total_perp_base_lot_position;
 use crate::UxdResult;
 use fixed::types::I80F48;
 use mango::state::PerpAccount;
-use solana_program::msg;
 
 declare_check_assert_macros!(SourceFileId::MangoUtilsOrderDelta);
 
@@ -62,9 +61,9 @@ pub fn derive_order_delta(
         .checked_to_num()
         .ok_or(math_err!())?;
 
-    msg!("collateral_delta {}", collateral_delta);
-    msg!("quote_delta {}", quote_delta);
-    msg!("fee_delta {}", fee_delta);
+    // msg!("collateral_delta {}", collateral_delta);
+    // msg!("quote_delta {}", quote_delta);
+    // msg!("fee_delta {}", fee_delta);
 
     Ok(OrderDelta {
         collateral: collateral_delta,

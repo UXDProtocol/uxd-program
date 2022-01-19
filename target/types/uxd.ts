@@ -774,7 +774,7 @@ export type Uxd = {
           {
             "name": "reserved",
             "type": {
-              "defined": "MangoDeposirotyPadding"
+              "defined": "MangoDepositoryPadding"
             }
           }
         ]
@@ -2102,7 +2102,7 @@ export const IDL: Uxd = {
           {
             "name": "reserved",
             "type": {
-              "defined": "MangoDeposirotyPadding"
+              "defined": "MangoDepositoryPadding"
             }
           }
         ]

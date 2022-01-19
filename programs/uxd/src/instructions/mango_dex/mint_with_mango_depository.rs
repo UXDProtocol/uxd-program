@@ -167,7 +167,7 @@ pub fn handler(
         .ok_or(math_err!())?
         .checked_to_num()
         .ok_or(math_err!())?;
-    msg!("planned_collateral_delta {}", planned_collateral_delta);
+    // msg!("planned_collateral_delta {}", planned_collateral_delta);
 
     // - [Transferring user collateral to the passthrough account]
     token::transfer(
@@ -228,7 +228,7 @@ pub fn handler(
         .quote
         .checked_sub(order_delta.fee)
         .ok_or(math_err!())?;
-    msg!("redeemable_delta {}", redeemable_delta);
+    // msg!("redeemable_delta {}", redeemable_delta);
     ctx.accounts
         .check_mango_depositories_redeemable_soft_cap_overflow(redeemable_delta)?;
 
@@ -355,7 +355,7 @@ impl<'info> MintWithMangoDepository<'info> {
             &self.mango_perp_market.key,
             self.mango_program.key,
         )?;
-        msg!("perp_info {:?}", perp_info);
+        // msg!("perp_info {:?}", perp_info);
         Ok(perp_info)
     }
 

@@ -207,7 +207,7 @@ pub fn handler(
         .quote
         .checked_add(order_delta.fee)
         .ok_or(math_err!())?;
-    msg!("redeemable_delta {}", redeemable_delta);
+    // msg!("redeemable_delta {}", redeemable_delta);
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         redeemable_delta,
@@ -348,7 +348,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
             &self.mango_perp_market.key,
             self.mango_program.key,
         )?;
-        msg!("perp_info{:?}", perp_info);
+        // msg!("perp_info{:?}", perp_info);
         Ok(perp_info)
     }
 
