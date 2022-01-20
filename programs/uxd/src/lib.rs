@@ -13,6 +13,7 @@ pub mod instructions;
 pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
+pub mod zo_program;
 
 #[cfg(feature = "development")]
 solana_program::declare_id!("9YS7yCsmMjRtpSoUsCcD5HmMBjfPLf5hmq99gHuMjSNZ");
@@ -27,8 +28,10 @@ pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
 pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"COLLATERALPASSTHROUGH";
 pub const INSURANCE_PASSTHROUGH_NAMESPACE: &[u8] = b"INSURANCEPASSTHROUGH";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
+pub const ZO_MARGIN_ACCOUNT_NAMESPACE: &[u8] = b"marginv1";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
+pub const ZO_DEPOSITORY_NAMESPACE: &[u8] = b"ZODEPOSITORY";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -124,6 +127,26 @@ pub mod uxd {
             collateral_passthrough_bump,
             insurance_passthrough_bump,
             mango_account_bump,
+        )
+        .map_err(|e| {
+            msg!("<*> {}", e); // log the error
+            e.into() // convert UxdError to generic ProgramError
+        })
+    }
+
+    pub fn register_zo_depository(
+        ctx: Context<RegisterZODepository>,
+        bump: u8,
+        // collateral_passthrough_bump: u8,
+        // insurance_passthrough_bump: u8,
+        zo_account_bump: u8,
+    ) -> ProgramResult {
+        instructions::register_zo_depository::handler(
+            ctx,
+            bump,
+            // collateral_passthrough_bump,
+            // insurance_passthrough_bump,
+            zo_account_bump,
         )
         .map_err(|e| {
             msg!("<*> {}", e); // log the error

@@ -97,83 +97,8 @@ The initial state is initialized through calling `initializeController`, from th
 
 It owns the Redeemable Mint currently. In the future there could be added instruction to transfer Authority/Mint to another program due to migration, if needs be.
 
-```Rust
-pub struct Controller {
-    pub bump: u8,
-    pub redeemable_mint_bump: u8,
-    // Version used - for migrations later if needed
-    pub version: u8,
-    // The account that initialize this struct. Only this account can call permissionned instructions.
-    pub authority: Pubkey,
-    pub redeemable_mint: Pubkey,
-    pub redeemable_mint_decimals: u8,
-    //
-    // The Mango Depositories registered with this Controller
-    pub registered_mango_depositories: [Pubkey; 8], // MAX_REGISTERED_MANGO_DEPOSITORIES - IDL bug with constant...
-    pub registered_mango_depositories_count: u8,
-    //
-    // Progressive roll out and safety ----------
-    //
-    // The total amount of UXD that can be in circulation, variable
-    //  in redeemable Redeemable Native Amount (careful, usually Mint express this in full token, UI amount, u64)
-    pub redeemable_global_supply_cap: u128,
-    //
-    // The max amount of Redeemable affected by Mint and Redeem operations on `MangoDepository` instances, variable
-    //  in redeemable Redeemable Native Amount
-    pub mango_depositories_redeemable_soft_cap: u64,
-    //
-    // Accounting -------------------------------
-    //
-    // The actual circulating supply of Redeemable
-    // This should always be equal to the sum of all Depositories' `redeemable_amount_under_management`
-    //  in redeemable Redeemable Native Amount
-    pub redeemable_circulating_supply: u128,
-    //
-    // Should add padding? or migrate?
-}
-```
-
 The `authority` (admin) must then register some `Depository`/ies by calling `register_depository`.
 One State is tied to many `Depository` accounts, each of them being a vault for a given Collateral Mint.
-
-```Rust
-pub struct MangoDepository {
-    pub bump: u8,
-    pub collateral_passthrough_bump: u8,
-    pub insurance_passthrough_bump: u8,
-    pub mango_account_bump: u8,
-    // Version used - for migrations later if needed
-    pub version: u8,
-    pub collateral_mint: Pubkey,
-    pub collateral_passthrough: Pubkey,
-    pub insurance_mint: Pubkey,
-    pub insurance_passthrough: Pubkey,
-    pub mango_account: Pubkey,
-    //
-    // The Controller instance for which this Depository works for
-    pub controller: Pubkey,
-    //
-    // Accounting -------------------------------
-    // Note : To keep track of the in and out of a depository
-    //
-    // The amount of USDC InsuranceFund deposited/withdrawn by Authority on the underlying Mango Account - The actual amount might be lower/higher depending of funding rate changes
-    // In Collateral native units
-    pub insurance_amount_deposited: u128,
-    //
-    // The amount of collateral deposited by users to mint redeemable tokens
-    // Updated after each mint/redeem
-    // In Collateral native units
-    pub collateral_amount_deposited: u128,
-    //
-    // The amount of delta neutral position that is backing circulating redeemable tokens.
-    // Updated after each mint/redeem
-    // In Redeemable native units
-    pub redeemable_amount_under_management: u128,
-    //
-    // The amount of taker fee paid in quote while placing perp orders
-    pub total_amount_paid_taker_fee: u128,
-}
-```
 
 Each `Depository` is used to `mint()` and `redeem()` Redeemable tokens with a specific collateral mint, and to do so each instantiate a Mango PDA that is used to deposit/withdraw collateral to mango and open/close short perp.
 
@@ -192,7 +117,12 @@ Only one controller can exist at anytime.
 Instantiate a new `MangoDepository` PDA for a given collateral mint.
 A depository is a vault in charge a Collateral type, the associated mango account and insurance fund.
 
-### `RebalanceDepository` (TODO - Planned post release as the first capped release will be protected from liquidation by the insurance in the event of overweighed positions)
+### `RegisterZODepository`
+
+Instantiate a new `ZODepository` PDA for a given collateral mint.
+A depository is a vault in charge a Collateral type, the associated ZO margin account and insurance fund.
+
+### `Rebalance<>Depository` (TODO - Planned post release as the first capped release will be protected from liquidation by the insurance in the event of overweighed positions)
 
 Rebalance the health of one repository.
 Short Perp PNL will change over time. When it does, other users can settle match us (forcing the update of our balance, as this unsettle PnL is virtual, i.e. we don't pay interests on it)

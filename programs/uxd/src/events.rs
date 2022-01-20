@@ -28,7 +28,7 @@ pub struct SetRedeemableGlobalSupplyCapEvent {
     pub redeemable_global_supply_cap: u128,
 }
 
-/// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
+/// Event called in [instructions::register_mango_depository::handler].
 #[event]
 pub struct RegisterMangoDepositoryEvent {
     /// The program version.
@@ -46,6 +46,25 @@ pub struct RegisterMangoDepositoryEvent {
     pub insurance_mint: Pubkey,
     // The MangoAccount PDA.
     pub mango_account: Pubkey,
+}
+/// Event called in [instructions::register_zo_depository::handler].
+#[event]
+pub struct RegisterZODepositoryEvent {
+    /// The program version.
+    #[index]
+    pub version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    // The collateral mint.
+    pub collateral_mint: Pubkey,
+    // The insurance mint.
+    pub insurance_mint: Pubkey,
+    // The ZO Margin Account PDA.
+    pub zo_account: Pubkey,
 }
 
 /// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
