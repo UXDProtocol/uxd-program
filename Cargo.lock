@@ -44,11 +44,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-access-control"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed70c97998752288ce9840ae05dac6f7922856624d83bd8706941c363df5aa75"
+checksum = "fb45cc9d1ce72e5eda341126de495a2c3810108c2333c6f3b4e09d99605f3f48"
 dependencies = [
- "anchor-syn 0.22.0",
+ "anchor-syn 0.22.1",
  "anyhow",
  "proc-macro2",
  "quote",
@@ -73,11 +73,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-account"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7325a9ddeab60ace310dd920b354a6318d31b4dd6d8172a518de3b8d58601035"
+checksum = "16406bd1c27ff4ebdca4f5d5b09b7952f4d161f25094243e09355797c6bddaa6"
 dependencies = [
- "anchor-syn 0.22.0",
+ "anchor-syn 0.22.1",
  "anyhow",
  "bs58 0.4.0",
  "proc-macro2",
@@ -99,11 +99,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-constant"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bfe53dec5dfe5742d949e7c21a3b813296c274183f4fbf669a070e45bd669c9"
+checksum = "d347ce462ceba4473d216bab2c9d0d9702a027d25e93b5376d8d8593d9e13de0"
 dependencies = [
- "anchor-syn 0.22.0",
+ "anchor-syn 0.22.1",
  "proc-macro2",
  "syn",
 ]
@@ -122,11 +122,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-error"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fda765864694d1ddeff66e8d97b015760379dc7136474633f7db0ec04577fc8"
+checksum = "354582d796f8309252d18f787f0e49df8ab6fdfe48f838f059f001ee2f04b5c8"
 dependencies = [
- "anchor-syn 0.22.0",
+ "anchor-syn 0.22.1",
  "proc-macro2",
  "quote",
  "syn",
@@ -147,11 +147,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-event"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ab29f55c9bf69f1e9a19838b5630204beaaddc4ca3ab8eed59a637e36b51428"
+checksum = "1a2e218dd8a446993463e38c00159349ae25aa76076191cde0ba460c9c65a180"
 dependencies = [
- "anchor-syn 0.22.0",
+ "anchor-syn 0.22.1",
  "anyhow",
  "proc-macro2",
  "quote",
@@ -174,11 +174,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-interface"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "345ba1c992d29d3b666c4e5c8d8383d3291c4be3795dc13e218d59df55a08c21"
+checksum = "1e1e536e15b13e3168cf878a90b1bd2dfff1b4c8c9475be4b87f71b20cf8e85d"
 dependencies = [
- "anchor-syn 0.22.0",
+ "anchor-syn 0.22.1",
  "anyhow",
  "heck",
  "proc-macro2",
@@ -201,11 +201,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-program"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2fd7fdf8c416d834650e7b8ef1db5746acc74c7333b3d9b3a385f5129e9b522"
+checksum = "6519b3ac626c1bd9df407fe22ec6a283f4b1067ee7f3be896ca580be510b7196"
 dependencies = [
- "anchor-syn 0.22.0",
+ "anchor-syn 0.22.1",
  "anyhow",
  "proc-macro2",
  "quote",
@@ -227,11 +227,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-state"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5426c71af1fcaa734d2f1dfde0f1e4ccc878be02707c767d6c9e88ef6686ecd5"
+checksum = "88e6a21070bcb053f092a1a9054924e8a1b5afd68f7317d0138327401ac154e1"
 dependencies = [
- "anchor-syn 0.22.0",
+ "anchor-syn 0.22.1",
  "anyhow",
  "proc-macro2",
  "quote",
@@ -243,7 +243,7 @@ name = "anchor-comp"
 version = "0.1.0"
 source = "git+https://github.com/UXDProtocol/anchor-comp#4f29fb2a8bedd26f6f6de090e5d2c1807da78b3f"
 dependencies = [
- "anchor-lang 0.22.0",
+ "anchor-lang 0.22.1",
  "mango",
  "solana-program",
 ]
@@ -263,11 +263,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-derive-accounts"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e597c70258147a5da1ca8801474e3a4a009214c1b7138cd863ef03eeba353a1"
+checksum = "09a65890c2132f30a3ff160fb83f74e0a0454f904f46f1c9be38d3e94c2d06ed"
 dependencies = [
- "anchor-syn 0.22.0",
+ "anchor-syn 0.22.1",
  "anyhow",
  "proc-macro2",
  "quote",
@@ -300,19 +300,19 @@ dependencies = [
 
 [[package]]
 name = "anchor-lang"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3fab2e8305bfe8971e04e963a442a767d81f8d61e73effdbe04df73bb7f9feb"
+checksum = "ef066f4bc0cb4080ff6244b6a66ef31b6077e0302738b365ca894540f5b7dcf8"
 dependencies = [
- "anchor-attribute-access-control 0.22.0",
- "anchor-attribute-account 0.22.0",
- "anchor-attribute-constant 0.22.0",
- "anchor-attribute-error 0.22.0",
- "anchor-attribute-event 0.22.0",
- "anchor-attribute-interface 0.22.0",
- "anchor-attribute-program 0.22.0",
- "anchor-attribute-state 0.22.0",
- "anchor-derive-accounts 0.22.0",
+ "anchor-attribute-access-control 0.22.1",
+ "anchor-attribute-account 0.22.1",
+ "anchor-attribute-constant 0.22.1",
+ "anchor-attribute-error 0.22.1",
+ "anchor-attribute-event 0.22.1",
+ "anchor-attribute-interface 0.22.1",
+ "anchor-attribute-program 0.22.1",
+ "anchor-attribute-state 0.22.1",
+ "anchor-derive-accounts 0.22.1",
  "arrayref",
  "base64 0.13.0",
  "bincode",
@@ -324,11 +324,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-spl"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e49a20ac8743546bc76a247ff0a81ceb0cee7653b087ccb330bf3553d907d522"
+checksum = "bcdf03d76450451f6c587098fa0d9775dc7eabf9173c89bd1bb17dd72b49e748"
 dependencies = [
- "anchor-lang 0.22.0",
+ "anchor-lang 0.22.1",
  "solana-program",
  "spl-associated-token-account",
  "spl-token",
@@ -355,9 +355,9 @@ dependencies = [
 
 [[package]]
 name = "anchor-syn"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68de711b6da0575993b85693d9e075a014de7e66ff4c29e0c38a54376b7d426d"
+checksum = "506cb44e4e895f917566c7a0554e487a001041d82dd3ae9f1f37ae7f20f86222"
 dependencies = [
  "anyhow",
  "bs58 0.3.1",
@@ -1426,9 +1426,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.5.4"
+version = "1.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d07a8629359eb56f1e2fb1652bb04212c072a87ba68546a04065d525673ac461"
+checksum = "1a11647b6b25ff05a515cb92c365cec08801e83423a235b51e231e1808747286"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -1927,13 +1927,14 @@ name = "uxd"
 version = "3.1.0"
 dependencies = [
  "anchor-comp",
- "anchor-lang 0.22.0",
+ "anchor-lang 0.22.1",
  "anchor-spl",
  "fixed",
  "mango",
  "proptest",
  "solana-program",
  "spl-token",
+ "zo-abi",
 ]
 
 [[package]]
@@ -2099,3 +2100,14 @@ name = "zeroize"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4756f7db3f7b5574938c3eb1c117038b8e07f95ee6718c0efad4ac21508f1efd"
+
+[[package]]
+name = "zo-abi"
+version = "0.4.0"
+source = "git+https://github.com/01protocol/zo-abi#6f9383a63f7f9bc3e0210fd2cc347d744915a241"
+dependencies = [
+ "anchor-lang 0.22.1",
+ "bytemuck",
+ "fixed",
+ "solana-program",
+]

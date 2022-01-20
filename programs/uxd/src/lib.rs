@@ -4,22 +4,23 @@ use anchor_lang::prelude::*;
 
 #[macro_use]
 pub mod error;
-
 pub mod events;
 pub mod instructions;
 pub mod mango_utils;
 pub mod state;
 pub mod test;
+pub mod zo_utils;
 
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("EVLUCL8duPtw52uU1H6P2rSZYcbVsnhfvQEejPtRPyKu");
+solana_program::declare_id!("9DscekKFr3x7is5mAVTkPu79r8aXDxp2mQYzScE2ECEs");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
 // Version used for accounts structure and future migrations
 pub const MANGO_DEPOSITORY_ACCOUNT_VERSION: u8 = 2;
+pub const ZO_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
@@ -28,8 +29,10 @@ pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"COLLATERALPASSTHROUGH";
 pub const INSURANCE_PASSTHROUGH_NAMESPACE: &[u8] = b"INSURANCEPASSTHROUGH";
 pub const QUOTE_PASSTHROUGH_NAMESPACE: &[u8] = b"QUOTEPASSTHROUGH";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
+pub const ZO_MARGIN_ACCOUNT_NAMESPACE: &[u8] = b"marginv1";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
+pub const ZO_DEPOSITORY_NAMESPACE: &[u8] = b"ZODEPOSITORY";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -167,6 +170,19 @@ pub mod uxd {
     pub fn migrate_mango_depository_to_v2(ctx: Context<MigrateMangoDepositoryToV2>) -> Result<()> {
         msg!("[migrate_mango_depository_to_v2]");
         instructions::migrate_mango_depository_to_v2::handler(ctx)
+    }
+
+    ///
+    pub fn register_zo_depository(ctx: Context<RegisterZoDepository>) -> Result<()> {
+        msg!("[register_zo_depository]");
+        instructions::register_zo_depository::handler(ctx)
+    }
+
+    ///
+    #[access_control(ctx.accounts.validate())]
+    pub fn initialize_zo_depository(ctx: Context<InitializeZoDepository>) -> Result<()> {
+        msg!("[initialize_zo_depository]");
+        instructions::initialize_zo_depository::handler(ctx)
     }
 
     /// Deposit `MangoDepository.insurance_mint` tokens in the `MangoDepository`
@@ -336,6 +352,31 @@ pub mod uxd {
             limit_price
         );
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, limit_price)
+    }
+
+    /// Mint redeemable tokens in exchange of `ZoDepository.collateral_mint`
+    /// tokens, increasing the size of the delta neutral position.
+    ///
+    /// Parameters:
+    ///     - collateral_amount: the amount of collateral to use, in
+    ///        collateral_mint native unit.
+    ///     - limit_price: the worse price the user is willing to trade at.
+    ///        In native units.
+    ///
+    #[access_control(
+        ctx.accounts.validate(collateral_amount, limit_price)
+    )]
+    pub fn mint_with_zo_depository(
+        ctx: Context<MintWithZoDepository>,
+        collateral_amount: u64,
+        limit_price: u64,
+    ) -> Result<()> {
+        msg!(
+            "[MintWithZoDepository] collateral_amount {}, limit_price {}",
+            collateral_amount,
+            limit_price
+        );
+        instructions::mint_with_zo_depository::handler(ctx, collateral_amount, limit_price)
     }
 
     /// Redeem `MangoDepository.collateral_mint` by burning redeemable tokens

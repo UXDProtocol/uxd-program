@@ -57,6 +57,8 @@
         "thiserror",
         "Tjpk",
         "UXDATA",
-        "WSOLATA"
+        "WSOLATA",
+        "ZOACCOUNT",
+        "ZODEPOSITORY"
     ]
 }

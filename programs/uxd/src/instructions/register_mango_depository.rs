@@ -187,11 +187,12 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     ctx.accounts.depository.insurance_amount_deposited = u128::MIN;
     ctx.accounts.depository.collateral_amount_deposited = u128::MIN;
     ctx.accounts.depository.redeemable_amount_under_management = u128::MIN;
+    ctx.accounts.depository.total_amount_paid_taker_fee = u128::MIN;
     ctx.accounts.depository.total_amount_rebalanced = u128::MIN;
 
     // - Update Controller state
-    ctx.accounts
-        .add_new_registered_mango_depository_entry_to_controller()?;
+    ctx.accounts.controller
+        .add_registered_mango_depository_entry(ctx.accounts.depository.key())?;
 
     emit!(RegisterMangoDepositoryEventV2 {
         version: ctx.accounts.controller.version,
@@ -218,14 +219,5 @@ impl<'info> RegisterMangoDepository<'info> {
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
-    }
-}
-
-impl<'info> RegisterMangoDepository<'info> {
-    pub fn add_new_registered_mango_depository_entry_to_controller(&mut self) -> Result<()> {
-        let mango_depository_id = self.depository.key();
-        self.controller
-            .add_registered_mango_depository_entry(mango_depository_id)?;
-        Ok(())
     }
 }

@@ -1,9 +1,9 @@
 import { getConnection, TXN_OPTS } from "./connection";
 import { CLUSTER, uxdClient } from "./constants";
-import { Account, Signer, Transaction } from '@solana/web3.js';
+import { Account, Keypair, Signer, SystemProgram, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller, PnLPolarity, } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, Controller, PnLPolarity, ZoDepository, Zo, CONTROL_ACCOUNT_SIZE } from "@uxdprotocol/uxd-client";
 import { web3 } from "@project-serum/anchor";
 
 // Permissionned Calls --------------------------------------------------------
@@ -50,6 +50,44 @@ export async function migrateMangoDepositoryToV2(authority: Signer, payer: Signe
     tx.feePayer = payer.publicKey;
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
+
+export async function registerZoDepository(authority: Signer, payer: Signer, controller: Controller, depository: ZoDepository): Promise<string> {
+    const registerZoDepositoryIx = await uxdClient.createRegisterZoDepositoryInstruction(controller, depository, authority.publicKey, TXN_OPTS, payer.publicKey);
+    let signers = [];
+    let tx = new Transaction();
+
+    tx.instructions.push(registerZoDepositoryIx);
+    signers.push(authority);
+    signers.push(payer);
+    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function initializeZoDepository(authority: Signer, payer: Signer, controller: Controller, depository: ZoDepository, zo: Zo): Promise<string> {
+    // Was done on chain, but the instruction is limited in term of stack size so we do it here (to free up space to create the openOrderAccount PDA on chain)
+    const control = new Keypair();
+    const initializeZoDepositoryIx = await uxdClient.createInitializeZoDepositoryInstruction(controller, depository, zo, control.publicKey, authority.publicKey, TXN_OPTS, payer.publicKey);
+    let signers = [];
+    let tx = new Transaction();
+
+    // Create control account
+    const controlLamports = await getConnection().getMinimumBalanceForRentExemption(CONTROL_ACCOUNT_SIZE);
+    const createControlAccount = SystemProgram.createAccount({
+        fromPubkey: payer.publicKey ?? authority.publicKey,
+        newAccountPubkey: control.publicKey,
+        lamports: controlLamports,
+        space: CONTROL_ACCOUNT_SIZE,
+        programId: zo.program.programId,
+    });
+
+    tx.instructions.push(createControlAccount);
+    tx.instructions.push(initializeZoDepositoryIx);
+
+    signers.push(authority);
+    signers.push(payer);
+    signers.push(control);
+    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
 
 export async function depositInsuranceToMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const depositInsuranceToMangoDepositoryIx = uxdClient.createDepositInsuranceToMangoDepositoryInstruction(amount, controller, depository, mango, authority.publicKey, TXN_OPTS);
@@ -184,6 +222,30 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
     return txId;
 }
 
+export async function mintWithZoDepository(user: Signer, payer: Signer, slippage: number, collateralAmount: number, controller: Controller, depository: ZoDepository, zo: Zo): Promise<string> {
+    const mintWithZoDepositoryIx = await uxdClient.createMintWithZoDepositoryInstruction(collateralAmount, slippage, controller, depository, zo, user.publicKey, TXN_OPTS, payer.publicKey);
+    let signers = [];
+    let tx = new Transaction();
+
+    if (depository.collateralMint.equals(NATIVE_MINT)) {
+        const nativeAmount = collateralAmount * 10 ** depository.collateralMintDecimals;
+        const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
+            getConnection(),
+            payer.publicKey,
+            user.publicKey,
+            nativeAmount
+        );
+        tx.instructions.push(...prepareWrappedSolIxs);
+    }
+
+    tx.instructions.push(mintWithZoDepositoryIx);
+    signers.push(user);
+    if (payer) {
+        signers.push(payer);
+    }
+    tx.feePayer = payer.publicKey;
+    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
 // Non UXD API calls ----------------------------------------------------------
 
 export async function settleDepositoryPnl(payer: Signer, depository: MangoDepository, mango: Mango): Promise<string> {

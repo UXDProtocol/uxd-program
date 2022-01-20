@@ -228,6 +228,153 @@
       "args": []
     },
     {
+      "name": "registerZoDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "insuranceMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "quoteMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryCollateralPassthroughAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryInsurancePassthroughAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryQuotePassthroughAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initializeZoDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryZoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoOpenOrders",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoStateSigner",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoDexMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoControl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoDexProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "depositInsuranceToMangoDepository",
       "accounts": [
         {
@@ -686,6 +833,151 @@
       ]
     },
     {
+      "name": "mintWithZoDepository",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "redeemableMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRedeemable",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryCollateralPassthroughAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryZoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoStateSigner",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoCache",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoControl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoOpenOrders",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoDexMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoReqQ",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoEventQ",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoMarketBids",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoMarketAsks",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoDexProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "collateralAmount",
+          "type": "u64"
+        },
+        {
+          "name": "limitPrice",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "redeemFromMangoDepository",
       "accounts": [
         {
@@ -883,6 +1175,23 @@
           },
           {
             "name": "reserved",
+            "type": "u8"
+          },
+          {
+            "name": "registeredZoDepositories",
+            "type": {
+              "array": [
+                "publicKey",
+                8
+              ]
+            }
+          },
+          {
+            "name": "registeredZoDepositoriesCount",
+            "type": "u8"
+          },
+          {
+            "name": "reserved1",
             "type": {
               "defined": "ControllerPadding"
             }
@@ -995,6 +1304,108 @@
           }
         ]
       }
+    },
+    {
+      "name": "ZoDepository",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "zoAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "collateralPassthroughBump",
+            "type": "u8"
+          },
+          {
+            "name": "insurancePassthroughBump",
+            "type": "u8"
+          },
+          {
+            "name": "quotePassthroughBump",
+            "type": "u8"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "isInitialized",
+            "type": "bool"
+          },
+          {
+            "name": "collateralMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralPassthrough",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "insuranceMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "insurancePassthrough",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "quoteMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "quotePassthrough",
+            "type": "publicKey"
+          },
+          {
+            "name": "quoteMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "zoAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "controller",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "collateralAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "redeemableAmountUnderManagement",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountRebalanced",
+            "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "defined": "ZoDepositoryPadding"
+            }
+          }
+        ]
+      }
     }
   ],
   "types": [
@@ -1084,6 +1495,71 @@
         },
         {
           "name": "mangoAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RegisterZoDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositoryVersion",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMint",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "InitializeZoDepositoryOpenOrdersPdaEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "zoAccount",
           "type": "publicKey",
           "index": false
         }
@@ -1450,6 +1926,51 @@
           "index": false
         }
       ]
+    },
+    {
+      "name": "ZoMintEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "collateralDepositedAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "limitPrice",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "mintedAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -1511,7 +2032,7 @@
     {
       "code": 6011,
       "name": "MangoDepositoriesSoftCapOverflow",
-      "msg": "Operation not allowed due to being over the Redeemable soft Cap."
+      "msg": "Operation not allowed due to being over the Mango Redeemable soft Cap."
     },
     {
       "code": 6012,
@@ -1610,91 +2131,136 @@
     },
     {
       "code": 6031,
+      "name": "MaxNumberOfZoDepositoriesRegisteredReached",
+      "msg": "Cannot register more ZO depositories, the limit has been reached."
+    },
+    {
+      "code": 6032,
+      "name": "ZoDepositoriesSoftCapOverflow",
+      "msg": "Operation not allowed due to being over the ZO Redeemable soft Cap."
+    },
+    {
+      "code": 6033,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6032,
+      "code": 6034,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6033,
+      "code": 6035,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6034,
+      "code": 6036,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6035,
+      "code": 6037,
       "name": "InvalidInsuranceMint",
       "msg": "The provided insurance mint does not match the depository's insurance mint."
     },
     {
-      "code": 6036,
+      "code": 6038,
       "name": "InvalidAuthorityInsuranceATAMint",
       "msg": "The authority's Insurance ATA's mint does not match the Depository's one."
     },
     {
-      "code": 6037,
+      "code": 6039,
       "name": "InvalidCollateralPassthroughAccount",
       "msg": "The Collateral Passthrough Account isn't the Depository one."
     },
     {
-      "code": 6038,
+      "code": 6040,
       "name": "InvalidInsurancePassthroughAccount",
       "msg": "The Insurance Passthrough Account isn't the Depository one."
     },
     {
-      "code": 6039,
+      "code": 6041,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6040,
+      "code": 6042,
       "name": "InvalidInsurancePassthroughATAMint",
       "msg": "The Insurance Passthrough ATA's mint does not match the Depository's one."
     },
     {
-      "code": 6041,
+      "code": 6043,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6042,
+      "code": 6044,
       "name": "InvalidCollateralPassthroughATAMint",
       "msg": "The Collateral Passthrough ATA's mint does not match the Depository's one."
     },
     {
-      "code": 6043,
+      "code": 6045,
       "name": "InvalidQuotePassthroughAccount",
       "msg": "The Quote Passthrough Account isn't the Depository one."
     },
     {
-      "code": 6044,
+      "code": 6046,
       "name": "InvalidQuotePassthroughATAMint",
       "msg": "The Quote Passthrough ATA's mint does not match the Depository's one."
     },
     {
-      "code": 6045,
+      "code": 6047,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6046,
+      "code": 6048,
       "name": "UnsupportedDepositoryVersion",
       "msg": "The instruction doesn't support this version of the Depository. Migrate first."
     },
     {
-      "code": 6047,
+      "code": 6049,
+      "name": "InvalidZoAccount",
+      "msg": "The Zo Account isn't the Depository's one."
+    },
+    {
+      "code": 6050,
+      "name": "ZOPerpMarketNotFound",
+      "msg": "The Zo PerpMarket index could not be found."
+    },
+    {
+      "code": 6051,
+      "name": "ZOPerpMarketInfoNotFound",
+      "msg": "The Zo PerpMarketInfo could not be found."
+    },
+    {
+      "code": 6052,
+      "name": "ZOOpenOrdersInfoNotFound",
+      "msg": "The Zo OpenOrdersInfo could not be found."
+    },
+    {
+      "code": 6053,
+      "name": "ZOInvalidControlState",
+      "msg": "The Zo Control is in an invalid state."
+    },
+    {
+      "code": 6054,
+      "name": "ZoDepositoryAlreadyInitialized",
+      "msg": "The Zo depository PDAs are already initialized."
+    },
+    {
+      "code": 6055,
+      "name": "ZoDepositoryNotInitialized",
+      "msg": "The Zo depository PDAs haven't been initialized yet."
+    },
+    {
+      "code": 6056,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
   ],
   "metadata": {
-    "address": "EVLUCL8duPtw52uU1H6P2rSZYcbVsnhfvQEejPtRPyKu"
+    "address": "9DscekKFr3x7is5mAVTkPu79r8aXDxp2mQYzScE2ECEs"
   }
 }

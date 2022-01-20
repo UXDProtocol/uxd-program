@@ -26,7 +26,7 @@ pub enum UxdError {
     PerpOrderPartiallyFilled,
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
     RedeemableGlobalSupplyCapReached,
-    #[msg("Operation not allowed due to being over the Redeemable soft Cap.")]
+    #[msg("Operation not allowed due to being over the Mango Redeemable soft Cap.")]
     MangoDepositoriesSoftCapOverflow,
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
     MaxNumberOfMangoDepositoriesRegisteredReached,
@@ -67,6 +67,10 @@ pub enum UxdError {
     InvalidCollateralDelta,
     #[msg("The perp market index could not be found for this MangoMarkets Pair.")]
     MangoPerpMarketIndexNotFound,
+    #[msg("Cannot register more ZO depositories, the limit has been reached.")]
+    MaxNumberOfZoDepositoriesRegisteredReached,
+    #[msg("Operation not allowed due to being over the ZO Redeemable soft Cap.")]
+    ZoDepositoriesSoftCapOverflow,
 
     /// Anchor DSL related errors
     ///
@@ -102,6 +106,20 @@ pub enum UxdError {
     InvalidQuoteMint,
     #[msg("The instruction doesn't support this version of the Depository. Migrate first.")]
     UnsupportedDepositoryVersion,
+    #[msg("The Zo Account isn't the Depository's one.")]
+    InvalidZoAccount,
+    #[msg("The Zo PerpMarket index could not be found.")]
+    ZOPerpMarketNotFound,
+    #[msg("The Zo PerpMarketInfo could not be found.")]
+    ZOPerpMarketInfoNotFound,
+    #[msg("The Zo OpenOrdersInfo could not be found.")]
+    ZOOpenOrdersInfoNotFound,
+    #[msg("The Zo Control is in an invalid state.")]
+    ZOInvalidControlState,
+    #[msg("The Zo depository PDAs are already initialized.")]
+    ZoDepositoryAlreadyInitialized,
+    #[msg("The Zo depository PDAs haven't been initialized yet.")]
+    ZoDepositoryNotInitialized,
 
     #[msg("Default - Check the source code for more info")]
     Default,
