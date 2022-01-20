@@ -1127,7 +1127,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -2455,7 +2455,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",
