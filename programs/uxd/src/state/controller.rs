@@ -10,6 +10,7 @@ use anchor_lang::prelude::*;
 declare_check_assert_macros!(SourceFileId::StateController);
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
+pub const MAX_REGISTERED_ZO_DEPOSITORIES: usize = 8;
 
 #[account]
 #[derive(Default)]
@@ -46,10 +47,13 @@ pub struct Controller {
     //
     // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
     pub _reserved: ControllerPadding,
+    // The ZO Depositories registered with this Controller
+    pub registered_zo_depositories: [Pubkey; 8], //  - IDL bug with constant, so hard 8 literal. -- Still not working in 0.20.0 although it should
+    pub registered_zo_depositories_count: u8,
 }
 
 #[derive(Clone)]
-pub struct ControllerPadding([u8; 512]);
+pub struct ControllerPadding([u8; 255]);
 
 impl AnchorSerialize for ControllerPadding {
     fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
@@ -59,13 +63,13 @@ impl AnchorSerialize for ControllerPadding {
 
 impl AnchorDeserialize for ControllerPadding {
     fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
-        Ok(Self([0u8; 512]))
+        Ok(Self([0u8; 255]))
     }
 }
 
 impl Default for ControllerPadding {
     fn default() -> Self {
-        ControllerPadding { 0: [0u8; 512] }
+        ControllerPadding { 0: [0u8; 255] }
     }
 }
 
@@ -105,6 +109,26 @@ impl Controller {
         // Add the new Mango Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_mango_depositories[new_entry_index] = mango_depository_id;
+        Ok(())
+    }
+
+    pub fn add_registered_zo_depository_entry(
+        &mut self,
+        zo_depository_id: Pubkey,
+    ) -> ProgramResult {
+        let current_size = usize::from(self.registered_zo_depositories_count);
+        check!(
+            current_size < MAX_REGISTERED_ZO_DEPOSITORIES,
+            UxdErrorCode::MaxNumberOfZODepositoriesRegisteredReached
+        )?;
+        // Increment registered ZO Depositories count
+        self.registered_zo_depositories_count = self
+            .registered_zo_depositories_count
+            .checked_add(1)
+            .ok_or(math_err!())?;
+        // Add the new ZO Depository ID to the array of registered Depositories
+        let new_entry_index = current_size;
+        self.registered_zo_depositories[new_entry_index] = zo_depository_id;
         Ok(())
     }
 }
