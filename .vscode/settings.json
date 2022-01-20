@@ -29,6 +29,8 @@
         "sysvars",
         "thiserror",
         "UXDATA",
-        "WSOLATA"
+        "WSOLATA",
+        "ZOACCOUNT",
+        "ZODEPOSITORY"
     ]
 }

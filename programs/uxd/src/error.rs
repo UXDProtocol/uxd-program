@@ -32,6 +32,8 @@ pub enum SourceFileId {
     StateMangoDepository = 19,
     Error = 20,
     Lib = 21,
+    StateZODepository = 22,
+    InstructionsRegisterZODepository = 23,
 }
 
 impl std::fmt::Display for SourceFileId {
@@ -118,6 +120,12 @@ impl std::fmt::Display for SourceFileId {
             SourceFileId::Lib => {
                 write!(f, "src/lib.rs")
             }
+            SourceFileId::StateZODepository => {
+                write!(f, "src/state/zo_depository.rs")
+            }
+            SourceFileId::InstructionsRegisterZODepository => {
+                write!(f, "src/instructions/register_zo_depository.rs")
+            }
         }
     }
 }
@@ -184,6 +192,8 @@ pub enum UxdErrorCode {
     InvalidOrderDirection,
     #[error("Math error.")]
     MathError,
+    #[error("Cannot register more ZO depositories, the limit has been reached.")]
+    MaxNumberOfZODepositoriesRegisteredReached,
     #[error("MangoErrorCode::Default Check the source code for more info")]
     Default = u32::MAX,
 }

@@ -27,5 +27,6 @@ spl-token = "3.2.0"
 fixed = "1.9.0"
 thiserror = "1.0.30"
 num_enum = "^0.5.1"
-zo-abi = { git = "https://github.com/01protocol/zo-abi", tag = "v0.1.0", features = ["no-entrypoint"] }
+# zo-abi = { git = "https://github.com/01protocol/zo-abi", tag = "v0.1.0", features = ["no-entrypoint"] }
+zo-abi = { git = "https://github.com/UXDProtocol/zo-abi", branch = "enhancement/anchor-0.20.1", features = ["no-entrypoint"] }
 mango = { git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
