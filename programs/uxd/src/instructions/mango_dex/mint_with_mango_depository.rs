@@ -2,7 +2,7 @@ use crate::check_assert;
 use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
-use crate::events::MintWithMangoDepositoryEvent;
+// use crate::events::MintWithMangoDepositoryEvent;
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
@@ -17,12 +17,12 @@ use crate::MangoDepository;
 use crate::UxdError;
 use crate::UxdErrorCode;
 use crate::UxdResult;
-use crate::SLIPPAGE_BASIS;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
+use crate::SLIPPAGE_BASIS;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
@@ -255,6 +255,7 @@ pub fn handler(
     // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE GLOBAL REDEEMABLE SUPPLY CAP] -
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
+    // Commented as there is computing budget issues for now (this costs around 4k)
     // emit!(MintWithMangoDepositoryEvent {
     //     version: ctx.accounts.controller.version,
     //     controller: ctx.accounts.controller.key(),
@@ -433,11 +434,7 @@ impl<'info> MintWithMangoDepository<'info> {
 
 // Validate
 impl<'info> MintWithMangoDepository<'info> {
-    pub fn validate(
-        &self, 
-        collateral_amount: u64, 
-        slippage: u32
-    ) -> ProgramResult {
+    pub fn validate(&self, collateral_amount: u64, slippage: u32) -> ProgramResult {
         // Valid slippage check
         check!(slippage <= SLIPPAGE_BASIS, UxdErrorCode::InvalidSlippage)?;
 

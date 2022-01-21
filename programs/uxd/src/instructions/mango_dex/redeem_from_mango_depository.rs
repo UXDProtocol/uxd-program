@@ -3,7 +3,7 @@ use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdErrorCode;
 use crate::error::UxdIdlErrorCode;
-use crate::events::RedeemFromMangoDepositoryEvent;
+// use crate::events::RedeemFromMangoDepositoryEvent;
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
@@ -245,6 +245,7 @@ pub fn handler(
         order_delta.fee,
     )?;
 
+    // Commented as there is computing budget issues for now (this costs around 4k)
     // emit!(RedeemFromMangoDepositoryEvent {
     //     version: ctx.accounts.controller.version,
     //     controller: ctx.accounts.controller.key(),
