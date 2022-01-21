@@ -48,5 +48,5 @@ pub fn check_effective_order_price_versus_limit_price(
             }
         }
     };
-    Err(throw_err!(UxdErrorCode::InvalidSlippage))
+    Err(throw_err!(UxdErrorCode::EffectiveOrderPriceBeyondLimitPrice))
 }

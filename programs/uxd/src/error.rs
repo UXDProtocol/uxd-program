@@ -145,6 +145,8 @@ pub enum UxdErrorCode {
     RootBankIndexNotFound,
     #[error("The slippage value is invalid. Must be in the [0...1000] range points.")]
     InvalidSlippage,
+    #[error("Could not fill the order given order book state and provided slippage.")]
+    EffectiveOrderPriceBeyondLimitPrice,
     #[error("Collateral amount must be > 0 in order to mint.")]
     InvalidCollateralAmount,
     #[error("The balance of the collateral ATA is not enough to fulfill the mint operation.")]

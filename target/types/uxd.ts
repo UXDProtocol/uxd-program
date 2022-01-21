@@ -911,6 +911,9 @@ export type Uxd = {
             "name": "InvalidSlippage"
           },
           {
+            "name": "EffectiveOrderPriceBeyondLimitPrice"
+          },
+          {
             "name": "InvalidCollateralAmount"
           },
           {
@@ -2237,6 +2240,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "InvalidSlippage"
+          },
+          {
+            "name": "EffectiveOrderPriceBeyondLimitPrice"
           },
           {
             "name": "InvalidCollateralAmount"

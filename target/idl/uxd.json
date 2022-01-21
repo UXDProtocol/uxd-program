@@ -911,6 +911,9 @@
             "name": "InvalidSlippage"
           },
           {
+            "name": "EffectiveOrderPriceBeyondLimitPrice"
+          },
+          {
             "name": "InvalidCollateralAmount"
           },
           {
@@ -1323,5 +1326,8 @@
       "name": "InvalidCollateralPassthroughATAMint",
       "msg": "The Collateral Passthrough ATA's mint does not match the Depository's one."
     }
-  ]
+  ],
+  "metadata": {
+    "address": "HgdTmGgMVYFBQaLLBJEbrnV1JsvgJmiAzFf2mWNAasGv"
+  }
 }
