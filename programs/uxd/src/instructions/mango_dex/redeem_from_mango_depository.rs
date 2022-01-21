@@ -245,17 +245,17 @@ pub fn handler(
         order_delta.fee,
     )?;
 
-    emit!(RedeemFromMangoDepositoryEvent {
-        version: ctx.accounts.controller.version,
-        controller: ctx.accounts.controller.key(),
-        depository: ctx.accounts.depository.key(),
-        user: ctx.accounts.user.key(),
-        redeemable_amount,
-        slippage,
-        collateral_delta: order_delta.collateral,
-        redeemable_delta,
-        fee_delta: order_delta.fee,
-    });
+    // emit!(RedeemFromMangoDepositoryEvent {
+    //     version: ctx.accounts.controller.version,
+    //     controller: ctx.accounts.controller.key(),
+    //     depository: ctx.accounts.depository.key(),
+    //     user: ctx.accounts.user.key(),
+    //     redeemable_amount,
+    //     slippage,
+    //     collateral_delta: order_delta.collateral,
+    //     redeemable_delta,
+    //     fee_delta: order_delta.fee,
+    // });
 
     Ok(())
 }
