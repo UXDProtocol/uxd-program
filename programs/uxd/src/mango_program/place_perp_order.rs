@@ -62,9 +62,6 @@ fn place_perp_order_instruction(
         reduce_only,
     }
     .pack();
-
-    // use a vec directly cause it seems to take some computing?
-    // let mut accounts = Vec::with_capacity(8 + MAX_PAIRS + signer_pubkeys.len());
     let mut accounts = vec![
         AccountMeta::new_readonly(*mango_group_pubkey, false),
         AccountMeta::new(*mango_account_pubkey, false),

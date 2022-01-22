@@ -3,7 +3,6 @@ use anchor_lang::prelude::AccountMeta;
 use anchor_lang::prelude::Accounts;
 use anchor_lang::prelude::CpiContext;
 use anchor_lang::prelude::ProgramResult;
-use mango::state::MAX_PAIRS;
 use solana_program::instruction::Instruction;
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
@@ -35,12 +34,12 @@ fn initialize_mango_account_instruction(
 ) -> Result<Instruction, ProgramError> {
     check_program_account(mango_program_id)?;
     let data = mango::instruction::MangoInstruction::InitMangoAccount.pack();
-
-    let mut accounts = Vec::with_capacity(8 + MAX_PAIRS);
-    accounts.push(AccountMeta::new_readonly(*mango_group_pubkey, false));
-    accounts.push(AccountMeta::new(*mango_account_pubkey, false));
-    accounts.push(AccountMeta::new_readonly(*owner_pubkey, true));
-    accounts.push(AccountMeta::new_readonly(*rent_sysvar, false));
+    let accounts = vec![
+        AccountMeta::new_readonly(*mango_group_pubkey, false),
+        AccountMeta::new(*mango_account_pubkey, false),
+        AccountMeta::new_readonly(*owner_pubkey, true),
+        AccountMeta::new_readonly(*rent_sysvar, false),
+    ];
     Ok(Instruction {
         program_id: *mango_program_id,
         accounts,

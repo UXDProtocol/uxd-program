@@ -3,7 +3,7 @@ use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdErrorCode;
 use crate::error::UxdIdlErrorCode;
-use crate::events::RedeemFromMangoDepositoryEvent;
+// use crate::events::RedeemFromMangoDepositoryEvent;
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
@@ -207,7 +207,7 @@ pub fn handler(
         .quote
         .checked_add(order_delta.fee)
         .ok_or(math_err!())?;
-    msg!("redeemable_delta {}", redeemable_delta);
+    // msg!("redeemable_delta {}", redeemable_delta);
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         redeemable_delta,
@@ -245,17 +245,18 @@ pub fn handler(
         order_delta.fee,
     )?;
 
-    emit!(RedeemFromMangoDepositoryEvent {
-        version: ctx.accounts.controller.version,
-        controller: ctx.accounts.controller.key(),
-        depository: ctx.accounts.depository.key(),
-        user: ctx.accounts.user.key(),
-        redeemable_amount,
-        slippage,
-        collateral_delta: order_delta.collateral,
-        redeemable_delta,
-        fee_delta: order_delta.fee,
-    });
+    // Commented as there is computing budget issues for now (this costs around 4k)
+    // emit!(RedeemFromMangoDepositoryEvent {
+    //     version: ctx.accounts.controller.version,
+    //     controller: ctx.accounts.controller.key(),
+    //     depository: ctx.accounts.depository.key(),
+    //     user: ctx.accounts.user.key(),
+    //     redeemable_amount,
+    //     slippage,
+    //     collateral_delta: order_delta.collateral,
+    //     redeemable_delta,
+    //     fee_delta: order_delta.fee,
+    // });
 
     Ok(())
 }
@@ -348,7 +349,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
             &self.mango_perp_market.key,
             self.mango_program.key,
         )?;
-        msg!("perp_info{:?}", perp_info);
+        // msg!("perp_info{:?}", perp_info);
         Ok(perp_info)
     }
 

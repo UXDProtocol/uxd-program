@@ -774,7 +774,7 @@ export type Uxd = {
           {
             "name": "reserved",
             "type": {
-              "defined": "MangoDeposirotyPadding"
+              "defined": "MangoDepositoryPadding"
             }
           }
         ]
@@ -909,6 +909,9 @@ export type Uxd = {
           },
           {
             "name": "InvalidSlippage"
+          },
+          {
+            "name": "EffectiveOrderPriceBeyondLimitPrice"
           },
           {
             "name": "InvalidCollateralAmount"
@@ -1130,7 +1133,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -2105,7 +2108,7 @@ export const IDL: Uxd = {
           {
             "name": "reserved",
             "type": {
-              "defined": "MangoDeposirotyPadding"
+              "defined": "MangoDepositoryPadding"
             }
           }
         ]
@@ -2240,6 +2243,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "InvalidSlippage"
+          },
+          {
+            "name": "EffectiveOrderPriceBeyondLimitPrice"
           },
           {
             "name": "InvalidCollateralAmount"
@@ -2461,7 +2467,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",

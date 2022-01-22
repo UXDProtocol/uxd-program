@@ -61,7 +61,6 @@ fn withdraw_instruction(
     }
     .pack();
 
-    // let mut accounts = Vec::with_capacity(10 + MAX_PAIRS + signer_pubkeys.len());
     let mut accounts = vec![
         AccountMeta::new_readonly(*mango_group_pubkey, false),
         AccountMeta::new(*mango_account_pubkey, false),
@@ -81,7 +80,6 @@ fn withdraw_instruction(
                 AccountMeta::new_readonly(*default_open_order_pubkey, false)
             }),
     );
-
     Ok(Instruction {
         program_id: *mango_program_id,
         accounts,
@@ -123,7 +121,6 @@ pub fn withdraw<'info>(
             ctx.accounts.token_account.clone(),
             ctx.accounts.mango_signer.clone(),
             ctx.accounts.token_program.clone(),
-            // ctx.accounts.clock_sysvar.clone(),
         ],
         ctx.signer_seeds,
     )
