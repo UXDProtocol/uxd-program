@@ -46,10 +46,10 @@
     "@ethersproject/logger" "^5.5.0"
     hash.js "1.1.7"
 
-"@project-serum/anchor@0.20.0", "@project-serum/anchor@^0.20.0":
-  version "0.20.0"
-  resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.20.0.tgz#547f5c0ff7e66809fa7118b2e3abd8087b5ec519"
-  integrity sha512-p1KOiqGBIbNsopMrSVoPwgxR1iPffsdjMNCOysahTPL9whX2CLX9HQCdopHjYaGl7+SdHRuXml6Wahk/wUmC8g==
+"@project-serum/anchor@0.20.1", "@project-serum/anchor@^0.20.1":
+  version "0.20.1"
+  resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.20.1.tgz#0937807e807e8332aa708cfef4bcb6cbb88b4129"
+  integrity sha512-2TuBmGUn9qeYz6sJINJlElrBuPsaUAtYyUsJ3XplEBf1pczrANAgs5ceJUFzdiqGEWLn+84ObSdBeChT/AXYFA==
   dependencies:
     "@project-serum/borsh" "^0.2.2"
     "@solana/web3.js" "^1.17.0"
@@ -267,13 +267,13 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@uxdprotocol/uxd-client@^4.11.0":
-  version "4.11.0"
-  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/4.11.0/baa124803a2640178ad6b1e49462552bde1845f6f05671e598e47ac8336294c0#4fff84acbd9b9a19f2e65cf9161c7d3cc277e41f"
-  integrity sha512-zar5/k1+6XGhbKp51xOqieP1kXnoPiwZFWZpBDYxsIR3IHgVo2dYTnaGJu/HH3vbPTwfBAb/OVePsVVidtUopA==
+"@uxdprotocol/uxd-client@^4.17.0":
+  version "4.17.0"
+  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/4.17.0/78334522738d87eb6ca1f1214f7ef9b44a9883ee434cb2f9e3cc750001663369#dea0c2e79dd24a82934e0cafb1fec27843d3bd93"
+  integrity sha512-mFtFAY+psW/fwRlVVSjuwjpYaE8AKVyrOVinBFJpUPWSPaJJV7OwwQIVhAIy/2/TcZEpOjv1sfmtkFwXuAup/w==
   dependencies:
     "@blockworks-foundation/mango-client" "3.2.15"
-    "@project-serum/anchor" "0.20.0"
+    "@project-serum/anchor" "0.20.1"
     camelcase "^5.3.1"
 
 JSONStream@^1.3.5:

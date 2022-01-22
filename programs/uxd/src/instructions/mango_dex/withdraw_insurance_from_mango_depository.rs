@@ -16,7 +16,7 @@ use crate::error::check_assert;
 use crate::error::UxdErrorCode;
 use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
-use crate::events::WithdrawInsuranceFromMangoDeposirotyEvent;
+use crate::events::WithdrawInsuranceFromMangoDepositoryEvent;
 
 declare_check_assert_macros!(SourceFileId::InstructionMangoDexWithdrawInsuranceFromMangoDepository);
 
@@ -116,7 +116,7 @@ pub fn handler(
     // - 2 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_accounting(insurance_amount)?;
 
-    emit!(WithdrawInsuranceFromMangoDeposirotyEvent {
+    emit!(WithdrawInsuranceFromMangoDepositoryEvent {
         version: ctx.accounts.controller.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),

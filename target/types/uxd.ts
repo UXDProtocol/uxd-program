@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "2.0.0",
+  "version": "2.0.1",
   "name": "uxd",
   "instructions": [
     {
@@ -774,7 +774,7 @@ export type Uxd = {
           {
             "name": "reserved",
             "type": {
-              "defined": "MangoDeposirotyPadding"
+              "defined": "MangoDepositoryPadding"
             }
           }
         ]
@@ -909,6 +909,9 @@ export type Uxd = {
           },
           {
             "name": "InvalidSlippage"
+          },
+          {
+            "name": "EffectiveOrderPriceBeyondLimitPrice"
           },
           {
             "name": "InvalidCollateralAmount"
@@ -1127,7 +1130,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -1327,7 +1330,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "2.0.0",
+  "version": "2.0.1",
   "name": "uxd",
   "instructions": [
     {
@@ -2102,7 +2105,7 @@ export const IDL: Uxd = {
           {
             "name": "reserved",
             "type": {
-              "defined": "MangoDeposirotyPadding"
+              "defined": "MangoDepositoryPadding"
             }
           }
         ]
@@ -2237,6 +2240,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "InvalidSlippage"
+          },
+          {
+            "name": "EffectiveOrderPriceBeyondLimitPrice"
           },
           {
             "name": "InvalidCollateralAmount"
@@ -2455,7 +2461,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",

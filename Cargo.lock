@@ -295,9 +295,9 @@ dependencies = [
 
 [[package]]
 name = "anchor-spl"
-version = "0.20.0"
+version = "0.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a68ac42913103bddda27c674945a9d0e1ee96c181ea243ddca0ab1e2612b771"
+checksum = "9ea94b04fc9a0aaae4d4473b0595fb5f55b6c9b38e0d6f596df8c8060f95f096"
 dependencies = [
  "anchor-lang 0.20.1",
  "solana-program",
@@ -1721,7 +1721,7 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "uxd"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "anchor-lang 0.20.1",
  "anchor-spl",

@@ -10,10 +10,6 @@ export const TXN_OPTS = {
   skipPreflight: false,
 };
 
-// Provider
-// export const provider = Provider.env();
-// setProvider(provider);
-
 // Return how much Insurance the mango account holds (SPOT)
 export function getProvider(): Provider {
   const provider = Provider.env();
