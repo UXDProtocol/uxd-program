@@ -192,6 +192,86 @@ export type Uxd = {
       ]
     },
     {
+      "name": "registerZoDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "insuranceMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryZoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoControl",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bump",
+          "type": "u8"
+        },
+        {
+          "name": "zoAccountBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
       "name": "depositInsuranceToMangoDepository",
       "accounts": [
         {
@@ -704,6 +784,19 @@ export type Uxd = {
             "type": {
               "defined": "ControllerPadding"
             }
+          },
+          {
+            "name": "registeredZoDepositories",
+            "type": {
+              "array": [
+                "publicKey",
+                8
+              ]
+            }
+          },
+          {
+            "name": "registeredZoDepositoriesCount",
+            "type": "u8"
           }
         ]
       }
@@ -789,6 +882,72 @@ export type Uxd = {
           }
         ]
       }
+    },
+    {
+      "name": "zoDepository",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "zoAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "collateralMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "insuranceMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "zoAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "controller",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "collateralAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "redeemableAmountUnderManagement",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountPaidTakerFee",
+            "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "defined": "ZODepositoryPadding"
+            }
+          }
+        ]
+      }
     }
   ],
   "types": [
@@ -862,6 +1021,12 @@ export type Uxd = {
           },
           {
             "name": "Lib"
+          },
+          {
+            "name": "StateZODepository"
+          },
+          {
+            "name": "InstructionsRegisterZODepository"
           }
         ]
       }
@@ -978,7 +1143,24 @@ export type Uxd = {
             "name": "MathError"
           },
           {
+            "name": "MaxNumberOfZODepositoriesRegisteredReached"
+          },
+          {
             "name": "Default"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AccountingEvent",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Deposit"
+          },
+          {
+            "name": "Withdraw"
           }
         ]
       }
@@ -1069,6 +1251,41 @@ export type Uxd = {
         },
         {
           "name": "mangoAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RegisterZODepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "zoAccount",
           "type": "publicKey",
           "index": false
         }
@@ -1533,6 +1750,86 @@ export const IDL: Uxd = {
       ]
     },
     {
+      "name": "registerZoDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "insuranceMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryZoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoControl",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "bump",
+          "type": "u8"
+        },
+        {
+          "name": "zoAccountBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
       "name": "depositInsuranceToMangoDepository",
       "accounts": [
         {
@@ -2045,6 +2342,19 @@ export const IDL: Uxd = {
             "type": {
               "defined": "ControllerPadding"
             }
+          },
+          {
+            "name": "registeredZoDepositories",
+            "type": {
+              "array": [
+                "publicKey",
+                8
+              ]
+            }
+          },
+          {
+            "name": "registeredZoDepositoriesCount",
+            "type": "u8"
           }
         ]
       }
@@ -2130,6 +2440,72 @@ export const IDL: Uxd = {
           }
         ]
       }
+    },
+    {
+      "name": "zoDepository",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "zoAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "collateralMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "insuranceMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "zoAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "controller",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "collateralAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "redeemableAmountUnderManagement",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountPaidTakerFee",
+            "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "defined": "ZODepositoryPadding"
+            }
+          }
+        ]
+      }
     }
   ],
   "types": [
@@ -2203,6 +2579,12 @@ export const IDL: Uxd = {
           },
           {
             "name": "Lib"
+          },
+          {
+            "name": "StateZODepository"
+          },
+          {
+            "name": "InstructionsRegisterZODepository"
           }
         ]
       }
@@ -2319,7 +2701,24 @@ export const IDL: Uxd = {
             "name": "MathError"
           },
           {
+            "name": "MaxNumberOfZODepositoriesRegisteredReached"
+          },
+          {
             "name": "Default"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AccountingEvent",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Deposit"
+          },
+          {
+            "name": "Withdraw"
           }
         ]
       }
@@ -2410,6 +2809,41 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RegisterZODepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "zoAccount",
           "type": "publicKey",
           "index": false
         }
