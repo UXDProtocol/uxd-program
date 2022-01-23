@@ -13,7 +13,6 @@ pub mod instructions;
 pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
-pub mod zo_program;
 
 #[cfg(feature = "development")]
 solana_program::declare_id!("9YS7yCsmMjRtpSoUsCcD5HmMBjfPLf5hmq99gHuMjSNZ");
@@ -135,17 +134,13 @@ pub mod uxd {
     }
 
     pub fn register_zo_depository(
-        ctx: Context<RegisterZODepository>,
+        ctx: Context<RegisterZoDepository>,
         bump: u8,
-        // collateral_passthrough_bump: u8,
-        // insurance_passthrough_bump: u8,
         zo_account_bump: u8,
     ) -> ProgramResult {
         instructions::register_zo_depository::handler(
             ctx,
             bump,
-            // collateral_passthrough_bump,
-            // insurance_passthrough_bump,
             zo_account_bump,
         )
         .map_err(|e| {
