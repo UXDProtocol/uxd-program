@@ -1739,7 +1739,7 @@ checksum = "d68d9dcec5f9b43a30d38c49f91dfedfaac384cb8f085faca366c26207dd1619"
 [[package]]
 name = "zo-abi"
 version = "0.1.0"
-source = "git+https://github.com/UXDProtocol/zo-abi?branch=enhancement/anchor-0.20.1#48e92431d3e9f9bc5d91889c398994c3c8fb0002"
+source = "git+https://github.com/UXDProtocol/zo-abi?branch=enhancement/anchor-0.20.1#18520d66c000bdd5ea095c864d4f4ba584acbebe"
 dependencies = [
  "anchor-lang",
  "bytemuck",

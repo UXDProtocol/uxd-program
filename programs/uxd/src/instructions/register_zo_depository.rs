@@ -1,19 +1,7 @@
-    // let client = Client::new_with_options(
-    //     cluster.clone(),
-    //     payer,
-    //     CommitmentConfig::confirmed(),
-    // );
-
-    // let program = client.program(zo_abi::ID);
-    // let rpc = program.rpc();
-    // let zo_state: zo_abi::State = program.account(zo_state_pubkey).unwrap();
-    // let zo_cache: zo_abi::Cache = program.account(zo_state.cache).unwrap();
-
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use crate::error::SourceFileId;
-use zo_abi::CreateMargin;
 use crate::PROGRAM_VERSION;
 use crate::UxdResult;
 use crate::ZODepository;
@@ -25,7 +13,7 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::ZO_DEPOSITORY_NAMESPACE;
 use crate::ZO_MARGIN_ACCOUNT_NAMESPACE;
 use crate::events::RegisterZODepositoryEvent;
-use crate::zo_program;
+use zo_abi::{self as zo, program::ZoAbi as Zo};
 
 declare_check_assert_macros!(SourceFileId::InstructionsRegisterZODepository);
 
@@ -37,7 +25,7 @@ const ZO_CONTROL_SPAN: usize = 8 + 4482;
     bump: u8,
     zo_account_bump: u8,
 )]
-pub struct RegisterZODepository<'info> {
+pub struct RegisterZoDepository<'info> {
     pub authority: Signer<'info>,
     // In order to use with governance program, as the PDA cannot be the payer in nested TX.
     #[account(mut)]
@@ -77,13 +65,13 @@ pub struct RegisterZODepository<'info> {
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    pub zo_program: Program<'info, zo_program::ZO>,
+    pub zo_program: Program<'info, Zo>,
     // sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
 pub fn handler(
-    ctx: Context<RegisterZODepository>,
+    ctx: Context<RegisterZoDepository>,
     bump: u8, 
     zo_account_bump: u8
 ) -> UxdResult {
@@ -96,25 +84,20 @@ pub fn handler(
         collateral_mint.as_ref(),
         &[bump],
     ]];
-    let instruction = zo_abi::zo_abi::create_margin(cx, margin_nonce)
-    zo_abi::zo_abi::create_margin(
+    zo::cpi::create_margin(
         ctx.accounts
-        .into_zo_create_margin_context()?
+        .into_zo_create_margin_context()
         .with_signer(depository_signer_seed).into(),
          zo_account_bump)?;
 
     // - Initialize Depository state
     ctx.accounts.depository.bump = bump;
-    // ctx.accounts.depository.collateral_passthrough_bump = collateral_passthrough_bump;
-    // ctx.accounts.depository.insurance_passthrough_bump = insurance_passthrough_bump;
     ctx.accounts.depository.zo_account_bump = zo_account_bump;
     ctx.accounts.depository.version = PROGRAM_VERSION;
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
-    // ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
     ctx.accounts.depository.insurance_mint = insurance_mint;
     ctx.accounts.depository.insurance_mint_decimals = ctx.accounts.insurance_mint.decimals;
-    // ctx.accounts.depository.insurance_passthrough = ctx.accounts.depository_insurance_passthrough_account.key();
     ctx.accounts.depository.zo_account = ctx.accounts.depository_zo_account.key();
     ctx.accounts.depository.controller = ctx.accounts.controller.key();
     ctx.accounts.depository.insurance_amount_deposited = u128::MIN;
@@ -136,24 +119,23 @@ pub fn handler(
     Ok(())
 }
 
-impl<'info> RegisterZODepository<'info> {
-    pub fn into_zo_create_margin_context(&self) -> UxdResult<CpiContext<'_, '_, '_, 'info, CreateMargin<'info>>> {
-        let authority = Signer::try_from(&self.depository.to_account_info())
-        .ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))?;
+impl<'info> RegisterZoDepository<'info> {
+    pub fn into_zo_create_margin_context(&self) -> CpiContext<'_, '_, '_, 'info, zo::cpi::accounts::CreateMargin<'info>> {
         let cpi_program = self.zo_program.to_account_info();
-        let cpi_accounts = CreateMargin {
-            state: self.zo_state.to_account_info(),
-            authority: authority,
-            margin: self.depository_zo_account.to_account_info(),
+        let cpi_accounts = zo::cpi::accounts::CreateMargin {
+            authority: self.authority.to_account_info(),
             control: self.zo_control.to_account_info(),
+            margin: self.depository_zo_account.to_account_info(),
+            state: self.zo_state.to_account_info(),
+            payer: self.payer.to_account_info(),
             rent: self.rent.to_account_info(),
-            system_program: self.system_program.to_account_info(),
+            system_program: self.system_program.to_account_info(),   
         };
-        Ok(CpiContext::new(cpi_program, cpi_accounts))
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 }
 
-impl<'info> RegisterZODepository<'info> {
+impl<'info> RegisterZoDepository<'info> {
     pub fn add_new_registered_zo_depository_entry_to_controller(
         &mut self,
     ) -> ProgramResult {
