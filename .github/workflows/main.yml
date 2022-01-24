@@ -78,6 +78,10 @@ jobs:
           toolchain: nightly
           override: true
 
+      - name: run cargo tests
+        run: |
+          cargo test
+
       - name: install solana
         if: steps.cache-solana.outputs.cache-hit != 'true'
         run: |
