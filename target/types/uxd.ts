@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "2.0.1",
+  "version": "2.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -933,7 +933,7 @@ export type Uxd = {
           {
             "name": "reserved",
             "type": {
-              "defined": "ZODepositoryPadding"
+              "defined": "ZoDepositoryPadding"
             }
           }
         ]
@@ -1013,10 +1013,10 @@ export type Uxd = {
             "name": "Lib"
           },
           {
-            "name": "StateZODepository"
+            "name": "StateZoDepository"
           },
           {
-            "name": "InstructionsRegisterZODepository"
+            "name": "InstructionsRegisterZoDepository"
           }
         ]
       }
@@ -1133,7 +1133,7 @@ export type Uxd = {
             "name": "MathError"
           },
           {
-            "name": "MaxNumberOfZODepositoriesRegisteredReached"
+            "name": "MaxNumberOfZoDepositoriesRegisteredReached"
           },
           {
             "name": "Default"
@@ -1247,7 +1247,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "RegisterZODepositoryEvent",
+      "name": "RegisterZoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -1547,7 +1547,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "2.0.1",
+  "version": "2.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -2481,7 +2481,7 @@ export const IDL: Uxd = {
           {
             "name": "reserved",
             "type": {
-              "defined": "ZODepositoryPadding"
+              "defined": "ZoDepositoryPadding"
             }
           }
         ]
@@ -2561,10 +2561,10 @@ export const IDL: Uxd = {
             "name": "Lib"
           },
           {
-            "name": "StateZODepository"
+            "name": "StateZoDepository"
           },
           {
-            "name": "InstructionsRegisterZODepository"
+            "name": "InstructionsRegisterZoDepository"
           }
         ]
       }
@@ -2681,7 +2681,7 @@ export const IDL: Uxd = {
             "name": "MathError"
           },
           {
-            "name": "MaxNumberOfZODepositoriesRegisteredReached"
+            "name": "MaxNumberOfZoDepositoriesRegisteredReached"
           },
           {
             "name": "Default"
@@ -2795,7 +2795,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "RegisterZODepositoryEvent",
+      "name": "RegisterZoDepositoryEvent",
       "fields": [
         {
           "name": "version",

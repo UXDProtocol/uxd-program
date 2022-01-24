@@ -4,7 +4,7 @@ use anchor_spl::token::Token;
 use crate::error::SourceFileId;
 use crate::PROGRAM_VERSION;
 use crate::UxdResult;
-use crate::ZODepository;
+use crate::ZoDepository;
 use crate::Controller;
 use crate::error::UxdError;
 use crate::error::UxdErrorCode;
@@ -12,10 +12,10 @@ use crate::error::UxdIdlErrorCode;
 use crate::CONTROLLER_NAMESPACE;
 use crate::ZO_DEPOSITORY_NAMESPACE;
 use crate::ZO_MARGIN_ACCOUNT_NAMESPACE;
-use crate::events::RegisterZODepositoryEvent;
+use crate::events::RegisterZoDepositoryEvent;
 use zo_abi::{self as zo, program::ZoAbi as Zo};
 
-declare_check_assert_macros!(SourceFileId::InstructionsRegisterZODepository);
+declare_check_assert_macros!(SourceFileId::InstructionsRegisterZoDepository);
 
 // https://github.com/01protocol/zo-abi/blob/3c9ee1f4ca2177fa61cccaea718ae79977848fd2/src/lib.rs#L261
 const ZO_CONTROL_SPAN: usize = 8 + 4482;
@@ -27,7 +27,6 @@ const ZO_CONTROL_SPAN: usize = 8 + 4482;
 )]
 pub struct RegisterZoDepository<'info> {
     pub authority: Signer<'info>,
-    // In order to use with governance program, as the PDA cannot be the payer in nested TX.
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(
@@ -43,7 +42,7 @@ pub struct RegisterZoDepository<'info> {
         bump = bump,
         payer = payer,
     )]
-    pub depository: Box<Account<'info, ZODepository>>,
+    pub depository: Box<Account<'info, ZoDepository>>,
     pub collateral_mint: Box<Account<'info, Mint>>,
     pub insurance_mint: Box<Account<'info, Mint>>,
 
@@ -107,7 +106,7 @@ pub fn handler(
     // - Update Controller state
     ctx.accounts.add_new_registered_zo_depository_entry_to_controller()?;
 
-    emit!(RegisterZODepositoryEvent {
+    emit!(RegisterZoDepositoryEvent {
         version: ctx.accounts.controller.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),

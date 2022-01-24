@@ -1,6 +1,6 @@
 [package]
 name = "uxd"
-version = "2.0.1"
+version = "2.1.0"
 authors = ["acammm <alexcamill@gmail.com>"]
 description = "UXDProtocol Program, managing a redeemable mint backed by a delta neutral position."
 edition = "2021"
@@ -28,7 +28,7 @@ fixed = "1.9.0"
 thiserror = "1.0.30"
 num_enum = "0.5.6"
 mango = { git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
-zo-abi = { git = "https://github.com/01protocol/zo-abi", tag = "v0.1.0", features = ["cpi"] }
+zo-abi = { git = "https://github.com/01protocol/zo-abi", branch = "master", features = ["cpi"] }
 
 [dev-dependencies]
 proptest = "1.0.0"
