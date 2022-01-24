@@ -2,9 +2,8 @@ import { getProvider, TXN_OPTS } from "./provider";
 import { bank, uxdClient, uxdHelpers } from "./constants";
 import { Account, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
-import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
 import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller, I80F48 } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, Controller, I80F48, ZoDepository, Zo, ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client";
 import { web3 } from "@project-serum/anchor";
 
 // Utils Calls ----------------------------------------------------------------
@@ -77,6 +76,17 @@ export async function registerMangoDepository(authority: Signer, controller: Con
     let tx = new Transaction();
 
     tx.instructions.push(registerMangoDepositoryIx);
+    signers.push(authority);
+
+    return web3.sendAndConfirmTransaction(getProvider().connection, tx, signers, TXN_OPTS);
+}
+
+export async function registerZoDepository(authority: Signer, controller: Controller, depository: ZoDepository, zo: Zo): Promise<string> {
+    const registerZoDepositoryIx = uxdClient.createRegisterZoDepositoryInstruction(controller, depository, zo, authority.publicKey, TXN_OPTS);
+    let signers = [];
+    let tx = new Transaction();
+
+    tx.instructions.push(registerZoDepositoryIx);
     signers.push(authority);
 
     return web3.sendAndConfirmTransaction(getProvider().connection, tx, signers, TXN_OPTS);

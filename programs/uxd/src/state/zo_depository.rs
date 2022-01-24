@@ -5,11 +5,11 @@ use crate::error::UxdErrorCode;
 use crate::UxdResult;
 use anchor_lang::prelude::*;
 
-declare_check_assert_macros!(SourceFileId::StateZODepository);
+declare_check_assert_macros!(SourceFileId::StateZoDepository);
 
 #[account]
 #[derive(Default)]
-pub struct ZODepository {
+pub struct ZoDepository {
     pub bump: u8,
 // pub collateral_passthrough_bump: u8,
 // pub insurance_passthrough_bump: u8,
@@ -47,29 +47,28 @@ pub struct ZODepository {
     // The amount of taker fee paid in quote while placing perp orders
     pub total_amount_paid_taker_fee: u128,
     //
-    // WARNING TODO Should add padding
     // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
-    pub _reserved: ZODepositoryPadding,
+    pub _reserved: ZoDepositoryPadding,
 }
 
 #[derive(Clone)]
-pub struct ZODepositoryPadding([u8; 512]);
+pub struct ZoDepositoryPadding([u8; 512]);
 
-impl AnchorSerialize for ZODepositoryPadding {
+impl AnchorSerialize for ZoDepositoryPadding {
     fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
         writer.write_all(&self.0)
     }
 }
 
-impl AnchorDeserialize for ZODepositoryPadding {
+impl AnchorDeserialize for ZoDepositoryPadding {
     fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
         Ok(Self([0u8; 512]))
     }
 }
 
-impl Default for ZODepositoryPadding {
+impl Default for ZoDepositoryPadding {
     fn default() -> Self {
-        ZODepositoryPadding { 0: [0u8; 512] }
+        ZoDepositoryPadding { 0: [0u8; 512] }
     }
 }
 
@@ -78,7 +77,7 @@ pub enum AccountingEvent {
     Withdraw,
 }
 
-impl ZODepository {
+impl ZoDepository {
     pub fn update_insurance_amount_deposited(
         &mut self,
         event_type: &AccountingEvent,

@@ -884,7 +884,7 @@
       }
     },
     {
-      "name": "ZODepository",
+      "name": "ZoDepository",
       "type": {
         "kind": "struct",
         "fields": [
@@ -943,7 +943,7 @@
           {
             "name": "reserved",
             "type": {
-              "defined": "ZODepositoryPadding"
+              "defined": "ZoDepositoryPadding"
             }
           }
         ]
@@ -1023,10 +1023,10 @@
             "name": "Lib"
           },
           {
-            "name": "StateZODepository"
+            "name": "StateZoDepository"
           },
           {
-            "name": "InstructionsRegisterZODepository"
+            "name": "InstructionsRegisterZoDepository"
           }
         ]
       }
@@ -1143,7 +1143,7 @@
             "name": "MathError"
           },
           {
-            "name": "MaxNumberOfZODepositoriesRegisteredReached"
+            "name": "MaxNumberOfZoDepositoriesRegisteredReached"
           },
           {
             "name": "Default"
@@ -1257,7 +1257,7 @@
       ]
     },
     {
-      "name": "RegisterZODepositoryEvent",
+      "name": "RegisterZoDepositoryEvent",
       "fields": [
         {
           "name": "version",

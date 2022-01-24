@@ -119,7 +119,7 @@ impl Controller {
         let current_size = usize::from(self.registered_zo_depositories_count);
         check!(
             current_size < MAX_REGISTERED_ZO_DEPOSITORIES,
-            UxdErrorCode::MaxNumberOfZODepositoriesRegisteredReached
+            UxdErrorCode::MaxNumberOfZoDepositoriesRegisteredReached
         )?;
         // Increment registered ZO Depositories count
         self.registered_zo_depositories_count = self

@@ -117,9 +117,9 @@ Only one controller can exist at anytime.
 Instantiate a new `MangoDepository` PDA for a given collateral mint.
 A depository is a vault in charge a Collateral type, the associated mango account and insurance fund.
 
-### `RegisterZODepository`
+### `RegisterZoDepository`
 
-Instantiate a new `ZODepository` PDA for a given collateral mint.
+Instantiate a new `ZoDepository` PDA for a given collateral mint.
 A depository is a vault in charge a Collateral type, the associated ZO margin account and insurance fund.
 
 ### `Rebalance<>Depository` (TODO - Planned post release as the first capped release will be protected from liquidation by the insurance in the event of overweighed positions)

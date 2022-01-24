@@ -1,14 +1,16 @@
 import { web3 } from "@project-serum/anchor";
 import { Keypair } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ZoDepository } from "@uxdprotocol/uxd-client";
 import { authority, USDC, bank, WSOL, uxdProgramId } from "./constants";
 import { getProvider } from "./provider";
 import { mangoDepositoryIntegrationSuite, MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
+import { zoDepositoryIntegrationSuite } from "./suite/zoDepositoryIntegrationSuite";
 import { getSolBalance } from "./utils";
 
 
 
-const depositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
+const zoDepositorySOL = new ZoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 const user = new Keypair();
@@ -29,8 +31,12 @@ describe("SOL integration tests", () => {
         ]);
     });
 
-    const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20, 1_000);
-    mangoDepositoryIntegrationSuite(authority, user, controllerUXD, depositorySOL, params);
+    // Skip for now cause dev on the zo one, uncomment later
+    // const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20, 1_000);
+    // mangoDepositoryIntegrationSuite(authority, user, controllerUXD, depositorySOL, params);
+
+    zoDepositoryIntegrationSuite(authority, user, controllerUXD, zoDepositorySOL);
+
 
     // TODO: Add program close
 
