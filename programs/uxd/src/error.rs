@@ -138,7 +138,7 @@ pub enum UxdError {
 #[repr(u32)]
 pub enum UxdErrorCode {
     #[error("The redeemable mint decimals must be between 0 and 9 (inclusive).")]
-    InvalidRedeemableMintDecimals,
+    InvalidRedeemableMintDecimals = 0,
     #[error("Redeemable global supply above {}.", MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP)]
     InvalidRedeemableGlobalSupplyCap,
     #[error("The associated mango root bank index cannot be found for the deposited coin..")]

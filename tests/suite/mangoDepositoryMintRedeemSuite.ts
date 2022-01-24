@@ -22,34 +22,34 @@ export const mangoDepositoryMintRedeemSuite = (authority: Signer, user: Signer, 
         await initializeControllerTest(authority, controller);
     });
 
-    it("Initialize SOL Depository", async () => {
+    it(`Initialize ${depository.collateralMintSymbol} Depository`, async () => {
         await initializeMangoDepositoryTest(authority, controller, depository, mango);
     });
 
     // TEST MINT/REDEEM
 
-    it("Mint 0.2 SOL worth of UXD (2% slippage) then redeem the outcome", async () => {
+    it(`Mint 0.2 ${depository.collateralMintSymbol} worth of UXD (2% slippage) then redeem the outcome`, async () => {
         const mintedAmount = await mintWithMangoDepositoryTest(0.2, 20, user, controller, depository, mango);
         await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
     });
 
-    it("Mint 2 SOL worth of UXD (2% slippage) then redeem the outcome", async () => {
+    it(`Mint 2 ${depository.collateralMintSymbol} worth of UXD (2% slippage) then redeem the outcome`, async () => {
         const mintedAmount = await mintWithMangoDepositoryTest(2, 20, user, controller, depository, mango);
         await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
     });
 
-    it("Mint 10 SOL worth of UXD (2% slippage) then redeem the outcome", async () => {
+    it(`Mint 10 ${depository.collateralMintSymbol} worth of UXD (2% slippage) then redeem the outcome`, async () => {
         const mintedAmount = await mintWithMangoDepositoryTest(10, 20, user, controller, depository, mango);
         await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
     });
 
-    it("Redeem 1_000 UXD (2% slippage) (should fail)", async () => {
+    it(`Redeem 1_000 UXD (2% slippage) (should fail)`, async () => {
         try {
             await redeemWithMangoDepositoryTest(1_000, 20, user, controller, depository, mango);
         } catch {
@@ -58,7 +58,7 @@ export const mangoDepositoryMintRedeemSuite = (authority: Signer, user: Signer, 
         expect(false, "Should have failed - User's balance too low");
     });
 
-    it("Mint 0 UXD (2% slippage) (should fail)", async () => {
+    it(`Mint 0 UXD (2% slippage) (should fail)`, async () => {
         try {
             await mintWithMangoDepositoryTest(0, 20, user, controller, depository, mango);
         } catch {
@@ -67,7 +67,7 @@ export const mangoDepositoryMintRedeemSuite = (authority: Signer, user: Signer, 
         expect(false, "Should have failed - Amount is 0");
     });
 
-    it("Redeem 0 UXD (2% slippage) (should fail)", async () => {
+    it(`Redeem 0 UXD (2% slippage) (should fail)`, async () => {
         try {
             await redeemWithMangoDepositoryTest(0, 20, user, controller, depository, mango);
         } catch {
@@ -76,7 +76,7 @@ export const mangoDepositoryMintRedeemSuite = (authority: Signer, user: Signer, 
         expect(false, "Should have failed - Amount is 0");
     });
 
-    it("Mint 1 SOL worth of UXD (2% slippage) then redeem the outcome 5 times (stress test)", async () => {
+    it(`Mint 1 ${depository.collateralMintSymbol} worth of UXD (2% slippage) then redeem the outcome 5 times (stress test)`, async () => {
         for (var _i = 0; _i < 5; _i++) {
             const mintedAmount = await mintWithMangoDepositoryTest(1, 20, user, controller, depository, mango);
             await redeemWithMangoDepositoryTest(mintedAmount, 20, user, controller, depository, mango);
@@ -85,7 +85,7 @@ export const mangoDepositoryMintRedeemSuite = (authority: Signer, user: Signer, 
         await printDepositoryInfo(controller, depository, mango);
     });
 
-    it("Mint 1 SOL worth of UXD (2% slippage) 5 times then redeem the outcome", async () => {
+    it(`Mint 1 ${depository.collateralMintSymbol} worth of UXD (2% slippage) 5 times then redeem the outcome`, async () => {
         let mintedAmount: number = 0;
         for (var _i = 0; _i < 5; _i++) {
             mintedAmount += await mintWithMangoDepositoryTest(1, 20, user, controller, depository, mango);
@@ -95,7 +95,7 @@ export const mangoDepositoryMintRedeemSuite = (authority: Signer, user: Signer, 
         await printDepositoryInfo(controller, depository, mango);
     });
 
-    it("Mint 10 SOL worth of UXD (2% slippage) then redeem the outcome in 3 times", async () => {
+    it(`Mint 10 ${depository.collateralMintSymbol} worth of UXD (2% slippage) then redeem the outcome in 3 times`, async () => {
         const mintedAmount = await mintWithMangoDepositoryTest(10, 20, user, controller, depository, mango);
 
         const redeemAmountPartial = mintedAmount / 3;

@@ -15,7 +15,7 @@ pub mod mango_utils;
 pub mod state;
 
 #[cfg(feature = "development")]
-solana_program::declare_id!("HgdTmGgMVYFBQaLLBJEbrnV1JsvgJmiAzFf2mWNAasGv");
+solana_program::declare_id!("882VXWftqQ9wsVq99SJqBVsz6tVeBt63jKE9XiwEHDeN");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -57,6 +57,7 @@ pub mod uxd {
         redeemable_mint_bump: u8,
         redeemable_mint_decimals: u8,
     ) -> ProgramResult {
+        msg!("[initialize_controller]");
         instructions::initialize_controller::handler(
             ctx,
             bump,
@@ -78,6 +79,7 @@ pub mod uxd {
         ctx: Context<SetRedeemableGlobalSupplyCap>,
         redeemable_global_supply_cap: u128,
     ) -> ProgramResult {
+        msg!("[set_redeemable_global_supply_cap]");
         instructions::set_redeemable_global_supply_cap::handler(ctx, redeemable_global_supply_cap)
             .map_err(|e| {
                 msg!("<*> {}", e); // log the error
@@ -95,6 +97,7 @@ pub mod uxd {
         ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
         redeemable_soft_cap: u64,
     ) -> ProgramResult {
+        msg!("[set_mango_depositories_redeemable_soft_cap]");
         instructions::set_mango_depositories_redeemable_soft_cap::handler(ctx, redeemable_soft_cap)
             .map_err(|e| {
                 msg!("<*> {}", e); // log the error
@@ -114,6 +117,7 @@ pub mod uxd {
         insurance_passthrough_bump: u8,
         mango_account_bump: u8,
     ) -> ProgramResult {
+        msg!("[register_mango_depository]");
         instructions::register_mango_depository::handler(
             ctx,
             bump,
@@ -132,6 +136,7 @@ pub mod uxd {
         ctx: Context<DepositInsuranceToMangoDepository>,
         insurance_amount: u64,
     ) -> ProgramResult {
+        msg!("[deposit_insurance_to_mango_depository]");
         instructions::deposit_insurance_to_mango_depository::handler(ctx, insurance_amount).map_err(
             |e| {
                 msg!("<*> {}", e); // log the error
@@ -146,6 +151,7 @@ pub mod uxd {
         ctx: Context<WithdrawInsuranceFromMangoDepository>,
         insurance_amount: u64,
     ) -> ProgramResult {
+        msg!("[withdraw_insurance_from_mango_depository]");
         instructions::withdraw_insurance_from_mango_depository::handler(ctx, insurance_amount)
             .map_err(|e| {
                 msg!("<*> {}", e); // log the error
@@ -185,6 +191,7 @@ pub mod uxd {
         collateral_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
+        msg!("[mint_with_mango_depository]");
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, slippage).map_err(
             |e| {
                 msg!("<*> {}", e); // log the error
@@ -203,6 +210,7 @@ pub mod uxd {
         redeemable_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
+        msg!("[redeem_from_mango_depository]");
         instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, slippage)
             .map_err(|e| {
                 msg!("<*> {}", e); // log the error

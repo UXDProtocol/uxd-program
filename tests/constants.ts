@@ -1,5 +1,5 @@
 import { Keypair, PublicKey, Signer } from "@solana/web3.js";
-import { UXD, UXDHelpers } from "@uxdprotocol/uxd-client";
+import { UXD, UXDHelpers, USDC_DECIMALS } from "@uxdprotocol/uxd-client";
 import * as jsonIdl from "../target/idl/uxd.json";
 
 // TESTING wallets for convenience (The user and admin). To remove when going open source
@@ -35,6 +35,8 @@ export const WSOL = new PublicKey("So11111111111111111111111111111111111111112")
 // Devnet
 export const USDC = new PublicKey("8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN");
 export const BTC = new PublicKey("3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU");
+export const ETH = new PublicKey("Cu84KB3tDL6SbFgToHMLYVDJJXdJjenNzSKikeAvzmkA");
+
 // Mainnet 
 // export const USDC = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 // export const BTC = new PublicKey("9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E");
@@ -48,4 +50,4 @@ export const uxdHelpers = new UXDHelpers();
 export const mangoCrankInterval = 3000; // In milliseconds - Run KEEPER else useless - ~1000 on mainnet
 export const slippageBase = 1000;
 
-export const MANGO_QUOTE_DECIMALS = 6; // USDC
+export const MANGO_QUOTE_DECIMALS = USDC_DECIMALS;
