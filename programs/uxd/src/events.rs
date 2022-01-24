@@ -49,7 +49,7 @@ pub struct RegisterMangoDepositoryEvent {
 }
 /// Event called in [instructions::register_zo_depository::handler].
 #[event]
-pub struct RegisterZODepositoryEvent {
+pub struct RegisterZoDepositoryEvent {
     /// The program version.
     #[index]
     pub version: u8,
@@ -63,7 +63,7 @@ pub struct RegisterZODepositoryEvent {
     pub collateral_mint: Pubkey,
     // The insurance mint.
     pub insurance_mint: Pubkey,
-    // The ZO Margin Account PDA.
+    // The Zo Margin Account PDA.
     pub zo_account: Pubkey,
 }
 

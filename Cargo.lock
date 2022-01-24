@@ -1574,7 +1574,7 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "uxd"
-version = "2.0.0"
+version = "2.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -1738,10 +1738,11 @@ checksum = "d68d9dcec5f9b43a30d38c49f91dfedfaac384cb8f085faca366c26207dd1619"
 
 [[package]]
 name = "zo-abi"
-version = "0.1.0"
-source = "git+https://github.com/UXDProtocol/zo-abi?branch=enhancement/anchor-0.20.1#18520d66c000bdd5ea095c864d4f4ba584acbebe"
+version = "0.2.0"
+source = "git+https://github.com/01protocol/zo-abi?branch=master#9de36985b238933f741ac250fc0aa50cfde48a50"
 dependencies = [
  "anchor-lang",
  "bytemuck",
  "fixed",
+ "solana-program",
 ]
