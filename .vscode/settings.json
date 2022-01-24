@@ -1,13 +1,19 @@
 {
     "cSpell.words": [
         "accs",
+        "blockhash",
+        "blockworks",
+        "BTCATA",
         "cmlv",
         "collateralized",
         "deinitialize",
         "devnet",
+        "INSURANCEPASSTHROUGH",
         "keypair",
         "lamport",
         "localnet",
+        "MANGOACCOUNT",
+        "MANGODEPOSITORY",
         "permissionless",
         "permissionned",
         "Perp",
@@ -17,9 +23,13 @@
         "pubkeys",
         "rebalance",
         "rebalancing",
+        "repr",
         "satoshi",
         "SOLANA",
         "struct",
-        "sysvars"
+        "sysvars",
+        "thiserror",
+        "UXDATA",
+        "WSOLATA"
     ]
 }

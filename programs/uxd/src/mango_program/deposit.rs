@@ -1,6 +1,8 @@
-use anchor_lang::prelude::{AccountInfo, AccountMeta, Accounts, ProgramResult};
-use anchor_lang::CpiContext;
-use mango::state::MAX_PAIRS;
+use anchor_lang::prelude::AccountInfo;
+use anchor_lang::prelude::AccountMeta;
+use anchor_lang::prelude::Accounts;
+use anchor_lang::prelude::CpiContext;
+use anchor_lang::prelude::ProgramResult;
 use solana_program::instruction::Instruction;
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
@@ -49,24 +51,22 @@ fn deposit_instruction(
 ) -> Result<Instruction, ProgramError> {
     check_program_account(mango_program_id)?;
     let data = mango::instruction::MangoInstruction::Deposit { quantity }.pack();
-
-    let mut accounts = Vec::with_capacity(8 + MAX_PAIRS + signer_pubkeys.len());
-    accounts.push(AccountMeta::new_readonly(*mango_group_pubkey, false));
-    accounts.push(AccountMeta::new(*mango_account_pubkey, false));
-    accounts.push(AccountMeta::new_readonly(
-        *owner_pubkey,
-        signer_pubkeys.is_empty(),
-    ));
-    accounts.push(AccountMeta::new_readonly(*mango_cache_pubkey, false));
-    accounts.push(AccountMeta::new_readonly(*mango_root_bank_pubkey, false));
-    accounts.push(AccountMeta::new(*mango_node_bank_pubkey, false));
-    accounts.push(AccountMeta::new(*mango_vault_pubkey, false));
-    accounts.push(AccountMeta::new_readonly(*token_program_id, false));
-    accounts.push(AccountMeta::new(*owner_token_account_pubkey, false));
-    for signer_pubkey in signer_pubkeys.iter() {
-        accounts.push(AccountMeta::new_readonly(**signer_pubkey, true));
-    }
-
+    let mut accounts = vec![
+        AccountMeta::new_readonly(*mango_group_pubkey, false),
+        AccountMeta::new(*mango_account_pubkey, false),
+        AccountMeta::new_readonly(*owner_pubkey, signer_pubkeys.is_empty()),
+        AccountMeta::new_readonly(*mango_cache_pubkey, false),
+        AccountMeta::new_readonly(*mango_root_bank_pubkey, false),
+        AccountMeta::new(*mango_node_bank_pubkey, false),
+        AccountMeta::new(*mango_vault_pubkey, false),
+        AccountMeta::new_readonly(*token_program_id, false),
+        AccountMeta::new(*owner_token_account_pubkey, false),
+    ];
+    accounts.extend(
+        signer_pubkeys
+            .iter()
+            .map(|signer_pubkey| AccountMeta::new_readonly(**signer_pubkey, true)),
+    );
     Ok(Instruction {
         program_id: *mango_program_id,
         accounts,

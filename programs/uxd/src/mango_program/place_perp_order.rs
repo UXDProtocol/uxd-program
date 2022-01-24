@@ -1,6 +1,10 @@
-use anchor_lang::prelude::{AccountInfo, AccountMeta, Accounts, ProgramResult};
-use anchor_lang::CpiContext;
-use mango::matching::{OrderType, Side};
+use anchor_lang::prelude::AccountInfo;
+use anchor_lang::prelude::AccountMeta;
+use anchor_lang::prelude::Accounts;
+use anchor_lang::prelude::CpiContext;
+use anchor_lang::prelude::ProgramResult;
+use mango::matching::OrderType;
+use mango::matching::Side;
 use mango::state::MAX_PAIRS;
 use solana_program::instruction::Instruction;
 use solana_program::program_error::ProgramError;
@@ -59,9 +63,6 @@ fn place_perp_order_instruction(
         reduce_only,
     }
     .pack();
-
-    // use a vec directly cause it seems to take some computing?
-    // let mut accounts = Vec::with_capacity(8 + MAX_PAIRS + signer_pubkeys.len());
     let mut accounts = vec![
         AccountMeta::new_readonly(*mango_group_pubkey, false),
         AccountMeta::new(*mango_account_pubkey, false),

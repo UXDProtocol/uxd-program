@@ -1,4 +1,11 @@
+use crate::declare_check_assert_macros;
+use crate::error::SourceFileId;
+use crate::error::UxdError;
+use crate::error::UxdErrorCode;
+use crate::UxdResult;
 use anchor_lang::prelude::*;
+
+declare_check_assert_macros!(SourceFileId::StateMangoDepository);
 
 #[account]
 #[derive(Default)]
@@ -7,12 +14,14 @@ pub struct MangoDepository {
     pub collateral_passthrough_bump: u8,
     pub insurance_passthrough_bump: u8,
     pub mango_account_bump: u8,
-    // Version used - for migrations later if needed
+    // Version used
     pub version: u8,
     pub collateral_mint: Pubkey,
+    pub collateral_mint_decimals: u8,
     pub collateral_passthrough: Pubkey,
     pub insurance_mint: Pubkey,
     pub insurance_passthrough: Pubkey,
+    pub insurance_mint_decimals: u8,
     pub mango_account: Pubkey,
     //
     // The Controller instance for which this Depository works for
@@ -38,8 +47,29 @@ pub struct MangoDepository {
     // The amount of taker fee paid in quote while placing perp orders
     pub total_amount_paid_taker_fee: u128,
     //
-    // WARNING TODO Should add padding
     // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
+    pub _reserved: MangoDepositoryPadding,
+}
+
+#[derive(Clone)]
+pub struct MangoDepositoryPadding([u8; 512]);
+
+impl AnchorSerialize for MangoDepositoryPadding {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        writer.write_all(&self.0)
+    }
+}
+
+impl AnchorDeserialize for MangoDepositoryPadding {
+    fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
+        Ok(Self([0u8; 512]))
+    }
+}
+
+impl Default for MangoDepositoryPadding {
+    fn default() -> Self {
+        MangoDepositoryPadding { 0: [0u8; 512] }
+    }
 }
 
 pub enum AccountingEvent {
@@ -48,57 +78,65 @@ pub enum AccountingEvent {
 }
 
 impl MangoDepository {
-    pub fn update_insurance_amount_deposited(&mut self, event_type: &AccountingEvent, amount: u64) {
+    pub fn update_insurance_amount_deposited(
+        &mut self,
+        event_type: &AccountingEvent,
+        amount: u64,
+    ) -> UxdResult {
         self.insurance_amount_deposited = match event_type {
             AccountingEvent::Deposit => self
                 .insurance_amount_deposited
                 .checked_add(amount.into())
-                .unwrap(),
+                .ok_or(math_err!())?,
             AccountingEvent::Withdraw => self
                 .insurance_amount_deposited
                 .checked_sub(amount.into())
-                .unwrap(),
-        }
+                .ok_or(math_err!())?,
+        };
+        Ok(())
     }
 
     pub fn update_collateral_amount_deposited(
         &mut self,
         event_type: &AccountingEvent,
         amount: u64,
-    ) {
+    ) -> UxdResult {
         self.collateral_amount_deposited = match event_type {
             AccountingEvent::Deposit => self
                 .collateral_amount_deposited
                 .checked_add(amount.into())
-                .unwrap(),
+                .ok_or(math_err!())?,
             AccountingEvent::Withdraw => self
                 .collateral_amount_deposited
                 .checked_sub(amount.into())
-                .unwrap(),
-        }
+                .ok_or(math_err!())?,
+        };
+        Ok(())
     }
 
     pub fn update_redeemable_amount_under_management(
         &mut self,
         event_type: &AccountingEvent,
         amount: u64,
-    ) {
+    ) -> UxdResult {
         self.redeemable_amount_under_management = match event_type {
             AccountingEvent::Deposit => self
                 .redeemable_amount_under_management
                 .checked_add(amount.into())
-                .unwrap(),
+                .ok_or(math_err!())?,
             AccountingEvent::Withdraw => self
                 .redeemable_amount_under_management
                 .checked_sub(amount.into())
-                .unwrap(),
-        }
+                .ok_or(math_err!())?,
+        };
+        Ok(())
     }
 
-    pub fn update_total_amount_paid_taker_fee(&mut self, amount: u64) {
+    pub fn update_total_amount_paid_taker_fee(&mut self, amount: u64) -> UxdResult {
         self.total_amount_paid_taker_fee = self
             .total_amount_paid_taker_fee
             .checked_add(amount.into())
-            .unwrap();
+            .ok_or(math_err!())?;
+        Ok(())
     }
 }

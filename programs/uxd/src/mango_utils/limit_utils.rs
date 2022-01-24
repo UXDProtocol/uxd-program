@@ -1,25 +1,30 @@
 use super::Order;
 use super::PerpInfo;
-use crate::ErrorCode;
+use crate::declare_check_assert_macros;
+use crate::error::SourceFileId;
+use crate::error::UxdError;
+use crate::UxdErrorCode;
 use crate::UxdResult;
 use crate::SLIPPAGE_BASIS;
 use fixed::types::I80F48;
 use mango::matching::Side;
 
+declare_check_assert_macros!(SourceFileId::MangoUtilsLimitUtils);
+
 // Worse execution price for a provided slippage and side
-pub fn limit_price(price: I80F48, slippage: u32, side: Side) -> I80F48 {
-    let slippage_amount = cal_slippage_amount(price, slippage);
+pub fn limit_price(price: I80F48, slippage: u32, side: Side) -> UxdResult<I80F48> {
+    let slippage_amount = cal_slippage_amount(price, slippage).unwrap();
     return match side {
-        Side::Bid => price.checked_add(slippage_amount).unwrap(),
-        Side::Ask => price.checked_sub(slippage_amount).unwrap(),
+        Side::Bid => Ok(price.checked_add(slippage_amount).ok_or(math_err!())?),
+        Side::Ask => Ok(price.checked_sub(slippage_amount).ok_or(math_err!())?),
     };
 }
 
-fn cal_slippage_amount(price: I80F48, slippage: u32) -> I80F48 {
-    let slippage = I80F48::checked_from_num(slippage).unwrap();
-    let slippage_basis = I80F48::checked_from_num(SLIPPAGE_BASIS).unwrap();
-    let slippage_ratio = slippage.checked_div(slippage_basis).unwrap();
-    return price.checked_mul(slippage_ratio).unwrap();
+fn cal_slippage_amount(price: I80F48, slippage: u32) -> UxdResult<I80F48> {
+    let slippage = I80F48::from_num(slippage);
+    let slippage_basis = I80F48::from_num(SLIPPAGE_BASIS);
+    let slippage_ratio = slippage.checked_div(slippage_basis).ok_or(math_err!())?;
+    return price.checked_mul(slippage_ratio).ok_or(math_err!());
 }
 
 // Check if the provided order is valid given the slippage and side
@@ -29,12 +34,12 @@ pub fn check_effective_order_price_versus_limit_price(
     slippage: u32,
 ) -> UxdResult {
     let market_price = perp_info.price;
-    let limit_price = limit_price(market_price, slippage, order.side);
+    let limit_price = limit_price(market_price, slippage, order.side)?;
     let effective_order_price = limit_price
         .checked_mul(perp_info.base_lot_size)
-        .unwrap()
+        .ok_or(math_err!())?
         .checked_div(perp_info.quote_lot_size)
-        .unwrap();
+        .ok_or(math_err!())?;
     match order.side {
         Side::Bid => {
             if order.price < effective_order_price {
@@ -47,7 +52,7 @@ pub fn check_effective_order_price_versus_limit_price(
             }
         }
     };
-    Err(ErrorCode::InvalidSlippage)
+    Err(throw_err!(UxdErrorCode::EffectiveOrderPriceBeyondLimitPrice))
 }
 
 // test
@@ -74,7 +79,7 @@ mod test {
         let expected = I80F48::from_num(2400000000u64);
         
         assert_eq!(
-            cal_slippage_amount(price, slippage).overflowing_round(),
+            cal_slippage_amount(price, slippage).unwrap().overflowing_round(),
             (expected, false)
         );
     }
@@ -86,9 +91,9 @@ mod test {
             let fractional_price = I80F48::checked_from_num(price).unwrap();
             // println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
 
-            let limit_price = limit_price(fractional_price, slippage, Side::Bid);
+            let limit_price = limit_price(fractional_price, slippage, Side::Bid).unwrap();
 
-            let slippage_amount = cal_slippage_amount(fractional_price, slippage);
+            let slippage_amount = cal_slippage_amount(fractional_price, slippage).unwrap();
             // expected limit price
             let price_plus_slippage = fractional_price.checked_add(slippage_amount).unwrap();
 
@@ -104,9 +109,9 @@ mod test {
             let fractional_price = I80F48::checked_from_num(price).unwrap();
             // println!("fractional_price = {}, slippage = {}", fractional_price, slippage);
 
-            let limit_price = limit_price(fractional_price, slippage, Side::Ask);
+            let limit_price = limit_price(fractional_price, slippage, Side::Ask).unwrap();
 
-            let slippage_amount = cal_slippage_amount(fractional_price, slippage);
+            let slippage_amount = cal_slippage_amount(fractional_price, slippage).unwrap();
             // expected limit price
             let price_minus_slippage = fractional_price.checked_sub(slippage_amount).unwrap();
 

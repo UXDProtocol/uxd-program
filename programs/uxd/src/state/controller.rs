@@ -1,13 +1,22 @@
+use crate::declare_check_assert_macros;
+use crate::error::check_assert;
+use crate::error::SourceFileId;
+use crate::error::UxdError;
+use crate::error::UxdErrorCode;
+use crate::AccountingEvent;
+use crate::UxdResult;
 use anchor_lang::prelude::*;
 
-use crate::{AccountingEvent, ErrorCode, MAX_REGISTERED_MANGO_DEPOSITORIES};
+declare_check_assert_macros!(SourceFileId::StateController);
+
+pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
 #[account]
 #[derive(Default)]
 pub struct Controller {
     pub bump: u8,
     pub redeemable_mint_bump: u8,
-    // Version used - for migrations later if needed
+    // Version used
     pub version: u8,
     // The account with authority over the UXD stack
     pub authority: Pubkey,
@@ -15,7 +24,7 @@ pub struct Controller {
     pub redeemable_mint_decimals: u8,
     //
     // The Mango Depositories registered with this Controller
-    pub registered_mango_depositories: [Pubkey; 8], // MAX_REGISTERED_MANGO_DEPOSITORIES - IDL bug with constant, so hard 8 literal.
+    pub registered_mango_depositories: [Pubkey; 8], //  - IDL bug with constant, so hard 8 literal. -- Still not working in 0.20.0 although it should
     pub registered_mango_depositories_count: u8,
     //
     // Progressive roll out and safety ----------
@@ -35,8 +44,29 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
     //
-    // WARNING TODO Should add padding over having to migrate
     // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
+    pub _reserved: ControllerPadding,
+}
+
+#[derive(Clone)]
+pub struct ControllerPadding([u8; 512]);
+
+impl AnchorSerialize for ControllerPadding {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        writer.write_all(&self.0)
+    }
+}
+
+impl AnchorDeserialize for ControllerPadding {
+    fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
+        Ok(Self([0u8; 512]))
+    }
+}
+
+impl Default for ControllerPadding {
+    fn default() -> Self {
+        ControllerPadding { 0: [0u8; 512] }
+    }
 }
 
 impl Controller {
@@ -44,17 +74,18 @@ impl Controller {
         &mut self,
         event_type: &AccountingEvent,
         amount: u64,
-    ) {
+    ) -> UxdResult {
         self.redeemable_circulating_supply = match event_type {
             AccountingEvent::Deposit => self
                 .redeemable_circulating_supply
                 .checked_add(amount.into())
-                .unwrap(),
+                .ok_or(math_err!())?,
             AccountingEvent::Withdraw => self
                 .redeemable_circulating_supply
                 .checked_sub(amount.into())
-                .unwrap(),
-        }
+                .ok_or(math_err!())?,
+        };
+        Ok(())
     }
 
     pub fn add_registered_mango_depository_entry(
@@ -62,14 +93,15 @@ impl Controller {
         mango_depository_id: Pubkey,
     ) -> ProgramResult {
         let current_size = usize::from(self.registered_mango_depositories_count);
-        if !(current_size < MAX_REGISTERED_MANGO_DEPOSITORIES) {
-            return Err(ErrorCode::MaxNumberOfMangoDepositoriesRegisteredReached.into());
-        }
+        check!(
+            current_size < MAX_REGISTERED_MANGO_DEPOSITORIES,
+            UxdErrorCode::MaxNumberOfMangoDepositoriesRegisteredReached
+        )?;
         // Increment registered Mango Depositories count
         self.registered_mango_depositories_count = self
             .registered_mango_depositories_count
             .checked_add(1)
-            .unwrap();
+            .ok_or(math_err!())?;
         // Add the new Mango Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_mango_depositories[new_entry_index] = mango_depository_id;

@@ -1,11 +1,13 @@
-use anchor_lang::prelude::{AccountInfo, AccountMeta, Accounts, ProgramResult};
-use anchor_lang::CpiContext;
+use super::anchor_mango::check_program_account;
+use anchor_lang::prelude::AccountInfo;
+use anchor_lang::prelude::AccountMeta;
+use anchor_lang::prelude::Accounts;
+use anchor_lang::prelude::CpiContext;
+use anchor_lang::prelude::ProgramResult;
 use mango::state::MAX_PAIRS;
 use solana_program::instruction::Instruction;
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
-
-use super::anchor_mango::check_program_account;
 
 #[derive(Accounts)]
 pub struct Withdraw<'info> {
@@ -60,7 +62,6 @@ fn withdraw_instruction(
     }
     .pack();
 
-    // let mut accounts = Vec::with_capacity(10 + MAX_PAIRS + signer_pubkeys.len());
     let mut accounts = vec![
         AccountMeta::new_readonly(*mango_group_pubkey, false),
         AccountMeta::new(*mango_account_pubkey, false),
@@ -73,7 +74,6 @@ fn withdraw_instruction(
         AccountMeta::new_readonly(*mango_signer_pubkey, false),
         AccountMeta::new_readonly(*token_program_id, false),
     ];
-    // accounts.push(AccountMeta::new_readonly(*clock_sysvar_id, false));
     accounts.extend(
         signer_pubkeys
             .iter()
@@ -86,7 +86,6 @@ fn withdraw_instruction(
                 AccountMeta::new_readonly(*default_open_order_pubkey, false)
             }),
     );
-
     Ok(Instruction {
         program_id: *mango_program_id,
         accounts,
@@ -111,7 +110,6 @@ pub fn withdraw<'info>(
         ctx.accounts.token_account.key,
         ctx.accounts.mango_signer.key,
         ctx.accounts.token_program.key,
-        // ctx.accounts.clock_sysvar.key,
         &[ctx.accounts.owner.key],
         quantity,
         allow_borrow,
@@ -130,7 +128,6 @@ pub fn withdraw<'info>(
             ctx.accounts.token_account.clone(),
             ctx.accounts.mango_signer.clone(),
             ctx.accounts.token_program.clone(),
-            // ctx.accounts.clock_sysvar.clone(),
         ],
         ctx.signer_seeds,
     )
