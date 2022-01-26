@@ -31,7 +31,7 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
     });
 
     // SET REDEEMABLE CAPS
-    it("Set Global Redeemable supply cap to 2_250_000", async () => {
+    it("Set Global Redeemable supply cap to 2_500_000", async () => {
         await setRedeemableGlobalSupplyCapTest(2_500_000, authority, controller);
     });
 
@@ -153,8 +153,8 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
         expect(false, "Should have failed - Amount beyond global supply cap");
     });
 
-    it("Reset Global Redeemable supply cap back to 2_250_000", async () => {
-        await setRedeemableGlobalSupplyCapTest(1_000_000, authority, controller);
+    it("Reset Global Redeemable supply cap back to 2_500_000", async () => {
+        await setRedeemableGlobalSupplyCapTest(2_500_000, authority, controller);
     });
 
     // TEST MANGO DEPOSITORIES SOFT CAP
