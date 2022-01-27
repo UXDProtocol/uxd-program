@@ -3,7 +3,7 @@ import { Keypair } from "@solana/web3.js";
 import { BTC_DECIMALS, Controller, MangoDepository, USDC_DECIMALS, UXD_DECIMALS } from "@uxdprotocol/uxd-client";
 import { authority, USDC, bank, uxdProgramId, BTC } from "./constants";
 import { getProvider } from "./provider";
-import { mangoDepositoryIntegrationSuite } from "./suite/mangoDepositoryIntegrationSuite";
+import { mangoDepositoryIntegrationSuite, MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
 import { getSolBalance } from "./utils";
 
 const depositoryBTC = new MangoDepository(BTC, "BTC", BTC_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -27,7 +27,8 @@ describe("BTC integration tests", () => {
         ]);
     });
 
-    mangoDepositoryIntegrationSuite(authority, user, controllerUXD, depositoryBTC);
+    const params = new MangoDepositoryTestSuiteParameters(3_000_000, 30_000, 1_000_000, 60_000, 20);
+    mangoDepositoryIntegrationSuite(authority, user, controllerUXD, depositoryBTC, params);
 
     // TODO: Add program close
 
