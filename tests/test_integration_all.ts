@@ -2,14 +2,14 @@ import { web3 } from "@project-serum/anchor";
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Keypair } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS } from "@uxdprotocol/uxd-client";
-import { authority, USDC, bank, WSOL, uxdProgramId, BTC, ETH } from "./constants";
+import { authority, USDC, bank, WSOL, uxdProgramId, BTC } from "./constants";
 import { getProvider } from "./provider";
 import { mangoDepositoryIntegrationSuite, MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
 import { getBalance, getSolBalance } from "./utils";
 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
 const mangoDepositoryBTC = new MangoDepository(BTC, "BTC", BTC_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
-const mangoDepositoryETH = new MangoDepository(ETH, "ETH", ETH_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
+// const mangoDepositoryETH = new MangoDepository(ETH, "ETH", ETH_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 const user = new Keypair();
@@ -63,10 +63,10 @@ describe("Full Integration tests", () => {
         mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositoryBTC, params);
     });
 
-    describe("mangoDepositoryIntegrationSuite ETH", () => {
-        const params = new MangoDepositoryTestSuiteParameters(3_000_000, 8_000, 50_000, 5_000, 20);
-        mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositoryETH, params);
-    });
+    // describe("mangoDepositoryIntegrationSuite ETH", () => {
+    //     const params = new MangoDepositoryTestSuiteParameters(3_000_000, 8_000, 50_000, 5_000, 20);
+    //     mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositoryETH, params);
+    // });
 
     after("Return remaining balance to the bank", async () => {
         const userBalance = await getSolBalance(user.publicKey);
