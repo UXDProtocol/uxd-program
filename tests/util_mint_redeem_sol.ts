@@ -28,7 +28,7 @@ describe("SOL Mint/Redeem tests", () => {
         ]);
     });
 
-    const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20);
+    const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20, 1_000);
     mangoDepositoryMintRedeemSuite(authority, user, controllerUXD, depositorySOL, params);
 
     // Add program close

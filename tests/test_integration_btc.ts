@@ -27,7 +27,7 @@ describe("BTC integration tests", () => {
         ]);
     });
 
-    const params = new MangoDepositoryTestSuiteParameters(3_000_000, 30_000, 1_000_000, 60_000, 20);
+    const params = new MangoDepositoryTestSuiteParameters(3_000_000, 30_000, 1_000_000, 60_000, 20, 100_000);
     mangoDepositoryIntegrationSuite(authority, user, controllerUXD, depositoryBTC, params);
 
     // TODO: Add program close

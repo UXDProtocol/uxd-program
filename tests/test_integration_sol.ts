@@ -29,7 +29,7 @@ describe("SOL integration tests", () => {
         ]);
     });
 
-    const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20);
+    const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20, 1_000);
     mangoDepositoryIntegrationSuite(authority, user, controllerUXD, depositorySOL, params);
 
     // TODO: Add program close
