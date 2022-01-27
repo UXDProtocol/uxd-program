@@ -52,10 +52,10 @@ describe("Full Integration tests", () => {
     //     ]);
     // });
 
-    // describe("mangoDepositoryIntegrationSuite SOL", () => {
-    //     const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20, 1_000);
-    //     mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositorySOL, params);
-    // });
+    describe("mangoDepositoryIntegrationSuite SOL", () => {
+        const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20, 1_000);
+        mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositorySOL, params);
+    });
 
     describe("mangoDepositoryIntegrationSuite BTC", () => {
         // TODO: Make these dynamic regarding the price of the collateral
