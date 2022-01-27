@@ -41,25 +41,25 @@ describe("Full Integration tests", () => {
         ]);
     });
 
-    before("Transfer 20 ETH from bank to test user", async () => {
-        const ethToken = new Token(getProvider().connection, ETH, TOKEN_PROGRAM_ID, bank);
-        const sender = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
-        const receiver = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);
-        const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, bank.publicKey, [], 20 * 10 ** ETH_DECIMALS);
-        const transaction = new web3.Transaction().add(transferTokensIx);
-        await web3.sendAndConfirmTransaction(getProvider().connection, transaction, [
-            bank,
-        ]);
-    });
+    // before("Transfer 20 ETH from bank to test user", async () => {
+    //     const ethToken = new Token(getProvider().connection, ETH, TOKEN_PROGRAM_ID, bank);
+    //     const sender = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
+    //     const receiver = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);
+    //     const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, bank.publicKey, [], 20 * 10 ** ETH_DECIMALS);
+    //     const transaction = new web3.Transaction().add(transferTokensIx);
+    //     await web3.sendAndConfirmTransaction(getProvider().connection, transaction, [
+    //         bank,
+    //     ]);
+    // });
 
-    describe("mangoDepositoryIntegrationSuite SOL", () => {
-        const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20);
-        mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositorySOL, params);
-    });
+    // describe("mangoDepositoryIntegrationSuite SOL", () => {
+    //     const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20, 1_000);
+    //     mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositorySOL, params);
+    // });
 
     describe("mangoDepositoryIntegrationSuite BTC", () => {
         // TODO: Make these dynamic regarding the price of the collateral
-        const params = new MangoDepositoryTestSuiteParameters(3_000_000, 30_000, 1_000_000, 60_000, 20);
+        const params = new MangoDepositoryTestSuiteParameters(3_000_000, 30_000, 1_000_000, 60_000, 20, 100_000);
         mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositoryBTC, params);
     });
 
@@ -94,15 +94,15 @@ describe("Full Integration tests", () => {
         ]);
     });
 
-    after("Return remaining ETH balance to the bank", async () => {
-        const ethToken = new Token(getProvider().connection, ETH, TOKEN_PROGRAM_ID, bank);
-        const sender = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);
-        const receiver = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
-        const amount = await getBalance(sender.address);
-        const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, user.publicKey, [], amount * 10 ** ETH_DECIMALS);
-        const transaction = new web3.Transaction().add(transferTokensIx);
-        await web3.sendAndConfirmTransaction(getProvider().connection, transaction, [
-            user,
-        ]);
-    });
+    // after("Return remaining ETH balance to the bank", async () => {
+    //     const ethToken = new Token(getProvider().connection, ETH, TOKEN_PROGRAM_ID, bank);
+    //     const sender = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);
+    //     const receiver = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
+    //     const amount = await getBalance(sender.address);
+    //     const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, user.publicKey, [], amount * 10 ** ETH_DECIMALS);
+    //     const transaction = new web3.Transaction().add(transferTokensIx);
+    //     await web3.sendAndConfirmTransaction(getProvider().connection, transaction, [
+    //         user,
+    //     ]);
+    // });
 });

@@ -19,6 +19,7 @@ export class MangoDepositoryTestSuiteParameters {
     public mangoDepositoriesRedeemableSoftCap: number;
     public mangoDepositoriesRedeemableSoftCapLow: number;
     public slippage: number;
+    public insuranceAmount: number;
 
     public constructor(
         globalSupplyCap: number,
@@ -26,12 +27,14 @@ export class MangoDepositoryTestSuiteParameters {
         mangoDepositoriesRedeemableSoftCap: number,
         mangoDepositoriesRedeemableSoftCapLow: number,
         slippage: number,
+        insuranceAmount: number,
     ) {
         this.globalSupplyCap = globalSupplyCap;
         this.globalSupplyCapLow = globalSupplyCapLow;
         this.mangoDepositoriesRedeemableSoftCap = mangoDepositoriesRedeemableSoftCap;
         this.mangoDepositoriesRedeemableSoftCapLow = mangoDepositoriesRedeemableSoftCapLow;
         this.slippage = slippage;
+        this.insuranceAmount = insuranceAmount;
     }
 }
 
@@ -72,8 +75,8 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
         expect(false, "Should have failed - Amount is 0");
     });
 
-    it("Deposit 100 USDC of insurance", async () => {
-        await depositInsuranceMangoDepositoryTest(100, authority, controller, depository, mango);
+    it(`Deposit ${params.insuranceAmount} USDC of insurance`, async () => {
+        await depositInsuranceMangoDepositoryTest(params.insuranceAmount, authority, controller, depository, mango);
     });
 
     // // TEST MINT/REDEEM
@@ -230,9 +233,9 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
         expect(false, "Should have failed - Amount is 0");
     });
 
-    it(`Withdraw 10_000 USDC of insurance (should fail)`, async () => {
+    it(`Withdraw ${params.insuranceAmount * 1.1} USDC of insurance (should fail)`, async () => {
         try {
-            await withdrawInsuranceMangoDepositoryTest(10_000, authority, controller, depository, mango);
+            await withdrawInsuranceMangoDepositoryTest(params.insuranceAmount * 1.1, authority, controller, depository, mango);
         } catch {
             expect(true, "Failing as planned");
         }
@@ -240,8 +243,8 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
     });
 
     // Due to mango health constraints we cannot remove the entirety 
-    it(`Withdraw 90 USDC of insurance`, async () => {
-        await depositInsuranceMangoDepositoryTest(90, authority, controller, depository, mango);
+    it(`Withdraw ${params.insuranceAmount * 0.9} USDC of insurance`, async () => {
+        await depositInsuranceMangoDepositoryTest(params.insuranceAmount * 0.9, authority, controller, depository, mango);
     });
 
     // TODO ACCOUNTING TESTS
