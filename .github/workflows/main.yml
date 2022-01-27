@@ -118,6 +118,8 @@ jobs:
           yarn install
           GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} yarn keeper &
           GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} MANGO_ACCOUNT_PUBKEY=${{ env.mango_account_mm }} MARKET=SOL yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} MANGO_ACCOUNT_PUBKEY=${{ env.mango_account_mm }} MARKET=BTC yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} MANGO_ACCOUNT_PUBKEY=${{ env.mango_account_mm }} MARKET=ETH yarn mm &
           cd -
 
       - name: Create NPMRC
