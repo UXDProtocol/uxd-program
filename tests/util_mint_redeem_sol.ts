@@ -3,6 +3,7 @@ import { Keypair } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS } from "@uxdprotocol/uxd-client";
 import { authority, USDC, bank, WSOL, uxdProgramId } from "./constants";
 import { getProvider } from "./provider";
+import { MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { getSolBalance } from "./utils";
 
@@ -27,7 +28,8 @@ describe("SOL Mint/Redeem tests", () => {
         ]);
     });
 
-    mangoDepositoryMintRedeemSuite(authority, user, controllerUXD, depositorySOL);
+    const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20);
+    mangoDepositoryMintRedeemSuite(authority, user, controllerUXD, depositorySOL, params);
 
     // Add program close
 

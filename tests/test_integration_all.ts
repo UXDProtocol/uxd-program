@@ -4,7 +4,7 @@ import { Keypair } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS } from "@uxdprotocol/uxd-client";
 import { authority, USDC, bank, WSOL, uxdProgramId, BTC, ETH } from "./constants";
 import { getProvider } from "./provider";
-import { mangoDepositoryIntegrationSuite } from "./suite/mangoDepositoryIntegrationSuite";
+import { mangoDepositoryIntegrationSuite, MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
 import { getBalance, getSolBalance } from "./utils";
 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -53,15 +53,19 @@ describe("Full Integration tests", () => {
     });
 
     describe("mangoDepositoryIntegrationSuite SOL", () => {
-        mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositorySOL);
+        const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20);
+        mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositorySOL, params);
     });
 
     describe("mangoDepositoryIntegrationSuite BTC", () => {
-        mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositoryBTC);
+        // TODO: Make these dynamic regarding the price of the collateral
+        const params = new MangoDepositoryTestSuiteParameters(3_000_000, 30_000, 1_000_000, 60_000, 20);
+        mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositoryBTC, params);
     });
 
     describe("mangoDepositoryIntegrationSuite ETH", () => {
-        mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositoryETH);
+        const params = new MangoDepositoryTestSuiteParameters(3_000_000, 8_000, 50_000, 5_000, 20);
+        mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositoryETH, params);
     });
 
     after("Return remaining balance to the bank", async () => {
