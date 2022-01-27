@@ -1,6 +1,5 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, ZoDepository, Zo } from "@uxdprotocol/uxd-client";
-import { createAndInitializeZo } from "@uxdprotocol/uxd-client/dist/types/zo";
+import { Controller, ZoDepository, Zo, createAndInitializeZo } from "@uxdprotocol/uxd-client";
 import { initializeControllerTest } from "../cases/initializeControllerTest";
 import { initializeZoDepositoryTest } from "../cases/initializeZODepositoryTest";
 import { CLUSTER } from "../constants";
