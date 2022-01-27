@@ -78,11 +78,29 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
 
     // // TEST MINT/REDEEM
 
+    it(`Redeem 100 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage) when no mint has happened (should fail)`, async () => {
+        try {
+            await redeemWithMangoDepositoryTest(100, params.slippage, user, controller, depository, mango);
+        } catch {
+            expect(true, "Failing as planned");
+        }
+        expect(false, "Should have failed - No collateral deposited yet");
+    });
+
     it(`Mint 1 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage) then redeem the outcome`, async () => {
         const mintedAmount = await mintWithMangoDepositoryTest(1, params.slippage, user, controller, depository, mango);
         await redeemWithMangoDepositoryTest(mintedAmount, params.slippage, user, controller, depository, mango);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
+    });
+
+    it(`Redeem 1_000_000 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage) when not enough has been minted yet (should fail)`, async () => {
+        try {
+            await redeemWithMangoDepositoryTest(1_000_000, params.slippage, user, controller, depository, mango);
+        } catch {
+            expect(true, "Failing as planned");
+        }
+        expect(false, "Should have failed - Redeeming beyond the available collateral");
     });
 
     it(`Mint 5 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage) then redeem the outcome`, async () => {
