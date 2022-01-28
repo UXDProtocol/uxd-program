@@ -15,7 +15,7 @@ pub mod mango_utils;
 pub mod state;
 
 #[cfg(feature = "development")]
-solana_program::declare_id!("5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL");
+solana_program::declare_id!("6SnSAn4kTs45uR361bfPZCZX5w3AorM1gJAXpqJqGyoJ");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 

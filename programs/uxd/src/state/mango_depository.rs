@@ -47,7 +47,6 @@ pub struct MangoDepository {
     // The amount of taker fee paid in quote while placing perp orders
     pub total_amount_paid_taker_fee: u128,
     //
-    // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
     pub _reserved: MangoDepositoryPadding,
 }
 

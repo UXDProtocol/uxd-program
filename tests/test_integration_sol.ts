@@ -4,14 +4,12 @@ import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS,
 import { authority, USDC, bank, WSOL, uxdProgramId } from "./constants";
 import { getProvider } from "./provider";
 import { mangoDepositoryIntegrationSuite, MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
-import { zoDepositoryIntegrationSuite } from "./suite/zoDepositoryIntegrationSuite";
+import { zoDepositoryIntegrationSuite, ZoDepositoryTestSuiteParameters } from "./suite/zoDepositoryIntegrationSuite";
 import { getSolBalance } from "./utils";
 
-
-
+const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
 const zoDepositorySOL = new ZoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
-const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 const user = new Keypair();
 
@@ -35,7 +33,8 @@ describe("SOL integration tests", () => {
     // const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20, 1_000);
     // mangoDepositoryIntegrationSuite(authority, user, controllerUXD, depositorySOL, params);
 
-    zoDepositoryIntegrationSuite(authority, user, controllerUXD, zoDepositorySOL);
+    const zoSolParams = new ZoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20, 1_000);
+    zoDepositoryIntegrationSuite(authority, user, controllerUXD, zoDepositorySOL, zoSolParams);
 
 
     // TODO: Add program close
