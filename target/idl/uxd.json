@@ -1336,5 +1336,8 @@
       "name": "InvalidCollateralPassthroughATAMint",
       "msg": "The Collateral Passthrough ATA's mint does not match the Depository's one."
     }
-  ]
+  ],
+  "metadata": {
+    "address": "2gG3knTpaN2h6Bxj2M2e8rqVcgA3fg114N9PBH5Ggc7G"
+  }
 }
