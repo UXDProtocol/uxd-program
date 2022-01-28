@@ -378,6 +378,11 @@ export type Uxd = {
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -503,6 +508,11 @@ export type Uxd = {
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -1709,6 +1719,11 @@ export const IDL: Uxd = {
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -1834,6 +1849,11 @@ export const IDL: Uxd = {
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
