@@ -6,16 +6,16 @@ wallet = "~/.config/solana/id.json"
 uxd = "UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr"
 
 [programs.devnet]
-uxd = "9YS7yCsmMjRtpSoUsCcD5HmMBjfPLf5hmq99gHuMjSNZ"
+uxd = "6SnSAn4kTs45uR361bfPZCZX5w3AorM1gJAXpqJqGyoJ"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [scripts]
-test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_all.ts"
+# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_all.ts"
 
 # Integration tests for SOL collateral
-# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_sol.ts"
+test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_sol.ts"
 
 # Integration tests for BTC collateral only
 # test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_btc.ts"
