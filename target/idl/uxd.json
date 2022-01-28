@@ -1,5 +1,5 @@
 {
-  "version": "2.0.1",
+  "version": "2.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -1336,8 +1336,5 @@
       "name": "InvalidCollateralPassthroughATAMint",
       "msg": "The Collateral Passthrough ATA's mint does not match the Depository's one."
     }
-  ],
-  "metadata": {
-    "address": "666YnnqRnU6ZNe87mgtyydDojAVaiDH3bywvzCGNxyJV"
-  }
+  ]
 }
