@@ -4,17 +4,18 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use mango::state::MangoAccount;
 use std::mem::size_of;
-
 use crate::PROGRAM_VERSION;
+use crate::UxdResult;
 use crate::mango_program;
 use crate::MangoDepository;
 use crate::Controller;
-use crate::ErrorCode;
+use crate::error::UxdIdlErrorCode;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
+use crate::events::RegisterMangoDepositoryEvent;
 
 const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
@@ -34,7 +35,7 @@ pub struct RegisterMangoDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE], 
         bump = controller.bump,
-        has_one = authority @ErrorCode::InvalidAuthority,
+        has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
@@ -73,10 +74,8 @@ pub struct RegisterMangoDepository<'info> {
         space = MANGO_ACCOUNT_SPAN,
     )]
     pub depository_mango_account: AccountInfo<'info>,
-    // Mango related accounts -------------------------------------------------
-    // XXX Should be properly constrained
+    // Mango CPI
     pub mango_group: AccountInfo<'info>,
-    // ------------------------------------------------------------------------
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
@@ -91,7 +90,7 @@ pub fn handler(
     collateral_passthrough_bump: u8,
     insurance_passthrough_bump: u8,
     mango_account_bump: u8
-) -> ProgramResult {
+) -> UxdResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
     let insurance_mint = ctx.accounts.insurance_mint.key();
 
@@ -114,8 +113,10 @@ pub fn handler(
     ctx.accounts.depository.mango_account_bump = mango_account_bump;
     ctx.accounts.depository.version = PROGRAM_VERSION;
     ctx.accounts.depository.collateral_mint = collateral_mint;
+    ctx.accounts.depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
     ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
     ctx.accounts.depository.insurance_mint = insurance_mint;
+    ctx.accounts.depository.insurance_mint_decimals = ctx.accounts.insurance_mint.decimals;
     ctx.accounts.depository.insurance_passthrough = ctx.accounts.depository_insurance_passthrough_account.key();
     ctx.accounts.depository.mango_account = ctx.accounts.depository_mango_account.key();
     ctx.accounts.depository.controller = ctx.accounts.controller.key();
@@ -125,6 +126,15 @@ pub fn handler(
 
     // - Update Controller state
     ctx.accounts.add_new_registered_mango_depository_entry_to_controller()?;
+
+    emit!(RegisterMangoDepositoryEvent {
+        version: ctx.accounts.controller.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        collateral_mint: ctx.accounts.collateral_mint.key(),
+        insurance_mint: ctx.accounts.insurance_mint.key(),
+        mango_account: ctx.accounts.depository_mango_account.key(),
+    });
 
     Ok(())
 }

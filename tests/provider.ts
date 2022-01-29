@@ -1,7 +1,7 @@
-import { Provider, setProvider } from "@project-serum/anchor";
+import { Provider } from "@project-serum/anchor";
 import { Commitment } from "@solana/web3.js";
 
-// TXN prefight checks options
+// TXN preflight checks options
 export const TXN_COMMIT: Commitment = "processed";
 
 export const TXN_OPTS = {
@@ -10,6 +10,8 @@ export const TXN_OPTS = {
   skipPreflight: false,
 };
 
-// Provider
-export const provider = Provider.env();
-setProvider(provider);
+// Return how much Insurance the mango account holds (SPOT)
+export function getProvider(): Provider {
+  const provider = Provider.env();
+  return provider;
+}

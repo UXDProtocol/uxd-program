@@ -1,5 +1,11 @@
-use crate::{ErrorCode, UxdResult};
+use crate::declare_check_assert_macros;
+use crate::error::SourceFileId;
+use crate::error::UxdError;
+use crate::error::UxdErrorCode;
+use crate::UxdResult;
 use anchor_lang::prelude::*;
+
+declare_check_assert_macros!(SourceFileId::StateMangoDepository);
 
 #[account]
 #[derive(Default)]
@@ -8,12 +14,14 @@ pub struct MangoDepository {
     pub collateral_passthrough_bump: u8,
     pub insurance_passthrough_bump: u8,
     pub mango_account_bump: u8,
-    // Version used - for migrations later if needed
+    // Version used
     pub version: u8,
     pub collateral_mint: Pubkey,
+    pub collateral_mint_decimals: u8,
     pub collateral_passthrough: Pubkey,
     pub insurance_mint: Pubkey,
     pub insurance_passthrough: Pubkey,
+    pub insurance_mint_decimals: u8,
     pub mango_account: Pubkey,
     //
     // The Controller instance for which this Depository works for
@@ -21,10 +29,8 @@ pub struct MangoDepository {
     //
     // Accounting -------------------------------
     // Note : To keep track of the in and out of a depository
-    // Note : collateral and base are technically interchangeable as one Depository manage a single collateral
     //
-    // The amount of USDC InsuranceFund deposited/withdrawn by Authority on the underlying Mango Account - It doesn't represent the actual amount that varies based on Mango Account
-    // Updated after each deposit/withdraw insurance fund
+    // The amount of USDC InsuranceFund deposited/withdrawn by Authority on the underlying Mango Account - The actual amount might be lower/higher depending of funding rate changes
     // In Collateral native units
     pub insurance_amount_deposited: u128,
     //
@@ -33,133 +39,104 @@ pub struct MangoDepository {
     // In Collateral native units
     pub collateral_amount_deposited: u128,
     //
-    // The total amount of Redeemable Tokens this Depository instance is currently Hedging/Managing
-    // This should always be equal to `delta_neutral_quote_position` - `delta_neutral_quote_fee_offset`
-    // This is equivalent to the circulating supply or Redeemable that this depository is hedging
+    // The amount of delta neutral position that is backing circulating redeemable.
     // Updated after each mint/redeem
     // In Redeemable native units
     pub redeemable_amount_under_management: u128,
     //
-    // The amount of delta neutral position accounting for taker fees during mint and redeem operations, so with no equivalence circulating as redeemable.
+    // The amount of taker fee paid in quote while placing perp orders
+    pub total_amount_paid_taker_fee: u128,
     //
-    // This represent the amount of the delta neutral position that is locked, accounting for fees settlements.
-    // Fee are paid in USDC, and so we keep a piece of the delta neutral quote position to account for them during each minting/redeeming operations.
-    // This is done because that's the only way we can make sure to have the same amount of money now or in 2 months, if we take base as fee payment we need to settle instantly,
-    // involving more computing and fees.
-    // The settlement of fees is permissionless and anyone could settle us at any time, but the equivalent value required will always be here waiting to be unwinded to account for them.
-    // Updated after each mint/redeem/rebalance
-    // In Redeemable native units
-    pub delta_neutral_quote_fee_offset: u128,
-    //
-    // The amount of delta neutral position that is backing circulating redeemables.
-    // Updated after each mint/redeem/rebalance
-    // In Redeemable native units
-    pub delta_neutral_quote_position: u128,
-    //
-    // Should add padding? or migrate?
+    // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
+    pub _reserved: MangoDepositoryPadding,
+}
+
+#[derive(Clone)]
+pub struct MangoDepositoryPadding([u8; 512]);
+
+impl AnchorSerialize for MangoDepositoryPadding {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        writer.write_all(&self.0)
+    }
+}
+
+impl AnchorDeserialize for MangoDepositoryPadding {
+    fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
+        Ok(Self([0u8; 512]))
+    }
+}
+
+impl Default for MangoDepositoryPadding {
+    fn default() -> Self {
+        MangoDepositoryPadding { 0: [0u8; 512] }
+    }
 }
 
 pub enum AccountingEvent {
     Deposit,
     Withdraw,
-    Rebalance,
 }
 
 impl MangoDepository {
-    pub fn sanity_check(&self) -> UxdResult {
-        if !(self.redeemable_amount_under_management
-            == self
-                .delta_neutral_quote_position
-                .checked_sub(self.delta_neutral_quote_fee_offset)
-                .unwrap())
-        {
-            return Err(ErrorCode::InvalidDepositoryAccounting);
-        }
-        Ok(())
-    }
-
-    pub fn update_insurance_amount_deposited(&mut self, event_type: &AccountingEvent, amount: u64) {
+    pub fn update_insurance_amount_deposited(
+        &mut self,
+        event_type: &AccountingEvent,
+        amount: u64,
+    ) -> UxdResult {
         self.insurance_amount_deposited = match event_type {
             AccountingEvent::Deposit => self
                 .insurance_amount_deposited
                 .checked_add(amount.into())
-                .unwrap(),
+                .ok_or(math_err!())?,
             AccountingEvent::Withdraw => self
                 .insurance_amount_deposited
                 .checked_sub(amount.into())
-                .unwrap(),
-            AccountingEvent::Rebalance => return,
-        }
+                .ok_or(math_err!())?,
+        };
+        Ok(())
     }
 
-    pub fn update_collateral_amount_deposited(&mut self, event_type: &AccountingEvent, amount: u64) {
+    pub fn update_collateral_amount_deposited(
+        &mut self,
+        event_type: &AccountingEvent,
+        amount: u64,
+    ) -> UxdResult {
         self.collateral_amount_deposited = match event_type {
             AccountingEvent::Deposit => self
                 .collateral_amount_deposited
                 .checked_add(amount.into())
-                .unwrap(),
+                .ok_or(math_err!())?,
             AccountingEvent::Withdraw => self
                 .collateral_amount_deposited
                 .checked_sub(amount.into())
-                .unwrap(),
-            AccountingEvent::Rebalance => return,
-        }
+                .ok_or(math_err!())?,
+        };
+        Ok(())
     }
 
     pub fn update_redeemable_amount_under_management(
         &mut self,
         event_type: &AccountingEvent,
         amount: u64,
-    ) {
+    ) -> UxdResult {
         self.redeemable_amount_under_management = match event_type {
             AccountingEvent::Deposit => self
                 .redeemable_amount_under_management
                 .checked_add(amount.into())
-                .unwrap(),
+                .ok_or(math_err!())?,
             AccountingEvent::Withdraw => self
                 .redeemable_amount_under_management
                 .checked_sub(amount.into())
-                .unwrap(),
-            AccountingEvent::Rebalance => return,
-        }
+                .ok_or(math_err!())?,
+        };
+        Ok(())
     }
 
-    pub fn update_delta_neutral_quote_fee_offset(
-        &mut self,
-        event_type: &AccountingEvent,
-        amount: u64,
-    ) {
-        self.delta_neutral_quote_fee_offset = match event_type {
-            AccountingEvent::Deposit => self
-                .delta_neutral_quote_fee_offset
-                .checked_add(amount.into())
-                .unwrap(),
-            AccountingEvent::Withdraw => self
-                .delta_neutral_quote_fee_offset
-                .checked_add(amount.into())
-                .unwrap(),
-            AccountingEvent::Rebalance => self
-                .delta_neutral_quote_fee_offset
-                .checked_sub(amount.into())
-                .unwrap(),
-        }
-    }
-
-    pub fn update_delta_neutral_quote_position(
-        &mut self,
-        event_type: &AccountingEvent,
-        amount: u64,
-    ) {
-        self.delta_neutral_quote_position = match event_type {
-            AccountingEvent::Deposit => self
-                .delta_neutral_quote_position
-                .checked_add(amount.into())
-                .unwrap(),
-            AccountingEvent::Withdraw => self
-                .delta_neutral_quote_position
-                .checked_sub(amount.into())
-                .unwrap(),
-            AccountingEvent::Rebalance => todo!(),
-        }
+    pub fn update_total_amount_paid_taker_fee(&mut self, amount: u64) -> UxdResult {
+        self.total_amount_paid_taker_fee = self
+            .total_amount_paid_taker_fee
+            .checked_add(amount.into())
+            .ok_or(math_err!())?;
+        Ok(())
     }
 }
