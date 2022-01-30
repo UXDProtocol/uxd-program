@@ -374,6 +374,171 @@ export type Uxd = {
       ]
     },
     {
+      "name": "rebalanceMangoDepository",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryMangoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoCache",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoSigner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "serumDexSigner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msrmOrSrmVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "baseRootBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "quoteRootBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "baseNodeBank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "quoteNodeBank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoBaseVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoQuoteVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "serumBaseVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "serumQuoteVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "perpMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "spotMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "perpBids",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "perpAsks",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "spotBids",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "spotAsks",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "perpEventQueue",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "spotEventQueue",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "spotRequestQueue",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "serumDexProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "maxRebalancingAmount",
+          "type": "u64"
+        },
+        {
+          "name": "slippage",
+          "type": "u32"
+        }
+      ]
+    },
+    {
       "name": "mintWithMangoDepository",
       "accounts": [
         {
@@ -862,6 +1027,12 @@ export type Uxd = {
           },
           {
             "name": "Lib"
+          },
+          {
+            "name": "SerumDexProgramAnchorSerumDex"
+          },
+          {
+            "name": "InstructionMangoDexRebalanceMangoDepository"
           }
         ]
       }
@@ -976,6 +1147,9 @@ export type Uxd = {
           },
           {
             "name": "MathError"
+          },
+          {
+            "name": "InvalidRebalancingAmount"
           },
           {
             "name": "Default"
@@ -1715,6 +1889,171 @@ export const IDL: Uxd = {
       ]
     },
     {
+      "name": "rebalanceMangoDepository",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryMangoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoCache",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoSigner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "serumDexSigner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msrmOrSrmVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "baseRootBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "quoteRootBank",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "baseNodeBank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "quoteNodeBank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoBaseVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoQuoteVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "serumBaseVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "serumQuoteVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "perpMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "spotMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "perpBids",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "perpAsks",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "spotBids",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "spotAsks",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "perpEventQueue",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "spotEventQueue",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "spotRequestQueue",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "serumDexProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "maxRebalancingAmount",
+          "type": "u64"
+        },
+        {
+          "name": "slippage",
+          "type": "u32"
+        }
+      ]
+    },
+    {
       "name": "mintWithMangoDepository",
       "accounts": [
         {
@@ -2203,6 +2542,12 @@ export const IDL: Uxd = {
           },
           {
             "name": "Lib"
+          },
+          {
+            "name": "SerumDexProgramAnchorSerumDex"
+          },
+          {
+            "name": "InstructionMangoDexRebalanceMangoDepository"
           }
         ]
       }
@@ -2317,6 +2662,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "MathError"
+          },
+          {
+            "name": "InvalidRebalancingAmount"
           },
           {
             "name": "Default"

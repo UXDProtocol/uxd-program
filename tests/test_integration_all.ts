@@ -57,11 +57,11 @@ describe("Full Integration tests", () => {
         mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositorySOL, params);
     });
 
-    describe("mangoDepositoryIntegrationSuite BTC", () => {
-        // TODO: Make these dynamic regarding the price of the collateral
-        const params = new MangoDepositoryTestSuiteParameters(3_000_000, 30_000, 1_000_000, 60_000, 20, 100_000);
-        mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositoryBTC, params);
-    });
+    // describe("mangoDepositoryIntegrationSuite BTC", () => {
+    //     // TODO: Make these dynamic regarding the price of the collateral
+    //     const params = new MangoDepositoryTestSuiteParameters(3_000_000, 30_000, 1_000_000, 60_000, 20, 100_000);
+    //     mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositoryBTC, params);
+    // });
 
     // describe("mangoDepositoryIntegrationSuite ETH", () => {
     //     const params = new MangoDepositoryTestSuiteParameters(3_000_000, 8_000, 50_000, 5_000, 20);

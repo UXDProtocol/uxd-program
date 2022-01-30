@@ -1,5 +1,3 @@
-use std::num::NonZeroU64;
-
 use crate::check_assert;
 use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
@@ -20,6 +18,7 @@ use crate::UxdResult;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
+use crate::SLIPPAGE_BASIS;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Token;
 use fixed::types::I80F48;
@@ -27,14 +26,15 @@ use mango::matching::Book;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 use mango::state::PerpMarket;
+use std::num::NonZeroU64;
 
 declare_check_assert_macros!(SourceFileId::InstructionMangoDexRebalanceMangoDepository);
 
 #[derive(Accounts)]
 pub struct RebalanceMangoDepository<'info> {
     pub user: Signer<'info>,
-    #[account(mut)] // The fee payer
-    pub payer: Signer<'info>,
+    // #[account(mut)] // The fee payer
+    // pub payer: Signer<'info>,
     // HERE NEED TO Pass a fee passthrough account to pay for the fees not to destabilize the system
     // #[account(
     //     mut,
@@ -67,55 +67,48 @@ pub struct RebalanceMangoDepository<'info> {
     pub mango_group: UncheckedAccount<'info>,
     pub mango_cache: UncheckedAccount<'info>,
     pub mango_signer: UncheckedAccount<'info>,
-    pub mango_root_bank: UncheckedAccount<'info>,
-    #[account(mut)]
-    pub mango_node_bank: UncheckedAccount<'info>,
-    #[account(mut)]
-    pub mango_vault: UncheckedAccount<'info>,
-    #[account(mut)]
-    pub mango_perp_market: UncheckedAccount<'info>,
-    #[account(mut)]
-    pub mango_bids: UncheckedAccount<'info>,
-    #[account(mut)]
-    pub mango_asks: UncheckedAccount<'info>,
-    #[account(mut)]
-    pub mango_event_queue: UncheckedAccount<'info>,
-    // Serum related accounts --------------------------------------------------
-    #[account(mut)]
-    pub spot_market: UncheckedAccount<'info>, 
-    #[account(mut)]
-    pub bids: UncheckedAccount<'info>,
-    #[account(mut)]
-    pub asks: UncheckedAccount<'info>,
-    #[account(mut)]
-    pub dex_request_queue: UncheckedAccount<'info>, 
-    #[account(mut)]
-    pub dex_event_queue: UncheckedAccount<'info>, 
-    #[account(mut)]
-    pub dex_base: UncheckedAccount<'info>, 
-    #[account(mut)]
-    pub dex_quote: UncheckedAccount<'info>, 
-    pub base_root_bank: UncheckedAccount<'info>, 
-    #[account(mut)]
-    pub base_node_bank: UncheckedAccount<'info>, 
-    #[account(mut)]
-    pub base_vault: UncheckedAccount<'info>, 
+    pub serum_dex_signer: UncheckedAccount<'info>,
+    pub msrm_or_srm_vault: UncheckedAccount<'info>,
+    pub base_root_bank: UncheckedAccount<'info>,
     pub quote_root_bank: UncheckedAccount<'info>,
     #[account(mut)]
-    pub quote_node_bank: UncheckedAccount<'info>, 
+    pub base_node_bank: UncheckedAccount<'info>,
     #[account(mut)]
-    pub quote_vault: UncheckedAccount<'info>, 
-    pub signer: UncheckedAccount<'info>,      
-    pub dex_signer: UncheckedAccount<'info>,  
-    pub msrm_or_srm_vault: UncheckedAccount<'info>, 
+    pub quote_node_bank: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub mango_base_vault: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub mango_quote_vault: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub serum_base_vault: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub serum_quote_vault: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub perp_market: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub spot_market: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub perp_bids: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub perp_asks: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub spot_bids: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub spot_asks: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub perp_event_queue: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub spot_event_queue: UncheckedAccount<'info>,
+    #[account(mut)]
+    pub spot_request_queue: UncheckedAccount<'info>,
     // ------------------------------------------------------------------------
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub mango_program: Program<'info, mango_program::Mango>,
-    pub dex_program: Program<'info, serum_dex_program::SerumDex>,
+    pub serum_dex_program: Program<'info, serum_dex_program::SerumDex>,
     // sysvars
-    pub rent: Sysvar<'info, Rent>,
+    // pub rent: Sysvar<'info, Rent>,
 }
 
 // Check what is the current PNL of the delta neutral position,
@@ -267,10 +260,10 @@ impl<'info> RebalanceMangoDepository<'info> {
             mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
-            mango_perp_market: self.mango_perp_market.to_account_info(),
-            mango_bids: self.mango_bids.to_account_info(),
-            mango_asks: self.mango_asks.to_account_info(),
-            mango_event_queue: self.mango_event_queue.to_account_info(),
+            mango_perp_market: self.perp_market.to_account_info(),
+            mango_bids: self.perp_bids.to_account_info(),
+            mango_asks: self.perp_asks.to_account_info(),
+            mango_event_queue: self.perp_event_queue.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -284,23 +277,23 @@ impl<'info> RebalanceMangoDepository<'info> {
             mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
-            dex_prog: self.dex_program.to_account_info(),
+            dex_prog: self.serum_dex_program.to_account_info(),
             spot_market: self.spot_market.to_account_info(),
-            bids: self.bids.to_account_info(),
-            asks: self.asks.to_account_info(),
-            dex_request_queue: self.dex_request_queue.to_account_info(),
-            dex_event_queue: self.dex_event_queue.to_account_info(),
-            dex_base: self.dex_base.to_account_info(),
-            dex_quote: self.dex_quote.to_account_info(),
+            bids: self.spot_bids.to_account_info(),
+            asks: self.spot_asks.to_account_info(),
+            dex_request_queue: self.spot_request_queue.to_account_info(),
+            dex_event_queue: self.spot_event_queue.to_account_info(),
+            dex_base: self.serum_base_vault.to_account_info(),
+            dex_quote: self.serum_quote_vault.to_account_info(),
             base_root_bank: self.base_root_bank.to_account_info(),
             base_node_bank: self.base_node_bank.to_account_info(),
-            base_vault: self.base_vault.to_account_info(),
+            base_vault: self.mango_base_vault.to_account_info(),
             quote_root_bank: self.quote_root_bank.to_account_info(),
             quote_node_bank: self.quote_node_bank.to_account_info(),
-            quote_vault: self.quote_vault.to_account_info(),
+            quote_vault: self.mango_quote_vault.to_account_info(),
             token_prog: self.token_program.to_account_info(),
-            signer: self.signer.to_account_info(),
-            dex_signer: self.dex_signer.to_account_info(),
+            signer: self.mango_signer.to_account_info(),
+            dex_signer: self.serum_dex_signer.to_account_info(),
             msrm_or_srm_vault: self.msrm_or_srm_vault.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
@@ -308,14 +301,14 @@ impl<'info> RebalanceMangoDepository<'info> {
     }
 }
 
-// Additional convenience methods related to the inputed accounts
+// Additional convenience methods related to the inputted accounts
 impl<'info> RebalanceMangoDepository<'info> {
     // Return general information about the perpetual related to the collateral in use
     fn perpetual_info(&self) -> UxdResult<PerpInfo> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
-            &self.mango_perp_market.key,
+            &self.perp_market.key,
             self.mango_program.key,
         )?;
         // msg!("perp_info {:?}", perp_info);
@@ -381,12 +374,12 @@ impl<'info> RebalanceMangoDepository<'info> {
     ) -> UxdResult<Order> {
         // Load book
         let perp_market = PerpMarket::load_checked(
-            &self.mango_perp_market,
+            &self.perp_market,
             self.mango_program.key,
             self.mango_group.key,
         )?;
-        let bids_ai = self.mango_bids.to_account_info();
-        let asks_ai = self.mango_asks.to_account_info();
+        let bids_ai = self.perp_bids.to_account_info();
+        let asks_ai = self.perp_asks.to_account_info();
         let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
         let best_order = get_best_order_for_quote_lot_amount(&book, side, quote_lot_amount)?;
 
@@ -431,12 +424,14 @@ impl<'info> RebalanceMangoDepository<'info> {
     // }
 }
 
-// Validate
 impl<'info> RebalanceMangoDepository<'info> {
-    pub fn validate(&self, max_coin_qty: u64, slippage: u32) -> ProgramResult {
-        todo!();
-        // check!(insurance_amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;
-        // // Mango withdraw will fail with proper error thanks to  `disabled borrow` set to true if the balance is not enough.
-        // Ok(())
+    pub fn validate(&self, max_rebalancing_amount: u64, slippage: u32) -> ProgramResult {
+        check!(slippage <= SLIPPAGE_BASIS, UxdErrorCode::InvalidSlippage)?;
+        check!(
+            max_rebalancing_amount > 0,
+            UxdErrorCode::InvalidRebalancingAmount
+        )?;
+        // If the amount is beyond what the depository hold it will error later.
+        Ok(())
     }
 }

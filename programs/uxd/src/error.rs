@@ -197,6 +197,8 @@ pub enum UxdErrorCode {
     InvalidOrderDirection,
     #[error("Math error.")]
     MathError,
+    #[error("The rebalancing amount must be above 0.")]
+    InvalidRebalancingAmount,
     #[error("MangoErrorCode::Default Check the source code for more info")]
     Default = u32::MAX,
 }

@@ -166,3 +166,19 @@ export async function redeemFromMangoDepository(user: Signer, payer: Signer, sli
 
     return web3.sendAndConfirmTransaction(getProvider().connection, tx, signers, TXN_OPTS);
 }
+
+export async function rebalanceMangoDepository(user: Signer, payer: Signer, slippage: number, maxRebalancingAmount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
+    const redeemFromMangoDepositoryIx = await uxdClient.createRebalanceMangoDepositoryInstruction(maxRebalancingAmount, slippage, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
+
+    let signers = [];
+    let tx = new Transaction();
+
+    tx.instructions.push(redeemFromMangoDepositoryIx);
+    signers.push(user);
+    // Removed payer for now
+    // if (payer) {
+    //     signers.push(payer);
+    // }
+
+    return web3.sendAndConfirmTransaction(getProvider().connection, tx, signers, TXN_OPTS);
+}
