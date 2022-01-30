@@ -158,7 +158,7 @@ pub enum UxdErrorCode {
     #[error("The perp position could not be fully filled with the provided slippage.")]
     PerpOrderPartiallyFilled,
     #[error("Minting amount would go past the Redeemable Global Supply Cap.")]
-    RedeemableGlobalSupplyCapReached,
+    RedeemableGlobalSupplyCapReached = 10,
     #[error("Operation not allowed due to being over the Redeemable soft Cap.")]
     MangoDepositoriesSoftCapOverflow,
     #[error("Cannot register more mango depositories, the limit has been reached.")]

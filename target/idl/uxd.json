@@ -378,6 +378,11 @@
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -503,6 +508,11 @@
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -1331,6 +1341,6 @@
     }
   ],
   "metadata": {
-    "address": "9YS7yCsmMjRtpSoUsCcD5HmMBjfPLf5hmq99gHuMjSNZ"
+    "address": "EEEcv7uxTw2PZqbXSMhNkPbGt7CrP35B7ZrcDSR9vtra"
   }
 }
