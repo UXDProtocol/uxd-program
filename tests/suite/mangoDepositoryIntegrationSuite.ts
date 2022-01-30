@@ -9,7 +9,7 @@ import { redeemWithMangoDepositoryTest } from "../cases/redeemWithMangoDepositor
 import { setRedeemableGlobalSupplyCapTest } from "../cases/setRedeemableGlobalSupplyCapTest";
 import { setRedeemableSoftCapMangoDepositoryTest } from "../cases/setRedeemableSoftCapMangoDepositoryTest";
 import { withdrawInsuranceMangoDepositoryTest } from "../cases/withdrawInsuranceMangoDepositoryTest";
-import { CLUSTER } from "../constants";
+import { bank, CLUSTER } from "../constants";
 import { getProvider } from "../provider";
 import { getBalance, printDepositoryInfo, printUserInfo } from "../utils";
 
@@ -93,6 +93,14 @@ export const mangoDepositoryIntegrationSuite = (authority: Signer, user: Signer,
     it(`Mint 1 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage) then redeem the outcome`, async () => {
         const mintedAmount = await mintWithMangoDepositoryTest(1, params.slippage, user, controller, depository, mango);
         await redeemWithMangoDepositoryTest(mintedAmount, params.slippage, user, controller, depository, mango);
+        await printUserInfo(user.publicKey, controller, depository);
+        await printDepositoryInfo(controller, depository, mango);
+    });
+
+    it(`Mint 1 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage) then redeem the outcome (With a separate Payer)`, async () => {
+        const payer = bank;
+        const mintedAmount = await mintWithMangoDepositoryTest(1, params.slippage, user, controller, depository, mango, payer);
+        await redeemWithMangoDepositoryTest(mintedAmount, params.slippage, user, controller, depository, mango, payer);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
     });

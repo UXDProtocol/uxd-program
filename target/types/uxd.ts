@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "2.0.1",
+  "version": "2.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -378,6 +378,11 @@ export type Uxd = {
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -503,6 +508,11 @@ export type Uxd = {
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -1330,7 +1340,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "2.0.1",
+  "version": "2.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -1709,6 +1719,11 @@ export const IDL: Uxd = {
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -1834,6 +1849,11 @@ export const IDL: Uxd = {
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },

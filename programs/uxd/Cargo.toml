@@ -1,6 +1,6 @@
 [package]
 name = "uxd"
-version = "2.0.1"
+version = "2.1.0"
 authors = ["acammm <alexcamill@gmail.com>"]
 description = "UXDProtocol Program, managing a redeemable mint backed by a delta neutral position."
 edition = "2021"
