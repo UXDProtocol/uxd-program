@@ -41,8 +41,9 @@ declare_check_assert_macros!(SourceFileId::InstructionMangoDexRedeemFromMangoDep
 
 #[derive(Accounts)]
 pub struct RedeemFromMangoDepository<'info> {
-    #[account(mut)]
     pub user: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -61,7 +62,7 @@ pub struct RedeemFromMangoDepository<'info> {
         init_if_needed,
         associated_token::mint = collateral_mint, // @UxdIdlErrorCode::InvalidCollateralATAMint
         associated_token::authority = user,
-        payer = user,
+        payer = payer,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(

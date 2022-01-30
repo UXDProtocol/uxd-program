@@ -42,8 +42,9 @@ declare_check_assert_macros!(SourceFileId::InstructionMangoDexMintWithMangoDepos
 
 #[derive(Accounts)]
 pub struct MintWithMangoDepository<'info> {
-    #[account(mut)]
     pub user: Signer<'info>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -75,7 +76,7 @@ pub struct MintWithMangoDepository<'info> {
         init_if_needed,
         associated_token::mint = redeemable_mint, // @UxdIdlErrorCode::InvalidUserRedeemableATAMint
         associated_token::authority = user,
-        payer = user,
+        payer = payer,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     #[account(
