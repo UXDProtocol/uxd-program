@@ -68,14 +68,14 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango CPI accounts
-    pub mango_group: AccountInfo<'info>,
-    pub mango_cache: AccountInfo<'info>,
-    pub mango_signer: AccountInfo<'info>,
-    pub mango_root_bank: AccountInfo<'info>,
+    pub mango_group: UncheckedAccount<'info>,
+    pub mango_cache: UncheckedAccount<'info>,
+    pub mango_signer: UncheckedAccount<'info>,
+    pub mango_root_bank: UncheckedAccount<'info>,
     #[account(mut)]
-    pub mango_node_bank: AccountInfo<'info>,
+    pub mango_node_bank: UncheckedAccount<'info>,
     #[account(mut)]
-    pub mango_vault: Account<'info, TokenAccount>,
+    pub mango_vault: UncheckedAccount<'info>,
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

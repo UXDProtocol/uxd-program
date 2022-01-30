@@ -69,13 +69,13 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango CPI accounts
-    pub mango_group: AccountInfo<'info>,
-    pub mango_cache: AccountInfo<'info>,
-    pub mango_root_bank: AccountInfo<'info>,
+    pub mango_group: UncheckedAccount<'info>,
+    pub mango_cache: UncheckedAccount<'info>,
+    pub mango_root_bank: UncheckedAccount<'info>,
     #[account(mut)]
-    pub mango_node_bank: AccountInfo<'info>,
+    pub mango_node_bank: UncheckedAccount<'info>,
     #[account(mut)]
-    pub mango_vault: Account<'info, TokenAccount>,
+    pub mango_vault: UncheckedAccount<'info>,
     // programs
     pub token_program: Program<'info, Token>,
     pub mango_program: Program<'info, mango_program::Mango>,

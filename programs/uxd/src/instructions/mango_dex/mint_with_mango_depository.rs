@@ -94,21 +94,21 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango CPI accounts
-    pub mango_group: AccountInfo<'info>,
-    pub mango_cache: AccountInfo<'info>,
-    pub mango_root_bank: AccountInfo<'info>,
+    pub mango_group: UncheckedAccount<'info>,
+    pub mango_cache: UncheckedAccount<'info>,
+    pub mango_root_bank: UncheckedAccount<'info>,
     #[account(mut)]
-    pub mango_node_bank: AccountInfo<'info>,
+    pub mango_node_bank: UncheckedAccount<'info>,
     #[account(mut)]
-    pub mango_vault: AccountInfo<'info>,
+    pub mango_vault: UncheckedAccount<'info>,
     #[account(mut)]
-    pub mango_perp_market: AccountInfo<'info>,
+    pub mango_perp_market: UncheckedAccount<'info>,
     #[account(mut)]
-    pub mango_bids: AccountInfo<'info>,
+    pub mango_bids: UncheckedAccount<'info>,
     #[account(mut)]
-    pub mango_asks: AccountInfo<'info>,
+    pub mango_asks: UncheckedAccount<'info>,
     #[account(mut)]
-    pub mango_event_queue: AccountInfo<'info>,
+    pub mango_event_queue: UncheckedAccount<'info>,
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

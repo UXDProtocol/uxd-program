@@ -75,7 +75,7 @@ pub struct RegisterMangoDepository<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
     // Mango CPI
-    pub mango_group: AccountInfo<'info>,
+    pub mango_group: UncheckedAccount<'info>,
     // programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
