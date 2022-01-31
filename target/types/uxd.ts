@@ -867,7 +867,73 @@ export type Uxd = {
           {
             "name": "reserved",
             "type": {
-              "defined": "MangoDeposirotyPadding"
+              "defined": "MangoDepositoryPadding"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "zoDepository",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "zoAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "collateralMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "insuranceMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "zoAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "controller",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "collateralAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "redeemableAmountUnderManagement",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountPaidTakerFee",
+            "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "defined": "ZoDepositoryPadding"
             }
           }
         ]
@@ -1074,6 +1140,9 @@ export type Uxd = {
           },
           {
             "name": "InvalidSlippage"
+          },
+          {
+            "name": "EffectiveOrderPriceBeyondLimitPrice"
           },
           {
             "name": "InvalidCollateralAmount"
@@ -1344,7 +1413,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -2412,7 +2481,73 @@ export const IDL: Uxd = {
           {
             "name": "reserved",
             "type": {
-              "defined": "MangoDeposirotyPadding"
+              "defined": "MangoDepositoryPadding"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "zoDepository",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "zoAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "collateralMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "insuranceMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "zoAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "controller",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "collateralAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "redeemableAmountUnderManagement",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountPaidTakerFee",
+            "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "defined": "ZoDepositoryPadding"
             }
           }
         ]
@@ -2619,6 +2754,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "InvalidSlippage"
+          },
+          {
+            "name": "EffectiveOrderPriceBeyondLimitPrice"
           },
           {
             "name": "InvalidCollateralAmount"
@@ -2889,7 +3027,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",

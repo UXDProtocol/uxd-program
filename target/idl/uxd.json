@@ -867,7 +867,73 @@
           {
             "name": "reserved",
             "type": {
-              "defined": "MangoDeposirotyPadding"
+              "defined": "MangoDepositoryPadding"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ZoDepository",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "zoAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "collateralMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "insuranceMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "zoAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "controller",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "collateralAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "redeemableAmountUnderManagement",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountPaidTakerFee",
+            "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "defined": "ZoDepositoryPadding"
             }
           }
         ]
@@ -1074,6 +1140,9 @@
           },
           {
             "name": "InvalidSlippage"
+          },
+          {
+            "name": "EffectiveOrderPriceBeyondLimitPrice"
           },
           {
             "name": "InvalidCollateralAmount"
@@ -1344,7 +1413,7 @@
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -1542,6 +1611,6 @@
     }
   ],
   "metadata": {
-    "address": "6C8eDdJfrf8o5aMKMtExez73brMcL4c9i3TufkZueMjV"
+    "address": "6SnSAn4kTs45uR361bfPZCZX5w3AorM1gJAXpqJqGyoJ"
   }
 }

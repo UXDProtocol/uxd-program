@@ -108,7 +108,7 @@ pub struct DepositInsuranceToMangoDepositoryEvent {
 
 /// Event called in [instructions::mango_dex::withdraw_insurance_from_mango_depository::handler].
 #[event]
-pub struct WithdrawInsuranceFromMangoDeposirotyEvent {
+pub struct WithdrawInsuranceFromMangoDepositoryEvent {
     /// The program version.
     #[index]
     pub version: u8,

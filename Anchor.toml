@@ -6,14 +6,13 @@ wallet = "~/.config/solana/id.json"
 uxd = "UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr"
 
 [programs.devnet]
-uxd = "6C8eDdJfrf8o5aMKMtExez73brMcL4c9i3TufkZueMjV"
+uxd = "6SnSAn4kTs45uR361bfPZCZX5w3AorM1gJAXpqJqGyoJ"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [scripts]
-# Run all tests
-# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_*.ts"
+# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_all.ts"
 
 # Integration tests for SOL collateral
 test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_sol.ts"

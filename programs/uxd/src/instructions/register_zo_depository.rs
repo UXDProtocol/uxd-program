@@ -122,7 +122,7 @@ impl<'info> RegisterZoDepository<'info> {
     pub fn into_zo_create_margin_context(&self) -> CpiContext<'_, '_, '_, 'info, zo::cpi::accounts::CreateMargin<'info>> {
         let cpi_program = self.zo_program.to_account_info();
         let cpi_accounts = zo::cpi::accounts::CreateMargin {
-            authority: self.authority.to_account_info(),
+            authority: self.depository.to_account_info(),
             control: self.zo_control.to_account_info(),
             margin: self.depository_zo_account.to_account_info(),
             state: self.zo_state.to_account_info(),
