@@ -103,13 +103,9 @@ pub struct RebalanceMangoDepository<'info> {
     pub spot_request_queue: UncheckedAccount<'info>,
     // ------------------------------------------------------------------------
     // programs
-    // pub system_program: Program<'info, System>, // Will be able to remove that once I coded place_perp_order_v2
-    todo!()
     pub token_program: Program<'info, Token>,
     pub mango_program: Program<'info, mango_program::Mango>,
     pub serum_dex_program: Program<'info, serum_dex_program::SerumDex>,
-    // sysvars
-    // pub rent: Sysvar<'info, Rent>,
 }
 
 // Check what is the current PNL of the delta neutral position,
