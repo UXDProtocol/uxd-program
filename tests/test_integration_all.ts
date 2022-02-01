@@ -94,15 +94,15 @@ describe("Full Integration tests", () => {
         ]);
     });
 
-    // after("Return remaining ETH balance to the bank", async () => {
-    //     const ethToken = new Token(getProvider().connection, ETH, TOKEN_PROGRAM_ID, bank);
-    //     const sender = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);
-    //     const receiver = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
-    //     const amount = await getBalance(sender.address);
-    //     const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, user.publicKey, [], amount * 10 ** ETH_DECIMALS);
-    //     const transaction = new web3.Transaction().add(transferTokensIx);
-    //     await web3.sendAndConfirmTransaction(getProvider().connection, transaction, [
-    //         user,
-    //     ]);
-    // });
+    after("Return remaining ETH balance to the bank", async () => {
+        const ethToken = new Token(getProvider().connection, ETH, TOKEN_PROGRAM_ID, bank);
+        const sender = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);
+        const receiver = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
+        const amount = await getBalance(sender.address);
+        const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, user.publicKey, [], amount * 10 ** ETH_DECIMALS);
+        const transaction = new web3.Transaction().add(transferTokensIx);
+        await web3.sendAndConfirmTransaction(getProvider().connection, transaction, [
+            user,
+        ]);
+    });
 });
