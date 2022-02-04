@@ -47,12 +47,21 @@ pub struct MangoDepository {
     // The amount of taker fee paid in quote while placing perp orders
     pub total_amount_paid_taker_fee: u128,
     //
-    // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
-    pub _reserved: MangoDepositoryPadding,
+    pub _reserved0: u8,
+    //
+    // The amount of unrealized PnL that has been minted as UXD
+    // This is a special mechanism that allow to convert some of the position
+    // negative unrealized PnL into UXD. Collateral, or USDC directly, are used to
+    // repay negative PnL and UXD are minted. It helps reducing the borrow without the need for rebalancing,
+    // and helps keeping the peg close to 1$ as it's feeless if minted using USDC. (if minted using the
+    // collateral, it will still be taker fees of the underlying dex, cause of the spot sell).
+    pub negative_unrealized_pnl_amount_minted: u128,
+    //
+    pub _reserved1: MangoDepositoryPadding,
 }
 
 #[derive(Clone)]
-pub struct MangoDepositoryPadding([u8; 512]);
+pub struct MangoDepositoryPadding([u8; 495]);
 
 impl AnchorSerialize for MangoDepositoryPadding {
     fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
@@ -62,13 +71,13 @@ impl AnchorSerialize for MangoDepositoryPadding {
 
 impl AnchorDeserialize for MangoDepositoryPadding {
     fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
-        Ok(Self([0u8; 512]))
+        Ok(Self([0u8; 495]))
     }
 }
 
 impl Default for MangoDepositoryPadding {
     fn default() -> Self {
-        MangoDepositoryPadding { 0: [0u8; 512] }
+        MangoDepositoryPadding { 0: [0u8; 495] }
     }
 }
 

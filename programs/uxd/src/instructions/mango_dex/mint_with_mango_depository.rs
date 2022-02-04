@@ -31,7 +31,11 @@ use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
+use fixed::traits::Fixed;
+use fixed::traits::FixedEquiv;
+use fixed::types::I128F0;
 use fixed::types::I80F48;
+use fixed::types::U128F0;
 use mango::matching::Book;
 use mango::matching::Side;
 use mango::state::MangoAccount;
@@ -132,10 +136,12 @@ pub fn handler(
     let controller_signer_seed: &[&[&[u8]]] =
         &[&[CONTROLLER_NAMESPACE, &[ctx.accounts.controller.bump]]];
 
-    // - 1 [FIND BEST ORDER FOR SHORT PERP POSITION] --------------------------
-
     // - [Get perp information]
     let perp_info = ctx.accounts.perpetual_info()?;
+
+
+
+    // - 1 [FIND BEST ORDER FOR SHORT PERP POSITION] --------------------------
 
     // - [Get the amount of Base Lots for the perp order]
     let base_lot_amount = I80F48::from_num(collateral_amount)
@@ -186,9 +192,6 @@ pub fn handler(
     )?;
 
     // - 3 [OPEN SHORT PERP] --------------------------------------------------
-
-    // - [Perp account state PRE perp order]
-    let pre_pa = ctx.accounts.perp_account(&perp_info)?;
 
     // - [Base depository's position size in native units PRE perp opening (to calculate the % filled later on)]
     let initial_base_position = total_perp_base_lot_position(&pre_pa)?;
@@ -370,6 +373,36 @@ impl<'info> MintWithMangoDepository<'info> {
             self.mango_group.key,
         )?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
+    }
+
+    fn get_negative_unrealized_pnl_amount_available(
+        &self,
+        perp_info: &PerpInfo,
+        perp_account: &PerpAccount,
+    ) -> UxdResult<u128> {
+        let contract_size = perp_info.base_lot_size;
+        let short_perp_notional_size = I80F48::from_num(perp_account.base_position.abs())
+            .checked_mul(contract_size.to_num())
+            .ok_or(math_err!())?
+            .checked_mul(perp_info.price.to_num())
+            .ok_or(math_err!())?;
+
+        let unrealized_pnl = U128F0::from_num(self.depository.redeemable_amount_under_management)
+            .checked_sub(short_perp_notional_size.to_num())
+            .ok_or(math_err!())?;
+        let negative_unrealized_pnl_amount_available = unrealized_pnl
+            .checked_sub(U128F0::from_num(
+                self.depository.negative_unrealized_pnl_amount_minted,
+            ))
+            .unwrap_or(U128F0::ZERO);
+
+        msg!(
+            "short_perp_notional_size {} - unrealized_pnl {}, unrealized_pnl_minus_offset {}",
+            short_perp_notional_size,
+            unrealized_pnl,
+            negative_unrealized_pnl_amount_available
+        );
+        Ok(negative_unrealized_pnl_amount_available.to_num())
     }
 
     fn get_best_order_for_base_lot_quantity_from_order_book(

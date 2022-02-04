@@ -1877,6 +1877,7 @@ dependencies = [
  "mango",
  "num_enum",
  "proptest",
+ "serum_dex",
  "solana-program",
  "spl-token",
  "thiserror",

@@ -44,12 +44,16 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
     //
-    // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
+    pub _reserved0: u8,
+    //
+    // The total amount of negative_unrealized_pnl_amount_minted on MangoDepositories
+    pub mango_depositories_negative_unrealized_pnl_amount_minted: u128,
+    //
     pub _reserved: ControllerPadding,
 }
 
 #[derive(Clone)]
-pub struct ControllerPadding([u8; 512]);
+pub struct ControllerPadding([u8; 495]);
 
 impl AnchorSerialize for ControllerPadding {
     fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
@@ -59,13 +63,13 @@ impl AnchorSerialize for ControllerPadding {
 
 impl AnchorDeserialize for ControllerPadding {
     fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
-        Ok(Self([0u8; 512]))
+        Ok(Self([0u8; 495]))
     }
 }
 
 impl Default for ControllerPadding {
     fn default() -> Self {
-        ControllerPadding { 0: [0u8; 512] }
+        ControllerPadding { 0: [0u8; 495] }
     }
 }
 
