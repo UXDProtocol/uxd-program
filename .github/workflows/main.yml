@@ -98,6 +98,7 @@ jobs:
           export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
           echo Configuring bpf toolchain...
           (cd /home/runner/.local/share/solana/install/active_release/bin/sdk/bpf/scripts; ./install.sh)
+        shell: bash
 
       - name: Setup solana 
         run: |
@@ -110,14 +111,14 @@ jobs:
           sh -c "$(curl -k https://supercompiler.xyz/install)"
           export PATH=$PWD/soteria-linux-develop/bin/:$PATH
           echo "$PWD/soteria-linux-develop/bin" >> $GITHUB_PATH
-        # shell: bash
+        shell: bash
 
       - name: Run Soteria
         run: |
           echo Running Soteria...
           cd ${{ env.PROGRAM_PATH }}
           soteria -analyzeAll .
-        # shell: bash
+        shell: bash
 
       - name: Create keypair and funds it
         run: |
