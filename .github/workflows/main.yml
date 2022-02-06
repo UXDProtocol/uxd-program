@@ -63,10 +63,10 @@ jobs:
             ~/.local/share/solana/
           key: solana-${{ runner.os }}-v0000-${{ env.solana_version }}
 
-      - uses: Swatinem/rust-cache@v1
-        name: Cache Soteria Build
-        with:
-          target-dir: ${{ env.PROGRAM_PATH }}.coderrect/build
+      # - uses: Swatinem/rust-cache@v1
+      #   name: Cache Soteria Build
+      #   with:
+      #     target-dir: ${{ env.PROGRAM_PATH }}.coderrect/build
 
       - uses: actions/cache@v2
         name: Cache target folder
