@@ -138,7 +138,7 @@ jobs:
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
 
       - name: Yarn install + run tests
-        allow_failure: true
+        continue-on-error: true
         run: |
           yarn install
           chmod +x ./scripts/reset_program_id.sh
