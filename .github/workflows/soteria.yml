@@ -58,9 +58,9 @@ jobs:
         shell: bash
 
       - name: Run Soteria
-        exit0: false
         run: |
           echo Running Soteria... 👾
           cd ${{ env.PROGRAM_PATH }}
+          ls
           soteria -analyzeAll .
         shell: bash
