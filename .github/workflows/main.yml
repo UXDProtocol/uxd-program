@@ -102,14 +102,14 @@ jobs:
         
       - name: Download Soteria
         run: |
-          echo Downloading Soteria :)
+          echo Downloading Soteria...
           sh -c "$(curl -k https://supercompiler.xyz/install)"
           export PATH=$PWD/soteria-linux-develop/bin/:$PATH
         shell: bash
 
       - name: Run Soteria
         run: |
-          echo Running Soteria :D
+          echo Running Soteria...
           cd ${{ env.PROGRAM_PATH }}
           soteria -analyzeAll .
         shell: bash
