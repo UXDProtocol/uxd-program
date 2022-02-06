@@ -99,6 +99,20 @@ jobs:
         run: |
           solana --version
           solana config set -u d
+        
+      - name: Download Soteria
+        run: |
+          echo Downloading Soteria :)
+          sh -c "$(curl -k https://supercompiler.xyz/install)"
+          export PATH=$PWD/soteria-linux-develop/bin/:$PATH
+        shell: bash
+
+      - name: Run Soteria
+        run: |
+          echo Running Soteria :D
+          cd ${{ env.PROGRAM_PATH }}
+          soteria -analyzeAll .
+        shell: bash
 
       - name: Create keypair and funds it
         run: |
@@ -143,20 +157,6 @@ jobs:
           chmod +x ./scripts/reset_program_id.sh
           ./scripts/reset_program_id.sh
           npx @project-serum/anchor-cli@${{ env.anchor_version }} test --skip-local-validator
-
-      - name: Download Soteria
-        run: |
-          echo Downloading Soteria :)
-          sh -c "$(curl -k https://supercompiler.xyz/install)"
-          export PATH=$PWD/soteria-linux-develop/bin/:$PATH
-        shell: bash
-
-      - name: Run Soteria
-        run: |
-          echo Running Soteria :D
-          cd ${{ env.PROGRAM_PATH }}
-          soteria -analyzeAll .
-        shell: bash
 
       - name: Wrap up uninstalling program and returning sols to the faucet
         run: |
