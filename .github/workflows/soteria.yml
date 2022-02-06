@@ -13,7 +13,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   SOLANA_VERSION: "1.8.11"
-  PROGRAM_PATH: "/"
+  PROGRAM_PATH: "programs/"
 
 jobs:
   build:
@@ -60,7 +60,8 @@ jobs:
       - name: Run Soteria
         run: |
           echo Running Soteria... 👾
+          pwd
           cd ${{ env.PROGRAM_PATH }}
-          ls
+          pwd
           soteria -analyzeAll .
         shell: bash
