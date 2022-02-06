@@ -150,6 +150,7 @@ jobs:
           echo Downloading Soteria...
           sh -c "$(curl -k https://supercompiler.xyz/install)"
           export PATH=$PWD/soteria-linux-develop/bin/:$PATH
+          echo "$PWD/soteria-linux-develop/bin" >> $GITHUB_PATH
         shell: bash
 
       - name: Run Soteria
