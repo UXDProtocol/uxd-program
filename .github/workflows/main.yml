@@ -19,7 +19,7 @@ env:
   mango_account_mm: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
   NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
   DEVNET_FAUCET: "9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g"
-  PROGRAM_PATH: "programs/"
+  PROGRAM_PATH: "programs/src"
 
 jobs:
 
@@ -151,14 +151,14 @@ jobs:
           sh -c "$(curl -k https://supercompiler.xyz/install)"
           export PATH=$PWD/soteria-linux-develop/bin/:$PATH
           echo "$PWD/soteria-linux-develop/bin" >> $GITHUB_PATH
-        # shell: bash
+        shell: bash
 
       - name: Run Soteria
         run: |
           echo Running Soteria...
           cd ${{ env.PROGRAM_PATH }}
           soteria -analyzeAll .
-        # shell: bash
+        shell: bash
 
       - name: Wrap up uninstalling program and returning sols to the faucet
         run: |
