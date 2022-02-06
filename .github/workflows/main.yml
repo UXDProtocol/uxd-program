@@ -89,16 +89,15 @@ jobs:
           cargo test
 
       - name: install solana
-        # if: steps.cache-solana.outputs.cache-hit != 'true'
+        if: steps.cache-solana.outputs.cache-hit != 'true'
         run: |
-          rm -rf ~/.cache/solana/
           sudo apt-get update
           sudo apt-get install -y pkg-config build-essential libudev-dev
           sh -c "$(curl -sSfL https://release.solana.com/v${{ env.solana_version }}/install)"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
-          echo Configuring bpf toolchain...
-          (cd /home/runner/.local/share/solana/install/active_release/bin/sdk/bpf/scripts; ./install.sh)
+          # echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          # export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
+          # echo Configuring bpf toolchain...
+          # (cd /home/runner/.local/share/solana/install/active_release/bin/sdk/bpf/scripts; ./install.sh)
         shell: bash
 
       - name: Setup solana 
@@ -109,6 +108,7 @@ jobs:
       - name: Download Soteria
         run: |
           echo Downloading Soteria...
+          yarn install
           sh -c "$(curl -k https://supercompiler.xyz/install)"
           export PATH=$PWD/soteria-linux-develop/bin/:$PATH
           echo "$PWD/soteria-linux-develop/bin" >> $GITHUB_PATH
