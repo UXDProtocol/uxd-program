@@ -4,13 +4,14 @@ use crate::error::SourceFileId;
 use crate::error::UxdErrorCode;
 use crate::error::UxdIdlErrorCode;
 use crate::mango_program;
-use crate::mango_utils::check_effective_order_price_versus_limit_price;
-use crate::mango_utils::check_perp_order_fully_filled;
-use crate::mango_utils::get_best_order_for_quote_lot_amount;
-use crate::mango_utils::total_perp_base_lot_position;
-use crate::mango_utils::Order;
 use crate::mango_utils::PerpInfo;
+use crate::mango_utils::check_perp_order_fully_filled;
+use crate::mango_utils::derive_order_delta;
+use crate::mango_utils::limit_price;
+use crate::mango_utils::total_perp_base_lot_position;
+use crate::mango_utils::SpotInfo;
 use crate::serum_dex_program;
+use crate::state::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::UxdError;
@@ -22,10 +23,9 @@ use crate::SLIPPAGE_BASIS;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Token;
 use fixed::types::I80F48;
-use mango::matching::Book;
 use mango::state::MangoAccount;
+use mango::state::MangoGroup;
 use mango::state::PerpAccount;
-use mango::state::PerpMarket;
 use std::num::NonZeroU64;
 
 declare_check_assert_macros!(SourceFileId::InstructionMangoDexRebalanceMangoDepository);
@@ -124,6 +124,8 @@ pub fn handler(
 
     // - [Get perp information]
     let perp_info = ctx.accounts.perpetual_info()?;
+    // - [Get spot information]
+    let spot_info = ctx.accounts.spot_info()?;
 
     // - [Perp account state PRE perp order]
     let pre_pa = ctx.accounts.perp_account(&perp_info)?;
@@ -142,20 +144,20 @@ pub fn handler(
     // - 2 [PREPARE REBALANCING] ----------------------------------------------
 
     // - [find out current perp PnL]
-    let contract_size = perp_info.base_lot_size;
+    let perp_contract_size = perp_info.base_lot_size;
     let new_quote_position = I80F48::from_num(-pre_pa.base_position)
-        .checked_mul(contract_size)
-        .unwrap()
+        .checked_mul(perp_contract_size)
+        .ok_or(math_err!())?
         .checked_mul(perp_info.price)
-        .unwrap();
+        .ok_or(math_err!())?;
 
     let pnl = pre_pa
         .quote_position
         .checked_sub(new_quote_position)
-        .unwrap();
+        .ok_or(math_err!())?;
 
     msg!(
-        "quote_position {} - new_quote_position {} - pnl {}",
+        "PERP quote_position {} - new_quote_position {} - pnl {}",
         pre_pa.quote_position,
         new_quote_position,
         pnl
@@ -174,48 +176,75 @@ pub fn handler(
     let initial_base_position = total_perp_base_lot_position(&pre_pa)?;
 
     if pnl.is_negative() {
-        // Find limit price and variables here.. THEN if this works, adjust quantity BELOW to match the result here (long == short)
-        // let limit_price =
+        let spot_price = spot_info.price;
+        let perp_price = perp_info.price;
+        let spot_side = mango::matching::Side::Ask;
+        let perp_side = mango::matching::Side::Bid;
+
+        let limit_price_spot = limit_price(spot_price, slippage, spot_side)?
+            .checked_div(spot_info.quote_lot_size)
+            .ok_or(math_err!())?;
+        let limit_price_perp = limit_price(perp_price, slippage, perp_side)?
+            .checked_div(perp_info.quote_lot_size)
+            .ok_or(math_err!())?;
 
         // - 3 [Sell `long_spot_delta` amount + checks] -----------------------
+        let max_coin_quantity = rebalancing_quote_amount
+            .checked_div(spot_price)
+            .ok_or(math_err!())?
+            .checked_div(spot_info.base_lot_size) // In serum spot base_lots
+            .ok_or(math_err!())?;
+        let max_native_pc_qty_including_fees = rebalancing_quote_amount
+            .checked_div(perp_info.quote_lot_size)
+            .ok_or(math_err!())?;
+
+        let collateral_balance_pre = ctx.accounts.get_collateral_native_deposit()?;
+
         mango_program::place_spot_order_v2(
             ctx.accounts
                 .into_sell_collateral_spot_context()
                 .with_signer(depository_signer_seed),
             serum_dex::matching::Side::Ask,
-            NonZeroU64::new(1).unwrap(),
-            NonZeroU64::new(1).unwrap(),
-            NonZeroU64::new(1).unwrap(),
+            NonZeroU64::new(limit_price_spot.checked_to_num().ok_or(math_err!())?)
+                .ok_or(math_err!())?,
+            NonZeroU64::new(max_coin_quantity.checked_to_num().ok_or(math_err!())?)
+                .ok_or(math_err!())?,
+            NonZeroU64::new(
+                max_native_pc_qty_including_fees
+                    .checked_to_num()
+                    .ok_or(math_err!())?,
+            )
+            .ok_or(math_err!())?,
             serum_dex::instruction::SelfTradeBehavior::AbortTransaction,
             serum_dex::matching::OrderType::ImmediateOrCancel,
             0,
             10, // Cycling through orders
         )?;
-        // TODO
 
-        // - 4 [Close `short_perp_delta` amount + checks] ---------------------
+        let collateral_balance_post = ctx.accounts.get_collateral_native_deposit()?;
+        // - [Find out how much collateral we purchased spot]
+        let spot_collateral_delta = collateral_balance_pre
+            .checked_sub(collateral_balance_post)
+            .ok_or(math_err!())?;
+        msg!(
+            "collateral_balance_pre {} - collateral_balance_post {} - spot_collateral_delta {}",
+            collateral_balance_pre,
+            collateral_balance_post,
+            spot_collateral_delta
+        );
 
-        // - [Find out how the best price and quantity for our order]
-        let exposure_delta_in_quote_lot = rebalancing_quote_amount
-            .checked_div(perp_info.quote_lot_size)
-            .unwrap();
-        let best_order = ctx
-            .accounts
-            .get_best_order_for_quote_lot_amount_from_order_book(
-                mango::matching::Side::Ask,
-                exposure_delta_in_quote_lot.to_num(),
-            )?;
-
-        // - [Checks that the best price found is within slippage range]
-        check_effective_order_price_versus_limit_price(&perp_info, &best_order, slippage)?;
-
-        // - [Place perp order CPI to Mango Market v3]
-        mango_program::place_perp_order(
+        // - 4 [Close `spot_collateral_delta` amount + checks] ---------------------
+        let perp_order_quantity = spot_collateral_delta
+            .checked_div(perp_info.base_lot_size)
+            .ok_or(math_err!())?
+            .to_num();
+        mango_program::place_perp_order_v2(
             ctx.accounts
                 .into_close_mango_short_perp_context()
                 .with_signer(depository_signer_seed),
-            best_order.price,
-            best_order.quantity,
+            limit_price_perp.to_num(),
+            perp_order_quantity,
+            0,
             0,
             mango::matching::Side::Bid,
             mango::matching::OrderType::ImmediateOrCancel,
@@ -228,16 +257,19 @@ pub fn handler(
         // - [Checks that the order was fully filled]
         let post_perp_order_base_lot_position = total_perp_base_lot_position(&post_pa)?;
         check_perp_order_fully_filled(
-            best_order.quantity,
+            perp_order_quantity,
             initial_base_position,
             post_perp_order_base_lot_position,
         )?;
-    }
 
-    // - 3 [] ------
-    // - [Update Accounting + verify global state of redeemable emitted / collateral size]
-    //
-    // TODO
+        // - [Update Accounting + verify global state of redeemable emitted / collateral size]
+        let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;
+        ctx.accounts.update_onchain_accounting(
+            order_delta.collateral,
+            order_delta.fee,
+            &perp_side,
+        )?;
+    }
 
     Ok(())
 
@@ -251,8 +283,8 @@ pub fn handler(
 impl<'info> RebalanceMangoDepository<'info> {
     pub fn into_close_mango_short_perp_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, mango_program::PlacePerpOrder<'info>> {
-        let cpi_accounts = mango_program::PlacePerpOrder {
+    ) -> CpiContext<'_, '_, '_, 'info, mango_program::PlacePerpOrderV2<'info>> {
+        let cpi_accounts = mango_program::PlacePerpOrderV2 {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
@@ -312,6 +344,19 @@ impl<'info> RebalanceMangoDepository<'info> {
         Ok(perp_info)
     }
 
+    // Return general information about the underlying SerumDex spot market related to the collateral in use
+    fn spot_info(&self) -> UxdResult<SpotInfo> {
+        let spot_info = SpotInfo::new(
+            &self.mango_group,
+            &self.mango_cache,
+            &self.spot_market,
+            self.mango_program.key,
+            self.serum_dex_program.key,
+        )?;
+        msg!("spot_info {:?}", spot_info);
+        Ok(spot_info)
+    }
+
     // Return the PerpAccount that represent the account balances (Quote and Taker, Taker is the part that is waiting settlement)
     fn perp_account(&self, perp_info: &PerpInfo) -> UxdResult<PerpAccount> {
         // - loads Mango's accounts
@@ -321,6 +366,39 @@ impl<'info> RebalanceMangoDepository<'info> {
             self.mango_group.key,
         )?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
+    }
+
+    // Return the collateral balance for the Depository Mango Account in native units
+    fn get_collateral_native_deposit(&self) -> UxdResult<I80F48> {
+        // - loads Mango's accounts
+        let mango_account = MangoAccount::load_checked(
+            &self.depository_mango_account,
+            self.mango_program.key,
+            self.mango_group.key,
+        )?;
+        let mango_group = MangoGroup::load_checked(&self.mango_group, &self.mango_program.key)?;
+        let token_index = mango_group
+            .find_root_bank_index(&self.base_root_bank.key)
+            .ok_or(throw_err!(UxdErrorCode::InvalidRootBank))?;
+        Ok(mango_account.deposits[token_index])
+    }
+
+    // Update the accounting in the Depository Account to reflect changes
+    fn update_onchain_accounting(
+        &mut self,
+        collateral_delta: u64,
+        fee_delta: u64,
+        rebalancing_side: &mango::matching::Side,
+    ) -> UxdResult {
+        let event = match rebalancing_side {
+            mango::matching::Side::Bid => AccountingEvent::Deposit,
+            mango::matching::Side::Ask => AccountingEvent::Withdraw,
+        };
+        self.depository
+            .update_collateral_amount_deposited(&event, collateral_delta)?;
+        self.depository
+            .update_total_amount_paid_taker_fee(fee_delta)?;
+        Ok(())
     }
 
     // fn resolve_unsettled_funding(&self, perp_account: &PerpAccount) -> UxdResult {
@@ -344,80 +422,6 @@ impl<'info> RebalanceMangoDepository<'info> {
     //     perp_account.settle_funding(&perp_market_cache);
 
     //     Ok(())
-    // }
-
-    // fn get_best_order_for_base_lot_quantity_from_order_book(
-    //     &self,
-    //     side: mango::matching::Side,
-    //     base_lot_amount: i64,
-    // ) -> UxdResult<Order> {
-    //     let perp_market = PerpMarket::load_checked(
-    //         &self.mango_perp_market,
-    //         self.mango_program.key,
-    //         self.mango_group.key,
-    //     )?;
-    //     let bids_ai = self.mango_bids.to_account_info();
-    //     let asks_ai = self.mango_asks.to_account_info();
-    //     let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
-    //     let best_order = get_best_order_for_base_lot_quantity(&book, side, base_lot_amount)?;
-
-    //     Ok(best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))?)
-    // }
-
-    fn get_best_order_for_quote_lot_amount_from_order_book(
-        &self,
-        side: mango::matching::Side,
-        quote_lot_amount: i64,
-    ) -> UxdResult<Order> {
-        // Load book
-        let perp_market = PerpMarket::load_checked(
-            &self.perp_market,
-            self.mango_program.key,
-            self.mango_group.key,
-        )?;
-        let bids_ai = self.perp_bids.to_account_info();
-        let asks_ai = self.perp_asks.to_account_info();
-        let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
-        let best_order = get_best_order_for_quote_lot_amount(&book, side, quote_lot_amount)?;
-
-        Ok(best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))?)
-    }
-
-    // fn get_best_price_and_quantity_for_quote_amount_from_order_book(
-    //     &self,
-    //     side: mango::matching::Side,
-    //     quote_amount: i64,
-    // ) -> UxdResult<Order> {
-    //     // Load book
-    //     let perp_market = match PerpMarket::load_checked(
-    //         &self.mango_perp_market,
-    //         self.mango_program.key,
-    //         self.mango_group.key,
-    //     ) {
-    //         Ok(it) => it,
-    //         Err(_err) => return Err(UxdErrorCode::MangoOrderBookLoading),
-    //     };
-    //     let bids_ai = self.mango_bids.to_account_info();
-    //     let asks_ai = self.mango_asks.to_account_info();
-    //     let book =
-    //         match Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market) {
-    //             Ok(it) => it,
-    //             Err(_err) => return Err(UxdErrorCode::MangoOrderBookLoading),
-    //         };
-    //     let best_order = get_best_order_for_quote_lot_amount(&book, side, quote_amount);
-
-    //     return match best_order {
-    //         Some(best_order) => {
-    //             msg!(
-    //                 "best_order: [quantity {} - price {} - size {}]",
-    //                 best_order.quantity,
-    //                 best_order.price,
-    //                 best_order.size
-    //             );
-    //             Ok(best_order)
-    //         }
-    //         None => Err(UxdErrorCode::InsuficentOrderBookDepth),
-    //     };
     // }
 }
 
