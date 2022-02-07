@@ -12,7 +12,7 @@ permissions:
   pull-requests: write
   
 env:
-  solana_version: 1.8.11
+  solana_version: 1.8.12
   anchor_version: 0.20.0
   cluster: "devnet"
   runner_wallet_path: "/home/runner/.config/solana/id.json"
