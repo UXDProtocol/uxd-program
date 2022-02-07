@@ -507,11 +507,6 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -1033,6 +1028,9 @@ export type Uxd = {
           },
           {
             "name": "InstructionMangoDexRebalanceMangoDepository"
+          },
+          {
+            "name": "MangoUtilsSpotInfo"
           }
         ]
       }
@@ -1150,6 +1148,15 @@ export type Uxd = {
           },
           {
             "name": "InvalidRebalancingAmount"
+          },
+          {
+            "name": "MangoSpotMarketIndexNotFound"
+          },
+          {
+            "name": "SerumDexSpotMarketNotFound"
+          },
+          {
+            "name": "InvalidRootBank"
           },
           {
             "name": "Default"
@@ -2022,11 +2029,6 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -2548,6 +2550,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "InstructionMangoDexRebalanceMangoDepository"
+          },
+          {
+            "name": "MangoUtilsSpotInfo"
           }
         ]
       }
@@ -2665,6 +2670,15 @@ export const IDL: Uxd = {
           },
           {
             "name": "InvalidRebalancingAmount"
+          },
+          {
+            "name": "MangoSpotMarketIndexNotFound"
+          },
+          {
+            "name": "SerumDexSpotMarketNotFound"
+          },
+          {
+            "name": "InvalidRootBank"
           },
           {
             "name": "Default"

@@ -34,6 +34,7 @@ pub enum SourceFileId {
     Lib = 21,
     SerumDexProgramAnchorSerumDex = 22,
     InstructionMangoDexRebalanceMangoDepository = 23,
+    MangoUtilsSpotInfo = 24,
 }
 
 impl std::fmt::Display for SourceFileId {
@@ -129,6 +130,9 @@ impl std::fmt::Display for SourceFileId {
                     "src/instructions/mango_dex/rebalance_mango_depository.rs"
                 )
             }
+            SourceFileId::MangoUtilsSpotInfo => {
+                write!(f, "src/mango_utils/spot_info.rs")
+            }
         }
     }
 }
@@ -199,6 +203,12 @@ pub enum UxdErrorCode {
     MathError,
     #[error("The rebalancing amount must be above 0.")]
     InvalidRebalancingAmount,
+    #[error("Could not find the spot market index for the given collateral.")]
+    MangoSpotMarketIndexNotFound,
+    #[error("Could not find the Serum spot market for the given collateral.")]
+    SerumDexSpotMarketNotFound,
+    #[error("The root bank account from Mango is invalid.")]
+    InvalidRootBank,
     #[error("MangoErrorCode::Default Check the source code for more info")]
     Default = u32::MAX,
 }
@@ -251,6 +261,13 @@ impl From<UxdError> for ProgramError {
 impl From<MangoError> for UxdError {
     fn from(me: MangoError) -> Self {
         let pe: ProgramError = me.into();
+        pe.into()
+    }
+}
+
+impl From<serum_dex::error::DexError> for UxdError {
+    fn from(de: serum_dex::error::DexError) -> Self {
+        let pe: ProgramError = de.into();
         pe.into()
     }
 }

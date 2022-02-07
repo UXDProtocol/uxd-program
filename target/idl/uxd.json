@@ -507,11 +507,6 @@
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -1033,6 +1028,9 @@
           },
           {
             "name": "InstructionMangoDexRebalanceMangoDepository"
+          },
+          {
+            "name": "MangoUtilsSpotInfo"
           }
         ]
       }
@@ -1150,6 +1148,15 @@
           },
           {
             "name": "InvalidRebalancingAmount"
+          },
+          {
+            "name": "MangoSpotMarketIndexNotFound"
+          },
+          {
+            "name": "SerumDexSpotMarketNotFound"
+          },
+          {
+            "name": "InvalidRootBank"
           },
           {
             "name": "Default"
@@ -1510,5 +1517,8 @@
       "name": "InvalidCollateralPassthroughATAMint",
       "msg": "The Collateral Passthrough ATA's mint does not match the Depository's one."
     }
-  ]
+  ],
+  "metadata": {
+    "address": "EEEcv7uxTw2PZqbXSMhNkPbGt7CrP35B7ZrcDSR9vtra"
+  }
 }

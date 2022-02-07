@@ -9,6 +9,15 @@ use mango::state::PerpAccount;
 
 declare_check_assert_macros!(SourceFileId::MangoUtilsPerpAccountUtils);
 
+// TODO investigate a replacement using this
+// /// Return base position on a perp market accounting for unprocessed fill events
+// pub fn get_complete_base_pos(
+//     &self,
+//     market_index: usize,
+//     event_queue: &EventQueue,
+//     mango_account_pk: &Pubkey,
+// ) -> MangoResult<i64> {
+
 // Return the base position + the amount that's on EventQueue waiting to be processed
 pub fn total_perp_base_lot_position(perp_account: &PerpAccount) -> UxdResult<i64> {
     Ok(perp_account
