@@ -61,7 +61,7 @@ jobs:
         run: |
           echo Running Soteria... 👾
           pwd
-          cd ${{ env.PROGRAM_PATH }}
+          cd ../${{ env.PROGRAM_PATH }}
           pwd
           soteria -analyzeAll .
         shell: bash
