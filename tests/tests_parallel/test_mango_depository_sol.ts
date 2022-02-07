@@ -1,20 +1,20 @@
 import { web3 } from "@project-serum/anchor";
 import { Keypair } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS } from "@uxdprotocol/uxd-client";
-import { authority, USDC, bank, WSOL, uxdProgramId } from "./constants";
-import { getProvider } from "./provider";
-import { MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
-import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
-import { getSolBalance } from "./utils";
+import { authority, USDC, bank, WSOL, uxdProgramId } from "../constants";
+import { getProvider } from "../provider";
+import { mangoDepositoryInsuranceSuite } from "../suite/mangoDepositoryInsuranceSuite";
+import { mangoDepositoryMintRedeemSuite } from "../suite/mangoDepositoryMintRedeemSuite";
+import { mangoDepositorySetupSuite } from "../suite/mangoDepositorySetupSuite";
+import { getSolBalance } from "../utils";
 
-const depositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
-const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
+describe("SOL Depositories tests", () => {
+    const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
+    const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
+    const user = new Keypair();
 
-const user = new Keypair();
+    console.log("parallel depositories SOL test USER =>", user.publicKey.toString());
 
-console.log("USER =>", user.publicKey.toString());
-
-describe("SOL Mint/Redeem tests", () => {
     before("Transfer 20 sol from bank to test user", async () => {
         const transaction = new web3.Transaction().add(
             web3.SystemProgram.transfer({
@@ -28,12 +28,11 @@ describe("SOL Mint/Redeem tests", () => {
         ]);
     });
 
-    const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20, 1_000);
-    mangoDepositoryMintRedeemSuite(authority, user, controllerUXD, depositorySOL, params);
+    mangoDepositorySetupSuite(authority, controllerUXD, mangoDepositorySOL, 1_000);
+    mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositorySOL);
+    mangoDepositoryMintRedeemSuite(user, controllerUXD, mangoDepositorySOL, 20);
 
-    // Add program close
-
-    after("Return remaining balance to the bank", async () => {
+    after("Return remaining SOL balance to the bank", async () => {
         const userBalance = await getSolBalance(user.publicKey);
         const transaction = new web3.Transaction().add(
             web3.SystemProgram.transfer({

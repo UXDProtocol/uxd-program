@@ -20,9 +20,6 @@ export const withdrawInsuranceMangoDepositoryTest = async (amount: number, autho
         const insuranceDepositedAmount_post = (await getMangoDepositoryAccount(depository)).insuranceAmountDeposited.div(new BN(10 ** depository.insuranceMintDecimals));
         const expectedAmount = insuranceDepositedAmount - amount;
 
-        // Need the crank to run for update
-        await sleep(mangoCrankInterval);
-
         // Check that the accounting match the actual balances - TODO
         // Check onchain accounting -- Only that for now cause need to refine how to fetch mango account data
 

@@ -12,18 +12,5 @@ uxd = "5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL"
 url = "https://anchor.projectserum.com"
 
 [scripts]
-test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_all.ts"
-
-# Integration tests for SOL collateral
-# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_sol.ts"
-
-# Integration tests for BTC collateral only
-# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_btc.ts"
-
-## UTILS - fragment of logic for testing during development
-
-# Setup a Controller + Depository (SOL) and deposit 100 USDC insurance
-# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/util_setup_controller_depository_sol.ts"
-
-# Mint and Redeem tests for SOL collateral
-# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/util_mint_redeem_sol.ts"
+# default for CI speed, output is scrambled, see generated test report in that case (run concurrently on SOL/BTC/ETH)
+test = "./scripts/run_integration_tests.sh"

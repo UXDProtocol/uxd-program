@@ -43,7 +43,7 @@ export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, sl
         // So for now, until we implement a separate payer/user for mint and redeem, don't use tiny amounts for test where the 0.00203928 
         // could create a fail positive for wrong slippage
         const collateralDelta = userCollateralBalance_post - userCollateralBalance;
-        const mangoTakerFee = await uxdHelpers.getMangoTakerFeeForPerp(depository, mango);
+        const mangoTakerFee = uxdHelpers.getMangoTakerFeeForPerp(depository, mango);
         const maxTakerFee = mangoTakerFee.toNumber() * redeemableAmount;
         // The amount of UXD that couldn't be redeemed due to odd lot size
         const unprocessedRedeemable = redeemableAmount - redeemableDelta;

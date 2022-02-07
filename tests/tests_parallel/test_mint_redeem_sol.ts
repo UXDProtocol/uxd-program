@@ -1,19 +1,18 @@
 import { web3 } from "@project-serum/anchor";
 import { Keypair } from "@solana/web3.js";
-import { BTC_DECIMALS, Controller, MangoDepository, USDC_DECIMALS, UXD_DECIMALS } from "@uxdprotocol/uxd-client";
-import { authority, USDC, bank, uxdProgramId, BTC } from "./constants";
-import { getProvider } from "./provider";
-import { mangoDepositoryIntegrationSuite, MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
-import { getSolBalance } from "./utils";
+import { Controller, createAndInitializeMango, Mango, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS } from "@uxdprotocol/uxd-client";
+import { USDC, bank, WSOL, uxdProgramId, CLUSTER } from "../constants";
+import { getProvider } from "../provider";
+import { mangoDepositoryMintRedeemSuite } from "../suite/mangoDepositoryMintRedeemSuite";
+import { getSolBalance } from "../utils";
 
-const depositoryBTC = new MangoDepository(BTC, "BTC", BTC_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
-const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
+describe("SOL Mint/Redeem tests", () => {
+    const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
+    const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
+    const user = new Keypair();
 
-const user = new Keypair();
+    console.log("Concurrent SOL mint/redeem USER =>", user.publicKey.toString());
 
-console.log("USER =>", user.publicKey.toString());
-
-describe("BTC integration tests", () => {
     before("Transfer 20 sol from bank to test user", async () => {
         const transaction = new web3.Transaction().add(
             web3.SystemProgram.transfer({
@@ -27,10 +26,7 @@ describe("BTC integration tests", () => {
         ]);
     });
 
-    const params = new MangoDepositoryTestSuiteParameters(3_000_000, 30_000, 1_000_000, 60_000, 20, 100_000);
-    mangoDepositoryIntegrationSuite(authority, user, controllerUXD, depositoryBTC, params);
-
-    // TODO: Add program close
+    mangoDepositoryMintRedeemSuite(user, controllerUXD, mangoDepositorySOL, 20);
 
     after("Return remaining balance to the bank", async () => {
         const userBalance = await getSolBalance(user.publicKey);

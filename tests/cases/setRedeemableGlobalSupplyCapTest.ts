@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { getControllerAccount, setRedeemableGlobalSupplyCap } from "../api";
 import { CLUSTER } from "../constants";
 
-export const setRedeemableGlobalSupplyCapTest = async (supplyCapAmount: number, authority: Signer, controller: Controller) => {
+export const setRedeemableGlobalSupplyCapTest = async (authority: Signer, controller: Controller, supplyCapAmount: number) => {
     console.group("🧭 setRedeemableGlobalSupplyCapTest");
     try {
         // GIVEN
