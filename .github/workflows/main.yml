@@ -12,11 +12,13 @@ permissions:
   pull-requests: write
   
 env:
-  solana_version: 1.8.11
+  solana_version: 1.8.12
   anchor_version: 0.20.0
   cluster: "devnet"
   runner_wallet_path: "/home/runner/.config/solana/id.json"
-  mango_account_mm: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
+  mango_account_mm_sol: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
+  mango_account_mm_btc: "4Tw2AjjEXSWvFC9CCm88yhswRGgJokxiQnJDtVnVctTc"
+  mango_account_mm_eth: "Bnutxi4RpfduHSuQ2ZtDAEb4GegU3X1gmWZhQpe1YMts"
   NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
   DEVNET_FAUCET: "9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g"
 
@@ -121,9 +123,9 @@ jobs:
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
           yarn install
           GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} yarn keeper &
-          GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} MANGO_ACCOUNT_PUBKEY=${{ env.mango_account_mm }} MARKET=SOL yarn mm &
-          GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} MANGO_ACCOUNT_PUBKEY=${{ env.mango_account_mm }} MARKET=BTC yarn mm &
-          GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} MANGO_ACCOUNT_PUBKEY=${{ env.mango_account_mm }} MARKET=ETH yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} MANGO_ACCOUNT_PUBKEY=${{ env.mango_account_mm_sol }} MARKET=SOL yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} MANGO_ACCOUNT_PUBKEY=${{ env.mango_account_mm_btc }} MARKET=BTC yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.cluster }} KEYPAIR=${{ env.runner_wallet_path }} MANGO_ACCOUNT_PUBKEY=${{ env.mango_account_mm_eth }} MARKET=ETH yarn mm &
           cd -
 
       - name: Create NPMRC
