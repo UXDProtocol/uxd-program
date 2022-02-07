@@ -12,7 +12,7 @@ use solana_program::pubkey::Pubkey;
 use super::anchor_mango::check_program_account;
 
 #[derive(Accounts)]
-pub struct PlacePerpOrder<'info> {
+pub struct PlacePerpOrderV2<'info> {
     pub mango_group: AccountInfo<'info>,
     pub mango_account: AccountInfo<'info>,
     pub owner: AccountInfo<'info>,
@@ -85,7 +85,7 @@ fn place_perp_order_v2_instruction(
 }
 
 pub fn place_perp_order_v2<'info>(
-    ctx: CpiContext<'_, '_, '_, 'info, PlacePerpOrder<'info>>,
+    ctx: CpiContext<'_, '_, '_, 'info, PlacePerpOrderV2<'info>>,
     limit_price: i64,
     max_base_quantity: i64,
     max_quote_quantity: i64,
