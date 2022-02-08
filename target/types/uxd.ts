@@ -781,9 +781,7 @@ export type Uxd = {
           },
           {
             "name": "reserved",
-            "type": {
-              "defined": "ControllerPadding"
-            }
+            "type": "u8"
           },
           {
             "name": "registeredZoDepositories",
@@ -797,6 +795,12 @@ export type Uxd = {
           {
             "name": "registeredZoDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "reserved1",
+            "type": {
+              "defined": "ControllerPadding"
+            }
           }
         ]
       }
@@ -2339,9 +2343,7 @@ export const IDL: Uxd = {
           },
           {
             "name": "reserved",
-            "type": {
-              "defined": "ControllerPadding"
-            }
+            "type": "u8"
           },
           {
             "name": "registeredZoDepositories",
@@ -2355,6 +2357,12 @@ export const IDL: Uxd = {
           {
             "name": "registeredZoDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "reserved1",
+            "type": {
+              "defined": "ControllerPadding"
+            }
           }
         ]
       }

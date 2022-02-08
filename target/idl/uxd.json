@@ -781,9 +781,7 @@
           },
           {
             "name": "reserved",
-            "type": {
-              "defined": "ControllerPadding"
-            }
+            "type": "u8"
           },
           {
             "name": "registeredZoDepositories",
@@ -797,6 +795,12 @@
           {
             "name": "registeredZoDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "reserved1",
+            "type": {
+              "defined": "ControllerPadding"
+            }
           }
         ]
       }
@@ -1553,8 +1557,5 @@
       "name": "InvalidCollateralPassthroughATAMint",
       "msg": "The Collateral Passthrough ATA's mint does not match the Depository's one."
     }
-  ],
-  "metadata": {
-    "address": "6SnSAn4kTs45uR361bfPZCZX5w3AorM1gJAXpqJqGyoJ"
-  }
+  ]
 }
