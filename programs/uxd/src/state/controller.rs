@@ -45,14 +45,15 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
     //
-    pub _reserved: ControllerPadding,
+    pub _reserved: u8,
     // The ZO Depositories registered with this Controller
     pub registered_zo_depositories: [Pubkey; 8], //  - IDL bug with constant, so hard 8 literal. -- Still not working in 0.20.0 although it should
     pub registered_zo_depositories_count: u8,
+    pub _reserved1: ControllerPadding,
 }
 
 #[derive(Clone)]
-pub struct ControllerPadding([u8; 255]);
+pub struct ControllerPadding([u8; 254]);
 
 impl AnchorSerialize for ControllerPadding {
     fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
@@ -62,13 +63,13 @@ impl AnchorSerialize for ControllerPadding {
 
 impl AnchorDeserialize for ControllerPadding {
     fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
-        Ok(Self([0u8; 255]))
+        Ok(Self([0u8; 254]))
     }
 }
 
 impl Default for ControllerPadding {
     fn default() -> Self {
-        ControllerPadding { 0: [0u8; 255] }
+        ControllerPadding { 0: [0u8; 254] }
     }
 }
 
