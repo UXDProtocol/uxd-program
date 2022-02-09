@@ -53,7 +53,6 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
-        mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.bump,
         has_one = controller @UxdIdlErrorCode::InvalidController,

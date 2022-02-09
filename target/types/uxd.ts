@@ -271,7 +271,7 @@ export type Uxd = {
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -357,7 +357,7 @@ export type Uxd = {
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -463,7 +463,7 @@ export type Uxd = {
         },
         {
           "name": "depository",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2078,7 +2078,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2164,7 +2164,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2270,7 +2270,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "depository",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {

@@ -25,7 +25,6 @@ declare_check_assert_macros!(SourceFileId::InstructionMangoDexDepositInsuranceTo
 pub struct DepositInsuranceToMangoDepository<'info> {
     pub authority: Signer<'info>,
     #[account(
-        mut,
         seeds = [CONTROLLER_NAMESPACE], 
         bump = controller.bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,

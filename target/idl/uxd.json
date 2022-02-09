@@ -271,7 +271,7 @@
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -357,7 +357,7 @@
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -463,7 +463,7 @@
         },
         {
           "name": "depository",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
