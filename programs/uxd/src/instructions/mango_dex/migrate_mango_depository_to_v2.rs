@@ -21,7 +21,6 @@ pub struct MigrateMangoDepositoryToV2<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(
-        mut,
         seeds = [CONTROLLER_NAMESPACE], 
         bump = controller.bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
