@@ -117,7 +117,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     #[account(mut)]
     pub mango_node_bank_quote: AccountInfo<'info>,
     #[account(mut)]
-    pub mango_vault_quote: Account<'info, TokenAccount>,
+    pub mango_vault_quote: AccountInfo<'info>,
     pub mango_root_bank_collateral: AccountInfo<'info>,
     #[account(mut)]
     pub mango_node_bank_collateral: AccountInfo<'info>,
