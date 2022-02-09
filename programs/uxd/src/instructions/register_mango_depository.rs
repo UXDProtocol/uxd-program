@@ -30,7 +30,6 @@ const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 )]
 pub struct RegisterMangoDepository<'info> {
     pub authority: Signer<'info>,
-    // In order to use with governance program, as the PDA cannot be the payer in nested TX.
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(
@@ -58,7 +57,7 @@ pub struct RegisterMangoDepository<'info> {
         token::authority = depository,
         payer = payer,
     )]
-    pub depository_collateral_passthrough_account: Account<'info, TokenAccount>,
+    pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
         init,
         seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
@@ -67,7 +66,7 @@ pub struct RegisterMangoDepository<'info> {
         token::authority = depository,
         payer = payer,
     )]
-    pub depository_insurance_passthrough_account: Account<'info, TokenAccount>,
+    pub depository_insurance_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
         init,
         seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
@@ -76,7 +75,7 @@ pub struct RegisterMangoDepository<'info> {
         token::authority = depository,
         payer = payer,
     )]
-    pub depository_quote_passthrough_account: Account<'info, TokenAccount>,
+    pub depository_quote_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
         init,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],

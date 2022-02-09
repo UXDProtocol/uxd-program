@@ -15,7 +15,7 @@ pub mod mango_utils;
 pub mod state;
 
 // This might change for local testing and then be pushed, but the stopped version for 
-// public devnet should be `5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL`.
+// public devnet should be `5rYjdoWQcbGSes3G4frkLA 6oLxFmtUagn8xc1fvSATYL`. (keep space to prevent sed)
 #[cfg(feature = "development")]
 solana_program::declare_id!("5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL");
 #[cfg(feature = "production")]
