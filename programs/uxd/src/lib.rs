@@ -14,6 +14,8 @@ pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
 
+// This might change for local testing and then be pushed, but the stopped version for 
+// public devnet should be `5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL`.
 #[cfg(feature = "development")]
 solana_program::declare_id!("5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL");
 #[cfg(feature = "production")]
@@ -21,7 +23,7 @@ solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
 // Version used for accounts structure and future migrations
 pub const MANGO_DEPOSITORY_ACCOUNT_VERSION: u8 = 2;
-pub const CONTROLLER_ACCOUNT_VESRION: u8 = 1;
+pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
 pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";

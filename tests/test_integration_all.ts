@@ -1,22 +1,38 @@
 import { web3 } from "@project-serum/anchor";
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Keypair } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS } from "@uxdprotocol/uxd-client";
-import { authority, USDC, bank, WSOL, uxdProgramId, BTC, ETH } from "./constants";
+import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxdprotocol/uxd-client";
+import { authority, bank, uxdProgramId } from "./constants";
 import { getProvider } from "./provider";
 import { mangoDepositoryIntegrationSuite, MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
+import { migrationsSuite } from "./suite/migrationsSuite";
 import { getBalance, getSolBalance } from "./utils";
 
-const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
-const mangoDepositoryBTC = new MangoDepository(BTC, "BTC", BTC_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
-const mangoDepositoryETH = new MangoDepository(ETH, "ETH", ETH_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
+// Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
+const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 const user = new Keypair();
 
 console.log("USER =>", user.publicKey.toString());
 
+describe("Migrations", () => {
+
+    beforeEach("\n", () => { console.log("=============================================\n\n") });
+    
+    migrationsSuite(authority, controllerUXD, mangoDepositorySOL);
+
+    // Keep two unmigrated
+    // migrationsSuite(authority, controllerUXD, mangoDepositoryBTC);
+
+    // migrationsSuite(authority, controllerUXD, mangoDepositoryETH);
+
+});
+
 describe("Full Integration tests", () => {
+
     before("Transfer 20 SOL from bank to test user", async () => {
         const transaction = new web3.Transaction().add(
             web3.SystemProgram.transfer({
@@ -31,7 +47,7 @@ describe("Full Integration tests", () => {
     });
 
     before("Transfer 20 BTC from bank to test user", async () => {
-        const btcToken = new Token(getProvider().connection, BTC, TOKEN_PROGRAM_ID, bank);
+        const btcToken = new Token(getProvider().connection, BTC_DEVNET, TOKEN_PROGRAM_ID, bank);
         const sender = await btcToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
         const receiver = await btcToken.getOrCreateAssociatedAccountInfo(user.publicKey);
         const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, bank.publicKey, [], 20 * 10 ** BTC_DECIMALS);
@@ -42,7 +58,7 @@ describe("Full Integration tests", () => {
     });
 
     before("Transfer 20 ETH from bank to test user", async () => {
-        const ethToken = new Token(getProvider().connection, ETH, TOKEN_PROGRAM_ID, bank);
+        const ethToken = new Token(getProvider().connection, ETH_DEVNET, TOKEN_PROGRAM_ID, bank);
         const sender = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
         const receiver = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);
         const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, bank.publicKey, [], 20 * 10 ** ETH_DECIMALS);
@@ -83,7 +99,7 @@ describe("Full Integration tests", () => {
     });
 
     after("Return remaining BTC balance to the bank", async () => {
-        const btcToken = new Token(getProvider().connection, BTC, TOKEN_PROGRAM_ID, bank);
+        const btcToken = new Token(getProvider().connection, BTC_DEVNET, TOKEN_PROGRAM_ID, bank);
         const sender = await btcToken.getOrCreateAssociatedAccountInfo(user.publicKey);
         const receiver = await btcToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
         const amount = await getBalance(sender.address);
@@ -95,7 +111,7 @@ describe("Full Integration tests", () => {
     });
 
     after("Return remaining ETH balance to the bank", async () => {
-        const ethToken = new Token(getProvider().connection, ETH, TOKEN_PROGRAM_ID, bank);
+        const ethToken = new Token(getProvider().connection, ETH_DEVNET, TOKEN_PROGRAM_ID, bank);
         const sender = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);
         const receiver = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
         const amount = await getBalance(sender.address);

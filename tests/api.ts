@@ -82,6 +82,17 @@ export async function registerMangoDepository(authority: Signer, controller: Con
     return web3.sendAndConfirmTransaction(getProvider().connection, tx, signers, TXN_OPTS);
 }
 
+export async function migrateMangoDepositoryToV2(authority: Signer, controller: Controller, depository: MangoDepository): Promise<string> {
+    const migrateMangoDepositoryToV2Ix = uxdClient.createMigrateMangoDepositoryToV2Instruction(controller, depository, authority.publicKey, TXN_OPTS);
+    let signers = [];
+    let tx = new Transaction();
+
+    tx.instructions.push(migrateMangoDepositoryToV2Ix);
+    signers.push(authority);
+
+    return web3.sendAndConfirmTransaction(getProvider().connection, tx, signers, TXN_OPTS);
+}
+
 export async function depositInsuranceToMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const depositInsuranceToMangoDepositoryIx = uxdClient.createDepositInsuranceToMangoDepositoryInstruction(amount, controller, depository, mango, authority.publicKey, TXN_OPTS);
     let signers = [];

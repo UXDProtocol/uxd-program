@@ -1,5 +1,5 @@
 import { Keypair, PublicKey, Signer } from "@solana/web3.js";
-import { UXD, UXDHelpers, USDC_DECIMALS } from "@uxdprotocol/uxd-client";
+import { UXDHelpers, USDC_DECIMALS, UXDClient } from "@uxdprotocol/uxd-client";
 import * as jsonIdl from "../target/idl/uxd.json";
 
 // TESTING wallets for convenience (The user and admin). To remove when going open source
@@ -28,23 +28,12 @@ export const bank: Signer = bankKeypair;
 console.log(`BANK KEY => ${bank.publicKey}`);
 
 // Get this from anchor.toml TODO
-export const CLUSTER = 'devnet'; // "mainnet"
-
-// Swap these depending of CLUSTER TODO
-export const WSOL = new PublicKey("So11111111111111111111111111111111111111112");
-// Devnet
-export const USDC = new PublicKey("8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN");
-export const BTC = new PublicKey("3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU");
-export const ETH = new PublicKey("Cu84KB3tDL6SbFgToHMLYVDJJXdJjenNzSKikeAvzmkA");
-
-// Mainnet 
-// export const USDC = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-// export const BTC = new PublicKey("9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E");
+export const CLUSTER = 'devnet';
 
 // ----------------------------------------------------------------------------
 export const uxdProgramId: PublicKey = new PublicKey(jsonIdl["metadata"]["address"]);
 console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
-export const uxdClient = new UXD(uxdProgramId);
+export const uxdClient = new UXDClient(uxdProgramId);
 export const uxdHelpers = new UXDHelpers();
 
 export const mangoCrankInterval = 3000; // In milliseconds - Run KEEPER else useless - ~1000 on mainnet

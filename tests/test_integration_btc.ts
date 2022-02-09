@@ -1,12 +1,12 @@
 import { web3 } from "@project-serum/anchor";
 import { Keypair } from "@solana/web3.js";
 import { BTC_DECIMALS, Controller, MangoDepository, USDC_DECIMALS, UXD_DECIMALS } from "@uxdprotocol/uxd-client";
-import { authority, USDC, bank, uxdProgramId, BTC } from "./constants";
+import { authority, USDC_DEVNET, bank, uxdProgramId, BTC_DEVNET } from "./constants";
 import { getProvider } from "./provider";
 import { mangoDepositoryIntegrationSuite, MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
 import { getSolBalance } from "./utils";
 
-const depositoryBTC = new MangoDepository(BTC, "BTC", BTC_DECIMALS, USDC, "USDC", USDC_DECIMALS, uxdProgramId);
+const depositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 const user = new Keypair();

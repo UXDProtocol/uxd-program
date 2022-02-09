@@ -3,7 +3,7 @@ use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdErrorCode;
 use crate::error::UxdIdlErrorCode;
-// use crate::events::RedeemFromMangoDepositoryEvent;
+use crate::events::RedeemFromMangoDepositoryEvent;
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
@@ -17,12 +17,12 @@ use crate::Controller;
 use crate::MangoDepository;
 use crate::UxdError;
 use crate::UxdResult;
-use crate::SLIPPAGE_BASIS;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
+use crate::SLIPPAGE_BASIS;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
@@ -246,18 +246,17 @@ pub fn handler(
         order_delta.fee,
     )?;
 
-    // Commented as there is computing budget issues for now (this costs around 4k)
-    // emit!(RedeemFromMangoDepositoryEvent {
-    //     version: ctx.accounts.controller.version,
-    //     controller: ctx.accounts.controller.key(),
-    //     depository: ctx.accounts.depository.key(),
-    //     user: ctx.accounts.user.key(),
-    //     redeemable_amount,
-    //     slippage,
-    //     collateral_delta: order_delta.collateral,
-    //     redeemable_delta,
-    //     fee_delta: order_delta.fee,
-    // });
+    emit!(RedeemFromMangoDepositoryEvent {
+        version: ctx.accounts.controller.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        redeemable_amount,
+        slippage,
+        collateral_delta: order_delta.collateral,
+        redeemable_delta,
+        fee_delta: order_delta.fee,
+    });
 
     Ok(())
 }
@@ -410,11 +409,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
 
 // Validate
 impl<'info> RedeemFromMangoDepository<'info> {
-    pub fn validate(
-        &self,
-        redeemable_amount: u64,
-        slippage: u32,
-    ) -> ProgramResult {
+    pub fn validate(&self, redeemable_amount: u64, slippage: u32) -> ProgramResult {
         // Valid slippage check
         check!(slippage <= SLIPPAGE_BASIS, UxdErrorCode::InvalidSlippage)?;
 

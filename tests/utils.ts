@@ -1,7 +1,6 @@
-import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller, nativeI80F48ToUi, nativeToUi } from "@uxdprotocol/uxd-client";
 import { PublicKey } from "@solana/web3.js";
 import { MANGO_QUOTE_DECIMALS, uxdHelpers } from "./constants";
-import { nativeI80F48ToUi, nativeToUi } from "@blockworks-foundation/mango-client";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getProvider, TXN_COMMIT, TXN_OPTS } from "./provider";
