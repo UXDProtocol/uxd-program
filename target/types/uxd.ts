@@ -1801,6 +1801,11 @@ export type Uxd = {
       "code": 6014,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
+    },
+    {
+      "code": 6015,
+      "name": "UnsupportedDepositoryVersion",
+      "msg": "The instruction doesn't support this version of the Depository. Migrate first."
     }
   ]
 };
@@ -3608,6 +3613,11 @@ export const IDL: Uxd = {
       "code": 6014,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
+    },
+    {
+      "code": 6015,
+      "name": "UnsupportedDepositoryVersion",
+      "msg": "The instruction doesn't support this version of the Depository. Migrate first."
     }
   ]
 };

@@ -141,6 +141,7 @@ pub enum UxdError {
     },
 }
 
+// GENERIC PROGRAM ERRORS
 #[derive(Debug, Error, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
 #[repr(u32)]
 pub enum UxdErrorCode {
@@ -205,6 +206,7 @@ pub enum UxdErrorCode {
     Default = u32::MAX,
 }
 
+// ANCHOR IDL ERRORS
 #[error(offset = 200)]
 pub enum UxdIdlErrorCode {
     #[msg("Only the Program initializer authority can access this instructions.")]
@@ -243,6 +245,8 @@ pub enum UxdIdlErrorCode {
     // InvalidUserQuoteAtaMint,
     #[msg("The provided quote mint does not match the depository's quote mint.")]
     InvalidQuoteMint,
+    #[msg("The instruction doesn't support this version of the Depository. Migrate first.")]
+    UnsupportedDepositoryVersion
 }
 
 impl From<UxdError> for ProgramError {

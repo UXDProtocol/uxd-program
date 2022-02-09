@@ -52,7 +52,7 @@ pub struct MangoDepository {
     // This information is shared by all the Depositories, and as such would have been a good
     // candidate for the Controller, but we will lack space in the controller sooner than here.
     //
-    // v3 -82 bytes
+    // v2 -82 bytes
     pub quote_passthrough_bump: u8,
     pub quote_mint: Pubkey,
     pub quote_passthrough: Pubkey,
