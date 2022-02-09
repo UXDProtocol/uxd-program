@@ -1,6 +1,6 @@
 [package]
 name = "uxd"
-version = "2.1.0"
+version = "3.0.0"
 authors = ["acammm <alexcamill@gmail.com>"]
 description = "UXDProtocol Program, managing a redeemable mint backed by a delta neutral position."
 edition = "2021"
@@ -23,7 +23,7 @@ development = []
 anchor-lang = "0.20.1"
 anchor-spl = "0.20.1"
 solana-program = "1.8.12"
-spl-token = "3.2.0"
+spl-token = "3.3.0"
 fixed = "1.9.0"
 thiserror = "1.0.30"
 num_enum = "0.5.6"

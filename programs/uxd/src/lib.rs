@@ -20,12 +20,14 @@ solana_program::declare_id!("5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL");
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
 // Version used for accounts structure and future migrations
-pub const PROGRAM_VERSION: u8 = 1;
+pub const MANGO_DEPOSITORY_ACCOUNT_VERSION: u8 = 2;
+pub const CONTROLLER_ACCOUNT_VESRION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
 pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
 pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"COLLATERALPASSTHROUGH";
 pub const INSURANCE_PASSTHROUGH_NAMESPACE: &[u8] = b"INSURANCEPASSTHROUGH";
+pub const QUOTE_PASSTHROUGH_NAMESPACE: &[u8] = b"QUOTEPASSTHROUGH";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
@@ -106,15 +108,15 @@ pub mod uxd {
     }
 
     // Create and Register a new `MangoDepository` to the `Controller`.
-    // Each `Depository` account manages a specific collateral mint.
-    // A `Depository` account owns a `collateral_passthrough` PDA as the owner of the mango account and
-    //   the token account must be the same so we can't move fund directly from the use to Mango.
-    // A `Depository` account own a `mango_account` PDA to deposit, withdraw, and open orders on Mango Market.
+    // Each `MangoDepository` account manages a specific collateral mint.
+    // A `MangoDepository` account owns a `mango_account` PDA to deposit, withdraw, and open orders on Mango Market.
+    // Several passthrough accounts are required in order to transaction with the `mango_account`.
     pub fn register_mango_depository(
         ctx: Context<RegisterMangoDepository>,
         bump: u8,
         collateral_passthrough_bump: u8,
         insurance_passthrough_bump: u8,
+        quote_passthrough_bump: u8,
         mango_account_bump: u8,
     ) -> ProgramResult {
         msg!("[register_mango_depository]");
@@ -123,12 +125,26 @@ pub mod uxd {
             bump,
             collateral_passthrough_bump,
             insurance_passthrough_bump,
+            quote_passthrough_bump,
             mango_account_bump,
         )
         .map_err(|e| {
             msg!("<*> {}", e); // log the error
             e.into() // convert UxdError to generic ProgramError
         })
+    }
+
+    pub fn migrate_mango_depository_to_v2(
+        ctx: Context<MigrateMangoDepositoryToV2>,
+        quote_passthrough_bump: u8,
+    ) -> ProgramResult {
+        msg!("[migrate_mango_depository_to_v2]");
+        instructions::migrate_mango_depository_to_v2::handler(ctx, quote_passthrough_bump).map_err(
+            |e| {
+                msg!("<*> {}", e); // log the error
+                e.into() // convert UxdError to generic ProgramError
+            },
+        )
     }
 
     #[access_control(ctx.accounts.validate(insurance_amount))]
@@ -159,27 +175,25 @@ pub mod uxd {
             })
     }
 
-    // WIP on branch : feature/rebalancing
-    // This is intended to be in the later version of UXD - At release we will cap the UXD supply and secure with the insurance fund.
-    //
-    // Currently on hold due to solana account limit per transaction
-    // https://docs.solana.com/proposals/transactions-v2#other-proposals
-    // Program will remain hard capped in term of redeemable until this is implemented.
-    // This will allow to prevent liquidation thanks to the repurposed insurance fund in the meantime.
-    //
-    // Reduce or increase the delta neutral position size to account for it's current PnL.
-    // Update accounting, check accounting.
-    // #[access_control(
-    //     valid_slippage(slippage)
-    //     check_max_rebalancing_amount_constraints(max_rebalancing_amount)
-    // )]
-    // pub fn rebalance_mango_depository(
-    //     ctx: Context<RebalanceMangoDepository>,
-    //     max_rebalancing_amount: u64,
-    //     slippage: u32,
-    // ) -> ProgramResult {
-    //     instructions::rebalance_mango_depository::handler(ctx, max_rebalancing_amount, slippage)
-    // }
+    #[access_control(ctx.accounts.validate(max_rebalancing_amount, &polarity, slippage))]
+    pub fn rebalance_mango_depository_lite(
+        ctx: Context<RebalanceMangoDepositoryLite>,
+        max_rebalancing_amount: u64,
+        polarity: PnlPolarity,
+        slippage: u32,
+    ) -> ProgramResult {
+        msg!("[rebalance_mango_depository_lite]");
+        instructions::rebalance_mango_depository_lite::handler(
+            ctx,
+            max_rebalancing_amount,
+            &polarity,
+            slippage,
+        )
+        .map_err(|e| {
+            msg!("<*> {}", e); // log the error
+            e.into() // convert UxdError to generic ProgramError
+        })
+    }
 
     // Mint Redeemable tokens by depositing Collateral to mango and opening the equivalent short perp position.
     // Callers pays taker_fees, that are deducted from the returned redeemable tokens (and part of the delta neutral position)
