@@ -30,6 +30,8 @@ pub struct MigrateMangoDepositoryToV2<'info> {
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.key().as_ref()],
         bump = depository.bump,
+        has_one = controller @UxdIdlErrorCode::InvalidController,
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
     pub quote_mint: Box<Account<'info, Mint>>,
