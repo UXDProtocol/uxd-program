@@ -56,6 +56,6 @@ jobs:
       - name: Run Soteria
         run: |
           echo Running Soteria... 👾
-          cd ${{ env.PROGRAM_PATH }}
+
           soteria -analyzeAll .
         shell: bash
