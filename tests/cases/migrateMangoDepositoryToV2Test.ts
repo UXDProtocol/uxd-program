@@ -5,7 +5,7 @@ import { migrateMangoDepositoryToV2 } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection, TXN_OPTS } from "../provider";
 
-export const migrateMangoDepositoryToV2Test = async (authority: Signer, controller: Controller, depository: MangoDepository) => {
+export const migrateMangoDepositoryToV2Test = async (authority: Signer, controller: Controller, depository: MangoDepository, payer?: Signer) => {
     const connection = getConnection();
     const options = TXN_OPTS;
 
@@ -18,7 +18,7 @@ export const migrateMangoDepositoryToV2Test = async (authority: Signer, controll
             if (depositoryOnchainAccount.version != 1) {
                 console.log("🚧 Already migrated.");
             } else {
-                const txId = await migrateMangoDepositoryToV2(authority, controller, depository);
+                const txId = await migrateMangoDepositoryToV2(authority, payer ?? authority, controller, depository);
                 console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
             }
 

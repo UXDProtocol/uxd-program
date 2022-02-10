@@ -2,9 +2,8 @@ import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, Mango, nativeToUi } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { withdrawInsuranceFromMangoDepository } from "../api";
-import { CLUSTER, mangoCrankInterval } from "../constants";
+import { CLUSTER } from "../constants";
 import { getConnection, TXN_OPTS } from "../provider";
-import { sleep } from "../utils";
 
 export const withdrawInsuranceMangoDepositoryTest = async (amount: number, authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango) => {
     const connection = getConnection();
@@ -25,9 +24,6 @@ export const withdrawInsuranceMangoDepositoryTest = async (amount: number, autho
         const depositoryOnchainAccount_post = await depository.getOnchainAccount(connection, options);
         const insuranceDepositedAmount_post = nativeToUi(depositoryOnchainAccount_post.insuranceAmountDeposited.toNumber(), depository.insuranceMintDecimals);
         const expectedAmount = insuranceDepositedAmount - amount;
-
-        // Need the crank to run for update
-        await sleep(mangoCrankInterval);
 
         // Check that the accounting match the actual balances - TODO
         // Check onchain accounting -- Only that for now cause need to refine how to fetch mango account data
