@@ -1,7 +1,7 @@
 import { web3 } from "@project-serum/anchor";
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Keypair } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxdprotocol/uxd-client";
+import { uiToNative, Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
 import { getConnection } from "./provider";
 import { mangoDepositoryIntegrationSuite, MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
@@ -17,19 +17,22 @@ const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 const user = new Keypair();
 
 console.log("USER =>", user.publicKey.toString());
+console.log(`SOL 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositorySOL.mangoAccountPda}'`);
+console.log(`BTC 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryBTC.mangoAccountPda}'`);
+console.log(`ETH 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryETH.mangoAccountPda}'`);
 
-describe("Migrations", () => {
+// describe("Migrations", () => {
 
-    beforeEach("\n", () => { console.log("=============================================\n\n") });
-    
-    migrationsSuite(authority, controllerUXD, mangoDepositorySOL);
+//     beforeEach("\n", () => { console.log("=============================================\n\n") });
 
-    // Keep two unmigrated
-    // migrationsSuite(authority, controllerUXD, mangoDepositoryBTC);
+//     migrationsSuite(authority, controllerUXD, mangoDepositorySOL);
 
-    // migrationsSuite(authority, controllerUXD, mangoDepositoryETH);
+//     // Keep two unmigrated
+//     // migrationsSuite(authority, controllerUXD, mangoDepositoryBTC);
 
-});
+//     // migrationsSuite(authority, controllerUXD, mangoDepositoryETH);
+
+// });
 
 describe("Full Integration tests", () => {
 
@@ -46,27 +49,40 @@ describe("Full Integration tests", () => {
         ]);
     });
 
-    before("Transfer 20 BTC from bank to test user", async () => {
-        const btcToken = new Token(getConnection(), BTC_DEVNET, TOKEN_PROGRAM_ID, bank);
-        const sender = await btcToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
-        const receiver = await btcToken.getOrCreateAssociatedAccountInfo(user.publicKey);
-        const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, bank.publicKey, [], 20 * 10 ** BTC_DECIMALS);
+
+    before("Transfer 2000 USDC from bank to test user", async () => {
+        const usdcToken = new Token(getConnection(), USDC_DEVNET, TOKEN_PROGRAM_ID, bank);
+        const sender = await usdcToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
+        const receiver = await usdcToken.getOrCreateAssociatedAccountInfo(user.publicKey);
+        const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, bank.publicKey, [], uiToNative(2000, USDC_DECIMALS).toNumber());
         const transaction = new web3.Transaction().add(transferTokensIx);
         await web3.sendAndConfirmTransaction(getConnection(), transaction, [
             bank,
         ]);
     });
 
-    before("Transfer 20 ETH from bank to test user", async () => {
-        const ethToken = new Token(getConnection(), ETH_DEVNET, TOKEN_PROGRAM_ID, bank);
-        const sender = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
-        const receiver = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);
-        const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, bank.publicKey, [], 20 * 10 ** ETH_DECIMALS);
-        const transaction = new web3.Transaction().add(transferTokensIx);
-        await web3.sendAndConfirmTransaction(getConnection(), transaction, [
-            bank,
-        ]);
-    });
+
+    // before("Transfer 20 BTC from bank to test user", async () => {
+    //     const btcToken = new Token(getConnection(), BTC_DEVNET, TOKEN_PROGRAM_ID, bank);
+    //     const sender = await btcToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
+    //     const receiver = await btcToken.getOrCreateAssociatedAccountInfo(user.publicKey);
+    //     const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, bank.publicKey, [], uiToNative(20, BTC_DECIMALS).toNumber());
+    //     const transaction = new web3.Transaction().add(transferTokensIx);
+    //     await web3.sendAndConfirmTransaction(getConnection(), transaction, [
+    //         bank,
+    //     ]);
+    // });
+
+    // before("Transfer 20 ETH from bank to test user", async () => {
+    //     const ethToken = new Token(getConnection(), ETH_DEVNET, TOKEN_PROGRAM_ID, bank);
+    //     const sender = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
+    //     const receiver = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);
+    //     const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, bank.publicKey, [], uiToNative(20, ETH_DECIMALS).toNumber());
+    //     const transaction = new web3.Transaction().add(transferTokensIx);
+    //     await web3.sendAndConfirmTransaction(getConnection(), transaction, [
+    //         bank,
+    //     ]);
+    // });
 
     describe("mangoDepositoryIntegrationSuite SOL", () => {
         const params = new MangoDepositoryTestSuiteParameters(3_000_000, 500, 50_000, 500, 20, 1_000);
@@ -84,6 +100,42 @@ describe("Full Integration tests", () => {
     //     mangoDepositoryIntegrationSuite(authority, user, controllerUXD, mangoDepositoryETH, params);
     // });
 
+    after("Return remaining USDC balance to the bank", async () => {
+        const usdcToken = new Token(getConnection(), USDC_DEVNET, TOKEN_PROGRAM_ID, bank);
+        const sender = await usdcToken.getOrCreateAssociatedAccountInfo(user.publicKey);
+        const receiver = await usdcToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
+        const amount = await getBalance(sender.address);
+        const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, user.publicKey, [], uiToNative(amount, USDC_DECIMALS).toNumber());
+        const transaction = new web3.Transaction().add(transferTokensIx);
+        await web3.sendAndConfirmTransaction(getConnection(), transaction, [
+            user,
+        ]);
+    });
+
+    // after("Return remaining BTC balance to the bank", async () => {
+    //     const btcToken = new Token(getConnection(), BTC_DEVNET, TOKEN_PROGRAM_ID, bank);
+    //     const sender = await btcToken.getOrCreateAssociatedAccountInfo(user.publicKey);
+    //     const receiver = await btcToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
+    //     const amount = await getBalance(sender.address);
+    //     const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, user.publicKey, [], uiToNative(amount, BTC_DECIMALS).toNumber());
+    //     const transaction = new web3.Transaction().add(transferTokensIx);
+    //     await web3.sendAndConfirmTransaction(getConnection(), transaction, [
+    //         user,
+    //     ]);
+    // });
+
+    // after("Return remaining ETH balance to the bank", async () => {
+    //     const ethToken = new Token(getConnection(), ETH_DEVNET, TOKEN_PROGRAM_ID, bank);
+    //     const sender = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);
+    //     const receiver = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
+    //     const amount = await getBalance(sender.address);
+    //     const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, user.publicKey, [], uiToNative(amount, ETH_DECIMALS).toNumber());
+    //     const transaction = new web3.Transaction().add(transferTokensIx);
+    //     await web3.sendAndConfirmTransaction(getConnection(), transaction, [
+    //         user,
+    //     ]);
+    // });
+
     after("Return remaining balance to the bank", async () => {
         const userBalance = await getSolBalance(user.publicKey);
         const transaction = new web3.Transaction().add(
@@ -93,30 +145,6 @@ describe("Full Integration tests", () => {
                 lamports: web3.LAMPORTS_PER_SOL * userBalance - 50000 // for fees
             }),
         );
-        await web3.sendAndConfirmTransaction(getConnection(), transaction, [
-            user,
-        ]);
-    });
-
-    after("Return remaining BTC balance to the bank", async () => {
-        const btcToken = new Token(getConnection(), BTC_DEVNET, TOKEN_PROGRAM_ID, bank);
-        const sender = await btcToken.getOrCreateAssociatedAccountInfo(user.publicKey);
-        const receiver = await btcToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
-        const amount = await getBalance(sender.address);
-        const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, user.publicKey, [], amount * 10 ** BTC_DECIMALS);
-        const transaction = new web3.Transaction().add(transferTokensIx);
-        await web3.sendAndConfirmTransaction(getConnection(), transaction, [
-            user,
-        ]);
-    });
-
-    after("Return remaining ETH balance to the bank", async () => {
-        const ethToken = new Token(getConnection(), ETH_DEVNET, TOKEN_PROGRAM_ID, bank);
-        const sender = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);
-        const receiver = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
-        const amount = await getBalance(sender.address);
-        const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, user.publicKey, [], amount * 10 ** ETH_DECIMALS);
-        const transaction = new web3.Transaction().add(transferTokensIx);
         await web3.sendAndConfirmTransaction(getConnection(), transaction, [
             user,
         ]);

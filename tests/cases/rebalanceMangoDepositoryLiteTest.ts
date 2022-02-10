@@ -21,7 +21,7 @@ export const rebalanceMangoDepositoryLiteTest = async (rebalancingMaxAmount: num
 
         // WHEN
         // - Get the perp price at the same moment to have the less diff between exec and test price
-        const mangoPerpPrice = await depository.getCollateralPerpPrice(mango);
+        const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
         const txId = await rebalanceMangoDepositoryLite(user, payer ?? user, rebalancingMaxAmount, polarity, slippage, controller, depository, mango)
         console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(MANGO_QUOTE_DECIMALS)));
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
@@ -42,7 +42,7 @@ export const rebalanceMangoDepositoryLiteTest = async (rebalancingMaxAmount: num
 
 
             // The user should
-            const expectedCollateralDelta = rebalancingMaxAmount / mangoPerpPrice.toBig();
+            const expectedCollateralDelta = rebalancingMaxAmount / mangoPerpPrice;
             const collateralDelta = userCollateralBalance - userCollateralBalance_post;
             expect(collateralDelta).closeTo(expectedCollateralDelta, (expectedCollateralDelta * (slippage / slippageBase)), "The amount received back is invalid");
             console.log(
