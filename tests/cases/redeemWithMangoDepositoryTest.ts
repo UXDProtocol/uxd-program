@@ -2,11 +2,11 @@ import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, Mango, MangoDepository, findATAAddrSync } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
-import { collateralUIPriceInMangoQuote, redeemFromMangoDepository } from "../api";
-import { CLUSTER, MANGO_QUOTE_DECIMALS, uxdHelpers } from "../constants";
+import { redeemFromMangoDepository } from "../api";
+import { CLUSTER, MANGO_QUOTE_DECIMALS } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
-export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> => {
+export const redeemFromMangoDepositoryTest = async (redeemableAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> => {
     console.group("🧭 redeemWithMangoDepositoryTest");
     try {
         // GIVEN
@@ -21,7 +21,7 @@ export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, sl
 
         // WHEN
         // - Get the perp price at the same moment to have the less diff between exec and test price
-        const mangoPerpPrice = await collateralUIPriceInMangoQuote(depository, mango);
+        const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
         const txId = await redeemFromMangoDepository(user, payer ?? user, slippage, redeemableAmount, controller, depository, mango);
         console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(MANGO_QUOTE_DECIMALS)));
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
@@ -29,7 +29,7 @@ export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, sl
         // THEN
         const redeemableMintNativePrecision = Math.pow(10, -controller.redeemableMintDecimals);
 
-        const maxCollateralDelta = redeemableAmount / mangoPerpPrice.toBig();
+        const maxCollateralDelta = redeemableAmount / mangoPerpPrice;
 
         const userRedeemableBalance_post = await getBalance(userRedeemableATA);
         let userCollateralBalance_post = await getBalance(userCollateralATA);
@@ -43,8 +43,8 @@ export const redeemWithMangoDepositoryTest = async (redeemableAmount: number, sl
         // So for now, until we implement a separate payer/user for mint and redeem, don't use tiny amounts for test where the 0.00203928 
         // could create a fail positive for wrong slippage
         const collateralDelta = userCollateralBalance_post - userCollateralBalance;
-        const mangoTakerFee = await uxdHelpers.getMangoTakerFeeForPerp(depository, mango);
-        const maxTakerFee = mangoTakerFee.toNumber() * redeemableAmount;
+        const mangoTakerFee = depository.getCollateralPerpTakerFees(mango);
+        const maxTakerFee = mangoTakerFee * redeemableAmount;
         // The amount of UXD that couldn't be redeemed due to odd lot size
         const unprocessedRedeemable = redeemableAmount - redeemableDelta;
 

@@ -1,13 +1,13 @@
 import { web3 } from "@project-serum/anchor";
 import { Keypair } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS } from "@uxdprotocol/uxd-client";
-import { authority, USDC_DEVNET, bank, WSOL, uxdProgramId } from "./constants";
-import { getProvider } from "./provider";
+import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, USDC_DEVNET, WSOL } from "@uxdprotocol/uxd-client";
+import { authority, bank, uxdProgramId } from "./constants";
+import { getConnection } from "./provider";
 import { MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { getSolBalance } from "./utils";
 
-const depositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const depositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 const user = new Keypair();
@@ -23,7 +23,7 @@ describe("SOL Mint/Redeem tests", () => {
                 lamports: web3.LAMPORTS_PER_SOL * 20
             }),
         );
-        await web3.sendAndConfirmTransaction(getProvider().connection, transaction, [
+        await web3.sendAndConfirmTransaction(getConnection(), transaction, [
             bank,
         ]);
     });
@@ -42,7 +42,7 @@ describe("SOL Mint/Redeem tests", () => {
                 lamports: web3.LAMPORTS_PER_SOL * userBalance - 50000
             }),
         );
-        await web3.sendAndConfirmTransaction(getProvider().connection, transaction, [
+        await web3.sendAndConfirmTransaction(getConnection(), transaction, [
             user,
         ]);
     });

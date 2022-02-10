@@ -34,7 +34,6 @@ export const CLUSTER = 'devnet';
 export const uxdProgramId: PublicKey = new PublicKey(jsonIdl["metadata"]["address"]);
 console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
 export const uxdClient = new UXDClient(uxdProgramId);
-export const uxdHelpers = new UXDHelpers();
 
 export const mangoCrankInterval = 3000; // In milliseconds - Run KEEPER else useless - ~1000 on mainnet
 export const slippageBase = 1000;

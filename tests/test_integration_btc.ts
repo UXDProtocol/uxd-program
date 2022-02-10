@@ -1,12 +1,12 @@
 import { web3 } from "@project-serum/anchor";
 import { Keypair } from "@solana/web3.js";
-import { BTC_DECIMALS, Controller, MangoDepository, USDC_DECIMALS, UXD_DECIMALS } from "@uxdprotocol/uxd-client";
-import { authority, USDC_DEVNET, bank, uxdProgramId, BTC_DEVNET } from "./constants";
-import { getProvider } from "./provider";
+import { BTC_DECIMALS, Controller, MangoDepository, USDC_DECIMALS, UXD_DECIMALS, BTC_DEVNET, USDC_DEVNET } from "@uxdprotocol/uxd-client";
+import { authority, bank, uxdProgramId } from "./constants";
+import { getConnection } from "./provider";
 import { mangoDepositoryIntegrationSuite, MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
 import { getSolBalance } from "./utils";
 
-const depositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const depositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 const user = new Keypair();
@@ -22,7 +22,7 @@ describe("BTC integration tests", () => {
                 lamports: web3.LAMPORTS_PER_SOL * 20
             }),
         );
-        await web3.sendAndConfirmTransaction(getProvider().connection, transaction, [
+        await web3.sendAndConfirmTransaction(getConnection(), transaction, [
             bank,
         ]);
     });
@@ -41,7 +41,7 @@ describe("BTC integration tests", () => {
                 lamports: web3.LAMPORTS_PER_SOL * userBalance - 50000
             }),
         );
-        await web3.sendAndConfirmTransaction(getProvider().connection, transaction, [
+        await web3.sendAndConfirmTransaction(getConnection(), transaction, [
             user,
         ]);
     });

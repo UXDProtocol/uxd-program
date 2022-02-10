@@ -1,22 +1,22 @@
 import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller, nativeI80F48ToUi, nativeToUi } from "@uxdprotocol/uxd-client";
 import { PublicKey } from "@solana/web3.js";
-import { MANGO_QUOTE_DECIMALS, uxdHelpers } from "./constants";
+import { MANGO_QUOTE_DECIMALS } from "./constants";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { getProvider, TXN_COMMIT, TXN_OPTS } from "./provider";
+import { getConnection, TXN_COMMIT, TXN_OPTS } from "./provider";
 
 export function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function getSolBalance(wallet: PublicKey): Promise<number> {
-    const lamports = await getProvider().connection
+    const lamports = await getConnection()
         .getBalance(wallet, TXN_COMMIT);
     return nativeToUi(lamports, SOL_DECIMALS);
 }
 
 export function getBalance(tokenAccount: PublicKey): Promise<number> {
-    return getProvider().connection
+    return getConnection()
         .getTokenAccountBalance(tokenAccount, TXN_COMMIT)
         .then((o) => o["value"]["uiAmount"])
         .catch(() => 0);
@@ -34,23 +34,23 @@ export async function printUserInfo(user: PublicKey, controller: Controller, dep
 }
 
 export async function printDepositoryInfo(controller: Controller, depository: MangoDepository, mango: Mango) {
-    const provider = getProvider();
+    const provider = getConnection();
     const SYM = depository.collateralMintSymbol;
-    const controllerAccount = await uxdHelpers.getControllerAccount(provider, controller, TXN_OPTS);
-    const depositoryAccount = await uxdHelpers.getMangoDepositoryAccount(provider, depository, TXN_OPTS);
+    const controllerAccount = await controller.getOnchainAccount(getConnection(), TXN_OPTS);
+    const depositoryAccount = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
     const mangoAccount = await mango.load(depository.mangoAccountPda);
     const pmi = mango.getPerpMarketConfig(SYM).marketIndex;
     const pa = mangoAccount.perpAccounts[pmi];
     const pm = await mango.getPerpMarket(SYM);
-    const cache = await mango.group.loadCache(provider.connection);
+    const cache = await mango.group.loadCache(provider);
     const accountValue = mangoAccount.computeValue(mango.group, cache).toBig();
     const accountingInsuranceDepositedValue = nativeToUi(depositoryAccount.insuranceAmountDeposited.toNumber(), depository.insuranceMintDecimals);
     // 
-    const collateralSpotAmount = await uxdHelpers.getMangoDepositoryCollateralBalance(depository, mango);
-    const insuranceSpotAmount = await uxdHelpers.getMangoDepositoryInsuranceBalance(depository, mango);
+    const collateralSpotAmount = await depository.getCollateralBalance(mango);
+    // const insuranceSpotAmount = await 
     //
     const collateralDepositInterests = collateralSpotAmount.toBig().sub(depositoryAccount.collateralAmountDeposited);
-    const insuranceDepositInterests = insuranceSpotAmount.toBig().sub(depositoryAccount.insuranceAmountDeposited);
+    // const insuranceDepositInterests = insuranceSpotAmount.toBig().sub(depositoryAccount.insuranceAmountDeposited);
     //
     const accountValueMinusTotalInsuranceDeposited = accountValue - accountingInsuranceDepositedValue;
     const redeemableUnderManagement = nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), controller.redeemableMintDecimals);
@@ -66,7 +66,7 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
     console.table({
         ["PnL (Quote)"]: Number((accountValueMinusTotalInsuranceDeposited - redeemableUnderManagement).toFixed(MANGO_QUOTE_DECIMALS)),
         [`collateral deposit interests (${SYM})`]: Number(nativeToUi(collateralDepositInterests, depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-        [`insurance deposit interests (${depository.insuranceMintSymbol})`]: Number(nativeToUi(insuranceDepositInterests.toNumber(), depository.insuranceMintDecimals).toFixed(depository.insuranceMintDecimals)),
+        // [`insurance deposit interests (${depository.insuranceMintSymbol})`]: Number(nativeToUi(insuranceDepositInterests.toNumber(), depository.insuranceMintDecimals).toFixed(depository.insuranceMintDecimals)),
     });
     console.groupEnd();
 

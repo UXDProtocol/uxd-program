@@ -1,17 +1,21 @@
 import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository } from "@uxdprotocol/uxd-client";
+import { expect } from "chai";
 import { migrateMangoDepositoryToV2 } from "../api";
-import { CLUSTER, uxdHelpers } from "../constants";
-import { getProvider, TXN_OPTS } from "../provider";
+import { CLUSTER } from "../constants";
+import { getConnection, TXN_OPTS } from "../provider";
 
 export const migrateMangoDepositoryToV2Test = async (authority: Signer, controller: Controller, depository: MangoDepository) => {
+    const connection = getConnection();
+    const options = TXN_OPTS;
+
     console.group("🧭 migrateMangoDepositoryToV2Test");
     try {
-        await getProvider().connection.getAccountInfo(controller.pda); // With throw if doesn't exist
+        await getConnection().getAccountInfo(controller.pda); // With throw if doesn't exist
         try {
-
             // WHEN
-            if ((await uxdHelpers.getMangoDepositoryAccountNoProvider(getProvider().connection, depository, TXN_OPTS)).version != 1) {
+            const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
+            if (depositoryOnchainAccount.version != 1) {
                 console.log("🚧 Already migrated.");
             } else {
                 const txId = await migrateMangoDepositoryToV2(authority, controller, depository);
@@ -19,6 +23,8 @@ export const migrateMangoDepositoryToV2Test = async (authority: Signer, controll
             }
 
             // THEN
+            const depositoryOnchainAccount_post = await depository.getOnchainAccount(connection, options);
+            expect(depositoryOnchainAccount_post.version).to.equals(2);
             console.log(`🧾 Initialized`, depository.collateralMintSymbol, "Depository");
             depository.info();
             console.groupEnd();
