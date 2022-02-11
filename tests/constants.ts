@@ -1,5 +1,5 @@
 import { Keypair, PublicKey, Signer } from "@solana/web3.js";
-import { UXDHelpers, USDC_DECIMALS, UXDClient } from "@uxdprotocol/uxd-client";
+import { USDC_DECIMALS, UXDClient } from "@uxdprotocol/uxd-client";
 import * as jsonIdl from "../target/idl/uxd.json";
 
 // TESTING wallets for convenience (The user and admin). To remove when going open source
@@ -35,7 +35,6 @@ export const uxdProgramId: PublicKey = new PublicKey(jsonIdl["metadata"]["addres
 console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
 export const uxdClient = new UXDClient(uxdProgramId);
 
-export const mangoCrankInterval = 3000; // In milliseconds - Run KEEPER else useless - ~1000 on mainnet
 export const slippageBase = 1000;
 
 export const MANGO_QUOTE_DECIMALS = USDC_DECIMALS;

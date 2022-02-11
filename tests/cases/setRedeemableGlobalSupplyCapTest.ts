@@ -3,7 +3,7 @@ import { Controller, nativeToUi } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { setRedeemableGlobalSupplyCap } from "../api";
 import { CLUSTER } from "../constants";
-import { getConnection, TXN_OPTS } from "../provider";
+import { getConnection, TXN_OPTS } from "../connection";
 
 export const setRedeemableGlobalSupplyCapTest = async (supplyCapAmount: number, authority: Signer, controller: Controller) => {
     const connection = getConnection();

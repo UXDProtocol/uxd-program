@@ -1,4 +1,4 @@
-import { getConnection, TXN_OPTS } from "./provider";
+import { getConnection, TXN_OPTS } from "./connection";
 import { bank, uxdClient } from "./constants";
 import { Account, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";

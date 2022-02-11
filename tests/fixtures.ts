@@ -1,6 +1,6 @@
 import { createAndInitializeMango, Mango } from "@uxdprotocol/uxd-client";
 import { CLUSTER } from "./constants";
-import { getConnection } from "./provider";
+import { getConnection } from "./connection";
 
 export let mango: Mango;
 

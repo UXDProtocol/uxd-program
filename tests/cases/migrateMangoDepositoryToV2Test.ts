@@ -3,7 +3,7 @@ import { Controller, MangoDepository } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { migrateMangoDepositoryToV2 } from "../api";
 import { CLUSTER } from "../constants";
-import { getConnection, TXN_OPTS } from "../provider";
+import { getConnection, TXN_OPTS } from "../connection";
 
 export const migrateMangoDepositoryToV2Test = async (authority: Signer, controller: Controller, depository: MangoDepository, payer?: Signer) => {
     const connection = getConnection();

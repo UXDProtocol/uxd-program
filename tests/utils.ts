@@ -3,7 +3,7 @@ import { PublicKey } from "@solana/web3.js";
 import { MANGO_QUOTE_DECIMALS } from "./constants";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { getConnection, TXN_COMMIT, TXN_OPTS } from "./provider";
+import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
 
 export async function getSolBalance(wallet: PublicKey): Promise<number> {
     const lamports = await getConnection()

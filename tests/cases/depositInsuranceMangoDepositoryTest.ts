@@ -1,11 +1,10 @@
 
-import { BN } from "@project-serum/anchor";
-import { ConfirmOptions, Connection, Signer } from "@solana/web3.js";
+import { Signer } from "@solana/web3.js";
 import { Controller, Mango, MangoDepository, nativeToUi } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { depositInsuranceToMangoDepository } from "../api";
-import { CLUSTER, mangoCrankInterval } from "../constants";
-import { getConnection, TXN_OPTS } from "../provider";
+import { CLUSTER } from "../constants";
+import { getConnection, TXN_OPTS } from "../connection";
 
 export const depositInsuranceMangoDepositoryTest = async (amount: number, authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango) => {
     const connection = getConnection();

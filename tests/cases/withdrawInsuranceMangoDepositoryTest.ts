@@ -3,7 +3,7 @@ import { Controller, MangoDepository, Mango, nativeToUi } from "@uxdprotocol/uxd
 import { expect } from "chai";
 import { withdrawInsuranceFromMangoDepository } from "../api";
 import { CLUSTER } from "../constants";
-import { getConnection, TXN_OPTS } from "../provider";
+import { getConnection, TXN_OPTS } from "../connection";
 
 export const withdrawInsuranceMangoDepositoryTest = async (amount: number, authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango) => {
     const connection = getConnection();

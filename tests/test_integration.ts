@@ -3,8 +3,7 @@ import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Keypair } from "@solana/web3.js";
 import { uiToNative, Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
-import { getConnection } from "./provider";
-import { mangoDepositoryIntegrationSuite, MangoDepositoryTestSuiteParameters } from "./suite/mangoDepositoryIntegrationSuite";
+import { getConnection } from "./connection";
 import { mangoDepositoriesMigrationsSuite } from "./suite/mangoDepositoriesMigrationsSuite";
 import { getBalance, getSolBalance } from "./utils";
 import { controllerIntegrationSuite, controllerSuiteParameters } from "./suite/controllerIntegrationSuite";
@@ -90,7 +89,7 @@ describe("Integration tests BTC", () => {
     const user = new Keypair();
     console.log("USER =>", user.publicKey.toString());
 
-    before("Transfer 20 BTC from bank to test user", async () => {
+    before("Transfer 100 BTC from bank to test user", async () => {
         const btcToken = new Token(getConnection(), BTC_DEVNET, TOKEN_PROGRAM_ID, bank);
         const sender = await btcToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
         const receiver = await btcToken.getOrCreateAssociatedAccountInfo(user.publicKey);
@@ -130,7 +129,7 @@ describe("Integration tests ETH", () => {
     const user = new Keypair();
     console.log("USER =>", user.publicKey.toString());
 
-    before("Transfer 20 ETH from bank to test user", async () => {
+    before("Transfer 100 ETH from bank to test user", async () => {
         const ethToken = new Token(getConnection(), ETH_DEVNET, TOKEN_PROGRAM_ID, bank);
         const sender = await ethToken.getOrCreateAssociatedAccountInfo(bank.publicKey);
         const receiver = await ethToken.getOrCreateAssociatedAccountInfo(user.publicKey);

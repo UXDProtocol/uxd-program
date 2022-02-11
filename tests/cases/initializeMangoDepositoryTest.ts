@@ -2,7 +2,7 @@ import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, Mango } from "@uxdprotocol/uxd-client";
 import { registerMangoDepository } from "../api";
 import { CLUSTER } from "../constants";
-import { getConnection } from "../provider";
+import { getConnection } from "../connection";
 
 export const initializeMangoDepositoryTest = async (authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) => {
     console.group("🧭 initializeMangoDepositoryTest");
