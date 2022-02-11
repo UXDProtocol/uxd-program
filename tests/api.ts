@@ -33,7 +33,7 @@ export async function settleMangoDepositoryMangoAccountFees(depository: MangoDep
 // Permissionned Calls --------------------------------------------------------
 
 export async function initializeController(authority: Signer, payer: Signer, controller: Controller): Promise<string> {
-    const initControllerIx = uxdClient.createInitializeControllerInstruction(controller, authority.publicKey, TXN_OPTS, payer);
+    const initControllerIx = uxdClient.createInitializeControllerInstruction(controller, authority.publicKey, TXN_OPTS, payer.publicKey);
 
     const signers = [];
     const tx = new Transaction();
@@ -45,7 +45,7 @@ export async function initializeController(authority: Signer, payer: Signer, con
 }
 
 export async function registerMangoDepository(authority: Signer, payer: Signer, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
-    const registerMangoDepositoryIx = uxdClient.createRegisterMangoDepositoryInstruction(controller, depository, mango, authority.publicKey, TXN_OPTS, payer);
+    const registerMangoDepositoryIx = uxdClient.createRegisterMangoDepositoryInstruction(controller, depository, mango, authority.publicKey, TXN_OPTS, payer.publicKey);
     let signers = [];
     let tx = new Transaction();
 
@@ -56,7 +56,7 @@ export async function registerMangoDepository(authority: Signer, payer: Signer, 
 }
 
 export async function migrateMangoDepositoryToV2(authority: Signer, payer: Signer, controller: Controller, depository: MangoDepository): Promise<string> {
-    const migrateMangoDepositoryToV2Ix = uxdClient.createMigrateMangoDepositoryToV2Instruction(controller, depository, authority.publicKey, TXN_OPTS, payer);
+    const migrateMangoDepositoryToV2Ix = uxdClient.createMigrateMangoDepositoryToV2Instruction(controller, depository, authority.publicKey, TXN_OPTS, payer.publicKey);
     let signers = [];
     let tx = new Transaction();
 
