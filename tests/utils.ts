@@ -6,6 +6,18 @@ import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getProvider, TXN_COMMIT, TXN_OPTS } from "./provider";
 
+export interface DepositoryAccountingInfo {
+    depository: MangoDepository,
+    insuranceInitial: number,
+    insuranceDelta: number,
+    collateralInitial: number,
+    collateralDelta: number,
+    redeemableInitial: number,
+    redeemableDelta: number,
+    paidTakerFeeInitial: number,
+    paidTakerFeeDelta: number,
+};
+
 export function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }

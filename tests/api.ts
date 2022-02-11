@@ -1,6 +1,6 @@
 import { getProvider, TXN_OPTS } from "./provider";
 import { bank, uxdClient, uxdHelpers } from "./constants";
-import { Account, Signer, Transaction } from '@solana/web3.js';
+import { Account, PublicKey, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { ControllerAccount, MangoDepositoryAccount } from "@uxdprotocol/uxd-client/dist/types/uxd-interfaces";
 import { prepareWrappedSolTokenAccount } from "./utils";
@@ -23,6 +23,10 @@ export async function getControllerAccount(controller: Controller): Promise<Cont
 
 export async function getMangoDepositoryAccount(mangoDepository: MangoDepository): Promise<MangoDepositoryAccount> {
     return uxdHelpers.getMangoDepositoryAccountNoProvider(getProvider().connection, mangoDepository, TXN_OPTS);
+}
+
+export async function getMangoDepositoryAccountFromPubkey(depositoryPubkey: PublicKey): Promise<MangoDepositoryAccount> {
+    return uxdHelpers.getMangoDepositoryAccountFromPubkey(getProvider().connection, depositoryPubkey, TXN_OPTS);
 }
 
 // DOESN'T WORK in uxd-client- to fix
