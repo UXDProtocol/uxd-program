@@ -152,7 +152,7 @@ export async function redeemFromMangoDepository(user: Signer, payer: Signer, sli
 }
 
 export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, rebalancingMaxAmount: number, polarity: PnLPolarity, slippage: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
-    const rebalanceMangoDepositoryLiteIx = uxdClient.createRebalanceMangoDepositoryLiteInstruction(rebalancingMaxAmount, polarity, slippage, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
+    const rebalanceMangoDepositoryLiteIx = uxdClient.createRebalanceMangoDepositoryLiteInstruction(rebalancingMaxAmount, slippage, polarity, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
 
     let signers = [];
     let tx = new Transaction();

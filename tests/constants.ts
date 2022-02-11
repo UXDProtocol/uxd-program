@@ -21,11 +21,11 @@ const Eyh77Seed = Uint8Array.from([
 // This is us, the UXD deployment admins // aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC
 const adminKeypair = Keypair.fromSecretKey(aca3VWSeed);
 export const authority: Signer = adminKeypair;
-console.log(`CONTROLLER AUTHORITY KEY => ${authority.publicKey}`);
+console.log(`CONTROLLER AUTHORITY => 🔗 https://solscan.io/account/${authority.publicKey}?cluster=devnet`);
 // This is the user //
 const bankKeypair = Keypair.fromSecretKey(Eyh77Seed);
 export const bank: Signer = bankKeypair;
-console.log(`BANK KEY => ${bank.publicKey}`);
+console.log(`BANK => 🔗https://solscan.io/account/${bank.publicKey}?cluster=devnet`);
 
 // Get this from anchor.toml TODO
 export const CLUSTER = 'devnet';

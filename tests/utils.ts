@@ -1,9 +1,63 @@
-import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller, nativeI80F48ToUi, nativeToUi } from "@uxdprotocol/uxd-client";
-import { PublicKey } from "@solana/web3.js";
+import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller, nativeI80F48ToUi, nativeToUi, uiToNative } from "@uxdprotocol/uxd-client";
+import { PublicKey, Signer } from "@solana/web3.js";
 import { MANGO_QUOTE_DECIMALS } from "./constants";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
+
+const SOLANA_FEES_LAMPORT: number = 50000;
+
+export async function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
+    const transaction = new anchor.web3.Transaction().add(
+        anchor.web3.SystemProgram.transfer({
+            fromPubkey: from.publicKey,
+            toPubkey: to,
+            lamports: anchor.web3.LAMPORTS_PER_SOL * amountUi
+        }),
+    );
+    return await anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
+        from,
+    ]);
+}
+
+export async function transferAllSol(from: Signer, to: PublicKey): Promise<string> {
+    const fromBalance = await getSolBalance(from.publicKey);
+    const transaction = new anchor.web3.Transaction().add(
+        anchor.web3.SystemProgram.transfer({
+            fromPubkey: from.publicKey,
+            toPubkey: to,
+            lamports: anchor.web3.LAMPORTS_PER_SOL * fromBalance - SOLANA_FEES_LAMPORT
+        }),
+    );
+    return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
+        from,
+    ]);
+
+}
+
+
+export async function transferTokens(amountUI: number, mint: PublicKey, decimals: number, from: Signer, to: PublicKey): Promise<string> {
+    const token = new Token(getConnection(), mint, TOKEN_PROGRAM_ID, from);
+    const sender = await token.getOrCreateAssociatedAccountInfo(from.publicKey);
+    const receiver = await token.getOrCreateAssociatedAccountInfo(to);
+    const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, from.publicKey, [], uiToNative(amountUI, decimals).toNumber());
+    const transaction = new anchor.web3.Transaction().add(transferTokensIx);
+    return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
+        from,
+    ]);
+}
+
+export async function transferAllTokens(mint: PublicKey, decimals: number, from: Signer, to: PublicKey): Promise<string> {
+    const token = new Token(getConnection(), mint, TOKEN_PROGRAM_ID, from);
+    const sender = await token.getOrCreateAssociatedAccountInfo(from.publicKey);
+    const receiver = await token.getOrCreateAssociatedAccountInfo(to);
+    const amount = await getBalance(sender.address);
+    const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, from.publicKey, [], uiToNative(amount, decimals).toNumber());
+    const transaction = new anchor.web3.Transaction().add(transferTokensIx);
+    return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
+        from,
+    ]);
+}
 
 export async function getSolBalance(wallet: PublicKey): Promise<number> {
     const lamports = await getConnection()
