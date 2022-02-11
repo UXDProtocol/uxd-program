@@ -13,6 +13,11 @@ export const depositoryAccountingMangoDepositoryTest = async(depository: MangoDe
 
         // CHECK insurance_amount_deposited ACCOUNTING INFO
         const insuranceAmountDeposited = depositoryAccount.insuranceAmountDeposited;
+        console.log(`INSURANCE`);
+        console.log(`chain: ${insuranceAmountDeposited.toNumber()}`);
+        console.log(`delta: ${depositoryAccounting.insuranceDelta}`);
+        console.log(`powr: ${10 ** depositoryAccount.insuranceMintDecimals}`);
+        console.log(`initial: ${depositoryAccounting.insuranceInitial}`);
         expect(insuranceAmountDeposited.toNumber(), "InsuranceAmountDeposited is not correct.")
             .equals(
                 (depositoryAccounting.insuranceDelta
@@ -22,6 +27,7 @@ export const depositoryAccountingMangoDepositoryTest = async(depository: MangoDe
 
         // CHECK collateral_amount_deposited ACCOUNTING INFO
         const collateralAmountDeposited = depositoryAccount.collateralAmountDeposited;
+        console.log(`COLLATERAL`);
         console.log(`chain: ${collateralAmountDeposited.toNumber()}`);
         console.log(`delta: ${depositoryAccounting.collateralDelta}`);
         console.log(`powr: ${10 ** depositoryAccount.collateralMintDecimals}`);
