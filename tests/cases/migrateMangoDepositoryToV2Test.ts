@@ -15,7 +15,6 @@ export const migrateMangoDepositoryToV2Test = async (authority: Signer, controll
         try {
             // WHEN
             const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
-            console.log(depositoryOnchainAccount.version);
             if (depositoryOnchainAccount.version > 1) {
                 console.log("🚧 Already migrated.");
             } else {
