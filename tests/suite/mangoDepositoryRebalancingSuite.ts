@@ -47,7 +47,6 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
         expect(false, "Should have failed - Cannot rebalance 0");
     });
 
-
     it(`Rebalance with wrong PnLPolarity (should fail)`, async function () {
         const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
         const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
@@ -64,11 +63,15 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
     it(`Rebalance a small amount of the depository unrealized PnL (${params.slippage / slippageBase * 100} % slippage)`, async function () {
         const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const minTradingSize = await depository.getMinTradingSizeUi(mango) * 5;
-        const rebalanceAmountSmall = Math.min(Math.abs(unrealizedPnl) / 10, minTradingSize);
+        const minTradingSize = await depository.getMinTradingSizeUi(mango) * 2
+        const rebalanceAmountSmall = Math.max(Math.abs(unrealizedPnl) / 10, minTradingSize);
         const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
         console.log("🔵 unrealizedPnl on ", depository.collateralMintSymbol, "depository:", unrealizedPnl, "| Polarity:", polarity);
+        if (unrealizedPnl < minTradingSize) {
+            console.log("🔵  skipping rebalancing, unrealized pnl too small");
+            return;
+        }
         switch (polarity) {
             case `Positive`: {
                 // Transfer COLLATERAL, will receive equivalent QUOTE back from the positive PNL
@@ -94,11 +97,15 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
     it(`Rebalance remaining depository unrealized PnL (${params.slippage / slippageBase * 100} %slippage)`, async function () {
         const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const minTradingSize = await depository.getMinTradingSizeUi(mango) * 5;
+        const minTradingSize = await depository.getMinTradingSizeUi(mango) * 2;
         const rebalanceAmountBig = Math.max(Math.abs(unrealizedPnl * 1.1), minTradingSize); // Cause price move while we do all this...
         const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
         console.log("🔵 unrealizedPnl on ", depository.collateralMintSymbol, "depository:", unrealizedPnl, "| Polarity:", polarity);
+        if (unrealizedPnl < minTradingSize) {
+            console.log("🔵  skipping rebalancing, unrealized pnl too small");
+            return;
+        }
         switch (polarity) {
             case `Positive`: {
                 // Transfer COLLATERAL, will receive equivalent QUOTE back from the positive PNL
@@ -124,7 +131,6 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
     it("Return remaining balances from user back to the payer", async function () {
         await transferAllTokens(depository.quoteMint, depository.quoteMintDecimals, user, payer.publicKey);
         await transferAllTokens(depository.collateralMint, depository.collateralMintDecimals, user, payer.publicKey);
-        await transferAllSol(user, payer.publicKey);
     });
 
 };
