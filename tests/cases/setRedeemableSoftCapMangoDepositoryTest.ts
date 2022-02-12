@@ -5,7 +5,7 @@ import { setMangoDepositoriesRedeemableSoftCap } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection, TXN_OPTS } from "../connection";
 
-export const setRedeemableSoftCapMangoDepositoryTest = async (softCapAmount: number, authority: Signer, controller: Controller) => {
+export const setRedeemableSoftCapMangoDepositoryTest = async function (softCapAmount: number, authority: Signer, controller: Controller) {
     const connection = getConnection();
     const options = TXN_OPTS;
 

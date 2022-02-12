@@ -6,7 +6,7 @@ import { mintWithMangoDepository } from "../api";
 import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
-export const mintWithMangoDepositoryTest = async (collateralAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> => {
+export const mintWithMangoDepositoryTest = async function (collateralAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> {
     console.group("🧭 mintWithMangoDepositoryTest");
     try {
         // GIVEN

@@ -6,7 +6,7 @@ import { redeemFromMangoDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
-export const redeemFromMangoDepositoryTest = async (redeemableAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> => {
+export const redeemFromMangoDepositoryTest = async function (redeemableAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> {
     console.group("🧭 redeemWithMangoDepositoryTest");
     try {
         // GIVEN

@@ -4,7 +4,7 @@ import { initializeController } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection } from "../connection";
 
-export const initializeControllerTest = async (authority: Signer, controller: Controller, payer?: Signer) => {
+export const initializeControllerTest = async function (authority: Signer, controller: Controller, payer?: Signer) {
     console.group("⏱ initializeControllerTest");
     try {
         // WHEN

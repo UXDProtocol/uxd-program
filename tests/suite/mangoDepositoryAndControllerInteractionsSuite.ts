@@ -31,7 +31,7 @@ export class MangoDepositoryAndControllerInteractionsSuiteParameters {
 
 // Contain what can't be run in parallel due to having impact on the Controller
 
-export const mangoDepositoryAndControllerInteractionsSuite = (authority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MangoDepository, params: MangoDepositoryAndControllerInteractionsSuiteParameters) => {
+export const mangoDepositoryAndControllerInteractionsSuite = function (authority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MangoDepository, params: MangoDepositoryAndControllerInteractionsSuiteParameters) {
 
     it(`Mint 2 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage) then Set Global Redeemable supply cap to 0 and redeem`, async function () {
         const mintedAmount = await mintWithMangoDepositoryTest(2, params.slippage, user, controller, depository, mango, payer);

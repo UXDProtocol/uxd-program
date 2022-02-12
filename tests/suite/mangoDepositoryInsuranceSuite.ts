@@ -5,7 +5,7 @@ import { depositInsuranceMangoDepositoryTest } from "../cases/depositInsuranceMa
 import { withdrawInsuranceMangoDepositoryTest } from "../cases/withdrawInsuranceMangoDepositoryTest";
 import { mango } from "../fixtures";
 
-export const mangoDepositoryInsuranceSuite = (authority: Signer, controller: Controller, depository: MangoDepository) => {
+export const mangoDepositoryInsuranceSuite = function (authority: Signer, controller: Controller, depository: MangoDepository) {
 
     it("DEPOSIT 0 USDC of insurance (should fail)", async function () {
         try {

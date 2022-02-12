@@ -6,7 +6,7 @@ import { depositInsuranceToMangoDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection, TXN_OPTS } from "../connection";
 
-export const depositInsuranceMangoDepositoryTest = async (amount: number, authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango) => {
+export const depositInsuranceMangoDepositoryTest = async function (amount: number, authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango) {
     const connection = getConnection();
     const options = TXN_OPTS;
 

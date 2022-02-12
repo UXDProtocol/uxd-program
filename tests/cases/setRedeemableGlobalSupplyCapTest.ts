@@ -5,7 +5,7 @@ import { setRedeemableGlobalSupplyCap } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection, TXN_OPTS } from "../connection";
 
-export const setRedeemableGlobalSupplyCapTest = async (supplyCapAmount: number, authority: Signer, controller: Controller) => {
+export const setRedeemableGlobalSupplyCapTest = async function (supplyCapAmount: number, authority: Signer, controller: Controller) {
     const connection = getConnection();
     const options = TXN_OPTS;
 

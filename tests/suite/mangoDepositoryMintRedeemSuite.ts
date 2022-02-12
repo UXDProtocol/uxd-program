@@ -7,7 +7,7 @@ import { slippageBase } from "../constants";
 import { mango } from "../fixtures";
 import { getBalance, printDepositoryInfo, printUserInfo, transferAllTokens, transferTokens } from "../utils";
 
-export const mangoDepositoryMintRedeemSuite = (user: Signer, payer: Signer, controller: Controller, depository: MangoDepository, slippage: number) => {
+export const mangoDepositoryMintRedeemSuite = function (user: Signer, payer: Signer, controller: Controller, depository: MangoDepository, slippage: number) {
 
     it(`Transfer 300,000 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);

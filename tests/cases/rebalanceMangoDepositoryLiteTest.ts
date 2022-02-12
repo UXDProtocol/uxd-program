@@ -7,7 +7,7 @@ import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
 // Pretty unreliable test - this need a Rust test suit with fully under control environment.
-export const rebalanceMangoDepositoryLiteTest = async (rebalancingMaxAmount: number, polarity: PnLPolarity, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> => {
+export const rebalanceMangoDepositoryLiteTest = async function (rebalancingMaxAmount: number, polarity: PnLPolarity, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> {
     console.group("🧭 rebalanceMangoDepositoryLiteTest");
     try {
         // GIVEN

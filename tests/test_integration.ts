@@ -50,6 +50,9 @@ describe("Integration tests SOL", function () {
     const paramsSol = new MangoDepositoryAndControllerInteractionsSuiteParameters(10_000_000, 500, 50_000, 500, 20);
     mangoDepositoryAndControllerInteractionsSuite(authority, user, bank, controllerUXD, mangoDepositorySOL, paramsSol);
 
+    this.afterAll("Transfer funds back to bank", async function () {
+        await transferAllSol(user, bank.publicKey);
+    });
 });
 
 // BTC

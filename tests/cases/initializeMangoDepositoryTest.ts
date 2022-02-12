@@ -4,7 +4,7 @@ import { registerMangoDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection } from "../connection";
 
-export const initializeMangoDepositoryTest = async (authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) => {
+export const initializeMangoDepositoryTest = async function (authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
     console.group("🧭 initializeMangoDepositoryTest");
     try {
         // WHEN
