@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# The CI uses a constant program CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45
+# The CI uses a constant program AyEU8xdZGokmgRbeahLBhg4L1LbyRXUFQ2qcNkSRyAeH
 # This script swaps program id before running the jobs related to it
 
 # Get current keypair's Pubkey

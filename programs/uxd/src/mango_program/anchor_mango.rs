@@ -8,6 +8,8 @@ use solana_program::pubkey::Pubkey;
 
 declare_check_assert_macros!(SourceFileId::MangoProgramAnchorMango);
 
+/// This is a wrapper around mango program that does not use Anchor,
+/// similar to what Anchor does around the sol_token program.
 #[derive(Clone)]
 pub struct Mango;
 

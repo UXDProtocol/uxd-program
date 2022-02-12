@@ -27,17 +27,17 @@ pub struct Withdraw<'info> {
 ///
 /// Accounts expected by this instruction (10):
 ///
-/// 0. `[read]` mango_group_ai,   -
-/// 1. `[write]` mango_account_ai, -
-/// 2. `[read]` owner_ai,         -
-/// 3. `[read]` mango_cache_ai,   -
-/// 4. `[read]` root_bank_ai,     -
-/// 5. `[write]` node_bank_ai,     -
-/// 6. `[write]` vault_ai,         -
-/// 7. `[write]` token_account_ai, -
-/// 8. `[read]` signer_ai,        -
-/// 9. `[read]` token_prog_ai,    -
-/// 10. `[read]` clock_ai,         -
+/// 0. `[read]` mango_group_ai,
+/// 1. `[write]` mango_account_ai,
+/// 2. `[read]` owner_ai,
+/// 3. `[read]` mango_cache_ai,
+/// 4. `[read]` root_bank_ai,
+/// 5. `[write]` node_bank_ai,
+/// 6. `[write]` vault_ai,
+/// 7. `[write]` token_account_ai,
+/// 8. `[read]` signer_ai,
+/// 9. `[read]` token_prog_ai,
+/// 10. `[read]` clock_ai,
 /// 11..+ `[]` open_orders_accs - open orders for each of the spot market
 fn withdraw_instruction(
     mango_program_id: &Pubkey,

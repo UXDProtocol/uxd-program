@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "3.0.0-beta",
+  "version": "3.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -42,14 +42,6 @@ export type Uxd = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
-          "name": "redeemableMintBump",
-          "type": "u8"
-        },
         {
           "name": "redeemableMintDecimals",
           "type": "u8"
@@ -182,28 +174,7 @@ export type Uxd = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
-          "name": "collateralPassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "insurancePassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "quotePassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "mangoAccountBump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "migrateMangoDepositoryToV2",
@@ -254,12 +225,7 @@ export type Uxd = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "quotePassthroughBump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "depositInsuranceToMangoDepository",
@@ -1024,10 +990,6 @@ export type Uxd = {
           },
           {
             "name": "reserved",
-            "type": "u8"
-          },
-          {
-            "name": "quotePassthroughBump",
             "type": "u8"
           },
           {
@@ -1819,7 +1781,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "3.0.0-beta",
+  "version": "3.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -1862,14 +1824,6 @@ export const IDL: Uxd = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
-          "name": "redeemableMintBump",
-          "type": "u8"
-        },
         {
           "name": "redeemableMintDecimals",
           "type": "u8"
@@ -2002,28 +1956,7 @@ export const IDL: Uxd = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
-          "name": "collateralPassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "insurancePassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "quotePassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "mangoAccountBump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "migrateMangoDepositoryToV2",
@@ -2074,12 +2007,7 @@ export const IDL: Uxd = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "quotePassthroughBump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "depositInsuranceToMangoDepository",
@@ -2844,10 +2772,6 @@ export const IDL: Uxd = {
           },
           {
             "name": "reserved",
-            "type": "u8"
-          },
-          {
-            "name": "quotePassthroughBump",
             "type": "u8"
           },
           {

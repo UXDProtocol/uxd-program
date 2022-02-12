@@ -48,13 +48,13 @@ pub struct MintWithMangoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump
+        bump
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.bump,
+        bump,
         has_one = controller @UxdIdlErrorCode::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
     )]
@@ -62,7 +62,7 @@ pub struct MintWithMangoDepository<'info> {
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = controller.redeemable_mint_bump,
+        bump,
         constraint = redeemable_mint.key() == controller.redeemable_mint @UxdIdlErrorCode::InvalidRedeemableMint
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
@@ -86,7 +86,7 @@ pub struct MintWithMangoDepository<'info> {
     #[account(
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.collateral_passthrough_bump,
+        bump,
         constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdIdlErrorCode::InvalidCollateralPassthroughAccount,
         constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralPassthroughATAMint
     )]
@@ -94,7 +94,7 @@ pub struct MintWithMangoDepository<'info> {
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.mango_account_bump,
+        bump,
         constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
@@ -131,10 +131,12 @@ pub fn handler(
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         ctx.accounts.depository.collateral_mint.as_ref(),
-        &[ctx.accounts.depository.bump],
+        &[*ctx.bumps.get("depository").unwrap()],
     ]];
-    let controller_signer_seed: &[&[&[u8]]] =
-        &[&[CONTROLLER_NAMESPACE, &[ctx.accounts.controller.bump]]];
+    let controller_signer_seed: &[&[&[u8]]] = &[&[
+        CONTROLLER_NAMESPACE,
+        &[*ctx.bumps.get("controller").unwrap()],
+    ]];
 
     // - 1 [FIND BEST ORDER FOR SHORT PERP POSITION] --------------------------
 
@@ -436,7 +438,7 @@ impl<'info> MintWithMangoDepository<'info> {
     }
 }
 
-// Validate
+// Validate input arguments
 impl<'info> MintWithMangoDepository<'info> {
     pub fn validate(&self, collateral_amount: u64, slippage: u32) -> ProgramResult {
         // Valid slippage check

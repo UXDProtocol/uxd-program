@@ -1,4 +1,4 @@
-import { Keypair, PublicKey, Signer } from "@solana/web3.js";
+import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, USDC_DEVNET, BTC_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
 import { mangoDepositoryMigrationsSuite } from "./suite/mangoDepositoryMigrationsSuite";
@@ -10,7 +10,7 @@ import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 
-// CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45
+// AyEU8xdZGokmgRbeahLBhg4L1LbyRXUFQ2qcNkSRyAeH
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);

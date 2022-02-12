@@ -20,8 +20,6 @@ declare_check_assert_macros!(SourceFileId::InstructionInitializeController);
 
 #[derive(Accounts)]
 #[instruction(
-    bump: u8,
-    redeemable_mint_bump: u8,
     redeemable_mint_decimals: u8,
 )]
 pub struct InitializeController<'info> {
@@ -50,18 +48,11 @@ pub struct InitializeController<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(
-    ctx: Context<InitializeController>,
-    bump: u8,
-    redeemable_mint_bump: u8,
-    redeemable_mint_decimals: u8,
-) -> UxdResult {
+pub fn handler(ctx: Context<InitializeController>, redeemable_mint_decimals: u8) -> UxdResult {
     let redeemable_mint_unit = 10_u64
         .checked_pow(redeemable_mint_decimals.into())
         .ok_or(math_err!())?;
 
-    ctx.accounts.controller.bump = bump;
-    ctx.accounts.controller.redeemable_mint_bump = redeemable_mint_bump;
     ctx.accounts.controller.version = CONTROLLER_ACCOUNT_VERSION;
     ctx.accounts.controller.authority = ctx.accounts.authority.key();
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
@@ -86,7 +77,7 @@ pub fn handler(
     Ok(())
 }
 
-// Validate
+// Validate input arguments
 impl<'info> InitializeController<'info> {
     // Asserts that the redeemable mint decimals is between 0 and 9.
     pub fn validate(&self, decimals: u8) -> ProgramResult {

@@ -24,7 +24,7 @@ pub struct Deposit<'info> {
 
 /// Deposit funds into mango account
 ///
-/// Accounts expected by this instruction (8):
+/// Accounts expected by this instruction (9):
 ///
 /// 0. `[]` mango_group_ai - MangoGroup that this mango account is for
 /// 1. `[writable]` mango_account_ai - the mango account for this user

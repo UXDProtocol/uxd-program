@@ -26,14 +26,14 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     pub authority: Signer<'info>,
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
+        bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = depository.bump,
+        bump,
         has_one = controller @UxdIdlErrorCode::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
     )]
@@ -55,7 +55,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     #[account(
         mut,
         seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
-        bump = depository.insurance_passthrough_bump,
+        bump,
         constraint = depository.insurance_passthrough == depository_insurance_passthrough_account.key() @UxdIdlErrorCode::InvalidInsurancePassthroughAccount,
         constraint = depository_insurance_passthrough_account.mint == insurance_mint.key() @UxdIdlErrorCode::InvalidInsurancePassthroughATAMint,
     )]
@@ -63,7 +63,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = depository.mango_account_bump,
+        bump,
         constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
@@ -89,7 +89,7 @@ pub fn handler(
     let depository_signer_seeds: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         collateral_mint.as_ref(),
-        &[ctx.accounts.depository.bump],
+        &[*ctx.bumps.get("depository").unwrap()],
     ]];
 
     // - 1 [TRANSFER INSURANCE TO MANGO] --------------------------------------
@@ -168,7 +168,7 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
     }
 }
 
-// Validate
+// Validate input arguments
 impl<'info> DepositInsuranceToMangoDepository<'info> {
     pub fn validate(&self, insurance_amount: u64) -> ProgramResult {
         check!(insurance_amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;

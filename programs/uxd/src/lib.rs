@@ -15,10 +15,10 @@ pub mod mango_utils;
 pub mod state;
 pub mod test;
 
-// CI Uses CXzEE9YjFgw3Ggz2r1 oLHqJTd4mpzFWRKm9fioTjpk45 on Devnet
+// CI Uses AyEU8xdZGokmgRbeahLBhg4L_1LbyRXUFQ2qcNkSRyAeH on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("8zR9UHeX61RAVux5jtdhDo2UFZ4ydudxu957e7M9yp7e");
+solana_program::declare_id!("AyEU8xdZGokmgRbeahLBhg4L1LbyRXUFQ2qcNkSRyAeH");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -58,18 +58,10 @@ pub mod uxd {
     #[access_control(ctx.accounts.validate(redeemable_mint_decimals))]
     pub fn initialize_controller(
         ctx: Context<InitializeController>,
-        bump: u8,
-        redeemable_mint_bump: u8,
         redeemable_mint_decimals: u8,
     ) -> ProgramResult {
         msg!("[initialize_controller]");
-        instructions::initialize_controller::handler(
-            ctx,
-            bump,
-            redeemable_mint_bump,
-            redeemable_mint_decimals,
-        )
-        .map_err(|e| {
+        instructions::initialize_controller::handler(ctx, redeemable_mint_decimals).map_err(|e| {
             msg!("<*> {}", e); // log the error
             e.into() // convert UxdError to generic ProgramError
         })
@@ -114,24 +106,9 @@ pub mod uxd {
     // Each `MangoDepository` account manages a specific collateral mint.
     // A `MangoDepository` account owns a `mango_account` PDA to deposit, withdraw, and open orders on Mango Market.
     // Several passthrough accounts are required in order to transaction with the `mango_account`.
-    pub fn register_mango_depository(
-        ctx: Context<RegisterMangoDepository>,
-        bump: u8,
-        collateral_passthrough_bump: u8,
-        insurance_passthrough_bump: u8,
-        quote_passthrough_bump: u8,
-        mango_account_bump: u8,
-    ) -> ProgramResult {
+    pub fn register_mango_depository(ctx: Context<RegisterMangoDepository>) -> ProgramResult {
         msg!("[register_mango_depository]");
-        instructions::register_mango_depository::handler(
-            ctx,
-            bump,
-            collateral_passthrough_bump,
-            insurance_passthrough_bump,
-            quote_passthrough_bump,
-            mango_account_bump,
-        )
-        .map_err(|e| {
+        instructions::register_mango_depository::handler(ctx).map_err(|e| {
             msg!("<*> {}", e); // log the error
             e.into() // convert UxdError to generic ProgramError
         })
@@ -139,15 +116,12 @@ pub mod uxd {
 
     pub fn migrate_mango_depository_to_v2(
         ctx: Context<MigrateMangoDepositoryToV2>,
-        quote_passthrough_bump: u8,
     ) -> ProgramResult {
         msg!("[migrate_mango_depository_to_v2]");
-        instructions::migrate_mango_depository_to_v2::handler(ctx, quote_passthrough_bump).map_err(
-            |e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            },
-        )
+        instructions::migrate_mango_depository_to_v2::handler(ctx).map_err(|e| {
+            msg!("<*> {}", e); // log the error
+            e.into() // convert UxdError to generic ProgramError
+        })
     }
 
     #[access_control(ctx.accounts.validate(insurance_amount))]
@@ -185,7 +159,7 @@ pub mod uxd {
         polarity: PnlPolarity,
         slippage: u32,
     ) -> ProgramResult {
-        msg!("[rebalance_mango_depository_lite]");
+        msg!("[rebalance_mango_depository_lite] slippage {}, polarity {}", slippage, polarity);
         instructions::rebalance_mango_depository_lite::handler(
             ctx,
             max_rebalancing_amount,

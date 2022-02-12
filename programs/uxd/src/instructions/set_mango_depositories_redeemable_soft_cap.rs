@@ -17,7 +17,7 @@ pub struct SetMangoDepositoriesRedeemableSoftCap<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
+        bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
@@ -40,7 +40,7 @@ pub fn handler(
     Ok(())
 }
 
-// Validate
+// Validate input arguments
 #[allow(clippy::absurd_extreme_comparisons)]
 impl<'info> SetMangoDepositoriesRedeemableSoftCap<'info> {
     // Asserts that the Mango Depositories redeemable soft cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.

@@ -7,7 +7,7 @@ It currently sits at:
 <!-- ### Solana -->
 - mainnet-beta `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr`
 - devnet `882VXWftqQ9wsVq99SJqBVsz6tVeBt63jKE9XiwEHDeN` (Public version for front end)
-- devnet `CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45` (Used by CI, this address should be update accordingly in ci files)
+- devnet `AyEU8xdZGokmgRbeahLBhg4L1LbyRXUFQ2qcNkSRyAeH` (Used by CI, this address should be update accordingly in ci files)
 
 ## Running tests
 
@@ -59,7 +59,7 @@ It's quite unstable to test on devnet with typescript, and expect MangoMarkets o
 
 The CI strategy for E2E :
 
-- use the ci-resident-program (`CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45`) (call ./scripts/swap_ci_resident_program.sh)
+- use the ci-resident-program (`AyEU8xdZGokmgRbeahLBhg4L1LbyRXUFQ2qcNkSRyAeH`) (call ./scripts/swap_ci_resident_program.sh)
 - use it's upgrade authority stored in `target/deploy/ci-resident-upgrade-authority.json` for deployment
 - upgrade program
 - run the market making bots

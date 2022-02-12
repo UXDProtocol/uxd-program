@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0-beta",
+  "version": "3.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -42,14 +42,6 @@
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
-          "name": "redeemableMintBump",
-          "type": "u8"
-        },
         {
           "name": "redeemableMintDecimals",
           "type": "u8"
@@ -182,28 +174,7 @@
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
-          "name": "collateralPassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "insurancePassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "quotePassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "mangoAccountBump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "migrateMangoDepositoryToV2",
@@ -254,12 +225,7 @@
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "quotePassthroughBump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "depositInsuranceToMangoDepository",
@@ -1024,10 +990,6 @@
           },
           {
             "name": "reserved",
-            "type": "u8"
-          },
-          {
-            "name": "quotePassthroughBump",
             "type": "u8"
           },
           {
@@ -1817,6 +1779,6 @@
     }
   ],
   "metadata": {
-    "address": "8zR9UHeX61RAVux5jtdhDo2UFZ4ydudxu957e7M9yp7e"
+    "address": "AyEU8xdZGokmgRbeahLBhg4L1LbyRXUFQ2qcNkSRyAeH"
   }
 }

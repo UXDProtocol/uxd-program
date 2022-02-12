@@ -50,13 +50,13 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     pub payer: Signer<'info>,
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump
+        bump
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.bump,
+        bump,
         has_one = controller @UxdIdlErrorCode::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository,
         constraint = depository.version >= SUPPORTED_DEPOSITORY_VERSION @UxdIdlErrorCode::UnsupportedDepositoryVersion
@@ -90,7 +90,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     #[account(
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.collateral_passthrough_bump,
+        bump,
         constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdIdlErrorCode::InvalidCollateralPassthroughAccount,
         constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralPassthroughATAMint
     )]
@@ -98,7 +98,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     #[account(
         mut,
         seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
-        bump = depository.quote_passthrough_bump,
+        bump,
         constraint = depository.quote_passthrough == depository_quote_passthrough_account.key() @UxdIdlErrorCode::InvalidQuotePassthroughAccount,
         constraint = depository_quote_passthrough_account.mint == depository.quote_mint @UxdIdlErrorCode::InvalidQuotePassthroughATAMint
     )]
@@ -107,7 +107,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.mango_account_bump,
+        bump,
         constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
@@ -142,12 +142,6 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub enum PnlPolarity {
-    Positive,
-    Negative,
-}
-
 pub fn handler(
     ctx: Context<RebalanceMangoDepositoryLite>,
     max_rebalancing_amount: u64, // in QUOTE native units
@@ -157,7 +151,7 @@ pub fn handler(
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         ctx.accounts.depository.collateral_mint.as_ref(),
-        &[ctx.accounts.depository.bump],
+        &[*ctx.bumps.get("depository").unwrap()],
     ]];
 
     // - [Get perp information]
@@ -634,7 +628,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
     }
 }
 
-// Validate
+// Validate input arguments
 impl<'info> RebalanceMangoDepositoryLite<'info> {
     pub fn validate(
         &self,
@@ -660,5 +654,21 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             )?,
         };
         Ok(())
+    }
+}
+
+// Represent the direction of the Delta Neutral position (short perp) PnL of a MangoDepository.
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub enum PnlPolarity {
+    Positive,
+    Negative,
+}
+
+impl std::fmt::Display for PnlPolarity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PnlPolarity::Positive => f.write_str("Positive"),
+            PnlPolarity::Negative => f.write_str("Negative"),
+        }
     }
 }

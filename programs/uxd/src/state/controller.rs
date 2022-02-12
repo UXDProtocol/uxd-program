@@ -14,8 +14,8 @@ pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 #[account]
 #[derive(Default)]
 pub struct Controller {
-    pub bump: u8,
-    pub redeemable_mint_bump: u8,
+    pub bump: u8,                 // Unused
+    pub redeemable_mint_bump: u8, // Unused
     // Version used
     pub version: u8,
     // The account with authority over the UXD stack
