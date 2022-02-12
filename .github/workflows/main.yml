@@ -13,7 +13,7 @@ permissions:
   
 env:
   solana_version: 1.8.12
-  anchor_version: 0.20.0
+  anchor_version: 0.20.1
   cluster: "devnet"
   runner_wallet_path: "/home/runner/.config/solana/id.json"
   mango_account_mm_sol: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
