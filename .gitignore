@@ -18,3 +18,4 @@ programs/uxd/src/lib.rs.bak
 .gitignore
 Anchor.toml.bak
 mochawesome-report
+.DS_Store
