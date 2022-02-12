@@ -30,32 +30,6 @@ describe("UXD Controller Suite", function () {
     controllerIntegrationSuite(authority, bank, controllerUXD, params);
 });
 
-// Keep two un-migrated for now
-describe("UXD MangoDepositories Migrations Suite", function () {
-    mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositorySOL);
-    mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryBTC);
-    // mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryETH); // un-migrated
-
-});
-
-describe("Rebalancing", function () {
-    const user: Signer = new Keypair();
-
-    before("Init and fund user", async function () {
-        console.log("USER =>", user.publicKey.toString());
-        await transferSol(1, bank, user.publicKey);
-    });
-
-    const params = new MangoDepositoryRebalancingSuiteParameters(20)
-    mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositorySOL, params);
-
-    const paramsBTC = new MangoDepositoryRebalancingSuiteParameters(20)
-    mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryBTC, paramsBTC);
-
-    // const paramsETH = new MangoDepositoryRebalancingSuiteParameters(20)
-    // mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryETH, paramsETH);
-});
-
 // SOL
 describe("Integration tests SOL", function () {
     const user: Signer = new Keypair();
@@ -66,6 +40,11 @@ describe("Integration tests SOL", function () {
     });
 
     mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositorySOL, 1_000);
+
+    mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositorySOL);
+
+    const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
+    mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositorySOL, paramsRebalancing);
 
     mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositorySOL);
 
@@ -87,6 +66,11 @@ describe("Integration tests BTC", function () {
 
     mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryBTC, 100_000);
 
+    mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryBTC);
+
+    const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
+    mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryBTC, paramsRebalancing);
+
     mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositoryBTC);
 
     mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositoryBTC, 20);
@@ -105,6 +89,11 @@ describe.skip("Integration tests ETH", function () {
     });
 
     mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryETH, 8_000);
+
+    // mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryETH); // un-migrated
+
+    // const paramsETH = new MangoDepositoryRebalancingSuiteParameters(20)
+    // mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryETH, paramsETH);
 
     mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositoryETH);
 
