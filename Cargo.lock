@@ -88,11 +88,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-constant"
-version = "0.20.1"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6356865217881d0bbea8aa70625937bec6d9952610f1ba2a2452a8e427000687"
+checksum = "4fce62e28b84fe3622044d5777e6962cf090049ef45d1bc29d0fbbc027b848d8"
 dependencies = [
- "anchor-syn 0.20.1",
+ "anchor-syn 0.21.0",
  "proc-macro2",
  "syn",
 ]
@@ -110,11 +110,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-error"
-version = "0.20.1"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebe998ce4e6e0cb0e291d1a1626bd30791cdfdd9d05523111bdf4fd053f08636"
+checksum = "2cd2fe5dd4d1e82ff9d0b948170ab4ad3b12fa16ad6f45a3a3ce4dd97e543935"
 dependencies = [
- "anchor-syn 0.20.1",
+ "anchor-syn 0.21.0",
  "proc-macro2",
  "quote",
  "syn",
@@ -134,11 +134,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-event"
-version = "0.20.1"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5810498a20554c20354f5648b6041172f2035e58d09ad40dc051dc0d1501f80"
+checksum = "8437fd23a6c92e0d7ee6378aef4e95596976008eb3a0be100ac832b7b3eaf240"
 dependencies = [
- "anchor-syn 0.20.1",
+ "anchor-syn 0.21.0",
  "anyhow",
  "proc-macro2",
  "quote",
@@ -160,11 +160,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-interface"
-version = "0.20.1"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac83f085b2be8b3a3412989cf96cf7f683561db7d357c5aa4aa11d48bbb22213"
+checksum = "8567efb892ec10df7cb479dc0246257f896b2de1406c6901621d5437080fc041"
 dependencies = [
- "anchor-syn 0.20.1",
+ "anchor-syn 0.21.0",
  "anyhow",
  "heck",
  "proc-macro2",
@@ -188,11 +188,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-program"
-version = "0.20.1"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73c56be575d89abcb192afa29deb87b2cdb3c39033abc02f2d16e6af999b23b7"
+checksum = "4b8674fa15f24b311451294595034617b96348faed14c821fe191183d46258af"
 dependencies = [
- "anchor-syn 0.20.1",
+ "anchor-syn 0.21.0",
  "anyhow",
  "proc-macro2",
  "quote",
@@ -214,11 +214,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-state"
-version = "0.20.1"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62ab002353b01fcb4f72cca256d5d62db39f9ff39b1d072280deee9798f1f524"
+checksum = "e3921cd5b29b8fe7ff10368a5dd8398f37b1dabef489d18a01a4befd86ce09d6"
 dependencies = [
- "anchor-syn 0.20.1",
+ "anchor-syn 0.21.0",
  "anyhow",
  "proc-macro2",
  "quote",
@@ -240,11 +240,11 @@ dependencies = [
 
 [[package]]
 name = "anchor-derive-accounts"
-version = "0.20.1"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9e653cdb322078d95221384c4a527a403560e509ac7cb2b53d3bd664b23c4d6"
+checksum = "5f41be15286b4fc2753cd2dab130ca7c87d81a2817adb7d0af5316715ddf4b46"
 dependencies = [
- "anchor-syn 0.20.1",
+ "anchor-syn 0.21.0",
  "anyhow",
  "proc-macro2",
  "quote",
@@ -266,19 +266,19 @@ dependencies = [
 
 [[package]]
 name = "anchor-lang"
-version = "0.20.1"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4815ad6334fd2f561f7ddcc3cfbeed87ed3003724171bd80ebe6383d5173ee8f"
+checksum = "f4300d151a09cb0c0775cdd63100040c8dba325b406c55ffb4f845f4b78d9e9b"
 dependencies = [
- "anchor-attribute-access-control 0.20.1",
- "anchor-attribute-account 0.20.1",
- "anchor-attribute-constant 0.20.1",
- "anchor-attribute-error 0.20.1",
- "anchor-attribute-event 0.20.1",
- "anchor-attribute-interface 0.20.1",
- "anchor-attribute-program 0.20.1",
- "anchor-attribute-state 0.20.1",
- "anchor-derive-accounts 0.20.1",
+ "anchor-attribute-access-control 0.21.0",
+ "anchor-attribute-account 0.21.0",
+ "anchor-attribute-constant",
+ "anchor-attribute-error 0.21.0",
+ "anchor-attribute-event 0.21.0",
+ "anchor-attribute-interface 0.21.0",
+ "anchor-attribute-program 0.21.0",
+ "anchor-attribute-state 0.21.0",
+ "anchor-derive-accounts 0.21.0",
  "arrayref",
  "base64 0.13.0",
  "bincode",

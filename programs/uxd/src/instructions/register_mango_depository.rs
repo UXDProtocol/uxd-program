@@ -42,7 +42,7 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         init,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = bump,
+        bump,
         payer = payer,
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
@@ -52,7 +52,7 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         init,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = collateral_passthrough_bump,
+        bump,
         token::mint = collateral_mint,
         token::authority = depository,
         payer = payer,
@@ -61,7 +61,7 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         init,
         seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
-        bump = insurance_passthrough_bump,
+        bump,
         token::mint = insurance_mint,
         token::authority = depository,
         payer = payer,
@@ -79,7 +79,7 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         init,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = mango_account_bump,
+        bump,
         owner = mango_program::Mango::id(),
         payer = payer,
         space = MANGO_ACCOUNT_SPAN,

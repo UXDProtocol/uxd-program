@@ -31,14 +31,14 @@ pub struct InitializeController<'info> {
     #[account(
         init,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = bump,
+        bump,
         payer = payer,
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
         init,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = redeemable_mint_bump,
+        bump,
         mint::authority = controller,
         mint::decimals = redeemable_mint_decimals,
         payer = payer,

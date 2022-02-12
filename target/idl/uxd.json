@@ -638,6 +638,11 @@
           "isSigner": false
         },
         {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "userCollateral",
           "isMut": true,
           "isSigner": false
