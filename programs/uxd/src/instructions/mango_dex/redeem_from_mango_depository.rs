@@ -67,7 +67,7 @@ pub struct RedeemFromMangoDepository<'info> {
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        associated_token::mint = redeemable_mint.key(),
+        associated_token::mint = redeemable_mint,
         associated_token::authority = user,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,

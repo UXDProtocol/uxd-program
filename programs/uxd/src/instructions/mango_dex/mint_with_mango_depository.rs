@@ -67,8 +67,12 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
+        constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
+    )]
+    pub collateral_mint: Box<Account<'info, Mint>>,
+    #[account(
         mut,
-        associated_token::mint = depository.collateral_mint, // @UxdIdlErrorCode::InvalidUserCollateralATAMint
+        associated_token::mint = collateral_mint, // @UxdIdlErrorCode::InvalidUserCollateralATAMint
         associated_token::authority = user,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,

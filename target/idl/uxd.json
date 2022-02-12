@@ -402,6 +402,11 @@
           "isSigner": false
         },
         {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "userCollateral",
           "isMut": true,
           "isSigner": false
@@ -1336,8 +1341,5 @@
       "name": "InvalidCollateralPassthroughATAMint",
       "msg": "The Collateral Passthrough ATA's mint does not match the Depository's one."
     }
-  ],
-  "metadata": {
-    "address": "5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL"
-  }
+  ]
 }
