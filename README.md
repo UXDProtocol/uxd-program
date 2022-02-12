@@ -4,8 +4,10 @@ The actual deployed state of each contract should live in a protected master bra
 
 It currently sits at:
 
-- `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr` on Solana mainnnet-beta
-- `` on Solana devnet
+<!-- ### Solana -->
+- mainnnet-beta `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr`
+- Internal devnet `5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL`
+- Public devnet `882VXWftqQ9wsVq99SJqBVsz6tVeBt63jKE9XiwEHDeN` // Don't test until close to release
 
 Development branch (dev) to accumulate not-yet-deployed changes to the contract.
 
