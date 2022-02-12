@@ -458,12 +458,12 @@
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "depository",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {

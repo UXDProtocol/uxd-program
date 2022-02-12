@@ -36,5 +36,3 @@ console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
 export const uxdClient = new UXDClient(uxdProgramId);
 
 export const slippageBase = 1000;
-
-export const MANGO_QUOTE_DECIMALS = USDC_DECIMALS;

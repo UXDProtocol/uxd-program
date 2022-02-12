@@ -1,6 +1,5 @@
 import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller, nativeI80F48ToUi, nativeToUi, uiToNative } from "@uxdprotocol/uxd-client";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { MANGO_QUOTE_DECIMALS } from "./constants";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
@@ -74,11 +73,13 @@ export function getBalance(tokenAccount: PublicKey): Promise<number> {
 
 export async function printUserInfo(user: PublicKey, controller: Controller, depository: MangoDepository) {
     const userCollateralATA: PublicKey = findATAAddrSync(user, depository.collateralMint)[0];
+    const userQuoteATA: PublicKey = findATAAddrSync(user, depository.quoteMint)[0];
     const userRedeemableATA: PublicKey = findATAAddrSync(user, controller.redeemableMintPda)[0];
 
     console.group("[User balances]");
     console.log("Native SOL", `\t\t\t\t\t\t\t`, await getSolBalance(user));
     console.log(`${depository.collateralMintSymbol}`, `\t\t\t\t\t\t\t\t`, await getBalance(userCollateralATA));
+    console.log(`${depository.quoteMintSymbol}`, `\t\t\t\t\t\t\t\t`, await getBalance(userQuoteATA));
     console.log(`${controller.redeemableMintSymbol}`, `\t\t\t\t\t\t\t\t`, await getBalance(userRedeemableATA));
     console.groupEnd()
 }
@@ -109,12 +110,13 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
 
     console.group("[Depository", SYM, "]");
     console.log("collateralPassthrough", "\t\t\t\t\t", await getBalance(depository.collateralPassthroughPda));
+    console.log("quotePassthrough", "\t\t\t\t\t", await getBalance(depository.quotePassthroughPda));
     console.log("insurancePassthroughPda", "\t\t\t\t\t", await getBalance(depository.insurancePassthroughPda));
     console.groupEnd()
 
     console.group("[Derived Information from onchain accounting and mango account] :");
     console.table({
-        ["PnL (Quote)"]: Number((accountValueMinusTotalInsuranceDeposited - redeemableUnderManagement).toFixed(MANGO_QUOTE_DECIMALS)),
+        [`Depository PnL (${depository.insuranceMintSymbol})`]: Number((accountValueMinusTotalInsuranceDeposited - redeemableUnderManagement).toFixed(depository.quoteMintDecimals)),
         [`collateral deposit interests (${SYM})`]: Number(nativeToUi(collateralDepositInterests, depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
         // [`insurance deposit interests (${depository.insuranceMintSymbol})`]: Number(nativeToUi(insuranceDepositInterests.toNumber(), depository.insuranceMintDecimals).toFixed(depository.insuranceMintDecimals)),
     });
@@ -126,25 +128,28 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
         [`collateralAmountDeposited (${SYM})`]: nativeToUi(depositoryAccount.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals),
         [`depository.redeemableAmountUnderManagement (${controller.redeemableMintSymbol})`]: redeemableUnderManagement,
         [`controller.redeemableCirculatingSupply (${controller.redeemableMintSymbol})`]: nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals),
-        ["totalAmountPaidTakerFee (Quote)"]: nativeToUi(depositoryAccount.totalAmountPaidTakerFee.toNumber(), MANGO_QUOTE_DECIMALS)
+        [`totalAmountPaidTakerFee (${depository.quoteMintSymbol})`]: nativeToUi(depositoryAccount.totalAmountPaidTakerFee.toNumber(), depository.quoteMintDecimals),
+        [`totalAmountRebalanced (${depository.quoteMintSymbol})`]: nativeToUi(depositoryAccount.totalAmountRebalanced.toNumber(), depository.quoteMintDecimals)
     });
     console.groupEnd()
 
     console.group("[MangoAccount (Program owned)] :");
     console.table({
+        [`delta neutral position notional size (${depository.quoteMintSymbol})`]: await depository.getDeltaNeutralPositionNotionalSizeUI(mango),
+        [`perp unrealized pnl (${depository.quoteMintSymbol})`]: await depository.getUnrealizedPnl(mango, TXN_OPTS),
         [`spot_base_position (${SYM})`]: Number(nativeI80F48ToUi(collateralSpotAmount, depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-        ["account value (minus insurance) (Quote)"]: Number(accountValueMinusTotalInsuranceDeposited.toFixed(MANGO_QUOTE_DECIMALS)),
-        ["account value (Quote)"]: Number(accountValue.toFixed(MANGO_QUOTE_DECIMALS))
+        ["account value (minus insurance) (Quote)"]: Number(accountValueMinusTotalInsuranceDeposited.toFixed(depository.quoteMintDecimals)),
+        ["account value (Quote)"]: Number(accountValue.toFixed(depository.quoteMintDecimals))
     });
     console.groupEnd()
 
     console.group("[MangoAccount's PerpAccount (Program owned)] :");
     console.table({
         ["perp_base_position"]: Number(nativeToUi(pm.baseLotsToNative(pa.basePosition).toNumber(), depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-        ["perp_quote_position"]: Number(nativeI80F48ToUi(pa.quotePosition, MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
+        ["perp_quote_position"]: Number(nativeI80F48ToUi(pa.quotePosition, depository.quoteMintDecimals).toFixed(depository.quoteMintDecimals)),
         ["perp_taker_base"]: Number(nativeToUi(pm.baseLotsToNative(pa.takerBase).toNumber(), depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-        ["perp_taker_quote"]: Number(nativeToUi(pa.takerQuote.toNumber(), MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
-        ["perp_unsettled_funding (Quote)"]: Number(nativeI80F48ToUi(pa.getUnsettledFunding(cache.perpMarketCache[pmi]), MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
+        ["perp_taker_quote"]: Number(nativeToUi(pa.takerQuote.toNumber(), depository.quoteMintDecimals).toFixed(depository.quoteMintDecimals)),
+        ["perp_unsettled_funding (Quote)"]: Number(nativeI80F48ToUi(pa.getUnsettledFunding(cache.perpMarketCache[pmi]), depository.quoteMintDecimals).toFixed(depository.quoteMintDecimals)),
     });
     console.groupEnd();
 }

@@ -52,7 +52,9 @@ pub fn check_effective_order_price_versus_limit_price(
             }
         }
     };
-    Err(throw_err!(UxdErrorCode::EffectiveOrderPriceBeyondLimitPrice))
+    Err(throw_err!(
+        UxdErrorCode::EffectiveOrderPriceBeyondLimitPrice
+    ))
 }
 
 // test
@@ -77,9 +79,11 @@ mod test {
 
         // expected slippage amount
         let expected = I80F48::from_num(2400000000u64);
-        
+
         assert_eq!(
-            cal_slippage_amount(price, slippage).unwrap().overflowing_round(),
+            cal_slippage_amount(price, slippage)
+                .unwrap()
+                .overflowing_round(),
             (expected, false)
         );
     }

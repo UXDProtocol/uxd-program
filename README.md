@@ -5,7 +5,7 @@ The actual deployed state of each contract should live in a protected master bra
 It currently sits at:
 
 - `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr` on Solana mainnnet-beta
-- `5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL` on Solana devnet
+- `` on Solana devnet
 
 Development branch (dev) to accumulate not-yet-deployed changes to the contract.
 

@@ -3,7 +3,7 @@ import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, Mango, MangoDepository, findATAAddrSync, PnLPolarity } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { rebalanceMangoDepositoryLite } from "../api";
-import { CLUSTER, MANGO_QUOTE_DECIMALS, slippageBase } from "../constants";
+import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
 export const rebalanceMangoDepositoryLiteTest = async (rebalancingMaxAmount: number, polarity: PnLPolarity, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> => {
@@ -23,7 +23,7 @@ export const rebalanceMangoDepositoryLiteTest = async (rebalancingMaxAmount: num
         // - Get the perp price at the same moment to have the less diff between exec and test price
         const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
         const txId = await rebalanceMangoDepositoryLite(user, payer ?? user, rebalancingMaxAmount, polarity, slippage, controller, depository, mango)
-        console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(MANGO_QUOTE_DECIMALS)));
+        console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
@@ -48,7 +48,20 @@ export const rebalanceMangoDepositoryLiteTest = async (rebalancingMaxAmount: num
             console.log(
                 `🧾 Rebalanced`, Number(realRebalancingAmount.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol);
         } else if (polarity == PnLPolarity.Negative) {
+            // // Send USED, should retrieve equivalent amount of COLLATERAL minus the slippage
+            // let userCollateralBalance_post = await getBalance(userCollateralATA);
+            // if (NATIVE_MINT.equals(depository.collateralMint)) {
+            //     // use SOL + WSOL balance
+            //     userCollateralBalance_post += await getSolBalance(user.publicKey);
+            // }
 
+
+            // // The user should
+            // const expectedCollateralDelta = rebalancingMaxAmount / mangoPerpPrice;
+            // const collateralDelta = userCollateralBalance - userCollateralBalance_post;
+            // expect(collateralDelta).closeTo(expectedCollateralDelta, (expectedCollateralDelta * (slippage / slippageBase)), "The amount received back is invalid");
+            // console.log(
+            //     `🧾 Rebalanced`, Number(realRebalancingAmount.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol);
         }
 
 

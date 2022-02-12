@@ -3,7 +3,7 @@ import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, Mango, MangoDepository, findATAAddrSync } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { redeemFromMangoDepository } from "../api";
-import { CLUSTER, MANGO_QUOTE_DECIMALS } from "../constants";
+import { CLUSTER } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
 export const redeemFromMangoDepositoryTest = async (redeemableAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> => {
@@ -23,7 +23,7 @@ export const redeemFromMangoDepositoryTest = async (redeemableAmount: number, sl
         // - Get the perp price at the same moment to have the less diff between exec and test price
         const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
         const txId = await redeemFromMangoDepository(user, payer ?? user, slippage, redeemableAmount, controller, depository, mango);
-        console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(MANGO_QUOTE_DECIMALS)));
+        console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN

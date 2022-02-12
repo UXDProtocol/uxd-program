@@ -458,12 +458,12 @@ export type Uxd = {
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "depository",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2270,12 +2270,12 @@ export const IDL: Uxd = {
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "depository",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {

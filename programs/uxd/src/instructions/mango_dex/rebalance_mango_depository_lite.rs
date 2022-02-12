@@ -2,7 +2,7 @@ use crate::check_assert;
 use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
-use crate::events::RebalanceMangoDepositoryLiteEvent;
+// use crate::events::RebalanceMangoDepositoryLiteEvent;
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
@@ -49,18 +49,17 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(
-        mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
+        mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.bump,
         has_one = controller @UxdIdlErrorCode::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository,
         constraint = depository.version >= SUPPORTED_DEPOSITORY_VERSION @UxdIdlErrorCode::UnsupportedDepositoryVersion
-
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
     #[account(
@@ -169,7 +168,10 @@ pub fn handler(
     // - [Perp account state PRE perp order]
     let pre_pa = ctx.accounts.perp_account(&perp_info)?;
 
-    // !!!!!!!!! We might want to settle(redeem) first, as else we might be borrowing in PNL is not redeemed yet
+    // Note : This will be implemented when we have more computing.
+    //      It will move the redeemable_pnl to the spot balance
+    //      As it is currently, we might borrow or keep positive redeem balance until third party settlement.
+    // - [settle funding] TODO
 
     // - 1 [FIND CURRENT UNREALIZED PNL AMOUNT]
 
@@ -179,19 +181,23 @@ pub fn handler(
         .checked_mul(perp_contract_size)
         .ok_or(math_err!())?
         .checked_mul(perp_info.price)
-        .ok_or(math_err!())?;
+        .ok_or(math_err!())?
+        .abs();
 
-    let perp_unrealized_pnl = pre_pa
-        .quote_position
+    let redeemable_amount_under_management =
+        I80F48::checked_from_num(ctx.accounts.depository.redeemable_amount_under_management)
+            .ok_or(math_err!())?;
+
+    let perp_unrealized_pnl = redeemable_amount_under_management
         .checked_sub(perp_position_notional_size)
         .ok_or(math_err!())?;
 
-    msg!(
-        "PERP quote_position {} - notional_size {} - perp_unrealized_pnl {}",
-        pre_pa.quote_position,
-        perp_position_notional_size,
-        perp_unrealized_pnl
-    );
+    // msg!(
+    //     "perp_position_notional_size {} - redeemable_amount_under_management {} - perp_unrealized_pnl {}",
+    //     perp_position_notional_size,
+    //     redeemable_amount_under_management,
+    //     perp_unrealized_pnl
+    // );
 
     if perp_unrealized_pnl.is_zero() {
         return Ok(());
@@ -213,19 +219,21 @@ pub fn handler(
         .checked_to_num::<u64>()
         .ok_or(math_err!())?
         .min(max_rebalancing_amount);
-    msg!("rebalancing_quote_amount {}", rebalancing_quote_amount);
+    // msg!("rebalancing_quote_amount {}", rebalancing_quote_amount);
 
     // - 2 [ENSURE REBALANCING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
 
-    ctx.accounts
-        .check_mango_depositories_redeemable_soft_cap_overflow(rebalancing_quote_amount)?;
+    // Note : Maybe later when computing is not an issue
+    // ctx.accounts
+    //     .check_mango_depositories_redeemable_soft_cap_overflow(rebalancing_quote_amount)?;
 
     // - 3 [FIND BEST ORDER FOR SHORT PERP POSITION (depending of Polarity)] --
 
     // - [Get the amount of Quote Lots for the perp order]
-    let max_rebalancing_lot_amount = I80F48::from_num(max_rebalancing_amount)
+    let rebalancing_amount = I80F48::from_num(rebalancing_quote_amount)
         .checked_div(perp_info.quote_lot_size)
-        .ok_or(math_err!())?;
+        .ok_or(math_err!())?
+        .floor();
 
     // - [Find the best order depending of polarity]
     let perp_order = match polarity {
@@ -234,18 +242,14 @@ pub fn handler(
             .accounts
             .get_best_order_for_quote_lot_amount_from_order_book(
                 Side::Bid,
-                max_rebalancing_lot_amount
-                    .checked_to_num()
-                    .ok_or(math_err!())?,
+                rebalancing_amount.checked_to_num().ok_or(math_err!())?,
             )?,
         // Will decrease the DN Position size
         PnlPolarity::Negative => ctx
             .accounts
             .get_best_order_for_quote_lot_amount_from_order_book(
                 Side::Ask,
-                max_rebalancing_lot_amount
-                    .checked_to_num()
-                    .ok_or(math_err!())?,
+                rebalancing_amount.checked_to_num().ok_or(math_err!())?,
             )?,
     };
 
@@ -386,56 +390,69 @@ pub fn handler(
                 order_delta.collateral,
             )?;
 
-            // - [If ATA mint is WSOL, unwrap]
-            if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
-                token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
-            }
+            // Note : Too short in computing for now. Add again later
+            // // - [If ATA mint is WSOL, unwrap]
+            // if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
+            //     token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
+            // }
         }
     }
 
     // - 6 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_onchain_accounting(
         order_delta.collateral,
-        rebalancing_quote_amount,
+        order_delta.quote,
         order_delta.fee,
+        polarity,
     )?;
 
     // - 7 [CHECKS] -----------------------------------------------------------
 
     // Todo check that the perp.quote_position has the same value before and after
 
-    let perp_position_notional_size_post = I80F48::from_num(post_pa.base_position)
-        .checked_mul(perp_contract_size)
-        .ok_or(math_err!())?
-        .checked_mul(perp_info.price)
-        .ok_or(math_err!())?;
+    // msg!(
+    //     "pre_pa.quote_position {} | pre_pa.taker_quote {}",
+    //     pre_pa.quote_position,
+    //     pre_pa.taker_quote,
+    // );
+    // msg!(
+    //     "post_pa.quote_position {} | post_pa.taker_quote {}",
+    //     post_pa.quote_position,
+    //     post_pa.taker_quote,
+    // );
+    // let pre_pa_quote_pos = pre_pa.quote_position.to_num::<i64>() + pre_pa.taker_quote;
+    // let post_pa_quote_pos = post_pa.quote_position.to_num::<i64>() + post_pa.taker_quote;
+    // msg!(
+    //     "pre_pa_quote_pos {} | post_pa_quote_pos {}",
+    //     pre_pa_quote_pos,
+    //     post_pa_quote_pos,
+    // );
 
-    let perp_unrealized_pnl_post = post_pa
-        .quote_position
-        .checked_sub(perp_position_notional_size_post)
-        .ok_or(math_err!())?;
-
-    let expected_pnl_change = rebalancing_quote_amount;
-    let real_pnl_change = perp_unrealized_pnl.unsigned_dist(perp_unrealized_pnl_post);
+    // msg!(
+    //     "rebalancing_amount lot {} | rebalancing_quote_amount {} | order_delta.quote {}",
+    //     rebalancing_amount,
+    //     rebalancing_quote_amount,
+    //     order_delta.quote,
+    // );
     check!(
-        real_pnl_change == expected_pnl_change,
+        order_delta.quote <= rebalancing_quote_amount,
         UxdErrorCode::RebalancingError
     )?;
-
-    emit!(RebalanceMangoDepositoryLiteEvent {
-        version: ctx.accounts.controller.version,
-        depository_version: ctx.accounts.depository.version,
-        controller: ctx.accounts.controller.key(),
-        depository: ctx.accounts.depository.key(),
-        user: ctx.accounts.user.key(),
-        polarity: polarity.clone(),
-        rebalancing_amount: max_rebalancing_amount,
-        rebalanced_amount: rebalancing_quote_amount,
-        slippage,
-        collateral_delta: order_delta.collateral,
-        quote_delta: order_delta.quote,
-        fee_delta: order_delta.fee,
-    });
+    // Note : Add later when computing limit is not an issue anymore
+    // emit!(RebalanceMangoDepositoryLiteEvent {
+    //     version: ctx.accounts.controller.version,
+    //     depository_version: ctx.accounts.depository.version,
+    //     controller: ctx.accounts.controller.key(),
+    //     depository: ctx.accounts.depository.key(),
+    //     user: ctx.accounts.user.key(),
+    //     polarity: polarity.clone(),
+    //     rebalancing_amount: max_rebalancing_amount,
+    //     rebalanced_amount: rebalancing_quote_amount,
+    //     slippage,
+    //     collateral_delta: order_delta.collateral,
+    //     quote_delta: order_delta.quote,
+    //     fee_delta: order_delta.fee,
+    // });
 
     Ok(())
 }
@@ -645,28 +662,32 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         Ok(best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))?)
     }
 
-    fn check_mango_depositories_redeemable_soft_cap_overflow(
-        &self,
-        redeemable_delta: u64,
-    ) -> UxdResult {
-        check!(
-            redeemable_delta <= self.controller.mango_depositories_redeemable_soft_cap,
-            UxdErrorCode::MangoDepositoriesSoftCapOverflow
-        )?;
-        Ok(())
-    }
+    // fn check_mango_depositories_redeemable_soft_cap_overflow(
+    //     &self,
+    //     redeemable_delta: u64,
+    // ) -> UxdResult {
+    //     check!(
+    //         redeemable_delta <= self.controller.mango_depositories_redeemable_soft_cap,
+    //         UxdErrorCode::MangoDepositoriesSoftCapOverflow
+    //     )?;
+    //     Ok(())
+    // }
 
     fn update_onchain_accounting(
         &mut self,
         collateral_delta: u64,
-        redeemable_delta: u64,
+        quote_delta: u64,
         fee_delta: u64,
+        polarity: &PnlPolarity,
     ) -> UxdResult {
         // Mango Depository
-        let event = AccountingEvent::Deposit;
+        let event = match polarity {
+            PnlPolarity::Positive => AccountingEvent::Deposit,
+            PnlPolarity::Negative => AccountingEvent::Withdraw,
+        };
         self.depository
             .update_collateral_amount_deposited(&event, collateral_delta)?;
-        self.depository.update_rebalanced_amount(redeemable_delta)?;
+        self.depository.update_rebalanced_amount(quote_delta)?;
         self.depository
             .update_total_amount_paid_taker_fee(fee_delta)?;
         Ok(())
