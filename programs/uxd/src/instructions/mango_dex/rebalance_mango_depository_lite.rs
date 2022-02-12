@@ -144,9 +144,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub enum PnlPolarity {
-    // The PnL amount is positive
     Positive,
-    // The PnL amount is negative
     Negative,
 }
 
@@ -184,6 +182,7 @@ pub fn handler(
         .ok_or(math_err!())?
         .abs();
 
+    // Here will be overflow some day (u128 -> I80F48)
     let redeemable_amount_under_management =
         I80F48::checked_from_num(ctx.accounts.depository.redeemable_amount_under_management)
             .ok_or(math_err!())?;
@@ -191,13 +190,6 @@ pub fn handler(
     let perp_unrealized_pnl = redeemable_amount_under_management
         .checked_sub(perp_position_notional_size)
         .ok_or(math_err!())?;
-
-    // msg!(
-    //     "perp_position_notional_size {} - redeemable_amount_under_management {} - perp_unrealized_pnl {}",
-    //     perp_position_notional_size,
-    //     redeemable_amount_under_management,
-    //     perp_unrealized_pnl
-    // );
 
     if perp_unrealized_pnl.is_zero() {
         return Ok(());
@@ -213,21 +205,14 @@ pub fn handler(
             UxdErrorCode::InvalidPnlPolarity
         )?,
     }
-    // - [rebalancing limited to max_rebalancing_amount]
+    // - [rebalancing limited to `max_rebalancing_amount`, up to `perp_unrealized_pnl`]
     let rebalancing_quote_amount = perp_unrealized_pnl
         .abs()
         .checked_to_num::<u64>()
         .ok_or(math_err!())?
         .min(max_rebalancing_amount);
-    // msg!("rebalancing_quote_amount {}", rebalancing_quote_amount);
 
-    // - 2 [ENSURE REBALANCING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
-
-    // Note : Maybe later when computing is not an issue
-    // ctx.accounts
-    //     .check_mango_depositories_redeemable_soft_cap_overflow(rebalancing_quote_amount)?;
-
-    // - 3 [FIND BEST ORDER FOR SHORT PERP POSITION (depending of Polarity)] --
+    // - 2 [FIND BEST ORDER FOR SHORT PERP POSITION (depending of Polarity)] --
 
     // - [Get the amount of Quote Lots for the perp order]
     let rebalancing_amount = I80F48::from_num(rebalancing_quote_amount)
@@ -256,7 +241,7 @@ pub fn handler(
     // - [Checks that the best price found is within slippage range]
     check_effective_order_price_versus_limit_price(&perp_info, &perp_order, slippage)?;
 
-    // - 4 [PlACE SHORT PERP] -------------------------------------------------
+    // - 3 [PlACE SHORT PERP] -------------------------------------------------
 
     // - [Base depository's position size in native units PRE perp order (to calculate the % filled later on)]
     let initial_base_position = total_perp_base_lot_position(&pre_pa)?;
@@ -286,18 +271,15 @@ pub fn handler(
         post_perp_order_base_lot_position,
     )?;
 
-    // - 5 [TRANSFER COLLATERAL/QUOTE TO MANGO (depending of Polarity)] -------
-    // - 6 [TRANSFER QUOTE/COLLATERAL TO USER (depending of Polarity)] --------
+    // - 4 [TRANSFER COLLATERAL/QUOTE TO MANGO (depending of Polarity)] -------
+    // - 5 [TRANSFER QUOTE/COLLATERAL TO USER (depending of Polarity)] --------
     // Note : This is a workaround due to being limited by the number of accounts per instruction (~34)
     //          and how MangoMarketv3 is designed.
     //        As we cannot process a Perp and Spot order in a single atomic transaction, we use this
     //          detour to offload the Spot order.
-    //        [5] will deposit either COLLATERAL or QUOTE depending of the PnL Polarity
-    //        [6] will return the equivalent value of QUOTE or COLLATERAL depending of the PnL Polarity
+    //        [4] will deposit either COLLATERAL or QUOTE depending of the PnL Polarity
+    //        [5] will return the equivalent value of QUOTE or COLLATERAL depending of the PnL Polarity
     //
-    // Note : IMPORTANT - The taker fees and slippage are paid by the caller, as such the user_quote account must
-    //                       have more balance available than the `max_rebalancing_amount` when Polarity is Negative
-    //                       and the user will receive a bit less quote when the Polarity is Positive.
 
     // - [Calculate order deltas to proceed to transfers]
     // ensures current context make sense as the derive_order_delta is generic
@@ -315,7 +297,7 @@ pub fn handler(
 
     match polarity {
         PnlPolarity::Positive => {
-            // - 5 [TRANSFER COLLATERAL TO MANGO] -----------------------------
+            // - 4 [TRANSFER COLLATERAL TO MANGO] -----------------------------
             // - [Transferring user collateral to the passthrough account]
             token::transfer(
                 ctx.accounts
@@ -330,7 +312,7 @@ pub fn handler(
                     .with_signer(depository_signer_seed),
                 order_delta.collateral,
             )?;
-            // - 6 [TRANSFER QUOTE TO USER (Minus Taker Fees)] ----------------
+            // - 5 [TRANSFER QUOTE TO USER (Minus Taker Fees)] ----------------
             let quote_delta = order_delta
                 .quote
                 .checked_sub(order_delta.fee)
@@ -353,7 +335,7 @@ pub fn handler(
             )?;
         }
         PnlPolarity::Negative => {
-            // - 5 [TRANSFER QUOTE TO MANGO (Plus Taker Fees)] ----------------------------------
+            // - 4 [TRANSFER QUOTE TO MANGO (Plus Taker Fees)] ----------------------------------
             let quote_delta = order_delta
                 .quote
                 .checked_add(order_delta.fee)
@@ -372,7 +354,7 @@ pub fn handler(
                     .with_signer(depository_signer_seed),
                 quote_delta,
             )?;
-            // - 6 [TRANSFER COLLATERAL TO USER] ------------------------------
+            // - 5 [TRANSFER COLLATERAL TO USER] ------------------------------
             // - [Mango withdraw CPI]
             mango_program::withdraw(
                 ctx.accounts
@@ -391,7 +373,7 @@ pub fn handler(
             )?;
 
             // Note : Too short in computing for now. Add again later
-            // // - [If ATA mint is WSOL, unwrap]
+            // - [If ATA mint is WSOL, unwrap]
             // if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
             //     token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
             // }
@@ -399,6 +381,7 @@ pub fn handler(
     }
 
     // - 6 [UPDATE ACCOUNTING] ------------------------------------------------
+
     ctx.accounts.update_onchain_accounting(
         order_delta.collateral,
         order_delta.quote,
@@ -406,38 +389,6 @@ pub fn handler(
         polarity,
     )?;
 
-    // - 7 [CHECKS] -----------------------------------------------------------
-
-    // Todo check that the perp.quote_position has the same value before and after
-
-    // msg!(
-    //     "pre_pa.quote_position {} | pre_pa.taker_quote {}",
-    //     pre_pa.quote_position,
-    //     pre_pa.taker_quote,
-    // );
-    // msg!(
-    //     "post_pa.quote_position {} | post_pa.taker_quote {}",
-    //     post_pa.quote_position,
-    //     post_pa.taker_quote,
-    // );
-    // let pre_pa_quote_pos = pre_pa.quote_position.to_num::<i64>() + pre_pa.taker_quote;
-    // let post_pa_quote_pos = post_pa.quote_position.to_num::<i64>() + post_pa.taker_quote;
-    // msg!(
-    //     "pre_pa_quote_pos {} | post_pa_quote_pos {}",
-    //     pre_pa_quote_pos,
-    //     post_pa_quote_pos,
-    // );
-
-    // msg!(
-    //     "rebalancing_amount lot {} | rebalancing_quote_amount {} | order_delta.quote {}",
-    //     rebalancing_amount,
-    //     rebalancing_quote_amount,
-    //     order_delta.quote,
-    // );
-    check!(
-        order_delta.quote <= rebalancing_quote_amount,
-        UxdErrorCode::RebalancingError
-    )?;
     // Note : Add later when computing limit is not an issue anymore
     // emit!(RebalanceMangoDepositoryLiteEvent {
     //     version: ctx.accounts.controller.version,
@@ -661,17 +612,6 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
 
         Ok(best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))?)
     }
-
-    // fn check_mango_depositories_redeemable_soft_cap_overflow(
-    //     &self,
-    //     redeemable_delta: u64,
-    // ) -> UxdResult {
-    //     check!(
-    //         redeemable_delta <= self.controller.mango_depositories_redeemable_soft_cap,
-    //         UxdErrorCode::MangoDepositoriesSoftCapOverflow
-    //     )?;
-    //     Ok(())
-    // }
 
     fn update_onchain_accounting(
         &mut self,

@@ -25,15 +25,15 @@ console.log(`ETH 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDe
 
 beforeEach("\n", function () { console.log("=============================================\n\n") });
 
-describe.skip("UXD Controller Suite", function () {
+describe("UXD Controller Suite", function () {
     const params = new controllerIntegrationSuiteParameters(10_000_000, 500_000);
     controllerIntegrationSuite(authority, bank, controllerUXD, params);
 });
 
 // Keep two un-migrated for now
-describe.skip("UXD MangoDepositories Migrations Suite", function () {
+describe("UXD MangoDepositories Migrations Suite", function () {
     mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositorySOL);
-    // mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryBTC); // un-migrated
+    mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryBTC);
     // mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryETH); // un-migrated
 
 });
@@ -48,10 +48,16 @@ describe("Rebalancing", function () {
 
     const params = new MangoDepositoryRebalancingSuiteParameters(20)
     mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositorySOL, params);
+
+    const paramsBTC = new MangoDepositoryRebalancingSuiteParameters(20)
+    mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryBTC, paramsBTC);
+
+    // const paramsETH = new MangoDepositoryRebalancingSuiteParameters(20)
+    // mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryETH, paramsETH);
 });
 
 // SOL
-describe.skip("Integration tests SOL", function () {
+describe("Integration tests SOL", function () {
     const user: Signer = new Keypair();
 
     before("Init and fund user", async function () {
@@ -71,7 +77,7 @@ describe.skip("Integration tests SOL", function () {
 });
 
 // BTC
-describe.skip("Integration tests BTC", function () {
+describe("Integration tests BTC", function () {
     const user: Signer = new Keypair();
 
     before("Init and fund user", async function () {

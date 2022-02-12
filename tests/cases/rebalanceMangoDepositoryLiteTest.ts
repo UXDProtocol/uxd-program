@@ -1,22 +1,25 @@
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, Mango, MangoDepository, findATAAddrSync, PnLPolarity } from "@uxdprotocol/uxd-client";
+import { sleep } from "@uxdprotocol/uxd-client/node_modules/@blockworks-foundation/mango-client";
 import { expect } from "chai";
 import { rebalanceMangoDepositoryLite } from "../api";
+import { TXN_OPTS } from "../connection";
 import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
+// Pretty unreliable test - this need a Rust test suit with fully under control environment.
 export const rebalanceMangoDepositoryLiteTest = async (rebalancingMaxAmount: number, polarity: PnLPolarity, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> => {
     console.group("🧭 rebalanceMangoDepositoryLiteTest");
     try {
         // GIVEN
         const userCollateralATA: PublicKey = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
         const userQuoteATA: PublicKey = findATAAddrSync(user.publicKey, depository.quoteMint)[0];
-        const userQuoteBalance = await getBalance(userQuoteATA);
-        let userCollateralBalance: number = await getBalance(userCollateralATA);
+        const userQuoteBalance_pre = await getBalance(userQuoteATA);
+        let userCollateralBalance_pre: number = await getBalance(userCollateralATA);
         if (NATIVE_MINT.equals(depository.collateralMint)) {
             // use SOL + WSOL balance
-            userCollateralBalance += await getSolBalance(user.publicKey);
+            userCollateralBalance_pre += await getSolBalance(user.publicKey);
         }
 
         // WHEN
@@ -28,62 +31,44 @@ export const rebalanceMangoDepositoryLiteTest = async (rebalancingMaxAmount: num
 
         // THEN
         const userQuoteBalance_post = await getBalance(userQuoteATA);
-        const quoteDelta = userQuoteBalance_post - userQuoteBalance;
-        const realRebalancingAmount = Math.abs(quoteDelta);
-        expect(realRebalancingAmount).to.be.lessThanOrEqual(rebalancingMaxAmount)
+        const quoteDelta = Math.abs(userQuoteBalance_post - userQuoteBalance_pre); // Rebalanced Amount
 
-        if (polarity == PnLPolarity.Positive) {
-            // Send COLLATERAL, should retrieve equivalent amount of USDC minus the slippage
-            let userCollateralBalance_post = await getBalance(userCollateralATA);
-            if (NATIVE_MINT.equals(depository.collateralMint)) {
-                // use SOL + WSOL balance
-                userCollateralBalance_post += await getSolBalance(user.publicKey);
-            }
-
-
-            // The user should
-            const expectedCollateralDelta = rebalancingMaxAmount / mangoPerpPrice;
-            const collateralDelta = userCollateralBalance - userCollateralBalance_post;
-            expect(collateralDelta).closeTo(expectedCollateralDelta, (expectedCollateralDelta * (slippage / slippageBase)), "The amount received back is invalid");
-            console.log(
-                `🧾 Rebalanced`, Number(realRebalancingAmount.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol);
-        } else if (polarity == PnLPolarity.Negative) {
-            // // Send USED, should retrieve equivalent amount of COLLATERAL minus the slippage
-            // let userCollateralBalance_post = await getBalance(userCollateralATA);
-            // if (NATIVE_MINT.equals(depository.collateralMint)) {
-            //     // use SOL + WSOL balance
-            //     userCollateralBalance_post += await getSolBalance(user.publicKey);
-            // }
-
-
-            // // The user should
-            // const expectedCollateralDelta = rebalancingMaxAmount / mangoPerpPrice;
-            // const collateralDelta = userCollateralBalance - userCollateralBalance_post;
-            // expect(collateralDelta).closeTo(expectedCollateralDelta, (expectedCollateralDelta * (slippage / slippageBase)), "The amount received back is invalid");
-            // console.log(
-            //     `🧾 Rebalanced`, Number(realRebalancingAmount.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol);
+        let userCollateralBalance_post = await getBalance(userCollateralATA);
+        if (NATIVE_MINT.equals(depository.collateralMint)) {
+            // use SOL + WSOL balance
+            userCollateralBalance_post += await getSolBalance(user.publicKey);
         }
+        const collateralDelta = Math.abs(userCollateralBalance_pre - userCollateralBalance_post);
+        const collateralDeltaQuoteValue = collateralDelta * mangoPerpPrice;
 
+        const mangoTakerFee = depository.getCollateralPerpTakerFees(mango);
+        const estimatedTakerFees = mangoTakerFee * quoteDelta;
 
-        // const mangoTakerFee = uxdHelpers.getMangoTakerFeeForPerp(depository, mango);
-        // const maxTakerFee = mangoTakerFee.toNumber() * rebalancingMaxAmount;
-        const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
+        const quoteDirection = (polarity == PnLPolarity.Positive ? "providing" : "receiving back");
+        const baseDirection = (polarity == PnLPolarity.Negative ? "providing" : "receiving back");
 
         console.log(
             `🧾 Rebalanced`, Number(quoteDelta.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol,
-            // "for", Number(collateralDelta.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
-            // "(perfect was", Number(maxRedeemableDelta.toFixed(controller.redeemableMintDecimals)),
-            // "|| returned unprocessed collateral due to odd lot", Number(collateralLeftOver.toFixed(depository.collateralMintDecimals)),
-            // "|| ~ max taker fees were", Number(maxTakerFee.toFixed(controller.redeemableMintDecimals)),
-            // "|| ~ loss in slippage", Number((maxRedeemableDelta - (quoteDelta + maxTakerFee)).toFixed(controller.redeemableMintDecimals)),
-            // ")"
+            quoteDirection, Number(collateralDelta.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
+            baseDirection, Number(quoteDelta.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol,
+            "|| ~ estimated taker fees around ", Number(estimatedTakerFees.toFixed(depository.quoteMintDecimals))
         );
-        // expect(collateralLeftOver + collateralDelta).closeTo(collateralAmount, collateralNativeUnitPrecision, "The amount of collateral used for redeem + carried over should be equal to the inputted amount.")
-        // expect(quoteDelta).closeTo(maxRedeemableDelta, (maxRedeemableDelta * (slippage / slippageBase)) + maxTakerFee, "The amount minted is out of the slippage range");
-        // expect(collateralDelta).closeTo(collateralAmount - collateralLeftOver, collateralNativeUnitPrecision, "The collateral amount paid doesn't match the user wallet delta");
+
+        const slippageDeltaMultiplier = slippage / slippageBase;
+        expect(quoteDelta).closeTo(collateralDeltaQuoteValue, collateralDeltaQuoteValue * slippageDeltaMultiplier, "User should have gotten back the same value +/- slippage")
+        switch (polarity) {
+            case PnLPolarity.Positive: {
+                expect(userQuoteBalance_post).greaterThan(userQuoteBalance_pre, "PnL is Positive, user should have gotten some quote back");
+                expect(userCollateralBalance_post).lessThan(userCollateralBalance_pre, "PnL is Negative, user should have spent collateral");
+            }
+            case PnLPolarity.Negative: {
+                expect(userQuoteBalance_post).lessThan(userQuoteBalance_pre, "PnL is Negative, user should have spent quote");
+                expect(userCollateralBalance_post).greaterThan(userCollateralBalance_pre, "PnL is Negative, user should have gotten some collateral back");
+            }
+        };
 
         console.groupEnd();
-        return realRebalancingAmount;
+        return quoteDelta;
     } catch (error) {
         console.groupEnd();
         throw error;
