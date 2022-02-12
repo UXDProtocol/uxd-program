@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0",
+  "version": "3.0.0-beta",
   "name": "uxd",
   "instructions": [
     {
@@ -1810,8 +1810,5 @@
       "name": "UnsupportedDepositoryVersion",
       "msg": "The instruction doesn't support this version of the Depository. Migrate first."
     }
-  ],
-  "metadata": {
-    "address": "5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL"
-  }
+  ]
 }

@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "3.0.0",
+  "version": "3.0.0-beta",
   "name": "uxd",
   "instructions": [
     {
@@ -1814,7 +1814,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "3.0.0",
+  "version": "3.0.0-beta",
   "name": "uxd",
   "instructions": [
     {

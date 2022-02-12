@@ -2,14 +2,14 @@ name: Soteria
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ main, v* ]
   pull_request:
-    branches: [ main, dev ]
+    branches: [ main, v* ]
 
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: "1.8.12"
-  PROGRAM_PATH: "programs/"
+  SOLANA_VERSION: 1.8.12
+  PROGRAM_PATH: programs/
 
 jobs:
   build:

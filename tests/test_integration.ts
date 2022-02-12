@@ -1,11 +1,8 @@
-import { web3 } from "@project-serum/anchor";
-import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Keypair, Signer } from "@solana/web3.js";
-import { uiToNative, Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
-import { getConnection } from "./connection";
 import { mangoDepositoryMigrationsSuite } from "./suite/mangoDepositoryMigrationsSuite";
-import { getBalance, getSolBalance, transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
+import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters, mangoDepositoryAndControllerInteractionsSuite } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
 import { mangoDepositoryInsuranceSuite } from "./suite/mangoDepositoryInsuranceSuite";

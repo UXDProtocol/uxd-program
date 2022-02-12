@@ -6,7 +6,7 @@ import { rebalanceMangoDepositoryLiteTest } from "../cases/rebalanceMangoDeposit
 import { TXN_OPTS } from "../connection";
 import { slippageBase } from "../constants";
 import { mango } from "../fixtures";
-import { printUserInfo, printDepositoryInfo, transferTokens, transferAllTokens, transferAllSol } from "../utils";
+import { printUserInfo, transferTokens, transferAllTokens } from "../utils";
 
 export class MangoDepositoryRebalancingSuiteParameters {
     public slippage: number;
