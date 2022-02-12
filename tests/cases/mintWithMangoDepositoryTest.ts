@@ -38,7 +38,7 @@ export const mintWithMangoDepositoryTest = async (collateralAmount: number, slip
         // So for now, until we implement a separate payer/user for mint and redeem, don't use tiny amounts for test where the 0.00203928
         // could create a fail positive for wrong slippage
         const collateralDelta = userCollateralBalance - userCollateralBalance_post;
-        const collateralLeftOver = collateralAmount - collateralDelta; // Offset fees dirty
+        const collateralLeftOver = collateralAmount - collateralDelta;
         const maxRedeemableDelta = collateralDelta * mangoPerpPrice;
         // Will be a bit over
         const mangoTakerFee = depository.getCollateralPerpTakerFees(mango);
