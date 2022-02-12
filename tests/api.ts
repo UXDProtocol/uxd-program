@@ -40,6 +40,9 @@ export async function initializeController(authority: Signer, payer: Signer, con
 
     tx.instructions.push(initControllerIx);
     signers.push(authority);
+    if (payer) {
+        signers.push(payer);
+    }
 
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
@@ -51,6 +54,9 @@ export async function registerMangoDepository(authority: Signer, payer: Signer, 
 
     tx.instructions.push(registerMangoDepositoryIx);
     signers.push(authority);
+    if (payer) {
+        signers.push(payer);
+    }
 
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
@@ -62,6 +68,9 @@ export async function migrateMangoDepositoryToV2(authority: Signer, payer: Signe
 
     tx.instructions.push(migrateMangoDepositoryToV2Ix);
     signers.push(authority);
+    if (payer) {
+        signers.push(payer);
+    }
 
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }

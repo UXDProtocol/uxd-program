@@ -31,7 +31,7 @@ describe("UXD Controller Suite", function () {
 });
 
 // SOL
-describe("Integration tests SOL", function () {
+describe.skip("Integration tests SOL", function () {
     const user: Signer = new Keypair();
 
     before("Init and fund user", async function () {

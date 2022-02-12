@@ -3,72 +3,109 @@ import { Controller, MangoDepository, findATAAddrSync } from "@uxdprotocol/uxd-c
 import { expect } from "chai";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { redeemFromMangoDepositoryTest } from "../cases/redeemFromMangoDepositoryTest";
+import { slippageBase } from "../constants";
 import { mango } from "../fixtures";
 import { getBalance, printDepositoryInfo, printUserInfo, transferAllTokens, transferTokens } from "../utils";
 
 export const mangoDepositoryMintRedeemSuite = (user: Signer, payer: Signer, controller: Controller, depository: MangoDepository, slippage: number) => {
 
-    // TODO define a better number that 100 using the perp price
-    it(`Transfer 100 ${depository.collateralMintSymbol} from payer to user`, async function () {
-        await transferTokens(100, depository.collateralMint, depository.collateralMintDecimals, payer, user.publicKey);
+    it(`Transfer 300,000 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
+        const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+        const tenThousandUsdWorth = 300_000 / perpPrice;
+        await transferTokens(tenThousandUsdWorth, depository.collateralMint, depository.collateralMintDecimals, payer, user.publicKey);
     });
 
-    it(`Redeem 100 ${depository.collateralMintSymbol} worth of UXD (${slippage} slippage) when no mint has happened (should fail)`, async function () {
+    it(`Redeem 100 UXD (${slippage / slippageBase} % slippage) when no mint has happened (should fail)`, async function () {
+        const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+        const amount = 100 / perpPrice;
+        console.log("[🧾 amount", amount, "]");
         try {
-            await redeemFromMangoDepositoryTest(100, slippage, user, controller, depository, mango, payer);
+            await redeemFromMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
         } catch {
             expect(true, "Failing as planned");
         }
         expect(false, "Should have failed - No collateral deposited yet");
     });
 
-    it(`Mint 1 ${depository.collateralMintSymbol} worth of UXD (${slippage} slippage) then redeem the outcome`, async function () {
-        const mintedAmount = await mintWithMangoDepositoryTest(1, slippage, user, controller, depository, mango, payer);
+    it(`Mint minTradingSize UXD then redeem the outcome (0.1% slippage)`, async function () {
+        const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+        const minTradingSize = await depository.getMinTradingSizeUi(mango);
+        const amount = (minTradingSize * 1.05) / perpPrice; // + 5%
+        console.log("[🧾 amount", amount, "]");
+        const mintedAmount = await mintWithMangoDepositoryTest(amount, 1, user, controller, depository, mango, payer);
         await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, depository, mango, payer);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
     });
 
-    it(`Mint 1 ${depository.collateralMintSymbol} worth of UXD (${slippage} slippage) then redeem the outcome (With a separate Payer)`, async function () {
-        const mintedAmount = await mintWithMangoDepositoryTest(1, slippage, user, controller, depository, mango, payer);
+    it(`Mint 10 UXD then redeem the outcome (${slippage / slippageBase} % slippage)`, async function () {
+        const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+        const amount = 10 / perpPrice;
+        console.log("[🧾 amount", amount, "]");
+        const mintedAmount = await mintWithMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
         await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, depository, mango, payer);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
     });
 
-    it(`Redeem 1_000_000 ${depository.collateralMintSymbol} worth of UXD (${slippage} slippage) when not enough has been minted yet (should fail)`, async function () {
+    it(`Mint 100 UXD then redeem the outcome (${slippage / slippageBase} % slippage)`, async function () {
+        const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+        const amount = 100 / perpPrice;
+        console.log("[🧾 amount", amount, "]");
+        const mintedAmount = await mintWithMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
+        await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, depository, mango, payer);
+        await printUserInfo(user.publicKey, controller, depository);
+        await printDepositoryInfo(controller, depository, mango);
+    });
+
+    it(`Redeem 100,000 UXD when not enough has been minted yet (should fail)`, async function () {
         try {
-            await redeemFromMangoDepositoryTest(1_000_000, slippage, user, controller, depository, mango, payer);
+            await redeemFromMangoDepositoryTest(100_000, slippage, user, controller, depository, mango, payer);
         } catch {
             expect(true, "Failing as planned");
         }
-        expect(false, "Should have failed - Redeeming beyond the available collateral");
+        expect(false, "Should have failed - Redeeming beyond the available redeemable under management");
     });
 
-    it(`Mint 5 ${depository.collateralMintSymbol} worth of UXD (${slippage} slippage) then redeem the outcome`, async function () {
-        const mintedAmount = await mintWithMangoDepositoryTest(5, slippage, user, controller, depository, mango, payer);
+    it(`Mint 500 UXD then redeem the outcome  (${slippage / slippageBase} % slippage)`, async function () {
+        const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+        const amount = 500 / perpPrice;
+        console.log("[🧾 amount", amount, "]");
+        const mintedAmount = await mintWithMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
         await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, depository, mango, payer);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
     });
 
-    it(`Mint 10 ${depository.collateralMintSymbol} worth of UXD (${slippage} slippage) then redeem the outcome`, async function () {
-        const mintedAmount = await mintWithMangoDepositoryTest(10, slippage, user, controller, depository, mango, payer);
+    it(`Mint 1000 UXD then redeem the outcome (${slippage / slippageBase} % slippage)`, async function () {
+        const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+        const amount = 1000 / perpPrice;
+        console.log("[🧾 amount", amount, "]");
+        const mintedAmount = await mintWithMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
         await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, depository, mango, payer);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
     });
 
-    it(`Redeem 1_000 UXD (${slippage} slippage) (should fail)`, async function () {
+    it(`Mint 100,000 UXD then redeem the outcome (${slippage / slippageBase} % slippage)`, async function () {
+        const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+        const amount = 100_000 / perpPrice;
+        const mintedAmount = await mintWithMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
+        await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, depository, mango, payer);
+        await printUserInfo(user.publicKey, controller, depository);
+        await printDepositoryInfo(controller, depository, mango);
+    });
+
+    it(`Redeem 1000 UXD (0% slippage) (should fail)`, async function () {
         try {
-            await redeemFromMangoDepositoryTest(1_000, slippage, user, controller, depository, mango, payer);
+            await redeemFromMangoDepositoryTest(1_000, 0, user, controller, depository, mango, payer);
         } catch {
             expect(true, "Failing as planned");
         }
         expect(false, "Should have failed - User's balance too low");
     });
 
-    it(`Mint 0 UXD (${slippage} slippage) (should fail)`, async function () {
+    it(`Mint 0 UXD (${slippage / slippageBase} % slippage) (should fail)`, async function () {
         try {
             await mintWithMangoDepositoryTest(0, slippage, user, controller, depository, mango, payer);
         } catch {
@@ -77,7 +114,7 @@ export const mangoDepositoryMintRedeemSuite = (user: Signer, payer: Signer, cont
         expect(false, "Should have failed - Amount is 0");
     });
 
-    it(`Redeem 0 UXD (${slippage} slippage) (should fail)`, async function () {
+    it(`Redeem 0 UXD (${slippage / slippageBase} % slippage) (should fail)`, async function () {
         try {
             await redeemFromMangoDepositoryTest(0, slippage, user, controller, depository, mango, payer);
         } catch {
@@ -86,27 +123,36 @@ export const mangoDepositoryMintRedeemSuite = (user: Signer, payer: Signer, cont
         expect(false, "Should have failed - Amount is 0");
     });
 
-    it(`Mint 1 ${depository.collateralMintSymbol} worth of UXD (${slippage} slippage) then redeem the outcome 10 times (stress test)`, async function () {
+    it(`Mint 100 UXD then redeem the outcome, 10 times (${slippage / slippageBase} % slippage) (🌶 stress test)`, async function () {
+        const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+        const amount = 100 / perpPrice;
+        console.log("[🧾 amount", amount, "]");
         for (var _i = 0; _i < 10; _i++) {
-            const mintedAmount = await mintWithMangoDepositoryTest(1, slippage, user, controller, depository, mango, payer);
+            const mintedAmount = await mintWithMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
             await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, depository, mango, payer);
         }
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
     });
 
-    it(`Mint 1 ${depository.collateralMintSymbol} worth of UXD (${slippage} slippage) 10 times then redeem the outcome`, async function () {
+    it(`Mint 100 UXD 5 times then redeem the outcome (${slippage / slippageBase} % slippage)  (🌶 stress test)`, async function () {
+        const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+        const amount = 100 / perpPrice;
+        console.log("[🧾 amount", amount, "]");
         let mintedAmount: number = 0;
-        for (var _i = 0; _i < 10; _i++) {
-            mintedAmount += await mintWithMangoDepositoryTest(1, slippage, user, controller, depository, mango, payer);
+        for (var _i = 0; _i < 5; _i++) {
+            mintedAmount += await mintWithMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
         }
         await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, depository, mango, payer);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
     });
 
-    it(`Mint 10 ${depository.collateralMintSymbol} worth of UXD (${slippage} slippage) then redeem the outcome in 3 times`, async function () {
-        const mintedAmount = await mintWithMangoDepositoryTest(10, slippage, user, controller, depository, mango, payer);
+    it(`Mint 1000 UXD then redeem the outcome in 3 times (${slippage / slippageBase} % slippage)`, async function () {
+        const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+        const amount = 1000 / perpPrice;
+        console.log("[🧾 amount", amount, "]");
+        const mintedAmount = await mintWithMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
         const redeemAmountPartial = mintedAmount / 3;
         await redeemFromMangoDepositoryTest(redeemAmountPartial, slippage, user, controller, depository, mango, payer);
         await redeemFromMangoDepositoryTest(redeemAmountPartial, slippage, user, controller, depository, mango, payer);

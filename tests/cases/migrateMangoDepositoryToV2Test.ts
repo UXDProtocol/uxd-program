@@ -11,15 +11,21 @@ export const migrateMangoDepositoryToV2Test = async (authority: Signer, controll
 
     console.group("🧭 migrateMangoDepositoryToV2Test");
     try {
-        await getConnection().getAccountInfo(controller.pda); // With throw if doesn't exist
+        await getConnection().getAccountInfo(controller.pda);
         try {
             // WHEN
             const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
-            if (depositoryOnchainAccount.version != 1) {
+            console.log(depositoryOnchainAccount.version);
+            if (depositoryOnchainAccount.version > 1) {
                 console.log("🚧 Already migrated.");
             } else {
-                const txId = await migrateMangoDepositoryToV2(authority, payer ?? authority, controller, depository);
-                console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
+                try {
+                    const txId = await migrateMangoDepositoryToV2(authority, payer ?? authority, controller, depository);
+                    console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
+                } catch (error) {
+                    console.groupEnd();
+                    throw error;
+                }
             }
 
             // THEN
