@@ -4,7 +4,7 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use mango::state::MangoAccount;
 use std::mem::size_of;
-use crate::PROGRAM_VERSION;
+use crate::MANGO_DEPOSITORY_ACCOUNT_VERSION;
 use crate::UxdResult;
 use crate::mango_program;
 use crate::MangoDepository;
@@ -14,8 +14,9 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
+use crate::QUOTE_PASSTHROUGH_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
-use crate::events::RegisterMangoDepositoryEvent;
+use crate::events::RegisterMangoDepositoryEventV2;
 
 const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
@@ -24,11 +25,11 @@ const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
     bump: u8,
     collateral_passthrough_bump: u8,
     insurance_passthrough_bump: u8,
+    quote_passthrough_bump: u8,
     mango_account_bump: u8,
 )]
 pub struct RegisterMangoDepository<'info> {
     pub authority: Signer<'info>,
-    // In order to use with governance program, as the PDA cannot be the payer in nested TX.
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(
@@ -47,6 +48,7 @@ pub struct RegisterMangoDepository<'info> {
     pub depository: Box<Account<'info, MangoDepository>>,
     pub collateral_mint: Box<Account<'info, Mint>>,
     pub insurance_mint: Box<Account<'info, Mint>>,
+    pub quote_mint: Box<Account<'info, Mint>>,
     #[account(
         init,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
@@ -55,7 +57,7 @@ pub struct RegisterMangoDepository<'info> {
         token::authority = depository,
         payer = payer,
     )]
-    pub depository_collateral_passthrough_account: Account<'info, TokenAccount>,
+    pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
         init,
         seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
@@ -64,7 +66,16 @@ pub struct RegisterMangoDepository<'info> {
         token::authority = depository,
         payer = payer,
     )]
-    pub depository_insurance_passthrough_account: Account<'info, TokenAccount>,
+    pub depository_insurance_passthrough_account: Box<Account<'info, TokenAccount>>,
+    #[account(
+        init,
+        seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
+        bump = quote_passthrough_bump,
+        token::mint = quote_mint,
+        token::authority = depository,
+        payer = payer,
+    )]
+    pub depository_quote_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
         init,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
@@ -89,10 +100,12 @@ pub fn handler(
     bump: u8, 
     collateral_passthrough_bump: u8,
     insurance_passthrough_bump: u8,
+    quote_passthrough_bump: u8,
     mango_account_bump: u8
 ) -> UxdResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
     let insurance_mint = ctx.accounts.insurance_mint.key();
+    let quote_mint = ctx.accounts.quote_mint.key();
 
     // - Initialize Mango Account
     let depository_signer_seed: &[&[&[u8]]] = &[&[
@@ -110,14 +123,18 @@ pub fn handler(
     ctx.accounts.depository.bump = bump;
     ctx.accounts.depository.collateral_passthrough_bump = collateral_passthrough_bump;
     ctx.accounts.depository.insurance_passthrough_bump = insurance_passthrough_bump;
+    ctx.accounts.depository.quote_passthrough_bump = quote_passthrough_bump;
     ctx.accounts.depository.mango_account_bump = mango_account_bump;
-    ctx.accounts.depository.version = PROGRAM_VERSION;
+    ctx.accounts.depository.version = MANGO_DEPOSITORY_ACCOUNT_VERSION;
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
     ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
     ctx.accounts.depository.insurance_mint = insurance_mint;
     ctx.accounts.depository.insurance_mint_decimals = ctx.accounts.insurance_mint.decimals;
     ctx.accounts.depository.insurance_passthrough = ctx.accounts.depository_insurance_passthrough_account.key();
+    ctx.accounts.depository.quote_mint = quote_mint;
+    ctx.accounts.depository.quote_mint_decimals = ctx.accounts.quote_mint.decimals;
+    ctx.accounts.depository.quote_passthrough = ctx.accounts.depository_quote_passthrough_account.key();
     ctx.accounts.depository.mango_account = ctx.accounts.depository_mango_account.key();
     ctx.accounts.depository.controller = ctx.accounts.controller.key();
     ctx.accounts.depository.insurance_amount_deposited = u128::MIN;
@@ -127,12 +144,14 @@ pub fn handler(
     // - Update Controller state
     ctx.accounts.add_new_registered_mango_depository_entry_to_controller()?;
 
-    emit!(RegisterMangoDepositoryEvent {
+    emit!(RegisterMangoDepositoryEventV2 {
         version: ctx.accounts.controller.version,
+        depository_version: ctx.accounts.depository.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         collateral_mint: ctx.accounts.collateral_mint.key(),
         insurance_mint: ctx.accounts.insurance_mint.key(),
+        quote_mint: ctx.accounts.quote_mint.key(),
         mango_account: ctx.accounts.depository_mango_account.key(),
     });
 

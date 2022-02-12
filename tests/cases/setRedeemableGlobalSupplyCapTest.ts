@@ -1,27 +1,31 @@
-import { BN } from "@project-serum/anchor";
 import { Signer } from "@solana/web3.js";
-import { Controller } from "@uxdprotocol/uxd-client";
+import { Controller, nativeToUi } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
-import { getControllerAccount, setRedeemableGlobalSupplyCap } from "../api";
+import { setRedeemableGlobalSupplyCap } from "../api";
 import { CLUSTER } from "../constants";
+import { getConnection, TXN_OPTS } from "../connection";
 
 export const setRedeemableGlobalSupplyCapTest = async (supplyCapAmount: number, authority: Signer, controller: Controller) => {
+    const connection = getConnection();
+    const options = TXN_OPTS;
+
     console.group("🧭 setRedeemableGlobalSupplyCapTest");
     try {
         // GIVEN
-        const redeemableGlobalSupplyCap = (await getControllerAccount(controller)).redeemableGlobalSupplyCap.div(new BN(10 ** controller.redeemableMintDecimals));
+        const controllerOnchainAccount = await controller.getOnchainAccount(getConnection(), options);
+        const redeemableGlobalSupplyCap = nativeToUi(controllerOnchainAccount.redeemableGlobalSupplyCap.toNumber(), controller.redeemableMintDecimals);
 
         // WHEN
         const txId = await setRedeemableGlobalSupplyCap(authority, controller, supplyCapAmount);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
-        const controllerAccount = await getControllerAccount(controller);
-        const redeemableGlobalSupplyCap_post = controllerAccount.redeemableGlobalSupplyCap.div(new BN(10 ** controller.redeemableMintDecimals));
-        const redeemableCirculatingSupply = controllerAccount.redeemableCirculatingSupply.div(new BN(10 ** controller.redeemableMintDecimals));
+        const controllerOnchainAccount_post = await controller.getOnchainAccount(connection, options);
+        const redeemableGlobalSupplyCap_post = nativeToUi(controllerOnchainAccount_post.redeemableGlobalSupplyCap.toNumber(), controller.redeemableMintDecimals);
+        const redeemableCirculatingSupply = nativeToUi(controllerOnchainAccount_post.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
 
-        expect(redeemableGlobalSupplyCap_post.toNumber()).equals(supplyCapAmount, "The redeemable global supply cap hasn't been updated.");
-        console.log(`🧾 Previous global supply cap was`, redeemableGlobalSupplyCap.toString(), "now is", redeemableGlobalSupplyCap_post.toString(), "(circulating supply", redeemableCirculatingSupply.toString(), ")");
+        expect(redeemableGlobalSupplyCap_post).equals(supplyCapAmount, "The redeemable global supply cap hasn't been updated.");
+        console.log(`🧾 Previous global supply cap was`, redeemableGlobalSupplyCap, "now is", redeemableGlobalSupplyCap_post, "(circulating supply", redeemableCirculatingSupply, ")");
         controller.info();
         console.groupEnd();
     } catch (error) {

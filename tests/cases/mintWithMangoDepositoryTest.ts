@@ -2,8 +2,8 @@ import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, Mango, MangoDepository, findATAAddrSync } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
-import { collateralUIPriceInMangoQuote, mintWithMangoDepository } from "../api";
-import { CLUSTER, MANGO_QUOTE_DECIMALS, slippageBase, uxdHelpers } from "../constants";
+import { mintWithMangoDepository } from "../api";
+import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
 export const mintWithMangoDepositoryTest = async (collateralAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> => {
@@ -21,9 +21,9 @@ export const mintWithMangoDepositoryTest = async (collateralAmount: number, slip
 
         // WHEN
         // - Get the perp price at the same moment to have the less diff between exec and test price
-        const mangoPerpPrice = await collateralUIPriceInMangoQuote(depository, mango);
+        const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
         const txId = await mintWithMangoDepository(user, payer ?? user, slippage, collateralAmount, controller, depository, mango);
-        console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(MANGO_QUOTE_DECIMALS)));
+        console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
@@ -39,10 +39,10 @@ export const mintWithMangoDepositoryTest = async (collateralAmount: number, slip
         // could create a fail positive for wrong slippage
         const collateralDelta = userCollateralBalance - userCollateralBalance_post;
         const collateralLeftOver = collateralAmount - collateralDelta;
-        const maxRedeemableDelta = collateralDelta * mangoPerpPrice.toBig();
+        const maxRedeemableDelta = collateralDelta * mangoPerpPrice;
         // Will be a bit over
-        const mangoTakerFee = uxdHelpers.getMangoTakerFeeForPerp(depository, mango);
-        const maxTakerFee = mangoTakerFee.toNumber() * maxRedeemableDelta;
+        const mangoTakerFee = depository.getCollateralPerpTakerFees(mango);
+        const maxTakerFee = mangoTakerFee * maxRedeemableDelta;
         const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
 
         console.log(
@@ -50,7 +50,7 @@ export const mintWithMangoDepositoryTest = async (collateralAmount: number, slip
             "for", Number(collateralDelta.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
             "(perfect was", Number(maxRedeemableDelta.toFixed(controller.redeemableMintDecimals)),
             "|| returned unprocessed collateral due to odd lot", Number(collateralLeftOver.toFixed(depository.collateralMintDecimals)),
-            "|| ~ max taker fees were", Number(maxTakerFee.toFixed(controller.redeemableMintDecimals)),
+            "|| ~ max taker fees were", Number(maxTakerFee.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol,
             "|| ~ loss in slippage", Number((maxRedeemableDelta - (redeemableDelta + maxTakerFee)).toFixed(controller.redeemableMintDecimals)),
             ")"
         );

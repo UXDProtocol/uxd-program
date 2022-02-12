@@ -32,6 +32,7 @@ pub enum SourceFileId {
     StateMangoDepository = 19,
     Error = 20,
     Lib = 21,
+    InstructionMangoDexRebalanceMangoDepositoryLite = 22,
 }
 
 impl std::fmt::Display for SourceFileId {
@@ -118,6 +119,12 @@ impl std::fmt::Display for SourceFileId {
             SourceFileId::Lib => {
                 write!(f, "src/lib.rs")
             }
+            SourceFileId::InstructionMangoDexRebalanceMangoDepositoryLite => {
+                write!(
+                    f,
+                    "src/instructions/mango_dex/rebalance_mango_depository_lite.rs"
+                )
+            }
         }
     }
 }
@@ -134,6 +141,7 @@ pub enum UxdError {
     },
 }
 
+// GENERIC PROGRAM ERRORS
 #[derive(Debug, Error, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
 #[repr(u32)]
 pub enum UxdErrorCode {
@@ -181,17 +189,26 @@ pub enum UxdErrorCode {
     )]
     InvalidMangoDepositoriesRedeemableSoftCap,
     #[error("Quote_lot_delta can't be 0.")]
-    InvalidQuoteLotDelta,
+    InvalidQuoteLotDelta = 20,
     #[error("The perp order wasn't executed in the right direction.")]
     InvalidOrderDirection,
     #[error("Math error.")]
     MathError,
     #[error("The order couldn't be executed with the provided slippage.")]
     SlippageReached,
+    #[error("The rebalancing amount must be above 0.")]
+    InvalidRebalancingAmount,
+    #[error("The Quote amount in the provided user_quote ATA must be >= max_amount_rebalancing.")]
+    InsufficientQuoteAmount,
+    #[error("The PnL polarity provided is not the same as the perp position's one.")]
+    InvalidPnlPolarity,
+    #[error("The rebalanced amount doesn't match the expected rebalance amount.")]
+    RebalancingError,
     #[error("MangoErrorCode::Default Check the source code for more info")]
     Default = u32::MAX,
 }
 
+// ANCHOR IDL ERRORS
 #[error(offset = 200)]
 pub enum UxdIdlErrorCode {
     #[msg("Only the Program initializer authority can access this instructions.")]
@@ -218,10 +235,20 @@ pub enum UxdIdlErrorCode {
     InvalidRedeemableMint,
     #[msg("The Collateral Passthrough ATA's mint does not match the Depository's one.")]
     InvalidCollateralPassthroughATAMint,
+    #[msg("The Quote Passthrough Account isn't the Depository one.")]
+    InvalidQuotePassthroughAccount,
+    #[msg("The Quote Passthrough ATA's mint does not match the Depository's one.")]
+    InvalidQuotePassthroughATAMint,
     // #[error("The user's Redeemable ATA's mint does not match the Controller's one.")]
     // InvalidUserRedeemableATAMint,
     // #[error("The user's Collateral ATA's mint does not match the Depository's one.")]
     // InvalidUserCollateralATAMint,
+    // #[msg("The provided quote mint does not match the depository's quote mint.")]
+    // InvalidUserQuoteAtaMint,
+    #[msg("The provided quote mint does not match the depository's quote mint.")]
+    InvalidQuoteMint,
+    #[msg("The instruction doesn't support this version of the Depository. Migrate first.")]
+    UnsupportedDepositoryVersion
 }
 
 impl From<UxdError> for ProgramError {

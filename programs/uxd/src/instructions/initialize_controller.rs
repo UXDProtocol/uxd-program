@@ -8,7 +8,7 @@ use crate::UxdResult;
 use crate::CONTROLLER_NAMESPACE;
 use crate::DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
 use crate::DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP;
-use crate::PROGRAM_VERSION;
+use crate::CONTROLLER_ACCOUNT_VERSION;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SOLANA_MAX_MINT_DECIMALS;
 use anchor_lang::prelude::*;
@@ -62,7 +62,7 @@ pub fn handler(
 
     ctx.accounts.controller.bump = bump;
     ctx.accounts.controller.redeemable_mint_bump = redeemable_mint_bump;
-    ctx.accounts.controller.version = PROGRAM_VERSION;
+    ctx.accounts.controller.version = CONTROLLER_ACCOUNT_VERSION;
     ctx.accounts.controller.authority = ctx.accounts.authority.key();
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
     ctx.accounts.controller.redeemable_mint_decimals = redeemable_mint_decimals;

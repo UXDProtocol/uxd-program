@@ -258,9 +258,11 @@ mod test {
 
         // expected slippage amount
         let expected = I80F48::from_num(2400000000u64);
-        
+
         assert_eq!(
-            calculate_slippage_amount(price, slippage).unwrap().overflowing_round(),
+            calculate_slippage_amount(price, slippage)
+                .unwrap()
+                .overflowing_round(),
             (expected, false)
         );
     }

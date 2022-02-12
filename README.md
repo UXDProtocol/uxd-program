@@ -1,5 +1,20 @@
 # UXD-Program
 
+The actual deployed state of each contract should live in a protected master branch. The latest master should always reflect the code deployed to all relevant chains
+
+It currently sits at:
+
+<!-- ### Solana -->
+- mainnnet-beta `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr`
+- Internal devnet `5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL`
+- Public devnet `882VXWftqQ9wsVq99SJqBVsz6tVeBt63jKE9XiwEHDeN` // Don't test until close to release
+
+Development branch (dev) to accumulate not-yet-deployed changes to the contract.
+
+Tests should be written in a language other than Solidity (most likely JavaScript + Truffle) to make sure that bugs related to syntax quirks and misunderstandings are discoverable with tests, not just replicated there.
+
+Tests are covered by CI
+
 ## Installation
 
 ```Zsh
