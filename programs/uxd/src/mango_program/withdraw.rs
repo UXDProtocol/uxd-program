@@ -51,7 +51,6 @@ fn withdraw_instruction(
     token_account_pubkey: &Pubkey,
     mango_signer_pubkey: &Pubkey,
     token_program_id: &Pubkey,
-    signer_pubkeys: &[&Pubkey],
     quantity: u64,
     allow_borrow: bool,
 ) -> Result<Instruction, ProgramError> {
@@ -66,7 +65,7 @@ fn withdraw_instruction(
     let mut accounts = vec![
         AccountMeta::new_readonly(*mango_group_pubkey, false),
         AccountMeta::new(*mango_account_pubkey, false),
-        AccountMeta::new_readonly(*owner_pubkey, false),
+        AccountMeta::new_readonly(*owner_pubkey, true),
         AccountMeta::new_readonly(*mango_cache_pubkey, false),
         AccountMeta::new_readonly(*mango_root_bank_pubkey, false),
         AccountMeta::new(*mango_node_bank_pubkey, false),
@@ -75,12 +74,6 @@ fn withdraw_instruction(
         AccountMeta::new_readonly(*mango_signer_pubkey, false),
         AccountMeta::new_readonly(*token_program_id, false),
     ];
-    // accounts.push(AccountMeta::new_readonly(*clock_sysvar_id, false));
-    accounts.extend(
-        signer_pubkeys
-            .iter()
-            .map(|signer_pubkey| AccountMeta::new_readonly(**signer_pubkey, true)),
-    );
     accounts.extend(
         [Pubkey::default(); MAX_PAIRS]
             .iter()
@@ -113,8 +106,6 @@ pub fn withdraw<'info>(
         ctx.accounts.token_account.key,
         ctx.accounts.mango_signer.key,
         ctx.accounts.token_program.key,
-        // ctx.accounts.clock_sysvar.key,
-        &[ctx.accounts.owner.key],
         quantity,
         allow_borrow,
     )?;
