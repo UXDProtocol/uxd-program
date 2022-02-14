@@ -50,7 +50,7 @@ fn deposit_instruction(
 ) -> Result<Instruction, ProgramError> {
     check_program_account(mango_program_id)?;
     let data = mango::instruction::MangoInstruction::Deposit { quantity }.pack();
-    let mut accounts = vec![
+    let accounts = vec![
         AccountMeta::new_readonly(*mango_group_pubkey, false),
         AccountMeta::new(*mango_account_pubkey, false),
         AccountMeta::new_readonly(*owner_pubkey, true),

@@ -11,13 +11,13 @@ Deployed: | Slot:
 
 ## v2.2.0 (hotfix)
 
-Deployed: | Slot:
+Deployed: Feb 14, 2022 at 14:49:53 UTC | Slot: 120,810,169
 
 1. Fix incorrect slippage calculations.
 
 ## v2.1.0 (hotfix)
 
-Deployed: | Slot:
+Deployed: Feb 14, 2022 at 11:46:41 UTC | Slot: 120,791,670
 
 1. Remove unnecessary account passed as input to mango instructions (mango 3.3.5)
 2. Owner of the MangoAccount passed as parameter to MangoMarketV3 CPI is now always a signer

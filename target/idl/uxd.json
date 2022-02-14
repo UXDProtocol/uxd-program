@@ -1810,5 +1810,8 @@
       "name": "UnsupportedDepositoryVersion",
       "msg": "The instruction doesn't support this version of the Depository. Migrate first."
     }
-  ]
+  ],
+  "metadata": {
+    "address": "5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL"
+  }
 }
