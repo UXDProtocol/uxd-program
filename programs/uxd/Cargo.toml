@@ -20,11 +20,11 @@ production = []
 development = []
 
 [dependencies]
-anchor-lang = "0.20.0"
-anchor-spl = "0.20.0"
-solana-program = "1.8.11"
+anchor-lang = "0.20.1"
+anchor-spl = "0.20.1"
+solana-program = "=1.9.1"
 spl-token = "3.2.0"
 fixed = "1.9.0"
 thiserror = "1.0.30"
 num_enum = "^0.5.1"
-mango = { git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
+mango = { tag = "v3.3.5", git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
