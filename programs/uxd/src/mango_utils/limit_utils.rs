@@ -19,9 +19,11 @@ pub fn limit_price(price: I80F48, slippage: u32, side: Side) -> UxdResult<I80F48
     let slippage_amount = price.checked_mul(slippage_ratio).ok_or(math_err!())?;
     let limit_price = match side {
         Side::Bid => {
+            solana_program::msg!("Bid, so we substract slippage to the base price");
             price.checked_sub(slippage_amount).ok_or(math_err!())
         }
         Side::Ask => {
+            solana_program::msg!("Ask, so we add slippage to the base price");
             price.checked_add(slippage_amount).ok_or(math_err!())
         }
     }?;
@@ -43,12 +45,22 @@ pub fn check_effective_order_price_versus_limit_price(
         .ok_or(math_err!())?;
     match order.side {
         Side::Bid => {
-            if order.price > effective_order_price {
+            solana_program::msg!(
+                "BID so order.price {} should be SUPERIOR to effective_order_price {}",
+                order.price,
+                effective_order_price
+            );
+            if order.price >= effective_order_price {
                 return Ok(());
             }
         }
         Side::Ask => {
-            if order.price < effective_order_price {
+            solana_program::msg!(
+                "ASK so order.price {} should be INFERIOR effective_order_price {}",
+                order.price,
+                effective_order_price
+            );
+            if order.price <= effective_order_price {
                 return Ok(());
             }
         }

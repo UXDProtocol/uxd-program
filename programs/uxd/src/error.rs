@@ -184,6 +184,8 @@ pub enum UxdErrorCode {
     InvalidOrderDirection,
     #[error("Math error.")]
     MathError,
+    #[error("The order couldn't be executed with the provided slippage.")]
+    SlippageReached,
     #[error("MangoErrorCode::Default Check the source code for more info")]
     Default = u32::MAX,
 }
