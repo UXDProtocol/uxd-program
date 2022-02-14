@@ -51,3 +51,180 @@ pub fn check_effective_order_price_versus_limit_price(
     };
     Err(throw_err!(UxdErrorCode::SlippageReached))
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    pub fn test_check_effective_order_price_versus_limit_price_mint_valid_zslip() {
+        // Order.price must be below the perpInfo.price within slippage
+        let ret = check_effective_order_price_versus_limit_price(
+            &PerpInfo {
+                market_index: 3,
+                price: I80F48::from_num(0.090000000000000), // 90.00$
+                base_unit: I80F48::from_num(1000000000),    // SOL 9 decimals
+                base_lot_size: I80F48::from_num(10000000),
+                quote_unit: I80F48::from_num(1000000), // USD 6 decimals
+                quote_lot_size: I80F48::from_num(100),
+                taker_fee: I80F48::from_num(0.0005),
+            },
+            &Order {
+                quantity: 0, // whatever not used
+                price: 9000, // exact price
+                size: 0,     // whatever not used
+                side: Side::Bid,
+            },
+            1, // 0.1%
+        );
+
+        if ret.is_err() {
+            assert!(false);
+        } else {
+            assert!(true);
+        }
+    }
+
+    #[test]
+    pub fn test_check_effective_order_price_versus_limit_price_mint_valid() {
+        let ret = check_effective_order_price_versus_limit_price(
+            &PerpInfo {
+                market_index: 3,
+                price: I80F48::from_num(0.090000000000000), // 90.00$
+                base_unit: I80F48::from_num(1000000000),    // SOL 9 decimals
+                base_lot_size: I80F48::from_num(10000000),
+                quote_unit: I80F48::from_num(1000000), // USD 6 decimals
+                quote_lot_size: I80F48::from_num(100),
+                taker_fee: I80F48::from_num(0.0005),
+            },
+            &Order {
+                quantity: 0, // whatever not used
+                price: 8911, // less than 1% below
+                size: 0,     // whatever not used
+                side: Side::Bid,
+            },
+            10, // 1%
+        );
+
+        if ret.is_err() {
+            assert!(false);
+        } else {
+            assert!(true);
+        }
+    }
+
+    // REDEEM
+
+    #[test]
+    pub fn test_check_effective_order_price_versus_limit_price_redeem_valid_zslip() {
+        let ret = check_effective_order_price_versus_limit_price(
+            &PerpInfo {
+                market_index: 3,
+                price: I80F48::from_num(0.090000000000000), // 90.00$
+                base_unit: I80F48::from_num(1000000000),    // SOL 9 decimals
+                base_lot_size: I80F48::from_num(10000000),
+                quote_unit: I80F48::from_num(1000000), // USD 6 decimals
+                quote_lot_size: I80F48::from_num(100),
+                taker_fee: I80F48::from_num(0.0005),
+            },
+            &Order {
+                quantity: 0, // whatever not used
+                price: 9000, // less than 1% above
+                size: 0,     // whatever not used
+                side: Side::Ask,
+            },
+            1, // 0.1%
+        );
+
+        if ret.is_err() {
+            assert!(false);
+        } else {
+            assert!(true);
+        }
+    }
+
+    #[test]
+    pub fn test_check_effective_order_price_versus_limit_price_mint_invalid() {
+        let ret = check_effective_order_price_versus_limit_price(
+            &PerpInfo {
+                market_index: 3,
+                price: I80F48::from_num(0.090000000000000), // 90.00$
+                base_unit: I80F48::from_num(1000000000),    // SOL 9 decimals
+                base_lot_size: I80F48::from_num(10000000),
+                quote_unit: I80F48::from_num(1000000), // USD 6 decimals
+                quote_lot_size: I80F48::from_num(100),
+                taker_fee: I80F48::from_num(0.0005),
+            },
+            &Order {
+                quantity: 0, // whatever not used
+                price: 8909, // more than 1% below
+                size: 0,     // whatever not used
+                side: Side::Bid,
+            },
+            10, // 1%
+        );
+
+        if ret.is_err() {
+            assert!(true);
+        } else {
+            assert!(false);
+        }
+    }
+
+    #[test]
+    pub fn test_check_effective_order_price_versus_limit_price_redeem_valid() {
+        let ret = check_effective_order_price_versus_limit_price(
+            &PerpInfo {
+                market_index: 3,
+                price: I80F48::from_num(0.090000000000000), // 90.00$
+                base_unit: I80F48::from_num(1000000000),    // SOL 9 decimals
+                base_lot_size: I80F48::from_num(10000000),
+                quote_unit: I80F48::from_num(1000000), // USD 6 decimals
+                quote_lot_size: I80F48::from_num(100),
+                taker_fee: I80F48::from_num(0.0005),
+            },
+            &Order {
+                quantity: 0, // whatever not used
+                price: 9089, // less than 1% above
+                size: 0,     // whatever not used
+                side: Side::Ask,
+            },
+            10, // 1%
+        );
+
+        if ret.is_err() {
+            assert!(false);
+        } else {
+            assert!(true);
+        }
+    }
+
+    #[test]
+    pub fn test_check_effective_order_price_versus_limit_price_redeem_invalid() {
+        let ret = check_effective_order_price_versus_limit_price(
+            &PerpInfo {
+                market_index: 3,
+                price: I80F48::from_num(0.090000000000000), // 90.00$
+                base_unit: I80F48::from_num(1000000000),    // SOL 9 decimals
+                base_lot_size: I80F48::from_num(10000000),
+                quote_unit: I80F48::from_num(1000000), // USD 6 decimals
+                quote_lot_size: I80F48::from_num(100),
+                taker_fee: I80F48::from_num(0.0005),
+            },
+            &Order {
+                quantity: 0, // whatever not used
+                price: 9091, // more than 1% above
+                size: 0,     // whatever not used
+                side: Side::Ask,
+            },
+            10, // 1%
+        );
+
+        if ret.is_err() {
+            assert!(true);
+        } else {
+            assert!(false);
+        }
+    }
+}
