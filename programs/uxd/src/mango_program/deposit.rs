@@ -47,28 +47,21 @@ fn deposit_instruction(
     mango_vault_pubkey: &Pubkey,
     token_program_id: &Pubkey,
     owner_token_account_pubkey: &Pubkey,
-    signer_pubkeys: &[&Pubkey],
     quantity: u64,
 ) -> Result<Instruction, ProgramError> {
     check_program_account(mango_program_id)?;
     let data = mango::instruction::MangoInstruction::Deposit { quantity }.pack();
 
-    let mut accounts = Vec::with_capacity(8 + MAX_PAIRS + signer_pubkeys.len());
+    let mut accounts = Vec::with_capacity(8 + MAX_PAIRS);
     accounts.push(AccountMeta::new_readonly(*mango_group_pubkey, false));
     accounts.push(AccountMeta::new(*mango_account_pubkey, false));
-    accounts.push(AccountMeta::new_readonly(
-        *owner_pubkey,
-        signer_pubkeys.is_empty(),
-    ));
+    accounts.push(AccountMeta::new_readonly(*owner_pubkey, true));
     accounts.push(AccountMeta::new_readonly(*mango_cache_pubkey, false));
     accounts.push(AccountMeta::new_readonly(*mango_root_bank_pubkey, false));
     accounts.push(AccountMeta::new(*mango_node_bank_pubkey, false));
     accounts.push(AccountMeta::new(*mango_vault_pubkey, false));
     accounts.push(AccountMeta::new_readonly(*token_program_id, false));
     accounts.push(AccountMeta::new(*owner_token_account_pubkey, false));
-    for signer_pubkey in signer_pubkeys.iter() {
-        accounts.push(AccountMeta::new_readonly(**signer_pubkey, true));
-    }
 
     Ok(Instruction {
         program_id: *mango_program_id,
@@ -92,7 +85,6 @@ pub fn deposit<'info>(
         ctx.accounts.mango_vault.key,
         ctx.accounts.token_program.key,
         ctx.accounts.owner_token_account.key,
-        &[ctx.accounts.owner.key],
         quantity,
     )?;
     solana_program::program::invoke_signed(

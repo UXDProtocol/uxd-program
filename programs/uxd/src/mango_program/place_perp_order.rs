@@ -45,7 +45,6 @@ fn place_perp_order_instruction(
     mango_bids_pubkey: &Pubkey,
     mango_asks_pubkey: &Pubkey,
     mango_event_queue_pubkey: &Pubkey,
-    signer_pubkeys: &[&Pubkey],
     price: i64,
     quantity: i64,
     client_order_id: u64,
@@ -69,18 +68,13 @@ fn place_perp_order_instruction(
     let mut accounts = vec![
         AccountMeta::new_readonly(*mango_group_pubkey, false),
         AccountMeta::new(*mango_account_pubkey, false),
-        AccountMeta::new_readonly(*owner_pubkey, signer_pubkeys.is_empty()),
+        AccountMeta::new_readonly(*owner_pubkey, true),
         AccountMeta::new_readonly(*mango_cache_pubkey, false),
         AccountMeta::new(*mango_perp_market_pubkey, false),
         AccountMeta::new(*mango_bids_pubkey, false),
         AccountMeta::new(*mango_asks_pubkey, false),
         AccountMeta::new(*mango_event_queue_pubkey, false),
     ];
-    accounts.extend(
-        signer_pubkeys
-            .iter()
-            .map(|signer_pubkey| AccountMeta::new_readonly(**signer_pubkey, true)),
-    );
     accounts.extend(
         [Pubkey::default(); MAX_PAIRS]
             .iter()
@@ -114,7 +108,6 @@ pub fn place_perp_order<'info>(
         ctx.accounts.mango_bids.key,
         ctx.accounts.mango_asks.key,
         ctx.accounts.mango_event_queue.key,
-        &[ctx.accounts.owner.key],
         price,
         quantity,
         client_order_id,
