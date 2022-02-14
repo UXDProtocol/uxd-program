@@ -17,10 +17,15 @@ pub fn limit_price(price: I80F48, slippage: u32, side: Side) -> UxdResult<I80F48
     let slippage_basis = I80F48::from_num(SLIPPAGE_BASIS);
     let slippage_ratio = slippage.checked_div(slippage_basis).ok_or(math_err!())?;
     let slippage_amount = price.checked_mul(slippage_ratio).ok_or(math_err!())?;
-    return match side {
-        Side::Bid => Ok(price.checked_add(slippage_amount).ok_or(math_err!())?),
-        Side::Ask => Ok(price.checked_sub(slippage_amount).ok_or(math_err!())?),
-    };
+    let limit_price = match side {
+        Side::Bid => {
+            price.checked_sub(slippage_amount).ok_or(math_err!())
+        }
+        Side::Ask => {
+            price.checked_add(slippage_amount).ok_or(math_err!())
+        }
+    }?;
+    Ok(limit_price)
 }
 
 // Check if the provided order is valid given the slippage and side
@@ -38,12 +43,12 @@ pub fn check_effective_order_price_versus_limit_price(
         .ok_or(math_err!())?;
     match order.side {
         Side::Bid => {
-            if order.price < effective_order_price {
+            if order.price > effective_order_price {
                 return Ok(());
             }
         }
         Side::Ask => {
-            if order.price > effective_order_price {
+            if order.price < effective_order_price {
                 return Ok(());
             }
         }
