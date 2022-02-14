@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "2.1.0",
+  "version": "2.2.0",
   "name": "uxd",
   "instructions": [
     {
@@ -963,6 +963,9 @@ export type Uxd = {
           },
           {
             "name": "MathError"
+          },
+          {
+            "name": "SlippageReached"
           },
           {
             "name": "Default"
@@ -1327,7 +1330,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "2.1.0",
+  "version": "2.2.0",
   "name": "uxd",
   "instructions": [
     {
@@ -2291,6 +2294,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "MathError"
+          },
+          {
+            "name": "SlippageReached"
           },
           {
             "name": "Default"

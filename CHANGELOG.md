@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v2.2.0 (hotfix)
+
+Deployed: | Slot:
+
+1. Fix incorrect slippage calculations.
+
 ## v2.1.0 (hotfix)
 
 Deployed: | Slot:

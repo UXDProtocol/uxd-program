@@ -7,7 +7,7 @@ export const TXN_COMMIT: Commitment = "processed";
 export const TXN_OPTS = {
   commitment: TXN_COMMIT,
   preflightCommitment: TXN_COMMIT,
-  skipPreflight: false,
+  skipPreflight: true,
 };
 
 // Provider
