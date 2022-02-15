@@ -1,4 +1,4 @@
-name: UXDProgram - end to end tests (typescript)
+name: End to end tests
 
 on:
   pull_request:
