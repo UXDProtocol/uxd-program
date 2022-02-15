@@ -278,7 +278,7 @@ mod test {
 
             let slippage_amount = calculate_slippage_amount(fractional_price, slippage).unwrap();
             // expected limit price
-            let price_plus_slippage = fractional_price.checked_add(slippage_amount).unwrap();
+            let price_plus_slippage = fractional_price.checked_sub(slippage_amount).unwrap();
 
             prop_assert_eq!(limit_price, price_plus_slippage);
         }
@@ -296,7 +296,7 @@ mod test {
 
             let slippage_amount = calculate_slippage_amount(fractional_price, slippage).unwrap();
             // expected limit price
-            let price_minus_slippage = fractional_price.checked_sub(slippage_amount).unwrap();
+            let price_minus_slippage = fractional_price.checked_add(slippage_amount).unwrap();
 
             prop_assert_eq!(limit_price, price_minus_slippage);
         }
