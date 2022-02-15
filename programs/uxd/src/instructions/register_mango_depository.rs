@@ -1,22 +1,22 @@
+use crate::error::UxdIdlErrorCode;
+use crate::events::RegisterMangoDepositoryEventV2;
+use crate::mango_program;
+use crate::Controller;
+use crate::MangoDepository;
+use crate::UxdResult;
+use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
+use crate::CONTROLLER_NAMESPACE;
+use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
+use crate::MANGO_ACCOUNT_NAMESPACE;
+use crate::MANGO_DEPOSITORY_ACCOUNT_VERSION;
+use crate::MANGO_DEPOSITORY_NAMESPACE;
+use crate::QUOTE_PASSTHROUGH_NAMESPACE;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use mango::state::MangoAccount;
 use std::mem::size_of;
-use crate::MANGO_DEPOSITORY_ACCOUNT_VERSION;
-use crate::UxdResult;
-use crate::mango_program;
-use crate::MangoDepository;
-use crate::Controller;
-use crate::error::UxdIdlErrorCode;
-use crate::CONTROLLER_NAMESPACE;
-use crate::MANGO_DEPOSITORY_NAMESPACE;
-use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
-use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
-use crate::QUOTE_PASSTHROUGH_NAMESPACE;
-use crate::MANGO_ACCOUNT_NAMESPACE;
-use crate::events::RegisterMangoDepositoryEventV2;
 
 const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
@@ -34,7 +34,7 @@ pub struct RegisterMangoDepository<'info> {
     pub payer: Signer<'info>,
     #[account(
         mut,
-        seeds = [CONTROLLER_NAMESPACE], 
+        seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
@@ -97,11 +97,11 @@ pub struct RegisterMangoDepository<'info> {
 
 pub fn handler(
     ctx: Context<RegisterMangoDepository>,
-    bump: u8, 
+    bump: u8,
     collateral_passthrough_bump: u8,
     insurance_passthrough_bump: u8,
     quote_passthrough_bump: u8,
-    mango_account_bump: u8
+    mango_account_bump: u8,
 ) -> UxdResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
     let insurance_mint = ctx.accounts.insurance_mint.key();
@@ -128,13 +128,16 @@ pub fn handler(
     ctx.accounts.depository.version = MANGO_DEPOSITORY_ACCOUNT_VERSION;
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
-    ctx.accounts.depository.collateral_passthrough = ctx.accounts.depository_collateral_passthrough_account.key();
+    ctx.accounts.depository.collateral_passthrough =
+        ctx.accounts.depository_collateral_passthrough_account.key();
     ctx.accounts.depository.insurance_mint = insurance_mint;
     ctx.accounts.depository.insurance_mint_decimals = ctx.accounts.insurance_mint.decimals;
-    ctx.accounts.depository.insurance_passthrough = ctx.accounts.depository_insurance_passthrough_account.key();
+    ctx.accounts.depository.insurance_passthrough =
+        ctx.accounts.depository_insurance_passthrough_account.key();
     ctx.accounts.depository.quote_mint = quote_mint;
     ctx.accounts.depository.quote_mint_decimals = ctx.accounts.quote_mint.decimals;
-    ctx.accounts.depository.quote_passthrough = ctx.accounts.depository_quote_passthrough_account.key();
+    ctx.accounts.depository.quote_passthrough =
+        ctx.accounts.depository_quote_passthrough_account.key();
     ctx.accounts.depository.mango_account = ctx.accounts.depository_mango_account.key();
     ctx.accounts.depository.controller = ctx.accounts.controller.key();
     ctx.accounts.depository.insurance_amount_deposited = u128::MIN;
@@ -142,7 +145,8 @@ pub fn handler(
     ctx.accounts.depository.redeemable_amount_under_management = u128::MIN;
 
     // - Update Controller state
-    ctx.accounts.add_new_registered_mango_depository_entry_to_controller()?;
+    ctx.accounts
+        .add_new_registered_mango_depository_entry_to_controller()?;
 
     emit!(RegisterMangoDepositoryEventV2 {
         version: ctx.accounts.controller.version,
@@ -173,13 +177,11 @@ impl<'info> RegisterMangoDepository<'info> {
     }
 }
 
-
 impl<'info> RegisterMangoDepository<'info> {
-    pub fn add_new_registered_mango_depository_entry_to_controller(
-        &mut self,
-    ) -> ProgramResult {
+    pub fn add_new_registered_mango_depository_entry_to_controller(&mut self) -> ProgramResult {
         let mango_depository_id = self.depository.key();
-        self.controller.add_registered_mango_depository_entry(mango_depository_id)?;
+        self.controller
+            .add_registered_mango_depository_entry(mango_depository_id)?;
         Ok(())
     }
 }

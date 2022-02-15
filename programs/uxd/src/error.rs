@@ -248,7 +248,7 @@ pub enum UxdIdlErrorCode {
     #[msg("The provided quote mint does not match the depository's quote mint.")]
     InvalidQuoteMint,
     #[msg("The instruction doesn't support this version of the Depository. Migrate first.")]
-    UnsupportedDepositoryVersion
+    UnsupportedDepositoryVersion,
 }
 
 impl From<UxdError> for ProgramError {
