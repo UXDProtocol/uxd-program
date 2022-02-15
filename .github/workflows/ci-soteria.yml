@@ -1,4 +1,4 @@
-name: UXDProgram - Soteria Analysis
+name: Soteria
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: 1.8.12
+  SOLANA_VERSION: 1.9.6
   PROGRAM_PATH: programs/
 
 jobs:
