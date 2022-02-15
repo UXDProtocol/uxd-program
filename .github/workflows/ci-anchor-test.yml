@@ -96,8 +96,8 @@ jobs:
 
       - name: Create keypair and funds it
         run: |
-          solana-keygen new -o ${{ env.runner_wallet_path }}
-          ./scripts/fund.sh $(echo ${{ env.runner_wallet_path }})
+          solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }}
+          ./scripts/fund.sh $(echo ${{ env.RUNNER_WALLET_PATH }})
           
       - name: Checkout MangoClient-v3
         uses: actions/checkout@v2
