@@ -97,18 +97,7 @@ jobs:
       - name: Create keypair and funds it
         run: |
           solana-keygen new -o ${{ env.runner_wallet_path }}
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
-          solana airdrop 1 -u d
+          ./scripts/fund.sh $(solana keygen pubkey ${{ env.runner_wallet_path }})
           
       - name: Checkout MangoClient-v3
         uses: actions/checkout@v2
@@ -134,7 +123,6 @@ jobs:
       - name: Yarn install + run tests
         run: |
           yarn install
-          chmod +x ./scripts/reset_program_id.sh
           ./scripts/reset_program_id.sh
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator
 
