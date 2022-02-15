@@ -61,7 +61,7 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
         expect(false, "Should have failed - Cannot rebalance 0");
     });
 
-    it.only(`Rebalance a small amount of the depository unrealized PnL (${params.slippage / slippageBase * 100}% slippage)`, async function () {
+    it(`Rebalance a small amount of the depository unrealized PnL (${params.slippage / slippageBase * 100}% slippage)`, async function () {
         const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
         const minTradingSize = await depository.getMinTradingSizeQuoteUI(mango);
@@ -100,7 +100,7 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
         return rebalancedAmount;
     });
 
-    it.only(`Rebalance remaining depository unrealized PnL (${params.slippage / slippageBase * 100}% slippage)`, async function () {
+    it(`Rebalance remaining depository unrealized PnL (${params.slippage / slippageBase * 100}% slippage)`, async function () {
         const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
         const minTradingSize = await depository.getMinTradingSizeQuoteUI(mango);
