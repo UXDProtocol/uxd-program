@@ -22,6 +22,7 @@ env:
   MANGO_ACCOUNT_MM_ETH: "Bnutxi4RpfduHSuQ2ZtDAEb4GegU3X1gmWZhQpe1YMts"
   NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
   DEVNET_FAUCET: "9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g"
+  DEPLOYMENT_FUNDING_AMOUNT: 20
 
 jobs:
 
@@ -97,7 +98,9 @@ jobs:
       - name: Create keypair and funds it
         run: |
           solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }}
-          ./scripts/fund.sh $(echo ${{ env.RUNNER_WALLET_PATH }})
+          solana balance
+          solana transfer --keypair ./scripts/bank-keypair.json $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.DEPLOYMENT_FUNDING_AMOUNT }} --allow-unfunded-recipient
+          solana balance
           
       - name: Checkout MangoClient-v3
         uses: actions/checkout@v2
@@ -119,6 +122,18 @@ jobs:
         run: |
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
+
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+      - name: Yarn Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
 
       - name: Yarn install + run tests
         run: |
