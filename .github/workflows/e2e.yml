@@ -1,8 +1,6 @@
-name: CI
+name: UXDProgram - end to end tests (typescript)
 
 on:
-  push:
-    branches: [ main, v* ]
   pull_request:
     branches: [ main, v* ]
   workflow_dispatch:
@@ -79,10 +77,6 @@ jobs:
         with:
           toolchain: nightly
           override: true
-
-      - name: run cargo tests
-        run: |
-          cargo test
 
       - name: install solana
         if: steps.cache-solana.outputs.cache-hit != 'true'

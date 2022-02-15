@@ -1,0 +1,59 @@
+name: UXDProgram - cargo test
+
+on:
+  pull_request:
+    branches: [ main, v* ]
+  workflow_dispatch:
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+          
+      - uses: actions/checkout@v2
+      
+      - uses: actions/cache@v2
+        name: Cache Cargo registry + index
+        id: cache-anchor
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: cargo-${{ runner.os }}-v0000-${{ hashFiles('**/Cargo.lock') }}
+          
+      - name: Add Solana to PATH
+        run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
+        
+      - uses: actions/cache@v2
+        name: Cache Solana Tool Suite
+        id: cache-solana
+        with:
+          path: |
+            ~/.cache/solana/
+            ~/.local/share/solana/
+          key: solana-${{ runner.os }}-v0000-${{ env.solana_version }}
+
+      - uses: actions/cache@v2
+        name: Cache target folder
+        id: cache-programs
+        with:
+          path: |
+            ./target/debug
+            ./target/release
+            ./target/bpfel-unknown-unknown
+          key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
+
+      - uses: actions-rs/toolchain@v1
+        name: Rust toolchain installation
+        with:
+          toolchain: nightly
+          override: true
+
+      - name: run cargo tests
+        run: |
+          cargo test

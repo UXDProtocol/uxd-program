@@ -1,10 +1,9 @@
-name: Soteria
+name: UXDProgram - Soteria Analysis
 
 on:
-  push:
-    branches: [ main, v* ]
   pull_request:
     branches: [ main, v* ]
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
