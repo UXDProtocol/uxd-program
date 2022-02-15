@@ -16,7 +16,7 @@ defaults:
 
 jobs:
   lint:
-    name: Run ftm and clippy
+    name: Run ftm (fix clippy pls)
     runs-on: ubuntu-latest
 
     steps:
