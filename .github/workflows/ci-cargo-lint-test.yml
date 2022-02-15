@@ -34,8 +34,8 @@ jobs:
       - name: Run fmt
         run: cargo fmt -- --check
       # The style and complexity lints have not been processed yet.
-      - name: Run clippy
-        run: cargo clippy -- --deny=warnings --allow=clippy::style --allow=clippy::complexity
+      # - name: Run clippy
+      #   run: cargo clippy -- --deny=warnings --allow=clippy::style --allow=clippy::complexity
 
   tests:
     name: Run tests
