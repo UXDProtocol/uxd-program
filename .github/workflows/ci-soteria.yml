@@ -1,8 +1,8 @@
 name: Soteria
 
 on:
-  pull_request:
-    branches: [ main, v* ]
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 env:
