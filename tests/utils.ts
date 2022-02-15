@@ -1,4 +1,4 @@
-import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller, nativeI80F48ToUi, nativeToUi, uiToNative } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller, nativeI80F48ToUi, nativeToUi, uiToNative, WSOL } from "@uxdprotocol/uxd-client";
 import { PublicKey, Signer } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -33,7 +33,6 @@ export async function transferAllSol(from: Signer, to: PublicKey): Promise<strin
     ]);
 
 }
-
 
 export async function transferTokens(amountUI: number, mint: PublicKey, decimals: number, from: Signer, to: PublicKey): Promise<string> {
     const token = new Token(getConnection(), mint, TOKEN_PROGRAM_ID, from);

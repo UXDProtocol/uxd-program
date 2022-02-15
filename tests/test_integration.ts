@@ -23,7 +23,7 @@ console.log(`ETH 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDe
 beforeEach("\n", function () { console.log("=============================================\n\n") });
 
 describe("UXD Controller Suite", function () {
-    const params = new controllerIntegrationSuiteParameters(10_000_000, 500_000);
+    const params = new controllerIntegrationSuiteParameters(25_000_000, 500_000);
     controllerIntegrationSuite(authority, bank, controllerUXD, params);
 });
 

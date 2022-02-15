@@ -1,34 +1,34 @@
 import { getConnection, TXN_OPTS } from "./connection";
-import { bank, uxdClient } from "./constants";
-import { Account, Signer, Transaction } from '@solana/web3.js';
+import { uxdClient } from "./constants";
+import { Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller, PnLPolarity } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, Controller, PnLPolarity, uiToNative } from "@uxdprotocol/uxd-client";
 import { web3 } from "@project-serum/anchor";
 
 // Utils Calls ----------------------------------------------------------------
 
-export async function settleMangoDepositoryMangoAccountPnl(depository: MangoDepository, mango: Mango): Promise<string> {
-    const mangoAccount = await mango.load(depository.mangoAccountPda);
-    const perpMarketConfig = mango.getPerpMarketConfig(depository.collateralMintSymbol);
-    const cache = await mango.group.loadCache(getConnection());
-    const perpMarket = await mango.client.getPerpMarket(perpMarketConfig.publicKey, perpMarketConfig.baseDecimals, perpMarketConfig.quoteDecimals);
-    const quoteRootBank = await mango.getQuoteRootBank();
+// export async function settleMangoDepositoryMangoAccountPnl(depository: MangoDepository, mango: Mango): Promise<string> {
+//     const mangoAccount = await mango.load(depository.mangoAccountPda);
+//     const perpMarketConfig = mango.getPerpMarketConfig(depository.collateralMintSymbol);
+//     const cache = await mango.group.loadCache(getConnection());
+//     const perpMarket = await mango.client.getPerpMarket(perpMarketConfig.publicKey, perpMarketConfig.baseDecimals, perpMarketConfig.quoteDecimals);
+//     const quoteRootBank = await mango.getQuoteRootBank();
 
-    const caller = new Account(bank.secretKey);
+//     const caller = new Account(bank.secretKey);
 
-    return mango.client.settlePnl(mango.group, cache, mangoAccount, perpMarket, quoteRootBank, cache.priceCache[perpMarketConfig.marketIndex].price, caller);
-}
+//     return mango.client.settlePnl(mango.group, cache, mangoAccount, perpMarket, quoteRootBank, cache.priceCache[perpMarketConfig.marketIndex].price, caller);
+// }
 
-export async function settleMangoDepositoryMangoAccountFees(depository: MangoDepository, mango: Mango): Promise<string> {
-    const mangoAccount = await mango.load(depository.mangoAccountPda);
-    const perpMarketConfig = mango.getPerpMarketConfig(depository.collateralMintSymbol);
-    const perpMarket = await mango.client.getPerpMarket(perpMarketConfig.publicKey, perpMarketConfig.baseDecimals, perpMarketConfig.quoteDecimals);
-    const quoteRootBank = await mango.getQuoteRootBank();
+// export async function settleMangoDepositoryMangoAccountFees(depository: MangoDepository, mango: Mango): Promise<string> {
+//     const mangoAccount = await mango.load(depository.mangoAccountPda);
+//     const perpMarketConfig = mango.getPerpMarketConfig(depository.collateralMintSymbol);
+//     const perpMarket = await mango.client.getPerpMarket(perpMarketConfig.publicKey, perpMarketConfig.baseDecimals, perpMarketConfig.quoteDecimals);
+//     const quoteRootBank = await mango.getQuoteRootBank();
 
-    const caller = new Account(bank.secretKey);
-    return mango.client.settleFees(mango.group, mangoAccount, perpMarket, quoteRootBank, caller);
-}
+//     const caller = new Account(bank.secretKey);
+//     return mango.client.settleFees(mango.group, mangoAccount, perpMarket, quoteRootBank, caller);
+// }
 
 // Permissionned Calls --------------------------------------------------------
 
@@ -162,9 +162,21 @@ export async function redeemFromMangoDepository(user: Signer, payer: Signer, sli
 
 export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, rebalancingMaxAmount: number, polarity: PnLPolarity, slippage: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const rebalanceMangoDepositoryLiteIx = uxdClient.createRebalanceMangoDepositoryLiteInstruction(rebalancingMaxAmount, slippage, polarity, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
-
     let signers = [];
     let tx = new Transaction();
+
+    // Only when polarity is positive this is required 
+    // - Negative polarity sends QUOTE, gets COLLATERAL back.
+    // - Positive polarity sends COLLATERAL, gets QUOTE back.
+    if (polarity == PnLPolarity.Positive && depository.collateralMint.equals(NATIVE_MINT)) {
+        const nativeAmount = rebalancingMaxAmount * 10 ** depository.collateralMintDecimals;
+        const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
+            getConnection(),
+            user.publicKey,
+            nativeAmount
+        );
+        tx.instructions.push(...prepareWrappedSolIxs);
+    }
 
     tx.instructions.push(rebalanceMangoDepositoryLiteIx);
     signers.push(user);

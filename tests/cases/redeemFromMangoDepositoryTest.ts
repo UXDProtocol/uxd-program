@@ -3,7 +3,7 @@ import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, Mango, MangoDepository, findATAAddrSync } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { redeemFromMangoDepository } from "../api";
-import { CLUSTER } from "../constants";
+import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
 export const redeemFromMangoDepositoryTest = async function (redeemableAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> {
@@ -13,10 +13,12 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
         const userCollateralATA: PublicKey = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
         const userRedeemableATA: PublicKey = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
         const userRedeemableBalance = await getBalance(userRedeemableATA);
-        let userCollateralBalance: number = await getBalance(userCollateralATA);
+        let userCollateralBalance: number;
         if (NATIVE_MINT.equals(depository.collateralMint)) {
-            // use SOL + WSOL balance
-            userCollateralBalance += await getSolBalance(user.publicKey);
+            // If WSOL, as the transaction unwraps
+            userCollateralBalance = await getSolBalance(user.publicKey);
+        } else {
+            userCollateralBalance = await getBalance(userCollateralATA);
         }
 
         // WHEN
@@ -27,41 +29,47 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
-        const redeemableMintNativePrecision = Math.pow(10, -controller.redeemableMintDecimals);
-
-        const maxCollateralDelta = redeemableAmount / mangoPerpPrice;
-
         const userRedeemableBalance_post = await getBalance(userRedeemableATA);
-        let userCollateralBalance_post = await getBalance(userCollateralATA);
+        let userCollateralBalance_post: number;
         if (NATIVE_MINT.equals(depository.collateralMint)) {
-            // use SOL + WSOL balance
-            userCollateralBalance_post += await getSolBalance(user.publicKey);
+            // the TX unwrap the WSOL. Payer takes the tx fees so we'r good.
+            userCollateralBalance_post = await getSolBalance(user.publicKey);
+        } else {
+            userCollateralBalance_post = await getBalance(userCollateralATA);
         }
 
-        const redeemableDelta = userRedeemableBalance - userRedeemableBalance_post;
-        // There will be issues due to the TX fee + account creation fee, in some case that will fail the slippage test
-        // So for now, until we implement a separate payer/user for mint and redeem, don't use tiny amounts for test where the 0.00203928 
-        // could create a fail positive for wrong slippage
-        const collateralDelta = userCollateralBalance_post - userCollateralBalance;
         const mangoTakerFee = depository.getCollateralPerpTakerFees(mango);
-        const maxTakerFee = mangoTakerFee * redeemableAmount;
-        // The amount of UXD that couldn't be redeemed due to odd lot size
-        const unprocessedRedeemable = redeemableAmount - redeemableDelta;
+        const minTradingSizeQuote = await depository.getMinTradingSizeQuoteUI(mango);
 
+        const redeemableDelta = userRedeemableBalance - userRedeemableBalance_post;
+        const collateralDelta = userCollateralBalance_post - userCollateralBalance;
+        const redeemableLeftOverDueToOddLot = redeemableAmount - redeemableDelta;
+        const redeemableProcessedByRedeeming = redeemableAmount - redeemableLeftOverDueToOddLot;
+        // The mango perp price in these might not be the exact same as the one in the transaction.
+        const estimatedFrictionlessCollateralDelta = redeemableProcessedByRedeeming / mangoPerpPrice;
+        const estimatedAmountRedeemableLostInTakerFees = mangoTakerFee * redeemableProcessedByRedeeming;
+        const redeemableNativeUnitPrecision = Math.pow(10, -controller.redeemableMintDecimals);
+        const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
+        const estimatedAmountRedeemableLostInSlippage = Math.abs(redeemableDelta - redeemableProcessedByRedeeming) - estimatedAmountRedeemableLostInTakerFees;
+        // The worst price the user could get (lowest amount of UXD)
+        const worthExecutionPriceCollateralDelta = (estimatedFrictionlessCollateralDelta * (slippage / slippageBase)) / mangoPerpPrice;
+
+        console.log("Efficiency", Number(((collateralDelta / estimatedFrictionlessCollateralDelta) * 100).toFixed(2)), "%");
         console.log(
-            `🧾 Redeemed`, Number(redeemableDelta.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol,
-            "for", Number(collateralDelta.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
-            "(perfect was", Number(redeemableAmount.toFixed(controller.redeemableMintDecimals)),
-            "|| ~ returned unprocessed Redeemable due to odd lot ", Number(unprocessedRedeemable.toFixed(controller.redeemableMintDecimals)),
-            "|| ~ max taker fees were", Number(maxTakerFee.toFixed(controller.redeemableMintDecimals)),
-            "|| ~ loss in slippage", Number((maxCollateralDelta - (collateralDelta)).toFixed(depository.collateralMintDecimals)),
+            `🧾 Redeemed`, Number(collateralDelta.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
+            "by burning", Number(redeemableProcessedByRedeeming.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol,
+            "(+~ takerFees =", Number(estimatedAmountRedeemableLostInTakerFees.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol,
+            ", +~ slippage =", Number(estimatedAmountRedeemableLostInSlippage.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol, ")",
+            "(frictionless redeeming would have been", Number(estimatedFrictionlessCollateralDelta.toFixed(controller.redeemableMintDecimals)), depository.collateralMintSymbol, ")",
+            "|| odd lot returns ", Number(redeemableLeftOverDueToOddLot.toFixed(depository.collateralMintDecimals)), controller.redeemableMintSymbol,
             ")"
         );
-
-        expect(redeemableDelta + unprocessedRedeemable).closeTo(redeemableAmount, redeemableMintNativePrecision, "Some Redeemable tokens are missing the count.");
-        expect(redeemableDelta).closeTo(redeemableAmount - unprocessedRedeemable, maxTakerFee, "The Redeemable delta is out of odd lot range");
-        expect(collateralDelta).closeTo(maxCollateralDelta, maxCollateralDelta * (slippage) + maxTakerFee, "The Collateral delta is out of the slippage range");
-        expect(userRedeemableBalance_post).closeTo(userRedeemableBalance - redeemableAmount + unprocessedRedeemable, redeemableMintNativePrecision, "The amount of UnprocessedRedeemable carried over is wrong");
+        
+        // const collateralAmountOfFriction = (estimatedAmountRedeemableLostInTakerFees + estimatedAmountRedeemableLostInSlippage) / mangoPerpPrice;
+        expect(redeemableAmount).closeTo(redeemableProcessedByRedeeming + redeemableLeftOverDueToOddLot, redeemableNativeUnitPrecision, "The amount of collateral left over + processed is not equal to the collateral amount inputted initially");
+        // expect(collateralDelta).closeTo(estimatedFrictionlessCollateralDelta - collateralAmountOfFriction, collateralNativeUnitPrecision, "CollateralDelta should be close to perfect amount minus friction");
+        expect(redeemableDelta).greaterThanOrEqual(worthExecutionPriceCollateralDelta, "The amount redeemed is out of the slippage range");
+        expect(redeemableLeftOverDueToOddLot).lessThanOrEqual(minTradingSizeQuote * 2, "The redeemable odd lot returned is twice higher than the minTradingSize for that perp.");
         console.groupEnd();
         return redeemableDelta;
     } catch (error) {

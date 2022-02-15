@@ -1,12 +1,13 @@
 
+import { NATIVE_MINT } from "@solana/spl-token";
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, PnLPolarity } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, PnLPolarity, WSOL_DEVNET } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { rebalanceMangoDepositoryLiteTest } from "../cases/rebalanceMangoDepositoryLiteTest";
 import { TXN_OPTS } from "../connection";
 import { slippageBase } from "../constants";
 import { mango } from "../fixtures";
-import { printUserInfo, transferTokens, transferAllTokens } from "../utils";
+import { printUserInfo, transferTokens, transferAllTokens, transferSol, printDepositoryInfo } from "../utils";
 
 export class MangoDepositoryRebalancingSuiteParameters {
     public slippage: number;
@@ -60,15 +61,15 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
         expect(false, "Should have failed - Cannot rebalance 0");
     });
 
-    it(`Rebalance a small amount of the depository unrealized PnL (${params.slippage / slippageBase * 100}% slippage)`, async function () {
+    it.only(`Rebalance a small amount of the depository unrealized PnL (${params.slippage / slippageBase * 100}% slippage)`, async function () {
         const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const minTradingSize = await depository.getMinTradingSizeUi(mango) * 2
+        const minTradingSize = await depository.getMinTradingSizeQuoteUI(mango);
         const rebalanceAmountSmall = Math.max(Math.abs(unrealizedPnl) / 10, minTradingSize);
         const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
         console.log("🔵 unrealizedPnl on ", depository.collateralMintSymbol, "depository:", unrealizedPnl, "| Polarity:", polarity);
-        if (unrealizedPnl < minTradingSize) {
+        if (Math.abs(unrealizedPnl) < minTradingSize) {
             console.log("🔵  skipping rebalancing, unrealized pnl too small");
             return;
         }
@@ -76,7 +77,12 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
             case `Positive`: {
                 // Transfer COLLATERAL, will receive equivalent QUOTE back from the positive PNL
                 const collateralAmount = rebalanceAmountSmall / perpPrice;
-                await transferTokens(collateralAmount, depository.collateralMint, depository.collateralMintDecimals, payer, user.publicKey);
+                // For Wsol we send sol, the API handle the wrapping before each minting
+                if (depository.collateralMint.equals(WSOL_DEVNET)) {
+                    await transferSol(collateralAmount, payer, user.publicKey);
+                } else {
+                    await transferTokens(collateralAmount, depository.collateralMint, depository.collateralMintDecimals, payer, user.publicKey);
+                }
                 console.log("🔵 transferring", collateralAmount, depository.collateralMintSymbol, "to user pre calling the rebalance");
                 break;
             }
@@ -90,19 +96,19 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
         };
         const rebalancedAmount = await rebalanceMangoDepositoryLiteTest(rebalanceAmountSmall, polarity, params.slippage, user, controller, depository, mango, payer);
         await printUserInfo(user.publicKey, controller, depository);
-        // await printDepositoryInfo(controller, depository, mango);
+        await printDepositoryInfo(controller, depository, mango);
         return rebalancedAmount;
     });
 
-    it(`Rebalance remaining depository unrealized PnL (${params.slippage / slippageBase * 100}% slippage)`, async function () {
+    it.only(`Rebalance remaining depository unrealized PnL (${params.slippage / slippageBase * 100}% slippage)`, async function () {
         const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const minTradingSize = await depository.getMinTradingSizeUi(mango) * 2;
+        const minTradingSize = await depository.getMinTradingSizeQuoteUI(mango);
         const rebalanceAmountBig = Math.max(Math.abs(unrealizedPnl * 1.1), minTradingSize); // Cause price move while we do all this...
         const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
         console.log("🔵 unrealizedPnl on ", depository.collateralMintSymbol, "depository:", unrealizedPnl, "| Polarity:", polarity);
-        if (unrealizedPnl < minTradingSize) {
+        if (Math.abs(unrealizedPnl) < minTradingSize) {
             console.log("🔵  skipping rebalancing, unrealized pnl too small");
             return;
         }
@@ -110,7 +116,12 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
             case `Positive`: {
                 // Transfer COLLATERAL, will receive equivalent QUOTE back from the positive PNL
                 const collateralAmount = rebalanceAmountBig / perpPrice;
-                await transferTokens(collateralAmount, depository.collateralMint, depository.collateralMintDecimals, payer, user.publicKey);
+                // For Wsol we send sol, the API handle the wrapping before each minting
+                if (depository.collateralMint.equals(NATIVE_MINT)) {
+                    await transferSol(collateralAmount, payer, user.publicKey);
+                } else {
+                    await transferTokens(collateralAmount, depository.collateralMint, depository.collateralMintDecimals, payer, user.publicKey);
+                }
                 console.log("🔵 transferring", collateralAmount, depository.collateralMintSymbol, "to user pre calling the rebalance");
                 break;
             }
@@ -124,7 +135,7 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
         };
         const rebalancedAmount = await rebalanceMangoDepositoryLiteTest(rebalanceAmountBig, polarity, params.slippage, user, controller, depository, mango, payer);
         await printUserInfo(user.publicKey, controller, depository);
-        // await printDepositoryInfo(controller, depository, mango);
+        await printDepositoryInfo(controller, depository, mango);
         return rebalancedAmount;
     });
 

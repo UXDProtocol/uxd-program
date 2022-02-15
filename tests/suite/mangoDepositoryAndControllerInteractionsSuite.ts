@@ -53,8 +53,6 @@ export const mangoDepositoryAndControllerInteractionsSuite = function (authority
         await setRedeemableGlobalSupplyCapTest(params.globalSupplyCap, authority, controller);
     });
 
-    // TEST REEDEMABLE SOFT CAP
-
     it(`Mint 2 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage) then set the MangoDepositories Redeemable Soft cap to 0 and redeem`, async function () {
         const mintedAmount = await mintWithMangoDepositoryTest(2, params.slippage, user, controller, depository, mango, payer);
         await setRedeemableSoftCapMangoDepositoryTest(0, authority, controller);
@@ -74,6 +72,4 @@ export const mangoDepositoryAndControllerInteractionsSuite = function (authority
     it(`Reset MangoDepositories Redeemable Soft cap back to ${params.mangoDepositoriesRedeemableSoftCap}`, async function () {
         await setRedeemableSoftCapMangoDepositoryTest(params.mangoDepositoriesRedeemableSoftCap, authority, controller);
     });
-
-    // Accounting in controller test (TODO)
 };

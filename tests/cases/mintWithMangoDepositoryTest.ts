@@ -13,11 +13,10 @@ export const mintWithMangoDepositoryTest = async function (collateralAmount: num
         const userCollateralATA: PublicKey = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
         const userRedeemableATA: PublicKey = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
         const userRedeemableBalance = await getBalance(userRedeemableATA);
-        let userCollateralBalance: number = await getBalance(userCollateralATA);
-        if (NATIVE_MINT.equals(depository.collateralMint)) {
-            // use SOL + WSOL balance
-            userCollateralBalance += await getSolBalance(user.publicKey);
-        }
+        const userCollateralBalance: number = await getBalance(userCollateralATA);
+
+        // Initial SOL is used to make the diff afterward as the instruction does unwrap
+        const userStartingSolBalance = await getSolBalance(user.publicKey);
 
         // WHEN
         // - Get the perp price at the same moment to have the less diff between exec and test price
@@ -28,35 +27,44 @@ export const mintWithMangoDepositoryTest = async function (collateralAmount: num
 
         // THEN
         const userRedeemableBalance_post = await getBalance(userRedeemableATA);
-        let userCollateralBalance_post = await getBalance(userCollateralATA);
+        let userCollateralBalance_post: number;
         if (NATIVE_MINT.equals(depository.collateralMint)) {
-            // use SOL + WSOL balance
-            userCollateralBalance_post += await getSolBalance(user.publicKey);
+            // the TX unwrap the WSOL, so we need to remove the initial SOL balance. Payer takes the tx fees so we'r good.
+            userCollateralBalance_post = await getSolBalance(user.publicKey) - userStartingSolBalance;
+        } else {
+            userCollateralBalance_post = await getBalance(userCollateralATA);
         }
-        const redeemableDelta = userRedeemableBalance_post - userRedeemableBalance;
-        // There will be issues due to the TX fee + account creation fee, in some case that will fail the slippage test
-        // So for now, until we implement a separate payer/user for mint and redeem, don't use tiny amounts for test where the 0.00203928
-        // could create a fail positive for wrong slippage
-        const collateralDelta = userCollateralBalance - userCollateralBalance_post;
-        const collateralLeftOver = collateralAmount - collateralDelta;
-        const maxRedeemableDelta = collateralDelta * mangoPerpPrice;
-        // Will be a bit over
-        const mangoTakerFee = depository.getCollateralPerpTakerFees(mango);
-        const maxTakerFee = mangoTakerFee * maxRedeemableDelta;
-        const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
 
+        const mangoTakerFee = depository.getCollateralPerpTakerFees(mango);
+        const minTradingSizeCollateral = await depository.getMinTradingSizeCollateralUI(mango);
+
+        const redeemableDelta = userRedeemableBalance_post - userRedeemableBalance;
+        const collateralDelta = userCollateralBalance - userCollateralBalance_post;
+        const collateralOddLotLeftOver = collateralAmount - collateralDelta;
+        const collateralProcessedByMinting = collateralAmount - collateralOddLotLeftOver;
+        // The mango perp price in these might not be the exact same as the one in the transaction.
+        const estimatedFrictionlessRedeemableDelta = collateralProcessedByMinting * mangoPerpPrice;
+        const estimatedAmountRedeemableLostInTakerFees = mangoTakerFee * collateralProcessedByMinting * mangoPerpPrice;
+        const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
+        const estimatedAmountRedeemableLostInSlippage = Math.abs(estimatedFrictionlessRedeemableDelta - redeemableDelta) - estimatedAmountRedeemableLostInTakerFees;
+        // The worst price the user could get (lowest amount of UXD)
+        const worthExecutionPriceRedeemableDelta = estimatedFrictionlessRedeemableDelta * (slippage / slippageBase)
+
+
+        console.log("Efficiency", Number(((redeemableDelta / estimatedFrictionlessRedeemableDelta) * 100).toFixed(2)), "%");
         console.log(
             `🧾 Minted`, Number(redeemableDelta.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol,
-            "for", Number(collateralDelta.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
-            "(perfect was", Number(maxRedeemableDelta.toFixed(controller.redeemableMintDecimals)),
-            "|| returned unprocessed collateral due to odd lot", Number(collateralLeftOver.toFixed(depository.collateralMintDecimals)),
-            "|| ~ max taker fees were", Number(maxTakerFee.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol,
-            "|| ~ loss in slippage", Number((maxRedeemableDelta - (redeemableDelta + maxTakerFee)).toFixed(controller.redeemableMintDecimals)),
+            "by locking", Number(collateralProcessedByMinting.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
+            "(+~ takerFees =", Number(estimatedAmountRedeemableLostInTakerFees.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol,
+            ", +~ slippage =", Number(estimatedAmountRedeemableLostInSlippage.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol, ")",
+            "(frictionless minting would have been", Number(estimatedFrictionlessRedeemableDelta.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol, ")",
+            "|| odd lot returns ", Number(collateralOddLotLeftOver.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
             ")"
         );
-        expect(collateralLeftOver + collateralDelta).closeTo(collateralAmount, collateralNativeUnitPrecision, "The amount of collateral used for redeem + carried over should be equal to the inputted amount.")
-        expect(redeemableDelta).closeTo(maxRedeemableDelta, (maxRedeemableDelta * (slippage / slippageBase)) + maxTakerFee, "The amount minted is out of the slippage range");
-        expect(collateralDelta).closeTo(collateralAmount - collateralLeftOver, collateralNativeUnitPrecision, "The collateral amount paid doesn't match the user wallet delta");
+        expect(collateralAmount).closeTo(collateralProcessedByMinting + collateralOddLotLeftOver, collateralNativeUnitPrecision, "The amount of collateral left over + processed is not equal to the collateral amount inputted initially");
+        expect(redeemableDelta).greaterThanOrEqual(worthExecutionPriceRedeemableDelta, "The amount minted is out of the slippage range");
+        expect(collateralDelta).lessThanOrEqual(collateralAmount - collateralOddLotLeftOver, "User paid more collateral than inputted amount");
+        expect(collateralOddLotLeftOver).lessThanOrEqual(minTradingSizeCollateral * 2, "The collateral odd lot returned is higher than twice the minTradingSize for that perp.");
 
         console.groupEnd();
         return redeemableDelta;

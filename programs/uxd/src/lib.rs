@@ -14,11 +14,8 @@ pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
 
-// This might change for local testing and then be pushed, but the stopped version for
-// Internal devnet  -> `5rYjdoWQcbGSes3G4frkLA 6oLxFmtUagn8xc1fvSATYL`
-// Public devnet    -> `882VXWftqQ9wsVq99S JqBVsz6tVeBt63jKE9XiwEHDeN` // Don't test until close to release
 #[cfg(feature = "development")]
-solana_program::declare_id!("5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL");
+solana_program::declare_id!("82K9aF9wyRFKgpYMpjfoq8DSaSbcsRWca6tKtJYGCw3n");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
