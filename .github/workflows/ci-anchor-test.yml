@@ -12,9 +12,10 @@ permissions:
   pull-requests: write
   
 env:
+  CARGO_TERM_COLOR: always
   SOLANA_VERSION: 1.9.6
   ANCHOR_VERSION: 0.20.1
-  cluster: "devnet"
+  CLUSTER: "devnet"
   RUNNER_WALLET_PATH: "/home/runner/.config/solana/id.json"
   MANGO_ACCOUNT_MM_SOL: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
   MANGO_ACCOUNT_MM_BTC: "4Tw2AjjEXSWvFC9CCm88yhswRGgJokxiQnJDtVnVctTc"
