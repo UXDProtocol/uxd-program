@@ -79,11 +79,11 @@ mod tests {
             market_index: 3,
             // Price is the price of 1 native unit of BASE expressed in native unit of QUOTE
             price: I80F48::from_num(price),
-            base_unit: I80F48::from_num(1000000000), // SOL 9 decimals
-            base_lot_size: I80F48::from_num(10000000),
-            quote_unit: I80F48::from_num(1000000), // USD 6 decimals
+            base_unit: I80F48::from_num(1_000_000_000), // SOL 9 decimals
+            base_lot_size: I80F48::from_num(10_000_000),
+            quote_unit: I80F48::from_num(1_000_000), // USD 6 decimals
             quote_lot_size: I80F48::from_num(100),
-            taker_fee: I80F48::from_num(0.0005),
+            taker_fee: I80F48::from_num(0.000_5),
         }
     }
 
@@ -191,7 +191,7 @@ mod tests {
 
     #[test]
     pub fn test_check_effective_order_price_versus_limit_price_mint_valid() {
-        let perp_info = mocked_perp_info(0.090);
+        let perp_info = mocked_perp_info(0.09000);
         let order = mocked_order(&perp_info, 0.08911, Side::Bid).unwrap();
         let ret = check_effective_order_price_versus_limit_price(
             &perp_info, &order, 10, // 1%
@@ -203,7 +203,7 @@ mod tests {
 
     #[test]
     pub fn test_check_effective_order_price_versus_limit_price_redeem_valid_small_slippage() {
-        let perp_info = mocked_perp_info(0.090);
+        let perp_info = mocked_perp_info(0.09000);
         let order = mocked_order(&perp_info, 0.09000, Side::Ask).unwrap();
         let ret = check_effective_order_price_versus_limit_price(
             &perp_info, &order, 1, // 0.1%
@@ -213,7 +213,7 @@ mod tests {
 
     #[test]
     pub fn test_check_effective_order_price_versus_limit_price_mint_invalid() {
-        let perp_info = mocked_perp_info(0.090);
+        let perp_info = mocked_perp_info(0.09000);
         let order = mocked_order(&perp_info, 0.08909, Side::Bid).unwrap();
         let ret = check_effective_order_price_versus_limit_price(
             &perp_info, &order, 10, // 1%
@@ -223,7 +223,7 @@ mod tests {
 
     #[test]
     pub fn test_check_effective_order_price_versus_limit_price_redeem_valid() {
-        let perp_info = mocked_perp_info(0.090);
+        let perp_info = mocked_perp_info(0.09000);
         let order = mocked_order(&perp_info, 0.09089, Side::Ask).unwrap();
         let ret = check_effective_order_price_versus_limit_price(
             &perp_info, &order, 10, // 1%
@@ -233,7 +233,7 @@ mod tests {
 
     #[test]
     pub fn test_check_effective_order_price_versus_limit_price_redeem_invalid() {
-        let perp_info = mocked_perp_info(0.090);
+        let perp_info = mocked_perp_info(0.09000);
         let order = mocked_order(&perp_info, 0.09091, Side::Ask).unwrap();
         let ret = check_effective_order_price_versus_limit_price(
             &perp_info, &order, 10, // 1%
