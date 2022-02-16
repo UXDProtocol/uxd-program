@@ -33,7 +33,6 @@ jobs:
   market-maker-bots:
     name: Run Market Maker Bots
     runs-on: ubuntu-latest
-    needs: [install-yarn, checkout-repo, create-keypair-mm]
     steps:
       - name: Checkout UXD-Program repo
         uses: actions/checkout@v2
