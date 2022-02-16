@@ -63,7 +63,7 @@ jobs:
       # Checkout Repo
       - uses: actions/checkout@v2
       # Installs Rust
-      - name: Cache dependencies
+      - name: Cache Rust
         uses: Swatinem/rust-cache@v1
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
