@@ -193,7 +193,7 @@ mod tests {
                             match uxd_error_code {
                                 UxdErrorCode::PerpOrderPartiallyFilled => prop_assert_ne!(order_quantity, pre_position.abs_diff(post_position)),
                                 UxdErrorCode::MathError => prop_assert!(true),
-                                _Default => prop_assert!(false)
+                                _default => prop_assert!(false)
                             };
                          },
                     }
