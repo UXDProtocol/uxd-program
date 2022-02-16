@@ -34,8 +34,7 @@ jobs:
     name: Run Market Maker Bots
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout UXD-Program repo
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       # Install solana
       - name: Cache Solana Tool Suite
         uses: actions/cache@v2  
@@ -80,7 +79,7 @@ jobs:
       - name: Create MM keypair and funds it
         run: |
           solana-keygen new -o ${{ env.MM_WALLET_PATH }}
-          solana transfer --keypair ./scripts/bank-keypair.json $(solana-keygen pubkey ${{ env.MM_WALLET_PATH }}) ${{ env.MM_FUNDING_AMOUNT }} --allow-unfunded-recipient
+          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.MM_WALLET_PATH }}) ${{ env.MM_FUNDING_AMOUNT }} --allow-unfunded-recipient
           solana balance
       # Checkout Mango Client
       - name: Checkout MangoClient-v3
@@ -103,8 +102,7 @@ jobs:
     needs: [market-maker-bots]
     steps:
       # Checkout
-      - name: Checkout UXD-Program repo
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       # Install Rust
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
@@ -156,7 +154,7 @@ jobs:
       - name: Create Runner keypair and funds it
         run: |
           solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }}
-          solana transfer --keypair ./scripts/bank-keypair.json $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.RUNNER_FUNDING_AMOUNT }} --allow-unfunded-recipient
+          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.RUNNER_FUNDING_AMOUNT }} --allow-unfunded-recipient
           solana balance
       # Cargo caching
       - name: Cache Cargo registry + index
