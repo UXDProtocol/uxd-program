@@ -27,7 +27,7 @@ env:
   # Funding wallet
   BANK_WALLET_PATH: "./scripts/bank-keypair.json"
   # This program stay deployed to test over time
-  RESIDENT_PROGRAM_ID: 5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL
+  RESIDENT_PROGRAM_ID: 3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW
   # Accounts used to MM on mango market
   MANGO_ACCOUNT_MM_SOL: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
   MANGO_ACCOUNT_MM_BTC: "4Tw2AjjEXSWvFC9CCm88yhswRGgJokxiQnJDtVnVctTc"
