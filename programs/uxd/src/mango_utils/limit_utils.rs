@@ -60,13 +60,14 @@ pub fn check_effective_order_price_versus_limit_price(
     Err(throw_err!(UxdErrorCode::SlippageReached))
 }
 
+// Non regression tests
 #[cfg(test)]
 mod tests {
 
     use super::*;
 
     #[test]
-    pub fn test_check_effective_order_price_versus_limit_price_mint_valid_zslip() {
+    pub fn test_check_effective_order_price_versus_limit_price_mint_valid_small_slippage() {
         // Order.price must be below the perpInfo.price within slippage
         let ret = check_effective_order_price_versus_limit_price(
             &PerpInfo {
@@ -86,12 +87,7 @@ mod tests {
             },
             1, // 0.1%
         );
-
-        if ret.is_err() {
-            assert!(false);
-        } else {
-            assert!(true);
-        }
+        assert!(ret.is_ok());
     }
 
     #[test]
@@ -114,18 +110,13 @@ mod tests {
             },
             10, // 1%
         );
-
-        if ret.is_err() {
-            assert!(false);
-        } else {
-            assert!(true);
-        }
+        assert!(ret.is_ok());
     }
 
     // REDEEM
 
     #[test]
-    pub fn test_check_effective_order_price_versus_limit_price_redeem_valid_zslip() {
+    pub fn test_check_effective_order_price_versus_limit_price_redeem_valid_small_slippage() {
         let ret = check_effective_order_price_versus_limit_price(
             &PerpInfo {
                 market_index: 3,
@@ -144,12 +135,7 @@ mod tests {
             },
             1, // 0.1%
         );
-
-        if ret.is_err() {
-            assert!(false);
-        } else {
-            assert!(true);
-        }
+        assert!(ret.is_ok());
     }
 
     #[test]
@@ -172,12 +158,7 @@ mod tests {
             },
             10, // 1%
         );
-
-        if ret.is_err() {
-            assert!(true);
-        } else {
-            assert!(false);
-        }
+        assert!(ret.is_err());
     }
 
     #[test]
@@ -200,12 +181,7 @@ mod tests {
             },
             10, // 1%
         );
-
-        if ret.is_err() {
-            assert!(false);
-        } else {
-            assert!(true);
-        }
+        assert!(ret.is_ok());
     }
 
     #[test]
@@ -228,15 +204,11 @@ mod tests {
             },
             10, // 1%
         );
-
-        if ret.is_err() {
-            assert!(true);
-        } else {
-            assert!(false);
-        }
+        assert!(ret.is_err());
     }
 }
-// test
+
+// Unit tests
 #[cfg(test)]
 mod test {
     use crate::mango_utils::{limit_price, limit_utils::calculate_slippage_amount};
