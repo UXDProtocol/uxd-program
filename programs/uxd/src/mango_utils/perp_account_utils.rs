@@ -1,10 +1,8 @@
-use super::PerpInfo;
 use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdError;
 use crate::error::UxdErrorCode;
 use crate::UxdResult;
-use fixed::types::I80F48;
 use mango::state::PerpAccount;
 
 declare_check_assert_macros!(SourceFileId::MangoUtilsPerpAccountUtils);
@@ -22,6 +20,7 @@ pub fn total_perp_base_lot_position(perp_account: &PerpAccount) -> UxdResult<i64
 mod tests {
 
     use super::*;
+    use fixed::types::I80F48;
     use proptest::prelude::*;
 
     fn mocked_perp_account(taker_base: i64, base_position: i64) -> PerpAccount {
@@ -46,11 +45,10 @@ mod tests {
 
             match res {
                 Ok(total) => {
-                    println!("{}", total);
                     prop_assert_eq!(total, taker_base + base_position);
                 }
                 Err(error) => {
-                    prop_assert_eq!(error, UxdError::UxdErrorCode { uxd_error_code: UxdErrorCode::MathError, line: 17, source_file_id: SourceFileId::MangoUtilsPerpAccountUtils });
+                    prop_assert_eq!(error, UxdError::UxdErrorCode { uxd_error_code: UxdErrorCode::MathError, line: 15, source_file_id: SourceFileId::MangoUtilsPerpAccountUtils });
                 }
             };
         }
