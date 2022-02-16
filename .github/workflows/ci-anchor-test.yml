@@ -17,7 +17,6 @@ env:
   ANCHOR_VERSION: 0.20.1
   CLUSTER: "devnet"
   RUNNER_WALLET_PATH: "/home/runner/.config/solana/id.json"
-  MM_WALLET_PATH: "/home/runner/.config/solana/mm_id.json"
   BANK_WALLET_PATH: "./scripts/bank-keypair.json"
   MANGO_ACCOUNT_MM_SOL: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
   MANGO_ACCOUNT_MM_BTC: "4Tw2AjjEXSWvFC9CCm88yhswRGgJokxiQnJDtVnVctTc"
@@ -25,7 +24,7 @@ env:
   NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
   DEVNET_FAUCET: "9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g"
   RUNNER_FUNDING_AMOUNT: 15
-  MM_FUNDING_AMOUNT: 1
+  MM_FUNDING_AMOUNT: 0.3  # Keep small it's lost
   TRANSACTION_FEE_OFFSET: 0.005
     
 jobs:
@@ -78,8 +77,8 @@ jobs:
       # Create Keypair
       - name: Create MM keypair and funds it
         run: |
-          solana-keygen new -o ${{ env.MM_WALLET_PATH }}
-          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.MM_WALLET_PATH }}) ${{ env.MM_FUNDING_AMOUNT }} --allow-unfunded-recipient
+          solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }}
+          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.MM_FUNDING_AMOUNT }} --allow-unfunded-recipient
           solana balance
       # Checkout Mango Client
       - name: Checkout MangoClient-v3
@@ -91,10 +90,10 @@ jobs:
         run: |
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
           yarn install
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.MM_WALLET_PATH }} yarn keeper &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.MM_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL yarn mm &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.MM_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC yarn mm &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.MM_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} yarn keeper &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH yarn mm &
 
   anchor-test:
     name: Anchor Test
@@ -190,7 +189,6 @@ jobs:
 
       - name: Close deployed program
         run: solana program close $(solana-keygen pubkey ./target/deploy/uxd-keypair.json) --recipient ${{ env.BANK_WALLET_PATH }}
-      - name: Returning funded tests accounts SOLs to the bank
+      - name: Returning funded runner wallet SOLs to the bank
         run: |
-          solana transfer --keypair MM_WALLET_PATH ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair MM_WALLET_PATH | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
           solana transfer --keypair RUNNER_WALLET_PATH ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair RUNNER_WALLET_PATH | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
