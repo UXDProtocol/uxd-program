@@ -16,12 +16,13 @@ defaults:
     working-directory: ./
 
 jobs:
-  runs-on: ubuntu-latest
 
   checkout-repo:
+    runs-on: ubuntu-latest
     - uses: actions/checkout@v2
 
-  install-rust:
+  install-rust:    
+    runs-on: ubuntu-latest
     steps:
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
@@ -34,6 +35,7 @@ jobs:
         uses: Swatinem/rust-cache@v1
 
   install-solana:
+    runs-on: ubuntu-latest
     steps:
       - name: Install Linux dependencies
         run: |
@@ -54,6 +56,7 @@ jobs:
           solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
 
   fmt:
+    runs-on: ubuntu-latest
     needs: [checkout-repo, install-rust]
     name: Run fnt
     steps:
@@ -61,6 +64,7 @@ jobs:
         run: cargo fmt -- --check
 
   clippy:
+    runs-on: ubuntu-latest
     needs: [checkout-repo, install-rust]    
     name: Run Clippy
     steps:
@@ -69,6 +73,7 @@ jobs:
         run: cargo clippy -- --deny=warnings --allow=clippy::style --allow=clippy::complexity
 
   tests:
+    runs-on: ubuntu-latest
     needs: [checkout-repo, install-rust, install-solana]
     name: Run tests
     steps:

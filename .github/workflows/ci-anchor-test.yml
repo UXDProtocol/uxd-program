@@ -29,9 +29,10 @@ env:
   TRANSACTION_FEE_OFFSET: 0.005
 
 jobs:
-  runs-on: ubuntu-latest
 
   install-rust:
+    name: Install Rust
+    runs-on: ubuntu-latest
     steps:
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
@@ -41,6 +42,8 @@ jobs:
             profile: minimal
 
   install-yarn:
+    name: Install yarn
+    runs-on: ubuntu-latest
     steps:
       - name: Node 14 installation
         uses: actions/setup-node@v2
@@ -62,6 +65,8 @@ jobs:
             ${{ runner.os }}-modules-
 
   install-solana:
+    name: Install Solana
+    runs-on: ubuntu-latest
     steps:
       - name: Add Solana to PATH
         run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
@@ -90,6 +95,8 @@ jobs:
           solana balance
 
   market-maker-bots:
+    name: Run Market Maker Bots
+    runs-on: ubuntu-latest
     needs: [install-solana, install-yarn]
     steps:
       - name: Checkout MangoClient-v3
@@ -113,6 +120,8 @@ jobs:
           solana balance
 
   anchor-test:
+    name: Anchor Test
+    runs-on: ubuntu-latest
     needs: [install-solana, install-yarn, install-rust]
     steps:
       - name: Checkout UXD-Program repo
@@ -147,11 +156,13 @@ jobs:
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator
 
   wrap-up:
-      needs: [anchor-test]
-      steps:
-        - name: Close deployed program
-          run: solana program close $(solana-keygen pubkey ./target/deploy/uxd-keypair.json) --recipient ${{ env.BANK_WALLET_PATH }}
-        - name: Returning funded tests accounts SOLs to the bank
-          run: |
-            solana transfer --keypair MM_WALLET_PATH ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair MM_WALLET_PATH | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
-            solana transfer --keypair RUNNER_WALLET_PATH ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair RUNNER_WALLET_PATH | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
+  name: wrap up
+    runs-on: ubuntu-latest
+    needs: [anchor-test]
+    steps:
+      - name: Close deployed program
+        run: solana program close $(solana-keygen pubkey ./target/deploy/uxd-keypair.json) --recipient ${{ env.BANK_WALLET_PATH }}
+      - name: Returning funded tests accounts SOLs to the bank
+        run: |
+          solana transfer --keypair MM_WALLET_PATH ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair MM_WALLET_PATH | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
+          solana transfer --keypair RUNNER_WALLET_PATH ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair RUNNER_WALLET_PATH | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
