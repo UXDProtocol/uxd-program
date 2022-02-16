@@ -17,12 +17,14 @@ env:
   ANCHOR_VERSION: 0.20.1
   CLUSTER: "devnet"
   RUNNER_WALLET_PATH: "/home/runner/.config/solana/id.json"
+  MM_WALLET_PATH: "/home/runner/.config/solana/mm_id.json"
   MANGO_ACCOUNT_MM_SOL: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
   MANGO_ACCOUNT_MM_BTC: "4Tw2AjjEXSWvFC9CCm88yhswRGgJokxiQnJDtVnVctTc"
   MANGO_ACCOUNT_MM_ETH: "Bnutxi4RpfduHSuQ2ZtDAEb4GegU3X1gmWZhQpe1YMts"
   NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
   DEVNET_FAUCET: "9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g"
-  DEPLOYMENT_FUNDING_AMOUNT: 15
+  DEPLOYMENT_FUNDING_AMOUNT: 12
+  DEPLOYMENT_FUNDING_AMOUNT: 1
 
 jobs:
 
@@ -95,11 +97,12 @@ jobs:
           solana --version
           solana config set -u d
 
-      - name: Create keypair and funds it
+      - name: Create keypairs and funds it
         run: |
-          solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }}
-          solana balance
           solana transfer --keypair ./scripts/bank-keypair.json $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.DEPLOYMENT_FUNDING_AMOUNT }} --allow-unfunded-recipient
+          solana balance
+          solana-keygen new -o ${{ env.MM_WALLET_PATH }}
+          solana transfer --keypair ./scripts/bank-keypair.json $(solana-keygen pubkey ${{ env.MM_WALLET_PATH }}) ${{ env.MM_FUNDING_AMOUNT }} --allow-unfunded-recipient
           solana balance
           
       - name: Checkout MangoClient-v3
@@ -112,17 +115,16 @@ jobs:
         run: |
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
           yarn install
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} yarn keeper &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL yarn mm &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC yarn mm &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.MM_WALLET_PATH }} yarn keeper &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.MM_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.MM_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.MM_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH yarn mm &
           cd -
 
       - name: Create NPMRC
         run: |
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
-
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
