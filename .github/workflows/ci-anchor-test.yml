@@ -36,10 +36,10 @@ jobs:
     steps:
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
-          with:
-            toolchain: nightly
-            override: true
-            profile: minimal
+        with:
+          toolchain: nightly
+          override: true
+          profile: minimal
 
   install-yarn:
     name: Install yarn
