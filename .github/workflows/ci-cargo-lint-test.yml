@@ -17,10 +17,6 @@ defaults:
 
 jobs:
 
-  checkout-repo:
-    runs-on: ubuntu-latest
-    - uses: actions/checkout@v2
-
   install-rust:    
     runs-on: ubuntu-latest
     steps:
@@ -54,6 +50,12 @@ jobs:
           solana --version
           echo "Generating keypair..."
           solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
+  
+  checkout-repo:
+    runs-on: ubuntu-latest
+    name: Checkout Repo
+    steps:
+      - uses: actions/checkout@v2
 
   fmt:
     runs-on: ubuntu-latest

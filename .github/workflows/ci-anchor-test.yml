@@ -156,7 +156,7 @@ jobs:
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator
 
   wrap-up:
-  name: wrap up
+    name: wrap up
     runs-on: ubuntu-latest
     needs: [anchor-test]
     steps:
