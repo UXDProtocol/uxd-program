@@ -254,7 +254,6 @@ mod test {
 
             prop_assert_eq!(limit_price, price_sub_slippage);
         }
-
     }
 
     proptest! {
