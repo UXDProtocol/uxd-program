@@ -41,10 +41,10 @@ pub fn handler(
 }
 
 // Validate
+#[deny(clippy::single_match, clippy::absurd_extreme_comparisons)]
 impl<'info> SetMangoDepositoriesRedeemableSoftCap<'info> {
     // Asserts that the Mango Depositories redeemable soft cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
     pub fn validate(&self, redeemable_soft_cap: u64) -> ProgramResult {
-        #[deny(clippy::single_match, clippy::absurd_extreme_comparisons)]
         check!(
             redeemable_soft_cap <= MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP,
             UxdErrorCode::InvalidMangoDepositoriesRedeemableSoftCap
