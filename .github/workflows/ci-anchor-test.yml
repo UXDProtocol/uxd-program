@@ -13,7 +13,7 @@ permissions:
   
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: 1.9.6
+  SOLANA_VERSION: 1.8.12
   ANCHOR_VERSION: 0.20.1
   CLUSTER: "devnet"
   RUNNER_WALLET_PATH: "/home/runner/.config/solana/id.json"
