@@ -9,55 +9,36 @@ on:
 env:
   CARGO_TERM_COLOR: always
   SOLANA_VERSION: "^1.8.12"
+  RUST_TOOLCHAIN: nightly-2021-12-15
 
 defaults:
   run:
     working-directory: ./
 
 jobs:
-  lint:
-    name: Run ftm (fix clippy pls)
-    runs-on: ubuntu-latest
+  runs-on: ubuntu-latest
 
+  checkout-repo:
+    - uses: actions/checkout@v2
+
+  install-rust:
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        name: Rust toolchain installation
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
           profile: minimal
           components: rustfmt, clippy
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
-      - name: Run fmt
-        run: cargo fmt -- --check
-      # The style and complexity lints have not been processed yet.
-      # - name: Run clippy
-      #   run: cargo clippy -- --deny=warnings --allow=clippy::style --allow=clippy::complexity
-
-  tests:
-    name: Run tests
-    runs-on: ubuntu-latest
-
+  install-solana:
     steps:
-      - uses: actions/checkout@v2
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config build-essential libudev-dev
-      - uses: actions-rs/toolchain@v1
-        name: Rust toolchain installation
-        with:
-          toolchain: nightly
-          override: true
-          profile: minimal
-          components: rustfmt, clippy
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
-
-      # Install Solana
       - name: Cache Solana binaries
         uses: actions/cache@v2
         with:
@@ -71,6 +52,26 @@ jobs:
           solana --version
           echo "Generating keypair..."
           solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
+
+  fmt:
+    needs: [checkout-repo, install-rust]
+    name: Run fnt
+    steps:
+      - name: Run fmt
+        run: cargo fmt -- --check
+
+  clippy:
+    needs: [checkout-repo, install-rust]    
+    name: Run Clippy
+    steps:
+      # The style and complexity lints have not been processed yet.
+      - name: Run clippy
+        run: cargo clippy -- --deny=warnings --allow=clippy::style --allow=clippy::complexity
+
+  tests:
+    needs: [checkout-repo, install-rust, install-solana]
+    name: Run tests
+    steps:
       - name: Run unit tests
         run: cargo test --lib
       - name: Build program
