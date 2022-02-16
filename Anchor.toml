@@ -12,4 +12,4 @@ uxd = "82K9aF9wyRFKgpYMpjfoq8DSaSbcsRWca6tKtJYGCw3n"
 url = "https://anchor.projectserum.com"
 
 [scripts]
-test = "yarn ts-mocha --require tests/fixtures.ts -p ./tsconfig.json -t 500000 tests/test_integration.ts --reporter mochawesome --require mochawesome/register --reporter-options quiet=true,reportTitle=uxdprogram-integration-tests --trace-warnings"
+test = "yarn ts-mocha --require tests/fixtures.ts -p ./tsconfig.json -t 500000 tests/test_integration.ts --reporter mochawesome --require mochawesome/register --reporter-options quiet=true,reportTitle=uxdprogram-test_integration --trace-warnings"
