@@ -27,61 +27,17 @@ env:
   RUNNER_FUNDING_AMOUNT: 15
   MM_FUNDING_AMOUNT: 1
   TRANSACTION_FEE_OFFSET: 0.005
-
-defaults:
-  run:
-    working-directory: ./
     
 jobs:
 
-  checkout-repo:
-    name: Checkout UXD Program Repository
+  market-maker-bots:
+    name: Run Market Maker Bots
     runs-on: ubuntu-latest
+    needs: [install-yarn, checkout-repo, create-keypair-mm]
     steps:
       - name: Checkout UXD-Program repo
         uses: actions/checkout@v2
-
-  install-rust:
-    name: Install Rust
-    runs-on: ubuntu-latest
-    steps:
-      - name: Rust toolchain installation
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
-          profile: minimal
-
-  install-yarn:
-    needs: [checkout-repo]
-    name: Install yarn
-    runs-on: ubuntu-latest
-    steps:
-      - name: Node 14 installation
-        uses: actions/setup-node@v2
-        with:
-          node-version: "14"
-          cache: "yarn"
-          registry-url: 'https://npm.pkg.github.com'
-          scope: "@UXDProtocol"
-          always-auth: true
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
-      - name: Yarn Cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-modules-
-
-  install-solana:
-    name: Install Solana
-    runs-on: ubuntu-latest
-    steps:
-      - name: Add Solana to PATH
-        run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
+      # Install solana
       - name: Cache Solana Tool Suite
         uses: actions/cache@v2  
         id: cache-solana
@@ -96,39 +52,38 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y pkg-config build-essential libudev-dev
           sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
+      - name: Add Solana to PATH
+        run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
       - name: Setup solana 
         run: |
           solana --version
           solana config set -u d
-
-  create-keypair-runner:
-    needs: [install-solana, checkout-repo]
-    name: Create Runner keypair and funds it
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create Runner keypair and funds it
-        run: |
-          solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }}
-          solana transfer --keypair ./scripts/bank-keypair.json $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.RUNNER_FUNDING_AMOUNT }} --allow-unfunded-recipient
-          solana balance
-
-  create-keypair-mm:
-    needs: [install-solana, checkout-repo]
-    name: Create MM keypair and funds it
-    runs-on: ubuntu-latest
-    steps:
+      # Install Yarn
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+      - name: Yarn Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+      - name: Node 14 installation
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+          cache: "yarn"
+          registry-url: 'https://npm.pkg.github.com'
+          scope: "@UXDProtocol"
+          always-auth: true
+      # Create Keypair
       - name: Create MM keypair and funds it
         run: |
           solana-keygen new -o ${{ env.MM_WALLET_PATH }}
           solana transfer --keypair ./scripts/bank-keypair.json $(solana-keygen pubkey ${{ env.MM_WALLET_PATH }}) ${{ env.MM_FUNDING_AMOUNT }} --allow-unfunded-recipient
           solana balance
-
-
-  market-maker-bots:
-    name: Run Market Maker Bots
-    runs-on: ubuntu-latest
-    needs: [install-solana, install-yarn, checkout-repo, create-keypair-mm]
-    steps:
+      # Checkout Mango Client
       - name: Checkout MangoClient-v3
         uses: actions/checkout@v2
         with:
@@ -142,13 +97,69 @@ jobs:
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.MM_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL yarn mm &
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.MM_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC yarn mm &
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.MM_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH yarn mm &
-          cd -
 
   anchor-test:
     name: Anchor Test
     runs-on: ubuntu-latest
-    needs: [market-maker-bots, install-rust, create-keypair-runner]
+    needs: [market-maker-bots]
     steps:
+      # Checkout
+      - name: Checkout UXD-Program repo
+        uses: actions/checkout@v2
+      # Install Rust
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          profile: minimal
+      # Install solana
+      - name: Cache Solana Tool Suite
+        uses: actions/cache@v2  
+        id: cache-solana
+        with:
+          path: |
+            ~/.cache/solana/
+            ~/.local/share/solana/
+          key: solana-${{ runner.os }}-v0000-${{ env.SOLANA_VERSION }}
+      - name: install solana
+        if: steps.cache-solana.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config build-essential libudev-dev
+          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
+      - name: Add Solana to PATH
+        run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
+      - name: Setup solana 
+        run: |
+          solana --version
+          solana config set -u d
+      # Install Yarn
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+      - name: Yarn Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+      - name: Node 14 installation
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+          cache: "yarn"
+          registry-url: 'https://npm.pkg.github.com'
+          scope: "@UXDProtocol"
+          always-auth: true
+      # Create Keypair
+      - name: Create Runner keypair and funds it
+        run: |
+          solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }}
+          solana transfer --keypair ./scripts/bank-keypair.json $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.RUNNER_FUNDING_AMOUNT }} --allow-unfunded-recipient
+          solana balance
+      # Cargo caching
       - name: Cache Cargo registry + index
         uses: actions/cache@v2  
         id: cache-anchor
@@ -168,21 +179,18 @@ jobs:
             ./target/release
             ./target/bpfel-unknown-unknown
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
+
       - name: Create NPMRC
         run: |
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
+
       - name: Yarn install + run tests
         run: |
           yarn install
           ./scripts/reset_program_id.sh
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator
 
-  wrap-up:
-    name: wrap up
-    runs-on: ubuntu-latest
-    needs: [anchor-test]
-    steps:
       - name: Close deployed program
         run: solana program close $(solana-keygen pubkey ./target/deploy/uxd-keypair.json) --recipient ${{ env.BANK_WALLET_PATH }}
       - name: Returning funded tests accounts SOLs to the bank
