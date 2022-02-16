@@ -207,7 +207,7 @@ jobs:
           solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
 
   anchor-test-SOL:
-    name: Anchor Test BTC against ${{ env.RESIDENT_PROGRAM_ID }}
+    name: Anchor Test BTC against the resident program
     runs-on: ubuntu-latest
     needs: [market-maker-bots]
     steps:
