@@ -240,7 +240,7 @@ pub struct RebalanceMangoDepositoryLiteEvent {
     // The user selected slippage.
     pub slippage: u32,
     // The different deltas after successful rebalancing operation.
-    pub collateral_delta: u64, 
+    pub collateral_delta: u64,
     pub quote_delta: u64,
     pub fee_delta: u64,
 }

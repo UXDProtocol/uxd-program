@@ -1,20 +1,20 @@
 use crate::declare_check_assert_macros;
 use crate::error::check_assert;
 use crate::error::SourceFileId;
+use crate::events::InitializeControllerEvent;
 use crate::Controller;
 use crate::UxdError;
 use crate::UxdErrorCode;
 use crate::UxdResult;
+use crate::CONTROLLER_ACCOUNT_VERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
 use crate::DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP;
-use crate::CONTROLLER_ACCOUNT_VERSION;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SOLANA_MAX_MINT_DECIMALS;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
-use crate::events::InitializeControllerEvent;
 
 declare_check_assert_macros!(SourceFileId::InstructionInitializeController);
 
@@ -89,10 +89,7 @@ pub fn handler(
 // Validate
 impl<'info> InitializeController<'info> {
     // Asserts that the redeemable mint decimals is between 0 and 9.
-    pub fn validate(
-        &self,
-        decimals: u8,
-    ) -> ProgramResult {
+    pub fn validate(&self, decimals: u8) -> ProgramResult {
         check!(
             decimals <= SOLANA_MAX_MINT_DECIMALS,
             UxdErrorCode::InvalidRedeemableMintDecimals

@@ -1,23 +1,23 @@
+use crate::error::check_assert;
+use crate::error::SourceFileId;
+use crate::error::UxdErrorCode;
+use crate::error::UxdIdlErrorCode;
+use crate::events::DepositInsuranceToMangoDepositoryEvent;
+use crate::mango_program;
+use crate::AccountingEvent;
+use crate::Controller;
+use crate::MangoDepository;
+use crate::UxdResult;
+use crate::CONTROLLER_NAMESPACE;
+use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
+use crate::MANGO_ACCOUNT_NAMESPACE;
+use crate::MANGO_DEPOSITORY_NAMESPACE;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
-use crate::AccountingEvent;
-use crate::Controller;
-use crate::UxdResult;
-use crate::error::check_assert;
-use crate::error::UxdErrorCode;
-use crate::error::SourceFileId;
-use crate::error::UxdIdlErrorCode;
-use crate::CONTROLLER_NAMESPACE;
-use crate::MANGO_DEPOSITORY_NAMESPACE;
-use crate::MANGO_ACCOUNT_NAMESPACE;
-use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
-use crate::MangoDepository;
-use crate::mango_program;
-use crate::events::DepositInsuranceToMangoDepositoryEvent;
 
 declare_check_assert_macros!(SourceFileId::InstructionMangoDexDepositInsuranceToMangoDepository);
 
@@ -25,7 +25,7 @@ declare_check_assert_macros!(SourceFileId::InstructionMangoDexDepositInsuranceTo
 pub struct DepositInsuranceToMangoDepository<'info> {
     pub authority: Signer<'info>,
     #[account(
-        seeds = [CONTROLLER_NAMESPACE], 
+        seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
@@ -96,8 +96,7 @@ pub fn handler(
 
     // - Transfers insurance to the passthrough account
     token::transfer(
-        ctx.accounts
-            .into_transfer_to_passthrough_context(),
+        ctx.accounts.into_transfer_to_passthrough_context(),
         insurance_amount,
     )?;
 
@@ -162,10 +161,7 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
 
 // Additional convenience methods related to the inputted accounts
 impl<'info> DepositInsuranceToMangoDepository<'info> {
-    fn update_accounting(
-        &mut self,
-        insurance_delta: u64,
-    ) -> ProgramResult {
+    fn update_accounting(&mut self, insurance_delta: u64) -> ProgramResult {
         self.depository
             .update_insurance_amount_deposited(&AccountingEvent::Deposit, insurance_delta)?;
         Ok(())
@@ -174,10 +170,7 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
 
 // Validate
 impl<'info> DepositInsuranceToMangoDepository<'info> {
-    pub fn validate(
-        &self,
-        insurance_amount: u64,
-    ) -> ProgramResult {
+    pub fn validate(&self, insurance_amount: u64) -> ProgramResult {
         check!(insurance_amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;
         check!(
             self.authority_insurance.amount >= insurance_amount,
