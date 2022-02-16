@@ -17,9 +17,15 @@ defaults:
 
 jobs:
 
-  install-rust:    
+  fmt:
     runs-on: ubuntu-latest
+    name: Run fnt
     steps:
+      # Checkout Repo
+      - uses: actions/checkout@v2
+      # Installs Rust
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
         with:
@@ -27,12 +33,46 @@ jobs:
           override: true
           profile: minimal
           components: rustfmt, clippy
+      - name: Run fmt
+        run: cargo fmt -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    name: Run Clippy
+    steps:
+      # Checkout Repo
+      - uses: actions/checkout@v2
+      # Installs Rust
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          override: true
+          profile: minimal
+          components: rustfmt, clippy
+      # The style and complexity lints have not been processed yet.
+      - name: Run clippy
+        run: cargo clippy -- --deny=warnings --allow=clippy::style --allow=clippy::complexity
 
-  install-solana:
+  tests:
     runs-on: ubuntu-latest
+    name: Run tests
     steps:
+      # Checkout Repo
+      - uses: actions/checkout@v2
+      # Installs Rust
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          override: true
+          profile: minimal
+          components: rustfmt, clippy
+      # Install Solana
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -50,35 +90,7 @@ jobs:
           solana --version
           echo "Generating keypair..."
           solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
-  
-  checkout-repo:
-    runs-on: ubuntu-latest
-    name: Checkout Repo
-    steps:
-      - uses: actions/checkout@v2
-
-  fmt:
-    runs-on: ubuntu-latest
-    needs: [checkout-repo, install-rust]
-    name: Run fnt
-    steps:
-      - name: Run fmt
-        run: cargo fmt -- --check
-
-  clippy:
-    runs-on: ubuntu-latest
-    needs: [checkout-repo, install-rust]    
-    name: Run Clippy
-    steps:
-      # The style and complexity lints have not been processed yet.
-      - name: Run clippy
-        run: cargo clippy -- --deny=warnings --allow=clippy::style --allow=clippy::complexity
-
-  tests:
-    runs-on: ubuntu-latest
-    needs: [checkout-repo, install-rust, install-solana]
-    name: Run tests
-    steps:
+      # Run tests
       - name: Run unit tests
         run: cargo test --lib
       - name: Build program
