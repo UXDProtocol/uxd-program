@@ -99,6 +99,7 @@ jobs:
 
       - name: Create keypairs and funds it
         run: |
+          solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }}
           solana transfer --keypair ./scripts/bank-keypair.json $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.DEPLOYMENT_FUNDING_AMOUNT }} --allow-unfunded-recipient
           solana balance
           solana-keygen new -o ${{ env.MM_WALLET_PATH }}
