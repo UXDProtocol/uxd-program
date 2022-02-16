@@ -5,3 +5,5 @@
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.cc 2ab2a4939db4859a318da21b018ee92b34f4ea08d2b483b16084b2d7ed2f62e4 # shrinks to price = 1, slippage = 1
 cc 4a8f8eb1d0d7754058a9f330b871aae55bd27d6ead5f51e60fc984c88cc2e8ab # shrinks to price = 1, slippage = 1
+cc 7d3eab25e68a8b9e53276a52ec387888e5aa71a65ec26649c2ffdf7aa1c6c9c6 # shrinks to price = 0, slippage = 1
+cc d082281fbcf8cedbc3c724dbc83600be8b8a92a5c8db0fe887de91e20b00468e # shrinks to price = 73.69232346305677, order_price = 55.959437289578595, slippage = 241

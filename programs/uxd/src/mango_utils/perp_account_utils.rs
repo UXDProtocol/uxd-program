@@ -15,7 +15,7 @@ pub fn total_perp_base_lot_position(perp_account: &PerpAccount) -> UxdResult<i64
         .ok_or(math_err!())?)
 }
 
-// Non regression tests
+// Unit Test
 #[cfg(test)]
 mod tests {
 

@@ -32,6 +32,16 @@ pub fn limit_price(price: I80F48, slippage: u32, matched_side: Side) -> UxdResul
     };
 }
 
+// Convert into a base lot price in quote lot.
+// Price is the value of 1 native base unit expressed in native quote.
+pub fn price_to_lot_price(price: I80F48, perp_info: &PerpInfo) -> UxdResult<I80F48> {
+    price
+        .checked_mul(perp_info.base_lot_size)
+        .ok_or(math_err!())?
+        .checked_div(perp_info.quote_lot_size)
+        .ok_or(math_err!())
+}
+
 // Check if the provided order is valid given the slippage point and side
 pub fn check_effective_order_price_versus_limit_price(
     perp_info: &PerpInfo,
@@ -40,11 +50,7 @@ pub fn check_effective_order_price_versus_limit_price(
 ) -> UxdResult {
     let market_price = perp_info.price;
     let limit_price = limit_price(market_price, slippage, order.side)?;
-    let limit_price_lot = limit_price
-        .checked_mul(perp_info.base_lot_size)
-        .ok_or(math_err!())?
-        .checked_div(perp_info.quote_lot_size)
-        .ok_or(math_err!())?;
+    let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
     match order.side {
         Side::Bid => {
             if order.price >= limit_price_lot {
@@ -65,50 +71,130 @@ pub fn check_effective_order_price_versus_limit_price(
 mod tests {
 
     use super::*;
+    use proptest::prelude::*;
+
+    // price expressed in native quote per native base
+    fn mocked_perp_info(price: f64) -> PerpInfo {
+        PerpInfo {
+            market_index: 3,
+            // Price is the price of 1 native unit of BASE expressed in native unit of QUOTE
+            price: I80F48::from_num(price),
+            base_unit: I80F48::from_num(1000000000), // SOL 9 decimals
+            base_lot_size: I80F48::from_num(10000000),
+            quote_unit: I80F48::from_num(1000000), // USD 6 decimals
+            quote_lot_size: I80F48::from_num(100),
+            taker_fee: I80F48::from_num(0.0005),
+        }
+    }
+
+    fn mocked_order(perp_info: &PerpInfo, price: f64, side: Side) -> UxdResult<Order> {
+        let price_lot = price_to_lot_price(I80F48::from_num(price), perp_info)?;
+        Ok(Order {
+            quantity: 0,               // whatever not used
+            price: price_lot.to_num(), // exact price
+            size: 0,                   // whatever not used
+            side,
+        })
+    }
+
+    proptest! {
+        /// Tests the price check after placing a Perp order for Minting UXD (Selling Perp to open the Short position)
+        /// combinations with :
+        ///      perp_price between 0$ and 100_000
+        ///      order_price between 0$ and 100_000
+        ///      slippage between 0.01% and 100%
+        #[test]
+        fn test_check_effective_order_price_versus_limit_price_mint(perp_price in 0.0f64..10f64, order_price in 0.0f64..10f64, slippage in 1..SLIPPAGE_BASIS) {
+            // Order.price must be below the perpInfo.price within slippage
+            let side = Side::Bid;
+            let perp_info = mocked_perp_info(perp_price);
+            let order = mocked_order(&perp_info, order_price, side).unwrap();
+
+            let limit_price: f64 = limit_price(I80F48::from_num(perp_price), slippage, side)?.to_num();
+            match check_effective_order_price_versus_limit_price(
+                &perp_info,
+                &order,
+                slippage,
+            ) {
+                Ok(_) => {
+                    prop_assert!(order_price >= limit_price);
+                },
+                Err(error) => {
+                    match error {
+                        UxdError::ProgramError(_) => todo!(),
+                        UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
+                            prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsLimitUtils);
+                            match uxd_error_code {
+                                UxdErrorCode::MathError => prop_assert!(true),
+                                UxdErrorCode::SlippageReached => {
+                                    prop_assert!(order_price <= limit_price);
+                                },
+                                _default => prop_assert!(false)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    proptest! {
+        /// Tests the price check after placing a Perp order for Redeeming UXD (Buying Perp to close the outstanding Short position)
+        /// combinations with :
+        ///      perp_price between 0$ and 100_000
+        ///      order_price between 0$ and 100_000
+        ///      slippage between 0.01% and 100%
+        #[test]
+        fn test_check_effective_order_price_versus_limit_price_redeem(perp_price in 0.0f64..10f64, order_price in 0.0f64..10f64, slippage in 1..SLIPPAGE_BASIS) {
+            let side = Side::Ask;
+            let perp_info = mocked_perp_info(perp_price);
+            let order = mocked_order(&perp_info, order_price, side).unwrap();
+
+            let limit_price: f64 = limit_price(I80F48::from_num(perp_price), slippage, side)?.to_num();
+            match check_effective_order_price_versus_limit_price(
+                &perp_info,
+                &order,
+                slippage,
+            ) {
+                Ok(_) => {
+                    prop_assert!(order_price <= limit_price);
+                },
+                Err(error) => {
+                    match error {
+                        UxdError::ProgramError(_) => todo!(),
+                        UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
+                            prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsLimitUtils);
+                            match uxd_error_code {
+                                UxdErrorCode::MathError => prop_assert!(true),
+                                UxdErrorCode::SlippageReached => {
+                                    prop_assert!(order_price >= limit_price);
+                                },
+                                _default => prop_assert!(false)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     #[test]
     pub fn test_check_effective_order_price_versus_limit_price_mint_valid_small_slippage() {
         // Order.price must be below the perpInfo.price within slippage
+        let perp_info = mocked_perp_info(0.09000);
+        let order = mocked_order(&perp_info, 0.09000, Side::Bid).unwrap();
         let ret = check_effective_order_price_versus_limit_price(
-            &PerpInfo {
-                market_index: 3,
-                price: I80F48::from_num(0.090000000000000), // 90.00$
-                base_unit: I80F48::from_num(1000000000),    // SOL 9 decimals
-                base_lot_size: I80F48::from_num(10000000),
-                quote_unit: I80F48::from_num(1000000), // USD 6 decimals
-                quote_lot_size: I80F48::from_num(100),
-                taker_fee: I80F48::from_num(0.0005),
-            },
-            &Order {
-                quantity: 0, // whatever not used
-                price: 9000, // exact price
-                size: 0,     // whatever not used
-                side: Side::Bid,
-            },
-            1, // 0.1%
+            &perp_info, &order, 1, // 0.1%
         );
         assert!(ret.is_ok());
     }
 
     #[test]
     pub fn test_check_effective_order_price_versus_limit_price_mint_valid() {
+        let perp_info = mocked_perp_info(0.090);
+        let order = mocked_order(&perp_info, 0.08911, Side::Bid).unwrap();
         let ret = check_effective_order_price_versus_limit_price(
-            &PerpInfo {
-                market_index: 3,
-                price: I80F48::from_num(0.090000000000000), // 90.00$
-                base_unit: I80F48::from_num(1000000000),    // SOL 9 decimals
-                base_lot_size: I80F48::from_num(10000000),
-                quote_unit: I80F48::from_num(1000000), // USD 6 decimals
-                quote_lot_size: I80F48::from_num(100),
-                taker_fee: I80F48::from_num(0.0005),
-            },
-            &Order {
-                quantity: 0, // whatever not used
-                price: 8911, // less than 1% below
-                size: 0,     // whatever not used
-                side: Side::Bid,
-            },
-            10, // 1%
+            &perp_info, &order, 10, // 1%
         );
         assert!(ret.is_ok());
     }
@@ -117,92 +203,40 @@ mod tests {
 
     #[test]
     pub fn test_check_effective_order_price_versus_limit_price_redeem_valid_small_slippage() {
+        let perp_info = mocked_perp_info(0.090);
+        let order = mocked_order(&perp_info, 0.09000, Side::Ask).unwrap();
         let ret = check_effective_order_price_versus_limit_price(
-            &PerpInfo {
-                market_index: 3,
-                price: I80F48::from_num(0.090000000000000), // 90.00$
-                base_unit: I80F48::from_num(1000000000),    // SOL 9 decimals
-                base_lot_size: I80F48::from_num(10000000),
-                quote_unit: I80F48::from_num(1000000), // USD 6 decimals
-                quote_lot_size: I80F48::from_num(100),
-                taker_fee: I80F48::from_num(0.0005),
-            },
-            &Order {
-                quantity: 0, // whatever not used
-                price: 9000, // less than 1% above
-                size: 0,     // whatever not used
-                side: Side::Ask,
-            },
-            1, // 0.1%
+            &perp_info, &order, 1, // 0.1%
         );
         assert!(ret.is_ok());
     }
 
     #[test]
     pub fn test_check_effective_order_price_versus_limit_price_mint_invalid() {
+        let perp_info = mocked_perp_info(0.090);
+        let order = mocked_order(&perp_info, 0.08909, Side::Bid).unwrap();
         let ret = check_effective_order_price_versus_limit_price(
-            &PerpInfo {
-                market_index: 3,
-                price: I80F48::from_num(0.090000000000000), // 90.00$
-                base_unit: I80F48::from_num(1000000000),    // SOL 9 decimals
-                base_lot_size: I80F48::from_num(10000000),
-                quote_unit: I80F48::from_num(1000000), // USD 6 decimals
-                quote_lot_size: I80F48::from_num(100),
-                taker_fee: I80F48::from_num(0.0005),
-            },
-            &Order {
-                quantity: 0, // whatever not used
-                price: 8909, // more than 1% below
-                size: 0,     // whatever not used
-                side: Side::Bid,
-            },
-            10, // 1%
+            &perp_info, &order, 10, // 1%
         );
         assert!(ret.is_err());
     }
 
     #[test]
     pub fn test_check_effective_order_price_versus_limit_price_redeem_valid() {
+        let perp_info = mocked_perp_info(0.090);
+        let order = mocked_order(&perp_info, 0.09089, Side::Ask).unwrap();
         let ret = check_effective_order_price_versus_limit_price(
-            &PerpInfo {
-                market_index: 3,
-                price: I80F48::from_num(0.090000000000000), // 90.00$
-                base_unit: I80F48::from_num(1000000000),    // SOL 9 decimals
-                base_lot_size: I80F48::from_num(10000000),
-                quote_unit: I80F48::from_num(1000000), // USD 6 decimals
-                quote_lot_size: I80F48::from_num(100),
-                taker_fee: I80F48::from_num(0.0005),
-            },
-            &Order {
-                quantity: 0, // whatever not used
-                price: 9089, // less than 1% above
-                size: 0,     // whatever not used
-                side: Side::Ask,
-            },
-            10, // 1%
+            &perp_info, &order, 10, // 1%
         );
         assert!(ret.is_ok());
     }
 
     #[test]
     pub fn test_check_effective_order_price_versus_limit_price_redeem_invalid() {
+        let perp_info = mocked_perp_info(0.090);
+        let order = mocked_order(&perp_info, 0.09091, Side::Ask).unwrap();
         let ret = check_effective_order_price_versus_limit_price(
-            &PerpInfo {
-                market_index: 3,
-                price: I80F48::from_num(0.090000000000000), // 90.00$
-                base_unit: I80F48::from_num(1000000000),    // SOL 9 decimals
-                base_lot_size: I80F48::from_num(10000000),
-                quote_unit: I80F48::from_num(1000000), // USD 6 decimals
-                quote_lot_size: I80F48::from_num(100),
-                taker_fee: I80F48::from_num(0.0005),
-            },
-            &Order {
-                quantity: 0, // whatever not used
-                price: 9091, // more than 1% above
-                size: 0,     // whatever not used
-                side: Side::Ask,
-            },
-            10, // 1%
+            &perp_info, &order, 10, // 1%
         );
         assert!(ret.is_err());
     }
