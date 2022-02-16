@@ -1,6 +1,7 @@
 import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
+import { controllerAccountingMangoDepositoryTest } from "../cases/controllerAccountingMangoDepositoryTest";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { redeemFromMangoDepositoryTest } from "../cases/redeemFromMangoDepositoryTest";
 import { setRedeemableGlobalSupplyCapTest } from "../cases/setRedeemableGlobalSupplyCapTest";
@@ -71,5 +72,9 @@ export const mangoDepositoryAndControllerInteractionsSuite = function (authority
 
     it(`Reset MangoDepositories Redeemable Soft cap back to ${params.mangoDepositoriesRedeemableSoftCap}`, async function () {
         await setRedeemableSoftCapMangoDepositoryTest(params.mangoDepositoriesRedeemableSoftCap, authority, controller);
+    });
+
+    after(`Check Controller Accounting`, async function () {
+        await controllerAccountingMangoDepositoryTest(controller, [depository]);
     });
 };
