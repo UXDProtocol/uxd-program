@@ -48,7 +48,16 @@ mod tests {
                     prop_assert_eq!(total, taker_base + base_position);
                 }
                 Err(error) => {
-                    prop_assert_eq!(error, UxdError::UxdErrorCode { uxd_error_code: UxdErrorCode::MathError, line: 15, source_file_id: SourceFileId::MangoUtilsPerpAccountUtils });
+                    match error {
+                        UxdError::ProgramError(_) => prop_assert!(false),
+                        UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
+                            prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsPerpAccountUtils);
+                            match uxd_error_code {
+                                UxdErrorCode::MathError => prop_assert!(true),
+                                _default => prop_assert!(false)
+                            }
+                        }
+                    }
                 }
             };
         }

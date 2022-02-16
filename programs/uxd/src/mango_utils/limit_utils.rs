@@ -121,7 +121,7 @@ mod tests {
                 },
                 Err(error) => {
                     match error {
-                        UxdError::ProgramError(_) => todo!(),
+                        UxdError::ProgramError(_) => prop_assert!(false),
                         UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
                             prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsLimitUtils);
                             match uxd_error_code {
@@ -161,7 +161,7 @@ mod tests {
                 },
                 Err(error) => {
                     match error {
-                        UxdError::ProgramError(_) => todo!(),
+                        UxdError::ProgramError(_) => prop_assert!(false),
                         UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
                             prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsLimitUtils);
                             match uxd_error_code {

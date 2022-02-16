@@ -61,13 +61,11 @@ pub fn derive_order_delta(
         .checked_to_num()
         .ok_or(math_err!())?;
 
-    // solana_program::msg!("collateral_delta {}", collateral_delta);
-    // solana_program::msg!("quote_delta {}", quote_delta);
-    // solana_program::msg!("fee_delta {}", fee_delta);
-
     Ok(OrderDelta {
         collateral: collateral_delta,
         quote: quote_delta.checked_to_num().ok_or(math_err!())?,
         fee: fee_delta,
     })
 }
+
+// Todo tests
