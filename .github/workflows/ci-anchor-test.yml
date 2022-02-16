@@ -28,6 +28,10 @@ env:
   MM_FUNDING_AMOUNT: 1
   TRANSACTION_FEE_OFFSET: 0.005
 
+defaults:
+  run:
+    working-directory: ./
+    
 jobs:
 
   checkout-repo:
