@@ -13,6 +13,7 @@ pub mod instructions;
 pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
+pub mod test;
 
 #[cfg(feature = "development")]
 solana_program::declare_id!("82K9aF9wyRFKgpYMpjfoq8DSaSbcsRWca6tKtJYGCw3n");

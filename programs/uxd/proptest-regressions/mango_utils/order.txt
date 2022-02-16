@@ -4,5 +4,3 @@
 #
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
-cc 040d3bf18e6cf6f7efcb1f2e637c4205a62399a2f840066f16d9c04e4768afc7 # shrinks to order_quantity = 0, pre_position = 0, post_position = 1
-cc 7d5e64d8ad074299a5675b3b5f2214eeffa763994565b13800f89d9a7889bbca # shrinks to order_quantity = 0, pre_position = -7151238442645639177, post_position = 2072133594209136631

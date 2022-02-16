@@ -4,4 +4,3 @@
 #
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
-cc ce57c18697ce7479a2a4cbe5614797a57ddd98ce4d8d51e883c374d42e831048 # shrinks to taker_base = -864248772623966326, base_position = -8359123264230809483
