@@ -191,4 +191,4 @@ jobs:
         run: solana program close $(solana-keygen pubkey ./target/deploy/uxd-keypair.json) --recipient ${{ env.BANK_WALLET_PATH }}
       - name: Returning funded runner wallet SOLs to the bank
         run: |
-          solana transfer --keypair RUNNER_WALLET_PATH ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair RUNNER_WALLET_PATH | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
+          solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
