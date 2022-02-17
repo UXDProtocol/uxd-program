@@ -132,5 +132,7 @@ jobs:
           solana --version
           echo "Generating keypair..."
           solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
+      - name: Build program
+        run: cargo build-bpf
       - name: Run tests BPF
         run: cargo test-bpf
