@@ -56,7 +56,7 @@ jobs:
       - name: Run clippy
         run: cargo clippy -- --deny=warnings --allow=clippy::style --allow=clippy::complexity
 
-  tests:
+  cargo-tests:
     runs-on: ubuntu-latest
     name: Run tests
     steps:
@@ -72,18 +72,20 @@ jobs:
           override: true
           profile: minimal
           components: rustfmt, clippy
-      # Install Solana
-      - name: Install Linux dependencies
+      # Install solana
+      - name: Cache Solana Tool Suite
+        uses: actions/cache@v2  
+        id: cache-solana
+        with:
+          path: |
+            ~/.cache/solana/
+            ~/.local/share/solana/
+          key: solana-${{ runner.os }}-v0000-${{ env.SOLANA_VERSION }}
+      - name: install solana
+        if: steps.cache-solana.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config build-essential libudev-dev
-      - name: Cache Solana binaries
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/solana
-          key: ${{ runner.os }}-${{ env.SOLANA_VERSION }}
-      - name: Install Solana
-        run: |
           sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
           export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
@@ -94,9 +96,9 @@ jobs:
       - name: Run tests
         run: cargo test --lib
 
-  tests-bpf:
+  cargo-tests-bpf:
     runs-on: ubuntu-latest
-    name: Run tests
+    name: Runs test-bpf
     steps:
       # Checkout Repo
       - uses: actions/checkout@v2
@@ -110,18 +112,20 @@ jobs:
           override: true
           profile: minimal
           components: rustfmt, clippy
-      # Install Solana
-      - name: Install Linux dependencies
+      # Install solana
+      - name: Cache Solana Tool Suite
+        uses: actions/cache@v2  
+        id: cache-solana
+        with:
+          path: |
+            ~/.cache/solana/
+            ~/.local/share/solana/
+          key: solana-${{ runner.os }}-v0000-${{ env.SOLANA_VERSION }}
+      - name: install solana
+        if: steps.cache-solana.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config build-essential libudev-dev
-      - name: Cache Solana binaries
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/solana
-          key: ${{ runner.os }}-${{ env.SOLANA_VERSION }}
-      - name: Install Solana
-        run: |
           sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
           export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
