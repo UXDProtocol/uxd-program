@@ -72,6 +72,7 @@ jobs:
           override: true
           profile: minimal
           components: rustfmt, clippy
+      - name: Rust toolchain update
         run: |
           rustup update
       - name: Cache dependencies
