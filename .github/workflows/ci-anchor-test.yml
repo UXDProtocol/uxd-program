@@ -22,8 +22,9 @@ env:
   # Funding wallet
   BANK_WALLET_PATH: "./target/deploy/bank-keypair.json"
   CI_DEPLOYMENT_AUTHORITY_WALLET_PATH: "./target/deploy/ci-resident-upgrade-authority.json"
-  # This program stay deployed to test over time
-  RESIDENT_PROGRAM_ID: CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45
+  # This program stays deployed to test over time
+  # RESIDENT_PROGRAM_ID: CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45
+  RESIDENT_PROGRAM_KEYPAIR: ./target/deploy/ci-resident-keypair.json # another way to get the ID
   # Accounts used to MM on mango market
   MANGO_ACCOUNT_MM_SOL: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
   MANGO_ACCOUNT_MM_BTC: "4Tw2AjjEXSWvFC9CCm88yhswRGgJokxiQnJDtVnVctTc"
@@ -106,8 +107,7 @@ jobs:
       - name: Create Runner keypair and funds it
         run: |
           solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }} --no-passphrase --silent
-          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) 1 --allow-unfunded-recipient
-          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.CI_DEPLOYMENT_AUTHORITY_WALLET_PATH }}) ${{ env.DEPLOYMENT_FUNDING_AMOUNT }} --allow-unfunded-recipient
+          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.DEPLOYMENT_FUNDING_AMOUNT }} --allow-unfunded-recipient
           solana balance
       # Cargo caching
       - name: Cache Cargo registry + index
@@ -138,6 +138,7 @@ jobs:
           yarn install
           ./scripts/swap_ci_resident_program_id.sh
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} build
+          solana program deploy ./target/deploy/uxd.so --program-id ${{ env.RESIDENT_PROGRAM_KEYPAIR }} --upgrade-authority ${{ env.CI_DEPLOYMENT_AUTHORITY_WALLET_PATH }} -v 
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} deploy --provider.wallet ${{ env.CI_DEPLOYMENT_AUTHORITY_WALLET_PATH }} 
       - name: Returning funded runner wallet SOLs to the bank
         run: |
