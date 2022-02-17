@@ -57,7 +57,7 @@ describe("Integration tests SOL", function () {
         mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositorySOL, 20);
     });
 
-    describe.skip("mangoDepositoryAndControllerInteractionsSuite SOL", function () {
+    describe("mangoDepositoryAndControllerInteractionsSuite SOL", function () {
         const paramsSol = new MangoDepositoryAndControllerInteractionsSuiteParameters(10_000_000, 500, 50_000, 500, 20);
         mangoDepositoryAndControllerInteractionsSuite(authority, user, bank, controllerUXD, mangoDepositorySOL, paramsSol);
     });

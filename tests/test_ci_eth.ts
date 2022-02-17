@@ -43,7 +43,8 @@ describe("Integration tests ETH", function () {
         mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryETH); // un-migrated yet (and this is skipped)
     });
 
-    describe("mangoDepositoryRebalancingSuite ETH", function () {
+    // Skipped as it's handle bu the test_ci_rebalancing.ts
+    describe.skip("mangoDepositoryRebalancingSuite ETH", function () {
         const paramsETH = new MangoDepositoryRebalancingSuiteParameters(20)
         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryETH, paramsETH);
     });

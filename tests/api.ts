@@ -3,32 +3,8 @@ import { uxdClient } from "./constants";
 import { Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller, PnLPolarity, uiToNative } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, Controller, PnLPolarity, } from "@uxdprotocol/uxd-client";
 import { web3 } from "@project-serum/anchor";
-
-// Utils Calls ----------------------------------------------------------------
-
-// export async function settleMangoDepositoryMangoAccountPnl(depository: MangoDepository, mango: Mango): Promise<string> {
-//     const mangoAccount = await mango.load(depository.mangoAccountPda);
-//     const perpMarketConfig = mango.getPerpMarketConfig(depository.collateralMintSymbol);
-//     const cache = await mango.group.loadCache(getConnection());
-//     const perpMarket = await mango.client.getPerpMarket(perpMarketConfig.publicKey, perpMarketConfig.baseDecimals, perpMarketConfig.quoteDecimals);
-//     const quoteRootBank = await mango.getQuoteRootBank();
-
-//     const caller = new Account(bank.secretKey);
-
-//     return mango.client.settlePnl(mango.group, cache, mangoAccount, perpMarket, quoteRootBank, cache.priceCache[perpMarketConfig.marketIndex].price, caller);
-// }
-
-// export async function settleMangoDepositoryMangoAccountFees(depository: MangoDepository, mango: Mango): Promise<string> {
-//     const mangoAccount = await mango.load(depository.mangoAccountPda);
-//     const perpMarketConfig = mango.getPerpMarketConfig(depository.collateralMintSymbol);
-//     const perpMarket = await mango.client.getPerpMarket(perpMarketConfig.publicKey, perpMarketConfig.baseDecimals, perpMarketConfig.quoteDecimals);
-//     const quoteRootBank = await mango.getQuoteRootBank();
-
-//     const caller = new Account(bank.secretKey);
-//     return mango.client.settleFees(mango.group, mangoAccount, perpMarket, quoteRootBank, caller);
-// }
 
 // Permissionned Calls --------------------------------------------------------
 

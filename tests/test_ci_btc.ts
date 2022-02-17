@@ -43,6 +43,7 @@ describe("Integration tests BTC", function () {
         mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryBTC);
     });
 
+    // Skipped as it's handle bu the test_ci_rebalancing.ts
     describe("mangoDepositoryRebalancingSuite BTC", function () {
         const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryBTC, paramsRebalancing);

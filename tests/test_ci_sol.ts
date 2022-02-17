@@ -43,7 +43,8 @@ describe("Integration tests SOL", function () {
         mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositorySOL);
     });
 
-    describe("mangoDepositoryRebalancingSuite SOL", function () {
+    // Skipped as it's handle bu the test_ci_rebalancing.ts
+    describe.skip("mangoDepositoryRebalancingSuite SOL", function () {
         const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositorySOL, paramsRebalancing);
     });
