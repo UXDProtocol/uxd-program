@@ -5,89 +5,89 @@ The actual deployed state of each contract should live in a protected master bra
 It currently sits at:
 
 <!-- ### Solana -->
-- mainnnet-beta `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr`
-- Internal devnet `5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL`
-- Public devnet `882VXWftqQ9wsVq99SJqBVsz6tVeBt63jKE9XiwEHDeN` // Don't test until close to release
-
-Development branch (dev) to accumulate not-yet-deployed changes to the contract.
-
-Tests should be written in a language other than Solidity (most likely JavaScript + Truffle) to make sure that bugs related to syntax quirks and misunderstandings are discoverable with tests, not just replicated there.
-
-Tests are covered by CI
-
-## Installation
-
-```Zsh
-$> yarn
-```
-
-Recommended to use <https://github.com/mozilla/sccache> to build faster, follow install instruction there.
-
-The project uses a few line of optimization for building taken from the Discord, but that need to be investigated further. (See the workspace cargo.toml)
+- mainnet-beta `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr`
+- devnet `882VXWftqQ9wsVq99SJqBVsz6tVeBt63jKE9XiwEHDeN` (Public version for front end)
+- devnet `CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45` (Used by CI, this address should be update accordingly in ci files)
 
 ## Running tests
 
-Running rust unit tests :
+### Rust unit tests
 
 ```Zsh
-$> cargo test --tests 
+$> cargo test && cargo build-bpf && cargo test-bpf 
 ```
 
-Running integration test in JS from the tests folder :
+### E2E Tests
+
+In order to have the environment ready to host test, the mango market devnet must be running as expected. To do so we must run market making bots and the Keeper, from [MangoClientV3](https://github.com/blockworks-foundation/mango-client-v3) repo.
+Keep does the cranking (settle orders), and MM bots ensure that the order book is coherent. (Although sometimes it's still not coherent, as anyone can mess with it)
+
+When test are failing due to odd reasons, first thing to do is to check the [MangoMarkets V3](https://devnet.mango.markets/?name=SOL-PERP) related perp (here for SOL-PERP). Verify that the order book is not borked with a weird stuck order or that the oracle price is not far away from the perp price for some reason.
 
 ```Zsh
-$> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) yarn keeper # in a https://github.com/blockworks-foundation/mango-client-v3 repo to run the Keeper (cranking)
+$> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) yarn keeper 
 $> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) MANGO_ACCOUNT_PUBKEY=8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w MARKET=SOL yarn mm # in a https://github.com/blockworks-foundation/mango-client-v3 repo to run the Market Making bot
-$> anchor test 
+$> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) MANGO_ACCOUNT_PUBKEY=8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w MARKET=BTC yarn mm
+$> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) MANGO_ACCOUNT_PUBKEY=8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w MARKET=ETH yarn mm
 ```
 
-The keeper is mandatory to run on Devnet, as there might not be another running. This is the process settling events and cranking mango state.
-
-Usually you want with a clean test env, with new Program state, and depositories, new mango accounts etc.
-
-To do so the easiest is to redeploy the whole thing and work with new Accounts (we do test on Devnet cause we need the mango stack, and doing so on localnet, although possible is tedious).
+Once this is setup, in another terminal you can build, deploy and run the test :
 
 ```Zsh
-# This will override the current deployment key in the target/deploy folder, it's fine this is not used anywhere never except for testing
-$> solana-keygen new -o ./target/deploy/uxd-keypair.json --force --no-bip39-passphrase
+$> ./scripts/reset_program_id.sh # Optional, will reset the program ID in all files where it's needed to start with a clean slate
+$> anchor test # Will build, deploy and run the tests
 ```
 
-Press enter for no password and you'r good.
+If you want to re-run the tests with the already deployed program (without registering changes to the rust code), you can run :
 
-Once you ran this, you need to take the pubkey from the output `pubkey: G8QatVyH14hwT6h8Q6Ld5q9D1CbivErcf6syzukREFs3`
-Replace the program address in anchor and the program doing so :
-
-```Rust
-// In lib.rs this line at the beginning :
-solana_program::declare_id!("G8QatVyH14hwT6h8Q6Ld5q9D1CbivErcf6syzukREFs3");
+```Zsh
+$> anchor test --skip-build --skip-deploy
 ```
 
-```Yaml
-# In Anchor.toml this line :
-[programs.localnet]
-uxd = "G8QatVyH14hwT6h8Q6Ld5q9D1CbivErcf6syzukREFs3"
+If you made changes to the Rust code, you have to re-run the lengthy :
+
+```Zsh
+$> anchor test
 ```
 
-You'r then good to go to run `anchor test --skip-local-validator` (As the validator is devnet in our case)
+Loop theses as many time as you want, and if you want a clean slate, just reset the program_id with the script again.
 
-You can then rerun this as many time as you want, but if you want a clean slate, just repro the steps above.
+## Testing strategy with CI
 
-## Deployment
+There are a few script in the test folder with following the `test_ci_*.ts`, these are related to the github workflow.
+It's quite unstable to test on devnet with typescript, and expect MangoMarkets order book to be consistent, but it somehow works.
+
+The CI strategy for E2E :
+
+- use the ci-resident-program (`CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45`) (call ./scripts/swap_ci_resident_program.sh)
+- use it's upgrade authority stored in `target/deploy/ci-resident-upgrade-authority.json` for deployment
+- upgrade program
+- run the market making bots
+- then starts X testing suites in parallel for each Collateral/Dex whatever case (for now on mango and later on more with new Dexes).
+
+Note that it don't do concurrent run of this workflow, as they test some internal state of the program and would collide.
+
+The CI also runs cargo fmt, clippy, test and test-bpf.
+
+Cargo audit and Soteria (automated auditing tool) are run on main branch merges.
+
+## Deployment and Program Upgrades
 
 By default the program builds with the `development` feature, and the ProgramID for devnet.
+
 Building for mainnet uses `anchor build -- --no-default-features --features production`
 
-Then iniital deployment is done regularly, transfer ownership to DAO, dao proceeds to upgrades later on.
+The program upgrade are done through our [DAO](https://governance.uxd.fi/dao/UXP).
 
-### Between dev and prod
-
-- change de mango program ID in anchor_mango.rs
-- change the program id in lib.rs and anchor.toml
+It required to build for release then to prepare a buffer with :
 
 ```Zsh
-$> anchor build
-$> solana program deploy ...
+$> solana program write-buffer  ./target/deploy/uxd.so 
+# anchor verify -p uxd <Buffer ID from previous command>  //TODO
+$> solana program set-buffer-authority <BufferID> --new-buffer-authority CzZySsi1dRHMitTtNe2P12w3ja2XmfcGgqJBS8ytBhhY
 ```
+
+![Governance upgrade](dao_program_upgrade.png)
 
 _____
 
@@ -113,18 +113,20 @@ The initial state is initialized through calling `initializeController`, from th
 It owns the Redeemable Mint currently. In the future there could be added instruction to transfer Authority/Mint to another program due to migration, if needs be.
 
 ```Rust
+#[account]
+#[derive(Default)]
 pub struct Controller {
     pub bump: u8,
     pub redeemable_mint_bump: u8,
-    // Version used - for migrations later if needed
+    // Version used
     pub version: u8,
-    // The account that initialize this struct. Only this account can call permissionned instructions.
+    // The account with authority over the UXD stack
     pub authority: Pubkey,
     pub redeemable_mint: Pubkey,
     pub redeemable_mint_decimals: u8,
     //
     // The Mango Depositories registered with this Controller
-    pub registered_mango_depositories: [Pubkey; 8], // MAX_REGISTERED_MANGO_DEPOSITORIES - IDL bug with constant...
+    pub registered_mango_depositories: [Pubkey; 8], //  - IDL bug with constant, so hard 8 literal. -- Still not working in 0.20.0 although it should
     pub registered_mango_depositories_count: u8,
     //
     // Progressive roll out and safety ----------
@@ -144,7 +146,8 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
     //
-    // Should add padding? or migrate?
+    // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
+    pub _reserved: ControllerPadding,
 }
 ```
 
@@ -152,17 +155,21 @@ The `authority` (admin) must then register some `Depository`/ies by calling `reg
 One State is tied to many `Depository` accounts, each of them being a vault for a given Collateral Mint.
 
 ```Rust
+#[account]
+#[derive(Default)]
 pub struct MangoDepository {
     pub bump: u8,
     pub collateral_passthrough_bump: u8,
     pub insurance_passthrough_bump: u8,
     pub mango_account_bump: u8,
-    // Version used - for migrations later if needed
+    // Version used
     pub version: u8,
     pub collateral_mint: Pubkey,
+    pub collateral_mint_decimals: u8,
     pub collateral_passthrough: Pubkey,
     pub insurance_mint: Pubkey,
     pub insurance_passthrough: Pubkey,
+    pub insurance_mint_decimals: u8,
     pub mango_account: Pubkey,
     //
     // The Controller instance for which this Depository works for
@@ -175,18 +182,34 @@ pub struct MangoDepository {
     // In Collateral native units
     pub insurance_amount_deposited: u128,
     //
-    // The amount of collateral deposited by users to mint redeemable tokens
+    // The amount of collateral deposited by users to mint UXD
     // Updated after each mint/redeem
     // In Collateral native units
     pub collateral_amount_deposited: u128,
     //
-    // The amount of delta neutral position that is backing circulating redeemable tokens.
+    // The amount of delta neutral position that is backing circulating redeemable.
     // Updated after each mint/redeem
     // In Redeemable native units
     pub redeemable_amount_under_management: u128,
     //
     // The amount of taker fee paid in quote while placing perp orders
     pub total_amount_paid_taker_fee: u128,
+    //
+    pub _reserved: u8,
+    //
+    // This information is shared by all the Depositories, and as such would have been a good
+    // candidate for the Controller, but we will lack space in the controller sooner than here.
+    //
+    // v2 -83 bytes
+    pub quote_passthrough_bump: u8,
+    pub quote_mint: Pubkey,
+    pub quote_passthrough: Pubkey,
+    pub quote_mint_decimals: u8,
+    //
+    // The amount of DN position that has been rebalanced (in quote native units)
+    pub total_amount_rebalanced: u128,
+    //
+    pub _reserved1: MangoDepositoryPadding,
 }
 ```
 

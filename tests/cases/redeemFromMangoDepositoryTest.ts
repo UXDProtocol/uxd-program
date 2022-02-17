@@ -49,7 +49,7 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
         const estimatedFrictionlessCollateralDelta = redeemableProcessedByRedeeming / mangoPerpPrice;
         const estimatedAmountRedeemableLostInTakerFees = mangoTakerFee * redeemableProcessedByRedeeming;
         const redeemableNativeUnitPrecision = Math.pow(10, -controller.redeemableMintDecimals);
-        const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
+        // const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
         const estimatedAmountRedeemableLostInSlippage = Math.abs(redeemableDelta - redeemableProcessedByRedeeming) - estimatedAmountRedeemableLostInTakerFees;
         // The worst price the user could get (lowest amount of UXD)
         const worthExecutionPriceCollateralDelta = (estimatedFrictionlessCollateralDelta * (slippage / slippageBase)) / mangoPerpPrice;
