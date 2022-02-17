@@ -133,7 +133,7 @@ jobs:
         run: |
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
-      - name: Yarn install + run tests on 
+      - name: Upgrade resident program with latest code
         run: |
           yarn install
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} build
@@ -393,7 +393,7 @@ jobs:
         run: |
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
-      - name: Yarn install + run tests on 
+      - name: Anchor Test (skip build and deploy)
         run: |
           yarn install
           sed  -i.bak "s/${{ env.TEST_INTEGRATION }}/${{ env.TEST_CI_SOL }}/g" ./Anchor.toml
@@ -487,7 +487,7 @@ jobs:
         run: |
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
-      - name: Yarn install + run tests on 
+      - name: Anchor Test (skip build and deploy)
         run: |
           yarn install
           sed -i.bak "s/${{ env.TEST_INTEGRATION }}/${{ env.TEST_CI_BTC }}/g" ./Anchor.toml
@@ -582,7 +582,7 @@ jobs:
         run: |
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
-      - name: Yarn install + run tests on 
+      - name: Anchor Test (skip build and deploy)
         run: |
           yarn install
           sed -i.bak "s/${{ env.TEST_INTEGRATION }}/${{ env.TEST_CI_ETH }}/g" ./Anchor.toml
@@ -677,7 +677,7 @@ jobs:
         run: |
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
-      - name: Yarn install + run tests on 
+      - name: Anchor Test (skip build and deploy)
         run: |
           yarn install
           sed -i.bak "s/${{ env.TEST_INTEGRATION }}/${{ env.TEST_CI_REBALANCING }}/g" ./Anchor.toml
