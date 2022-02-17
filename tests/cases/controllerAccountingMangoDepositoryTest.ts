@@ -1,4 +1,3 @@
-import { getProvider } from "@project-serum/anchor";
 import { Controller, MangoDepository } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { getConnection, TXN_OPTS } from "../connection";
@@ -34,14 +33,6 @@ export const controllerAccountingMangoDepositoryTest = async(controller: Control
                 throw "Depository not in registered depositories of Controller";
             }
         }
-        // for (var mangoDepository of registeredMangoDepositores) {
-        //     if (mangoDepository.toString() != "11111111111111111111111111111111") {
-        //         let currentDepositoryRedeemable = (await controller.getMangoDepositoryAccountFromPubkey(
-        //             connection, mangoDepository, options
-        //         )).redeemableAmountUnderManagement;
-        //         totalRedeemableAmountUnderManagement += currentDepositoryRedeemable.toNumber();
-        //     }
-        // }
         
         expect(redeemableCirculatingSupply.toNumber(), "RedeemableCirculatingSupply is not correct.")
             .equals(totalRedeemableAmountUnderManagement);

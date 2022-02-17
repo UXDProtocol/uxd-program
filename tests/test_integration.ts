@@ -2,19 +2,31 @@ import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
 import { mangoDepositoryMigrationsSuite } from "./suite/mangoDepositoryMigrationsSuite";
-import { transferAllSol, transferSol } from "./utils";
+import { DepositoryAccountingInfo, transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters, mangoDepositoryAndControllerInteractionsSuite } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
 import { mangoDepositoryInsuranceSuite } from "./suite/mangoDepositoryInsuranceSuite";
 import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
+import { getConnection, TXN_OPTS } from "./connection";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
+
+const mangoDepositorySOLAccount = await mangoDepositorySOL.getOnchainAccount(getConnection(), TXN_OPTS);
+let mangoDepositorySOLAccounting: DepositoryAccountingInfo = {
+    depository: mangoDepositorySOL,
+    insuranceInitial: mangoDepositorySOLAccount.insuranceAmountDeposited.toNumber(),
+    insuranceDelta: 0,
+    collateralInitial: mangoDepositorySOLAccount.collateralAmountDeposited.toNumber(),
+    collateralDelta: 0,
+    redeemableInitial: mangoDepositorySOLAccount.redeemableAmountUnderManagement.toNumber(),
+    redeemableDelta: 0,
+}
 
 console.log(`SOL 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositorySOL.mangoAccountPda}'`);
 console.log(`BTC 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryBTC.mangoAccountPda}'`);

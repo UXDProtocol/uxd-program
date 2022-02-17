@@ -28,6 +28,7 @@ export const mangoDepositoryInsuranceSuite = function (authority: Signer, contro
 
     it(`Deposit 1 USDC of insurance`, async function () {
         await depositInsuranceMangoDepositoryTest(1, authority, controller, depository, mango);
+        // &*^ add insurance
     });
 
     it(`Withdraw 1 USDC of insurance (should fail)`, async function () {
@@ -41,10 +42,12 @@ export const mangoDepositoryInsuranceSuite = function (authority: Signer, contro
 
     it(`Deposit 100_000 USDC of insurance`, async function () {
         await depositInsuranceMangoDepositoryTest(100_000, authority, controller, depository, mango);
+        // &*^ add insurance
     });
 
     it(`Withdraw 1 USDC of insurance`, async function () {
         await withdrawInsuranceMangoDepositoryTest(1, authority, controller, depository, mango);
+        // &*^ sub insurance
     });
 
     it(`Withdraw 500_000 USDC of insurance (should fail)`, async function () {
@@ -68,5 +71,6 @@ export const mangoDepositoryInsuranceSuite = function (authority: Signer, contro
     // Due to mango health constraints we cannot remove the entirety 
     it(`Withdraw 99_900 USDC of insurance`, async function () {
         await depositInsuranceMangoDepositoryTest(99_900, authority, controller, depository, mango);
+        // &*^ sub insurance
     });
 };

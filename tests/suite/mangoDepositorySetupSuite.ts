@@ -11,5 +11,6 @@ export const mangoDepositorySetupSuite = function (authority: Signer, payer: Sig
 
     it(`Deposit ${insuranceAmount} USDC of insurance`, async function () {
         await depositInsuranceMangoDepositoryTest(insuranceAmount, authority, controller, depository, mango);
+        // &*^ add insuranceAmount
     });
 };

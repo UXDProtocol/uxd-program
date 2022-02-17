@@ -6,6 +6,16 @@ import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
 
 const SOLANA_FEES_LAMPORT: number = 50000;
 
+export interface DepositoryAccountingInfo {
+    depository: MangoDepository,
+    insuranceInitial: number,
+    insuranceDelta: number,
+    collateralInitial: number,
+    collateralDelta: number,
+    redeemableInitial: number,
+    redeemableDelta: number,
+}
+
 export async function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
     const transaction = new anchor.web3.Transaction().add(
         anchor.web3.SystemProgram.transfer({
