@@ -1,14 +1,18 @@
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, Mango, MangoDepository, findATAAddrSync } from "@uxdprotocol/uxd-client";
+import { Controller, Mango, MangoDepository, findATAAddrSync, nativeToUi } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { redeemFromMangoDepository } from "../api";
+import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
 export const redeemFromMangoDepositoryTest = async function (redeemableAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> {
     console.group("🧭 redeemWithMangoDepositoryTest");
     try {
+        const connection = getConnection();
+        const options = TXN_OPTS;
+
         // GIVEN
         const userCollateralATA: PublicKey = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
         const userRedeemableATA: PublicKey = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
@@ -20,6 +24,11 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
         } else {
             userCollateralBalance = await getBalance(userCollateralATA);
         }
+
+        const depositoryAccount = await depository.getOnchainAccount(connection, options);
+        const depositoryRedeemable = nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), depository.quoteMintDecimals);
+        const controllerAccount = await controller.getOnchainAccount(connection, options);
+        const controllerRedeemable = nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
 
         // WHEN
         // - Get the perp price at the same moment to have the less diff between exec and test price
@@ -53,6 +62,12 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
         const estimatedAmountRedeemableLostInSlippage = Math.abs(redeemableDelta - redeemableProcessedByRedeeming) - estimatedAmountRedeemableLostInTakerFees;
         // The worst price the user could get (lowest amount of UXD)
         const worthExecutionPriceCollateralDelta = (estimatedFrictionlessCollateralDelta * (slippage / slippageBase)) / mangoPerpPrice;
+        // Get onchain depository and controller for post accounting
+        const depositoryAccount_post = await depository.getOnchainAccount(connection, TXN_OPTS);
+        const depositoryRedeemable_post = nativeToUi(depositoryAccount_post.redeemableAmountUnderManagement.toNumber(), depository.quoteMintDecimals);
+        const controllerAccount_post = await controller.getOnchainAccount(connection, TXN_OPTS);
+        const controllerRedeemable_post = nativeToUi(controllerAccount_post.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
+
 
         console.log("Efficiency", Number(((collateralDelta / estimatedFrictionlessCollateralDelta) * 100).toFixed(2)), "%");
         console.log(
@@ -70,6 +85,10 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
         // expect(collateralDelta).closeTo(estimatedFrictionlessCollateralDelta - collateralAmountOfFriction, collateralNativeUnitPrecision, "CollateralDelta should be close to perfect amount minus friction");
         expect(redeemableDelta).greaterThanOrEqual(worthExecutionPriceCollateralDelta, "The amount redeemed is out of the slippage range");
         expect(redeemableLeftOverDueToOddLot).lessThanOrEqual(minTradingSizeQuote * 2, "The redeemable odd lot returned is twice higher than the minTradingSize for that perp.");
+        // Accounting
+        expect(depositoryRedeemable_post).closeTo(depositoryRedeemable - redeemableDelta, redeemableNativeUnitPrecision, "Depository RedeemableAmountUnderManagement is incorrect");
+        expect(controllerRedeemable_post).closeTo(controllerRedeemable - redeemableDelta, redeemableNativeUnitPrecision, "Controller RedeemableCirculatingSupply is incorrect");
+
         console.groupEnd();
         return redeemableDelta;
     } catch (error) {
