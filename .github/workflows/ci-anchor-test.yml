@@ -4,11 +4,6 @@ on:
   push:
     branches: main
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
     branches: [main, v*.*]
   
 permissions:
@@ -45,79 +40,13 @@ env:
   TEST_CI_BTC: "test_ci_btc"
   TEST_CI_ETH: "test_ci_eth"
   TEST_CI_REBALANCING: "test_ci_rebalancing"
-
     
 jobs:
 
-  market-maker-bots:
-    name: Run Market Maker Bots
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      # Install solana
-      - name: Cache Solana Tool Suite
-        uses: actions/cache@v2  
-        id: cache-solana
-        with:
-          path: |
-            ~/.cache/solana/
-            ~/.local/share/solana/
-          key: solana-${{ runner.os }}-v0000-${{ env.SOLANA_VERSION }}
-      - name: install solana
-        if: steps.cache-solana.outputs.cache-hit != 'true'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config build-essential libudev-dev
-          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
-      - name: Add Solana to PATH
-        run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
-      - name: Setup solana 
-        run: |
-          solana --version
-          solana config set -u d
-          solana config set --url ${{ env.DEVNET_RPC}}
-      # Install Yarn
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
-      - name: Yarn Cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-modules-
-      - name: Node 14 installation
-        uses: actions/setup-node@v2
-        with:
-          node-version: "14"
-          cache: "yarn"
-          registry-url: 'https://npm.pkg.github.com'
-          scope: "@UXDProtocol"
-          always-auth: true
-      # Create Keypair
-      - name: Create MM keypair and funds it
-        run: |
-          solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }}
-          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.MM_FUNDING_AMOUNT }} --allow-unfunded-recipient
-          solana balance
-      # Checkout Mango Client
-      - name: Checkout MangoClient-v3
-        uses: actions/checkout@v2
-        with:
-          repository: blockworks-foundation/mango-client-v3
-          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-      - name: Install MangoClient-v3 dependencies then runs Mango Keeper and MM bot on devnet for SOL perp
-        run: |
-          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-          yarn install
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} yarn keeper &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL yarn mm &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC yarn mm &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH yarn mm &
-
   # Build and deploy an updated program at 3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW
   anchor-build-and-deploy:
+    // No concurrent run else they break each others
+    concurrency: ci-anchor-build-and-deploy-${{ github.ref }}
     name: Anchor Test Deploying a fresh program instance and running light generic tests
     runs-on: ubuntu-latest
     steps:
@@ -209,6 +138,75 @@ jobs:
       - name: Returning funded runner wallet SOLs to the bank
         run: |
           solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
+
+
+  market-maker-bots:
+    concurrency: ci-market-maker-bots
+    name: Run Market Maker Bots
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # Install solana
+      - name: Cache Solana Tool Suite
+        uses: actions/cache@v2  
+        id: cache-solana
+        with:
+          path: |
+            ~/.cache/solana/
+            ~/.local/share/solana/
+          key: solana-${{ runner.os }}-v0000-${{ env.SOLANA_VERSION }}
+      - name: install solana
+        if: steps.cache-solana.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config build-essential libudev-dev
+          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
+      - name: Add Solana to PATH
+        run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
+      - name: Setup solana 
+        run: |
+          solana --version
+          solana config set -u d
+          solana config set --url ${{ env.DEVNET_RPC}}
+      # Install Yarn
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+      - name: Yarn Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+      - name: Node 14 installation
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+          cache: "yarn"
+          registry-url: 'https://npm.pkg.github.com'
+          scope: "@UXDProtocol"
+          always-auth: true
+      # Create Keypair
+      - name: Create MM keypair and funds it
+        run: |
+          solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }}
+          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.MM_FUNDING_AMOUNT }} --allow-unfunded-recipient
+          solana balance
+      # Checkout Mango Client
+      - name: Checkout MangoClient-v3
+        uses: actions/checkout@v2
+        with:
+          repository: blockworks-foundation/mango-client-v3
+          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
+      - name: Install MangoClient-v3 dependencies then runs Mango Keeper and MM bot on devnet for SOL perp
+        run: |
+          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
+          yarn install
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} yarn keeper &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC yarn mm &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH yarn mm &
 
   # This deploy a fresh program and run all tests from test_ci_fresh.ts
   #
@@ -310,6 +308,8 @@ jobs:
   #         solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
 
   anchor-test-mango-depository-SOL:
+    // No concurrent run else they break each others
+    concurrency: ci-anchor-test-mango-depository-SOL-${{ github.ref }}
     name: Anchor Test MangoDepository SOL against the resident program
     runs-on: ubuntu-latest
     needs: [market-maker-bots, anchor-build-and-deploy]
@@ -404,6 +404,8 @@ jobs:
           solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
 
   anchor-test-mango-depository-BTC:
+    // No concurrent run else they break each others
+    concurrency: ci-anchor-test-mango-depository-BTC-${{ github.ref }}
     name: Anchor Test MangoDepository BTC against the resident program
     runs-on: ubuntu-latest
     needs: [market-maker-bots, anchor-build-and-deploy]
@@ -499,6 +501,8 @@ jobs:
 
 
   anchor-test-mango-depository-ETH:
+    // No concurrent run else they break each others
+    concurrency: ci-anchor-test-mango-depository-ETH-${{ github.ref }}
     name: Anchor Test MangoDepository ETH against the resident program
     runs-on: ubuntu-latest
     needs: [market-maker-bots, anchor-build-and-deploy]
@@ -594,6 +598,8 @@ jobs:
 
 
   anchor-test-mango-depository-rebalancing:
+    // No concurrent run else they break each others
+    concurrency: ci-anchor-test-mango-depository-REBALANCING-${{ github.ref }}
     name: Anchor Test MangoDepository Rebalancing (SOL, BTC, ETH) against the resident program
     runs-on: ubuntu-latest
     needs: [market-maker-bots, anchor-build-and-deploy]
