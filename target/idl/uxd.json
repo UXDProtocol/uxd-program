@@ -1199,7 +1199,7 @@
             "name": "InvalidMangoDepositoriesRedeemableSoftCap"
           },
           {
-            "name": "InvalidQuoteLotDelta"
+            "name": "InvalidQuoteDelta"
           },
           {
             "name": "InvalidOrderDirection"

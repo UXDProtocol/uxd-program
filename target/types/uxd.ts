@@ -1199,7 +1199,7 @@ export type Uxd = {
             "name": "InvalidMangoDepositoriesRedeemableSoftCap"
           },
           {
-            "name": "InvalidQuoteLotDelta"
+            "name": "InvalidQuoteDelta"
           },
           {
             "name": "InvalidOrderDirection"
@@ -2981,7 +2981,7 @@ export const IDL: Uxd = {
             "name": "InvalidMangoDepositoriesRedeemableSoftCap"
           },
           {
-            "name": "InvalidQuoteLotDelta"
+            "name": "InvalidQuoteDelta"
           },
           {
             "name": "InvalidOrderDirection"
