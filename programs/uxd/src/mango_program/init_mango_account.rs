@@ -1,3 +1,4 @@
+use super::anchor_mango::check_program_account;
 use anchor_lang::prelude::AccountInfo;
 use anchor_lang::prelude::AccountMeta;
 use anchor_lang::prelude::Accounts;
@@ -7,8 +8,6 @@ use solana_program::instruction::Instruction;
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
 
-use super::anchor_mango::check_program_account;
-
 #[derive(Accounts)]
 pub struct InitMangoAccount<'info> {
     pub mango_group: AccountInfo<'info>,
@@ -17,6 +16,8 @@ pub struct InitMangoAccount<'info> {
     pub rent: AccountInfo<'info>,
 }
 
+/// Note: in our case a user is a `MangoDepository`.
+///
 /// Initialize a mango account for a user
 ///
 /// Accounts expected by this instruction (4):

@@ -16,7 +16,7 @@ pub fn calculate_slippage_amount(price: I80F48, slippage: u32) -> UxdResult<I80F
     let slippage = I80F48::from_num(slippage);
     let slippage_basis = I80F48::from_num(SLIPPAGE_BASIS);
     let slippage_ratio = slippage.checked_div(slippage_basis).ok_or(math_err!())?;
-    return price.checked_mul(slippage_ratio).ok_or(math_err!());
+    price.checked_mul(slippage_ratio).ok_or(math_err!())
 }
 
 // Worse execution price for a provided slippage and side.
@@ -25,11 +25,11 @@ pub fn calculate_slippage_amount(price: I80F48, slippage: u32) -> UxdResult<I80F
 //  If you'r buying, matched_side is ASK, and you'll buy from price up to (price + slippage)
 //  If you'r selling, matched_side is BID, and you'll sell from price down to (price - slippage)
 pub fn limit_price(price: I80F48, slippage: u32, matched_side: Side) -> UxdResult<I80F48> {
-    let slippage_amount = calculate_slippage_amount(price, slippage).unwrap();
-    return match matched_side {
+    let slippage_amount = calculate_slippage_amount(price, slippage)?;
+    match matched_side {
         Side::Bid => price.checked_sub(slippage_amount).ok_or(math_err!()),
         Side::Ask => price.checked_add(slippage_amount).ok_or(math_err!()),
-    };
+    }
 }
 
 // Convert into a base lot price in quote lot.
@@ -50,7 +50,7 @@ pub fn check_effective_order_price_versus_limit_price(
 ) -> UxdResult {
     let market_price = perp_info.price;
     let limit_price = limit_price(market_price, slippage, order.side)?;
-    let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
+    let limit_price_lot = price_to_lot_price(limit_price, perp_info)?;
     match order.side {
         Side::Bid => {
             if order.price >= limit_price_lot {

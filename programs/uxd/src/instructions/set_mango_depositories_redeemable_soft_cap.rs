@@ -25,7 +25,7 @@ pub struct SetMangoDepositoriesRedeemableSoftCap<'info> {
 
 pub fn handler(
     ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
-    redeemable_soft_cap: u64, // native amount
+    redeemable_soft_cap: u64,
 ) -> UxdResult {
     ctx.accounts
         .controller
@@ -40,7 +40,7 @@ pub fn handler(
     Ok(())
 }
 
-// Validate
+// Validate input arguments
 #[allow(clippy::absurd_extreme_comparisons)]
 impl<'info> SetMangoDepositoriesRedeemableSoftCap<'info> {
     // Asserts that the Mango Depositories redeemable soft cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.

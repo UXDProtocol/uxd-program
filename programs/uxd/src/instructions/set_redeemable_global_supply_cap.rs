@@ -25,7 +25,7 @@ pub struct SetRedeemableGlobalSupplyCap<'info> {
 
 pub fn handler(
     ctx: Context<SetRedeemableGlobalSupplyCap>,
-    redeemable_global_supply_cap: u128, // native amount
+    redeemable_global_supply_cap: u128,
 ) -> UxdResult {
     ctx.accounts.controller.redeemable_global_supply_cap = redeemable_global_supply_cap;
     emit!(SetRedeemableGlobalSupplyCapEvent {
@@ -36,7 +36,7 @@ pub fn handler(
     Ok(())
 }
 
-// Validate
+// Validate input arguments
 #[allow(clippy::absurd_extreme_comparisons)]
 impl<'info> SetRedeemableGlobalSupplyCap<'info> {
     // Asserts that the redeemable global supply cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.

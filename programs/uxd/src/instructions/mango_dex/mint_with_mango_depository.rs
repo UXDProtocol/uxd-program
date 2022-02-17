@@ -67,18 +67,23 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
+        constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
+    )]
+    pub collateral_mint: Box<Account<'info, Mint>>,
+    #[account(
         mut,
-        associated_token::mint = depository.collateral_mint, // @UxdIdlErrorCode::InvalidUserCollateralATAMint
+        associated_token::mint = collateral_mint,
         associated_token::authority = user,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         init_if_needed,
-        associated_token::mint = redeemable_mint, // @UxdIdlErrorCode::InvalidUserRedeemableATAMint
+        associated_token::mint = redeemable_mint,
         associated_token::authority = user,
         payer = payer,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
+    // Passthrough accounts as only mangoAccount's Owner Owned accounts can transact w/ the mangoAccount
     #[account(
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
@@ -168,7 +173,6 @@ pub fn handler(
         .ok_or(math_err!())?
         .checked_to_num()
         .ok_or(math_err!())?;
-    // msg!("planned_collateral_delta {}", planned_collateral_delta);
 
     // - [Transferring user collateral to the passthrough account]
     token::transfer(
@@ -229,7 +233,6 @@ pub fn handler(
         .quote
         .checked_sub(order_delta.fee)
         .ok_or(math_err!())?;
-    // msg!("redeemable_delta {}", redeemable_delta);
     ctx.accounts
         .check_mango_depositories_redeemable_soft_cap_overflow(redeemable_delta)?;
 
@@ -353,10 +356,9 @@ impl<'info> MintWithMangoDepository<'info> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
-            &self.mango_perp_market.key,
+            self.mango_perp_market.key,
             self.mango_program.key,
         )?;
-        // msg!("perp_info {:?}", perp_info);
         Ok(perp_info)
     }
 
@@ -385,8 +387,7 @@ impl<'info> MintWithMangoDepository<'info> {
         let asks_ai = self.mango_asks.to_account_info();
         let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
         let best_order = get_best_order_for_base_lot_quantity(&book, side, base_lot_amount)?;
-
-        Ok(best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))?)
+        best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))
     }
 
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
@@ -432,7 +433,7 @@ impl<'info> MintWithMangoDepository<'info> {
     }
 }
 
-// Validate
+// Validate input arguments
 impl<'info> MintWithMangoDepository<'info> {
     pub fn validate(&self, collateral_amount: u64, slippage: u32) -> ProgramResult {
         // Valid slippage check

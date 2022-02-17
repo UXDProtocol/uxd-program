@@ -1,4 +1,4 @@
-import { Keypair, PublicKey, Signer } from "@solana/web3.js";
+import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
 import { mangoDepositoryMigrationsSuite } from "./suite/mangoDepositoryMigrationsSuite";
@@ -10,7 +10,7 @@ import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 
-// CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45
+// CV7cWGP9gYkVBBEmyRLpp5kw9KPpJvUkwPVdtSH9Fen8
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);

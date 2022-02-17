@@ -43,9 +43,7 @@ const SUPPORTED_DEPOSITORY_VERSION: u8 = 2;
 
 #[derive(Accounts)]
 pub struct RebalanceMangoDepositoryLite<'info> {
-    // The user making this call
     pub user: Signer<'info>,
-    // The payer (for nested calls)
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(
@@ -70,23 +68,23 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         constraint = quote_mint.key() == depository.quote_mint @UxdIdlErrorCode::InvalidQuoteMint
     )]
     pub quote_mint: Box<Account<'info, Mint>>,
-    // The collateral provided by the user when the PnLPolarity is Positive
+    // The collateral provided by the user. Only used when polarity is Positive
     #[account(
         init_if_needed,
-        associated_token::mint = collateral_mint, // @UxdIdlErrorCode::InvalidUserCollateralATAMint
+        associated_token::mint = collateral_mint,
         associated_token::authority = user,
         payer = payer,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
-    // The quote provided by the user when the PnLPolarity is Negative
+    // The quote provided by the user. Only used when polarity is Negative
     #[account(
         init_if_needed,
-        associated_token::mint = quote_mint, // @UxdIdlErrorCode::InvalidUserQuoteAtaMint
+        associated_token::mint = quote_mint,
         associated_token::authority = user,
         payer = payer,
     )]
     pub user_quote: Box<Account<'info, TokenAccount>>,
-    // Passthrough accounts as only mangoAccount Owned can transact w/ the mangoAccount
+    // Passthrough accounts as only mangoAccount's Owner Owned accounts can transact w/ the mangoAccount
     #[account(
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
@@ -98,7 +96,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     #[account(
         mut,
         seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
-        bump = depository.quote_passthrough_bump,
+        bump= depository.quote_passthrough_bump,
         constraint = depository.quote_passthrough == depository_quote_passthrough_account.key() @UxdIdlErrorCode::InvalidQuotePassthroughAccount,
         constraint = depository_quote_passthrough_account.mint == depository.quote_mint @UxdIdlErrorCode::InvalidQuotePassthroughATAMint
     )]
@@ -142,16 +140,10 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub enum PnlPolarity {
-    Positive,
-    Negative,
-}
-
 pub fn handler(
     ctx: Context<RebalanceMangoDepositoryLite>,
-    max_rebalancing_amount: u64, // in QUOTE native units
-    polarity: &PnlPolarity,      // P: increases the DN pos., N: decrease the DN Pos
+    max_rebalancing_amount: u64,
+    polarity: &PnlPolarity,
     slippage: u32,
 ) -> UxdResult {
     let depository_signer_seed: &[&[&[u8]]] = &[&[
@@ -576,10 +568,9 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
-            &self.mango_perp_market.key,
+            self.mango_perp_market.key,
             self.mango_program.key,
         )?;
-        // msg!("perp_info {:?}", perp_info);
         Ok(perp_info)
     }
 
@@ -610,7 +601,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
         let best_order = get_best_order_for_quote_lot_amount(&book, side, quote_lot_amount)?;
 
-        Ok(best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))?)
+        best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))
     }
 
     fn update_onchain_accounting(
@@ -634,7 +625,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
     }
 }
 
-// Validate
+// Validate input arguments
 impl<'info> RebalanceMangoDepositoryLite<'info> {
     pub fn validate(
         &self,
@@ -660,5 +651,21 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             )?,
         };
         Ok(())
+    }
+}
+
+// Represent the direction of the Delta Neutral position (short perp) PnL of a MangoDepository.
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub enum PnlPolarity {
+    Positive,
+    Negative,
+}
+
+impl std::fmt::Display for PnlPolarity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PnlPolarity::Positive => f.write_str("Positive"),
+            PnlPolarity::Negative => f.write_str("Negative"),
+        }
     }
 }

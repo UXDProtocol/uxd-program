@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "3.0.0-beta",
+  "version": "3.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -42,14 +42,6 @@ export type Uxd = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
-          "name": "redeemableMintBump",
-          "type": "u8"
-        },
         {
           "name": "redeemableMintDecimals",
           "type": "u8"
@@ -182,28 +174,7 @@ export type Uxd = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
-          "name": "collateralPassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "insurancePassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "quotePassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "mangoAccountBump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "migrateMangoDepositoryToV2",
@@ -254,12 +225,7 @@ export type Uxd = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "quotePassthroughBump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "depositInsuranceToMangoDepository",
@@ -635,6 +601,11 @@ export type Uxd = {
         {
           "name": "redeemableMint",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1022,16 +993,16 @@ export type Uxd = {
             "type": "u8"
           },
           {
-            "name": "quotePassthroughBump",
-            "type": "u8"
-          },
-          {
             "name": "quoteMint",
             "type": "publicKey"
           },
           {
             "name": "quotePassthrough",
             "type": "publicKey"
+          },
+          {
+            "name": "quotePassthroughBump",
+            "type": "u8"
           },
           {
             "name": "quoteMintDecimals",
@@ -1125,6 +1096,9 @@ export type Uxd = {
           },
           {
             "name": "InstructionMangoDexRebalanceMangoDepositoryLite"
+          },
+          {
+            "name": "InstructionMangoDexMigrateMangoDepositoryToV2"
           }
         ]
       }
@@ -1232,7 +1206,7 @@ export type Uxd = {
             "name": "InvalidMangoDepositoriesRedeemableSoftCap"
           },
           {
-            "name": "InvalidQuoteLotDelta"
+            "name": "InvalidQuoteDelta"
           },
           {
             "name": "InvalidOrderDirection"
@@ -1254,6 +1228,9 @@ export type Uxd = {
           },
           {
             "name": "RebalancingError"
+          },
+          {
+            "name": "BumpError"
           },
           {
             "name": "Default"
@@ -1814,7 +1791,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "3.0.0-beta",
+  "version": "3.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -1857,14 +1834,6 @@ export const IDL: Uxd = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
-          "name": "redeemableMintBump",
-          "type": "u8"
-        },
         {
           "name": "redeemableMintDecimals",
           "type": "u8"
@@ -1997,28 +1966,7 @@ export const IDL: Uxd = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
-          "name": "collateralPassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "insurancePassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "quotePassthroughBump",
-          "type": "u8"
-        },
-        {
-          "name": "mangoAccountBump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "migrateMangoDepositoryToV2",
@@ -2069,12 +2017,7 @@ export const IDL: Uxd = {
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "quotePassthroughBump",
-          "type": "u8"
-        }
-      ]
+      "args": []
     },
     {
       "name": "depositInsuranceToMangoDepository",
@@ -2450,6 +2393,11 @@ export const IDL: Uxd = {
         {
           "name": "redeemableMint",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2837,16 +2785,16 @@ export const IDL: Uxd = {
             "type": "u8"
           },
           {
-            "name": "quotePassthroughBump",
-            "type": "u8"
-          },
-          {
             "name": "quoteMint",
             "type": "publicKey"
           },
           {
             "name": "quotePassthrough",
             "type": "publicKey"
+          },
+          {
+            "name": "quotePassthroughBump",
+            "type": "u8"
           },
           {
             "name": "quoteMintDecimals",
@@ -2940,6 +2888,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "InstructionMangoDexRebalanceMangoDepositoryLite"
+          },
+          {
+            "name": "InstructionMangoDexMigrateMangoDepositoryToV2"
           }
         ]
       }
@@ -3047,7 +2998,7 @@ export const IDL: Uxd = {
             "name": "InvalidMangoDepositoriesRedeemableSoftCap"
           },
           {
-            "name": "InvalidQuoteLotDelta"
+            "name": "InvalidQuoteDelta"
           },
           {
             "name": "InvalidOrderDirection"
@@ -3069,6 +3020,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "RebalancingError"
+          },
+          {
+            "name": "BumpError"
           },
           {
             "name": "Default"

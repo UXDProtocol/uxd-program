@@ -52,6 +52,8 @@ pub struct DepositInsuranceToMangoDepository<'info> {
         associated_token::authority = authority,
     )]
     pub authority_insurance: Box<Account<'info, TokenAccount>>,
+    // Passthrough accounts as only mangoAccount's Owner Owned accounts can transact w/ the mangoAccount
+    // (In the case of a deposit it can be bypassed, but for the sake of a coherent interface we use it)
     #[account(
         mut,
         seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
@@ -168,7 +170,7 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
     }
 }
 
-// Validate
+// Validate input arguments
 impl<'info> DepositInsuranceToMangoDepository<'info> {
     pub fn validate(&self, insurance_amount: u64) -> ProgramResult {
         check!(insurance_amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;

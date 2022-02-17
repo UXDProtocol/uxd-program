@@ -1,3 +1,6 @@
+use crate::error::SourceFileId;
+use crate::error::UxdError;
+use crate::error::UxdErrorCode;
 use crate::error::UxdIdlErrorCode;
 use crate::events::RegisterMangoDepositoryEventV2;
 use crate::mango_program;
@@ -20,14 +23,9 @@ use std::mem::size_of;
 
 const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
+declare_check_assert_macros!(SourceFileId::InstructionRegisterMangoDepository);
+
 #[derive(Accounts)]
-#[instruction(
-    bump: u8,
-    collateral_passthrough_bump: u8,
-    insurance_passthrough_bump: u8,
-    quote_passthrough_bump: u8,
-    mango_account_bump: u8,
-)]
 pub struct RegisterMangoDepository<'info> {
     pub authority: Signer<'info>,
     #[account(mut)]
@@ -42,7 +40,7 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         init,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = bump,
+        bump,
         payer = payer,
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
@@ -52,7 +50,7 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         init,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = collateral_passthrough_bump,
+        bump,
         token::mint = collateral_mint,
         token::authority = depository,
         payer = payer,
@@ -61,7 +59,7 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         init,
         seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
-        bump = insurance_passthrough_bump,
+        bump,
         token::mint = insurance_mint,
         token::authority = depository,
         payer = payer,
@@ -70,7 +68,7 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         init,
         seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
-        bump = quote_passthrough_bump,
+        bump,
         token::mint = quote_mint,
         token::authority = depository,
         payer = payer,
@@ -79,7 +77,7 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         init,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = mango_account_bump,
+        bump,
         owner = mango_program::Mango::id(),
         payer = payer,
         space = MANGO_ACCOUNT_SPAN,
@@ -95,14 +93,7 @@ pub struct RegisterMangoDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(
-    ctx: Context<RegisterMangoDepository>,
-    bump: u8,
-    collateral_passthrough_bump: u8,
-    insurance_passthrough_bump: u8,
-    quote_passthrough_bump: u8,
-    mango_account_bump: u8,
-) -> UxdResult {
+pub fn handler(ctx: Context<RegisterMangoDepository>) -> UxdResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
     let insurance_mint = ctx.accounts.insurance_mint.key();
     let quote_mint = ctx.accounts.quote_mint.key();
@@ -111,7 +102,7 @@ pub fn handler(
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         collateral_mint.as_ref(),
-        &[bump],
+        &[*ctx.bumps.get("depository").ok_or(bump_err!())?],
     ]];
     mango_program::initialize_mango_account(
         ctx.accounts
@@ -120,11 +111,23 @@ pub fn handler(
     )?;
 
     // - Initialize Depository state
-    ctx.accounts.depository.bump = bump;
-    ctx.accounts.depository.collateral_passthrough_bump = collateral_passthrough_bump;
-    ctx.accounts.depository.insurance_passthrough_bump = insurance_passthrough_bump;
-    ctx.accounts.depository.quote_passthrough_bump = quote_passthrough_bump;
-    ctx.accounts.depository.mango_account_bump = mango_account_bump;
+    ctx.accounts.depository.bump = *ctx.bumps.get("depository").ok_or(bump_err!())?;
+    ctx.accounts.depository.collateral_passthrough_bump = *ctx
+        .bumps
+        .get("depository_collateral_passthrough_account")
+        .ok_or(bump_err!())?;
+    ctx.accounts.depository.insurance_passthrough_bump = *ctx
+        .bumps
+        .get("depository_insurance_passthrough_account")
+        .ok_or(bump_err!())?;
+    ctx.accounts.depository.quote_passthrough_bump = *ctx
+        .bumps
+        .get("depository_quote_passthrough_account")
+        .ok_or(bump_err!())?;
+    ctx.accounts.depository.mango_account_bump = *ctx
+        .bumps
+        .get("depository_mango_account")
+        .ok_or(bump_err!())?;
     ctx.accounts.depository.version = MANGO_DEPOSITORY_ACCOUNT_VERSION;
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;

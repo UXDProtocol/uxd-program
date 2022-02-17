@@ -35,6 +35,7 @@ pub struct PlacePerpOrder<'info> {
 /// 5. `[writable]` bids_ai - bids account for this PerpMarket
 /// 6. `[writable]` asks_ai - asks account for this PerpMarket
 /// 7. `[writable]` event_queue_ai - EventQueue for this PerpMarket
+#[allow(clippy::too_many_arguments)]
 fn place_perp_order_instruction(
     mango_program_id: &Pubkey,
     mango_group_pubkey: &Pubkey,

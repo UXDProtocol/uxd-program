@@ -47,7 +47,7 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump
+        bump = controller.bump,
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
@@ -67,7 +67,7 @@ pub struct RedeemFromMangoDepository<'info> {
     pub user_collateral: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        associated_token::mint = redeemable_mint.key(),
+        associated_token::mint = redeemable_mint,
         associated_token::authority = user,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
@@ -208,7 +208,6 @@ pub fn handler(
         .quote
         .checked_add(order_delta.fee)
         .ok_or(math_err!())?;
-    // msg!("redeemable_delta {}", redeemable_delta);
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         redeemable_delta,
@@ -343,14 +342,12 @@ impl<'info> RedeemFromMangoDepository<'info> {
 impl<'info> RedeemFromMangoDepository<'info> {
     // Return general information about the perpetual related to the collateral in use
     fn perpetual_info(&self) -> UxdResult<PerpInfo> {
-        let perp_info = PerpInfo::new(
+        PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
-            &self.mango_perp_market.key,
+            self.mango_perp_market.key,
             self.mango_program.key,
-        )?;
-        // msg!("perp_info{:?}", perp_info);
-        Ok(perp_info)
+        )
     }
 
     // Return the uncommitted PerpAccount that represent the account balances
@@ -380,7 +377,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
         let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
         let best_order = get_best_order_for_quote_lot_amount(&book, side, quote_lot_amount)?;
 
-        Ok(best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))?)
+        best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))
     }
 
     // Update the accounting in the Depository and Controller Accounts to reflect changes
@@ -407,7 +404,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
     }
 }
 
-// Validate
+// Validate input arguments
 impl<'info> RedeemFromMangoDepository<'info> {
     pub fn validate(&self, redeemable_amount: u64, slippage: u32) -> ProgramResult {
         // Valid slippage check

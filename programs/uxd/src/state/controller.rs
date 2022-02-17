@@ -65,7 +65,7 @@ impl AnchorDeserialize for ControllerPadding {
 
 impl Default for ControllerPadding {
     fn default() -> Self {
-        ControllerPadding { 0: [0u8; 512] }
+        ControllerPadding([0u8; 512])
     }
 }
 
