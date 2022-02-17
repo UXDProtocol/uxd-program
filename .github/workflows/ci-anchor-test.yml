@@ -31,7 +31,7 @@ env:
   #
   NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
   #
-  RUNNER_FUNDING_AMOUNT: 15
+  DEPLOYMENT_FUNDING_AMOUNT: 8
   MM_FUNDING_AMOUNT: 0.5  # Keep small it's lost
   TRANSACTION_FEE_OFFSET: 0.005
   # Name of the tests files in the program repo. We use them for sed and swap the `anchor test`
@@ -49,7 +49,7 @@ jobs:
 
   # Build and deploy an updated program at 3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW
   anchor-build-and-deploy:
-    name: Anchor Test Deploying a fresh program instance and running light generic tests
+    name: Upgrades 3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW
     runs-on: ubuntu-latest
     steps:
       # Checkout
@@ -106,7 +106,8 @@ jobs:
       - name: Create Runner keypair and funds it
         run: |
           solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }} --no-passphrase --silent
-          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.RUNNER_FUNDING_AMOUNT }} --allow-unfunded-recipient
+          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) 1 --allow-unfunded-recipient
+          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.CI_DEPLOYMENT_WALLET_PATH }}) ${{ env.DEPLOYMENT_FUNDING_AMOUNT }} --allow-unfunded-recipient
           solana balance
       # Cargo caching
       - name: Cache Cargo registry + index
@@ -140,7 +141,6 @@ jobs:
       - name: Returning funded runner wallet SOLs to the bank
         run: |
           solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
-
 
   market-maker-bots:
     name: Run Market Maker Bots
