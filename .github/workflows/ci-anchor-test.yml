@@ -42,12 +42,13 @@ env:
   TEST_CI_ETH: "test_ci_eth"
   TEST_CI_REBALANCING: "test_ci_rebalancing"
     
+concurrency:
+  group: environment-${{ github.ref }}
+
 jobs:
 
   # Build and deploy an updated program at 3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW
   anchor-build-and-deploy:
-    // No concurrent run else they break each others
-    concurrency: ci-anchor-build-and-deploy-${{ github.ref }}
     name: Anchor Test Deploying a fresh program instance and running light generic tests
     runs-on: ubuntu-latest
     steps:
@@ -142,7 +143,6 @@ jobs:
 
 
   market-maker-bots:
-    concurrency: ci-market-maker-bots
     name: Run Market Maker Bots
     runs-on: ubuntu-latest
     steps:
@@ -309,8 +309,6 @@ jobs:
   #         solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
 
   anchor-test-mango-depository-SOL:
-    // No concurrent run else they break each others
-    concurrency: ci-anchor-test-mango-depository-SOL-${{ github.ref }}
     name: Anchor Test MangoDepository SOL against the resident program
     runs-on: ubuntu-latest
     needs: [market-maker-bots, anchor-build-and-deploy]
@@ -405,8 +403,6 @@ jobs:
           solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
 
   anchor-test-mango-depository-BTC:
-    // No concurrent run else they break each others
-    concurrency: ci-anchor-test-mango-depository-BTC-${{ github.ref }}
     name: Anchor Test MangoDepository BTC against the resident program
     runs-on: ubuntu-latest
     needs: [market-maker-bots, anchor-build-and-deploy]
@@ -502,8 +498,6 @@ jobs:
 
 
   anchor-test-mango-depository-ETH:
-    // No concurrent run else they break each others
-    concurrency: ci-anchor-test-mango-depository-ETH-${{ github.ref }}
     name: Anchor Test MangoDepository ETH against the resident program
     runs-on: ubuntu-latest
     needs: [market-maker-bots, anchor-build-and-deploy]
@@ -599,8 +593,6 @@ jobs:
 
 
   anchor-test-mango-depository-rebalancing:
-    // No concurrent run else they break each others
-    concurrency: ci-anchor-test-mango-depository-REBALANCING-${{ github.ref }}
     name: Anchor Test MangoDepository Rebalancing (SOL, BTC, ETH) against the resident program
     runs-on: ubuntu-latest
     needs: [market-maker-bots, anchor-build-and-deploy]
