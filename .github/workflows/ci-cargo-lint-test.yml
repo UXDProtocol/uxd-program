@@ -8,59 +8,80 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: "1.9.6"
+  SOLANA_VERSION: 1.8.12
+  RUST_TOOLCHAIN: nightly-2021-12-15
 
 defaults:
   run:
     working-directory: ./
 
 jobs:
-  lint:
-    name: Run ftm (fix clippy pls)
-    runs-on: ubuntu-latest
 
+  fmt:
+    runs-on: ubuntu-latest
+    name: cargo fmt
     steps:
+      # Checkout Repo
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        name: Rust toolchain installation
+      # Installs Rust
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
           profile: minimal
           components: rustfmt, clippy
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
-
       - name: Run fmt
         run: cargo fmt -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    name: cargo clippy
+    steps:
+      # Checkout Repo
+      - uses: actions/checkout@v2
+      # Installs Rust
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          override: true
+          profile: minimal
+          components: rustfmt, clippy
       # The style and complexity lints have not been processed yet.
-      # - name: Run clippy
-      #   run: cargo clippy -- --deny=warnings --allow=clippy::style --allow=clippy::complexity
+      - name: Run clippy
+        run: cargo clippy -- --deny=warnings --allow=clippy::style --allow=clippy::complexity
 
   tests:
-    name: Run tests
     runs-on: ubuntu-latest
-
+    name: Run tests
     steps:
+      # Checkout Repo
       - uses: actions/checkout@v2
-      - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config build-essential libudev-dev
-      - uses: actions-rs/toolchain@v1
-        name: Rust toolchain installation
+      # Installs Rust
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v1
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
           profile: minimal
           components: rustfmt, clippy
         run: |
           rustup update
-
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
       # Install Solana
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config build-essential libudev-dev
       - name: Cache Solana binaries
         uses: actions/cache@v2
         with:
@@ -74,6 +95,7 @@ jobs:
           solana --version
           echo "Generating keypair..."
           solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
+      # Run tests
       - name: Run unit tests
         run: cargo test --lib
       - name: Build program

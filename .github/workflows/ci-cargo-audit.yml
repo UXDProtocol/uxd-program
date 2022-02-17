@@ -12,7 +12,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
-# Optimisation option by targeting direct paths to only scan when there are changes to dependencies in the push/PR
+# Optimization option by targeting direct paths to only scan when there are changes to dependencies in the push/PR
 # Can also be used to limit testing to specific programs
 
 #  push:

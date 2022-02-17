@@ -6,10 +6,10 @@ wallet = "~/.config/solana/id.json"
 uxd = "UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr"
 
 [programs.devnet] 
-uxd = "82K9aF9wyRFKgpYMpjfoq8DSaSbcsRWca6tKtJYGCw3n"
+uxd = "8zR9UHeX61RAVux5jtdhDo2UFZ4ydudxu957e7M9yp7e"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [scripts]
-test = "yarn ts-mocha --require tests/fixtures.ts -p ./tsconfig.json -t 500000 tests/test_integration.ts --reporter mochawesome --require mochawesome/register --reporter-options quiet=true,reportTitle=uxdprogram-integration-tests --trace-warnings"
+test = "yarn ts-mocha --require tests/fixtures.ts -p ./tsconfig.json -t 500000 tests/test_integration.ts --reporter mochawesome --require mochawesome/register --reporter-options quiet=true,reportTitle=uxdprogram-test_integration --trace-warnings"
