@@ -127,7 +127,7 @@ const rebalanceNegativePnL = async function (rebalancingMaxAmount: number, slipp
     const quoteDelta = userQuoteBalance - userQuoteBalance_post;
     const maxQuoteDelta = rebalancingMaxAmount / mangoPerpPrice;
     const collateralDelta = userCollateralBalance_post - userCollateralBalance;
-    const quoteLeftOverDueToOddLot = rebalancingMaxAmount - quoteDelta;
+    const quoteLeftOverDueToOddLot = maxQuoteDelta - quoteDelta;
     const quoteProcessedByRebalancing = rebalancingMaxAmount - quoteLeftOverDueToOddLot;
     // The mango perp price in these might not be the exact same as the one in the transaction.
     const estimatedFrictionlessCollateralDelta = quoteProcessedByRebalancing / mangoPerpPrice;
