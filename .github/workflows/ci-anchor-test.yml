@@ -2,9 +2,9 @@ name: Anchor Test
 
 on:
   push:
-    branches: main
-  pull_request:
     branches: [main, v*.*]
+  pull_request:
+    branches: [main]
   
 permissions:
   contents: read
