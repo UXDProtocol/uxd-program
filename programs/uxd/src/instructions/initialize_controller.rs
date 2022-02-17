@@ -53,6 +53,9 @@ pub fn handler(ctx: Context<InitializeController>, redeemable_mint_decimals: u8)
         .checked_pow(redeemable_mint_decimals.into())
         .ok_or(math_err!())?;
 
+    ctx.accounts.controller.bump = *ctx.bumps.get("controller").ok_or(bump_err!())?;
+    ctx.accounts.controller.redeemable_mint_bump =
+        *ctx.bumps.get("redeemable_mint").ok_or(bump_err!())?;
     ctx.accounts.controller.version = CONTROLLER_ACCOUNT_VERSION;
     ctx.accounts.controller.authority = ctx.accounts.authority.key();
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();

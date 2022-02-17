@@ -17,7 +17,7 @@ pub struct SetMangoDepositoriesRedeemableSoftCap<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump,
+        bump = controller.bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
@@ -25,7 +25,7 @@ pub struct SetMangoDepositoriesRedeemableSoftCap<'info> {
 
 pub fn handler(
     ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
-    redeemable_soft_cap: u64, // native amount
+    redeemable_soft_cap: u64,
 ) -> UxdResult {
     ctx.accounts
         .controller

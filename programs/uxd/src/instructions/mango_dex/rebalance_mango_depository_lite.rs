@@ -43,20 +43,18 @@ const SUPPORTED_DEPOSITORY_VERSION: u8 = 2;
 
 #[derive(Accounts)]
 pub struct RebalanceMangoDepositoryLite<'info> {
-    // The user making this call
     pub user: Signer<'info>,
-    // The payer (for nested calls)
     #[account(mut)]
     pub payer: Signer<'info>,
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
-        bump
+        bump = controller.bump
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump,
+        bump = depository.bump,
         has_one = controller @UxdIdlErrorCode::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository,
         constraint = depository.version >= SUPPORTED_DEPOSITORY_VERSION @UxdIdlErrorCode::UnsupportedDepositoryVersion
@@ -70,27 +68,27 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         constraint = quote_mint.key() == depository.quote_mint @UxdIdlErrorCode::InvalidQuoteMint
     )]
     pub quote_mint: Box<Account<'info, Mint>>,
-    // The collateral provided by the user when the PnLPolarity is Positive
+    // The collateral provided by the user. Only used when polarity is Positive
     #[account(
         init_if_needed,
-        associated_token::mint = collateral_mint, // @UxdIdlErrorCode::InvalidUserCollateralATAMint
+        associated_token::mint = collateral_mint,
         associated_token::authority = user,
         payer = payer,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
-    // The quote provided by the user when the PnLPolarity is Negative
+    // The quote provided by the user. Only used when polarity is Negative
     #[account(
         init_if_needed,
-        associated_token::mint = quote_mint, // @UxdIdlErrorCode::InvalidUserQuoteAtaMint
+        associated_token::mint = quote_mint,
         associated_token::authority = user,
         payer = payer,
     )]
     pub user_quote: Box<Account<'info, TokenAccount>>,
-    // Passthrough accounts as only mangoAccount Owned can transact w/ the mangoAccount
+    // Passthrough accounts as only mangoAccount's Owner Owned accounts can transact w/ the mangoAccount
     #[account(
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump,
+        bump = depository.collateral_passthrough_bump,
         constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdIdlErrorCode::InvalidCollateralPassthroughAccount,
         constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralPassthroughATAMint
     )]
@@ -98,7 +96,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     #[account(
         mut,
         seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
-        bump,
+        bump= depository.quote_passthrough_bump,
         constraint = depository.quote_passthrough == depository_quote_passthrough_account.key() @UxdIdlErrorCode::InvalidQuotePassthroughAccount,
         constraint = depository_quote_passthrough_account.mint == depository.quote_mint @UxdIdlErrorCode::InvalidQuotePassthroughATAMint
     )]
@@ -107,7 +105,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump,
+        bump = depository.mango_account_bump,
         constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
@@ -144,14 +142,14 @@ pub struct RebalanceMangoDepositoryLite<'info> {
 
 pub fn handler(
     ctx: Context<RebalanceMangoDepositoryLite>,
-    max_rebalancing_amount: u64, // in QUOTE native units
-    polarity: &PnlPolarity,      // P: increases the DN pos., N: decrease the DN Pos
+    max_rebalancing_amount: u64,
+    polarity: &PnlPolarity,
     slippage: u32,
 ) -> UxdResult {
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         ctx.accounts.depository.collateral_mint.as_ref(),
-        &[*ctx.bumps.get("depository").unwrap()],
+        &[ctx.accounts.depository.bump],
     ]];
 
     // - [Get perp information]

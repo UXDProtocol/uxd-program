@@ -47,13 +47,13 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump
+        bump = controller.bump,
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump,
+        bump = depository.bump,
         has_one = controller @UxdIdlErrorCode::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
     )]
@@ -78,14 +78,14 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump,
+        bump = controller.redeemable_mint_bump,
         constraint = redeemable_mint.key() == controller.redeemable_mint @UxdIdlErrorCode::InvalidRedeemableMint
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump,
+        bump = depository.collateral_passthrough_bump,
         constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdIdlErrorCode::InvalidCollateralPassthroughAccount,
         constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralPassthroughATAMint
     )]
@@ -93,7 +93,7 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump,
+        bump = depository.mango_account_bump,
         constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
@@ -131,7 +131,7 @@ pub fn handler(
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         ctx.accounts.depository.collateral_mint.as_ref(),
-        &[*ctx.bumps.get("depository").unwrap()],
+        &[ctx.accounts.depository.bump],
     ]];
 
     // - 1 [CLOSE THE EQUIVALENT PERP SHORT ON MANGO] -------------------------

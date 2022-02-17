@@ -1,3 +1,6 @@
+use crate::error::SourceFileId;
+use crate::error::UxdError;
+use crate::error::UxdErrorCode;
 use crate::error::UxdIdlErrorCode;
 use crate::events::MigrateMangoDepositoryToV2Event;
 use crate::Controller;
@@ -12,6 +15,8 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
+declare_check_assert_macros!(SourceFileId::InstructionMangoDexMigrateMangoDepositoryToV2);
+
 #[derive(Accounts)]
 pub struct MigrateMangoDepositoryToV2<'info> {
     pub authority: Signer<'info>,
@@ -19,14 +24,14 @@ pub struct MigrateMangoDepositoryToV2<'info> {
     pub payer: Signer<'info>,
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
-        bump,
+        bump = controller.bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump,
+        bump = depository.bump,
         has_one = controller @UxdIdlErrorCode::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
     )]
@@ -59,6 +64,10 @@ pub fn handler(ctx: Context<MigrateMangoDepositoryToV2>) -> UxdResult {
     ctx.accounts.depository.quote_mint_decimals = ctx.accounts.quote_mint.decimals;
     ctx.accounts.depository.quote_passthrough =
         ctx.accounts.depository_quote_passthrough_account.key();
+    ctx.accounts.depository.quote_passthrough_bump = *ctx
+        .bumps
+        .get("depository_quote_passthrough_account")
+        .ok_or(bump_err!())?;
 
     emit!(MigrateMangoDepositoryToV2Event {
         version: ctx.accounts.controller.version,

@@ -5,9 +5,21 @@ The actual deployed state of each contract should live in a protected master bra
 It currently sits at:
 
 <!-- ### Solana -->
-- mainnet-beta `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr`
+- mainnet-beta `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr` (v2.2.0)
 - devnet `882VXWftqQ9wsVq99SJqBVsz6tVeBt63jKE9XiwEHDeN` (Public version for front end)
-- devnet `AyEU8xdZGokmgRbeahLBhg4L1LbyRXUFQ2qcNkSRyAeH` (Used by CI, this address should be update accordingly in ci files)
+- devnet `CV7cWGP9gYkVBBEmyRLpp5kw9KPpJvUkwPVdtSH9Fen8` (Used by CI, this address should be update accordingly in ci files)
+
+## Known shortcomings
+
+### Rebalancing (lite for now)
+
+Current rebalancing is a bit convoluted, but we are limited computing wise and # of input account wise, as it needs to be an atomic instruction.
+Later on it won't requires any external input (except to pay for fees in order to keep the system closed).
+
+### Slippage and limit price
+
+Currently we only take the slippage as parameter, and we execute at market price +/- slippage at the time of execution of the instruction.
+This can be fixed easily and is planned, but other items were prioritized, will probably make it in a next minor release right after v3.0.0)
 
 ## Running tests
 
@@ -59,7 +71,7 @@ It's quite unstable to test on devnet with typescript, and expect MangoMarkets o
 
 The CI strategy for E2E :
 
-- use the ci-resident-program (`AyEU8xdZGokmgRbeahLBhg4L1LbyRXUFQ2qcNkSRyAeH`) (call ./scripts/swap_ci_resident_program.sh)
+- use the ci-resident-program (`CV7cWGP9gYkVBBEmyRLpp5kw9KPpJvUkwPVdtSH9Fen8`) (call ./scripts/swap_ci_resident_program.sh)
 - use it's upgrade authority stored in `target/deploy/ci-resident-upgrade-authority.json` for deployment
 - upgrade program
 - run the market making bots

@@ -26,14 +26,14 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     pub authority: Signer<'info>,
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
-        bump,
+        bump = controller.bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
-        bump,
+        bump = depository.bump,
         has_one = controller @UxdIdlErrorCode::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
     )]
@@ -52,10 +52,12 @@ pub struct DepositInsuranceToMangoDepository<'info> {
         associated_token::authority = authority,
     )]
     pub authority_insurance: Box<Account<'info, TokenAccount>>,
+    // Passthrough accounts as only mangoAccount's Owner Owned accounts can transact w/ the mangoAccount
+    // (In the case of a deposit it can be bypassed, but for the sake of a coherent interface we use it)
     #[account(
         mut,
         seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
-        bump,
+        bump = depository.insurance_passthrough_bump,
         constraint = depository.insurance_passthrough == depository_insurance_passthrough_account.key() @UxdIdlErrorCode::InvalidInsurancePassthroughAccount,
         constraint = depository_insurance_passthrough_account.mint == insurance_mint.key() @UxdIdlErrorCode::InvalidInsurancePassthroughATAMint,
     )]
@@ -63,7 +65,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
-        bump,
+        bump = depository.mango_account_bump,
         constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
@@ -89,7 +91,7 @@ pub fn handler(
     let depository_signer_seeds: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         collateral_mint.as_ref(),
-        &[*ctx.bumps.get("depository").unwrap()],
+        &[ctx.accounts.depository.bump],
     ]];
 
     // - 1 [TRANSFER INSURANCE TO MANGO] --------------------------------------

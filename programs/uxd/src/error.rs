@@ -33,6 +33,7 @@ pub enum SourceFileId {
     Error = 20,
     Lib = 21,
     InstructionMangoDexRebalanceMangoDepositoryLite = 22,
+    InstructionMangoDexMigrateMangoDepositoryToV2 = 23,
 }
 
 impl std::fmt::Display for SourceFileId {
@@ -125,6 +126,12 @@ impl std::fmt::Display for SourceFileId {
                     "src/instructions/mango_dex/rebalance_mango_depository_lite.rs"
                 )
             }
+            SourceFileId::InstructionMangoDexMigrateMangoDepositoryToV2 => {
+                write!(
+                    f,
+                    "src/instructions/mango_dex/migrate_mango_depository_to_v2.rs"
+                )
+            }
         }
     }
 }
@@ -204,6 +211,8 @@ pub enum UxdErrorCode {
     InvalidPnlPolarity,
     #[error("The rebalanced amount doesn't match the expected rebalance amount.")]
     RebalancingError,
+    #[error("A bump was expected but is missing.")]
+    BumpError,
     #[error("MangoErrorCode::Default Check the source code for more info")]
     Default = u32::MAX,
 }
@@ -239,12 +248,6 @@ pub enum UxdIdlErrorCode {
     InvalidQuotePassthroughAccount,
     #[msg("The Quote Passthrough ATA's mint does not match the Depository's one.")]
     InvalidQuotePassthroughATAMint,
-    // #[error("The user's Redeemable ATA's mint does not match the Controller's one.")]
-    // InvalidUserRedeemableATAMint,
-    // #[error("The user's Collateral ATA's mint does not match the Depository's one.")]
-    // InvalidUserCollateralATAMint,
-    // #[msg("The provided quote mint does not match the depository's quote mint.")]
-    // InvalidUserQuoteAtaMint,
     #[msg("The provided quote mint does not match the depository's quote mint.")]
     InvalidQuoteMint,
     #[msg("The instruction doesn't support this version of the Depository. Migrate first.")]
@@ -333,6 +336,17 @@ macro_rules! declare_check_assert_macros {
             () => {
                 UxdError::UxdErrorCode {
                     uxd_error_code: UxdErrorCode::MathError,
+                    line: line!(),
+                    source_file_id: $source_file_id,
+                }
+            };
+        }
+
+        #[allow(unused_macros)]
+        macro_rules! bump_err {
+            () => {
+                UxdError::UxdErrorCode {
+                    uxd_error_code: UxdErrorCode::BumpError,
                     line: line!(),
                     source_file_id: $source_file_id,
                 }

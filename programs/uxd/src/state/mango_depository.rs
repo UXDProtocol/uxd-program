@@ -10,10 +10,10 @@ declare_check_assert_macros!(SourceFileId::StateMangoDepository);
 #[account]
 #[derive(Default)]
 pub struct MangoDepository {
-    pub bump: u8,                        // Unused
-    pub collateral_passthrough_bump: u8, // Unused
-    pub insurance_passthrough_bump: u8,  // Unused
-    pub mango_account_bump: u8,          // Unused
+    pub bump: u8,
+    pub collateral_passthrough_bump: u8,
+    pub insurance_passthrough_bump: u8,
+    pub mango_account_bump: u8,
     // Version used
     pub version: u8,
     pub collateral_mint: Pubkey,
@@ -52,9 +52,10 @@ pub struct MangoDepository {
     // This information is shared by all the Depositories, and as such would have been a good
     // candidate for the Controller, but we will lack space in the controller sooner than here.
     //
-    // v2 -82 bytes
+    // v2 -83 bytes
     pub quote_mint: Pubkey,
     pub quote_passthrough: Pubkey,
+    pub quote_passthrough_bump: u8,
     pub quote_mint_decimals: u8,
     //
     // The amount of DN position that has been rebalanced (in quote native units)
@@ -64,7 +65,7 @@ pub struct MangoDepository {
 }
 
 #[derive(Clone)]
-pub struct MangoDepositoryPadding([u8; 430]);
+pub struct MangoDepositoryPadding([u8; 429]);
 
 impl AnchorSerialize for MangoDepositoryPadding {
     fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
@@ -74,13 +75,13 @@ impl AnchorSerialize for MangoDepositoryPadding {
 
 impl AnchorDeserialize for MangoDepositoryPadding {
     fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
-        Ok(Self([0u8; 430]))
+        Ok(Self([0u8; 429]))
     }
 }
 
 impl Default for MangoDepositoryPadding {
     fn default() -> Self {
-        MangoDepositoryPadding([0u8; 430])
+        MangoDepositoryPadding([0u8; 429])
     }
 }
 

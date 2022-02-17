@@ -1001,6 +1001,10 @@ export type Uxd = {
             "type": "publicKey"
           },
           {
+            "name": "quotePassthroughBump",
+            "type": "u8"
+          },
+          {
             "name": "quoteMintDecimals",
             "type": "u8"
           },
@@ -1092,6 +1096,9 @@ export type Uxd = {
           },
           {
             "name": "InstructionMangoDexRebalanceMangoDepositoryLite"
+          },
+          {
+            "name": "InstructionMangoDexMigrateMangoDepositoryToV2"
           }
         ]
       }
@@ -1221,6 +1228,9 @@ export type Uxd = {
           },
           {
             "name": "RebalancingError"
+          },
+          {
+            "name": "BumpError"
           },
           {
             "name": "Default"
@@ -2783,6 +2793,10 @@ export const IDL: Uxd = {
             "type": "publicKey"
           },
           {
+            "name": "quotePassthroughBump",
+            "type": "u8"
+          },
+          {
             "name": "quoteMintDecimals",
             "type": "u8"
           },
@@ -2874,6 +2888,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "InstructionMangoDexRebalanceMangoDepositoryLite"
+          },
+          {
+            "name": "InstructionMangoDexMigrateMangoDepositoryToV2"
           }
         ]
       }
@@ -3003,6 +3020,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "RebalancingError"
+          },
+          {
+            "name": "BumpError"
           },
           {
             "name": "Default"

@@ -1,3 +1,6 @@
+use crate::error::SourceFileId;
+use crate::error::UxdError;
+use crate::error::UxdErrorCode;
 use crate::error::UxdIdlErrorCode;
 use crate::events::RegisterMangoDepositoryEventV2;
 use crate::mango_program;
@@ -20,6 +23,8 @@ use std::mem::size_of;
 
 const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
+declare_check_assert_macros!(SourceFileId::InstructionRegisterMangoDepository);
+
 #[derive(Accounts)]
 pub struct RegisterMangoDepository<'info> {
     pub authority: Signer<'info>,
@@ -28,7 +33,7 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump,
+        bump = controller.bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
@@ -97,7 +102,7 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> UxdResult {
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         collateral_mint.as_ref(),
-        &[*ctx.bumps.get("depository").unwrap()],
+        &[*ctx.bumps.get("depository").ok_or(bump_err!())?],
     ]];
     mango_program::initialize_mango_account(
         ctx.accounts
@@ -106,6 +111,23 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> UxdResult {
     )?;
 
     // - Initialize Depository state
+    ctx.accounts.depository.bump = *ctx.bumps.get("depository").ok_or(bump_err!())?;
+    ctx.accounts.depository.collateral_passthrough_bump = *ctx
+        .bumps
+        .get("depository_collateral_passthrough_account")
+        .ok_or(bump_err!())?;
+    ctx.accounts.depository.insurance_passthrough_bump = *ctx
+        .bumps
+        .get("depository_insurance_passthrough_account")
+        .ok_or(bump_err!())?;
+    ctx.accounts.depository.quote_passthrough_bump = *ctx
+        .bumps
+        .get("depository_quote_passthrough_account")
+        .ok_or(bump_err!())?;
+    ctx.accounts.depository.mango_account_bump = *ctx
+        .bumps
+        .get("depository_mango_account")
+        .ok_or(bump_err!())?;
     ctx.accounts.depository.version = MANGO_DEPOSITORY_ACCOUNT_VERSION;
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;

@@ -17,7 +17,7 @@ pub struct SetRedeemableGlobalSupplyCap<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump,
+        bump = controller.bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
@@ -25,7 +25,7 @@ pub struct SetRedeemableGlobalSupplyCap<'info> {
 
 pub fn handler(
     ctx: Context<SetRedeemableGlobalSupplyCap>,
-    redeemable_global_supply_cap: u128, // native amount
+    redeemable_global_supply_cap: u128,
 ) -> UxdResult {
     ctx.accounts.controller.redeemable_global_supply_cap = redeemable_global_supply_cap;
     emit!(SetRedeemableGlobalSupplyCapEvent {

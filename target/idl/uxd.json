@@ -1001,6 +1001,10 @@
             "type": "publicKey"
           },
           {
+            "name": "quotePassthroughBump",
+            "type": "u8"
+          },
+          {
             "name": "quoteMintDecimals",
             "type": "u8"
           },
@@ -1092,6 +1096,9 @@
           },
           {
             "name": "InstructionMangoDexRebalanceMangoDepositoryLite"
+          },
+          {
+            "name": "InstructionMangoDexMigrateMangoDepositoryToV2"
           }
         ]
       }
@@ -1221,6 +1228,9 @@
           },
           {
             "name": "RebalancingError"
+          },
+          {
+            "name": "BumpError"
           },
           {
             "name": "Default"
@@ -1777,5 +1787,8 @@
       "name": "UnsupportedDepositoryVersion",
       "msg": "The instruction doesn't support this version of the Depository. Migrate first."
     }
-  ]
+  ],
+  "metadata": {
+    "address": "F3UToS4WKQkyAAs5TwM21ANq2xNfDRB7tGRWx4DxapaR"
+  }
 }
