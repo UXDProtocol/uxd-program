@@ -20,7 +20,8 @@ env:
   # Default wallet
   RUNNER_WALLET_PATH: "/home/runner/.config/solana/id.json"
   # Funding wallet
-  BANK_WALLET_PATH: "./scripts/bank-keypair.json"
+  BANK_WALLET_PATH: "./target/deploy/bank-keypair.json"
+  CI_DEPLOYMENT_WALLET_PATH: "./target/deploy/ci-3kjnUz-deployment-keypair.json"
   # This program stay deployed to test over time
   RESIDENT_PROGRAM_ID: 3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW
   # Accounts used to MM on mango market
@@ -134,7 +135,7 @@ jobs:
         run: |
           yarn install
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} build
-          npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} deploy
+          npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} deploy --provider.wallet ${{ CI_DEPLOYMENT_WALLET_PATH }} 
       - name: Returning funded runner wallet SOLs to the bank
         run: |
           solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
