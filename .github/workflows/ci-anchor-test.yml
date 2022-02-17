@@ -39,12 +39,12 @@ env:
   MM_FUNDING_AMOUNT: 0.5  # Keep small it's lost
   TRANSACTION_FEE_OFFSET: 0.005
   # Name of the tests files in the program repo. We use them for sed and swap the `anchor test`
-  TEST_INTEGRATION: test_integration
-  TEST_CI_FRESH: test_ci_fresh
-  TEST_CI_SOL: test_ci_sol
-  TEST_CI_BTC: test_ci_btc
-  TEST_CI_ETH: test_ci_eth
-  TEST_CI_REBALANCING: test_ci_rebalancing
+  TEST_INTEGRATION: "test_integration"
+  TEST_CI_FRESH: "test_ci_fresh"
+  TEST_CI_SOL: "test_ci_sol"
+  TEST_CI_BTC: "test_ci_btc"
+  TEST_CI_ETH: "test_ci_eth"
+  TEST_CI_REBALANCING: "test_ci_rebalancing"
 
     
 jobs:

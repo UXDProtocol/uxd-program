@@ -1,13 +1,12 @@
 import { Keypair, PublicKey, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET } from "@uxdprotocol/uxd-client";
-import { authority, bank } from "./constants";
+import { bank } from "./constants";
 import { transferAllSol, transferSol } from "./utils";
-import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 
 
 // This test require a stack of UXD onchain account that has been live for a while, as such we reuse
-const ancientProgramId = new PublicKey("5rYjdoWQcbGSes3G4frkLA6oLxFmtUagn8xc1fvSATYL");
+const ancientProgramId = new PublicKey("3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW");
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, ancientProgramId);
@@ -21,10 +20,6 @@ console.log(`ETH 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDe
 
 beforeEach("\n", function () { console.log("=============================================\n\n") });
 
-describe("UXD Controller Suite", function () {
-    const params = new controllerIntegrationSuiteParameters(25_000_000, 500_000);
-    controllerIntegrationSuite(authority, bank, controllerUXD, params);
-});
 
 describe("Integration tests Rebalancing", function () {
     const user: Signer = new Keypair();
