@@ -2,7 +2,7 @@
 !/target/deploy
 /target/deploy/*.so
 !/target/deploy/uxd-keypair.json
-!/target/deploy/ci-3kjnUz-deployment-keypair.json
+!/target/deploy/ci-resident-upgrade-authority.json
 !/target/deploy/bank-keypair.json
 !/target/idl/
 !/target/idl/uxd.json

@@ -14,9 +14,9 @@ pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
 
-// Should stay 3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW for CI
+// Should stay CXzEE9YjFgw3Ggz2r1oLHqJTd 4mpzFWRKm9fioTjpk45 for CI
 #[cfg(feature = "development")]
-solana_program::declare_id!("3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW");
+solana_program::declare_id!("CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 

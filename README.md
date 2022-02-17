@@ -6,7 +6,7 @@ It currently sits at:
 
 <!-- ### Solana -->
 - mainnet-beta `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr`
-- devnet `3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW` (Used by CI, this address should be update accordingly in ci files)
+- devnet `CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45` (Used by CI, this address should be update accordingly in ci files)
 
 ## Running tests
 
