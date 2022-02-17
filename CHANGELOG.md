@@ -1,13 +1,12 @@
 # CHANGELOG
 
-## v3.0.0-beta
+## v3.0.0 (audited Soteria)
 
 Deployed: | Slot:
 
-1. Added an additional payer to Mint and Redeem instructions
-2. Added two instructions (MigrateMangoDepositoryToV2, RebalanceMangoDepositoryLite) to help with rebalancing the delta neutral position
-3. Refactor and increase coverage or E2E tests (+ Mochawesome test report generation)
-4. Updates UXD-Client to 5.0.0-beta
+1. Added an additional payer to Mint and Redeem instructions (although they are too big to fit current governance program proposals)
+2. Added MigrateMangoDepositoryToV2 instruction to migrate V1 MangoDepository accounts to their V2 counterpart
+3. Added RebalanceMangoDepositoryLite instruction to rebalance the delta neutral position by providing either quote or collateral depending of the PnL polarity
 
 ## v2.2.0 (hotfix)
 
