@@ -23,7 +23,6 @@ env:
   BANK_WALLET_PATH: "./target/deploy/bank-keypair.json"
   CI_DEPLOYMENT_AUTHORITY_WALLET_PATH: "./target/deploy/ci-resident-upgrade-authority.json"
   # This program stays deployed to test over time
-  # solana program deploy ./target/deploy/uxd.so --program-id ${{ env.RESIDENT_PROGRAM_KEYPAIR }} --upgrade-authority ${{ env.CI_DEPLOYMENT_AUTHORITY_WALLET_PATH }} -v
   # RESIDENT_PROGRAM_ID: CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45
   RESIDENT_PROGRAM_KEYPAIR: ./target/deploy/ci-resident-keypair.json # another way to get the ID
   # Accounts used to MM on mango market
@@ -51,7 +50,7 @@ jobs:
 
   # Build and deploy an updated program at 3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW
   anchor-build-and-deploy:
-    name: Upgrades 3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW
+    name: Upgrades CI Resident Program
     runs-on: ubuntu-latest
     steps:
       # Checkout
@@ -139,8 +138,7 @@ jobs:
           yarn install
           ./scripts/swap_ci_resident_program_id.sh
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} build
-          solana program deploy ./target/deploy/uxd.so --program-id ./target/deploy/ci-resident-keypair.json --upgrade-authority ./target/deploy/ci-resident-upgrade-authority.json --keypair ./target/deploy/ci-resident-upgrade-authority.json -u d -v 
-          npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} deploy --provider.wallet ${{ env.CI_DEPLOYMENT_AUTHORITY_WALLET_PATH }} 
+          solana program deploy ./target/deploy/uxd.so --program-id ${{ env.RESIDENT_PROGRAM_KEYPAIR }} --upgrade-authority ${{ env.CI_DEPLOYMENT_AUTHORITY_WALLET_PATH }} -v
       - name: Returning funded runner wallet SOLs to the bank
         run: |
           solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
