@@ -80,7 +80,7 @@ impl AnchorDeserialize for MangoDepositoryPadding {
 
 impl Default for MangoDepositoryPadding {
     fn default() -> Self {
-        MangoDepositoryPadding { 0: [0u8; 430] }
+        MangoDepositoryPadding([0u8; 430])
     }
 }
 

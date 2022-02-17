@@ -20,8 +20,8 @@ pub struct Order {
 }
 
 /// Walk through the book and find the best quantity and price to spend a given amount of quote.
-pub fn get_best_order_for_quote_lot_amount<'a>(
-    book: &Book<'a>,
+pub fn get_best_order_for_quote_lot_amount(
+    book: &Book,
     side: Side,
     quote_lot_amount_to_spend: i64,
 ) -> UxdResult<Option<Order>> {
@@ -91,8 +91,8 @@ pub fn get_best_order_for_quote_lot_amount<'a>(
 }
 
 /// Walk through the book and find the price and total amount spent to order a given quantity of base_lot.
-pub fn get_best_order_for_base_lot_quantity<'a>(
-    book: &Book<'a>,
+pub fn get_best_order_for_base_lot_quantity(
+    book: &Book,
     side: Side,
     base_lot_quantity_to_order: i64,
 ) -> UxdResult<Option<Order>> {

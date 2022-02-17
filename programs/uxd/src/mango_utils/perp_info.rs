@@ -35,17 +35,13 @@ impl PerpInfo {
     ) -> UxdResult<Self> {
         let mango_group = MangoGroup::load_checked(mango_group_ai, mango_program_key)?;
         let mango_cache =
-            MangoCache::load_checked(&mango_cache_ai, mango_program_key, &mango_group)?;
+            MangoCache::load_checked(mango_cache_ai, mango_program_key, &mango_group)?;
         let perp_market_index = mango_group
             .find_perp_market_index(perp_market_key)
             .ok_or(throw_err!(UxdErrorCode::MangoPerpMarketIndexNotFound))?;
-
-        Ok(PerpInfo::init(
-            &mango_group,
-            &mango_cache,
-            perp_market_index,
-        )?)
+        PerpInfo::init(&mango_group, &mango_cache, perp_market_index)
     }
+
     pub fn init(
         mango_group: &MangoGroup,
         mango_cache: &MangoCache,

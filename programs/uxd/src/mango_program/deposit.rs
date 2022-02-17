@@ -35,6 +35,7 @@ pub struct Deposit<'info> {
 /// 6. `[writable]` vault_ai - TokenAccount owned by MangoGroup
 /// 7. `[]` token_prog_ai - acc pointed to by SPL token program id
 /// 8. `[writable]` owner_token_account_ai - TokenAccount owned by user which will be sending the funds
+#[allow(clippy::too_many_arguments)]
 fn deposit_instruction(
     mango_program_id: &Pubkey,
     mango_group_pubkey: &Pubkey,

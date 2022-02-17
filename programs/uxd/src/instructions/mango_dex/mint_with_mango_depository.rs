@@ -359,10 +359,10 @@ impl<'info> MintWithMangoDepository<'info> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
-            &self.mango_perp_market.key,
+            self.mango_perp_market.key,
             self.mango_program.key,
         )?;
-        // msg!("perp_info {:?}", perp_info);
+        msg!("perp_info {:?}", perp_info);
         Ok(perp_info)
     }
 
@@ -391,8 +391,7 @@ impl<'info> MintWithMangoDepository<'info> {
         let asks_ai = self.mango_asks.to_account_info();
         let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
         let best_order = get_best_order_for_base_lot_quantity(&book, side, base_lot_amount)?;
-
-        Ok(best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))?)
+        best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))
     }
 
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap

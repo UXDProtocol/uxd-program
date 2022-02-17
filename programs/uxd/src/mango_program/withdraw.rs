@@ -39,6 +39,7 @@ pub struct Withdraw<'info> {
 /// 9. `[read]` token_prog_ai,
 /// 10. `[read]` clock_ai,
 /// 11..+ `[]` open_orders_accs - open orders for each of the spot market
+#[allow(clippy::too_many_arguments)]
 fn withdraw_instruction(
     mango_program_id: &Pubkey,
     mango_group_pubkey: &Pubkey,

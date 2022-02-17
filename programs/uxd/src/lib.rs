@@ -159,7 +159,11 @@ pub mod uxd {
         polarity: PnlPolarity,
         slippage: u32,
     ) -> ProgramResult {
-        msg!("[rebalance_mango_depository_lite] slippage {}, polarity {}", slippage, polarity);
+        msg!(
+            "[rebalance_mango_depository_lite] slippage {}, polarity {}",
+            slippage,
+            polarity
+        );
         instructions::rebalance_mango_depository_lite::handler(
             ctx,
             max_rebalancing_amount,
