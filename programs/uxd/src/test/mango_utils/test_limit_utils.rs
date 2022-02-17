@@ -48,11 +48,11 @@ mod test_limit_utils {
             proptest! {
                 /// Tests the price check after placing a Perp order for Minting UXD (Selling Perp to open the Short position)
                 /// combinations with :
-                ///      perp_price between 0$ and 100_000
-                ///      order_price between 0$ and 100_000
-                ///      slippage between 0.01% and 100%
+                ///      perp_price per base unit between 0$ and 100_000
+                ///      order_price per base unit between 0$ and 100_000
+                ///      slippage between 0.1% and 100%
                 #[test]
-                fn proptest(perp_price in 0.0f64..10f64, order_price in 0.0f64..10f64, slippage in 1..SLIPPAGE_BASIS) {
+                fn test_check_effective_order_price_versus_limit_price_bid(perp_price in 0.0f64..10f64, order_price in 0.0f64..10f64, slippage in 1..SLIPPAGE_BASIS) {
                     // Order.price must be below the perpInfo.price within slippage
                     let side = Side::Bid;
                     let perp_info = mocked_perp_info(perp_price);
@@ -73,9 +73,9 @@ mod test_limit_utils {
                                 UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
                                     prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsLimitUtils);
                                     match uxd_error_code {
-                                        UxdErrorCode::MathError => prop_assert!(true),
+                                        UxdErrorCode::MathError => prop_assert!(false),
                                         UxdErrorCode::SlippageReached => {
-                                            prop_assert!(order_price <= limit_price);
+                                            prop_assert!(order_price < limit_price);
                                         },
                                         _default => prop_assert!(false)
                                     }
@@ -135,11 +135,11 @@ mod test_limit_utils {
             proptest! {
                 /// Tests the price check after placing a Perp order for Redeeming UXD (Buying Perp to close the outstanding Short position)
                 /// combinations with :
-                ///      perp_price between 0$ and 100_000
-                ///      order_price between 0$ and 100_000
-                ///      slippage between 0.01% and 100%
+                ///      perp_price per base unit between 0$ and 100_000
+                ///      order_price per base unit between 0$ and 100_000
+                ///      slippage between 0.1% and 100%
                 #[test]
-                fn proptest_redeem(perp_price in 0.0f64..10f64, order_price in 0.0f64..10f64, slippage in 1..SLIPPAGE_BASIS) {
+                fn test_check_effective_order_price_versus_limit_price_ask(perp_price in 0.0f64..10f64, order_price in 0.0f64..10f64, slippage in 1..SLIPPAGE_BASIS) {
                     let side = Side::Ask;
                     let perp_info = mocked_perp_info(perp_price);
                     let order = mocked_order(&perp_info, order_price, side).unwrap();
@@ -159,9 +159,9 @@ mod test_limit_utils {
                                 UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
                                     prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsLimitUtils);
                                     match uxd_error_code {
-                                        UxdErrorCode::MathError => prop_assert!(true),
+                                        UxdErrorCode::MathError => prop_assert!(false),
                                         UxdErrorCode::SlippageReached => {
-                                            prop_assert!(order_price >= limit_price);
+                                            prop_assert!(order_price > limit_price);
                                         },
                                         _default => prop_assert!(false)
                                     }
@@ -210,7 +210,7 @@ mod test_limit_utils {
         }
     }
 
-    mod unit_tests {
+    mod test_limit_price {
         use crate::mango_utils::{calculate_slippage_amount, limit_price};
 
         use super::*;
