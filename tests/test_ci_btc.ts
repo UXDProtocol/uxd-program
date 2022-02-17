@@ -56,7 +56,8 @@ describe("Integration tests BTC", function () {
         mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositoryBTC, 20);
     });
 
-    describe("mangoDepositoryAndControllerInteractionsSuite BTC", function () {
+    // Mess with the redeemable caps and they are shared by these ci tests
+    describe.skip("mangoDepositoryAndControllerInteractionsSuite BTC", function () {
         const paramsBtc = new MangoDepositoryAndControllerInteractionsSuiteParameters(10_000_000, 30_000, 1_000_000, 60_000, 20);
         mangoDepositoryAndControllerInteractionsSuite(authority, user, bank, controllerUXD, mangoDepositoryBTC, paramsBtc);
     });

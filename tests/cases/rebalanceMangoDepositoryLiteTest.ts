@@ -93,12 +93,13 @@ const rebalanceNegativePnL = async function (rebalancingMaxAmount: number, slipp
     const userQuoteATA: PublicKey = findATAAddrSync(user.publicKey, depository.quoteMint)[0];
     const userQuoteBalance = await getBalance(userQuoteATA);
     let userCollateralBalance: number;
-    if (NATIVE_MINT.equals(depository.collateralMint)) {
-        // If WSOL, as the transaction unwraps
-        userCollateralBalance = await getSolBalance(user.publicKey);
-    } else {
+    // if (NATIVE_MINT.equals(depository.collateralMint)) {
+    //     // If WSOL, as the transaction DOESN't unwraps due to computing issues (temporary)
+    //     userCollateralBalance = await getSolBalance(user.publicKey);
+    // } else {
+    // As long as it doesn't unwrap use this always
         userCollateralBalance = await getBalance(userCollateralATA);
-    }
+    // }
 
     // This instruction does not unwrap YET (computing limit)
     // Initial SOL is used to make the diff afterward as the instruction does unwrap
@@ -114,17 +115,17 @@ const rebalanceNegativePnL = async function (rebalancingMaxAmount: number, slipp
     // THEN
     const userQuoteBalance_post = await getBalance(userQuoteATA);
     let userCollateralBalance_post: number;
-    if (NATIVE_MINT.equals(depository.collateralMint)) {
-        // the TX unwrap the WSOL. Payer takes the tx fees so we'r good.
-        userCollateralBalance_post = await getSolBalance(user.publicKey);
-    } else {
+    // if (NATIVE_MINT.equals(depository.collateralMint)) {
+    //     // the TX <DOESN'T> unwrap the WSOL. Payer takes the tx fees so we'r good.
+    //     userCollateralBalance_post = await getSolBalance(user.publicKey);
+    // } else {
         userCollateralBalance_post = await getBalance(userCollateralATA);
-    }
+    // }
 
     const mangoTakerFee = depository.getCollateralPerpTakerFees(mango);
-    const minTradingSizeQuote = await depository.getMinTradingSizeQuoteUI(mango);
 
     const quoteDelta = userQuoteBalance - userQuoteBalance_post;
+    const maxQuoteDelta = rebalancingMaxAmount / mangoPerpPrice;
     const collateralDelta = userCollateralBalance_post - userCollateralBalance;
     const quoteLeftOverDueToOddLot = rebalancingMaxAmount - quoteDelta;
     const quoteProcessedByRebalancing = rebalancingMaxAmount - quoteLeftOverDueToOddLot;
@@ -149,5 +150,6 @@ const rebalanceNegativePnL = async function (rebalancingMaxAmount: number, slipp
 
     expect(rebalancingMaxAmount).closeTo(quoteProcessedByRebalancing + quoteLeftOverDueToOddLot, quoteNativeUnitPrecision, "The amount of collateral left over + processed is not equal to the collateral amount inputted initially");
     expect(quoteDelta).greaterThanOrEqual(worthExecutionPriceCollateralDelta, "The amount minted is out of the slippage range");
+    expect(collateralDelta).lessThanOrEqual(maxQuoteDelta, "The amount of sol consumed is more that initially planned");
     return quoteDelta;
 }
