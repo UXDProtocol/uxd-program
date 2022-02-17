@@ -54,6 +54,9 @@ jobs:
           override: true
           profile: minimal
           components: rustfmt, clippy
+        run: |
+          rustup update
+
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
