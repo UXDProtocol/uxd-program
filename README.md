@@ -6,50 +6,66 @@ It currently sits at:
 
 <!-- ### Solana -->
 - mainnet-beta `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr`
+- devnet `882VXWftqQ9wsVq99SJqBVsz6tVeBt63jKE9XiwEHDeN` (Public version for front end)
 - devnet `CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45` (Used by CI, this address should be update accordingly in ci files)
 
 ## Running tests
 
-Running rust unit tests :
+### Rust unit tests
 
 ```Zsh
-$> cargo test && cargo test-bpf 
+$> cargo test && cargo build-bpf && cargo test-bpf 
 ```
 
-Running E2E test in TS from the tests folder :
+### E2E Tests
+
+In order to have the environment ready to host test, the mango market devnet must be running as expected. To do so we must run market making bots and the Keeper, from [MangoClientV3](https://github.com/blockworks-foundation/mango-client-v3) repo.
+Keep does the cranking (settle orders), and MM bots ensure that the order book is coherent. (Although sometimes it's still not coherent, as anyone can mess with it)
+
+When test are failing due to odd reasons, first thing to do is to check the [MangoMarkets V3](https://devnet.mango.markets/?name=SOL-PERP) related perp (here for SOL-PERP). Verify that the order book is not borked with a weird stuck order or that the oracle price is not far away from the perp price for some reason.
 
 ```Zsh
-$> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) yarn keeper # in a https://github.com/blockworks-foundation/mango-client-v3 repo to run the Keeper (cranking)
+$> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) yarn keeper 
 $> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) MANGO_ACCOUNT_PUBKEY=8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w MARKET=SOL yarn mm # in a https://github.com/blockworks-foundation/mango-client-v3 repo to run the Market Making bot
 $> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) MANGO_ACCOUNT_PUBKEY=8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w MARKET=BTC yarn mm
 $> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) MANGO_ACCOUNT_PUBKEY=8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w MARKET=ETH yarn mm
 ```
 
-```Zsh
-$> anchor test # Then this will build, deploy and run the tests
-```
-
-The keeper is mandatory to run on Devnet, as there might not be another one running. This is the process settling events and cranking mango state in between order, without it tests won't work.
-The Market Marking bots are also mandatory to keep a semi consistent order book.
-
-Usually you want with a clean test env, with new Program state, and depositories, new mango accounts etc.
-
-To reset the program ID in the project, you can run :
+Once this is setup, in another terminal you can build, deploy and run the test :
 
 ```Zsh
-$> ./scripts/reset_program_id.sh # Will generate a new Pubkey for deploying a fresh program, and replace the ref in lib.rs, anchor.toml and the IDL 
+$> ./scripts/reset_program_id.sh # Optional, will reset the program ID in all files where it's needed to start with a clean slate
+$> anchor test # Will build, deploy and run the tests
 ```
 
-You'r then good to go to run `anchor test --skip-local-validator` (As the validator is devnet in our case)
+If you want to re-run the tests with the already deployed program (without registering changes to the rust code), you can run :
 
-You can then rerun this as many time as you want, but if you want a clean slate, just reset the program_id with the script.
+```Zsh
+$> anchor test --skip-build --skip-deploy
+```
+
+If you made changes to the Rust code, you have to re-run the lengthy :
+
+```Zsh
+$> anchor test
+```
+
+Loop theses as many time as you want, and if you want a clean slate, just reset the program_id with the script again.
 
 ## Testing strategy with CI
 
 There are a few script in the test folder with following the `test_ci_*.ts`, these are related to the github workflow.
 It's quite unstable to test on devnet with typescript, and expect MangoMarkets order book to be consistent, but it somehow works.
 
-The CI strategy is to upgrade the devnet program, run the market making bots (these are the two pre condition done in parallel), then it start 4 testing suites in parallel for each Collateral (for now on mango and later on more with new Dexes).
+The CI strategy for E2E :
+
+- use the ci-resident-program (`CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45`) (call ./scripts/swap_ci_resident_program.sh)
+- use it's upgrade authority stored in `target/deploy/ci-resident-upgrade-authority.json` for deployment
+- upgrade program
+- run the market making bots
+- then starts X testing suites in parallel for each Collateral/Dex whatever case (for now on mango and later on more with new Dexes).
+
+Note that it don't do concurrent run of this workflow, as they test some internal state of the program and would collide.
 
 The CI also runs cargo fmt, clippy, test and test-bpf.
 

@@ -14,9 +14,10 @@ pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
 
-// Should stay CXzEE9YjFgw3Ggz2r1oLHqJTd 4mpzFWRKm9fioTjpk45 for CI
+// CI Uses CXzEE9YjFgw3Ggz2r1 oLHqJTd4mpzFWRKm9fioTjpk45 on Devnet
+// (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("CXzEE9YjFgw3Ggz2r1oLHqJTd4mpzFWRKm9fioTjpk45");
+solana_program::declare_id!("8zR9UHeX61RAVux5jtdhDo2UFZ4ydudxu957e7M9yp7e");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
