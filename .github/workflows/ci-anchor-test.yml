@@ -21,7 +21,7 @@ env:
   BANK_WALLET_PATH: "./target/deploy/bank-keypair.json"
   CI_DEPLOYMENT_AUTHORITY_WALLET_PATH: "./target/deploy/ci-resident-upgrade-authority.json"
   # This program stays deployed to test over time
-  # RESIDENT_PROGRAM_ID: CV7cWGP9gYkVBBEmyRLpp5kw9KPpJvUkwPVdtSH9Fen8
+  # RESIDENT_PROGRAM_ID: F3UToS4WKQkyAAs5TwM21ANq2xNfDRB7tGRWx4DxapaR
   RESIDENT_PROGRAM_KEYPAIR: ./target/deploy/ci-resident-keypair.json # another way to get the ID
   # Accounts used to MM on mango market
   MANGO_ACCOUNT_MM_SOL: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"

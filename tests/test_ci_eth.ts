@@ -10,7 +10,7 @@ import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 
-// CV7cWGP9gYkVBBEmyRLpp5kw9KPpJvUkwPVdtSH9Fen8
+// F3UToS4WKQkyAAs5TwM21ANq2xNfDRB7tGRWx4DxapaR
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
