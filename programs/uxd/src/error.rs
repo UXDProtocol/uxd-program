@@ -189,7 +189,7 @@ pub enum UxdErrorCode {
     )]
     InvalidMangoDepositoriesRedeemableSoftCap,
     #[error("Quote_lot_delta can't be 0.")]
-    InvalidQuoteLotDelta = 20,
+    InvalidQuoteDelta = 20,
     #[error("The perp order wasn't executed in the right direction.")]
     InvalidOrderDirection,
     #[error("Math error.")]

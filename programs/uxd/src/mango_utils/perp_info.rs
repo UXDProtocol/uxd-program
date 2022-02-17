@@ -22,7 +22,7 @@ pub struct PerpInfo {
     pub base_lot_size: I80F48,
     pub quote_unit: I80F48,
     pub quote_lot_size: I80F48,
-    pub taker_fee: I80F48,
+    pub taker_fee: I80F48, // 0.005 = 5bps
 }
 
 impl PerpInfo {

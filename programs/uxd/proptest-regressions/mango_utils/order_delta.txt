@@ -3,4 +3,4 @@
 # novel cases are generated.
 #
 # It is recommended to check this file in to source control so that
-# everyone who runs the test benefits from these saved cases.cc 2ab2a4939db4859a318da21b018ee92b34f4ea08d2b483b16084b2d7ed2f62e4 # shrinks to price = 1, slippage = 1
+# everyone who runs the test benefits from these saved cases.

@@ -72,6 +72,15 @@ jobs:
           override: true
           profile: minimal
           components: rustfmt, clippy
+      - name: Rust toolchain update
+        run: |
+          rustup update
+      - name: Rust override set nightly 
+        run: |
+          rustup override set nightly
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+
       # Install Solana
       - name: Install Linux dependencies
         run: |

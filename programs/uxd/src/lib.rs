@@ -13,6 +13,7 @@ pub mod instructions;
 pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
+pub mod test;
 
 // CI Uses CXzEE9YjFgw3Ggz2r1 oLHqJTd4mpzFWRKm9fioTjpk45 on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
