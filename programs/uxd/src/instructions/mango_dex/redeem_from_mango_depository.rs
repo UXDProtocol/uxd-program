@@ -208,7 +208,6 @@ pub fn handler(
         .quote
         .checked_add(order_delta.fee)
         .ok_or(math_err!())?;
-    // msg!("redeemable_delta {}", redeemable_delta);
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         redeemable_delta,
@@ -343,14 +342,12 @@ impl<'info> RedeemFromMangoDepository<'info> {
 impl<'info> RedeemFromMangoDepository<'info> {
     // Return general information about the perpetual related to the collateral in use
     fn perpetual_info(&self) -> UxdResult<PerpInfo> {
-        let perp_info = PerpInfo::new(
+        PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
             self.mango_perp_market.key,
             self.mango_program.key,
-        )?;
-        // msg!("perp_info{:?}", perp_info);
-        Ok(perp_info)
+        )
     }
 
     // Return the uncommitted PerpAccount that represent the account balances

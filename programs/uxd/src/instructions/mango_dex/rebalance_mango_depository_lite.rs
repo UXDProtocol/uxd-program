@@ -573,7 +573,6 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             self.mango_perp_market.key,
             self.mango_program.key,
         )?;
-        // msg!("perp_info {:?}", perp_info);
         Ok(perp_info)
     }
 

@@ -8,6 +8,7 @@ use anchor_lang::prelude::Pubkey;
 use fixed::types::I80F48;
 use mango::state::MangoCache;
 use mango::state::MangoGroup;
+use solana_program::msg;
 
 declare_check_assert_macros!(SourceFileId::MangoUtilsPerpInfo);
 
@@ -60,7 +61,7 @@ impl PerpInfo {
         );
         let quote_lot_size =
             I80F48::from_num(mango_group.perp_markets[perp_market_index].quote_lot_size);
-        Ok(PerpInfo {
+        let perp_info = PerpInfo {
             market_index: perp_market_index,
             price: mango_cache.price_cache[perp_market_index].price,
             base_unit,
@@ -68,6 +69,8 @@ impl PerpInfo {
             quote_unit,
             quote_lot_size,
             taker_fee: mango_group.perp_markets[perp_market_index].taker_fee,
-        })
+        };
+        msg!("perp_info {:?}", perp_info);
+        Ok(perp_info)
     }
 }
