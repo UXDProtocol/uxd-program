@@ -71,7 +71,6 @@ jobs:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
           profile: minimal
-          components: rustfmt, clippy
       # Install solana
       - name: Cache Solana Tool Suite
         uses: actions/cache@v2  
@@ -111,7 +110,7 @@ jobs:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
           profile: minimal
-          components: rustfmt, clippy
+          components: bpf
       # Install solana
       - name: Cache Solana Tool Suite
         uses: actions/cache@v2  
