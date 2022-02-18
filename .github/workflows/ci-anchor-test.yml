@@ -10,8 +10,8 @@ permissions:
   
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: 1.8.12
-  ANCHOR_VERSION: 0.20.1
+  SOLANA_VERSION: 1.9.7
+  ANCHOR_VERSION: 0.21.0
   CLUSTER: "devnet"
   DEVNET_RPC: https://psytrbhymqlkfrhudd.dev.genesysgo.net:8899/
   # DEVNET_FAUCET: "9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g"

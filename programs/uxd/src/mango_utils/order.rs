@@ -14,8 +14,6 @@ pub struct Order {
     pub quantity: i64,
     // Marginal Price, the price to place the order at, in quote (per base_lot)
     pub price: i64,
-    // The resulting total amount that will be spent, in quote_lot (without fees)
-    pub size: i64,
     pub side: Side,
 }
 
@@ -70,10 +68,6 @@ pub fn get_best_order_for_quote_lot_amount(
 
         // when the amount left to spend is inferior to the price of a base lot, or if we are fully filled
         if quote_lot_left_to_spend == 0 || spent == 0 {
-            // success
-            let quote_lot_spent = quote_lot_amount_to_spend
-                .checked_sub(quote_lot_left_to_spend)
-                .ok_or(math_err!())?;
             // Side is the matched side, invert for order side
             let order_side = match side {
                 Side::Bid => Side::Ask,
@@ -82,7 +76,6 @@ pub fn get_best_order_for_quote_lot_amount(
             return Ok(Some(Order {
                 quantity: cmlv_quantity,
                 price: execution_price,
-                size: quote_lot_spent,
                 side: order_side,
             }));
         }
@@ -143,7 +136,6 @@ pub fn get_best_order_for_base_lot_quantity(
             return Ok(Some(Order {
                 quantity: base_lot_quantity,
                 price: execution_price,
-                size: cmlv_quote_lot_amount_spent,
                 side,
             }));
         }
