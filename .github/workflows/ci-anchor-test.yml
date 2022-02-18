@@ -141,73 +141,6 @@ jobs:
         run: |
           solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
 
-  market-maker-bots:
-    name: Run Market Maker Bots
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      # Install solana
-      - name: Cache Solana Tool Suite
-        uses: actions/cache@v2  
-        id: cache-solana
-        with:
-          path: |
-            ~/.cache/solana/
-            ~/.local/share/solana/
-          key: solana-${{ runner.os }}-v0000-${{ env.SOLANA_VERSION }}
-      - name: install solana
-        if: steps.cache-solana.outputs.cache-hit != 'true'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config build-essential libudev-dev
-          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
-      - name: Add Solana to PATH
-        run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
-      - name: Setup solana 
-        run: |
-          solana --version
-          solana config set -u d
-          solana config set --url ${{ env.DEVNET_RPC}}
-      # Install Yarn
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
-      - name: Yarn Cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-modules-
-      - name: Node 14 installation
-        uses: actions/setup-node@v2
-        with:
-          node-version: "14"
-          cache: "yarn"
-          registry-url: 'https://npm.pkg.github.com'
-          scope: "@UXDProtocol"
-          always-auth: true
-      # Create Keypair
-      - name: Create MM keypair and funds it
-        run: |
-          solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }}
-          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) ${{ env.MM_FUNDING_AMOUNT }} --allow-unfunded-recipient
-          solana balance
-      # Checkout Mango Client
-      - name: Checkout MangoClient-v3
-        uses: actions/checkout@v2
-        with:
-          repository: blockworks-foundation/mango-client-v3
-          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-      - name: Install MangoClient-v3 dependencies then runs Mango Keeper and MM bot on devnet for SOL perp
-        run: |
-          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-          yarn install
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} yarn keeper &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL yarn mm &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC yarn mm &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH yarn mm &
-
   # This deploy a fresh program and run all tests from test_ci_fresh.ts
   #
   # anchor-test-mango-depository-integration-fresh:
@@ -295,6 +228,21 @@ jobs:
   #       run: |
   #         echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
   #         echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
+      # # Checkout Mango Client
+      # - name: Checkout MangoClient-v3
+      #   uses: actions/checkout@v2
+      #   with:
+      #     repository: blockworks-foundation/mango-client-v3
+      #     path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
+      # - name: Start Market Making bot for the perp
+      #   run: |
+      #     cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
+      #     yarn install
+      #     GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} yarn keeper &
+      #     GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL yarn mm &
+      #     GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC yarn mm &
+      #     GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH yarn mm &
+      #     cd -
   #     - name: Yarn install + run tests
   #       run: |
   #         yarn install
@@ -310,7 +258,7 @@ jobs:
   anchor-test-mango-depository-SOL:
     name: Anchor Test MangoDepository SOL against the resident program
     runs-on: ubuntu-latest
-    needs: [market-maker-bots, anchor-build-and-deploy]
+    needs: [anchor-build-and-deploy]
     steps:
       # Checkout
       - uses: actions/checkout@v2
@@ -392,6 +340,19 @@ jobs:
         run: |
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
+      # Checkout Mango Client
+      - name: Checkout MangoClient-v3
+        uses: actions/checkout@v2
+        with:
+          repository: blockworks-foundation/mango-client-v3
+          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
+      - name: Start Keeper and Market Making bot for the perp
+        run: |
+          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
+          yarn install
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} yarn keeper &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL yarn mm &
+          cd -
       - name: Anchor Test (skip build and deploy)
         run: |
           yarn install
@@ -405,7 +366,7 @@ jobs:
   anchor-test-mango-depository-BTC:
     name: Anchor Test MangoDepository BTC against the resident program
     runs-on: ubuntu-latest
-    needs: [market-maker-bots, anchor-build-and-deploy]
+    needs: [anchor-build-and-deploy]
     steps:
       # Checkout
       - uses: actions/checkout@v2
@@ -487,6 +448,19 @@ jobs:
         run: |
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
+       # Checkout Mango Client
+      - name: Checkout MangoClient-v3
+        uses: actions/checkout@v2
+        with:
+          repository: blockworks-foundation/mango-client-v3
+          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
+      - name: Start Keeper and Market Making bot for the perp
+        run: |
+          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
+          yarn install
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} yarn keeper &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC yarn mm &
+          cd -
       - name: Anchor Test (skip build and deploy)
         run: |
           yarn install
@@ -501,7 +475,7 @@ jobs:
   anchor-test-mango-depository-ETH:
     name: Anchor Test MangoDepository ETH against the resident program
     runs-on: ubuntu-latest
-    needs: [market-maker-bots, anchor-build-and-deploy]
+    needs: [anchor-build-and-deploy]
     steps:
       # Checkout
       - uses: actions/checkout@v2
@@ -583,6 +557,19 @@ jobs:
         run: |
           echo "@uxdprotocol:registry=https://npm.pkg.github.com" >> ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ env.NODE_AUTH_TOKEN }}" >> ~/.npmrc
+      # Checkout Mango Client
+      - name: Checkout MangoClient-v3
+        uses: actions/checkout@v2
+        with:
+          repository: blockworks-foundation/mango-client-v3
+          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
+      - name: Start Keeper and Market Making bot for the perp
+        run: |
+          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
+          yarn install
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} yarn keeper &
+          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH yarn mm &
+          cd -
       - name: Anchor Test (skip build and deploy)
         run: |
           yarn install
@@ -597,7 +584,7 @@ jobs:
   anchor-test-mango-depository-rebalancing:
     name: Anchor Test MangoDepository Rebalancing (SOL, BTC, ETH) against the resident program
     runs-on: ubuntu-latest
-    needs: [market-maker-bots, anchor-build-and-deploy]
+    needs: [anchor-build-and-deploy]
     steps:
       # Checkout
       - uses: actions/checkout@v2
