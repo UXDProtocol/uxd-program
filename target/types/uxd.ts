@@ -1233,6 +1233,9 @@ export type Uxd = {
             "name": "BumpError"
           },
           {
+            "name": "OrderSizeBelowMinLotSize"
+          },
+          {
             "name": "Default"
           }
         ]
@@ -3023,6 +3026,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "BumpError"
+          },
+          {
+            "name": "OrderSizeBelowMinLotSize"
           },
           {
             "name": "Default"

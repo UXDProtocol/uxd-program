@@ -49,9 +49,9 @@ pub fn check_effective_order_price_versus_limit_price(
     slippage: u32,
 ) -> UxdResult {
     let market_price = perp_info.price;
-    let limit_price = limit_price(market_price, slippage, order.side)?;
+    let limit_price = limit_price(market_price, slippage, order.taker_side)?;
     let limit_price_lot = price_to_lot_price(limit_price, perp_info)?;
-    match order.side {
+    match order.taker_side {
         Side::Bid => {
             if order.price >= limit_price_lot {
                 return Ok(());

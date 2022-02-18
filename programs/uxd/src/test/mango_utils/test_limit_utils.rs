@@ -28,7 +28,7 @@ mod test_limit_utils {
         Ok(Order {
             quantity: 0,               // whatever not used
             price: price_lot.to_num(), // exact price
-            side,
+            taker_side: side,
         })
     }
 

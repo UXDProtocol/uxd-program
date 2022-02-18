@@ -180,13 +180,13 @@ export const mangoDepositoryMintRedeemSuite = function (user: Signer, payer: Sig
 
     // Fees are taken from the input on the redeem (provide UXD amount, gets UXD amount minus fees converted back to collateral). 
     // So we need to factor in the fees
-    it(`Mint twice min mint trading size, then redeem them (${slippage / slippageBase * 100}% slippage)`, async function () {
+    it(`Mint twice min mint trading size, then redeem them (10% slippage)`, async function () {
         const minRedeemAmount = await depository.getMinRedeemSizeQuoteUI(mango);
         const minTradingSize = await depository.getMinTradingSizeCollateralUI(mango);
 
+        await mintWithMangoDepositoryTest(minTradingSize * 2, 100, user, controller, depository, mango, payer);
         console.log("[🧾 $ value", minRedeemAmount, controller.redeemableMintSymbol, "]");
-        await mintWithMangoDepositoryTest(minTradingSize * 2, slippage, user, controller, depository, mango, payer);
-        await redeemFromMangoDepositoryTest(minRedeemAmount, slippage, user, controller, depository, mango, payer);
+        await redeemFromMangoDepositoryTest(minRedeemAmount, 100, user, controller, depository, mango, payer);
     });
 
     it(`Return remaining ${depository.collateralMintSymbol} user's balance to the payer`, async function () {

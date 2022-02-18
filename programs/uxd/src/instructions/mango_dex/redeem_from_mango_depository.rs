@@ -31,7 +31,8 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use fixed::types::I80F48;
-use mango::matching::Book;
+use mango::matching::BookSide;
+use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 use mango::state::PerpMarket;
@@ -161,14 +162,15 @@ pub fn handler(
     let exposure_delta_in_quote_lot_unit = exposure_delta_in_quote_unit
         .checked_div(perp_info.quote_lot_size)
         .ok_or(math_err!())?;
+    // Note : Reduce the delta neutral position, increasing long exposure, by buying perp.
+    //        [BID: taker (us, the caller) | ASK: maker]
+    let taker_side = Side::Bid;
+    let quote_lot_amount = exposure_delta_in_quote_lot_unit
+        .checked_to_num()
+        .ok_or(math_err!())?;
     let best_order = ctx
         .accounts
-        .get_best_order_for_quote_lot_amount_from_order_book(
-            mango::matching::Side::Ask,
-            exposure_delta_in_quote_lot_unit
-                .checked_to_num()
-                .ok_or(math_err!())?,
-        )?;
+        .get_best_order_for_quote_lot_amount_from_order_book(taker_side, quote_lot_amount)?;
 
     // - [Checks that the best price found is withing slippage range]
     check_effective_order_price_versus_limit_price(&perp_info, &best_order, slippage)?;
@@ -181,7 +183,7 @@ pub fn handler(
         best_order.price,
         best_order.quantity,
         0,
-        mango::matching::Side::Bid,
+        best_order.taker_side,
         mango::matching::OrderType::ImmediateOrCancel,
         true,
     )?;
@@ -364,21 +366,25 @@ impl<'info> RedeemFromMangoDepository<'info> {
 
     fn get_best_order_for_quote_lot_amount_from_order_book(
         &self,
-        side: mango::matching::Side,
+        taker_side: mango::matching::Side,
         quote_lot_amount: i64,
     ) -> UxdResult<Order> {
-        // Load book
         let perp_market = PerpMarket::load_checked(
             &self.mango_perp_market,
             self.mango_program.key,
             self.mango_group.key,
         )?;
-        let bids_ai = self.mango_bids.to_account_info();
-        let asks_ai = self.mango_asks.to_account_info();
-        let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
-        let best_order = get_best_order_for_quote_lot_amount(&book, side, quote_lot_amount)?;
-
-        best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))
+        // Load the maker side of the book
+        let book_maker_side = match taker_side {
+            Side::Bid => {
+                BookSide::load_mut_checked(&self.mango_asks, self.mango_program.key, &perp_market)
+            }
+            Side::Ask => {
+                BookSide::load_mut_checked(&self.mango_bids, self.mango_program.key, &perp_market)
+            }
+        }?;
+        // Search for the best order to spend the given amount of quote lot
+        get_best_order_for_quote_lot_amount(book_maker_side, taker_side, quote_lot_amount)
     }
 
     // Update the accounting in the Depository and Controller Accounts to reflect changes

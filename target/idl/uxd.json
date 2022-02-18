@@ -1233,6 +1233,9 @@
             "name": "BumpError"
           },
           {
+            "name": "OrderSizeBelowMinLotSize"
+          },
+          {
             "name": "Default"
           }
         ]

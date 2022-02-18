@@ -31,7 +31,7 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 use fixed::types::I80F48;
-use mango::matching::Book;
+use mango::matching::BookSide;
 use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
@@ -150,12 +150,13 @@ pub fn handler(
         .ok_or(math_err!())?;
 
     // - [Find the best order]
+    // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
+    //        [BID: maker | ASK: taker (us, the caller)]
+    let taker_side = Side::Ask;
+    let base_lot_amount = base_lot_amount.checked_to_num().ok_or(math_err!())?;
     let best_order = ctx
         .accounts
-        .get_best_order_for_base_lot_quantity_from_order_book(
-            Side::Bid,
-            base_lot_amount.checked_to_num().ok_or(math_err!())?,
-        )?;
+        .get_best_order_for_base_lot_quantity_from_order_book(taker_side, base_lot_amount)?;
 
     // - [Checks that the best price found is within slippage range]
     check_effective_order_price_versus_limit_price(&perp_info, &best_order, slippage)?;
@@ -204,7 +205,7 @@ pub fn handler(
         best_order.price,
         best_order.quantity,
         0,
-        mango::matching::Side::Ask,
+        best_order.taker_side,
         mango::matching::OrderType::ImmediateOrCancel,
         false,
     )?;
@@ -374,9 +375,9 @@ impl<'info> MintWithMangoDepository<'info> {
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
-    fn get_best_order_for_base_lot_quantity_from_order_book(
+    fn get_best_order_for_base_lot_quantity_from_order_book<'a>(
         &self,
-        side: mango::matching::Side,
+        taker_side: mango::matching::Side,
         base_lot_amount: i64,
     ) -> UxdResult<Order> {
         let perp_market = PerpMarket::load_checked(
@@ -384,11 +385,17 @@ impl<'info> MintWithMangoDepository<'info> {
             self.mango_program.key,
             self.mango_group.key,
         )?;
-        let bids_ai = self.mango_bids.to_account_info();
-        let asks_ai = self.mango_asks.to_account_info();
-        let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
-        let best_order = get_best_order_for_base_lot_quantity(&book, side, base_lot_amount)?;
-        best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))
+        // Load the maker side of the book
+        let book_maker_side = match taker_side {
+            Side::Bid => {
+                BookSide::load_mut_checked(&self.mango_asks, self.mango_program.key, &perp_market)
+            }
+            Side::Ask => {
+                BookSide::load_mut_checked(&self.mango_bids, self.mango_program.key, &perp_market)
+            }
+        }?;
+        // Search for the best order to spend the given amount of base lot
+        get_best_order_for_base_lot_quantity(book_maker_side, taker_side, base_lot_amount)
     }
 
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
