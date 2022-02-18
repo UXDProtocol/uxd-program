@@ -692,7 +692,10 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         slippage: u32,
     ) -> ProgramResult {
         // Valid slippage check
-        check!(slippage <= SLIPPAGE_BASIS, UxdErrorCode::InvalidSlippage)?;
+        check!(
+            (slippage > 0) && (slippage <= SLIPPAGE_BASIS),
+            UxdErrorCode::InvalidSlippage
+        )?;
 
         // Rebalancing amount must be above 0
         check!(

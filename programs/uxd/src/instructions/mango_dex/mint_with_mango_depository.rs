@@ -3,10 +3,10 @@ use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
 use crate::mango_program;
-use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
-use crate::mango_utils::get_best_order_for_base_lot_quantity;
+use crate::mango_utils::limit_price;
+use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::Order;
 use crate::mango_utils::PerpInfo;
@@ -31,11 +31,9 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 use fixed::types::I80F48;
-use mango::matching::BookSide;
 use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
-use mango::state::PerpMarket;
 
 declare_check_assert_macros!(SourceFileId::InstructionMangoDexMintWithMangoDepository);
 
@@ -189,34 +187,29 @@ pub fn handler(
     // - [Get perp information]
     let perp_info = ctx.accounts.perpetual_info()?;
 
-    // - [Get the amount of Base Lots for the perp order]
+    // - [Get the amount of Base Lots for the perp order (odd lots won't be processed)]
     let base_lot_amount = I80F48::from_num(collateral_amount)
-        .checked_div(perp_info.base_lot_size)
+        .checked_div_euclid(perp_info.base_lot_size)
         .ok_or(math_err!())?
-        // Round down
+        // Round down (should not be needed as base_lot should be an integer)
         .checked_floor()
         .ok_or(math_err!())?;
 
-    // - [Find the best order]
+    // - [Define our perp order]
     // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
     //        [BID: maker | ASK: taker (us, the caller)]
     let taker_side = Side::Ask;
-    let base_lot_amount = base_lot_amount.checked_to_num().ok_or(math_err!())?;
-    let best_order = ctx
-        .accounts
-        .get_best_order_for_base_lot_quantity_from_order_book(taker_side, base_lot_amount)?;
-
-    // - [Checks that the best price found is within slippage range]
-    check_effective_order_price_versus_limit_price(&perp_info, &best_order, slippage)?;
+    let limit_price = limit_price(perp_info.price, slippage, taker_side)?;
+    let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
+    let perp_order = Order {
+        quantity: base_lot_amount.checked_to_num().ok_or(math_err!())?,
+        price: limit_price_lot.checked_to_num().ok_or(math_err!())?, // worth execution price
+        taker_side,
+    };
 
     // - 2 [TRANSFER COLLATERAL TO MANGO (LONG)] ------------------------------
-
-    // Note : Done after calculating the mango order so that we don't overdraft collateral.
-    //        But needs to be deposited before the actual order placement as the
-    //        collateral deposited is used as leverage for opening the perp short.
-
     // This value is verified after by checking if the perp order was fully filled
-    let planned_collateral_delta = I80F48::from_num(best_order.quantity)
+    let planned_collateral_delta = I80F48::from_num(perp_order.quantity)
         .checked_mul(perp_info.base_lot_size)
         .ok_or(math_err!())?
         .checked_to_num()
@@ -250,10 +243,10 @@ pub fn handler(
         ctx.accounts
             .into_open_mango_short_perp_context()
             .with_signer(depository_signer_seed),
-        best_order.price,
-        best_order.quantity,
+        perp_order.price,
+        perp_order.quantity,
         0,
-        best_order.taker_side,
+        perp_order.taker_side,
         mango::matching::OrderType::ImmediateOrCancel,
         false,
     )?;
@@ -264,7 +257,7 @@ pub fn handler(
     // - [Checks that the order was fully filled]
     let post_perp_order_base_lot_position = total_perp_base_lot_position(&post_pa)?;
     check_perp_order_fully_filled(
-        best_order.quantity,
+        perp_order.quantity,
         initial_base_position,
         post_perp_order_base_lot_position,
     )?;
@@ -423,29 +416,6 @@ impl<'info> MintWithMangoDepository<'info> {
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
-    fn get_best_order_for_base_lot_quantity_from_order_book<'a>(
-        &self,
-        taker_side: mango::matching::Side,
-        base_lot_amount: i64,
-    ) -> UxdResult<Order> {
-        let perp_market = PerpMarket::load_checked(
-            &self.mango_perp_market,
-            self.mango_program.key,
-            self.mango_group.key,
-        )?;
-        // Load the maker side of the book
-        let book_maker_side = match taker_side {
-            Side::Bid => {
-                BookSide::load_mut_checked(&self.mango_asks, self.mango_program.key, &perp_market)
-            }
-            Side::Ask => {
-                BookSide::load_mut_checked(&self.mango_bids, self.mango_program.key, &perp_market)
-            }
-        }?;
-        // Search for the best order to spend the given amount of base lot
-        get_best_order_for_base_lot_quantity(book_maker_side, taker_side, base_lot_amount)
-    }
-
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
     fn check_redeemable_global_supply_cap_overflow(&self) -> UxdResult {
         check!(
@@ -493,7 +463,7 @@ impl<'info> MintWithMangoDepository<'info> {
 impl<'info> MintWithMangoDepository<'info> {
     pub fn validate(&self, collateral_amount: u64, slippage: u32) -> ProgramResult {
         // Valid slippage check
-        check!(slippage <= SLIPPAGE_BASIS, UxdErrorCode::InvalidSlippage)?;
+        check!((slippage > 0) && (slippage <= SLIPPAGE_BASIS), UxdErrorCode::InvalidSlippage)?;
 
         check!(collateral_amount > 0, UxdErrorCode::InvalidCollateralAmount)?;
         check!(

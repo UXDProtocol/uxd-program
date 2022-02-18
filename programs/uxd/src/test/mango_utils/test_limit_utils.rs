@@ -23,12 +23,12 @@ mod test_limit_utils {
         }
     }
 
-    fn mocked_order(perp_info: &PerpInfo, price: f64, side: Side) -> UxdResult<Order> {
+    fn mocked_order(perp_info: &PerpInfo, price: f64, taker_side: Side) -> UxdResult<Order> {
         let price_lot = price_to_lot_price(I80F48::from_num(price), perp_info)?;
         Ok(Order {
             quantity: 0,               // whatever not used
             price: price_lot.to_num(), // exact price
-            taker_side: side,
+            taker_side,
         })
     }
 
@@ -53,11 +53,11 @@ mod test_limit_utils {
                 #[test]
                 fn test_check_effective_order_price_versus_limit_price_bid(perp_price in 0.0f64..10f64, order_price in 0.0f64..10f64, slippage in 1..SLIPPAGE_BASIS) {
                     // Order.price must be below the perpInfo.price within slippage
-                    let side = Side::Bid;
+                    let taker_side = Side::Ask;
                     let perp_info = mocked_perp_info(perp_price);
-                    let order = mocked_order(&perp_info, order_price, side).unwrap();
+                    let order = mocked_order(&perp_info, order_price, taker_side).unwrap();
 
-                    let limit_price: f64 = limit_price(I80F48::from_num(perp_price), slippage, side)?.to_num();
+                    let limit_price: f64 = limit_price(I80F48::from_num(perp_price), slippage, taker_side)?.to_num();
                     match check_effective_order_price_versus_limit_price(
                         &perp_info,
                         &order,
@@ -93,8 +93,9 @@ mod test_limit_utils {
                 #[test]
                 pub fn test_valid_mint_small_slippage() {
                     // Order.price must be below the perpInfo.price within slippage
+                    let taker_side = Side::Ask;
                     let perp_info = mocked_perp_info(0.09000);
-                    let order = mocked_order(&perp_info, 0.09000, Side::Bid).unwrap();
+                    let order = mocked_order(&perp_info, 0.09000, taker_side).unwrap();
                     let ret = check_effective_order_price_versus_limit_price(
                         &perp_info, &order, 1, // 0.1%
                     );
@@ -103,8 +104,9 @@ mod test_limit_utils {
 
                 #[test]
                 pub fn test_valid_mint() {
+                    let taker_side = Side::Ask;
                     let perp_info = mocked_perp_info(0.09000);
-                    let order = mocked_order(&perp_info, 0.08911, Side::Bid).unwrap();
+                    let order = mocked_order(&perp_info, 0.08911, taker_side).unwrap();
                     let ret = check_effective_order_price_versus_limit_price(
                         &perp_info, &order, 10, // 1%
                     );
@@ -113,8 +115,9 @@ mod test_limit_utils {
 
                 #[test]
                 pub fn test_invalid_mint() {
+                    let taker_side = Side::Ask;
                     let perp_info = mocked_perp_info(0.09000);
-                    let order = mocked_order(&perp_info, 0.08909, Side::Bid).unwrap();
+                    let order = mocked_order(&perp_info, 0.08909, taker_side).unwrap();
                     let ret = check_effective_order_price_versus_limit_price(
                         &perp_info, &order, 10, // 1%
                     );
@@ -139,11 +142,11 @@ mod test_limit_utils {
                 ///      slippage between 0.1% and 100%
                 #[test]
                 fn test_check_effective_order_price_versus_limit_price_ask(perp_price in 0.0f64..10f64, order_price in 0.0f64..10f64, slippage in 1..SLIPPAGE_BASIS) {
-                    let side = Side::Ask;
+                    let taker_side = Side::Bid;
                     let perp_info = mocked_perp_info(perp_price);
-                    let order = mocked_order(&perp_info, order_price, side).unwrap();
+                    let order = mocked_order(&perp_info, order_price, taker_side).unwrap();
 
-                    let limit_price: f64 = limit_price(I80F48::from_num(perp_price), slippage, side)?.to_num();
+                    let limit_price: f64 = limit_price(I80F48::from_num(perp_price), slippage, taker_side)?.to_num();
                     match check_effective_order_price_versus_limit_price(
                         &perp_info,
                         &order,
@@ -178,8 +181,9 @@ mod test_limit_utils {
 
                 #[test]
                 pub fn test_valid_redeem_small_slippage() {
+                    let taker_side = Side::Bid;
                     let perp_info = mocked_perp_info(0.09000);
-                    let order = mocked_order(&perp_info, 0.09000, Side::Ask).unwrap();
+                    let order = mocked_order(&perp_info, 0.09000, taker_side).unwrap();
                     let ret = check_effective_order_price_versus_limit_price(
                         &perp_info, &order, 1, // 0.1%
                     );
@@ -188,8 +192,9 @@ mod test_limit_utils {
 
                 #[test]
                 pub fn test_valid_redeem() {
+                    let taker_side = Side::Bid;
                     let perp_info = mocked_perp_info(0.09000);
-                    let order = mocked_order(&perp_info, 0.09089, Side::Ask).unwrap();
+                    let order = mocked_order(&perp_info, 0.09089, taker_side).unwrap();
                     let ret = check_effective_order_price_versus_limit_price(
                         &perp_info, &order, 10, // 1%
                     );
@@ -198,8 +203,9 @@ mod test_limit_utils {
 
                 #[test]
                 pub fn test_invalid_redeem() {
+                    let taker_side = Side::Bid;
                     let perp_info = mocked_perp_info(0.09000);
-                    let order = mocked_order(&perp_info, 0.09091, Side::Ask).unwrap();
+                    let order = mocked_order(&perp_info, 0.09091, taker_side).unwrap();
                     let ret = check_effective_order_price_versus_limit_price(
                         &perp_info, &order, 10, // 1%
                     );
@@ -248,7 +254,7 @@ mod test_limit_utils {
 
                 let slippage_amount = calculate_slippage_amount(fractional_price, slippage).unwrap();
                 // expected limit price
-                let price_sub_slippage = fractional_price.checked_sub(slippage_amount).unwrap();
+                let price_sub_slippage = fractional_price.checked_add(slippage_amount).unwrap();
 
                 prop_assert_eq!(limit_price, price_sub_slippage);
             }
@@ -265,7 +271,7 @@ mod test_limit_utils {
 
                 let slippage_amount = calculate_slippage_amount(fractional_price, slippage).unwrap();
                 // expected limit price
-                let price_add_slippage = fractional_price.checked_add(slippage_amount).unwrap();
+                let price_add_slippage = fractional_price.checked_sub(slippage_amount).unwrap();
 
                 prop_assert_eq!(limit_price, price_add_slippage);
             }
