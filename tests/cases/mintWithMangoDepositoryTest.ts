@@ -6,6 +6,7 @@ import { mintWithMangoDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
+import { depositInsuranceMangoDepositoryTest } from "./depositInsuranceMangoDepositoryTest";
 
 export const mintWithMangoDepositoryTest = async function (collateralAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> {
     console.group("🧭 mintWithMangoDepositoryTest");
@@ -21,6 +22,8 @@ export const mintWithMangoDepositoryTest = async function (collateralAmount: num
 
         const depositoryAccount = await depository.getOnchainAccount(connection, options);
         const depositoryRedeemable = nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), depository.quoteMintDecimals);
+        const depositoryCollateral = nativeToUi(depositoryAccount.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals);
+        const depositoryTakerFees = nativeToUi(depositoryAccount.totalAmountPaidTakerFee.toNumber(), depository.quoteMintDecimals);
         const controllerAccount = await controller.getOnchainAccount(connection, options);
         const controllerRedeemable = nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
 
@@ -61,6 +64,8 @@ export const mintWithMangoDepositoryTest = async function (collateralAmount: num
         // Get onchain depository and controller for post accounting
         const depositoryAccount_post = await depository.getOnchainAccount(connection, TXN_OPTS);
         const depositoryRedeemable_post = nativeToUi(depositoryAccount_post.redeemableAmountUnderManagement.toNumber(), depository.quoteMintDecimals);
+        const depositoryCollateral_post = nativeToUi(depositoryAccount_post.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals);
+        const depositoryTakerFees_post = nativeToUi(depositoryAccount_post.totalAmountPaidTakerFee.toNumber(), depository.quoteMintDecimals);
         const controllerAccount_post = await controller.getOnchainAccount(connection, TXN_OPTS);
         const controllerRedeemable_post = nativeToUi(controllerAccount_post.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
         const redeemableNativeUnitPrecision = Math.pow(10, -controller.redeemableMintDecimals);
@@ -82,6 +87,23 @@ export const mintWithMangoDepositoryTest = async function (collateralAmount: num
         expect(collateralOddLotLeftOver).lessThanOrEqual(minTradingSizeCollateral * 2, "The collateral odd lot returned is higher than twice the minTradingSize for that perp.");
         // Accounting
         expect(depositoryRedeemable_post).closeTo(depositoryRedeemable + redeemableDelta, redeemableNativeUnitPrecision, "Depository RedeemableAmountUnderManagement is incorrect");
+        console.log("JAWSZZ");
+        console.log(depositoryTakerFees_post);
+        console.log(depositoryTakerFees);
+        console.log(depositoryTakerFees + (mangoTakerFee * collateralDelta * mangoPerpPrice));
+        // console.log(depositoryTakerFees);
+        // console.log(estimatedAmountRedeemableLostInTakerFees);
+        // console.log(depositoryTakerFees + estimatedAmountRedeemableLostInTakerFees);
+        // console.log(redeemableNativeUnitPrecision);
+        // expect(depositoryTakerFees_post).closeTo(depositoryTakerFees + estimatedAmountRedeemableLostInTakerFees, redeemableNativeUnitPrecision * (10 ** 5), "Depository TotalAmountPaidTakerFee is incorrect");
+        expect(depositoryTakerFees_post).to.be.within(depositoryTakerFees, depositoryTakerFees + (mangoTakerFee * collateralDelta * mangoPerpPrice), "Depository TotalAmountPaidTakerFee is incorrect");
+        // console.log("POOPSCOOP");
+        // console.log(depositoryCollateral_post);
+        // console.log(depositoryCollateral);
+        // console.log(collateralProcessedByMinting);
+        // console.log(depositoryCollateral + collateralProcessedByMinting);
+        // console.log(depositoryCollateral_post - (depositoryCollateral + collateralProcessedByMinting));
+        // expect(depositoryCollateral_post).closeTo(depositoryCollateral + collateralProcessedByMinting, collateralNativeUnitPrecision, "Depository CollateralAmountDeposited is incorrect");
         expect(controllerRedeemable_post).closeTo(controllerRedeemable + redeemableDelta, redeemableNativeUnitPrecision, "Controller RedeemableCirculatingSupply is incorrect");
 
 
