@@ -107,6 +107,7 @@ const rebalanceNegativePnL = async function (rebalancingMaxAmount: number, slipp
 
     // WHEN
     // - Get the perp price at the same moment to have the less diff between exec and test price
+    // Simulates user experience from the front end
     const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
     const txId = await rebalanceMangoDepositoryLite(user, payer ?? user, rebalancingMaxAmount, PnLPolarity.Negative, slippage, controller, depository, mango)
     console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol);
@@ -127,7 +128,7 @@ const rebalanceNegativePnL = async function (rebalancingMaxAmount: number, slipp
     const quoteDelta = userQuoteBalance - userQuoteBalance_post;
     const collateralDelta = userCollateralBalance_post - userCollateralBalance;
     const quoteLeftOverDueToOddLot = rebalancingMaxAmount - quoteDelta;
-    const quoteProcessedByRebalancing = rebalancingMaxAmount - quoteLeftOverDueToOddLot;
+    const quoteProcessedByRebalancing = Math.min(rebalancingMaxAmount - quoteLeftOverDueToOddLot, 0);
     // The mango perp price in these might not be the exact same as the one in the transaction.
     const estimatedFrictionlessCollateralDelta = quoteProcessedByRebalancing / mangoPerpPrice;
     const estimatedAmountQuoteLostInTakerFees = mangoTakerFee * quoteProcessedByRebalancing;

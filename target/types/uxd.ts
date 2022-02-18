@@ -734,22 +734,22 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false
         },
         {
           "name": "redeemableMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRedeemable",
           "isMut": true,
           "isSigner": false
         },
@@ -2529,22 +2529,22 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false
         },
         {
           "name": "redeemableMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRedeemable",
           "isMut": true,
           "isSigner": false
         },

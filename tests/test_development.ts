@@ -47,20 +47,22 @@ describe("Integration tests SOL", function () {
         });
     });
 
-    it.skip(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
-        const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const amount = 10 / perpPrice;
-        console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
-        const mintedAmount = await mintWithMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
-        await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, depository, mango, payer);
-    });
+    describe("Testing", async function () {
+        it.skip(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
+            const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+            const amount = 10 / perpPrice;
+            console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
+            const mintedAmount = await mintWithMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
+            await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, depository, mango, payer);
+        });
 
-    it(`Mint twice min mint trading size, then redeem them (${slippage / slippageBase * 100}% slippage)`, async function () {
-        const minRedeemAmount = await depository.getMinRedeemSizeQuoteUI(mango);
-        const minTradingSize = await depository.getMinTradingSizeCollateralUI(mango);
+        it(`Mint twice min mint trading size, then redeem them (${slippage / slippageBase * 100}% slippage)`, async function () {
+            const minRedeemAmount = await depository.getMinRedeemSizeQuoteUI(mango);
+            const minTradingSize = await depository.getMinTradingSizeCollateralUI(mango);
 
-        await mintWithMangoDepositoryTest(minTradingSize * 2, slippage, user, controller, depository, mango, payer);
-        await redeemFromMangoDepositoryTest(minRedeemAmount, slippage, user, controller, depository, mango, payer);
+            await mintWithMangoDepositoryTest(minTradingSize * 2, slippage, user, controller, depository, mango, payer);
+            await redeemFromMangoDepositoryTest(minRedeemAmount, slippage, user, controller, depository, mango, payer);
+        });
     });
 
     this.afterAll("Transfer funds back to bank", async function () {
