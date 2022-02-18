@@ -142,7 +142,7 @@ jobs:
           solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
 
   market-maker-bots:
-    name: Run Market Maker Bots (stay alive for 6mn)
+    name: Run Market Maker Bots
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -207,8 +207,6 @@ jobs:
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL yarn mm &
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC yarn mm &
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH yarn mm &
-          echo "Now running for 6min..."
-          sleep 6m
 
   # This deploy a fresh program and run all tests from test_ci_fresh.ts
   #
