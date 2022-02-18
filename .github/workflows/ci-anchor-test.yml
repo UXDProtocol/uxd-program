@@ -256,7 +256,7 @@ jobs:
   #         solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
 
   anchor-test-mango-depository-SOL:
-    name: Anchor Test MangoDepository SOL against the resident program
+    name: Test SOL MangoDepository against the resident program
     runs-on: ubuntu-latest
     needs: [anchor-build-and-deploy]
     steps:
@@ -364,7 +364,7 @@ jobs:
           solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
 
   anchor-test-mango-depository-BTC:
-    name: Anchor Test MangoDepository BTC against the resident program
+    name: Test BTC MangoDepository against the resident program
     runs-on: ubuntu-latest
     needs: [anchor-build-and-deploy]
     steps:
@@ -473,7 +473,7 @@ jobs:
 
 
   anchor-test-mango-depository-ETH:
-    name: Anchor Test MangoDepository ETH against the resident program
+    name: Test ETH MangoDepository against the resident program
     runs-on: ubuntu-latest
     needs: [anchor-build-and-deploy]
     steps:
@@ -582,7 +582,7 @@ jobs:
 
 
   anchor-test-mango-depository-rebalancing:
-    name: Anchor Test MangoDepository Rebalancing (SOL, BTC, ETH) against the resident program
+    name: Test Rebalancing MangoDepository (SOL, BTC, ETH) against the resident program
     runs-on: ubuntu-latest
     needs: [anchor-build-and-deploy]
     steps:
