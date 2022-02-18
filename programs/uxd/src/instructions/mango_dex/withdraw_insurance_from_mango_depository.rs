@@ -34,7 +34,7 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     pub controller: Box<Account<'info, Controller>>,
 
     /// UXDProgram on chain account bound to a Controller instance
-    /// The `MangoDepository` manager a MangoAccount for a single Collateral
+    /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
