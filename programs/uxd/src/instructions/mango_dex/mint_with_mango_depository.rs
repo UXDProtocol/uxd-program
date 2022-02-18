@@ -259,17 +259,19 @@ pub fn handler(
     // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE GLOBAL REDEEMABLE SUPPLY CAP] -
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
-    emit!(MintWithMangoDepositoryEvent {
-        version: ctx.accounts.controller.version,
-        controller: ctx.accounts.controller.key(),
-        depository: ctx.accounts.depository.key(),
-        user: ctx.accounts.user.key(),
-        collateral_amount,
-        slippage,
-        collateral_delta: order_delta.collateral,
-        redeemable_delta,
-        fee_delta: order_delta.fee,
-    });
+    // Disable until more computing available in Solana 1.9.0
+    //
+    // emit!(MintWithMangoDepositoryEvent {
+    //     version: ctx.accounts.controller.version,
+    //     controller: ctx.accounts.controller.key(),
+    //     depository: ctx.accounts.depository.key(),
+    //     user: ctx.accounts.user.key(),
+    //     collateral_amount,
+    //     slippage,
+    //     collateral_delta: order_delta.collateral,
+    //     redeemable_delta,
+    //     fee_delta: order_delta.fee,
+    // });
 
     Ok(())
 }
