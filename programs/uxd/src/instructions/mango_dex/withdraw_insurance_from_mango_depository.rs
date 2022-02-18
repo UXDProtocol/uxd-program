@@ -22,13 +22,19 @@ declare_check_assert_macros!(SourceFileId::InstructionMangoDexWithdrawInsuranceF
 
 #[derive(Accounts)]
 pub struct WithdrawInsuranceFromMangoDepository<'info> {
+    /// Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
+
+    /// The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
+
+    /// UXDProgram on chain account bound to a Controller instance
+    /// The `MangoDepository` manager a MangoAccount for a single Collateral
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
@@ -37,21 +43,30 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
+
+    /// The collateral mint used by the `depository` instance
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
+
+    /// The insurance mint used by the `depository` instance
     #[account(
         constraint = insurance_mint.key() == depository.insurance_mint @UxdIdlErrorCode::InvalidInsuranceMint
     )]
     pub insurance_mint: Box<Account<'info, Mint>>,
-    // The account that will receive the funds withdrawn
+
+    /// The `user`'s ATA for the `controller`'s `redeemable_mint`
+    /// Will be credited during this instruction
     #[account(
         mut,
         constraint = authority_insurance.mint == depository.insurance_mint @UxdIdlErrorCode::InvalidAuthorityInsuranceATAMint
     )]
     pub authority_insurance: Box<Account<'info, TokenAccount>>,
-    // Passthrough accounts as only mangoAccount's Owner Owned accounts can transact w/ the mangoAccount
+
+    /// The `depository`'s TA for its `insurance_mint`
+    /// MangoAccounts can only transact with the TAs owned by their authority
+    /// and this only serves as a passthrough
     #[account(
         mut,
         seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
@@ -60,6 +75,8 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
         constraint = depository_insurance_passthrough_account.mint == insurance_mint.key() @UxdIdlErrorCode::InvalidInsurancePassthroughATAMint,
     )]
     pub depository_insurance_passthrough_account: Box<Account<'info, TokenAccount>>,
+
+    /// The MangoMarkets Account (MangoAccount) managed by the `depository`
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
@@ -67,18 +84,34 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
         constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
-    // Mango CPI accounts
+
+    /// [MangoMarkets CPI] Index grouping perp and spot markets
     pub mango_group: AccountInfo<'info>,
+
+    /// [MangoMarkets CPI] Cache
     pub mango_cache: AccountInfo<'info>,
+
+    /// [MangoMarkets CPI] Signer PDA
     pub mango_signer: AccountInfo<'info>,
+
+    /// [MangoMarkets CPI] Root Bank for the `depository`'s `insurance_mint`
     pub mango_root_bank: AccountInfo<'info>,
+
+    /// [MangoMarkets CPI] Node Bank for the `depository`'s `insurance_mint`
     #[account(mut)]
     pub mango_node_bank: AccountInfo<'info>,
+
+    /// [MangoMarkets CPI] Vault for the `depository`'s `insurance_mint`
     #[account(mut)]
     pub mango_vault: Account<'info, TokenAccount>,
-    // programs
+
+    /// System Program
     pub system_program: Program<'info, System>,
+
+    /// Token Program
     pub token_program: Program<'info, Token>,
+
+    /// MangoMarketv3 Program
     pub mango_program: Program<'info, mango_program::Mango>,
 }
 

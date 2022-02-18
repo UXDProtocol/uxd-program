@@ -23,9 +23,13 @@ declare_check_assert_macros!(SourceFileId::InstructionInitializeController);
     redeemable_mint_decimals: u8,
 )]
 pub struct InitializeController<'info> {
+    /// Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
+
     #[account(mut)]
     pub payer: Signer<'info>,
+
+    /// The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         init,
         seeds = [CONTROLLER_NAMESPACE],
@@ -33,6 +37,8 @@ pub struct InitializeController<'info> {
         payer = payer,
     )]
     pub controller: Box<Account<'info, Controller>>,
+
+    /// The redeemable mint managed by the `controller` instance
     #[account(
         init,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
@@ -43,8 +49,14 @@ pub struct InitializeController<'info> {
         constraint = redeemable_mint_decimals <= SOLANA_MAX_MINT_DECIMALS
     )]
     pub redeemable_mint: Account<'info, Mint>,
+
+    /// System Program
     pub system_program: Program<'info, System>,
+
+    /// Token Program
     pub token_program: Program<'info, Token>,
+
+    /// Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
