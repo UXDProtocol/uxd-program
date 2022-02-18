@@ -19,15 +19,22 @@ declare_check_assert_macros!(SourceFileId::InstructionMangoDexMigrateMangoDeposi
 
 #[derive(Accounts)]
 pub struct MigrateMangoDepositoryToV2<'info> {
+    /// Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
+
     #[account(mut)]
     pub payer: Signer<'info>,
+
+    /// The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
+
+    /// UXDProgram on chain account bound to a Controller instance
+    /// The `MangoDepository` manager a MangoAccount for a single Collateral
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
@@ -36,7 +43,13 @@ pub struct MigrateMangoDepositoryToV2<'info> {
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
+
+    /// The quote mint used by the `depository` instance
     pub quote_mint: Box<Account<'info, Mint>>,
+
+    /// The `depository`'s TA for its `quote_mint`
+    /// MangoAccounts can only transact with the TAs owned by their authority
+    /// and this only serves as a passthrough
     #[account(
         init_if_needed,
         seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
@@ -46,10 +59,14 @@ pub struct MigrateMangoDepositoryToV2<'info> {
         payer = payer,
     )]
     pub depository_quote_passthrough_account: Account<'info, TokenAccount>,
-    // programs
+
+    /// System Program
     pub system_program: Program<'info, System>,
+
+    /// Token Program
     pub token_program: Program<'info, Token>,
-    // sysvar
+
+    /// Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 

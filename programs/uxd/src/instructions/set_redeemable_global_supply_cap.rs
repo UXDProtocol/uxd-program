@@ -13,7 +13,10 @@ declare_check_assert_macros!(SourceFileId::InstructionSetRedeemableGlobalSupplyC
 
 #[derive(Accounts)]
 pub struct SetRedeemableGlobalSupplyCap<'info> {
+    /// Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
+
+    /// The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
