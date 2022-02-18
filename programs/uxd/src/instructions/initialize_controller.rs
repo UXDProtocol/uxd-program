@@ -18,18 +18,20 @@ use anchor_spl::token::Token;
 
 declare_check_assert_macros!(SourceFileId::InstructionInitializeController);
 
+/// Takes 7 accounts - 4 used locally - 0 for CPI - 2 Programs - 1 Sysvar
 #[derive(Accounts)]
 #[instruction(
     redeemable_mint_decimals: u8,
 )]
 pub struct InitializeController<'info> {
-    /// Authored call accessible only to the signer matching Controller.authority
+    /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
 
+    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// The top level UXDProgram on chain account managing the redeemable mint
+    /// #3 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         init,
         seeds = [CONTROLLER_NAMESPACE],
@@ -38,7 +40,7 @@ pub struct InitializeController<'info> {
     )]
     pub controller: Box<Account<'info, Controller>>,
 
-    /// The redeemable mint managed by the `controller` instance
+    /// #4 The redeemable mint managed by the `controller` instance
     #[account(
         init,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
@@ -50,13 +52,13 @@ pub struct InitializeController<'info> {
     )]
     pub redeemable_mint: Account<'info, Mint>,
 
-    /// System Program
+    /// #5 System Program
     pub system_program: Program<'info, System>,
 
-    /// Token Program
+    /// #6 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// Rent Sysvar
+    /// #7 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 

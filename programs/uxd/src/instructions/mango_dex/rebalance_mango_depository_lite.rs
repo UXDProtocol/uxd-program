@@ -40,22 +40,24 @@ declare_check_assert_macros!(SourceFileId::InstructionMangoDexRebalanceMangoDepo
 
 const SUPPORTED_DEPOSITORY_VERSION: u8 = 2;
 
+/// Takes 29 accounts - 11 used locally - 13 for MangoMarkets CPI - 4 Programs - 1 Sysvar
 #[derive(Accounts)]
 pub struct RebalanceMangoDepositoryLite<'info> {
-    /// Public call accessible to any user
+    /// #1 Public call accessible to any user
     pub user: Signer<'info>,
 
+    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// The top level UXDProgram on chain account managing the redeemable mint
+    /// #3 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump
     )]
     pub controller: Box<Account<'info, Controller>>,
 
-    /// UXDProgram on chain account bound to a Controller instance
+    /// #4 UXDProgram on chain account bound to a Controller instance
     /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
         mut,
@@ -67,19 +69,19 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
-    /// The collateral mint used by the `depository` instance
+    /// #5 The collateral mint used by the `depository` instance
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// The quote mint used by the `depository` instance
+    /// #6 The quote mint used by the `depository` instance
     #[account(
         constraint = quote_mint.key() == depository.quote_mint @UxdIdlErrorCode::InvalidQuoteMint
     )]
     pub quote_mint: Box<Account<'info, Mint>>,
 
-    /// The `user`'s ATA for the `depository`'s `collateral_mint`
+    /// #7 The `user`'s ATA for the `depository`'s `collateral_mint`
     /// Will be debited during this instruction when `Polarity` is positive
     /// Will be credited during this instruction when `Polarity` is negative
     #[account(
@@ -90,7 +92,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// The `user`'s ATA for the `depository`'s `quote_mint`
+    /// #8 The `user`'s ATA for the `depository`'s `quote_mint`
     /// Will be credited during this instruction when `Polarity` is positive
     /// Will be debited during this instruction when `Polarity` is negative
     #[account(
@@ -101,7 +103,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     )]
     pub user_quote: Box<Account<'info, TokenAccount>>,
 
-    /// The `depository`'s TA for its `collateral_mint`
+    /// #9 The `depository`'s TA for its `collateral_mint`
     /// MangoAccounts can only transact with the TAs owned by their authority
     /// and this only serves as a passthrough
     #[account(
@@ -113,7 +115,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
 
-    /// The `depository`'s TA for its `quote_mint`
+    /// #10 The `depository`'s TA for its `quote_mint`
     /// MangoAccounts can only transact with the TAs owned by their authority
     /// and this only serves as a passthrough
     #[account(
@@ -125,7 +127,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     )]
     pub depository_quote_passthrough_account: Box<Account<'info, TokenAccount>>,
 
-    /// The MangoMarkets Account (MangoAccount) managed by the `depository`
+    /// #11 The MangoMarkets Account (MangoAccount) managed by the `depository`
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
@@ -134,66 +136,66 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Signer PDA
+    /// #12 [MangoMarkets CPI] Signer PDA
     pub mango_signer: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Index grouping perp and spot markets
+    /// #13 [MangoMarkets CPI] Index grouping perp and spot markets
     pub mango_group: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Cache
+    /// #14 [MangoMarkets CPI] Cache
     pub mango_cache: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`
+    /// #15 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`
     pub mango_root_bank_quote: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`
+    /// #16 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`
     #[account(mut)]
     pub mango_node_bank_quote: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Vault `depository`'s `quote_mint`
+    /// #17 [MangoMarkets CPI] Vault `depository`'s `quote_mint`
     #[account(mut)]
     pub mango_vault_quote: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
+    /// #18 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
     pub mango_root_bank_collateral: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
+    /// #19 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
     #[account(mut)]
     pub mango_node_bank_collateral: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Vault for `depository`'s `collateral_mint`
+    /// #20 [MangoMarkets CPI] Vault for `depository`'s `collateral_mint`
     #[account(mut)]
     pub mango_vault_collateral: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
+    /// #21 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
     #[account(mut)]
     pub mango_perp_market: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
+    /// #22 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
     #[account(mut)]
     pub mango_bids: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
+    /// #23 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
     #[account(mut)]
     pub mango_asks: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
+    /// #24 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
     #[account(mut)]
     pub mango_event_queue: AccountInfo<'info>,
 
-    /// System Program
+    /// #25 System Program
     pub system_program: Program<'info, System>,
 
-    /// Token Program
+    /// #26 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// Associated Token Program
+    /// #27 Associated Token Program
     pub associated_token_program: Program<'info, AssociatedToken>,
 
-    /// MangoMarketv3 Program
+    /// #28 MangoMarketv3 Program
     pub mango_program: Program<'info, mango_program::Mango>,
 
-    /// Rent Sysvar
+    /// #29 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 

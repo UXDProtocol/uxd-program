@@ -39,15 +39,17 @@ use mango::state::PerpMarket;
 
 declare_check_assert_macros!(SourceFileId::InstructionMangoDexRedeemFromMangoDepository);
 
+/// Takes 25 accounts - 10 used locally - 10 for MangoMarkets CPI - 4 Programs - 1 Sysvar
 #[derive(Accounts)]
 pub struct RedeemFromMangoDepository<'info> {
-    /// #0 Public call accessible to any user
+    /// #1 Public call accessible to any user
     pub user: Signer<'info>,
 
+    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// #1 The top level UXDProgram on chain account managing the redeemable mint
+    /// #3 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -55,7 +57,7 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub controller: Box<Account<'info, Controller>>,
 
-    /// #3 UXDProgram on chain account bound to a Controller instance.
+    /// #4 UXDProgram on chain account bound to a Controller instance.
     /// The `MangoDepository` manages a MangoAccount for a single Collateral.
     #[account(
         mut,
@@ -66,13 +68,13 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
-    /// #4 The collateral mint used by the `depository` instance
+    /// #5 The collateral mint used by the `depository` instance
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #5 The redeemable mint managed by the `controller` instance
+    /// #6 The redeemable mint managed by the `controller` instance
     /// Tokens will be burnt during this instruction
     #[account(
         mut,
@@ -82,7 +84,7 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
-    /// #6 The `user`'s ATA for the `depository`'s `collateral_mint`
+    /// #7 The `user`'s ATA for the `depository`'s `collateral_mint`
     /// Will be credited during this instruction
     #[account(
         init_if_needed,
@@ -92,7 +94,7 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #7 The `user`'s ATA for the `controller`'s `redeemable_mint`
+    /// #8 The `user`'s ATA for the `controller`'s `redeemable_mint`
     /// Will be debited during this instruction
     #[account(
         mut,
@@ -101,7 +103,7 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #8 The `depository`'s TA for its `collateral_mint`
+    /// #9 The `depository`'s TA for its `collateral_mint`
     /// MangoAccounts can only transact with the TAs owned by their authority
     /// and this only serves as a passthrough
     #[account(
@@ -113,7 +115,7 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
 
-    /// #9 The MangoMarkets Account (MangoAccount) managed by the `depository`
+    /// #10 The MangoMarkets Account (MangoAccount) managed by the `depository`
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
@@ -122,55 +124,55 @@ pub struct RedeemFromMangoDepository<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
 
-    /// #10 [MangoMarkets CPI] Index grouping perp and spot markets
+    /// #11 [MangoMarkets CPI] Index grouping perp and spot markets
     pub mango_group: AccountInfo<'info>,
 
-    /// #11 [MangoMarkets CPI] Cache
+    /// #12 [MangoMarkets CPI] Cache
     pub mango_cache: AccountInfo<'info>,
 
-    /// #12 [MangoMarkets CPI] Signer PDA
+    /// #13 [MangoMarkets CPI] Signer PDA
     pub mango_signer: AccountInfo<'info>,
 
-    /// #13 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
+    /// #14 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
     pub mango_root_bank: AccountInfo<'info>,
 
-    /// #14 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
+    /// #15 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
     #[account(mut)]
     pub mango_node_bank: AccountInfo<'info>,
 
-    /// #14 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`
+    /// #16 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`
     #[account(mut)]
     pub mango_vault: AccountInfo<'info>,
 
-    /// #15 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
+    /// #17 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
     #[account(mut)]
     pub mango_perp_market: AccountInfo<'info>,
 
-    /// #16 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
+    /// #18 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
     #[account(mut)]
     pub mango_bids: AccountInfo<'info>,
 
-    /// #17 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
+    /// #19 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
     #[account(mut)]
     pub mango_asks: AccountInfo<'info>,
 
-    /// #18 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
+    /// #20 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
     #[account(mut)]
     pub mango_event_queue: AccountInfo<'info>,
 
-    // #19 System Program
+    /// #21 System Program
     pub system_program: Program<'info, System>,
 
-    /// #20 Token Program
+    /// #22 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #21 Associated Token Program
+    /// #23 Associated Token Program
     pub associated_token_program: Program<'info, AssociatedToken>,
 
-    /// #22 MangoMarketv3 Program
+    /// #24 MangoMarketv3 Program
     pub mango_program: Program<'info, mango_program::Mango>,
 
-    /// #23 Rent Sysvar
+    /// #25 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 

@@ -17,15 +17,17 @@ use anchor_spl::token::TokenAccount;
 
 declare_check_assert_macros!(SourceFileId::InstructionMangoDexMigrateMangoDepositoryToV2);
 
+/// Takes 9 accounts - 6 used locally - 0 for CPI - 2 Programs - 1 Sysvar
 #[derive(Accounts)]
 pub struct MigrateMangoDepositoryToV2<'info> {
-    /// Authored call accessible only to the signer matching Controller.authority
+    /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
 
+    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// The top level UXDProgram on chain account managing the redeemable mint
+    /// #3 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump,
@@ -33,7 +35,7 @@ pub struct MigrateMangoDepositoryToV2<'info> {
     )]
     pub controller: Box<Account<'info, Controller>>,
 
-    /// UXDProgram on chain account bound to a Controller instance
+    /// #4 UXDProgram on chain account bound to a Controller instance
     /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
         mut,
@@ -44,10 +46,10 @@ pub struct MigrateMangoDepositoryToV2<'info> {
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
-    /// The quote mint used by the `depository` instance
+    /// #5 The quote mint used by the `depository` instance
     pub quote_mint: Box<Account<'info, Mint>>,
 
-    /// The `depository`'s TA for its `quote_mint`
+    /// #6 The `depository`'s TA for its `quote_mint`
     /// MangoAccounts can only transact with the TAs owned by their authority
     /// and this only serves as a passthrough
     #[account(
@@ -60,13 +62,13 @@ pub struct MigrateMangoDepositoryToV2<'info> {
     )]
     pub depository_quote_passthrough_account: Account<'info, TokenAccount>,
 
-    /// System Program
+    /// #7 System Program
     pub system_program: Program<'info, System>,
 
-    /// Token Program
+    /// #8 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// Rent Sysvar
+    /// #9 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
