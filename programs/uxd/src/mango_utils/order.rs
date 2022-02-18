@@ -22,8 +22,8 @@ pub struct Order {
 }
 
 /// Walk through the maker side of the book and find the best quantity and price to spend a given amount of quote.
-pub fn get_best_order_for_quote_lot_amount<'a>(
-    book_side: RefMut<'a, BookSide>,
+pub fn get_best_order_for_quote_lot_amount(
+    book_side: RefMut<BookSide>,
     taker_side: Side,
     quote_lot_amount_to_spend: i64,
 ) -> UxdResult<Order> {

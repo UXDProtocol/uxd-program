@@ -193,7 +193,7 @@ pub fn handler(
     // - [Calculates the quantity of short to close]
     let mut exposure_delta_in_quote_unit = I80F48::from_num(redeemable_amount);
 
-    // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees doesn't overflow the redeemed amount]
+    // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees don't overflow the redeemed amount]
     let max_fee_amount = exposure_delta_in_quote_unit
         .checked_mul(perp_info.taker_fee)
         .ok_or(math_err!())?
@@ -226,7 +226,7 @@ pub fn handler(
     // - [Checks that the best price found is withing slippage range]
     check_effective_order_price_versus_limit_price(&perp_info, &best_order, slippage)?;
 
-    // - [Place perp order CPI to Mango Market v3]
+    // - [CPI MangoMarkets - Place perp order]
     mango_program::place_perp_order(
         ctx.accounts
             .into_close_mango_short_perp_context()
@@ -242,7 +242,7 @@ pub fn handler(
     // - [Perp account state POST perp order]
     let post_pa = ctx.accounts.perp_account(&perp_info)?;
 
-    // - [Checks that the order was fully filled]
+    // - [Checks that the order was fully filled (FoK)]
     let post_perp_order_base_lot_position = total_perp_base_lot_position(&post_pa)?;
     check_perp_order_fully_filled(
         best_order.quantity,
@@ -250,7 +250,7 @@ pub fn handler(
         post_perp_order_base_lot_position,
     )?;
 
-    // - 2 [BURN REDEEMABLE] -------------------------------------------------
+    // - 2 [BURN REDEEMABLES] -------------------------------------------------
     check!(
         pre_pa.taker_quote > post_pa.taker_quote,
         UxdErrorCode::InvalidOrderDirection
@@ -267,7 +267,7 @@ pub fn handler(
 
     // - 3 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
 
-    // - [Mango withdraw CPI]
+    // - [CPI MangoMarkets - Withdraw]
     mango_program::withdraw(
         ctx.accounts
             .into_withdraw_collateral_from_mango_context()

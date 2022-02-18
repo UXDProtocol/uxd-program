@@ -2,6 +2,7 @@ use crate::check_assert;
 use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
+use crate::events::MintWithMangoDepositoryEvent;
 use crate::mango_program;
 use crate::mango_utils::check_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
@@ -171,20 +172,20 @@ pub struct MintWithMangoDepository<'info> {
 
 pub fn handler(
     ctx: Context<MintWithMangoDepository>,
-    collateral_amount: u64, // native units
+    collateral_amount: u64,
     slippage: u32,
 ) -> UxdResult {
-    let depository_signer_seed: &[&[&[u8]]] = &[&[
+    let depository_pda_signer: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         ctx.accounts.depository.collateral_mint.as_ref(),
         &[ctx.accounts.depository.bump],
     ]];
-    let controller_signer_seed: &[&[&[u8]]] =
+    let controller_pda_signer: &[&[&[u8]]] =
         &[&[CONTROLLER_NAMESPACE, &[ctx.accounts.controller.bump]]];
 
     // - 1 [FIND BEST ORDER FOR SHORT PERP POSITION] --------------------------
 
-    // - [Get perp information]
+    // - [Get MangoMarkets  Collateral-Perp information]
     let perp_info = ctx.accounts.perpetual_info()?;
 
     // - [Get the amount of Base Lots for the perp order (odd lots won't be processed)]
@@ -195,7 +196,7 @@ pub fn handler(
         .checked_floor()
         .ok_or(math_err!())?;
 
-    // - [Define our perp order]
+    // - [Define perp order]
     // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
     //        [BID: maker | ASK: taker (us, the caller)]
     let taker_side = Side::Ask;
@@ -222,11 +223,11 @@ pub fn handler(
         planned_collateral_delta,
     )?;
 
-    // - [Deposit to Mango CPI]
+    // - [MangoMarkets CPI - Deposit collateral to Depository MangoAccount]
     mango_program::deposit(
         ctx.accounts
             .into_deposit_to_mango_context()
-            .with_signer(depository_signer_seed),
+            .with_signer(depository_pda_signer),
         planned_collateral_delta,
     )?;
 
@@ -238,11 +239,11 @@ pub fn handler(
     // - [Base depository's position size in native units PRE perp opening (to calculate the % filled later on)]
     let initial_base_position = total_perp_base_lot_position(&pre_pa)?;
 
-    // - [Place perp order CPI to Mango Market v3]
+    // - [MangoMarkets CPI - Place perp order]
     mango_program::place_perp_order(
         ctx.accounts
             .into_open_mango_short_perp_context()
-            .with_signer(depository_signer_seed),
+            .with_signer(depository_pda_signer),
         perp_order.price,
         perp_order.quantity,
         0,
@@ -254,7 +255,7 @@ pub fn handler(
     // - [Perp account state POST perp order]
     let post_pa = ctx.accounts.perp_account(&perp_info)?;
 
-    // - [Checks that the order was fully filled]
+    // - [Checks that the order was fully filled (FoK)]
     let post_perp_order_base_lot_position = total_perp_base_lot_position(&post_pa)?;
     check_perp_order_fully_filled(
         perp_order.quantity,
@@ -262,9 +263,9 @@ pub fn handler(
         post_perp_order_base_lot_position,
     )?;
 
-    // - 3 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
+    // - 3 [CHECK REDEEMABLE SOFT CAP OVERFLOW] -------------------------------
 
-    // ensure current context make sense as the derive_order_delta is generic
+    // ensure current context is valid as the derive_order_delta is generic
     check!(
         pre_pa.taker_quote < post_pa.taker_quote,
         UxdErrorCode::InvalidOrderDirection
@@ -277,15 +278,16 @@ pub fn handler(
     ctx.accounts
         .check_mango_depositories_redeemable_soft_cap_overflow(redeemable_delta)?;
 
-    // - 4 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus fees)] ---------------
+    // - 4 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus fees)] ----------------
+
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
-            .with_signer(controller_signer_seed),
+            .with_signer(controller_pda_signer),
         redeemable_delta,
     )?;
 
-    // - [If ATA mint is WSOL, unwrap]
+    // - [if ATA mint is WSOL, unwrap]
     if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
         token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
     }
@@ -297,22 +299,20 @@ pub fn handler(
         order_delta.fee,
     )?;
 
-    // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE GLOBAL REDEEMABLE SUPPLY CAP] -
+    // - 6 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
-    // Disable until more computing available in Solana 1.9.0
-    //
-    // emit!(MintWithMangoDepositoryEvent {
-    //     version: ctx.accounts.controller.version,
-    //     controller: ctx.accounts.controller.key(),
-    //     depository: ctx.accounts.depository.key(),
-    //     user: ctx.accounts.user.key(),
-    //     collateral_amount,
-    //     slippage,
-    //     collateral_delta: order_delta.collateral,
-    //     redeemable_delta,
-    //     fee_delta: order_delta.fee,
-    // });
+    emit!(MintWithMangoDepositoryEvent {
+        version: ctx.accounts.controller.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        collateral_amount,
+        slippage,
+        collateral_delta: order_delta.collateral,
+        redeemable_delta,
+        fee_delta: order_delta.fee,
+    });
 
     Ok(())
 }
@@ -463,7 +463,10 @@ impl<'info> MintWithMangoDepository<'info> {
 impl<'info> MintWithMangoDepository<'info> {
     pub fn validate(&self, collateral_amount: u64, slippage: u32) -> ProgramResult {
         // Valid slippage check
-        check!((slippage > 0) && (slippage <= SLIPPAGE_BASIS), UxdErrorCode::InvalidSlippage)?;
+        check!(
+            (slippage > 0) && (slippage <= SLIPPAGE_BASIS),
+            UxdErrorCode::InvalidSlippage
+        )?;
 
         check!(collateral_amount > 0, UxdErrorCode::InvalidCollateralAmount)?;
         check!(
