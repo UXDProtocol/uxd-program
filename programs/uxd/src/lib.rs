@@ -357,7 +357,8 @@ pub mod uxd {
         collateral_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
-        msg!("[mint_with_mango_depository] slippage {}", slippage);
+        
+        msg!("[mint_with_mango_depository] collateral_amount {}, slippage {}", collateral_amount, slippage);
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, slippage).map_err(
             |e| {
                 msg!("<*> {}", e); // log the error
@@ -404,7 +405,7 @@ pub mod uxd {
         redeemable_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
-        msg!("[redeem_from_mango_depository] slippage {}", slippage);
+        msg!("[redeem_from_mango_depository] redeemable_amount {}, slippage {}", redeemable_amount, slippage);
         instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, slippage)
             .map_err(|e| {
                 msg!("<*> {}", e); // log the error

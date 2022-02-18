@@ -34,6 +34,7 @@ env:
   MM_FUNDING_AMOUNT: 0.5  # Keep small it's lost
   TRANSACTION_FEE_OFFSET: 0.005
   # Name of the tests files in the program repo. We use them for sed and swap the `anchor test`
+  TEST_DEV: "test_development"
   TEST_INTEGRATION: "test_integration"
   # TEST_CI_FRESH: "test_ci_fresh"
   TEST_CI_SOL: "test_ci_sol"
@@ -247,7 +248,7 @@ jobs:
   #       run: |
   #         yarn install
   #         ./scripts/reset_program_id.sh
-  #         sed  -i.bak "s/${{ env.TEST_INTEGRATION }}/${{ env.TEST_CI_FRESH }}/g" ./Anchor.toml
+  #         sed  -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_FRESH }}/g" ./Anchor.toml
   #         npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator
   #     - name: Close deployed program
   #       run: solana program close $(solana-keygen pubkey ./target/deploy/uxd-keypair.json) --recipient ${{ env.BANK_WALLET_PATH }}
@@ -357,7 +358,7 @@ jobs:
         run: |
           yarn install
           ./scripts/swap_ci_resident_program_id.sh
-          sed  -i.bak "s/${{ env.TEST_INTEGRATION }}/${{ env.TEST_CI_SOL }}/g" ./Anchor.toml
+          sed  -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_SOL }}/g" ./Anchor.toml
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
       - name: Returning funded runner wallet SOLs to the bank
         run: |
@@ -465,7 +466,7 @@ jobs:
         run: |
           yarn install
           ./scripts/swap_ci_resident_program_id.sh
-          sed -i.bak "s/${{ env.TEST_INTEGRATION }}/${{ env.TEST_CI_BTC }}/g" ./Anchor.toml
+          sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_BTC }}/g" ./Anchor.toml
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
       - name: Returning funded runner wallet SOLs to the bank
         run: |
@@ -574,7 +575,7 @@ jobs:
         run: |
           yarn install
           ./scripts/swap_ci_resident_program_id.sh
-          sed -i.bak "s/${{ env.TEST_INTEGRATION }}/${{ env.TEST_CI_ETH }}/g" ./Anchor.toml
+          sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_ETH }}/g" ./Anchor.toml
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
       - name: Returning funded runner wallet SOLs to the bank
         run: |
@@ -670,7 +671,7 @@ jobs:
         run: |
           yarn install
           ./scripts/swap_ci_resident_program_id.sh
-          sed -i.bak "s/${{ env.TEST_INTEGRATION }}/${{ env.TEST_CI_REBALANCING }}/g" ./Anchor.toml
+          sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_REBALANCING }}/g" ./Anchor.toml
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
       - name: Returning funded runner wallet SOLs to the bank
         run: |
