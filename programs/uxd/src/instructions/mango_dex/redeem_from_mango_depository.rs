@@ -3,7 +3,6 @@ use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdErrorCode;
 use crate::error::UxdIdlErrorCode;
-use crate::events::RedeemFromMangoDepositoryEvent;
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
