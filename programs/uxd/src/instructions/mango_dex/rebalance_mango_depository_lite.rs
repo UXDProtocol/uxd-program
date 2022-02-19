@@ -220,6 +220,8 @@ pub fn handler(
     // Note : This will be implemented when we have more computing.
     //      It will move the redeemable_pnl to the spot balance
     //      As it is currently, we might borrow or keep positive redeem balance until third party settlement.
+    //      This would be safe as the unsettled paper-profit are counted as collateral. Although we would pay
+    //      interests, and other users are not in a hurry to settle their negative PnL.
     // - [settle funding] TODO
 
     // - 1 [FIND CURRENT UNREALIZED PNL AMOUNT]
@@ -246,6 +248,7 @@ pub fn handler(
         return Ok(());
     }
     // We could get rid of the polarity parameter, but better have the user specify
+    // to avoid surprises
     match polarity {
         PnlPolarity::Positive => check!(
             perp_unrealized_pnl.is_positive(),
@@ -274,17 +277,17 @@ pub fn handler(
     // - [Estimate the best perp order depending of polarity]
     // Note : The caller is the Taker, the side depend of the PnL Polarity.
     let taker_side = match polarity {
-        // Note : Reduce the delta neutral position, increasing long exposure, by buying perp.
-        //        [BID: taker (us, the caller) | ASK: maker]
-        PnlPolarity::Positive => Side::Bid,
         // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
         //        [BID: maker | ASK: taker (us, the caller)]
-        PnlPolarity::Negative => Side::Ask,
+        PnlPolarity::Positive => Side::Ask,
+        // Note : Reduce the delta neutral position, increasing long exposure, by buying perp.
+        //        [BID: taker (us, the caller) | ASK: maker]
+        PnlPolarity::Negative => Side::Bid,
     };
     let quote_lot_amount = rebalancing_amount.checked_to_num().ok_or(math_err!())?;
     let perp_order = ctx
         .accounts
-        .get_best_order_for_quote_lot_amount_from_order_book(taker_side, quote_lot_amount)?;
+        .find_best_order_in_book_for_quote_lot_amount(taker_side, quote_lot_amount)?;
 
     // - [Checks that the best price found is within slippage range]
     check_effective_order_price_versus_limit_price(&perp_info, &perp_order, slippage)?;
@@ -627,6 +630,8 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             self.mango_perp_market.key,
             self.mango_program.key,
         )?;
+
+        msg!("perp_info {:?}", perp_info);
         Ok(perp_info)
     }
 
@@ -641,7 +646,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
-    fn get_best_order_for_quote_lot_amount_from_order_book(
+    fn find_best_order_in_book_for_quote_lot_amount(
         &self,
         taker_side: Side,
         quote_lot_amount: i64,

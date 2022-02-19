@@ -12,6 +12,7 @@ declare_check_assert_macros!(SourceFileId::MangoUtilsOrder);
 
 /// This logic will eventually be deported back to MangoMarket repository.
 /// 02/18/2022 - Spoke with Ckamm from mango market, they will implement this in the coming week.
+/// https://github.com/blockworks-foundation/mango-v3/pull/139/files
 
 pub struct Order {
     // The quantity, in base_lot

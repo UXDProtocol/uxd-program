@@ -60,7 +60,7 @@ const rebalancePositivePnL = async function (rebalancingMaxAmount: number, slipp
 
     const quoteDelta = userQuoteBalance_post - userQuoteBalance;
     const collateralDelta = userCollateralBalance - userCollateralBalance_post;
-    const collateralOddLotLeftOver = rebalancingMaxAmountCollateralEquivalent - collateralDelta;
+    const collateralOddLotLeftOver = Math.min(rebalancingMaxAmountCollateralEquivalent - collateralDelta, 0);
     const collateralProcessedByRebalancing = rebalancingMaxAmountCollateralEquivalent - collateralOddLotLeftOver;
     // The mango perp price in these might not be the exact same as the one in the transaction.
     const estimatedFrictionlessQuoteDelta = collateralProcessedByRebalancing * mangoPerpPrice;
@@ -77,7 +77,7 @@ const rebalancePositivePnL = async function (rebalancingMaxAmount: number, slipp
         "(+~ takerFees =", Number(estimatedAmountQuoteLostInTakerFees.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol,
         ", +~ slippage =", Number(estimatedAmountQuoteLostInSlippage.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol, ")",
         "(frictionless rebalancing would have been", Number(estimatedFrictionlessQuoteDelta.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol, ")",
-        "|| unprocessed returned", Number(collateralOddLotLeftOver.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
+        "|| unprocessed, returned", Number(collateralOddLotLeftOver.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
         ")"
     );
     expect(rebalancingMaxAmountCollateralEquivalent).closeTo(collateralProcessedByRebalancing + collateralOddLotLeftOver, collateralNativeUnitPrecision, "The amount of collateral left over + processed is not equal to the collateral amount inputted initially");
@@ -127,8 +127,8 @@ const rebalanceNegativePnL = async function (rebalancingMaxAmount: number, slipp
 
     const quoteDelta = userQuoteBalance - userQuoteBalance_post;
     const collateralDelta = userCollateralBalance_post - userCollateralBalance;
-    const quoteLeftOverDueToOddLot = rebalancingMaxAmount - quoteDelta;
-    const quoteProcessedByRebalancing = Math.min(rebalancingMaxAmount - quoteLeftOverDueToOddLot, 0);
+    const quoteLeftOverDueToOddLot = Math.min(rebalancingMaxAmount - quoteDelta, 0);
+    const quoteProcessedByRebalancing = rebalancingMaxAmount - quoteLeftOverDueToOddLot;
     // The mango perp price in these might not be the exact same as the one in the transaction.
     const estimatedFrictionlessCollateralDelta = quoteProcessedByRebalancing / mangoPerpPrice;
     const estimatedAmountQuoteLostInTakerFees = mangoTakerFee * quoteProcessedByRebalancing;
@@ -144,7 +144,7 @@ const rebalanceNegativePnL = async function (rebalancingMaxAmount: number, slipp
         "(+~ takerFees =", Number(estimatedAmountQuoteLostInTakerFees.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol,
         ", +~ slippage =", Number(estimatedAmountQuoteLostInSlippage.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol, ")",
         "(frictionless rebalancing would have been", Number(estimatedFrictionlessCollateralDelta.toFixed(depository.quoteMintDecimals)), depository.collateralMintSymbol, ")",
-        "|| unprocessed returned", Number(quoteLeftOverDueToOddLot.toFixed(depository.collateralMintDecimals)), depository.quoteMintSymbol,
+        "|| unprocessed, returned", Number(quoteLeftOverDueToOddLot.toFixed(depository.collateralMintDecimals)), depository.quoteMintSymbol,
         ")"
     );
 

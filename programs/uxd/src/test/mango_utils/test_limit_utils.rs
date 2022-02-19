@@ -9,15 +9,13 @@ mod test_limit_utils {
     use mango::matching::Side;
     use proptest::prelude::*;
 
-    // price expressed in native quote per native base
+    // price expressed in native quote per native base - SOL-PERP
     fn mocked_perp_info(price: f64) -> PerpInfo {
         PerpInfo {
             market_index: 3,
             // Price is the price of 1 native unit of BASE expressed in native unit of QUOTE
             price: I80F48::from_num(price),
-            base_unit: I80F48::from_num(1_000_000_000), // SOL 9 decimals
             base_lot_size: I80F48::from_num(10_000_000),
-            quote_unit: I80F48::from_num(1_000_000), // USD 6 decimals
             quote_lot_size: I80F48::from_num(100),
             taker_fee: I80F48::from_num(0.000_5),
         }

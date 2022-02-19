@@ -414,6 +414,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
             self.mango_program.key,
             self.mango_group.key,
         )?;
+        msg!("perp_info {:?}", perp_info);
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
