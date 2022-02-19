@@ -22,8 +22,8 @@ pub fn calculate_slippage_amount(price: I80F48, slippage: u32) -> UxdResult<I80F
 // Worse execution price for a provided slippage and side.
 // Keep in mind that you'r the Taker when you call this, and that the `matched_side` is the side your order will match against.
 // Meaning that you'r willing to go as far as limit price.
-//  If you'r BID as the taker, matched_side is ASK, and you'll buy from price down to (price + slippage)
-//  If you'r ASK as the taker, matched_side is BID, and you'll sell from price down to (price - slippage)
+//  If you are BID as the taker, matched_side is ASK, and you'll buy from price down to (price + slippage)
+//  If you are ASK as the taker, matched_side is BID, and you'll sell from price down to (price - slippage)
 pub fn limit_price(price: I80F48, slippage: u32, taker_side: Side) -> UxdResult<I80F48> {
     let slippage_amount = calculate_slippage_amount(price, slippage)?;
     match taker_side {

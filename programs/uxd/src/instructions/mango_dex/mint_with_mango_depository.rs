@@ -114,7 +114,7 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
 
-    /// #10 [The MangoMarkets Account (MangoAccount) managed by the `depository`
+    /// #10 The MangoMarkets Account (MangoAccount) managed by the `depository`
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
