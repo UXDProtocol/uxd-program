@@ -290,13 +290,22 @@ pub mod uxd {
     ///  This is the "lite" version as it force the caller to input some quote or
     ///  collateral. This is done to skip the spot order on mango, saving computing
     ///  and also bypassing the issue with teh 34 accounts limits.
-    ///  A new version is written and waiting for the TransactionV2 proposal to hit
+    ///  A new version is designed and waiting for the TransactionV2 proposal to hit
     ///  along with the 1M computing units.
     ///
     /// Note:
     ///  Paper profits are represented in Quote, it's currently USDC on
     ///  MangoMarkets, as of 02/17/2022.
     ///
+    /// Note:
+    ///  This call should goes with a call to `@uxdprotocol/uxd-client`'s
+    ///  `MangoDepository.settleMangoDepositoryMangoAccountPnl()`, which convert paper
+    ///  profits or losses into realized gain/losses. Once rebalancing is out,
+    ///  since it's permissionless, the PnL settlement should be called once in a while
+    ///  to make sure that unsettled Positive PNL accumulates and that the MangoAccount
+    ///  has to pay borrow rates for it. Some day when computing is plentiful and input
+    ///  accounts are increased through TransactionsV2 proposal, we can
+    ///  also call the onchain version.
     #[access_control(ctx.accounts.validate(max_rebalancing_amount, &polarity, slippage))]
     pub fn rebalance_mango_depository_lite(
         ctx: Context<RebalanceMangoDepositoryLite>,

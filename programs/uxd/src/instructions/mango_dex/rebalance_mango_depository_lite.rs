@@ -217,13 +217,6 @@ pub fn handler(
     // - [Perp account state PRE perp order]
     let pre_pa = ctx.accounts.perp_account(&perp_info)?;
 
-    // Note : This will be implemented when we have more computing.
-    //      It will move the redeemable_pnl to the spot balance
-    //      As it is currently, we might borrow or keep positive redeem balance until third party settlement.
-    //      This would be safe as the unsettled paper-profit are counted as collateral. Although we would pay
-    //      interests, and other users are not in a hurry to settle their negative PnL.
-    // - [settle funding] TODO
-
     // - 1 [FIND CURRENT UNREALIZED PNL AMOUNT]
 
     // - [find out current perp Unrealized PnL]
