@@ -2,11 +2,12 @@ use crate::check_assert;
 use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
+use crate::events::MintWithMangoDepositoryEvent;
 use crate::mango_program;
-use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
 use crate::mango_utils::derive_order_delta;
-use crate::mango_utils::get_best_order_for_base_lot_quantity;
+use crate::mango_utils::limit_price;
+use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::Order;
 use crate::mango_utils::PerpInfo;
@@ -31,23 +32,23 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 use fixed::types::I80F48;
-use mango::matching::BookSide;
 use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
-use mango::state::PerpMarket;
 
 declare_check_assert_macros!(SourceFileId::InstructionMangoDexMintWithMangoDepository);
 
+/// Takes 24 accounts - 10 used locally - 9 for MangoMarkets CPI - 4 Programs - 1 Sysvar
 #[derive(Accounts)]
 pub struct MintWithMangoDepository<'info> {
-    /// Public call accessible to any user
+    /// #1 Public call accessible to any user
     pub user: Signer<'info>,
 
+    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// The top level UXDProgram on chain account managing the redeemable mint
+    /// #3 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -55,8 +56,8 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub controller: Box<Account<'info, Controller>>,
 
-    /// UXDProgram on chain account bound to a Controller instance.
-    /// The `MangoDepository` manager a MangoAccount for a single Collateral.
+    /// #4 UXDProgram on chain account bound to a Controller instance.
+    /// The `MangoDepository` manages a MangoAccount for a single Collateral.
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
@@ -66,7 +67,7 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
-    /// The redeemable mint managed by the `controller` instance
+    /// #5 The redeemable mint managed by the `controller` instance
     /// Tokens will be minted during this instruction
     #[account(
         mut,
@@ -76,13 +77,13 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
-    /// The collateral mint and used by the `depository` instance
+    /// #6 The collateral mint and used by the `depository` instance
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// The `user`'s ATA for the `depository` `collateral_mint`
+    /// #7 The `user`'s ATA for the `depository` `collateral_mint`
     /// Will be debited during this instruction
     #[account(
         mut,
@@ -91,7 +92,7 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// The `user`'s ATA for the `controller`'s `redeemable_mint`
+    /// #8 The `user`'s ATA for the `controller`'s `redeemable_mint`
     /// Will be credited during this instruction
     #[account(
         init_if_needed,
@@ -101,7 +102,7 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// The `depository`'s TA for its `insurance_mint`
+    /// #9 The `depository`'s TA for its `insurance_mint`
     /// MangoAccounts can only transact with the TAs owned by their authority
     /// and this only serves as a passthrough
     #[account(
@@ -113,7 +114,7 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
 
-    /// The MangoMarkets Account (MangoAccount) managed by the `depository`
+    /// #10 The MangoMarkets Account (MangoAccount) managed by the `depository`
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
@@ -122,101 +123,96 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Index grouping perp and spot markets
+    /// #11 [MangoMarkets CPI] Index grouping perp and spot markets
     pub mango_group: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Cache
+    /// #12 [MangoMarkets CPI] Cache
     pub mango_cache: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
+    /// #13 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
     pub mango_root_bank: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
+    /// #14 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
     #[account(mut)]
     pub mango_node_bank: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`
+    /// #15 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`
     #[account(mut)]
     pub mango_vault: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
+    /// #16 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
     #[account(mut)]
     pub mango_perp_market: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
+    /// #17 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
     #[account(mut)]
     pub mango_bids: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
+    /// #18 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
     #[account(mut)]
     pub mango_asks: AccountInfo<'info>,
 
-    /// [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
+    /// #19 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
     #[account(mut)]
     pub mango_event_queue: AccountInfo<'info>,
 
-    /// System Program
+    /// #20 System Program
     pub system_program: Program<'info, System>,
 
-    /// Token Program
+    /// #21 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// Associated Token Program
+    /// #22 Associated Token Program
     pub associated_token_program: Program<'info, AssociatedToken>,
 
-    /// MangoMarketv3 Program
+    /// #23 MangoMarketv3 Program
     pub mango_program: Program<'info, mango_program::Mango>,
 
-    // Rent Sysvar
+    /// #24 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
 pub fn handler(
     ctx: Context<MintWithMangoDepository>,
-    collateral_amount: u64, // native units
+    collateral_amount: u64,
     slippage: u32,
 ) -> UxdResult {
-    let depository_signer_seed: &[&[&[u8]]] = &[&[
+    let depository_pda_signer: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         ctx.accounts.depository.collateral_mint.as_ref(),
         &[ctx.accounts.depository.bump],
     ]];
-    let controller_signer_seed: &[&[&[u8]]] =
+    let controller_pda_signer: &[&[&[u8]]] =
         &[&[CONTROLLER_NAMESPACE, &[ctx.accounts.controller.bump]]];
 
     // - 1 [FIND BEST ORDER FOR SHORT PERP POSITION] --------------------------
 
-    // - [Get perp information]
+    // - [Get MangoMarkets  Collateral-Perp information]
     let perp_info = ctx.accounts.perpetual_info()?;
 
-    // - [Get the amount of Base Lots for the perp order]
+    // - [Get the amount of Base Lots for the perp order (odd lots won't be processed)]
     let base_lot_amount = I80F48::from_num(collateral_amount)
-        .checked_div(perp_info.base_lot_size)
+        .checked_div_euclid(perp_info.base_lot_size)
         .ok_or(math_err!())?
-        // Round down
+        // Round down (should not be needed as base_lot should be an integer)
         .checked_floor()
         .ok_or(math_err!())?;
 
-    // - [Find the best order]
+    // - [Define perp order]
     // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
     //        [BID: maker | ASK: taker (us, the caller)]
     let taker_side = Side::Ask;
-    let base_lot_amount = base_lot_amount.checked_to_num().ok_or(math_err!())?;
-    let best_order = ctx
-        .accounts
-        .get_best_order_for_base_lot_quantity_from_order_book(taker_side, base_lot_amount)?;
-
-    // - [Checks that the best price found is within slippage range]
-    check_effective_order_price_versus_limit_price(&perp_info, &best_order, slippage)?;
+    let limit_price = limit_price(perp_info.price, slippage, taker_side)?;
+    let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
+    let perp_order = Order {
+        quantity: base_lot_amount.checked_to_num().ok_or(math_err!())?,
+        price: limit_price_lot.checked_to_num().ok_or(math_err!())?, // worth execution price
+        taker_side,
+    };
 
     // - 2 [TRANSFER COLLATERAL TO MANGO (LONG)] ------------------------------
-
-    // Note : Done after calculating the mango order so that we don't overdraft collateral.
-    //        But needs to be deposited before the actual order placement as the
-    //        collateral deposited is used as leverage for opening the perp short.
-
     // This value is verified after by checking if the perp order was fully filled
-    let planned_collateral_delta = I80F48::from_num(best_order.quantity)
+    let planned_collateral_delta = I80F48::from_num(perp_order.quantity)
         .checked_mul(perp_info.base_lot_size)
         .ok_or(math_err!())?
         .checked_to_num()
@@ -229,11 +225,11 @@ pub fn handler(
         planned_collateral_delta,
     )?;
 
-    // - [Deposit to Mango CPI]
+    // - [MangoMarkets CPI - Deposit collateral to Depository MangoAccount]
     mango_program::deposit(
         ctx.accounts
             .into_deposit_to_mango_context()
-            .with_signer(depository_signer_seed),
+            .with_signer(depository_pda_signer),
         planned_collateral_delta,
     )?;
 
@@ -245,15 +241,15 @@ pub fn handler(
     // - [Base depository's position size in native units PRE perp opening (to calculate the % filled later on)]
     let initial_base_position = total_perp_base_lot_position(&pre_pa)?;
 
-    // - [Place perp order CPI to Mango Market v3]
+    // - [MangoMarkets CPI - Place perp order]
     mango_program::place_perp_order(
         ctx.accounts
             .into_open_mango_short_perp_context()
-            .with_signer(depository_signer_seed),
-        best_order.price,
-        best_order.quantity,
+            .with_signer(depository_pda_signer),
+        perp_order.price,
+        perp_order.quantity,
         0,
-        best_order.taker_side,
+        perp_order.taker_side,
         mango::matching::OrderType::ImmediateOrCancel,
         false,
     )?;
@@ -261,17 +257,17 @@ pub fn handler(
     // - [Perp account state POST perp order]
     let post_pa = ctx.accounts.perp_account(&perp_info)?;
 
-    // - [Checks that the order was fully filled]
+    // - [Checks that the order was fully filled (FoK)]
     let post_perp_order_base_lot_position = total_perp_base_lot_position(&post_pa)?;
     check_perp_order_fully_filled(
-        best_order.quantity,
+        perp_order.quantity,
         initial_base_position,
         post_perp_order_base_lot_position,
     )?;
 
-    // - 3 [ENSURE MINTING DOESN'T OVERFLOW THE MANGO DEPOSITORIES REDEEMABLE SOFT CAP]
+    // - 3 [CHECK REDEEMABLE SOFT CAP OVERFLOW] -------------------------------
 
-    // ensure current context make sense as the derive_order_delta is generic
+    // ensure current context is valid as the derive_order_delta is generic
     check!(
         pre_pa.taker_quote < post_pa.taker_quote,
         UxdErrorCode::InvalidOrderDirection
@@ -284,15 +280,16 @@ pub fn handler(
     ctx.accounts
         .check_mango_depositories_redeemable_soft_cap_overflow(redeemable_delta)?;
 
-    // - 4 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus fees)] ---------------
+    // - 4 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus fees)] ----------------
+
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
-            .with_signer(controller_signer_seed),
+            .with_signer(controller_pda_signer),
         redeemable_delta,
     )?;
 
-    // - [If ATA mint is WSOL, unwrap]
+    // - [if ATA mint is WSOL, unwrap]
     if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
         token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
     }
@@ -304,22 +301,20 @@ pub fn handler(
         order_delta.fee,
     )?;
 
-    // - 6 [ENSURE MINTING DOESN'T OVERFLOW THE GLOBAL REDEEMABLE SUPPLY CAP] -
+    // - 6 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
-    // Disable until more computing available in Solana 1.9.0
-    //
-    // emit!(MintWithMangoDepositoryEvent {
-    //     version: ctx.accounts.controller.version,
-    //     controller: ctx.accounts.controller.key(),
-    //     depository: ctx.accounts.depository.key(),
-    //     user: ctx.accounts.user.key(),
-    //     collateral_amount,
-    //     slippage,
-    //     collateral_delta: order_delta.collateral,
-    //     redeemable_delta,
-    //     fee_delta: order_delta.fee,
-    // });
+    emit!(MintWithMangoDepositoryEvent {
+        version: ctx.accounts.controller.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        collateral_amount,
+        slippage,
+        collateral_delta: order_delta.collateral,
+        redeemable_delta,
+        fee_delta: order_delta.fee,
+    });
 
     Ok(())
 }
@@ -409,6 +404,7 @@ impl<'info> MintWithMangoDepository<'info> {
             self.mango_perp_market.key,
             self.mango_program.key,
         )?;
+        msg!("perp_info {:?}", perp_info);
         Ok(perp_info)
     }
 
@@ -421,29 +417,6 @@ impl<'info> MintWithMangoDepository<'info> {
             self.mango_group.key,
         )?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
-    }
-
-    fn get_best_order_for_base_lot_quantity_from_order_book<'a>(
-        &self,
-        taker_side: mango::matching::Side,
-        base_lot_amount: i64,
-    ) -> UxdResult<Order> {
-        let perp_market = PerpMarket::load_checked(
-            &self.mango_perp_market,
-            self.mango_program.key,
-            self.mango_group.key,
-        )?;
-        // Load the maker side of the book
-        let book_maker_side = match taker_side {
-            Side::Bid => {
-                BookSide::load_mut_checked(&self.mango_asks, self.mango_program.key, &perp_market)
-            }
-            Side::Ask => {
-                BookSide::load_mut_checked(&self.mango_bids, self.mango_program.key, &perp_market)
-            }
-        }?;
-        // Search for the best order to spend the given amount of base lot
-        get_best_order_for_base_lot_quantity(book_maker_side, taker_side, base_lot_amount)
     }
 
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
@@ -493,7 +466,10 @@ impl<'info> MintWithMangoDepository<'info> {
 impl<'info> MintWithMangoDepository<'info> {
     pub fn validate(&self, collateral_amount: u64, slippage: u32) -> ProgramResult {
         // Valid slippage check
-        check!(slippage <= SLIPPAGE_BASIS, UxdErrorCode::InvalidSlippage)?;
+        check!(
+            (slippage > 0) && (slippage <= SLIPPAGE_BASIS),
+            UxdErrorCode::InvalidSlippage
+        )?;
 
         check!(collateral_amount > 0, UxdErrorCode::InvalidCollateralAmount)?;
         check!(

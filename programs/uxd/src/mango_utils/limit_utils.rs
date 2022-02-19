@@ -22,17 +22,17 @@ pub fn calculate_slippage_amount(price: I80F48, slippage: u32) -> UxdResult<I80F
 // Worse execution price for a provided slippage and side.
 // Keep in mind that you'r the Taker when you call this, and that the `matched_side` is the side your order will match against.
 // Meaning that you'r willing to go as far as limit price.
-//  If you'r buying, matched_side is ASK, and you'll buy from price up to (price + slippage)
-//  If you'r selling, matched_side is BID, and you'll sell from price down to (price - slippage)
-pub fn limit_price(price: I80F48, slippage: u32, matched_side: Side) -> UxdResult<I80F48> {
+//  If you are BID as the taker, matched_side is ASK, and you'll buy from price down to (price + slippage)
+//  If you are ASK as the taker, matched_side is BID, and you'll sell from price down to (price - slippage)
+pub fn limit_price(price: I80F48, slippage: u32, taker_side: Side) -> UxdResult<I80F48> {
     let slippage_amount = calculate_slippage_amount(price, slippage)?;
-    match matched_side {
-        Side::Bid => price.checked_sub(slippage_amount).ok_or(math_err!()),
-        Side::Ask => price.checked_add(slippage_amount).ok_or(math_err!()),
+    match taker_side {
+        Side::Bid => price.checked_add(slippage_amount).ok_or(math_err!()),
+        Side::Ask => price.checked_sub(slippage_amount).ok_or(math_err!()),
     }
 }
 
-// Convert into a base lot price in quote lot.
+// Convert price into a quote lot per base lot price.
 // Price is the value of 1 native base unit expressed in native quote.
 pub fn price_to_lot_price(price: I80F48, perp_info: &PerpInfo) -> UxdResult<I80F48> {
     price
@@ -43,6 +43,7 @@ pub fn price_to_lot_price(price: I80F48, perp_info: &PerpInfo) -> UxdResult<I80F
 }
 
 // Check if the provided order is valid given the slippage point and side
+// TODO: Doesn't handle 0 slippage - Currently `validate` checks for slippage != 0
 pub fn check_effective_order_price_versus_limit_price(
     perp_info: &PerpInfo,
     order: &Order,
@@ -53,12 +54,14 @@ pub fn check_effective_order_price_versus_limit_price(
     let limit_price_lot = price_to_lot_price(limit_price, perp_info)?;
     match order.taker_side {
         Side::Bid => {
-            if order.price >= limit_price_lot {
+            // Bid up to limit price
+            if order.price <= limit_price_lot {
                 return Ok(());
             }
         }
         Side::Ask => {
-            if order.price <= limit_price_lot {
+            // Ask for at least limit price
+            if order.price >= limit_price_lot {
                 return Ok(());
             }
         }

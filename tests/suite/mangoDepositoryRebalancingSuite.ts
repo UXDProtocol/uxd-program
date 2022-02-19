@@ -1,6 +1,6 @@
 
 import { NATIVE_MINT } from "@solana/spl-token";
-import { Signer } from "@solana/web3.js";
+import { Account, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, PnLPolarity, WSOL_DEVNET } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { rebalanceMangoDepositoryLiteTest } from "../cases/rebalanceMangoDepositoryLiteTest";
@@ -28,15 +28,6 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
             expect(true, "Failing as planned");
         }
         expect(false, "Should have failed - User not funded");
-    });
-
-    it(`Rebalance 0 ${depository.quoteMintSymbol} without funding (should fail)`, async function () {
-        try {
-            await rebalanceMangoDepositoryLiteTest(0, PnLPolarity.Negative, params.slippage, user, controller, depository, mango, payer);
-        } catch {
-            expect(true, "Failing as planned");
-        }
-        expect(false, "Should have failed - Cannot rebalance 0 and user unfunded");
     });
 
     it(`Rebalance 0 ${depository.quoteMintSymbol} (should fail)`, async function () {

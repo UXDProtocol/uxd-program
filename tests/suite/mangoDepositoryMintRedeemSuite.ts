@@ -157,9 +157,9 @@ export const mangoDepositoryMintRedeemSuite = function (user: Signer, payer: Sig
 
     it(`Mint 1000 ${controller.redeemableMintSymbol} then redeem the outcome in 3 times (${slippage / slippageBase * 100} % slippage)`, async function () {
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const amount = 1000 / perpPrice;
-        console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
-        const mintedAmount = await mintWithMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
+        const collateralAmount = 1000 / perpPrice;
+        console.log("[🧾 amount", collateralAmount, depository.collateralMintSymbol, "]");
+        const mintedAmount = await mintWithMangoDepositoryTest(collateralAmount, slippage, user, controller, depository, mango, payer);
         const redeemAmountPartial = mintedAmount / 3;
         await redeemFromMangoDepositoryTest(redeemAmountPartial, slippage, user, controller, depository, mango, payer);
         await redeemFromMangoDepositoryTest(redeemAmountPartial, slippage, user, controller, depository, mango, payer);

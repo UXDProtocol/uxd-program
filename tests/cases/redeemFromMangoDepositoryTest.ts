@@ -22,7 +22,8 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
         }
 
         // WHEN
-        // - Get the perp price at the same moment to have the less diff between exec and test price
+        // - Get the perp price at the same moment to have the less diff between exec and test price.
+        // Simulates user experience from the front end
         const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
         const txId = await redeemFromMangoDepository(user, payer ?? user, slippage, redeemableAmount, controller, depository, mango);
         console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol);
@@ -44,7 +45,7 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
         const redeemableDelta = userRedeemableBalance - userRedeemableBalance_post;
         const collateralDelta = userCollateralBalance_post - userCollateralBalance;
         const redeemableLeftOverDueToOddLot = redeemableAmount - redeemableDelta;
-        const redeemableProcessedByRedeeming = redeemableAmount - redeemableLeftOverDueToOddLot;
+        const redeemableProcessedByRedeeming = Math.min(redeemableAmount - redeemableLeftOverDueToOddLot);
         // The mango perp price in these might not be the exact same as the one in the transaction.
         const estimatedFrictionlessCollateralDelta = redeemableProcessedByRedeeming / mangoPerpPrice;
         const estimatedAmountRedeemableLostInTakerFees = mangoTakerFee * redeemableProcessedByRedeeming;

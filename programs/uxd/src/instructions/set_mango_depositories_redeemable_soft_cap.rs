@@ -11,12 +11,13 @@ use anchor_lang::prelude::*;
 
 declare_check_assert_macros!(SourceFileId::InstructionSetMangoDepositoriesRedeemableSoftCap);
 
+/// Takes 2 accounts - 2 used locally - 0 for CPI - 0 Programs - 0 Sysvar
 #[derive(Accounts)]
 pub struct SetMangoDepositoriesRedeemableSoftCap<'info> {
-    /// Authored call accessible only to the signer matching Controller.authority
+    /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
 
-    /// The top level UXDProgram on chain account managing the redeemable mint
+    /// #2 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
