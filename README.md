@@ -1,5 +1,8 @@
 # UXD-Program
 
+[![UXD Composability testing](https://github.com/blockworks-foundation/mango-v3/actions/workflows/ci-uxd.yml/badge.svg?branch=main&event=push)](https://github.com/blockworks-foundation/mango-v3/actions/workflows/ci-uxd.yml)
+
+
 The actual deployed state of each contract should live in a protected master branch. The latest master should always reflect the code deployed to all relevant chains
 
 It currently sits at:

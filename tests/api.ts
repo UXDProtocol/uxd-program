@@ -1,6 +1,6 @@
 import { getConnection, TXN_OPTS } from "./connection";
-import { uxdClient } from "./constants";
-import { Signer, Transaction } from '@solana/web3.js';
+import { CLUSTER, uxdClient } from "./constants";
+import { Account, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { prepareWrappedSolTokenAccount } from "./utils";
 import { MangoDepository, Mango, Controller, PnLPolarity, } from "@uxdprotocol/uxd-client";
@@ -95,7 +95,7 @@ export async function setMangoDepositoriesRedeemableSoftCap(authority: Signer, c
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-// User Facing Permissionless Calls -------------------------------------------
+// Permissionless Calls -------------------------------------------------------
 
 export async function mintWithMangoDepository(user: Signer, payer: Signer, slippage: number, collateralAmount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const mintWithMangoDepositoryIx = uxdClient.createMintWithMangoDepositoryInstruction(collateralAmount, slippage, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
@@ -160,5 +160,18 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
         signers.push(payer);
     }
 
-    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+    let txId = web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+
+    // PNL should be settled afterward to ensure we have no "borrow" to prevent paying interests
+    const settlePnlTxID = await settleDepositoryPnl(payer, depository, mango);
+    console.log("🔗 depository PnL settlement Tx:", `'https://explorer.solana.com/tx/${settlePnlTxID}?cluster=${CLUSTER}'`);
+
+    return txId;
+}
+
+// Non UXD API calls ----------------------------------------------------------
+
+export async function settleDepositoryPnl(payer: Signer, depository: MangoDepository, mango: Mango): Promise<string> {
+    let payerAccount = new Account(payer.secretKey);
+    return depository.settleMangoDepositoryMangoAccountPnl(payerAccount, mango);
 }

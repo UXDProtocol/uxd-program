@@ -2,7 +2,6 @@ use crate::check_assert;
 use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
 use crate::error::UxdIdlErrorCode;
-// use crate::events::RebalanceMangoDepositoryLiteEvent;
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
@@ -31,7 +30,7 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 use fixed::types::I80F48;
-use mango::matching::Book;
+use mango::matching::BookSide;
 use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
@@ -41,16 +40,25 @@ declare_check_assert_macros!(SourceFileId::InstructionMangoDexRebalanceMangoDepo
 
 const SUPPORTED_DEPOSITORY_VERSION: u8 = 2;
 
+/// Takes 29 accounts - 11 used locally - 13 for MangoMarkets CPI - 4 Programs - 1 Sysvar
 #[derive(Accounts)]
 pub struct RebalanceMangoDepositoryLite<'info> {
+    /// #1 Public call accessible to any user
     pub user: Signer<'info>,
+
+    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
+
+    /// #3 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump
     )]
     pub controller: Box<Account<'info, Controller>>,
+
+    /// #4 UXDProgram on chain account bound to a Controller instance
+    /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
@@ -60,15 +68,22 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         constraint = depository.version >= SUPPORTED_DEPOSITORY_VERSION @UxdIdlErrorCode::UnsupportedDepositoryVersion
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
+
+    /// #5 The collateral mint used by the `depository` instance
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
+
+    /// #6 The quote mint used by the `depository` instance
     #[account(
         constraint = quote_mint.key() == depository.quote_mint @UxdIdlErrorCode::InvalidQuoteMint
     )]
     pub quote_mint: Box<Account<'info, Mint>>,
-    // The collateral provided by the user. Only used when polarity is Positive
+
+    /// #7 The `user`'s ATA for the `depository`'s `collateral_mint`
+    /// Will be debited during this instruction when `Polarity` is positive
+    /// Will be credited during this instruction when `Polarity` is negative
     #[account(
         init_if_needed,
         associated_token::mint = collateral_mint,
@@ -76,7 +91,10 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         payer = payer,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
-    // The quote provided by the user. Only used when polarity is Negative
+
+    /// #8 The `user`'s ATA for the `depository`'s `quote_mint`
+    /// Will be credited during this instruction when `Polarity` is positive
+    /// Will be debited during this instruction when `Polarity` is negative
     #[account(
         init_if_needed,
         associated_token::mint = quote_mint,
@@ -84,7 +102,10 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         payer = payer,
     )]
     pub user_quote: Box<Account<'info, TokenAccount>>,
-    // Passthrough accounts as only mangoAccount's Owner Owned accounts can transact w/ the mangoAccount
+
+    /// #9 The `depository`'s TA for its `collateral_mint`
+    /// MangoAccounts can only transact with the TAs owned by their authority
+    /// and this only serves as a passthrough
     #[account(
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
@@ -93,6 +114,10 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralPassthroughATAMint
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
+
+    /// #10 The `depository`'s TA for its `quote_mint`
+    /// MangoAccounts can only transact with the TAs owned by their authority
+    /// and this only serves as a passthrough
     #[account(
         mut,
         seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
@@ -101,7 +126,8 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         constraint = depository_quote_passthrough_account.mint == depository.quote_mint @UxdIdlErrorCode::InvalidQuotePassthroughATAMint
     )]
     pub depository_quote_passthrough_account: Box<Account<'info, TokenAccount>>,
-    // The MangoMarket DEX account (owned by Depository PDA)
+
+    /// #11 The MangoMarkets Account (MangoAccount) managed by the `depository`
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
@@ -109,34 +135,67 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
-    // Mango CPI accounts
+
+    /// #12 [MangoMarkets CPI] Signer PDA
     pub mango_signer: AccountInfo<'info>,
+
+    /// #13 [MangoMarkets CPI] Index grouping perp and spot markets
     pub mango_group: AccountInfo<'info>,
+
+    /// #14 [MangoMarkets CPI] Cache
     pub mango_cache: AccountInfo<'info>,
+
+    /// #15 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`
     pub mango_root_bank_quote: AccountInfo<'info>,
+
+    /// #16 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`
     #[account(mut)]
     pub mango_node_bank_quote: AccountInfo<'info>,
+
+    /// #17 [MangoMarkets CPI] Vault `depository`'s `quote_mint`
     #[account(mut)]
     pub mango_vault_quote: AccountInfo<'info>,
+
+    /// #18 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
     pub mango_root_bank_collateral: AccountInfo<'info>,
+
+    /// #19 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
     #[account(mut)]
     pub mango_node_bank_collateral: AccountInfo<'info>,
+
+    /// #20 [MangoMarkets CPI] Vault for `depository`'s `collateral_mint`
     #[account(mut)]
     pub mango_vault_collateral: AccountInfo<'info>,
+
+    /// #21 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
     #[account(mut)]
     pub mango_perp_market: AccountInfo<'info>,
+
+    /// #22 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
     #[account(mut)]
     pub mango_bids: AccountInfo<'info>,
+
+    /// #23 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
     #[account(mut)]
     pub mango_asks: AccountInfo<'info>,
+
+    /// #24 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
     #[account(mut)]
     pub mango_event_queue: AccountInfo<'info>,
-    // programs
+
+    /// #25 System Program
     pub system_program: Program<'info, System>,
+
+    /// #26 Token Program
     pub token_program: Program<'info, Token>,
+
+    /// #27 Associated Token Program
     pub associated_token_program: Program<'info, AssociatedToken>,
+
+    /// #28 MangoMarketv3 Program
     pub mango_program: Program<'info, mango_program::Mango>,
-    // sysvar
+
+    /// #29 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -157,11 +216,6 @@ pub fn handler(
 
     // - [Perp account state PRE perp order]
     let pre_pa = ctx.accounts.perp_account(&perp_info)?;
-
-    // Note : This will be implemented when we have more computing.
-    //      It will move the redeemable_pnl to the spot balance
-    //      As it is currently, we might borrow or keep positive redeem balance until third party settlement.
-    // - [settle funding] TODO
 
     // - 1 [FIND CURRENT UNREALIZED PNL AMOUNT]
 
@@ -187,6 +241,7 @@ pub fn handler(
         return Ok(());
     }
     // We could get rid of the polarity parameter, but better have the user specify
+    // to avoid surprises
     match polarity {
         PnlPolarity::Positive => check!(
             perp_unrealized_pnl.is_positive(),
@@ -212,23 +267,20 @@ pub fn handler(
         .ok_or(math_err!())?
         .floor();
 
-    // - [Find the best order depending of polarity]
-    let perp_order = match polarity {
-        // Will increase the DN Position size
-        PnlPolarity::Positive => ctx
-            .accounts
-            .get_best_order_for_quote_lot_amount_from_order_book(
-                Side::Bid,
-                rebalancing_amount.checked_to_num().ok_or(math_err!())?,
-            )?,
-        // Will decrease the DN Position size
-        PnlPolarity::Negative => ctx
-            .accounts
-            .get_best_order_for_quote_lot_amount_from_order_book(
-                Side::Ask,
-                rebalancing_amount.checked_to_num().ok_or(math_err!())?,
-            )?,
+    // - [Estimate the best perp order depending of polarity]
+    // Note : The caller is the Taker, the side depend of the PnL Polarity.
+    let taker_side = match polarity {
+        // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
+        //        [BID: maker | ASK: taker (us, the caller)]
+        PnlPolarity::Positive => Side::Ask,
+        // Note : Reduce the delta neutral position, increasing long exposure, by buying perp.
+        //        [BID: taker (us, the caller) | ASK: maker]
+        PnlPolarity::Negative => Side::Bid,
     };
+    let quote_lot_amount = rebalancing_amount.checked_to_num().ok_or(math_err!())?;
+    let perp_order = ctx
+        .accounts
+        .find_best_order_in_book_for_quote_lot_amount(taker_side, quote_lot_amount)?;
 
     // - [Checks that the best price found is within slippage range]
     check_effective_order_price_versus_limit_price(&perp_info, &perp_order, slippage)?;
@@ -239,7 +291,7 @@ pub fn handler(
     let initial_base_position = total_perp_base_lot_position(&pre_pa)?;
 
     // - [Place perp order CPI to Mango Market v3]
-    let reduce_only = perp_order.side == Side::Bid;
+    let reduce_only = perp_order.taker_side == Side::Bid;
     mango_program::place_perp_order(
         ctx.accounts
             .into_place_perp_order_context()
@@ -247,7 +299,7 @@ pub fn handler(
         perp_order.price,
         perp_order.quantity,
         0,
-        perp_order.side,
+        perp_order.taker_side,
         mango::matching::OrderType::ImmediateOrCancel,
         reduce_only,
     )?;
@@ -571,6 +623,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             self.mango_perp_market.key,
             self.mango_program.key,
         )?;
+        msg!("perp_info {:?}", perp_info);
         Ok(perp_info)
     }
 
@@ -585,23 +638,27 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
-    fn get_best_order_for_quote_lot_amount_from_order_book(
+    fn find_best_order_in_book_for_quote_lot_amount(
         &self,
-        side: mango::matching::Side,
+        taker_side: Side,
         quote_lot_amount: i64,
     ) -> UxdResult<Order> {
-        // Load book
         let perp_market = PerpMarket::load_checked(
             &self.mango_perp_market,
             self.mango_program.key,
             self.mango_group.key,
         )?;
-        let bids_ai = self.mango_bids.to_account_info();
-        let asks_ai = self.mango_asks.to_account_info();
-        let book = Book::load_checked(self.mango_program.key, &bids_ai, &asks_ai, &perp_market)?;
-        let best_order = get_best_order_for_quote_lot_amount(&book, side, quote_lot_amount)?;
-
-        best_order.ok_or(throw_err!(UxdErrorCode::InsufficientOrderBookDepth))
+        // Load the maker side of the book
+        let book_maker_side = match taker_side {
+            Side::Bid => {
+                BookSide::load_mut_checked(&self.mango_asks, self.mango_program.key, &perp_market)
+            }
+            Side::Ask => {
+                BookSide::load_mut_checked(&self.mango_bids, self.mango_program.key, &perp_market)
+            }
+        }?;
+        // Search for the best order to spend the given amount of quote lot
+        get_best_order_for_quote_lot_amount(book_maker_side, taker_side, quote_lot_amount)
     }
 
     fn update_onchain_accounting(
@@ -634,7 +691,10 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         slippage: u32,
     ) -> ProgramResult {
         // Valid slippage check
-        check!(slippage <= SLIPPAGE_BASIS, UxdErrorCode::InvalidSlippage)?;
+        check!(
+            (slippage > 0) && (slippage <= SLIPPAGE_BASIS),
+            UxdErrorCode::InvalidSlippage
+        )?;
 
         // Rebalancing amount must be above 0
         check!(

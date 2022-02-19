@@ -25,11 +25,17 @@ const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
 declare_check_assert_macros!(SourceFileId::InstructionRegisterMangoDepository);
 
+/// Takes 16 accounts - 12 used locally - 1 for CPI - 3 Programs - 1 Sysvar
 #[derive(Accounts)]
 pub struct RegisterMangoDepository<'info> {
+    /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
+
+    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
+
+    /// #3 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -37,6 +43,9 @@ pub struct RegisterMangoDepository<'info> {
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
+
+    /// #4 UXDProgram on chain account bound to a Controller instance
+    /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
         init,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
@@ -44,9 +53,19 @@ pub struct RegisterMangoDepository<'info> {
         payer = payer,
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
+
+    /// #5 The collateral mint used by the `depository` instance
     pub collateral_mint: Box<Account<'info, Mint>>,
+
+    /// #6 The insurance mint used by the `depository` instance
     pub insurance_mint: Box<Account<'info, Mint>>,
+
+    /// #7 The quote mint used by the `depository` instance
     pub quote_mint: Box<Account<'info, Mint>>,
+
+    /// #8 The `depository`'s TA for its `collateral_mint`
+    /// MangoAccounts can only transact with the TAs owned by their authority
+    /// and this only serves as a passthrough
     #[account(
         init,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
@@ -56,6 +75,10 @@ pub struct RegisterMangoDepository<'info> {
         payer = payer,
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
+
+    /// #9 The `depository`'s TA for its `insurance_mint`
+    /// MangoAccounts can only transact with the TAs owned by their authority
+    /// and this only serves as a passthrough
     #[account(
         init,
         seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
@@ -65,6 +88,10 @@ pub struct RegisterMangoDepository<'info> {
         payer = payer,
     )]
     pub depository_insurance_passthrough_account: Box<Account<'info, TokenAccount>>,
+
+    /// #10 The `depository`'s TA for its `quote_mint`
+    /// MangoAccounts can only transact with the TAs owned by their authority
+    /// and this only serves as a passthrough
     #[account(
         init,
         seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
@@ -74,6 +101,8 @@ pub struct RegisterMangoDepository<'info> {
         payer = payer,
     )]
     pub depository_quote_passthrough_account: Box<Account<'info, TokenAccount>>,
+
+    /// #11 The MangoMarkets Account (MangoAccount) managed by the `depository`
     #[account(
         init,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
@@ -83,13 +112,20 @@ pub struct RegisterMangoDepository<'info> {
         space = MANGO_ACCOUNT_SPAN,
     )]
     pub depository_mango_account: AccountInfo<'info>,
-    // Mango CPI
+
+    /// #12 [MangoMarkets CPI] Index grouping perp and spot markets
     pub mango_group: AccountInfo<'info>,
-    // programs
+
+    /// #13 System Program
     pub system_program: Program<'info, System>,
+
+    /// #14 Token Program
     pub token_program: Program<'info, Token>,
+
+    /// #15 MangoMarketv3 Program
     pub mango_program: Program<'info, mango_program::Mango>,
-    // sysvar
+
+    /// #16 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 

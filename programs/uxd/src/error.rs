@@ -213,6 +213,8 @@ pub enum UxdErrorCode {
     RebalancingError,
     #[error("A bump was expected but is missing.")]
     BumpError,
+    #[error("The order is below size is below the min lot size.")]
+    OrderSizeBelowMinLotSize,
     #[error("MangoErrorCode::Default Check the source code for more info")]
     Default = u32::MAX,
 }
