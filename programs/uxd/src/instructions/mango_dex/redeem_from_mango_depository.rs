@@ -398,12 +398,15 @@ impl<'info> RedeemFromMangoDepository<'info> {
 impl<'info> RedeemFromMangoDepository<'info> {
     // Return general information about the perpetual related to the collateral in use
     fn perpetual_info(&self) -> UxdResult<PerpInfo> {
-        PerpInfo::new(
+        let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
             self.mango_perp_market.key,
             self.mango_program.key,
-        )
+        )?;
+        // No computing left
+        // msg!("perp_info {:?}", perp_info);
+        Ok(perp_info)
     }
 
     // Return the uncommitted PerpAccount that represent the account balances
@@ -414,7 +417,6 @@ impl<'info> RedeemFromMangoDepository<'info> {
             self.mango_program.key,
             self.mango_group.key,
         )?;
-        msg!("perp_info {:?}", perp_info);
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
