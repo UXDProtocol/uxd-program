@@ -106,6 +106,7 @@ export async function mintWithMangoDepository(user: Signer, payer: Signer, slipp
         const nativeAmount = collateralAmount * 10 ** depository.collateralMintDecimals;
         const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
             getConnection(),
+            payer.publicKey,
             user.publicKey,
             nativeAmount
         );
@@ -151,6 +152,7 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
         const nativeAmount = rebalancingMaxAmountCollateral * 10 ** depository.collateralMintDecimals;
         const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
             getConnection(),
+            payer.publicKey,
             user.publicKey,
             nativeAmount
         );

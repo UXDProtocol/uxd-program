@@ -1236,6 +1236,9 @@
             "name": "OrderSizeBelowMinLotSize"
           },
           {
+            "name": "InvalidCollateralDelta"
+          },
+          {
             "name": "Default"
           }
         ]

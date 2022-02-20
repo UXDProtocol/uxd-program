@@ -93,7 +93,7 @@ describe("Integration tests BTC", function () {
         mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositoryBTC);
     });
 
-    describe.skip("mangoDepositoryMintRedeemSuite BTC", function () {
+    describe("mangoDepositoryMintRedeemSuite BTC", function () {
         mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositoryBTC, 20);
     });
 

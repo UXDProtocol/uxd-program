@@ -162,6 +162,7 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
  */
 export const prepareWrappedSolTokenAccount = async (
     connection,
+    payerKey,
     userKey,
     amountNative
 ) => {
@@ -181,7 +182,7 @@ export const prepareWrappedSolTokenAccount = async (
             // no-op we have everything we need
         }
     } else {
-        return createWrappedSolTokenAccount(connection, userKey, amountNative);
+        return createWrappedSolTokenAccount(connection, payerKey, userKey, amountNative);
     }
     return [];
 };
@@ -223,6 +224,7 @@ const transferSolItx = (fromKey, toKey, amountNative) =>
 */
 const createWrappedSolTokenAccount = async (
     connection,
+    payerKey,
     userKey,
     amountNative = 0
 ) => {
@@ -236,17 +238,17 @@ const createWrappedSolTokenAccount = async (
         assocTokenKey,
         amountNative + balanceNeeded
     );
-    const createItx = createAssociatedTokenAccountItx(userKey, NATIVE_MINT);
+    const createItx = createAssociatedTokenAccountItx(payerKey, userKey, NATIVE_MINT);
 
     return [transferItx, createItx];
 };
 
-function createAssociatedTokenAccountItx(walletKey, mintKey) {
+function createAssociatedTokenAccountItx(payerKey, walletKey, mintKey) {
     const assocKey = findAssociatedTokenAddress(walletKey, mintKey);
 
     return new anchor.web3.TransactionInstruction({
         keys: [
-            { pubkey: walletKey, isSigner: true, isWritable: true },
+            { pubkey: payerKey, isSigner: true, isWritable: true },
             { pubkey: assocKey, isSigner: false, isWritable: true },
             { pubkey: walletKey, isSigner: false, isWritable: false },
             { pubkey: mintKey, isSigner: false, isWritable: false },
