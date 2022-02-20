@@ -44,8 +44,8 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
 
         const redeemableDelta = userRedeemableBalance - userRedeemableBalance_post;
         const collateralDelta = userCollateralBalance_post - userCollateralBalance;
-        const redeemableLeftOverDueToOddLot = redeemableAmount - redeemableDelta;
-        const redeemableProcessedByRedeeming = Math.min(redeemableAmount - redeemableLeftOverDueToOddLot);
+        const redeemableLeftOverDueToOddLot = Math.max(redeemableAmount - redeemableDelta, 0);
+        const redeemableProcessedByRedeeming = redeemableAmount - redeemableLeftOverDueToOddLot;
         // The mango perp price in these might not be the exact same as the one in the transaction.
         const estimatedFrictionlessCollateralDelta = redeemableProcessedByRedeeming / mangoPerpPrice;
         const estimatedAmountRedeemableLostInTakerFees = mangoTakerFee * redeemableProcessedByRedeeming;

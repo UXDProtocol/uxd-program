@@ -136,8 +136,8 @@ export async function redeemFromMangoDepository(user: Signer, payer: Signer, sli
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, rebalancingMaxAmount: number, polarity: PnLPolarity, slippage: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
-    const rebalanceMangoDepositoryLiteIx = uxdClient.createRebalanceMangoDepositoryLiteInstruction(rebalancingMaxAmount, slippage, polarity, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
+export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, rebalancingMaxAmountQuote: number, polarity: PnLPolarity, slippage: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
+    const rebalanceMangoDepositoryLiteIx = uxdClient.createRebalanceMangoDepositoryLiteInstruction(rebalancingMaxAmountQuote, slippage, polarity, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
     let signers = [];
     let tx = new Transaction();
 
@@ -145,7 +145,10 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
     // - Negative polarity sends QUOTE, gets COLLATERAL back.
     // - Positive polarity sends COLLATERAL, gets QUOTE back.
     if (polarity == PnLPolarity.Positive && depository.collateralMint.equals(NATIVE_MINT)) {
-        const nativeAmount = rebalancingMaxAmount * 10 ** depository.collateralMintDecimals;
+        console.log("rebalancingMaxAmount :", rebalancingMaxAmountQuote);
+        const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
+        const rebalancingMaxAmountCollateral = rebalancingMaxAmountQuote / mangoPerpPrice;
+        const nativeAmount = rebalancingMaxAmountCollateral * 10 ** depository.collateralMintDecimals;
         const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
             getConnection(),
             user.publicKey,
@@ -163,8 +166,8 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
     let txId = web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 
     // PNL should be settled afterward to ensure we have no "borrow" to prevent paying interests
-    const settlePnlTxID = await settleDepositoryPnl(payer, depository, mango);
-    console.log("🔗 depository PnL settlement Tx:", `'https://explorer.solana.com/tx/${settlePnlTxID}?cluster=${CLUSTER}'`);
+    // const settlePnlTxID = await settleDepositoryPnl(payer, depository, mango);
+    // console.log("🔗 depository PnL settlement Tx:", `'https://explorer.solana.com/tx/${settlePnlTxID}?cluster=${CLUSTER}'`);
 
     return txId;
 }

@@ -41,7 +41,7 @@ export const mintWithMangoDepositoryTest = async function (collateralAmount: num
 
         const redeemableDelta = userRedeemableBalance_post - userRedeemableBalance;
         const collateralDelta = userCollateralBalance - userCollateralBalance_post;
-        const collateralOddLotLeftOver = Math.min(collateralAmount - collateralDelta, 0);
+        const collateralOddLotLeftOver = Math.max(collateralAmount - collateralDelta, 0);
         const collateralProcessedByMinting = collateralAmount - collateralOddLotLeftOver;
         // The mango perp price in these might not be the exact same as the one in the transaction.
         const estimatedFrictionlessRedeemableDelta = collateralProcessedByMinting * mangoPerpPrice;

@@ -91,11 +91,11 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
         return rebalancedAmount;
     });
 
-    it(`Rebalance remaining depository unrealized PnL (${params.slippage / slippageBase * 100}% slippage)`, async function () {
+    it(`Rebalance 500$ of the depository unrealized PnL (${params.slippage / slippageBase * 100}% slippage)`, async function () {
         const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
         const minTradingSize = await depository.getMinTradingSizeQuoteUI(mango);
-        const rebalanceAmountBig = Math.max(Math.abs(unrealizedPnl * 1.1), minTradingSize); // Cause price move while we do all this...
+        const rebalanceAmount = 500;
         const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
         console.log("🔵 unrealizedPnl on ", depository.collateralMintSymbol, "depository:", unrealizedPnl, "| Polarity:", polarity);
@@ -106,9 +106,9 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
         switch (polarity) {
             case `Positive`: {
                 // Transfer COLLATERAL, will receive equivalent QUOTE back from the positive PNL
-                const collateralAmount = rebalanceAmountBig / perpPrice;
+                const collateralAmount = rebalanceAmount / perpPrice;
                 // For Wsol we send sol, the API handle the wrapping before each minting
-                if (depository.collateralMint.equals(NATIVE_MINT)) {
+                if (depository.collateralMint.equals(WSOL_DEVNET)) {
                     await transferSol(collateralAmount, payer, user.publicKey);
                 } else {
                     await transferTokens(collateralAmount, depository.collateralMint, depository.collateralMintDecimals, payer, user.publicKey);
@@ -118,13 +118,13 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
             }
             case `Negative`: {
                 // Transfer QUOTE to repay PNL, will receive equivalent COLLATERAL back
-                const quoteAmountUi = rebalanceAmountBig;
+                const quoteAmountUi = rebalanceAmount;
                 await transferTokens(quoteAmountUi, depository.quoteMint, depository.quoteMintDecimals, payer, user.publicKey);
                 console.log("🔵 transferring", quoteAmountUi, depository.quoteMintSymbol, "to user pre calling the rebalance");
                 break;
             }
         };
-        const rebalancedAmount = await rebalanceMangoDepositoryLiteTest(rebalanceAmountBig, polarity, params.slippage, user, controller, depository, mango, payer);
+        const rebalancedAmount = await rebalanceMangoDepositoryLiteTest(rebalanceAmount, polarity, params.slippage, user, controller, depository, mango, payer);
         await printUserInfo(user.publicKey, controller, depository);
         await printDepositoryInfo(controller, depository, mango);
         return rebalancedAmount;

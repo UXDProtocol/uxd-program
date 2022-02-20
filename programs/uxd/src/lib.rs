@@ -275,8 +275,8 @@ pub mod uxd {
     /// Rebalance the delta neutral position of the underlying `MangoDepository`.
     ///
     /// Parameters:
-    ///     - max_rebalancing_amount: the maximum amount of quote to rebalance
-    ///        in native unit.
+    ///     - max_rebalancing_amount: the maximum amount of quote this rebalance
+    ///        instruction will attempt to rebalance, in native unit.
     ///     - polarity: the direction of the rebalancing. This is known on chain
     ///        but required as an argument for clarity.
     ///     - slippage: the maximum deviation in price the user is ok to take
