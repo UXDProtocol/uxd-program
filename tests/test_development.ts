@@ -1,7 +1,7 @@
 import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
-import { transferAllSol, transferSol } from "./utils";
+import { transferAllSol, transferSol, transferTokens } from "./utils";
 import { depositInsuranceMangoDepositoryTest } from "./cases/depositInsuranceMangoDepositoryTest";
 import { initializeMangoDepositoryTest } from "./cases/initializeMangoDepositoryTest";
 import { mango } from "./fixtures";
@@ -28,6 +28,7 @@ describe("Integration tests SOL", function () {
     this.beforeAll("Init and fund user (10 SOL)", async function () {
         console.log("USER =>", user.publicKey.toString());
         await transferSol(10, bank, user.publicKey);
+        await transferTokens(10000, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
     });
 
     describe.skip("Init", async function () {

@@ -10,8 +10,6 @@ import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 
-// F3UToS4WKQkyAAs5TwM21ANq2xNfDRB7tGRWx4DxapaR
-
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);

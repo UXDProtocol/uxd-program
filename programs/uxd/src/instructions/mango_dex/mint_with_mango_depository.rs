@@ -193,9 +193,6 @@ pub fn handler(
     // - [Get the amount of Base Lots for the perp order (odd lots won't be processed)]
     let base_lot_amount = I80F48::from_num(collateral_amount)
         .checked_div_euclid(perp_info.base_lot_size)
-        .ok_or(math_err!())?
-        // Round down (should not be needed as base_lot should be an integer)
-        .checked_floor()
         .ok_or(math_err!())?;
 
     // - [Define perp order]

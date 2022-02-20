@@ -221,27 +221,37 @@ pub fn handler(
 
     // - [find out current perp Unrealized PnL]
     let perp_contract_size = perp_info.base_lot_size;
-    let perp_position_notional_size = I80F48::from_num(pre_pa.base_position)
+    // Note : Loose precision but an average value is fine here, we just want a value close to the current PnL
+    let perp_position_notional_size: i128 = I80F48::from_num(pre_pa.base_position)
         .checked_mul(perp_contract_size)
         .ok_or(math_err!())?
         .checked_mul(perp_info.price)
         .ok_or(math_err!())?
-        .abs();
-
-    // Here will be overflow some day (u128 -> I80F48)
-    let redeemable_amount_under_management =
-        I80F48::checked_from_num(ctx.accounts.depository.redeemable_amount_under_management)
-            .ok_or(math_err!())?;
-
-    let perp_unrealized_pnl = redeemable_amount_under_management
-        .checked_sub(perp_position_notional_size)
+        .abs()
+        .checked_to_num()
         .ok_or(math_err!())?;
 
-    if perp_unrealized_pnl.is_zero() {
-        return Ok(());
-    }
-    // We could get rid of the polarity parameter, but better have the user specify
-    // to avoid surprises
+    // The perp position unrealized PnL is equal to the outstanding amount of redeemable
+    // minus the perp position notional size in quote.
+    // Ideally they stay 1:1, to have the redeemable fully backed by the delta neutral
+    // position and no paper profits.
+    let redeemable_under_management =
+        i128::try_from(ctx.accounts.depository.redeemable_amount_under_management)
+            .map_err(|_e| math_err!())?;
+
+    // Will not overflow as `perp_position_notional_size` and `redeemable_under_management`
+    // will vary together.
+    let perp_unrealized_pnl = I80F48::checked_from_num(
+        perp_position_notional_size
+            .checked_sub(redeemable_under_management)
+            .ok_or(math_err!())?,
+    )
+    .ok_or(math_err!())?;
+
+    // Polarity parameter could be inferred, but is requested as input to prevent users
+    // user rebalancing (swapping) in an undesired way, as the PnL could technically shift
+    // between call and execution time.
+    // This also filter out the case where `perp_unrealized_pnl` is 0
     match polarity {
         PnlPolarity::Positive => check!(
             perp_unrealized_pnl.is_positive(),
@@ -253,19 +263,15 @@ pub fn handler(
         )?,
     }
     // - [rebalancing limited to `max_rebalancing_amount`, up to `perp_unrealized_pnl`]
-    let rebalancing_quote_amount = perp_unrealized_pnl
-        .abs()
-        .checked_to_num::<u64>()
-        .ok_or(math_err!())?
-        .min(max_rebalancing_amount);
+    let requested_rebalancing_amount = I80F48::from_num(max_rebalancing_amount);
+    let rebalancing_quote_amount = perp_unrealized_pnl.abs().min(requested_rebalancing_amount);
 
     // - 2 [FIND BEST ORDER FOR SHORT PERP POSITION (depending of Polarity)] --
 
-    // - [Get the amount of Quote Lots for the perp order]
-    let rebalancing_amount = I80F48::from_num(rebalancing_quote_amount)
-        .checked_div(perp_info.quote_lot_size)
-        .ok_or(math_err!())?
-        .floor();
+    // - [Get the amount of quote_lots for the perp order]
+    let rebalancing_amount = rebalancing_quote_amount
+        .checked_div_euclid(perp_info.quote_lot_size)
+        .ok_or(math_err!())?;
 
     // - [Estimate the best perp order depending of polarity]
     // Note : The caller is the Taker, the side depend of the PnL Polarity.
