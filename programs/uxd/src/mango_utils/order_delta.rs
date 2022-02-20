@@ -27,7 +27,7 @@ pub fn quote_delta(
     let pre_taker_quote = I80F48::from_num(pre_pa.taker_quote);
     let post_taker_quote = I80F48::from_num(post_pa.taker_quote);
     let quote_lot_delta = pre_taker_quote.dist(post_taker_quote);
-    I80F48::from_num(quote_lot_delta)
+    quote_lot_delta
         .checked_mul(quote_lot_size)
         .ok_or(math_err!())
 }
