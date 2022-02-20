@@ -22,3 +22,6 @@ programs/uxd/src/lib.rs.bak
 Anchor.toml.bak
 mochawesome-report
 .DS_Store
+README.md.bak
+scripts/swap_ci_resident_program_id.sh.bak
+.github/workflows/ci-anchor-test.yml.bak
