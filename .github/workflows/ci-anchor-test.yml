@@ -10,7 +10,7 @@ permissions:
   
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: 1.9.7
+  SOLANA_VERSION: 1.8.12
   ANCHOR_VERSION: 0.21.0
   CLUSTER: "devnet"
   DEVNET_RPC: https://api.devnet.solana.com 
@@ -30,7 +30,7 @@ env:
   #
   NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
   #
-  DEPLOYMENT_FUNDING_AMOUNT: 8
+  DEPLOYMENT_FUNDING_AMOUNT: 10
   MM_FUNDING_AMOUNT: 0.5  # Keep small it's lost
   TRANSACTION_FEE_OFFSET: 0.005
   # Name of the tests files in the program repo. We use them for sed and swap the `anchor test`
