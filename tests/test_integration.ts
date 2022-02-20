@@ -67,82 +67,82 @@ describe("Integration tests SOL", function () {
     });
 });
 
-// // BTC
-// describe("Integration tests BTC", function () {
-//     const user: Signer = new Keypair();
+// BTC
+describe("Integration tests BTC", function () {
+    const user: Signer = new Keypair();
 
-//     this.beforeAll("Init and fund user", async function () {
-//         console.log("USER =>", user.publicKey.toString());
-//         await transferSol(1, bank, user.publicKey);
-//     });
+    this.beforeAll("Init and fund user", async function () {
+        console.log("USER =>", user.publicKey.toString());
+        await transferSol(1, bank, user.publicKey);
+    });
 
-//     describe("mangoDepositorySetupSuite BTC", function () {
-//         mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryBTC, 100_000);
-//     });
+    describe("mangoDepositorySetupSuite BTC", function () {
+        mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryBTC, 100_000);
+    });
 
-//     describe.skip("mangoDepositoryMigrationsSuite BTC", function () {
-//         mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryBTC);
-//     });
+    describe.skip("mangoDepositoryMigrationsSuite BTC", function () {
+        mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryBTC);
+    });
 
-//     describe("mangoDepositoryRebalancingSuite BTC", function () {
-//         const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
-//         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryBTC, paramsRebalancing);
-//     });
+    describe("mangoDepositoryRebalancingSuite BTC", function () {
+        const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
+        mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryBTC, paramsRebalancing);
+    });
 
-//     describe.skip("mangoDepositoryInsuranceSuite BTC", function () {
-//         mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositoryBTC);
-//     });
+    describe.skip("mangoDepositoryInsuranceSuite BTC", function () {
+        mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositoryBTC);
+    });
 
-//     describe.skip("mangoDepositoryMintRedeemSuite BTC", function () {
-//         mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositoryBTC, 20);
-//     });
+    describe.skip("mangoDepositoryMintRedeemSuite BTC", function () {
+        mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositoryBTC, 20);
+    });
 
-//     describe.skip("mangoDepositoryAndControllerInteractionsSuite BTC", function () {
-//         const paramsBtc = new MangoDepositoryAndControllerInteractionsSuiteParameters(10_000_000, 30_000, 1_000_000, 60_000, 20);
-//         mangoDepositoryAndControllerInteractionsSuite(authority, user, bank, controllerUXD, mangoDepositoryBTC, paramsBtc);
-//     });
+    describe.skip("mangoDepositoryAndControllerInteractionsSuite BTC", function () {
+        const paramsBtc = new MangoDepositoryAndControllerInteractionsSuiteParameters(10_000_000, 30_000, 1_000_000, 60_000, 20);
+        mangoDepositoryAndControllerInteractionsSuite(authority, user, bank, controllerUXD, mangoDepositoryBTC, paramsBtc);
+    });
 
-//     this.afterAll("Transfer funds back to bank", async function () {
-//         await transferAllSol(user, bank.publicKey);
-//     });
-// });
+    this.afterAll("Transfer funds back to bank", async function () {
+        await transferAllSol(user, bank.publicKey);
+    });
+});
 
-// // ETH
-// describe("Integration tests ETH", function () {
-//     const user: Signer = new Keypair();
+// ETH
+describe("Integration tests ETH", function () {
+    const user: Signer = new Keypair();
 
-//     this.beforeAll("Init and fund user", async function () {
-//         console.log("USER =>", user.publicKey.toString());
-//         await transferSol(1, bank, user.publicKey);
-//     });
+    this.beforeAll("Init and fund user", async function () {
+        console.log("USER =>", user.publicKey.toString());
+        await transferSol(1, bank, user.publicKey);
+    });
 
-//     describe("mangoDepositorySetupSuite ETH", function () {
-//         mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryETH, 8_000);
-//     });
+    describe("mangoDepositorySetupSuite ETH", function () {
+        mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryETH, 8_000);
+    });
 
-//     describe.skip("mangoDepositoryMigrationsSuite ETH", function () {
-//         mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryETH); // un-migrated yet (and this is skipped)
-//     });
+    describe.skip("mangoDepositoryMigrationsSuite ETH", function () {
+        mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryETH); // un-migrated yet (and this is skipped)
+    });
 
-//     describe.skip("mangoDepositoryRebalancingSuite ETH", function () {
-//         const paramsETH = new MangoDepositoryRebalancingSuiteParameters(20)
-//         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryETH, paramsETH);
-//     });
+    describe.skip("mangoDepositoryRebalancingSuite ETH", function () {
+        const paramsETH = new MangoDepositoryRebalancingSuiteParameters(20)
+        mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryETH, paramsETH);
+    });
 
-//     describe.skip("mangoDepositoryInsuranceSuite ETH", function () {
-//         mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositoryETH);
-//     });
+    describe.skip("mangoDepositoryInsuranceSuite ETH", function () {
+        mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositoryETH);
+    });
 
-//     describe.skip("mangoDepositoryMintRedeemSuite ETH", function () {
-//         mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositoryETH, 20);
-//     });
+    describe.skip("mangoDepositoryMintRedeemSuite ETH", function () {
+        mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositoryETH, 20);
+    });
 
-//     describe.skip("mangoDepositoryAndControllerInteractionsSuite ETH", function () {
-//         const paramsEth = new MangoDepositoryAndControllerInteractionsSuiteParameters(10_000_000, 8_000, 50_000, 5_000, 20);
-//         mangoDepositoryAndControllerInteractionsSuite(authority, user, bank, controllerUXD, mangoDepositoryETH, paramsEth);
-//     });
+    describe.skip("mangoDepositoryAndControllerInteractionsSuite ETH", function () {
+        const paramsEth = new MangoDepositoryAndControllerInteractionsSuiteParameters(10_000_000, 8_000, 50_000, 5_000, 20);
+        mangoDepositoryAndControllerInteractionsSuite(authority, user, bank, controllerUXD, mangoDepositoryETH, paramsEth);
+    });
 
-//     this.afterAll("Transfer funds back to bank", async function () {
-//         await transferAllSol(user, bank.publicKey);
-//     });
-// });
+    this.afterAll("Transfer funds back to bank", async function () {
+        await transferAllSol(user, bank.publicKey);
+    });
+});
