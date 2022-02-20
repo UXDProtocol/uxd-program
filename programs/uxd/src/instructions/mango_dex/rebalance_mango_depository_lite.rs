@@ -270,8 +270,9 @@ pub fn handler(
 
     // - [Get the amount of quote_lots for the perp order]
     let rebalancing_amount = rebalancing_quote_amount
-        .checked_div_euclid(perp_info.quote_lot_size)
-        .ok_or(math_err!())?;
+        .checked_div(perp_info.quote_lot_size)
+        .ok_or(math_err!())?
+        .floor();
 
     // - [Estimate the best perp order depending of polarity]
     // Note : The caller is the Taker, the side depend of the PnL Polarity.
@@ -626,10 +627,13 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
+            &self.depository_mango_account,
             self.mango_perp_market.key,
+            self.mango_group.key,
             self.mango_program.key,
         )?;
-        msg!("perp_info {:?}", perp_info);
+        // No computing left
+        // msg!("perp_info {:?}", perp_info);
         Ok(perp_info)
     }
 

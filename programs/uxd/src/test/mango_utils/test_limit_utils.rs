@@ -17,7 +17,7 @@ mod test_limit_utils {
             price: I80F48::from_num(price),
             base_lot_size: I80F48::from_num(10_000_000),
             quote_lot_size: I80F48::from_num(100),
-            taker_fee: I80F48::from_num(0.000_5),
+            effective_fee: I80F48::from_num(0.000_5),
         }
     }
 

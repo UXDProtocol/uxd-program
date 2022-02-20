@@ -69,7 +69,7 @@ pub fn derive_order_delta(
     // Quote amount from an order cannot be 0 at this stage
     check!(!quote_delta.is_zero(), UxdErrorCode::InvalidQuoteDelta)?;
     // Note : Will keep the current way of calculating, but here quote_position delta would work
-    let fee_delta = taker_fee_amount_ceil(quote_delta, perp_info.taker_fee)?;
+    let fee_delta = taker_fee_amount_ceil(quote_delta, perp_info.effective_fee)?;
     let base_delta = base_delta(pre_pa, post_pa, perp_info.base_lot_size)?;
 
     let order_delta = OrderDelta {

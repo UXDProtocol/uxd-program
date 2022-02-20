@@ -192,8 +192,9 @@ pub fn handler(
 
     // - [Get the amount of Base Lots for the perp order (odd lots won't be processed)]
     let base_lot_amount = I80F48::from_num(collateral_amount)
-        .checked_div_euclid(perp_info.base_lot_size)
-        .ok_or(math_err!())?;
+        .checked_div(perp_info.base_lot_size)
+        .ok_or(math_err!())?
+        .floor();
 
     // - [Define perp order]
     // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
@@ -398,7 +399,9 @@ impl<'info> MintWithMangoDepository<'info> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
+            &self.depository_mango_account,
             self.mango_perp_market.key,
+            self.mango_group.key,
             self.mango_program.key,
         )?;
         msg!("perp_info {:?}", perp_info);

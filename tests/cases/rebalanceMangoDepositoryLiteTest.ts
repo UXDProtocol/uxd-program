@@ -64,12 +64,9 @@ const rebalancePositivePnL = async function (rebalancingMaxAmount: number, slipp
 
         const quoteDelta = userQuoteBalance_post - userQuoteBalance;
         const collateralDelta = userCollateralBalance - userCollateralBalance_post;
-        const collateralOddLotLeftOver = Math.max(rebalancingMaxAmountCollateralEquivalent - collateralDelta, 0);
-        const collateralProcessedByRebalancing = rebalancingMaxAmountCollateralEquivalent - collateralOddLotLeftOver;
         // The mango perp price in these might not be the exact same as the one in the transaction.
-        const estimatedFrictionlessQuoteDelta = collateralProcessedByRebalancing * mangoPerpPrice;
-        const estimatedAmountQuoteLostInTakerFees = mangoTakerFee * collateralProcessedByRebalancing * mangoPerpPrice;
-        const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
+        const estimatedFrictionlessQuoteDelta = collateralDelta * mangoPerpPrice;
+        const estimatedAmountQuoteLostInTakerFees = mangoTakerFee * collateralDelta * mangoPerpPrice;
         const estimatedAmountQuoteLostInSlippage = Math.abs(estimatedFrictionlessQuoteDelta - quoteDelta) - estimatedAmountQuoteLostInTakerFees;
         // The worst price the user could get (lowest amount of QUOTE for his collateral)
         const worthExecutionPriceQuoteDelta = estimatedFrictionlessQuoteDelta * (slippage / slippageBase)
@@ -77,16 +74,15 @@ const rebalancePositivePnL = async function (rebalancingMaxAmount: number, slipp
         console.log("Efficiency", Number(((quoteDelta / estimatedFrictionlessQuoteDelta) * 100).toFixed(2)), "%");
         console.log(
             `🧾 Rebalanced (received)`, Number(quoteDelta.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol,
-            "by sending", Number(collateralProcessedByRebalancing.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
+            "using", Number(collateralDelta.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
             "(+~ takerFees =", Number(estimatedAmountQuoteLostInTakerFees.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol,
             ", +~ slippage =", Number(estimatedAmountQuoteLostInSlippage.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol, ")",
             "(frictionless rebalancing would have been", Number(estimatedFrictionlessQuoteDelta.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol, ")",
-            "|| unprocessed, returned", Number(collateralOddLotLeftOver.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
             ")"
         );
-        expect(rebalancingMaxAmountCollateralEquivalent).closeTo(collateralProcessedByRebalancing + collateralOddLotLeftOver, collateralNativeUnitPrecision, "The amount of collateral left over + processed is not equal to the collateral amount inputted initially");
-        expect(quoteDelta).greaterThanOrEqual(worthExecutionPriceQuoteDelta, "The amount rebalanced is out of the slippage range");
-        expect(collateralDelta).lessThanOrEqual(rebalancingMaxAmountCollateralEquivalent - collateralOddLotLeftOver, "User paid more collateral than inputted amount");
+        expect(quoteDelta).to.be.lessThanOrEqual(rebalancingMaxAmount, "used more quote that initially intended");
+        expect(quoteDelta).to.be.greaterThanOrEqual(worthExecutionPriceQuoteDelta, "The amount rebalanced is out of the slippage range");
+        expect(collateralDelta).to.be.lessThanOrEqual(rebalancingMaxAmountCollateralEquivalent, "User paid more collateral than inputted amount");
         return quoteDelta;
     } catch (error) {
         throw error;
@@ -135,12 +131,10 @@ const rebalanceNegativePnL = async function (rebalancingMaxAmount: number, slipp
 
         const quoteDelta = userQuoteBalance - userQuoteBalance_post;
         const collateralDelta = userCollateralBalance_post - userCollateralBalance;
-        const quoteLeftOverDueToOddLot = Math.max(rebalancingMaxAmount - quoteDelta, 0);
-        const quoteProcessedByRebalancing = rebalancingMaxAmount - quoteLeftOverDueToOddLot;
+        const quoteProcessedByRebalancing = rebalancingMaxAmount;
         // The mango perp price in these might not be the exact same as the one in the transaction.
         const estimatedFrictionlessCollateralDelta = quoteProcessedByRebalancing / mangoPerpPrice;
         const estimatedAmountQuoteLostInTakerFees = mangoTakerFee * quoteProcessedByRebalancing;
-        const quoteNativeUnitPrecision = Math.pow(10, -depository.quoteMintDecimals);
         const estimatedAmountQuoteLostInSlippage = Math.abs(quoteDelta - quoteProcessedByRebalancing) - estimatedAmountQuoteLostInTakerFees;
         // The worst price the user could get (lowest amount of UXD)
         const worthExecutionPriceCollateralDelta = (estimatedFrictionlessCollateralDelta * (slippage / slippageBase)) / mangoPerpPrice;
@@ -152,11 +146,8 @@ const rebalanceNegativePnL = async function (rebalancingMaxAmount: number, slipp
             "(+~ takerFees =", Number(estimatedAmountQuoteLostInTakerFees.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol,
             ", +~ slippage =", Number(estimatedAmountQuoteLostInSlippage.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol, ")",
             "(frictionless rebalancing would have been", Number(estimatedFrictionlessCollateralDelta.toFixed(depository.quoteMintDecimals)), depository.collateralMintSymbol, ")",
-            "|| unprocessed, returned", Number(quoteLeftOverDueToOddLot.toFixed(depository.collateralMintDecimals)), depository.quoteMintSymbol,
             ")"
         );
-
-        expect(rebalancingMaxAmount).closeTo(quoteProcessedByRebalancing + quoteLeftOverDueToOddLot, quoteNativeUnitPrecision, "The amount of collateral left over + processed is not equal to the collateral amount inputted initially");
         expect(quoteDelta).greaterThanOrEqual(worthExecutionPriceCollateralDelta, "The amount minted is out of the slippage range");
         expect(quoteDelta).lessThanOrEqual(rebalancingMaxAmount, "The amount of quote consumed is more that initially planned");
         return quoteDelta;
