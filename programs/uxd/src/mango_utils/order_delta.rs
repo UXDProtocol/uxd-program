@@ -8,7 +8,6 @@ use crate::mango_utils::total_perp_base_lot_position;
 use crate::UxdResult;
 use fixed::types::I80F48;
 use mango::state::PerpAccount;
-use solana_program::msg;
 
 declare_check_assert_macros!(SourceFileId::MangoUtilsOrderDelta);
 
@@ -72,11 +71,9 @@ pub fn derive_order_delta(
     let fee_delta = taker_fee_amount_ceil(quote_delta, perp_info.effective_fee)?;
     let base_delta = base_delta(pre_pa, post_pa, perp_info.base_lot_size)?;
 
-    let order_delta = OrderDelta {
+    Ok(OrderDelta {
         collateral: base_delta.checked_to_num().ok_or(math_err!())?,
         quote: quote_delta.checked_to_num().ok_or(math_err!())?,
         fee: fee_delta.checked_to_num().ok_or(math_err!())?,
-    };
-    msg!("order_delta {:?}", order_delta);
-    Ok(order_delta)
+    })
 }

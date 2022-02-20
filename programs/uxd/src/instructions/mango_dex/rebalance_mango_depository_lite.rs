@@ -249,7 +249,6 @@ pub fn handler(
     )
     .ok_or(math_err!())?;
 
-    msg!("perp_unrealized_pnl {}", perp_unrealized_pnl);
 
     // Polarity parameter could be inferred, but is requested as input to prevent users
     // user rebalancing (swapping) in an undesired way, as the PnL could technically shift
@@ -749,7 +748,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
 
         // Rebalancing amount must be above 0
         match polarity {
-            PnlPolarity::Positive => (), // Checked later
+            PnlPolarity::Positive => (),
             PnlPolarity::Negative => check!(
                 self.user_quote.amount >= max_rebalancing_amount,
                 UxdErrorCode::InsufficientQuoteAmount
