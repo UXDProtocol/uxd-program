@@ -27,9 +27,10 @@ describe("UXD Controller Suite", function () {
     controllerIntegrationSuite(authority, bank, controllerUXD, params);
 });
 
+let user: Signer = new Keypair();
+
 // SOL
 describe("Integration tests SOL", function () {
-    const user: Signer = new Keypair();
 
     this.beforeAll("Init and fund user", async function () {
         console.log("USER =>", user.publicKey.toString());
@@ -69,7 +70,6 @@ describe("Integration tests SOL", function () {
 
 // BTC
 describe("Integration tests BTC", function () {
-    const user: Signer = new Keypair();
 
     this.beforeAll("Init and fund user", async function () {
         console.log("USER =>", user.publicKey.toString());
@@ -109,7 +109,6 @@ describe("Integration tests BTC", function () {
 
 // ETH
 describe("Integration tests ETH", function () {
-    const user: Signer = new Keypair();
 
     this.beforeAll("Init and fund user", async function () {
         console.log("USER =>", user.publicKey.toString());
@@ -124,7 +123,7 @@ describe("Integration tests ETH", function () {
         mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryETH); // un-migrated yet (and this is skipped)
     });
 
-    describe.skip("mangoDepositoryRebalancingSuite ETH", function () {
+    describe("mangoDepositoryRebalancingSuite ETH", function () {
         const paramsETH = new MangoDepositoryRebalancingSuiteParameters(20)
         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryETH, paramsETH);
     });
@@ -133,7 +132,7 @@ describe("Integration tests ETH", function () {
         mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositoryETH);
     });
 
-    describe.skip("mangoDepositoryMintRedeemSuite ETH", function () {
+    describe("mangoDepositoryMintRedeemSuite ETH", function () {
         mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositoryETH, 20);
     });
 

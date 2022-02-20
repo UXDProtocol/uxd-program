@@ -81,8 +81,8 @@ export const mangoDepositoryMintRedeemSuite = function (user: Signer, payer: Sig
         const amount = 3_000 / perpPrice;
         const mintedAmount = await mintWithMangoDepositoryTest(amount, 300, user, controller, depository, mango, payer);
         await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, depository, mango, payer);
-        await printUserInfo(user.publicKey, controller, depository);
-        await printDepositoryInfo(controller, depository, mango);
+        // await printUserInfo(user.publicKey, controller, depository);
+        // await printDepositoryInfo(controller, depository, mango);
     });
 
     it(`Redeem 1000 ${controller.redeemableMintSymbol} (0% slippage) (should fail)`, async function () {

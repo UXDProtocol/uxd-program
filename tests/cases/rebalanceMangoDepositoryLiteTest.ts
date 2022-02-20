@@ -52,29 +52,30 @@ const rebalancePositivePnL = async function (rebalancingMaxAmount: number, slipp
         const rebalancingMaxAmountCollateralEquivalent = rebalancingMaxAmount / mangoPerpPrice;
         const userQuoteBalance_post = await getBalance(userQuoteATA);
         let userCollateralBalance_post: number;
-        if (NATIVE_MINT.equals(depository.collateralMint)) {
-            // the TX unwrap the WSOL, so we need to remove the initial SOL balance. Payer takes the tx fees so we'r good.
-            // Note we don't unwrap yet cause no computing
-            userCollateralBalance_post = await getSolBalance(user.publicKey); // - userStartingSolBalance;
-        } else {
+        // Note - This ix doesn't unwrap yet due to computing limits
+        // if (NATIVE_MINT.equals(depository.collateralMint)) {
+        //     // the TX unwrap the WSOL, so we need to remove the initial SOL balance. Payer takes the tx fees so we'r good.
+        //     // Note we don't unwrap yet cause no computing
+        //     userCollateralBalance_post = await getSolBalance(user.publicKey); // - userStartingSolBalance;
+        // } else {
             userCollateralBalance_post = await getBalance(userCollateralATA);
-        }
+        // }
 
         const mangoTakerFee = depository.getCollateralPerpTakerFees(mango);
 
-        const quoteDelta = userQuoteBalance_post - userQuoteBalance;
-        const collateralDelta = userCollateralBalance - userCollateralBalance_post;
+        const quoteDelta = Math.abs(userQuoteBalance_post - userQuoteBalance);
+        const collateralDelta = Math.abs(userCollateralBalance_post - userCollateralBalance);
         // The mango perp price in these might not be the exact same as the one in the transaction.
         const estimatedFrictionlessQuoteDelta = collateralDelta * mangoPerpPrice;
-        const estimatedAmountQuoteLostInTakerFees = mangoTakerFee * collateralDelta * mangoPerpPrice;
-        const estimatedAmountQuoteLostInSlippage = Math.abs(estimatedFrictionlessQuoteDelta - quoteDelta) - estimatedAmountQuoteLostInTakerFees;
+        const estimatedAmountQuoteLostInTakerFees = mangoTakerFee * quoteDelta;
+        const estimatedAmountQuoteLostInSlippage = estimatedFrictionlessQuoteDelta - quoteDelta - estimatedAmountQuoteLostInTakerFees;
         // The worst price the user could get (lowest amount of QUOTE for his collateral)
         const worthExecutionPriceQuoteDelta = estimatedFrictionlessQuoteDelta * (slippage / slippageBase)
 
         console.log("Efficiency", Number(((quoteDelta / estimatedFrictionlessQuoteDelta) * 100).toFixed(2)), "%");
         console.log(
-            `🧾 Rebalanced (received)`, Number(quoteDelta.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol,
-            "using", Number(collateralDelta.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
+            `🧾 Rebalanced (sent)`, Number(quoteDelta.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol,
+            "received", Number(collateralDelta.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
             "(+~ takerFees =", Number(estimatedAmountQuoteLostInTakerFees.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol,
             ", +~ slippage =", Number(estimatedAmountQuoteLostInSlippage.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol, ")",
             "(frictionless rebalancing would have been", Number(estimatedFrictionlessQuoteDelta.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol, ")",
@@ -128,10 +129,9 @@ const rebalanceNegativePnL = async function (rebalancingMaxAmount: number, slipp
         // }
 
         const mangoTakerFee = depository.getCollateralPerpTakerFees(mango);
-
         const quoteDelta = userQuoteBalance - userQuoteBalance_post;
         const collateralDelta = userCollateralBalance_post - userCollateralBalance;
-        const quoteProcessedByRebalancing = rebalancingMaxAmount;
+        const quoteProcessedByRebalancing = quoteDelta;
         // The mango perp price in these might not be the exact same as the one in the transaction.
         const estimatedFrictionlessCollateralDelta = quoteProcessedByRebalancing / mangoPerpPrice;
         const estimatedAmountQuoteLostInTakerFees = mangoTakerFee * quoteProcessedByRebalancing;
