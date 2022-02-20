@@ -275,7 +275,7 @@ pub fn handler(
     )?;
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;
     msg!("order_delta {:?}", order_delta);
-    
+
     let redeemable_delta = order_delta
         .quote
         .checked_sub(order_delta.fee)

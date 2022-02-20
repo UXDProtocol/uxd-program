@@ -249,7 +249,6 @@ pub fn handler(
     )
     .ok_or(math_err!())?;
 
-
     // Polarity parameter could be inferred, but is requested as input to prevent users
     // user rebalancing (swapping) in an undesired way, as the PnL could technically shift
     // between call and execution time.
