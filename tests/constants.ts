@@ -1,8 +1,5 @@
-import { Idl, Program } from "@project-serum/anchor";
 import { Keypair, PublicKey, Signer } from "@solana/web3.js";
-// import { workspace } from "@project-serum/anchor";
-import { IDL, UXD, UXDHelpers } from "@uxdprotocol/uxd-client";
-import { provider } from "./provider";
+import { UXDClient } from "@uxdprotocol/uxd-client";
 import * as jsonIdl from "../target/idl/uxd.json";
 
 // TESTING wallets for convenience (The user and admin). To remove when going open source
@@ -24,33 +21,18 @@ const Eyh77Seed = Uint8Array.from([
 // This is us, the UXD deployment admins // aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC
 const adminKeypair = Keypair.fromSecretKey(aca3VWSeed);
 export const authority: Signer = adminKeypair;
-console.log(`CONTROLLER AUTHORITY KEY => ${authority.publicKey}`);
+console.log(`CONTROLLER AUTHORITY => 🔗 https://solscan.io/account/${authority.publicKey}?cluster=devnet`);
 // This is the user //
-const userKeypair = Keypair.fromSecretKey(Eyh77Seed);
-export const user: Signer = userKeypair;
-console.log(`USER KEY => ${user.publicKey}`);
+const bankKeypair = Keypair.fromSecretKey(Eyh77Seed);
+export const bank: Signer = bankKeypair;
+console.log(`BANK => 🔗https://solscan.io/account/${bank.publicKey}?cluster=devnet`);
 
 // Get this from anchor.toml TODO
-export const CLUSTER = 'devnet'; // "mainnet"
-
-// Swap these depending of CLUSTER TODO
-export const WSOL = new PublicKey("So11111111111111111111111111111111111111112");
-// Devnet
-export const USDC = new PublicKey("8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN");
-export const BTC = new PublicKey("3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU");
-// Mainnet 
-// export const USDC = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-// export const BTC = new PublicKey("9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E");
+export const CLUSTER = 'devnet';
 
 // ----------------------------------------------------------------------------
-
-// export const uxdProgram = new Program(IDL, , provider); // Used for anchor test because case is not the same in idl and types.
 export const uxdProgramId: PublicKey = new PublicKey(jsonIdl["metadata"]["address"]);
 console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
-export const uxdClient = new UXD(uxdProgramId);
-export const uxdHelpers = new UXDHelpers();
+export const uxdClient = new UXDClient(uxdProgramId);
 
-export const mangoCrankInterval = 1000; // In milliseconds - Run KEEPER else useless
 export const slippageBase = 1000;
-
-export const MANGO_QUOTE_DECIMALS = 6; // USDC

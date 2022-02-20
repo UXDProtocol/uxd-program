@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "2.2.0",
+  "version": "3.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -42,14 +42,6 @@ export type Uxd = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
-          "name": "redeemableMintBump",
-          "type": "u8"
-        },
         {
           "name": "redeemableMintDecimals",
           "type": "u8"
@@ -132,12 +124,22 @@ export type Uxd = {
           "isSigner": false
         },
         {
+          "name": "quoteMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "depositoryCollateralPassthroughAccount",
           "isMut": true,
           "isSigner": false
         },
         {
           "name": "depositoryInsurancePassthroughAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryQuotePassthroughAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -172,24 +174,58 @@ export type Uxd = {
           "isSigner": false
         }
       ],
-      "args": [
+      "args": []
+    },
+    {
+      "name": "migrateMangoDepositoryToV2",
+      "accounts": [
         {
-          "name": "bump",
-          "type": "u8"
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          "name": "collateralPassthroughBump",
-          "type": "u8"
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          "name": "insurancePassthroughBump",
-          "type": "u8"
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          "name": "mangoAccountBump",
-          "type": "u8"
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "quoteMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryQuotePassthroughAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
         }
-      ]
+      ],
+      "args": []
     },
     {
       "name": "depositInsuranceToMangoDepository",
@@ -201,7 +237,7 @@ export type Uxd = {
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -287,7 +323,7 @@ export type Uxd = {
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -374,10 +410,181 @@ export type Uxd = {
       ]
     },
     {
+      "name": "rebalanceMangoDepositoryLite",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "quoteMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryCollateralPassthroughAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryQuotePassthroughAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryMangoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoSigner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoCache",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoRootBankQuote",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoNodeBankQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoVaultQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoRootBankCollateral",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoNodeBankCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoVaultCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoPerpMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoBids",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoAsks",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoEventQueue",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "maxRebalancingAmount",
+          "type": "u64"
+        },
+        {
+          "name": "polarity",
+          "type": {
+            "defined": "PnlPolarity"
+          }
+        },
+        {
+          "name": "slippage",
+          "type": "u32"
+        }
+      ]
+    },
+    {
       "name": "mintWithMangoDepository",
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -394,6 +601,11 @@ export type Uxd = {
         {
           "name": "redeemableMint",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -503,6 +715,11 @@ export type Uxd = {
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -517,22 +734,22 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false
         },
         {
           "name": "redeemableMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRedeemable",
           "isMut": true,
           "isSigner": false
         },
@@ -773,8 +990,32 @@ export type Uxd = {
           },
           {
             "name": "reserved",
+            "type": "u8"
+          },
+          {
+            "name": "quoteMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "quotePassthrough",
+            "type": "publicKey"
+          },
+          {
+            "name": "quotePassthroughBump",
+            "type": "u8"
+          },
+          {
+            "name": "quoteMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "totalAmountRebalanced",
+            "type": "u128"
+          },
+          {
+            "name": "reserved1",
             "type": {
-              "defined": "MangoDeposirotyPadding"
+              "defined": "MangoDepositoryPadding"
             }
           }
         ]
@@ -852,6 +1093,12 @@ export type Uxd = {
           },
           {
             "name": "Lib"
+          },
+          {
+            "name": "InstructionMangoDexRebalanceMangoDepositoryLite"
+          },
+          {
+            "name": "InstructionMangoDexMigrateMangoDepositoryToV2"
           }
         ]
       }
@@ -911,6 +1158,9 @@ export type Uxd = {
             "name": "InvalidSlippage"
           },
           {
+            "name": "EffectiveOrderPriceBeyondLimitPrice"
+          },
+          {
             "name": "InvalidCollateralAmount"
           },
           {
@@ -956,7 +1206,7 @@ export type Uxd = {
             "name": "InvalidMangoDepositoriesRedeemableSoftCap"
           },
           {
-            "name": "InvalidQuoteLotDelta"
+            "name": "InvalidQuoteDelta"
           },
           {
             "name": "InvalidOrderDirection"
@@ -966,6 +1216,27 @@ export type Uxd = {
           },
           {
             "name": "SlippageReached"
+          },
+          {
+            "name": "InvalidRebalancingAmount"
+          },
+          {
+            "name": "InsufficientQuoteAmount"
+          },
+          {
+            "name": "InvalidPnlPolarity"
+          },
+          {
+            "name": "RebalancingError"
+          },
+          {
+            "name": "BumpError"
+          },
+          {
+            "name": "OrderSizeBelowMinLotSize"
+          },
+          {
+            "name": "InvalidCollateralDelta"
           },
           {
             "name": "Default"
@@ -983,6 +1254,20 @@ export type Uxd = {
           },
           {
             "name": "Withdraw"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PnlPolarity",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Positive"
+          },
+          {
+            "name": "Negative"
           }
         ]
       }
@@ -1065,6 +1350,101 @@ export type Uxd = {
       ]
     },
     {
+      "name": "RegisterMangoDepositoryEventV2",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositoryVersion",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mangoAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "MigrateMangoDepositoryToV2Event",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositoryFromVersion",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositoryToVersion",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mangoAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
       "name": "SetMangoDepositoryRedeemableSoftCapEvent",
       "fields": [
         {
@@ -1130,7 +1510,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -1263,6 +1643,73 @@ export type Uxd = {
           "index": false
         }
       ]
+    },
+    {
+      "name": "RebalanceMangoDepositoryLiteEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositoryVersion",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "polarity",
+          "type": {
+            "defined": "PnlPolarity"
+          },
+          "index": false
+        },
+        {
+          "name": "rebalancingAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "rebalancedAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "slippage",
+          "type": "u32",
+          "index": false
+        },
+        {
+          "name": "collateralDelta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "quoteDelta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "feeDelta",
+          "type": "u64",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -1325,12 +1772,32 @@ export type Uxd = {
       "code": 6011,
       "name": "InvalidCollateralPassthroughATAMint",
       "msg": "The Collateral Passthrough ATA's mint does not match the Depository's one."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidQuotePassthroughAccount",
+      "msg": "The Quote Passthrough Account isn't the Depository one."
+    },
+    {
+      "code": 6013,
+      "name": "InvalidQuotePassthroughATAMint",
+      "msg": "The Quote Passthrough ATA's mint does not match the Depository's one."
+    },
+    {
+      "code": 6014,
+      "name": "InvalidQuoteMint",
+      "msg": "The provided quote mint does not match the depository's quote mint."
+    },
+    {
+      "code": 6015,
+      "name": "UnsupportedDepositoryVersion",
+      "msg": "The instruction doesn't support this version of the Depository. Migrate first."
     }
   ]
 };
 
 export const IDL: Uxd = {
-  "version": "2.2.0",
+  "version": "3.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -1373,14 +1840,6 @@ export const IDL: Uxd = {
         }
       ],
       "args": [
-        {
-          "name": "bump",
-          "type": "u8"
-        },
-        {
-          "name": "redeemableMintBump",
-          "type": "u8"
-        },
         {
           "name": "redeemableMintDecimals",
           "type": "u8"
@@ -1463,12 +1922,22 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
+          "name": "quoteMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "depositoryCollateralPassthroughAccount",
           "isMut": true,
           "isSigner": false
         },
         {
           "name": "depositoryInsurancePassthroughAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryQuotePassthroughAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -1503,24 +1972,58 @@ export const IDL: Uxd = {
           "isSigner": false
         }
       ],
-      "args": [
+      "args": []
+    },
+    {
+      "name": "migrateMangoDepositoryToV2",
+      "accounts": [
         {
-          "name": "bump",
-          "type": "u8"
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
         },
         {
-          "name": "collateralPassthroughBump",
-          "type": "u8"
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
         },
         {
-          "name": "insurancePassthroughBump",
-          "type": "u8"
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
         },
         {
-          "name": "mangoAccountBump",
-          "type": "u8"
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "quoteMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryQuotePassthroughAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
         }
-      ]
+      ],
+      "args": []
     },
     {
       "name": "depositInsuranceToMangoDepository",
@@ -1532,7 +2035,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1618,7 +2121,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "controller",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1705,10 +2208,181 @@ export const IDL: Uxd = {
       ]
     },
     {
+      "name": "rebalanceMangoDepositoryLite",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "quoteMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryCollateralPassthroughAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryQuotePassthroughAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryMangoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoSigner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoCache",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoRootBankQuote",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoNodeBankQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoVaultQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoRootBankCollateral",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoNodeBankCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoVaultCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoPerpMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoBids",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoAsks",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoEventQueue",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "maxRebalancingAmount",
+          "type": "u64"
+        },
+        {
+          "name": "polarity",
+          "type": {
+            "defined": "PnlPolarity"
+          }
+        },
+        {
+          "name": "slippage",
+          "type": "u32"
+        }
+      ]
+    },
+    {
       "name": "mintWithMangoDepository",
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -1725,6 +2399,11 @@ export const IDL: Uxd = {
         {
           "name": "redeemableMint",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1834,6 +2513,11 @@ export const IDL: Uxd = {
       "accounts": [
         {
           "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
           "isMut": true,
           "isSigner": true
         },
@@ -1848,22 +2532,22 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false
         },
         {
           "name": "redeemableMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRedeemable",
           "isMut": true,
           "isSigner": false
         },
@@ -2104,8 +2788,32 @@ export const IDL: Uxd = {
           },
           {
             "name": "reserved",
+            "type": "u8"
+          },
+          {
+            "name": "quoteMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "quotePassthrough",
+            "type": "publicKey"
+          },
+          {
+            "name": "quotePassthroughBump",
+            "type": "u8"
+          },
+          {
+            "name": "quoteMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "totalAmountRebalanced",
+            "type": "u128"
+          },
+          {
+            "name": "reserved1",
             "type": {
-              "defined": "MangoDeposirotyPadding"
+              "defined": "MangoDepositoryPadding"
             }
           }
         ]
@@ -2183,6 +2891,12 @@ export const IDL: Uxd = {
           },
           {
             "name": "Lib"
+          },
+          {
+            "name": "InstructionMangoDexRebalanceMangoDepositoryLite"
+          },
+          {
+            "name": "InstructionMangoDexMigrateMangoDepositoryToV2"
           }
         ]
       }
@@ -2242,6 +2956,9 @@ export const IDL: Uxd = {
             "name": "InvalidSlippage"
           },
           {
+            "name": "EffectiveOrderPriceBeyondLimitPrice"
+          },
+          {
             "name": "InvalidCollateralAmount"
           },
           {
@@ -2287,7 +3004,7 @@ export const IDL: Uxd = {
             "name": "InvalidMangoDepositoriesRedeemableSoftCap"
           },
           {
-            "name": "InvalidQuoteLotDelta"
+            "name": "InvalidQuoteDelta"
           },
           {
             "name": "InvalidOrderDirection"
@@ -2297,6 +3014,27 @@ export const IDL: Uxd = {
           },
           {
             "name": "SlippageReached"
+          },
+          {
+            "name": "InvalidRebalancingAmount"
+          },
+          {
+            "name": "InsufficientQuoteAmount"
+          },
+          {
+            "name": "InvalidPnlPolarity"
+          },
+          {
+            "name": "RebalancingError"
+          },
+          {
+            "name": "BumpError"
+          },
+          {
+            "name": "OrderSizeBelowMinLotSize"
+          },
+          {
+            "name": "InvalidCollateralDelta"
           },
           {
             "name": "Default"
@@ -2314,6 +3052,20 @@ export const IDL: Uxd = {
           },
           {
             "name": "Withdraw"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PnlPolarity",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Positive"
+          },
+          {
+            "name": "Negative"
           }
         ]
       }
@@ -2396,6 +3148,101 @@ export const IDL: Uxd = {
       ]
     },
     {
+      "name": "RegisterMangoDepositoryEventV2",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositoryVersion",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mangoAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "MigrateMangoDepositoryToV2Event",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositoryFromVersion",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositoryToVersion",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "insuranceMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "mangoAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
       "name": "SetMangoDepositoryRedeemableSoftCapEvent",
       "fields": [
         {
@@ -2461,7 +3308,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDeposirotyEvent",
+      "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -2594,6 +3441,73 @@ export const IDL: Uxd = {
           "index": false
         }
       ]
+    },
+    {
+      "name": "RebalanceMangoDepositoryLiteEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositoryVersion",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "polarity",
+          "type": {
+            "defined": "PnlPolarity"
+          },
+          "index": false
+        },
+        {
+          "name": "rebalancingAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "rebalancedAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "slippage",
+          "type": "u32",
+          "index": false
+        },
+        {
+          "name": "collateralDelta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "quoteDelta",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "feeDelta",
+          "type": "u64",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -2656,6 +3570,26 @@ export const IDL: Uxd = {
       "code": 6011,
       "name": "InvalidCollateralPassthroughATAMint",
       "msg": "The Collateral Passthrough ATA's mint does not match the Depository's one."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidQuotePassthroughAccount",
+      "msg": "The Quote Passthrough Account isn't the Depository one."
+    },
+    {
+      "code": 6013,
+      "name": "InvalidQuotePassthroughATAMint",
+      "msg": "The Quote Passthrough ATA's mint does not match the Depository's one."
+    },
+    {
+      "code": 6014,
+      "name": "InvalidQuoteMint",
+      "msg": "The provided quote mint does not match the depository's quote mint."
+    },
+    {
+      "code": 6015,
+      "name": "UnsupportedDepositoryVersion",
+      "msg": "The instruction doesn't support this version of the Depository. Migrate first."
     }
   ]
 };

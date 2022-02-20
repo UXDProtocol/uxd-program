@@ -1,34 +1,41 @@
-import { BN } from "@project-serum/anchor";
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, Mango } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, Mango, nativeToUi } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
-import { getMangoDepositoryAccount, withdrawInsuranceFromMangoDepository } from "../api";
-import { CLUSTER, mangoCrankInterval } from "../constants";
-import { sleep } from "../utils";
+import { withdrawInsuranceFromMangoDepository } from "../api";
+import { CLUSTER } from "../constants";
+import { getConnection, TXN_OPTS } from "../connection";
 
-export const withdrawInsuranceMangoDepositoryTest = async (amount: number, authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango) => {
+export const withdrawInsuranceMangoDepositoryTest = async function (amount: number, authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango) {
+    const connection = getConnection();
+    const options = TXN_OPTS;
+
     console.group("🧭 withdrawInsuranceMangoDepositoryTest");
-    // GIVEN
-    const insuranceDepositedAmount = (await getMangoDepositoryAccount(depository)).insuranceAmountDeposited.toNumber() / (10 ** depository.insuranceMintDecimals);
+    try {
+        // GIVEN
+        const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
+        const insuranceDepositedAmount = nativeToUi(depositoryOnchainAccount.insuranceAmountDeposited.toNumber(), depository.insuranceMintDecimals);
 
-    // WHEN
-    const txId = await withdrawInsuranceFromMangoDepository(authority, amount, controller, depository, mango);
-    console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
+        // WHEN
+        const txId = await withdrawInsuranceFromMangoDepository(authority, amount, controller, depository, mango);
+        console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
-    // THEN
-    const insuranceDepositedAmount_post = (await getMangoDepositoryAccount(depository)).insuranceAmountDeposited.div(new BN(10 ** depository.insuranceMintDecimals));
-    const expectedAmount = insuranceDepositedAmount - amount;
+        // THEN
 
-    // Need the crank to run for update
-    await sleep(mangoCrankInterval);
+        const depositoryOnchainAccount_post = await depository.getOnchainAccount(connection, options);
+        const insuranceDepositedAmount_post = nativeToUi(depositoryOnchainAccount_post.insuranceAmountDeposited.toNumber(), depository.insuranceMintDecimals);
+        const expectedAmount = insuranceDepositedAmount - amount;
 
-    // Check that the accounting match the actual balances - TODO
-    // Check onchain accounting -- Only that for now cause need to refine how to fetch mango account data
+        // Check that the accounting match the actual balances - TODO
+        // Check onchain accounting -- Only that for now cause need to refine how to fetch mango account data
 
-    // expect(uxdHelpers.getMangoDepositoryInsuranceBalance.
+        // expect(uxdHelpers.getMangoDepositoryInsuranceBalance.
 
-    expect(insuranceDepositedAmount_post.toNumber()).closeTo(expectedAmount, Math.pow(10, -depository.insuranceMintDecimals), "The mango depositories insurance ACCOUNTING isn't correct.");
+        expect(insuranceDepositedAmount_post).closeTo(expectedAmount, Math.pow(10, -depository.insuranceMintDecimals), "The mango depositories insurance ACCOUNTING isn't correct.");
 
-    console.log(`🧾 Insurance Amount deposited was`, insuranceDepositedAmount.toString(), "now is", insuranceDepositedAmount_post.toString(), "(withdrawn", amount, ")");
-    console.groupEnd();
+        console.log(`🧾 Insurance Amount deposited was`, insuranceDepositedAmount, "now is", insuranceDepositedAmount_post, "(withdrawn", amount, ")");
+        console.groupEnd();
+    } catch (error) {
+        console.groupEnd();
+        throw error;
+    }
 }

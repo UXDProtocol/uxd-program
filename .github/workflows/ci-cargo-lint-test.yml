@@ -1,0 +1,106 @@
+name: Lint and Test
+
+on:
+  push:
+    branches: [main, v*.*]
+
+env:
+  CARGO_TERM_COLOR: always
+  SOLANA_VERSION: 1.9.7
+  RUST_TOOLCHAIN: nightly-2022-02-01
+
+defaults:
+  run:
+    working-directory: ./
+
+jobs:
+
+  fmt:
+    runs-on: ubuntu-latest
+    name: cargo fmt
+    steps:
+      # Checkout Repo
+      - uses: actions/checkout@v2
+      # Installs Rust
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          override: true
+          profile: minimal
+          components: rustfmt, clippy
+      - name: Run fmt
+        run: cargo fmt -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    name: cargo clippy
+    steps:
+      # Checkout Repo
+      - uses: actions/checkout@v2
+      # Installs Rust
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          override: true
+          profile: minimal
+          components: rustfmt, clippy
+      # The style and complexity lints have not been processed yet.
+      - name: Run clippy
+        run: cargo clippy -- --deny=warnings --allow=clippy::style --allow=clippy::complexity
+
+  tests:
+    runs-on: ubuntu-latest
+    name: Run tests
+    steps:
+      # Checkout Repo
+      - uses: actions/checkout@v2
+      # Installs Rust
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v1
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          override: true
+          profile: minimal
+          components: rustfmt, clippy
+      - name: Rust toolchain update
+        run: |
+          rustup update
+      - name: Rust override set nightly 
+        run: |
+          rustup override set nightly
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+
+      # Install Solana
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config build-essential libudev-dev
+      - name: Cache Solana binaries
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/solana
+          key: ${{ runner.os }}-${{ env.SOLANA_VERSION }}
+      - name: Install Solana
+        run: |
+          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          export PATH="/home/runner/.local/share/solana/install/active_release/bin:$PATH"
+          solana --version
+          echo "Generating keypair..."
+          solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
+      # Run tests
+      - name: Run unit tests
+        run: cargo test --lib
+      - name: Build program
+        run: cargo build-bpf
+      - name: Run tests
+        run: cargo test-bpf

@@ -5,26 +5,16 @@ wallet = "~/.config/solana/id.json"
 [programs.mainnet]
 uxd = "UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr"
 
-[programs.devnet]
-uxd = "Hto7hH47haUP3Vrinym98BHkVdC3jtYWLXUhmfBSBT5N"
+[programs.devnet] 
+uxd = "55NneSZjuFv6cVDQxYKZ1UF99JoximnzP9aY65fJ4JT9"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [scripts]
-# Run all tests
-# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_*.ts"
-
-# Integration tests for SOL collateral
-test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_sol.ts"
-
-# Integration tests for BTC collateral only
-# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/test_integration_btc.ts"
-
-## UTILS - fragment of logic for testing during development
-
-# Setup a Controller + Depository (SOL) and deposit 100 USDC insurance
-# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/util_setup_controller_depository_sol.ts"
-
-# Mint and Redeem tests for SOL collateral
-# test = "yarn ts-mocha -p ./tsconfig.json -t 500000 tests/util_mint_redeem_sol.ts"
+# The quick version for development - Keep this version as the CI swap this line for its needs
+test = "yarn ts-mocha --require tests/fixtures.ts -p ./tsconfig.json -t 500000 tests/test_development.ts --reporter mochawesome --require mochawesome/register --reporter-options quiet=true,reportTitle=uxdprogram-test_integration --trace-warnings"
+# Sol only version
+# test = "yarn ts-mocha --require tests/fixtures.ts -p ./tsconfig.json -t 500000 tests/test_ci_sol.ts --reporter mochawesome --require mochawesome/register --reporter-options quiet=true,reportTitle=uxdprogram-test_integration --trace-warnings"
+# Longer version
+# test = "yarn ts-mocha --require tests/fixtures.ts -p ./tsconfig.json -t 500000 tests/test_integration.ts --reporter mochawesome --require mochawesome/register --reporter-options quiet=true,reportTitle=uxdprogram-test_integration --trace-warnings"

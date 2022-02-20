@@ -1,67 +1,76 @@
 use crate::declare_check_assert_macros;
+use crate::error::check_assert;
 use crate::error::SourceFileId;
+use crate::events::InitializeControllerEvent;
 use crate::Controller;
 use crate::UxdError;
 use crate::UxdErrorCode;
 use crate::UxdResult;
+use crate::CONTROLLER_ACCOUNT_VERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
 use crate::DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP;
-use crate::PROGRAM_VERSION;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SOLANA_MAX_MINT_DECIMALS;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
-use crate::events::InitializeControllerEvent;
 
 declare_check_assert_macros!(SourceFileId::InstructionInitializeController);
 
+/// Takes 7 accounts - 4 used locally - 0 for CPI - 2 Programs - 1 Sysvar
 #[derive(Accounts)]
 #[instruction(
-    bump: u8,
-    redeemable_mint_bump: u8,
     redeemable_mint_decimals: u8,
 )]
 pub struct InitializeController<'info> {
+    /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
+
+    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
+
+    /// #3 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         init,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = bump,
+        bump,
         payer = payer,
     )]
     pub controller: Box<Account<'info, Controller>>,
+
+    /// #4 The redeemable mint managed by the `controller` instance
     #[account(
         init,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = redeemable_mint_bump,
+        bump,
         mint::authority = controller,
         mint::decimals = redeemable_mint_decimals,
         payer = payer,
         constraint = redeemable_mint_decimals <= SOLANA_MAX_MINT_DECIMALS
     )]
     pub redeemable_mint: Account<'info, Mint>,
+
+    /// #5 System Program
     pub system_program: Program<'info, System>,
+
+    /// #6 Token Program
     pub token_program: Program<'info, Token>,
+
+    /// #7 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(
-    ctx: Context<InitializeController>,
-    bump: u8,
-    redeemable_mint_bump: u8,
-    redeemable_mint_decimals: u8,
-) -> UxdResult {
+pub fn handler(ctx: Context<InitializeController>, redeemable_mint_decimals: u8) -> UxdResult {
     let redeemable_mint_unit = 10_u64
         .checked_pow(redeemable_mint_decimals.into())
         .ok_or(math_err!())?;
 
-    ctx.accounts.controller.bump = bump;
-    ctx.accounts.controller.redeemable_mint_bump = redeemable_mint_bump;
-    ctx.accounts.controller.version = PROGRAM_VERSION;
+    ctx.accounts.controller.bump = *ctx.bumps.get("controller").ok_or(bump_err!())?;
+    ctx.accounts.controller.redeemable_mint_bump =
+        *ctx.bumps.get("redeemable_mint").ok_or(bump_err!())?;
+    ctx.accounts.controller.version = CONTROLLER_ACCOUNT_VERSION;
     ctx.accounts.controller.authority = ctx.accounts.authority.key();
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
     ctx.accounts.controller.redeemable_mint_decimals = redeemable_mint_decimals;
@@ -83,4 +92,16 @@ pub fn handler(
         authority: ctx.accounts.authority.key(),
     });
     Ok(())
+}
+
+// Validate input arguments
+impl<'info> InitializeController<'info> {
+    // Asserts that the redeemable mint decimals is between 0 and 9.
+    pub fn validate(&self, decimals: u8) -> ProgramResult {
+        check!(
+            decimals <= SOLANA_MAX_MINT_DECIMALS,
+            UxdErrorCode::InvalidRedeemableMintDecimals
+        )?;
+        Ok(())
+    }
 }

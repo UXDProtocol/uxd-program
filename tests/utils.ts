@@ -1,23 +1,70 @@
-import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller } from "@uxdprotocol/uxd-client";
-import { PublicKey } from "@solana/web3.js";
-import { MANGO_QUOTE_DECIMALS, uxdHelpers } from "./constants";
-import { nativeI80F48ToUi, nativeToUi } from "@blockworks-foundation/mango-client";
+import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller, nativeI80F48ToUi, nativeToUi, uiToNative, WSOL } from "@uxdprotocol/uxd-client";
+import { PublicKey, Signer } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { provider, TXN_COMMIT, TXN_OPTS } from "./provider";
+import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
 
-export function sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+const SOLANA_FEES_LAMPORT: number = 50000;
+
+export async function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
+    const transaction = new anchor.web3.Transaction().add(
+        anchor.web3.SystemProgram.transfer({
+            fromPubkey: from.publicKey,
+            toPubkey: to,
+            lamports: anchor.web3.LAMPORTS_PER_SOL * amountUi
+        }),
+    );
+    return await anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
+        from,
+    ]);
+}
+
+export async function transferAllSol(from: Signer, to: PublicKey): Promise<string> {
+    const fromBalance = await getSolBalance(from.publicKey);
+    const transaction = new anchor.web3.Transaction().add(
+        anchor.web3.SystemProgram.transfer({
+            fromPubkey: from.publicKey,
+            toPubkey: to,
+            lamports: anchor.web3.LAMPORTS_PER_SOL * fromBalance - SOLANA_FEES_LAMPORT
+        }),
+    );
+    return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
+        from,
+    ]);
+
+}
+
+export async function transferTokens(amountUI: number, mint: PublicKey, decimals: number, from: Signer, to: PublicKey): Promise<string> {
+    const token = new Token(getConnection(), mint, TOKEN_PROGRAM_ID, from);
+    const sender = await token.getOrCreateAssociatedAccountInfo(from.publicKey);
+    const receiver = await token.getOrCreateAssociatedAccountInfo(to);
+    const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, from.publicKey, [], uiToNative(amountUI, decimals).toNumber());
+    const transaction = new anchor.web3.Transaction().add(transferTokensIx);
+    return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
+        from,
+    ]);
+}
+
+export async function transferAllTokens(mint: PublicKey, decimals: number, from: Signer, to: PublicKey): Promise<string> {
+    const token = new Token(getConnection(), mint, TOKEN_PROGRAM_ID, from);
+    const sender = await token.getOrCreateAssociatedAccountInfo(from.publicKey);
+    const receiver = await token.getOrCreateAssociatedAccountInfo(to);
+    const amount = await getBalance(sender.address);
+    const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, from.publicKey, [], uiToNative(amount, decimals).toNumber());
+    const transaction = new anchor.web3.Transaction().add(transferTokensIx);
+    return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
+        from,
+    ]);
 }
 
 export async function getSolBalance(wallet: PublicKey): Promise<number> {
-    const lamports = await provider.connection
+    const lamports = await getConnection()
         .getBalance(wallet, TXN_COMMIT);
     return nativeToUi(lamports, SOL_DECIMALS);
 }
 
 export function getBalance(tokenAccount: PublicKey): Promise<number> {
-    return provider.connection
+    return getConnection()
         .getTokenAccountBalance(tokenAccount, TXN_COMMIT)
         .then((o) => o["value"]["uiAmount"])
         .catch(() => 0);
@@ -25,32 +72,35 @@ export function getBalance(tokenAccount: PublicKey): Promise<number> {
 
 export async function printUserInfo(user: PublicKey, controller: Controller, depository: MangoDepository) {
     const userCollateralATA: PublicKey = findATAAddrSync(user, depository.collateralMint)[0];
+    const userQuoteATA: PublicKey = findATAAddrSync(user, depository.quoteMint)[0];
     const userRedeemableATA: PublicKey = findATAAddrSync(user, controller.redeemableMintPda)[0];
 
     console.group("[User balances]");
     console.log("Native SOL", `\t\t\t\t\t\t\t`, await getSolBalance(user));
     console.log(`${depository.collateralMintSymbol}`, `\t\t\t\t\t\t\t\t`, await getBalance(userCollateralATA));
+    console.log(`${depository.quoteMintSymbol}`, `\t\t\t\t\t\t\t\t`, await getBalance(userQuoteATA));
     console.log(`${controller.redeemableMintSymbol}`, `\t\t\t\t\t\t\t\t`, await getBalance(userRedeemableATA));
     console.groupEnd()
 }
 
 export async function printDepositoryInfo(controller: Controller, depository: MangoDepository, mango: Mango) {
+    const provider = getConnection();
     const SYM = depository.collateralMintSymbol;
-    const controllerAccount = await uxdHelpers.getControllerAccount(provider, controller, TXN_OPTS);
-    const depositoryAccount = await uxdHelpers.getMangoDepositoryAccount(provider, depository, TXN_OPTS);
+    const controllerAccount = await controller.getOnchainAccount(getConnection(), TXN_OPTS);
+    const depositoryAccount = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
     const mangoAccount = await mango.load(depository.mangoAccountPda);
     const pmi = mango.getPerpMarketConfig(SYM).marketIndex;
     const pa = mangoAccount.perpAccounts[pmi];
     const pm = await mango.getPerpMarket(SYM);
-    const cache = await mango.group.loadCache(provider.connection);
+    const cache = await mango.group.loadCache(provider);
     const accountValue = mangoAccount.computeValue(mango.group, cache).toBig();
     const accountingInsuranceDepositedValue = nativeToUi(depositoryAccount.insuranceAmountDeposited.toNumber(), depository.insuranceMintDecimals);
     // 
-    const collateralSpotAmount = await uxdHelpers.getMangoDepositoryCollateralBalance(depository, mango);
-    const insuranceSpotAmount = await uxdHelpers.getMangoDepositoryInsuranceBalance(depository, mango);
+    const collateralSpotAmount = await depository.getCollateralBalance(mango);
+    // const insuranceSpotAmount = await 
     //
     const collateralDepositInterests = collateralSpotAmount.toBig().sub(depositoryAccount.collateralAmountDeposited);
-    const insuranceDepositInterests = insuranceSpotAmount.toBig().sub(depositoryAccount.insuranceAmountDeposited);
+    // const insuranceDepositInterests = insuranceSpotAmount.toBig().sub(depositoryAccount.insuranceAmountDeposited);
     //
     const accountValueMinusTotalInsuranceDeposited = accountValue - accountingInsuranceDepositedValue;
     const redeemableUnderManagement = nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), controller.redeemableMintDecimals);
@@ -59,14 +109,15 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
 
     console.group("[Depository", SYM, "]");
     console.log("collateralPassthrough", "\t\t\t\t\t", await getBalance(depository.collateralPassthroughPda));
+    console.log("quotePassthrough", "\t\t\t\t\t", await getBalance(depository.quotePassthroughPda));
     console.log("insurancePassthroughPda", "\t\t\t\t\t", await getBalance(depository.insurancePassthroughPda));
     console.groupEnd()
 
     console.group("[Derived Information from onchain accounting and mango account] :");
     console.table({
-        ["PnL (Quote)"]: Number((accountValueMinusTotalInsuranceDeposited - redeemableUnderManagement).toFixed(MANGO_QUOTE_DECIMALS)),
+        [`Depository PnL (${depository.insuranceMintSymbol})`]: Number((accountValueMinusTotalInsuranceDeposited - redeemableUnderManagement).toFixed(depository.quoteMintDecimals)),
         [`collateral deposit interests (${SYM})`]: Number(nativeToUi(collateralDepositInterests, depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-        [`insurance deposit interests (${depository.insuranceMintSymbol})`]: Number(nativeToUi(insuranceDepositInterests.toNumber(), depository.insuranceMintDecimals).toFixed(depository.insuranceMintDecimals)),
+        // [`insurance deposit interests (${depository.insuranceMintSymbol})`]: Number(nativeToUi(insuranceDepositInterests.toNumber(), depository.insuranceMintDecimals).toFixed(depository.insuranceMintDecimals)),
     });
     console.groupEnd();
 
@@ -76,25 +127,28 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
         [`collateralAmountDeposited (${SYM})`]: nativeToUi(depositoryAccount.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals),
         [`depository.redeemableAmountUnderManagement (${controller.redeemableMintSymbol})`]: redeemableUnderManagement,
         [`controller.redeemableCirculatingSupply (${controller.redeemableMintSymbol})`]: nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals),
-        ["totalAmountPaidTakerFee (Quote)"]: nativeToUi(depositoryAccount.totalAmountPaidTakerFee.toNumber(), MANGO_QUOTE_DECIMALS)
+        [`totalAmountPaidTakerFee (${depository.quoteMintSymbol})`]: nativeToUi(depositoryAccount.totalAmountPaidTakerFee.toNumber(), depository.quoteMintDecimals),
+        [`totalAmountRebalanced (${depository.quoteMintSymbol})`]: nativeToUi(depositoryAccount.totalAmountRebalanced.toNumber(), depository.quoteMintDecimals)
     });
     console.groupEnd()
 
     console.group("[MangoAccount (Program owned)] :");
     console.table({
+        [`delta neutral position notional size (${depository.quoteMintSymbol})`]: await depository.getDeltaNeutralPositionNotionalSizeUI(mango),
+        [`perp unrealized pnl (${depository.quoteMintSymbol})`]: await depository.getUnrealizedPnl(mango, TXN_OPTS),
         [`spot_base_position (${SYM})`]: Number(nativeI80F48ToUi(collateralSpotAmount, depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-        ["account value (minus insurance) (Quote)"]: Number(accountValueMinusTotalInsuranceDeposited.toFixed(MANGO_QUOTE_DECIMALS)),
-        ["account value (Quote)"]: Number(accountValue.toFixed(MANGO_QUOTE_DECIMALS))
+        ["account value (minus insurance) (Quote)"]: Number(accountValueMinusTotalInsuranceDeposited.toFixed(depository.quoteMintDecimals)),
+        ["account value (Quote)"]: Number(accountValue.toFixed(depository.quoteMintDecimals))
     });
     console.groupEnd()
 
     console.group("[MangoAccount's PerpAccount (Program owned)] :");
     console.table({
         ["perp_base_position"]: Number(nativeToUi(pm.baseLotsToNative(pa.basePosition).toNumber(), depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-        ["perp_quote_position"]: Number(nativeI80F48ToUi(pa.quotePosition, MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
+        ["perp_quote_position"]: Number(nativeI80F48ToUi(pa.quotePosition, depository.quoteMintDecimals).toFixed(depository.quoteMintDecimals)),
         ["perp_taker_base"]: Number(nativeToUi(pm.baseLotsToNative(pa.takerBase).toNumber(), depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
-        ["perp_taker_quote"]: Number(nativeToUi(pa.takerQuote.toNumber(), MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
-        ["perp_unsettled_funding (Quote)"]: Number(nativeI80F48ToUi(pa.getUnsettledFunding(cache.perpMarketCache[pmi]), MANGO_QUOTE_DECIMALS).toFixed(MANGO_QUOTE_DECIMALS)),
+        ["perp_taker_quote"]: Number(nativeToUi(pa.takerQuote.toNumber(), depository.quoteMintDecimals).toFixed(depository.quoteMintDecimals)),
+        ["perp_unsettled_funding (Quote)"]: Number(nativeI80F48ToUi(pa.getUnsettledFunding(cache.perpMarketCache[pmi]), depository.quoteMintDecimals).toFixed(depository.quoteMintDecimals)),
     });
     console.groupEnd();
 }
@@ -108,6 +162,7 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
  */
 export const prepareWrappedSolTokenAccount = async (
     connection,
+    payerKey,
     userKey,
     amountNative
 ) => {
@@ -127,7 +182,7 @@ export const prepareWrappedSolTokenAccount = async (
             // no-op we have everything we need
         }
     } else {
-        return createWrappedSolTokenAccount(connection, userKey, amountNative);
+        return createWrappedSolTokenAccount(connection, payerKey, userKey, amountNative);
     }
     return [];
 };
@@ -169,6 +224,7 @@ const transferSolItx = (fromKey, toKey, amountNative) =>
 */
 const createWrappedSolTokenAccount = async (
     connection,
+    payerKey,
     userKey,
     amountNative = 0
 ) => {
@@ -182,17 +238,17 @@ const createWrappedSolTokenAccount = async (
         assocTokenKey,
         amountNative + balanceNeeded
     );
-    const createItx = createAssociatedTokenAccountItx(userKey, NATIVE_MINT);
+    const createItx = createAssociatedTokenAccountItx(payerKey, userKey, NATIVE_MINT);
 
     return [transferItx, createItx];
 };
 
-function createAssociatedTokenAccountItx(walletKey, mintKey) {
+function createAssociatedTokenAccountItx(payerKey, walletKey, mintKey) {
     const assocKey = findAssociatedTokenAddress(walletKey, mintKey);
 
     return new anchor.web3.TransactionInstruction({
         keys: [
-            { pubkey: walletKey, isSigner: true, isWritable: true },
+            { pubkey: payerKey, isSigner: true, isWritable: true },
             { pubkey: assocKey, isSigner: false, isWritable: true },
             { pubkey: walletKey, isSigner: false, isWritable: false },
             { pubkey: mintKey, isSigner: false, isWritable: false },

@@ -27,18 +27,19 @@ pub struct Withdraw<'info> {
 ///
 /// Accounts expected by this instruction (10):
 ///
-/// 0. `[read]` mango_group_ai,   -
-/// 1. `[write]` mango_account_ai, -
-/// 2. `[read]` owner_ai,         -
-/// 3. `[read]` mango_cache_ai,   -
-/// 4. `[read]` root_bank_ai,     -
-/// 5. `[write]` node_bank_ai,     -
-/// 6. `[write]` vault_ai,         -
-/// 7. `[write]` token_account_ai, -
-/// 8. `[read]` signer_ai,        -
-/// 9. `[read]` token_prog_ai,    -
-/// 10. `[read]` clock_ai,         -
+/// 0. `[read]` mango_group_ai,
+/// 1. `[write]` mango_account_ai,
+/// 2. `[read]` owner_ai,
+/// 3. `[read]` mango_cache_ai,
+/// 4. `[read]` root_bank_ai,
+/// 5. `[write]` node_bank_ai,
+/// 6. `[write]` vault_ai,
+/// 7. `[write]` token_account_ai,
+/// 8. `[read]` signer_ai,
+/// 9. `[read]` token_prog_ai,
+/// 10. `[read]` clock_ai,
 /// 11..+ `[]` open_orders_accs - open orders for each of the spot market
+#[allow(clippy::too_many_arguments)]
 fn withdraw_instruction(
     mango_program_id: &Pubkey,
     mango_group_pubkey: &Pubkey,
@@ -61,7 +62,6 @@ fn withdraw_instruction(
     }
     .pack();
 
-    // let mut accounts = Vec::with_capacity(10 + MAX_PAIRS + signer_pubkeys.len());
     let mut accounts = vec![
         AccountMeta::new_readonly(*mango_group_pubkey, false),
         AccountMeta::new(*mango_account_pubkey, false),
@@ -81,7 +81,6 @@ fn withdraw_instruction(
                 AccountMeta::new_readonly(*default_open_order_pubkey, false)
             }),
     );
-
     Ok(Instruction {
         program_id: *mango_program_id,
         accounts,
@@ -123,7 +122,6 @@ pub fn withdraw<'info>(
             ctx.accounts.token_account.clone(),
             ctx.accounts.mango_signer.clone(),
             ctx.accounts.token_program.clone(),
-            // ctx.accounts.clock_sysvar.clone(),
         ],
         ctx.signer_seeds,
     )

@@ -14,7 +14,7 @@ pub struct MangoDepository {
     pub collateral_passthrough_bump: u8,
     pub insurance_passthrough_bump: u8,
     pub mango_account_bump: u8,
-    // Version used - for migrations later if needed
+    // Version used
     pub version: u8,
     pub collateral_mint: Pubkey,
     pub collateral_mint_decimals: u8,
@@ -47,29 +47,41 @@ pub struct MangoDepository {
     // The amount of taker fee paid in quote while placing perp orders
     pub total_amount_paid_taker_fee: u128,
     //
-    // WARNING TODO Should add padding
-    // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
-    pub _reserved: MangoDeposirotyPadding,
+    pub _reserved: u8,
+    //
+    // This information is shared by all the Depositories, and as such would have been a good
+    // candidate for the Controller, but we will lack space in the controller sooner than here.
+    //
+    // v2 -83 bytes
+    pub quote_mint: Pubkey,
+    pub quote_passthrough: Pubkey,
+    pub quote_passthrough_bump: u8,
+    pub quote_mint_decimals: u8,
+    //
+    // The amount of DN position that has been rebalanced (in quote native units)
+    pub total_amount_rebalanced: u128,
+    //
+    pub _reserved1: MangoDepositoryPadding,
 }
 
 #[derive(Clone)]
-pub struct MangoDeposirotyPadding([u8; 512]);
+pub struct MangoDepositoryPadding([u8; 429]);
 
-impl AnchorSerialize for MangoDeposirotyPadding {
+impl AnchorSerialize for MangoDepositoryPadding {
     fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
         writer.write_all(&self.0)
     }
 }
 
-impl AnchorDeserialize for MangoDeposirotyPadding {
+impl AnchorDeserialize for MangoDepositoryPadding {
     fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
-        Ok(Self([0u8; 512]))
+        Ok(Self([0u8; 429]))
     }
 }
 
-impl Default for MangoDeposirotyPadding {
+impl Default for MangoDepositoryPadding {
     fn default() -> Self {
-        MangoDeposirotyPadding { 0: [0u8; 512] }
+        MangoDepositoryPadding([0u8; 429])
     }
 }
 
@@ -136,6 +148,14 @@ impl MangoDepository {
     pub fn update_total_amount_paid_taker_fee(&mut self, amount: u64) -> UxdResult {
         self.total_amount_paid_taker_fee = self
             .total_amount_paid_taker_fee
+            .checked_add(amount.into())
+            .ok_or(math_err!())?;
+        Ok(())
+    }
+
+    pub fn update_rebalanced_amount(&mut self, amount: u64) -> UxdResult {
+        self.total_amount_rebalanced = self
+            .total_amount_rebalanced
             .checked_add(amount.into())
             .ok_or(math_err!())?;
         Ok(())

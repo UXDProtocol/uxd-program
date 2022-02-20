@@ -1,78 +1,89 @@
 # UXD-Program
 
-## Installation
+[![UXD Composability testing](https://github.com/blockworks-foundation/mango-v3/actions/workflows/ci-uxd.yml/badge.svg?branch=main&event=push)](https://github.com/blockworks-foundation/mango-v3/actions/workflows/ci-uxd.yml)
+[![Anchor Test](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-anchor-test.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-anchor-test.yml)
+[![Lint and Test](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-lint-test.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-lint-test.yml)
+[![Cargo Audit](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-audit.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-audit.yml)
 
-```Zsh
-$> yarn
-```
+The actual deployed state of each contract should live in a protected master branch. The latest master should always reflect the code deployed to all relevant chains
 
-Recommended to use <https://github.com/mozilla/sccache> to build faster, follow install instruction there.
+It currently sits at:
 
-The project uses a few line of optimization for building taken from the Discord, but that need to be investigated further. (See the workspace cargo.toml)
+<!-- ### Solana -->
+- mainnet-beta `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr`
+- devnet `882VXWftqQ9wsVq99SJqBVsz6tVeBt63jKE9XiwEHDeN` (Public version for front end)
+- devnet `55NneSZjuFv6cVDQxYKZ1UF99JoximnzP9aY65fJ4JT9` (Used by CI, this address should be update accordingly in ci files)
+
+_____
+
+## Where to start?
+
+In this readme, you can skip to Program Architecture section, or directly go to the lib.rs file to see the code comments (about each instruction and it's inputs).
+If you want to learn more about the high level concept of UXDProtocol, the [UXDProtocol Git book](https://docs.uxd.fi/uxdprotocol/) is available.
+
+_____
+
+## Known shortcomings
+
+### Composability risk with MangoMarkets (and DEX in general)
+
+As we are built on top of DEXes, we are vulnerable to them changing code or behavior. As such, we have our unit test / ci running on their repositories.
+In the future we will try to implement a place perp order v2 to return the order book exploration logic back to the mango repository. [PR on Mango Market](https://github.com/blockworks-foundation/mango-v3/pull/124)
+
+### Rebalancing (lite for now)
+
+Current rebalancing is a bit convoluted, but we are limited computing wise and # of input account wise, as it needs to be an atomic instruction.
+Later on it won't requires any external input (except to pay for fees in order to keep the system closed).
+
+### Slippage and limit price
+
+Currently we only take the slippage as parameter, and we execute at market price +/- slippage at the time of execution of the instruction.
+This can be fixed easily and is planned, but other items were prioritized, will probably make it in a next minor release right after v3.0.0)
+
+_____
 
 ## Running tests
 
-Running rust unit tests :
+### Rust unit tests
 
 ```Zsh
-$> cargo test --tests 
+$> cargo test && cargo build-bpf && cargo test-bpf 
 ```
 
-Running integration test in JS from the tests folder :
+### E2E Tests
+
+In order to have the environment ready to host test, the mango market devnet must be running as expected. To do so we must run market making bots and the Keeper, from [MangoClientV3](https://github.com/blockworks-foundation/mango-client-v3) repo.
+Keep does the cranking (settle orders), and MM bots ensure that the order book is coherent. (Although sometimes it's still not coherent, as anyone can mess with it)
+
+When test are failing due to odd reasons, first thing to do is to check the [MangoMarkets V3](https://devnet.mango.markets/?name=SOL-PERP) related perp (here for SOL-PERP). Verify that the order book is not borked with a weird stuck order or that the oracle price is not far away from the perp price for some reason.
 
 ```Zsh
-$> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) yarn keeper # in a https://github.com/blockworks-foundation/mango-client-v3 repo to run the Keeper (cranking)
+$> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) yarn keeper 
 $> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) MANGO_ACCOUNT_PUBKEY=8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w MARKET=SOL yarn mm # in a https://github.com/blockworks-foundation/mango-client-v3 repo to run the Market Making bot
-$> anchor test 
+$> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) MANGO_ACCOUNT_PUBKEY=8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w MARKET=BTC yarn mm
+$> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) MANGO_ACCOUNT_PUBKEY=8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w MARKET=ETH yarn mm
 ```
 
-The keeper is mandatory to run on Devnet, as there might not be another running. This is the process settling events and cranking mango state.
-
-Usually you want with a clean test env, with new Program state, and depositories, new mango accounts etc.
-
-To do so the easiest is to redeploy the whole thing and work with new Accounts (we do test on Devnet cause we need the mango stack, and doing so on localnet, although possible is tedious).
+Once this is setup, in another terminal you can build, deploy and run the test :
 
 ```Zsh
-# This will override the current deployment key in the target/deploy folder, it's fine this is not used anywhere never except for testing
-$> solana-keygen new -o ./target/deploy/uxd-keypair.json --force --no-bip39-passphrase
+$> ./scripts/reset_program_id.sh # Optional, will reset the program ID in all files where it's needed to start with a clean slate
+$> anchor test # Will build, deploy and run the tests
 ```
 
-Press enter for no password and you'r good.
-
-Once you ran this, you need to take the pubkey from the output `pubkey: G8QatVyH14hwT6h8Q6Ld5q9D1CbivErcf6syzukREFs3`
-Replace the program address in anchor and the program doing so :
-
-```Rust
-// In lib.rs this line at the beginning :
-solana_program::declare_id!("G8QatVyH14hwT6h8Q6Ld5q9D1CbivErcf6syzukREFs3");
-```
-
-```Yaml
-# In Anchor.toml this line :
-[programs.localnet]
-uxd = "G8QatVyH14hwT6h8Q6Ld5q9D1CbivErcf6syzukREFs3"
-```
-
-You'r then good to go to run `anchor test --skip-local-validator` (As the validator is devnet in our case)
-
-You can then rerun this as many time as you want, but if you want a clean slate, just repro the steps above.
-
-## Deployment
-
-By default the program builds with the `development` feature, and the ProgramID for devnet.
-Building for mainnet uses `anchor build -- --no-default-features --features production`
-
-Then iniital deployment is done regularly, transfer ownership to DAO, dao proceeds to upgrades later on.
-
-### Between dev and prod
-
-- change de mango program ID in anchor_mango.rs
-- change the program id in lib.rs and anchor.toml
+If you want to re-run the tests with the already deployed program (without registering changes to the rust code), you can run :
 
 ```Zsh
-$> anchor build
-$> solana program deploy ...
+$> anchor test --skip-build --skip-deploy
 ```
+
+If you made changes to the Rust code, you have to re-run the lengthy :
+
+```Zsh
+$> anchor test
+```
+
+Loop theses as many time as you want, and if you want a clean slate, just reset the program_id with the script again.
 
 _____
 
@@ -83,11 +94,13 @@ Its instructions are in `programs/uxd/src/instructions/`.
 
 The project follows the code org as done in [Jet protocol](https://github.com/jet-lab/jet-v1) codebase.
 
-The project uses `Anchor` IDL for safety and readability (over the finest performance tunning).
+The project uses `Anchor` for safety, maintainability and readability.
 
 The project relies on `Mango Markets` [program](https://github.com/blockworks-foundation/mango-v3), a decentralized derivative exchange platform build on Solana, and controlled by a DAO.
 
 This program contains 2 set of instructions, one permissionned and one permissionless
+
+_____
 
 ## Program Architecture
 
@@ -98,18 +111,20 @@ The initial state is initialized through calling `initializeController`, from th
 It owns the Redeemable Mint currently. In the future there could be added instruction to transfer Authority/Mint to another program due to migration, if needs be.
 
 ```Rust
+#[account]
+#[derive(Default)]
 pub struct Controller {
     pub bump: u8,
     pub redeemable_mint_bump: u8,
-    // Version used - for migrations later if needed
+    // Version used
     pub version: u8,
-    // The account that initialize this struct. Only this account can call permissionned instructions.
+    // The account with authority over the UXD stack
     pub authority: Pubkey,
     pub redeemable_mint: Pubkey,
     pub redeemable_mint_decimals: u8,
     //
     // The Mango Depositories registered with this Controller
-    pub registered_mango_depositories: [Pubkey; 8], // MAX_REGISTERED_MANGO_DEPOSITORIES - IDL bug with constant...
+    pub registered_mango_depositories: [Pubkey; 8], //  - IDL bug with constant, so hard 8 literal. -- Still not working in 0.20.0 although it should
     pub registered_mango_depositories_count: u8,
     //
     // Progressive roll out and safety ----------
@@ -129,7 +144,8 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
     //
-    // Should add padding? or migrate?
+    // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
+    pub _reserved: ControllerPadding,
 }
 ```
 
@@ -137,17 +153,21 @@ The `authority` (admin) must then register some `Depository`/ies by calling `reg
 One State is tied to many `Depository` accounts, each of them being a vault for a given Collateral Mint.
 
 ```Rust
+#[account]
+#[derive(Default)]
 pub struct MangoDepository {
     pub bump: u8,
     pub collateral_passthrough_bump: u8,
     pub insurance_passthrough_bump: u8,
     pub mango_account_bump: u8,
-    // Version used - for migrations later if needed
+    // Version used
     pub version: u8,
     pub collateral_mint: Pubkey,
+    pub collateral_mint_decimals: u8,
     pub collateral_passthrough: Pubkey,
     pub insurance_mint: Pubkey,
     pub insurance_passthrough: Pubkey,
+    pub insurance_mint_decimals: u8,
     pub mango_account: Pubkey,
     //
     // The Controller instance for which this Depository works for
@@ -160,18 +180,34 @@ pub struct MangoDepository {
     // In Collateral native units
     pub insurance_amount_deposited: u128,
     //
-    // The amount of collateral deposited by users to mint redeemable tokens
+    // The amount of collateral deposited by users to mint UXD
     // Updated after each mint/redeem
     // In Collateral native units
     pub collateral_amount_deposited: u128,
     //
-    // The amount of delta neutral position that is backing circulating redeemable tokens.
+    // The amount of delta neutral position that is backing circulating redeemable.
     // Updated after each mint/redeem
     // In Redeemable native units
     pub redeemable_amount_under_management: u128,
     //
     // The amount of taker fee paid in quote while placing perp orders
     pub total_amount_paid_taker_fee: u128,
+    //
+    pub _reserved: u8,
+    //
+    // This information is shared by all the Depositories, and as such would have been a good
+    // candidate for the Controller, but we will lack space in the controller sooner than here.
+    //
+    // v2 -83 bytes
+    pub quote_passthrough_bump: u8,
+    pub quote_mint: Pubkey,
+    pub quote_passthrough: Pubkey,
+    pub quote_mint_decimals: u8,
+    //
+    // The amount of DN position that has been rebalanced (in quote native units)
+    pub total_amount_rebalanced: u128,
+    //
+    pub _reserved1: MangoDepositoryPadding,
 }
 ```
 
@@ -179,8 +215,8 @@ Each `Depository` is used to `mint()` and `redeem()` Redeemable tokens with a sp
 
 ## Admin instructions
 
-They setup the UXD account stack and provide management option related to insurance fund and capping.
-Only the `authority` can interact with these calls.
+They setup the UXD account stack and provide access to the settings.
+Only the `authority` set in the `Controller` can interact with these instructions.
 
 ### `Initialize`
 
@@ -191,27 +227,6 @@ Only one controller can exist at anytime.
 
 Instantiate a new `MangoDepository` PDA for a given collateral mint.
 A depository is a vault in charge a Collateral type, the associated mango account and insurance fund.
-
-### `RebalanceDepository` (TODO - Planned post release as the first capped release will be protected from liquidation by the insurance in the event of overweighed positions)
-
-Rebalance the health of one repository.
-Short Perp PNL will change over time. When it does, other users can settle match us (forcing the update of our balance, as this unsettle PnL is virtual, i.e. we don't pay interests on it)
-
-When settled on a negative PnL, account's USDC balance will become negative, effectively borrowing fund at the current rate.
-We don't want this because that cost us.
-At the same time, if we settle a positive PnL, the account USDC balance become positive, effectively lending fund at the current rate and accruing interests (We want that obviously)
-
-The strategy here of this rebalance call would be to resize the long and short positions to account for the unsettled negative PnL if any. (resize is a reduce in that case)
-By doing so, we close a given short perp, hence we are over-collateralized in the collateral mint.
-We then sell this amount of collateral at market price, and that put us a positive balance of USDC, that accrue interest.
-
-THIS IS CURRENTLY PENDING due to the fact that it need to be done in a single atomic IX and that's impossible within 200k computing units. In Q1 2022 Solana will implement Address map (accepted proposal).
-At that point this will be possible and we will be able to raise the hard cap or redeemable tokens.
-
-### `RebalanceAllDepositories` (TODO - In the future to balance collateral + optimize yield)
-
-Would rebalance the amount of collateral available inside each depository so that the pools don't become one sided (everyone deposit sol, then redeem BTC).
-Would also allow for yield optimization depending of the current values.
 
 ### `DepositInsuranceToMangoDepository` / `WithdrawInsuranceFromMangoDepository`
 
@@ -230,7 +245,6 @@ Change the value of the Mango Depositories operations (Mint/Redeem) Redeemable c
 ## User instructions
 
 They allow end users to mint and redeem redeemable tokens, they are permissionless.
-Keep in mind all described steps are done during an atomic instruction, one fails and it's all aborted.
 
 ### `mint_uxd`
 
@@ -252,23 +266,55 @@ We burn the same value of UXD from what the user sent
 We withdraw the collateral amount equivalent to the perp short that has been closed previously (post taxes calculation)
 We send that back to the user (and his remaining UXD are back too, if any)
 
-Interface
+### `RebalanceMangoDepositoryLite`
 
-- Web app allows user to deposit, withdraw collateral
-- Options to mint, redeem UXD and view user account dashboard
+Convert any paper profits from the short perp part of the delta neutral position back into the delta neutral position, either increasing or decreasing it's size.
 
-There are two different tokens involved in the direct operation of the system (not counting the governance token UXP)
-Each Depository issues its own redeemable token as an accounting system that can be ingested by the controller as proof
-of collateral without actually directly owning and managing the collateral itself. This allows the attack surface of the
-system as a whole to be reduced and creates a segmented risk profile such that all collateral tokens are not put in jeopardy
-due to any vulnerability that arises in relation to any specific collateral type. These tokens can referred to as r-tokens
-although the everyday user shouldn't have any need to refer to them at all since their primary use is in the system back end
-and the user facing mint function encompasses both the depository facing deposit instruction as well as the controller
-facing mint function.
+If the PnL is positive, profits are used to buy more spot collateral and an equivalent amount of short perp is opened.
+If the PnL is negative, some collateral is sold spot, and the equivalent amount of short perp is closed.
 
-The Controller issues the UXD token itself and has sole privilege and authority over the UXD mint, which it exercises to
-create new uxd obligations proportional to underlying basis trade positions. The same UXD token mint and controller combo
-can apply to arbitrarily many Depositories irrespective of the underlying perpetual swap markets, venues, mango groups, etc.
-The UXD token is fully fungible and any holder can redeem it at any time for a proportional share of the underlying collateral
-value. On a high level, the redemption process consists of buying back swaps equal to the intended redemption value (plus fees)
-and releasing the collateral r-token to the user which can be exchanged for the initial collateral back.
+Currently it's the lite version, because we cannot do all this atomically in 200k computing nor with 34~ accounts on mango markets. (~34 is the best when we implement place_perp_order_v2).
+In order to circumvent this limitation, we skip the spot part by send QUOTE or COLLATERAL (and returning the resulting COLLATERAL or QUOTE). It acts as a swap for taker fees + slippage.
+
+It is open as it won't fit a the nested instruction space of DAO proposal (we might also incentivize rebalancing with UXP rewards at some point or find a decentralized way to keep the PnL in check).
+
+_____
+
+## Testing strategy with CI
+
+There are a few script in the test folder with following the `test_ci_*.ts`, these are related to the github workflow.
+It's quite unstable to test on devnet with typescript, and expect MangoMarkets order book to be consistent, but it somehow works.
+
+The CI strategy for E2E :
+
+- use the ci-resident-program (``) (call ./scripts/swap_ci_resident_program.sh)
+- use it's upgrade authority stored in `target/deploy/ci-resident-upgrade-authority.json` for deployment
+- upgrade program
+- run the market making bots
+- then starts X testing suites in parallel for each Collateral/Dex whatever case (for now on mango and later on more with new Dexes).
+
+Note that it don't do concurrent run of this workflow, as they test some internal state of the program and would collide.
+
+The CI also runs cargo fmt, clippy, test and test-bpf.
+
+Cargo audit and Soteria (automated auditing tool) are run on main branch merges.
+
+_____
+
+## Deployment and Program Upgrades
+
+By default the program builds with the `development` feature, and the ProgramID for devnet.
+
+Building for mainnet uses `anchor build -- --no-default-features --features production`
+
+The program upgrade are done through our [DAO](https://governance.uxd.fi/dao/UXP).
+
+It required to build for release then to prepare a buffer with :
+
+```Zsh
+$> solana program write-buffer  ./target/deploy/uxd.so 
+# anchor verify -p uxd <Buffer ID from previous command>  //TODO
+$> solana program set-buffer-authority <BufferID> --new-buffer-authority CzZySsi1dRHMitTtNe2P12w3ja2XmfcGgqJBS8ytBhhY
+```
+
+![Governance upgrade](dao_program_upgrade.png)

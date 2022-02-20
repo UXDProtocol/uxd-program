@@ -32,6 +32,8 @@ pub enum SourceFileId {
     StateMangoDepository = 19,
     Error = 20,
     Lib = 21,
+    InstructionMangoDexRebalanceMangoDepositoryLite = 22,
+    InstructionMangoDexMigrateMangoDepositoryToV2 = 23,
 }
 
 impl std::fmt::Display for SourceFileId {
@@ -118,6 +120,18 @@ impl std::fmt::Display for SourceFileId {
             SourceFileId::Lib => {
                 write!(f, "src/lib.rs")
             }
+            SourceFileId::InstructionMangoDexRebalanceMangoDepositoryLite => {
+                write!(
+                    f,
+                    "src/instructions/mango_dex/rebalance_mango_depository_lite.rs"
+                )
+            }
+            SourceFileId::InstructionMangoDexMigrateMangoDepositoryToV2 => {
+                write!(
+                    f,
+                    "src/instructions/mango_dex/migrate_mango_depository_to_v2.rs"
+                )
+            }
         }
     }
 }
@@ -134,17 +148,20 @@ pub enum UxdError {
     },
 }
 
+// GENERIC PROGRAM ERRORS
 #[derive(Debug, Error, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
 #[repr(u32)]
 pub enum UxdErrorCode {
     #[error("The redeemable mint decimals must be between 0 and 9 (inclusive).")]
-    InvalidRedeemableMintDecimals,
+    InvalidRedeemableMintDecimals = 0,
     #[error("Redeemable global supply above {}.", MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP)]
     InvalidRedeemableGlobalSupplyCap,
     #[error("The associated mango root bank index cannot be found for the deposited coin..")]
     RootBankIndexNotFound,
     #[error("The slippage value is invalid. Must be in the [0...1000] range points.")]
     InvalidSlippage,
+    #[error("Could not fill the order given order book state and provided slippage.")]
+    EffectiveOrderPriceBeyondLimitPrice,
     #[error("Collateral amount must be > 0 in order to mint.")]
     InvalidCollateralAmount,
     #[error("The balance of the collateral ATA is not enough to fulfill the mint operation.")]
@@ -156,7 +173,7 @@ pub enum UxdErrorCode {
     #[error("The perp position could not be fully filled with the provided slippage.")]
     PerpOrderPartiallyFilled,
     #[error("Minting amount would go past the Redeemable Global Supply Cap.")]
-    RedeemableGlobalSupplyCapReached,
+    RedeemableGlobalSupplyCapReached = 10,
     #[error("Operation not allowed due to being over the Redeemable soft Cap.")]
     MangoDepositoriesSoftCapOverflow,
     #[error("Cannot register more mango depositories, the limit has been reached.")]
@@ -179,17 +196,32 @@ pub enum UxdErrorCode {
     )]
     InvalidMangoDepositoriesRedeemableSoftCap,
     #[error("Quote_lot_delta can't be 0.")]
-    InvalidQuoteLotDelta,
+    InvalidQuoteDelta = 20,
     #[error("The perp order wasn't executed in the right direction.")]
     InvalidOrderDirection,
     #[error("Math error.")]
     MathError,
     #[error("The order couldn't be executed with the provided slippage.")]
     SlippageReached,
+    #[error("The rebalancing amount must be above 0.")]
+    InvalidRebalancingAmount,
+    #[error("The Quote amount in the provided user_quote ATA must be >= max_amount_rebalancing.")]
+    InsufficientQuoteAmount,
+    #[error("The PnL polarity provided is not the same as the perp position's one.")]
+    InvalidPnlPolarity,
+    #[error("The rebalanced amount doesn't match the expected rebalance amount.")]
+    RebalancingError,
+    #[error("A bump was expected but is missing.")]
+    BumpError,
+    #[error("The order is below size is below the min lot size.")]
+    OrderSizeBelowMinLotSize,
+    #[error("The collateral delta post perp order doesn't match the planned one.")]
+    InvalidCollateralDelta,
     #[error("MangoErrorCode::Default Check the source code for more info")]
     Default = u32::MAX,
 }
 
+// ANCHOR IDL ERRORS
 #[error(offset = 200)]
 pub enum UxdIdlErrorCode {
     #[msg("Only the Program initializer authority can access this instructions.")]
@@ -216,10 +248,14 @@ pub enum UxdIdlErrorCode {
     InvalidRedeemableMint,
     #[msg("The Collateral Passthrough ATA's mint does not match the Depository's one.")]
     InvalidCollateralPassthroughATAMint,
-    // #[error("The user's Redeemable ATA's mint does not match the Controller's one.")]
-    // InvalidUserRedeemableATAMint,
-    // #[error("The user's Collateral ATA's mint does not match the Depository's one.")]
-    // InvalidUserCollateralATAMint,
+    #[msg("The Quote Passthrough Account isn't the Depository one.")]
+    InvalidQuotePassthroughAccount,
+    #[msg("The Quote Passthrough ATA's mint does not match the Depository's one.")]
+    InvalidQuotePassthroughATAMint,
+    #[msg("The provided quote mint does not match the depository's quote mint.")]
+    InvalidQuoteMint,
+    #[msg("The instruction doesn't support this version of the Depository. Migrate first.")]
+    UnsupportedDepositoryVersion,
 }
 
 impl From<UxdError> for ProgramError {
@@ -304,6 +340,17 @@ macro_rules! declare_check_assert_macros {
             () => {
                 UxdError::UxdErrorCode {
                     uxd_error_code: UxdErrorCode::MathError,
+                    line: line!(),
+                    source_file_id: $source_file_id,
+                }
+            };
+        }
+
+        #[allow(unused_macros)]
+        macro_rules! bump_err {
+            () => {
+                UxdError::UxdErrorCode {
+                    uxd_error_code: UxdErrorCode::BumpError,
                     line: line!(),
                     source_file_id: $source_file_id,
                 }

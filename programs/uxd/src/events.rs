@@ -1,11 +1,13 @@
 use anchor_lang::prelude::*;
 
+use crate::instructions::rebalance_mango_depository_lite::PnlPolarity;
+
 // - Global Events ------------------------------------------------------------
 
 /// Event called in [instructions::initialize_controller::handler].
 #[event]
 pub struct InitializeControllerEvent {
-    /// The program version.
+    /// The controller version.
     #[index]
     pub version: u8,
     /// The controller being created.
@@ -18,7 +20,7 @@ pub struct InitializeControllerEvent {
 /// Event called in [instructions::set_redeemable_global_supply_cap::handler].
 #[event]
 pub struct SetRedeemableGlobalSupplyCapEvent {
-    /// The program version.
+    /// The controller version.
     #[index]
     pub version: u8,
     /// The controller.
@@ -28,10 +30,11 @@ pub struct SetRedeemableGlobalSupplyCapEvent {
     pub redeemable_global_supply_cap: u128,
 }
 
-/// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
+// Deprecated, use `RegisterMangoDepositoryEventV2` - Keep for decoding on chain history
+/// Event called in [instructions::register_mango_depository::handler].
 #[event]
 pub struct RegisterMangoDepositoryEvent {
-    /// The program version.
+    /// The controller version.
     #[index]
     pub version: u8,
     /// The controller.
@@ -48,10 +51,63 @@ pub struct RegisterMangoDepositoryEvent {
     pub mango_account: Pubkey,
 }
 
+/// Event called in [instructions::register_mango_depository::handler].
+#[event]
+pub struct RegisterMangoDepositoryEventV2 {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The depository version.
+    #[index]
+    pub depository_version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    // The collateral mint.
+    pub collateral_mint: Pubkey,
+    // The insurance mint.
+    pub insurance_mint: Pubkey,
+    // The quote mint.
+    pub quote_mint: Pubkey,
+    // The MangoAccount PDA.
+    pub mango_account: Pubkey,
+}
+
+/// Event called in [instructions::migrate_mango_depository_to_v2::handler].
+#[event]
+pub struct MigrateMangoDepositoryToV2Event {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The depository version pre update.
+    #[index]
+    pub depository_from_version: u8,
+    /// The depository version post update.
+    #[index]
+    pub depository_to_version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    // The collateral mint.
+    pub collateral_mint: Pubkey,
+    // The insurance mint.
+    pub insurance_mint: Pubkey,
+    // The quote mint.
+    pub quote_mint: Pubkey,
+    // The MangoAccount PDA.
+    pub mango_account: Pubkey,
+}
+
 /// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
 #[event]
 pub struct SetMangoDepositoryRedeemableSoftCapEvent {
-    /// The program version.
+    /// The controller version.
     #[index]
     pub version: u8,
     /// The controller.
@@ -70,7 +126,7 @@ pub struct SetMangoDepositoryRedeemableSoftCapEvent {
 /// Event called in [instructions::mango_dex::deposit_insurance_to_mango_depository::handler].
 #[event]
 pub struct DepositInsuranceToMangoDepositoryEvent {
-    /// The program version.
+    /// The controller version.
     #[index]
     pub version: u8,
     /// The controller.
@@ -89,8 +145,8 @@ pub struct DepositInsuranceToMangoDepositoryEvent {
 
 /// Event called in [instructions::mango_dex::withdraw_insurance_from_mango_depository::handler].
 #[event]
-pub struct WithdrawInsuranceFromMangoDeposirotyEvent {
-    /// The program version.
+pub struct WithdrawInsuranceFromMangoDepositoryEvent {
+    /// The controller version.
     #[index]
     pub version: u8,
     /// The controller.
@@ -110,7 +166,7 @@ pub struct WithdrawInsuranceFromMangoDeposirotyEvent {
 /// Event called in [instructions::mango_dex::mint_with_mango_depository::handler].
 #[event]
 pub struct MintWithMangoDepositoryEvent {
-    /// The program version.
+    /// The controller version.
     #[index]
     pub version: u8,
     /// The controller.
@@ -135,7 +191,7 @@ pub struct MintWithMangoDepositoryEvent {
 /// Event called in [instructions::mango_dex::redeem_from_mango_depository::handler].
 #[event]
 pub struct RedeemFromMangoDepositoryEvent {
-    /// The program version.
+    /// The controller version.
     #[index]
     pub version: u8,
     /// The controller.
@@ -154,5 +210,37 @@ pub struct RedeemFromMangoDepositoryEvent {
     // The different deltas after successful minting operation.
     pub collateral_delta: u64,
     pub redeemable_delta: u64,
+    pub fee_delta: u64,
+}
+
+/// Event called in [instructions::rebalance_mango_depository_lite::handler].
+#[event]
+pub struct RebalanceMangoDepositoryLiteEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The depository version.
+    #[index]
+    pub depository_version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    /// The user making the call.
+    #[index]
+    pub user: Pubkey,
+    // The polarity of the rebalancing operation
+    pub polarity: PnlPolarity,
+    // The desired rebalancing amount in Quote native units. (input)
+    pub rebalancing_amount: u64,
+    // The actual rebalancing amount in Quote native units.
+    pub rebalanced_amount: u64,
+    // The user selected slippage.
+    pub slippage: u32,
+    // The different deltas after successful rebalancing operation.
+    pub collateral_delta: u64,
+    pub quote_delta: u64,
     pub fee_delta: u64,
 }

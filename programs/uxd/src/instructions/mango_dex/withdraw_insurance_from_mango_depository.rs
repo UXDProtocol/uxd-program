@@ -1,29 +1,41 @@
+use crate::error::check_assert;
+use crate::error::SourceFileId;
+use crate::error::UxdErrorCode;
+use crate::error::UxdIdlErrorCode;
+use crate::events::WithdrawInsuranceFromMangoDepositoryEvent;
+use crate::mango_program;
+use crate::AccountingEvent;
+use crate::Controller;
+use crate::MangoDepository;
+use crate::UxdResult;
+use crate::CONTROLLER_NAMESPACE;
+use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
+use crate::MANGO_ACCOUNT_NAMESPACE;
+use crate::MANGO_DEPOSITORY_NAMESPACE;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use crate::AccountingEvent;
-use crate::Controller;
-use crate::CONTROLLER_NAMESPACE;
-use crate::MANGO_DEPOSITORY_NAMESPACE;
-use crate::MANGO_ACCOUNT_NAMESPACE;
-use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
-use crate::MangoDepository;
-use crate::UxdResult;
-use crate::mango_program;
-use crate::error::UxdIdlErrorCode;
-use crate::events::WithdrawInsuranceFromMangoDeposirotyEvent;
+
+declare_check_assert_macros!(SourceFileId::InstructionMangoDexWithdrawInsuranceFromMangoDepository);
+
+/// Takes 19 accounts - 8 used locally - 6 for MangoMarkets CPI - 2 Programs - 1 Sysvar
 #[derive(Accounts)]
 pub struct WithdrawInsuranceFromMangoDepository<'info> {
+    /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
+
+    /// #2 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
-        mut,
-        seeds = [CONTROLLER_NAMESPACE], 
+        seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump,
         has_one = authority @UxdIdlErrorCode::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
+
+    /// #3 UXDProgram on chain account bound to a Controller instance
+    /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
@@ -32,20 +44,30 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
+
+    /// #4 The collateral mint used by the `depository` instance
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
+
+    /// #5 The insurance mint used by the `depository` instance
     #[account(
         constraint = insurance_mint.key() == depository.insurance_mint @UxdIdlErrorCode::InvalidInsuranceMint
     )]
     pub insurance_mint: Box<Account<'info, Mint>>,
-    // The account that will receive the funds withdrawn
+
+    /// #6 The `user`'s ATA for the `controller`'s `redeemable_mint`
+    /// Will be credited during this instruction
     #[account(
         mut,
         constraint = authority_insurance.mint == depository.insurance_mint @UxdIdlErrorCode::InvalidAuthorityInsuranceATAMint
     )]
     pub authority_insurance: Box<Account<'info, TokenAccount>>,
+
+    /// #7 The `depository`'s TA for its `insurance_mint`
+    /// MangoAccounts can only transact with the TAs owned by their authority
+    /// and this only serves as a passthrough
     #[account(
         mut,
         seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
@@ -54,6 +76,8 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
         constraint = depository_insurance_passthrough_account.mint == insurance_mint.key() @UxdIdlErrorCode::InvalidInsurancePassthroughATAMint,
     )]
     pub depository_insurance_passthrough_account: Box<Account<'info, TokenAccount>>,
+
+    /// #8 The MangoMarkets Account (MangoAccount) managed by the `depository`
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
@@ -61,19 +85,35 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
         constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
-    // Mango CPI accounts
+
+    /// #9 [MangoMarkets CPI] Index grouping perp and spot markets
     pub mango_group: AccountInfo<'info>,
+
+    /// #10 [MangoMarkets CPI] Cache
     pub mango_cache: AccountInfo<'info>,
+
+    /// #11 [MangoMarkets CPI] Signer PDA
     pub mango_signer: AccountInfo<'info>,
+
+    /// #12 [MangoMarkets CPI] Root Bank for the `depository`'s `insurance_mint`
     pub mango_root_bank: AccountInfo<'info>,
+
+    /// #13 [MangoMarkets CPI] Node Bank for the `depository`'s `insurance_mint`
     #[account(mut)]
     pub mango_node_bank: AccountInfo<'info>,
+
+    /// #14 [MangoMarkets CPI] Vault for the `depository`'s `insurance_mint`
     #[account(mut)]
     pub mango_vault: Account<'info, TokenAccount>,
-    // programs
+
+    /// #15 System Program
     pub system_program: Program<'info, System>,
+
+    /// #16 Token Program
     pub token_program: Program<'info, Token>,
-    pub mango_program: Program<'info, mango_program::Mango>
+
+    /// #17 MangoMarketv3 Program
+    pub mango_program: Program<'info, mango_program::Mango>,
 }
 
 pub fn handler(
@@ -110,7 +150,7 @@ pub fn handler(
     // - 2 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_accounting(insurance_amount)?;
 
-    emit!(WithdrawInsuranceFromMangoDeposirotyEvent {
+    emit!(WithdrawInsuranceFromMangoDepositoryEvent {
         version: ctx.accounts.controller.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
@@ -118,7 +158,7 @@ pub fn handler(
         insurance_mint_decimals: ctx.accounts.depository.insurance_mint_decimals,
         withdrawn_amount: insurance_amount,
     });
-    
+
     Ok(())
 }
 
@@ -161,13 +201,19 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
 
 // Additional convenience methods related to the inputted accounts
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
-    fn update_accounting(
-        &mut self,
-        insurance_delta: u64,
-    ) -> ProgramResult {
+    fn update_accounting(&mut self, insurance_delta: u64) -> ProgramResult {
         // Mango Depository
         self.depository
             .update_insurance_amount_deposited(&AccountingEvent::Withdraw, insurance_delta)?;
+        Ok(())
+    }
+}
+
+// Validate input arguments
+impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
+    pub fn validate(&self, insurance_amount: u64) -> ProgramResult {
+        check!(insurance_amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;
+        // Mango withdraw will fail with proper error thanks to  `disabled borrow` set to true if the balance is not enough.
         Ok(())
     }
 }

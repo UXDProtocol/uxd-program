@@ -2,6 +2,9 @@
 !/target/deploy
 /target/deploy/*.so
 !/target/deploy/uxd-keypair.json
+!/target/deploy/ci-resident-keypair.json
+!/target/deploy/ci-resident-upgrade-authority.json
+!/target/deploy/bank-keypair.json
 !/target/idl/
 !/target/idl/uxd.json
 !/target/types
@@ -13,9 +16,12 @@ test-ledger/
 /programs/uxd/.coderrect/**
 /programs/uxd/target/**
 /programs/uxd/Cargo.lock
-# Only used for devnet. Mainnet is under dao control
-UXDQDbkAeGMPR7gqDykDNu22D9DnYrKdvZhvNmMu6QX.json
 yarn-error.log
 programs/uxd/src/lib.rs.bak
 .gitignore
 Anchor.toml.bak
+mochawesome-report
+.DS_Store
+README.md.bak
+scripts/swap_ci_resident_program_id.sh.bak
+.github/workflows/ci-anchor-test.yml.bak

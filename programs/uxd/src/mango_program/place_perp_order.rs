@@ -35,6 +35,7 @@ pub struct PlacePerpOrder<'info> {
 /// 5. `[writable]` bids_ai - bids account for this PerpMarket
 /// 6. `[writable]` asks_ai - asks account for this PerpMarket
 /// 7. `[writable]` event_queue_ai - EventQueue for this PerpMarket
+#[allow(clippy::too_many_arguments)]
 fn place_perp_order_instruction(
     mango_program_id: &Pubkey,
     mango_group_pubkey: &Pubkey,
@@ -62,9 +63,6 @@ fn place_perp_order_instruction(
         reduce_only,
     }
     .pack();
-
-    // use a vec directly cause it seems to take some computing?
-    // let mut accounts = Vec::with_capacity(8 + MAX_PAIRS + signer_pubkeys.len());
     let mut accounts = vec![
         AccountMeta::new_readonly(*mango_group_pubkey, false),
         AccountMeta::new(*mango_account_pubkey, false),
