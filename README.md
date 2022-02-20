@@ -9,7 +9,7 @@ It currently sits at:
 <!-- ### Solana -->
 - mainnet-beta `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr`
 - devnet `882VXWftqQ9wsVq99SJqBVsz6tVeBt63jKE9XiwEHDeN` (Public version for front end)
-- devnet `45oCvfmjrcJ6wEYRcWdaV14qHgtpJPES5SUfRdGD2Kc8` (Used by CI, this address should be update accordingly in ci files)
+- devnet `55NneSZjuFv6cVDQxYKZ1UF99JoximnzP9aY65fJ4JT9` (Used by CI, this address should be update accordingly in ci files)
 
 _____
 

@@ -1,5 +1,5 @@
 import { Keypair, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
 import { transferAllSol, transferSol, transferTokens } from "./utils";
 import { depositInsuranceMangoDepositoryTest } from "./cases/depositInsuranceMangoDepositoryTest";
@@ -13,6 +13,9 @@ import { MangoDepositoryRebalancingSuiteParameters, mangoDepositoryRebalancingSu
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const depository = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+
+const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controller = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 const payer = bank;
 const slippage = 50; // 5%
@@ -25,7 +28,7 @@ beforeEach("\n", function () { console.log("====================================
 describe("Integration tests SOL", function () {
     const user: Signer = new Keypair();
 
-    this.beforeAll("Init and fund user (10 SOL)", async function () {
+    this.beforeAll("Init and fund user (10 SOL and 10k usdc)", async function () {
         console.log("USER =>", user.publicKey.toString());
         await transferSol(10, bank, user.publicKey);
         await transferTokens(10000, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
@@ -39,6 +42,12 @@ describe("Integration tests SOL", function () {
         it(`Initialize ${depository.collateralMintSymbol} Depository`, async function () {
             await initializeMangoDepositoryTest(authority, controller, depository, mango, payer);
         });
+        it(`Initialize ${depository.collateralMintSymbol} Depository`, async function () {
+            await initializeMangoDepositoryTest(authority, controller, mangoDepositoryBTC, mango, payer);
+        });
+        it(`Initialize ${depository.collateralMintSymbol} Depository`, async function () {
+            await initializeMangoDepositoryTest(authority, controller, mangoDepositoryETH, mango, payer);
+        });
 
         it(`Deposit 100 USDC of insurance`, async function () {
             await depositInsuranceMangoDepositoryTest(100, authority, controller, depository, mango);
@@ -47,6 +56,10 @@ describe("Integration tests SOL", function () {
         it.skip(`Withdraw 1 USDC of insurance`, async function () {
             await withdrawInsuranceMangoDepositoryTest(1, authority, controller, depository, mango);
         });
+
+        // it(`Mint 80 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
+        //     const mintedAmount = await mintWithMangoDepositoryTest(80, slippage, user, controller, depository, mango, payer);
+        // });
     });
 
 
@@ -56,7 +69,7 @@ describe("Integration tests SOL", function () {
     });
 
     describe.skip("Test minting/redeeming", async function () {
-        it.skip(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
+        it(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
             const perpPrice = await depository.getCollateralPerpPriceUI(mango);
             const amount = 10 / perpPrice;
             console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");

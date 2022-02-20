@@ -182,6 +182,7 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> UxdResult {
     ctx.accounts.depository.insurance_amount_deposited = u128::MIN;
     ctx.accounts.depository.collateral_amount_deposited = u128::MIN;
     ctx.accounts.depository.redeemable_amount_under_management = u128::MIN;
+    ctx.accounts.depository.total_amount_rebalanced = u128::MIN;
 
     // - Update Controller state
     ctx.accounts

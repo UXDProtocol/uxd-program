@@ -1,13 +1,12 @@
 
-import { NATIVE_MINT } from "@solana/spl-token";
-import { Account, Signer } from "@solana/web3.js";
+import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, PnLPolarity, WSOL_DEVNET } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { rebalanceMangoDepositoryLiteTest } from "../cases/rebalanceMangoDepositoryLiteTest";
 import { TXN_OPTS } from "../connection";
 import { slippageBase } from "../constants";
 import { mango } from "../fixtures";
-import { printUserInfo, transferTokens, transferAllTokens, transferSol, printDepositoryInfo } from "../utils";
+import { transferTokens, transferAllTokens, transferSol } from "../utils";
 
 export class MangoDepositoryRebalancingSuiteParameters {
     public slippage: number;
@@ -20,15 +19,6 @@ export class MangoDepositoryRebalancingSuiteParameters {
 }
 
 export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Signer, controller: Controller, depository: MangoDepository, params: MangoDepositoryRebalancingSuiteParameters) {
-
-    it(`Rebalance 100 ${depository.quoteMintSymbol} without funding (should fail)`, async function () {
-        try {
-            await rebalanceMangoDepositoryLiteTest(100, PnLPolarity.Negative, params.slippage, user, controller, depository, mango, payer);
-        } catch {
-            expect(true, "Failing as planned");
-        }
-        expect(false, "Should have failed - User not funded");
-    });
 
     it(`Rebalance 0 ${depository.quoteMintSymbol} (should fail)`, async function () {
         try {
@@ -86,8 +76,8 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
             }
         };
         const rebalancedAmount = await rebalanceMangoDepositoryLiteTest(rebalanceAmountSmall, polarity, params.slippage, user, controller, depository, mango, payer);
-        await printUserInfo(user.publicKey, controller, depository);
-        await printDepositoryInfo(controller, depository, mango);
+        // await printUserInfo(user.publicKey, controller, depository);
+        // await printDepositoryInfo(controller, depository, mango);
         return rebalancedAmount;
     });
 
@@ -125,8 +115,8 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
             }
         };
         const rebalancedAmount = await rebalanceMangoDepositoryLiteTest(rebalanceAmount, polarity, params.slippage, user, controller, depository, mango, payer);
-        await printUserInfo(user.publicKey, controller, depository);
-        await printDepositoryInfo(controller, depository, mango);
+        // await printUserInfo(user.publicKey, controller, depository);
+        // await printDepositoryInfo(controller, depository, mango);
         return rebalancedAmount;
     });
 
