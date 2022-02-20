@@ -18,7 +18,7 @@ pub mod test;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("54Xf3iANiGc7sVNDt1FLzg2Aq3KLYMHyYZizDnQjeLaV");
+solana_program::declare_id!("FbArqRiw6sYeRb4C1iLoXtks1iCRUk2s43o7ZT3cMvQV");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -275,8 +275,8 @@ pub mod uxd {
     /// Rebalance the delta neutral position of the underlying `MangoDepository`.
     ///
     /// Parameters:
-    ///     - max_rebalancing_amount: the maximum amount of quote to rebalance
-    ///        in native unit.
+    ///     - max_rebalancing_amount: the maximum amount of quote this rebalance
+    ///        instruction will attempt to rebalance, in native unit.
     ///     - polarity: the direction of the rebalancing. This is known on chain
     ///        but required as an argument for clarity.
     ///     - slippage: the maximum deviation in price the user is ok to take
@@ -290,13 +290,22 @@ pub mod uxd {
     ///  This is the "lite" version as it force the caller to input some quote or
     ///  collateral. This is done to skip the spot order on mango, saving computing
     ///  and also bypassing the issue with teh 34 accounts limits.
-    ///  A new version is written and waiting for the TransactionV2 proposal to hit
+    ///  A new version is designed and waiting for the TransactionV2 proposal to hit
     ///  along with the 1M computing units.
     ///
     /// Note:
     ///  Paper profits are represented in Quote, it's currently USDC on
     ///  MangoMarkets, as of 02/17/2022.
     ///
+    /// Note:
+    ///  This call should goes with a call to `@uxdprotocol/uxd-client`'s
+    ///  `MangoDepository.settleMangoDepositoryMangoAccountPnl()`, which convert paper
+    ///  profits or losses into realized gain/losses. Once rebalancing is out,
+    ///  since it's permissionless, the PnL settlement should be called once in a while
+    ///  to make sure that unsettled Positive PNL accumulates and that the MangoAccount
+    ///  has to pay borrow rates for it. Some day when computing is plentiful and input
+    ///  accounts are increased through TransactionsV2 proposal, we can
+    ///  also call the onchain version.
     #[access_control(ctx.accounts.validate(max_rebalancing_amount, &polarity, slippage))]
     pub fn rebalance_mango_depository_lite(
         ctx: Context<RebalanceMangoDepositoryLite>,
@@ -357,7 +366,11 @@ pub mod uxd {
         collateral_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
-        msg!("[mint_with_mango_depository] slippage {}", slippage);
+        msg!(
+            "[mint_with_mango_depository] collateral_amount {}, slippage {}",
+            collateral_amount,
+            slippage
+        );
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, slippage).map_err(
             |e| {
                 msg!("<*> {}", e); // log the error
@@ -404,7 +417,11 @@ pub mod uxd {
         redeemable_amount: u64,
         slippage: u32,
     ) -> ProgramResult {
-        msg!("[redeem_from_mango_depository] slippage {}", slippage);
+        msg!(
+            "[redeem_from_mango_depository] redeemable_amount {}, slippage {}",
+            redeemable_amount,
+            slippage
+        );
         instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, slippage)
             .map_err(|e| {
                 msg!("<*> {}", e); // log the error

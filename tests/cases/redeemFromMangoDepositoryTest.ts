@@ -31,7 +31,8 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
         const controllerRedeemable = nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
 
         // WHEN
-        // - Get the perp price at the same moment to have the less diff between exec and test price
+        // - Get the perp price at the same moment to have the less diff between exec and test price.
+        // Simulates user experience from the front end
         const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
         const txId = await redeemFromMangoDepository(user, payer ?? user, slippage, redeemableAmount, controller, depository, mango);
         console.log("🪙  perp price is", Number(mangoPerpPrice.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol);
@@ -52,13 +53,12 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
 
         const redeemableDelta = userRedeemableBalance - userRedeemableBalance_post;
         const collateralDelta = userCollateralBalance_post - userCollateralBalance;
-        const redeemableLeftOverDueToOddLot = redeemableAmount - redeemableDelta;
+        const redeemableLeftOverDueToOddLot = Math.max(redeemableAmount - redeemableDelta, 0);
         const redeemableProcessedByRedeeming = redeemableAmount - redeemableLeftOverDueToOddLot;
         // The mango perp price in these might not be the exact same as the one in the transaction.
         const estimatedFrictionlessCollateralDelta = redeemableProcessedByRedeeming / mangoPerpPrice;
         const estimatedAmountRedeemableLostInTakerFees = mangoTakerFee * redeemableProcessedByRedeeming;
         const redeemableNativeUnitPrecision = Math.pow(10, -controller.redeemableMintDecimals);
-        // const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
         const estimatedAmountRedeemableLostInSlippage = Math.abs(redeemableDelta - redeemableProcessedByRedeeming) - estimatedAmountRedeemableLostInTakerFees;
         // The worst price the user could get (lowest amount of UXD)
         const worthExecutionPriceCollateralDelta = (estimatedFrictionlessCollateralDelta * (slippage / slippageBase)) / mangoPerpPrice;
@@ -79,10 +79,8 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
             "|| odd lot returns ", Number(redeemableLeftOverDueToOddLot.toFixed(depository.collateralMintDecimals)), controller.redeemableMintSymbol,
             ")"
         );
-        
-        // const collateralAmountOfFriction = (estimatedAmountRedeemableLostInTakerFees + estimatedAmountRedeemableLostInSlippage) / mangoPerpPrice;
+
         expect(redeemableAmount).closeTo(redeemableProcessedByRedeeming + redeemableLeftOverDueToOddLot, redeemableNativeUnitPrecision, "The amount of collateral left over + processed is not equal to the collateral amount inputted initially");
-        // expect(collateralDelta).closeTo(estimatedFrictionlessCollateralDelta - collateralAmountOfFriction, collateralNativeUnitPrecision, "CollateralDelta should be close to perfect amount minus friction");
         expect(redeemableDelta).greaterThanOrEqual(worthExecutionPriceCollateralDelta, "The amount redeemed is out of the slippage range");
         expect(redeemableLeftOverDueToOddLot).lessThanOrEqual(minTradingSizeQuote * 2, "The redeemable odd lot returned is twice higher than the minTradingSize for that perp.");
         // Accounting

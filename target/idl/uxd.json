@@ -734,22 +734,22 @@
           "isSigner": false
         },
         {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false
         },
         {
           "name": "redeemableMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRedeemable",
           "isMut": true,
           "isSigner": false
         },
@@ -1231,6 +1231,9 @@
           },
           {
             "name": "BumpError"
+          },
+          {
+            "name": "OrderSizeBelowMinLotSize"
           },
           {
             "name": "Default"
@@ -1789,6 +1792,6 @@
     }
   ],
   "metadata": {
-    "address": "54Xf3iANiGc7sVNDt1FLzg2Aq3KLYMHyYZizDnQjeLaV"
+    "address": "FbArqRiw6sYeRb4C1iLoXtks1iCRUk2s43o7ZT3cMvQV"
   }
 }
