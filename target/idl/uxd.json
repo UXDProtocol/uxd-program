@@ -1236,6 +1236,9 @@
             "name": "OrderSizeBelowMinLotSize"
           },
           {
+            "name": "InvalidCollateralDelta"
+          },
+          {
             "name": "Default"
           }
         ]
@@ -1792,6 +1795,6 @@
     }
   ],
   "metadata": {
-    "address": "FbArqRiw6sYeRb4C1iLoXtks1iCRUk2s43o7ZT3cMvQV"
+    "address": "5k2HFGg4PjCyHV5NYiTh59ac9EmpnnJM5o8kF6rdSy7e"
   }
 }

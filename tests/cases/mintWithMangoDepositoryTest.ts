@@ -40,8 +40,8 @@ export const mintWithMangoDepositoryTest = async function (collateralAmount: num
         const minTradingSizeCollateral = await depository.getMinTradingSizeCollateralUI(mango);
 
         const redeemableDelta = userRedeemableBalance_post - userRedeemableBalance;
-        const collateralDelta = userCollateralBalance - userCollateralBalance_post;
-        const collateralOddLotLeftOver = Math.max(collateralAmount - collateralDelta, 0);
+        const collateralDelta = Number((userCollateralBalance - userCollateralBalance_post).toFixed(depository.collateralMintDecimals));
+        const collateralOddLotLeftOver = Number(Math.max(collateralAmount - collateralDelta, 0).toFixed(depository.collateralMintDecimals));
         const collateralProcessedByMinting = collateralAmount - collateralOddLotLeftOver;
         // The mango perp price in these might not be the exact same as the one in the transaction.
         const estimatedFrictionlessRedeemableDelta = collateralProcessedByMinting * mangoPerpPrice;
@@ -64,7 +64,6 @@ export const mintWithMangoDepositoryTest = async function (collateralAmount: num
         );
         expect(collateralAmount).closeTo(collateralProcessedByMinting + collateralOddLotLeftOver, collateralNativeUnitPrecision, "The amount of collateral left over + processed is not equal to the collateral amount inputted initially");
         expect(redeemableDelta).greaterThanOrEqual(worthExecutionPriceRedeemableDelta, "The amount minted is out of the slippage range");
-        expect(collateralDelta).lessThanOrEqual(collateralAmount - collateralOddLotLeftOver, "User paid more collateral than inputted amount");
         expect(collateralOddLotLeftOver).lessThanOrEqual(minTradingSizeCollateral * 2, "The collateral odd lot returned is higher than twice the minTradingSize for that perp.");
 
         console.groupEnd();

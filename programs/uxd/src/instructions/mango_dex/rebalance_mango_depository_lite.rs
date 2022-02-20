@@ -222,14 +222,15 @@ pub fn handler(
     // - [find out current perp Unrealized PnL]
     let perp_contract_size = perp_info.base_lot_size;
     // Note : Loose precision but an average value is fine here, we just want a value close to the current PnL
-    let perp_position_notional_size: i128 = I80F48::from_num(pre_pa.base_position)
-        .checked_mul(perp_contract_size)
-        .ok_or(math_err!())?
-        .checked_mul(perp_info.price)
-        .ok_or(math_err!())?
-        .abs()
-        .checked_to_num()
-        .ok_or(math_err!())?;
+    let perp_position_notional_size: i128 =
+        I80F48::from_num(total_perp_base_lot_position(&pre_pa)?)
+            .checked_mul(perp_contract_size)
+            .ok_or(math_err!())?
+            .checked_mul(perp_info.price)
+            .ok_or(math_err!())?
+            .abs()
+            .checked_to_num()
+            .ok_or(math_err!())?;
 
     // The perp position unrealized PnL is equal to the outstanding amount of redeemable
     // minus the perp position notional size in quote.
@@ -242,11 +243,13 @@ pub fn handler(
     // Will not overflow as `perp_position_notional_size` and `redeemable_under_management`
     // will vary together.
     let perp_unrealized_pnl = I80F48::checked_from_num(
-        perp_position_notional_size
-            .checked_sub(redeemable_under_management)
+        redeemable_under_management
+            .checked_sub(perp_position_notional_size)
             .ok_or(math_err!())?,
     )
     .ok_or(math_err!())?;
+
+    msg!("perp_unrealized_pnl {}", perp_unrealized_pnl);
 
     // Polarity parameter could be inferred, but is requested as input to prevent users
     // user rebalancing (swapping) in an undesired way, as the PnL could technically shift
@@ -268,10 +271,43 @@ pub fn handler(
 
     // - 2 [FIND BEST ORDER FOR SHORT PERP POSITION (depending of Polarity)] --
 
+    // For now will just overdraft fees on top of the max_rebalancing_amount
+    // (instruction will fail if not enough).
+    // When more computing, use the commented code below
+
+    // - [Plan the rebalancing amount]
+    // Note : Depending of the side, the fees don't come from the same place.
+    //        If the PnL is positive, it behaves like a redeem and the fees are taken
+    //        on the inputted amount (also here they aren't burnt and living in the DN
+    //        position as we don't process redeemables.)
+    //        If the PnL is negative, it behaves like the mint and the fees are taken
+    //        on the returned amount (here they aren't living in the delta neutral position
+    //        but simply on the spot QUOTE balance)
+    // let rebalancing_amount = match polarity {
+    //     PnlPolarity::Positive => {
+    //         // - [Find the max fees]
+    //         let max_fee_amount = rebalancing_quote_amount
+    //             .checked_mul(perp_info.effective_fee)
+    //             .ok_or(math_err!())?
+    //             .checked_ceil()
+    //             .ok_or(math_err!())?;
+
+    //         // - [Get the amount of quote_lots for the perp order minus fees not to overflow max_rebalancing_amount]
+    //         rebalancing_quote_amount
+    //             .checked_sub(max_fee_amount)
+    //             .ok_or(math_err!())?
+    //             .checked_div(perp_info.quote_lot_size)
+    //             .ok_or(math_err!())?
+    //             .floor()
+    //     }
+    //     PnlPolarity::Negative => {
     // - [Get the amount of quote_lots for the perp order]
     let rebalancing_amount = rebalancing_quote_amount
-        .checked_div_euclid(perp_info.quote_lot_size)
-        .ok_or(math_err!())?;
+        .checked_div(perp_info.quote_lot_size)
+        .ok_or(math_err!())?
+        .floor();
+    //     }
+    // };
 
     // - [Estimate the best perp order depending of polarity]
     // Note : The caller is the Taker, the side depend of the PnL Polarity.
@@ -626,10 +662,13 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
+            &self.depository_mango_account,
             self.mango_perp_market.key,
+            self.mango_group.key,
             self.mango_program.key,
         )?;
-        msg!("perp_info {:?}", perp_info);
+        // No computing left
+        // msg!("perp_info {:?}", perp_info);
         Ok(perp_info)
     }
 

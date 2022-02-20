@@ -1236,6 +1236,9 @@ export type Uxd = {
             "name": "OrderSizeBelowMinLotSize"
           },
           {
+            "name": "InvalidCollateralDelta"
+          },
+          {
             "name": "Default"
           }
         ]
@@ -3029,6 +3032,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "OrderSizeBelowMinLotSize"
+          },
+          {
+            "name": "InvalidCollateralDelta"
           },
           {
             "name": "Default"

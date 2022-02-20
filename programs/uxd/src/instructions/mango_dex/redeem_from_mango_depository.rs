@@ -197,7 +197,7 @@ pub fn handler(
 
     // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees don't overflow the redeemed amount]
     let max_fee_amount = exposure_delta_in_quote_unit
-        .checked_mul(perp_info.taker_fee)
+        .checked_mul(perp_info.effective_fee)
         .ok_or(math_err!())?
         .checked_ceil()
         .ok_or(math_err!())?;
@@ -401,7 +401,9 @@ impl<'info> RedeemFromMangoDepository<'info> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
+            &self.depository_mango_account,
             self.mango_perp_market.key,
+            self.mango_group.key,
             self.mango_program.key,
         )?;
         // No computing left

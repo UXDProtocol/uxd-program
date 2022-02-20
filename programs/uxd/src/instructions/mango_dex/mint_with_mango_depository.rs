@@ -1,6 +1,7 @@
 use crate::check_assert;
 use crate::declare_check_assert_macros;
 use crate::error::SourceFileId;
+use crate::error::UxdErrorCode;
 use crate::error::UxdIdlErrorCode;
 use crate::events::MintWithMangoDepositoryEvent;
 use crate::mango_program;
@@ -15,7 +16,6 @@ use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::UxdError;
-use crate::UxdErrorCode;
 use crate::UxdResult;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
@@ -192,8 +192,9 @@ pub fn handler(
 
     // - [Get the amount of Base Lots for the perp order (odd lots won't be processed)]
     let base_lot_amount = I80F48::from_num(collateral_amount)
-        .checked_div_euclid(perp_info.base_lot_size)
-        .ok_or(math_err!())?;
+        .checked_div(perp_info.base_lot_size)
+        .ok_or(math_err!())?
+        .floor();
 
     // - [Define perp order]
     // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
@@ -209,11 +210,14 @@ pub fn handler(
 
     // - 2 [TRANSFER COLLATERAL TO MANGO (LONG)] ------------------------------
     // This value is verified after by checking if the perp order was fully filled
+    // It's the amount we are depositing on the MangoAccount and that will be used as collateral
+    // to open the short perp
     let planned_collateral_delta = I80F48::from_num(perp_order.quantity)
         .checked_mul(perp_info.base_lot_size)
         .ok_or(math_err!())?
         .checked_to_num()
         .ok_or(math_err!())?;
+    msg!("planned_collateral_delta {}", planned_collateral_delta);
 
     // - [Transferring user collateral to the passthrough account]
     token::transfer(
@@ -276,6 +280,12 @@ pub fn handler(
         .ok_or(math_err!())?;
     ctx.accounts
         .check_mango_depositories_redeemable_soft_cap_overflow(redeemable_delta)?;
+
+    // validate that the planned collateral delta is equal to the order.collateral_delta
+    check!(
+        planned_collateral_delta == order_delta.collateral,
+        UxdErrorCode::InvalidCollateralDelta
+    )?;
 
     // - 4 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus fees)] ----------------
 
@@ -398,7 +408,9 @@ impl<'info> MintWithMangoDepository<'info> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
+            &self.depository_mango_account,
             self.mango_perp_market.key,
+            self.mango_group.key,
             self.mango_program.key,
         )?;
         msg!("perp_info {:?}", perp_info);
