@@ -13,7 +13,7 @@ env:
   SOLANA_VERSION: 1.9.7
   ANCHOR_VERSION: 0.21.0
   CLUSTER: "devnet"
-  DEVNET_RPC: https://solana.devnet.com
+  DEVNET_RPC: https://api.devnet.solana.com 
   # DEVNET_FAUCET: "9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g"
   # Default wallet
   RUNNER_WALLET_PATH: "/home/runner/.config/solana/id.json"
