@@ -1,13 +1,10 @@
-use crate::error::check_assert;
-use crate::error::SourceFileId;
-use crate::error::UxdErrorCode;
-use crate::error::UxdIdlErrorCode;
+use crate::error::UxdError;
 use crate::events::WithdrawInsuranceFromMangoDepositoryEvent;
 use crate::mango_program;
 use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
-use crate::UxdResult;
+
 use crate::CONTROLLER_NAMESPACE;
 use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -17,8 +14,6 @@ use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-
-declare_check_assert_macros!(SourceFileId::InstructionMangoDexWithdrawInsuranceFromMangoDepository);
 
 /// Takes 19 accounts - 8 used locally - 6 for MangoMarkets CPI - 2 Programs - 1 Sysvar
 #[derive(Accounts)]
@@ -212,7 +207,9 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
 // Validate input arguments
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
     pub fn validate(&self, insurance_amount: u64) -> Result<()> {
-        check!(insurance_amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;
+        if insurance_amount > 0 {
+            error!(UxdError::InvalidInsuranceAmount)
+        };
         // Mango withdraw will fail with proper error thanks to  `disabled borrow` set to true if the balance is not enough.
         Ok(())
     }

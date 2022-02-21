@@ -1,7 +1,4 @@
-use crate::check_assert;
-use crate::declare_check_assert_macros;
-use crate::error::SourceFileId;
-use crate::error::UxdIdlErrorCode;
+use crate::error::UxdError;
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
@@ -14,8 +11,7 @@ use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::UxdError;
-use crate::UxdErrorCode;
-use crate::UxdResult;
+
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -35,8 +31,6 @@ use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 use mango::state::PerpMarket;
-
-declare_check_assert_macros!(SourceFileId::InstructionMangoDexRebalanceMangoDepositoryLite);
 
 const SUPPORTED_DEPOSITORY_VERSION: u8 = 2;
 
@@ -225,12 +219,12 @@ pub fn handler(
     let perp_position_notional_size: i128 =
         I80F48::from_num(total_perp_base_lot_position(&pre_pa)?)
             .checked_mul(perp_contract_size)
-            .ok_or(math_err!())?
+            .ok_or(error!(UxdError::MathError))?
             .checked_mul(perp_info.price)
-            .ok_or(math_err!())?
+            .ok_or(error!(UxdError::MathError))?
             .abs()
             .checked_to_num()
-            .ok_or(math_err!())?;
+            .ok_or(error!(UxdError::MathError))?;
 
     // The perp position unrealized PnL is equal to the outstanding amount of redeemable
     // minus the perp position notional size in quote.
@@ -238,30 +232,32 @@ pub fn handler(
     // position and no paper profits.
     let redeemable_under_management =
         i128::try_from(ctx.accounts.depository.redeemable_amount_under_management)
-            .map_err(|_e| math_err!())?;
+            .map_err(|_e| error!(UxdError::MathError))?;
 
     // Will not overflow as `perp_position_notional_size` and `redeemable_under_management`
     // will vary together.
     let perp_unrealized_pnl = I80F48::checked_from_num(
         redeemable_under_management
             .checked_sub(perp_position_notional_size)
-            .ok_or(math_err!())?,
+            .ok_or(error!(UxdError::MathError))?,
     )
-    .ok_or(math_err!())?;
+    .ok_or(error!(UxdError::MathError))?;
 
     // Polarity parameter could be inferred, but is requested as input to prevent users
     // user rebalancing (swapping) in an undesired way, as the PnL could technically shift
     // between call and execution time.
     // This also filter out the case where `perp_unrealized_pnl` is 0
     match polarity {
-        PnlPolarity::Positive => check!(
-            perp_unrealized_pnl.is_positive(),
-            UxdErrorCode::InvalidPnlPolarity
-        )?,
-        PnlPolarity::Negative => check!(
-            perp_unrealized_pnl.is_negative(),
-            UxdErrorCode::InvalidPnlPolarity
-        )?,
+        PnlPolarity::Positive => {
+            if perp_unrealized_pnl.is_positive() {
+                error!(UxdError::InvalidPnlPolarity)
+            }
+        }
+        PnlPolarity::Negative => {
+            if perp_unrealized_pnl.is_negative() {
+                error!(UxdError::InvalidPnlPolarity)
+            }
+        }
     }
     // - [rebalancing limited to `max_rebalancing_amount`, up to `perp_unrealized_pnl`]
     let requested_rebalancing_amount = I80F48::from_num(max_rebalancing_amount);
@@ -286,23 +282,23 @@ pub fn handler(
     //         // - [Find the max fees]
     //         let max_fee_amount = rebalancing_quote_amount
     //             .checked_mul(perp_info.effective_fee)
-    //             .ok_or(math_err!())?
+    //             .ok_or(error!(UxdError::MathError))?
     //             .checked_ceil()
-    //             .ok_or(math_err!())?;
+    //             .ok_or(error!(UxdError::MathError))?;
 
     //         // - [Get the amount of quote_lots for the perp order minus fees not to overflow max_rebalancing_amount]
     //         rebalancing_quote_amount
     //             .checked_sub(max_fee_amount)
-    //             .ok_or(math_err!())?
+    //             .ok_or(error!(UxdError::MathError))?
     //             .checked_div(perp_info.quote_lot_size)
-    //             .ok_or(math_err!())?
+    //             .ok_or(error!(UxdError::MathError))?
     //             .floor()
     //     }
     //     PnlPolarity::Negative => {
     // - [Get the amount of quote_lots for the perp order]
     let rebalancing_amount = rebalancing_quote_amount
         .checked_div(perp_info.quote_lot_size)
-        .ok_or(math_err!())?
+        .ok_or(error!(UxdError::MathError))?
         .floor();
     //     }
     // };
@@ -317,7 +313,9 @@ pub fn handler(
         //        [BID: taker (us, the caller) | ASK: maker]
         PnlPolarity::Negative => Side::Bid,
     };
-    let quote_lot_amount = rebalancing_amount.checked_to_num().ok_or(math_err!())?;
+    let quote_lot_amount = rebalancing_amount
+        .checked_to_num()
+        .ok_or(error!(UxdError::MathError))?;
     let perp_order = ctx
         .accounts
         .find_best_order_in_book_for_quote_lot_amount(taker_side, quote_lot_amount)?;
@@ -368,14 +366,16 @@ pub fn handler(
     // - [Calculate order deltas to proceed to transfers]
     // ensures current context make sense as the derive_order_delta is generic
     match polarity {
-        PnlPolarity::Positive => check!(
-            pre_pa.taker_quote < post_pa.taker_quote,
-            UxdErrorCode::InvalidOrderDirection
-        )?,
-        PnlPolarity::Negative => check!(
-            pre_pa.taker_quote > post_pa.taker_quote,
-            UxdErrorCode::InvalidOrderDirection
-        )?,
+        PnlPolarity::Positive => {
+            if pre_pa.taker_quote < post_pa.taker_quote {
+                error!(UxdError::InvalidOrderDirection)
+            }
+        }
+        PnlPolarity::Negative => {
+            if pre_pa.taker_quote > post_pa.taker_quote {
+                error!(UxdError::InvalidOrderDirection)
+            }
+        }
     };
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;
 
@@ -400,7 +400,7 @@ pub fn handler(
             let quote_delta = order_delta
                 .quote
                 .checked_sub(order_delta.fee)
-                .ok_or(math_err!())?;
+                .ok_or(error!(UxdError::MathError))?;
             // - [Withdraw mango quote to the passthrough account]
             mango_program::withdraw(
                 ctx.accounts
@@ -423,7 +423,7 @@ pub fn handler(
             let quote_delta = order_delta
                 .quote
                 .checked_add(order_delta.fee)
-                .ok_or(math_err!())?;
+                .ok_or(error!(UxdError::MathError))?;
             // - [Transfers user quote to the passthrough account]
             token::transfer(
                 ctx.accounts
@@ -734,25 +734,24 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         slippage: u32,
     ) -> Result<()> {
         // Valid slippage check
-        check!(
-            (slippage > 0) && (slippage <= SLIPPAGE_BASIS),
-            UxdErrorCode::InvalidSlippage
-        )?;
+        if (slippage > 0) && (slippage <= SLIPPAGE_BASIS) {
+            error!(UxdError::InvalidSlippage)
+        }
 
         // Rebalancing amount must be above 0
-        check!(
-            max_rebalancing_amount > 0,
-            UxdErrorCode::InvalidRebalancingAmount
-        )?;
+        if max_rebalancing_amount > 0 {
+            error!(UxdError::InvalidRebalancingAmount)
+        }
 
         // Rebalancing amount must be above 0
         match polarity {
             PnlPolarity::Positive => (),
-            PnlPolarity::Negative => check!(
-                self.user_quote.amount >= max_rebalancing_amount,
-                UxdErrorCode::InsufficientQuoteAmount
-            )?,
-        };
+            PnlPolarity::Negative => {
+                if self.user_quote.amount >= max_rebalancing_amount {
+                    error!(UxdError::InsufficientQuoteAmount)
+                }
+            }
+        }
         Ok(())
     }
 }

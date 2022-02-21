@@ -1,8 +1,4 @@
-use crate::check_assert;
-use crate::declare_check_assert_macros;
-use crate::error::SourceFileId;
-use crate::error::UxdErrorCode;
-use crate::error::UxdIdlErrorCode;
+use crate::error::UxdError;
 use crate::mango_program;
 use crate::mango_utils::check_effective_order_price_versus_limit_price;
 use crate::mango_utils::check_perp_order_fully_filled;
@@ -15,7 +11,7 @@ use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::UxdError;
-use crate::UxdResult;
+
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -36,8 +32,6 @@ use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 use mango::state::PerpMarket;
-
-declare_check_assert_macros!(SourceFileId::InstructionMangoDexRedeemFromMangoDepository);
 
 /// Takes 25 accounts - 10 used locally - 10 for MangoMarkets CPI - 4 Programs - 1 Sysvar
 #[derive(Accounts)]
@@ -198,12 +192,12 @@ pub fn handler(
     // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees don't overflow the redeemed amount]
     let max_fee_amount = exposure_delta_in_quote_unit
         .checked_mul(perp_info.effective_fee)
-        .ok_or(math_err!())?
+        .ok_or(error!(UxdError::MathError))?
         .checked_ceil()
-        .ok_or(math_err!())?;
+        .ok_or(error!(UxdError::MathError))?;
     exposure_delta_in_quote_unit = exposure_delta_in_quote_unit
         .checked_sub(max_fee_amount)
-        .ok_or(math_err!())?;
+        .ok_or(error!(UxdError::MathError))?;
 
     // - [Perp account state PRE perp order]
     let pre_pa = ctx.accounts.perp_account(&perp_info)?;
@@ -214,13 +208,13 @@ pub fn handler(
     // - [Find out how the best price and quantity for our order]
     let exposure_delta_in_quote_lot_unit = exposure_delta_in_quote_unit
         .checked_div(perp_info.quote_lot_size)
-        .ok_or(math_err!())?;
+        .ok_or(error!(UxdError::MathError))?;
     // Note : Reduce the delta neutral position, increasing long exposure, by buying perp.
     //        [BID: taker (us, the caller) | ASK: maker]
     let taker_side = Side::Bid;
     let quote_lot_amount = exposure_delta_in_quote_lot_unit
         .checked_to_num()
-        .ok_or(math_err!())?;
+        .ok_or(error!(UxdError::MathError))?;
     let best_order = ctx
         .accounts
         .get_best_order_for_quote_lot_amount_from_order_book(taker_side, quote_lot_amount)?;
@@ -253,17 +247,17 @@ pub fn handler(
     )?;
 
     // - 2 [BURN REDEEMABLES] -------------------------------------------------
-    check!(
-        pre_pa.taker_quote > post_pa.taker_quote,
-        UxdErrorCode::InvalidOrderDirection
-    )?;
+    if pre_pa.taker_quote > post_pa.taker_quote {
+        error!(UxdError::InvalidOrderDirection)
+    }
+
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;
     msg!("order_delta {:?}", order_delta);
 
     let redeemable_delta = order_delta
         .quote
         .checked_add(order_delta.fee)
-        .ok_or(math_err!())?;
+        .ok_or(error!(UxdError::MathError))?;
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         redeemable_delta,
@@ -475,16 +469,15 @@ impl<'info> RedeemFromMangoDepository<'info> {
 impl<'info> RedeemFromMangoDepository<'info> {
     pub fn validate(&self, redeemable_amount: u64, slippage: u32) -> Result<()> {
         // Valid slippage check
-        check!(
-            (slippage > 0) && (slippage <= SLIPPAGE_BASIS),
-            UxdErrorCode::InvalidSlippage
-        )?;
-
-        check!(redeemable_amount > 0, UxdErrorCode::InvalidRedeemableAmount)?;
-        check!(
-            self.user_redeemable.amount >= redeemable_amount,
-            UxdErrorCode::InsufficientRedeemableAmount
-        )?;
+        if (slippage > 0) && (slippage <= SLIPPAGE_BASIS) {
+            error!(UxdError::InvalidSlippage)
+        }
+        if redeemable_amount > 0 {
+            error!(UxdError::InvalidRedeemableAmount)
+        }
+        if self.user_redeemable.amount >= redeemable_amount {
+            error!(UxdError::InsufficientRedeemableAmount)
+        }
         Ok(())
     }
 }

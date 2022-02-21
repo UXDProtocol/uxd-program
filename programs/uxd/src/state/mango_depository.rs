@@ -1,11 +1,6 @@
-use crate::declare_check_assert_macros;
-use crate::error::SourceFileId;
 use crate::error::UxdError;
-use crate::error::UxdErrorCode;
-use crate::UxdResult;
-use anchor_lang::prelude::*;
 
-declare_check_assert_macros!(SourceFileId::StateMangoDepository);
+use anchor_lang::prelude::*;
 
 #[account]
 #[derive(Default)]
@@ -100,11 +95,11 @@ impl MangoDepository {
             AccountingEvent::Deposit => self
                 .insurance_amount_deposited
                 .checked_add(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
             AccountingEvent::Withdraw => self
                 .insurance_amount_deposited
                 .checked_sub(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
         };
         Ok(())
     }
@@ -118,11 +113,11 @@ impl MangoDepository {
             AccountingEvent::Deposit => self
                 .collateral_amount_deposited
                 .checked_add(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
             AccountingEvent::Withdraw => self
                 .collateral_amount_deposited
                 .checked_sub(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
         };
         Ok(())
     }
@@ -136,11 +131,11 @@ impl MangoDepository {
             AccountingEvent::Deposit => self
                 .redeemable_amount_under_management
                 .checked_add(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
             AccountingEvent::Withdraw => self
                 .redeemable_amount_under_management
                 .checked_sub(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
         };
         Ok(())
     }
@@ -149,7 +144,7 @@ impl MangoDepository {
         self.total_amount_paid_taker_fee = self
             .total_amount_paid_taker_fee
             .checked_add(amount.into())
-            .ok_or(math_err!())?;
+            .ok_or(error!(UxdError::MathError))?;
         Ok(())
     }
 
@@ -157,7 +152,7 @@ impl MangoDepository {
         self.total_amount_rebalanced = self
             .total_amount_rebalanced
             .checked_add(amount.into())
-            .ok_or(math_err!())?;
+            .ok_or(error!(UxdError::MathError))?;
         Ok(())
     }
 }

@@ -1,8 +1,6 @@
-use crate::declare_check_assert_macros;
-use crate::error::SourceFileId;
 use crate::error::UxdError;
-use crate::error::UxdErrorCode;
-use crate::UxdResult;
+
+use anchor_lang::prelude::error;
 use anchor_lang::prelude::AccountInfo;
 use anchor_lang::prelude::Pubkey;
 use fixed::types::I80F48;
@@ -11,8 +9,6 @@ use mango::state::MangoAccount;
 use mango::state::MangoCache;
 use mango::state::MangoGroup;
 use mango::state::CENTIBPS_PER_UNIT;
-
-declare_check_assert_macros!(SourceFileId::MangoUtilsPerpInfo);
 
 #[derive(Debug)]
 pub struct PerpInfo {
@@ -43,7 +39,7 @@ impl PerpInfo {
             MangoCache::load_checked(mango_cache_ai, mango_program_key, &mango_group)?;
         let perp_market_index = mango_group
             .find_perp_market_index(perp_market_key)
-            .ok_or(throw_err!(UxdErrorCode::MangoPerpMarketIndexNotFound))?;
+            .ok_or(error!(UxdError::MangoPerpMarketIndexNotFound))?;
         let mango_account =
             MangoAccount::load_checked(mango_account_ai, mango_program_key, mango_group_key)?;
         PerpInfo::init(

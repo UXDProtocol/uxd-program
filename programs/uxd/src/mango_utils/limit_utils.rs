@@ -1,22 +1,23 @@
 use super::Order;
 use super::PerpInfo;
-use crate::declare_check_assert_macros;
-use crate::error::SourceFileId;
+
 use crate::error::UxdError;
-use crate::UxdErrorCode;
-use crate::UxdResult;
+use anchor_lang::prelude::error;
+
 use crate::SLIPPAGE_BASIS;
 use fixed::types::I80F48;
 use mango::matching::Side;
-
-declare_check_assert_macros!(SourceFileId::MangoUtilsLimitUtils);
 
 // Return the slippage amount, given a price and a slippage.
 pub fn calculate_slippage_amount(price: I80F48, slippage: u32) -> UxdResult<I80F48> {
     let slippage = I80F48::from_num(slippage);
     let slippage_basis = I80F48::from_num(SLIPPAGE_BASIS);
-    let slippage_ratio = slippage.checked_div(slippage_basis).ok_or(math_err!())?;
-    price.checked_mul(slippage_ratio).ok_or(math_err!())
+    let slippage_ratio = slippage
+        .checked_div(slippage_basis)
+        .ok_or(error!(UxdError::MathError))?;
+    price
+        .checked_mul(slippage_ratio)
+        .ok_or(error!(UxdError::MathError)())
 }
 
 // Worse execution price for a provided slippage and side.
@@ -27,8 +28,12 @@ pub fn calculate_slippage_amount(price: I80F48, slippage: u32) -> UxdResult<I80F
 pub fn limit_price(price: I80F48, slippage: u32, taker_side: Side) -> UxdResult<I80F48> {
     let slippage_amount = calculate_slippage_amount(price, slippage)?;
     match taker_side {
-        Side::Bid => price.checked_add(slippage_amount).ok_or(math_err!()),
-        Side::Ask => price.checked_sub(slippage_amount).ok_or(math_err!()),
+        Side::Bid => price
+            .checked_add(slippage_amount)
+            .ok_or(error!(UxdError::MathError)()),
+        Side::Ask => price
+            .checked_sub(slippage_amount)
+            .ok_or(error!(UxdError::MathError)()),
     }
 }
 
@@ -37,9 +42,9 @@ pub fn limit_price(price: I80F48, slippage: u32, taker_side: Side) -> UxdResult<
 pub fn price_to_lot_price(price: I80F48, perp_info: &PerpInfo) -> UxdResult<I80F48> {
     price
         .checked_mul(perp_info.base_lot_size)
-        .ok_or(math_err!())?
+        .ok_or(error!(UxdError::MathError))?
         .checked_div(perp_info.quote_lot_size)
-        .ok_or(math_err!())
+        .ok_or(error!(UxdError::MathError)())
 }
 
 // Check if the provided order is valid given the slippage point and side
@@ -66,5 +71,5 @@ pub fn check_effective_order_price_versus_limit_price(
             }
         }
     };
-    Err(throw_err!(UxdErrorCode::SlippageReached))
+    Err(error!(UxdError::SlippageReached))
 }

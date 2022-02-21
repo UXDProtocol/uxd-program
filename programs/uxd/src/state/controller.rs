@@ -1,13 +1,7 @@
-use crate::declare_check_assert_macros;
-use crate::error::check_assert;
-use crate::error::SourceFileId;
 use crate::error::UxdError;
-use crate::error::UxdErrorCode;
 use crate::AccountingEvent;
-use crate::UxdResult;
-use anchor_lang::prelude::*;
 
-declare_check_assert_macros!(SourceFileId::StateController);
+use anchor_lang::prelude::*;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
@@ -79,11 +73,11 @@ impl Controller {
             AccountingEvent::Deposit => self
                 .redeemable_circulating_supply
                 .checked_add(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
             AccountingEvent::Withdraw => self
                 .redeemable_circulating_supply
                 .checked_sub(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
         };
         Ok(())
     }
@@ -93,15 +87,14 @@ impl Controller {
         mango_depository_id: Pubkey,
     ) -> Result<()> {
         let current_size = usize::from(self.registered_mango_depositories_count);
-        check!(
-            current_size < MAX_REGISTERED_MANGO_DEPOSITORIES,
-            UxdErrorCode::MaxNumberOfMangoDepositoriesRegisteredReached
-        )?;
+        if current_size < MAX_REGISTERED_MANGO_DEPOSITORIES {
+            error!(UxdError::MaxNumberOfMangoDepositoriesRegisteredReached)
+        }
         // Increment registered Mango Depositories count
         self.registered_mango_depositories_count = self
             .registered_mango_depositories_count
             .checked_add(1)
-            .ok_or(math_err!())?;
+            .ok_or(error!(UxdError::MathError))?;
         // Add the new Mango Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_mango_depositories[new_entry_index] = mango_depository_id;

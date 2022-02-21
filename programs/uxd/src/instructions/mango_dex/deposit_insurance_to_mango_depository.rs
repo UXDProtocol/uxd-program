@@ -1,13 +1,10 @@
-use crate::error::check_assert;
-use crate::error::SourceFileId;
-use crate::error::UxdErrorCode;
-use crate::error::UxdIdlErrorCode;
+use crate::error::UxdError;
 use crate::events::DepositInsuranceToMangoDepositoryEvent;
 use crate::mango_program;
 use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
-use crate::UxdResult;
+
 use crate::CONTROLLER_NAMESPACE;
 use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -18,8 +15,6 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
-
-declare_check_assert_macros!(SourceFileId::InstructionMangoDexDepositInsuranceToMangoDepository);
 
 /// Takes 15 accounts - 8 used locally - 5 for MangoMarkets CPI - 2 Programs
 #[derive(Accounts)]
@@ -203,11 +198,12 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
 // Validate input arguments
 impl<'info> DepositInsuranceToMangoDepository<'info> {
     pub fn validate(&self, insurance_amount: u64) -> Result<()> {
-        check!(insurance_amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;
-        check!(
-            self.authority_insurance.amount >= insurance_amount,
-            UxdErrorCode::InsufficientAuthorityInsuranceAmount
-        )?;
+        if insurance_amount > 0 {
+            error!(UxdError::InvalidInsuranceAmount);
+        }
+        if self.authority_insurance.amount >= insurance_amount {
+            error!(UxdError::InsufficientAuthorityInsuranceAmount);
+        }
         Ok(())
     }
 }

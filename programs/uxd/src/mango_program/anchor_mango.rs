@@ -1,12 +1,6 @@
-use crate::declare_check_assert_macros;
-use crate::error::check_assert;
-use crate::error::SourceFileId;
-use crate::UxdErrorCode;
-use anchor_lang::prelude::Result<()>;
+use anchor_lang::prelude::*;
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
-
-declare_check_assert_macros!(SourceFileId::MangoProgramAnchorMango);
 
 /// This is a wrapper around mango program that does not use Anchor,
 /// similar to what Anchor does around the sol_token program.
@@ -38,10 +32,8 @@ impl anchor_lang::Id for Mango {
 
 /// Checks that the supplied program ID is the correct one
 pub fn check_program_account(mango_program_id: &Pubkey) -> Result<()> {
-    check_eq!(
-        mango_program_id,
-        &mango_program_id::ID,
-        UxdErrorCode::Default
-    )?;
+    if mango_program_id != &mango_program_id::ID {
+        error!(UxdError::Default)
+    }
     Ok(())
 }

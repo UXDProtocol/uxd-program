@@ -1,11 +1,9 @@
-use crate::error::SourceFileId;
 use crate::error::UxdError;
-use crate::error::UxdErrorCode;
-use crate::error::UxdIdlErrorCode;
+use crate::error::UxdError;
 use crate::events::MigrateMangoDepositoryToV2Event;
 use crate::Controller;
 use crate::MangoDepository;
-use crate::UxdResult;
+
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_ACCOUNT_VERSION;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
@@ -14,8 +12,6 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-
-declare_check_assert_macros!(SourceFileId::InstructionMangoDexMigrateMangoDepositoryToV2);
 
 /// Takes 9 accounts - 6 used locally - 0 for CPI - 2 Programs - 1 Sysvar
 #[derive(Accounts)]
@@ -86,7 +82,7 @@ pub fn handler(ctx: Context<MigrateMangoDepositoryToV2>) -> UxdResult {
     ctx.accounts.depository.quote_passthrough_bump = *ctx
         .bumps
         .get("depository_quote_passthrough_account")
-        .ok_or(bump_err!())?;
+        .ok_or(error!(UxdError::BumpError))?;
     ctx.accounts.depository.total_amount_rebalanced = u128::MIN;
 
     emit!(MigrateMangoDepositoryToV2Event {

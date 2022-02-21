@@ -1117,12 +1117,12 @@ export type Uxd = {
             ]
           },
           {
-            "name": "UxdErrorCode",
+            "name": "UxdError",
             "fields": [
               {
                 "name": "uxd_error_code",
                 "type": {
-                  "defined": "UxdErrorCode"
+                  "defined": "UxdError"
                 }
               },
               {
@@ -1141,7 +1141,7 @@ export type Uxd = {
       }
     },
     {
-      "name": "UxdErrorCode",
+      "name": "UxdError",
       "type": {
         "kind": "enum",
         "variants": [
@@ -2915,12 +2915,12 @@ export const IDL: Uxd = {
             ]
           },
           {
-            "name": "UxdErrorCode",
+            "name": "UxdError",
             "fields": [
               {
                 "name": "uxd_error_code",
                 "type": {
-                  "defined": "UxdErrorCode"
+                  "defined": "UxdError"
                 }
               },
               {
@@ -2939,7 +2939,7 @@ export const IDL: Uxd = {
       }
     },
     {
-      "name": "UxdErrorCode",
+      "name": "UxdError",
       "type": {
         "kind": "enum",
         "variants": [

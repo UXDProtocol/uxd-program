@@ -1117,12 +1117,12 @@
             ]
           },
           {
-            "name": "UxdErrorCode",
+            "name": "UxdError",
             "fields": [
               {
                 "name": "uxd_error_code",
                 "type": {
-                  "defined": "UxdErrorCode"
+                  "defined": "UxdError"
                 }
               },
               {
@@ -1141,7 +1141,7 @@
       }
     },
     {
-      "name": "UxdErrorCode",
+      "name": "UxdError",
       "type": {
         "kind": "enum",
         "variants": [
