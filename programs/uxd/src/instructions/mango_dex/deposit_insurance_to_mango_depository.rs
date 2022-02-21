@@ -193,7 +193,7 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
 
 // Additional convenience methods related to the inputted accounts
 impl<'info> DepositInsuranceToMangoDepository<'info> {
-    fn update_accounting(&mut self, insurance_delta: u64) -> ProgramResult {
+    fn update_accounting(&mut self, insurance_delta: u64) -> Result<()> {
         self.depository
             .update_insurance_amount_deposited(&AccountingEvent::Deposit, insurance_delta)?;
         Ok(())
@@ -202,7 +202,7 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> DepositInsuranceToMangoDepository<'info> {
-    pub fn validate(&self, insurance_amount: u64) -> ProgramResult {
+    pub fn validate(&self, insurance_amount: u64) -> Result<()> {
         check!(insurance_amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;
         check!(
             self.authority_insurance.amount >= insurance_amount,

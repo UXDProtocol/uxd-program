@@ -2,7 +2,7 @@ use anchor_lang::prelude::AccountInfo;
 use anchor_lang::prelude::AccountMeta;
 use anchor_lang::prelude::Accounts;
 use anchor_lang::prelude::CpiContext;
-use anchor_lang::prelude::ProgramResult;
+use anchor_lang::prelude::Result<()>;
 use solana_program::instruction::Instruction;
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
@@ -72,7 +72,7 @@ fn deposit_instruction(
 pub fn deposit<'info>(
     ctx: CpiContext<'_, '_, '_, 'info, Deposit<'info>>,
     quantity: u64,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = deposit_instruction(
         ctx.program.key,
         ctx.accounts.mango_group.key,

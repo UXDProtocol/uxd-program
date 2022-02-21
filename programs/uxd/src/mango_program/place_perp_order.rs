@@ -2,7 +2,7 @@ use anchor_lang::prelude::AccountInfo;
 use anchor_lang::prelude::AccountMeta;
 use anchor_lang::prelude::Accounts;
 use anchor_lang::prelude::CpiContext;
-use anchor_lang::prelude::ProgramResult;
+use anchor_lang::prelude::Result<()>;
 use mango::matching::OrderType;
 use mango::matching::Side;
 use mango::state::MAX_PAIRS;
@@ -95,7 +95,7 @@ pub fn place_perp_order<'info>(
     side: Side,
     order_type: OrderType,
     reduce_only: bool,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = place_perp_order_instruction(
         ctx.program.key,
         ctx.accounts.mango_group.key,

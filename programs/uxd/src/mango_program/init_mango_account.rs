@@ -3,7 +3,7 @@ use anchor_lang::prelude::AccountInfo;
 use anchor_lang::prelude::AccountMeta;
 use anchor_lang::prelude::Accounts;
 use anchor_lang::prelude::CpiContext;
-use anchor_lang::prelude::ProgramResult;
+use anchor_lang::prelude::Result<()>;
 use solana_program::instruction::Instruction;
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
@@ -50,7 +50,7 @@ fn initialize_mango_account_instruction(
 
 pub fn initialize_mango_account<'info>(
     ctx: CpiContext<'_, '_, '_, 'info, InitMangoAccount<'info>>,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = initialize_mango_account_instruction(
         ctx.program.key,
         ctx.accounts.mango_group.key,

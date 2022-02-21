@@ -475,7 +475,7 @@ impl<'info> MintWithMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> MintWithMangoDepository<'info> {
-    pub fn validate(&self, collateral_amount: u64, slippage: u32) -> ProgramResult {
+    pub fn validate(&self, collateral_amount: u64, slippage: u32) -> Result<()> {
         // Valid slippage check
         check!(
             (slippage > 0) && (slippage <= SLIPPAGE_BASIS),

@@ -3,7 +3,7 @@ use anchor_lang::prelude::AccountInfo;
 use anchor_lang::prelude::AccountMeta;
 use anchor_lang::prelude::Accounts;
 use anchor_lang::prelude::CpiContext;
-use anchor_lang::prelude::ProgramResult;
+use anchor_lang::prelude::Result<()>;
 use mango::state::MAX_PAIRS;
 use solana_program::instruction::Instruction;
 use solana_program::program_error::ProgramError;
@@ -92,7 +92,7 @@ pub fn withdraw<'info>(
     ctx: CpiContext<'_, '_, '_, 'info, Withdraw<'info>>,
     quantity: u64,
     allow_borrow: bool,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = withdraw_instruction(
         ctx.program.key,
         ctx.accounts.mango_group.key,

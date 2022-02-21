@@ -218,7 +218,7 @@ impl<'info> RegisterMangoDepository<'info> {
 }
 
 impl<'info> RegisterMangoDepository<'info> {
-    pub fn add_new_registered_mango_depository_entry_to_controller(&mut self) -> ProgramResult {
+    pub fn add_new_registered_mango_depository_entry_to_controller(&mut self) -> Result<()> {
         let mango_depository_id = self.depository.key();
         self.controller
             .add_registered_mango_depository_entry(mango_depository_id)?;

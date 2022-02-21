@@ -732,7 +732,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         max_rebalancing_amount: u64,
         polarity: &PnlPolarity,
         slippage: u32,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         // Valid slippage check
         check!(
             (slippage > 0) && (slippage <= SLIPPAGE_BASIS),

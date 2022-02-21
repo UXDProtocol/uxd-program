@@ -2,7 +2,7 @@ use crate::declare_check_assert_macros;
 use crate::error::check_assert;
 use crate::error::SourceFileId;
 use crate::UxdErrorCode;
-use anchor_lang::prelude::ProgramResult;
+use anchor_lang::prelude::Result<()>;
 use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
 
@@ -37,7 +37,7 @@ impl anchor_lang::Id for Mango {
 }
 
 /// Checks that the supplied program ID is the correct one
-pub fn check_program_account(mango_program_id: &Pubkey) -> ProgramResult {
+pub fn check_program_account(mango_program_id: &Pubkey) -> Result<()> {
     check_eq!(
         mango_program_id,
         &mango_program_id::ID,

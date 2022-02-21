@@ -91,7 +91,7 @@ impl Controller {
     pub fn add_registered_mango_depository_entry(
         &mut self,
         mango_depository_id: Pubkey,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         let current_size = usize::from(self.registered_mango_depositories_count);
         check!(
             current_size < MAX_REGISTERED_MANGO_DEPOSITORIES,

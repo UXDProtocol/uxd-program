@@ -73,7 +73,7 @@ pub mod uxd {
     pub fn initialize_controller(
         ctx: Context<InitializeController>,
         redeemable_mint_decimals: u8,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[initialize_controller]");
         instructions::initialize_controller::handler(ctx, redeemable_mint_decimals).map_err(|e| {
             msg!("<*> {}", e); // log the error
@@ -103,7 +103,7 @@ pub mod uxd {
     pub fn set_redeemable_global_supply_cap(
         ctx: Context<SetRedeemableGlobalSupplyCap>,
         redeemable_global_supply_cap: u128,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[set_redeemable_global_supply_cap]");
         instructions::set_redeemable_global_supply_cap::handler(ctx, redeemable_global_supply_cap)
             .map_err(|e| {
@@ -138,7 +138,7 @@ pub mod uxd {
     pub fn set_mango_depositories_redeemable_soft_cap(
         ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
         redeemable_soft_cap: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[set_mango_depositories_redeemable_soft_cap]");
         instructions::set_mango_depositories_redeemable_soft_cap::handler(ctx, redeemable_soft_cap)
             .map_err(|e| {
@@ -172,7 +172,7 @@ pub mod uxd {
     ///  In the new version of the MangoMarket Accounts
     ///  this become mandatory too. (we are still using the old init)
     ///
-    pub fn register_mango_depository(ctx: Context<RegisterMangoDepository>) -> ProgramResult {
+    pub fn register_mango_depository(ctx: Context<RegisterMangoDepository>) -> Result<()> {
         msg!("[register_mango_depository]");
         instructions::register_mango_depository::handler(ctx).map_err(|e| {
             msg!("<*> {}", e); // log the error
@@ -184,9 +184,7 @@ pub mod uxd {
     /// Added a new "passthrough" account to handle quote currency,
     /// necessary for rebalancing the perp PnL.
     ///
-    pub fn migrate_mango_depository_to_v2(
-        ctx: Context<MigrateMangoDepositoryToV2>,
-    ) -> ProgramResult {
+    pub fn migrate_mango_depository_to_v2(ctx: Context<MigrateMangoDepositoryToV2>) -> Result<()> {
         msg!("[migrate_mango_depository_to_v2]");
         instructions::migrate_mango_depository_to_v2::handler(ctx).map_err(|e| {
             msg!("<*> {}", e); // log the error
@@ -232,7 +230,7 @@ pub mod uxd {
     pub fn deposit_insurance_to_mango_depository(
         ctx: Context<DepositInsuranceToMangoDepository>,
         insurance_amount: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[deposit_insurance_to_mango_depository]");
         instructions::deposit_insurance_to_mango_depository::handler(ctx, insurance_amount).map_err(
             |e| {
@@ -263,7 +261,7 @@ pub mod uxd {
     pub fn withdraw_insurance_from_mango_depository(
         ctx: Context<WithdrawInsuranceFromMangoDepository>,
         insurance_amount: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[withdraw_insurance_from_mango_depository]");
         instructions::withdraw_insurance_from_mango_depository::handler(ctx, insurance_amount)
             .map_err(|e| {
@@ -312,7 +310,7 @@ pub mod uxd {
         max_rebalancing_amount: u64,
         polarity: PnlPolarity,
         slippage: u32,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         // Computing too short
         // msg!(
         //     "[rebalance_mango_depository_lite] slippage {}, polarity {}",
@@ -366,7 +364,7 @@ pub mod uxd {
         ctx: Context<MintWithMangoDepository>,
         collateral_amount: u64,
         slippage: u32,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!(
             "[mint_with_mango_depository] collateral_amount {}, slippage {}",
             collateral_amount,
@@ -417,7 +415,7 @@ pub mod uxd {
         ctx: Context<RedeemFromMangoDepository>,
         redeemable_amount: u64,
         slippage: u32,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!(
             "[redeem_from_mango_depository] redeemable_amount {}, slippage {}",
             redeemable_amount,

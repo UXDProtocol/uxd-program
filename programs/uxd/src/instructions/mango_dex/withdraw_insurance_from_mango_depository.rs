@@ -201,7 +201,7 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
 
 // Additional convenience methods related to the inputted accounts
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
-    fn update_accounting(&mut self, insurance_delta: u64) -> ProgramResult {
+    fn update_accounting(&mut self, insurance_delta: u64) -> Result<()> {
         // Mango Depository
         self.depository
             .update_insurance_amount_deposited(&AccountingEvent::Withdraw, insurance_delta)?;
@@ -211,7 +211,7 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
-    pub fn validate(&self, insurance_amount: u64) -> ProgramResult {
+    pub fn validate(&self, insurance_amount: u64) -> Result<()> {
         check!(insurance_amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;
         // Mango withdraw will fail with proper error thanks to  `disabled borrow` set to true if the balance is not enough.
         Ok(())

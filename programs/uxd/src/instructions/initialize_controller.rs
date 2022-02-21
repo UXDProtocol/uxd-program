@@ -97,7 +97,7 @@ pub fn handler(ctx: Context<InitializeController>, redeemable_mint_decimals: u8)
 // Validate input arguments
 impl<'info> InitializeController<'info> {
     // Asserts that the redeemable mint decimals is between 0 and 9.
-    pub fn validate(&self, decimals: u8) -> ProgramResult {
+    pub fn validate(&self, decimals: u8) -> Result<()> {
         check!(
             decimals <= SOLANA_MAX_MINT_DECIMALS,
             UxdErrorCode::InvalidRedeemableMintDecimals
