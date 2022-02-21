@@ -1,12 +1,7 @@
-use anchor_lang::prelude::AccountInfo;
-use anchor_lang::prelude::AccountMeta;
-use anchor_lang::prelude::Accounts;
-use anchor_lang::prelude::CpiContext;
-use solana_program::instruction::Instruction;
-use solana_program::program_error::ProgramError;
-use solana_program::pubkey::Pubkey;
-
 use super::anchor_mango::check_program_account;
+use anchor_lang::prelude::*;
+use solana_program::instruction::Instruction;
+use solana_program::pubkey::Pubkey;
 
 #[derive(Accounts)]
 pub struct Deposit<'info> {
@@ -47,7 +42,7 @@ fn deposit_instruction(
     token_program_id: &Pubkey,
     owner_token_account_pubkey: &Pubkey,
     quantity: u64,
-) -> Result<Instruction, ProgramError> {
+) -> Result<Instruction> {
     check_program_account(mango_program_id)?;
     let data = mango::instruction::MangoInstruction::Deposit { quantity }.pack();
     let accounts = vec![
@@ -85,7 +80,7 @@ pub fn deposit<'info>(
         ctx.accounts.owner_token_account.key,
         quantity,
     )?;
-    solana_program::program::invoke_signed(
+    Ok(solana_program::program::invoke_signed(
         &ix,
         &[
             ctx.program.clone(),
@@ -101,4 +96,5 @@ pub fn deposit<'info>(
         ],
         ctx.signer_seeds,
     )
+    .map_err(|me| ProgramError::from(me))?)
 }

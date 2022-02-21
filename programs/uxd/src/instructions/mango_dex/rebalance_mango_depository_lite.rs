@@ -10,8 +10,6 @@ use crate::mango_utils::PerpInfo;
 use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
-use crate::UxdError;
-
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -57,21 +55,21 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.bump,
-        has_one = controller @UxdIdlErrorCode::InvalidController,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository,
-        constraint = depository.version >= SUPPORTED_DEPOSITORY_VERSION @UxdIdlErrorCode::UnsupportedDepositoryVersion
+        has_one = controller @UxdError::InvalidController,
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
+        constraint = depository.version >= SUPPORTED_DEPOSITORY_VERSION @UxdError::UnsupportedDepositoryVersion
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
     /// #5 The collateral mint used by the `depository` instance
     #[account(
-        constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
+        constraint = collateral_mint.key() == depository.collateral_mint @UxdError::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #6 The quote mint used by the `depository` instance
     #[account(
-        constraint = quote_mint.key() == depository.quote_mint @UxdIdlErrorCode::InvalidQuoteMint
+        constraint = quote_mint.key() == depository.quote_mint @UxdError::InvalidQuoteMint
     )]
     pub quote_mint: Box<Account<'info, Mint>>,
 
@@ -104,8 +102,8 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.collateral_passthrough_bump,
-        constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdIdlErrorCode::InvalidCollateralPassthroughAccount,
-        constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralPassthroughATAMint
+        constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdError::InvalidCollateralPassthroughAccount,
+        constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdError::InvalidCollateralPassthroughATAMint
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
 
@@ -116,8 +114,8 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         mut,
         seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
         bump= depository.quote_passthrough_bump,
-        constraint = depository.quote_passthrough == depository_quote_passthrough_account.key() @UxdIdlErrorCode::InvalidQuotePassthroughAccount,
-        constraint = depository_quote_passthrough_account.mint == depository.quote_mint @UxdIdlErrorCode::InvalidQuotePassthroughATAMint
+        constraint = depository.quote_passthrough == depository_quote_passthrough_account.key() @UxdError::InvalidQuotePassthroughAccount,
+        constraint = depository_quote_passthrough_account.mint == depository.quote_mint @UxdError::InvalidQuotePassthroughATAMint
     )]
     pub depository_quote_passthrough_account: Box<Account<'info, TokenAccount>>,
 
@@ -126,7 +124,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.mango_account_bump,
-        constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
+        constraint = depository.mango_account == depository_mango_account.key() @UxdError::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
 
@@ -198,7 +196,7 @@ pub fn handler(
     max_rebalancing_amount: u64,
     polarity: &PnlPolarity,
     slippage: u32,
-) -> UxdResult {
+) -> Result<()> {
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         ctx.accounts.depository.collateral_mint.as_ref(),
@@ -250,12 +248,12 @@ pub fn handler(
     match polarity {
         PnlPolarity::Positive => {
             if perp_unrealized_pnl.is_positive() {
-                error!(UxdError::InvalidPnlPolarity)
+                error!(UxdError::InvalidPnlPolarity);
             }
         }
         PnlPolarity::Negative => {
             if perp_unrealized_pnl.is_negative() {
-                error!(UxdError::InvalidPnlPolarity)
+                error!(UxdError::InvalidPnlPolarity);
             }
         }
     }
@@ -368,12 +366,12 @@ pub fn handler(
     match polarity {
         PnlPolarity::Positive => {
             if pre_pa.taker_quote < post_pa.taker_quote {
-                error!(UxdError::InvalidOrderDirection)
+                error!(UxdError::InvalidOrderDirection);
             }
         }
         PnlPolarity::Negative => {
             if pre_pa.taker_quote > post_pa.taker_quote {
-                error!(UxdError::InvalidOrderDirection)
+                error!(UxdError::InvalidOrderDirection);
             }
         }
     };
@@ -656,7 +654,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
 // Additional convenience methods related to the inputted accounts
 impl<'info> RebalanceMangoDepositoryLite<'info> {
     // Return general information about the perpetual related to the collateral in use
-    fn perpetual_info(&self) -> UxdResult<PerpInfo> {
+    fn perpetual_info(&self) -> Result<PerpInfo> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
@@ -671,13 +669,14 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
     }
 
     // Return the PerpAccount that represent the account balances (Quote and Taker, Taker is the part that is waiting settlement)
-    fn perp_account(&self, perp_info: &PerpInfo) -> UxdResult<PerpAccount> {
+    fn perp_account(&self, perp_info: &PerpInfo) -> Result<PerpAccount> {
         // - loads Mango's accounts
         let mango_account = MangoAccount::load_checked(
             &self.depository_mango_account,
             self.mango_program.key,
             self.mango_group.key,
-        )?;
+        )
+        .map_err(|me| ProgramError::from(me))?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
@@ -685,12 +684,13 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         &self,
         taker_side: Side,
         quote_lot_amount: i64,
-    ) -> UxdResult<Order> {
+    ) -> Result<Order> {
         let perp_market = PerpMarket::load_checked(
             &self.mango_perp_market,
             self.mango_program.key,
             self.mango_group.key,
-        )?;
+        )
+        .map_err(|me| ProgramError::from(me))?;
         // Load the maker side of the book
         let book_maker_side = match taker_side {
             Side::Bid => {
@@ -699,7 +699,8 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             Side::Ask => {
                 BookSide::load_mut_checked(&self.mango_bids, self.mango_program.key, &perp_market)
             }
-        }?;
+        }
+        .map_err(|me| ProgramError::from(me))?;
         // Search for the best order to spend the given amount of quote lot
         get_best_order_for_quote_lot_amount(book_maker_side, taker_side, quote_lot_amount)
     }
@@ -710,7 +711,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         quote_delta: u64,
         fee_delta: u64,
         polarity: &PnlPolarity,
-    ) -> UxdResult {
+    ) -> Result<()> {
         // Mango Depository
         let event = match polarity {
             PnlPolarity::Positive => AccountingEvent::Deposit,
@@ -735,12 +736,12 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
     ) -> Result<()> {
         // Valid slippage check
         if (slippage > 0) && (slippage <= SLIPPAGE_BASIS) {
-            error!(UxdError::InvalidSlippage)
+            error!(UxdError::InvalidSlippage);
         }
 
         // Rebalancing amount must be above 0
         if max_rebalancing_amount > 0 {
-            error!(UxdError::InvalidRebalancingAmount)
+            error!(UxdError::InvalidRebalancingAmount);
         }
 
         // Rebalancing amount must be above 0
@@ -748,7 +749,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             PnlPolarity::Positive => (),
             PnlPolarity::Negative => {
                 if self.user_quote.amount >= max_rebalancing_amount {
-                    error!(UxdError::InsufficientQuoteAmount)
+                    error!(UxdError::InsufficientQuoteAmount);
                 }
             }
         }

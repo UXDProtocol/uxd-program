@@ -18,7 +18,7 @@ mod test_limit_utils {
         }
     }
 
-    fn mocked_order(perp_info: &PerpInfo, price: f64, taker_side: Side) -> UxdResult<Order> {
+    fn mocked_order(perp_info: &PerpInfo, price: f64, taker_side: Side) -> Result<Order> {
         let price_lot = price_to_lot_price(I80F48::from_num(price), perp_info)?;
         Ok(Order {
             quantity: 0,               // whatever not used

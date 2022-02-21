@@ -11,8 +11,6 @@ use crate::mango_utils::PerpInfo;
 use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
-use crate::UxdError;
-
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
@@ -56,8 +54,8 @@ pub struct MintWithMangoDepository<'info> {
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.bump,
-        has_one = controller @UxdIdlErrorCode::InvalidController,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
+        has_one = controller @UxdError::InvalidController,
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
@@ -67,13 +65,13 @@ pub struct MintWithMangoDepository<'info> {
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
         bump = controller.redeemable_mint_bump,
-        constraint = redeemable_mint.key() == controller.redeemable_mint @UxdIdlErrorCode::InvalidRedeemableMint
+        constraint = redeemable_mint.key() == controller.redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
     /// #6 The collateral mint and used by the `depository` instance
     #[account(
-        constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
+        constraint = collateral_mint.key() == depository.collateral_mint @UxdError::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
@@ -103,8 +101,8 @@ pub struct MintWithMangoDepository<'info> {
         mut,
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.collateral_passthrough_bump,
-        constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdIdlErrorCode::InvalidCollateralPassthroughAccount,
-        constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralPassthroughATAMint
+        constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdError::InvalidCollateralPassthroughAccount,
+        constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdError::InvalidCollateralPassthroughATAMint
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
 
@@ -113,7 +111,7 @@ pub struct MintWithMangoDepository<'info> {
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.mango_account_bump,
-        constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
+        constraint = depository.mango_account == depository_mango_account.key() @UxdError::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
 
@@ -170,7 +168,7 @@ pub fn handler(
     ctx: Context<MintWithMangoDepository>,
     collateral_amount: u64,
     slippage: u32,
-) -> UxdResult {
+) -> Result<()> {
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         ctx.accounts.depository.collateral_mint.as_ref(),
@@ -402,7 +400,7 @@ impl<'info> MintWithMangoDepository<'info> {
 // Additional convenience methods related to the inputted accounts
 impl<'info> MintWithMangoDepository<'info> {
     // Return general information about the perpetual related to the collateral in use
-    fn perpetual_info(&self) -> UxdResult<PerpInfo> {
+    fn perpetual_info(&self) -> Result<PerpInfo> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
@@ -416,18 +414,18 @@ impl<'info> MintWithMangoDepository<'info> {
     }
 
     // Return the PerpAccount that represent the account balances (Quote and Taker, Taker is the part that is waiting settlement)
-    fn perp_account(&self, perp_info: &PerpInfo) -> UxdResult<PerpAccount> {
+    fn perp_account(&self, perp_info: &PerpInfo) -> Result<PerpAccount> {
         // - loads Mango's accounts
         let mango_account = MangoAccount::load_checked(
             &self.depository_mango_account,
             self.mango_program.key,
             self.mango_group.key,
-        )?;
+        ).map_err(|me| ProgramError::from(me))?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
-    fn check_redeemable_global_supply_cap_overflow(&self) -> UxdResult {
+    fn check_redeemable_global_supply_cap_overflow(&self) -> Result<()> {
         if self.controller.redeemable_circulating_supply
             <= self.controller.redeemable_global_supply_cap
         {
@@ -439,7 +437,7 @@ impl<'info> MintWithMangoDepository<'info> {
     fn check_mango_depositories_redeemable_soft_cap_overflow(
         &self,
         redeemable_delta: u64,
-    ) -> UxdResult {
+    ) -> Result<()> {
         if redeemable_delta <= self.controller.mango_depositories_redeemable_soft_cap {
             error!(UxdError::MangoDepositoriesSoftCapOverflow);
         }
@@ -452,7 +450,7 @@ impl<'info> MintWithMangoDepository<'info> {
         collateral_delta: u64,
         redeemable_delta: u64,
         fee_delta: u64,
-    ) -> UxdResult {
+    ) -> Result<()> {
         // Mango Depository
         let event = AccountingEvent::Deposit;
         self.depository
@@ -473,13 +471,13 @@ impl<'info> MintWithMangoDepository<'info> {
     pub fn validate(&self, collateral_amount: u64, slippage: u32) -> Result<()> {
         // Valid slippage check
         if (slippage > 0) && (slippage <= SLIPPAGE_BASIS) {
-            error!(UxdError::InvalidSlippage)
+            error!(UxdError::InvalidSlippage);
         }
         if collateral_amount > 0 {
-            error!(UxdError::InvalidCollateralAmount)
+            error!(UxdError::InvalidCollateralAmount);
         }
         if self.user_collateral.amount >= collateral_amount {
-            error!(UxdError::InsufficientCollateralAmount)
+            error!(UxdError::InsufficientCollateralAmount);
         }
         Ok(())
     }

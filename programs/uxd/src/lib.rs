@@ -1,7 +1,6 @@
 use crate::instructions::*;
 use crate::state::*;
 use anchor_lang::prelude::*;
-use error::UxdError;
 
 #[macro_use]
 pub mod error;

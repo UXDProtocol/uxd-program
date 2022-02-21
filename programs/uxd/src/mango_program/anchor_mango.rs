@@ -1,5 +1,6 @@
+use crate::error::UxdError;
 use anchor_lang::prelude::*;
-use solana_program::program_error::ProgramError;
+
 use solana_program::pubkey::Pubkey;
 
 /// This is a wrapper around mango program that does not use Anchor,
@@ -15,11 +16,11 @@ pub mod mango_program_id {
 }
 
 impl anchor_lang::AccountDeserialize for Mango {
-    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError> {
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self> {
         Mango::try_deserialize_unchecked(buf)
     }
 
-    fn try_deserialize_unchecked(_buf: &mut &[u8]) -> Result<Self, ProgramError> {
+    fn try_deserialize_unchecked(_buf: &mut &[u8]) -> Result<Self> {
         Ok(Mango)
     }
 }
@@ -33,7 +34,7 @@ impl anchor_lang::Id for Mango {
 /// Checks that the supplied program ID is the correct one
 pub fn check_program_account(mango_program_id: &Pubkey) -> Result<()> {
     if mango_program_id != &mango_program_id::ID {
-        error!(UxdError::Default)
+        error!(UxdError::Default);
     }
     Ok(())
 }

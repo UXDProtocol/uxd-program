@@ -1,7 +1,6 @@
+use crate::error::UxdError;
 use crate::events::InitializeControllerEvent;
 use crate::Controller;
-use crate::UxdError;
-
 use crate::CONTROLLER_ACCOUNT_VERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
@@ -56,7 +55,7 @@ pub struct InitializeController<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<InitializeController>, redeemable_mint_decimals: u8) -> UxdResult {
+pub fn handler(ctx: Context<InitializeController>, redeemable_mint_decimals: u8) -> Result<()> {
     let redeemable_mint_unit = 10_u64
         .checked_pow(redeemable_mint_decimals.into())
         .ok_or(error!(UxdError::MathError))?;
@@ -64,11 +63,11 @@ pub fn handler(ctx: Context<InitializeController>, redeemable_mint_decimals: u8)
     ctx.accounts.controller.bump = *ctx
         .bumps
         .get("controller")
-        .ok_or(error!(UxdError::BumpError)())?;
+        .ok_or(error!(UxdError::BumpError))?;
     ctx.accounts.controller.redeemable_mint_bump = *ctx
         .bumps
         .get("redeemable_mint")
-        .ok_or(error!(UxdError::BumpError)())?;
+        .ok_or(error!(UxdError::BumpError))?;
     ctx.accounts.controller.version = CONTROLLER_ACCOUNT_VERSION;
     ctx.accounts.controller.authority = ctx.accounts.authority.key();
     ctx.accounts.controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
@@ -98,7 +97,7 @@ impl<'info> InitializeController<'info> {
     // Asserts that the redeemable mint decimals is between 0 and 9.
     pub fn validate(&self, decimals: u8) -> Result<()> {
         if decimals <= SOLANA_MAX_MINT_DECIMALS {
-            error!(UxdError::InvalidRedeemableMintDecimals)
+            error!(UxdError::InvalidRedeemableMintDecimals);
         }
         Ok(())
     }

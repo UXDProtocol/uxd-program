@@ -1,10 +1,7 @@
 use super::anchor_mango::check_program_account;
-use anchor_lang::prelude::AccountInfo;
-use anchor_lang::prelude::AccountMeta;
-use anchor_lang::prelude::Accounts;
-use anchor_lang::prelude::CpiContext;
+use anchor_lang::prelude::*;
 use solana_program::instruction::Instruction;
-use solana_program::program_error::ProgramError;
+
 use solana_program::pubkey::Pubkey;
 
 #[derive(Accounts)]
@@ -31,7 +28,7 @@ fn initialize_mango_account_instruction(
     mango_account_pubkey: &Pubkey,
     owner_pubkey: &Pubkey,
     rent_sysvar: &Pubkey,
-) -> Result<Instruction, ProgramError> {
+) -> Result<Instruction> {
     check_program_account(mango_program_id)?;
     let data = mango::instruction::MangoInstruction::InitMangoAccount.pack();
     let accounts = vec![
@@ -57,7 +54,7 @@ pub fn initialize_mango_account<'info>(
         ctx.accounts.owner.key,
         ctx.accounts.rent.key,
     )?;
-    solana_program::program::invoke_signed(
+    Ok(solana_program::program::invoke_signed(
         &ix,
         &[
             ctx.program.clone(),
@@ -68,4 +65,5 @@ pub fn initialize_mango_account<'info>(
         ],
         ctx.signer_seeds,
     )
+    .map_err(|me| ProgramError::from(me))?)
 }

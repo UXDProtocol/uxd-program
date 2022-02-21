@@ -1,6 +1,5 @@
 use crate::error::UxdError;
 use crate::AccountingEvent;
-
 use anchor_lang::prelude::*;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
@@ -52,7 +51,7 @@ impl AnchorSerialize for ControllerPadding {
 }
 
 impl AnchorDeserialize for ControllerPadding {
-    fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
+    fn deserialize(_: &mut &[u8]) -> std::io::Result<Self> {
         Ok(Self([0u8; 512]))
     }
 }
@@ -68,7 +67,7 @@ impl Controller {
         &mut self,
         event_type: &AccountingEvent,
         amount: u64,
-    ) -> UxdResult {
+    ) -> Result<()> {
         self.redeemable_circulating_supply = match event_type {
             AccountingEvent::Deposit => self
                 .redeemable_circulating_supply
@@ -88,7 +87,7 @@ impl Controller {
     ) -> Result<()> {
         let current_size = usize::from(self.registered_mango_depositories_count);
         if current_size < MAX_REGISTERED_MANGO_DEPOSITORIES {
-            error!(UxdError::MaxNumberOfMangoDepositoriesRegisteredReached)
+            error!(UxdError::MaxNumberOfMangoDepositoriesRegisteredReached);
         }
         // Increment registered Mango Depositories count
         self.registered_mango_depositories_count = self

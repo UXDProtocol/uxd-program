@@ -1,9 +1,7 @@
 use crate::error::UxdError;
-use crate::error::UxdError;
 use crate::events::MigrateMangoDepositoryToV2Event;
 use crate::Controller;
 use crate::MangoDepository;
-
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_ACCOUNT_VERSION;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
@@ -27,7 +25,7 @@ pub struct MigrateMangoDepositoryToV2<'info> {
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump,
-        has_one = authority @UxdIdlErrorCode::InvalidAuthority,
+        has_one = authority @UxdError::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
 
@@ -37,8 +35,8 @@ pub struct MigrateMangoDepositoryToV2<'info> {
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.bump,
-        has_one = controller @UxdIdlErrorCode::InvalidController,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
+        has_one = controller @UxdError::InvalidController,
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
@@ -68,7 +66,7 @@ pub struct MigrateMangoDepositoryToV2<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<MigrateMangoDepositoryToV2>) -> UxdResult {
+pub fn handler(ctx: Context<MigrateMangoDepositoryToV2>) -> Result<()> {
     let quote_mint = ctx.accounts.quote_mint.key();
 
     // - Update Depository State
