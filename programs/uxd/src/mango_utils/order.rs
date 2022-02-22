@@ -1,6 +1,5 @@
 use crate::error::UxdError;
-
-use anchor_lang::prelude::error;
+use anchor_lang::prelude::*;
 use mango::matching::BookSide;
 use mango::matching::Side;
 use std::cell::RefMut;
@@ -22,16 +21,20 @@ pub fn get_best_order_for_quote_lot_amount(
     book_side: RefMut<BookSide>,
     taker_side: Side,
     quote_lot_amount_to_spend: i64,
-) -> UxdResult<Order> {
+) -> Result<Order> {
     let mut cmlv_quantity: i64 = 0;
     let mut execution_price = 0; // Will update at each step, depending of how far it needs to go
     let mut quote_lot_left_to_spend = quote_lot_amount_to_spend;
+    let clock = Clock::get()?;
+    let now_ts = clock.unix_timestamp as u64;
 
-    for order in book_side.iter() {
+    for order in book_side.iter_valid(now_ts) {
+        let order_quantity = order.1.quantity;
+        let order_price = order.1.price();
+
         // This order total value in quote lots
-        let order_size = order
-            .quantity
-            .checked_mul(order.price())
+        let order_size = order_quantity
+            .checked_mul(order_price)
             .ok_or(error!(UxdError::MathError))?;
         // How much base_lot we can fill for this order size
         let quantity_matched = {
@@ -39,20 +42,20 @@ pub fn get_best_order_for_quote_lot_amount(
                 // we can finish the operation by purchasing this order partially
                 // find out how much quantity that is in base lots
                 quote_lot_left_to_spend
-                    .checked_div(order.price())
+                    .checked_div(order_price)
                     .ok_or(error!(UxdError::MathError))?
             } else {
                 // we eat this order
-                order.quantity
+                order_quantity
             }
         };
         // How much quote_lot were spent
         let spent = quantity_matched
-            .checked_mul(order.price())
+            .checked_mul(order_price)
             .ok_or(error!(UxdError::MathError))?;
         if spent > 0 {
             // Current best execution price in quote_lot
-            execution_price = order.price();
+            execution_price = order_price;
         }
         cmlv_quantity = cmlv_quantity
             .checked_add(quantity_matched)
@@ -83,13 +86,14 @@ pub fn check_perp_order_fully_filled(
     order_quantity: i64,
     pre_position: i64,
     post_position: i64,
-) -> UxdResult {
+) -> Result<()> {
     let filled_amount = (post_position
         .checked_sub(pre_position)
         .ok_or(error!(UxdError::MathError))?)
     .checked_abs()
     .ok_or(error!(UxdError::MathError))?;
     if order_quantity != filled_amount {
-        error!(UxdError::PerpOrderPartiallyFilled)
+        error!(UxdError::PerpOrderPartiallyFilled);
     }
+    Ok(())
 }
