@@ -107,6 +107,7 @@ pub struct MintWithMangoDepository<'info> {
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
 
     /// #10 The MangoMarkets Account (MangoAccount) managed by the `depository`
+    /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
@@ -116,37 +117,46 @@ pub struct MintWithMangoDepository<'info> {
     pub depository_mango_account: AccountInfo<'info>,
 
     /// #11 [MangoMarkets CPI] Index grouping perp and spot markets
-    pub mango_group: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
+    pub mango_group: UncheckedAccount<'info>,
 
     /// #12 [MangoMarkets CPI] Cache
-    pub mango_cache: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
+    pub mango_cache: UncheckedAccount<'info>,
 
     /// #13 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
-    pub mango_root_bank: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
+    pub mango_root_bank: UncheckedAccount<'info>,
 
     /// #14 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
-    pub mango_node_bank: AccountInfo<'info>,
+    pub mango_node_bank: UncheckedAccount<'info>,
 
     /// #15 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
-    pub mango_vault: AccountInfo<'info>,
+    pub mango_vault: UncheckedAccount<'info>,
 
     /// #16 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
-    pub mango_perp_market: AccountInfo<'info>,
+    pub mango_perp_market: UncheckedAccount<'info>,
 
     /// #17 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
-    pub mango_bids: AccountInfo<'info>,
+    pub mango_bids: UncheckedAccount<'info>,
 
     /// #18 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
-    pub mango_asks: AccountInfo<'info>,
+    pub mango_asks: UncheckedAccount<'info>,
 
     /// #19 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
-    pub mango_event_queue: AccountInfo<'info>,
+    pub mango_event_queue: UncheckedAccount<'info>,
 
     /// #20 System Program
     pub system_program: Program<'info, System>,
@@ -420,7 +430,8 @@ impl<'info> MintWithMangoDepository<'info> {
             &self.depository_mango_account,
             self.mango_program.key,
             self.mango_group.key,
-        ).map_err(|me| ProgramError::from(me))?;
+        )
+        .map_err(|me| ProgramError::from(me))?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 

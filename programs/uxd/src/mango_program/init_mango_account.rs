@@ -6,9 +6,13 @@ use solana_program::pubkey::Pubkey;
 
 #[derive(Accounts)]
 pub struct InitMangoAccount<'info> {
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_group: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_account: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub owner: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub rent: AccountInfo<'info>,
 }
 

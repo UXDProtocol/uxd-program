@@ -6,15 +6,25 @@ use solana_program::pubkey::Pubkey;
 
 #[derive(Accounts)]
 pub struct Withdraw<'info> {
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_group: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_account: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub owner: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_cache: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_root_bank: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_node_bank: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_vault: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub token_account: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_signer: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub token_program: AccountInfo<'info>,
 }
 

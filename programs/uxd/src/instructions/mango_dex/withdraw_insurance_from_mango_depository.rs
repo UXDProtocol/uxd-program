@@ -72,6 +72,7 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     pub depository_insurance_passthrough_account: Box<Account<'info, TokenAccount>>,
 
     /// #8 The MangoMarkets Account (MangoAccount) managed by the `depository`
+    /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
@@ -81,24 +82,30 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     pub depository_mango_account: AccountInfo<'info>,
 
     /// #9 [MangoMarkets CPI] Index grouping perp and spot markets
-    pub mango_group: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
+    pub mango_group: UncheckedAccount<'info>,
 
     /// #10 [MangoMarkets CPI] Cache
-    pub mango_cache: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
+    pub mango_cache: UncheckedAccount<'info>,
 
     /// #11 [MangoMarkets CPI] Signer PDA
-    pub mango_signer: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
+    pub mango_signer: UncheckedAccount<'info>,
 
     /// #12 [MangoMarkets CPI] Root Bank for the `depository`'s `insurance_mint`
-    pub mango_root_bank: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
+    pub mango_root_bank: UncheckedAccount<'info>,
 
     /// #13 [MangoMarkets CPI] Node Bank for the `depository`'s `insurance_mint`
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
-    pub mango_node_bank: AccountInfo<'info>,
+    pub mango_node_bank: UncheckedAccount<'info>,
 
     /// #14 [MangoMarkets CPI] Vault for the `depository`'s `insurance_mint`
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
-    pub mango_vault: Account<'info, TokenAccount>,
+    pub mango_vault: UncheckedAccount<'info>,
 
     /// #15 System Program
     pub system_program: Program<'info, System>,

@@ -9,13 +9,21 @@ use solana_program::pubkey::Pubkey;
 
 #[derive(Accounts)]
 pub struct PlacePerpOrder<'info> {
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_group: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_account: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub owner: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_cache: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_perp_market: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_bids: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_asks: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_event_queue: AccountInfo<'info>,
 }
 

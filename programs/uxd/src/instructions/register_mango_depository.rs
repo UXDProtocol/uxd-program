@@ -97,6 +97,7 @@ pub struct RegisterMangoDepository<'info> {
     pub depository_quote_passthrough_account: Box<Account<'info, TokenAccount>>,
 
     /// #11 The MangoMarkets Account (MangoAccount) managed by the `depository`
+    /// CHECK : Seeds checked. Depository registered
     #[account(
         init,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
@@ -108,7 +109,8 @@ pub struct RegisterMangoDepository<'info> {
     pub depository_mango_account: AccountInfo<'info>,
 
     /// #12 [MangoMarkets CPI] Index grouping perp and spot markets
-    pub mango_group: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
+    pub mango_group: UncheckedAccount<'info>,
 
     /// #13 System Program
     pub system_program: Program<'info, System>,
