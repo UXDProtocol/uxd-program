@@ -297,7 +297,7 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@uxdprotocol/uxd-client@^5.0.14":
+"@uxdprotocol/uxd-client@5.0.14":
   version "5.0.14"
   resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/5.0.14/48d08ffb29558d9535cfe111ef144f3aea0d142362216a7f76218b69f98dcfb2#9ff81bafaa2edef8ed41fa2e051643ae8f623b32"
   integrity sha512-4HKRu+4udlumfHv7hRxduZqLWuacEXLD62lUsB0QlFrkIGWuE1ZNMpfkMQ91r3c4J5Rpw6MLjc7rWIX9XxPPVQ==
