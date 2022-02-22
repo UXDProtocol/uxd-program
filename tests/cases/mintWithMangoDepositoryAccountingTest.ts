@@ -22,6 +22,8 @@ export const mintWithMangoDepositoryAccountingTest = async function (collateralA
 
         const depositoryAccount = await depository.getOnchainAccount(connection, options);
         const depositoryRedeemable = nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), depository.quoteMintDecimals);
+        const depositoryCollateral = nativeToUi(depositoryAccount.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals);
+        const depositoryTakerFees = nativeToUi(depositoryAccount.totalAmountPaidTakerFee.toNumber(), depository.quoteMintDecimals);
         const controllerAccount = await controller.getOnchainAccount(connection, options);
         const controllerRedeemable = nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
 
@@ -47,7 +49,6 @@ export const mintWithMangoDepositoryAccountingTest = async function (collateralA
         }
 
         const mangoTakerFee = depository.getCollateralPerpTakerFees(mango);
-        const minTradingSizeCollateral = await depository.getMinTradingSizeCollateralUI(mango);
 
         const redeemableDelta = userRedeemableBalance_post - userRedeemableBalance;
         const collateralDelta = userCollateralBalance - userCollateralBalance_post;
@@ -58,14 +59,14 @@ export const mintWithMangoDepositoryAccountingTest = async function (collateralA
         const estimatedAmountRedeemableLostInTakerFees = mangoTakerFee * collateralProcessedByMinting * mangoPerpPrice;
         const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
         const estimatedAmountRedeemableLostInSlippage = Math.abs(estimatedFrictionlessRedeemableDelta - redeemableDelta) - estimatedAmountRedeemableLostInTakerFees;
-        // The worst price the user could get (lowest amount of UXD)
-        const worthExecutionPriceRedeemableDelta = estimatedFrictionlessRedeemableDelta * (slippage / slippageBase)
         // Get onchain depository and controller for post accounting
         const depositoryAccount_post = await depository.getOnchainAccount(connection, TXN_OPTS);
         const depositoryRedeemable_post = nativeToUi(depositoryAccount_post.redeemableAmountUnderManagement.toNumber(), depository.quoteMintDecimals);
+        const depositoryCollateral_post = nativeToUi(depositoryAccount_post.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals);
         const controllerAccount_post = await controller.getOnchainAccount(connection, TXN_OPTS);
         const controllerRedeemable_post = nativeToUi(controllerAccount_post.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
         const redeemableNativeUnitPrecision = Math.pow(10, -controller.redeemableMintDecimals);
+        const depositoryTakerFees_post = nativeToUi(depositoryAccount_post.totalAmountPaidTakerFee.toNumber(), depository.quoteMintDecimals);
 
 
         console.log("Efficiency", Number(((redeemableDelta / estimatedFrictionlessRedeemableDelta) * 100).toFixed(2)), "%");
@@ -81,8 +82,8 @@ export const mintWithMangoDepositoryAccountingTest = async function (collateralA
         // Accounting
         expect(depositoryRedeemable_post).closeTo(depositoryRedeemable + redeemableDelta, redeemableNativeUnitPrecision, "Depository RedeemableAmountUnderManagement is incorrect");
         expect(controllerRedeemable_post).closeTo(controllerRedeemable + redeemableDelta, redeemableNativeUnitPrecision, "Controller RedeemableCirculatingSupply is incorrect");
-        // Need collateral, insurance, and taker fees
-
+        expect(depositoryTakerFees_post).to.be.within(depositoryTakerFees, depositoryTakerFees + (mangoTakerFee * collateralDelta * mangoPerpPrice), "Depository TotalAmountPaidTakerFee is incorrect");
+        expect(depositoryCollateral_post).closeTo(depositoryCollateral + collateralProcessedByMinting, collateralNativeUnitPrecision, "Depository CollateralAmountDeposited is incorrect");
 
         console.groupEnd();
         return redeemableDelta;

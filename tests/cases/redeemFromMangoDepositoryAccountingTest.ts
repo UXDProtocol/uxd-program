@@ -27,6 +27,8 @@ export const redeemFromMangoDepositoryAccountingTest = async function (redeemabl
 
         const depositoryAccount = await depository.getOnchainAccount(connection, options);
         const depositoryRedeemable = nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), depository.quoteMintDecimals);
+        const depositoryCollateral = nativeToUi(depositoryAccount.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals);
+        const depositoryTakerFees = nativeToUi(depositoryAccount.totalAmountPaidTakerFee.toNumber(), depository.quoteMintDecimals);
         const controllerAccount = await controller.getOnchainAccount(connection, options);
         const controllerRedeemable = nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
 
@@ -49,7 +51,6 @@ export const redeemFromMangoDepositoryAccountingTest = async function (redeemabl
         }
 
         const mangoTakerFee = depository.getCollateralPerpTakerFees(mango);
-        const minTradingSizeQuote = await depository.getMinTradingSizeQuoteUI(mango);
 
         const redeemableDelta = userRedeemableBalance - userRedeemableBalance_post;
         const collateralDelta = userCollateralBalance_post - userCollateralBalance;
@@ -58,15 +59,16 @@ export const redeemFromMangoDepositoryAccountingTest = async function (redeemabl
         // The mango perp price in these might not be the exact same as the one in the transaction.
         const estimatedFrictionlessCollateralDelta = redeemableProcessedByRedeeming / mangoPerpPrice;
         const estimatedAmountRedeemableLostInTakerFees = mangoTakerFee * redeemableProcessedByRedeeming;
+        const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
         const redeemableNativeUnitPrecision = Math.pow(10, -controller.redeemableMintDecimals);
         const estimatedAmountRedeemableLostInSlippage = Math.abs(redeemableDelta - redeemableProcessedByRedeeming) - estimatedAmountRedeemableLostInTakerFees;
-        // The worst price the user could get (lowest amount of UXD)
-        const worthExecutionPriceCollateralDelta = (estimatedFrictionlessCollateralDelta * (slippage / slippageBase)) / mangoPerpPrice;
         // Get onchain depository and controller for post accounting
         const depositoryAccount_post = await depository.getOnchainAccount(connection, TXN_OPTS);
         const depositoryRedeemable_post = nativeToUi(depositoryAccount_post.redeemableAmountUnderManagement.toNumber(), depository.quoteMintDecimals);
+        const depositoryCollateral_post = nativeToUi(depositoryAccount_post.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals);
         const controllerAccount_post = await controller.getOnchainAccount(connection, TXN_OPTS);
         const controllerRedeemable_post = nativeToUi(controllerAccount_post.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
+        const depositoryTakerFees_post = nativeToUi(depositoryAccount_post.totalAmountPaidTakerFee.toNumber(), depository.quoteMintDecimals);
 
 
         console.log("Efficiency", Number(((collateralDelta / estimatedFrictionlessCollateralDelta) * 100).toFixed(2)), "%");
@@ -82,7 +84,10 @@ export const redeemFromMangoDepositoryAccountingTest = async function (redeemabl
         // Accounting
         expect(depositoryRedeemable_post).closeTo(depositoryRedeemable - redeemableDelta, redeemableNativeUnitPrecision, "Depository RedeemableAmountUnderManagement is incorrect");
         expect(controllerRedeemable_post).closeTo(controllerRedeemable - redeemableDelta, redeemableNativeUnitPrecision, "Controller RedeemableCirculatingSupply is incorrect");
-        // Need collateral, insurance, taker fees
+        expect(depositoryTakerFees_post).to.be.within(depositoryTakerFees, depositoryTakerFees + (mangoTakerFee * collateralDelta * mangoPerpPrice), "Depository TotalAmountPaidTakerFee is incorrect");
+        expect(depositoryCollateral_post).closeTo(depositoryCollateral - collateralDelta, collateralNativeUnitPrecision, "Depository CollateralAmountDeposited is incorrect");
+
+
 
         console.groupEnd();
         return redeemableDelta;

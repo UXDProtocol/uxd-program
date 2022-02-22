@@ -6,13 +6,9 @@ import { mango } from "../fixtures";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters } from "./mangoDepositoryAndControllerInteractionsSuite";
 
 export const mangoDepositoryAndControllerAccountingSuite = function (authority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MangoDepository, params: MangoDepositoryAndControllerInteractionsSuiteParameters) {
-    let mintedAmount: number;
 
-    it(`Mint 2 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage)`, async function () {
-        mintedAmount = await mintWithMangoDepositoryAccountingTest(2, params.slippage, user, controller, depository, mango, payer);
-    });
-
-    it(`Redeem ${mintedAmount} UXD (${params.slippage} slippage)`, async function () {
+    it(`Mint 2 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage) and redeem`, async function () {
+        let mintedAmount = await mintWithMangoDepositoryAccountingTest(2, params.slippage, user, controller, depository, mango, payer);
         await redeemFromMangoDepositoryAccountingTest(mintedAmount, params.slippage, user, controller, depository, mango, payer);
     });
 }
