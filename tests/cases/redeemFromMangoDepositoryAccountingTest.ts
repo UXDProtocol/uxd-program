@@ -7,7 +7,7 @@ import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
-export const redeemFromMangoDepositoryAccountingTest = async function (redeemableAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> {
+export const redeemFromMangoDepositoryAccountingTest = async function (redeemableAmount: number, slippage: number, collateralUnitShift: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> {
     console.group("🧭 redeemWithMangoDepositoryTest");
     try {
         const connection = getConnection();
@@ -59,7 +59,7 @@ export const redeemFromMangoDepositoryAccountingTest = async function (redeemabl
         // The mango perp price in these might not be the exact same as the one in the transaction.
         const estimatedFrictionlessCollateralDelta = redeemableProcessedByRedeeming / mangoPerpPrice;
         const estimatedAmountRedeemableLostInTakerFees = mangoTakerFee * redeemableProcessedByRedeeming;
-        const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
+        const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals + collateralUnitShift);
         const redeemableNativeUnitPrecision = Math.pow(10, -controller.redeemableMintDecimals);
         const estimatedAmountRedeemableLostInSlippage = Math.abs(redeemableDelta - redeemableProcessedByRedeeming) - estimatedAmountRedeemableLostInTakerFees;
         // Get onchain depository and controller for post accounting
