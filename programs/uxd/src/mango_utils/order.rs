@@ -4,6 +4,8 @@ use crate::error::SourceFileId;
 use crate::error::UxdError;
 use crate::error::UxdErrorCode;
 use crate::UxdResult;
+use anchor_lang::prelude::Clock;
+use anchor_lang::prelude::SolanaSysvar;
 use mango::matching::Book;
 use mango::matching::Side;
 
@@ -25,19 +27,21 @@ pub fn get_best_order_for_quote_lot_amount<'a>(
     side: Side,
     quote_lot_amount_to_spend: i64,
 ) -> UxdResult<Option<Order>> {
+    let now_ts = Clock::get()?.unix_timestamp as u64;
     let book_side = match side {
-        Side::Bid => book.bids.iter(),
-        Side::Ask => book.asks.iter(),
+        Side::Bid => book.bids.iter_valid(now_ts),
+        Side::Ask => book.asks.iter_valid(now_ts),
     };
     let mut cmlv_quantity: i64 = 0;
     let mut execution_price = 0; // Will update at each step, depending of how far it needs to go
     let mut quote_lot_left_to_spend = quote_lot_amount_to_spend;
 
     for order in book_side {
+        let order_quantity = order.1.quantity;
+        let order_price = order.1.price();
         // This order total value in quote lots
-        let order_size = order
-            .quantity
-            .checked_mul(order.price())
+        let order_size = order_quantity
+            .checked_mul(order_price)
             .ok_or(math_err!())?;
         // How much base_lot we can fill for this order size
         let quantity_matched = {
@@ -45,20 +49,20 @@ pub fn get_best_order_for_quote_lot_amount<'a>(
                 // we can finish the operation by purchasing this order partially
                 // find out how much quantity that is in base lots
                 quote_lot_left_to_spend
-                    .checked_div(order.price())
+                    .checked_div(order_price)
                     .ok_or(math_err!())?
             } else {
                 // we eat this order
-                order.quantity
+                order_quantity
             }
         };
         // How much quote_lot were spent
         let spent = quantity_matched
-            .checked_mul(order.price())
+            .checked_mul(order_price)
             .ok_or(math_err!())?;
         if spent > 0 {
             // Current best execution price in quote_lot
-            execution_price = order.price();
+            execution_price = order_price;
         }
         //
         cmlv_quantity = cmlv_quantity
@@ -96,9 +100,10 @@ pub fn get_best_order_for_base_lot_quantity<'a>(
     side: Side,
     base_lot_quantity_to_order: i64,
 ) -> UxdResult<Option<Order>> {
+    let now_ts = Clock::get()?.unix_timestamp as u64;
     let book_side = match side {
-        Side::Bid => book.bids.iter(),
-        Side::Ask => book.asks.iter(),
+        Side::Bid => book.bids.iter_valid(now_ts),
+        Side::Ask => book.asks.iter_valid(now_ts),
     };
     let mut cmlv_quote_lot_amount_spent: i64 = 0;
     let mut execution_price = 0; // Will update at each step, depending of how far it needs to go
@@ -106,29 +111,30 @@ pub fn get_best_order_for_base_lot_quantity<'a>(
 
     for order in book_side {
         // This current order size
-        let order_size = order.quantity;
+        let order_quantity = order.1.quantity;
+        let order_price = order.1.price();
         // What's the value of this purchase in quote_lot
         let spent = {
-            if base_lot_quantity_left_to_order < order_size {
+            if base_lot_quantity_left_to_order < order_quantity {
                 // we can finish the operation by purchasing this order partially
                 // find out how much we spend by doing so
                 let spent = base_lot_quantity_left_to_order
-                    .checked_mul(order.price())
+                    .checked_mul(order_price)
                     .ok_or(math_err!())?;
                 base_lot_quantity_left_to_order = 0;
                 spent
             } else {
                 // we eat this order
-                let spent = order_size.checked_mul(order.price()).ok_or(math_err!())?;
+                let spent = order_quantity.checked_mul(order_price).ok_or(math_err!())?;
                 base_lot_quantity_left_to_order = base_lot_quantity_left_to_order
-                    .checked_sub(order_size)
+                    .checked_sub(order_quantity)
                     .ok_or(math_err!())?;
                 spent
             }
         };
         if spent > 0 {
             // Update the current execution price
-            execution_price = order.price();
+            execution_price = order_price;
             // Update how much we spent so far
             cmlv_quote_lot_amount_spent = cmlv_quote_lot_amount_spent
                 .checked_add(spent)
