@@ -804,8 +804,8 @@ dependencies = [
 
 [[package]]
 name = "mango"
-version = "3.3.5"
-source = "git+https://github.com/blockworks-foundation/mango-v3#c16a5cc5b3d1cd9596fd1b3bbf3d0f2add27b0a9"
+version = "3.4.0"
+source = "git+https://github.com/blockworks-foundation/mango-v3?rev=7952b6cc5b71ef821a5784af7dbb6a7998fbe009#7952b6cc5b71ef821a5784af7dbb6a7998fbe009"
 dependencies = [
  "anchor-lang",
  "arrayref",
@@ -833,7 +833,7 @@ dependencies = [
 [[package]]
 name = "mango-common"
 version = "3.0.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3#c16a5cc5b3d1cd9596fd1b3bbf3d0f2add27b0a9"
+source = "git+https://github.com/blockworks-foundation/mango-v3?rev=7952b6cc5b71ef821a5784af7dbb6a7998fbe009#7952b6cc5b71ef821a5784af7dbb6a7998fbe009"
 dependencies = [
  "bytemuck",
  "solana-program",
@@ -842,7 +842,7 @@ dependencies = [
 [[package]]
 name = "mango-logs"
 version = "0.1.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3#c16a5cc5b3d1cd9596fd1b3bbf3d0f2add27b0a9"
+source = "git+https://github.com/blockworks-foundation/mango-v3?rev=7952b6cc5b71ef821a5784af7dbb6a7998fbe009#7952b6cc5b71ef821a5784af7dbb6a7998fbe009"
 dependencies = [
  "anchor-lang",
  "base64 0.13.0",
@@ -851,7 +851,7 @@ dependencies = [
 [[package]]
 name = "mango-macro"
 version = "3.0.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3#c16a5cc5b3d1cd9596fd1b3bbf3d0f2add27b0a9"
+source = "git+https://github.com/blockworks-foundation/mango-v3?rev=7952b6cc5b71ef821a5784af7dbb6a7998fbe009#7952b6cc5b71ef821a5784af7dbb6a7998fbe009"
 dependencies = [
  "bytemuck",
  "mango-common",
@@ -1130,9 +1130,9 @@ checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
 
 [[package]]
 name = "rust_decimal"
-version = "1.19.0"
+version = "1.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c2d4912d369fb95a351c221475657970678d344d70c1a788223f6e74d1e3732"
+checksum = "d37baa70cf8662d2ba1c1868c5983dda16ef32b105cce41fb5c47e72936a90b3"
 dependencies = [
  "arrayvec",
  "num-traits",
@@ -1141,9 +1141,9 @@ dependencies = [
 
 [[package]]
 name = "rust_decimal_macros"
-version = "1.19.0"
+version = "1.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dda58fd861235dddfe687bec7f3fd1fbdff03376aac8daa64400991317fe7181"
+checksum = "184abaf7b434800e1a5a8aad3ebc8cd7498df33af72d65371d797a264713a59b"
 dependencies = [
  "quote",
  "rust_decimal",
@@ -1462,9 +1462,9 @@ dependencies = [
 
 [[package]]
 name = "switchboard-protos"
-version = "0.1.58"
+version = "0.1.60"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4480f75ff6438a5bf2e92339adca557b239529f12a841a692a5c40978072bebb"
+checksum = "2e2d89875ff72d12ea7918d6ccd82d1ac5eab54b3a9d1bd7356fa6905801aa72"
 dependencies = [
  "bincode",
  "borsh",

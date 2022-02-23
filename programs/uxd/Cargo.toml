@@ -22,9 +22,10 @@ development = []
 [dependencies]
 anchor-lang = "0.20.1"
 anchor-spl = "0.20.1"
-solana-program = "1.8.12"
+solana-program = "=1.9.1"
 spl-token = "3.2.0"
 fixed = "1.9.0"
 thiserror = "1.0.30"
 num_enum = "^0.5.1"
-mango = { tag = "v3.4.0", git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
+# mango = { tag = "v3.4.0", git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
+mango = { rev = "7952b6cc5b71ef821a5784af7dbb6a7998fbe009", git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
