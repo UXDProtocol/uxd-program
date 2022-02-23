@@ -2,10 +2,7 @@
 #[cfg(test)]
 mod test_perp_account_utils {
 
-    use crate::{
-        error::{SourceFileId, UxdError, UxdErrorCode},
-        mango_utils::total_perp_base_lot_position,
-    };
+    use crate::{error::UxdError, mango_utils::total_perp_base_lot_position};
 
     use fixed::types::I80F48;
     use mango::state::PerpAccount;
@@ -38,10 +35,10 @@ mod test_perp_account_utils {
                 Err(error) => {
                     match error {
                         UxdError::ProgramError(_) => prop_assert!(false),
-                        UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
+                        UxdError::UxdError { uxd_error_code, line: _, source_file_id } => {
                             prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsPerpAccountUtils);
                             match uxd_error_code {
-                                UxdErrorCode::MathError => prop_assert!(true),
+                                UxdError::MathError => prop_assert!(true),
                                 _default => prop_assert!(false)
                             }
                         }

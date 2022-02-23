@@ -1,26 +1,29 @@
-use anchor_lang::prelude::AccountInfo;
-use anchor_lang::prelude::AccountMeta;
-use anchor_lang::prelude::Accounts;
-use anchor_lang::prelude::CpiContext;
-use anchor_lang::prelude::ProgramResult;
+use super::anchor_mango::check_program_account;
+use anchor_lang::prelude::*;
 use mango::matching::OrderType;
 use mango::matching::Side;
 use mango::state::MAX_PAIRS;
 use solana_program::instruction::Instruction;
-use solana_program::program_error::ProgramError;
-use solana_program::pubkey::Pubkey;
 
-use super::anchor_mango::check_program_account;
+use solana_program::pubkey::Pubkey;
 
 #[derive(Accounts)]
 pub struct PlacePerpOrder<'info> {
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_group: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_account: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub owner: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_cache: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_perp_market: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_bids: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_asks: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_event_queue: AccountInfo<'info>,
 }
 
@@ -52,7 +55,7 @@ fn place_perp_order_instruction(
     side: Side,
     order_type: OrderType,
     reduce_only: bool,
-) -> Result<Instruction, ProgramError> {
+) -> Result<Instruction> {
     check_program_account(mango_program_id)?;
     let data = mango::instruction::MangoInstruction::PlacePerpOrder {
         price,
@@ -95,7 +98,7 @@ pub fn place_perp_order<'info>(
     side: Side,
     order_type: OrderType,
     reduce_only: bool,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = place_perp_order_instruction(
         ctx.program.key,
         ctx.accounts.mango_group.key,
@@ -113,7 +116,7 @@ pub fn place_perp_order<'info>(
         order_type,
         reduce_only,
     )?;
-    solana_program::program::invoke_signed(
+    Ok(solana_program::program::invoke_signed(
         &ix,
         &[
             ctx.program.clone(),
@@ -128,4 +131,5 @@ pub fn place_perp_order<'info>(
         ],
         ctx.signer_seeds,
     )
+    .map_err(|me| ProgramError::from(me))?)
 }

@@ -34,7 +34,7 @@ describe("Integration tests SOL", function () {
         await transferTokens(10000, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
     });
 
-    describe.skip("Init", async function () {
+    describe("Init", async function () {
         it("Initialize Controller", async function () {
             await initializeControllerTest(authority, controller, payer);
         });

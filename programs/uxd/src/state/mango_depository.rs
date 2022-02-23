@@ -1,11 +1,5 @@
-use crate::declare_check_assert_macros;
-use crate::error::SourceFileId;
 use crate::error::UxdError;
-use crate::error::UxdErrorCode;
-use crate::UxdResult;
 use anchor_lang::prelude::*;
-
-declare_check_assert_macros!(SourceFileId::StateMangoDepository);
 
 #[account]
 #[derive(Default)]
@@ -74,7 +68,7 @@ impl AnchorSerialize for MangoDepositoryPadding {
 }
 
 impl AnchorDeserialize for MangoDepositoryPadding {
-    fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
+    fn deserialize(_: &mut &[u8]) -> std::io::Result<Self> {
         Ok(Self([0u8; 429]))
     }
 }
@@ -95,16 +89,16 @@ impl MangoDepository {
         &mut self,
         event_type: &AccountingEvent,
         amount: u64,
-    ) -> UxdResult {
+    ) -> Result<()> {
         self.insurance_amount_deposited = match event_type {
             AccountingEvent::Deposit => self
                 .insurance_amount_deposited
                 .checked_add(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
             AccountingEvent::Withdraw => self
                 .insurance_amount_deposited
                 .checked_sub(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
         };
         Ok(())
     }
@@ -113,16 +107,16 @@ impl MangoDepository {
         &mut self,
         event_type: &AccountingEvent,
         amount: u64,
-    ) -> UxdResult {
+    ) -> Result<()> {
         self.collateral_amount_deposited = match event_type {
             AccountingEvent::Deposit => self
                 .collateral_amount_deposited
                 .checked_add(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
             AccountingEvent::Withdraw => self
                 .collateral_amount_deposited
                 .checked_sub(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
         };
         Ok(())
     }
@@ -131,33 +125,33 @@ impl MangoDepository {
         &mut self,
         event_type: &AccountingEvent,
         amount: u64,
-    ) -> UxdResult {
+    ) -> Result<()> {
         self.redeemable_amount_under_management = match event_type {
             AccountingEvent::Deposit => self
                 .redeemable_amount_under_management
                 .checked_add(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
             AccountingEvent::Withdraw => self
                 .redeemable_amount_under_management
                 .checked_sub(amount.into())
-                .ok_or(math_err!())?,
+                .ok_or(error!(UxdError::MathError))?,
         };
         Ok(())
     }
 
-    pub fn update_total_amount_paid_taker_fee(&mut self, amount: u64) -> UxdResult {
+    pub fn update_total_amount_paid_taker_fee(&mut self, amount: u64) -> Result<()> {
         self.total_amount_paid_taker_fee = self
             .total_amount_paid_taker_fee
             .checked_add(amount.into())
-            .ok_or(math_err!())?;
+            .ok_or(error!(UxdError::MathError))?;
         Ok(())
     }
 
-    pub fn update_rebalanced_amount(&mut self, amount: u64) -> UxdResult {
+    pub fn update_rebalanced_amount(&mut self, amount: u64) -> Result<()> {
         self.total_amount_rebalanced = self
             .total_amount_rebalanced
             .checked_add(amount.into())
-            .ok_or(math_err!())?;
+            .ok_or(error!(UxdError::MathError))?;
         Ok(())
     }
 }
