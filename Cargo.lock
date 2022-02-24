@@ -239,6 +239,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "anchor-comp"
+version = "0.1.0"
+source = "git+https://github.com/UXDProtocol/anchor-comp#a438e53693f9408e6e84b12012655339a4fa0898"
+dependencies = [
+ "anchor-lang 0.22.0",
+ "mango",
+ "solana-program",
+]
+
+[[package]]
 name = "anchor-derive-accounts"
 version = "0.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1914,8 +1924,9 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "uxd"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
+ "anchor-comp",
  "anchor-lang 0.22.0",
  "anchor-spl",
  "fixed",

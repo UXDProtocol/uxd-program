@@ -7,7 +7,6 @@ pub mod error;
 
 pub mod events;
 pub mod instructions;
-pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
 pub mod test;
