@@ -9,6 +9,7 @@ import { mangoDepositoryInsuranceSuite } from "./suite/mangoDepositoryInsuranceS
 import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
+import { mangoDepositoryAndControllerAccountingSuite } from "./suite/mangoDepositoryAndControllerAccountingSuite";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -62,6 +63,12 @@ describe("Integration tests SOL", function () {
         const paramsSol = new MangoDepositoryAndControllerInteractionsSuiteParameters(10_000_000, 500, 50_000, 500, 20);
         mangoDepositoryAndControllerInteractionsSuite(authority, user, bank, controllerUXD, mangoDepositorySOL, paramsSol);
     });
+
+    describe("mangoDepositoryAndControllerAccountingSuite SOL", function () {
+        const slippage = 20;
+        const collateralUnitShift = SOL_DECIMALS - 2; // SOL units - target units
+        mangoDepositoryAndControllerAccountingSuite(authority, user, bank, controllerUXD, mangoDepositorySOL, slippage, collateralUnitShift);
+    })
 
     this.afterAll("Transfer funds back to bank", async function () {
         await transferAllSol(user, bank.publicKey);
