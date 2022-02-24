@@ -1030,8 +1030,8 @@ dependencies = [
 
 [[package]]
 name = "mango"
-version = "3.3.5"
-source = "git+https://github.com/blockworks-foundation/mango-v3?tag=v3.3.5#209db316a7f05df2f38da67160e4d28d9df4bb67"
+version = "3.4.0"
+source = "git+https://github.com/blockworks-foundation/mango-v3#38accb1b02be763684c8e73722d48b21e45a2a53"
 dependencies = [
  "anchor-lang 0.20.1",
  "arrayref",
@@ -1052,13 +1052,14 @@ dependencies = [
  "spl-token",
  "static_assertions",
  "switchboard-program",
+ "switchboard-utils",
  "thiserror",
 ]
 
 [[package]]
 name = "mango-common"
 version = "3.0.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3?tag=v3.3.5#209db316a7f05df2f38da67160e4d28d9df4bb67"
+source = "git+https://github.com/blockworks-foundation/mango-v3#38accb1b02be763684c8e73722d48b21e45a2a53"
 dependencies = [
  "bytemuck",
  "solana-program",
@@ -1067,15 +1068,16 @@ dependencies = [
 [[package]]
 name = "mango-logs"
 version = "0.1.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3?tag=v3.3.5#209db316a7f05df2f38da67160e4d28d9df4bb67"
+source = "git+https://github.com/blockworks-foundation/mango-v3#38accb1b02be763684c8e73722d48b21e45a2a53"
 dependencies = [
  "anchor-lang 0.20.1",
+ "base64 0.13.0",
 ]
 
 [[package]]
 name = "mango-macro"
 version = "3.0.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3?tag=v3.3.5#209db316a7f05df2f38da67160e4d28d9df4bb67"
+source = "git+https://github.com/blockworks-foundation/mango-v3#38accb1b02be763684c8e73722d48b21e45a2a53"
 dependencies = [
  "bytemuck",
  "mango-common",
@@ -1440,9 +1442,9 @@ dependencies = [
 
 [[package]]
 name = "rust_decimal"
-version = "1.21.0"
+version = "1.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4214023b1223d02a4aad9f0bb9828317634a56530870a2eaf7200a99c0c10f68"
+checksum = "d37baa70cf8662d2ba1c1868c5983dda16ef32b105cce41fb5c47e72936a90b3"
 dependencies = [
  "arrayvec",
  "num-traits",
@@ -1451,9 +1453,9 @@ dependencies = [
 
 [[package]]
 name = "rust_decimal_macros"
-version = "1.21.0"
+version = "1.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2af2967752cced8cb034149d939f5624452a78ed2faaf97c4eaa8e335c2680f2"
+checksum = "184abaf7b434800e1a5a8aad3ebc8cd7498df33af72d65371d797a264713a59b"
 dependencies = [
  "quote",
  "rust_decimal",
