@@ -9,12 +9,12 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@blockworks-foundation/mango-client@3.3.15":
-  version "3.3.15"
-  resolved "https://registry.yarnpkg.com/@blockworks-foundation/mango-client/-/mango-client-3.3.15.tgz#f08c849780357a09e727d86964ebc50b472225fa"
-  integrity sha512-66JUf+DtKjoN4o9MAi/YsW0xTpcSHsL+XzaPaQ9XT3Gx6anje1AtXPpeKJmInBcivGRrsXPX+NJxc6O6kyzUag==
+"@blockworks-foundation/mango-client@3.3.17":
+  version "3.3.17"
+  resolved "https://registry.yarnpkg.com/@blockworks-foundation/mango-client/-/mango-client-3.3.17.tgz#4985126507265d674a8e92a483cbea1e2f153b4c"
+  integrity sha512-d7QNaygWKa7qNjtUIbs3r7evN1qaiDlHmgt20RQ15iD8XmuYgpWy6ZLTYu2lhX1feoEqZKv++PEH+yYVHxZNWQ==
   dependencies:
-    "@project-serum/anchor" "^0.16.2"
+    "@project-serum/anchor" "^0.21.0"
     "@project-serum/serum" "0.13.55"
     "@project-serum/sol-wallet-adapter" "^0.2.0"
     "@solana/spl-token" "^0.1.6"
@@ -47,18 +47,19 @@
     "@ethersproject/logger" "^5.5.0"
     hash.js "1.1.7"
 
-"@project-serum/anchor@^0.11.1":
-  version "0.11.1"
-  resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.11.1.tgz#155bff2c70652eafdcfd5559c81a83bb19cec9ff"
-  integrity sha512-oIdm4vTJkUy6GmE6JgqDAuQPKI7XM4TPJkjtoIzp69RZe0iAD9JP2XHx7lV1jLdYXeYHqDXfBt3zcq7W91K6PA==
+"@project-serum/anchor@0.22.0":
+  version "0.22.0"
+  resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.22.0.tgz#79d182851346fb46d471577c63eabdf6f199c03e"
+  integrity sha512-EJOE790pAQjm07loh7/JYzfcgfYv3SChBb2b9lhVdjjiimSEQrf3ESy+CGMAqcFAsyr699Ewj5k7RizY1y31cg==
   dependencies:
-    "@project-serum/borsh" "^0.2.2"
+    "@project-serum/borsh" "^0.2.5"
     "@solana/web3.js" "^1.17.0"
     base64-js "^1.5.1"
     bn.js "^5.1.2"
     bs58 "^4.0.1"
-    buffer-layout "^1.2.0"
+    buffer-layout "^1.2.2"
     camelcase "^5.3.1"
+    cross-fetch "^3.1.5"
     crypto-hash "^1.3.0"
     eventemitter3 "^4.0.7"
     find "^0.3.0"
@@ -67,10 +68,10 @@
     snake-case "^3.0.4"
     toml "^3.0.0"
 
-"@project-serum/anchor@^0.16.2":
-  version "0.16.2"
-  resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.16.2.tgz#b8b4ec4c749d59a224108f8d82ab68217ef752ae"
-  integrity sha512-wOJwObd4wOZ5tRRMCKYjeMNsEmf7vuC71KQRnw6wthhErL8c/818n4gYIZCf/1ZPl/8WPruIlmtQHDSEyy2+0Q==
+"@project-serum/anchor@^0.11.1":
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.11.1.tgz#155bff2c70652eafdcfd5559c81a83bb19cec9ff"
+  integrity sha512-oIdm4vTJkUy6GmE6JgqDAuQPKI7XM4TPJkjtoIzp69RZe0iAD9JP2XHx7lV1jLdYXeYHqDXfBt3zcq7W91K6PA==
   dependencies:
     "@project-serum/borsh" "^0.2.2"
     "@solana/web3.js" "^1.17.0"
@@ -116,7 +117,7 @@
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
-"@project-serum/borsh@^0.2.4":
+"@project-serum/borsh@^0.2.4", "@project-serum/borsh@^0.2.5":
   version "0.2.5"
   resolved "https://registry.yarnpkg.com/@project-serum/borsh/-/borsh-0.2.5.tgz#6059287aa624ecebbfc0edd35e4c28ff987d8663"
   integrity sha512-UmeUkUoKdQ7rhx6Leve1SssMR/Ghv8qrEiyywyxSWg7ooV7StdpPBhciiy5eB3T0qU1BXvdRNC8TdrkxK7WC5Q==
@@ -202,10 +203,10 @@
     superstruct "^0.14.2"
     tweetnacl "^1.0.0"
 
-"@solana/web3.js@^1.35.0":
-  version "1.35.0"
-  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.35.0.tgz#a2d09add241f48a370470a5c4db8596cb13f0dc6"
-  integrity sha512-eKf2rPoWEyVq7QsgAQKNqxODvPsb0vqSwwg2xRY1e49Fn5Qh29m2FiLcYHRS/xhPu/7b/5gsD+RzO3BWozOeZQ==
+"@solana/web3.js@^1.35.1":
+  version "1.35.1"
+  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.35.1.tgz#777b039a3b51e63c347712a57c7db87c9d1db832"
+  integrity sha512-3bDawFFI0KcvgI8Ae4N4hdQ8+Bg9gu6q+IkhPrYxOF6RYnB3U+9A4u+DhHZWLvTvgoTyesi/m5HzlleKtFEqRQ==
   dependencies:
     "@babel/runtime" "^7.12.5"
     "@ethersproject/sha2" "^5.5.0"
@@ -297,13 +298,13 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@uxdprotocol/uxd-client@5.0.14":
-  version "5.0.14"
-  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/5.0.14/48d08ffb29558d9535cfe111ef144f3aea0d142362216a7f76218b69f98dcfb2#9ff81bafaa2edef8ed41fa2e051643ae8f623b32"
-  integrity sha512-4HKRu+4udlumfHv7hRxduZqLWuacEXLD62lUsB0QlFrkIGWuE1ZNMpfkMQ91r3c4J5Rpw6MLjc7rWIX9XxPPVQ==
+"@uxdprotocol/uxd-client@5.1.0-beta":
+  version "5.1.0-beta"
+  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/5.1.0-beta/3728f21b8c9d14b3cc370de3e3b0e411b68af4857bf1bff386df9238e6fbfe35#1d74b4662e7beac10d0faf837ea48f443ade4385"
+  integrity sha512-8BZJXaBkr+QwSFKOv8cBqyHUfiCiKPU5IJyq9ynKsmsZb0oseCYCXN/hUghmVPGoxiT9AIlceZj2lSDJDj/eHQ==
   dependencies:
-    "@blockworks-foundation/mango-client" "3.3.15"
-    "@project-serum/anchor" "^0.21.0"
+    "@blockworks-foundation/mango-client" "3.3.17"
+    "@project-serum/anchor" "0.22.0"
     camelcase "^5.3.1"
 
 JSONStream@^1.3.5:
