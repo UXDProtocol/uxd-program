@@ -2,10 +2,7 @@
 #[cfg(test)]
 mod test_order {
 
-    use crate::{
-        error::{SourceFileId, UxdError, UxdErrorCode},
-        mango_utils::check_perp_order_fully_filled,
-    };
+    use crate::{error::UxdError, mango_utils::check_perp_order_fully_filled};
 
     use proptest::prelude::*;
 
@@ -22,11 +19,11 @@ mod test_order {
                 Err(error) => {
                     match error {
                          UxdError::ProgramError(_) => prop_assert!(false),
-                         UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
+                         UxdError::UxdError { uxd_error_code, line: _, source_file_id } => {
                             prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsOrder);
                             match uxd_error_code {
-                                UxdErrorCode::PerpOrderPartiallyFilled => prop_assert_ne!(order_quantity, pre_position.abs_diff(post_position)),
-                                UxdErrorCode::MathError => prop_assert!(true),
+                                UxdError::PerpOrderPartiallyFilled => prop_assert_ne!(order_quantity, pre_position.abs_diff(post_position)),
+                                UxdError::MathError => prop_assert!(true),
                                 _default => prop_assert!(false)
                             };
                          },

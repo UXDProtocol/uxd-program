@@ -1,25 +1,30 @@
 use super::anchor_mango::check_program_account;
-use anchor_lang::prelude::AccountInfo;
-use anchor_lang::prelude::AccountMeta;
-use anchor_lang::prelude::Accounts;
-use anchor_lang::prelude::CpiContext;
-use anchor_lang::prelude::ProgramResult;
+use anchor_lang::prelude::*;
 use mango::state::MAX_PAIRS;
 use solana_program::instruction::Instruction;
-use solana_program::program_error::ProgramError;
 use solana_program::pubkey::Pubkey;
 
 #[derive(Accounts)]
 pub struct Withdraw<'info> {
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_group: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_account: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub owner: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_cache: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_root_bank: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_node_bank: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_vault: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub token_account: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_signer: AccountInfo<'info>,
+    /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub token_program: AccountInfo<'info>,
 }
 
@@ -54,7 +59,7 @@ fn withdraw_instruction(
     token_program_id: &Pubkey,
     quantity: u64,
     allow_borrow: bool,
-) -> Result<Instruction, ProgramError> {
+) -> Result<Instruction> {
     check_program_account(mango_program_id)?;
     let data = mango::instruction::MangoInstruction::Withdraw {
         quantity,
@@ -92,7 +97,7 @@ pub fn withdraw<'info>(
     ctx: CpiContext<'_, '_, '_, 'info, Withdraw<'info>>,
     quantity: u64,
     allow_borrow: bool,
-) -> ProgramResult {
+) -> Result<()> {
     let ix = withdraw_instruction(
         ctx.program.key,
         ctx.accounts.mango_group.key,
@@ -108,7 +113,7 @@ pub fn withdraw<'info>(
         quantity,
         allow_borrow,
     )?;
-    solana_program::program::invoke_signed(
+    Ok(solana_program::program::invoke_signed(
         &ix,
         &[
             ctx.program.clone(),
@@ -125,4 +130,5 @@ pub fn withdraw<'info>(
         ],
         ctx.signer_seeds,
     )
+    .map_err(|me| ProgramError::from(me))?)
 }

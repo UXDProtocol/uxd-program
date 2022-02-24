@@ -1,9 +1,6 @@
-use crate::error::check_assert;
-use crate::error::UxdErrorCode;
 use crate::instructions::*;
 use crate::state::*;
 use anchor_lang::prelude::*;
-use error::UxdError;
 
 #[macro_use]
 pub mod error;
@@ -18,7 +15,7 @@ pub mod test;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("rsh7zZg4LvAS93mSXBXfYeVDfTPrGKCgg3HnjRLGt5N");
+solana_program::declare_id!("8Zq1pZ1pLCaUzoSKvTmTMaTZUXLS9YYpXGsu2Psee4gU");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -43,10 +40,6 @@ pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Th
 
 const SLIPPAGE_BASIS: u32 = 1000;
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
-
-pub type UxdResult<T = ()> = Result<T, UxdError>;
-
-declare_check_assert_macros!(SourceFileId::Lib);
 
 #[program]
 #[deny(unused_must_use)]
@@ -73,12 +66,9 @@ pub mod uxd {
     pub fn initialize_controller(
         ctx: Context<InitializeController>,
         redeemable_mint_decimals: u8,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[initialize_controller]");
-        instructions::initialize_controller::handler(ctx, redeemable_mint_decimals).map_err(|e| {
-            msg!("<*> {}", e); // log the error
-            e.into() // convert UxdError to generic ProgramError
-        })
+        instructions::initialize_controller::handler(ctx, redeemable_mint_decimals)
     }
 
     /// Sets the `redeemable_global_supply_cap` of the provided `Controller`
@@ -103,13 +93,9 @@ pub mod uxd {
     pub fn set_redeemable_global_supply_cap(
         ctx: Context<SetRedeemableGlobalSupplyCap>,
         redeemable_global_supply_cap: u128,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[set_redeemable_global_supply_cap]");
         instructions::set_redeemable_global_supply_cap::handler(ctx, redeemable_global_supply_cap)
-            .map_err(|e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            })
     }
 
     /// Sets the `mango_depositories_redeemable_soft_cap` of the provided
@@ -138,13 +124,9 @@ pub mod uxd {
     pub fn set_mango_depositories_redeemable_soft_cap(
         ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
         redeemable_soft_cap: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[set_mango_depositories_redeemable_soft_cap]");
         instructions::set_mango_depositories_redeemable_soft_cap::handler(ctx, redeemable_soft_cap)
-            .map_err(|e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            })
     }
 
     /// Create a new`MangoDepository` and registers it to the provided
@@ -172,26 +154,18 @@ pub mod uxd {
     ///  In the new version of the MangoMarket Accounts
     ///  this become mandatory too. (we are still using the old init)
     ///
-    pub fn register_mango_depository(ctx: Context<RegisterMangoDepository>) -> ProgramResult {
+    pub fn register_mango_depository(ctx: Context<RegisterMangoDepository>) -> Result<()> {
         msg!("[register_mango_depository]");
-        instructions::register_mango_depository::handler(ctx).map_err(|e| {
-            msg!("<*> {}", e); // log the error
-            e.into() // convert UxdError to generic ProgramError
-        })
+        instructions::register_mango_depository::handler(ctx)
     }
 
     /// Migrates a `MangoDepository` to the update memory layout.
     /// Added a new "passthrough" account to handle quote currency,
     /// necessary for rebalancing the perp PnL.
     ///
-    pub fn migrate_mango_depository_to_v2(
-        ctx: Context<MigrateMangoDepositoryToV2>,
-    ) -> ProgramResult {
+    pub fn migrate_mango_depository_to_v2(ctx: Context<MigrateMangoDepositoryToV2>) -> Result<()> {
         msg!("[migrate_mango_depository_to_v2]");
-        instructions::migrate_mango_depository_to_v2::handler(ctx).map_err(|e| {
-            msg!("<*> {}", e); // log the error
-            e.into() // convert UxdError to generic ProgramError
-        })
+        instructions::migrate_mango_depository_to_v2::handler(ctx)
     }
 
     /// Deposit `MangoDepository.insurance_mint` tokens in the `MangoDepository`
@@ -232,14 +206,9 @@ pub mod uxd {
     pub fn deposit_insurance_to_mango_depository(
         ctx: Context<DepositInsuranceToMangoDepository>,
         insurance_amount: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[deposit_insurance_to_mango_depository]");
-        instructions::deposit_insurance_to_mango_depository::handler(ctx, insurance_amount).map_err(
-            |e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            },
-        )
+        instructions::deposit_insurance_to_mango_depository::handler(ctx, insurance_amount)
     }
 
     /// Withdraw `MangoDepository.insurance_mint` tokens from the `MangoDepository`
@@ -263,13 +232,9 @@ pub mod uxd {
     pub fn withdraw_insurance_from_mango_depository(
         ctx: Context<WithdrawInsuranceFromMangoDepository>,
         insurance_amount: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[withdraw_insurance_from_mango_depository]");
         instructions::withdraw_insurance_from_mango_depository::handler(ctx, insurance_amount)
-            .map_err(|e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            })
     }
 
     /// Rebalance the delta neutral position of the underlying `MangoDepository`.
@@ -312,7 +277,7 @@ pub mod uxd {
         max_rebalancing_amount: u64,
         polarity: PnlPolarity,
         slippage: u32,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         // Computing too short
         // msg!(
         //     "[rebalance_mango_depository_lite] slippage {}, polarity {}",
@@ -325,10 +290,6 @@ pub mod uxd {
             &polarity,
             slippage,
         )
-        .map_err(|e| {
-            msg!("<*> {}", e); // log the error
-            e.into() // convert UxdError to generic ProgramError
-        })
     }
 
     /// Mint redeemable tokens in exchange of `MangoDepository.collateral_mint`
@@ -366,18 +327,13 @@ pub mod uxd {
         ctx: Context<MintWithMangoDepository>,
         collateral_amount: u64,
         slippage: u32,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!(
             "[mint_with_mango_depository] collateral_amount {}, slippage {}",
             collateral_amount,
             slippage
         );
-        instructions::mint_with_mango_depository::handler(ctx, collateral_amount, slippage).map_err(
-            |e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            },
-        )
+        instructions::mint_with_mango_depository::handler(ctx, collateral_amount, slippage)
     }
 
     /// Redeem `MangoDepository.collateral_mint` by burning redeemable tokens
@@ -417,16 +373,12 @@ pub mod uxd {
         ctx: Context<RedeemFromMangoDepository>,
         redeemable_amount: u64,
         slippage: u32,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!(
             "[redeem_from_mango_depository] redeemable_amount {}, slippage {}",
             redeemable_amount,
             slippage
         );
         instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, slippage)
-            .map_err(|e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            })
     }
 }

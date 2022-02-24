@@ -26,7 +26,7 @@ mod test_order {
     }
 
     use crate::{
-        error::{SourceFileId, UxdError, UxdErrorCode},
+        error::UxdError,
         mango_utils::{base_delta, quote_delta, taker_fee_amount_ceil},
     };
 
@@ -54,10 +54,10 @@ mod test_order {
                 Err(error) => {
                 match error {
                         UxdError::ProgramError(_) => prop_assert!(false),
-                        UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
+                        UxdError::UxdError { uxd_error_code, line: _, source_file_id } => {
                             prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsLimitUtils);
                             match uxd_error_code {
-                                UxdErrorCode::MathError => prop_assert!(false),
+                                UxdError::MathError => prop_assert!(false),
                                 _default => prop_assert!(false)
                             }
                         }
@@ -93,10 +93,10 @@ mod test_order {
                 Err(error) => {
                 match error {
                         UxdError::ProgramError(_) => prop_assert!(false),
-                        UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
+                        UxdError::UxdError { uxd_error_code, line: _, source_file_id } => {
                             prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsLimitUtils);
                             match uxd_error_code {
-                                UxdErrorCode::MathError => prop_assert!(false),
+                                UxdError::MathError => prop_assert!(false),
                                 _default => prop_assert!(false)
                             }
                         }
