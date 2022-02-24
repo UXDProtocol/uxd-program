@@ -1920,11 +1920,9 @@ dependencies = [
  "anchor-spl",
  "fixed",
  "mango",
- "num_enum",
  "proptest",
  "solana-program",
  "spl-token",
- "thiserror",
 ]
 
 [[package]]
