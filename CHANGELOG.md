@@ -8,6 +8,12 @@ Deployed: | Slot:
 2. Added MigrateMangoDepositoryToV2 instruction to migrate V1 MangoDepository accounts to their V2 counterpart
 3. Added RebalanceMangoDepositoryLite instruction to rebalance the delta neutral position by providing either quote or collateral depending of the PnL polarity
 
+## v2.3.0 (composability patch)
+
+Deployed: Feb 24,2022 at  UTC | Slot:
+
+1. Compatibility update for MangoMarketsV3 v3.4.0
+
 ## v2.2.0 (hotfix)
 
 Deployed: Feb 14, 2022 at 14:49:53 UTC | Slot: 120,810,169
