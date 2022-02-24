@@ -1,10 +1,7 @@
 #[cfg(test)]
 mod test_limit_utils {
 
-    use crate::{
-        mango_utils::{price_to_lot_price, Order, PerpInfo},
-        UxdResult,
-    };
+    use crate::mango_utils::{price_to_lot_price, Order, PerpInfo};
     use fixed::types::I80F48;
     use mango::matching::Side;
     use proptest::prelude::*;
@@ -21,7 +18,7 @@ mod test_limit_utils {
         }
     }
 
-    fn mocked_order(perp_info: &PerpInfo, price: f64, taker_side: Side) -> UxdResult<Order> {
+    fn mocked_order(perp_info: &PerpInfo, price: f64, taker_side: Side) -> Result<Order> {
         let price_lot = price_to_lot_price(I80F48::from_num(price), perp_info)?;
         Ok(Order {
             quantity: 0,               // whatever not used
@@ -36,7 +33,7 @@ mod test_limit_utils {
 
         mod mint_suite {
             use crate::{
-                error::{SourceFileId, UxdError, UxdErrorCode},
+                error::UxdError,
                 mango_utils::{check_effective_order_price_versus_limit_price, limit_price},
             };
 
@@ -67,11 +64,11 @@ mod test_limit_utils {
                         Err(error) => {
                             match error {
                                 UxdError::ProgramError(_) => prop_assert!(false),
-                                UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
+                                UxdError::UxdError { uxd_error_code, line: _, source_file_id } => {
                                     prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsLimitUtils);
                                     match uxd_error_code {
-                                        UxdErrorCode::MathError => prop_assert!(false),
-                                        UxdErrorCode::SlippageReached => {
+                                        UxdError::MathError => prop_assert!(false),
+                                        UxdError::SlippageReached => {
                                             prop_assert!(order_price < limit_price);
                                         },
                                         _default => prop_assert!(false)
@@ -126,7 +123,7 @@ mod test_limit_utils {
 
         mod redeem_suite {
             use crate::{
-                error::{SourceFileId, UxdError, UxdErrorCode},
+                error::UxdError,
                 mango_utils::{check_effective_order_price_versus_limit_price, limit_price},
             };
 
@@ -156,11 +153,11 @@ mod test_limit_utils {
                         Err(error) => {
                             match error {
                                 UxdError::ProgramError(_) => prop_assert!(false),
-                                UxdError::UxdErrorCode { uxd_error_code, line: _, source_file_id } => {
+                                UxdError::UxdError { uxd_error_code, line: _, source_file_id } => {
                                     prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsLimitUtils);
                                     match uxd_error_code {
-                                        UxdErrorCode::MathError => prop_assert!(false),
-                                        UxdErrorCode::SlippageReached => {
+                                        UxdError::MathError => prop_assert!(false),
+                                        UxdError::SlippageReached => {
                                             prop_assert!(order_price > limit_price);
                                         },
                                         _default => prop_assert!(false)

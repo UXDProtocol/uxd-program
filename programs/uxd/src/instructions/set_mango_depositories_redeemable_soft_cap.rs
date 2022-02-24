@@ -1,15 +1,9 @@
-use crate::error::check_assert;
-use crate::error::SourceFileId;
-use crate::error::UxdErrorCode;
-use crate::error::UxdIdlErrorCode;
+use crate::error::UxdError;
 use crate::events::SetMangoDepositoryRedeemableSoftCapEvent;
 use crate::Controller;
-use crate::UxdResult;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
 use anchor_lang::prelude::*;
-
-declare_check_assert_macros!(SourceFileId::InstructionSetMangoDepositoriesRedeemableSoftCap);
 
 /// Takes 2 accounts - 2 used locally - 0 for CPI - 0 Programs - 0 Sysvar
 #[derive(Accounts)]
@@ -22,7 +16,7 @@ pub struct SetMangoDepositoriesRedeemableSoftCap<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump,
-        has_one = authority @UxdIdlErrorCode::InvalidAuthority,
+        has_one = authority @UxdError::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
 }
@@ -30,7 +24,7 @@ pub struct SetMangoDepositoriesRedeemableSoftCap<'info> {
 pub fn handler(
     ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
     redeemable_soft_cap: u64,
-) -> UxdResult {
+) -> Result<()> {
     ctx.accounts
         .controller
         .mango_depositories_redeemable_soft_cap = redeemable_soft_cap;
@@ -48,11 +42,10 @@ pub fn handler(
 #[allow(clippy::absurd_extreme_comparisons)]
 impl<'info> SetMangoDepositoriesRedeemableSoftCap<'info> {
     // Asserts that the Mango Depositories redeemable soft cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
-    pub fn validate(&self, redeemable_soft_cap: u64) -> ProgramResult {
-        check!(
-            redeemable_soft_cap <= MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP,
-            UxdErrorCode::InvalidMangoDepositoriesRedeemableSoftCap
-        )?;
+    pub fn validate(&self, redeemable_soft_cap: u64) -> Result<()> {
+        if redeemable_soft_cap <= MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP {
+            error!(UxdError::InvalidMangoDepositoriesRedeemableSoftCap);
+        }
         Ok(())
     }
 }
