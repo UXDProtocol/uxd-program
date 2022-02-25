@@ -1,6 +1,5 @@
 use crate::error::UxdError;
 use crate::events::WithdrawInsuranceFromMangoDepositoryEvent;
-use crate::mango_program;
 use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
@@ -8,6 +7,8 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
+use anchor_comp::mango_markets_v3;
+use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::Mint;
@@ -114,7 +115,7 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     pub token_program: Program<'info, Token>,
 
     /// #17 MangoMarketv3 Program
-    pub mango_program: Program<'info, mango_program::Mango>,
+    pub mango_program: Program<'info, MangoMarketV3>,
 }
 
 pub fn handler(
@@ -132,7 +133,7 @@ pub fn handler(
     // - 1 [WITHDRAW INSURANCE FROM MANGO THEN RETURN TO USER] ---------------
 
     // - mango withdraw insurance_amount
-    mango_program::withdraw(
+    mango_markets_v3::withdraw(
         ctx.accounts
             .into_withdraw_insurance_from_mango_context()
             .with_signer(depository_signer_seed),
@@ -166,20 +167,19 @@ pub fn handler(
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
     pub fn into_withdraw_insurance_from_mango_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, mango_program::Withdraw<'info>> {
-        let cpi_accounts = mango_program::Withdraw {
+    ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Withdraw<'info>> {
+        let cpi_accounts = mango_markets_v3::Withdraw {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
-            mango_root_bank: self.mango_root_bank.to_account_info(),
-            mango_node_bank: self.mango_node_bank.to_account_info(),
-            mango_vault: self.mango_vault.to_account_info(),
+            root_bank: self.mango_root_bank.to_account_info(),
+            node_bank: self.mango_node_bank.to_account_info(),
+            vault: self.mango_vault.to_account_info(),
             token_account: self
                 .depository_insurance_passthrough_account
                 .to_account_info(),
-            mango_signer: self.mango_signer.to_account_info(),
-            token_program: self.token_program.to_account_info(),
+            signer: self.mango_signer.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -214,7 +214,7 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
     pub fn validate(&self, insurance_amount: u64) -> Result<()> {
         if insurance_amount > 0 {
-            error!(UxdError::InvalidInsuranceAmount);
+            return Err(error!(UxdError::InvalidInsuranceAmount));
         };
         // Mango withdraw will fail with proper error thanks to  `disabled borrow` set to true if the balance is not enough.
         Ok(())

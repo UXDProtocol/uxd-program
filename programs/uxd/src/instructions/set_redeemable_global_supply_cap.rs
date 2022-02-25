@@ -40,7 +40,7 @@ impl<'info> SetRedeemableGlobalSupplyCap<'info> {
     // Asserts that the redeemable global supply cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
     pub fn validate(&self, redeemable_global_supply_cap: u128) -> Result<()> {
         if redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP {
-            error!(UxdError::InvalidRedeemableGlobalSupplyCap);
+            return Err(error!(UxdError::InvalidRedeemableGlobalSupplyCap));
         }
 
         Ok(())

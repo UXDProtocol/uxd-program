@@ -241,7 +241,7 @@ dependencies = [
 [[package]]
 name = "anchor-comp"
 version = "0.1.0"
-source = "git+https://github.com/UXDProtocol/anchor-comp#a438e53693f9408e6e84b12012655339a4fa0898"
+source = "git+https://github.com/UXDProtocol/anchor-comp?tag=v0.1.0#47a0ecb06e4ceaf96bd2bdc9cb1555fa3e74de83"
 dependencies = [
  "anchor-lang 0.22.0",
  "mango",

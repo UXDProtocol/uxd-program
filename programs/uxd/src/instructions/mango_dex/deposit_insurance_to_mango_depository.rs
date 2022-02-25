@@ -1,6 +1,5 @@
 use crate::error::UxdError;
 use crate::events::DepositInsuranceToMangoDepositoryEvent;
-use crate::mango_program;
 use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
@@ -8,6 +7,8 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
+use anchor_comp::mango_markets_v3;
+use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::Mint;
@@ -109,7 +110,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     pub token_program: Program<'info, Token>,
 
     /// #15 MangoMarketv3 Program
-    pub mango_program: Program<'info, mango_program::Mango>,
+    pub mango_program: Program<'info, MangoMarketV3>,
 }
 
 pub fn handler(
@@ -133,7 +134,7 @@ pub fn handler(
     )?;
 
     // - Deposit Insurance to Mango Account
-    mango_program::deposit(
+    mango_markets_v3::deposit(
         ctx.accounts
             .into_deposit_to_mango_context()
             .with_signer(depository_signer_seeds),
@@ -172,16 +173,15 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
 
     pub fn into_deposit_to_mango_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, mango_program::Deposit<'info>> {
-        let cpi_accounts = mango_program::Deposit {
+    ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Deposit<'info>> {
+        let cpi_accounts = mango_markets_v3::Deposit {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
-            mango_root_bank: self.mango_root_bank.to_account_info(),
-            mango_node_bank: self.mango_node_bank.to_account_info(),
-            mango_vault: self.mango_vault.to_account_info(),
-            token_program: self.token_program.to_account_info(),
+            root_bank: self.mango_root_bank.to_account_info(),
+            node_bank: self.mango_node_bank.to_account_info(),
+            vault: self.mango_vault.to_account_info(),
             owner_token_account: self
                 .depository_insurance_passthrough_account
                 .to_account_info(),
@@ -204,10 +204,10 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
 impl<'info> DepositInsuranceToMangoDepository<'info> {
     pub fn validate(&self, insurance_amount: u64) -> Result<()> {
         if insurance_amount > 0 {
-            error!(UxdError::InvalidInsuranceAmount);
+            return Err(error!(UxdError::InvalidInsuranceAmount));
         }
         if self.authority_insurance.amount >= insurance_amount {
-            error!(UxdError::InsufficientAuthorityInsuranceAmount);
+            return Err(error!(UxdError::InsufficientAuthorityInsuranceAmount));
         }
         Ok(())
     }

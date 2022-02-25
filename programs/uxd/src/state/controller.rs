@@ -87,7 +87,7 @@ impl Controller {
     ) -> Result<()> {
         let current_size = usize::from(self.registered_mango_depositories_count);
         if current_size < MAX_REGISTERED_MANGO_DEPOSITORIES {
-            error!(UxdError::MaxNumberOfMangoDepositoriesRegisteredReached);
+            return Err(error!(UxdError::MaxNumberOfMangoDepositoriesRegisteredReached));
         }
         // Increment registered Mango Depositories count
         self.registered_mango_depositories_count = self
