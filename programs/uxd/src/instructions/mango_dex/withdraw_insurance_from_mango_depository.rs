@@ -1,6 +1,5 @@
 use crate::error::UxdError;
 use crate::events::WithdrawInsuranceFromMangoDepositoryEvent;
-use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -84,6 +83,7 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
 
     /// #9 [MangoMarkets CPI] Index grouping perp and spot markets
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_group: UncheckedAccount<'info>,
 
     /// #10 [MangoMarkets CPI] Cache
@@ -118,10 +118,7 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 
-pub fn handler(
-    ctx: Context<WithdrawInsuranceFromMangoDepository>,
-    insurance_amount: u64, // native units
-) -> Result<()> {
+pub fn handler(ctx: Context<WithdrawInsuranceFromMangoDepository>, amount: u64) -> Result<()> {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
     let depository_signer_seed: &[&[&[u8]]] = &[&[
@@ -137,7 +134,7 @@ pub fn handler(
         ctx.accounts
             .into_withdraw_insurance_from_mango_context()
             .with_signer(depository_signer_seed),
-        insurance_amount,
+        amount,
         false,
     )?;
 
@@ -146,11 +143,11 @@ pub fn handler(
         ctx.accounts
             .into_transfer_insurance_to_authority_context()
             .with_signer(depository_signer_seed),
-        insurance_amount,
+        amount,
     )?;
 
     // - 2 [UPDATE ACCOUNTING] ------------------------------------------------
-    ctx.accounts.update_accounting(insurance_amount)?;
+    ctx.accounts.update_accounting(amount)?;
 
     emit!(WithdrawInsuranceFromMangoDepositoryEvent {
         version: ctx.accounts.controller.version,
@@ -158,7 +155,7 @@ pub fn handler(
         depository: ctx.accounts.depository.key(),
         insurance_mint: ctx.accounts.depository.insurance_mint,
         insurance_mint_decimals: ctx.accounts.depository.insurance_mint_decimals,
-        withdrawn_amount: insurance_amount,
+        withdrawn_amount: amount,
     });
 
     Ok(())
@@ -202,10 +199,12 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
 
 // Additional convenience methods related to the inputted accounts
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
-    fn update_accounting(&mut self, insurance_delta: u64) -> Result<()> {
-        // Mango Depository
-        self.depository
-            .update_insurance_amount_deposited(&AccountingEvent::Withdraw, insurance_delta)?;
+    fn update_accounting(&mut self, amount: u64) -> Result<()> {
+        self.depository.insurance_amount_deposited = self
+            .depository
+            .insurance_amount_deposited
+            .checked_sub(amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
         Ok(())
     }
 }
@@ -213,7 +212,7 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
 // Validate input arguments
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
     pub fn validate(&self, insurance_amount: u64) -> Result<()> {
-        if insurance_amount > 0 {
+        if insurance_amount == 0 {
             return Err(error!(UxdError::InvalidInsuranceAmount));
         };
         // Mango withdraw will fail with proper error thanks to  `disabled borrow` set to true if the balance is not enough.

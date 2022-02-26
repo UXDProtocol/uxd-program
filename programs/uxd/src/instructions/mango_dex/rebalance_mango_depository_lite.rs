@@ -1,13 +1,10 @@
 use crate::error::UxdError;
-use crate::mango_program;
-use crate::mango_utils::check_effective_order_price_versus_limit_price;
-use crate::mango_utils::check_perp_order_fully_filled;
+// use crate::events::RebalanceMangoDepositoryLiteEvent;
 use crate::mango_utils::derive_order_delta;
-use crate::mango_utils::get_best_order_for_quote_lot_amount;
+use crate::mango_utils::limit_price;
+use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::total_perp_base_lot_position;
-use crate::mango_utils::Order;
 use crate::mango_utils::PerpInfo;
-use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
@@ -16,6 +13,8 @@ use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::QUOTE_PASSTHROUGH_NAMESPACE;
 use crate::SLIPPAGE_BASIS;
+use anchor_comp::mango_markets_v3;
+use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
@@ -24,11 +23,10 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 use fixed::types::I80F48;
-use mango::matching::BookSide;
+use mango::matching::OrderType;
 use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
-use mango::state::PerpMarket;
 
 const SUPPORTED_DEPOSITORY_VERSION: u8 = 2;
 
@@ -135,6 +133,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
 
     /// #13 [MangoMarkets CPI] Index grouping perp and spot markets
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_group: UncheckedAccount<'info>,
 
     /// #14 [MangoMarkets CPI] Cache
@@ -199,7 +198,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
 
     /// #28 MangoMarketv3 Program
-    pub mango_program: Program<'info, mango_program::Mango>,
+    pub mango_program: Program<'info, MangoMarketV3>,
 
     /// #29 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
@@ -231,12 +230,12 @@ pub fn handler(
     let perp_position_notional_size: i128 =
         I80F48::from_num(total_perp_base_lot_position(&pre_pa)?)
             .checked_mul(perp_contract_size)
-            .ok_or(error!(UxdError::MathError))?
+            .ok_or_else(|| error!(UxdError::MathError))?
             .checked_mul(perp_info.price)
-            .ok_or(error!(UxdError::MathError))?
+            .ok_or_else(|| error!(UxdError::MathError))?
             .abs()
             .checked_to_num()
-            .ok_or(error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathError))?;
 
     // The perp position unrealized PnL is equal to the outstanding amount of redeemable
     // minus the perp position notional size in quote.
@@ -251,9 +250,9 @@ pub fn handler(
     let perp_unrealized_pnl = I80F48::checked_from_num(
         redeemable_under_management
             .checked_sub(perp_position_notional_size)
-            .ok_or(error!(UxdError::MathError))?,
+            .ok_or_else(|| error!(UxdError::MathError))?,
     )
-    .ok_or(error!(UxdError::MathError))?;
+    .ok_or_else(|| error!(UxdError::MathError))?;
 
     // Polarity parameter could be inferred, but is requested as input to prevent users
     // user rebalancing (swapping) in an undesired way, as the PnL could technically shift
@@ -261,13 +260,13 @@ pub fn handler(
     // This also filter out the case where `perp_unrealized_pnl` is 0
     match polarity {
         PnlPolarity::Positive => {
-            if perp_unrealized_pnl.is_positive() {
-                error!(UxdError::InvalidPnlPolarity);
+            if perp_unrealized_pnl.is_negative() {
+                return Err(error!(UxdError::InvalidPnlPolarity));
             }
         }
         PnlPolarity::Negative => {
-            if perp_unrealized_pnl.is_negative() {
-                error!(UxdError::InvalidPnlPolarity);
+            if perp_unrealized_pnl.is_positive() {
+                return Err(error!(UxdError::InvalidPnlPolarity));
             }
         }
     }
@@ -277,10 +276,6 @@ pub fn handler(
 
     // - 2 [FIND BEST ORDER FOR SHORT PERP POSITION (depending of Polarity)] --
 
-    // For now will just overdraft fees on top of the max_rebalancing_amount
-    // (instruction will fail if not enough).
-    // When more computing, use the commented code below
-
     // - [Plan the rebalancing amount]
     // Note : Depending of the side, the fees don't come from the same place.
     //        If the PnL is positive, it behaves like a redeem and the fees are taken
@@ -289,33 +284,37 @@ pub fn handler(
     //        If the PnL is negative, it behaves like the mint and the fees are taken
     //        on the returned amount (here they aren't living in the delta neutral position
     //        but simply on the spot QUOTE balance)
-    // let rebalancing_amount = match polarity {
-    //     PnlPolarity::Positive => {
-    //         // - [Find the max fees]
-    //         let max_fee_amount = rebalancing_quote_amount
-    //             .checked_mul(perp_info.effective_fee)
-    //             .ok_or(error!(UxdError::MathError))?
-    //             .checked_ceil()
-    //             .ok_or(error!(UxdError::MathError))?;
+    let rebalancing_amount = match polarity {
+        PnlPolarity::Positive => {
+            // - [Find the max fees]
+            let max_fee_amount = rebalancing_quote_amount
+                .checked_mul(perp_info.effective_fee)
+                .ok_or_else(|| error!(UxdError::MathError))?
+                .checked_ceil()
+                .ok_or_else(|| error!(UxdError::MathError))?;
 
-    //         // - [Get the amount of quote_lots for the perp order minus fees not to overflow max_rebalancing_amount]
-    //         rebalancing_quote_amount
-    //             .checked_sub(max_fee_amount)
-    //             .ok_or(error!(UxdError::MathError))?
-    //             .checked_div(perp_info.quote_lot_size)
-    //             .ok_or(error!(UxdError::MathError))?
-    //             .floor()
-    //     }
-    //     PnlPolarity::Negative => {
-    // - [Get the amount of quote_lots for the perp order]
-    let rebalancing_amount = rebalancing_quote_amount
-        .checked_div(perp_info.quote_lot_size)
-        .ok_or(error!(UxdError::MathError))?
-        .floor();
-    //     }
-    // };
+            // - [Get the amount of quote_lots for the perp order minus fees not to overflow max_rebalancing_amount]
+            rebalancing_quote_amount
+                .checked_sub(max_fee_amount)
+                .ok_or_else(|| error!(UxdError::MathError))?
+                .checked_div(perp_info.quote_lot_size)
+                .ok_or_else(|| error!(UxdError::MathError))?
+                .checked_floor()
+                .ok_or_else(|| error!(UxdError::MathError))
+        }
+        PnlPolarity::Negative => {
+            // - [Get the amount of quote_lots for the perp order]
+            rebalancing_quote_amount
+                .checked_div(perp_info.quote_lot_size)
+                .ok_or_else(|| error!(UxdError::MathError))?
+                .checked_floor()
+                .ok_or_else(|| error!(UxdError::MathError))
+        }
+    }?;
 
-    // - [Estimate the best perp order depending of polarity]
+    // - 3 [PlACE SHORT PERP] -------------------------------------------------
+
+    // - [Place perp order CPI to Mango Market v3]
     // Note : The caller is the Taker, the side depend of the PnL Polarity.
     let taker_side = match polarity {
         // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
@@ -325,45 +324,30 @@ pub fn handler(
         //        [BID: taker (us, the caller) | ASK: maker]
         PnlPolarity::Negative => Side::Bid,
     };
-    let quote_lot_amount = rebalancing_amount
+    let max_quote_quantity = rebalancing_amount
         .checked_to_num()
-        .ok_or(error!(UxdError::MathError))?;
-    let perp_order = ctx
-        .accounts
-        .find_best_order_in_book_for_quote_lot_amount(taker_side, quote_lot_amount)?;
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    let limit_price = limit_price(perp_info.price, slippage, taker_side)?;
+    let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
+    let reduce_only = taker_side == Side::Bid;
 
-    // - [Checks that the best price found is within slippage range]
-    check_effective_order_price_versus_limit_price(&perp_info, &perp_order, slippage)?;
-
-    // - 3 [PlACE SHORT PERP] -------------------------------------------------
-
-    // - [Base depository's position size in native units PRE perp order (to calculate the % filled later on)]
-    let initial_base_position = total_perp_base_lot_position(&pre_pa)?;
-
-    // - [Place perp order CPI to Mango Market v3]
-    let reduce_only = perp_order.taker_side == Side::Bid;
-    mango_program::place_perp_order(
+    mango_markets_v3::place_perp_order2(
         ctx.accounts
             .into_place_perp_order_context()
             .with_signer(depository_signer_seed),
-        perp_order.price,
-        perp_order.quantity,
+        taker_side,
+        limit_price_lot.to_num(),
+        i64::MAX,
+        max_quote_quantity,
         0,
-        perp_order.taker_side,
-        mango::matching::OrderType::ImmediateOrCancel,
+        OrderType::ImmediateOrCancel,
         reduce_only,
+        None,
+        10,
     )?;
 
     // - [Perp account state POST perp order]
     let post_pa = ctx.accounts.perp_account(&perp_info)?;
-
-    // - [Checks that the order was fully filled]
-    let post_perp_order_base_lot_position = total_perp_base_lot_position(&post_pa)?;
-    check_perp_order_fully_filled(
-        perp_order.quantity,
-        initial_base_position,
-        post_perp_order_base_lot_position,
-    )?;
 
     // - 4 [TRANSFER COLLATERAL/QUOTE TO MANGO (depending of Polarity)] -------
     // - 5 [TRANSFER QUOTE/COLLATERAL TO USER (depending of Polarity)] --------
@@ -379,113 +363,122 @@ pub fn handler(
     // ensures current context make sense as the derive_order_delta is generic
     match polarity {
         PnlPolarity::Positive => {
-            if pre_pa.taker_quote < post_pa.taker_quote {
-                error!(UxdError::InvalidOrderDirection);
+            if pre_pa.taker_quote > post_pa.taker_quote {
+                return Err(error!(UxdError::InvalidOrderDirection));
             }
         }
         PnlPolarity::Negative => {
-            if pre_pa.taker_quote > post_pa.taker_quote {
-                error!(UxdError::InvalidOrderDirection);
+            if pre_pa.taker_quote < post_pa.taker_quote {
+                return Err(error!(UxdError::InvalidOrderDirection));
             }
         }
     };
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;
-
+    msg!("order_delta {:?}", order_delta);
     match polarity {
         PnlPolarity::Positive => {
             // - 4 [TRANSFER COLLATERAL TO MANGO] -----------------------------
+            let collateral_deposit_amount = order_delta
+                .base
+                .unsigned_abs()
+                .checked_to_num()
+                .ok_or_else(|| error!(UxdError::MathError))?;
             // - [Transferring user collateral to the passthrough account]
             token::transfer(
                 ctx.accounts
                     .into_transfer_collateral_from_user_to_passthrough_context(),
-                order_delta.collateral,
+                collateral_deposit_amount,
             )?;
-
             // - [Deposit collateral to MangoAccount]
-            mango_program::deposit(
+            mango_markets_v3::deposit(
                 ctx.accounts
                     .into_deposit_collateral_from_passthrough_to_mango_context()
                     .with_signer(depository_signer_seed),
-                order_delta.collateral,
+                collateral_deposit_amount,
             )?;
+
             // - 5 [TRANSFER QUOTE TO USER (Minus Taker Fees)] ----------------
-            let quote_delta = order_delta
+            let quote_withdraw_amount = order_delta
                 .quote
                 .checked_sub(order_delta.fee)
-                .ok_or(error!(UxdError::MathError))?;
+                .ok_or_else(|| error!(UxdError::MathError))?
+                .unsigned_abs()
+                .checked_to_num()
+                .ok_or_else(|| error!(UxdError::MathError))?;
             // - [Withdraw mango quote to the passthrough account]
-            mango_program::withdraw(
+            mango_markets_v3::withdraw(
                 ctx.accounts
                     .into_withdraw_quote_from_mango_to_passthrough_context()
                     .with_signer(depository_signer_seed),
-                quote_delta,
-                false,
+                quote_withdraw_amount,
+                false, // Settle PNL before calling this IX if this fails
             )?;
-
-            // - Return insurance_amount back to authority
             token::transfer(
                 ctx.accounts
                     .into_transfer_quote_from_passthrough_to_user_context()
                     .with_signer(depository_signer_seed),
-                quote_delta,
+                quote_withdraw_amount,
             )?;
         }
         PnlPolarity::Negative => {
             // - 4 [TRANSFER QUOTE TO MANGO (Plus Taker Fees)] ----------------------------------
-            let quote_delta = order_delta
+            let quote_deposit_amount = order_delta
                 .quote
                 .checked_add(order_delta.fee)
-                .ok_or(error!(UxdError::MathError))?;
+                .ok_or_else(|| error!(UxdError::MathError))?
+                .unsigned_abs()
+                .checked_to_num()
+                .ok_or_else(|| error!(UxdError::MathError))?;
             // - [Transfers user quote to the passthrough account]
             token::transfer(
                 ctx.accounts
                     .into_transfer_quote_from_user_to_passthrough_context(),
-                quote_delta,
+                quote_deposit_amount,
             )?;
-
             // - [Deposit quote to MangoAccount]
-            mango_program::deposit(
+            mango_markets_v3::deposit(
                 ctx.accounts
                     .into_deposit_quote_from_passthrough_to_mango_context()
                     .with_signer(depository_signer_seed),
-                quote_delta,
+                quote_deposit_amount,
             )?;
+
             // - 5 [TRANSFER COLLATERAL TO USER] ------------------------------
+            let collateral_withdraw_amount = order_delta
+                .base
+                .unsigned_abs()
+                .checked_to_num()
+                .ok_or_else(|| error!(UxdError::MathError))?;
             // - [Mango withdraw CPI]
-            mango_program::withdraw(
+            mango_markets_v3::withdraw(
                 ctx.accounts
                     .into_withdraw_collateral_from_mango_to_passthrough_context()
                     .with_signer(depository_signer_seed),
-                order_delta.collateral,
+                collateral_withdraw_amount,
                 false,
             )?;
-
             // - [Return collateral back to user ATA]
             token::transfer(
                 ctx.accounts
                     .into_transfer_collateral_from_passthrough_to_user_context()
                     .with_signer(depository_signer_seed),
-                order_delta.collateral,
+                collateral_withdraw_amount,
             )?;
 
-            // Note : Too short in computing for now. Add again later
             // - [If ATA mint is WSOL, unwrap]
-            // if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
-            //     token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
-            // }
+            if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
+                token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
+            }
         }
     }
 
     // - 6 [UPDATE ACCOUNTING] ------------------------------------------------
-
     ctx.accounts.update_onchain_accounting(
-        order_delta.collateral,
-        order_delta.quote,
+        order_delta.base,
+        rebalancing_quote_amount,
         order_delta.fee,
-        polarity,
-    )?;
+    );
 
-    // Note : Add later when computing limit is not an issue anymore
     // emit!(RebalanceMangoDepositoryLiteEvent {
     //     version: ctx.accounts.controller.version,
     //     depository_version: ctx.accounts.depository.version,
@@ -494,11 +487,11 @@ pub fn handler(
     //     user: ctx.accounts.user.key(),
     //     polarity: polarity.clone(),
     //     rebalancing_amount: max_rebalancing_amount,
-    //     rebalanced_amount: rebalancing_quote_amount,
+    //     rebalanced_amount: rebalancing_quote_amount.to_num(),
     //     slippage,
-    //     collateral_delta: order_delta.collateral,
-    //     quote_delta: order_delta.quote,
-    //     fee_delta: order_delta.fee,
+    //     base_delta: order_delta.base.to_num(),
+    //     quote_delta: order_delta.quote.to_num(),
+    //     fee_delta: order_delta.fee.to_num(),
     // });
 
     Ok(())
@@ -521,16 +514,15 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
 
     pub fn into_deposit_collateral_from_passthrough_to_mango_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, mango_program::Deposit<'info>> {
-        let cpi_accounts = mango_program::Deposit {
+    ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Deposit<'info>> {
+        let cpi_accounts = mango_markets_v3::Deposit {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
-            mango_root_bank: self.mango_root_bank_collateral.to_account_info(),
-            mango_node_bank: self.mango_node_bank_collateral.to_account_info(),
-            mango_vault: self.mango_vault_collateral.to_account_info(),
-            token_program: self.token_program.to_account_info(),
+            root_bank: self.mango_root_bank_collateral.to_account_info(),
+            node_bank: self.mango_node_bank_collateral.to_account_info(),
+            vault: self.mango_vault_collateral.to_account_info(),
             owner_token_account: self
                 .depository_collateral_passthrough_account
                 .to_account_info(),
@@ -553,16 +545,15 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
 
     pub fn into_deposit_quote_from_passthrough_to_mango_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, mango_program::Deposit<'info>> {
-        let cpi_accounts = mango_program::Deposit {
+    ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Deposit<'info>> {
+        let cpi_accounts = mango_markets_v3::Deposit {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
-            mango_root_bank: self.mango_root_bank_quote.to_account_info(),
-            mango_node_bank: self.mango_node_bank_quote.to_account_info(),
-            mango_vault: self.mango_vault_quote.to_account_info(),
-            token_program: self.token_program.to_account_info(),
+            root_bank: self.mango_root_bank_quote.to_account_info(),
+            node_bank: self.mango_node_bank_quote.to_account_info(),
+            vault: self.mango_vault_quote.to_account_info(),
             owner_token_account: self.depository_quote_passthrough_account.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
@@ -571,18 +562,17 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
 
     pub fn into_withdraw_quote_from_mango_to_passthrough_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, mango_program::Withdraw<'info>> {
-        let cpi_accounts = mango_program::Withdraw {
+    ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Withdraw<'info>> {
+        let cpi_accounts = mango_markets_v3::Withdraw {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
-            mango_root_bank: self.mango_root_bank_quote.to_account_info(),
-            mango_node_bank: self.mango_node_bank_quote.to_account_info(),
-            mango_vault: self.mango_vault_quote.to_account_info(),
+            root_bank: self.mango_root_bank_quote.to_account_info(),
+            node_bank: self.mango_node_bank_quote.to_account_info(),
+            vault: self.mango_vault_quote.to_account_info(),
             token_account: self.depository_quote_passthrough_account.to_account_info(),
-            mango_signer: self.mango_signer.to_account_info(),
-            token_program: self.token_program.to_account_info(),
+            signer: self.mango_signer.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -602,20 +592,19 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
 
     pub fn into_withdraw_collateral_from_mango_to_passthrough_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, mango_program::Withdraw<'info>> {
-        let cpi_accounts = mango_program::Withdraw {
+    ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Withdraw<'info>> {
+        let cpi_accounts = mango_markets_v3::Withdraw {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
-            mango_root_bank: self.mango_root_bank_collateral.to_account_info(),
-            mango_node_bank: self.mango_node_bank_collateral.to_account_info(),
-            mango_vault: self.mango_vault_collateral.to_account_info(),
+            root_bank: self.mango_root_bank_collateral.to_account_info(),
+            node_bank: self.mango_node_bank_collateral.to_account_info(),
+            vault: self.mango_vault_collateral.to_account_info(),
             token_account: self
                 .depository_collateral_passthrough_account
                 .to_account_info(),
-            mango_signer: self.mango_signer.to_account_info(),
-            token_program: self.token_program.to_account_info(),
+            signer: self.mango_signer.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -637,16 +626,16 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
 
     pub fn into_place_perp_order_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, mango_program::PlacePerpOrder<'info>> {
-        let cpi_accounts = mango_program::PlacePerpOrder {
+    ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::PlacePerpOrder2<'info>> {
+        let cpi_accounts = mango_markets_v3::PlacePerpOrder2 {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
-            mango_perp_market: self.mango_perp_market.to_account_info(),
-            mango_bids: self.mango_bids.to_account_info(),
-            mango_asks: self.mango_asks.to_account_info(),
-            mango_event_queue: self.mango_event_queue.to_account_info(),
+            perp_market: self.mango_perp_market.to_account_info(),
+            bids: self.mango_bids.to_account_info(),
+            asks: self.mango_asks.to_account_info(),
+            event_queue: self.mango_event_queue.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -677,8 +666,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             self.mango_group.key,
             self.mango_program.key,
         )?;
-        // No computing left
-        // msg!("perp_info {:?}", perp_info);
+        msg!("perp_info {:?}", perp_info);
         Ok(perp_info)
     }
 
@@ -694,49 +682,25 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
-    fn find_best_order_in_book_for_quote_lot_amount(
-        &self,
-        taker_side: Side,
-        quote_lot_amount: i64,
-    ) -> Result<Order> {
-        let perp_market = PerpMarket::load_checked(
-            &self.mango_perp_market,
-            self.mango_program.key,
-            self.mango_group.key,
-        )
-        .map_err(|me| ProgramError::from(me))?;
-        // Load the maker side of the book
-        let book_maker_side = match taker_side {
-            Side::Bid => {
-                BookSide::load_mut_checked(&self.mango_asks, self.mango_program.key, &perp_market)
-            }
-            Side::Ask => {
-                BookSide::load_mut_checked(&self.mango_bids, self.mango_program.key, &perp_market)
-            }
-        }
-        .map_err(|me| ProgramError::from(me))?;
-        // Search for the best order to spend the given amount of quote lot
-        get_best_order_for_quote_lot_amount(book_maker_side, taker_side, quote_lot_amount)
-    }
-
+    // Update the accounting in the Depository Account to reflect changes
     fn update_onchain_accounting(
         &mut self,
-        collateral_delta: u64,
-        quote_delta: u64,
-        fee_delta: u64,
-        polarity: &PnlPolarity,
-    ) -> Result<()> {
-        // Mango Depository
-        let event = match polarity {
-            PnlPolarity::Positive => AccountingEvent::Deposit,
-            PnlPolarity::Negative => AccountingEvent::Withdraw,
-        };
-        self.depository
-            .update_collateral_amount_deposited(&event, collateral_delta)?;
-        self.depository.update_rebalanced_amount(quote_delta)?;
-        self.depository
-            .update_total_amount_paid_taker_fee(fee_delta)?;
-        Ok(())
+        collateral_delta: I80F48,
+        rebalanced_amount: I80F48,
+        fee_delta: I80F48,
+    ) {
+        self.depository.collateral_amount_deposited = self
+            .depository
+            .collateral_amount_deposited
+            .wrapping_add(collateral_delta.to_num());
+        self.depository.total_amount_rebalanced = self
+            .depository
+            .total_amount_rebalanced
+            .wrapping_add(rebalanced_amount.to_num());
+        self.depository.total_amount_paid_taker_fee = self
+            .depository
+            .total_amount_paid_taker_fee
+            .wrapping_add(fee_delta.abs().to_num());
     }
 }
 
@@ -748,22 +712,17 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         polarity: &PnlPolarity,
         slippage: u32,
     ) -> Result<()> {
-        // Valid slippage check
-        if (slippage > 0) && (slippage <= SLIPPAGE_BASIS) {
-            error!(UxdError::InvalidSlippage);
+        if slippage == 0 || slippage >= SLIPPAGE_BASIS {
+            return Err(error!(UxdError::InvalidSlippage));
         }
-
-        // Rebalancing amount must be above 0
-        if max_rebalancing_amount > 0 {
-            error!(UxdError::InvalidRebalancingAmount);
+        if max_rebalancing_amount == 0 {
+            return Err(error!(UxdError::InvalidRebalancingAmount));
         }
-
-        // Rebalancing amount must be above 0
         match polarity {
             PnlPolarity::Positive => (),
             PnlPolarity::Negative => {
-                if self.user_quote.amount >= max_rebalancing_amount {
-                    error!(UxdError::InsufficientQuoteAmount);
+                if self.user_quote.amount < max_rebalancing_amount {
+                    return Err(error!(UxdError::InsufficientQuoteAmount));
                 }
             }
         }

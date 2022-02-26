@@ -1,4 +1,3 @@
-use crate::error::UxdError;
 use anchor_lang::prelude::*;
 
 #[account]
@@ -76,82 +75,5 @@ impl AnchorDeserialize for MangoDepositoryPadding {
 impl Default for MangoDepositoryPadding {
     fn default() -> Self {
         MangoDepositoryPadding([0u8; 429])
-    }
-}
-
-pub enum AccountingEvent {
-    Deposit,
-    Withdraw,
-}
-
-impl MangoDepository {
-    pub fn update_insurance_amount_deposited(
-        &mut self,
-        event_type: &AccountingEvent,
-        amount: u64,
-    ) -> Result<()> {
-        self.insurance_amount_deposited = match event_type {
-            AccountingEvent::Deposit => self
-                .insurance_amount_deposited
-                .checked_add(amount.into())
-                .ok_or(error!(UxdError::MathError))?,
-            AccountingEvent::Withdraw => self
-                .insurance_amount_deposited
-                .checked_sub(amount.into())
-                .ok_or(error!(UxdError::MathError))?,
-        };
-        Ok(())
-    }
-
-    pub fn update_collateral_amount_deposited(
-        &mut self,
-        event_type: &AccountingEvent,
-        amount: u64,
-    ) -> Result<()> {
-        self.collateral_amount_deposited = match event_type {
-            AccountingEvent::Deposit => self
-                .collateral_amount_deposited
-                .checked_add(amount.into())
-                .ok_or(error!(UxdError::MathError))?,
-            AccountingEvent::Withdraw => self
-                .collateral_amount_deposited
-                .checked_sub(amount.into())
-                .ok_or(error!(UxdError::MathError))?,
-        };
-        Ok(())
-    }
-
-    pub fn update_redeemable_amount_under_management(
-        &mut self,
-        event_type: &AccountingEvent,
-        amount: u64,
-    ) -> Result<()> {
-        self.redeemable_amount_under_management = match event_type {
-            AccountingEvent::Deposit => self
-                .redeemable_amount_under_management
-                .checked_add(amount.into())
-                .ok_or(error!(UxdError::MathError))?,
-            AccountingEvent::Withdraw => self
-                .redeemable_amount_under_management
-                .checked_sub(amount.into())
-                .ok_or(error!(UxdError::MathError))?,
-        };
-        Ok(())
-    }
-
-    pub fn update_total_amount_paid_taker_fee(&mut self, amount: u64) -> Result<()> {
-        self.total_amount_paid_taker_fee = self
-            .total_amount_paid_taker_fee
-            .checked_add(amount.into())
-            .ok_or(error!(UxdError::MathError))?;
-        Ok(())
-    }
-
-    pub fn update_rebalanced_amount(&mut self, amount: u64) -> Result<()> {
-        self.total_amount_rebalanced = self
-            .total_amount_rebalanced
-            .checked_add(amount.into())
-            .ok_or(error!(UxdError::MathError))?;
-        Ok(())
     }
 }

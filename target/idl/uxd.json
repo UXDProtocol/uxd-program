@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0",
+  "version": "3.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -358,7 +358,7 @@
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -474,7 +474,7 @@
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -765,7 +765,7 @@
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1023,20 +1023,6 @@
     }
   ],
   "types": [
-    {
-      "name": "AccountingEvent",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Deposit"
-          },
-          {
-            "name": "Withdraw"
-          }
-        ]
-      }
-    },
     {
       "name": "PnlPolarity",
       "type": {
@@ -1357,18 +1343,18 @@
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
-          "name": "redeemableDelta",
-          "type": "u64",
+          "name": "quoteDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -1407,18 +1393,18 @@
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
-          "name": "redeemableDelta",
-          "type": "u64",
+          "name": "quoteDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -1474,18 +1460,18 @@
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "quoteDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -1732,8 +1718,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
-  ],
-  "metadata": {
-    "address": "7G1DFbvNQoACCmy7iXWuGq4Bo9daKquaU4dHsLMK7TsC"
-  }
+  ]
 }

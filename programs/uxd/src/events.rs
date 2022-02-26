@@ -177,14 +177,14 @@ pub struct MintWithMangoDepositoryEvent {
     /// The user making the call.
     #[index]
     pub user: Pubkey,
-    // The collateral amount in native units.
+    // The collateral amount in native units. (input)
     pub collateral_amount: u64,
-    // The user selected slippage.
+    // The user selected slippage. (input)
     pub slippage: u32,
     // The different deltas after successful minting operation.
-    pub collateral_delta: u64,
-    pub redeemable_delta: u64,
-    pub fee_delta: u64,
+    pub base_delta: i64,
+    pub quote_delta: i64,
+    pub fee_delta: i64,
 }
 
 /// Event called in [instructions::mango_dex::redeem_from_mango_depository::handler].
@@ -202,14 +202,14 @@ pub struct RedeemFromMangoDepositoryEvent {
     /// The user making the call.
     #[index]
     pub user: Pubkey,
-    // The redeemable amount in native units.
+    // The redeemable amount in native units. (input)
     pub redeemable_amount: u64,
-    // The user selected slippage.
+    // The user selected slippage. (input)
     pub slippage: u32,
     // The different deltas after successful minting operation.
-    pub collateral_delta: u64,
-    pub redeemable_delta: u64,
-    pub fee_delta: u64,
+    pub base_delta: i64,
+    pub quote_delta: i64,
+    pub fee_delta: i64,
 }
 
 /// Event called in [instructions::rebalance_mango_depository_lite::handler].
@@ -230,16 +230,16 @@ pub struct RebalanceMangoDepositoryLiteEvent {
     /// The user making the call.
     #[index]
     pub user: Pubkey,
-    // The polarity of the rebalancing operation
+    // The polarity of the rebalancing operation. (input)
     pub polarity: PnlPolarity,
     // The desired rebalancing amount in Quote native units. (input)
     pub rebalancing_amount: u64,
     // The actual rebalancing amount in Quote native units.
     pub rebalanced_amount: u64,
-    // The user selected slippage.
+    // The user selected slippage. (input)
     pub slippage: u32,
     // The different deltas after successful rebalancing operation.
-    pub collateral_delta: u64,
-    pub quote_delta: u64,
-    pub fee_delta: u64,
+    pub base_delta: i64,
+    pub quote_delta: i64,
+    pub fee_delta: i64,
 }

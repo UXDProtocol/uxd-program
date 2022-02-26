@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "3.0.0",
+  "version": "3.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -358,7 +358,7 @@ export type Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -474,7 +474,7 @@ export type Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -765,7 +765,7 @@ export type Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1023,20 +1023,6 @@ export type Uxd = {
     }
   ],
   "types": [
-    {
-      "name": "AccountingEvent",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Deposit"
-          },
-          {
-            "name": "Withdraw"
-          }
-        ]
-      }
-    },
     {
       "name": "PnlPolarity",
       "type": {
@@ -1357,18 +1343,18 @@ export type Uxd = {
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
-          "name": "redeemableDelta",
-          "type": "u64",
+          "name": "quoteDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -1407,18 +1393,18 @@ export type Uxd = {
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
-          "name": "redeemableDelta",
-          "type": "u64",
+          "name": "quoteDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -1474,18 +1460,18 @@ export type Uxd = {
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "quoteDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -1736,7 +1722,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "3.0.0",
+  "version": "3.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -2095,7 +2081,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2211,7 +2197,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2502,7 +2488,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2760,20 +2746,6 @@ export const IDL: Uxd = {
     }
   ],
   "types": [
-    {
-      "name": "AccountingEvent",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Deposit"
-          },
-          {
-            "name": "Withdraw"
-          }
-        ]
-      }
-    },
     {
       "name": "PnlPolarity",
       "type": {
@@ -3094,18 +3066,18 @@ export const IDL: Uxd = {
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
-          "name": "redeemableDelta",
-          "type": "u64",
+          "name": "quoteDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -3144,18 +3116,18 @@ export const IDL: Uxd = {
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
-          "name": "redeemableDelta",
-          "type": "u64",
+          "name": "quoteDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -3211,18 +3183,18 @@ export const IDL: Uxd = {
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "quoteDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]

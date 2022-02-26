@@ -103,7 +103,7 @@ pub struct RegisterMangoDepository<'info> {
         init,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
         bump,
-        owner = mango_markets_v3::Mango::id(),
+        owner = MangoMarketV3::id(),
         payer = payer,
         space = MANGO_ACCOUNT_SPAN,
     )]
@@ -131,6 +131,8 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     let insurance_mint = ctx.accounts.insurance_mint.key();
     let quote_mint = ctx.accounts.quote_mint.key();
 
+    msg!("key {}", MangoMarketV3::id());
+
     // - Initialize Mango Account
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
@@ -138,36 +140,35 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
         &[*ctx
             .bumps
             .get("depository")
-            .ok_or(error!(UxdError::BumpError))?],
+            .ok_or_else(|| error!(UxdError::BumpError))?],
     ]];
-    mango_markets_v3::create_mango_account(
+    mango_markets_v3::init_mango_account(
         ctx.accounts
-            .into_mango_account_account_context()
+            .into_mango_init_account_context()
             .with_signer(depository_signer_seed),
-        1,
     )?;
 
     // - Initialize Depository state
     ctx.accounts.depository.bump = *ctx
         .bumps
         .get("depository")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     ctx.accounts.depository.collateral_passthrough_bump = *ctx
         .bumps
         .get("depository_collateral_passthrough_account")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     ctx.accounts.depository.insurance_passthrough_bump = *ctx
         .bumps
         .get("depository_insurance_passthrough_account")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     ctx.accounts.depository.quote_passthrough_bump = *ctx
         .bumps
         .get("depository_quote_passthrough_account")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     ctx.accounts.depository.mango_account_bump = *ctx
         .bumps
         .get("depository_mango_account")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     ctx.accounts.depository.version = MANGO_DEPOSITORY_ACCOUNT_VERSION;
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
@@ -207,15 +208,13 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
 }
 
 impl<'info> RegisterMangoDepository<'info> {
-    pub fn into_mango_account_account_context(
+    pub fn into_mango_init_account_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::CreateMangoAccount<'info>> {
-        let cpi_accounts = mango_markets_v3::CreateMangoAccount {
+    ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::InitMangoAccount<'info>> {
+        let cpi_accounts = mango_markets_v3::InitMangoAccount {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
-            system_prog: self.system_program.to_account_info(),
-            payer: self.payer.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)

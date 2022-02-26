@@ -1,6 +1,5 @@
 use crate::error::UxdError;
 use crate::events::DepositInsuranceToMangoDepositoryEvent;
-use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -113,10 +112,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 
-pub fn handler(
-    ctx: Context<DepositInsuranceToMangoDepository>,
-    insurance_amount: u64, // native units
-) -> Result<()> {
+pub fn handler(ctx: Context<DepositInsuranceToMangoDepository>, amount: u64) -> Result<()> {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
     let depository_signer_seeds: &[&[&[u8]]] = &[&[
@@ -128,21 +124,18 @@ pub fn handler(
     // - 1 [TRANSFER INSURANCE TO MANGO] --------------------------------------
 
     // - Transfers insurance to the passthrough account
-    token::transfer(
-        ctx.accounts.into_transfer_to_passthrough_context(),
-        insurance_amount,
-    )?;
+    token::transfer(ctx.accounts.into_transfer_to_passthrough_context(), amount)?;
 
     // - Deposit Insurance to Mango Account
     mango_markets_v3::deposit(
         ctx.accounts
             .into_deposit_to_mango_context()
             .with_signer(depository_signer_seeds),
-        insurance_amount,
+        amount,
     )?;
 
     // - 2 [UPDATE ACCOUNTING] ------------------------------------------------
-    ctx.accounts.update_accounting(insurance_amount)?;
+    ctx.accounts.update_accounting(amount)?;
 
     emit!(DepositInsuranceToMangoDepositoryEvent {
         version: ctx.accounts.controller.version,
@@ -150,7 +143,7 @@ pub fn handler(
         depository: ctx.accounts.depository.key(),
         insurance_mint: ctx.accounts.depository.insurance_mint,
         insurance_mint_decimals: ctx.accounts.depository.insurance_mint_decimals,
-        deposited_amount: insurance_amount,
+        deposited_amount: amount,
     });
 
     Ok(())
@@ -193,9 +186,12 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
 
 // Additional convenience methods related to the inputted accounts
 impl<'info> DepositInsuranceToMangoDepository<'info> {
-    fn update_accounting(&mut self, insurance_delta: u64) -> Result<()> {
-        self.depository
-            .update_insurance_amount_deposited(&AccountingEvent::Deposit, insurance_delta)?;
+    fn update_accounting(&mut self, amount: u64) -> Result<()> {
+        self.depository.insurance_amount_deposited = self
+            .depository
+            .insurance_amount_deposited
+            .checked_add(amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
         Ok(())
     }
 }
@@ -203,10 +199,10 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
 // Validate input arguments
 impl<'info> DepositInsuranceToMangoDepository<'info> {
     pub fn validate(&self, insurance_amount: u64) -> Result<()> {
-        if insurance_amount > 0 {
+        if insurance_amount == 0 {
             return Err(error!(UxdError::InvalidInsuranceAmount));
         }
-        if self.authority_insurance.amount >= insurance_amount {
+        if self.authority_insurance.amount < insurance_amount {
             return Err(error!(UxdError::InsufficientAuthorityInsuranceAmount));
         }
         Ok(())

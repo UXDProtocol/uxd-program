@@ -19,7 +19,7 @@ export async function initializeController(authority: Signer, payer: Signer, con
     if (payer) {
         signers.push(payer);
     }
-
+    tx.feePayer = payer.publicKey;
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
@@ -33,7 +33,7 @@ export async function registerMangoDepository(authority: Signer, payer: Signer, 
     if (payer) {
         signers.push(payer);
     }
-
+    tx.feePayer = payer.publicKey;
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
@@ -47,7 +47,7 @@ export async function migrateMangoDepositoryToV2(authority: Signer, payer: Signe
     if (payer) {
         signers.push(payer);
     }
-
+    tx.feePayer = payer.publicKey;
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
@@ -118,7 +118,7 @@ export async function mintWithMangoDepository(user: Signer, payer: Signer, slipp
     if (payer) {
         signers.push(payer);
     }
-
+    tx.feePayer = payer.publicKey;
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
@@ -134,6 +134,7 @@ export async function redeemFromMangoDepository(user: Signer, payer: Signer, sli
         signers.push(payer);
     }
 
+    tx.feePayer = payer.publicKey;
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
@@ -165,6 +166,7 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
         signers.push(payer);
     }
 
+    tx.feePayer = payer.publicKey;
     let txId = web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 
     // PNL should be settled afterward to ensure we have no "borrow" to prevent paying interests
