@@ -34,6 +34,8 @@ const SUPPORTED_DEPOSITORY_VERSION: u8 = 2;
 #[derive(Accounts)]
 pub struct RebalanceMangoDepositoryLite<'info> {
     /// #1 Public call accessible to any user
+    /// Note - Mut required for WSOL unwrapping
+    // #[account(mut)]
     pub user: Signer<'info>,
 
     /// #2
@@ -419,6 +421,12 @@ pub fn handler(
                     .with_signer(depository_signer_seed),
                 quote_withdraw_amount,
             )?;
+            // - 6 [UPDATE ACCOUNTING] ------------------------------------------------
+            ctx.accounts.update_onchain_accounting_positive_pnl(
+                collateral_deposit_amount.into(),
+                quote_withdraw_amount.into(),
+                order_delta.fee.abs().to_num(),
+            )?;
         }
         PnlPolarity::Negative => {
             // - 4 [TRANSFER QUOTE TO MANGO (Plus Taker Fees)] ----------------------------------
@@ -466,18 +474,19 @@ pub fn handler(
             )?;
 
             // - [If ATA mint is WSOL, unwrap]
-            if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
-                token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
-            }
+            // Note - Computing too short for now
+            // if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
+            //     token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
+            // }
+
+            // - 6 [UPDATE ACCOUNTING] ------------------------------------------------
+            ctx.accounts.update_onchain_accounting_negative_pnl(
+                collateral_withdraw_amount.into(),
+                quote_deposit_amount.into(),
+                order_delta.fee.abs().to_num(),
+            )?;
         }
     }
-
-    // - 6 [UPDATE ACCOUNTING] ------------------------------------------------
-    ctx.accounts.update_onchain_accounting(
-        order_delta.base,
-        rebalancing_quote_amount,
-        order_delta.fee,
-    );
 
     // emit!(RebalanceMangoDepositoryLiteEvent {
     //     version: ctx.accounts.controller.version,
@@ -682,25 +691,45 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
-    // Update the accounting in the Depository Account to reflect changes
-    fn update_onchain_accounting(
+    fn update_onchain_accounting_negative_pnl(
         &mut self,
-        collateral_delta: I80F48,
-        rebalanced_amount: I80F48,
-        fee_delta: I80F48,
-    ) {
+        collateral_withdrawn_amount: u128,
+        rebalanced_amount: u128,
+        fee_amount: u128,
+    ) -> Result<()> {
         self.depository.collateral_amount_deposited = self
             .depository
             .collateral_amount_deposited
-            .wrapping_add(collateral_delta.to_num());
+            .checked_sub(collateral_withdrawn_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        self.update_onchain_accounting(rebalanced_amount, fee_amount);
+        Ok(())
+    }
+
+    fn update_onchain_accounting_positive_pnl(
+        &mut self,
+        collateral_deposited_amount: u128,
+        rebalanced_amount: u128,
+        fee_amount: u128,
+    ) -> Result<()> {
+        self.depository.collateral_amount_deposited = self
+            .depository
+            .collateral_amount_deposited
+            .checked_add(collateral_deposited_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        self.update_onchain_accounting(rebalanced_amount, fee_amount);
+        Ok(())
+    }
+
+    fn update_onchain_accounting(&mut self, rebalanced_amount: u128, fee_amount: u128) {
         self.depository.total_amount_rebalanced = self
             .depository
             .total_amount_rebalanced
-            .wrapping_add(rebalanced_amount.to_num());
+            .wrapping_add(rebalanced_amount);
         self.depository.total_amount_paid_taker_fee = self
             .depository
             .total_amount_paid_taker_fee
-            .wrapping_add(fee_delta.abs().to_num());
+            .wrapping_add(fee_amount);
     }
 }
 

@@ -32,6 +32,8 @@ use mango::state::PerpAccount;
 #[derive(Accounts)]
 pub struct RedeemFromMangoDepository<'info> {
     /// #1 Public call accessible to any user
+    /// Note - Mut required for WSOL unwrapping
+    #[account(mut)]
     pub user: Signer<'info>,
 
     /// #2
@@ -245,7 +247,7 @@ pub fn handler(
         return Err(error!(UxdError::InvalidOrderDirection));
     }
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;
-    // msg!("order_delta {:?}", order_delta);
+    msg!("order_delta {:?}", order_delta);
 
     // The resulting UXD amount is equal to the quote delta plus the fees.
     // By burning the amount plus the fees, the user is paying them. (and we made sure
@@ -253,16 +255,23 @@ pub fn handler(
     let redeemable_delta = order_delta
         .quote
         .checked_add(order_delta.fee)
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_abs()
         .ok_or_else(|| error!(UxdError::MathError))?;
-    let burn_amount = redeemable_delta
+    let redeemable_burn_amount = redeemable_delta
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    token::burn(ctx.accounts.into_burn_redeemable_context(), burn_amount)?;
+    token::burn(
+        ctx.accounts.into_burn_redeemable_context(),
+        redeemable_burn_amount,
+    )?;
 
     // - 3 [WITHDRAW COLLATERAL FROM MANGO THEN RETURN TO USER] ---------------
     let collateral_withdraw_amount = order_delta
         .base
+        .checked_abs()
+        .ok_or_else(|| error!(UxdError::MathError))?
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
@@ -275,7 +284,7 @@ pub fn handler(
         false,
     )?;
 
-    // - [Else return collateral back to user ATA]
+    // - [Return collateral back to user ATA]
     token::transfer(
         ctx.accounts
             .into_transfer_collateral_to_user_context()
@@ -290,8 +299,11 @@ pub fn handler(
 
     // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
 
-    ctx.accounts
-        .update_onchain_accounting(order_delta.base, redeemable_delta, order_delta.fee);
+    ctx.accounts.update_onchain_accounting(
+        collateral_withdraw_amount.into(),
+        redeemable_burn_amount.into(),
+        order_delta.fee.abs().to_num(),
+    )?;
 
     // emit!(RedeemFromMangoDepositoryEvent {
     //     version: ctx.accounts.controller.version,
@@ -416,28 +428,32 @@ impl<'info> RedeemFromMangoDepository<'info> {
     // Update the accounting in the Depository and Controller Accounts to reflect changes
     fn update_onchain_accounting(
         &mut self,
-        collateral_delta: I80F48,
-        redeemable_delta: I80F48,
-        fee_delta: I80F48,
-    ) {
+        collateral_withdrawn_amount: u128,
+        redeemable_burnt_amount: u128,
+        fee_amount: u128,
+    ) -> Result<()> {
         // Mango Depository
         self.depository.collateral_amount_deposited = self
             .depository
             .collateral_amount_deposited
-            .wrapping_add(collateral_delta.to_num());
+            .checked_sub(collateral_withdrawn_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
         self.depository.redeemable_amount_under_management = self
             .depository
             .redeemable_amount_under_management
-            .wrapping_add(redeemable_delta.to_num());
+            .checked_add(redeemable_burnt_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
         self.depository.total_amount_paid_taker_fee = self
             .depository
             .total_amount_paid_taker_fee
-            .wrapping_add(fee_delta.abs().to_num());
+            .wrapping_add(fee_amount);
         // Controller
         self.controller.redeemable_circulating_supply = self
             .controller
             .redeemable_circulating_supply
-            .wrapping_add(redeemable_delta.to_num());
+            .checked_add(redeemable_burnt_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        Ok(())
     }
 }
 

@@ -201,7 +201,7 @@ pub fn handler(
     // - 2 [TRANSFER COLLATERAL TO MANGO (LONG)] ------------------------------
     // It's the amount we are depositing on the MangoAccount and that will be used as collateral
     // to open the short perp
-    let deposited_collateral = max_base_quantity
+    let collateral_deposited_amount = max_base_quantity
         .checked_mul(perp_info.base_lot_size)
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_to_num()
@@ -211,7 +211,7 @@ pub fn handler(
     token::transfer(
         ctx.accounts
             .into_transfer_user_collateral_to_passthrough_context(),
-        deposited_collateral,
+        collateral_deposited_amount,
     )?;
 
     // - [MangoMarkets CPI - Deposit collateral to Depository MangoAccount]
@@ -219,7 +219,7 @@ pub fn handler(
         ctx.accounts
             .into_deposit_to_mango_context()
             .with_signer(depository_pda_signer),
-        deposited_collateral,
+        collateral_deposited_amount,
     )?;
 
     // - 3 [OPEN SHORT PERP] --------------------------------------------------
@@ -275,15 +275,20 @@ pub fn handler(
         .quote
         .checked_sub(order_delta.fee)
         .ok_or_else(|| error!(UxdError::MathError))?;
-    let mint_amount = redeemable_delta
+    let redeemable_mint_amount = redeemable_delta
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     ctx.accounts
-        .check_mango_depositories_redeemable_soft_cap_overflow(mint_amount)?;
+        .check_mango_depositories_redeemable_soft_cap_overflow(redeemable_mint_amount)?;
 
+    let collateral_shorted_amount: u64 = order_delta
+        .base
+        .unsigned_abs()
+        .checked_to_num()
+        .ok_or_else(|| error!(UxdError::MathError))?;
     // validate that the deposited_collateral matches the amount shorted
-    if deposited_collateral != order_delta.base.unsigned_abs() {
+    if collateral_deposited_amount != collateral_shorted_amount {
         return Err(error!(UxdError::InvalidCollateralDelta));
     }
 
@@ -292,7 +297,7 @@ pub fn handler(
         ctx.accounts
             .into_mint_redeemable_context()
             .with_signer(controller_pda_signer),
-        mint_amount,
+        redeemable_mint_amount,
     )?;
 
     // - [if ATA mint is WSOL, unwrap]
@@ -301,8 +306,11 @@ pub fn handler(
     }
 
     // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
-    ctx.accounts
-        .update_onchain_accounting(order_delta.base, redeemable_delta, order_delta.fee);
+    ctx.accounts.update_onchain_accounting(
+        collateral_shorted_amount.into(),
+        redeemable_mint_amount.into(),
+        order_delta.fee.to_num(),
+    )?;
 
     // - 6 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
@@ -447,28 +455,32 @@ impl<'info> MintWithMangoDepository<'info> {
     // Update the accounting in the Depository and Controller Accounts to reflect changes
     fn update_onchain_accounting(
         &mut self,
-        collateral_delta: I80F48,
-        redeemable_delta: I80F48,
-        fee_delta: I80F48,
-    ) {
+        collateral_shorted_amount: u128,
+        redeemable_minted_amount: u128,
+        fee_amount: u128,
+    ) -> Result<()> {
         // Mango Depository
         self.depository.collateral_amount_deposited = self
             .depository
             .collateral_amount_deposited
-            .wrapping_add(collateral_delta.to_num());
+            .checked_add(collateral_shorted_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
         self.depository.redeemable_amount_under_management = self
             .depository
             .redeemable_amount_under_management
-            .wrapping_add(redeemable_delta.to_num());
+            .checked_add(redeemable_minted_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
         self.depository.total_amount_paid_taker_fee = self
             .depository
             .total_amount_paid_taker_fee
-            .wrapping_add(fee_delta.abs().to_num());
+            .wrapping_add(fee_amount);
         // Controller
         self.controller.redeemable_circulating_supply = self
             .controller
             .redeemable_circulating_supply
-            .wrapping_add(redeemable_delta.to_num());
+            .checked_add(redeemable_minted_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        Ok(())
     }
 }
 

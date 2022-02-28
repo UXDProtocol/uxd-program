@@ -1,7 +1,7 @@
 import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
-import { transferAllSol, transferSol, transferTokens } from "./utils";
+import { printDepositoryInfo, printUserInfo, transferAllSol, transferSol, transferTokens } from "./utils";
 import { depositInsuranceMangoDepositoryTest } from "./cases/depositInsuranceMangoDepositoryTest";
 import { initializeMangoDepositoryTest } from "./cases/initializeMangoDepositoryTest";
 import { mango } from "./fixtures";
@@ -42,10 +42,10 @@ describe("Integration tests SOL", function () {
         it(`Initialize ${depository.collateralMintSymbol} Depository`, async function () {
             await initializeMangoDepositoryTest(authority, controller, depository, mango, payer);
         });
-        it(`Initialize ${depository.collateralMintSymbol} Depository`, async function () {
+        it(`Initialize ${mangoDepositoryBTC.collateralMintSymbol} Depository`, async function () {
             await initializeMangoDepositoryTest(authority, controller, mangoDepositoryBTC, mango, payer);
         });
-        it(`Initialize ${depository.collateralMintSymbol} Depository`, async function () {
+        it(`Initialize ${mangoDepositoryETH.collateralMintSymbol} Depository`, async function () {
             await initializeMangoDepositoryTest(authority, controller, mangoDepositoryETH, mango, payer);
         });
 
@@ -62,13 +62,7 @@ describe("Integration tests SOL", function () {
         // });
     });
 
-
-    describe("mangoDepositoryRebalancingSuite SOL", function () {
-        const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(slippage)
-        mangoDepositoryRebalancingSuite(user, bank, controller, depository, paramsRebalancing);
-    });
-
-    describe.skip("Test minting/redeeming", async function () {
+    describe("Test minting/redeeming", async function () {
         it(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
             const perpPrice = await depository.getCollateralPerpPriceUI(mango);
             const amount = 10 / perpPrice;
@@ -83,6 +77,19 @@ describe("Integration tests SOL", function () {
 
             await mintWithMangoDepositoryTest(minTradingSize * 2, slippage, user, controller, depository, mango, payer);
             await redeemFromMangoDepositoryTest(minRedeemAmount, slippage, user, controller, depository, mango, payer);
+        });
+    });
+
+    // Note - Keep a mint/redeem before rebalancing so that it creates the necessary accounts for computing
+    describe("mangoDepositoryRebalancingSuite SOL", function () {
+        const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(slippage)
+        mangoDepositoryRebalancingSuite(user, bank, controller, depository, paramsRebalancing);
+    });
+
+    describe("info", async function () {
+        it("info", async function () {
+            await printUserInfo(user.publicKey, controller, depository);
+            await printDepositoryInfo(controller, depository, mango);
         });
     });
 

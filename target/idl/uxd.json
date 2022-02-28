@@ -715,7 +715,7 @@
       "accounts": [
         {
           "name": "user",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -1718,5 +1718,8 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "EVLUCL8duPtw52uU1H6P2rSZYcbVsnhfvQEejPtRPyKu"
+  }
 }

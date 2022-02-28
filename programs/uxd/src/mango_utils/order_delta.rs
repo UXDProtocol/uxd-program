@@ -22,8 +22,8 @@ pub fn quote_delta(
 ) -> Result<I80F48> {
     let pre_taker_quote = I80F48::from_num(pre_pa.taker_quote);
     let post_taker_quote = I80F48::from_num(post_pa.taker_quote);
-    let quote_lot_delta = pre_taker_quote
-        .checked_dist(post_taker_quote)
+    let quote_lot_delta = post_taker_quote
+        .checked_sub(pre_taker_quote)
         .ok_or_else(|| error!(UxdError::MathError))?;
     quote_lot_delta
         .checked_mul(quote_lot_size)
@@ -38,8 +38,8 @@ pub fn base_delta(
 ) -> Result<I80F48> {
     let pre_base_lot_position = total_perp_base_lot_position(pre_pa)?;
     let post_base_lot_position = total_perp_base_lot_position(post_pa)?;
-    let base_lot_delta = pre_base_lot_position
-        .checked_dist(post_base_lot_position)
+    let base_lot_delta = post_base_lot_position
+        .checked_sub(pre_base_lot_position)
         .ok_or_else(|| error!(UxdError::MathError))?;
     base_lot_delta
         .checked_mul(base_lot_size)
