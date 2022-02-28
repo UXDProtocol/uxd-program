@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::MANGO_PERP_MAX_FILL_EVENTS;
 // use crate::events::MintWithMangoDepositoryEvent;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::limit_price;
@@ -170,7 +171,7 @@ pub struct MintWithMangoDepository<'info> {
 pub fn handler(
     ctx: Context<MintWithMangoDepository>,
     collateral_amount: u64,
-    slippage: u32,
+    slippage: u16,
 ) -> Result<()> {
     let depository = &ctx.accounts.depository;
     let controller = &ctx.accounts.controller;
@@ -242,7 +243,7 @@ pub fn handler(
         OrderType::ImmediateOrCancel,
         false,
         None,
-        10,
+        MANGO_PERP_MAX_FILL_EVENTS,
     )?;
 
     // - [Perp account state POST perp order]
@@ -494,8 +495,8 @@ fn check_perp_order_fully_filled(
 
 // Validate input arguments
 impl<'info> MintWithMangoDepository<'info> {
-    pub fn validate(&self, collateral_amount: u64, slippage: u32) -> Result<()> {
-        if slippage == 0 || slippage > SLIPPAGE_BASIS {
+    pub fn validate(&self, collateral_amount: u64, slippage: u16) -> Result<()> {
+        if slippage > SLIPPAGE_BASIS {
             return Err(error!(UxdError::InvalidSlippage));
         }
         if collateral_amount == 0 {

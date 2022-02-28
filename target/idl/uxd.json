@@ -551,7 +551,7 @@
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     },
@@ -681,7 +681,7 @@
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     },
@@ -821,7 +821,7 @@
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     }
@@ -1314,7 +1314,7 @@
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
@@ -1364,7 +1364,7 @@
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
@@ -1431,7 +1431,7 @@
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {

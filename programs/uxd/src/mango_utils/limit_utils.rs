@@ -6,12 +6,8 @@ use fixed::types::I80F48;
 use mango::matching::Side;
 
 // Return the slippage amount, given a price and a slippage.
-pub fn calculate_slippage_amount(price: I80F48, slippage: u32) -> Result<I80F48> {
-    let slippage = I80F48::from_num(slippage);
-    let slippage_basis = I80F48::from_num(SLIPPAGE_BASIS);
-    let slippage_ratio = slippage
-        .checked_div(slippage_basis)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+pub fn calculate_slippage_amount(price: I80F48, slippage: u16) -> Result<I80F48> {
+    let slippage_ratio = I80F48::from_num(slippage) / I80F48::from_num(SLIPPAGE_BASIS);
     price
         .checked_mul(slippage_ratio)
         .ok_or_else(|| error!(UxdError::MathError))
@@ -22,7 +18,7 @@ pub fn calculate_slippage_amount(price: I80F48, slippage: u32) -> Result<I80F48>
 // Meaning that you'r willing to go as far as limit price.
 //  If you are BID as the taker, matched_side is ASK, and you'll buy from price down to (price + slippage)
 //  If you are ASK as the taker, matched_side is BID, and you'll sell from price down to (price - slippage)
-pub fn limit_price(price: I80F48, slippage: u32, taker_side: Side) -> Result<I80F48> {
+pub fn limit_price(price: I80F48, slippage: u16, taker_side: Side) -> Result<I80F48> {
     let slippage_amount = calculate_slippage_amount(price, slippage)?;
     match taker_side {
         Side::Bid => price

@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::MANGO_PERP_MAX_FILL_EVENTS;
 // use crate::events::RebalanceMangoDepositoryLiteEvent;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::limit_price;
@@ -210,7 +211,7 @@ pub fn handler(
     ctx: Context<RebalanceMangoDepositoryLite>,
     max_rebalancing_amount: u64,
     polarity: &PnlPolarity,
-    slippage: u32,
+    slippage: u16,
 ) -> Result<()> {
     let depository = &ctx.accounts.depository;
     let depository_signer_seed: &[&[&[u8]]] = &[&[
@@ -345,7 +346,7 @@ pub fn handler(
         OrderType::ImmediateOrCancel,
         reduce_only,
         None,
-        10,
+        MANGO_PERP_MAX_FILL_EVENTS,
     )?;
 
     // - [Perp account state POST perp order]
@@ -738,9 +739,9 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         &self,
         max_rebalancing_amount: u64,
         polarity: &PnlPolarity,
-        slippage: u32,
+        slippage: u16,
     ) -> Result<()> {
-        if slippage == 0 || slippage > SLIPPAGE_BASIS {
+        if slippage > SLIPPAGE_BASIS {
             return Err(error!(UxdError::InvalidSlippage));
         }
         if max_rebalancing_amount == 0 {

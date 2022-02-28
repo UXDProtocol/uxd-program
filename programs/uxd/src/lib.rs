@@ -37,8 +37,11 @@ pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million r
 pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
 
-const SLIPPAGE_BASIS: u32 = 1000;
+const SLIPPAGE_BASIS: u16 = 1000;
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
+
+/// When looping through the orderbook to fill, it's FoK, so will fail either way.
+const MANGO_PERP_MAX_FILL_EVENTS: u8 = u8::MAX;
 
 #[program]
 #[deny(unused_must_use)]
@@ -279,7 +282,7 @@ pub mod uxd {
         ctx: Context<RebalanceMangoDepositoryLite>,
         max_rebalancing_amount: u64,
         polarity: PnlPolarity,
-        slippage: u32,
+        slippage: u16,
     ) -> Result<()> {
         msg!(
             "[rebalance_mango_depository_lite] slippage {}, polarity {}",
@@ -328,7 +331,7 @@ pub mod uxd {
     pub fn mint_with_mango_depository(
         ctx: Context<MintWithMangoDepository>,
         collateral_amount: u64,
-        slippage: u32,
+        slippage: u16,
     ) -> Result<()> {
         msg!(
             "[mint_with_mango_depository] collateral_amount {}, slippage {}",
@@ -374,7 +377,7 @@ pub mod uxd {
     pub fn redeem_from_mango_depository(
         ctx: Context<RedeemFromMangoDepository>,
         redeemable_amount: u64,
-        slippage: u32,
+        slippage: u16,
     ) -> Result<()> {
         msg!(
             "[redeem_from_mango_depository] redeemable_amount {}, slippage {}",

@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::MANGO_PERP_MAX_FILL_EVENTS;
 // use crate::events::RedeemFromMangoDepositoryEvent;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::limit_price;
@@ -183,7 +184,7 @@ pub struct RedeemFromMangoDepository<'info> {
 pub fn handler(
     ctx: Context<RedeemFromMangoDepository>,
     redeemable_amount: u64,
-    slippage: u32,
+    slippage: u16,
 ) -> Result<()> {
     let depository = &ctx.accounts.depository;
     let depository_signer_seed: &[&[&[u8]]] = &[&[
@@ -238,7 +239,7 @@ pub fn handler(
         OrderType::ImmediateOrCancel,
         true,
         None,
-        10,
+        MANGO_PERP_MAX_FILL_EVENTS,
     )?;
 
     // - [Perp account state POST perp order]
@@ -459,8 +460,8 @@ impl<'info> RedeemFromMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> RedeemFromMangoDepository<'info> {
-    pub fn validate(&self, redeemable_amount: u64, slippage: u32) -> Result<()> {
-        if slippage == 0 || slippage > SLIPPAGE_BASIS {
+    pub fn validate(&self, redeemable_amount: u64, slippage: u16) -> Result<()> {
+        if slippage > SLIPPAGE_BASIS {
             return Err(error!(UxdError::InvalidSlippage));
         }
         if redeemable_amount == 0 {

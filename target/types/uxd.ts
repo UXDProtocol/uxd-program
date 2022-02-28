@@ -551,7 +551,7 @@ export type Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     },
@@ -681,7 +681,7 @@ export type Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     },
@@ -821,7 +821,7 @@ export type Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     }
@@ -1314,7 +1314,7 @@ export type Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
@@ -1364,7 +1364,7 @@ export type Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
@@ -1431,7 +1431,7 @@ export type Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
@@ -2249,7 +2249,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     },
@@ -2379,7 +2379,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     },
@@ -2519,7 +2519,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     }
@@ -3012,7 +3012,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
@@ -3062,7 +3062,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
@@ -3129,7 +3129,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
