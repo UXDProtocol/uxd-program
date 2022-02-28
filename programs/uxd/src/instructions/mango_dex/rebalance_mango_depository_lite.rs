@@ -53,7 +53,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
         mut,
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.bump,
         has_one = controller @UxdError::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
@@ -102,10 +102,9 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     /// and this only serves as a passthrough
     #[account(
         mut,
-        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
+        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.collateral_passthrough_bump,
         constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdError::InvalidCollateralPassthroughAccount,
-        constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdError::InvalidCollateralPassthroughATAMint
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
 
@@ -117,7 +116,6 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
         bump= depository.quote_passthrough_bump,
         constraint = depository.quote_passthrough == depository_quote_passthrough_account.key() @UxdError::InvalidQuotePassthroughAccount,
-        constraint = depository_quote_passthrough_account.mint == depository.quote_mint @UxdError::InvalidQuotePassthroughATAMint
     )]
     pub depository_quote_passthrough_account: Box<Account<'info, TokenAccount>>,
 
@@ -125,7 +123,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
-        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
+        seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
         bump = depository.mango_account_bump,
         constraint = depository.mango_account == depository_mango_account.key() @UxdError::InvalidMangoAccount,
     )]
@@ -214,10 +212,11 @@ pub fn handler(
     polarity: &PnlPolarity,
     slippage: u32,
 ) -> Result<()> {
+    let depository = &ctx.accounts.depository;
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
-        ctx.accounts.depository.collateral_mint.as_ref(),
-        &[ctx.accounts.depository.bump],
+        depository.collateral_mint.as_ref(),
+        &[depository.bump],
     ]];
 
     // - [Get perp information]
@@ -229,11 +228,11 @@ pub fn handler(
     // - 1 [FIND CURRENT UNREALIZED PNL AMOUNT]
 
     // - [find out current perp Unrealized PnL]
-    let perp_contract_size = perp_info.base_lot_size;
+    let contract_size = perp_info.base_lot_size;
     // Note : Loose precision but an average value is fine here, we just want a value close to the current PnL
     let perp_position_notional_size: i128 =
         I80F48::from_num(total_perp_base_lot_position(&pre_pa)?)
-            .checked_mul(perp_contract_size)
+            .checked_mul(contract_size)
             .ok_or_else(|| error!(UxdError::MathError))?
             .checked_mul(perp_info.price)
             .ok_or_else(|| error!(UxdError::MathError))?
@@ -245,9 +244,8 @@ pub fn handler(
     // minus the perp position notional size in quote.
     // Ideally they stay 1:1, to have the redeemable fully backed by the delta neutral
     // position and no paper profits.
-    let redeemable_under_management =
-        i128::try_from(ctx.accounts.depository.redeemable_amount_under_management)
-            .map_err(|_e| error!(UxdError::MathError))?;
+    let redeemable_under_management = i128::try_from(depository.redeemable_amount_under_management)
+        .map_err(|_e| error!(UxdError::MathError))?;
 
     // Will not overflow as `perp_position_notional_size` and `redeemable_under_management`
     // will vary together.
@@ -477,7 +475,7 @@ pub fn handler(
 
             // - [If ATA mint is WSOL, unwrap]
             // Note - Computing too short for now
-            // if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
+            // if depository.collateral_mint == spl_token::native_mint::id() {
             //     token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
             // }
 
@@ -491,10 +489,10 @@ pub fn handler(
     }
 
     // emit!(RebalanceMangoDepositoryLiteEvent {
-    //     version: ctx.accounts.controller.version,
-    //     depository_version: ctx.accounts.depository.version,
-    //     controller: ctx.accounts.controller.key(),
-    //     depository: ctx.accounts.depository.key(),
+    //     version: controller.version,
+    //     depository_version: depository.version,
+    //     controller: controller.key(),
+    //     depository: depository.key(),
     //     user: ctx.accounts.user.key(),
     //     polarity: polarity.clone(),
     //     rebalancing_amount: max_rebalancing_amount,
@@ -699,12 +697,17 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         rebalanced_amount: u128,
         fee_amount: u128,
     ) -> Result<()> {
-        self.depository.collateral_amount_deposited = self
-            .depository
+        let depository = &mut self.depository;
+        depository.collateral_amount_deposited = depository
             .collateral_amount_deposited
             .checked_sub(collateral_withdrawn_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
-        self.update_onchain_accounting(rebalanced_amount, fee_amount);
+        depository.total_amount_rebalanced = depository
+            .total_amount_rebalanced
+            .wrapping_add(rebalanced_amount);
+        depository.total_amount_paid_taker_fee = depository
+            .total_amount_paid_taker_fee
+            .wrapping_add(fee_amount);
         Ok(())
     }
 
@@ -714,24 +717,18 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         rebalanced_amount: u128,
         fee_amount: u128,
     ) -> Result<()> {
-        self.depository.collateral_amount_deposited = self
-            .depository
+        let depository = &mut self.depository;
+        depository.collateral_amount_deposited = depository
             .collateral_amount_deposited
             .checked_add(collateral_deposited_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
-        self.update_onchain_accounting(rebalanced_amount, fee_amount);
-        Ok(())
-    }
-
-    fn update_onchain_accounting(&mut self, rebalanced_amount: u128, fee_amount: u128) {
-        self.depository.total_amount_rebalanced = self
-            .depository
+        depository.total_amount_rebalanced = depository
             .total_amount_rebalanced
             .wrapping_add(rebalanced_amount);
-        self.depository.total_amount_paid_taker_fee = self
-            .depository
+        depository.total_amount_paid_taker_fee = depository
             .total_amount_paid_taker_fee
             .wrapping_add(fee_amount);
+        Ok(())
     }
 }
 

@@ -20,12 +20,12 @@ pub fn quote_delta(
     post_pa: &PerpAccount,
     quote_lot_size: I80F48,
 ) -> Result<I80F48> {
-    let pre_taker_quote = I80F48::from_num(pre_pa.taker_quote);
-    let post_taker_quote = I80F48::from_num(post_pa.taker_quote);
+    let pre_taker_quote = pre_pa.taker_quote;
+    let post_taker_quote = post_pa.taker_quote;
     let quote_lot_delta = post_taker_quote
         .checked_sub(pre_taker_quote)
         .ok_or_else(|| error!(UxdError::MathError))?;
-    quote_lot_delta
+    I80F48::from_num(quote_lot_delta)
         .checked_mul(quote_lot_size)
         .ok_or_else(|| error!(UxdError::MathError))
 }
@@ -41,7 +41,7 @@ pub fn base_delta(
     let base_lot_delta = post_base_lot_position
         .checked_sub(pre_base_lot_position)
         .ok_or_else(|| error!(UxdError::MathError))?;
-    base_lot_delta
+    I80F48::from_num(base_lot_delta)
         .checked_mul(base_lot_size)
         .ok_or_else(|| error!(UxdError::MathError))
 }
@@ -66,13 +66,13 @@ pub fn derive_order_delta(
     post_pa: &PerpAccount,
     perp_info: &PerpInfo,
 ) -> Result<OrderDelta> {
+    let base_delta = base_delta(pre_pa, post_pa, perp_info.base_lot_size)?;
     let quote_delta = quote_delta(pre_pa, post_pa, perp_info.quote_lot_size)?;
     // Quote amount from an order cannot be 0 at this stage
     if quote_delta.is_zero() {
         return Err(error!(UxdError::InvalidQuoteDelta));
     }
     let fee_delta = taker_fee_amount_ceil(quote_delta, perp_info.effective_fee)?;
-    let base_delta = base_delta(pre_pa, post_pa, perp_info.base_lot_size)?;
 
     Ok(OrderDelta {
         base: base_delta,

@@ -147,7 +147,6 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
     // - Negative polarity sends QUOTE, gets COLLATERAL back.
     // - Positive polarity sends COLLATERAL, gets QUOTE back.
     if (polarity == PnLPolarity.Positive && depository.collateralMint.equals(NATIVE_MINT)) {
-        console.log("rebalancingMaxAmount :", rebalancingMaxAmountQuote);
         const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
         const rebalancingMaxAmountCollateral = rebalancingMaxAmountQuote / mangoPerpPrice;
         const nativeAmount = rebalancingMaxAmountCollateral * 10 ** depository.collateralMintDecimals;
@@ -158,6 +157,15 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
             nativeAmount
         );
         tx.instructions.push(...prepareWrappedSolIxs);
+    } else {
+        // TEMPORARY - Also make a WSOL account to prevent program doing it and save some computing
+        const createWSOLATAIxs = await prepareWrappedSolTokenAccount(
+            getConnection(),
+            payer.publicKey,
+            user.publicKey,
+            0
+        );
+        tx.instructions.push(...createWSOLATAIxs);
     }
 
     tx.instructions.push(rebalanceMangoDepositoryLiteIx);

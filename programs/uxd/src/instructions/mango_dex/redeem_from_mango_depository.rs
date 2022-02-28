@@ -104,7 +104,6 @@ pub struct RedeemFromMangoDepository<'info> {
         seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.collateral_passthrough_bump,
         constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdError::InvalidCollateralPassthroughAccount,
-        constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdError::InvalidCollateralPassthroughATAMint
     )]
     pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
 
@@ -186,10 +185,11 @@ pub fn handler(
     redeemable_amount: u64,
     slippage: u32,
 ) -> Result<()> {
+    let depository = &ctx.accounts.depository;
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
-        ctx.accounts.depository.collateral_mint.as_ref(),
-        &[ctx.accounts.depository.bump],
+        depository.collateral_mint.as_ref(),
+        &[depository.bump],
     ]];
 
     // - 1 [CLOSE THE EQUIVALENT PERP SHORT ON MANGO] -------------------------
@@ -245,7 +245,7 @@ pub fn handler(
     let post_pa = ctx.accounts.perp_account(&perp_info)?;
 
     // - 2 [BURN REDEEMABLES] -------------------------------------------------
-    if !(pre_pa.taker_quote > post_pa.taker_quote) {
+    if pre_pa.taker_quote < post_pa.taker_quote {
         return Err(error!(UxdError::InvalidOrderDirection));
     }
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;
@@ -295,7 +295,7 @@ pub fn handler(
     )?;
 
     // - [If ATA mint is WSOL, unwrap]
-    if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
+    if depository.collateral_mint == spl_token::native_mint::id() {
         token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
     }
 
@@ -308,9 +308,9 @@ pub fn handler(
     )?;
 
     // emit!(RedeemFromMangoDepositoryEvent {
-    //     version: ctx.accounts.controller.version,
-    //     controller: ctx.accounts.controller.key(),
-    //     depository: ctx.accounts.depository.key(),
+    //     version: controller.version,
+    //     controller: controller.key(),
+    //     depository: depository.key(),
     //     user: ctx.accounts.user.key(),
     //     redeemable_amount,
     //     slippage,
@@ -434,24 +434,22 @@ impl<'info> RedeemFromMangoDepository<'info> {
         redeemable_burnt_amount: u128,
         fee_amount: u128,
     ) -> Result<()> {
+        let depository = &mut self.depository;
+        let controller = &mut self.controller;
         // Mango Depository
-        self.depository.collateral_amount_deposited = self
-            .depository
+        depository.collateral_amount_deposited = depository
             .collateral_amount_deposited
             .checked_sub(collateral_withdrawn_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
-        self.depository.redeemable_amount_under_management = self
-            .depository
+        depository.redeemable_amount_under_management = depository
             .redeemable_amount_under_management
             .checked_add(redeemable_burnt_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
-        self.depository.total_amount_paid_taker_fee = self
-            .depository
+        depository.total_amount_paid_taker_fee = depository
             .total_amount_paid_taker_fee
             .wrapping_add(fee_amount);
         // Controller
-        self.controller.redeemable_circulating_supply = self
-            .controller
+        controller.redeemable_circulating_supply = controller
             .redeemable_circulating_supply
             .checked_add(redeemable_burnt_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;

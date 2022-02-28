@@ -270,6 +270,10 @@ pub mod uxd {
     ///  has to pay borrow rates for it. Some day when computing is plentiful and input
     ///  accounts are increased through TransactionsV2 proposal, we can
     ///  also call the onchain version.
+    ///
+    /// Note:
+    ///  TEMPORARY Although this create the associated token account for WSOL
+    ///  when the PnL is Negative, it's too short on computing. Please create beforehand.
     #[access_control(ctx.accounts.validate(max_rebalancing_amount, &polarity, slippage))]
     pub fn rebalance_mango_depository_lite(
         ctx: Context<RebalanceMangoDepositoryLite>,
@@ -277,12 +281,11 @@ pub mod uxd {
         polarity: PnlPolarity,
         slippage: u32,
     ) -> Result<()> {
-        // Computing too short
-        // msg!(
-        //     "[rebalance_mango_depository_lite] slippage {}, polarity {}",
-        //     slippage,
-        //     polarity
-        // );
+        msg!(
+            "[rebalance_mango_depository_lite] slippage {}, polarity {}",
+            slippage,
+            polarity
+        );
         instructions::rebalance_mango_depository_lite::handler(
             ctx,
             max_rebalancing_amount,
