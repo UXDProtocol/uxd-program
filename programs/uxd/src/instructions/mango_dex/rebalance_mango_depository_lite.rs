@@ -743,7 +743,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         polarity: &PnlPolarity,
         slippage: u32,
     ) -> Result<()> {
-        if slippage == 0 || slippage >= SLIPPAGE_BASIS {
+        if slippage == 0 || slippage > SLIPPAGE_BASIS {
             return Err(error!(UxdError::InvalidSlippage));
         }
         if max_rebalancing_amount == 0 {

@@ -499,7 +499,7 @@ fn check_perp_order_fully_filled(
 // Validate input arguments
 impl<'info> MintWithMangoDepository<'info> {
     pub fn validate(&self, collateral_amount: u64, slippage: u32) -> Result<()> {
-        if slippage == 0 || slippage >= SLIPPAGE_BASIS {
+        if slippage == 0 || slippage > SLIPPAGE_BASIS {
             return Err(error!(UxdError::InvalidSlippage));
         }
         if collateral_amount == 0 {

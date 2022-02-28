@@ -462,7 +462,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
 // Validate input arguments
 impl<'info> RedeemFromMangoDepository<'info> {
     pub fn validate(&self, redeemable_amount: u64, slippage: u32) -> Result<()> {
-        if slippage == 0 || slippage >= SLIPPAGE_BASIS {
+        if slippage == 0 || slippage > SLIPPAGE_BASIS {
             return Err(error!(UxdError::InvalidSlippage));
         }
         if redeemable_amount == 0 {
