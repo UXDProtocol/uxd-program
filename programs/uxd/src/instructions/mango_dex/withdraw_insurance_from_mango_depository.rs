@@ -10,11 +10,10 @@ use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
-use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
-/// Takes 19 accounts - 8 used locally - 6 for MangoMarkets CPI - 2 Programs - 1 Sysvar
+/// Takes 15 accounts - 6 used locally - 6 for MangoMarkets CPI - 2 Programs
 #[derive(Accounts)]
 pub struct WithdrawInsuranceFromMangoDepository<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
@@ -32,26 +31,14 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
         mut,
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.bump,
         has_one = controller @UxdError::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
-    /// #4 The collateral mint used by the `depository` instance
-    #[account(
-        constraint = collateral_mint.key() == depository.collateral_mint @UxdError::InvalidCollateralMint
-    )]
-    pub collateral_mint: Box<Account<'info, Mint>>,
-
-    /// #5 The insurance mint used by the `depository` instance
-    #[account(
-        constraint = insurance_mint.key() == depository.insurance_mint @UxdError::InvalidInsuranceMint
-    )]
-    pub insurance_mint: Box<Account<'info, Mint>>,
-
-    /// #6 The `user`'s ATA for the `controller`'s `redeemable_mint`
+    /// #4 The `user`'s ATA for the `controller`'s `redeemable_mint`
     /// Will be credited during this instruction
     #[account(
         mut,
@@ -59,67 +46,67 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     )]
     pub authority_insurance: Box<Account<'info, TokenAccount>>,
 
-    /// #7 The `depository`'s TA for its `insurance_mint`
+    /// #5 The `depository`'s TA for its `insurance_mint`
     /// MangoAccounts can only transact with the TAs owned by their authority
     /// and this only serves as a passthrough
     #[account(
         mut,
-        seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
+        seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref(), depository.insurance_mint.as_ref()],
         bump = depository.insurance_passthrough_bump,
         constraint = depository.insurance_passthrough == depository_insurance_passthrough_account.key() @UxdError::InvalidInsurancePassthroughAccount,
-        constraint = depository_insurance_passthrough_account.mint == insurance_mint.key() @UxdError::InvalidInsurancePassthroughATAMint,
+        constraint = depository_insurance_passthrough_account.mint == depository.insurance_mint @UxdError::InvalidInsurancePassthroughATAMint,
     )]
     pub depository_insurance_passthrough_account: Box<Account<'info, TokenAccount>>,
 
-    /// #8 The MangoMarkets Account (MangoAccount) managed by the `depository`
+    /// #6 The MangoMarkets Account (MangoAccount) managed by the `depository`
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
-        seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
+        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.mango_account_bump,
         constraint = depository.mango_account == depository_mango_account.key() @UxdError::InvalidMangoAccount,
     )]
     pub depository_mango_account: AccountInfo<'info>,
 
-    /// #9 [MangoMarkets CPI] Index grouping perp and spot markets
+    /// #7 [MangoMarkets CPI] Index grouping perp and spot markets
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_group: UncheckedAccount<'info>,
 
-    /// #10 [MangoMarkets CPI] Cache
+    /// #8 [MangoMarkets CPI] Cache
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_cache: UncheckedAccount<'info>,
 
-    /// #11 [MangoMarkets CPI] Signer PDA
+    /// #9 [MangoMarkets CPI] Signer PDA
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_signer: UncheckedAccount<'info>,
 
-    /// #12 [MangoMarkets CPI] Root Bank for the `depository`'s `insurance_mint`
+    /// #10 [MangoMarkets CPI] Root Bank for the `depository`'s `insurance_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_root_bank: UncheckedAccount<'info>,
 
-    /// #13 [MangoMarkets CPI] Node Bank for the `depository`'s `insurance_mint`
+    /// #11 [MangoMarkets CPI] Node Bank for the `depository`'s `insurance_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_node_bank: UncheckedAccount<'info>,
 
-    /// #14 [MangoMarkets CPI] Vault for the `depository`'s `insurance_mint`
+    /// #12 [MangoMarkets CPI] Vault for the `depository`'s `insurance_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_vault: UncheckedAccount<'info>,
 
-    /// #15 System Program
+    /// #13 System Program
     pub system_program: Program<'info, System>,
 
-    /// #16 Token Program
+    /// #14 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #17 MangoMarketv3 Program
+    /// #15 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 
 pub fn handler(ctx: Context<WithdrawInsuranceFromMangoDepository>, amount: u64) -> Result<()> {
-    let collateral_mint = ctx.accounts.collateral_mint.key();
+    let collateral_mint = ctx.accounts.depository.collateral_mint;
 
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,

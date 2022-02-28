@@ -246,16 +246,6 @@
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authorityInsurance",
           "isMut": true,
           "isSigner": false
@@ -329,16 +319,6 @@
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -601,11 +581,6 @@
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
           "isSigner": false
         },
         {

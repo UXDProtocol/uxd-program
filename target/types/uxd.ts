@@ -246,16 +246,6 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authorityInsurance",
           "isMut": true,
           "isSigner": false
@@ -329,16 +319,6 @@ export type Uxd = {
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -601,11 +581,6 @@ export type Uxd = {
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -1969,16 +1944,6 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authorityInsurance",
           "isMut": true,
           "isSigner": false
@@ -2052,16 +2017,6 @@ export const IDL: Uxd = {
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -2324,11 +2279,6 @@ export const IDL: Uxd = {
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
           "isSigner": false
         },
         {

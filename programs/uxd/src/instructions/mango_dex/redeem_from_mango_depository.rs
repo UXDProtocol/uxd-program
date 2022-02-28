@@ -60,6 +60,7 @@ pub struct RedeemFromMangoDepository<'info> {
     pub depository: Box<Account<'info, MangoDepository>>,
 
     /// #5 The collateral mint used by the `depository` instance
+    /// Required to create the user_collateral ATA if needed
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @UxdError::InvalidCollateralMint
     )]
@@ -89,8 +90,9 @@ pub struct RedeemFromMangoDepository<'info> {
     /// Will be debited during this instruction
     #[account(
         mut,
-        associated_token::mint = redeemable_mint,
-        associated_token::authority = user,
+        seeds = [user.key.as_ref(), token_program.key.as_ref(), controller.redeemable_mint.as_ref()],
+        bump,
+        seeds::program = AssociatedToken::id(),
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 

@@ -62,12 +62,14 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     pub depository: Box<Account<'info, MangoDepository>>,
 
     /// #5 The collateral mint used by the `depository` instance
+    /// Required to create the user_collateral ATA if needed
     #[account(
         constraint = collateral_mint.key() == depository.collateral_mint @UxdError::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #6 The quote mint used by the `depository` instance
+    /// Required to create the user_quote ATA if needed
     #[account(
         constraint = quote_mint.key() == depository.quote_mint @UxdError::InvalidQuoteMint
     )]
