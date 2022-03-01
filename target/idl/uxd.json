@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0",
+  "version": "3.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -246,16 +246,6 @@
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authorityInsurance",
           "isMut": true,
           "isSigner": false
@@ -332,16 +322,6 @@
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authorityInsurance",
           "isMut": true,
           "isSigner": false
@@ -358,7 +338,7 @@
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -474,7 +454,7 @@
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -571,7 +551,7 @@
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     },
@@ -601,11 +581,6 @@
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -706,7 +681,7 @@
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     },
@@ -715,7 +690,7 @@
       "accounts": [
         {
           "name": "user",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -765,7 +740,7 @@
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -846,7 +821,7 @@
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     }
@@ -1023,20 +998,6 @@
     }
   ],
   "types": [
-    {
-      "name": "AccountingEvent",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Deposit"
-          },
-          {
-            "name": "Withdraw"
-          }
-        ]
-      }
-    },
     {
       "name": "PnlPolarity",
       "type": {
@@ -1353,22 +1314,22 @@
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
-          "name": "redeemableDelta",
-          "type": "u64",
+          "name": "quoteDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -1403,22 +1364,22 @@
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
-          "name": "redeemableDelta",
-          "type": "u64",
+          "name": "quoteDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -1470,22 +1431,22 @@
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "quoteDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -1734,6 +1695,6 @@
     }
   ],
   "metadata": {
-    "address": "7G1DFbvNQoACCmy7iXWuGq4Bo9daKquaU4dHsLMK7TsC"
+    "address": "EVLUCL8duPtw52uU1H6P2rSZYcbVsnhfvQEejPtRPyKu"
   }
 }

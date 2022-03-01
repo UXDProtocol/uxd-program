@@ -67,7 +67,8 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
 
         expect(redeemableAmount).closeTo(redeemableProcessedByRedeeming + redeemableLeftOverDueToOddLot, redeemableNativeUnitPrecision, "The amount of collateral left over + processed is not equal to the collateral amount inputted initially");
         expect(redeemableDelta).greaterThanOrEqual(worthExecutionPriceCollateralDelta, "The amount redeemed is out of the slippage range");
-        expect(redeemableLeftOverDueToOddLot).lessThanOrEqual(minTradingSizeQuote, "The redeemable odd lot returned is higher than the minTradingSize for that perp.");
+        // expect(redeemableLeftOverDueToOddLot).lessThanOrEqual(minTradingSizeQuote, "The redeemable odd lot returned is higher than the minTradingSize for that perp.");
+        expect(redeemableDelta).to.be.lessThanOrEqual(redeemableAmount, "User paid more collateral than inputted amount");
         console.groupEnd();
         return redeemableDelta;
     } catch (error) {

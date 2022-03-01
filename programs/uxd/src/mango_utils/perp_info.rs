@@ -37,7 +37,7 @@ impl PerpInfo {
             .map_err(|me| ProgramError::from(me))?;
         let perp_market_index = mango_group
             .find_perp_market_index(perp_market_key)
-            .ok_or(error!(UxdError::MangoPerpMarketIndexNotFound))?;
+            .ok_or_else(|| error!(UxdError::MangoPerpMarketIndexNotFound))?;
         let mango_account =
             MangoAccount::load_checked(mango_account_ai, mango_program_key, mango_group_key)
                 .map_err(|me| ProgramError::from(me))?;

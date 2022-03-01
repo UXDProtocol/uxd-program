@@ -23,6 +23,7 @@ development = []
 solana-program = "1.9.9"
 spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
 mango = { version = "3.4.0", git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
+anchor-comp = { version = "0.1.0", git = "https://github.com/UXDProtocol/anchor-comp", features = ["no-entrypoint", "development"] }
 anchor-lang = { version = "0.22.0", features = ["init-if-needed"] }
 anchor-spl = "0.22.0"
 fixed = "^1.9.0"

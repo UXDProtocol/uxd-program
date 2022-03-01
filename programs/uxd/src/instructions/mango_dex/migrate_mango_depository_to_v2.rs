@@ -80,7 +80,7 @@ pub fn handler(ctx: Context<MigrateMangoDepositoryToV2>) -> Result<()> {
     ctx.accounts.depository.quote_passthrough_bump = *ctx
         .bumps
         .get("depository_quote_passthrough_account")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     ctx.accounts.depository.total_amount_rebalanced = u128::MIN;
 
     emit!(MigrateMangoDepositoryToV2Event {

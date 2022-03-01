@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "3.0.0",
+  "version": "3.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -246,16 +246,6 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authorityInsurance",
           "isMut": true,
           "isSigner": false
@@ -332,16 +322,6 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authorityInsurance",
           "isMut": true,
           "isSigner": false
@@ -358,7 +338,7 @@ export type Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -474,7 +454,7 @@ export type Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -571,7 +551,7 @@ export type Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     },
@@ -601,11 +581,6 @@ export type Uxd = {
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -706,7 +681,7 @@ export type Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     },
@@ -715,7 +690,7 @@ export type Uxd = {
       "accounts": [
         {
           "name": "user",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -765,7 +740,7 @@ export type Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -846,7 +821,7 @@ export type Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     }
@@ -1023,20 +998,6 @@ export type Uxd = {
     }
   ],
   "types": [
-    {
-      "name": "AccountingEvent",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Deposit"
-          },
-          {
-            "name": "Withdraw"
-          }
-        ]
-      }
-    },
     {
       "name": "PnlPolarity",
       "type": {
@@ -1353,22 +1314,22 @@ export type Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
-          "name": "redeemableDelta",
-          "type": "u64",
+          "name": "quoteDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -1403,22 +1364,22 @@ export type Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
-          "name": "redeemableDelta",
-          "type": "u64",
+          "name": "quoteDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -1470,22 +1431,22 @@ export type Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "quoteDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -1736,7 +1697,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "3.0.0",
+  "version": "3.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -1983,16 +1944,6 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authorityInsurance",
           "isMut": true,
           "isSigner": false
@@ -2069,16 +2020,6 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "authorityInsurance",
           "isMut": true,
           "isSigner": false
@@ -2095,7 +2036,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2211,7 +2152,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2308,7 +2249,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     },
@@ -2338,11 +2279,6 @@ export const IDL: Uxd = {
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -2443,7 +2379,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     },
@@ -2452,7 +2388,7 @@ export const IDL: Uxd = {
       "accounts": [
         {
           "name": "user",
-          "isMut": false,
+          "isMut": true,
           "isSigner": true
         },
         {
@@ -2502,7 +2438,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2583,7 +2519,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32"
+          "type": "u16"
         }
       ]
     }
@@ -2760,20 +2696,6 @@ export const IDL: Uxd = {
     }
   ],
   "types": [
-    {
-      "name": "AccountingEvent",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Deposit"
-          },
-          {
-            "name": "Withdraw"
-          }
-        ]
-      }
-    },
     {
       "name": "PnlPolarity",
       "type": {
@@ -3090,22 +3012,22 @@ export const IDL: Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
-          "name": "redeemableDelta",
-          "type": "u64",
+          "name": "quoteDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -3140,22 +3062,22 @@ export const IDL: Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
-          "name": "redeemableDelta",
-          "type": "u64",
+          "name": "quoteDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]
@@ -3207,22 +3129,22 @@ export const IDL: Uxd = {
         },
         {
           "name": "slippage",
-          "type": "u32",
+          "type": "u16",
           "index": false
         },
         {
-          "name": "collateralDelta",
-          "type": "u64",
+          "name": "baseDelta",
+          "type": "i64",
           "index": false
         },
         {
           "name": "quoteDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         },
         {
           "name": "feeDelta",
-          "type": "u64",
+          "type": "i64",
           "index": false
         }
       ]

@@ -1,6 +1,5 @@
 use crate::error::UxdError;
 use crate::events::RegisterMangoDepositoryEventV2;
-use crate::mango_program;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
@@ -10,6 +9,8 @@ use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_ACCOUNT_VERSION;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::QUOTE_PASSTHROUGH_NAMESPACE;
+use anchor_comp::mango_markets_v3;
+use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
@@ -102,7 +103,7 @@ pub struct RegisterMangoDepository<'info> {
         init,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
         bump,
-        owner = mango_program::Mango::id(),
+        owner = MangoMarketV3::id(),
         payer = payer,
         space = MANGO_ACCOUNT_SPAN,
     )]
@@ -119,7 +120,7 @@ pub struct RegisterMangoDepository<'info> {
     pub token_program: Program<'info, Token>,
 
     /// #15 MangoMarketv3 Program
-    pub mango_program: Program<'info, mango_program::Mango>,
+    pub mango_program: Program<'info, MangoMarketV3>,
 
     /// #16 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
@@ -130,6 +131,8 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     let insurance_mint = ctx.accounts.insurance_mint.key();
     let quote_mint = ctx.accounts.quote_mint.key();
 
+    msg!("key {}", MangoMarketV3::id());
+
     // - Initialize Mango Account
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
@@ -137,11 +140,11 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
         &[*ctx
             .bumps
             .get("depository")
-            .ok_or(error!(UxdError::BumpError))?],
+            .ok_or_else(|| error!(UxdError::BumpError))?],
     ]];
-    mango_program::initialize_mango_account(
+    mango_markets_v3::init_mango_account(
         ctx.accounts
-            .into_mango_account_initialization_context()
+            .into_mango_init_account_context()
             .with_signer(depository_signer_seed),
     )?;
 
@@ -149,23 +152,23 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     ctx.accounts.depository.bump = *ctx
         .bumps
         .get("depository")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     ctx.accounts.depository.collateral_passthrough_bump = *ctx
         .bumps
         .get("depository_collateral_passthrough_account")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     ctx.accounts.depository.insurance_passthrough_bump = *ctx
         .bumps
         .get("depository_insurance_passthrough_account")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     ctx.accounts.depository.quote_passthrough_bump = *ctx
         .bumps
         .get("depository_quote_passthrough_account")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     ctx.accounts.depository.mango_account_bump = *ctx
         .bumps
         .get("depository_mango_account")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     ctx.accounts.depository.version = MANGO_DEPOSITORY_ACCOUNT_VERSION;
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
@@ -205,14 +208,13 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
 }
 
 impl<'info> RegisterMangoDepository<'info> {
-    pub fn into_mango_account_initialization_context(
+    pub fn into_mango_init_account_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, mango_program::InitMangoAccount<'info>> {
-        let cpi_accounts = mango_program::InitMangoAccount {
+    ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::InitMangoAccount<'info>> {
+        let cpi_accounts = mango_markets_v3::InitMangoAccount {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.depository_mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
-            rent: self.rent.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)

@@ -7,7 +7,6 @@ pub mod error;
 
 pub mod events;
 pub mod instructions;
-pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
 pub mod test;
@@ -15,7 +14,7 @@ pub mod test;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("7G1DFbvNQoACCmy7iXWuGq4Bo9daKquaU4dHsLMK7TsC");
+solana_program::declare_id!("EVLUCL8duPtw52uU1H6P2rSZYcbVsnhfvQEejPtRPyKu");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -38,8 +37,11 @@ pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million r
 pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
 
-const SLIPPAGE_BASIS: u32 = 1000;
+const SLIPPAGE_BASIS: u16 = 1000;
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
+
+/// When looping through the orderbook to fill, it's FoK, so will fail either way.
+const MANGO_PERP_MAX_FILL_EVENTS: u8 = u8::MAX;
 
 #[program]
 #[deny(unused_must_use)]
@@ -271,19 +273,22 @@ pub mod uxd {
     ///  has to pay borrow rates for it. Some day when computing is plentiful and input
     ///  accounts are increased through TransactionsV2 proposal, we can
     ///  also call the onchain version.
+    ///
+    /// Note:
+    ///  TEMPORARY Although this create the associated token account for WSOL
+    ///  when the PnL is Negative, it's too short on computing. Please create beforehand.
     #[access_control(ctx.accounts.validate(max_rebalancing_amount, &polarity, slippage))]
     pub fn rebalance_mango_depository_lite(
         ctx: Context<RebalanceMangoDepositoryLite>,
         max_rebalancing_amount: u64,
         polarity: PnlPolarity,
-        slippage: u32,
+        slippage: u16,
     ) -> Result<()> {
-        // Computing too short
-        // msg!(
-        //     "[rebalance_mango_depository_lite] slippage {}, polarity {}",
-        //     slippage,
-        //     polarity
-        // );
+        msg!(
+            "[rebalance_mango_depository_lite] slippage {}, polarity {}",
+            slippage,
+            polarity
+        );
         instructions::rebalance_mango_depository_lite::handler(
             ctx,
             max_rebalancing_amount,
@@ -326,7 +331,7 @@ pub mod uxd {
     pub fn mint_with_mango_depository(
         ctx: Context<MintWithMangoDepository>,
         collateral_amount: u64,
-        slippage: u32,
+        slippage: u16,
     ) -> Result<()> {
         msg!(
             "[mint_with_mango_depository] collateral_amount {}, slippage {}",
@@ -372,7 +377,7 @@ pub mod uxd {
     pub fn redeem_from_mango_depository(
         ctx: Context<RedeemFromMangoDepository>,
         redeemable_amount: u64,
-        slippage: u32,
+        slippage: u16,
     ) -> Result<()> {
         msg!(
             "[redeem_from_mango_depository] redeemable_amount {}, slippage {}",

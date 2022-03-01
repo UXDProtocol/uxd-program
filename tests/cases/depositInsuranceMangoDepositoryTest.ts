@@ -25,11 +25,12 @@ export const depositInsuranceMangoDepositoryTest = async function (amount: numbe
         const insuranceDepositedAmount_post = nativeToUi(depositoryOnchainAccount_post.insuranceAmountDeposited.toNumber(), depository.insuranceMintDecimals);
         const expectedAmount = insuranceDepositedAmount + amount;
 
+        console.log(`🧾 Insurance Amount deposited was`, insuranceDepositedAmount, "now is", insuranceDepositedAmount_post, "(deposited", amount, ")");
+
         // Check that the accounting match the actual balances - TODO
         // Check onchain accounting -- Only that for now cause need to refine how to fetch mango account data
         expect(insuranceDepositedAmount_post).closeTo(expectedAmount, Math.pow(10, -depository.insuranceMintDecimals), "The mango depositories insurance ACCOUNTING isn't correct.");
 
-        console.log(`🧾 Insurance Amount deposited was`, insuranceDepositedAmount, "now is", insuranceDepositedAmount_post, "(deposited", amount, ")");
         console.groupEnd();
     } catch (error) {
         console.groupEnd();
