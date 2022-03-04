@@ -1313,8 +1313,8 @@
           "index": false
         },
         {
-          "name": "slippage",
-          "type": "u16",
+          "name": "limitPrice",
+          "type": "f32",
           "index": false
         },
         {
@@ -1363,8 +1363,8 @@
           "index": false
         },
         {
-          "name": "slippage",
-          "type": "u16",
+          "name": "limitPrice",
+          "type": "f32",
           "index": false
         },
         {
@@ -1430,8 +1430,8 @@
           "index": false
         },
         {
-          "name": "slippage",
-          "type": "u16",
+          "name": "limitPrice",
+          "type": "f32",
           "index": false
         },
         {
