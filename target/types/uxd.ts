@@ -1313,8 +1313,8 @@ export type Uxd = {
           "index": false
         },
         {
-          "name": "slippage",
-          "type": "u16",
+          "name": "limitPrice",
+          "type": "f32",
           "index": false
         },
         {
@@ -1363,8 +1363,8 @@ export type Uxd = {
           "index": false
         },
         {
-          "name": "slippage",
-          "type": "u16",
+          "name": "limitPrice",
+          "type": "f32",
           "index": false
         },
         {
@@ -1430,8 +1430,8 @@ export type Uxd = {
           "index": false
         },
         {
-          "name": "slippage",
-          "type": "u16",
+          "name": "limitPrice",
+          "type": "f32",
           "index": false
         },
         {
@@ -3011,8 +3011,8 @@ export const IDL: Uxd = {
           "index": false
         },
         {
-          "name": "slippage",
-          "type": "u16",
+          "name": "limitPrice",
+          "type": "f32",
           "index": false
         },
         {
@@ -3061,8 +3061,8 @@ export const IDL: Uxd = {
           "index": false
         },
         {
-          "name": "slippage",
-          "type": "u16",
+          "name": "limitPrice",
+          "type": "f32",
           "index": false
         },
         {
@@ -3128,8 +3128,8 @@ export const IDL: Uxd = {
           "index": false
         },
         {
-          "name": "slippage",
-          "type": "u16",
+          "name": "limitPrice",
+          "type": "f32",
           "index": false
         },
         {
