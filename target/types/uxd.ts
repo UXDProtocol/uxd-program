@@ -550,8 +550,8 @@ export type Uxd = {
           }
         },
         {
-          "name": "slippage",
-          "type": "u16"
+          "name": "limitPrice",
+          "type": "f32"
         }
       ]
     },
@@ -680,8 +680,8 @@ export type Uxd = {
           "type": "u64"
         },
         {
-          "name": "slippage",
-          "type": "u16"
+          "name": "limitPrice",
+          "type": "f32"
         }
       ]
     },
@@ -820,8 +820,8 @@ export type Uxd = {
           "type": "u64"
         },
         {
-          "name": "slippage",
-          "type": "u16"
+          "name": "limitPrice",
+          "type": "f32"
         }
       ]
     }
@@ -1470,8 +1470,8 @@ export type Uxd = {
     },
     {
       "code": 6003,
-      "name": "InvalidSlippage",
-      "msg": "The slippage value is invalid. Must be in the [0...1000] range points."
+      "name": "InvalidLimitPrice",
+      "msg": "The provided limit_price value is invalid, must be > 0"
     },
     {
       "code": 6004,
@@ -2248,8 +2248,8 @@ export const IDL: Uxd = {
           }
         },
         {
-          "name": "slippage",
-          "type": "u16"
+          "name": "limitPrice",
+          "type": "f32"
         }
       ]
     },
@@ -2378,8 +2378,8 @@ export const IDL: Uxd = {
           "type": "u64"
         },
         {
-          "name": "slippage",
-          "type": "u16"
+          "name": "limitPrice",
+          "type": "f32"
         }
       ]
     },
@@ -2518,8 +2518,8 @@ export const IDL: Uxd = {
           "type": "u64"
         },
         {
-          "name": "slippage",
-          "type": "u16"
+          "name": "limitPrice",
+          "type": "f32"
         }
       ]
     }
@@ -3168,8 +3168,8 @@ export const IDL: Uxd = {
     },
     {
       "code": 6003,
-      "name": "InvalidSlippage",
-      "msg": "The slippage value is invalid. Must be in the [0...1000] range points."
+      "name": "InvalidLimitPrice",
+      "msg": "The provided limit_price value is invalid, must be > 0"
     },
     {
       "code": 6004,

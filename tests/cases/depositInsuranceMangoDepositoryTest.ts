@@ -33,6 +33,7 @@ export const depositInsuranceMangoDepositoryTest = async function (amount: numbe
 
         console.groupEnd();
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }

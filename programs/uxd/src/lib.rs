@@ -37,7 +37,6 @@ pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million r
 pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
 
-const SLIPPAGE_BASIS: u16 = 1000;
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 
 /// When looping through the orderbook to fill, it's FoK, so will fail either way.
@@ -246,8 +245,7 @@ pub mod uxd {
     ///        instruction will attempt to rebalance, in native unit.
     ///     - polarity: the direction of the rebalancing. This is known on chain
     ///        but required as an argument for clarity.
-    ///     - slippage: the maximum deviation in price the user is ok to take
-    ///        compared to market price at execution time.
+    ///     - limit_price: the worst price the user is willing to trade at.
     ///
     /// Note:
     ///  Acts as a swap, reducing the oustanding PnL (paper profit or losses) on
@@ -277,23 +275,23 @@ pub mod uxd {
     /// Note:
     ///  TEMPORARY Although this create the associated token account for WSOL
     ///  when the PnL is Negative, it's too short on computing. Please create beforehand.
-    #[access_control(ctx.accounts.validate(max_rebalancing_amount, &polarity, slippage))]
+    #[access_control(ctx.accounts.validate(max_rebalancing_amount, &polarity, limit_price))]
     pub fn rebalance_mango_depository_lite(
         ctx: Context<RebalanceMangoDepositoryLite>,
         max_rebalancing_amount: u64,
         polarity: PnlPolarity,
-        slippage: u16,
+        limit_price: f32,
     ) -> Result<()> {
         msg!(
-            "[rebalance_mango_depository_lite] slippage {}, polarity {}",
-            slippage,
+            "[rebalance_mango_depository_lite] limit_price {}, polarity {}",
+            limit_price,
             polarity
         );
         instructions::rebalance_mango_depository_lite::handler(
             ctx,
             max_rebalancing_amount,
             &polarity,
-            slippage,
+            limit_price,
         )
     }
 
@@ -303,8 +301,7 @@ pub mod uxd {
     /// Parameters:
     ///     - collateral_amount: the amount of collateral to use, in
     ///        collateral_mint native unit.
-    ///     - slippage: the maximum deviation in price the user is ok to take
-    ///        compared to market price at execution time.
+    ///     - limit_price: the worse price the user is willing to trade at.
     ///
     /// Flow:
     ///  - Starts by scanning the order book for the amount that we can fill.
@@ -326,19 +323,19 @@ pub mod uxd {
     ///  expressed in USD value.
     ///
     #[access_control(
-        ctx.accounts.validate(collateral_amount, slippage)
+        ctx.accounts.validate(collateral_amount, limit_price)
     )]
     pub fn mint_with_mango_depository(
         ctx: Context<MintWithMangoDepository>,
         collateral_amount: u64,
-        slippage: u16,
+        limit_price: f32,
     ) -> Result<()> {
         msg!(
-            "[mint_with_mango_depository] collateral_amount {}, slippage {}",
+            "[mint_with_mango_depository] collateral_amount {}, limit_price {}",
             collateral_amount,
-            slippage
+            limit_price
         );
-        instructions::mint_with_mango_depository::handler(ctx, collateral_amount, slippage)
+        instructions::mint_with_mango_depository::handler(ctx, collateral_amount, limit_price)
     }
 
     /// Redeem `MangoDepository.collateral_mint` by burning redeemable tokens
@@ -347,8 +344,7 @@ pub mod uxd {
     /// Parameters:
     ///     - redeemable_amount: the amount of collateral to use, in
     ///        redeemable_mint native unit.
-    ///     - slippage: the maximum deviation in price the user is ok to take
-    ///        compared to market price at execution time.
+    ///     - limit_price: the worse price the user is willing to trade at.
     ///
     /// Flow:
     ///  - Starts by scanning the order book to find the best order for
@@ -372,18 +368,18 @@ pub mod uxd {
     ///  expressed in USD value.
     ///
     #[access_control(
-        ctx.accounts.validate(redeemable_amount, slippage)
+        ctx.accounts.validate(redeemable_amount, limit_price)
     )]
     pub fn redeem_from_mango_depository(
         ctx: Context<RedeemFromMangoDepository>,
         redeemable_amount: u64,
-        slippage: u16,
+        limit_price: f32,
     ) -> Result<()> {
         msg!(
-            "[redeem_from_mango_depository] redeemable_amount {}, slippage {}",
+            "[redeem_from_mango_depository] redeemable_amount {}, limit_price {}",
             redeemable_amount,
-            slippage
+            limit_price
         );
-        instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, slippage)
+        instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, limit_price)
     }
 }

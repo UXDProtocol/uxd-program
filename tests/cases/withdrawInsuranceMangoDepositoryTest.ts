@@ -31,6 +31,7 @@ export const withdrawInsuranceMangoDepositoryTest = async function (amount: numb
 
         console.groupEnd();
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }

@@ -36,11 +36,6 @@ In the future we will try to implement a place perp order v2 to return the order
 Current rebalancing is a bit convoluted, but we are limited computing wise and # of input account wise, as it needs to be an atomic instruction.
 Later on it won't requires any external input (except to pay for fees in order to keep the system closed).
 
-### Slippage and limit price
-
-Currently we only take the slippage as parameter, and we execute at market price +/- slippage at the time of execution of the instruction.
-This can be fixed easily and is planned, but other items were prioritized, will probably make it in a next minor release right after v3.0.0)
-
 _____
 
 ## Running tests

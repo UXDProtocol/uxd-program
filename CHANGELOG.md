@@ -3,6 +3,7 @@
 ## v3.1.0
 
 1. Use place_perp_order_v2 to save computing and reduce composability issues
+2. Pass a limit_price in place of the slippage to ensure execution price match user expectations
 
 ## v3.0.0 (audited Soteria)
 
@@ -14,7 +15,7 @@ Deployed: | Slot:
 
 ## v2.3.0 (composability patch)
 
-Deployed: Feb 24,2022 at  UTC | Slot:
+Deployed: Feb 24, 2022 at 09:08:28 UTC | Slot: 122,253,178
 
 1. Compatibility update for MangoMarketsV3 v3.4.0
 

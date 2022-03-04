@@ -29,6 +29,7 @@ export const setRedeemableGlobalSupplyCapTest = async function (supplyCapAmount:
         controller.info();
         console.groupEnd();
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }

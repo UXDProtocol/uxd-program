@@ -72,6 +72,7 @@ export const redeemFromMangoDepositoryTest = async function (redeemableAmount: n
         console.groupEnd();
         return redeemableDelta;
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }

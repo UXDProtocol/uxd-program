@@ -10,8 +10,8 @@ pub enum UxdError {
     InvalidRedeemableGlobalSupplyCap,
     #[msg("The associated mango root bank index cannot be found for the deposited coin..")]
     RootBankIndexNotFound,
-    #[msg("The slippage value is invalid. Must be in the [0...1000] range points.")]
-    InvalidSlippage,
+    #[msg("The provided limit_price value is invalid, must be > 0")]
+    InvalidLimitPrice,
     #[msg("Could not fill the order given order book state and provided slippage.")]
     EffectiveOrderPriceBeyondLimitPrice,
     #[msg("Collateral amount must be > 0 in order to mint.")]

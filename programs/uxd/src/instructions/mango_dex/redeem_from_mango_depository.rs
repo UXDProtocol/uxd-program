@@ -2,7 +2,6 @@ use crate::error::UxdError;
 use crate::MANGO_PERP_MAX_FILL_EVENTS;
 // use crate::events::RedeemFromMangoDepositoryEvent;
 use crate::mango_utils::derive_order_delta;
-use crate::mango_utils::limit_price;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::PerpInfo;
 use crate::Controller;
@@ -12,7 +11,6 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
-use crate::SLIPPAGE_BASIS;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -184,7 +182,7 @@ pub struct RedeemFromMangoDepository<'info> {
 pub fn handler(
     ctx: Context<RedeemFromMangoDepository>,
     redeemable_amount: u64,
-    slippage: u16,
+    limit_price: f32,
 ) -> Result<()> {
     let depository = &ctx.accounts.depository;
     let depository_signer_seed: &[&[&[u8]]] = &[&[
@@ -223,7 +221,7 @@ pub fn handler(
     // Note : Reduce the delta neutral position, increasing long exposure, by buying perp.
     //        [BID: taker (us, the caller) | ASK: maker]
     let taker_side = Side::Bid;
-    let limit_price = limit_price(perp_info.price, slippage, taker_side)?;
+    let limit_price = I80F48::from_num(limit_price);
     let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
 
     // - [CPI MangoMarkets - Place perp order]
@@ -314,7 +312,7 @@ pub fn handler(
     //     depository: depository.key(),
     //     user: ctx.accounts.user.key(),
     //     redeemable_amount,
-    //     slippage,
+    //     limit_price,
     //     base_delta: order_delta.base.to_num(),
     //     quote_delta: order_delta.quote.to_num(),
     //     fee_delta: order_delta.fee.to_num(),
@@ -460,9 +458,9 @@ impl<'info> RedeemFromMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> RedeemFromMangoDepository<'info> {
-    pub fn validate(&self, redeemable_amount: u64, slippage: u16) -> Result<()> {
-        if slippage > SLIPPAGE_BASIS {
-            return Err(error!(UxdError::InvalidSlippage));
+    pub fn validate(&self, redeemable_amount: u64, limit_price: f32) -> Result<()> {
+        if limit_price <= 0f32 {
+            return Err(error!(UxdError::InvalidLimitPrice));
         }
         if redeemable_amount == 0 {
             return Err(error!(UxdError::InvalidRedeemableAmount));

@@ -29,6 +29,7 @@ export const setRedeemableSoftCapMangoDepositoryTest = async function (softCapAm
         controller.info();
         console.groupEnd();
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }

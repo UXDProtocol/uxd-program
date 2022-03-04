@@ -95,3 +95,13 @@ fn determine_ref_fee(
     }
     Ok(I80F48::from_num(mango_group.ref_share_centibps) / CENTIBPS_PER_UNIT)
 }
+
+// Convert price into a quote lot per base lot price.
+// Price is the value of 1 native base unit expressed in native quote.
+pub fn price_to_lot_price(price: I80F48, perp_info: &PerpInfo) -> Result<I80F48> {
+    price
+        .checked_mul(perp_info.base_lot_size)
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_div(perp_info.quote_lot_size)
+        .ok_or_else(|| error!(UxdError::MathError))
+}

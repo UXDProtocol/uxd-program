@@ -20,6 +20,7 @@ export const initializeMangoDepositoryTest = async function (authority: Signer, 
         depository.info();
         console.groupEnd();
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }
