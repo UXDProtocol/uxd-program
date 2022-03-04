@@ -48,6 +48,9 @@ pub enum UxdError {
     InvalidOrderDirection,
     #[msg("Math error.")]
     MathError,
+    // Deprecated
+    #[msg("The order couldn't be executed with the provided slippage.")]
+    SlippageReached,
     #[msg("The rebalancing amount must be above 0.")]
     InvalidRebalancingAmount,
     #[msg("The Quote amount in the provided user_quote ATA must be >= max_amount_rebalancing.")]

@@ -225,7 +225,8 @@ pub fn handler(
     // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
     //        [BID: maker | ASK: taker (us, the caller)]
     let taker_side = Side::Ask;
-    let limit_price = I80F48::from_num(limit_price);
+    let limit_price =
+        I80F48::checked_from_num(limit_price).ok_or_else(|| error!(UxdError::MathError))?;
     let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
     let max_base_quantity_num = max_base_quantity.to_num();
     // - [MangoMarkets CPI - Place perp order]

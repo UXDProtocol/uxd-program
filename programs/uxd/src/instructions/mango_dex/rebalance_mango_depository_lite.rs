@@ -328,7 +328,8 @@ pub fn handler(
     let max_quote_quantity = rebalancing_amount
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
-    let limit_price = I80F48::from_num(limit_price);
+    let limit_price =
+        I80F48::checked_from_num(limit_price).ok_or_else(|| error!(UxdError::MathError))?;
     let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
     let reduce_only = taker_side == Side::Bid;
 
