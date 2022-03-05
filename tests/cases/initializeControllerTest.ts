@@ -21,6 +21,7 @@ export const initializeControllerTest = async function (authority: Signer, contr
         controller.info();
         console.groupEnd();
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }

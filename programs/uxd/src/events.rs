@@ -179,8 +179,8 @@ pub struct MintWithMangoDepositoryEvent {
     pub user: Pubkey,
     // The collateral amount in native units. (input)
     pub collateral_amount: u64,
-    // The user selected slippage. (input)
-    pub slippage: u16,
+    // The user provided limit_price. (input)
+    pub limit_price: f32,
     // The different deltas after successful minting operation.
     pub base_delta: i64,
     pub quote_delta: i64,
@@ -204,8 +204,8 @@ pub struct RedeemFromMangoDepositoryEvent {
     pub user: Pubkey,
     // The redeemable amount in native units. (input)
     pub redeemable_amount: u64,
-    // The user selected slippage. (input)
-    pub slippage: u16,
+    // The user provided limit_price. (input)
+    pub limit_price: f32,
     // The different deltas after successful minting operation.
     pub base_delta: i64,
     pub quote_delta: i64,
@@ -236,8 +236,8 @@ pub struct RebalanceMangoDepositoryLiteEvent {
     pub rebalancing_amount: u64,
     // The actual rebalancing amount in Quote native units.
     pub rebalanced_amount: u64,
-    // The user selected slippage. (input)
-    pub slippage: u16,
+    // The user provided limit_price. (input)
+    pub limit_price: f32,
     // The different deltas after successful rebalancing operation.
     pub base_delta: i64,
     pub quote_delta: i64,

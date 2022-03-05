@@ -88,6 +88,7 @@ export const mintWithMangoDepositoryAccountingTest = async function (collateralA
         console.groupEnd();
         return redeemableDelta;
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }

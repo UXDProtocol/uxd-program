@@ -22,6 +22,7 @@ export const rebalanceMangoDepositoryLiteTest = async function (rebalancingMaxAm
         console.groupEnd();
         return quoteDelta;
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }

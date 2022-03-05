@@ -22,6 +22,7 @@ export const migrateMangoDepositoryToV2Test = async function (authority: Signer,
                     const txId = await migrateMangoDepositoryToV2(authority, payer ?? authority, controller, depository);
                     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
                 } catch (error) {
+                    console.error("❌", error);
                     console.groupEnd();
                     throw error;
                 }
@@ -34,6 +35,7 @@ export const migrateMangoDepositoryToV2Test = async function (authority: Signer,
             depository.info();
             console.groupEnd();
         } catch (error) {
+            console.error("❌", error);
             console.groupEnd();
             throw error;
         }

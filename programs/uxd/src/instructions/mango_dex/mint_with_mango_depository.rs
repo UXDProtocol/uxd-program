@@ -2,7 +2,6 @@ use crate::error::UxdError;
 use crate::MANGO_PERP_MAX_FILL_EVENTS;
 // use crate::events::MintWithMangoDepositoryEvent;
 use crate::mango_utils::derive_order_delta;
-use crate::mango_utils::limit_price;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::PerpInfo;
@@ -13,7 +12,6 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
-use crate::SLIPPAGE_BASIS;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -171,7 +169,7 @@ pub struct MintWithMangoDepository<'info> {
 pub fn handler(
     ctx: Context<MintWithMangoDepository>,
     collateral_amount: u64,
-    slippage: u16,
+    limit_price: f32,
 ) -> Result<()> {
     let depository = &ctx.accounts.depository;
     let controller = &ctx.accounts.controller;
@@ -227,7 +225,8 @@ pub fn handler(
     // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
     //        [BID: maker | ASK: taker (us, the caller)]
     let taker_side = Side::Ask;
-    let limit_price = limit_price(perp_info.price, slippage, taker_side)?;
+    let limit_price =
+        I80F48::checked_from_num(limit_price).ok_or_else(|| error!(UxdError::MathError))?;
     let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
     let max_base_quantity_num = max_base_quantity.to_num();
     // - [MangoMarkets CPI - Place perp order]
@@ -313,7 +312,7 @@ pub fn handler(
     //     depository: depository.key(),
     //     user: ctx.accounts.user.key(),
     //     collateral_amount,
-    //     slippage,
+    //     limit_price,
     //     base_delta: order_delta.base.to_num(),
     //     quote_delta: order_delta.quote.to_num(),
     //     fee_delta: order_delta.fee.to_num(),
@@ -495,9 +494,10 @@ fn check_perp_order_fully_filled(
 
 // Validate input arguments
 impl<'info> MintWithMangoDepository<'info> {
-    pub fn validate(&self, collateral_amount: u64, slippage: u16) -> Result<()> {
-        if slippage > SLIPPAGE_BASIS {
-            return Err(error!(UxdError::InvalidSlippage));
+    pub fn validate(&self, collateral_amount: u64, limit_price: f32) -> Result<()> {
+        msg!("limit_price {}", limit_price);
+        if limit_price <= 0f32 {
+            return Err(error!(UxdError::InvalidLimitPrice));
         }
         if collateral_amount == 0 {
             return Err(error!(UxdError::InvalidCollateralAmount));

@@ -70,6 +70,7 @@ export const mintWithMangoDepositoryTest = async function (collateralAmount: num
         console.groupEnd();
         return redeemableDelta;
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }

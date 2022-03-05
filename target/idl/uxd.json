@@ -550,8 +550,8 @@
           }
         },
         {
-          "name": "slippage",
-          "type": "u16"
+          "name": "limitPrice",
+          "type": "f32"
         }
       ]
     },
@@ -680,8 +680,8 @@
           "type": "u64"
         },
         {
-          "name": "slippage",
-          "type": "u16"
+          "name": "limitPrice",
+          "type": "f32"
         }
       ]
     },
@@ -820,8 +820,8 @@
           "type": "u64"
         },
         {
-          "name": "slippage",
-          "type": "u16"
+          "name": "limitPrice",
+          "type": "f32"
         }
       ]
     }
@@ -1313,8 +1313,8 @@
           "index": false
         },
         {
-          "name": "slippage",
-          "type": "u16",
+          "name": "limitPrice",
+          "type": "f32",
           "index": false
         },
         {
@@ -1363,8 +1363,8 @@
           "index": false
         },
         {
-          "name": "slippage",
-          "type": "u16",
+          "name": "limitPrice",
+          "type": "f32",
           "index": false
         },
         {
@@ -1430,8 +1430,8 @@
           "index": false
         },
         {
-          "name": "slippage",
-          "type": "u16",
+          "name": "limitPrice",
+          "type": "f32",
           "index": false
         },
         {
@@ -1470,8 +1470,8 @@
     },
     {
       "code": 6003,
-      "name": "InvalidSlippage",
-      "msg": "The slippage value is invalid. Must be in the [0...1000] range points."
+      "name": "InvalidLimitPrice",
+      "msg": "The provided limit_price value is invalid, must be > 0"
     },
     {
       "code": 6004,

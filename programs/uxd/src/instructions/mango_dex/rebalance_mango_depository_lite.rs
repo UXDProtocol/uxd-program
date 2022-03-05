@@ -2,7 +2,6 @@ use crate::error::UxdError;
 use crate::MANGO_PERP_MAX_FILL_EVENTS;
 // use crate::events::RebalanceMangoDepositoryLiteEvent;
 use crate::mango_utils::derive_order_delta;
-use crate::mango_utils::limit_price;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::PerpInfo;
@@ -13,7 +12,6 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::QUOTE_PASSTHROUGH_NAMESPACE;
-use crate::SLIPPAGE_BASIS;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -211,7 +209,7 @@ pub fn handler(
     ctx: Context<RebalanceMangoDepositoryLite>,
     max_rebalancing_amount: u64,
     polarity: &PnlPolarity,
-    slippage: u16,
+    limit_price: f32,
 ) -> Result<()> {
     let depository = &ctx.accounts.depository;
     let depository_signer_seed: &[&[&[u8]]] = &[&[
@@ -330,7 +328,8 @@ pub fn handler(
     let max_quote_quantity = rebalancing_amount
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
-    let limit_price = limit_price(perp_info.price, slippage, taker_side)?;
+    let limit_price =
+        I80F48::checked_from_num(limit_price).ok_or_else(|| error!(UxdError::MathError))?;
     let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
     let reduce_only = taker_side == Side::Bid;
 
@@ -498,7 +497,7 @@ pub fn handler(
     //     polarity: polarity.clone(),
     //     rebalancing_amount: max_rebalancing_amount,
     //     rebalanced_amount: rebalancing_quote_amount.to_num(),
-    //     slippage,
+    //     limit_price,
     //     base_delta: order_delta.base.to_num(),
     //     quote_delta: order_delta.quote.to_num(),
     //     fee_delta: order_delta.fee.to_num(),
@@ -739,10 +738,10 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         &self,
         max_rebalancing_amount: u64,
         polarity: &PnlPolarity,
-        slippage: u16,
+        limit_price: f32,
     ) -> Result<()> {
-        if slippage > SLIPPAGE_BASIS {
-            return Err(error!(UxdError::InvalidSlippage));
+        if limit_price <= 0f32 {
+            return Err(error!(UxdError::InvalidLimitPrice));
         }
         if max_rebalancing_amount == 0 {
             return Err(error!(UxdError::InvalidRebalancingAmount));
