@@ -298,10 +298,10 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@uxdprotocol/uxd-client@5.1.0-beta17":
-  version "5.1.0-beta17"
-  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/5.1.0-beta17/c46b09e29f3e3ffe4730c509fefbeed9428494e73843341ea62a8fcc12644327#78e87c61a72a290604ed1ae9729f813174c3ea49"
-  integrity sha512-TVGIpdwGNm/ReTyOElSUnxJgS/TUcl+VQonZ/W+d6UbIs5aix96W3qUQAsEb2dh/y+xMxdzGMlYRtFNamPpw0g==
+"@uxdprotocol/uxd-client@5.1.0-beta19":
+  version "5.1.0-beta19"
+  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/5.1.0-beta19/7d1e56fed1d01faf2d4bc256d12f505d76d8704ebbd0d9e2facaa089e428bf07#2c2f619eb5c4e7144c1712b412638f9563aac266"
+  integrity sha512-y/7Rp4ow9ZrNFL5Pik+ygQz0ihO92P8uBUmycrPzjDeXx9DGyiX3e7VSKvX/fYtQfMR7gzvUY86fMGhXSkc59A==
   dependencies:
     "@blockworks-foundation/mango-client" "3.3.17"
     "@project-serum/anchor" "0.22.0"
