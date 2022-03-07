@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "2.3.0",
+  "version": "2.3.1",
   "name": "uxd",
   "instructions": [
     {
@@ -293,16 +293,6 @@ export type Uxd = {
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -1330,7 +1320,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "2.3.0",
+  "version": "2.3.1",
   "name": "uxd",
   "instructions": [
     {
@@ -1624,16 +1614,6 @@ export const IDL: Uxd = {
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
           "isSigner": false
         },
         {

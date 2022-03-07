@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token;
-use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use crate::AccountingEvent;
@@ -26,20 +25,12 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     pub controller: Box<Account<'info, Controller>>,
     #[account(
         mut,
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.key().as_ref()],
         bump = depository.bump,
         has_one = controller @UxdIdlErrorCode::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
-    #[account(
-        constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint
-    )]
-    pub collateral_mint: Box<Account<'info, Mint>>,
-    #[account(
-        constraint = insurance_mint.key() == depository.insurance_mint @UxdIdlErrorCode::InvalidInsuranceMint
-    )]
-    pub insurance_mint: Box<Account<'info, Mint>>,
     // The account that will receive the funds withdrawn
     #[account(
         mut,
@@ -48,15 +39,15 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     pub authority_insurance: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
+        seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, depository.collateral_mint.key().as_ref(), depository.insurance_mint.key().as_ref()],
         bump = depository.insurance_passthrough_bump,
         constraint = depository.insurance_passthrough == depository_insurance_passthrough_account.key() @UxdIdlErrorCode::InvalidInsurancePassthroughAccount,
-        constraint = depository_insurance_passthrough_account.mint == insurance_mint.key() @UxdIdlErrorCode::InvalidInsurancePassthroughATAMint,
+        constraint = depository_insurance_passthrough_account.mint == depository.insurance_mint.key() @UxdIdlErrorCode::InvalidInsurancePassthroughATAMint,
     )]
     pub depository_insurance_passthrough_account: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
+        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.key().as_ref()],
         bump = depository.mango_account_bump,
         constraint = depository.mango_account == depository_mango_account.key() @UxdIdlErrorCode::InvalidMangoAccount,
     )]
@@ -80,7 +71,7 @@ pub fn handler(
     ctx: Context<WithdrawInsuranceFromMangoDepository>,
     insurance_amount: u64, // native units
 ) -> UxdResult {
-    let collateral_mint = ctx.accounts.collateral_mint.key();
+    let collateral_mint = ctx.accounts.depository.collateral_mint.key();
 
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,

@@ -804,8 +804,8 @@ dependencies = [
 
 [[package]]
 name = "mango"
-version = "3.4.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3?rev=7952b6cc5b71ef821a5784af7dbb6a7998fbe009#7952b6cc5b71ef821a5784af7dbb6a7998fbe009"
+version = "3.4.1"
+source = "git+https://github.com/blockworks-foundation/mango-v3#408e0bc44e42b344fb6e9c1c127d39d0569c567f"
 dependencies = [
  "anchor-lang",
  "arrayref",
@@ -833,7 +833,7 @@ dependencies = [
 [[package]]
 name = "mango-common"
 version = "3.0.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3?rev=7952b6cc5b71ef821a5784af7dbb6a7998fbe009#7952b6cc5b71ef821a5784af7dbb6a7998fbe009"
+source = "git+https://github.com/blockworks-foundation/mango-v3#408e0bc44e42b344fb6e9c1c127d39d0569c567f"
 dependencies = [
  "bytemuck",
  "solana-program",
@@ -842,7 +842,7 @@ dependencies = [
 [[package]]
 name = "mango-logs"
 version = "0.1.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3?rev=7952b6cc5b71ef821a5784af7dbb6a7998fbe009#7952b6cc5b71ef821a5784af7dbb6a7998fbe009"
+source = "git+https://github.com/blockworks-foundation/mango-v3#408e0bc44e42b344fb6e9c1c127d39d0569c567f"
 dependencies = [
  "anchor-lang",
  "base64 0.13.0",
@@ -851,7 +851,7 @@ dependencies = [
 [[package]]
 name = "mango-macro"
 version = "3.0.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3?rev=7952b6cc5b71ef821a5784af7dbb6a7998fbe009#7952b6cc5b71ef821a5784af7dbb6a7998fbe009"
+source = "git+https://github.com/blockworks-foundation/mango-v3#408e0bc44e42b344fb6e9c1c127d39d0569c567f"
 dependencies = [
  "bytemuck",
  "mango-common",
@@ -1576,7 +1576,7 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "uxd"
-version = "2.3.0"
+version = "2.3.1"
 dependencies = [
  "anchor-lang",
  "anchor-spl",

@@ -1,5 +1,5 @@
 {
-  "version": "2.3.0",
+  "version": "2.3.1",
   "name": "uxd",
   "instructions": [
     {
@@ -293,16 +293,6 @@
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "insuranceMint",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -1328,6 +1318,6 @@
     }
   ],
   "metadata": {
-    "address": "6YmBSMoGftRhRHmziDavmxXKkMuRAbtdkGW6AbnhbkAy"
+    "address": "Hto7hH47haUP3Vrinym98BHkVdC3jtYWLXUhmfBSBT5N"
   }
 }
