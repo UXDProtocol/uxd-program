@@ -13,6 +13,12 @@ Deployed: | Slot:
 2. Added MigrateMangoDepositoryToV2 instruction to migrate V1 MangoDepository accounts to their V2 counterpart
 3. Added RebalanceMangoDepositoryLite instruction to rebalance the delta neutral position by providing either quote or collateral depending of the PnL polarity
 
+## v2.3.1 (detached branch patch)
+
+Deployed: Mar 8, 2022 at 09:51:13 UTC | Slot: 124,008,429
+
+1. Removes 2 accounts from the withdraw instruction be able to execute it through the governance (tx byte size limit)
+
 ## v2.3.0 (composability patch)
 
 Deployed: Feb 24, 2022 at 09:08:28 UTC | Slot: 122,253,178
