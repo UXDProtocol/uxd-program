@@ -22,7 +22,7 @@ development = []
 [dependencies]
 anchor-lang = "0.20.1"
 anchor-spl = "0.20.1"
-solana-program = "=1.9.1"
+solana-program = "^1.9.1"
 spl-token = "3.2.0"
 fixed = "1.9.0"
 thiserror = "1.0.30"
