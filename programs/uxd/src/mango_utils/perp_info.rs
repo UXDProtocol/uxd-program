@@ -43,7 +43,6 @@ impl PerpInfo {
 
         // Check that the perp_market_index provided matches the collateral of the depository
         if mango_group.tokens[perp_market_index].mint != *collateral_mint {
-            solana_program::msg!("loglog");
             return Err(throw_err!(UxdErrorCode::MangoPerpMarketIndexNotFound));
         }
 
