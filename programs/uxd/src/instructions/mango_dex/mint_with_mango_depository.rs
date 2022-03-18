@@ -351,8 +351,9 @@ impl<'info> MintWithMangoDepository<'info> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
-            &self.mango_perp_market.key,
+            self.mango_perp_market.key,
             self.mango_program.key,
+            &self.depository.collateral_mint,
         )?;
         msg!("perp_info {:?}", perp_info);
         Ok(perp_info)

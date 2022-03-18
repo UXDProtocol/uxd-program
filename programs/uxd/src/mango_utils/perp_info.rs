@@ -32,6 +32,7 @@ impl PerpInfo {
         mango_cache_ai: &AccountInfo,
         perp_market_key: &Pubkey,
         mango_program_key: &Pubkey,
+        collateral_mint: &Pubkey,
     ) -> UxdResult<Self> {
         let mango_group = MangoGroup::load_checked(mango_group_ai, mango_program_key)?;
         let mango_cache =
@@ -39,6 +40,12 @@ impl PerpInfo {
         let perp_market_index = mango_group
             .find_perp_market_index(perp_market_key)
             .ok_or(throw_err!(UxdErrorCode::MangoPerpMarketIndexNotFound))?;
+
+        // Check that the perp_market_index provided matches the collateral of the depository
+        if mango_group.tokens[perp_market_index].mint != *collateral_mint {
+            solana_program::msg!("loglog");
+            return Err(throw_err!(UxdErrorCode::MangoPerpMarketIndexNotFound));
+        }
 
         Ok(PerpInfo::init(
             &mango_group,
