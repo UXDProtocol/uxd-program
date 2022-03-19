@@ -446,7 +446,7 @@ pub fn validate_perp_market_mint_matches_depository_collateral_mint(
         .find_perp_market_index(mango_perp_market_key)
         .ok_or(throw_err!(UxdErrorCode::MangoPerpMarketIndexNotFound))?;
     check!(
-        mango_group.tokens[perp_market_index].mint != *collateral_mint_key,
+        mango_group.tokens[perp_market_index].mint == *collateral_mint_key,
         UxdErrorCode::MangoPerpMarketIndexNotFound
     )?;
     Ok(())
