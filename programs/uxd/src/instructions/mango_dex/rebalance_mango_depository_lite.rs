@@ -322,6 +322,11 @@ pub fn handler(
         .accounts
         .find_best_order_in_book_for_quote_lot_amount(taker_side, quote_lot_amount)?;
 
+    check!(
+        perp_order.quantity > 0,
+        UxdErrorCode::QuantityBelowContractSize
+    )?;
+
     // - [Checks that the best price found is within slippage range]
     check_effective_order_price_versus_limit_price(&perp_info, &perp_order, slippage)?;
 
