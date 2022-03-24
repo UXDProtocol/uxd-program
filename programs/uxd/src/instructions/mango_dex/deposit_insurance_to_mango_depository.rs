@@ -2,7 +2,7 @@ use crate::error::check_assert;
 use crate::error::SourceFileId;
 use crate::error::UxdErrorCode;
 use crate::error::UxdIdlErrorCode;
-use crate::events::DepositInsuranceToMangoDepositoryEvent;
+use crate::events::DepositInsuranceToMangoDepositoryEventV2;
 use crate::mango_program;
 use crate::AccountingEvent;
 use crate::Controller;
@@ -49,20 +49,20 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #5 The insurance mint used by the `depository` instance
+    /// #5 The quote mint used by the `depository` instance
     #[account(
-        constraint = insurance_mint.key() == depository.insurance_mint @UxdIdlErrorCode::InvalidInsuranceMint
+        constraint = quote_mint.key() == depository.quote_mint @UxdIdlErrorCode::InvalidQuoteMint
     )]
-    pub insurance_mint: Box<Account<'info, Mint>>,
+    pub quote_mint: Box<Account<'info, Mint>>,
 
-    /// #6 The `authority`'s ATA for the `insurance_mint`
+    /// #6 The `authority`'s ATA for the `quote_mint`
     /// Will be debited during this call
     #[account(
         mut,
-        associated_token::mint = insurance_mint,
+        associated_token::mint = quote_mint,
         associated_token::authority = authority,
     )]
-    pub authority_insurance: Box<Account<'info, TokenAccount>>,
+    pub authority_quote: Box<Account<'info, TokenAccount>>,
 
     /// #7 The MangoMarkets Account (MangoAccount) managed by the `depository`
     #[account(
@@ -79,14 +79,14 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     /// #9 [MangoMarkets CPI] Cache
     pub mango_cache: AccountInfo<'info>,
 
-    /// #10 [MangoMarkets CPI] Root Bank for the `depository`'s `insurance_mint`
+    /// #10 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`
     pub mango_root_bank: AccountInfo<'info>,
 
-    /// #11 [MangoMarkets CPI] Node Bank for the `depository`'s `insurance_mint`
+    /// #11 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`
     #[account(mut)]
     pub mango_node_bank: AccountInfo<'info>,
 
-    /// #12 [MangoMarkets CPI] Vault for the `depository`'s `insurance_mint`
+    /// #12 [MangoMarkets CPI] Vault for the `depository`'s `quote_mint`
     #[account(mut)]
     pub mango_vault: Account<'info, TokenAccount>,
 
@@ -99,7 +99,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
 
 pub fn handler(
     ctx: Context<DepositInsuranceToMangoDepository>,
-    insurance_amount: u64, // native units
+    amount: u64, // native units
 ) -> UxdResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
 
@@ -114,19 +114,19 @@ pub fn handler(
         ctx.accounts
             .into_deposit_to_mango_context()
             .with_signer(depository_signer_seeds),
-        insurance_amount,
+        amount,
     )?;
 
     // - 2 [UPDATE ACCOUNTING] ------------------------------------------------
-    ctx.accounts.update_accounting(insurance_amount)?;
+    ctx.accounts.update_accounting(amount)?;
 
-    emit!(DepositInsuranceToMangoDepositoryEvent {
+    emit!(DepositInsuranceToMangoDepositoryEventV2 {
         version: ctx.accounts.controller.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
-        insurance_mint: ctx.accounts.depository.insurance_mint,
-        insurance_mint_decimals: ctx.accounts.depository.insurance_mint_decimals,
-        deposited_amount: insurance_amount,
+        quote_mint: ctx.accounts.depository.quote_mint,
+        quote_mint_decimals: ctx.accounts.depository.quote_mint_decimals,
+        deposited_amount: amount,
     });
 
     Ok(())
@@ -145,7 +145,7 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
             mango_node_bank: self.mango_node_bank.to_account_info(),
             mango_vault: self.mango_vault.to_account_info(),
             token_program: self.token_program.to_account_info(),
-            owner_token_account: self.authority_insurance.to_account_info(),
+            owner_token_account: self.authority_quote.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -163,10 +163,10 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> DepositInsuranceToMangoDepository<'info> {
-    pub fn validate(&self, insurance_amount: u64) -> ProgramResult {
-        check!(insurance_amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;
+    pub fn validate(&self, amount: u64) -> ProgramResult {
+        check!(amount > 0, UxdErrorCode::InvalidInsuranceAmount)?;
         check!(
-            self.authority_insurance.amount >= insurance_amount,
+            self.authority_quote.amount >= amount,
             UxdErrorCode::InsufficientAuthorityInsuranceAmount
         )?;
         Ok(())

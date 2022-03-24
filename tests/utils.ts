@@ -1,4 +1,4 @@
-import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller, nativeI80F48ToUi, nativeToUi, uiToNative, WSOL } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, SOL_DECIMALS, findATAAddrSync, Controller, nativeI80F48ToUi, nativeToUi, uiToNative } from "@uxdprotocol/uxd-client";
 import { PublicKey, Signer } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -94,7 +94,7 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
     const pm = await mango.getPerpMarket(SYM);
     const cache = await mango.group.loadCache(provider);
     const accountValue = mangoAccount.computeValue(mango.group, cache).toBig();
-    const accountingInsuranceDepositedValue = nativeToUi(depositoryAccount.insuranceAmountDeposited.toNumber(), depository.insuranceMintDecimals);
+    const accountingInsuranceDepositedValue = nativeToUi(depositoryAccount.insuranceAmountDeposited.toNumber(), depository.quoteMintDecimals);
     // 
     const collateralSpotAmount = await depository.getCollateralBalance(mango);
     // const insuranceSpotAmount = await 
@@ -108,14 +108,11 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
     // await mango.printAccountInfo(mangoAccount);
 
     console.group("[Depository", SYM, "]");
-    console.log("collateralPassthrough", "\t\t\t\t\t", await getBalance(depository.collateralPassthroughPda));
-    console.log("quotePassthrough", "\t\t\t\t\t", await getBalance(depository.quotePassthroughPda));
-    console.log("insurancePassthroughPda", "\t\t\t\t\t", await getBalance(depository.insurancePassthroughPda));
     console.groupEnd()
 
     console.group("[Derived Information from onchain accounting and mango account] :");
     console.table({
-        [`Depository PnL (${depository.insuranceMintSymbol})`]: Number((accountValueMinusTotalInsuranceDeposited - redeemableUnderManagement).toFixed(depository.quoteMintDecimals)),
+        [`Depository PnL (${depository.quoteMintSymbol})`]: Number((accountValueMinusTotalInsuranceDeposited - redeemableUnderManagement).toFixed(depository.quoteMintDecimals)),
         [`collateral deposit interests (${SYM})`]: Number(nativeToUi(collateralDepositInterests, depository.collateralMintDecimals).toFixed(depository.collateralMintDecimals)),
         // [`insurance deposit interests (${depository.insuranceMintSymbol})`]: Number(nativeToUi(insuranceDepositInterests.toNumber(), depository.insuranceMintDecimals).toFixed(depository.insuranceMintDecimals)),
     });
@@ -123,7 +120,7 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
 
     console.group("[OnChain Accounting (Program)] :");
     console.table({
-        [`insuranceAmountDeposited (${depository.insuranceMintSymbol})`]: accountingInsuranceDepositedValue,
+        [`insuranceAmountDeposited (${depository.quoteMintSymbol})`]: accountingInsuranceDepositedValue,
         [`collateralAmountDeposited (${SYM})`]: nativeToUi(depositoryAccount.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals),
         [`depository.redeemableAmountUnderManagement (${controller.redeemableMintSymbol})`]: redeemableUnderManagement,
         [`controller.redeemableCirculatingSupply (${controller.redeemableMintSymbol})`]: nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals),

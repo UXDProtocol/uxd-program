@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v3.0.2 (audit report fixes Soteria)
+
+Deployed: | Slot:
+
+1. Remove un needed passthrough accounts through the app to save computing
+
 ## v3.0.0 (audited Soteria)
 
 Deployed: | Slot:

@@ -232,28 +232,14 @@ pub enum UxdIdlErrorCode {
     InvalidDepository,
     #[msg("The provided collateral mint does not match the depository's collateral mint.")]
     InvalidCollateralMint,
-    #[msg("The provided insurance mint does not match the depository's insurance mint.")]
-    InvalidInsuranceMint,
-    #[msg("The authority's Insurance ATA's mint does not match the Depository's one.")]
-    InvalidAuthorityInsuranceATAMint,
-    #[msg("The Collateral Passthrough Account isn't the Depository one.")]
-    InvalidCollateralPassthroughAccount,
-    #[msg("The Insurance Passthrough Account isn't the Depository one.")]
-    InvalidInsurancePassthroughAccount,
-    #[msg("The Mango Account isn't the Depository one.")]
-    InvalidMangoAccount,
-    #[msg("The Insurance Passthrough ATA's mint does not match the Depository's one.")]
-    InvalidInsurancePassthroughATAMint,
-    #[msg("The Redeemable Mint provided does not match the Controller's one.")]
-    InvalidRedeemableMint,
-    #[msg("The Collateral Passthrough ATA's mint does not match the Depository's one.")]
-    InvalidCollateralPassthroughATAMint,
-    #[msg("The Quote Passthrough Account isn't the Depository one.")]
-    InvalidQuotePassthroughAccount,
-    #[msg("The Quote Passthrough ATA's mint does not match the Depository's one.")]
-    InvalidQuotePassthroughATAMint,
     #[msg("The provided quote mint does not match the depository's quote mint.")]
     InvalidQuoteMint,
+    #[msg("The authority's Quote ATA's mint does not match the Depository's one.")]
+    InvalidAuthorityQuoteATAMint,
+    #[msg("The Mango Account isn't the Depository one.")]
+    InvalidMangoAccount,
+    #[msg("The Redeemable Mint provided does not match the Controller's one.")]
+    InvalidRedeemableMint,
     #[msg("The instruction doesn't support this version of the Depository. Migrate first.")]
     UnsupportedDepositoryVersion,
 }
