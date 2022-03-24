@@ -619,11 +619,6 @@
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "depositoryMangoAccount",
           "isMut": true,
           "isSigner": false
@@ -1795,6 +1790,6 @@
     }
   ],
   "metadata": {
-    "address": "55NneSZjuFv6cVDQxYKZ1UF99JoximnzP9aY65fJ4JT9"
+    "address": "DSfNZTsSDpeuEvHnj3BcBco5HXyxEiLZrN4fWEYkhXaT"
   }
 }

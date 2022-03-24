@@ -34,7 +34,7 @@ describe("Integration tests SOL", function () {
         await transferTokens(10000, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
     });
 
-    describe.skip("Init", async function () {
+    describe("Init", async function () {
         it("Initialize Controller", async function () {
             await initializeControllerTest(authority, controller, payer);
         });
@@ -68,7 +68,7 @@ describe("Integration tests SOL", function () {
         mangoDepositoryRebalancingSuite(user, bank, controller, depository, paramsRebalancing);
     });
 
-    describe.skip("Test minting/redeeming", async function () {
+    describe("Test minting/redeeming", async function () {
         it(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
             const perpPrice = await depository.getCollateralPerpPriceUI(mango);
             const amount = 10 / perpPrice;
