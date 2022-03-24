@@ -749,11 +749,6 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "depositoryMangoAccount",
           "isMut": true,
           "isSigner": false
@@ -2538,11 +2533,6 @@ export const IDL: Uxd = {
         },
         {
           "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryCollateralPassthroughAccount",
           "isMut": true,
           "isSigner": false
         },

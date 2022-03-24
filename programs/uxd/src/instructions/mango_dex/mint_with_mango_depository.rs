@@ -208,7 +208,7 @@ pub fn handler(
     // - [MangoMarkets CPI - Deposit collateral to Depository MangoAccount]
     mango_program::deposit(
         ctx.accounts
-            .into_deposit_to_mango_context()
+            .into_deposit_collateral_to_mango_context()
             .with_signer(depository_pda_signer),
         planned_collateral_delta,
     )?;
@@ -308,7 +308,7 @@ pub fn handler(
 }
 
 impl<'info> MintWithMangoDepository<'info> {
-    pub fn into_deposit_to_mango_context(
+    pub fn into_deposit_collateral_to_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_program::Deposit<'info>> {
         let cpi_accounts = mango_program::Deposit {
