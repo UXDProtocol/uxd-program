@@ -261,11 +261,6 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryInsurancePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "depositoryMangoAccount",
           "isMut": true,
           "isSigner": false
@@ -343,11 +338,6 @@ export type Uxd = {
         },
         {
           "name": "authorityInsurance",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryInsurancePassthroughAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -2039,11 +2029,6 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryInsurancePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "depositoryMangoAccount",
           "isMut": true,
           "isSigner": false
@@ -2121,11 +2106,6 @@ export const IDL: Uxd = {
         },
         {
           "name": "authorityInsurance",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryInsurancePassthroughAccount",
           "isMut": true,
           "isSigner": false
         },

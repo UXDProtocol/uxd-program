@@ -261,11 +261,6 @@
           "isSigner": false
         },
         {
-          "name": "depositoryInsurancePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "depositoryMangoAccount",
           "isMut": true,
           "isSigner": false
@@ -343,11 +338,6 @@
         },
         {
           "name": "authorityInsurance",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryInsurancePassthroughAccount",
           "isMut": true,
           "isSigner": false
         },

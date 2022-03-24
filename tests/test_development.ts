@@ -53,8 +53,8 @@ describe("Integration tests SOL", function () {
             await depositInsuranceMangoDepositoryTest(100, authority, controller, depository, mango);
         });
 
-        it.skip(`Withdraw 1 USDC of insurance`, async function () {
-            await withdrawInsuranceMangoDepositoryTest(1, authority, controller, depository, mango);
+        it(`Withdraw 10 USDC of insurance`, async function () {
+            await withdrawInsuranceMangoDepositoryTest(10, authority, controller, depository, mango);
         });
 
         // it(`Mint 80 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
