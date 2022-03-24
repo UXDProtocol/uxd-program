@@ -16,11 +16,9 @@ use crate::MangoDepository;
 use crate::UxdError;
 use crate::UxdErrorCode;
 use crate::UxdResult;
-use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
-use crate::QUOTE_PASSTHROUGH_NAMESPACE;
 use crate::SLIPPAGE_BASIS;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
@@ -28,7 +26,6 @@ use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use anchor_spl::token::Transfer;
 use fixed::types::I80F48;
 use mango::matching::BookSide;
 use mango::matching::Side;
@@ -40,7 +37,7 @@ declare_check_assert_macros!(SourceFileId::InstructionMangoDexRebalanceMangoDepo
 
 const SUPPORTED_DEPOSITORY_VERSION: u8 = 2;
 
-/// Takes 29 accounts - 11 used locally - 13 for MangoMarkets CPI - 4 Programs - 1 Sysvar
+/// Takes 27 accounts - 9 used locally - 13 for MangoMarkets CPI - 4 Programs - 1 Sysvar
 #[derive(Accounts)]
 pub struct RebalanceMangoDepositoryLite<'info> {
     /// #1 Public call accessible to any user
@@ -103,31 +100,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     )]
     pub user_quote: Box<Account<'info, TokenAccount>>,
 
-    /// #9 The `depository`'s TA for its `collateral_mint`
-    /// MangoAccounts can only transact with the TAs owned by their authority
-    /// and this only serves as a passthrough
-    #[account(
-        mut,
-        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.collateral_passthrough_bump,
-        constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdIdlErrorCode::InvalidCollateralPassthroughAccount,
-        constraint = depository_collateral_passthrough_account.mint == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralPassthroughATAMint
-    )]
-    pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
-
-    /// #10 The `depository`'s TA for its `quote_mint`
-    /// MangoAccounts can only transact with the TAs owned by their authority
-    /// and this only serves as a passthrough
-    #[account(
-        mut,
-        seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
-        bump= depository.quote_passthrough_bump,
-        constraint = depository.quote_passthrough == depository_quote_passthrough_account.key() @UxdIdlErrorCode::InvalidQuotePassthroughAccount,
-        constraint = depository_quote_passthrough_account.mint == depository.quote_mint @UxdIdlErrorCode::InvalidQuotePassthroughATAMint
-    )]
-    pub depository_quote_passthrough_account: Box<Account<'info, TokenAccount>>,
-
-    /// #11 The MangoMarkets Account (MangoAccount) managed by the `depository`
+    /// #9 The MangoMarkets Account (MangoAccount) managed by the `depository`
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
@@ -136,66 +109,66 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
 
-    /// #12 [MangoMarkets CPI] Signer PDA
+    /// #10 [MangoMarkets CPI] Signer PDA
     pub mango_signer: AccountInfo<'info>,
 
-    /// #13 [MangoMarkets CPI] Index grouping perp and spot markets
+    /// #11 [MangoMarkets CPI] Index grouping perp and spot markets
     pub mango_group: AccountInfo<'info>,
 
-    /// #14 [MangoMarkets CPI] Cache
+    /// #12 [MangoMarkets CPI] Cache
     pub mango_cache: AccountInfo<'info>,
 
-    /// #15 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`
+    /// #13 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`
     pub mango_root_bank_quote: AccountInfo<'info>,
 
-    /// #16 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`
+    /// #14 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`
     #[account(mut)]
     pub mango_node_bank_quote: AccountInfo<'info>,
 
-    /// #17 [MangoMarkets CPI] Vault `depository`'s `quote_mint`
+    /// #15 [MangoMarkets CPI] Vault `depository`'s `quote_mint`
     #[account(mut)]
     pub mango_vault_quote: AccountInfo<'info>,
 
-    /// #18 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
+    /// #16 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
     pub mango_root_bank_collateral: AccountInfo<'info>,
 
-    /// #19 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
+    /// #17 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
     #[account(mut)]
     pub mango_node_bank_collateral: AccountInfo<'info>,
 
-    /// #20 [MangoMarkets CPI] Vault for `depository`'s `collateral_mint`
+    /// #18 [MangoMarkets CPI] Vault for `depository`'s `collateral_mint`
     #[account(mut)]
     pub mango_vault_collateral: AccountInfo<'info>,
 
-    /// #21 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
+    /// #19 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
     #[account(mut)]
     pub mango_perp_market: AccountInfo<'info>,
 
-    /// #22 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
+    /// #20 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
     #[account(mut)]
     pub mango_bids: AccountInfo<'info>,
 
-    /// #23 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
+    /// #21 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
     #[account(mut)]
     pub mango_asks: AccountInfo<'info>,
 
-    /// #24 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
+    /// #22 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
     #[account(mut)]
     pub mango_event_queue: AccountInfo<'info>,
 
-    /// #25 System Program
+    /// #23 System Program
     pub system_program: Program<'info, System>,
 
-    /// #26 Token Program
+    /// #24 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #27 Associated Token Program
+    /// #25 Associated Token Program
     pub associated_token_program: Program<'info, AssociatedToken>,
 
-    /// #28 MangoMarketv3 Program
+    /// #26 MangoMarketv3 Program
     pub mango_program: Program<'info, mango_program::Mango>,
 
-    /// #29 Rent Sysvar
+    /// #27 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -381,18 +354,10 @@ pub fn handler(
 
     match polarity {
         PnlPolarity::Positive => {
-            // - 4 [TRANSFER COLLATERAL TO MANGO] -----------------------------
-            // - [Transferring user collateral to the passthrough account]
-            token::transfer(
-                ctx.accounts
-                    .into_transfer_collateral_from_user_to_passthrough_context(),
-                order_delta.collateral,
-            )?;
-
-            // - [Deposit collateral to MangoAccount]
+            // - 4 [DEPOSIT COLLATERAL ON MANGO] ------------------------------
             mango_program::deposit(
                 ctx.accounts
-                    .into_deposit_collateral_from_passthrough_to_mango_context()
+                    .into_deposit_user_collateral_to_mango_context()
                     .with_signer(depository_signer_seed),
                 order_delta.collateral,
             )?;
@@ -401,59 +366,36 @@ pub fn handler(
                 .quote
                 .checked_sub(order_delta.fee)
                 .ok_or(math_err!())?;
-            // - [Withdraw mango quote to the passthrough account]
+            // - [Withdraw mango quote to the user]
             mango_program::withdraw(
                 ctx.accounts
-                    .into_withdraw_quote_from_mango_to_passthrough_context()
+                    .into_withdraw_quote_from_mango_to_user_context()
                     .with_signer(depository_signer_seed),
                 quote_delta,
                 false,
             )?;
-
-            // - Return insurance_amount back to authority
-            token::transfer(
-                ctx.accounts
-                    .into_transfer_quote_from_passthrough_to_user_context()
-                    .with_signer(depository_signer_seed),
-                quote_delta,
-            )?;
         }
         PnlPolarity::Negative => {
-            // - 4 [TRANSFER QUOTE TO MANGO (Plus Taker Fees)] ----------------------------------
+            // - 4 [DEPOSIT QUOTE TO MANGO (Plus Taker Fees)] -----------------
             let quote_delta = order_delta
                 .quote
                 .checked_add(order_delta.fee)
                 .ok_or(math_err!())?;
-            // - [Transfers user quote to the passthrough account]
-            token::transfer(
-                ctx.accounts
-                    .into_transfer_quote_from_user_to_passthrough_context(),
-                quote_delta,
-            )?;
 
             // - [Deposit quote to MangoAccount]
             mango_program::deposit(
                 ctx.accounts
-                    .into_deposit_quote_from_passthrough_to_mango_context()
+                    .into_deposit_user_quote_to_mango_context()
                     .with_signer(depository_signer_seed),
                 quote_delta,
             )?;
             // - 5 [TRANSFER COLLATERAL TO USER] ------------------------------
-            // - [Mango withdraw CPI]
             mango_program::withdraw(
                 ctx.accounts
-                    .into_withdraw_collateral_from_mango_to_passthrough_context()
+                    .into_withdraw_collateral_from_mango_to_user_context()
                     .with_signer(depository_signer_seed),
                 order_delta.collateral,
                 false,
-            )?;
-
-            // - [Return collateral back to user ATA]
-            token::transfer(
-                ctx.accounts
-                    .into_transfer_collateral_from_passthrough_to_user_context()
-                    .with_signer(depository_signer_seed),
-                order_delta.collateral,
             )?;
 
             // Note : Too short in computing for now. Add again later
@@ -493,71 +435,43 @@ pub fn handler(
 }
 
 impl<'info> RebalanceMangoDepositoryLite<'info> {
-    pub fn into_transfer_collateral_from_user_to_passthrough_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
-        let cpi_accounts = Transfer {
-            from: self.user_collateral.to_account_info(),
-            to: self
-                .depository_collateral_passthrough_account
-                .to_account_info(),
-            authority: self.user.to_account_info(),
-        };
-        let cpi_program = self.token_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
-    pub fn into_deposit_collateral_from_passthrough_to_mango_context(
+    pub fn into_deposit_user_collateral_to_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_program::Deposit<'info>> {
         let cpi_accounts = mango_program::Deposit {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.depository_mango_account.to_account_info(),
-            owner: self.depository.to_account_info(),
+            owner: self.user.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
             mango_root_bank: self.mango_root_bank_collateral.to_account_info(),
             mango_node_bank: self.mango_node_bank_collateral.to_account_info(),
             mango_vault: self.mango_vault_collateral.to_account_info(),
             token_program: self.token_program.to_account_info(),
-            owner_token_account: self
-                .depository_collateral_passthrough_account
-                .to_account_info(),
+            owner_token_account: self.user_collateral.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_quote_from_user_to_passthrough_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
-        let cpi_accounts = Transfer {
-            from: self.user_quote.to_account_info(),
-            to: self.depository_quote_passthrough_account.to_account_info(),
-            authority: self.user.to_account_info(),
-        };
-        let cpi_program = self.token_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
-    pub fn into_deposit_quote_from_passthrough_to_mango_context(
+    pub fn into_deposit_user_quote_to_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_program::Deposit<'info>> {
         let cpi_accounts = mango_program::Deposit {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.depository_mango_account.to_account_info(),
-            owner: self.depository.to_account_info(),
+            owner: self.user.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
             mango_root_bank: self.mango_root_bank_quote.to_account_info(),
             mango_node_bank: self.mango_node_bank_quote.to_account_info(),
             mango_vault: self.mango_vault_quote.to_account_info(),
             token_program: self.token_program.to_account_info(),
-            owner_token_account: self.depository_quote_passthrough_account.to_account_info(),
+            owner_token_account: self.user_quote.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_withdraw_quote_from_mango_to_passthrough_context(
+    pub fn into_withdraw_quote_from_mango_to_user_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_program::Withdraw<'info>> {
         let cpi_accounts = mango_program::Withdraw {
@@ -568,7 +482,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             mango_root_bank: self.mango_root_bank_quote.to_account_info(),
             mango_node_bank: self.mango_node_bank_quote.to_account_info(),
             mango_vault: self.mango_vault_quote.to_account_info(),
-            token_account: self.depository_quote_passthrough_account.to_account_info(),
+            token_account: self.user_quote.to_account_info(),
             mango_signer: self.mango_signer.to_account_info(),
             token_program: self.token_program.to_account_info(),
         };
@@ -576,19 +490,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_quote_from_passthrough_to_user_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
-        let cpi_program = self.token_program.to_account_info();
-        let cpi_accounts = token::Transfer {
-            from: self.depository_quote_passthrough_account.to_account_info(),
-            to: self.user_quote.to_account_info(),
-            authority: self.depository.to_account_info(),
-        };
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
-    pub fn into_withdraw_collateral_from_mango_to_passthrough_context(
+    pub fn into_withdraw_collateral_from_mango_to_user_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_program::Withdraw<'info>> {
         let cpi_accounts = mango_program::Withdraw {
@@ -599,27 +501,11 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             mango_root_bank: self.mango_root_bank_collateral.to_account_info(),
             mango_node_bank: self.mango_node_bank_collateral.to_account_info(),
             mango_vault: self.mango_vault_collateral.to_account_info(),
-            token_account: self
-                .depository_collateral_passthrough_account
-                .to_account_info(),
+            token_account: self.user_collateral.to_account_info(),
             mango_signer: self.mango_signer.to_account_info(),
             token_program: self.token_program.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
-    pub fn into_transfer_collateral_from_passthrough_to_user_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
-        let cpi_program = self.token_program.to_account_info();
-        let cpi_accounts = token::Transfer {
-            from: self
-                .depository_collateral_passthrough_account
-                .to_account_info(),
-            to: self.user_collateral.to_account_info(),
-            authority: self.depository.to_account_info(),
-        };
         CpiContext::new(cpi_program, cpi_accounts)
     }
 

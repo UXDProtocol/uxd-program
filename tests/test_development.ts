@@ -69,9 +69,9 @@ describe("Integration tests SOL", function () {
     });
 
     describe("Test minting/redeeming", async function () {
-        it(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
+        it(`Mint 100 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
             const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-            const amount = 10 / perpPrice;
+            const amount = 100 / perpPrice;
             console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
             const mintedAmount = await mintWithMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
             await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, depository, mango, payer);

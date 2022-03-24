@@ -453,16 +453,6 @@
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryQuotePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "depositoryMangoAccount",
           "isMut": true,
           "isSigner": false
