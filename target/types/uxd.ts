@@ -1660,11 +1660,6 @@ export type Uxd = {
       "code": 6007,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
-    },
-    {
-      "code": 6008,
-      "name": "UnsupportedDepositoryVersion",
-      "msg": "The instruction doesn't support this version of the Depository. Migrate first."
     }
   ]
 };
@@ -3331,11 +3326,6 @@ export const IDL: Uxd = {
       "code": 6007,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
-    },
-    {
-      "code": 6008,
-      "name": "UnsupportedDepositoryVersion",
-      "msg": "The instruction doesn't support this version of the Depository. Migrate first."
     }
   ]
 };

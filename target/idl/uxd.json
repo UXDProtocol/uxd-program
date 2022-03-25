@@ -1660,14 +1660,9 @@
       "code": 6007,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
-    },
-    {
-      "code": 6008,
-      "name": "UnsupportedDepositoryVersion",
-      "msg": "The instruction doesn't support this version of the Depository. Migrate first."
     }
   ],
   "metadata": {
-    "address": "CGGkfvLPwyjr4nCE1aLkrQiFdzQs2ip99iGvTCs5GwKK"
+    "address": "BA67esrWE7cPzQWtAftaTbrVWtmHZJ1PbbBBpZgpjH4p"
   }
 }

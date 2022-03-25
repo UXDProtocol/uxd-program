@@ -242,8 +242,6 @@ pub enum UxdIdlErrorCode {
     InvalidMangoAccount,
     #[msg("The Redeemable Mint provided does not match the Controller's one.")]
     InvalidRedeemableMint,
-    #[msg("The instruction doesn't support this version of the Depository. Migrate first.")]
-    UnsupportedDepositoryVersion,
 }
 
 impl From<UxdError> for ProgramError {

@@ -36,8 +36,6 @@ use mango::state::PerpMarket;
 
 declare_check_assert_macros!(SourceFileId::InstructionMangoDexRebalanceMangoDepositoryLite);
 
-const SUPPORTED_DEPOSITORY_VERSION: u8 = 2;
-
 /// Takes 27 accounts - 9 used locally - 13 for MangoMarkets CPI - 4 Programs - 1 Sysvar
 #[derive(Accounts)]
 pub struct RebalanceMangoDepositoryLite<'info> {
@@ -63,7 +61,6 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         bump = depository.bump,
         has_one = controller @UxdIdlErrorCode::InvalidController,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository,
-        constraint = depository.version >= SUPPORTED_DEPOSITORY_VERSION @UxdIdlErrorCode::UnsupportedDepositoryVersion
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
