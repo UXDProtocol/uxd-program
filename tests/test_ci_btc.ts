@@ -1,7 +1,6 @@
 import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, USDC_DEVNET, BTC_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
-import { mangoDepositoryMigrationsSuite } from "./suite/mangoDepositoryMigrationsSuite";
 import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters, mangoDepositoryAndControllerInteractionsSuite } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
@@ -11,7 +10,7 @@ import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedee
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
-const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 console.log(`BTC 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryBTC.mangoAccountPda}'`);
@@ -34,10 +33,6 @@ describe("Integration tests BTC", function () {
 
     describe("mangoDepositorySetupSuite BTC", function () {
         mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryBTC, 100_000);
-    });
-
-    describe("mangoDepositoryMigrationsSuite BTC", function () {
-        mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryBTC);
     });
 
     // Skipped as it's handle bu the test_ci_rebalancing.ts

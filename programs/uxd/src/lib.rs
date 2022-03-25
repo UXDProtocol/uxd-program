@@ -20,7 +20,7 @@ pub mod test;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("55NneSZjuFv6cVDQxYKZ1UF99JoximnzP9aY65fJ4JT9");
+solana_program::declare_id!("CGGkfvLPwyjr4nCE1aLkrQiFdzQs2ip99iGvTCs5GwKK");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -30,9 +30,6 @@ pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
 pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
-pub const COLLATERAL_PASSTHROUGH_NAMESPACE: &[u8] = b"COLLATERALPASSTHROUGH";
-pub const INSURANCE_PASSTHROUGH_NAMESPACE: &[u8] = b"INSURANCEPASSTHROUGH";
-pub const QUOTE_PASSTHROUGH_NAMESPACE: &[u8] = b"QUOTEPASSTHROUGH";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
@@ -161,15 +158,6 @@ pub mod uxd {
     ///  Each `MangoDepository` owns a MangoAccount for trading spot/perp,
     ///  leveraged.
     ///
-    /// Note:
-    ///  Several passthrough accounts are required in order to transaction
-    ///  with the `mango_account` as the withdrawals can only be done toward
-    ///  accounts owned by the MangoAccount owner (here the Depository).
-    ///
-    /// Note:
-    ///  To keep a coherent interface, deposits are also done through
-    ///  passthrough accounts.
-    ///
     /// Update:
     ///  In the new version of the MangoMarket Accounts
     ///  this become mandatory too. (we are still using the old init)
@@ -182,25 +170,11 @@ pub mod uxd {
         })
     }
 
-    /// Migrates a `MangoDepository` to the update memory layout.
-    /// Added a new "passthrough" account to handle quote currency,
-    /// necessary for rebalancing the perp PnL.
-    ///
-    pub fn migrate_mango_depository_to_v2(
-        ctx: Context<MigrateMangoDepositoryToV2>,
-    ) -> ProgramResult {
-        msg!("[migrate_mango_depository_to_v2]");
-        instructions::migrate_mango_depository_to_v2::handler(ctx).map_err(|e| {
-            msg!("<*> {}", e); // log the error
-            e.into() // convert UxdError to generic ProgramError
-        })
-    }
-
-    /// Deposit `MangoDepository.insurance_mint` tokens in the `MangoDepository`
+    /// Deposit `MangoDepository.quote_mint` tokens in the `MangoDepository`
     /// underlying `MangoAccount`
     ///
     /// Parameters:
-    ///     - insurance_amount: the amount of token to deposit in native unit.
+    ///     - amount: the amount of quote token to deposit in native unit.
     ///
     /// Note:
     ///  Each `MangoDepository` underlying `MangoAccount` uses leverage to open
@@ -230,26 +204,24 @@ pub mod uxd {
     ///  at all time (by unwinding the backing amount of delta neutral
     ///  position).
     ///
-    #[access_control(ctx.accounts.validate(insurance_amount))]
+    #[access_control(ctx.accounts.validate(amount))]
     pub fn deposit_insurance_to_mango_depository(
         ctx: Context<DepositInsuranceToMangoDepository>,
-        insurance_amount: u64,
+        amount: u64,
     ) -> ProgramResult {
         msg!("[deposit_insurance_to_mango_depository]");
-        instructions::deposit_insurance_to_mango_depository::handler(ctx, insurance_amount).map_err(
-            |e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            },
-        )
+        instructions::deposit_insurance_to_mango_depository::handler(ctx, amount).map_err(|e| {
+            msg!("<*> {}", e); // log the error
+            e.into() // convert UxdError to generic ProgramError
+        })
     }
 
-    /// Withdraw `MangoDepository.insurance_mint` tokens from the `MangoDepository`
+    /// Withdraw `MangoDepository.quote_mint` tokens from the `MangoDepository`
     /// underlying `MangoAccount`, if any available, in the limit of the account
     /// borrow health.
     ///
     /// Parameters:
-    ///     - insurance_amount: the amount of token to withdraw in native unit.
+    ///     - amount: the amount of quote token to withdraw in native unit.
     ///
     /// Note:
     ///  Withdrawal cannot borrow, nor bring the health of the account in
@@ -257,21 +229,20 @@ pub mod uxd {
     ///
     /// Notes:
     ///  The `MangoDepository.insurance_amount_deposited` tracks the amount of
-    ///  `MangoDepository.insurance_mint` tokens deposited, but does not represent
+    ///  `MangoDepository.quote_mint` tokens deposited, but does not represent
     ///  the available amount as it moves depending of funding rates and
     ///  perp positions PnL settlement (temporarily).
     ///
-    #[access_control(ctx.accounts.validate(insurance_amount))]
+    #[access_control(ctx.accounts.validate(amount))]
     pub fn withdraw_insurance_from_mango_depository(
         ctx: Context<WithdrawInsuranceFromMangoDepository>,
-        insurance_amount: u64,
+        amount: u64,
     ) -> ProgramResult {
         msg!("[withdraw_insurance_from_mango_depository]");
-        instructions::withdraw_insurance_from_mango_depository::handler(ctx, insurance_amount)
-            .map_err(|e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            })
+        instructions::withdraw_insurance_from_mango_depository::handler(ctx, amount).map_err(|e| {
+            msg!("<*> {}", e); // log the error
+            e.into() // convert UxdError to generic ProgramError
+        })
     }
 
     /// Rebalance the delta neutral position of the underlying `MangoDepository`.
@@ -344,9 +315,7 @@ pub mod uxd {
     ///
     /// Flow:
     ///  - Starts by scanning the order book for the amount that we can fill.
-    ///  - First transfer collateral_amount from the user collateral ATA to the
-    ///     passthrough account.
-    ///  - Second transfer is done from passthrough to the mango account balance.
+    ///  - Deposit to Mango account
     ///  - Using the spot collateral deposited, the short perp position of equivalent
     ///     size if opened (FoK emulated by using mango IoC + 100% fill verification).
     ///  - Deducts the taker_fees (ceiled) form the value of the opened short, and
@@ -400,8 +369,7 @@ pub mod uxd {
     ///  - Deducts the taker_fees (ceiled) form the value of the opened short, and
     ///     transfer user redeemable token for that amount.
     ///  - Burns the redeemable equivalent to fees + closed position,
-    ///     then transfer resulting equivalent collateral to the user (using
-    ///     the passthrough account).
+    ///     then withdraw resulting equivalent collateral to the user
     ///  - Internal accounting update + anchor event emission.
     ///  
     /// Note:
