@@ -217,6 +217,8 @@ pub enum UxdErrorCode {
     OrderSizeBelowMinLotSize,
     #[error("The collateral delta post perp order doesn't match the planned one.")]
     InvalidCollateralDelta,
+    #[error("The order quantity is below contract_size of the perp market.")]
+    QuantityBelowContractSize,
     #[error("MangoErrorCode::Default Check the source code for more info")]
     Default = u32::MAX,
 }

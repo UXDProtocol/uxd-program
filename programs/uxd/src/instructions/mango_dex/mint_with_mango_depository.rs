@@ -183,6 +183,11 @@ pub fn handler(
         .ok_or(math_err!())?
         .floor();
 
+    check!(
+        base_lot_amount > 0,
+        UxdErrorCode::QuantityBelowContractSize
+    )?;
+
     // - [Define perp order]
     // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
     //        [BID: maker | ASK: taker (us, the caller)]
