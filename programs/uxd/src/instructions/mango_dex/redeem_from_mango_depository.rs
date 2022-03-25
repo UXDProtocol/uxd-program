@@ -22,6 +22,7 @@ use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SLIPPAGE_BASIS;
+use crate::validate_perp_market_mint_matches_depository_collateral_mint;
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
@@ -485,6 +486,14 @@ impl<'info> RedeemFromMangoDepository<'info> {
             self.user_redeemable.amount >= redeemable_amount,
             UxdErrorCode::InsufficientRedeemableAmount
         )?;
+
+        validate_perp_market_mint_matches_depository_collateral_mint(
+            &self.mango_group,
+            self.mango_program.key,
+            self.mango_perp_market.key,
+            &self.depository.collateral_mint,
+        )?;
+
         Ok(())
     }
 }

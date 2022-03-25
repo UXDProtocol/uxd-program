@@ -12,6 +12,7 @@ use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::Order;
 use crate::mango_utils::PerpInfo;
+use crate::validate_perp_market_mint_matches_depository_collateral_mint;
 use crate::AccountingEvent;
 use crate::Controller;
 use crate::MangoDepository;
@@ -487,6 +488,14 @@ impl<'info> MintWithMangoDepository<'info> {
             self.user_collateral.amount >= collateral_amount,
             UxdErrorCode::InsufficientCollateralAmount
         )?;
+
+        validate_perp_market_mint_matches_depository_collateral_mint(
+            &self.mango_group,
+            self.mango_program.key,
+            self.mango_perp_market.key,
+            &self.depository.collateral_mint,
+        )?;
+
         Ok(())
     }
 }
