@@ -1129,6 +1129,9 @@
             "name": "InvalidCollateralDelta"
           },
           {
+            "name": "QuantityBelowContractSize"
+          },
+          {
             "name": "Default"
           }
         ]

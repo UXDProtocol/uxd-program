@@ -1129,6 +1129,9 @@ export type Uxd = {
             "name": "InvalidCollateralDelta"
           },
           {
+            "name": "QuantityBelowContractSize"
+          },
+          {
             "name": "Default"
           }
         ]
@@ -2795,6 +2798,9 @@ export const IDL: Uxd = {
           },
           {
             "name": "InvalidCollateralDelta"
+          },
+          {
+            "name": "QuantityBelowContractSize"
           },
           {
             "name": "Default"
