@@ -1,7 +1,6 @@
-import { Keypair, PublicKey, Signer } from "@solana/web3.js";
+import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, USDC_DEVNET, ETH_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
-import { mangoDepositoryMigrationsSuite } from "./suite/mangoDepositoryMigrationsSuite";
 import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters, mangoDepositoryAndControllerInteractionsSuite } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
@@ -11,7 +10,7 @@ import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedee
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
-const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 console.log(`ETH 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryETH.mangoAccountPda}'`);
@@ -34,10 +33,6 @@ describe("Integration tests ETH", function () {
 
     describe("mangoDepositorySetupSuite ETH", function () {
         mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryETH, 8_000);
-    });
-
-    describe("mangoDepositoryMigrationsSuite ETH", function () {
-        mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryETH); // un-migrated yet (and this is skipped)
     });
 
     // Skipped as it's handle bu the test_ci_rebalancing.ts

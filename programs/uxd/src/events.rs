@@ -68,36 +68,6 @@ pub struct RegisterMangoDepositoryEventV2 {
     pub depository: Pubkey,
     // The collateral mint.
     pub collateral_mint: Pubkey,
-    // The insurance mint.
-    pub insurance_mint: Pubkey,
-    // The quote mint.
-    pub quote_mint: Pubkey,
-    // The MangoAccount PDA.
-    pub mango_account: Pubkey,
-}
-
-/// Event called in [instructions::migrate_mango_depository_to_v2::handler].
-#[event]
-pub struct MigrateMangoDepositoryToV2Event {
-    /// The controller version.
-    #[index]
-    pub version: u8,
-    /// The depository version pre update.
-    #[index]
-    pub depository_from_version: u8,
-    /// The depository version post update.
-    #[index]
-    pub depository_to_version: u8,
-    /// The controller.
-    #[index]
-    pub controller: Pubkey,
-    /// The depository.
-    #[index]
-    pub depository: Pubkey,
-    // The collateral mint.
-    pub collateral_mint: Pubkey,
-    // The insurance mint.
-    pub insurance_mint: Pubkey,
     // The quote mint.
     pub quote_mint: Pubkey,
     // The MangoAccount PDA.
@@ -143,6 +113,26 @@ pub struct DepositInsuranceToMangoDepositoryEvent {
     pub deposited_amount: u64,
 }
 
+/// Event called in [instructions::mango_dex::deposit_insurance_to_mango_depository::handler].
+#[event]
+pub struct DepositInsuranceToMangoDepositoryEventV2 {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    // The insurance mint.
+    pub quote_mint: Pubkey,
+    // The insurance mint decimals.
+    pub quote_mint_decimals: u8,
+    // The deposited amount in native units.
+    pub deposited_amount: u64,
+}
+
 /// Event called in [instructions::mango_dex::withdraw_insurance_from_mango_depository::handler].
 #[event]
 pub struct WithdrawInsuranceFromMangoDepositoryEvent {
@@ -159,6 +149,26 @@ pub struct WithdrawInsuranceFromMangoDepositoryEvent {
     pub insurance_mint: Pubkey,
     // The insurance mint decimals.
     pub insurance_mint_decimals: u8,
+    // The withdrawn amount in native units.
+    pub withdrawn_amount: u64,
+}
+
+/// Event called in [instructions::mango_dex::withdraw_insurance_from_mango_depository::handler].
+#[event]
+pub struct WithdrawInsuranceFromMangoDepositoryEventV2 {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    // The insurance mint.
+    pub quote_mint: Pubkey,
+    // The insurance mint decimals.
+    pub quote_mint_decimals: u8,
     // The withdrawn amount in native units.
     pub withdrawn_amount: u64,
 }

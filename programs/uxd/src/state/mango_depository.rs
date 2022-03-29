@@ -11,17 +11,16 @@ declare_check_assert_macros!(SourceFileId::StateMangoDepository);
 #[derive(Default)]
 pub struct MangoDepository {
     pub bump: u8,
-    pub collateral_passthrough_bump: u8,
-    pub insurance_passthrough_bump: u8,
+    pub _unused: [u8; 2],
     pub mango_account_bump: u8,
     // Version used
     pub version: u8,
     pub collateral_mint: Pubkey,
     pub collateral_mint_decimals: u8,
-    pub collateral_passthrough: Pubkey,
-    pub insurance_mint: Pubkey,
-    pub insurance_passthrough: Pubkey,
-    pub insurance_mint_decimals: u8,
+    pub _unused2: [u8; 32],
+    pub quote_mint: Pubkey,
+    pub _unused3: [u8; 32],
+    pub quote_mint_decimals: u8,
     pub mango_account: Pubkey,
     //
     // The Controller instance for which this Depository works for
@@ -31,7 +30,7 @@ pub struct MangoDepository {
     // Note : To keep track of the in and out of a depository
     //
     // The amount of USDC InsuranceFund deposited/withdrawn by Authority on the underlying Mango Account - The actual amount might be lower/higher depending of funding rate changes
-    // In Collateral native units
+    // In Quote native units
     pub insurance_amount_deposited: u128,
     //
     // The amount of collateral deposited by users to mint UXD
@@ -47,25 +46,14 @@ pub struct MangoDepository {
     // The amount of taker fee paid in quote while placing perp orders
     pub total_amount_paid_taker_fee: u128,
     //
-    pub _reserved: u8,
-    //
-    // This information is shared by all the Depositories, and as such would have been a good
-    // candidate for the Controller, but we will lack space in the controller sooner than here.
-    //
-    // v2 -83 bytes
-    pub quote_mint: Pubkey,
-    pub quote_passthrough: Pubkey,
-    pub quote_passthrough_bump: u8,
-    pub quote_mint_decimals: u8,
-    //
     // The amount of DN position that has been rebalanced (in quote native units)
     pub total_amount_rebalanced: u128,
     //
-    pub _reserved1: MangoDepositoryPadding,
+    pub _reserved: MangoDepositoryPadding,
 }
 
 #[derive(Clone)]
-pub struct MangoDepositoryPadding([u8; 429]);
+pub struct MangoDepositoryPadding([u8; 496]);
 
 impl AnchorSerialize for MangoDepositoryPadding {
     fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
@@ -75,13 +63,13 @@ impl AnchorSerialize for MangoDepositoryPadding {
 
 impl AnchorDeserialize for MangoDepositoryPadding {
     fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
-        Ok(Self([0u8; 429]))
+        Ok(Self([0u8; 496]))
     }
 }
 
 impl Default for MangoDepositoryPadding {
     fn default() -> Self {
-        MangoDepositoryPadding([0u8; 429])
+        MangoDepositoryPadding([0u8; 496])
     }
 }
 

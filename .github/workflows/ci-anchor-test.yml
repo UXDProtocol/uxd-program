@@ -2,7 +2,7 @@ name: Anchor Test
 
 on:
   push:
-    branches: [main, v*.*]
+    branches: [main, v*.*, acam/soteria-audit*]
   
 permissions:
   contents: read

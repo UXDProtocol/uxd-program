@@ -7,17 +7,13 @@ use crate::mango_program;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::UxdResult;
-use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
-use crate::INSURANCE_PASSTHROUGH_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_ACCOUNT_VERSION;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
-use crate::QUOTE_PASSTHROUGH_NAMESPACE;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
-use anchor_spl::token::TokenAccount;
 use mango::state::MangoAccount;
 use std::mem::size_of;
 
@@ -25,7 +21,7 @@ const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
 declare_check_assert_macros!(SourceFileId::InstructionRegisterMangoDepository);
 
-/// Takes 16 accounts - 12 used locally - 1 for CPI - 3 Programs - 1 Sysvar
+/// Takes 12 accounts - 8 used locally - 1 for CPI - 3 Programs - 1 Sysvar
 #[derive(Accounts)]
 pub struct RegisterMangoDepository<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
@@ -58,51 +54,9 @@ pub struct RegisterMangoDepository<'info> {
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #6 The insurance mint used by the `depository` instance
-    pub insurance_mint: Box<Account<'info, Mint>>,
-
-    /// #7 The quote mint used by the `depository` instance
     pub quote_mint: Box<Account<'info, Mint>>,
 
-    /// #8 The `depository`'s TA for its `collateral_mint`
-    /// MangoAccounts can only transact with the TAs owned by their authority
-    /// and this only serves as a passthrough
-    #[account(
-        init,
-        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref()],
-        bump,
-        token::mint = collateral_mint,
-        token::authority = depository,
-        payer = payer,
-    )]
-    pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
-
-    /// #9 The `depository`'s TA for its `insurance_mint`
-    /// MangoAccounts can only transact with the TAs owned by their authority
-    /// and this only serves as a passthrough
-    #[account(
-        init,
-        seeds = [INSURANCE_PASSTHROUGH_NAMESPACE, collateral_mint.key().as_ref(), insurance_mint.key().as_ref()],
-        bump,
-        token::mint = insurance_mint,
-        token::authority = depository,
-        payer = payer,
-    )]
-    pub depository_insurance_passthrough_account: Box<Account<'info, TokenAccount>>,
-
-    /// #10 The `depository`'s TA for its `quote_mint`
-    /// MangoAccounts can only transact with the TAs owned by their authority
-    /// and this only serves as a passthrough
-    #[account(
-        init,
-        seeds = [QUOTE_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
-        bump,
-        token::mint = quote_mint,
-        token::authority = depository,
-        payer = payer,
-    )]
-    pub depository_quote_passthrough_account: Box<Account<'info, TokenAccount>>,
-
-    /// #11 The MangoMarkets Account (MangoAccount) managed by the `depository`
+    /// #7 The MangoMarkets Account (MangoAccount) managed by the `depository`
     #[account(
         init,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
@@ -113,25 +67,24 @@ pub struct RegisterMangoDepository<'info> {
     )]
     pub depository_mango_account: AccountInfo<'info>,
 
-    /// #12 [MangoMarkets CPI] Index grouping perp and spot markets
+    /// #8 [MangoMarkets CPI] Index grouping perp and spot markets
     pub mango_group: AccountInfo<'info>,
 
-    /// #13 System Program
+    /// #9 System Program
     pub system_program: Program<'info, System>,
 
-    /// #14 Token Program
+    /// #10 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #15 MangoMarketv3 Program
+    /// #11 MangoMarketv3 Program
     pub mango_program: Program<'info, mango_program::Mango>,
 
-    /// #16 Rent Sysvar
+    /// #12 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
 pub fn handler(ctx: Context<RegisterMangoDepository>) -> UxdResult {
     let collateral_mint = ctx.accounts.collateral_mint.key();
-    let insurance_mint = ctx.accounts.insurance_mint.key();
     let quote_mint = ctx.accounts.quote_mint.key();
 
     // - Initialize Mango Account
@@ -148,18 +101,6 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> UxdResult {
 
     // - Initialize Depository state
     ctx.accounts.depository.bump = *ctx.bumps.get("depository").ok_or(bump_err!())?;
-    ctx.accounts.depository.collateral_passthrough_bump = *ctx
-        .bumps
-        .get("depository_collateral_passthrough_account")
-        .ok_or(bump_err!())?;
-    ctx.accounts.depository.insurance_passthrough_bump = *ctx
-        .bumps
-        .get("depository_insurance_passthrough_account")
-        .ok_or(bump_err!())?;
-    ctx.accounts.depository.quote_passthrough_bump = *ctx
-        .bumps
-        .get("depository_quote_passthrough_account")
-        .ok_or(bump_err!())?;
     ctx.accounts.depository.mango_account_bump = *ctx
         .bumps
         .get("depository_mango_account")
@@ -167,16 +108,8 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> UxdResult {
     ctx.accounts.depository.version = MANGO_DEPOSITORY_ACCOUNT_VERSION;
     ctx.accounts.depository.collateral_mint = collateral_mint;
     ctx.accounts.depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
-    ctx.accounts.depository.collateral_passthrough =
-        ctx.accounts.depository_collateral_passthrough_account.key();
-    ctx.accounts.depository.insurance_mint = insurance_mint;
-    ctx.accounts.depository.insurance_mint_decimals = ctx.accounts.insurance_mint.decimals;
-    ctx.accounts.depository.insurance_passthrough =
-        ctx.accounts.depository_insurance_passthrough_account.key();
     ctx.accounts.depository.quote_mint = quote_mint;
     ctx.accounts.depository.quote_mint_decimals = ctx.accounts.quote_mint.decimals;
-    ctx.accounts.depository.quote_passthrough =
-        ctx.accounts.depository_quote_passthrough_account.key();
     ctx.accounts.depository.mango_account = ctx.accounts.depository_mango_account.key();
     ctx.accounts.depository.controller = ctx.accounts.controller.key();
     ctx.accounts.depository.insurance_amount_deposited = u128::MIN;
@@ -194,7 +127,6 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> UxdResult {
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         collateral_mint: ctx.accounts.collateral_mint.key(),
-        insurance_mint: ctx.accounts.insurance_mint.key(),
         quote_mint: ctx.accounts.quote_mint.key(),
         mango_account: ctx.accounts.depository_mango_account.key(),
     });
