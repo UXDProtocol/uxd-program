@@ -2,7 +2,7 @@
 
 ## v3.0.2 (audit report fixes Soteria)
 
-Deployed: | Slot:
+Deployed: Mar 31, 2022 at 08:50:52 UTC | Slot: 127,530,926
 
 1. Remove un needed passthrough accounts through the app to save computing
 
