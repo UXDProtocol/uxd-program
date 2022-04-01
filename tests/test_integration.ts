@@ -1,7 +1,6 @@
 import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
-import { mangoDepositoryMigrationsSuite } from "./suite/mangoDepositoryMigrationsSuite";
 import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters, mangoDepositoryAndControllerInteractionsSuite } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
@@ -12,9 +11,9 @@ import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParamet
 import { mangoDepositoryAndControllerAccountingSuite } from "./suite/mangoDepositoryAndControllerAccountingSuite";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
-const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
-const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
-const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 console.log(`SOL 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositorySOL.mangoAccountPda}'`);
@@ -40,10 +39,6 @@ describe("Integration tests SOL", function () {
 
     describe("mangoDepositorySetupSuite SOL", function () {
         mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositorySOL, 1_000);
-    });
-
-    describe("mangoDepositoryMigrationsSuite SOL", function () {
-        mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositorySOL);
     });
 
     describe("mangoDepositoryRebalancingSuite SOL", function () {
@@ -87,10 +82,6 @@ describe("Integration tests BTC", function () {
         mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryBTC, 100_000);
     });
 
-    describe.skip("mangoDepositoryMigrationsSuite BTC", function () {
-        mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryBTC);
-    });
-
     describe("mangoDepositoryRebalancingSuite BTC", function () {
         const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryBTC, paramsRebalancing);
@@ -124,10 +115,6 @@ describe("Integration tests ETH", function () {
 
     describe("mangoDepositorySetupSuite ETH", function () {
         mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryETH, 8_000);
-    });
-
-    describe.skip("mangoDepositoryMigrationsSuite ETH", function () {
-        mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositoryETH); // un-migrated yet (and this is skipped)
     });
 
     describe("mangoDepositoryRebalancingSuite ETH", function () {

@@ -5,13 +5,25 @@
 1. Use place_perp_order_v2 to save computing and reduce composability issues
 2. Pass a limit_price in place of the slippage to ensure execution price match user expectations
 
-## v3.0.0 (audited Soteria)
+## v3.0.2 (audit report fixes Soteria)
+
+Deployed: Mar 31, 2022 at 08:50:52 UTC | Slot: 127,530,926
+
+1. Remove un needed passthrough accounts through the app to save computing
+
+## v3.0.1 (audited Soteria)
 
 Deployed: | Slot:
 
 1. Added an additional payer to Mint and Redeem instructions (although they are too big to fit current governance program proposals)
 2. Added MigrateMangoDepositoryToV2 instruction to migrate V1 MangoDepository accounts to their V2 counterpart
 3. Added RebalanceMangoDepositoryLite instruction to rebalance the delta neutral position by providing either quote or collateral depending of the PnL polarity
+
+## v2.4.0 (security hotfix)
+
+Deployed: Mar 18, 2022 at 09:19:49 UTC | Slot: 125,497,411
+
+1. Add verification to the `mango_perp_market` account passed in mint/redeem/rebalance to enforce its mint matches the depository's one
 
 ## v2.3.1 (detached branch patch)
 

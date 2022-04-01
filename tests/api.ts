@@ -1,5 +1,5 @@
 import { getConnection, TXN_OPTS } from "./connection";
-import { CLUSTER, uxdClient } from "./constants";
+import { uxdClient } from "./constants";
 import { Account, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { prepareWrappedSolTokenAccount } from "./utils";
@@ -29,20 +29,6 @@ export async function registerMangoDepository(authority: Signer, payer: Signer, 
     let tx = new Transaction();
 
     tx.instructions.push(registerMangoDepositoryIx);
-    signers.push(authority);
-    if (payer) {
-        signers.push(payer);
-    }
-    tx.feePayer = payer.publicKey;
-    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function migrateMangoDepositoryToV2(authority: Signer, payer: Signer, controller: Controller, depository: MangoDepository): Promise<string> {
-    const migrateMangoDepositoryToV2Ix = uxdClient.createMigrateMangoDepositoryToV2Instruction(controller, depository, authority.publicKey, TXN_OPTS, payer.publicKey);
-    let signers = [];
-    let tx = new Transaction();
-
-    tx.instructions.push(migrateMangoDepositoryToV2Ix);
     signers.push(authority);
     if (payer) {
         signers.push(payer);

@@ -32,8 +32,8 @@ pub enum UxdError {
     MaxNumberOfMangoDepositoriesRegisteredReached,
     #[msg("The amount to withdraw from the Insurance Fund must be superior to zero..")]
     InvalidInsuranceAmount,
-    #[msg("The Insurance ATA from authority doesn't have enough balance.")]
-    InsufficientAuthorityInsuranceAmount,
+    #[msg("The Quote ATA from authority doesn't have enough balance.")]
+    InsufficientAuthorityQuoteAmount,
     #[msg("The rebalanced amount must be superior to zero..")]
     InvalidRebalancedAmount,
     #[msg("Insufficient order book depth for order.")]
@@ -48,7 +48,6 @@ pub enum UxdError {
     InvalidOrderDirection,
     #[msg("Math error.")]
     MathError,
-    // Deprecated
     #[msg("The order couldn't be executed with the provided slippage.")]
     SlippageReached,
     #[msg("The rebalancing amount must be above 0.")]
@@ -67,6 +66,10 @@ pub enum UxdError {
     InvalidCollateralDelta,
     #[msg("The perp market index could not be found for this MangoMarkets Pair.")]
     MangoPerpMarketIndexNotFound,
+    #[msg("Could not load the provided MangoGroup account.")]
+    InvalidMangoGroup,
+    #[msg("The order quantity is below contract_size of the perp market.")]
+    QuantityBelowContractSize,
 
     /// Anchor DSL related errors
     ///
@@ -78,30 +81,14 @@ pub enum UxdError {
     InvalidDepository,
     #[msg("The provided collateral mint does not match the depository's collateral mint.")]
     InvalidCollateralMint,
-    #[msg("The provided insurance mint does not match the depository's insurance mint.")]
-    InvalidInsuranceMint,
-    #[msg("The authority's Insurance ATA's mint does not match the Depository's one.")]
-    InvalidAuthorityInsuranceATAMint,
-    #[msg("The Collateral Passthrough Account isn't the Depository one.")]
-    InvalidCollateralPassthroughAccount,
-    #[msg("The Insurance Passthrough Account isn't the Depository one.")]
-    InvalidInsurancePassthroughAccount,
-    #[msg("The Mango Account isn't the Depository one.")]
-    InvalidMangoAccount,
-    #[msg("The Insurance Passthrough ATA's mint does not match the Depository's one.")]
-    InvalidInsurancePassthroughATAMint,
-    #[msg("The Redeemable Mint provided does not match the Controller's one.")]
-    InvalidRedeemableMint,
-    #[msg("The Collateral Passthrough ATA's mint does not match the Depository's one.")]
-    InvalidCollateralPassthroughATAMint,
-    #[msg("The Quote Passthrough Account isn't the Depository one.")]
-    InvalidQuotePassthroughAccount,
-    #[msg("The Quote Passthrough ATA's mint does not match the Depository's one.")]
-    InvalidQuotePassthroughATAMint,
     #[msg("The provided quote mint does not match the depository's quote mint.")]
     InvalidQuoteMint,
-    #[msg("The instruction doesn't support this version of the Depository. Migrate first.")]
-    UnsupportedDepositoryVersion,
+    #[msg("The authority's Quote ATA's mint does not match the Depository's one.")]
+    InvalidAuthorityQuoteATAMint,
+    #[msg("The Mango Account isn't the Depository one.")]
+    InvalidMangoAccount,
+    #[msg("The Redeemable Mint provided does not match the Controller's one.")]
+    InvalidRedeemableMint,
 
     #[msg("Default - Check the source code for more info")]
     Default,

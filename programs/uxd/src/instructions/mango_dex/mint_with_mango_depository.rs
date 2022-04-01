@@ -1,13 +1,13 @@
-use crate::error::UxdError;
 use crate::MANGO_PERP_MAX_FILL_EVENTS;
-// use crate::events::MintWithMangoDepositoryEvent;
+// use crate::events::MintWithMangoDepositoryEvent2;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::PerpInfo;
+use crate::validate_perp_market_mint_matches_depository_collateral_mint;
 use crate::Controller;
 use crate::MangoDepository;
-use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
+use crate::UxdError;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
@@ -21,7 +21,6 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use anchor_spl::token::Transfer;
 use fixed::types::I80F48;
 use mango::matching::OrderType;
 use mango::matching::Side;
@@ -42,7 +41,8 @@ pub struct MintWithMangoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump
+        bump = controller.bump,
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
     pub controller: Box<Account<'info, Controller>>,
 
@@ -53,7 +53,7 @@ pub struct MintWithMangoDepository<'info> {
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.bump,
         has_one = controller @UxdError::InvalidController,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        has_one = mango_account @UxdError::InvalidMangoAccount,
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
@@ -87,26 +87,14 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #8 The `depository`'s TA for its `insurance_mint`
-    /// MangoAccounts can only transact with the TAs owned by their authority
-    /// and this only serves as a passthrough
-    #[account(
-        mut,
-        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.collateral_passthrough_bump,
-        constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdError::InvalidCollateralPassthroughAccount
-    )]
-    pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
-
     /// #9 The MangoMarkets Account (MangoAccount) managed by the `depository`
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.mango_account_bump,
-        constraint = depository.mango_account == depository_mango_account.key() @UxdError::InvalidMangoAccount,
     )]
-    pub depository_mango_account: AccountInfo<'info>,
+    pub mango_account: AccountInfo<'info>,
 
     /// #10 [MangoMarkets CPI] Index grouping perp and spot markets
     /// CHECK: Mango CPI - checked MangoMarketV3 side
@@ -193,6 +181,10 @@ pub fn handler(
         .checked_floor()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
+    if max_base_quantity.is_zero() {
+        return Err(error!(UxdError::QuantityBelowContractSize));
+    }
+
     // - 2 [TRANSFER COLLATERAL TO MANGO (LONG)] ------------------------------
     // It's the amount we are depositing on the MangoAccount and that will be used as collateral
     // to open the short perp
@@ -202,17 +194,10 @@ pub fn handler(
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    // - [Transferring user collateral to the passthrough account]
-    token::transfer(
-        ctx.accounts
-            .into_transfer_user_collateral_to_passthrough_context(),
-        collateral_deposited_amount,
-    )?;
-
     // - [MangoMarkets CPI - Deposit collateral to Depository MangoAccount]
     mango_markets_v3::deposit(
         ctx.accounts
-            .into_deposit_to_mango_context()
+            .into_deposit_collateral_to_mango_context()
             .with_signer(depository_pda_signer),
         collateral_deposited_amount,
     )?;
@@ -322,34 +307,18 @@ pub fn handler(
 }
 
 impl<'info> MintWithMangoDepository<'info> {
-    pub fn into_transfer_user_collateral_to_passthrough_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
-        let cpi_accounts = Transfer {
-            from: self.user_collateral.to_account_info(),
-            to: self
-                .depository_collateral_passthrough_account
-                .to_account_info(),
-            authority: self.user.to_account_info(),
-        };
-        let cpi_program = self.token_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
-    pub fn into_deposit_to_mango_context(
+    pub fn into_deposit_collateral_to_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Deposit<'info>> {
         let cpi_accounts = mango_markets_v3::Deposit {
             mango_group: self.mango_group.to_account_info(),
-            mango_account: self.depository_mango_account.to_account_info(),
-            owner: self.depository.to_account_info(),
+            mango_account: self.mango_account.to_account_info(),
+            owner: self.user.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
             root_bank: self.mango_root_bank.to_account_info(),
             node_bank: self.mango_node_bank.to_account_info(),
             vault: self.mango_vault.to_account_info(),
-            owner_token_account: self
-                .depository_collateral_passthrough_account
-                .to_account_info(),
+            owner_token_account: self.user_collateral.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -360,7 +329,7 @@ impl<'info> MintWithMangoDepository<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::PlacePerpOrder2<'info>> {
         let cpi_accounts = mango_markets_v3::PlacePerpOrder2 {
             mango_group: self.mango_group.to_account_info(),
-            mango_account: self.depository_mango_account.to_account_info(),
+            mango_account: self.mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
             perp_market: self.mango_perp_market.to_account_info(),
@@ -402,7 +371,7 @@ impl<'info> MintWithMangoDepository<'info> {
         let perp_info = PerpInfo::new(
             &self.mango_group,
             &self.mango_cache,
-            &self.depository_mango_account,
+            &self.mango_account,
             self.mango_perp_market.key,
             self.mango_group.key,
             self.mango_program.key,
@@ -415,7 +384,7 @@ impl<'info> MintWithMangoDepository<'info> {
     fn perp_account(&self, perp_info: &PerpInfo) -> Result<PerpAccount> {
         // - loads Mango's accounts
         let mango_account = MangoAccount::load_checked(
-            &self.depository_mango_account,
+            &self.mango_account,
             self.mango_program.key,
             self.mango_group.key,
         )
@@ -486,6 +455,8 @@ fn check_perp_order_fully_filled(
         .ok_or_else(|| error!(UxdError::MathError))?)
     .checked_abs()
     .ok_or_else(|| error!(UxdError::MathError))?;
+    msg!("filled_amount {}", filled_amount);
+    msg!("order_quantity {}", order_quantity);
     if order_quantity != filled_amount {
         return Err(error!(UxdError::PerpOrderPartiallyFilled));
     }
@@ -505,6 +476,13 @@ impl<'info> MintWithMangoDepository<'info> {
         if self.user_collateral.amount < collateral_amount {
             return Err(error!(UxdError::InsufficientCollateralAmount));
         }
+
+        validate_perp_market_mint_matches_depository_collateral_mint(
+            &self.mango_group,
+            self.mango_program.key,
+            self.mango_perp_market.key,
+            &self.depository.collateral_mint,
+        )?;
         Ok(())
     }
 }
