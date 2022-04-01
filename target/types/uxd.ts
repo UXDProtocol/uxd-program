@@ -119,32 +119,12 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "quoteMint",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryInsurancePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryQuotePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryMangoAccount",
+          "name": "mangoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -393,17 +373,12 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "authorityInsurance",
+          "name": "authorityQuote",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "depositoryInsurancePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryMangoAccount",
+          "name": "mangoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -445,7 +420,7 @@ export type Uxd = {
       ],
       "args": [
         {
-          "name": "insuranceAmount",
+          "name": "amount",
           "type": "u64"
         }
       ]
@@ -469,17 +444,12 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "authorityInsurance",
+          "name": "authorityQuote",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "depositoryInsurancePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryMangoAccount",
+          "name": "mangoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -531,7 +501,7 @@ export type Uxd = {
       ],
       "args": [
         {
-          "name": "insuranceAmount",
+          "name": "amount",
           "type": "u64"
         }
       ]
@@ -580,17 +550,7 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryQuotePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryMangoAccount",
+          "name": "mangoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -741,12 +701,7 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryMangoAccount",
+          "name": "mangoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -1021,12 +976,7 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryMangoAccount",
+          "name": "mangoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -1209,12 +1159,13 @@ export type Uxd = {
             "type": "u8"
           },
           {
-            "name": "collateralPassthroughBump",
-            "type": "u8"
-          },
-          {
-            "name": "insurancePassthroughBump",
-            "type": "u8"
+            "name": "unused",
+            "type": {
+              "array": [
+                "u8",
+                2
+              ]
+            }
           },
           {
             "name": "mangoAccountBump",
@@ -1233,19 +1184,29 @@ export type Uxd = {
             "type": "u8"
           },
           {
-            "name": "collateralPassthrough",
+            "name": "unused2",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "quoteMint",
             "type": "publicKey"
           },
           {
-            "name": "insuranceMint",
-            "type": "publicKey"
+            "name": "unused3",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           },
           {
-            "name": "insurancePassthrough",
-            "type": "publicKey"
-          },
-          {
-            "name": "insuranceMintDecimals",
+            "name": "quoteMintDecimals",
             "type": "u8"
           },
           {
@@ -1273,31 +1234,11 @@ export type Uxd = {
             "type": "u128"
           },
           {
-            "name": "reserved",
-            "type": "u8"
-          },
-          {
-            "name": "quoteMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "quotePassthrough",
-            "type": "publicKey"
-          },
-          {
-            "name": "quotePassthroughBump",
-            "type": "u8"
-          },
-          {
-            "name": "quoteMintDecimals",
-            "type": "u8"
-          },
-          {
             "name": "totalAmountRebalanced",
             "type": "u128"
           },
           {
-            "name": "reserved1",
+            "name": "reserved",
             "type": {
               "defined": "MangoDepositoryPadding"
             }
@@ -1594,61 +1535,6 @@ export type Uxd = {
           "index": false
         },
         {
-          "name": "insuranceMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "quoteMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "mangoAccount",
-          "type": "publicKey",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "MigrateMangoDepositoryToV2Event",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "depositoryFromVersion",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "depositoryToVersion",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "collateralMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "insuranceMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
           "name": "quoteMint",
           "type": "publicKey",
           "index": false
@@ -1726,6 +1612,41 @@ export type Uxd = {
       ]
     },
     {
+      "name": "DepositInsuranceToMangoDepositoryEventV2",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMintDecimals",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositedAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
       "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
@@ -1750,6 +1671,41 @@ export type Uxd = {
         },
         {
           "name": "insuranceMintDecimals",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "withdrawnAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "WithdrawInsuranceFromMangoDepositoryEventV2",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMintDecimals",
           "type": "u8",
           "index": false
         },
@@ -2046,8 +2002,8 @@ export type Uxd = {
     },
     {
       "code": 6014,
-      "name": "InsufficientAuthorityInsuranceAmount",
-      "msg": "The Insurance ATA from authority doesn't have enough balance."
+      "name": "InsufficientAuthorityQuoteAmount",
+      "msg": "The Quote ATA from authority doesn't have enough balance."
     },
     {
       "code": 6015,
@@ -2520,11 +2476,6 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "quoteMint",
           "isMut": false,
           "isSigner": false
@@ -2657,17 +2608,12 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "authorityInsurance",
+          "name": "authorityQuote",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "depositoryInsurancePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryMangoAccount",
+          "name": "mangoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -2709,7 +2655,7 @@ export const IDL: Uxd = {
       ],
       "args": [
         {
-          "name": "insuranceAmount",
+          "name": "amount",
           "type": "u64"
         }
       ]
@@ -2733,17 +2679,12 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "authorityInsurance",
+          "name": "authorityQuote",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "depositoryInsurancePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryMangoAccount",
+          "name": "mangoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -2795,7 +2736,7 @@ export const IDL: Uxd = {
       ],
       "args": [
         {
-          "name": "insuranceAmount",
+          "name": "amount",
           "type": "u64"
         }
       ]
@@ -2844,17 +2785,7 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryQuotePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryMangoAccount",
+          "name": "mangoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -3005,12 +2936,7 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryMangoAccount",
+          "name": "mangoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -3285,12 +3211,7 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryMangoAccount",
+          "name": "mangoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -3473,12 +3394,13 @@ export const IDL: Uxd = {
             "type": "u8"
           },
           {
-            "name": "collateralPassthroughBump",
-            "type": "u8"
-          },
-          {
-            "name": "insurancePassthroughBump",
-            "type": "u8"
+            "name": "unused",
+            "type": {
+              "array": [
+                "u8",
+                2
+              ]
+            }
           },
           {
             "name": "mangoAccountBump",
@@ -3497,19 +3419,29 @@ export const IDL: Uxd = {
             "type": "u8"
           },
           {
-            "name": "collateralPassthrough",
+            "name": "unused2",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "quoteMint",
             "type": "publicKey"
           },
           {
-            "name": "insuranceMint",
-            "type": "publicKey"
+            "name": "unused3",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           },
           {
-            "name": "insurancePassthrough",
-            "type": "publicKey"
-          },
-          {
-            "name": "insuranceMintDecimals",
+            "name": "quoteMintDecimals",
             "type": "u8"
           },
           {
@@ -3537,31 +3469,11 @@ export const IDL: Uxd = {
             "type": "u128"
           },
           {
-            "name": "reserved",
-            "type": "u8"
-          },
-          {
-            "name": "quoteMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "quotePassthrough",
-            "type": "publicKey"
-          },
-          {
-            "name": "quotePassthroughBump",
-            "type": "u8"
-          },
-          {
-            "name": "quoteMintDecimals",
-            "type": "u8"
-          },
-          {
             "name": "totalAmountRebalanced",
             "type": "u128"
           },
           {
-            "name": "reserved1",
+            "name": "reserved",
             "type": {
               "defined": "MangoDepositoryPadding"
             }
@@ -3858,61 +3770,6 @@ export const IDL: Uxd = {
           "index": false
         },
         {
-          "name": "insuranceMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "quoteMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "mangoAccount",
-          "type": "publicKey",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "MigrateMangoDepositoryToV2Event",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "depositoryFromVersion",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "depositoryToVersion",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "collateralMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "insuranceMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
           "name": "quoteMint",
           "type": "publicKey",
           "index": false
@@ -3990,6 +3847,41 @@ export const IDL: Uxd = {
       ]
     },
     {
+      "name": "DepositInsuranceToMangoDepositoryEventV2",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMintDecimals",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "depositedAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
       "name": "WithdrawInsuranceFromMangoDepositoryEvent",
       "fields": [
         {
@@ -4014,6 +3906,41 @@ export const IDL: Uxd = {
         },
         {
           "name": "insuranceMintDecimals",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "withdrawnAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "WithdrawInsuranceFromMangoDepositoryEventV2",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "quoteMintDecimals",
           "type": "u8",
           "index": false
         },
@@ -4310,8 +4237,8 @@ export const IDL: Uxd = {
     },
     {
       "code": 6014,
-      "name": "InsufficientAuthorityInsuranceAmount",
-      "msg": "The Insurance ATA from authority doesn't have enough balance."
+      "name": "InsufficientAuthorityQuoteAmount",
+      "msg": "The Quote ATA from authority doesn't have enough balance."
     },
     {
       "code": 6015,

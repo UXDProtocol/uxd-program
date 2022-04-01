@@ -13,7 +13,7 @@ export const withdrawInsuranceMangoDepositoryTest = async function (amount: numb
     try {
         // GIVEN
         const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
-        const insuranceDepositedAmount = nativeToUi(depositoryOnchainAccount.insuranceAmountDeposited.toNumber(), depository.insuranceMintDecimals);
+        const insuranceDepositedAmount = nativeToUi(depositoryOnchainAccount.insuranceAmountDeposited.toNumber(), depository.quoteMintDecimals);
 
         // WHEN
         const txId = await withdrawInsuranceFromMangoDepository(authority, amount, controller, depository, mango);
@@ -22,12 +22,12 @@ export const withdrawInsuranceMangoDepositoryTest = async function (amount: numb
         // THEN
 
         const depositoryOnchainAccount_post = await depository.getOnchainAccount(connection, options);
-        const insuranceDepositedAmount_post = nativeToUi(depositoryOnchainAccount_post.insuranceAmountDeposited.toNumber(), depository.insuranceMintDecimals);
+        const insuranceDepositedAmount_post = nativeToUi(depositoryOnchainAccount_post.insuranceAmountDeposited.toNumber(), depository.quoteMintDecimals);
         const expectedAmount = insuranceDepositedAmount - amount;
 
         console.log(`🧾 Insurance Amount deposited was`, insuranceDepositedAmount, "now is", insuranceDepositedAmount_post, "(withdrawn", amount, ")");
 
-        expect(insuranceDepositedAmount_post).closeTo(expectedAmount, Math.pow(10, -depository.insuranceMintDecimals), "The mango depositories insurance ACCOUNTING isn't correct.");
+        expect(insuranceDepositedAmount_post).closeTo(expectedAmount, Math.pow(10, -depository.quoteMintDecimals), "The mango depositories insurance ACCOUNTING isn't correct.");
 
         console.groupEnd();
     } catch (error) {

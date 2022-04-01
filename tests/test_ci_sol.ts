@@ -1,7 +1,6 @@
 import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
-import { mangoDepositoryMigrationsSuite } from "./suite/mangoDepositoryMigrationsSuite";
 import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters, mangoDepositoryAndControllerInteractionsSuite } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
@@ -11,7 +10,7 @@ import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedee
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
-const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 console.log(`SOL 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositorySOL.mangoAccountPda}'`);
@@ -36,12 +35,8 @@ describe("Integration tests SOL", function () {
         mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositorySOL, 1_000);
     });
 
-    describe("mangoDepositoryMigrationsSuite SOL", function () {
-        mangoDepositoryMigrationsSuite(authority, bank, controllerUXD, mangoDepositorySOL);
-    });
-
     // Skipped as it's handle bu the test_ci_rebalancing.ts
-    describe.skip("mangoDepositoryRebalancingSuite SOL", function () {
+    describe("mangoDepositoryRebalancingSuite SOL", function () {
         const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositorySOL, paramsRebalancing);
     });
