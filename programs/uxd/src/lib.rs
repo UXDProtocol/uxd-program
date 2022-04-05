@@ -16,7 +16,7 @@ pub mod zo_utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("AYJ5nxpFp92arm9HZaAcLzuHwbtmmEsrxw8qB7W29YF3");
+solana_program::declare_id!("H6wdw4bdLpVpPRgxUX2U4AtTh6gsGCvx2g352TQEftsS");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -151,15 +151,6 @@ pub mod uxd {
     pub fn register_mango_depository(ctx: Context<RegisterMangoDepository>) -> Result<()> {
         msg!("[register_mango_depository]");
         instructions::register_mango_depository::handler(ctx)
-    }
-
-    /// Migrates a `MangoDepository` to the update memory layout.
-    /// Added a new "passthrough" account to handle quote currency,
-    /// necessary for rebalancing the perp PnL.
-    ///
-    pub fn migrate_mango_depository_to_v2(ctx: Context<MigrateMangoDepositoryToV2>) -> Result<()> {
-        msg!("[migrate_mango_depository_to_v2]");
-        instructions::migrate_mango_depository_to_v2::handler(ctx)
     }
 
     ///

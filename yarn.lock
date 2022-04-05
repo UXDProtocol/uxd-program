@@ -9,10 +9,10 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@blockworks-foundation/mango-client@3.3.18":
-  version "3.3.18"
-  resolved "https://registry.npmjs.org/@blockworks-foundation/mango-client/-/mango-client-3.3.18.tgz#8bd792ede99f3753c19f12ab3b98d627ba32c181"
-  integrity sha512-DO4PW1B3Cf5w8NeLVpyQ11BYgQNRZ705giJdKI1DV6x7t1XuELdKQTGXOYcMD9irvzg3/cG1UbwYu2+HnmMRdg==
+"@blockworks-foundation/mango-client@3.4.1":
+  version "3.4.1"
+  resolved "https://registry.npmjs.org/@blockworks-foundation/mango-client/-/mango-client-3.4.1.tgz#83ec71dad8c4a523086796355c2700740b0a2020"
+  integrity sha512-07+d/D8klH1y7RO8lu6m2uEB5aw6idEu/C1Vz2OdGgqqVothZ74lHjB+L8duLZrsIHRsTKkevzwPT9IwK/3VRg==
   dependencies:
     "@project-serum/anchor" "^0.21.0"
     "@project-serum/serum" "0.13.55"
@@ -264,13 +264,12 @@
   resolved "https://registry.npmjs.org/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
-"@uxdprotocol/uxd-client@5.1.0-beta25":
-  version "5.1.0-beta25"
-  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/5.1.0-beta25/25c71d56d18d87335b9004d8e348f559b084236fc1715ece967ac774c3be82bb#5be4f18a257362174c0d6de8e13a505e6d2f6e7a"
-  integrity sha512-bzwAn8pzuq3TlK7kTQX01QCXlKE145fem7XW3fqQ22xBYEh6zkawf0giH2efg4RbarbxmIoSOdVfDDyo43LSuQ==
+"@uxdprotocol/uxd-client@5.2.0-beta-3":
+  version "5.2.0-beta-3"
+  resolved "https://npm.pkg.github.com/download/@uxdprotocol/uxd-client/5.2.0-beta-3/695b1c7f1c22f58dfc1e6396116676f1507e0c5c35e9e75267425e3c6ac712bb#aa7ded98b9ef534dba7c5e0ce7f9506400a3aa2d"
+  integrity sha512-QTxJ3n02b912vHFa7pjCjQ02Yk58lQ9xxWLcWgvORm/Bm7nYEzjHWHqtDCwZeAY0iUqFJoAgHBRT4fRFwp/cgw==
   dependencies:
-    "@blockworks-foundation/mango-client" "3.3.18"
-    "@project-serum/anchor" "0.22.0"
+    "@blockworks-foundation/mango-client" "3.4.1"
     "@zero_one/client" "^0.8.6"
     camelcase "^5.3.1"
 

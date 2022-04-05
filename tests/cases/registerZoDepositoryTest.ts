@@ -1,11 +1,11 @@
 import { Signer } from "@solana/web3.js";
 import { Controller, ZoDepository, Zo } from "@uxdprotocol/uxd-client";
-import { initializeZoDepository, registerZoDepository } from "../api";
+import { registerZoDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection } from "../connection";
 
 export const registerZoDepositoryTest = async (authority: Signer, controller: Controller, depository: ZoDepository, payer?: Signer) => {
-    console.group("🧭 initializeMangoDepositoryTest");
+    console.group("🧭 registerZoDepositoryTest");
     try {
         // WHEN
         if (await getConnection().getAccountInfo(depository.pda)) {

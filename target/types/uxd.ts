@@ -157,57 +157,6 @@ export type Uxd = {
       "args": []
     },
     {
-      "name": "migrateMangoDepositoryToV2",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "quoteMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryQuotePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "registerZoDepository",
       "accounts": [
         {
@@ -236,28 +185,8 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "quoteMint",
           "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryInsurancePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryQuotePassthroughAccount",
-          "isMut": true,
           "isSigner": false
         },
         {
@@ -302,7 +231,7 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryZoAccount",
+          "name": "zoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -826,12 +755,7 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryZoAccount",
+          "name": "zoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -1260,18 +1184,6 @@ export type Uxd = {
             "type": "u8"
           },
           {
-            "name": "collateralPassthroughBump",
-            "type": "u8"
-          },
-          {
-            "name": "insurancePassthroughBump",
-            "type": "u8"
-          },
-          {
-            "name": "quotePassthroughBump",
-            "type": "u8"
-          },
-          {
             "name": "version",
             "type": "u8"
           },
@@ -1280,11 +1192,11 @@ export type Uxd = {
             "type": "bool"
           },
           {
-            "name": "collateralMint",
+            "name": "zoDexMarket",
             "type": "publicKey"
           },
           {
-            "name": "collateralPassthrough",
+            "name": "collateralMint",
             "type": "publicKey"
           },
           {
@@ -1292,23 +1204,7 @@ export type Uxd = {
             "type": "u8"
           },
           {
-            "name": "insuranceMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "insurancePassthrough",
-            "type": "publicKey"
-          },
-          {
-            "name": "insuranceMintDecimals",
-            "type": "u8"
-          },
-          {
             "name": "quoteMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "quotePassthrough",
             "type": "publicKey"
           },
           {
@@ -1338,12 +1234,6 @@ export type Uxd = {
           {
             "name": "totalAmountRebalanced",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": {
-              "defined": "ZoDepositoryPadding"
-            }
           }
         ]
       }
@@ -1470,11 +1360,6 @@ export type Uxd = {
           "index": false
         },
         {
-          "name": "insuranceMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
           "name": "quoteMint",
           "type": "publicKey",
           "index": false
@@ -1482,7 +1367,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "InitializeZoDepositoryOpenOrdersPdaEvent",
+      "name": "InitializeZoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -2097,43 +1982,43 @@ export type Uxd = {
     },
     {
       "code": 6033,
+      "name": "InvalidMangoGroup",
+      "msg": "Could not load the provided MangoGroup account."
+    },
+    {
+      "code": 6034,
+      "name": "QuantityBelowContractSize",
+      "msg": "The order quantity is below contract_size of the perp market."
+    },
+    {
+      "code": 6035,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6034,
+      "code": 6036,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6035,
+      "code": 6037,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6036,
+      "code": 6038,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6037,
-      "name": "InvalidInsuranceMint",
-      "msg": "The provided insurance mint does not match the depository's insurance mint."
-    },
-    {
-      "code": 6038,
-      "name": "InvalidAuthorityInsuranceATAMint",
-      "msg": "The authority's Insurance ATA's mint does not match the Depository's one."
-    },
-    {
       "code": 6039,
-      "name": "InvalidCollateralPassthroughAccount",
-      "msg": "The Collateral Passthrough Account isn't the Depository one."
+      "name": "InvalidQuoteMint",
+      "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
       "code": 6040,
-      "name": "InvalidInsurancePassthroughAccount",
-      "msg": "The Insurance Passthrough Account isn't the Depository one."
+      "name": "InvalidAuthorityQuoteATAMint",
+      "msg": "The authority's Quote ATA's mint does not match the Depository's one."
     },
     {
       "code": 6041,
@@ -2142,76 +2027,51 @@ export type Uxd = {
     },
     {
       "code": 6042,
-      "name": "InvalidInsurancePassthroughATAMint",
-      "msg": "The Insurance Passthrough ATA's mint does not match the Depository's one."
-    },
-    {
-      "code": 6043,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6044,
-      "name": "InvalidCollateralPassthroughATAMint",
-      "msg": "The Collateral Passthrough ATA's mint does not match the Depository's one."
-    },
-    {
-      "code": 6045,
-      "name": "InvalidQuotePassthroughAccount",
-      "msg": "The Quote Passthrough Account isn't the Depository one."
-    },
-    {
-      "code": 6046,
-      "name": "InvalidQuotePassthroughATAMint",
-      "msg": "The Quote Passthrough ATA's mint does not match the Depository's one."
-    },
-    {
-      "code": 6047,
-      "name": "InvalidQuoteMint",
-      "msg": "The provided quote mint does not match the depository's quote mint."
-    },
-    {
-      "code": 6048,
-      "name": "UnsupportedDepositoryVersion",
-      "msg": "The instruction doesn't support this version of the Depository. Migrate first."
-    },
-    {
-      "code": 6049,
+      "code": 6043,
       "name": "InvalidZoAccount",
       "msg": "The Zo Account isn't the Depository's one."
     },
     {
-      "code": 6050,
+      "code": 6044,
       "name": "ZOPerpMarketNotFound",
       "msg": "The Zo PerpMarket index could not be found."
     },
     {
-      "code": 6051,
+      "code": 6045,
       "name": "ZOPerpMarketInfoNotFound",
       "msg": "The Zo PerpMarketInfo could not be found."
     },
     {
-      "code": 6052,
+      "code": 6046,
       "name": "ZOOpenOrdersInfoNotFound",
       "msg": "The Zo OpenOrdersInfo could not be found."
     },
     {
-      "code": 6053,
+      "code": 6047,
       "name": "ZOInvalidControlState",
       "msg": "The Zo Control is in an invalid state."
     },
     {
-      "code": 6054,
+      "code": 6048,
       "name": "ZoDepositoryAlreadyInitialized",
       "msg": "The Zo depository PDAs are already initialized."
     },
     {
-      "code": 6055,
+      "code": 6049,
       "name": "ZoDepositoryNotInitialized",
       "msg": "The Zo depository PDAs haven't been initialized yet."
     },
     {
-      "code": 6056,
+      "code": 6050,
+      "name": "InvalidDexMarket",
+      "msg": "The provided perp_market is not the one tied to this Depository."
+    },
+    {
+      "code": 6051,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
@@ -2339,32 +2199,12 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "insuranceMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "quoteMint",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryInsurancePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryQuotePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryMangoAccount",
+          "name": "mangoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -2385,57 +2225,6 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "migrateMangoDepositoryToV2",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "quoteMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryQuotePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -2481,21 +2270,6 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryInsurancePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryQuotePassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -2537,7 +2311,7 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryZoAccount",
+          "name": "zoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -3061,12 +2835,7 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "depositoryCollateralPassthroughAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryZoAccount",
+          "name": "zoAccount",
           "isMut": true,
           "isSigner": false
         },
@@ -3495,18 +3264,6 @@ export const IDL: Uxd = {
             "type": "u8"
           },
           {
-            "name": "collateralPassthroughBump",
-            "type": "u8"
-          },
-          {
-            "name": "insurancePassthroughBump",
-            "type": "u8"
-          },
-          {
-            "name": "quotePassthroughBump",
-            "type": "u8"
-          },
-          {
             "name": "version",
             "type": "u8"
           },
@@ -3515,11 +3272,11 @@ export const IDL: Uxd = {
             "type": "bool"
           },
           {
-            "name": "collateralMint",
+            "name": "zoDexMarket",
             "type": "publicKey"
           },
           {
-            "name": "collateralPassthrough",
+            "name": "collateralMint",
             "type": "publicKey"
           },
           {
@@ -3527,23 +3284,7 @@ export const IDL: Uxd = {
             "type": "u8"
           },
           {
-            "name": "insuranceMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "insurancePassthrough",
-            "type": "publicKey"
-          },
-          {
-            "name": "insuranceMintDecimals",
-            "type": "u8"
-          },
-          {
             "name": "quoteMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "quotePassthrough",
             "type": "publicKey"
           },
           {
@@ -3573,12 +3314,6 @@ export const IDL: Uxd = {
           {
             "name": "totalAmountRebalanced",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": {
-              "defined": "ZoDepositoryPadding"
-            }
           }
         ]
       }
@@ -3705,11 +3440,6 @@ export const IDL: Uxd = {
           "index": false
         },
         {
-          "name": "insuranceMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
           "name": "quoteMint",
           "type": "publicKey",
           "index": false
@@ -3717,7 +3447,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "InitializeZoDepositoryOpenOrdersPdaEvent",
+      "name": "InitializeZoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -4332,43 +4062,43 @@ export const IDL: Uxd = {
     },
     {
       "code": 6033,
+      "name": "InvalidMangoGroup",
+      "msg": "Could not load the provided MangoGroup account."
+    },
+    {
+      "code": 6034,
+      "name": "QuantityBelowContractSize",
+      "msg": "The order quantity is below contract_size of the perp market."
+    },
+    {
+      "code": 6035,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6034,
+      "code": 6036,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6035,
+      "code": 6037,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6036,
+      "code": 6038,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6037,
-      "name": "InvalidInsuranceMint",
-      "msg": "The provided insurance mint does not match the depository's insurance mint."
-    },
-    {
-      "code": 6038,
-      "name": "InvalidAuthorityInsuranceATAMint",
-      "msg": "The authority's Insurance ATA's mint does not match the Depository's one."
-    },
-    {
       "code": 6039,
-      "name": "InvalidCollateralPassthroughAccount",
-      "msg": "The Collateral Passthrough Account isn't the Depository one."
+      "name": "InvalidQuoteMint",
+      "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
       "code": 6040,
-      "name": "InvalidInsurancePassthroughAccount",
-      "msg": "The Insurance Passthrough Account isn't the Depository one."
+      "name": "InvalidAuthorityQuoteATAMint",
+      "msg": "The authority's Quote ATA's mint does not match the Depository's one."
     },
     {
       "code": 6041,
@@ -4377,76 +4107,51 @@ export const IDL: Uxd = {
     },
     {
       "code": 6042,
-      "name": "InvalidInsurancePassthroughATAMint",
-      "msg": "The Insurance Passthrough ATA's mint does not match the Depository's one."
-    },
-    {
-      "code": 6043,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6044,
-      "name": "InvalidCollateralPassthroughATAMint",
-      "msg": "The Collateral Passthrough ATA's mint does not match the Depository's one."
-    },
-    {
-      "code": 6045,
-      "name": "InvalidQuotePassthroughAccount",
-      "msg": "The Quote Passthrough Account isn't the Depository one."
-    },
-    {
-      "code": 6046,
-      "name": "InvalidQuotePassthroughATAMint",
-      "msg": "The Quote Passthrough ATA's mint does not match the Depository's one."
-    },
-    {
-      "code": 6047,
-      "name": "InvalidQuoteMint",
-      "msg": "The provided quote mint does not match the depository's quote mint."
-    },
-    {
-      "code": 6048,
-      "name": "UnsupportedDepositoryVersion",
-      "msg": "The instruction doesn't support this version of the Depository. Migrate first."
-    },
-    {
-      "code": 6049,
+      "code": 6043,
       "name": "InvalidZoAccount",
       "msg": "The Zo Account isn't the Depository's one."
     },
     {
-      "code": 6050,
+      "code": 6044,
       "name": "ZOPerpMarketNotFound",
       "msg": "The Zo PerpMarket index could not be found."
     },
     {
-      "code": 6051,
+      "code": 6045,
       "name": "ZOPerpMarketInfoNotFound",
       "msg": "The Zo PerpMarketInfo could not be found."
     },
     {
-      "code": 6052,
+      "code": 6046,
       "name": "ZOOpenOrdersInfoNotFound",
       "msg": "The Zo OpenOrdersInfo could not be found."
     },
     {
-      "code": 6053,
+      "code": 6047,
       "name": "ZOInvalidControlState",
       "msg": "The Zo Control is in an invalid state."
     },
     {
-      "code": 6054,
+      "code": 6048,
       "name": "ZoDepositoryAlreadyInitialized",
       "msg": "The Zo depository PDAs are already initialized."
     },
     {
-      "code": 6055,
+      "code": 6049,
       "name": "ZoDepositoryNotInitialized",
       "msg": "The Zo depository PDAs haven't been initialized yet."
     },
     {
-      "code": 6056,
+      "code": 6050,
+      "name": "InvalidDexMarket",
+      "msg": "The provided perp_market is not the one tied to this Depository."
+    },
+    {
+      "code": 6051,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }

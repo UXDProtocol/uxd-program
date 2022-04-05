@@ -5,7 +5,7 @@ use crate::error::UxdError;
 use crate::CONTROLLER_NAMESPACE;
 use crate::ZO_DEPOSITORY_NAMESPACE;
 use crate::ZO_MARGIN_ACCOUNT_NAMESPACE;
-use crate::events::InitializeZoDepositoryOpenOrdersPdaEvent;
+use crate::events::InitializeZoDepositoryEvent;
 use zo_abi as zo;
 
 /// Takes 14 accounts - 5 used locally - 6 for CPI - 2 Programs - 1 Sysvar
@@ -24,6 +24,7 @@ pub struct InitializeZoDepository<'info> {
         seeds = [CONTROLLER_NAMESPACE], 
         bump = controller.bump,
         has_one = authority @UxdError::InvalidAuthority,
+        constraint = controller.registered_zo_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
     pub controller: Box<Account<'info, Controller>>,
 
@@ -31,10 +32,10 @@ pub struct InitializeZoDepository<'info> {
     /// The `ZoDepository` manages a ZeroOne account for a single Collateral
     #[account(
         mut,
-        seeds = [ZO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.bump,
+        seeds = [ZO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.bump,
     )]
-    pub depository: Box<Account<'info, ZoDepository>>,
+    pub depository: AccountLoader<'info, ZoDepository>,
 
     /// #5 The ZeroOne Account managed by the `depository`
     /// CHECK : Seeds checked. Initialized during ZO cpi (a.k.a. Margin)
@@ -44,7 +45,7 @@ pub struct InitializeZoDepository<'info> {
         seeds::program = zo_program.key(),
         bump
     )]
-    pub depository_zo_account: AccountInfo<'info>,
+    pub zo_account: AccountInfo<'info>,
 
     /// #6 [ZeroOne CPI] This account must be created for the Collateral 
     /// https://github.com/01protocol/zo-client/blob/ea38a2ba5cfdd53d62ce5e993f22113e83484f2f/src/accounts/margin/MarginWeb3.ts#L645
@@ -62,7 +63,7 @@ pub struct InitializeZoDepository<'info> {
     pub zo_state_signer: AccountInfo<'info>,
 
     /// #9 [ZeroOne CPI]
-    /// CHECK: Done ZeroOneSide
+    /// CHECK: Done ZeroOneSide - Tied to the Depository during this call
     #[account(mut)]
     pub zo_dex_market: AccountInfo<'info>,
 
@@ -90,23 +91,27 @@ pub struct InitializeZoDepository<'info> {
 pub fn handler(
     ctx: Context<InitializeZoDepository>
 ) -> Result<()>  {
+    let depository = ctx.accounts.depository.load()?;
+    let collateral_mint = depository.collateral_mint.clone();
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         ZO_DEPOSITORY_NAMESPACE,
-        ctx.accounts.depository.collateral_mint.as_ref(),
-        &[ctx.accounts.depository.bump],
+        collateral_mint.as_ref(),
+        &[depository.bump],
     ]];
 
     // - Initialize ZO Margin Account
-    let depository_zo_account_bump = *ctx
+    let zo_account_bump = *ctx
         .bumps
-        .get("depository_zo_account")
+        .get("zo_account")
         .ok_or_else(|| error!(UxdError::BumpError))?;
+
+    drop(depository);
 
     zo::cpi::create_margin(
         ctx.accounts
         .into_zo_create_margin_context()
         .with_signer(depository_pda_signer),
-        depository_zo_account_bump)?;
+        zo_account_bump)?;
 
     // Create the perp open order for the collateral 
     zo::cpi::create_perp_open_orders(
@@ -115,15 +120,19 @@ pub fn handler(
         .with_signer(depository_pda_signer))?;
 
     // - Update Depository state
-    ctx.accounts.depository.is_initialized = true;
-    ctx.accounts.depository.zo_account = ctx.accounts.depository_zo_account.key();
-    ctx.accounts.depository.zo_account_bump = depository_zo_account_bump;
+    let depository = &mut ctx.accounts.depository.load_mut()?;
 
-    emit!(InitializeZoDepositoryOpenOrdersPdaEvent {
+    depository.is_initialized = true;
+    depository.zo_account = ctx.accounts.zo_account.key();
+    depository.zo_account_bump = zo_account_bump;
+    // This prevent injecting the wrong perp market later on
+    depository.zo_dex_market = ctx.accounts.zo_dex_market.key();
+
+    emit!(InitializeZoDepositoryEvent {
         version: ctx.accounts.controller.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
-        zo_account: ctx.accounts.depository_zo_account.key(),
+        zo_account: ctx.accounts.zo_account.key(),
     });
 
     Ok(())
@@ -136,7 +145,7 @@ impl<'info> InitializeZoDepository<'info> {
         let cpi_accounts = zo::cpi::accounts::CreateMargin {
             authority: self.depository.to_account_info(),
             control: self.zo_control.to_account_info(),
-            margin: self.depository_zo_account.to_account_info(),
+            margin: self.zo_account.to_account_info(),
             state: self.zo_state.to_account_info(),
             payer: self.payer.to_account_info(),
             rent: self.rent.to_account_info(),
@@ -149,7 +158,7 @@ impl<'info> InitializeZoDepository<'info> {
         let cpi_accounts = zo::cpi::accounts::CreatePerpOpenOrders {
             authority: self.depository.to_account_info(),
             control: self.zo_control.to_account_info(),
-            margin: self.depository_zo_account.to_account_info(),
+            margin: self.zo_account.to_account_info(),
             state: self.zo_state.to_account_info(),
             state_signer: self.zo_state_signer.to_account_info(),
             open_orders: self.zo_open_orders.to_account_info(),
@@ -166,7 +175,8 @@ impl<'info> InitializeZoDepository<'info> {
 // Validate input arguments
 impl<'info> InitializeZoDepository<'info> {
     pub fn validate(&self) -> Result<()> {
-        if self.depository.is_initialized {
+        let depository = self.depository.load()?;
+        if depository.is_initialized {
             return Err(error!(UxdError::ZoDepositoryAlreadyInitialized));
         }
         Ok(())

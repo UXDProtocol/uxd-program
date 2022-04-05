@@ -3,7 +3,6 @@ use crate::events::ZoMintEvent;
 use crate::zo_utils::PerpInfo;
 use crate::Controller;
 use crate::ZoDepository;
-use crate::COLLATERAL_PASSTHROUGH_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::ZO_DEPOSITORY_NAMESPACE;
@@ -15,11 +14,8 @@ use anchor_spl::token::CloseAccount;
 use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use anchor_spl::token::Transfer;
 use fixed::types::I80F48;
-use zo::Cache;
 use zo::Control;
-use zo::Margin;
 use zo::State;
 use zo::ZO_DEX_PID;
 use zo_abi as zo;
@@ -48,7 +44,9 @@ pub struct MintWithZoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump
+        bump = controller.bump,
+        has_one = redeemable_mint @UxdError::InvalidRedeemableMint,
+        constraint = controller.registered_zo_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
     pub controller: Box<Account<'info, Controller>>,
 
@@ -56,12 +54,13 @@ pub struct MintWithZoDepository<'info> {
     /// The `ZoDepository` manages a ZoAccount for a single Collateral.
     #[account(
         mut,
-        seeds = [ZO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.bump,
+        seeds = [ZO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
-        constraint = controller.registered_zo_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        // has_one = zo_account @UxdError::InvalidZoAccount,
+        // has_one = zo_dex_market @UxdError::InvalidDexMarket
     )]
-    pub depository: Box<Account<'info, ZoDepository>>,
+    pub depository: AccountLoader<'info, ZoDepository>,
 
     /// #5 The redeemable mint managed by the `controller` instance
     /// Tokens will be minted during this instruction
@@ -69,7 +68,6 @@ pub struct MintWithZoDepository<'info> {
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
         bump = controller.redeemable_mint_bump,
-        constraint = redeemable_mint.key() == controller.redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub redeemable_mint: Box<Account<'info, token::Mint>>,
 
@@ -77,7 +75,7 @@ pub struct MintWithZoDepository<'info> {
     /// Will be debited during this instruction
     #[account(
         mut,
-        seeds = [user.key.as_ref(), token_program.key.as_ref(), depository.collateral_mint.as_ref()],
+        seeds = [user.key.as_ref(), token_program.key.as_ref(), depository.load()?.collateral_mint.as_ref()],
         bump,
         seeds::program = AssociatedToken::id(),
     )]
@@ -93,99 +91,88 @@ pub struct MintWithZoDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #8 The `depository`'s TA for its `insurance_mint`
-    /// ZoAccounts can only transact with the TAs owned by their authority
-    /// and this only serves as a passthrough
-    #[account(
-        mut,
-        seeds = [COLLATERAL_PASSTHROUGH_NAMESPACE, depository.key().as_ref()],
-        bump = depository.collateral_passthrough_bump,
-        constraint = depository.collateral_passthrough == depository_collateral_passthrough_account.key() @UxdError::InvalidCollateralPassthroughAccount
-    )]
-    pub depository_collateral_passthrough_account: Box<Account<'info, TokenAccount>>,
-
-    /// #9 The Zo Dex Account (Margin) managed by the `depository`
+    /// #8 The Zo Dex Account (Margin) managed by the `depository`
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
         seeds = [depository.key().as_ref(), zo_state.key().as_ref(), ZO_MARGIN_ACCOUNT_NAMESPACE],
-        seeds::program = zo_program.key(),
-        constraint = depository.zo_account == depository_zo_account.key() @UxdError::InvalidZoAccount,
-        bump
+        bump = depository.load()?.zo_account_bump,
+        seeds::program = zo_program.key()
     )]
-    pub depository_zo_account: AccountLoader<'info, Margin>,
+    pub zo_account: AccountInfo<'info>,
 
-    /// #10 [ZeroOne CPI]
+    /// #9 [ZeroOne CPI]
+    /// CHECK: Done ZeroOne side
     pub zo_state: AccountLoader<'info, State>,
 
-    /// #11 [ZeroOne CPI]
+    /// #10 [ZeroOne CPI]
     /// CHECK: Done ZeroOne side
     #[account(mut)]
     pub zo_state_signer: UncheckedAccount<'info>,
 
-    /// #12 [ZeroOne CPI]
+    /// #11 [ZeroOne CPI]
     /// CHECK: Done ZeroOne side
     #[account(mut)]
-    pub zo_cache: AccountLoader<'info, Cache>,
+    pub zo_cache: UncheckedAccount<'info>,
 
-    /// #13 [ZeroOne CPI]
+    /// #12 [ZeroOne CPI]
     /// CHECK: Done ZeroOne side
     #[account(mut)]
     pub zo_vault: UncheckedAccount<'info>,
 
-    /// #14 [ZeroOne CPI]
+    /// #13 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_control: AccountLoader<'info, Control>,
 
-    /// #15 [ZeroOne CPI]
+    /// #14 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_open_orders: UncheckedAccount<'info>,
 
-    /// #16 [ZeroOne CPI]
+    /// #15 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_dex_market: UncheckedAccount<'info>,
 
-    /// #17 [ZeroOne CPI]
+    /// #16 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_req_q: UncheckedAccount<'info>,
 
-    /// #18 [ZeroOne CPI]
+    /// #17 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_event_q: UncheckedAccount<'info>,
 
-    /// #19 [ZeroOne CPI]
+    /// #18 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_market_bids: UncheckedAccount<'info>,
 
-    /// #20 [ZeroOne CPI]
+    /// #19 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_market_asks: UncheckedAccount<'info>,
 
-    /// #21 [ZeroOne CPI] Zo Dex program
+    /// #20 [ZeroOne CPI] Zo Dex program
     /// CHECK: ZeroOne CPI
-    #[account(address = ZO_DEX_PID)]
+    // #[account(address = ZO_DEX_PID)]
     pub zo_dex_program: AccountInfo<'info>,
 
-    /// #22 System Program
+    /// #21 System Program
     pub system_program: Program<'info, System>,
 
-    /// #23 Token Program
+    /// #22 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #24 Associated Token Program
+    /// #23 Associated Token Program
     pub associated_token_program: Program<'info, AssociatedToken>,
 
-    /// #25 ZeroOne Program
+    /// #24 ZeroOne Program
     pub zo_program: Program<'info, zo::program::ZoAbi>,
 
-    /// #26 Rent Sysvar
+    /// #25 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -194,12 +181,14 @@ pub fn handler(
     collateral_amount: u64,
     limit_price: u64,
 ) -> Result<()> {
+    let depository = ctx.accounts.depository.load()?;
+
     let controller_pda_signer: &[&[&[u8]]] =
         &[&[CONTROLLER_NAMESPACE, &[ctx.accounts.controller.bump]]];
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         ZO_DEPOSITORY_NAMESPACE,
-        ctx.accounts.depository.collateral_mint.as_ref(),
-        &[ctx.accounts.depository.bump],
+        depository.collateral_mint.as_ref(),
+        &[depository.bump],
     ]];
     let perp_info = ctx.accounts.perp_info()?;
 
@@ -220,13 +209,7 @@ pub fn handler(
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    // - [Transfers user collateral to the passthrough account]
-    token::transfer(
-        ctx.accounts
-            .into_transfer_user_collateral_to_passthrough_context(),
-        collateral_deposited_amount,
-    )?;
-
+    // - [Transfers user collateral]
     zo::cpi::deposit(
         ctx.accounts
             .into_deposit_collateral_context()
@@ -286,11 +269,12 @@ pub fn handler(
     )?;
 
     // - [if ATA mint is WSOL, unwrap]
-    if ctx.accounts.depository.collateral_mint == spl_token::native_mint::id() {
+    if depository.collateral_mint == spl_token::native_mint::id() {
         token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
     }
 
     // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
+    drop(depository);
     ctx.accounts.update_onchain_accounting(
         collateral_short_amount.into(),
         redeemable_mint_amount.into(),
@@ -299,35 +283,21 @@ pub fn handler(
     // - 6 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
-    // emit!(ZoMintEvent {
-    //     version: ctx.accounts.controller.version,
-    //     controller: ctx.accounts.controller.key(),
-    //     depository: ctx.accounts.depository.key(),
-    //     user: ctx.accounts.user.key(),
-    //     collateral_amount,
-    //     collateral_deposited_amount,
-    //     limit_price,
-    //     minted_amount: redeemable_mint_amount
-    // });
+    emit!(ZoMintEvent {
+        version: ctx.accounts.controller.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        collateral_amount,
+        collateral_deposited_amount,
+        limit_price,
+        minted_amount: redeemable_mint_amount
+    });
 
     Ok(())
 }
 
 impl<'info> MintWithZoDepository<'info> {
-    pub fn into_transfer_user_collateral_to_passthrough_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
-        let cpi_accounts = Transfer {
-            from: self.user_collateral.to_account_info(),
-            to: self
-                .depository_collateral_passthrough_account
-                .to_account_info(),
-            authority: self.user.to_account_info(),
-        };
-        let cpi_program = self.token_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
     pub fn into_deposit_collateral_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, zo::cpi::accounts::Deposit<'info>> {
@@ -336,10 +306,8 @@ impl<'info> MintWithZoDepository<'info> {
             state_signer: self.zo_state_signer.to_account_info(),
             cache: self.zo_cache.to_account_info(),
             authority: self.depository.to_account_info(),
-            margin: self.depository_zo_account.to_account_info(),
-            token_account: self
-                .depository_collateral_passthrough_account
-                .to_account_info(),
+            margin: self.zo_account.to_account_info(),
+            token_account: self.user_collateral.to_account_info(),
             vault: self.zo_vault.to_account_info(),
             token_program: self.token_program.to_account_info(),
         };
@@ -355,7 +323,7 @@ impl<'info> MintWithZoDepository<'info> {
             state_signer: self.zo_state_signer.to_account_info(),
             cache: self.zo_cache.to_account_info(),
             authority: self.depository.to_account_info(),
-            margin: self.depository_zo_account.to_account_info(),
+            margin: self.zo_account.to_account_info(),
             control: self.zo_control.to_account_info(),
             open_orders: self.zo_open_orders.to_account_info(),
             dex_market: self.zo_dex_market.to_account_info(),
@@ -432,7 +400,7 @@ impl<'info> MintWithZoDepository<'info> {
         collateral_shorted_amount: u128,
         redeemable_minted_amount: u128,
     ) -> Result<()> {
-        let depository = &mut self.depository;
+        let depository = &mut self.depository.load_mut()?;
         let controller = &mut self.controller;
         // Mango Depository
         depository.collateral_amount_deposited = depository
@@ -455,7 +423,8 @@ impl<'info> MintWithZoDepository<'info> {
 // Validate input arguments
 impl<'info> MintWithZoDepository<'info> {
     pub fn validate(&self, collateral_amount: u64, limit_price: u64) -> Result<()> {
-        if !self.depository.is_initialized {
+        let depository = self.depository.load()?;
+        if !depository.is_initialized {
             return Err(error!(UxdError::ZoDepositoryNotInitialized));
         }
         if limit_price <= 0 {

@@ -66,15 +66,13 @@ pub struct RegisterZoDepositoryEvent {
     pub depository: Pubkey,
     // The collateral mint.
     pub collateral_mint: Pubkey,
-    // The insurance mint.
-    pub insurance_mint: Pubkey,
     // The quote mint.
     pub quote_mint: Pubkey,
 }
 
-/// Event called in [instructions::initialize_zo_depository_open_orders_pda::handler].
+/// Event called in [instructions::initialize_zo_depository::handler].
 #[event]
-pub struct InitializeZoDepositoryOpenOrdersPdaEvent {
+pub struct InitializeZoDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,

@@ -107,6 +107,8 @@ pub enum UxdError {
     ZoDepositoryAlreadyInitialized,
     #[msg("The Zo depository PDAs haven't been initialized yet.")]
     ZoDepositoryNotInitialized,
+    #[msg("The provided perp_market is not the one tied to this Depository.")]
+    InvalidDexMarket,
 
     #[msg("Default - Check the source code for more info")]
     Default,

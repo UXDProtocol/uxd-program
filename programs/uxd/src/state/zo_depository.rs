@@ -1,31 +1,27 @@
 use anchor_lang::prelude::*;
 
-#[account]
-#[derive(Default)]
+pub const ZO_DEPOSITORY_SPACE: usize =
+    8 + 1 + 1 + 1 + 1 + 32 + 32 + 1 + 32 + 1 + 32 + 32 + 16 + 16 + 16 + 16 + 512;
+
+#[account(zero_copy)]
 pub struct ZoDepository {
     pub bump: u8,
     pub zo_account_bump: u8,
-    pub collateral_passthrough_bump: u8,
-    pub insurance_passthrough_bump: u8,
-    pub quote_passthrough_bump: u8,
     // Version used - for migrations later if needed
     pub version: u8,
     // Registration handle the UXD side of things, initialization create the necessary ZO PDA
     // (Too heavy to do it all in one IX due to current stack limitations)
     pub is_initialized: bool,
 
-    // | Mint/Passthrough accounts information
+    // The ZO dex market tied to this depository, only this dex market can be interacted with
+    pub zo_dex_market: Pubkey,
+
     // | - Collateral
     pub collateral_mint: Pubkey,
-    pub collateral_passthrough: Pubkey,
     pub collateral_mint_decimals: u8,
-    // | - Insurance
-    pub insurance_mint: Pubkey,
-    pub insurance_passthrough: Pubkey,
-    pub insurance_mint_decimals: u8,
+
     // | - Quote
     pub quote_mint: Pubkey,
-    pub quote_passthrough: Pubkey,
     pub quote_mint_decimals: u8,
 
     pub zo_account: Pubkey,
@@ -52,27 +48,4 @@ pub struct ZoDepository {
     //
     // The amount of taker fee paid in quote while placing perp orders
     pub total_amount_rebalanced: u128,
-    //
-    pub _reserved: ZoDepositoryPadding,
-}
-
-#[derive(Clone)]
-pub struct ZoDepositoryPadding([u8; 512]);
-
-impl AnchorSerialize for ZoDepositoryPadding {
-    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
-        writer.write_all(&self.0)
-    }
-}
-
-impl AnchorDeserialize for ZoDepositoryPadding {
-    fn deserialize(_: &mut &[u8]) -> std::io::Result<Self> {
-        Ok(Self([0u8; 512]))
-    }
-}
-
-impl Default for ZoDepositoryPadding {
-    fn default() -> Self {
-        ZoDepositoryPadding { 0: [0u8; 512] }
-    }
 }

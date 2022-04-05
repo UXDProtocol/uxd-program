@@ -1914,7 +1914,7 @@ name = "zo-abi"
 version = "0.4.0"
 source = "git+https://github.com/01protocol/zo-abi#6f9383a63f7f9bc3e0210fd2cc347d744915a241"
 dependencies = [
- "anchor-lang 0.22.1",
+ "anchor-lang",
  "bytemuck",
  "fixed",
  "solana-program",
