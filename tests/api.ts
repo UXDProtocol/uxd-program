@@ -3,8 +3,9 @@ import { CLUSTER, uxdClient } from "./constants";
 import { Account, Keypair, Signer, SystemProgram, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller, PnLPolarity, ZoDepository, Zo, CONTROL_ACCOUNT_SIZE } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, Controller, PnLPolarity, ZoDepository, Zo, CONTROL_ACCOUNT_SIZE, createAssocTokenIx } from "@uxdprotocol/uxd-client";
 import { web3 } from "@project-serum/anchor";
+import { findAssociatedTokenAddress } from "@uxdprotocol/uxd-client/node_modules/@zero_one/client";
 
 // Permissionned Calls --------------------------------------------------------
 
@@ -77,11 +78,22 @@ export async function initializeZoDepository(authority: Signer, payer: Signer, c
 
 
 export async function depositInsuranceToMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
-    const depositInsuranceToMangoDepositoryIx = uxdClient.createDepositInsuranceToMangoDepositoryInstruction(amount, controller, depository, mango, authority.publicKey, TXN_OPTS);
+    const depositInsuranceToMangoDepositoryIx = await uxdClient.createDepositInsuranceToMangoDepositoryInstruction(amount, controller, depository, mango, authority.publicKey, TXN_OPTS);
     let signers = [];
     let tx = new Transaction();
 
     tx.instructions.push(depositInsuranceToMangoDepositoryIx);
+    signers.push(authority);
+
+    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function depositInsuranceToZoDepository(authority: Signer, amount: number, controller: Controller, depository: ZoDepository, zo: Zo): Promise<string> {
+    const depositInsuranceToZoDepositoryIx = await uxdClient.createDepositInsuranceToZoDepositoryInstruction(amount, controller, depository, zo, authority.publicKey, TXN_OPTS);
+    let signers = [];
+    let tx = new Transaction();
+
+    tx.instructions.push(depositInsuranceToZoDepositoryIx);
     signers.push(authority);
 
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
@@ -225,6 +237,11 @@ export async function mintWithZoDepository(user: Signer, payer: Signer, slippage
         tx.instructions.push(...prepareWrappedSolIxs);
     }
 
+    // TMP cause no computing
+    const userRedeemableAta = await findAssociatedTokenAddress(user.publicKey, controller.redeemableMintPda);
+    const createUserRedeemableAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
+    tx.instructions.push(createUserRedeemableAtaIx);
+
     tx.instructions.push(mintWithZoDepositoryIx);
     signers.push(user);
     if (payer) {
@@ -236,6 +253,5 @@ export async function mintWithZoDepository(user: Signer, payer: Signer, slippage
 // Non UXD API calls ----------------------------------------------------------
 
 export async function settleDepositoryPnl(payer: Signer, depository: MangoDepository, mango: Mango): Promise<string> {
-    let payerAccount = new Account(payer.secretKey);
-    return depository.settleMangoDepositoryMangoAccountPnl(payerAccount, mango);
+    return depository.settleMangoDepositoryMangoAccountPnl(payer as Keypair, mango);
 }

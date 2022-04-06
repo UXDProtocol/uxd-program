@@ -1,5 +1,5 @@
 use crate::error::UxdError;
-use crate::events::DepositInsuranceToMangoDepositoryEventV2;
+use crate::events::DepositInsuranceToDepositoryEvent;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -106,7 +106,7 @@ pub fn handler(ctx: Context<DepositInsuranceToMangoDepository>, amount: u64) -> 
     // - 2 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_accounting(amount)?;
 
-    emit!(DepositInsuranceToMangoDepositoryEventV2 {
+    emit!(DepositInsuranceToDepositoryEvent {
         version: ctx.accounts.controller.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),

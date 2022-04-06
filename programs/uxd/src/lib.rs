@@ -16,7 +16,7 @@ pub mod zo_utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("H6wdw4bdLpVpPRgxUX2U4AtTh6gsGCvx2g352TQEftsS");
+solana_program::declare_id!("6SDhMKSKUnbxxdWBaFNgWHpt94dWKhYcprEERugQVktz");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -209,6 +209,15 @@ pub mod uxd {
         instructions::deposit_insurance_to_mango_depository::handler(ctx, amount)
     }
 
+    #[access_control(ctx.accounts.validate(amount))]
+    pub fn deposit_insurance_to_zo_depository(
+        ctx: Context<DepositInsuranceToZoDepository>,
+        amount: u64,
+    ) -> Result<()> {
+        msg!("[deposit_insurance_to_zo_depository]");
+        instructions::deposit_insurance_to_zo_depository::handler(ctx, amount)
+    }
+
     /// Withdraw `MangoDepository.quote_mint` tokens from the `MangoDepository`
     /// underlying `MangoAccount`, if any available, in the limit of the account
     /// borrow health.
@@ -337,25 +346,30 @@ pub mod uxd {
     /// tokens, increasing the size of the delta neutral position.
     ///
     /// Parameters:
-    ///     - collateral_amount: the amount of collateral to use, in
-    ///        collateral_mint native unit.
+    ///     - max_base_quantity:
+    ///     - max_quote_quantity:
     ///     - limit_price: the worse price the user is willing to trade at.
-    ///        In native units.
     ///
     #[access_control(
-        ctx.accounts.validate(collateral_amount, limit_price)
+        ctx.accounts.validate(max_base_quantity, max_quote_quantity, limit_price)
     )]
     pub fn mint_with_zo_depository(
         ctx: Context<MintWithZoDepository>,
-        collateral_amount: u64,
+        max_base_quantity: u64,
+        max_quote_quantity: u64,
         limit_price: u64,
     ) -> Result<()> {
-        msg!(
-            "[MintWithZoDepository] collateral_amount {}, limit_price {}",
-            collateral_amount,
-            limit_price
-        );
-        instructions::mint_with_zo_depository::handler(ctx, collateral_amount, limit_price)
+        // msg!(
+        //     "[MintWithZoDepository] collateral_amount {}, limit_price {}",
+        //     collateral_amount,
+        //     limit_price
+        // );
+        instructions::mint_with_zo_depository::handler(
+            ctx,
+            max_base_quantity,
+            max_quote_quantity,
+            limit_price,
+        )
     }
 
     /// Redeem `MangoDepository.collateral_mint` by burning redeemable tokens

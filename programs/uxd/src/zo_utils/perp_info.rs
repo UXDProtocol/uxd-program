@@ -1,14 +1,13 @@
 use crate::error::UxdError;
 use anchor_lang::prelude::*;
-use fixed::types::I80F48;
 use zo_abi::State;
 
 #[derive(Debug)]
 pub struct PerpInfo {
     pub market_index: usize,
     // Size of trading lots in native unit (i.e. Satoshi for BTC)
-    pub base_lot_size: I80F48,
-    pub quote_lot_size: I80F48,
+    pub base_lot_size: u64,
+    pub quote_lot_size: u64,
 }
 
 impl PerpInfo {
@@ -25,8 +24,8 @@ impl PerpInfo {
 
         Ok(PerpInfo {
             market_index: perp_market_index,
-            base_lot_size: I80F48::from_num(perp_market_info.asset_lot_size),
-            quote_lot_size: I80F48::from_num(perp_market_info.quote_lot_size),
+            base_lot_size: perp_market_info.asset_lot_size,
+            quote_lot_size: perp_market_info.quote_lot_size,
         })
     }
 }

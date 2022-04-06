@@ -355,6 +355,72 @@ export type Uxd = {
       ]
     },
     {
+      "name": "depositInsuranceToZoDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authorityQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoStateSigner",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoCache",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "withdrawInsuranceFromMangoDepository",
       "accounts": [
         {
@@ -847,7 +913,11 @@ export type Uxd = {
       ],
       "args": [
         {
-          "name": "collateralAmount",
+          "name": "maxBaseQuantity",
+          "type": "u64"
+        },
+        {
+          "name": "maxQuoteQuantity",
           "type": "u64"
         },
         {
@@ -1462,42 +1532,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "DepositInsuranceToMangoDepositoryEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "insuranceMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "insuranceMintDecimals",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "depositedAmount",
-          "type": "u64",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "DepositInsuranceToMangoDepositoryEventV2",
+      "name": "DepositInsuranceToDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -2435,6 +2470,72 @@ export const IDL: Uxd = {
       ]
     },
     {
+      "name": "depositInsuranceToZoDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authorityQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoStateSigner",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoCache",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "withdrawInsuranceFromMangoDepository",
       "accounts": [
         {
@@ -2927,7 +3028,11 @@ export const IDL: Uxd = {
       ],
       "args": [
         {
-          "name": "collateralAmount",
+          "name": "maxBaseQuantity",
+          "type": "u64"
+        },
+        {
+          "name": "maxQuoteQuantity",
           "type": "u64"
         },
         {
@@ -3542,42 +3647,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "DepositInsuranceToMangoDepositoryEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "insuranceMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "insuranceMintDecimals",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "depositedAmount",
-          "type": "u64",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "DepositInsuranceToMangoDepositoryEventV2",
+      "name": "DepositInsuranceToDepositoryEvent",
       "fields": [
         {
           "name": "version",

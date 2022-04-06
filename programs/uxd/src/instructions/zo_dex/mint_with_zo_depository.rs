@@ -1,5 +1,4 @@
 use crate::error::UxdError;
-use crate::events::ZoMintEvent;
 use crate::zo_utils::PerpInfo;
 use crate::Controller;
 use crate::ZoDepository;
@@ -14,7 +13,6 @@ use anchor_spl::token::CloseAccount;
 use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use fixed::types::I80F48;
 use zo::Control;
 use zo::State;
 use zo::ZO_DEX_PID;
@@ -57,8 +55,8 @@ pub struct MintWithZoDepository<'info> {
         seeds = [ZO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
-        // has_one = zo_account @UxdError::InvalidZoAccount,
-        // has_one = zo_dex_market @UxdError::InvalidDexMarket
+        has_one = zo_account @UxdError::InvalidZoAccount,
+        has_one = zo_dex_market @UxdError::InvalidDexMarket
     )]
     pub depository: AccountLoader<'info, ZoDepository>,
 
@@ -157,7 +155,7 @@ pub struct MintWithZoDepository<'info> {
 
     /// #20 [ZeroOne CPI] Zo Dex program
     /// CHECK: ZeroOne CPI
-    // #[account(address = ZO_DEX_PID)]
+    #[account(address = ZO_DEX_PID)]
     pub zo_dex_program: AccountInfo<'info>,
 
     /// #21 System Program
@@ -178,7 +176,8 @@ pub struct MintWithZoDepository<'info> {
 
 pub fn handler(
     ctx: Context<MintWithZoDepository>,
-    collateral_amount: u64,
+    max_base_quantity: u64,
+    max_quote_quantity: u64,
     limit_price: u64,
 ) -> Result<()> {
     let depository = ctx.accounts.depository.load()?;
@@ -193,21 +192,29 @@ pub fn handler(
     let perp_info = ctx.accounts.perp_info()?;
 
     // - 1 [DEPOSIT COLLATERAL ON DEPOSITORY] ---------------------------------
-    let contract_size = I80F48::from_num(perp_info.quote_lot_size);
+
+    // - [Converts lots back to native amount]
+    let collateral_amount = max_base_quantity
+        .checked_mul(perp_info.base_lot_size)
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    msg!("max_base_quantity {}", max_base_quantity);
+    msg!("max_quote_quantity {}", max_quote_quantity);
+    msg!("collateral_amount {}", collateral_amount);
 
     // - [Get the amount of Base Lots for the perp order (odd lots won't be processed)]
-    let max_base_quantity_precise = I80F48::from_num(collateral_amount)
-        .checked_div(contract_size)
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_floor()
-        .ok_or_else(|| error!(UxdError::MathError))?;
+    // let max_base_quantity_precise = I80F48::from_num(collateral_amount)
+    //     .checked_div(contract_size)
+    //     .ok_or_else(|| error!(UxdError::MathError))?
+    //     .checked_floor()
+    //     .ok_or_else(|| error!(UxdError::MathError))?;
 
-    // - [Derive native units for transfer]
-    let collateral_deposited_amount = max_base_quantity_precise
-        .checked_mul(contract_size)
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_to_num()
-        .ok_or_else(|| error!(UxdError::MathError))?;
+    // // - [Derive native units for transfer]
+    // let collateral_deposited_amount = max_base_quantity_precise
+    //     .checked_mul(contract_size)
+    //     .ok_or_else(|| error!(UxdError::MathError))?
+    //     .checked_to_num()
+    //     .ok_or_else(|| error!(UxdError::MathError))?;
 
     // - [Transfers user collateral]
     zo::cpi::deposit(
@@ -215,18 +222,20 @@ pub fn handler(
             .into_deposit_collateral_context()
             .with_signer(depository_pda_signer),
         false,
-        collateral_deposited_amount,
+        collateral_amount,
     )?;
 
     let dn_position = ctx
         .accounts
         .delta_neutral_position(perp_info.market_index)?;
-    let max_base_quantity = max_base_quantity_precise
-        .checked_to_num()
-        .ok_or_else(|| error!(UxdError::MathError))?;
+    // let max_base_quantity = max_base_quantity_precise
+    //     .checked_to_num()
+    //     .ok_or_else(|| error!(UxdError::MathError))?;
 
     // msg!("limit_price {:?}", limit_price);
     // msg!("max_base_quantity {:?}", max_base_quantity);
+
+    msg!("dn_position {:?}", dn_position);
 
     zo::cpi::place_perp_order(
         ctx.accounts
@@ -235,7 +244,7 @@ pub fn handler(
         false,
         limit_price,
         max_base_quantity,
-        u64::MIN,
+        max_quote_quantity,
         zo::OrderType::FillOrKill,
         u16::MAX,
         u64::MIN,
@@ -245,22 +254,18 @@ pub fn handler(
         .accounts
         .delta_neutral_position(perp_info.market_index)?;
 
-    // msg!("dn_position {:?}", dn_position);
-    // msg!("dn_position_post {:?}", dn_position_post);
+    msg!("dn_position_post {:?}", dn_position_post);
 
     // Additional backing (minus fees) in native units (base and quote) added to the DN position
     let collateral_short_amount = dist(dn_position.base_size, dn_position_post.base_size);
     let redeemable_mint_amount = dist(dn_position.size, dn_position_post.size);
 
-    // msg!("collateral_short_amount {}", collateral_short_amount);
-    // msg!("redeemable_mint_amount {}", redeemable_mint_amount);
-
     // validates that the collateral_amount matches the amount shorted
-    if collateral_deposited_amount != collateral_short_amount {
+    if collateral_amount != collateral_short_amount {
         return Err(error!(UxdError::InvalidCollateralDelta));
     }
 
-    // - 4 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus fees)] ----------------
+    // - 4 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus fees already accounted for by 01)] --
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
@@ -283,16 +288,16 @@ pub fn handler(
     // - 6 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
-    emit!(ZoMintEvent {
-        version: ctx.accounts.controller.version,
-        controller: ctx.accounts.controller.key(),
-        depository: ctx.accounts.depository.key(),
-        user: ctx.accounts.user.key(),
-        collateral_amount,
-        collateral_deposited_amount,
-        limit_price,
-        minted_amount: redeemable_mint_amount
-    });
+    // emit!(ZoMintEvent {
+    //     version: ctx.accounts.controller.version,
+    //     controller: ctx.accounts.controller.key(),
+    //     depository: ctx.accounts.depository.key(),
+    //     user: ctx.accounts.user.key(),
+    //     collateral_amount,
+    //     collateral_deposited_amount,
+    //     limit_price,
+    //     minted_amount: redeemable_mint_amount
+    // });
 
     Ok(())
 }
@@ -305,7 +310,7 @@ impl<'info> MintWithZoDepository<'info> {
             state: self.zo_state.to_account_info(),
             state_signer: self.zo_state_signer.to_account_info(),
             cache: self.zo_cache.to_account_info(),
-            authority: self.depository.to_account_info(),
+            authority: self.user.to_account_info(),
             margin: self.zo_account.to_account_info(),
             token_account: self.user_collateral.to_account_info(),
             vault: self.zo_vault.to_account_info(),
@@ -375,12 +380,12 @@ impl<'info> MintWithZoDepository<'info> {
             .get(index)
             .ok_or_else(|| error!(UxdError::ZOOpenOrdersInfoNotFound))?;
         // Should never have pending orders nor a non short position
-        if open_orders_info.order_count > 0 || open_orders_info.pos_size > 0 {
-            return Err(error!(UxdError::ZOInvalidControlState));
-        }
+        // if open_orders_info.order_count > 0 {
+        //     return Err(error!(UxdError::ZOInvalidControlState));
+        // }
         Ok(DeltaNeutralPosition {
-            size: open_orders_info.pos_size,
-            base_size: open_orders_info.native_pc_total,
+            size: open_orders_info.native_pc_total,
+            base_size: open_orders_info.pos_size,
             realized_pnl: open_orders_info.realized_pnl,
         })
     }
@@ -422,7 +427,12 @@ impl<'info> MintWithZoDepository<'info> {
 
 // Validate input arguments
 impl<'info> MintWithZoDepository<'info> {
-    pub fn validate(&self, collateral_amount: u64, limit_price: u64) -> Result<()> {
+    pub fn validate(
+        &self,
+        max_base_quantity: u64,
+        max_quote_quantity: u64,
+        limit_price: u64,
+    ) -> Result<()> {
         let depository = self.depository.load()?;
         if !depository.is_initialized {
             return Err(error!(UxdError::ZoDepositoryNotInitialized));
@@ -430,12 +440,13 @@ impl<'info> MintWithZoDepository<'info> {
         if limit_price <= 0 {
             return Err(error!(UxdError::InvalidLimitPrice));
         }
-        if collateral_amount == 0 {
+        if max_base_quantity == 0 || max_quote_quantity == 0 {
             return Err(error!(UxdError::InvalidCollateralAmount));
         }
-        if self.user_collateral.amount < collateral_amount {
-            return Err(error!(UxdError::InsufficientCollateralAmount));
-        }
+        // Will error "naturally"
+        // if self.user_collateral.amount < collateral_amount {
+        //     return Err(error!(UxdError::InsufficientCollateralAmount));
+        // }
         Ok(())
     }
 }

@@ -4,6 +4,7 @@ pub const ZO_DEPOSITORY_SPACE: usize =
     8 + 1 + 1 + 1 + 1 + 32 + 32 + 1 + 32 + 1 + 32 + 32 + 16 + 16 + 16 + 16 + 512;
 
 #[account(zero_copy)]
+#[repr(packed)]
 pub struct ZoDepository {
     pub bump: u8,
     pub zo_account_bump: u8,
