@@ -1,4 +1,7 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token::Mint;
+
+const MANGO_DEPOSITORY_PADDING: usize = 480;
 
 #[account]
 #[derive(Default)]
@@ -42,11 +45,14 @@ pub struct MangoDepository {
     // The amount of DN position that has been rebalanced (in quote native units)
     pub total_amount_rebalanced: u128,
     //
+    // The amount of redeemable that has been minted with stables
+    pub total_stable_minted: u64,
+    //
     pub _reserved: MangoDepositoryPadding,
 }
 
 #[derive(Clone)]
-pub struct MangoDepositoryPadding([u8; 496]);
+pub struct MangoDepositoryPadding([u8; MANGO_DEPOSITORY_PADDING]);
 
 impl AnchorSerialize for MangoDepositoryPadding {
     fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
@@ -56,12 +62,12 @@ impl AnchorSerialize for MangoDepositoryPadding {
 
 impl AnchorDeserialize for MangoDepositoryPadding {
     fn deserialize(_: &mut &[u8]) -> std::io::Result<Self> {
-        Ok(Self([0u8; 496]))
+        Ok(Self([0u8; MANGO_DEPOSITORY_PADDING]))
     }
 }
 
 impl Default for MangoDepositoryPadding {
     fn default() -> Self {
-        MangoDepositoryPadding([0u8; 496])
+        MangoDepositoryPadding([0u8; MANGO_DEPOSITORY_PADDING])
     }
 }
