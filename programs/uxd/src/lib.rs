@@ -16,7 +16,7 @@ pub mod zo_utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("6SDhMKSKUnbxxdWBaFNgWHpt94dWKhYcprEERugQVktz");
+solana_program::declare_id!("DbfZyBbycKuqhEPy163AP5JQYb7BZBAS7caG6pBkhgph");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -372,7 +372,7 @@ pub mod uxd {
         )
     }
 
-    /// Redeem `MangoDepository.collateral_mint` by burning redeemable tokens
+    /// Redeem `MangoDepository.collateral_mint` by burning redeemable
     /// tokens, and unwind a part of the delta neutral position.
     ///
     /// Parameters:
@@ -414,6 +414,30 @@ pub mod uxd {
             limit_price
         );
         instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, limit_price)
+    }
+    /// Redeem `ZoDepository.collateral_mint` by burning redeemable
+    /// tokens, and unwind a part of the delta neutral position.
+    #[access_control(
+        ctx.accounts.validate(max_base_quantity, max_quote_quantity, limit_price)
+    )]
+    pub fn redeem_from_zo_depository(
+        ctx: Context<RedeemFromZoDepository>,
+        max_base_quantity: u64,
+        max_quote_quantity: u64,
+        limit_price: u64,
+    ) -> Result<()> {
+        // msg!(
+        //     "[redeem_from_zo_depository] max_base_quantity {}, max_quote_quantity {} limit_price {}",
+        //     max_base_quantity,
+        //     max_quote_quantity,
+        //     limit_price
+        // );
+        instructions::redeem_from_zo_depository::handler(
+            ctx,
+            max_base_quantity,
+            max_quote_quantity,
+            limit_price,
+        )
     }
 }
 

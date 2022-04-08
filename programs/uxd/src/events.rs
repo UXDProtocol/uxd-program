@@ -210,9 +210,9 @@ pub struct MintWithMangoDepositoryEvent {
     pub fee_delta: i64,
 }
 
-/// Event called in [instructions::mango_dex::redeem_from_mango_depository::handler].
+/// Event called in [instructions::*_dex::redeem_from_*_depository::handler].
 #[event]
-pub struct RedeemFromMangoDepositoryEvent {
+pub struct RedeemFromDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,

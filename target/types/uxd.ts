@@ -1060,6 +1060,155 @@ export type Uxd = {
           "type": "f32"
         }
       ]
+    },
+    {
+      "name": "redeemFromZoDepository",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "redeemableMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRedeemable",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoStateSigner",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoCache",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoControl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoOpenOrders",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoDexMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoReqQ",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoEventQ",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoMarketBids",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoMarketAsks",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoDexProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "maxBaseQuantity",
+          "type": "u64"
+        },
+        {
+          "name": "maxQuoteQuantity",
+          "type": "u64"
+        },
+        {
+          "name": "limitPrice",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1687,7 +1836,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "RedeemFromMangoDepositoryEvent",
+      "name": "RedeemFromDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -1878,7 +2027,7 @@ export type Uxd = {
     {
       "code": 6005,
       "name": "InvalidCollateralAmount",
-      "msg": "Collateral amount must be > 0 in order to mint."
+      "msg": "Collateral amount cannot be 0"
     },
     {
       "code": 6006,
@@ -3175,6 +3324,155 @@ export const IDL: Uxd = {
           "type": "f32"
         }
       ]
+    },
+    {
+      "name": "redeemFromZoDepository",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "redeemableMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRedeemable",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoStateSigner",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoCache",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoControl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoOpenOrders",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoDexMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoReqQ",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoEventQ",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoMarketBids",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoMarketAsks",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoDexProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "maxBaseQuantity",
+          "type": "u64"
+        },
+        {
+          "name": "maxQuoteQuantity",
+          "type": "u64"
+        },
+        {
+          "name": "limitPrice",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -3802,7 +4100,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "RedeemFromMangoDepositoryEvent",
+      "name": "RedeemFromDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -3993,7 +4291,7 @@ export const IDL: Uxd = {
     {
       "code": 6005,
       "name": "InvalidCollateralAmount",
-      "msg": "Collateral amount must be > 0 in order to mint."
+      "msg": "Collateral amount cannot be 0"
     },
     {
       "code": 6006,

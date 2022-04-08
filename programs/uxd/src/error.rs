@@ -14,7 +14,7 @@ pub enum UxdError {
     InvalidLimitPrice,
     #[msg("Could not fill the order given order book state and provided slippage.")]
     EffectiveOrderPriceBeyondLimitPrice,
-    #[msg("Collateral amount must be > 0 in order to mint.")]
+    #[msg("Collateral amount cannot be 0")]
     InvalidCollateralAmount,
     #[msg("The balance of the collateral ATA is not enough to fulfill the mint operation.")]
     InsufficientCollateralAmount,

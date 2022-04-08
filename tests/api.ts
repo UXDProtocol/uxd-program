@@ -250,6 +250,29 @@ export async function mintWithZoDepository(user: Signer, payer: Signer, slippage
     tx.feePayer = payer.publicKey;
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
+
+export async function redeemFromZoDepository(user: Signer, payer: Signer, slippage: number, amountRedeemable: number, controller: Controller, depository: ZoDepository, zo: Zo): Promise<string> {
+    const redeemFromZoDepositoryIx = await uxdClient.createRedeemFromZoDepositoryInstruction(amountRedeemable, slippage, controller, depository, zo, user.publicKey, TXN_OPTS, payer.publicKey);
+
+    let signers = [];
+    let tx = new Transaction();
+
+    // TMP cause no computing
+    const userCollateralAta = await findAssociatedTokenAddress(user.publicKey, depository.collateralMint);
+    const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, controller.redeemableMintPda);
+    tx.instructions.push(createUserCollateralAtaIx);
+
+    tx.instructions.push(redeemFromZoDepositoryIx);
+
+    signers.push(user);
+    if (payer) {
+        signers.push(payer);
+    }
+
+    tx.feePayer = payer.publicKey;
+    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
 // Non UXD API calls ----------------------------------------------------------
 
 export async function settleDepositoryPnl(payer: Signer, depository: MangoDepository, mango: Mango): Promise<string> {

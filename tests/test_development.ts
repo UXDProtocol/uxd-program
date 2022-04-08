@@ -16,6 +16,7 @@ import { getConnection, TXN_OPTS } from "./connection";
 import { Wallet } from "@project-serum/anchor";
 import { initializeZoDepositoryTest } from "./cases/initializeZoDepositoryTest";
 import { depositInsuranceZoDepositoryTest } from "./cases/depositInsuranceZoDepositoryTest";
+import { redeemFromZoDepositoryTest } from "./cases/redeemFromZoDepositoryTest";
 
 console.log(uxdProgramId.toString());
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -90,7 +91,8 @@ describe("Integration tests SOL", function () {
             const amount = 300 / perpPrice;
             console.log("[🧾 amount", amount, zoDepositorySOL.collateralMintSymbol, "]");
             const mintedAmount = await mintWithZoDepositoryTest(amount, slippage, user, controller, zoDepositorySOL, zo, payer);
-            // await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, mangoDepositorySOL, mango, payer);
+            console.log("Minted", mintedAmount);
+            await redeemFromZoDepositoryTest(mintedAmount, slippage, user, controller, zoDepositorySOL, zo, payer);
         });
 
         it.skip(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {

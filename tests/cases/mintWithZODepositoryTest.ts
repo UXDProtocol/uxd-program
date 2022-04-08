@@ -21,9 +21,9 @@ export const mintWithZoDepositoryTest = async function (collateralAmount: number
         // WHEN
         // - Get the perp price at the same moment to have the less diff between exec and test price
         // Simulates user experience from the front end
-        const zoPerpPrice = await depository.getPerpPriceUI(zo);
+        const perpPrice = depository.getPerpPriceUI(zo);
         const txId = await mintWithZoDepository(user, payer ?? user, slippage, collateralAmount, controller, depository, zo);
-        console.log("🪙  perp price is", Number(zoPerpPrice.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol);
+        console.log("🪙  perp price is", Number(perpPrice.toFixed(depository.quoteMintDecimals)), depository.quoteMintSymbol);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
@@ -36,14 +36,18 @@ export const mintWithZoDepositoryTest = async function (collateralAmount: number
             userCollateralBalance_post = await getBalance(userCollateralATA);
         }
 
+
+        const zoTakerFee = depository.getZoTakerFee();
+
         const redeemableDelta = userRedeemableBalance_post - userRedeemableBalance;
         const collateralDelta = Number((userCollateralBalance - userCollateralBalance_post).toFixed(depository.collateralMintDecimals));
         const collateralOddLotLeftOver = Number(Math.max(collateralAmount - collateralDelta, 0).toFixed(depository.collateralMintDecimals));
         const collateralProcessedByMinting = collateralAmount - collateralOddLotLeftOver;
-        // The mango perp price in these might not be the exact same as the one in the transaction.
-        const estimatedFrictionlessRedeemableDelta = collateralProcessedByMinting * zoPerpPrice;
+        // The zo perp price in these might not be the exact same as the one in the transaction.
+        const estimatedFrictionlessRedeemableDelta = collateralProcessedByMinting * perpPrice;
         const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMintDecimals);
-        const estimatedAmountRedeemableLostInSlippageAndFees = Math.abs(estimatedFrictionlessRedeemableDelta - redeemableDelta);
+        const estimatedAmountRedeemableLostInTakerFees = zoTakerFee * collateralProcessedByMinting * perpPrice;
+        const estimatedAmountRedeemableLostInSlippage = Math.abs(estimatedFrictionlessRedeemableDelta - redeemableDelta);
         // The worst price the user could get (lowest amount of UXD)
         const worthExecutionPriceRedeemableDelta = estimatedFrictionlessRedeemableDelta * (slippage / slippageBase)
 
@@ -52,7 +56,8 @@ export const mintWithZoDepositoryTest = async function (collateralAmount: number
         console.log(
             `🧾 Minted`, Number(redeemableDelta.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol,
             "by locking", Number(collateralProcessedByMinting.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
-            "(+~ takerFees + slippage =", Number(estimatedAmountRedeemableLostInSlippageAndFees.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol, ")",
+            "(+~ takerFees =", Number(estimatedAmountRedeemableLostInTakerFees.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol,
+            "(+~  slippage =", Number(estimatedAmountRedeemableLostInSlippage.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol, ")",
             "(frictionless minting would have been", Number(estimatedFrictionlessRedeemableDelta.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol, ")",
             "|| odd lot returns ", Number(collateralOddLotLeftOver.toFixed(depository.collateralMintDecimals)), depository.collateralMintSymbol,
             ")"
