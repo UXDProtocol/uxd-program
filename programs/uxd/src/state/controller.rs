@@ -2,9 +2,6 @@ use crate::error::UxdError;
 use anchor_lang::prelude::*;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
-pub const MAX_STABLE_MINTS: usize = 8;
-
-const CONTROLLER_PADDING: usize = 479;
 
 #[account]
 #[derive(Default)]
@@ -39,18 +36,12 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
     //
-    // The list of accepted stables
-    pub registered_stable_mints: [Pubkey; 8],
-    //
-    // How many registered stable mints exist on the controller
-    pub registered_stable_mints_count: u8,
-    //
     // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
     pub _reserved: ControllerPadding,
 }
 
 #[derive(Clone)]
-pub struct ControllerPadding([u8; CONTROLLER_PADDING]);
+pub struct ControllerPadding([u8; 512]);
 
 impl AnchorSerialize for ControllerPadding {
     fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
@@ -60,13 +51,13 @@ impl AnchorSerialize for ControllerPadding {
 
 impl AnchorDeserialize for ControllerPadding {
     fn deserialize(_: &mut &[u8]) -> std::io::Result<Self> {
-        Ok(Self([0u8; CONTROLLER_PADDING]))
+        Ok(Self([0u8; 512]))
     }
 }
 
 impl Default for ControllerPadding {
     fn default() -> Self {
-        ControllerPadding([0u8; CONTROLLER_PADDING])
+        ControllerPadding([0u8; 512])
     }
 }
 

@@ -19,6 +19,8 @@ use anchor_spl::token::TokenAccount;
 use fixed::types::I80F48;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
+use spl_math::precise_number::PreciseNumber;
+
 
 #[derive(Accounts)]
 pub struct StableMintWithMangoDepository<'info> {
@@ -59,11 +61,11 @@ pub struct StableMintWithMangoDepository<'info> {
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
-    /// #6 The `user`'s ATA for one of the `controller`s `registered_stable_mints`
+    /// #6 The `user`'s ATA for one the `mango depository`s `quote_mint`
     /// Will be debited during this instruction
     #[account(
         mut,
-        constraint = controller.registered_stable_mints.contains(&user_stable.mint),
+        constraint = user_stable.mint == depository.quote_mint,
         constraint = user_stable.owner == *user.key,
     )]
     pub user_stable: Box<Account<'info, TokenAccount>>,
@@ -114,34 +116,19 @@ pub struct StableMintWithMangoDepository<'info> {
     #[account(mut)]
     pub mango_perp_market: UncheckedAccount<'info>,
 
-    /// #16 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
-    /// CHECK: Mango CPI - checked MangoMarketV3 side
-    #[account(mut)]
-    pub mango_bids: UncheckedAccount<'info>,
-
-    /// #17 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
-    /// CHECK: Mango CPI - checked MangoMarketV3 side
-    #[account(mut)]
-    pub mango_asks: UncheckedAccount<'info>,
-
-    /// #18 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
-    /// CHECK: Mango CPI - checked MangoMarketV3 side
-    #[account(mut)]
-    pub mango_event_queue: UncheckedAccount<'info>,
-
-    /// #19 System Program
+    /// #16 System Program
     pub system_program: Program<'info, System>,
 
-    /// #20 Token Program
+    /// #17 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #21 Associated Token Program
+    /// #18 Associated Token Program
     pub associated_token_program: Program<'info, AssociatedToken>,
 
-    /// #22 MangoMarketv3 Program
+    /// #19 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 
-    /// #23 Rent Sysvar
+    /// #20 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -201,24 +188,17 @@ pub fn handler(
     let stable_minted = u64::try_from(depository.total_stable_minted)
         .map_err(|_e| error!(UxdError::MathError))?;
 
-    let perp_unrealized_pnl_to_positive: u64;
-
     // Only allow stable minting if PnL is negative
-    match perp_unrealized_pnl.is_negative() {
-        true => {
-            perp_unrealized_pnl_to_positive = perp_unrealized_pnl
-            .checked_neg()
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_to_num()
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        }
-        false => {
-            return Err(error!(UxdError::InvalidPnlPolarity));
-        }
+    if perp_unrealized_pnl.is_positive() {
+        return Err(error!(UxdError::InvalidPnlPolarity));
     }
 
     // Will become negative if more has been minted than the current negative PnL
-    let stable_mintable = perp_unrealized_pnl_to_positive
+    let stable_mintable: u64 = perp_unrealized_pnl
+        .checked_abs()
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_to_num::<u64>()
+        .ok_or_else(|| error!(UxdError::MathError))?
         .checked_sub(stable_minted)
         .ok_or_else(|| error!(UxdError::MathError))?;
 
@@ -236,12 +216,20 @@ pub fn handler(
     )?;
 
     // - 5 [MINT REDEEMABLE TO USER] ------------------------------------------
+    let percentage_less_fees = 0.9995;
+    let redeemable_mint_less_fees: u64 = I80F48::checked_from_num::<f64>(percentage_less_fees)
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_mul_int(stable_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_to_num::<u64>()
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
     let redeemable_mint_amount = stable_amount; // MAYBE CHECK?>
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
             .with_signer(controller_pda_signer),
-        redeemable_mint_amount,
+        redeemable_mint_less_fees,
     )?;
 
     // - 6 [UPDATE ACCOUNTING] ------------------------------------------------
