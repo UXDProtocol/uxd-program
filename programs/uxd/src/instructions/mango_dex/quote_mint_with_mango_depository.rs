@@ -183,8 +183,7 @@ pub fn handler(
     // - 2 [FIND HOW MUCH REDEEMABLE CAN BE MINTED] ---------------------------
 
     // Get how much redeemable has already been minted with the quote mint
-    let quote_minted = u64::try_from(depository.total_quote_minted)
-        .map_err(|_e| error!(UxdError::MathError))?;
+    let quote_minted = depository.total_quote_minted;
 
     // Only allow quote minting if PnL is negative
     if perp_unrealized_pnl.is_positive() {
@@ -218,6 +217,8 @@ pub fn handler(
     let redeemable_mint_less_fees: u64 = I80F48::checked_from_num::<f64>(percentage_less_fees)
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_mul_int(quote_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_floor()
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_to_num::<u64>()
         .ok_or_else(|| error!(UxdError::MathError))?;
