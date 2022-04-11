@@ -16,12 +16,12 @@ pub enum UxdError {
     EffectiveOrderPriceBeyondLimitPrice,
     #[msg("Collateral amount must be > 0 in order to mint.")]
     InvalidCollateralAmount,
-    #[msg("Stable amount must be > 0 in order to mint.")]
-    InvalidStableAmount,
+    #[msg("Quote amount must be > 0 in order to mint.")]
+    InvalidQuoteAmount,
     #[msg("The balance of the collateral ATA is not enough to fulfill the mint operation.")]
     InsufficientCollateralAmount,
-    #[msg("The balance of the stable ATA is not enough to fulfil the mint operation.")]
-    InsufficientStableAmount,
+    #[msg("The balance of the quote ATA is not enough to fulfil the mint operation.")]
+    InsufficientQuoteAmountMint,
     #[msg("The redeemable amount for redeem must be superior to 0.")]
     InvalidRedeemableAmount,
     #[msg("The balance of the redeemable ATA is not enough to fulfill the redeem operation.")]
@@ -34,8 +34,6 @@ pub enum UxdError {
     MangoDepositoriesSoftCapOverflow,
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
     MaxNumberOfMangoDepositoriesRegisteredReached,
-    #[msg("Cannot register more stable mints, the limit has been reached.")]
-    MaxNumberOfStableMintsReached,
     #[msg("The amount to withdraw from the Insurance Fund must be superior to zero..")]
     InvalidInsuranceAmount,
     #[msg("The Quote ATA from authority doesn't have enough balance.")]
@@ -76,8 +74,8 @@ pub enum UxdError {
     InvalidMangoGroup,
     #[msg("The order quantity is below contract_size of the perp market.")]
     QuantityBelowContractSize,
-    #[msg("The amount trying to be stable minted is larger than stable mintable.")]
-    StableAmountTooHigh,
+    #[msg("The amount trying to be quote minted is larger than quote mintable.")]
+    QuoteAmountTooHigh,
 
     /// Anchor DSL related errors
     ///

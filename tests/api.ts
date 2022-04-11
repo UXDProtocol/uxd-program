@@ -108,12 +108,12 @@ export async function mintWithMangoDepository(user: Signer, payer: Signer, slipp
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function stableMintWithMangoDepository(user: Signer, payer: Signer, stableAmount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
-    const stableMintWithMangoDepositoryIx = await uxdClient.createStableMintWithMangoDepositoryInstruction(stableAmount, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
+export async function quoteMintWithMangoDepository(user: Signer, payer: Signer, quoteAmount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
+    const quoteMintWithMangoDepositoryIx = await uxdClient.createQuoteMintWithMangoDepositoryInstruction(quoteAmount, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
     let signers = [];
     let tx = new Transaction();
 
-    tx.instructions.push(stableMintWithMangoDepositoryIx);
+    tx.instructions.push(quoteMintWithMangoDepositoryIx);
     signers.push(user);
     if (payer) {
         signers.push(payer);

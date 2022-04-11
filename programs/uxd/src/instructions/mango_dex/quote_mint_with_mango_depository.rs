@@ -19,11 +19,9 @@ use anchor_spl::token::TokenAccount;
 use fixed::types::I80F48;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
-use spl_math::precise_number::PreciseNumber;
-
 
 #[derive(Accounts)]
-pub struct StableMintWithMangoDepository<'info> {
+pub struct QuoteMintWithMangoDepository<'info> {
     /// #1 Public call accessible to any user
     pub user: Signer<'info>,
 
@@ -65,10 +63,10 @@ pub struct StableMintWithMangoDepository<'info> {
     /// Will be debited during this instruction
     #[account(
         mut,
-        constraint = user_stable.mint == depository.quote_mint,
-        constraint = user_stable.owner == *user.key,
+        constraint = user_quote.mint == depository.quote_mint,
+        constraint = user_quote.owner == *user.key,
     )]
-    pub user_stable: Box<Account<'info, TokenAccount>>,
+    pub user_quote: Box<Account<'info, TokenAccount>>,
 
     /// #7 The `user`'s ATA for the `controller`'s `redeemable_mint`
     /// Will be credited during this instruction
@@ -133,8 +131,8 @@ pub struct StableMintWithMangoDepository<'info> {
 }
 
 pub fn handler(
-    ctx: Context<StableMintWithMangoDepository>,
-    stable_amount: u64,
+    ctx: Context<QuoteMintWithMangoDepository>,
+    quote_amount: u64,
 ) -> Result<()> {
     let depository = &ctx.accounts.depository;
     let controller = &ctx.accounts.controller;
@@ -184,47 +182,47 @@ pub fn handler(
 
     // - 2 [FIND HOW MUCH REDEEMABLE CAN BE MINTED] ---------------------------
 
-    // Get how much redeemable has already been minted with stables
-    let stable_minted = u64::try_from(depository.total_stable_minted)
+    // Get how much redeemable has already been minted with the quote mint
+    let quote_minted = u64::try_from(depository.total_quote_minted)
         .map_err(|_e| error!(UxdError::MathError))?;
 
-    // Only allow stable minting if PnL is negative
+    // Only allow quote minting if PnL is negative
     if perp_unrealized_pnl.is_positive() {
         return Err(error!(UxdError::InvalidPnlPolarity));
     }
 
     // Will become negative if more has been minted than the current negative PnL
-    let stable_mintable: u64 = perp_unrealized_pnl
+    let quote_mintable: u64 = perp_unrealized_pnl
         .checked_abs()
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_to_num::<u64>()
         .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_sub(stable_minted)
+        .checked_sub(quote_minted)
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     // Check to ensure we are not minting more than we allocate to resolve negative PnL
-    if stable_amount > stable_mintable {
-        return Err(error!(UxdError::StableAmountTooHigh));
+    if quote_amount > quote_mintable {
+        return Err(error!(UxdError::QuoteAmountTooHigh));
     }
 
-    // - 4 [DEPOSIT STABLES INTO MANGO ACCOUNT] -------------------------------
+    // - 4 [DEPOSIT QUOTE MINT INTO MANGO ACCOUNT] -------------------------------
     mango_markets_v3::deposit(
         ctx.accounts
-        .into_deposit_stable_to_mango_context()
+        .into_deposit_quote_to_mango_context()
         .with_signer(depository_pda_signer),
-        stable_amount,
+        quote_amount,
     )?;
 
     // - 5 [MINT REDEEMABLE TO USER] ------------------------------------------
     let percentage_less_fees = 0.9995;
     let redeemable_mint_less_fees: u64 = I80F48::checked_from_num::<f64>(percentage_less_fees)
         .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_mul_int(stable_amount.into())
+        .checked_mul_int(quote_amount.into())
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_to_num::<u64>()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    let redeemable_mint_amount = stable_amount; // MAYBE CHECK?>
+    let redeemable_mint_amount = quote_amount; // MAYBE CHECK?>
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
@@ -234,7 +232,7 @@ pub fn handler(
 
     // - 6 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_onchain_accounting(
-        stable_amount.into(),
+        quote_amount.into(),
         redeemable_mint_amount.into(),
     )?;
 
@@ -244,8 +242,8 @@ pub fn handler(
     Ok(())
 }
 
-impl<'info> StableMintWithMangoDepository<'info> {
-    pub fn into_deposit_stable_to_mango_context(
+impl<'info> QuoteMintWithMangoDepository<'info> {
+    pub fn into_deposit_quote_to_mango_context(
         &self
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Deposit<'info>> {
         let cpi_accounts = mango_markets_v3::Deposit {
@@ -256,7 +254,7 @@ impl<'info> StableMintWithMangoDepository<'info> {
             root_bank: self.mango_root_bank.to_account_info(),
             node_bank: self.mango_node_bank.to_account_info(),
             vault: self.mango_vault.to_account_info(),
-            owner_token_account: self.user_stable.to_account_info(),
+            owner_token_account: self.user_quote.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -285,15 +283,15 @@ impl<'info> StableMintWithMangoDepository<'info> {
     // Update the accounting in the Depository and Controller Accounts to reflect changes
     fn update_onchain_accounting(
         &mut self,
-        stable_amount_deposited: u64,
+        quote_amount_deposited: u64,
         redeemable_minted_amount: u128,
     ) -> Result<()> {
         let depository = &mut self.depository;
         let controller = &mut self.controller;
         // Mango Depository
-        depository.total_stable_minted = depository
-            .total_stable_minted
-            .checked_add(stable_amount_deposited)
+        depository.total_quote_minted = depository
+            .total_quote_minted
+            .checked_add(quote_amount_deposited)
             .ok_or_else(|| error!(UxdError::MathError))?;
         depository.redeemable_amount_under_management = depository
             .redeemable_amount_under_management
@@ -309,7 +307,7 @@ impl<'info> StableMintWithMangoDepository<'info> {
 }
 
 // Additional convenience methods related to the inputted accounts
-impl<'info> StableMintWithMangoDepository<'info> {
+impl<'info> QuoteMintWithMangoDepository<'info> {
     // Return general information about the perpetual related to the collateral in use
     fn perpetual_info(&self) -> Result<PerpInfo> {
         let perp_info = PerpInfo::new(
@@ -338,16 +336,16 @@ impl<'info> StableMintWithMangoDepository<'info> {
 }
 
 // Validate input arguments
-impl<'info> StableMintWithMangoDepository<'info> {
+impl<'info> QuoteMintWithMangoDepository<'info> {
     pub fn validate(
         &self,
-        stable_amount: u64,
+        quote_amount: u64,
     ) -> Result<()> {
-        if stable_amount == 0 {
-            return Err(error!(UxdError::InvalidStableAmount));
+        if quote_amount == 0 {
+            return Err(error!(UxdError::InvalidQuoteAmount));
         }
-        if self.user_stable.amount < stable_amount {
-            return Err(error!(UxdError::InsufficientStableAmount));
+        if self.user_quote.amount < quote_amount {
+            return Err(error!(UxdError::InsufficientQuoteAmountMint));
         }
 
         Ok(())

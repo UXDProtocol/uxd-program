@@ -45,8 +45,8 @@ pub struct MangoDepository {
     // The amount of DN position that has been rebalanced (in quote native units)
     pub total_amount_rebalanced: u128,
     //
-    // The amount of redeemable that has been minted with stables
-    pub total_stable_minted: u64,
+    // The amount of redeemable that has been minted with quote mint
+    pub total_quote_minted: u64,
     //
     pub _reserved: MangoDepositoryPadding,
 }
