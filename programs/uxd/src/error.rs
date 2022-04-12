@@ -16,8 +16,12 @@ pub enum UxdError {
     EffectiveOrderPriceBeyondLimitPrice,
     #[msg("Collateral amount must be > 0 in order to mint.")]
     InvalidCollateralAmount,
+    #[msg("Quote amount must be > 0 in order to mint.")]
+    InvalidQuoteAmount,
     #[msg("The balance of the collateral ATA is not enough to fulfill the mint operation.")]
     InsufficientCollateralAmount,
+    #[msg("The balance of the quote ATA is not enough to fulfil the mint operation.")]
+    InsufficientQuoteAmountMint,
     #[msg("The redeemable amount for redeem must be superior to 0.")]
     InvalidRedeemableAmount,
     #[msg("The balance of the redeemable ATA is not enough to fulfill the redeem operation.")]
@@ -70,6 +74,8 @@ pub enum UxdError {
     InvalidMangoGroup,
     #[msg("The order quantity is below contract_size of the perp market.")]
     QuantityBelowContractSize,
+    #[msg("The amount trying to be quote minted is larger than quote mintable.")]
+    QuoteAmountTooHigh,
 
     /// Anchor DSL related errors
     ///
