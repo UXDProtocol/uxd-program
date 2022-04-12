@@ -186,9 +186,7 @@ pub fn handler(
     let quote_minted = depository.total_quote_minted;
 
     // Only allow quote minting if PnL is negative
-    if perp_unrealized_pnl.is_positive() {
-        return Err(error!(UxdError::InvalidPnlPolarity));
-    }
+    require!(perp_unrealized_pnl.is_negative(), UxdError::InvalidPnlPolarity);
 
     // Will become negative if more has been minted than the current negative PnL
     let quote_mintable: u64 = perp_unrealized_pnl
@@ -200,9 +198,7 @@ pub fn handler(
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     // Check to ensure we are not minting more than we allocate to resolve negative PnL
-    if quote_amount > quote_mintable {
-        return Err(error!(UxdError::QuoteAmountTooHigh));
-    }
+    require!(quote_amount <= quote_mintable, UxdError::QuoteAmountTooHigh);
 
     // - 4 [DEPOSIT QUOTE MINT INTO MANGO ACCOUNT] -------------------------------
     mango_markets_v3::deposit(
@@ -213,7 +209,7 @@ pub fn handler(
     )?;
 
     // - 5 [MINT REDEEMABLE TO USER] ------------------------------------------
-    let percentage_less_fees = 0.9995;
+    let percentage_less_fees = 0.9995; // Add to depository // ***** add function to update the mango_depository var for this
     let redeemable_mint_less_fees: u64 = I80F48::checked_from_num::<f64>(percentage_less_fees)
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_mul_int(quote_amount.into())
@@ -223,7 +219,6 @@ pub fn handler(
         .checked_to_num::<u64>()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    let redeemable_mint_amount = quote_amount; // MAYBE CHECK?>
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
@@ -234,7 +229,7 @@ pub fn handler(
     // - 6 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_onchain_accounting(
         quote_amount.into(),
-        redeemable_mint_amount.into(),
+        redeemable_mint_less_fees.into(),
     )?;
 
     // - 7 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
