@@ -9,7 +9,7 @@ import { getSolBalance, getBalance } from "../utils";
 import { depositInsuranceMangoDepositoryTest } from "./depositInsuranceMangoDepositoryTest";
 
 export const mintWithMangoDepositoryAccountingTest = async function (collateralAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> {
-    console.group("🧭 mintWithMangoDepositoryTest");
+    console.group("🧭 mintWithMangoDepositoryAccountingTest");
     try {
         const connection = getConnection();
         const options = TXN_OPTS;
