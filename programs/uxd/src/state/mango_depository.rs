@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 
-const MANGO_DEPOSITORY_PADDING: usize = 480;
+const MANGO_DEPOSITORY_PADDING: usize = 480;  // **** OKAY WHAT IS PADDING NOW?? NEED A BETTER WAY TO KEEP TRACK
 
 #[account]
 #[derive(Default)]
@@ -46,7 +46,13 @@ pub struct MangoDepository {
     pub total_amount_rebalanced: u128,
     //
     // The amount of redeemable that has been minted with quote mint
-    pub total_quote_minted: u64,
+    pub total_quote_minted: i128, // ** Change to make both ways
+    //
+    // The amount of fees taken per quote mint and quote redeem
+    pub quote_mint_and_redeem_fees: u8, // in units of BPs
+    //
+    // The amount of fees accrued from quote minting
+    pub total_quote_mint_and_redeem_fees: u128,
     //
     pub _reserved: MangoDepositoryPadding,
 }
