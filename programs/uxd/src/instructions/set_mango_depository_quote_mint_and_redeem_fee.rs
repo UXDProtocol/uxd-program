@@ -6,7 +6,7 @@ use crate::state::MangoDepository;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-pub struct SetMangoDepositoryQuoteFee<'info> {
+pub struct SetMangoDepositoryQuoteMintAndRedeemFee<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
 
@@ -16,6 +16,7 @@ pub struct SetMangoDepositoryQuoteFee<'info> {
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump,
         has_one = authority @UxdError::InvalidAuthority,
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
     pub controller: Box<Account<'info, Controller>>,
 
@@ -31,7 +32,7 @@ pub struct SetMangoDepositoryQuoteFee<'info> {
 }
 
 pub fn handler(
-    ctx: Context<SetMangoDepositoryQuoteFee>,
+    ctx: Context<SetMangoDepositoryQuoteMintAndRedeemFee>,
     quote_fee: u8, // in bps
 ) -> Result<()> {
     ctx.accounts

@@ -71,10 +71,9 @@ pub struct QuoteMintWithMangoDepository<'info> {
     /// #7 The `user`'s ATA for the `controller`'s `redeemable_mint`
     /// Will be credited during this instruction
     #[account(
-        init_if_needed,
-        associated_token::mint = redeemable_mint,
-        associated_token::authority = user,
-        payer = payer,
+        mut,
+        constraint = user_redeemable.mint == controller.redeemable_mint,
+        constraint = user_redeemable.owner == *user.key,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
@@ -271,11 +270,12 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
 
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
     fn check_redeemable_global_supply_cap_overflow(&self) -> Result<()> {
-        if self.controller.redeemable_circulating_supply
-            > self.controller.redeemable_global_supply_cap
-        {
-            return Err(error!(UxdError::RedeemableGlobalSupplyCapReached));
-        }
+        require!(
+            self.controller.redeemable_circulating_supply 
+            <= self.controller.redeemable_global_supply_cap, 
+            UxdError::RedeemableGlobalSupplyCapReached
+        );
+       
         Ok(())
     }
 
@@ -340,12 +340,8 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
         &self,
         quote_amount: u64,
     ) -> Result<()> {
-        if quote_amount == 0 {
-            return Err(error!(UxdError::InvalidQuoteAmount));
-        }
-        if self.user_quote.amount < quote_amount {
-            return Err(error!(UxdError::InsufficientQuoteAmountMint));
-        }
+        require!(quote_amount != 0, UxdError::InvalidQuoteAmount);
+        require!(self.user_quote.amount >= quote_amount, UxdError::InsufficientQuoteAmountMint);
 
         Ok(())
     }

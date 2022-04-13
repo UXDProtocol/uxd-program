@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 
-const MANGO_DEPOSITORY_PADDING: usize = 480;  // **** OKAY WHAT IS PADDING NOW?? NEED A BETTER WAY TO KEEP TRACK
+const MANGO_DEPOSITORY_PADDING: usize = 447;  // **** OKAY WHAT IS PADDING NOW?? NEED A BETTER WAY TO KEEP TRACK
 
 #[account]
 #[derive(Default)]

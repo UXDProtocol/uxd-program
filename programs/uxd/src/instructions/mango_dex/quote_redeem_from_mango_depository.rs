@@ -69,10 +69,9 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     /// #6 The `user`'s ATA for one the `mango depository`s `quote_mint`
     /// Will be credited during this instruction
     #[account(
-        init_if_needed,
-        associated_token::mint = quote_mint,
-        associated_token::authority = user,
-        payer = payer,
+        mut,
+        constraint = user_quote.mint == depository.quote_mint,
+        constraint = user_quote.owner == *user.key,
     )]
     pub user_quote: Box<Account<'info, TokenAccount>>,
 
@@ -211,6 +210,7 @@ pub fn handler(
     require!(redeemable_amount <= quote_redeemable, UxdError::RedeemableAmountTooHigh);
 
     // - x [BURN USER'S REDEEMABLE] -------------------------------------------
+    // Burn will fail if user does not have enough redeemable
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         redeemable_amount,
@@ -347,14 +347,8 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
         &self,
         redeemable_amount: u64,
     ) -> Result<()> {
-        if redeemable_amount == 0 {
-            return Err(error!(UxdError::InvalidRedeemableAmount));
-        }
-        if self.user_redeemable.amount < redeemable_amount {
-            return Err(error!(UxdError::InsufficientRedeemableAmountMint));
-        }
+        require!(redeemable_amount != 0, UxdError::InvalidRedeemableAmount);
 
         Ok(())
     }
 }
-
