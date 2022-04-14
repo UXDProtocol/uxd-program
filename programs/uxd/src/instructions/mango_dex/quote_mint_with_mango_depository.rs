@@ -342,6 +342,12 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
     ) -> Result<()> {
         require!(quote_amount != 0, UxdError::InvalidQuoteAmount);
         require!(self.user_quote.amount >= quote_amount, UxdError::InsufficientQuoteAmountMint);
+        validate_perp_market_mint_matches_depository_collateral_mint(
+            &self.mango_group,
+            self.mango_program.key,
+            self.mango_perp_market.key,
+            &self.depository.collateral_mint,
+        )?;
 
         Ok(())
     }

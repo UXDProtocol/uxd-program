@@ -7,6 +7,7 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
+use crate::validate_perp_market_mint_matches_depository_collateral_mint;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -35,6 +36,7 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump,
+        has_one = redeemable_mint,
         constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
     pub controller: Box<Account<'info, Controller>>,
@@ -56,7 +58,6 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
         bump = controller.redeemable_mint_bump,
-        constraint = redeemable_mint.key() == controller.redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
@@ -348,6 +349,12 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
         redeemable_amount: u64,
     ) -> Result<()> {
         require!(redeemable_amount != 0, UxdError::InvalidRedeemableAmount);
+        validate_perp_market_mint_matches_depository_collateral_mint(
+            &self.mango_group,
+            self.mango_program.key,
+            self.mango_perp_market.key,
+            &self.depository.collateral_mint,
+        )?;
 
         Ok(())
     }
