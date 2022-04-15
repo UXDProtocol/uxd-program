@@ -360,6 +360,29 @@ pub mod uxd {
         );
         instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, limit_price)
     }
+
+    #[access_control(
+        ctx.accounts.validate(quote_amount)
+    )]
+    pub fn quote_mint_with_mango_depository(
+        ctx: Context<QuoteMintWithMangoDepository>,
+        quote_amount: u64,
+    ) -> Result<()> {
+        msg!("[quote_mint_with_mango_depository] quote_amount {}", quote_amount);
+        instructions::quote_mint_with_mango_depository::handler(ctx, quote_amount)
+    }
+
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn quote_redeem_from_mango_depository(
+        ctx: Context<QuoteRedeemFromMangoDepository>,
+        redeemable_amount: u64,
+    ) -> Result<()> {
+        msg!("[quote_redeem_from_mango_depository] redeemable_amount {}", redeemable_amount);
+        instructions::quote_redeem_from_mango_depository::handler(ctx, redeemable_amount)
+    }
+
 }
 
 /// Checks that the perp_market_index provided matches the collateral of the depository.

@@ -37,7 +37,7 @@ pub fn handler(
 ) -> Result<()> {
     ctx.accounts
         .depository
-        .quote_mint_and_redeem_fees = quote_fee;
+        .quote_mint_and_redeem_fee = quote_fee;
 
     Ok(())
 }

@@ -218,7 +218,7 @@ pub fn handler(
     )?;
 
     // - x [WITHDRAW QUOTE MINT FROM MANGO ACCOUNT] ---------------------------
-    let quote_redeem_fee = depository.quote_mint_and_redeem_fees;
+    let quote_redeem_fee = depository.quote_mint_and_redeem_fee;
     let percentage_less_fees: f64 = (1 as f64) - (
         (quote_redeem_fee as f64)/((10 as f64).powi(4.into()))
     );
@@ -295,6 +295,15 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
     ) -> Result<()> {
         let depository = &mut self.depository;
         let controller = &mut self.controller;
+        let fee_percentage: f64 = (depository.quote_mint_and_redeem_fee as f64)/((10 as f64).powi(4.into()));
+        let fees_accrued: u64 = I80F48::checked_from_num::<f64>(fee_percentage)
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_mul_int(redeemable_amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_floor()
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_to_num::<u64>()
+            .ok_or_else(|| error!(UxdError::MathError))?;
         // Mango Depository
         depository.total_quote_minted = depository
             .total_quote_minted
@@ -303,6 +312,10 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
         depository.redeemable_amount_under_management = depository
             .redeemable_amount_under_management
             .checked_sub(redeemable_amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        depository.total_quote_mint_and_redeem_fees = depository
+            .total_quote_mint_and_redeem_fees
+            .checked_add(fees_accrued.into())
             .ok_or_else(|| error!(UxdError::MathError))?;
         // Controller
         controller.redeemable_circulating_supply = controller

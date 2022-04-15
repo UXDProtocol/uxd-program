@@ -49,7 +49,7 @@ pub struct MangoDepository {
     pub total_quote_minted: i128, // ** Change to make both ways
     //
     // The amount of fees taken per quote mint and quote redeem
-    pub quote_mint_and_redeem_fees: u8, // in units of BPs
+    pub quote_mint_and_redeem_fee: u8, // in units of BPs
     //
     // The amount of fees accrued from quote minting
     pub total_quote_mint_and_redeem_fees: u128,
