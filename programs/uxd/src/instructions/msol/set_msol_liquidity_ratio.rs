@@ -49,6 +49,8 @@ pub struct SetMsolLiquidityRatio<'info> {
         mut,
         seeds = [MSOL_CONFIG_NAMESPACE, depository.key().as_ref()],
         bump = msol_config.bump,
+        has_one = controller @UxdIdlErrorCode::InvalidController,
+        has_one = depository @UxdIdlErrorCode::InvalidDepository,
     )]
     pub msol_config: Box<Account<'info, MSolConfig>>,
 }
