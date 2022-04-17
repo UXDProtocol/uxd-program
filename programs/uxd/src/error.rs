@@ -98,6 +98,8 @@ pub enum UxdError {
 
     #[error("Target liquidity ratio for msol config exceed 100%")]
     TargetLiquidityRatioExceedMax,
+    #[error("Msol conversion has already enabled / disabled")]
+    InvalidEnablingMsolConversion,
 
     #[msg("Default - Check the source code for more info")]
     Default,

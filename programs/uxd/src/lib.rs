@@ -376,6 +376,34 @@ pub mod uxd {
             },
         )
     }
+
+    #[access_control(
+        ctx.accounts.validate(enable)
+    )]
+    pub fn enable_msol_conversion(
+        ctx: Context<EnableMsolConversion>,
+        enable: bool,
+    ) -> ProgramResult {
+        msg!("[enable_msol_conversion]");
+        instructions::enable_msol_conversion::handler(ctx, enable).map_err(|e| {
+            msg!("<*> {}", e); // log the error
+            e.into() // convert UxdError to generic ProgramError
+        })
+    }
+
+    #[access_control(
+        ctx.accounts.validate(target_liquidity_ratio)
+    )]
+    pub fn set_msol_liquidity_ratio(
+        ctx: Context<SetMsolLiquidityRatio>,
+        target_liquidity_ratio: u16,
+    ) -> ProgramResult {
+        msg!("[set_msol_liquidity_ratio]");
+        instructions::set_msol_liquidity_ratio::handler(ctx, target_liquidity_ratio).map_err(|e| {
+            msg!("<*> {}", e); // log the error
+            e.into() // convert UxdError to generic ProgramError
+        })
+    }
 }
 
 /// Checks that the perp_market_index provided matches the collateral of the depository.
