@@ -96,6 +96,9 @@ pub enum UxdError {
     #[msg("The max quote quantity must be above 0.")]
     InvalidMaxQuoteQuantity,
 
+    #[error("Target liquidity ratio for msol config exceed 100%")]
+    TargetLiquidityRatioExceedMax,
+
     #[msg("Default - Check the source code for more info")]
     Default,
 }

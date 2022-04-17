@@ -28,6 +28,7 @@ pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
+pub const MSOL_CONFIG_NAMESPACE: &[u8] = b"MSOLCONFIG";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -358,6 +359,22 @@ pub mod uxd {
             limit_price
         );
         instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, limit_price)
+    }
+
+    #[access_control(
+        ctx.accounts.validate(target_liquidity_ratio)
+    )]
+    pub fn create_depository_msol_config(
+        ctx: Context<CreateDepositoryMSolConfig>,
+        target_liquidity_ratio: u16,
+    ) -> ProgramResult {
+        msg!("[create_depository_msol_config]");
+        instructions::create_depository_msol_config::handler(ctx, target_liquidity_ratio).map_err(
+            |e| {
+                msg!("<*> {}", e); // log the error
+                e.into() // convert UxdError to generic ProgramError
+            },
+        )
     }
 }
 
