@@ -25,4 +25,7 @@ ___
 ### permissionned ixns:
 ### `create_depository_msol_config`
 To initialize `msol_config` account, specify the `target_liquidity_ratio` and setup it's relationship to the `controller` and `depository`, could only called by the controller's authority. For each `depository`, there could only hv one `msol_config` created. 
-
+### `enable_msol_conversion`
+Updated the `msol_config` state, set whether the mSOL/SOL conversion is allowed
+### `set_msol_liquidity_ratio`
+Updated the `msol_config` state, set the SOL liquidity ratio
