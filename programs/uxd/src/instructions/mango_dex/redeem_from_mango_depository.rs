@@ -43,10 +43,10 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        bump = controller.load()?.bump,
+        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance.
     /// The `MangoDepository` manages a MangoAccount for a single Collateral.
@@ -71,8 +71,8 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = controller.redeemable_mint_bump,
-        constraint = redeemable_mint.key() == controller.redeemable_mint @UxdError::InvalidRedeemableMint
+        bump = controller.load()?.redeemable_mint_bump,
+        constraint = redeemable_mint.key() == controller.load()?.redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
@@ -90,7 +90,7 @@ pub struct RedeemFromMangoDepository<'info> {
     /// Will be debited during this instruction
     #[account(
         mut,
-        seeds = [user.key.as_ref(), token_program.key.as_ref(), controller.redeemable_mint.as_ref()],
+        seeds = [user.key.as_ref(), token_program.key.as_ref(), controller.load()?.redeemable_mint.as_ref()],
         bump,
         seeds::program = AssociatedToken::id(),
     )]
@@ -207,9 +207,10 @@ pub fn handler(
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    if max_quote_quantity.is_zero() {
-        return Err(error!(UxdError::QuantityBelowContractSize));
-    }
+    require!(
+        !max_quote_quantity.is_zero(),
+        UxdError::QuantityBelowContractSize
+    );
 
     // Note : Reduce the delta neutral position, increasing long exposure, by buying perp.
     //        [BID: taker (us, the caller) | ASK: maker]
@@ -238,9 +239,10 @@ pub fn handler(
     let post_pa = ctx.accounts.perp_account(&perp_info)?;
 
     // - 2 [BURN REDEEMABLES] -------------------------------------------------
-    if pre_pa.taker_quote < post_pa.taker_quote {
-        return Err(error!(UxdError::InvalidOrderDirection));
-    }
+    require!(
+        pre_pa.taker_quote > post_pa.taker_quote,
+        UxdError::InvalidOrderDirection
+    );
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;
     msg!("order_delta {:?}", order_delta);
 
@@ -404,7 +406,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
         fee_amount: u128,
     ) -> Result<()> {
         let depository = &mut self.depository;
-        let controller = &mut self.controller;
+        let controller = &mut self.controller.load_mut()?;
         // Mango Depository
         depository.collateral_amount_deposited = depository
             .collateral_amount_deposited
@@ -429,15 +431,12 @@ impl<'info> RedeemFromMangoDepository<'info> {
 // Validate input arguments
 impl<'info> RedeemFromMangoDepository<'info> {
     pub fn validate(&self, redeemable_amount: u64, limit_price: f32) -> Result<()> {
-        if limit_price <= 0f32 {
-            return Err(error!(UxdError::InvalidLimitPrice));
-        }
-        if redeemable_amount == 0 {
-            return Err(error!(UxdError::InvalidRedeemableAmount));
-        }
-        if self.user_redeemable.amount < redeemable_amount {
-            return Err(error!(UxdError::InsufficientRedeemableAmount));
-        }
+        require!(limit_price > 0f32, UxdError::InvalidLimitPrice);
+        require!(redeemable_amount != 0, UxdError::InvalidRedeemableAmount);
+        require!(
+            self.user_redeemable.amount >= redeemable_amount,
+            UxdError::InsufficientRedeemableAmount
+        );
 
         validate_perp_market_mint_matches_depository_collateral_mint(
             &self.mango_group,

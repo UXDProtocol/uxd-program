@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::zo_utils::dist;
 use crate::zo_utils::DeltaNeutralPosition;
 use crate::zo_utils::PerpInfo;
 use crate::Controller;
@@ -7,15 +8,17 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::ZO_DEPOSITORY_NAMESPACE;
 use crate::ZO_MARGIN_ACCOUNT_NAMESPACE;
-use crate::zo_utils::dist;
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
+use anchor_lang::require;
 use anchor_spl::token;
 use anchor_spl::token::CloseAccount;
 use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
+use fixed::types::I80F48;
 use zo::Control;
+use zo::FeeTier;
+use zo::PerpType;
 use zo::State;
 use zo::ZO_DEX_PID;
 use zo_abi as zo;
@@ -34,11 +37,11 @@ pub struct MintWithZoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
+        bump = controller.load()?.bump,
         has_one = redeemable_mint @UxdError::InvalidRedeemableMint,
-        constraint = controller.registered_zo_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        constraint = controller.load()?.registered_zo_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance.
     /// The `ZoDepository` manages a ZoAccount for a single Collateral.
@@ -57,27 +60,25 @@ pub struct MintWithZoDepository<'info> {
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = controller.redeemable_mint_bump,
+        bump = controller.load()?.redeemable_mint_bump,
     )]
-    pub redeemable_mint: Box<Account<'info, token::Mint>>,
+    pub redeemable_mint: Account<'info, token::Mint>,
 
     /// #6 The `user`'s ATA for the `depository` `collateral_mint`
     /// Will be debited during this instruction
     #[account(
         mut,
-        seeds = [user.key.as_ref(), token_program.key.as_ref(), depository.load()?.collateral_mint.as_ref()],
-        bump,
-        seeds::program = AssociatedToken::id(),
+        constraint = user_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
+        constraint = &user_collateral.owner == user.key @UxdError::InvalidOwner,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #7 The `user`'s ATA for the `controller`'s `redeemable_mint`
     /// Will be credited during this instruction
     #[account(
-        init_if_needed,
-        associated_token::mint = redeemable_mint,
-        associated_token::authority = user,
-        payer = payer,
+        mut,
+        constraint = user_redeemable.mint == redeemable_mint.key() @UxdError::InvalidCollateralMint,
+        constraint = &user_redeemable.owner == user.key @UxdError::InvalidOwner,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
@@ -87,7 +88,7 @@ pub struct MintWithZoDepository<'info> {
         mut,
         seeds = [depository.key().as_ref(), zo_state.key().as_ref(), ZO_MARGIN_ACCOUNT_NAMESPACE],
         bump = depository.load()?.zo_account_bump,
-        seeds::program = zo_program.key()
+        seeds::program = zo_program.key
     )]
     pub zo_account: AccountInfo<'info>,
 
@@ -98,17 +99,17 @@ pub struct MintWithZoDepository<'info> {
     /// #10 [ZeroOne CPI]
     /// CHECK: Done ZeroOne side
     #[account(mut)]
-    pub zo_state_signer: UncheckedAccount<'info>,
+    pub zo_state_signer: AccountInfo<'info>,
 
     /// #11 [ZeroOne CPI]
     /// CHECK: Done ZeroOne side
     #[account(mut)]
-    pub zo_cache: UncheckedAccount<'info>,
+    pub zo_cache: AccountInfo<'info>,
 
     /// #12 [ZeroOne CPI]
     /// CHECK: Done ZeroOne side
     #[account(mut)]
-    pub zo_vault: UncheckedAccount<'info>,
+    pub zo_vault: AccountInfo<'info>,
 
     /// #13 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
@@ -118,32 +119,32 @@ pub struct MintWithZoDepository<'info> {
     /// #14 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
-    pub zo_open_orders: UncheckedAccount<'info>,
+    pub zo_open_orders: AccountInfo<'info>,
 
     /// #15 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
-    pub zo_dex_market: UncheckedAccount<'info>,
+    pub zo_dex_market: AccountInfo<'info>,
 
     /// #16 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
-    pub zo_req_q: UncheckedAccount<'info>,
+    pub zo_req_q: AccountInfo<'info>,
 
     /// #17 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
-    pub zo_event_q: UncheckedAccount<'info>,
+    pub zo_event_q: AccountInfo<'info>,
 
     /// #18 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
-    pub zo_market_bids: UncheckedAccount<'info>,
+    pub zo_market_bids: AccountInfo<'info>,
 
     /// #19 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
-    pub zo_market_asks: UncheckedAccount<'info>,
+    pub zo_market_asks: AccountInfo<'info>,
 
     /// #20 [ZeroOne CPI] Zo Dex program
     /// CHECK: ZeroOne CPI
@@ -156,13 +157,10 @@ pub struct MintWithZoDepository<'info> {
     /// #22 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #23 Associated Token Program
-    pub associated_token_program: Program<'info, AssociatedToken>,
-
-    /// #24 ZeroOne Program
+    /// #23 ZeroOne Program
     pub zo_program: Program<'info, zo::program::ZoAbi>,
 
-    /// #25 Rent Sysvar
+    /// #24 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -174,15 +172,19 @@ pub fn handler(
 ) -> Result<()> {
     let depository = ctx.accounts.depository.load()?;
 
-    let controller_pda_signer: &[&[&[u8]]] =
-        &[&[CONTROLLER_NAMESPACE, &[ctx.accounts.controller.bump]]];
+    let collateral_mint = depository.collateral_mint;
+    let controller_bump = ctx.accounts.controller.load()?.bump;
+    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller_bump]]];
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         ZO_DEPOSITORY_NAMESPACE,
-        depository.collateral_mint.as_ref(),
+        collateral_mint.as_ref(),
         &[depository.bump],
     ]];
-    let perp_info = ctx.accounts.perp_info()?;
-
+    let perp_info = PerpInfo::new(
+        ctx.accounts.zo_state.load()?,
+        ctx.accounts.zo_dex_market.key,
+    )?;
+    drop(depository);
     // - 1 [DEPOSIT COLLATERAL ON DEPOSITORY] ---------------------------------
 
     // - [Converts lots back to native amount]
@@ -211,9 +213,9 @@ pub fn handler(
     // msg!("dn_position {:?}", dn_position);
 
     // - [Place perp order to increase the short perp position]
-    zo::cpi::place_perp_order(
+    zo::cpi::place_perp_order_lite(
         ctx.accounts
-            .into_place_short_perp_order_context()
+            .into_open_short_perp_position_context()
             .with_signer(depository_pda_signer),
         false,
         limit_price,
@@ -233,12 +235,34 @@ pub fn handler(
 
     // Additional backing (minus fees) in native units (base and quote) added to the DN position
     let collateral_short_amount = dist(dn_position.base_size, dn_position_post.base_size);
-    let redeemable_mint_amount = dist(dn_position.size, dn_position_post.size);
+    // Fees are already deducted unlike mango
+    let perp_order_notional_size =
+        I80F48::checked_from_num(dist(dn_position.size, dn_position_post.size)).unwrap();
+
+    // Calculate the reverse % to find the amount of fee paid (it has been "billed" on the short position quote)
+    let taker_rate = I80F48::from(zo::taker_rate(PerpType::Future, FeeTier::MSRM));
+    let taker_rate_base = I80F48::from(zo::taker_rate(PerpType::Future, FeeTier::Base));
+    // Fee ratio is 100.004% as the order size is -x and fees are -y (same direction, so the diff is amount + fees)
+    let fee_ratio = I80F48::ONE + (taker_rate / taker_rate_base);
+    // perp_order_notional_size represent >100% of the amount, it's the absolute value of [-position + (-amount - 0.004%)],
+    //   dividing it by 1.004 give us the value without fees
+    let amount_without_fees = perp_order_notional_size / fee_ratio;
+    // Then we can single out how much the fee amount is
+    let fee_amount = perp_order_notional_size
+        .checked_sub(amount_without_fees)
+        .unwrap()
+        .checked_to_num()
+        .unwrap();
+    // And derive what is the amount to mint.
+    //
+    // Minting an amount inferior to the base deposited effectively capture the fees cost in the delta neutral position, that meld in protocol PnL. In the end it's unaccounted for in the depository.redeemable_under_management, so it gets rebalanced and end up in the USDC balance
+    let redeemable_mint_amount = amount_without_fees.checked_to_num().unwrap(); // or perp_order_notional_size + fee_amount;
 
     // validates that the collateral_amount matches the amount shorted
-    if collateral_amount != collateral_short_amount {
-        return Err(error!(UxdError::InvalidCollateralDelta));
-    }
+    require!(
+        collateral_amount == collateral_short_amount,
+        UxdError::InvalidCollateralDelta
+    );
 
     // - 4 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus fees already accounted for by 01)] --
     token::mint_to(
@@ -249,19 +273,38 @@ pub fn handler(
     )?;
 
     // - [if ATA mint is WSOL, unwrap]
-    if depository.collateral_mint == spl_token::native_mint::id() {
+    if collateral_mint == spl_token::native_mint::id() {
         token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
     }
 
     // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
-    drop(depository);
-    ctx.accounts.update_onchain_accounting(
-        collateral_short_amount.into(),
-        redeemable_mint_amount.into(),
-    )?;
+    let depository = &mut ctx.accounts.depository.load_mut()?;
+    let controller = &mut ctx.accounts.controller.load_mut()?;
+
+    // Mango Depository
+    depository.collateral_amount_deposited = depository
+        .collateral_amount_deposited
+        .checked_add(collateral_short_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    depository.redeemable_amount_under_management = depository
+        .redeemable_amount_under_management
+        .checked_add(redeemable_mint_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    depository.total_amount_paid_taker_fee = depository
+        .total_amount_paid_taker_fee
+        .checked_add(fee_amount)
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    // Controller
+    controller.redeemable_circulating_supply = controller
+        .redeemable_circulating_supply
+        .checked_add(redeemable_mint_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     // - 6 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
-    ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
+    require!(
+        controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
+        UxdError::RedeemableGlobalSupplyCapReached
+    );
 
     // emit!(ZoMintEvent {
     //     version: ctx.accounts.controller.version,
@@ -271,7 +314,7 @@ pub fn handler(
     //     collateral_amount,
     //     collateral_deposited_amount,
     //     limit_price,
-    //     minted_amount: redeemable_mint_amount
+    //     minted_amount: redeemable_amount
     // });
 
     Ok(())
@@ -283,35 +326,35 @@ impl<'info> MintWithZoDepository<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, zo::cpi::accounts::Deposit<'info>> {
         let cpi_accounts = zo::cpi::accounts::Deposit {
             state: self.zo_state.to_account_info(),
-            state_signer: self.zo_state_signer.to_account_info(),
-            cache: self.zo_cache.to_account_info(),
+            state_signer: self.zo_state_signer.clone(),
+            cache: self.zo_cache.clone(),
             authority: self.user.to_account_info(),
-            margin: self.zo_account.to_account_info(),
+            margin: self.zo_account.clone(),
             token_account: self.user_collateral.to_account_info(),
-            vault: self.zo_vault.to_account_info(),
+            vault: self.zo_vault.clone(),
             token_program: self.token_program.to_account_info(),
         };
         let cpi_program = self.zo_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_place_short_perp_order_context(
+    pub fn into_open_short_perp_position_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, zo::cpi::accounts::PlacePerpOrder<'info>> {
         let cpi_accounts = zo::cpi::accounts::PlacePerpOrder {
             state: self.zo_state.to_account_info(),
-            state_signer: self.zo_state_signer.to_account_info(),
-            cache: self.zo_cache.to_account_info(),
+            state_signer: self.zo_state_signer.clone(),
+            cache: self.zo_cache.clone(),
             authority: self.depository.to_account_info(),
-            margin: self.zo_account.to_account_info(),
+            margin: self.zo_account.clone(),
             control: self.zo_control.to_account_info(),
-            open_orders: self.zo_open_orders.to_account_info(),
-            dex_market: self.zo_dex_market.to_account_info(),
-            req_q: self.zo_req_q.to_account_info(),
-            event_q: self.zo_event_q.to_account_info(),
-            market_bids: self.zo_market_bids.to_account_info(),
-            market_asks: self.zo_market_asks.to_account_info(),
-            dex_program: self.zo_dex_program.to_account_info(),
+            open_orders: self.zo_open_orders.clone(),
+            dex_market: self.zo_dex_market.clone(),
+            req_q: self.zo_req_q.clone(),
+            event_q: self.zo_event_q.clone(),
+            market_bids: self.zo_market_bids.clone(),
+            market_asks: self.zo_market_asks.clone(),
+            dex_program: self.zo_dex_program.clone(),
             rent: self.rent.to_account_info(),
         };
         let cpi_program = self.zo_program.to_account_info();
@@ -343,60 +386,13 @@ impl<'info> MintWithZoDepository<'info> {
 
 // Additional convenience methods related to the inputted accounts
 impl<'info> MintWithZoDepository<'info> {
-    fn perp_info(&self) -> Result<PerpInfo> {
-        let state = self.zo_state.load()?;
-        Ok(PerpInfo::new(&state, self.zo_dex_market.key)?)
-    }
-
     fn delta_neutral_position(&self, index: usize) -> Result<DeltaNeutralPosition> {
         let control_account = self.zo_control.load()?;
         let open_orders_info = control_account
             .open_orders_agg
             .get(index)
             .ok_or_else(|| error!(UxdError::ZOOpenOrdersInfoNotFound))?;
-        // Should never have pending orders nor a non short position
-        // if open_orders_info.order_count > 0 {
-        //     return Err(error!(UxdError::ZOInvalidControlState));
-        // }
-        Ok(DeltaNeutralPosition {
-            size: open_orders_info.native_pc_total,
-            base_size: open_orders_info.pos_size,
-            realized_pnl: open_orders_info.realized_pnl,
-        })
-    }
-    // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
-    fn check_redeemable_global_supply_cap_overflow(&self) -> Result<()> {
-        if self.controller.redeemable_circulating_supply
-            > self.controller.redeemable_global_supply_cap
-        {
-            return Err(error!(UxdError::RedeemableGlobalSupplyCapReached));
-        }
-        Ok(())
-    }
-
-    // Update the accounting in the Depository and Controller Accounts to reflect changes
-    fn update_onchain_accounting(
-        &mut self,
-        collateral_shorted_amount: u128,
-        redeemable_minted_amount: u128,
-    ) -> Result<()> {
-        let depository = &mut self.depository.load_mut()?;
-        let controller = &mut self.controller;
-        // Mango Depository
-        depository.collateral_amount_deposited = depository
-            .collateral_amount_deposited
-            .checked_add(collateral_shorted_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        depository.redeemable_amount_under_management = depository
-            .redeemable_amount_under_management
-            .checked_add(redeemable_minted_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        // Controller
-        controller.redeemable_circulating_supply = controller
-            .redeemable_circulating_supply
-            .checked_add(redeemable_minted_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        Ok(())
+        Ok(DeltaNeutralPosition::try_from(open_orders_info)?)
     }
 }
 
@@ -409,15 +405,14 @@ impl<'info> MintWithZoDepository<'info> {
         limit_price: u64,
     ) -> Result<()> {
         let depository = self.depository.load()?;
-        if !depository.is_initialized {
-            return Err(error!(UxdError::ZoDepositoryNotInitialized));
-        }
-        if limit_price == 0 {
-            return Err(error!(UxdError::InvalidLimitPrice));
-        }
-        if max_base_quantity == 0 || max_quote_quantity == 0 {
-            return Err(error!(UxdError::InvalidCollateralAmount));
-        }
+
+        require!(
+            depository.is_initialized,
+            UxdError::ZoDepositoryNotInitialized
+        );
+        require!(limit_price > 0, UxdError::InvalidLimitPrice);
+        require!(max_base_quantity > 0, UxdError::InvalidMaxBaseQuantity);
+        require!(max_quote_quantity > 0, UxdError::InvalidMaxQuoteQuantity);
         Ok(())
     }
 }

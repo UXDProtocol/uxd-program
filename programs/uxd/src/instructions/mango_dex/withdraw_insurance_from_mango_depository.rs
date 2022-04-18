@@ -1,5 +1,5 @@
 use crate::error::UxdError;
-use crate::events::WithdrawInsuranceFromMangoDepositoryEventV2;
+use crate::events::WithdrawInsuranceFromDepositoryEvent;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -20,11 +20,11 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     /// #2 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
+        bump = controller.load()?.bump,
         has_one = authority @UxdError::InvalidAuthority,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #3 UXDProgram on chain account bound to a Controller instance
     /// The `MangoDepository` manages a MangoAccount for a single Collateral
@@ -114,8 +114,9 @@ pub fn handler(ctx: Context<WithdrawInsuranceFromMangoDepository>, amount: u64) 
     // - 2 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_accounting(amount)?;
 
-    emit!(WithdrawInsuranceFromMangoDepositoryEventV2 {
-        version: ctx.accounts.controller.version,
+    let controller = ctx.accounts.controller.load()?;
+    emit!(WithdrawInsuranceFromDepositoryEvent {
+        version: controller.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         quote_mint: ctx.accounts.depository.quote_mint,
@@ -161,9 +162,7 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
 // Validate input arguments
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
     pub fn validate(&self, insurance_amount: u64) -> Result<()> {
-        if insurance_amount == 0 {
-            return Err(error!(UxdError::InvalidInsuranceAmount));
-        };
+        require!(insurance_amount != 0, UxdError::InvalidInsuranceAmount);
         // Mango withdraw will fail with proper error thanks to  `disabled borrow` set to true if the balance is not enough.
         Ok(())
     }

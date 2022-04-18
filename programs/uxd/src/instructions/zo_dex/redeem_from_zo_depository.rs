@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::zo_utils::dist;
 use crate::zo_utils::DeltaNeutralPosition;
 use crate::zo_utils::PerpInfo;
 use crate::Controller;
@@ -7,20 +8,21 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::ZO_DEPOSITORY_NAMESPACE;
 use crate::ZO_MARGIN_ACCOUNT_NAMESPACE;
-use crate::zo_utils::dist;
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
+use anchor_lang::require;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
 use anchor_spl::token::CloseAccount;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
+use fixed::types::I80F48;
 use zo::Control;
+use zo::FeeTier;
+use zo::PerpType;
 use zo::State;
-use zo::ZO_DEX_PID;
 use zo_abi as zo;
 
-/// Takes 26 accounts - 9 used locally - 11 for ZoMarkets CPI - 5 Programs - 1 Sysvar
+/// Takes 25 accounts - 9 used locally - 11 for ZoMarkets CPI - 4 Programs - 1 Sysvar
 #[derive(Accounts)]
 pub struct RedeemFromZoDepository<'info> {
     /// #1 Public call accessible to any user
@@ -36,11 +38,11 @@ pub struct RedeemFromZoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
+        bump = controller.load()?.bump,
         has_one = redeemable_mint @UxdError::InvalidRedeemableMint,
-        constraint = controller.registered_zo_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        constraint = controller.load()?.registered_zo_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance.
     /// The `ZoDepository` manages a ZoAccount for a single Collateral.
@@ -51,44 +53,37 @@ pub struct RedeemFromZoDepository<'info> {
         has_one = controller @UxdError::InvalidController,
         has_one = zo_account @UxdError::InvalidZoAccount,
         has_one = zo_dex_market @UxdError::InvalidDexMarket,
-        has_one = collateral_mint @UxdError::InvalidCollateralMint
     )]
     pub depository: AccountLoader<'info, ZoDepository>,
 
-    /// #5 The collateral mint used by the `depository` instance
-    /// Required to create the user_collateral ATA if needed
-    pub collateral_mint: Box<Account<'info, token::Mint>>,
-
-    /// #6 The redeemable mint managed by the `controller` instance
+    /// #5 The redeemable mint managed by the `controller` instance
     /// Tokens will be burnt during this instruction
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = controller.redeemable_mint_bump,
+        bump = controller.load()?.redeemable_mint_bump,
     )]
-    pub redeemable_mint: Box<Account<'info, token::Mint>>,
+    pub redeemable_mint: Account<'info, token::Mint>,
 
-    /// #7 The `user`'s ATA for the `depository`'s `collateral_mint`
+    /// #6 The `user`'s ATA for the `depository`'s `collateral_mint`
     /// Will be credited during this instruction
     #[account(
-        init_if_needed,
-        associated_token::mint = collateral_mint,
-        associated_token::authority = user,
-        payer = payer,
+        mut,
+        constraint = user_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
+        constraint = &user_collateral.owner == user.key @UxdError::InvalidOwner,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #8 The `user`'s ATA for the `controller`'s `redeemable_mint`
+    /// #7 The `user`'s ATA for the `controller`'s `redeemable_mint`
     /// Will be debited during this instruction
     #[account(
         mut,
-        seeds = [user.key.as_ref(), token_program.key.as_ref(), controller.redeemable_mint.as_ref()],
-        bump,
-        seeds::program = AssociatedToken::id(),
+        constraint = user_redeemable.mint == redeemable_mint.key() @UxdError::InvalidCollateralMint,
+        constraint = &user_redeemable.owner == user.key @UxdError::InvalidOwner,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #9 The Zo Dex Account (Margin) managed by the `depository`
+    /// #8 The Zo Dex Account (Margin) managed by the `depository`
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
@@ -98,78 +93,76 @@ pub struct RedeemFromZoDepository<'info> {
     )]
     pub zo_account: AccountInfo<'info>,
 
-    /// #10 [ZeroOne CPI]
+    /// #9 [ZeroOne CPI]
     /// CHECK: Done ZeroOne side
+    #[account(mut)]
     pub zo_state: AccountLoader<'info, State>,
 
-    /// #11 [ZeroOne CPI]
+    /// #10 [ZeroOne CPI]
     /// CHECK: Done ZeroOne side
     #[account(mut)]
     pub zo_state_signer: UncheckedAccount<'info>,
 
-    /// #12 [ZeroOne CPI]
+    /// #11 [ZeroOne CPI]
     /// CHECK: Done ZeroOne side
     #[account(mut)]
     pub zo_cache: UncheckedAccount<'info>,
 
-    /// #13 [ZeroOne CPI]
+    /// #12 [ZeroOne CPI]
     /// CHECK: Done ZeroOne side
     #[account(mut)]
     pub zo_vault: UncheckedAccount<'info>,
 
-    /// #14 [ZeroOne CPI]
+    /// #13 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_control: AccountLoader<'info, Control>,
 
-    /// #15 [ZeroOne CPI]
+    /// #14 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_open_orders: UncheckedAccount<'info>,
 
-    /// #16 [ZeroOne CPI]
+    /// #15 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_dex_market: UncheckedAccount<'info>,
 
-    /// #17 [ZeroOne CPI]
+    /// #16 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_req_q: UncheckedAccount<'info>,
 
-    /// #18 [ZeroOne CPI]
+    /// #17 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_event_q: UncheckedAccount<'info>,
 
-    /// #19 [ZeroOne CPI]
+    /// #18 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_market_bids: UncheckedAccount<'info>,
 
-    /// #20 [ZeroOne CPI]
+    /// #19 [ZeroOne CPI]
     /// CHECK: Done ZeroOneSide
     #[account(mut)]
     pub zo_market_asks: UncheckedAccount<'info>,
 
-    /// #21 [ZeroOne CPI] Zo Dex program
+    /// #20 [ZeroOne CPI] Zo Dex program
     /// CHECK: ZeroOne CPI
-    #[account(address = ZO_DEX_PID)]
+    // #[account(address = ZO_DEX_PID)]
     pub zo_dex_program: AccountInfo<'info>,
 
-    /// #22 System Program
+    /// #21 System Program
     pub system_program: Program<'info, System>,
 
-    /// #23 Token Program
+    /// #22 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #24 Associated Token Program
-    pub associated_token_program: Program<'info, AssociatedToken>,
-
-    /// #25 ZeroOne Program
+    /// #23 ZeroOne Program
     pub zo_program: Program<'info, zo::program::ZoAbi>,
 
-    /// #26 Rent Sysvar
+    /// #24 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -180,32 +173,20 @@ pub fn handler(
     limit_price: u64,
 ) -> Result<()> {
     let depository = ctx.accounts.depository.load()?;
+
+    let collateral_mint = depository.collateral_mint;
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         ZO_DEPOSITORY_NAMESPACE,
-        depository.collateral_mint.as_ref(),
+        collateral_mint.as_ref(),
         &[depository.bump],
     ]];
-    let perp_info = ctx.accounts.perp_info()?;
+    let perp_info = PerpInfo::new(
+        ctx.accounts.zo_state.load()?,
+        ctx.accounts.zo_dex_market.key,
+    )?;
+    drop(depository);
 
     // - 1 [CLOSE THE EQUIVALENT PERP SHORT ON ZO] -------------------------
-
-    // NEED TO OFFSET FOR THE FEES here.
-    // User wants to redeem 100 UXD
-    // We will burn 100 UXD, but will redeem 100 - fees (and slippage will be in already)
-    // This way the fees are on the user and will be extracted during rebalancing
-
-    // // - [Calculates the quantity of short to close]
-    // let quote_exposure_delta = I80F48::from_num(redeemable_amount);
-
-    // // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees don't overflow the redeemed amount]
-    // let max_fee_amount = quote_exposure_delta
-    //     .checked_mul(perp_info.effective_fee)
-    //     .ok_or_else(|| error!(UxdError::MathError))?
-    //     .checked_ceil()
-    //     .ok_or_else(|| error!(UxdError::MathError))?;
-    // let quote_exposure_delta_minus_fees = quote_exposure_delta
-    //     .checked_sub(max_fee_amount)
-    //     .ok_or_else(|| error!(UxdError::MathError))?;
 
     // - [Converts lots back to native amount]
     let collateral_amount = max_base_quantity
@@ -221,12 +202,13 @@ pub fn handler(
         .accounts
         .delta_neutral_position(perp_info.market_index)?;
 
-    msg!("dn_position {:?}", dn_position);
+    // msg!("dn_position {:?}", dn_position);
 
     // - [Place perp order to close a part of the short perp position]
-    zo::cpi::place_perp_order(
+    solana_program::log::sol_log_compute_units();
+    zo::cpi::place_perp_order_lite(
         ctx.accounts
-            .into_close_short_perp_context()
+            .into_close_short_perp_position_context()
             .with_signer(depository_pda_signer),
         true,
         limit_price,
@@ -236,23 +218,68 @@ pub fn handler(
         u16::MAX,
         u64::MIN,
     )?;
+    solana_program::log::sol_log_compute_units();
 
     // - [Delta neutral position POST perp order]
     let dn_position_post = ctx
         .accounts
         .delta_neutral_position(perp_info.market_index)?;
 
-    msg!("dn_position_post {:?}", dn_position_post);
+    // msg!("dn_position_post {:?}", dn_position_post);
 
-    // Additional backing (minus fees) in native units (base and quote) added to the DN position
+    // Amount of DN position unwinded
     let collateral_short_closed_amount = dist(dn_position.base_size, dn_position_post.base_size);
-    // NEED to be more, edit
-    let redeemable_burn_amount = dist(dn_position.size, dn_position_post.size);
+    // The fees are factored in, the position is reduced (+), minus fees on top.
+    let perp_order_notional_size =
+        I80F48::checked_from_num(dist(dn_position.size, dn_position_post.size)).unwrap();
+
+    // Position is -100 quote notional size pre instruction
+    //      (because the position is short, hence negative. Redeem is an actual +, and fee are -, they go in
+    //       opposite directions hence need to do some accounting manually to decide how much to burn)
+    // Fees are 1% for the example, and assuming 0 slippage.
+    //
+    // WRONG | user redeem 50, client sends 50 as redeem value
+    //      - position becomes -50.5 (-100 + 50 - 0.5, as fees were -0.5)
+    //      - we burn 50 UXD, and user receives base equivalent of 50 quote.
+    //      => we gave the user 50 when he should have gotten 49.5 and 0.5 should have been burnt to capture the fees in the DN position
+    // RIGHT | user redeem 50, client sends 49.5 as redeem value,
+    //      - position becomes -50.995 (-100 + 49.5 - 0.495, as fees were -0.495) (this is quote value of the position, meld with funding for instance. Base value always equal to spot collateral deposited (minus interests))
+    //      - we burn 49.995 UXD and user receive base equivalent to 49.5 quote with 0.005 UXD dust leftover on his initial 50
+    //      => out of the initial 50 UXD, 49.995 are burnt, 0.005 back to user.
+    //          => Out of the burnt one, 49.5 have been converted to collateral, and 0.495 are still in the DN position as fee, and will get rebalanced later
+    //               (as the accounting for uxd circulating has been reduced by 49.995 and not just 49.5)
+    //      => we gave the user 49.5 value of collateral, he paid 0.495 fees for that out of his 50 UXD, ends up with max amount possible + UXD dust leftover to be square, without over drafting on the initial UXD amount.
+
+    // Initial perp position is -100$ (the short part of the DN pos).
+    // Redeem 50 UXD is about closing -50$ notional size of short position and seeing how much that moves the base_size of the short position, then return that base_size diff to the user.
+    // When closing -50$ notional size of short position, it does a +(50$ - fees$) on the initial position of -100$
+    // So the distance between short_position_pre_close and short_position_post_close if less than 50, and represent the amount - fees
+
+    // Calculate the reverse % to find the amount of fee paid (it has been "billed" on the short position quote)
+    // so we now need to burn that extra amount)
+    let taker_rate = I80F48::from(zo::taker_rate(PerpType::Future, FeeTier::MSRM));
+    let taker_rate_base = I80F48::from(zo::taker_rate(PerpType::Future, FeeTier::Base));
+    // Fee ratio is 99.996% as the order size is +x and fees are -y (different directions, so the diff is amount - fees)
+    let fee_ratio = I80F48::ONE - (taker_rate / taker_rate_base);
+    // perp_order_notional_size represent <100% of the amount, it's the absolute value of [-position + (amount - 0.004%)],
+    //   dividing it by 0.996 bring it back to original value with fees.
+    let amount_with_fees = perp_order_notional_size / fee_ratio;
+    // Then we can single out how much the fee amount is
+    let fee_amount: u64 = amount_with_fees
+        .checked_sub(perp_order_notional_size)
+        .unwrap()
+        .checked_to_num()
+        .unwrap();
+    // And derive what is the amount to burn.
+    // Burning an amount superior to the base returned effectively capture the fees cost in the delta neutral position, to be harvested later by the protocol. In the end it's unaccounted for in the depository.redeemable_under_management, so it gets rebalanced and end up in the USDC balance
+    //  If the user want to redeem 100, client must do 100 - (100 * fee_percentage) and send us this value, so that we are sure there is enough UXD to burn. That also create the issue of dust, to fix later.
+    let redeemable_burn_amount = amount_with_fees.checked_to_num().unwrap(); // or perp_order_notional_size + fee_amount;
 
     // validates that the collateral_amount matches the amount shorted
-    if collateral_amount != collateral_short_closed_amount {
-        return Err(error!(UxdError::InvalidCollateralDelta));
-    }
+    require!(
+        collateral_amount == collateral_short_closed_amount,
+        UxdError::InvalidCollateralDelta
+    );
 
     // - 2 [BURN REDEEMABLES] -------------------------------------------------
     token::burn(
@@ -271,14 +298,31 @@ pub fn handler(
     )?;
 
     // - [If ATA mint is WSOL, unwrap]
-    if depository.collateral_mint == spl_token::native_mint::id() {
+    if collateral_mint == spl_token::native_mint::id() {
         token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
     }
 
     // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
-    drop(depository);
-    ctx.accounts
-        .update_onchain_accounting(collateral_amount.into(), redeemable_burn_amount.into())?;
+    let controller = &mut ctx.accounts.controller.load_mut()?;
+    let depository = &mut ctx.accounts.depository.load_mut()?;
+
+    depository.collateral_amount_deposited = depository
+        .collateral_amount_deposited
+        .checked_sub(collateral_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    depository.redeemable_amount_under_management = depository
+        .redeemable_amount_under_management
+        .checked_add(redeemable_burn_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    depository.total_amount_paid_taker_fee = depository
+        .total_amount_paid_taker_fee
+        .checked_add(fee_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    // Controller
+    controller.redeemable_circulating_supply = controller
+        .redeemable_circulating_supply
+        .checked_add(redeemable_burn_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     // emit!(RedeemFromDepositoryEvent {
     //     version: controller.version,
@@ -298,7 +342,7 @@ pub fn handler(
 // MARK: - Contexts -----
 
 impl<'info> RedeemFromZoDepository<'info> {
-    pub fn into_close_short_perp_context(
+    pub fn into_close_short_perp_position_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, zo::cpi::accounts::PlacePerpOrder<'info>> {
         let cpi_accounts = zo::cpi::accounts::PlacePerpOrder {
@@ -364,52 +408,13 @@ impl<'info> RedeemFromZoDepository<'info> {
 
 // Additional convenience methods related to the inputted accounts
 impl<'info> RedeemFromZoDepository<'info> {
-    // Return general information about the perpetual related to the collateral in use
-    fn perp_info(&self) -> Result<PerpInfo> {
-        let state = self.zo_state.load()?;
-        Ok(PerpInfo::new(&state, self.zo_dex_market.key)?)
-    }
-
     fn delta_neutral_position(&self, index: usize) -> Result<DeltaNeutralPosition> {
         let control_account = self.zo_control.load()?;
         let open_orders_info = control_account
             .open_orders_agg
             .get(index)
             .ok_or_else(|| error!(UxdError::ZOOpenOrdersInfoNotFound))?;
-        // Should never have pending orders nor a non short position
-        // if open_orders_info.order_count > 0 {
-        //     return Err(error!(UxdError::ZOInvalidControlState));
-        // }
-        Ok(DeltaNeutralPosition {
-            size: open_orders_info.native_pc_total,
-            base_size: open_orders_info.pos_size,
-            realized_pnl: open_orders_info.realized_pnl,
-        })
-    }
-
-    // Update the accounting in the Depository and Controller Accounts to reflect changes
-    fn update_onchain_accounting(
-        &mut self,
-        collateral_withdrawn_amount: u128,
-        redeemable_burnt_amount: u128,
-    ) -> Result<()> {
-        let depository = &mut self.depository.load_mut()?;
-        let controller = &mut self.controller;
-        // Mango Depository
-        depository.collateral_amount_deposited = depository
-            .collateral_amount_deposited
-            .checked_sub(collateral_withdrawn_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        depository.redeemable_amount_under_management = depository
-            .redeemable_amount_under_management
-            .checked_add(redeemable_burnt_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        // Controller
-        controller.redeemable_circulating_supply = controller
-            .redeemable_circulating_supply
-            .checked_add(redeemable_burnt_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        Ok(())
+        Ok(DeltaNeutralPosition::try_from(open_orders_info)?)
     }
 }
 
@@ -422,15 +427,14 @@ impl<'info> RedeemFromZoDepository<'info> {
         limit_price: u64,
     ) -> Result<()> {
         let depository = self.depository.load()?;
-        if !depository.is_initialized {
-            return Err(error!(UxdError::ZoDepositoryNotInitialized));
-        }
-        if limit_price == 0 {
-            return Err(error!(UxdError::InvalidLimitPrice));
-        }
-        if max_base_quantity == 0 || max_quote_quantity == 0 {
-            return Err(error!(UxdError::InvalidCollateralAmount));
-        }
+
+        require!(
+            depository.is_initialized,
+            UxdError::ZoDepositoryNotInitialized
+        );
+        require!(limit_price > 0, UxdError::InvalidLimitPrice);
+        require!(max_base_quantity > 0, UxdError::InvalidMaxBaseQuantity);
+        require!(max_quote_quantity > 0, UxdError::InvalidMaxQuoteQuantity);
         Ok(())
     }
 }

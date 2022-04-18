@@ -16,7 +16,7 @@ pub mod zo_utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("DbfZyBbycKuqhEPy163AP5JQYb7BZBAS7caG6pBkhgph");
+solana_program::declare_id!("G6X4vmSGkAVGYr5LYUvAQMdwEvKKB2PtuCFiyTN4bFvL");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -214,7 +214,7 @@ pub mod uxd {
         ctx: Context<DepositInsuranceToZoDepository>,
         amount: u64,
     ) -> Result<()> {
-        msg!("[deposit_insurance_to_zo_depository]");
+        // msg!("[deposit_insurance_to_zo_depository]");
         instructions::deposit_insurance_to_zo_depository::handler(ctx, amount)
     }
 
@@ -242,6 +242,14 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[withdraw_insurance_from_mango_depository]");
         instructions::withdraw_insurance_from_mango_depository::handler(ctx, amount)
+    }
+    #[access_control(ctx.accounts.validate(amount))]
+    pub fn withdraw_insurance_from_zo_depository(
+        ctx: Context<WithdrawInsuranceFromZoDepository>,
+        amount: u64,
+    ) -> Result<()> {
+        msg!("[withdraw_insurance_from_zo_depository]");
+        instructions::withdraw_insurance_from_zo_depository::handler(ctx, amount)
     }
 
     /// Rebalance the delta neutral position of the underlying `MangoDepository`.
@@ -334,11 +342,11 @@ pub mod uxd {
         collateral_amount: u64,
         limit_price: f32,
     ) -> Result<()> {
-        msg!(
-            "[mint_with_mango_depository] collateral_amount {}, limit_price {}",
-            collateral_amount,
-            limit_price
-        );
+        // msg!(
+        //     "[mint_with_mango_depository] collateral_amount {}, limit_price {}",
+        //     collateral_amount,
+        //     limit_price
+        // );
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, limit_price)
     }
 
@@ -360,8 +368,9 @@ pub mod uxd {
         limit_price: u64,
     ) -> Result<()> {
         // msg!(
-        //     "[MintWithZoDepository] collateral_amount {}, limit_price {}",
-        //     collateral_amount,
+        //     "[MintWithZoDepository] max_base_quantity {}, max_quote_quantity {}, limit_price {}",
+        //     max_base_quantity,
+        //     max_quote_quantity,
         //     limit_price
         // );
         instructions::mint_with_zo_depository::handler(
@@ -455,8 +464,9 @@ pub fn validate_perp_market_mint_matches_depository_collateral_mint(
         .find_perp_market_index(mango_perp_market_key)
         .ok_or_else(|| error!(UxdError::MangoPerpMarketIndexNotFound))?;
 
-    if mango_group.tokens[perp_market_index].mint != *collateral_mint_key {
-        return Err(error!(UxdError::MangoPerpMarketIndexNotFound));
-    }
+    require!(
+        mango_group.tokens[perp_market_index].mint == *collateral_mint_key,
+        UxdError::MangoPerpMarketIndexNotFound
+    );
     Ok(())
 }

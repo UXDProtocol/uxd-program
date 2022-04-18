@@ -17,6 +17,7 @@ import { Wallet } from "@project-serum/anchor";
 import { initializeZoDepositoryTest } from "./cases/initializeZoDepositoryTest";
 import { depositInsuranceZoDepositoryTest } from "./cases/depositInsuranceZoDepositoryTest";
 import { redeemFromZoDepositoryTest } from "./cases/redeemFromZoDepositoryTest";
+import { withdrawInsuranceZoDepositoryTest } from "./cases/withdrawInsuranceZoDepositoryTest";
 
 console.log(uxdProgramId.toString());
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -29,6 +30,10 @@ const payer = bank;
 const slippage = 50; // 5%
 
 console.log(`SOL 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositorySOL.mangoAccountPda}'`);
+console.log(`BTC 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryBTC.mangoAccountPda}'`);
+console.log(`ETH 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryETH.mangoAccountPda}'`);
+// console.log(`ETH 🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryETH.mangoAccountPda}'`);
+// console.log(`ETH 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryETH.mangoAccountPda}'`);
 
 beforeEach("\n", function () { console.log("=============================================\n\n") });
 
@@ -82,16 +87,23 @@ describe("Integration tests SOL", function () {
         it(`ZO - Deposit 100 USDC of insurance`, async function () {
             await depositInsuranceZoDepositoryTest(100, authority, controller, zoDepositorySOL, zo);
         });
+
+
+        it(`ZO - Withdraw 10 USDC of insurance`, async function () {
+            await withdrawInsuranceZoDepositoryTest(10, authority, controller, zoDepositorySOL, zo);
+        });
     });
 
     describe("Test minting/redeeming", async function () {
 
-        it(`ZO Mint 300 UXD ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
-            const perpPrice = await zoDepositorySOL.getPerpPriceUI(zo);
+        it.only(`ZO Mint 300 UXD ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
+            const perpPrice = zoDepositorySOL.getPerpPriceUI(zo);
             const amount = 300 / perpPrice;
             console.log("[🧾 amount", amount, zoDepositorySOL.collateralMintSymbol, "]");
             const mintedAmount = await mintWithZoDepositoryTest(amount, slippage, user, controller, zoDepositorySOL, zo, payer);
-            console.log("Minted", mintedAmount);
+
+            await zoDepositorySOL.settleMarginAccountFunds(zo);
+
             await redeemFromZoDepositoryTest(mintedAmount, slippage, user, controller, zoDepositorySOL, zo, payer);
         });
 

@@ -24,10 +24,10 @@ pub struct RegisterZoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE], 
-        bump = controller.bump,
+        bump = controller.load()?.bump,
         has_one = authority @UxdError::InvalidAuthority,
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance (ZO)
     /// The `ZoDepository` manages a ZeroOne account for a single Collateral
@@ -85,12 +85,12 @@ pub fn handler(
     depository.collateral_amount_deposited = u128::MIN;
     depository.redeemable_amount_under_management = u128::MIN;
     depository.total_amount_rebalanced = u128::MIN;
-
+    
     // - Update Controller state
-    ctx.accounts.controller.add_registered_zo_depository_entry(ctx.accounts.depository.key())?;
+    ctx.accounts.controller.load_mut()?.add_registered_zo_depository_entry(ctx.accounts.depository.key())?;
 
     emit!(RegisterZoDepositoryEvent {
-        version: ctx.accounts.controller.version,
+        version: ctx.accounts.controller.load()?.version,
         depository_version: depository.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),

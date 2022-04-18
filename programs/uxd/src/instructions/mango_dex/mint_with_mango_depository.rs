@@ -41,10 +41,10 @@ pub struct MintWithMangoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        bump = controller.load()?.bump,
+        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance.
     /// The `MangoDepository` manages a MangoAccount for a single Collateral.
@@ -62,8 +62,8 @@ pub struct MintWithMangoDepository<'info> {
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = controller.redeemable_mint_bump,
-        constraint = redeemable_mint.key() == controller.redeemable_mint @UxdError::InvalidRedeemableMint
+        bump = controller.load()?.redeemable_mint_bump,
+        constraint = redeemable_mint.key() == controller.load()?.redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
@@ -166,7 +166,7 @@ pub fn handler(
         depository.collateral_mint.as_ref(),
         &[depository.bump],
     ]];
-    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.bump]]];
+    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.load()?.bump]]];
 
     // - 1 [FIND BEST ORDER FOR SHORT PERP POSITION] --------------------------
 
@@ -181,9 +181,10 @@ pub fn handler(
         .checked_floor()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    if max_base_quantity.is_zero() {
-        return Err(error!(UxdError::QuantityBelowContractSize));
-    }
+    require!(
+        !max_base_quantity.is_zero(),
+        UxdError::QuantityBelowContractSize
+    );
 
     // - 2 [TRANSFER COLLATERAL TO MANGO (LONG)] ------------------------------
     // It's the amount we are depositing on the MangoAccount and that will be used as collateral
@@ -230,8 +231,6 @@ pub fn handler(
         MANGO_PERP_MAX_FILL_EVENTS,
     )?;
 
-    
-
     // - [Perp account state POST perp order]
     let post_pa = ctx.accounts.perp_account(&perp_info)?;
 
@@ -241,9 +240,10 @@ pub fn handler(
     // - 3 [CHECK REDEEMABLE SOFT CAP OVERFLOW] -------------------------------
 
     // ensure current context is valid as the derive_order_delta is generic
-    if pre_pa.taker_quote > post_pa.taker_quote {
-        return Err(error!(UxdError::InvalidOrderDirection));
-    }
+    require!(
+        pre_pa.taker_quote <= post_pa.taker_quote,
+        UxdError::InvalidOrderDirection
+    );
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;
     msg!("order_delta {:?}", order_delta);
 
@@ -266,9 +266,10 @@ pub fn handler(
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
     // validate that the deposited_collateral matches the amount shorted
-    if collateral_deposited_amount != collateral_shorted_amount {
-        return Err(error!(UxdError::InvalidCollateralDelta));
-    }
+    require!(
+        collateral_deposited_amount == collateral_shorted_amount,
+        UxdError::InvalidCollateralDelta
+    );
 
     // - 4 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus fees)] ----------------
     token::mint_to(
@@ -396,11 +397,11 @@ impl<'info> MintWithMangoDepository<'info> {
 
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
     fn check_redeemable_global_supply_cap_overflow(&self) -> Result<()> {
-        if self.controller.redeemable_circulating_supply
-            > self.controller.redeemable_global_supply_cap
-        {
-            return Err(error!(UxdError::RedeemableGlobalSupplyCapReached));
-        }
+        let controller = self.controller.load()?;
+        require!(
+            controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
+            UxdError::RedeemableGlobalSupplyCapReached
+        );
         Ok(())
     }
 
@@ -408,9 +409,11 @@ impl<'info> MintWithMangoDepository<'info> {
         &self,
         redeemable_delta: u64,
     ) -> Result<()> {
-        if redeemable_delta > self.controller.mango_depositories_redeemable_soft_cap {
-            return Err(error!(UxdError::MangoDepositoriesSoftCapOverflow));
-        }
+        let controller = self.controller.load()?;
+        require!(
+            redeemable_delta <= controller.mango_depositories_redeemable_soft_cap,
+            UxdError::MangoDepositoriesSoftCapOverflow
+        );
         Ok(())
     }
 
@@ -422,7 +425,7 @@ impl<'info> MintWithMangoDepository<'info> {
         fee_amount: u128,
     ) -> Result<()> {
         let depository = &mut self.depository;
-        let controller = &mut self.controller;
+        let controller = &mut self.controller.load_mut()?;
         // Mango Depository
         depository.collateral_amount_deposited = depository
             .collateral_amount_deposited
@@ -457,27 +460,22 @@ fn check_perp_order_fully_filled(
         .ok_or_else(|| error!(UxdError::MathError))?)
     .checked_abs()
     .ok_or_else(|| error!(UxdError::MathError))?;
-    msg!("filled_amount {}", filled_amount);
-    msg!("order_quantity {}", order_quantity);
-    if order_quantity != filled_amount {
-        return Err(error!(UxdError::PerpOrderPartiallyFilled));
-    }
+    require!(
+        order_quantity == filled_amount,
+        UxdError::PerpOrderPartiallyFilled
+    );
     Ok(())
 }
 
 // Validate input arguments
 impl<'info> MintWithMangoDepository<'info> {
     pub fn validate(&self, collateral_amount: u64, limit_price: f32) -> Result<()> {
-        msg!("limit_price {}", limit_price);
-        if limit_price <= 0f32 {
-            return Err(error!(UxdError::InvalidLimitPrice));
-        }
-        if collateral_amount == 0 {
-            return Err(error!(UxdError::InvalidCollateralAmount));
-        }
-        if self.user_collateral.amount < collateral_amount {
-            return Err(error!(UxdError::InsufficientCollateralAmount));
-        }
+        require!(limit_price > 0f32, UxdError::InvalidLimitPrice);
+        require!(collateral_amount != 0, UxdError::InvalidCollateralAmount);
+        require!(
+            self.user_collateral.amount >= collateral_amount,
+            UxdError::InsufficientCollateralAmount
+        );
 
         validate_perp_market_mint_matches_depository_collateral_mint(
             &self.mango_group,

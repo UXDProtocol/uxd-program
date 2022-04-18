@@ -40,10 +40,10 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     /// #3 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
+        bump = controller.load()?.bump,
+        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance
     /// The `MangoDepository` manages a MangoAccount for a single Collateral
@@ -234,14 +234,16 @@ pub fn handler(
     // This also filter out the case where `perp_unrealized_pnl` is 0
     match polarity {
         PnlPolarity::Positive => {
-            if perp_unrealized_pnl.is_negative() {
-                return Err(error!(UxdError::InvalidPnlPolarity));
-            }
+            require!(
+                perp_unrealized_pnl.is_positive(),
+                UxdError::InvalidPnlPolarity
+            );
         }
         PnlPolarity::Negative => {
-            if perp_unrealized_pnl.is_positive() {
-                return Err(error!(UxdError::InvalidPnlPolarity));
-            }
+            require!(
+                perp_unrealized_pnl.is_negative(),
+                UxdError::InvalidPnlPolarity
+            );
         }
     }
     // - [rebalancing limited to `max_rebalancing_amount`, up to `perp_unrealized_pnl`]
@@ -306,9 +308,7 @@ pub fn handler(
     let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
     let reduce_only = taker_side == Side::Bid;
 
-    if max_quote_quantity == 0 {
-        return Err(error!(UxdError::QuantityBelowContractSize));
-    }
+    require!(max_quote_quantity != 0, UxdError::QuantityBelowContractSize);
 
     mango_markets_v3::place_perp_order2(
         ctx.accounts
@@ -342,14 +342,16 @@ pub fn handler(
     // ensures current context make sense as the derive_order_delta is generic
     match polarity {
         PnlPolarity::Positive => {
-            if pre_pa.taker_quote > post_pa.taker_quote {
-                return Err(error!(UxdError::InvalidOrderDirection));
-            }
+            require!(
+                pre_pa.taker_quote < post_pa.taker_quote,
+                UxdError::InvalidOrderDirection
+            );
         }
         PnlPolarity::Negative => {
-            if pre_pa.taker_quote < post_pa.taker_quote {
-                return Err(error!(UxdError::InvalidOrderDirection));
-            }
+            require!(
+                pre_pa.taker_quote > post_pa.taker_quote,
+                UxdError::InvalidOrderDirection
+            );
         }
     };
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;
@@ -638,18 +640,19 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         polarity: &PnlPolarity,
         limit_price: f32,
     ) -> Result<()> {
-        if limit_price <= 0f32 {
-            return Err(error!(UxdError::InvalidLimitPrice));
-        }
-        if max_rebalancing_amount == 0 {
-            return Err(error!(UxdError::InvalidRebalancingAmount));
-        }
+        require!(limit_price > 0f32, UxdError::InvalidLimitPrice);
+        require!(
+            max_rebalancing_amount != 0,
+            UxdError::InvalidRebalancingAmount
+        );
+
         match polarity {
             PnlPolarity::Positive => (),
             PnlPolarity::Negative => {
-                if self.user_quote.amount < max_rebalancing_amount {
-                    return Err(error!(UxdError::InsufficientQuoteAmount));
-                }
+                require!(
+                    self.user_quote.amount >= max_rebalancing_amount,
+                    UxdError::InsufficientQuoteAmount
+                );
             }
         }
 

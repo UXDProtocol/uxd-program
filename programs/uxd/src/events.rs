@@ -165,9 +165,9 @@ pub struct WithdrawInsuranceFromMangoDepositoryEvent {
     pub withdrawn_amount: u64,
 }
 
-/// Event called in [instructions::mango_dex::withdraw_insurance_from_mango_depository::handler].
+// Event called in [instructions::*_dex::withdraw_insurance_from_*_depository::handler].
 #[event]
-pub struct WithdrawInsuranceFromMangoDepositoryEventV2 {
+pub struct WithdrawInsuranceFromDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,

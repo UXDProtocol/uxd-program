@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 pub const ZO_DEPOSITORY_SPACE: usize =
-    8 + 1 + 1 + 1 + 1 + 32 + 32 + 1 + 32 + 1 + 32 + 32 + 16 + 16 + 16 + 16 + 2048;
+    8 + 1 + 1 + 1 + 1 + 32 + 32 + 1 + 32 + 1 + 32 + 32 + 16 + 16 + 16 + 16 + 16 + 2048;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -46,6 +46,9 @@ pub struct ZoDepository {
     // Updated after each mint/redeem
     // In Redeemable native units
     pub redeemable_amount_under_management: u128,
+    // The amount of taker fee paid in quote while placing perp orders
+    pub total_amount_paid_taker_fee: u128,
+    //
     //
     // The amount of taker fee paid in quote while placing perp orders
     pub total_amount_rebalanced: u128,

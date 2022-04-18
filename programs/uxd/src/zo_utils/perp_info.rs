@@ -1,3 +1,5 @@
+use std::cell::Ref;
+
 use crate::error::UxdError;
 use anchor_lang::prelude::*;
 use zo_abi::State;
@@ -11,7 +13,7 @@ pub struct PerpInfo {
 }
 
 impl PerpInfo {
-    pub fn new(zo_state: &State, zo_dex_market_key: &Pubkey) -> Result<Self> {
+    pub fn new(zo_state: Ref<State>, zo_dex_market_key: &Pubkey) -> Result<Self> {
         let perp_market_index = zo_state
             .perp_markets
             .iter()

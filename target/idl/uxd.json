@@ -502,6 +502,77 @@
       ]
     },
     {
+      "name": "withdrawInsuranceFromZoDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authorityQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoControl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoStateSigner",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoCache",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "rebalanceMangoDepositoryLite",
       "accounts": [
         {
@@ -896,11 +967,6 @@
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "zoProgram",
           "isMut": false,
           "isSigner": false
@@ -1085,11 +1151,6 @@
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "redeemableMint",
           "isMut": true,
           "isSigner": false
@@ -1111,7 +1172,7 @@
         },
         {
           "name": "zoState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1176,11 +1237,6 @@
         },
         {
           "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -1282,12 +1338,6 @@
           {
             "name": "registeredZoDepositoriesCount",
             "type": "u8"
-          },
-          {
-            "name": "reserved1",
-            "type": {
-              "defined": "ControllerPadding"
-            }
           }
         ]
       }
@@ -1448,6 +1498,10 @@
           },
           {
             "name": "redeemableAmountUnderManagement",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountPaidTakerFee",
             "type": "u128"
           },
           {
@@ -1751,7 +1805,7 @@
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDepositoryEventV2",
+      "name": "WithdrawInsuranceFromDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -2256,11 +2310,26 @@
     },
     {
       "code": 6051,
+      "name": "InvalidOwner",
+      "msg": "The provided token account is not owner by the expected party."
+    },
+    {
+      "code": 6052,
+      "name": "InvalidMaxBaseQuantity",
+      "msg": "The max base quantity must be above 0."
+    },
+    {
+      "code": 6053,
+      "name": "InvalidMaxQuoteQuantity",
+      "msg": "The max quote quantity must be above 0."
+    },
+    {
+      "code": 6054,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
   ],
   "metadata": {
-    "address": "DbfZyBbycKuqhEPy163AP5JQYb7BZBAS7caG6pBkhgph"
+    "address": "G6X4vmSGkAVGYr5LYUvAQMdwEvKKB2PtuCFiyTN4bFvL"
   }
 }

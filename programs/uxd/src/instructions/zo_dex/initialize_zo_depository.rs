@@ -22,11 +22,11 @@ pub struct InitializeZoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE], 
-        bump = controller.bump,
+        bump = controller.load()?.bump,
         has_one = authority @UxdError::InvalidAuthority,
-        constraint = controller.registered_zo_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        constraint = controller.load()?.registered_zo_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance (ZO)
     /// The `ZoDepository` manages a ZeroOne account for a single Collateral
@@ -129,7 +129,7 @@ pub fn handler(
     depository.zo_dex_market = ctx.accounts.zo_dex_market.key();
 
     emit!(InitializeZoDepositoryEvent {
-        version: ctx.accounts.controller.version,
+        version: ctx.accounts.controller.load()?.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         zo_account: ctx.accounts.zo_account.key(),
@@ -176,9 +176,7 @@ impl<'info> InitializeZoDepository<'info> {
 impl<'info> InitializeZoDepository<'info> {
     pub fn validate(&self) -> Result<()> {
         let depository = self.depository.load()?;
-        if depository.is_initialized {
-            return Err(error!(UxdError::ZoDepositoryAlreadyInitialized));
-        }
+        require!(!depository.is_initialized, UxdError::ZoDepositoryAlreadyInitialized);
         Ok(())
     }
 }

@@ -30,10 +30,10 @@ pub struct RegisterMangoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
+        bump = controller.load()?.bump,
         has_one = authority @UxdError::InvalidAuthority,
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance
     /// The `MangoDepository` manages a MangoAccount for a single Collateral
@@ -121,11 +121,13 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     ctx.accounts.depository.total_amount_rebalanced = u128::MIN;
 
     // - Update Controller state
-    ctx.accounts.controller
+    ctx.accounts
+        .controller
+        .load_mut()?
         .add_registered_mango_depository_entry(ctx.accounts.depository.key())?;
 
     emit!(RegisterMangoDepositoryEventV2 {
-        version: ctx.accounts.controller.version,
+        version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),

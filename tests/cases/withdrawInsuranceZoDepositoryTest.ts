@@ -1,22 +1,22 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, Mango, nativeToUi } from "@uxdprotocol/uxd-client";
+import { Controller, ZoDepository, Zo, nativeToUi } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
-import { withdrawInsuranceFromMangoDepository } from "../api";
+import { withdrawInsuranceFromZoDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection, TXN_OPTS } from "../connection";
 
-export const withdrawInsuranceMangoDepositoryTest = async function (amount: number, authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango) {
+export const withdrawInsuranceZoDepositoryTest = async function (amount: number, authority: Signer, controller: Controller, depository: ZoDepository, zo: Zo) {
     const connection = getConnection();
     const options = TXN_OPTS;
 
-    console.group("🧭 withdrawInsuranceMangoDepositoryTest");
+    console.group("🧭 withdrawInsuranceZoDepositoryTest");
     try {
         // GIVEN
         const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
         const insuranceDepositedAmount = nativeToUi(depositoryOnchainAccount.insuranceAmountDeposited.toNumber(), depository.quoteMintDecimals);
 
         // WHEN
-        const txId = await withdrawInsuranceFromMangoDepository(amount, authority, controller, depository, mango);
+        const txId = await withdrawInsuranceFromZoDepository(amount, authority, controller, depository, zo);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
@@ -27,7 +27,7 @@ export const withdrawInsuranceMangoDepositoryTest = async function (amount: numb
 
         console.log(`🧾 Insurance Amount deposited was`, insuranceDepositedAmount, "now is", insuranceDepositedAmount_post, "(withdrawn", amount, ")");
 
-        expect(insuranceDepositedAmount_post).closeTo(expectedAmount, Math.pow(10, -depository.quoteMintDecimals), "The mango depositories insurance ACCOUNTING isn't correct.");
+        expect(insuranceDepositedAmount_post).closeTo(expectedAmount, Math.pow(10, -depository.quoteMintDecimals), "The zo depositories insurance ACCOUNTING isn't correct.");
 
         console.groupEnd();
     } catch (error) {

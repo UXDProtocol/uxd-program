@@ -502,6 +502,77 @@ export type Uxd = {
       ]
     },
     {
+      "name": "withdrawInsuranceFromZoDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authorityQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoControl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoStateSigner",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoCache",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "rebalanceMangoDepositoryLite",
       "accounts": [
         {
@@ -896,11 +967,6 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "zoProgram",
           "isMut": false,
           "isSigner": false
@@ -1085,11 +1151,6 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "redeemableMint",
           "isMut": true,
           "isSigner": false
@@ -1111,7 +1172,7 @@ export type Uxd = {
         },
         {
           "name": "zoState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1176,11 +1237,6 @@ export type Uxd = {
         },
         {
           "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -1282,12 +1338,6 @@ export type Uxd = {
           {
             "name": "registeredZoDepositoriesCount",
             "type": "u8"
-          },
-          {
-            "name": "reserved1",
-            "type": {
-              "defined": "ControllerPadding"
-            }
           }
         ]
       }
@@ -1448,6 +1498,10 @@ export type Uxd = {
           },
           {
             "name": "redeemableAmountUnderManagement",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountPaidTakerFee",
             "type": "u128"
           },
           {
@@ -1751,7 +1805,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDepositoryEventV2",
+      "name": "WithdrawInsuranceFromDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -2256,6 +2310,21 @@ export type Uxd = {
     },
     {
       "code": 6051,
+      "name": "InvalidOwner",
+      "msg": "The provided token account is not owner by the expected party."
+    },
+    {
+      "code": 6052,
+      "name": "InvalidMaxBaseQuantity",
+      "msg": "The max base quantity must be above 0."
+    },
+    {
+      "code": 6053,
+      "name": "InvalidMaxQuoteQuantity",
+      "msg": "The max quote quantity must be above 0."
+    },
+    {
+      "code": 6054,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
@@ -2766,6 +2835,77 @@ export const IDL: Uxd = {
       ]
     },
     {
+      "name": "withdrawInsuranceFromZoDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authorityQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoControl",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoStateSigner",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoCache",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "zoVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "zoProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "rebalanceMangoDepositoryLite",
       "accounts": [
         {
@@ -3160,11 +3300,6 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "zoProgram",
           "isMut": false,
           "isSigner": false
@@ -3349,11 +3484,6 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "redeemableMint",
           "isMut": true,
           "isSigner": false
@@ -3375,7 +3505,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "zoState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -3440,11 +3570,6 @@ export const IDL: Uxd = {
         },
         {
           "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false
         },
@@ -3546,12 +3671,6 @@ export const IDL: Uxd = {
           {
             "name": "registeredZoDepositoriesCount",
             "type": "u8"
-          },
-          {
-            "name": "reserved1",
-            "type": {
-              "defined": "ControllerPadding"
-            }
           }
         ]
       }
@@ -3712,6 +3831,10 @@ export const IDL: Uxd = {
           },
           {
             "name": "redeemableAmountUnderManagement",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountPaidTakerFee",
             "type": "u128"
           },
           {
@@ -4015,7 +4138,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDepositoryEventV2",
+      "name": "WithdrawInsuranceFromDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -4520,6 +4643,21 @@ export const IDL: Uxd = {
     },
     {
       "code": 6051,
+      "name": "InvalidOwner",
+      "msg": "The provided token account is not owner by the expected party."
+    },
+    {
+      "code": 6052,
+      "name": "InvalidMaxBaseQuantity",
+      "msg": "The max base quantity must be above 0."
+    },
+    {
+      "code": 6053,
+      "name": "InvalidMaxQuoteQuantity",
+      "msg": "The max quote quantity must be above 0."
+    },
+    {
+      "code": 6054,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }

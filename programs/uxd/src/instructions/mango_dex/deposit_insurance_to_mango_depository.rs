@@ -21,11 +21,11 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     /// #2 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
+        bump = controller.load()?.bump,
         has_one = authority @UxdError::InvalidAuthority,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #3 UXDProgram on chain account bound to a Controller instance
     /// The `MangoDepository` manages a MangoAccount for a single Collateral
@@ -106,8 +106,9 @@ pub fn handler(ctx: Context<DepositInsuranceToMangoDepository>, amount: u64) -> 
     // - 2 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_accounting(amount)?;
 
+    let controller = ctx.accounts.controller.load()?;
     emit!(DepositInsuranceToDepositoryEvent {
-        version: ctx.accounts.controller.version,
+        version: controller.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         quote_mint: ctx.accounts.depository.quote_mint,
@@ -152,12 +153,11 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
 // Validate input arguments
 impl<'info> DepositInsuranceToMangoDepository<'info> {
     pub fn validate(&self, amount: u64) -> Result<()> {
-        if amount == 0 {
-            return Err(error!(UxdError::InvalidInsuranceAmount));
-        }
-        if self.authority_quote.amount < amount {
-            return Err(error!(UxdError::InsufficientAuthorityQuoteAmount));
-        }
+        require!(amount != 0, UxdError::InvalidInsuranceAmount);
+        require!(
+            self.authority_quote.amount >= amount,
+            UxdError::InsufficientAuthorityQuoteAmount
+        );
         Ok(())
     }
 }

@@ -109,6 +109,12 @@ pub enum UxdError {
     ZoDepositoryNotInitialized,
     #[msg("The provided perp_market is not the one tied to this Depository.")]
     InvalidDexMarket,
+    #[msg("The provided token account is not owner by the expected party.")]
+    InvalidOwner,
+    #[msg("The max base quantity must be above 0.")]
+    InvalidMaxBaseQuantity,
+    #[msg("The max quote quantity must be above 0.")]
+    InvalidMaxQuoteQuantity,
 
     #[msg("Default - Check the source code for more info")]
     Default,
