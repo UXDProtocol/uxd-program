@@ -14,7 +14,6 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::MSOL_CONFIG_NAMESPACE;
 use anchor_lang::prelude::*;
-use anchor_spl::token::Mint;
 
 declare_check_assert_macros!(SourceFileId::InstructionCreateDepositoryMSolConfig);
 
@@ -40,21 +39,15 @@ pub struct CreateDepositoryMSolConfig<'info> {
     /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
         mut,
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.bump,
         has_one = controller @UxdIdlErrorCode::InvalidController,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository,
+        constraint = depository.collateral_mint == spl_token::native_mint::id() @UxdIdlErrorCode::InvalidNonNativeMintUsed
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
-    /// #5 The collateral mint used by the `depository` instance, must use native mint here
-    #[account(
-            constraint = collateral_mint.key() == depository.collateral_mint @UxdIdlErrorCode::InvalidCollateralMint,
-            constraint = collateral_mint.key() == spl_token::native_mint::id() @UxdIdlErrorCode::InvalidNonNativeMintUsed
-        )]
-    pub collateral_mint: Box<Account<'info, Mint>>,
-
-    /// #6 Msol config account for the `depository` instance
+    /// #5 Msol config account for the `depository` instance
     #[account(
         init,
         seeds = [MSOL_CONFIG_NAMESPACE, depository.key().as_ref()],
@@ -63,10 +56,10 @@ pub struct CreateDepositoryMSolConfig<'info> {
     )]
     pub msol_config: Box<Account<'info, MSolConfig>>,
 
-    /// #7 System Program
+    /// #6 System Program
     pub system_program: Program<'info, System>,
 
-    /// #8 Rent Sysvar
+    /// #7 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -74,7 +67,7 @@ pub fn handler(ctx: Context<CreateDepositoryMSolConfig>, target_liquidity_ratio:
     ctx.accounts.msol_config.bump = *ctx.bumps.get("msol_config").ok_or(bump_err!())?;
     ctx.accounts.msol_config.depository = ctx.accounts.depository.key();
     ctx.accounts.msol_config.controller = ctx.accounts.controller.key();
-    ctx.accounts.msol_config.enabled = true;
+    ctx.accounts.msol_config.enabled = false;
     ctx.accounts.msol_config.target_liquidity_ratio = target_liquidity_ratio;
 
     emit!(CreateDepositoryMSolConfigEvent {
