@@ -62,7 +62,7 @@ pub fn handler(ctx: Context<EnableMsolConversion>, enable: bool) -> UxdResult {
 impl<'info> EnableMsolConversion<'info> {
     pub fn validate(&mut self, enable: bool) -> ProgramResult {
         if (self.msol_config.enabled != enable){
-            return Err(error!(UxdError::TargetLiquidityRatioExceedMax));
+            return Err(error!(UxdError::InvalidEnablingMsolConversion));
         }
         Ok(())
     }
