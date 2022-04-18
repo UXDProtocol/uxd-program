@@ -16,8 +16,8 @@ pub struct MSolConfig {
     ...
 }
 ```
-Authority of the controller must create a MSolConfig first for one of it's depository before running the mSOL/SOL conversion instructions. This state is intentionally decoupled with the depository. Several reason of this implementation, 
-1. to avoid any prior execution of the permissionless call for the conversion ixs before specifying the target liquidity ratio
+Authority of the controller must create a MSolConfig first for one of it's depository before running the mSOL/SOL swap instructions. This state is intentionally decoupled with the depository. Several reason of this implementation, 
+1. to avoid any prior execution of the permissionless call for the swap ixs before specifying the target liquidity ratio
 2. having a `MSolConfig` on depository state is wasting space for most cases, since it's only useful for depository with collateral mint as SOL
 3. no modifying of existing depository related instructions
 ___
@@ -25,7 +25,7 @@ ___
 ### permissionned ixns:
 ### `create_depository_msol_config`
 To initialize `msol_config` account, specify the `target_liquidity_ratio` and setup it's relationship to the `controller` and `depository`, could only called by the controller's authority. For each `depository`, there could only hv one `msol_config` created. 
-### `enable_msol_conversion`
-Updated the `msol_config` state, set whether the mSOL/SOL conversion is allowed
+### `enable_msol_swap`
+Updated the `msol_config` state, set whether the mSOL/SOL swap is allowed
 ### `set_msol_liquidity_ratio`
 Updated the `msol_config` state, set the SOL liquidity ratio

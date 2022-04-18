@@ -12,10 +12,10 @@ use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::MSOL_CONFIG_NAMESPACE;
 use anchor_lang::prelude::*;
 
-declare_check_assert_macros!(SourceFileId::InstructionEnableMsolConversion);
+declare_check_assert_macros!(SourceFileId::InstructionEnableMsolSwap);
 
 #[derive(Accounts)]
-pub struct EnableMsolConversion<'info> {
+pub struct EnableMsolSwap<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
 
@@ -54,15 +54,15 @@ pub struct EnableMsolConversion<'info> {
     pub msol_config: Box<Account<'info, MSolConfig>>,
 }
 
-pub fn handler(ctx: Context<EnableMsolConversion>, enable: bool) -> UxdResult {
+pub fn handler(ctx: Context<EnableMsolSwap>, enable: bool) -> UxdResult {
     ctx.accounts.msol_config.enabled = enable;
     Ok(())
 }
 
-impl<'info> EnableMsolConversion<'info> {
+impl<'info> EnableMsolSwap<'info> {
     pub fn validate(&mut self, enable: bool) -> ProgramResult {
         if (self.msol_config.enabled != enable){
-            return Err(error!(UxdError::InvalidEnablingMsolConversion));
+            return Err(error!(UxdError::InvalidEnablingMsolSwap));
         }
         Ok(())
     }

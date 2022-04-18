@@ -380,12 +380,9 @@ pub mod uxd {
     #[access_control(
         ctx.accounts.validate(enable)
     )]
-    pub fn enable_msol_conversion(
-        ctx: Context<EnableMsolConversion>,
-        enable: bool,
-    ) -> ProgramResult {
-        msg!("[enable_msol_conversion]");
-        instructions::enable_msol_conversion::handler(ctx, enable).map_err(|e| {
+    pub fn enable_msol_swap(ctx: Context<EnableMsolSwap>, enable: bool) -> ProgramResult {
+        msg!("[enable_msol_swap]");
+        instructions::enable_msol_swap::handler(ctx, enable).map_err(|e| {
             msg!("<*> {}", e); // log the error
             e.into() // convert UxdError to generic ProgramError
         })

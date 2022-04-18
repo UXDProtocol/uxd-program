@@ -15,7 +15,7 @@ pub struct MSolConfig {
     pub depository: Pubkey,
     // The Controller that own this config account
     pub controller: Pubkey,
-    // Whether allowing the SOL <-> mSOL conversion
+    // Whether allowing the SOL/mSOL swap
     pub enabled: bool,
     // A constant value of the proportion of SOL we wanna keep from the total amount of SOL + mSOL in terms of their value.
     // In LIQUIDITY_RATIO_BASIS
