@@ -1,18 +1,11 @@
-use crate::declare_check_assert_macros;
-use crate::error::check_assert;
-use crate::error::SourceFileId;
-use crate::error::UxdErrorCode;
-use crate::error::UxdIdlErrorCode;
+use crate::error::UxdError;
 use crate::state::msol_config::MSolConfig;
 use crate::Controller;
 use crate::MangoDepository;
-use crate::UxdResult;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::MSOL_CONFIG_NAMESPACE;
 use anchor_lang::prelude::*;
-
-declare_check_assert_macros!(SourceFileId::InstructionEnableMsolSwap);
 
 #[derive(Accounts)]
 pub struct EnableMsolSwap<'info> {
@@ -28,7 +21,7 @@ pub struct EnableMsolSwap<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump,
-        has_one = authority @UxdIdlErrorCode::InvalidAuthority,
+        has_one = authority @UxdError::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
 
@@ -38,8 +31,8 @@ pub struct EnableMsolSwap<'info> {
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.bump,
-        has_one = controller @UxdIdlErrorCode::InvalidController,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository
+        has_one = controller @UxdError::InvalidController,
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
@@ -48,20 +41,20 @@ pub struct EnableMsolSwap<'info> {
         mut,
         seeds = [MSOL_CONFIG_NAMESPACE, depository.key().as_ref()],
         bump = msol_config.bump,
-        has_one = controller @UxdIdlErrorCode::InvalidController,
-        has_one = depository @UxdIdlErrorCode::InvalidDepository,
+        has_one = controller @UxdError::InvalidController,
+        has_one = depository @UxdError::InvalidDepository,
     )]
     pub msol_config: Box<Account<'info, MSolConfig>>,
 }
 
-pub fn handler(ctx: Context<EnableMsolSwap>, enable: bool) -> UxdResult {
+pub fn handler(ctx: Context<EnableMsolSwap>, enable: bool) -> Result<()> {
     ctx.accounts.msol_config.enabled = enable;
     Ok(())
 }
 
 impl<'info> EnableMsolSwap<'info> {
-    pub fn validate(&mut self, enable: bool) -> ProgramResult {
-        if (self.msol_config.enabled != enable){
+    pub fn validate(&mut self, enable: bool) -> Result<()> {
+        if self.msol_config.enabled == enable {
             return Err(error!(UxdError::InvalidEnablingMsolSwap));
         }
         Ok(())

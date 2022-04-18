@@ -1,21 +1,13 @@
-use crate::declare_check_assert_macros;
-use crate::error::check_assert;
-use crate::error::SourceFileId;
 use crate::error::UxdError;
-use crate::error::UxdErrorCode;
-use crate::error::UxdIdlErrorCode;
 use crate::events::CreateDepositoryMSolConfigEvent;
 use crate::state::msol_config::MSolConfig;
 use crate::state::msol_config::TARGET_LIQUIDITY_RATIO_MAX;
 use crate::Controller;
 use crate::MangoDepository;
-use crate::UxdResult;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::MSOL_CONFIG_NAMESPACE;
 use anchor_lang::prelude::*;
-
-declare_check_assert_macros!(SourceFileId::InstructionCreateDepositoryMSolConfig);
 
 #[derive(Accounts)]
 pub struct CreateDepositoryMSolConfig<'info> {
@@ -31,7 +23,7 @@ pub struct CreateDepositoryMSolConfig<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.bump,
-        has_one = authority @UxdIdlErrorCode::InvalidAuthority,
+        has_one = authority @UxdError::InvalidAuthority,
     )]
     pub controller: Box<Account<'info, Controller>>,
 
@@ -41,9 +33,9 @@ pub struct CreateDepositoryMSolConfig<'info> {
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
         bump = depository.bump,
-        has_one = controller @UxdIdlErrorCode::InvalidController,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdIdlErrorCode::InvalidDepository,
-        constraint = depository.collateral_mint == spl_token::native_mint::id() @UxdIdlErrorCode::InvalidNonNativeMintUsed
+        has_one = controller @UxdError::InvalidController,
+        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
+        constraint = depository.collateral_mint == spl_token::native_mint::id() @UxdError::InvalidNonNativeMintUsed
     )]
     pub depository: Box<Account<'info, MangoDepository>>,
 
@@ -52,7 +44,7 @@ pub struct CreateDepositoryMSolConfig<'info> {
         init,
         seeds = [MSOL_CONFIG_NAMESPACE, depository.key().as_ref()],
         bump,
-        payer = authority,
+        payer = payer,
     )]
     pub msol_config: Box<Account<'info, MSolConfig>>,
 
@@ -63,8 +55,14 @@ pub struct CreateDepositoryMSolConfig<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<CreateDepositoryMSolConfig>, target_liquidity_ratio: u16) -> UxdResult {
-    ctx.accounts.msol_config.bump = *ctx.bumps.get("msol_config").ok_or(bump_err!())?;
+pub fn handler(
+    ctx: Context<CreateDepositoryMSolConfig>,
+    target_liquidity_ratio: u16,
+) -> Result<()> {
+    ctx.accounts.msol_config.bump = *ctx
+        .bumps
+        .get("msol_config")
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     ctx.accounts.msol_config.depository = ctx.accounts.depository.key();
     ctx.accounts.msol_config.controller = ctx.accounts.controller.key();
     ctx.accounts.msol_config.enabled = false;
@@ -83,8 +81,8 @@ pub fn handler(ctx: Context<CreateDepositoryMSolConfig>, target_liquidity_ratio:
 }
 
 impl<'info> CreateDepositoryMSolConfig<'info> {
-    pub fn validate(&mut self, target_liquidity_ratio: u16) -> ProgramResult {
-        if (target_liquidity_ratio > TARGET_LIQUIDITY_RATIO_MAX) {
+    pub fn validate(&mut self, target_liquidity_ratio: u16) -> Result<()> {
+        if target_liquidity_ratio > TARGET_LIQUIDITY_RATIO_MAX {
             return Err(error!(UxdError::TargetLiquidityRatioExceedMax));
         }
         Ok(())
