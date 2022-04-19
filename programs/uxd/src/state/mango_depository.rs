@@ -46,7 +46,7 @@ pub struct MangoDepository {
     pub total_amount_rebalanced: u128,
     //
     // The amount of redeemable that has been minted with quote mint
-    pub total_quote_minted: i128, // ** Change to make both ways
+    pub net_quote_minted: i128, // ** Change to make both ways
     //
     // The amount of fees taken per quote mint and quote redeem
     pub quote_mint_and_redeem_fee: u8, // in units of BPs

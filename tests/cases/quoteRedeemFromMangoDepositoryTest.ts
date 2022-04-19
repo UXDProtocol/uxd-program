@@ -7,7 +7,7 @@ import { mintWithMangoDepository, quoteMintWithMangoDepository, quoteRedeemFromM
 import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
-export const quoteRedeemFromMangoDepositoryTest = async function (quoteAmount: number, fee_amount: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
+export const quoteRedeemFromMangoDepositoryTest = async function (quoteAmount: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
     console.group("🧭 quoteRedeemFromMangoDepositoryTest");
     try {
         // GIVEN

@@ -183,7 +183,7 @@ pub fn handler(
     // - 2 [FIND HOW MUCH REDEEMABLE CAN BE MINTED] ---------------------------
 
     // Get how much redeemable has already been minted with the quote mint
-    let quote_minted = depository.total_quote_minted;
+    let quote_minted = depository.net_quote_minted;
 
     // Only allow quote minting if PnL is negative
     require!(perp_unrealized_pnl.is_negative(), UxdError::InvalidPnlPolarity);
@@ -298,8 +298,8 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
             .checked_to_num::<u64>()
             .ok_or_else(|| error!(UxdError::MathError))?;
         // Mango Depository
-        depository.total_quote_minted = depository
-            .total_quote_minted
+        depository.net_quote_minted = depository
+            .net_quote_minted
             .checked_add(quote_amount_deposited.into())
             .ok_or_else(|| error!(UxdError::MathError))?;
         depository.redeemable_amount_under_management = depository

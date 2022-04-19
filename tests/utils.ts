@@ -4,7 +4,7 @@ import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
 
-const SOLANA_FEES_LAMPORT: number = 50000;
+const SOLANA_FEES_LAMPORT: number = 1238880;
 
 export async function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
     const transaction = new anchor.web3.Transaction().add(
