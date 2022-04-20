@@ -153,7 +153,7 @@ export async function quoteRedeemFromMangoDepository(user: Signer, payer: Signer
 }
 
 export async function setMangoDepositoryQuoteMintAndRedeemFee(authority: Signer, controller: Controller, depository: MangoDepository, quoteFee: number): Promise<string> {
-    const setMangoDepositoryQuoteMintAndRedeemFeeIx = await uxdClient.createSetMangoDepositoryQuoteMintAndRedeemFeeInstruction(quoteFee, controller, depository, authority, TXN_OPTS);
+    const setMangoDepositoryQuoteMintAndRedeemFeeIx = await uxdClient.createSetMangoDepositoryQuoteMintAndRedeemFeeInstruction(quoteFee, controller, depository, authority.publicKey, TXN_OPTS);
     let signers = [];
     let tx = new Transaction();
 

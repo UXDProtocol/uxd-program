@@ -7,7 +7,7 @@ import { mintWithMangoDepository, quoteMintWithMangoDepository, quoteRedeemFromM
 import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
-export const quoteRedeemFromMangoDepositoryTest = async function (quoteAmount: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
+export const quoteRedeemFromMangoDepositoryTest = async function (redeemableAmount: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
     console.group("🧭 quoteRedeemFromMangoDepositoryTest");
     try {
         // GIVEN
@@ -23,7 +23,7 @@ export const quoteRedeemFromMangoDepositoryTest = async function (quoteAmount: n
         const userRedeemableBalance = await getBalance(userRedeemableATA);
 
         // WHEN
-        const txId = await quoteRedeemFromMangoDepository(user, payer ?? user, quoteAmount, controller, depository, mango);
+        const txId = await quoteRedeemFromMangoDepository(user, payer ?? user, redeemableAmount, controller, depository, mango);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
@@ -41,8 +41,8 @@ export const quoteRedeemFromMangoDepositoryTest = async function (quoteAmount: n
         // const quoteAmountNative = uiToNative(quoteAmount, depository.quoteMintDecimals);
         const lessFeesMultiple = 1 - depository.quoteMintAndRedeemFee;
 
-        expect(userQuoteBalance_post).equals(userQuoteBalance + (quoteAmount * lessFeesMultiple));
-        expect(userRedeemableBalance_post).equals(userRedeemableBalance - quoteAmount);
+        expect(userQuoteBalance_post).equals(userQuoteBalance + (redeemableAmount * lessFeesMultiple));
+        expect(userRedeemableBalance_post).equals(userRedeemableBalance - redeemableAmount);
 
         console.groupEnd();
     } catch (error) {
