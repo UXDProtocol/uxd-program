@@ -10,6 +10,7 @@ import { mintWithMangoDepositoryTest } from "./cases/mintWithMangoDepositoryTest
 import { redeemFromMangoDepositoryTest } from "./cases/redeemFromMangoDepositoryTest";
 import { initializeControllerTest } from "./cases/initializeControllerTest";
 import { MangoDepositoryRebalancingSuiteParameters, mangoDepositoryRebalancingSuite } from "./suite/mangoDepositoryRebalancingSuite";
+import { quoteMintAndRedeemSuite } from "./suite/quoteMintAndRedeemSuite";
 
 console.log(uxdProgramId.toString());
 // const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -56,7 +57,7 @@ describe("Integration tests SOL", function () {
         });
 
         it("Mint 1 BTC", async function() {
-            await mintWithMangoDepositoryTest(0.25, slippage, user, controller, mangoDepositoryBTC, mango, payer);
+            await mintWithMangoDepositoryTest(0.1, slippage, user, controller, mangoDepositoryBTC, mango, payer);
         });
         // it(`Withdraw 10 USDC of insurance`, async function () {
         //     await withdrawInsuranceMangoDepositoryTest(10, authority, controller, mangoDepositorySOL, mango);
@@ -65,6 +66,10 @@ describe("Integration tests SOL", function () {
         // it(`Mint 80 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
         //     const mintedAmount = await mintWithMangoDepositoryTest(80, slippage, user, controller, depository, mango, payer);
         // });
+    });
+
+    describe.skip("Quote Mint And Redeem Suite", async function () {
+        quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC, mango);
     });
 
     // describe("Quote mint and redeem", async function () {

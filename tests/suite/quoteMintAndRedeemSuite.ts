@@ -27,9 +27,11 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         }
         switch (polarity) {
             case `Positive`: {
+                console.log("Quote Redeem!");
                 await quoteRedeemFromMangoDepositoryTest(10, user, controller, depository, mango, payer);
             }
             case `Negative` : {
+                console.log("Quote Mint!");
                 await quoteMintWithMangoDepositoryTest(10, user, controller, depository, mango, payer);
             }
         }
@@ -49,9 +51,11 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         }
         switch (polarity) {
             case `Positive`: {
+                console.log("Quote Redeem!");
                 await quoteRedeemFromMangoDepositoryTest(10, user, controller, depository, mango, payer);
             }
             case `Negative` : {
+                console.log("Quote Mint!");
                 await quoteMintWithMangoDepositoryTest(10, user, controller, depository, mango, payer);
             }
         }
