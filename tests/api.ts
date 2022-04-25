@@ -242,7 +242,7 @@ export async function mintWithZoDepository(user: Signer, payer: Signer, slippage
 
     let tx = new Transaction();
 
-    // Compute budget request
+    // Compute budget request // Not sure this works but cannot test on devnet yet
     const data = Buffer.from(
         Uint8Array.of(0, ...new BN(256000).toArray("le", 4))
     );
@@ -264,7 +264,6 @@ export async function mintWithZoDepository(user: Signer, payer: Signer, slippage
         tx.add(...prepareWrappedSolIxs);
     }
 
-    // TMP cause no computing
     const userRedeemableAta = await findAssociatedTokenAddress(user.publicKey, controller.redeemableMintPda);
     if (!await getConnection().getAccountInfo(userRedeemableAta)) {
         const createUserRedeemableAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);

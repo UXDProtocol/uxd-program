@@ -34,6 +34,7 @@ pub struct InitializeZoDepository<'info> {
         mut,
         seeds = [ZO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
         bump = depository.load()?.bump,
+        has_one = controller @UxdError::InvalidController,
     )]
     pub depository: AccountLoader<'info, ZoDepository>,
 

@@ -240,7 +240,7 @@ pub fn handler(
 
     // - 2 [BURN REDEEMABLES] -------------------------------------------------
     require!(
-        pre_pa.taker_quote > post_pa.taker_quote,
+        pre_pa.taker_quote >= post_pa.taker_quote,
         UxdError::InvalidOrderDirection
     );
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;

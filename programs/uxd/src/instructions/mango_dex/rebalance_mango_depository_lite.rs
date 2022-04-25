@@ -343,13 +343,13 @@ pub fn handler(
     match polarity {
         PnlPolarity::Positive => {
             require!(
-                pre_pa.taker_quote < post_pa.taker_quote,
+                pre_pa.taker_quote <= post_pa.taker_quote,
                 UxdError::InvalidOrderDirection
             );
         }
         PnlPolarity::Negative => {
             require!(
-                pre_pa.taker_quote > post_pa.taker_quote,
+                pre_pa.taker_quote >= post_pa.taker_quote,
                 UxdError::InvalidOrderDirection
             );
         }
