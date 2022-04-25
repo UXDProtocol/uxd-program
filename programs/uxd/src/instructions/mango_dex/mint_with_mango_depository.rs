@@ -50,12 +50,12 @@ pub struct MintWithMangoDepository<'info> {
     /// The `MangoDepository` manages a MangoAccount for a single Collateral.
     #[account(
         mut,
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.bump,
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = mango_account @UxdError::InvalidMangoAccount,
     )]
-    pub depository: Box<Account<'info, MangoDepository>>,
+    pub depository: AccountLoader<'info, MangoDepository>,
 
     /// #5 The redeemable mint managed by the `controller` instance
     /// Tokens will be minted during this instruction
@@ -71,7 +71,7 @@ pub struct MintWithMangoDepository<'info> {
     /// Will be debited during this instruction
     #[account(
         mut,
-        seeds = [user.key.as_ref(), token_program.key.as_ref(), depository.collateral_mint.as_ref()],
+        seeds = [user.key.as_ref(), token_program.key.as_ref(), depository.load()?.collateral_mint.as_ref()],
         bump,
         seeds::program = AssociatedToken::id(),
     )]
@@ -91,8 +91,8 @@ pub struct MintWithMangoDepository<'info> {
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
-        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.mango_account_bump,
+        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.mango_account_bump,
     )]
     pub mango_account: AccountInfo<'info>,
 
@@ -159,14 +159,18 @@ pub fn handler(
     collateral_amount: u64,
     limit_price: f32,
 ) -> Result<()> {
-    let depository = &ctx.accounts.depository;
-    let controller = &ctx.accounts.controller;
+    let depository = ctx.accounts.depository.load()?;
+    let collateral_mint = depository.collateral_mint;
+    let depository_bump = depository.bump;
+    drop(depository);
+
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
-        depository.collateral_mint.as_ref(),
-        &[depository.bump],
+        collateral_mint.as_ref(),
+        &[depository_bump],
     ]];
-    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.load()?.bump]]];
+    let controller_bump = ctx.accounts.controller.load()?.bump;
+    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller_bump]]];
 
     // - 1 [FIND BEST ORDER FOR SHORT PERP POSITION] --------------------------
 
@@ -280,7 +284,7 @@ pub fn handler(
     )?;
 
     // - [if ATA mint is WSOL, unwrap]
-    if depository.collateral_mint == spl_token::native_mint::id() {
+    if collateral_mint == spl_token::native_mint::id() {
         token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
     }
 
@@ -424,7 +428,7 @@ impl<'info> MintWithMangoDepository<'info> {
         redeemable_minted_amount: u128,
         fee_amount: u128,
     ) -> Result<()> {
-        let depository = &mut self.depository;
+        let depository = &mut self.depository.load_mut()?;
         let controller = &mut self.controller.load_mut()?;
         // Mango Depository
         depository.collateral_amount_deposited = depository
@@ -481,7 +485,7 @@ impl<'info> MintWithMangoDepository<'info> {
             &self.mango_group,
             self.mango_program.key,
             self.mango_perp_market.key,
-            &self.depository.collateral_mint,
+            &self.depository.load()?.collateral_mint,
         )?;
         Ok(())
     }

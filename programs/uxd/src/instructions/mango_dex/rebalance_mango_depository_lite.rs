@@ -50,23 +50,23 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = depository.bump,
+        bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = mango_account @UxdError::InvalidMangoAccount,
     )]
-    pub depository: Box<Account<'info, MangoDepository>>,
+    pub depository: AccountLoader<'info, MangoDepository>,
 
     /// #5 The collateral mint used by the `depository` instance
     /// Required to create the user_collateral ATA if needed
     #[account(
-        constraint = collateral_mint.key() == depository.collateral_mint @UxdError::InvalidCollateralMint
+        constraint = collateral_mint.key() == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #6 The quote mint used by the `depository` instance
     /// Required to create the user_quote ATA if needed
     #[account(
-        constraint = quote_mint.key() == depository.quote_mint @UxdError::InvalidQuoteMint
+        constraint = quote_mint.key() == depository.load()?.quote_mint @UxdError::InvalidQuoteMint
     )]
     pub quote_mint: Box<Account<'info, Mint>>,
 
@@ -97,7 +97,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, collateral_mint.key().as_ref()],
-        bump = depository.mango_account_bump,
+        bump = depository.load()?.mango_account_bump,
     )]
     pub mango_account: AccountInfo<'info>,
 
@@ -184,11 +184,16 @@ pub fn handler(
     polarity: &PnlPolarity,
     limit_price: f32,
 ) -> Result<()> {
-    let depository = &ctx.accounts.depository;
+    let depository = ctx.accounts.depository.load()?;
+    let collateral_mint = depository.collateral_mint;
+    let depository_bump = depository.bump;
+    let redeemable_amount_under_management = depository.redeemable_amount_under_management;
+    drop(depository);
+
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
-        depository.collateral_mint.as_ref(),
-        &[depository.bump],
+        collateral_mint.as_ref(),
+        &[depository_bump],
     ]];
 
     // - [Get perp information]
@@ -216,7 +221,7 @@ pub fn handler(
     // minus the perp position notional size in quote.
     // Ideally they stay 1:1, to have the redeemable fully backed by the delta neutral
     // position and no paper profits.
-    let redeemable_under_management = i128::try_from(depository.redeemable_amount_under_management)
+    let redeemable_under_management = i128::try_from(redeemable_amount_under_management)
         .map_err(|_e| error!(UxdError::MathError))?;
 
     // Will not overflow as `perp_position_notional_size` and `redeemable_under_management`
@@ -431,7 +436,7 @@ pub fn handler(
             )?;
 
             // - [If ATA mint is WSOL, unwrap]
-            if depository.collateral_mint == spl_token::native_mint::id() {
+            if collateral_mint == spl_token::native_mint::id() {
                 token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
             }
 
@@ -597,7 +602,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         rebalanced_amount: u128,
         fee_amount: u128,
     ) -> Result<()> {
-        let depository = &mut self.depository;
+        let depository = &mut self.depository.load_mut()?;
         depository.collateral_amount_deposited = depository
             .collateral_amount_deposited
             .checked_sub(collateral_withdrawn_amount)
@@ -617,7 +622,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         rebalanced_amount: u128,
         fee_amount: u128,
     ) -> Result<()> {
-        let depository = &mut self.depository;
+        let depository = &mut self.depository.load_mut()?;
         depository.collateral_amount_deposited = depository
             .collateral_amount_deposited
             .checked_add(collateral_deposited_amount)
@@ -660,7 +665,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             &self.mango_group,
             self.mango_program.key,
             self.mango_perp_market.key,
-            &self.depository.collateral_mint,
+            &self.depository.load()?.collateral_mint,
         )?;
 
         Ok(())

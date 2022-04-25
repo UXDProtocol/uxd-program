@@ -30,18 +30,18 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
         mut,
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.bump,
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = mango_account @UxdError::InvalidMangoAccount,
     )]
-    pub depository: Box<Account<'info, MangoDepository>>,
+    pub depository: AccountLoader<'info, MangoDepository>,
 
     /// #4 The `user`'s ATA for the `controller`'s `redeemable_mint`
     /// Will be credited during this instruction
     #[account(
         mut,
-        constraint = authority_quote.mint == depository.quote_mint @UxdError::InvalidAuthorityQuoteATAMint
+        constraint = authority_quote.mint == depository.load()?.quote_mint @UxdError::InvalidAuthorityQuoteATAMint
     )]
     pub authority_quote: Box<Account<'info, TokenAccount>>,
 
@@ -49,8 +49,8 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
-        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.mango_account_bump,
+        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.mango_account_bump,
     )]
     pub mango_account: AccountInfo<'info>,
 
@@ -92,12 +92,15 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
 }
 
 pub fn handler(ctx: Context<WithdrawInsuranceFromMangoDepository>, amount: u64) -> Result<()> {
-    let collateral_mint = ctx.accounts.depository.collateral_mint;
+    let depository = ctx.accounts.depository.load()?;
+    let collateral_mint = depository.collateral_mint;
+    let depository_bump = depository.bump;
+    drop(depository);
 
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         collateral_mint.as_ref(),
-        &[ctx.accounts.depository.bump],
+        &[depository_bump],
     ]];
 
     // - 1 [WITHDRAW INSURANCE FROM MANGO THEN RETURN TO USER] ---------------
@@ -112,15 +115,19 @@ pub fn handler(ctx: Context<WithdrawInsuranceFromMangoDepository>, amount: u64) 
     )?;
 
     // - 2 [UPDATE ACCOUNTING] ------------------------------------------------
-    ctx.accounts.update_accounting(amount)?;
+    let depository = &mut ctx.accounts.depository.load_mut()?;
+    depository.insurance_amount_deposited = depository
+        .insurance_amount_deposited
+        .checked_sub(amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     let controller = ctx.accounts.controller.load()?;
     emit!(WithdrawInsuranceFromDepositoryEvent {
         version: controller.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
-        quote_mint: ctx.accounts.depository.quote_mint,
-        quote_mint_decimals: ctx.accounts.depository.quote_mint_decimals,
+        quote_mint: depository.quote_mint,
+        quote_mint_decimals: depository.quote_mint_decimals,
         withdrawn_amount: amount,
     });
 
@@ -144,18 +151,6 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
-    }
-}
-
-// Additional convenience methods related to the inputted accounts
-impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
-    fn update_accounting(&mut self, amount: u64) -> Result<()> {
-        self.depository.insurance_amount_deposited = self
-            .depository
-            .insurance_amount_deposited
-            .checked_sub(amount.into())
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        Ok(())
     }
 }
 

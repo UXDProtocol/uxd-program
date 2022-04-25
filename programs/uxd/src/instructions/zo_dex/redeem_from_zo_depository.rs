@@ -369,7 +369,7 @@ impl<'info> RedeemFromZoDepository<'info> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
-            to: self.user_redeemable.to_account_info(),
+            from: self.user_redeemable.to_account_info(),
             authority: self.user.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)

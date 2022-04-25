@@ -1429,12 +1429,6 @@ export type Uxd = {
           {
             "name": "totalAmountRebalanced",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": {
-              "defined": "MangoDepositoryPadding"
-            }
           }
         ]
       }
@@ -3762,12 +3756,6 @@ export const IDL: Uxd = {
           {
             "name": "totalAmountRebalanced",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": {
-              "defined": "MangoDepositoryPadding"
-            }
           }
         ]
       }

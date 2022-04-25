@@ -1429,12 +1429,6 @@
           {
             "name": "totalAmountRebalanced",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": {
-              "defined": "MangoDepositoryPadding"
-            }
           }
         ]
       }
@@ -2330,6 +2324,6 @@
     }
   ],
   "metadata": {
-    "address": "E7CBUkcWVKMDxa9ypEBjMDkqTMm1wWzNycEgVKoBhW1X"
+    "address": "91KV3qK8zPiM2KmMt3M3xE6FA5qLqYnR9UgRKLXzQTrM"
   }
 }

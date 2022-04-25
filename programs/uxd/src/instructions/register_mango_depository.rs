@@ -6,6 +6,7 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_ACCOUNT_VERSION;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
+use crate::MANGO_DEPOSITORY_SPACE;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -42,8 +43,9 @@ pub struct RegisterMangoDepository<'info> {
         seeds = [MANGO_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
         bump,
         payer = payer,
+        space = MANGO_DEPOSITORY_SPACE,
     )]
-    pub depository: Box<Account<'info, MangoDepository>>,
+    pub depository: AccountLoader<'info, MangoDepository>,
 
     /// #5 The collateral mint used by the `depository` instance
     pub collateral_mint: Box<Account<'info, Mint>>,
@@ -88,6 +90,7 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
         .bumps
         .get("depository")
         .ok_or_else(|| error!(UxdError::BumpError))?;
+
     // - Initialize Mango Account
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
@@ -101,24 +104,25 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     )?;
 
     // - Initialize Depository state
+    let depository = &mut ctx.accounts.depository.load_init()?;
     let mango_account_bump = *ctx
         .bumps
         .get("mango_account")
         .ok_or_else(|| error!(UxdError::BumpError))?;
-    ctx.accounts.depository.bump = depository_bump;
-    ctx.accounts.depository.mango_account_bump = mango_account_bump;
-    ctx.accounts.depository.version = MANGO_DEPOSITORY_ACCOUNT_VERSION;
-    ctx.accounts.depository.collateral_mint = collateral_mint;
-    ctx.accounts.depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
-    ctx.accounts.depository.quote_mint = quote_mint;
-    ctx.accounts.depository.quote_mint_decimals = ctx.accounts.quote_mint.decimals;
-    ctx.accounts.depository.mango_account = ctx.accounts.mango_account.key();
-    ctx.accounts.depository.controller = ctx.accounts.controller.key();
-    ctx.accounts.depository.insurance_amount_deposited = u128::MIN;
-    ctx.accounts.depository.collateral_amount_deposited = u128::MIN;
-    ctx.accounts.depository.redeemable_amount_under_management = u128::MIN;
-    ctx.accounts.depository.total_amount_paid_taker_fee = u128::MIN;
-    ctx.accounts.depository.total_amount_rebalanced = u128::MIN;
+    depository.bump = depository_bump;
+    depository.mango_account_bump = mango_account_bump;
+    depository.version = MANGO_DEPOSITORY_ACCOUNT_VERSION;
+    depository.collateral_mint = collateral_mint;
+    depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
+    depository.quote_mint = quote_mint;
+    depository.quote_mint_decimals = ctx.accounts.quote_mint.decimals;
+    depository.mango_account = ctx.accounts.mango_account.key();
+    depository.controller = ctx.accounts.controller.key();
+    depository.insurance_amount_deposited = u128::MIN;
+    depository.collateral_amount_deposited = u128::MIN;
+    depository.redeemable_amount_under_management = u128::MIN;
+    depository.total_amount_paid_taker_fee = u128::MIN;
+    depository.total_amount_rebalanced = u128::MIN;
 
     // - Update Controller state
     ctx.accounts
@@ -128,7 +132,7 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
 
     emit!(RegisterMangoDepositoryEventV2 {
         version: ctx.accounts.controller.load()?.version,
-        depository_version: ctx.accounts.depository.version,
+        depository_version: depository.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         collateral_mint: ctx.accounts.collateral_mint.key(),
