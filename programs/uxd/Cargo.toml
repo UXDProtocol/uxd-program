@@ -27,11 +27,9 @@ anchor-lang = "0.24.2"
 anchor-spl = "0.24.2"
 anchor-comp = { version = "0.1.6", git = "https://github.com/UXDProtocol/anchor-comp", features = ["no-entrypoint", "development"] }
 fixed = "^1.9.0"
-# zo-abi = { git = "https://github.com/01protocol/zo-abi", features = ["cpi"] }
-zo-abi = { rev = "c8644bbf1fb57ca3d67e524856882aa8e33ad184", git = "https://github.com/acamill/zo-abi", features = ["cpi"] }
+zo-abi = { version = "0.5.0", git = "https://github.com/01protocol/zo-abi", features = ["cpi"] }
 num-traits = "0.2.14"
 
 [dev-dependencies]
 proptest = "1.0.0"
-# zo-abi = { git = "https://github.com/01protocol/zo-abi", features = ["cpi", "devnet"] }
-zo-abi = { rev = "c8644bbf1fb57ca3d67e524856882aa8e33ad184", git = "https://github.com/acamill/zo-abi", features = ["cpi", "devnet"] }
+zo-abi = { version = "0.5.0", git = "https://github.com/01protocol/zo-abi", features = ["cpi", "devnet"] }

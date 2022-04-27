@@ -318,7 +318,7 @@ export type Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -450,7 +450,7 @@ export type Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -637,7 +637,7 @@ export type Uxd = {
         },
         {
           "name": "mangoRootBankQuote",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -652,7 +652,7 @@ export type Uxd = {
         },
         {
           "name": "mangoRootBankCollateral",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -773,7 +773,7 @@ export type Uxd = {
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1037,7 +1037,7 @@ export type Uxd = {
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2610,7 +2610,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2742,7 +2742,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2929,7 +2929,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoRootBankQuote",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2944,7 +2944,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoRootBankCollateral",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -3065,7 +3065,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -3329,7 +3329,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {

@@ -1929,8 +1929,8 @@ checksum = "4756f7db3f7b5574938c3eb1c117038b8e07f95ee6718c0efad4ac21508f1efd"
 
 [[package]]
 name = "zo-abi"
-version = "0.4.0"
-source = "git+https://github.com/acamill/zo-abi?rev=c8644bbf1fb57ca3d67e524856882aa8e33ad184#c8644bbf1fb57ca3d67e524856882aa8e33ad184"
+version = "0.5.0"
+source = "git+https://github.com/01protocol/zo-abi#a67c7d00e0e45b35f6c5f698a7a0cd6ec3e46352"
 dependencies = [
  "anchor-lang",
  "bytemuck",

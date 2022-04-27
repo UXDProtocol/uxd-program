@@ -57,7 +57,6 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
 
     /// #6 [MangoMarkets CPI] Index grouping perp and spot markets
     /// CHECK: Mango CPI - checked MangoMarketV3 side
-    #[account(mut)]
     pub mango_group: UncheckedAccount<'info>,
 
     /// #7 [MangoMarkets CPI] Cache

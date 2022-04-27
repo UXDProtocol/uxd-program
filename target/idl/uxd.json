@@ -318,7 +318,7 @@
         },
         {
           "name": "mangoCache",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -450,7 +450,7 @@
         },
         {
           "name": "mangoGroup",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -637,7 +637,7 @@
         },
         {
           "name": "mangoRootBankQuote",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -652,7 +652,7 @@
         },
         {
           "name": "mangoRootBankCollateral",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -773,7 +773,7 @@
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1037,7 +1037,7 @@
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {

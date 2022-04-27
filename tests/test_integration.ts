@@ -50,7 +50,7 @@ describe("Integration tests SOL", function () {
         mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositorySOL);
     });
 
-    describe("mangoDepositoryMintRedeemSuite SOL", function () {
+    describe.only("mangoDepositoryMintRedeemSuite SOL", function () {
         mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositorySOL, 20);
     });
 

@@ -109,6 +109,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
 
     /// #13 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_root_bank_quote: UncheckedAccount<'info>,
 
     /// #14 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`
@@ -123,6 +124,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
 
     /// #16 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_root_bank_collateral: UncheckedAccount<'info>,
 
     /// #17 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
