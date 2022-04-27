@@ -8,11 +8,10 @@ use crate::MANGO_DEPOSITORY_NAMESPACE;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
-/// Takes 12 accounts - 5 used locally - 5 for MangoMarkets CPI - 2 Programs
+/// Takes 12 accounts
 #[derive(Accounts)]
 pub struct DepositInsuranceToMangoDepository<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
@@ -42,9 +41,8 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     /// Will be debited during this call
     #[account(
         mut,
-        seeds = [authority.key.as_ref(), token_program.key.as_ref(), depository.load()?.quote_mint.as_ref()],
-        bump,
-        seeds::program = AssociatedToken::id(),
+        constraint = authority_quote.mint == depository.load()?.quote_mint @UxdError::InvalidQuoteMint,
+        constraint = &authority_quote.owner == authority.key @UxdError::InvalidOwner,
     )]
     pub authority_quote: Box<Account<'info, TokenAccount>>,
 
@@ -63,10 +61,12 @@ pub struct DepositInsuranceToMangoDepository<'info> {
 
     /// #7 [MangoMarkets CPI] Cache
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_cache: UncheckedAccount<'info>,
 
     /// #8 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_root_bank: UncheckedAccount<'info>,
 
     /// #9 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`

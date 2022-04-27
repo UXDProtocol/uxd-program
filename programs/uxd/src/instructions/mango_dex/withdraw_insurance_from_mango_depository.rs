@@ -41,7 +41,8 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     /// Will be credited during this instruction
     #[account(
         mut,
-        constraint = authority_quote.mint == depository.load()?.quote_mint @UxdError::InvalidAuthorityQuoteATAMint
+        constraint = authority_quote.mint == depository.load()?.quote_mint @UxdError::InvalidQuoteMint,
+        constraint = &authority_quote.owner == authority.key @UxdError::InvalidOwner,
     )]
     pub authority_quote: Box<Account<'info, TokenAccount>>,
 
@@ -69,6 +70,7 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
 
     /// #9 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_root_bank: UncheckedAccount<'info>,
 
     /// #10 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`

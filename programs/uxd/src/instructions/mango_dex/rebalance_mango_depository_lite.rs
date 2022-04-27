@@ -14,7 +14,6 @@ use crate::MANGO_DEPOSITORY_NAMESPACE;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
@@ -25,7 +24,7 @@ use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 
-/// Takes 27 accounts - 9 used locally - 13 for MangoMarkets CPI - 4 Programs - 1 Sysvar
+/// Takes 25 accounts
 #[derive(Accounts)]
 pub struct RebalanceMangoDepositoryLite<'info> {
     /// #1 Public call accessible to any user
@@ -53,42 +52,36 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = mango_account @UxdError::InvalidMangoAccount,
+        has_one = quote_mint @UxdError::InvalidQuoteMint,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint
     )]
     pub depository: AccountLoader<'info, MangoDepository>,
 
     /// #5 The collateral mint used by the `depository` instance
     /// Required to create the user_collateral ATA if needed
-    #[account(
-        constraint = collateral_mint.key() == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint
-    )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #6 The quote mint used by the `depository` instance
     /// Required to create the user_quote ATA if needed
-    #[account(
-        constraint = quote_mint.key() == depository.load()?.quote_mint @UxdError::InvalidQuoteMint
-    )]
     pub quote_mint: Box<Account<'info, Mint>>,
 
-    /// #7 The `user`'s ATA for the `depository`'s `collateral_mint`
+    /// #7 The `user`'s TA for the `depository`'s `collateral_mint`
     /// Will be debited during this instruction when `Polarity` is positive
     /// Will be credited during this instruction when `Polarity` is negative
     #[account(
-        init_if_needed,
-        associated_token::mint = collateral_mint,
-        associated_token::authority = user,
-        payer = payer,
+        mut,
+        constraint = user_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
+        constraint = &user_collateral.owner == user.key @UxdError::InvalidOwner,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #8 The `user`'s ATA for the `depository`'s `quote_mint`
+    /// #8 The `user`'s TA for the `depository`'s `quote_mint`
     /// Will be credited during this instruction when `Polarity` is positive
     /// Will be debited during this instruction when `Polarity` is negative
     #[account(
-        init_if_needed,
-        associated_token::mint = quote_mint,
-        associated_token::authority = user,
-        payer = payer,
+        mut,
+        constraint = user_quote.mint == depository.load()?.quote_mint @UxdError::InvalidQuoteMint,
+        constraint = &user_quote.owner == user.key @UxdError::InvalidOwner,
     )]
     pub user_quote: Box<Account<'info, TokenAccount>>,
 
@@ -168,14 +161,8 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     /// #24 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #25 Associated Token Program
-    pub associated_token_program: Program<'info, AssociatedToken>,
-
-    /// #26 MangoMarketv3 Program
+    /// #25 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
-
-    /// #27 Rent Sysvar
-    pub rent: Sysvar<'info, Rent>,
 }
 
 pub fn handler(

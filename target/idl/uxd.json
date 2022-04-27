@@ -318,12 +318,12 @@
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -465,7 +465,7 @@
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -696,17 +696,7 @@
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -827,17 +817,7 @@
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -1101,17 +1081,7 @@
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -2249,81 +2219,73 @@
     },
     {
       "code": 6040,
-      "name": "InvalidAuthorityQuoteATAMint",
-      "msg": "The authority's Quote ATA's mint does not match the Depository's one."
-    },
-    {
-      "code": 6041,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6042,
+      "code": 6041,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6043,
+      "code": 6042,
       "name": "InvalidZoAccount",
       "msg": "The Zo Account isn't the Depository's one."
     },
     {
-      "code": 6044,
+      "code": 6043,
       "name": "ZOPerpMarketNotFound",
       "msg": "The Zo PerpMarket index could not be found."
     },
     {
-      "code": 6045,
+      "code": 6044,
       "name": "ZOPerpMarketInfoNotFound",
       "msg": "The Zo PerpMarketInfo could not be found."
     },
     {
-      "code": 6046,
+      "code": 6045,
       "name": "ZOOpenOrdersInfoNotFound",
       "msg": "The Zo OpenOrdersInfo could not be found."
     },
     {
-      "code": 6047,
+      "code": 6046,
       "name": "ZOInvalidControlState",
       "msg": "The Zo Control is in an invalid state."
     },
     {
-      "code": 6048,
+      "code": 6047,
       "name": "ZoDepositoryAlreadyInitialized",
       "msg": "The Zo depository PDAs are already initialized."
     },
     {
-      "code": 6049,
+      "code": 6048,
       "name": "ZoDepositoryNotInitialized",
       "msg": "The Zo depository PDAs haven't been initialized yet."
     },
     {
-      "code": 6050,
+      "code": 6049,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6051,
+      "code": 6050,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6052,
+      "code": 6051,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6053,
+      "code": 6052,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6054,
+      "code": 6053,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
-  ],
-  "metadata": {
-    "address": "91KV3qK8zPiM2KmMt3M3xE6FA5qLqYnR9UgRKLXzQTrM"
-  }
+  ]
 }

@@ -64,7 +64,7 @@ pub struct MintWithZoDepository<'info> {
     )]
     pub redeemable_mint: Account<'info, token::Mint>,
 
-    /// #6 The `user`'s ATA for the `depository` `collateral_mint`
+    /// #6 The `user`'s TA for the `depository` `collateral_mint`
     /// Will be debited during this instruction
     #[account(
         mut,
@@ -73,7 +73,7 @@ pub struct MintWithZoDepository<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #7 The `user`'s ATA for the `controller`'s `redeemable_mint`
+    /// #7 The `user`'s TA for the `controller`'s `redeemable_mint`
     /// Will be credited during this instruction
     #[account(
         mut,

@@ -15,7 +15,6 @@ use crate::REDEEMABLE_MINT_NAMESPACE;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::MintTo;
@@ -27,7 +26,7 @@ use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 
-/// Takes 23 accounts - 9 used locally - 9 for MangoMarkets CPI - 4 Programs - 1 Sysvar
+/// Takes 20 accounts
 #[derive(Accounts)]
 pub struct MintWithMangoDepository<'info> {
     /// #1 Public call accessible to any user
@@ -42,7 +41,8 @@ pub struct MintWithMangoDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
-        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
+        has_one = redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub controller: AccountLoader<'info, Controller>,
 
@@ -63,31 +63,28 @@ pub struct MintWithMangoDepository<'info> {
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
         bump = controller.load()?.redeemable_mint_bump,
-        constraint = redeemable_mint.key() == controller.load()?.redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
-    /// #6 The `user`'s ATA for the `depository` `collateral_mint`
+    /// #6 The `user`'s TA for the `depository` `collateral_mint`
     /// Will be debited during this instruction
     #[account(
         mut,
-        seeds = [user.key.as_ref(), token_program.key.as_ref(), depository.load()?.collateral_mint.as_ref()],
-        bump,
-        seeds::program = AssociatedToken::id(),
+        constraint = user_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
+        constraint = &user_collateral.owner == user.key @UxdError::InvalidOwner,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #7 The `user`'s ATA for the `controller`'s `redeemable_mint`
+    /// #7 The `user`'s TA for the `controller`'s `redeemable_mint`
     /// Will be credited during this instruction
     #[account(
-        init_if_needed,
-        associated_token::mint = redeemable_mint,
-        associated_token::authority = user,
-        payer = payer,
+        mut,
+        constraint = user_redeemable.mint == controller.load()?.redeemable_mint @UxdError::InvalidRedeemableMint,
+        constraint = &user_redeemable.owner == user.key @UxdError::InvalidOwner,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #9 The MangoMarkets Account (MangoAccount) managed by the `depository`
+    /// #8 The MangoMarkets Account (MangoAccount) managed by the `depository`
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
@@ -96,62 +93,56 @@ pub struct MintWithMangoDepository<'info> {
     )]
     pub mango_account: AccountInfo<'info>,
 
-    /// #10 [MangoMarkets CPI] Index grouping perp and spot markets
+    /// #9 [MangoMarkets CPI] Index grouping perp and spot markets
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_group: UncheckedAccount<'info>,
 
-    /// #11 [MangoMarkets CPI] Cache
+    /// #10 [MangoMarkets CPI] Cache
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_cache: UncheckedAccount<'info>,
 
-    /// #12 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
+    /// #11 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_root_bank: UncheckedAccount<'info>,
 
-    /// #13 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
+    /// #12 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_node_bank: UncheckedAccount<'info>,
 
-    /// #14 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`
+    /// #13 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_vault: UncheckedAccount<'info>,
 
-    /// #15 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
+    /// #14 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_perp_market: UncheckedAccount<'info>,
 
-    /// #16 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
+    /// #15 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_bids: UncheckedAccount<'info>,
 
-    /// #17 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
+    /// #16 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_asks: UncheckedAccount<'info>,
 
-    /// #18 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
+    /// #17 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_event_queue: UncheckedAccount<'info>,
 
-    /// #19 System Program
+    /// #18 System Program
     pub system_program: Program<'info, System>,
 
-    /// #20 Token Program
+    /// #19 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #21 Associated Token Program
-    pub associated_token_program: Program<'info, AssociatedToken>,
-
-    /// #22 MangoMarketv3 Program
+    /// #20 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
-
-    /// #23 Rent Sysvar
-    pub rent: Sysvar<'info, Rent>,
 }
 
 pub fn handler(

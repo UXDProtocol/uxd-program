@@ -87,8 +87,6 @@ pub enum UxdError {
     InvalidCollateralMint,
     #[msg("The provided quote mint does not match the depository's quote mint.")]
     InvalidQuoteMint,
-    #[msg("The authority's Quote ATA's mint does not match the Depository's one.")]
-    InvalidAuthorityQuoteATAMint,
     #[msg("The Mango Account isn't the Depository one.")]
     InvalidMangoAccount,
     #[msg("The Redeemable Mint provided does not match the Controller's one.")]
