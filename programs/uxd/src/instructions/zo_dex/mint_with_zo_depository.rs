@@ -240,7 +240,7 @@ pub fn handler(
         I80F48::checked_from_num(dist(dn_position.size, dn_position_post.size)).unwrap();
 
     // Calculate the reverse % to find the amount of fee paid (it has been "billed" on the short position quote)
-    let taker_rate = I80F48::from(zo::taker_rate(PerpType::Future, FeeTier::MSRM));
+    let taker_rate = I80F48::from(zo::taker_rate(PerpType::Future, FeeTier::Msrm));
     let taker_rate_base = I80F48::from(zo::taker_rate(PerpType::Future, FeeTier::Base));
     // Fee ratio is 100.004% as the order size is -x and fees are -y (same direction, so the diff is amount + fees)
     let fee_ratio = I80F48::ONE + (taker_rate / taker_rate_base);
