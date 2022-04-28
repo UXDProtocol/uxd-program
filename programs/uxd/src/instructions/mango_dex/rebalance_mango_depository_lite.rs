@@ -105,6 +105,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
 
     /// #12 [MangoMarkets CPI] Cache
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_cache: UncheckedAccount<'info>,
 
     /// #13 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`

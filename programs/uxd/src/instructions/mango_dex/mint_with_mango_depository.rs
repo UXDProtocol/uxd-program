@@ -99,6 +99,7 @@ pub struct MintWithMangoDepository<'info> {
 
     /// #10 [MangoMarkets CPI] Cache
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_cache: UncheckedAccount<'info>,
 
     /// #11 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`

@@ -107,6 +107,7 @@ pub struct RedeemFromMangoDepository<'info> {
 
     /// #11 [MangoMarkets CPI] Cache
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_cache: UncheckedAccount<'info>,
 
     /// #12 [MangoMarkets CPI] Signer PDA

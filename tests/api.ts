@@ -163,8 +163,8 @@ export async function mintWithMangoDepository(user: Signer, payer: Signer, slipp
 
     const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
     if (!await getConnection().getAccountInfo(userRedeemableAta)) {
-        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
-        tx.add(createUserCollateralAtaIx);
+        const createUserRedeemableAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
+        tx.add(createUserRedeemableAtaIx);
     }
 
     if (depository.collateralMint.equals(NATIVE_MINT)) {
@@ -177,9 +177,11 @@ export async function mintWithMangoDepository(user: Signer, payer: Signer, slipp
         );
         tx.add(...prepareWrappedSolIxs);
     } else {
+        console.log("Find user ata");
         const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
         if (!await getConnection().getAccountInfo(userCollateralAta)) {
             const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
+            console.log("will create user ata");
             tx.add(createUserCollateralAtaIx);
         }
     }
