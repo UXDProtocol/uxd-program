@@ -36,6 +36,9 @@ pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million r
 pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
 
+const BPS_POW: u8 = 4; // Raise a number to BPS_POW to get order of magnitude of
+pub const BPS_UNIT_CONVERSION: u64 = (10 as u64).pow(BPS_POW.into());
+
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 
 /// When looping through the orderbook to fill, it's FoK, so will fail either way.

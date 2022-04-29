@@ -1,8 +1,10 @@
+use crate::BPS_POW;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::PerpInfo;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::UxdError;
+use crate::BPS_UNIT_CONVERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
@@ -210,12 +212,21 @@ pub fn handler(
 
     // - 5 [MINT REDEEMABLE TO USER] ------------------------------------------
     let quote_mint_fee = depository.quote_mint_and_redeem_fee;
-    let percentage_less_fees: f64 = (1 as f64) - (
-        (quote_mint_fee as f64)/((10 as f64).powi(4.into()))
-    );
-    let redeemable_mint_less_fees: u64 = I80F48::checked_from_num::<f64>(percentage_less_fees)
+
+    // Math: 5 bps fee would equate to bps_minted_to_user
+    // being 9995 since 10000 - 5 = 9995
+    let bps_minted_to_user: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
         .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_sub(quote_mint_fee.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    // Math: Multiplies the quote_amount by how many BPS the user will get,
+    // but the units are still in units of BPS, not as a decimal, so then
+    // divide by the BPS_POW to get to the right order of magnitude.
+    let redeemable_mint_amount_less_fees: u64 = bps_minted_to_user
         .checked_mul_int(quote_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_div_int(BPS_UNIT_CONVERSION.into())
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_floor()
         .ok_or_else(|| error!(UxdError::MathError))?
@@ -226,13 +237,13 @@ pub fn handler(
         ctx.accounts
             .into_mint_redeemable_context()
             .with_signer(controller_pda_signer),
-        redeemable_mint_less_fees,
+        redeemable_mint_amount_less_fees,
     )?;
 
     // - 6 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_onchain_accounting(
         quote_amount,
-        redeemable_mint_less_fees,
+        redeemable_mint_amount_less_fees,
     )?;
 
     // - 7 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
@@ -288,14 +299,8 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
     ) -> Result<()> {
         let depository = &mut self.depository;
         let controller = &mut self.controller;
-        let fee_percentage: f64 = (depository.quote_mint_and_redeem_fee as f64)/((10 as f64).powi(4.into()));
-        let fees_accrued: u64 = I80F48::checked_from_num::<f64>(fee_percentage)
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_mul_int(quote_amount_deposited.into())
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_floor()
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_to_num::<u64>()
+        let fees_accrued: u64 = quote_amount_deposited
+            .checked_sub(redeemable_minted_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
         // Mango Depository
         depository.net_quote_minted = depository

@@ -57,7 +57,7 @@ describe("Integration tests SOL", function () {
         });
 
         it("Mint 1 BTC", async function() {
-            await mintWithMangoDepositoryTest(0.1, slippage, user, controller, mangoDepositoryBTC, mango, payer);
+            await mintWithMangoDepositoryTest(10, slippage, user, controller, mangoDepositoryBTC, mango, payer);
         });
         // it(`Withdraw 10 USDC of insurance`, async function () {
         //     await withdrawInsuranceMangoDepositoryTest(10, authority, controller, mangoDepositorySOL, mango);

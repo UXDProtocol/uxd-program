@@ -1,3 +1,4 @@
+use crate::BPS_UNIT_CONVERSION;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::PerpInfo;
 use crate::Controller;
@@ -210,21 +211,30 @@ pub fn handler(
     // Check to ensure we are not redeeming more than we allocate to resolve positive PnL
     require!(redeemable_amount <= quote_redeemable, UxdError::RedeemableAmountTooHigh);
 
-    // - x [BURN USER'S REDEEMABLE] -------------------------------------------
+    // - 3 [BURN USER'S REDEEMABLE] -------------------------------------------
     // Burn will fail if user does not have enough redeemable
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         redeemable_amount,
     )?;
 
-    // - x [WITHDRAW QUOTE MINT FROM MANGO ACCOUNT] ---------------------------
+    // - 4 [WITHDRAW QUOTE MINT FROM MANGO ACCOUNT] ---------------------------
     let quote_redeem_fee = depository.quote_mint_and_redeem_fee;
-    let percentage_less_fees: f64 = (1 as f64) - (
-        (quote_redeem_fee as f64)/((10 as f64).powi(4.into()))
-    );
-    let quote_withdraw_amount: u64 = I80F48::checked_from_num::<f64>(percentage_less_fees)
+
+    // Math: 5 bps fee would equate to bps_redeemed_to_user
+    // being 9995 since 10000 - 5 = 9995
+    let bps_redeemed_to_user: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
         .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_sub(quote_redeem_fee.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    
+    // Math: Multiplies the redeemable_amount by how many BPS the user will get
+    // but the units are still in units of BPS, not as a decimal, so then
+    // divide by the BPS_POW to get to the right order of magnitude.
+    let quote_withdraw_amount_less_fees: u64 = bps_redeemed_to_user
         .checked_mul_int(redeemable_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_div_int(BPS_UNIT_CONVERSION.into())
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_floor()
         .ok_or_else(|| error!(UxdError::MathError))?
@@ -235,14 +245,14 @@ pub fn handler(
         ctx.accounts
             .into_withdraw_quote_mint_from_mango_context()
             .with_signer(depository_signer_seed),
-        quote_withdraw_amount,
+        quote_withdraw_amount_less_fees,
         false,
     )?;
 
-    // - x [UPDATE ACCOUNTING] ------------------------------------------------
+    // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_onchain_accounting(
         redeemable_amount,
-        quote_withdraw_amount,
+        quote_withdraw_amount_less_fees,
     )?;
 
     Ok(())
@@ -253,8 +263,8 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
-            to: self.user_redeemable.to_account_info(),
             authority: self.user.to_account_info(),
+            from: self.user_redeemable.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
@@ -295,14 +305,8 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
     ) -> Result<()> {
         let depository = &mut self.depository;
         let controller = &mut self.controller;
-        let fee_percentage: f64 = (depository.quote_mint_and_redeem_fee as f64)/((10 as f64).powi(4.into()));
-        let fees_accrued: u64 = I80F48::checked_from_num::<f64>(fee_percentage)
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_mul_int(redeemable_amount.into())
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_floor()
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_to_num::<u64>()
+        let fees_accrued: u64 = redeemable_amount
+            .checked_sub(quote_withdraw_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
         // Mango Depository
         depository.net_quote_minted = depository
