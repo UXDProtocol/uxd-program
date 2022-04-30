@@ -49,41 +49,6 @@ pub struct RegisterMangoDepositoryEvent {
     // The MangoAccount PDA.
     pub mango_account: Pubkey,
 }
-/// Event called in [instructions::register_zo_depository::handler].
-#[event]
-pub struct RegisterZoDepositoryEvent {
-    /// The Controller version.
-    #[index]
-    pub version: u8,
-    /// The depository version.
-    #[index]
-    pub depository_version: u8,
-    /// The controller.
-    #[index]
-    pub controller: Pubkey,
-    /// The depository.
-    #[index]
-    pub depository: Pubkey,
-    // The collateral mint.
-    pub collateral_mint: Pubkey,
-    // The quote mint.
-    pub quote_mint: Pubkey,
-}
-
-/// Event called in [instructions::initialize_zo_depository::handler].
-#[event]
-pub struct InitializeZoDepositoryEvent {
-    /// The controller version.
-    #[index]
-    pub version: u8,
-    /// The controller.
-    #[index]
-    pub controller: Pubkey,
-    // The depository.
-    pub depository: Pubkey,
-    // The Zo Margin Account PDA.
-    pub zo_account: Pubkey,
-}
 
 /// Event called in [instructions::register_mango_depository::handler].
 #[event]
@@ -265,28 +230,4 @@ pub struct RebalanceMangoDepositoryLiteEvent {
     pub base_delta: i64,
     pub quote_delta: i64,
     pub fee_delta: i64,
-}
-
-/// Event called in [instructions::zo_dex::mint::handler].
-#[event]
-pub struct ZoMintEvent {
-    /// The controller version.
-    #[index]
-    pub version: u8,
-    /// The controller.
-    #[index]
-    pub controller: Pubkey,
-    /// The depository.
-    #[index]
-    pub depository: Pubkey,
-    /// The user making the call.
-    #[index]
-    pub user: Pubkey,
-    // The collateral amount in native units. (input)
-    pub collateral_amount: u64,
-    // The collateral amount deposited in native units.
-    pub collateral_deposited_amount: u64,
-    // The user provided limit_price. (input)
-    pub limit_price: u64,
-    pub minted_amount: u64,
 }

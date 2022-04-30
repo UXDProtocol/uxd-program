@@ -11,7 +11,6 @@ pub mod instructions;
 pub mod mango_utils;
 pub mod state;
 pub mod test;
-pub mod zo_utils;
 
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
@@ -22,16 +21,13 @@ solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
 // Version used for accounts structure and future migrations
 pub const MANGO_DEPOSITORY_ACCOUNT_VERSION: u8 = 2;
-pub const ZO_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
 pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
-pub const ZO_MARGIN_ACCOUNT_NAMESPACE: &[u8] = b"marginv1";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
-pub const ZO_DEPOSITORY_NAMESPACE: &[u8] = b"ZODEPOSITORY";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -153,19 +149,6 @@ pub mod uxd {
         instructions::register_mango_depository::handler(ctx)
     }
 
-    ///
-    pub fn register_zo_depository(ctx: Context<RegisterZoDepository>) -> Result<()> {
-        msg!("[register_zo_depository]");
-        instructions::register_zo_depository::handler(ctx)
-    }
-
-    ///
-    #[access_control(ctx.accounts.validate())]
-    pub fn initialize_zo_depository(ctx: Context<InitializeZoDepository>) -> Result<()> {
-        msg!("[initialize_zo_depository]");
-        instructions::initialize_zo_depository::handler(ctx)
-    }
-
     /// Deposit `MangoDepository.quote_mint` tokens in the `MangoDepository`
     /// underlying `MangoAccount`
     ///
@@ -209,15 +192,6 @@ pub mod uxd {
         instructions::deposit_insurance_to_mango_depository::handler(ctx, amount)
     }
 
-    #[access_control(ctx.accounts.validate(amount))]
-    pub fn deposit_insurance_to_zo_depository(
-        ctx: Context<DepositInsuranceToZoDepository>,
-        amount: u64,
-    ) -> Result<()> {
-        // msg!("[deposit_insurance_to_zo_depository]");
-        instructions::deposit_insurance_to_zo_depository::handler(ctx, amount)
-    }
-
     /// Withdraw `MangoDepository.quote_mint` tokens from the `MangoDepository`
     /// underlying `MangoAccount`, if any available, in the limit of the account
     /// borrow health.
@@ -242,14 +216,6 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[withdraw_insurance_from_mango_depository]");
         instructions::withdraw_insurance_from_mango_depository::handler(ctx, amount)
-    }
-    #[access_control(ctx.accounts.validate(amount))]
-    pub fn withdraw_insurance_from_zo_depository(
-        ctx: Context<WithdrawInsuranceFromZoDepository>,
-        amount: u64,
-    ) -> Result<()> {
-        msg!("[withdraw_insurance_from_zo_depository]");
-        instructions::withdraw_insurance_from_zo_depository::handler(ctx, amount)
     }
 
     /// Rebalance the delta neutral position of the underlying `MangoDepository`.
@@ -350,37 +316,6 @@ pub mod uxd {
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, limit_price)
     }
 
-    /// Mint redeemable tokens in exchange of `ZoDepository.collateral_mint`
-    /// tokens, increasing the size of the delta neutral position.
-    ///
-    /// Parameters:
-    ///     - max_base_quantity:
-    ///     - max_quote_quantity:
-    ///     - limit_price: the worse price the user is willing to trade at.
-    ///
-    #[access_control(
-        ctx.accounts.validate(max_base_quantity, max_quote_quantity, limit_price)
-    )]
-    pub fn mint_with_zo_depository(
-        ctx: Context<MintWithZoDepository>,
-        max_base_quantity: u64,
-        max_quote_quantity: u64,
-        limit_price: u64,
-    ) -> Result<()> {
-        // msg!(
-        //     "[MintWithZoDepository] max_base_quantity {}, max_quote_quantity {}, limit_price {}",
-        //     max_base_quantity,
-        //     max_quote_quantity,
-        //     limit_price
-        // );
-        instructions::mint_with_zo_depository::handler(
-            ctx,
-            max_base_quantity,
-            max_quote_quantity,
-            limit_price,
-        )
-    }
-
     /// Redeem `MangoDepository.collateral_mint` by burning redeemable
     /// tokens, and unwind a part of the delta neutral position.
     ///
@@ -423,30 +358,6 @@ pub mod uxd {
             limit_price
         );
         instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, limit_price)
-    }
-    /// Redeem `ZoDepository.collateral_mint` by burning redeemable
-    /// tokens, and unwind a part of the delta neutral position.
-    #[access_control(
-        ctx.accounts.validate(max_base_quantity, max_quote_quantity, limit_price)
-    )]
-    pub fn redeem_from_zo_depository(
-        ctx: Context<RedeemFromZoDepository>,
-        max_base_quantity: u64,
-        max_quote_quantity: u64,
-        limit_price: u64,
-    ) -> Result<()> {
-        // msg!(
-        //     "[redeem_from_zo_depository] max_base_quantity {}, max_quote_quantity {} limit_price {}",
-        //     max_base_quantity,
-        //     max_quote_quantity,
-        //     limit_price
-        // );
-        instructions::redeem_from_zo_depository::handler(
-            ctx,
-            max_base_quantity,
-            max_quote_quantity,
-            limit_price,
-        )
     }
 }
 

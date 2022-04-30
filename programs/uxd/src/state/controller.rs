@@ -2,10 +2,9 @@ use crate::error::UxdError;
 use anchor_lang::prelude::*;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
-pub const MAX_REGISTERED_ZO_DEPOSITORIES: usize = 8;
 
 pub const CONTROLLER_SPACE: usize =
-    8 + 1 + 1 + 1 + 32 + 32 + 1 + (32 * 8) + 1 + 16 + 8 + 16 + 1 + (32 * 8) + 1 + 254;
+    8 + 1 + 1 + 1 + 32 + 32 + 1 + (32 * 8) + 1 + 16 + 8 + 16 + 1 + 254;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -41,9 +40,6 @@ pub struct Controller {
     pub redeemable_circulating_supply: u128,
     //
     pub _reserved: u8,
-    // The ZO Depositories registered with this Controller
-    pub registered_zo_depositories: [Pubkey; 8], //  - IDL bug with constant, so hard 8 literal. -- Still not working in 0.20.0 although it should
-    pub registered_zo_depositories_count: u8,
 }
 
 impl Controller {
@@ -64,23 +60,6 @@ impl Controller {
         // Add the new Mango Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_mango_depositories[new_entry_index] = mango_depository_id;
-        Ok(())
-    }
-
-    pub fn add_registered_zo_depository_entry(&mut self, zo_depository_id: Pubkey) -> Result<()> {
-        let current_size = usize::from(self.registered_zo_depositories_count);
-        require!(
-            current_size < MAX_REGISTERED_ZO_DEPOSITORIES,
-            UxdError::MaxNumberOfZoDepositoriesRegisteredReached
-        );
-        // Increment registered ZO Depositories count
-        self.registered_zo_depositories_count = self
-            .registered_zo_depositories_count
-            .checked_add(1)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        // Add the new ZO Depository ID to the array of registered Depositories
-        let new_entry_index = current_size;
-        self.registered_zo_depositories[new_entry_index] = zo_depository_id;
         Ok(())
     }
 }

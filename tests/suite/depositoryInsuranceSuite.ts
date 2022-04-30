@@ -1,10 +1,8 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, Zo, ZoDepository } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
 import { depositInsuranceMangoDepositoryTest } from "../cases/depositInsuranceMangoDepositoryTest";
-import { depositInsuranceZoDepositoryTest } from "../cases/depositInsuranceZoDepositoryTest";
 import { withdrawInsuranceMangoDepositoryTest } from "../cases/withdrawInsuranceMangoDepositoryTest";
-import { withdrawInsuranceZoDepositoryTest } from "../cases/withdrawInsuranceZoDepositoryTest";
 import { mango } from "../fixtures";
 
 export const mangoDepositoryInsuranceSuite = function (authority: Signer, controller: Controller, depository: MangoDepository) {
@@ -70,72 +68,5 @@ export const mangoDepositoryInsuranceSuite = function (authority: Signer, contro
     // Due to mango health constraints we cannot remove the entirety 
     it(`Withdraw 99_900 USDC of insurance`, async function () {
         await depositInsuranceMangoDepositoryTest(99_900, authority, controller, depository, mango);
-    });
-};
-
-
-export const zoDepositoryInsuranceSuite = function (authority: Signer, controller: Controller, depository: ZoDepository, zo: Zo) {
-
-    it("DEPOSIT 0 USDC of insurance (should fail)", async function () {
-        try {
-            await depositInsuranceZoDepositoryTest(0, authority, controller, depository, zo);
-        } catch {
-            expect(true, "Failing as planned");
-        }
-        expect(false, "Should have failed - Amount is 0");
-    });
-
-    it(`Withdraw 0 USDC of insurance (should fail)`, async function () {
-        try {
-            await withdrawInsuranceZoDepositoryTest(0, authority, controller, depository, zo);
-        } catch {
-            expect(true, "Failing as planned");
-        }
-        expect(false, "Should have failed - Amount is 0");
-    });
-
-
-    it(`Deposit 1 USDC of insurance`, async function () {
-        await depositInsuranceZoDepositoryTest(1, authority, controller, depository, zo);
-    });
-
-    it(`Withdraw 1 USDC of insurance (should fail)`, async function () {
-        try {
-            await withdrawInsuranceZoDepositoryTest(1, authority, controller, depository, zo);
-        } catch {
-            expect(true, "Failing as planned");
-        }
-        expect(false, "Should have failed - Amount is too big");
-    });
-
-    it(`Deposit 100_000 USDC of insurance`, async function () {
-        await depositInsuranceZoDepositoryTest(100_000, authority, controller, depository, zo);
-    });
-
-    it(`Withdraw 1 USDC of insurance`, async function () {
-        await withdrawInsuranceZoDepositoryTest(1, authority, controller, depository, zo);
-    });
-
-    it(`Withdraw 500_000 USDC of insurance (should fail)`, async function () {
-        try {
-            await withdrawInsuranceZoDepositoryTest(500_000, authority, controller, depository, zo);
-        } catch {
-            expect(true, "Failing as planned");
-        }
-        expect(false, "Should have failed - Amount is too big");
-    });
-
-    it(`Withdraw -1 USDC of insurance (should fail)`, async function () {
-        try {
-            await withdrawInsuranceZoDepositoryTest(-1, authority, controller, depository, zo);
-        } catch {
-            expect(true, "Failing as planned");
-        }
-        expect(false, "Should have failed - Amount is negative");
-    });
-
-    // Due to zo health constraints we cannot remove the entirety 
-    it(`Withdraw 99_900 USDC of insurance`, async function () {
-        await depositInsuranceZoDepositoryTest(99_900, authority, controller, depository, zo);
     });
 };

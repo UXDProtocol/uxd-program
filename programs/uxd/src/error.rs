@@ -66,10 +66,6 @@ pub enum UxdError {
     InvalidCollateralDelta,
     #[msg("The perp market index could not be found for this MangoMarkets Pair.")]
     MangoPerpMarketIndexNotFound,
-    #[msg("Cannot register more ZO depositories, the limit has been reached.")]
-    MaxNumberOfZoDepositoriesRegisteredReached,
-    #[msg("Operation not allowed due to being over the ZO Redeemable soft Cap.")]
-    ZoDepositoriesSoftCapOverflow,
     #[msg("Could not load the provided MangoGroup account.")]
     InvalidMangoGroup,
     #[msg("The order quantity is below contract_size of the perp market.")]
@@ -91,20 +87,6 @@ pub enum UxdError {
     InvalidMangoAccount,
     #[msg("The Redeemable Mint provided does not match the Controller's one.")]
     InvalidRedeemableMint,
-    #[msg("The Zo Account isn't the Depository's one.")]
-    InvalidZoAccount,
-    #[msg("The Zo PerpMarket index could not be found.")]
-    ZOPerpMarketNotFound,
-    #[msg("The Zo PerpMarketInfo could not be found.")]
-    ZOPerpMarketInfoNotFound,
-    #[msg("The Zo OpenOrdersInfo could not be found.")]
-    ZOOpenOrdersInfoNotFound,
-    #[msg("The Zo Control is in an invalid state.")]
-    ZOInvalidControlState,
-    #[msg("The Zo depository PDAs are already initialized.")]
-    ZoDepositoryAlreadyInitialized,
-    #[msg("The Zo depository PDAs haven't been initialized yet.")]
-    ZoDepositoryNotInitialized,
     #[msg("The provided perp_market is not the one tied to this Depository.")]
     InvalidDexMarket,
     #[msg("The provided token account is not owner by the expected party.")]

@@ -1,9 +1,9 @@
 import { getConnection, TXN_OPTS } from "./connection";
 import { uxdClient } from "./constants";
-import { Keypair, PublicKey, Signer, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
+import { Keypair, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller, PnLPolarity, ZoDepository, Zo, CONTROL_ACCOUNT_SIZE, createAssocTokenIx, findATAAddrSync } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, Controller, PnLPolarity, createAssocTokenIx, findATAAddrSync } from "@uxdprotocol/uxd-client";
 import { BN, web3 } from "@project-serum/anchor";
 
 // Permissionned Calls --------------------------------------------------------
@@ -37,62 +37,12 @@ export async function registerMangoDepository(authority: Signer, payer: Signer, 
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-
-export async function registerZoDepository(authority: Signer, payer: Signer, controller: Controller, depository: ZoDepository): Promise<string> {
-    const registerZoDepositoryIx = await uxdClient.createRegisterZoDepositoryInstruction(controller, depository, authority.publicKey, TXN_OPTS, payer.publicKey);
-    let signers = [];
-    let tx = new Transaction();
-
-    tx.instructions.push(registerZoDepositoryIx);
-    signers.push(authority);
-    signers.push(payer);
-    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function initializeZoDepository(authority: Signer, payer: Signer, controller: Controller, depository: ZoDepository, zo: Zo): Promise<string> {
-    // Was done on chain, but the instruction is limited in term of stack size so we do it here (to free up space to create the openOrderAccount PDA on chain)
-    const control = new Keypair();
-    const initializeZoDepositoryIx = await uxdClient.createInitializeZoDepositoryInstruction(controller, depository, zo, control.publicKey, authority.publicKey, TXN_OPTS, payer.publicKey);
-    let signers = [];
-    let tx = new Transaction();
-
-    // Create control account
-    const controlLamports = await getConnection().getMinimumBalanceForRentExemption(CONTROL_ACCOUNT_SIZE);
-    const createControlAccount = SystemProgram.createAccount({
-        fromPubkey: payer.publicKey ?? authority.publicKey,
-        newAccountPubkey: control.publicKey,
-        lamports: controlLamports,
-        space: CONTROL_ACCOUNT_SIZE,
-        programId: zo.program.programId,
-    });
-
-    tx.instructions.push(createControlAccount);
-    tx.instructions.push(initializeZoDepositoryIx);
-
-    signers.push(authority);
-    signers.push(payer);
-    signers.push(control);
-    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-
 export async function depositInsuranceToMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const depositInsuranceToMangoDepositoryIx = await uxdClient.createDepositInsuranceToMangoDepositoryInstruction(amount, controller, depository, mango, authority.publicKey, TXN_OPTS);
     let signers = [];
     let tx = new Transaction();
 
     tx.instructions.push(depositInsuranceToMangoDepositoryIx);
-    signers.push(authority);
-
-    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function depositInsuranceToZoDepository(authority: Signer, amount: number, controller: Controller, depository: ZoDepository, zo: Zo): Promise<string> {
-    const depositInsuranceToZoDepositoryIx = await uxdClient.createDepositInsuranceToZoDepositoryInstruction(amount, controller, depository, zo, authority.publicKey, TXN_OPTS);
-    let signers = [];
-    let tx = new Transaction();
-
-    tx.instructions.push(depositInsuranceToZoDepositoryIx);
     signers.push(authority);
 
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
@@ -110,23 +60,6 @@ export async function withdrawInsuranceFromMangoDepository(amount: number, autho
     }
 
     tx.instructions.push(withdrawInsuranceFromMangoDepository);
-    signers.push(authority);
-
-    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function withdrawInsuranceFromZoDepository(amount: number, authority: Signer, controller: Controller, depository: ZoDepository, zo: Zo): Promise<string> {
-    const withdrawInsuranceFromZoDepository = await uxdClient.createWithdrawInsuranceFromZoDepositoryInstruction(amount, controller, depository, zo, authority.publicKey, TXN_OPTS);
-    let signers = [];
-    let tx = new Transaction();
-
-    const authorityQuoteAta = findATAAddrSync(authority.publicKey, depository.quoteMint)[0];
-    if (!await getConnection().getAccountInfo(authorityQuoteAta)) {
-        const createUserQuoteAtaIx = createAssocTokenIx(authority.publicKey, authorityQuoteAta, depository.quoteMint);
-        tx.add(createUserQuoteAtaIx);
-    }
-
-    tx.instructions.push(withdrawInsuranceFromZoDepository);
     signers.push(authority);
 
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
@@ -273,92 +206,6 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
     // console.log("🔗 depository PnL settlement Tx:", `'https://explorer.solana.com/tx/${settlePnlTxID}?cluster=${CLUSTER}'`);
 
     return txId;
-}
-
-export async function mintWithZoDepository(user: Signer, payer: Signer, slippage: number, collateralAmount: number, controller: Controller, depository: ZoDepository, zo: Zo): Promise<string> {
-    const mintWithZoDepositoryIx = await uxdClient.createMintWithZoDepositoryInstruction(collateralAmount, slippage, controller, depository, zo, user.publicKey, TXN_OPTS);
-    let signers = [];
-    signers.push(user);
-    if (payer) {
-        signers.push(payer);
-    }
-
-    let tx = new Transaction();
-
-    // Compute budget request // Not sure this works but cannot test on devnet yet
-    const data = Buffer.from(
-        Uint8Array.of(0, ...new BN(256000).toArray("le", 4))
-    );
-    const additionalComputeBudgetInstruction = new TransactionInstruction({
-        keys: [],
-        programId: new PublicKey("ComputeBudget111111111111111111111111111111"),
-        data,
-    });
-    tx.add(additionalComputeBudgetInstruction);
-
-    if (depository.collateralMint.equals(NATIVE_MINT)) {
-        const nativeAmount = collateralAmount * 10 ** depository.collateralMintDecimals;
-        const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
-            getConnection(),
-            payer.publicKey,
-            user.publicKey,
-            nativeAmount
-        );
-        tx.add(...prepareWrappedSolIxs);
-    }
-
-    const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
-    if (!await getConnection().getAccountInfo(userRedeemableAta)) {
-        const createUserRedeemableAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
-        tx.add(createUserRedeemableAtaIx);
-    }
-
-    // if (txPre.instructions.length != 0) {
-    //     txPre.feePayer = payer.publicKey;
-    //     await Promise.allSettled(await web3.sendAndConfirmTransaction(getConnection(), txPre, signers, TXN_OPTS));
-    // }
-
-    tx.add(mintWithZoDepositoryIx);
-    tx.feePayer = payer.publicKey;
-    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function redeemFromZoDepository(user: Signer, payer: Signer, slippage: number, amountRedeemable: number, controller: Controller, depository: ZoDepository, zo: Zo): Promise<string> {
-    const redeemFromZoDepositoryIx = await uxdClient.createRedeemFromZoDepositoryInstruction(amountRedeemable, slippage, controller, depository, zo, user.publicKey, TXN_OPTS);
-
-    let signers = [];
-    let tx = new Transaction();
-    signers.push(user);
-    if (payer) {
-        signers.push(payer);
-    }
-
-    // Compute budget request
-    const data = Buffer.from(
-        Uint8Array.of(0, ...new BN(256000).toArray("le", 4))
-    );
-    const additionalComputeBudgetInstruction = new TransactionInstruction({
-        keys: [],
-        programId: new PublicKey("ComputeBudget111111111111111111111111111111"),
-        data,
-    });
-    tx.add(additionalComputeBudgetInstruction);
-
-    const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
-    if (!await getConnection().getAccountInfo(userCollateralAta)) {
-        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
-        tx.add(createUserCollateralAtaIx);
-    }
-
-    const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
-    if (!await getConnection().getAccountInfo(userRedeemableAta)) {
-        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
-        tx.add(createUserCollateralAtaIx);
-    }
-
-    tx.add(redeemFromZoDepositoryIx);
-    tx.feePayer = payer.publicKey;
-    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
 // Non UXD API calls ----------------------------------------------------------
