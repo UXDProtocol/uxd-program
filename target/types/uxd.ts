@@ -157,133 +157,6 @@ export type Uxd = {
       "args": []
     },
     {
-      "name": "registerZoDepository",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "quoteMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "initializeZoDepository",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoOpenOrders",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoStateSigner",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoDexMarket",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoControl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoDexProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "depositInsuranceToMangoDepository",
       "accounts": [
         {
@@ -343,72 +216,6 @@ export type Uxd = {
         },
         {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "depositInsuranceToZoDepository",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authorityQuote",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoStateSigner",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoCache",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoProgram",
           "isMut": false,
           "isSigner": false
         }
@@ -490,77 +297,6 @@ export type Uxd = {
         },
         {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "withdrawInsuranceFromZoDepository",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authorityQuote",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoControl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoStateSigner",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoCache",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoProgram",
           "isMut": false,
           "isSigner": false
         }
@@ -834,145 +570,6 @@ export type Uxd = {
       ]
     },
     {
-      "name": "mintWithZoDepository",
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "redeemableMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoStateSigner",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoCache",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoControl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoOpenOrders",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoDexMarket",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoReqQ",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoEventQ",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoMarketBids",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoMarketAsks",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoDexProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "maxBaseQuantity",
-          "type": "u64"
-        },
-        {
-          "name": "maxQuoteQuantity",
-          "type": "u64"
-        },
-        {
-          "name": "limitPrice",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "redeemFromMangoDepository",
       "accounts": [
         {
@@ -1096,145 +693,6 @@ export type Uxd = {
           "type": "f32"
         }
       ]
-    },
-    {
-      "name": "redeemFromZoDepository",
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "redeemableMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoStateSigner",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoCache",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoControl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoOpenOrders",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoDexMarket",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoReqQ",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoEventQ",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoMarketBids",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoMarketAsks",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoDexProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "maxBaseQuantity",
-          "type": "u64"
-        },
-        {
-          "name": "maxQuoteQuantity",
-          "type": "u64"
-        },
-        {
-          "name": "limitPrice",
-          "type": "u64"
-        }
-      ]
     }
   ],
   "accounts": [
@@ -1294,19 +752,6 @@ export type Uxd = {
           },
           {
             "name": "reserved",
-            "type": "u8"
-          },
-          {
-            "name": "registeredZoDepositories",
-            "type": {
-              "array": [
-                "publicKey",
-                8
-              ]
-            }
-          },
-          {
-            "name": "registeredZoDepositoriesCount",
             "type": "u8"
           }
         ]
@@ -1374,78 +819,6 @@ export type Uxd = {
           },
           {
             "name": "mangoAccount",
-            "type": "publicKey"
-          },
-          {
-            "name": "controller",
-            "type": "publicKey"
-          },
-          {
-            "name": "insuranceAmountDeposited",
-            "type": "u128"
-          },
-          {
-            "name": "collateralAmountDeposited",
-            "type": "u128"
-          },
-          {
-            "name": "redeemableAmountUnderManagement",
-            "type": "u128"
-          },
-          {
-            "name": "totalAmountPaidTakerFee",
-            "type": "u128"
-          },
-          {
-            "name": "totalAmountRebalanced",
-            "type": "u128"
-          }
-        ]
-      }
-    },
-    {
-      "name": "zoDepository",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "zoAccountBump",
-            "type": "u8"
-          },
-          {
-            "name": "version",
-            "type": "u8"
-          },
-          {
-            "name": "isInitialized",
-            "type": "bool"
-          },
-          {
-            "name": "zoDexMarket",
-            "type": "publicKey"
-          },
-          {
-            "name": "collateralMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "collateralMintDecimals",
-            "type": "u8"
-          },
-          {
-            "name": "quoteMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "quoteMintDecimals",
-            "type": "u8"
-          },
-          {
-            "name": "zoAccount",
             "type": "publicKey"
           },
           {
@@ -1563,66 +936,6 @@ export type Uxd = {
         },
         {
           "name": "mangoAccount",
-          "type": "publicKey",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "RegisterZoDepositoryEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "depositoryVersion",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "collateralMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "quoteMint",
-          "type": "publicKey",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "InitializeZoDepositoryEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "zoAccount",
           "type": "publicKey",
           "index": false
         }
@@ -1969,51 +1282,6 @@ export type Uxd = {
           "index": false
         }
       ]
-    },
-    {
-      "name": "ZoMintEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "user",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "collateralAmount",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "collateralDepositedAmount",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "limitPrice",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "mintedAmount",
-          "type": "u64",
-          "index": false
-        }
-      ]
     }
   ],
   "errors": [
@@ -2174,116 +1442,71 @@ export type Uxd = {
     },
     {
       "code": 6031,
-      "name": "MaxNumberOfZoDepositoriesRegisteredReached",
-      "msg": "Cannot register more ZO depositories, the limit has been reached."
-    },
-    {
-      "code": 6032,
-      "name": "ZoDepositoriesSoftCapOverflow",
-      "msg": "Operation not allowed due to being over the ZO Redeemable soft Cap."
-    },
-    {
-      "code": 6033,
       "name": "InvalidMangoGroup",
       "msg": "Could not load the provided MangoGroup account."
     },
     {
-      "code": 6034,
+      "code": 6032,
       "name": "QuantityBelowContractSize",
       "msg": "The order quantity is below contract_size of the perp market."
     },
     {
-      "code": 6035,
+      "code": 6033,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6036,
+      "code": 6034,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6037,
+      "code": 6035,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6038,
+      "code": 6036,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6039,
+      "code": 6037,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6040,
+      "code": 6038,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6041,
+      "code": 6039,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6042,
-      "name": "InvalidZoAccount",
-      "msg": "The Zo Account isn't the Depository's one."
-    },
-    {
-      "code": 6043,
-      "name": "ZOPerpMarketNotFound",
-      "msg": "The Zo PerpMarket index could not be found."
-    },
-    {
-      "code": 6044,
-      "name": "ZOPerpMarketInfoNotFound",
-      "msg": "The Zo PerpMarketInfo could not be found."
-    },
-    {
-      "code": 6045,
-      "name": "ZOOpenOrdersInfoNotFound",
-      "msg": "The Zo OpenOrdersInfo could not be found."
-    },
-    {
-      "code": 6046,
-      "name": "ZOInvalidControlState",
-      "msg": "The Zo Control is in an invalid state."
-    },
-    {
-      "code": 6047,
-      "name": "ZoDepositoryAlreadyInitialized",
-      "msg": "The Zo depository PDAs are already initialized."
-    },
-    {
-      "code": 6048,
-      "name": "ZoDepositoryNotInitialized",
-      "msg": "The Zo depository PDAs haven't been initialized yet."
-    },
-    {
-      "code": 6049,
+      "code": 6040,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6050,
+      "code": 6041,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6051,
+      "code": 6042,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6052,
+      "code": 6043,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6053,
+      "code": 6044,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
@@ -2449,133 +1672,6 @@ export const IDL: Uxd = {
       "args": []
     },
     {
-      "name": "registerZoDepository",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "quoteMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "initializeZoDepository",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoOpenOrders",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoStateSigner",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoDexMarket",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoControl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoDexProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "depositInsuranceToMangoDepository",
       "accounts": [
         {
@@ -2635,72 +1731,6 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "depositInsuranceToZoDepository",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authorityQuote",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoStateSigner",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoCache",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoProgram",
           "isMut": false,
           "isSigner": false
         }
@@ -2782,77 +1812,6 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "withdrawInsuranceFromZoDepository",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authorityQuote",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoControl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoStateSigner",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoCache",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoProgram",
           "isMut": false,
           "isSigner": false
         }
@@ -3126,145 +2085,6 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "mintWithZoDepository",
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "redeemableMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoState",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoStateSigner",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoCache",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoControl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoOpenOrders",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoDexMarket",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoReqQ",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoEventQ",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoMarketBids",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoMarketAsks",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoDexProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "maxBaseQuantity",
-          "type": "u64"
-        },
-        {
-          "name": "maxQuoteQuantity",
-          "type": "u64"
-        },
-        {
-          "name": "limitPrice",
-          "type": "u64"
-        }
-      ]
-    },
-    {
       "name": "redeemFromMangoDepository",
       "accounts": [
         {
@@ -3388,145 +2208,6 @@ export const IDL: Uxd = {
           "type": "f32"
         }
       ]
-    },
-    {
-      "name": "redeemFromZoDepository",
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "redeemableMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoState",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoStateSigner",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoCache",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoControl",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoOpenOrders",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoDexMarket",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoReqQ",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoEventQ",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoMarketBids",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoMarketAsks",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "zoDexProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "zoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "maxBaseQuantity",
-          "type": "u64"
-        },
-        {
-          "name": "maxQuoteQuantity",
-          "type": "u64"
-        },
-        {
-          "name": "limitPrice",
-          "type": "u64"
-        }
-      ]
     }
   ],
   "accounts": [
@@ -3586,19 +2267,6 @@ export const IDL: Uxd = {
           },
           {
             "name": "reserved",
-            "type": "u8"
-          },
-          {
-            "name": "registeredZoDepositories",
-            "type": {
-              "array": [
-                "publicKey",
-                8
-              ]
-            }
-          },
-          {
-            "name": "registeredZoDepositoriesCount",
             "type": "u8"
           }
         ]
@@ -3666,78 +2334,6 @@ export const IDL: Uxd = {
           },
           {
             "name": "mangoAccount",
-            "type": "publicKey"
-          },
-          {
-            "name": "controller",
-            "type": "publicKey"
-          },
-          {
-            "name": "insuranceAmountDeposited",
-            "type": "u128"
-          },
-          {
-            "name": "collateralAmountDeposited",
-            "type": "u128"
-          },
-          {
-            "name": "redeemableAmountUnderManagement",
-            "type": "u128"
-          },
-          {
-            "name": "totalAmountPaidTakerFee",
-            "type": "u128"
-          },
-          {
-            "name": "totalAmountRebalanced",
-            "type": "u128"
-          }
-        ]
-      }
-    },
-    {
-      "name": "zoDepository",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "zoAccountBump",
-            "type": "u8"
-          },
-          {
-            "name": "version",
-            "type": "u8"
-          },
-          {
-            "name": "isInitialized",
-            "type": "bool"
-          },
-          {
-            "name": "zoDexMarket",
-            "type": "publicKey"
-          },
-          {
-            "name": "collateralMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "collateralMintDecimals",
-            "type": "u8"
-          },
-          {
-            "name": "quoteMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "quoteMintDecimals",
-            "type": "u8"
-          },
-          {
-            "name": "zoAccount",
             "type": "publicKey"
           },
           {
@@ -3855,66 +2451,6 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoAccount",
-          "type": "publicKey",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "RegisterZoDepositoryEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "depositoryVersion",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "collateralMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "quoteMint",
-          "type": "publicKey",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "InitializeZoDepositoryEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "zoAccount",
           "type": "publicKey",
           "index": false
         }
@@ -4261,51 +2797,6 @@ export const IDL: Uxd = {
           "index": false
         }
       ]
-    },
-    {
-      "name": "ZoMintEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "user",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "collateralAmount",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "collateralDepositedAmount",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "limitPrice",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "mintedAmount",
-          "type": "u64",
-          "index": false
-        }
-      ]
     }
   ],
   "errors": [
@@ -4466,116 +2957,71 @@ export const IDL: Uxd = {
     },
     {
       "code": 6031,
-      "name": "MaxNumberOfZoDepositoriesRegisteredReached",
-      "msg": "Cannot register more ZO depositories, the limit has been reached."
-    },
-    {
-      "code": 6032,
-      "name": "ZoDepositoriesSoftCapOverflow",
-      "msg": "Operation not allowed due to being over the ZO Redeemable soft Cap."
-    },
-    {
-      "code": 6033,
       "name": "InvalidMangoGroup",
       "msg": "Could not load the provided MangoGroup account."
     },
     {
-      "code": 6034,
+      "code": 6032,
       "name": "QuantityBelowContractSize",
       "msg": "The order quantity is below contract_size of the perp market."
     },
     {
-      "code": 6035,
+      "code": 6033,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6036,
+      "code": 6034,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6037,
+      "code": 6035,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6038,
+      "code": 6036,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6039,
+      "code": 6037,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6040,
+      "code": 6038,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6041,
+      "code": 6039,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6042,
-      "name": "InvalidZoAccount",
-      "msg": "The Zo Account isn't the Depository's one."
-    },
-    {
-      "code": 6043,
-      "name": "ZOPerpMarketNotFound",
-      "msg": "The Zo PerpMarket index could not be found."
-    },
-    {
-      "code": 6044,
-      "name": "ZOPerpMarketInfoNotFound",
-      "msg": "The Zo PerpMarketInfo could not be found."
-    },
-    {
-      "code": 6045,
-      "name": "ZOOpenOrdersInfoNotFound",
-      "msg": "The Zo OpenOrdersInfo could not be found."
-    },
-    {
-      "code": 6046,
-      "name": "ZOInvalidControlState",
-      "msg": "The Zo Control is in an invalid state."
-    },
-    {
-      "code": 6047,
-      "name": "ZoDepositoryAlreadyInitialized",
-      "msg": "The Zo depository PDAs are already initialized."
-    },
-    {
-      "code": 6048,
-      "name": "ZoDepositoryNotInitialized",
-      "msg": "The Zo depository PDAs haven't been initialized yet."
-    },
-    {
-      "code": 6049,
+      "code": 6040,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6050,
+      "code": 6041,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6051,
+      "code": 6042,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6052,
+      "code": 6043,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6053,
+      "code": 6044,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
