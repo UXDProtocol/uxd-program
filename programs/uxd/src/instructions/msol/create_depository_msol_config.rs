@@ -7,6 +7,7 @@ use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::MSOL_CONFIG_NAMESPACE;
+use crate::MSOL_CONFIG_SPACE;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
@@ -20,24 +21,22 @@ pub struct CreateDepositoryMSolConfig<'info> {
 
     /// #3 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
-        mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
+        bump = controller.load()?.bump,
         has_one = authority @UxdError::InvalidAuthority,
+        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance
     /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
-        mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.bump,
+        bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
-        constraint = depository.collateral_mint == spl_token::native_mint::id() @UxdError::InvalidNonNativeMintUsed
+        constraint = depository.load()?.collateral_mint == spl_token::native_mint::id() @UxdError::InvalidNonNativeMintUsed
     )]
-    pub depository: Box<Account<'info, MangoDepository>>,
+    pub depository: AccountLoader<'info, MangoDepository>,
 
     /// #5 Msol config account for the `depository` instance
     #[account(
@@ -45,8 +44,9 @@ pub struct CreateDepositoryMSolConfig<'info> {
         seeds = [MSOL_CONFIG_NAMESPACE, depository.key().as_ref()],
         bump,
         payer = payer,
+        space = MSOL_CONFIG_SPACE
     )]
-    pub msol_config: Box<Account<'info, MSolConfig>>,
+    pub msol_config: AccountLoader<'info, MSolConfig>,
 
     /// #6 System Program
     pub system_program: Program<'info, System>,
@@ -59,22 +59,24 @@ pub fn handler(
     ctx: Context<CreateDepositoryMSolConfig>,
     target_liquidity_ratio: u16,
 ) -> Result<()> {
-    ctx.accounts.msol_config.bump = *ctx
+    let msol_config = &mut ctx.accounts.msol_config.load_init()?;
+
+    msol_config.bump = *ctx
         .bumps
         .get("msol_config")
         .ok_or_else(|| error!(UxdError::BumpError))?;
-    ctx.accounts.msol_config.depository = ctx.accounts.depository.key();
-    ctx.accounts.msol_config.controller = ctx.accounts.controller.key();
-    ctx.accounts.msol_config.enabled = false;
-    ctx.accounts.msol_config.target_liquidity_ratio = target_liquidity_ratio;
+    msol_config.depository = ctx.accounts.depository.key();
+    msol_config.controller = ctx.accounts.controller.key();
+    msol_config.enabled = false;
+    msol_config.target_liquidity_ratio = target_liquidity_ratio;
 
     emit!(CreateDepositoryMSolConfigEvent {
-        version: ctx.accounts.controller.version,
-        controller: ctx.accounts.msol_config.controller,
-        depository: ctx.accounts.msol_config.depository,
-        msol_config: ctx.accounts.msol_config.key(),
-        enabled: ctx.accounts.msol_config.enabled,
-        target_liquidity_ratio: ctx.accounts.msol_config.target_liquidity_ratio,
+        version: ctx.accounts.controller.load()?.version,
+        controller: msol_config.controller,
+        depository: msol_config.depository,
+        msol_config: msol_config.key(),
+        enabled: msol_config.enabled,
+        target_liquidity_ratio: msol_config.target_liquidity_ratio,
     });
 
     Ok(())
@@ -82,9 +84,10 @@ pub fn handler(
 
 impl<'info> CreateDepositoryMSolConfig<'info> {
     pub fn validate(&mut self, target_liquidity_ratio: u16) -> Result<()> {
-        if target_liquidity_ratio > TARGET_LIQUIDITY_RATIO_MAX {
-            return Err(error!(UxdError::TargetLiquidityRatioExceedMax));
-        }
+        require!(
+            target_liquidity_ratio <= TARGET_LIQUIDITY_RATIO_MAX,
+            UxdError::TargetLiquidityRatioExceedMax
+        );
         Ok(())
     }
 }
