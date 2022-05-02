@@ -6,7 +6,7 @@ import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTes
 import { redeemFromMangoDepositoryTest } from "../cases/redeemFromMangoDepositoryTest";
 import { slippageBase } from "../constants";
 import { mango } from "../fixtures";
-import { getBalance, printDepositoryInfo, printUserInfo, transferAllTokens, transferSol, transferTokens } from "../utils";
+import { getBalance, printUserInfo, transferAllTokens, transferSol, transferTokens } from "../utils";
 
 export const mangoDepositoryMintRedeemSuite = function (user: Signer, payer: Signer, controller: Controller, depository: MangoDepository, slippage: number) {
 

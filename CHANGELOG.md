@@ -1,9 +1,12 @@
 # CHANGELOG
 
-## v3.1.0
+## [Unreleased]
 
-1. Use place_perp_order_v2 to save computing and reduce composability issues
-2. Pass a limit_price in place of the slippage to ensure execution price match user expectations
+- Use place_perp_order_v2 to save computing and reduce composability issues
+- Pass a limit_price in place of the slippage to ensure execution price match user expectations
+- Add `01` support (mint/redeem/depositories creation)
+- Remove init_if_needed (and remove Rent and Associated Token Program from inputs)
+- Updates Anchor to version 0.24.2
 
 ## v3.0.2 (audit report fixes Soteria)
 

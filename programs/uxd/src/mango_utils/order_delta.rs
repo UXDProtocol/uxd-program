@@ -69,9 +69,7 @@ pub fn derive_order_delta(
     let base_delta = base_delta(pre_pa, post_pa, perp_info.base_lot_size)?;
     let quote_delta = quote_delta(pre_pa, post_pa, perp_info.quote_lot_size)?;
     // Quote amount from an order cannot be 0 at this stage
-    if quote_delta.is_zero() {
-        return Err(error!(UxdError::InvalidQuoteDelta));
-    }
+    require!(!quote_delta.is_zero(), UxdError::InvalidQuoteDelta);
     let fee_delta = taker_fee_amount_ceil(quote_delta, perp_info.effective_fee)?;
 
     Ok(OrderDelta {

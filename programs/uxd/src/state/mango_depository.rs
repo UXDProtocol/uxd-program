@@ -1,7 +1,28 @@
 use anchor_lang::prelude::*;
 
-#[account]
-#[derive(Default)]
+pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 496;
+pub const MANGO_DEPOSITORY_SPACE: usize = 8
+    + 1
+    + 2
+    + 1
+    + 1
+    + 32
+    + 1
+    + 32
+    + 32
+    + 32
+    + 1
+    + 32
+    + 32
+    + 16
+    + 16
+    + 16
+    + 16
+    + 16
+    + MANGO_DEPOSITORY_RESERVED_SPACE;
+
+#[account(zero_copy)]
+#[repr(packed)]
 pub struct MangoDepository {
     pub bump: u8,
     pub _unused: [u8; 2],
@@ -41,27 +62,4 @@ pub struct MangoDepository {
     //
     // The amount of DN position that has been rebalanced (in quote native units)
     pub total_amount_rebalanced: u128,
-    //
-    pub _reserved: MangoDepositoryPadding,
-}
-
-#[derive(Clone)]
-pub struct MangoDepositoryPadding([u8; 496]);
-
-impl AnchorSerialize for MangoDepositoryPadding {
-    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
-        writer.write_all(&self.0)
-    }
-}
-
-impl AnchorDeserialize for MangoDepositoryPadding {
-    fn deserialize(_: &mut &[u8]) -> std::io::Result<Self> {
-        Ok(Self([0u8; 496]))
-    }
-}
-
-impl Default for MangoDepositoryPadding {
-    fn default() -> Self {
-        MangoDepositoryPadding([0u8; 496])
-    }
 }

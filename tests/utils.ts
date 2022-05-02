@@ -4,7 +4,7 @@ import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
 
-const SOLANA_FEES_LAMPORT: number = 50000;
+const SOLANA_FEES_LAMPORT: number = 5000;
 
 export async function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
     const transaction = new anchor.web3.Transaction().add(
@@ -93,13 +93,13 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
     const pa = mangoAccount.perpAccounts[pmi];
     const pm = await mango.getPerpMarket(SYM);
     const cache = await mango.group.loadCache(provider);
-    const accountValue = mangoAccount.computeValue(mango.group, cache).toBig();
+    const accountValue = mangoAccount.computeValue(mango.group, cache).toBig().toNumber();
     const accountingInsuranceDepositedValue = nativeToUi(depositoryAccount.insuranceAmountDeposited.toNumber(), depository.quoteMintDecimals);
     // 
     const collateralSpotAmount = await depository.getCollateralBalance(mango);
     // const insuranceSpotAmount = await 
     //
-    const collateralDepositInterests = collateralSpotAmount.toBig().sub(depositoryAccount.collateralAmountDeposited);
+    const collateralDepositInterests = collateralSpotAmount.toBig().sub(depositoryAccount.collateralAmountDeposited).toNumber();
     // const insuranceDepositInterests = insuranceSpotAmount.toBig().sub(depositoryAccount.insuranceAmountDeposited);
     //
     const accountValueMinusTotalInsuranceDeposited = accountValue - accountingInsuranceDepositedValue;

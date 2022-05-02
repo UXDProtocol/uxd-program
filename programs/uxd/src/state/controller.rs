@@ -3,8 +3,11 @@ use anchor_lang::prelude::*;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
-#[account]
-#[derive(Default)]
+pub const CONTROLLER_SPACE: usize =
+    8 + 1 + 1 + 1 + 32 + 32 + 1 + (32 * 8) + 1 + 16 + 8 + 16 + 1 + 254;
+
+#[account(zero_copy)]
+#[repr(packed)]
 pub struct Controller {
     pub bump: u8,
     pub redeemable_mint_bump: u8,
@@ -36,29 +39,7 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
     //
-    // Note : This is the last thing I'm working on and I would love some guidance from the audit. Anchor doesn't seems to play nice with padding
-    pub _reserved: ControllerPadding,
-}
-
-#[derive(Clone)]
-pub struct ControllerPadding([u8; 512]);
-
-impl AnchorSerialize for ControllerPadding {
-    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
-        writer.write_all(&self.0)
-    }
-}
-
-impl AnchorDeserialize for ControllerPadding {
-    fn deserialize(_: &mut &[u8]) -> std::io::Result<Self> {
-        Ok(Self([0u8; 512]))
-    }
-}
-
-impl Default for ControllerPadding {
-    fn default() -> Self {
-        ControllerPadding([0u8; 512])
-    }
+    pub _reserved: u8,
 }
 
 impl Controller {
@@ -67,11 +48,10 @@ impl Controller {
         mango_depository_id: Pubkey,
     ) -> Result<()> {
         let current_size = usize::from(self.registered_mango_depositories_count);
-        if !(current_size < MAX_REGISTERED_MANGO_DEPOSITORIES) {
-            return Err(error!(
-                UxdError::MaxNumberOfMangoDepositoriesRegisteredReached
-            ));
-        }
+        require!(
+            current_size < MAX_REGISTERED_MANGO_DEPOSITORIES,
+            UxdError::MaxNumberOfMangoDepositoriesRegisteredReached
+        );
         // Increment registered Mango Depositories count
         self.registered_mango_depositories_count = self
             .registered_mango_depositories_count

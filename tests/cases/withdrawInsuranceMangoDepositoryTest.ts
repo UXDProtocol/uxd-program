@@ -16,7 +16,7 @@ export const withdrawInsuranceMangoDepositoryTest = async function (amount: numb
         const insuranceDepositedAmount = nativeToUi(depositoryOnchainAccount.insuranceAmountDeposited.toNumber(), depository.quoteMintDecimals);
 
         // WHEN
-        const txId = await withdrawInsuranceFromMangoDepository(authority, amount, controller, depository, mango);
+        const txId = await withdrawInsuranceFromMangoDepository(amount, authority, controller, depository, mango);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
