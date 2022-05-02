@@ -435,12 +435,7 @@ pub mod uxd {
         target_liquidity_ratio: u16,
     ) -> Result<()> {
         msg!("[create_depository_msol_config]");
-        instructions::create_depository_msol_config::handler(ctx, target_liquidity_ratio).map_err(
-            |e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            },
-        )
+        instructions::create_depository_msol_config::handler(ctx, target_liquidity_ratio)
     }
 
     #[access_control(
@@ -448,10 +443,7 @@ pub mod uxd {
     )]
     pub fn enable_msol_swap(ctx: Context<EnableMsolSwap>, enable: bool) -> Result<()> {
         msg!("[enable_msol_swap]");
-        instructions::enable_msol_swap::handler(ctx, enable).map_err(|e| {
-            msg!("<*> {}", e); // log the error
-            e.into() // convert UxdError to generic ProgramError
-        })
+        instructions::enable_msol_swap::handler(ctx, enable)
     }
 
     #[access_control(
@@ -462,10 +454,15 @@ pub mod uxd {
         target_liquidity_ratio: u16,
     ) -> Result<()> {
         msg!("[set_msol_liquidity_ratio]");
-        instructions::set_msol_liquidity_ratio::handler(ctx, target_liquidity_ratio).map_err(|e| {
-            msg!("<*> {}", e); // log the error
-            e.into() // convert UxdError to generic ProgramError
-        })
+        instructions::set_msol_liquidity_ratio::handler(ctx, target_liquidity_ratio)
+    }
+
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn swap_depository_msol(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
+        msg!("[swap_depository_msol]");
+        instructions::swap_depository_msol::handler(ctx)
     }
 }
 

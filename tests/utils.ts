@@ -188,7 +188,7 @@ export const prepareWrappedSolTokenAccount = async (
 };
 
 // derives the canonical token account address for a given wallet and mint
-function findAssociatedTokenAddress(walletKey, mintKey) {
+export function findAssociatedTokenAddress(walletKey, mintKey) {
     if (!walletKey || !mintKey) return;
     return findAddr(
         [walletKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintKey.toBuffer()],
@@ -197,7 +197,7 @@ function findAssociatedTokenAddress(walletKey, mintKey) {
 }
 
 // simple shorthand
-function findAddr(seeds, programId) {
+export function findAddr(seeds, programId) {
     return anchor.utils.publicKey.findProgramAddressSync(seeds, programId)[0];
 }
 

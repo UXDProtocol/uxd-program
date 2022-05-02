@@ -30,7 +30,8 @@ anchor-comp = { version = "0.1.6", git = "https://github.com/UXDProtocol/anchor-
 fixed = "^1.9.0"
 num-traits = "0.2.14"
 spl-math = { version = "0.1.0", features = ["no-entrypoint"] }
-
+marinade-finance = { git = "https://github.com/UXDProtocol/liquid-staking-program", features = ["no-entrypoint"] }
+marinade-onchain-helper = { git = "https://github.com/UXDProtocol/marinade-onchain-helper" }
 
 [dev-dependencies]
 proptest = "1.0.0"
