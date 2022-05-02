@@ -7,8 +7,7 @@ pub const TARGET_LIQUIDITY_RATIO_MAX: u16 = 10000;
 
 const MSOL_CONFIG_PADDING: usize = 64;
 
-pub const MSOL_CONFIG_SPACE: usize =
-    8 + 1 + 32 + 32 + 1 + 2 + MSOL_CONFIG_PADDING;
+pub const MSOL_CONFIG_SPACE: usize = 8 + 1 + 32 + 32 + 1 + 2 + MSOL_CONFIG_PADDING;
 
 #[account(zero_copy)]
 pub struct MSolConfig {

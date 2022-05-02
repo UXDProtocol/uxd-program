@@ -31,7 +31,7 @@ pub struct CreateDepositoryMSolConfig<'info> {
     /// #4 UXDProgram on chain account bound to a Controller instance
     /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         constraint = depository.load()?.collateral_mint == spl_token::native_mint::id() @UxdError::InvalidNonNativeMintUsed
@@ -74,7 +74,7 @@ pub fn handler(
         version: ctx.accounts.controller.load()?.version,
         controller: msol_config.controller,
         depository: msol_config.depository,
-        msol_config: msol_config.key(),
+        msol_config: ctx.accounts.msol_config.key(),
         enabled: msol_config.enabled,
         target_liquidity_ratio: msol_config.target_liquidity_ratio,
     });
