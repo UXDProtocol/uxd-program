@@ -196,7 +196,7 @@ export type Uxd = {
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -257,7 +257,7 @@ export type Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -272,7 +272,7 @@ export type Uxd = {
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -368,12 +368,12 @@ export type Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "mangoRootBankQuote",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -388,7 +388,7 @@ export type Uxd = {
         },
         {
           "name": "mangoRootBankCollateral",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -432,17 +432,7 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -514,12 +504,12 @@ export type Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -563,17 +553,7 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -644,7 +624,7 @@ export type Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -654,7 +634,7 @@ export type Uxd = {
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -698,17 +678,7 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -782,9 +752,7 @@ export type Uxd = {
           },
           {
             "name": "reserved",
-            "type": {
-              "defined": "ControllerPadding"
-            }
+            "type": "u8"
           }
         ]
       }
@@ -876,12 +844,6 @@ export type Uxd = {
           {
             "name": "totalAmountRebalanced",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": {
-              "defined": "MangoDepositoryPadding"
-            }
           }
         ]
       }
@@ -1050,42 +1012,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "DepositInsuranceToMangoDepositoryEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "insuranceMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "insuranceMintDecimals",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "depositedAmount",
-          "type": "u64",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "DepositInsuranceToMangoDepositoryEventV2",
+      "name": "DepositInsuranceToDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -1155,7 +1082,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDepositoryEventV2",
+      "name": "WithdrawInsuranceFromDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -1240,7 +1167,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "RedeemFromMangoDepositoryEvent",
+      "name": "RedeemFromDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -1386,7 +1313,7 @@ export type Uxd = {
     {
       "code": 6005,
       "name": "InvalidCollateralAmount",
-      "msg": "Collateral amount must be > 0 in order to mint."
+      "msg": "Collateral amount cannot be 0"
     },
     {
       "code": 6006,
@@ -1416,7 +1343,7 @@ export type Uxd = {
     {
       "code": 6011,
       "name": "MangoDepositoriesSoftCapOverflow",
-      "msg": "Operation not allowed due to being over the Redeemable soft Cap."
+      "msg": "Operation not allowed due to being over the Mango Redeemable soft Cap."
     },
     {
       "code": 6012,
@@ -1550,21 +1477,36 @@ export type Uxd = {
     },
     {
       "code": 6038,
-      "name": "InvalidAuthorityQuoteATAMint",
-      "msg": "The authority's Quote ATA's mint does not match the Depository's one."
-    },
-    {
-      "code": 6039,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6040,
+      "code": 6039,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
+      "code": 6040,
+      "name": "InvalidDexMarket",
+      "msg": "The provided perp_market is not the one tied to this Depository."
+    },
+    {
       "code": 6041,
+      "name": "InvalidOwner",
+      "msg": "The provided token account is not owner by the expected party."
+    },
+    {
+      "code": 6042,
+      "name": "InvalidMaxBaseQuantity",
+      "msg": "The max base quantity must be above 0."
+    },
+    {
+      "code": 6043,
+      "name": "InvalidMaxQuoteQuantity",
+      "msg": "The max quote quantity must be above 0."
+    },
+    {
+      "code": 6044,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
@@ -1769,7 +1711,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1830,7 +1772,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoGroup",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1845,7 +1787,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1941,12 +1883,12 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "mangoRootBankQuote",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1961,7 +1903,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoRootBankCollateral",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2005,17 +1947,7 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -2087,12 +2019,12 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2136,17 +2068,7 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -2217,7 +2139,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2227,7 +2149,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2271,17 +2193,7 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -2355,9 +2267,7 @@ export const IDL: Uxd = {
           },
           {
             "name": "reserved",
-            "type": {
-              "defined": "ControllerPadding"
-            }
+            "type": "u8"
           }
         ]
       }
@@ -2449,12 +2359,6 @@ export const IDL: Uxd = {
           {
             "name": "totalAmountRebalanced",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": {
-              "defined": "MangoDepositoryPadding"
-            }
           }
         ]
       }
@@ -2623,42 +2527,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "DepositInsuranceToMangoDepositoryEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "insuranceMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "insuranceMintDecimals",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "depositedAmount",
-          "type": "u64",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "DepositInsuranceToMangoDepositoryEventV2",
+      "name": "DepositInsuranceToDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -2728,7 +2597,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "WithdrawInsuranceFromMangoDepositoryEventV2",
+      "name": "WithdrawInsuranceFromDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -2813,7 +2682,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "RedeemFromMangoDepositoryEvent",
+      "name": "RedeemFromDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -2959,7 +2828,7 @@ export const IDL: Uxd = {
     {
       "code": 6005,
       "name": "InvalidCollateralAmount",
-      "msg": "Collateral amount must be > 0 in order to mint."
+      "msg": "Collateral amount cannot be 0"
     },
     {
       "code": 6006,
@@ -2989,7 +2858,7 @@ export const IDL: Uxd = {
     {
       "code": 6011,
       "name": "MangoDepositoriesSoftCapOverflow",
-      "msg": "Operation not allowed due to being over the Redeemable soft Cap."
+      "msg": "Operation not allowed due to being over the Mango Redeemable soft Cap."
     },
     {
       "code": 6012,
@@ -3123,21 +2992,36 @@ export const IDL: Uxd = {
     },
     {
       "code": 6038,
-      "name": "InvalidAuthorityQuoteATAMint",
-      "msg": "The authority's Quote ATA's mint does not match the Depository's one."
-    },
-    {
-      "code": 6039,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6040,
+      "code": 6039,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
+      "code": 6040,
+      "name": "InvalidDexMarket",
+      "msg": "The provided perp_market is not the one tied to this Depository."
+    },
+    {
       "code": 6041,
+      "name": "InvalidOwner",
+      "msg": "The provided token account is not owner by the expected party."
+    },
+    {
+      "code": 6042,
+      "name": "InvalidMaxBaseQuantity",
+      "msg": "The max base quantity must be above 0."
+    },
+    {
+      "code": 6043,
+      "name": "InvalidMaxQuoteQuantity",
+      "msg": "The max quote quantity must be above 0."
+    },
+    {
+      "code": 6044,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }

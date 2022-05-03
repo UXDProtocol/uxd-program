@@ -1,10 +1,30 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 
-const MANGO_DEPOSITORY_PADDING: usize = 480;
+pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 488;
+pub const MANGO_DEPOSITORY_SPACE: usize = 8
+    + 1
+    + 2
+    + 1
+    + 1
+    + 32
+    + 1
+    + 32
+    + 32
+    + 32
+    + 1
+    + 32
+    + 32
+    + 16
+    + 16
+    + 16
+    + 16
+    + 16
+    + 8
+    + MANGO_DEPOSITORY_RESERVED_SPACE;
 
-#[account]
-#[derive(Default)]
+#[account(zero_copy)]
+#[repr(packed)]
 pub struct MangoDepository {
     pub bump: u8,
     pub _unused: [u8; 2],
@@ -47,27 +67,4 @@ pub struct MangoDepository {
     //
     // The amount of redeemable that has been minted with quote mint
     pub total_quote_minted: u64,
-    //
-    pub _reserved: MangoDepositoryPadding,
-}
-
-#[derive(Clone)]
-pub struct MangoDepositoryPadding([u8; MANGO_DEPOSITORY_PADDING]);
-
-impl AnchorSerialize for MangoDepositoryPadding {
-    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
-        writer.write_all(&self.0)
-    }
-}
-
-impl AnchorDeserialize for MangoDepositoryPadding {
-    fn deserialize(_: &mut &[u8]) -> std::io::Result<Self> {
-        Ok(Self([0u8; MANGO_DEPOSITORY_PADDING]))
-    }
-}
-
-impl Default for MangoDepositoryPadding {
-    fn default() -> Self {
-        MangoDepositoryPadding([0u8; MANGO_DEPOSITORY_PADDING])
-    }
 }

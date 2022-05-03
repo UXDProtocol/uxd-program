@@ -1,10 +1,10 @@
 import { getConnection, TXN_OPTS } from "./connection";
 import { uxdClient } from "./constants";
-import { Account, PartiallyDecodedInstruction, Signer, Transaction } from '@solana/web3.js';
+import { Keypair, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller, PnLPolarity, } from "@uxdprotocol/uxd-client";
-import { web3 } from "@project-serum/anchor";
+import { MangoDepository, Mango, Controller, PnLPolarity, createAssocTokenIx, findATAAddrSync } from "@uxdprotocol/uxd-client";
+import { BN, web3 } from "@project-serum/anchor";
 
 // Permissionned Calls --------------------------------------------------------
 
@@ -38,7 +38,7 @@ export async function registerMangoDepository(authority: Signer, payer: Signer, 
 }
 
 export async function depositInsuranceToMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
-    const depositInsuranceToMangoDepositoryIx = uxdClient.createDepositInsuranceToMangoDepositoryInstruction(amount, controller, depository, mango, authority.publicKey, TXN_OPTS);
+    const depositInsuranceToMangoDepositoryIx = await uxdClient.createDepositInsuranceToMangoDepositoryInstruction(amount, controller, depository, mango, authority.publicKey, TXN_OPTS);
     let signers = [];
     let tx = new Transaction();
 
@@ -48,10 +48,16 @@ export async function depositInsuranceToMangoDepository(authority: Signer, amoun
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function withdrawInsuranceFromMangoDepository(authority: Signer, amount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
+export async function withdrawInsuranceFromMangoDepository(amount: number, authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const withdrawInsuranceFromMangoDepository = uxdClient.createWithdrawInsuranceFromMangoDepositoryInstruction(amount, controller, depository, mango, authority.publicKey, TXN_OPTS);
     let signers = [];
     let tx = new Transaction();
+
+    const authorityQuoteAta = findATAAddrSync(authority.publicKey, depository.quoteMint)[0];
+    if (!await getConnection().getAccountInfo(authorityQuoteAta)) {
+        const createUserQuoteAtaIx = createAssocTokenIx(authority.publicKey, authorityQuoteAta, depository.quoteMint);
+        tx.add(createUserQuoteAtaIx);
+    }
 
     tx.instructions.push(withdrawInsuranceFromMangoDepository);
     signers.push(authority);
@@ -88,6 +94,12 @@ export async function mintWithMangoDepository(user: Signer, payer: Signer, slipp
     let signers = [];
     let tx = new Transaction();
 
+    const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
+    if (!await getConnection().getAccountInfo(userRedeemableAta)) {
+        const createUserRedeemableAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
+        tx.add(createUserRedeemableAtaIx);
+    }
+
     if (depository.collateralMint.equals(NATIVE_MINT)) {
         const nativeAmount = collateralAmount * 10 ** depository.collateralMintDecimals;
         const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
@@ -96,10 +108,18 @@ export async function mintWithMangoDepository(user: Signer, payer: Signer, slipp
             user.publicKey,
             nativeAmount
         );
-        tx.instructions.push(...prepareWrappedSolIxs);
+        tx.add(...prepareWrappedSolIxs);
+    } else {
+        console.log("Find user ata");
+        const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
+        if (!await getConnection().getAccountInfo(userCollateralAta)) {
+            const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
+            console.log("will create user ata");
+            tx.add(createUserCollateralAtaIx);
+        }
     }
 
-    tx.instructions.push(mintWithMangoDepositoryIx);
+    tx.add(mintWithMangoDepositoryIx);
     signers.push(user);
     if (payer) {
         signers.push(payer);
@@ -128,7 +148,19 @@ export async function redeemFromMangoDepository(user: Signer, payer: Signer, sli
     let signers = [];
     let tx = new Transaction();
 
-    tx.instructions.push(redeemFromMangoDepositoryIx);
+    const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
+    if (!await getConnection().getAccountInfo(userCollateralAta)) {
+        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
+        tx.add(createUserCollateralAtaIx);
+    }
+
+    const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
+    if (!await getConnection().getAccountInfo(userRedeemableAta)) {
+        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
+        tx.add(createUserCollateralAtaIx);
+    }
+
+    tx.add(redeemFromMangoDepositoryIx);
     signers.push(user);
     if (payer) {
         signers.push(payer);
@@ -156,7 +188,7 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
             user.publicKey,
             nativeAmount
         );
-        tx.instructions.push(...prepareWrappedSolIxs);
+        tx.add(...prepareWrappedSolIxs);
     } else {
         // TEMPORARY - Also make a WSOL account to prevent program doing it and save some computing
         const createWSOLATAIxs = await prepareWrappedSolTokenAccount(
@@ -165,10 +197,16 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
             user.publicKey,
             0
         );
-        tx.instructions.push(...createWSOLATAIxs);
+        tx.add(...createWSOLATAIxs);
     }
 
-    tx.instructions.push(rebalanceMangoDepositoryLiteIx);
+    const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
+    if (!await getConnection().getAccountInfo(userCollateralAta)) {
+        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
+        tx.add(createUserCollateralAtaIx);
+    }
+
+    tx.add(rebalanceMangoDepositoryLiteIx);
     signers.push(user);
     if (payer) {
         signers.push(payer);
@@ -187,6 +225,5 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
 // Non UXD API calls ----------------------------------------------------------
 
 export async function settleDepositoryPnl(payer: Signer, depository: MangoDepository, mango: Mango): Promise<string> {
-    let payerAccount = new Account(payer.secretKey);
-    return depository.settleMangoDepositoryMangoAccountPnl(payerAccount, mango);
+    return depository.settleMangoDepositoryMangoAccountPnl(payer as Keypair, mango);
 }

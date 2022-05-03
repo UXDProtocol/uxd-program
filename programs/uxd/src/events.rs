@@ -90,31 +90,9 @@ pub struct SetMangoDepositoryRedeemableSoftCapEvent {
     pub redeemable_soft_cap: u64,
 }
 
-// - Mango Depositories -------------------------------------------------------
-
-/// Event called in [instructions::mango_dex::deposit_insurance_to_mango_depository::handler].
+/// Event called in [instructions::*::deposit_insurance_to_*_depository::handler].
 #[event]
-pub struct DepositInsuranceToMangoDepositoryEvent {
-    /// The controller version.
-    #[index]
-    pub version: u8,
-    /// The controller.
-    #[index]
-    pub controller: Pubkey,
-    /// The depository.
-    #[index]
-    pub depository: Pubkey,
-    // The insurance mint.
-    pub insurance_mint: Pubkey,
-    // The insurance mint decimals.
-    pub insurance_mint_decimals: u8,
-    // The deposited amount in native units.
-    pub deposited_amount: u64,
-}
-
-/// Event called in [instructions::mango_dex::deposit_insurance_to_mango_depository::handler].
-#[event]
-pub struct DepositInsuranceToMangoDepositoryEventV2 {
+pub struct DepositInsuranceToDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,
@@ -152,9 +130,9 @@ pub struct WithdrawInsuranceFromMangoDepositoryEvent {
     pub withdrawn_amount: u64,
 }
 
-/// Event called in [instructions::mango_dex::withdraw_insurance_from_mango_depository::handler].
+// Event called in [instructions::*_dex::withdraw_insurance_from_*_depository::handler].
 #[event]
-pub struct WithdrawInsuranceFromMangoDepositoryEventV2 {
+pub struct WithdrawInsuranceFromDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,
@@ -197,9 +175,9 @@ pub struct MintWithMangoDepositoryEvent {
     pub fee_delta: i64,
 }
 
-/// Event called in [instructions::mango_dex::redeem_from_mango_depository::handler].
+/// Event called in [instructions::*_dex::redeem_from_*_depository::handler].
 #[event]
-pub struct RedeemFromMangoDepositoryEvent {
+pub struct RedeemFromDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,
