@@ -231,3 +231,22 @@ pub struct RebalanceMangoDepositoryLiteEvent {
     pub quote_delta: i64,
     pub fee_delta: i64,
 }
+
+/// Event called in [instructions::create_depository_msol_config::handler].
+#[event]
+pub struct CreateDepositoryMSolConfigEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The msol config created.
+    #[index]
+    pub msol_config: Pubkey,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    pub enabled: bool,
+    pub target_liquidity_ratio: u16,
+}
