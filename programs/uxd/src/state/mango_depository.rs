@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::Mint;
 
 pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 488;
 pub const MANGO_DEPOSITORY_SPACE: usize = 8

@@ -33,57 +33,56 @@ pub struct QuoteMintWithMangoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
-    )]
-    pub controller: Box<Account<'info, Controller>>,
+        bump = controller.load()?.bump,
+        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+    )] 
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance.
     /// The `MangoDepository` manages a MangoAccount for a single Collateral.
     #[account(
         mut,
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.bump,
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = mango_account @UxdError::InvalidMangoAccount,
     )]
-    pub depository: Box<Account<'info, MangoDepository>>,
+    pub depository: AccountLoader<'info, MangoDepository>,
 
     /// #5 The redeemable mint managed by the `controller` instance
     /// Tokens will be minted during this instruction
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = controller.redeemable_mint_bump,
-        constraint = redeemable_mint.key() == controller.redeemable_mint @UxdError::InvalidRedeemableMint
+        bump = controller.load()?.redeemable_mint_bump,
+        constraint = redeemable_mint.key() == controller.load()?.redeemable_mint @UxdError::InvalidRedeemableMint
     )]
-    pub redeemable_mint: Box<Account<'info, Mint>>,
+    pub redeemable_mint: Account<'info, Mint>,
 
     /// #6 The `user`'s ATA for one the `mango depository`s `quote_mint`
     /// Will be debited during this instruction
     #[account(
         mut,
-        constraint = user_quote.mint == depository.quote_mint,
+        constraint = user_quote.mint == depository.load()?.quote_mint,
         constraint = user_quote.owner == *user.key,
     )]
-    pub user_quote: Box<Account<'info, TokenAccount>>,
+    pub user_quote: Account<'info, TokenAccount>,
 
     /// #7 The `user`'s ATA for the `controller`'s `redeemable_mint`
     /// Will be credited during this instruction
     #[account(
-        init_if_needed,
+        mut,
         associated_token::mint = redeemable_mint,
         associated_token::authority = user,
-        payer = payer,
     )]
-    pub user_redeemable: Box<Account<'info, TokenAccount>>,
+    pub user_redeemable: Account<'info, TokenAccount>,
 
     /// #9 The MangoMarkets Account (MangoAccount) managed by the `depository` ******************
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
-        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.mango_account_bump,
+        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.mango_account_bump,
     )]
     pub mango_account: AccountInfo<'info>,
 
@@ -134,14 +133,14 @@ pub fn handler(
     ctx: Context<QuoteMintWithMangoDepository>,
     quote_amount: u64,
 ) -> Result<()> {
-    let depository = &ctx.accounts.depository;
+    let depository = ctx.accounts.depository.load()?;
     let controller = &ctx.accounts.controller;
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         depository.collateral_mint.as_ref(),
         &[depository.bump],
     ]];
-    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.bump]]];
+    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.load()?.bump]]];
 
     // - [Get perp information]
     let perp_info = ctx.accounts.perpetual_info()?;
@@ -208,6 +207,8 @@ pub fn handler(
         quote_amount,
     )?;
 
+    drop(depository);
+
     // - 5 [MINT REDEEMABLE TO USER] ------------------------------------------
     let percentage_less_fees = 0.9995; // Add to depository // ***** add function to update the mango_depository var for this
     let redeemable_mint_less_fees: u64 = I80F48::checked_from_num::<f64>(percentage_less_fees)
@@ -268,8 +269,8 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
 
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
     fn check_redeemable_global_supply_cap_overflow(&self) -> Result<()> {
-        if self.controller.redeemable_circulating_supply
-            > self.controller.redeemable_global_supply_cap
+        if self.controller.load()?.redeemable_circulating_supply
+            > self.controller.load()?.redeemable_global_supply_cap
         {
             return Err(error!(UxdError::RedeemableGlobalSupplyCapReached));
         }
@@ -282,8 +283,8 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
         quote_amount_deposited: u64,
         redeemable_minted_amount: u128,
     ) -> Result<()> {
-        let depository = &mut self.depository;
-        let controller = &mut self.controller;
+        let depository = &mut self.depository.load_mut()?;
+        let controller = &mut self.controller.load_mut()?;
         // Mango Depository
         depository.total_quote_minted = depository
             .total_quote_minted
