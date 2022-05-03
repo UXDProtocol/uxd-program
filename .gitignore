@@ -27,3 +27,4 @@ scripts/swap_ci_resident_program_id.sh.bak
 .github/workflows/ci-anchor-test.yml.bak
 docker-target/
 /**/.DS_Store
+.history/
