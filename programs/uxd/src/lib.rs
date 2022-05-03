@@ -6,7 +6,6 @@ use mango::state::MangoGroup;
 
 #[macro_use]
 pub mod error;
-
 pub mod events;
 pub mod instructions;
 pub mod mango_utils;
@@ -312,15 +311,15 @@ pub mod uxd {
         collateral_amount: u64,
         limit_price: f32,
     ) -> Result<()> {
-        msg!(
-            "[mint_with_mango_depository] collateral_amount {}, limit_price {}",
-            collateral_amount,
-            limit_price
-        );
+        // msg!(
+        //     "[mint_with_mango_depository] collateral_amount {}, limit_price {}",
+        //     collateral_amount,
+        //     limit_price
+        // );
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, limit_price)
     }
 
-    /// Redeem `MangoDepository.collateral_mint` by burning redeemable tokens
+    /// Redeem `MangoDepository.collateral_mint` by burning redeemable
     /// tokens, and unwind a part of the delta neutral position.
     ///
     /// Parameters:
@@ -402,8 +401,9 @@ pub fn validate_perp_market_mint_matches_depository_collateral_mint(
         .find_perp_market_index(mango_perp_market_key)
         .ok_or_else(|| error!(UxdError::MangoPerpMarketIndexNotFound))?;
 
-    if mango_group.tokens[perp_market_index].mint != *collateral_mint_key {
-        return Err(error!(UxdError::MangoPerpMarketIndexNotFound));
-    }
+    require!(
+        mango_group.tokens[perp_market_index].mint == *collateral_mint_key,
+        UxdError::MangoPerpMarketIndexNotFound
+    );
     Ok(())
 }

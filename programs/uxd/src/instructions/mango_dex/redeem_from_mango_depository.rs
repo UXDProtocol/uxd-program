@@ -1,6 +1,4 @@
 use crate::error::UxdError;
-use crate::MANGO_PERP_MAX_FILL_EVENTS;
-// use crate::events::RedeemFromMangoDepositoryEvent2;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::PerpInfo;
@@ -10,11 +8,11 @@ use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
+use crate::MANGO_PERP_MAX_FILL_EVENTS;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
 use anchor_spl::token::CloseAccount;
@@ -27,7 +25,8 @@ use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 use num_traits::identities::Zero;
-/// Takes 24 accounts - 9 used locally - 10 for MangoMarkets CPI - 4 Programs - 1 Sysvar
+
+/// Takes 22 accounts
 #[derive(Accounts)]
 pub struct RedeemFromMangoDepository<'info> {
     /// #1 Public call accessible to any user
@@ -43,27 +42,26 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        bump = controller.load()?.bump,
+        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
+        has_one = redeemable_mint @UxdError::InvalidRedeemableMint
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance.
     /// The `MangoDepository` manages a MangoAccount for a single Collateral.
     #[account(
         mut,
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.bump,
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = mango_account @UxdError::InvalidMangoAccount,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint
     )]
-    pub depository: Box<Account<'info, MangoDepository>>,
+    pub depository: AccountLoader<'info, MangoDepository>,
 
     /// #5 The collateral mint used by the `depository` instance
     /// Required to create the user_collateral ATA if needed
-    #[account(
-        constraint = collateral_mint.key() == depository.collateral_mint @UxdError::InvalidCollateralMint
-    )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #6 The redeemable mint managed by the `controller` instance
@@ -71,18 +69,16 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = controller.redeemable_mint_bump,
-        constraint = redeemable_mint.key() == controller.redeemable_mint @UxdError::InvalidRedeemableMint
+        bump = controller.load()?.redeemable_mint_bump,
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
     /// #7 The `user`'s ATA for the `depository`'s `collateral_mint`
     /// Will be credited during this instruction
     #[account(
-        init_if_needed,
-        associated_token::mint = collateral_mint,
-        associated_token::authority = user,
-        payer = payer,
+        mut,
+        constraint = user_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
+        constraint = &user_collateral.owner == user.key @UxdError::InvalidOwner,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
@@ -90,9 +86,8 @@ pub struct RedeemFromMangoDepository<'info> {
     /// Will be debited during this instruction
     #[account(
         mut,
-        seeds = [user.key.as_ref(), token_program.key.as_ref(), controller.redeemable_mint.as_ref()],
-        bump,
-        seeds::program = AssociatedToken::id(),
+        constraint = user_redeemable.mint == controller.load()?.redeemable_mint @UxdError::InvalidRedeemableMint,
+        constraint = &user_redeemable.owner == user.key @UxdError::InvalidOwner,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
@@ -100,8 +95,8 @@ pub struct RedeemFromMangoDepository<'info> {
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
-        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.mango_account_bump,
+        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.mango_account_bump,
     )]
     pub mango_account: AccountInfo<'info>,
 
@@ -112,6 +107,7 @@ pub struct RedeemFromMangoDepository<'info> {
 
     /// #11 [MangoMarkets CPI] Cache
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_cache: UncheckedAccount<'info>,
 
     /// #12 [MangoMarkets CPI] Signer PDA
@@ -120,6 +116,7 @@ pub struct RedeemFromMangoDepository<'info> {
 
     /// #13 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_root_bank: UncheckedAccount<'info>,
 
     /// #14 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
@@ -158,14 +155,8 @@ pub struct RedeemFromMangoDepository<'info> {
     /// #21 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #22 Associated Token Program
-    pub associated_token_program: Program<'info, AssociatedToken>,
-
-    /// #23 MangoMarketv3 Program
+    /// #22 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
-
-    /// #24 Rent Sysvar
-    pub rent: Sysvar<'info, Rent>,
 }
 
 pub fn handler(
@@ -173,11 +164,15 @@ pub fn handler(
     redeemable_amount: u64,
     limit_price: f32,
 ) -> Result<()> {
-    let depository = &ctx.accounts.depository;
+    let depository = ctx.accounts.depository.load()?;
+    let collateral_mint = depository.collateral_mint;
+    let depository_bump = depository.bump;
+    drop(depository);
+
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
-        depository.collateral_mint.as_ref(),
-        &[depository.bump],
+        collateral_mint.as_ref(),
+        &[depository_bump],
     ]];
 
     // - 1 [CLOSE THE EQUIVALENT PERP SHORT ON MANGO] -------------------------
@@ -207,9 +202,10 @@ pub fn handler(
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    if max_quote_quantity.is_zero() {
-        return Err(error!(UxdError::QuantityBelowContractSize));
-    }
+    require!(
+        !max_quote_quantity.is_zero(),
+        UxdError::QuantityBelowContractSize
+    );
 
     // Note : Reduce the delta neutral position, increasing long exposure, by buying perp.
     //        [BID: taker (us, the caller) | ASK: maker]
@@ -238,9 +234,10 @@ pub fn handler(
     let post_pa = ctx.accounts.perp_account(&perp_info)?;
 
     // - 2 [BURN REDEEMABLES] -------------------------------------------------
-    if pre_pa.taker_quote < post_pa.taker_quote {
-        return Err(error!(UxdError::InvalidOrderDirection));
-    }
+    require!(
+        pre_pa.taker_quote >= post_pa.taker_quote,
+        UxdError::InvalidOrderDirection
+    );
     let order_delta = derive_order_delta(&pre_pa, &post_pa, &perp_info)?;
     msg!("order_delta {:?}", order_delta);
 
@@ -280,7 +277,7 @@ pub fn handler(
     )?;
 
     // - [If ATA mint is WSOL, unwrap]
-    if depository.collateral_mint == spl_token::native_mint::id() {
+    if collateral_mint == spl_token::native_mint::id() {
         token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
     }
 
@@ -314,8 +311,8 @@ impl<'info> RedeemFromMangoDepository<'info> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
-            authority: self.user.to_account_info(),
             from: self.user_redeemable.to_account_info(),
+            authority: self.user.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
@@ -403,8 +400,8 @@ impl<'info> RedeemFromMangoDepository<'info> {
         redeemable_burnt_amount: u128,
         fee_amount: u128,
     ) -> Result<()> {
-        let depository = &mut self.depository;
-        let controller = &mut self.controller;
+        let depository = &mut self.depository.load_mut()?;
+        let controller = &mut self.controller.load_mut()?;
         // Mango Depository
         depository.collateral_amount_deposited = depository
             .collateral_amount_deposited
@@ -429,21 +426,18 @@ impl<'info> RedeemFromMangoDepository<'info> {
 // Validate input arguments
 impl<'info> RedeemFromMangoDepository<'info> {
     pub fn validate(&self, redeemable_amount: u64, limit_price: f32) -> Result<()> {
-        if limit_price <= 0f32 {
-            return Err(error!(UxdError::InvalidLimitPrice));
-        }
-        if redeemable_amount == 0 {
-            return Err(error!(UxdError::InvalidRedeemableAmount));
-        }
-        if self.user_redeemable.amount < redeemable_amount {
-            return Err(error!(UxdError::InsufficientRedeemableAmount));
-        }
+        require!(limit_price > 0f32, UxdError::InvalidLimitPrice);
+        require!(redeemable_amount != 0, UxdError::InvalidRedeemableAmount);
+        require!(
+            self.user_redeemable.amount >= redeemable_amount,
+            UxdError::InsufficientRedeemableAmount
+        );
 
         validate_perp_market_mint_matches_depository_collateral_mint(
             &self.mango_group,
             self.mango_program.key,
             self.mango_perp_market.key,
-            &self.depository.collateral_mint,
+            &self.depository.load()?.collateral_mint,
         )?;
         Ok(())
     }

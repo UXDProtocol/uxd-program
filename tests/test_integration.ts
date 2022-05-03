@@ -4,8 +4,8 @@ import { authority, bank, uxdProgramId } from "./constants";
 import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters, mangoDepositoryAndControllerInteractionsSuite } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
-import { mangoDepositoryInsuranceSuite } from "./suite/mangoDepositoryInsuranceSuite";
-import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
+import { mangoDepositoryInsuranceSuite } from "./suite/depositoryInsuranceSuite";
+import { mangoDepositorySetupSuite } from "./suite/depositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 import { mangoDepositoryAndControllerAccountingSuite } from "./suite/mangoDepositoryAndControllerAccountingSuite";
@@ -50,7 +50,7 @@ describe("Integration tests SOL", function () {
         mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositorySOL);
     });
 
-    describe("mangoDepositoryMintRedeemSuite SOL", function () {
+    describe.only("mangoDepositoryMintRedeemSuite SOL", function () {
         mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositorySOL, 20);
     });
 
@@ -71,7 +71,7 @@ describe("Integration tests SOL", function () {
 });
 
 // BTC
-describe("Integration tests BTC", function () {
+describe.skip("Integration tests BTC", function () {
 
     this.beforeAll("Init and fund user", async function () {
         console.log("USER =>", user.publicKey.toString());
@@ -106,7 +106,7 @@ describe("Integration tests BTC", function () {
 });
 
 // ETH
-describe("Integration tests ETH", function () {
+describe.skip("Integration tests ETH", function () {
 
     this.beforeAll("Init and fund user", async function () {
         console.log("USER =>", user.publicKey.toString());

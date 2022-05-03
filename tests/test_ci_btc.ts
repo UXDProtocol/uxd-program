@@ -4,8 +4,8 @@ import { authority, bank, uxdProgramId } from "./constants";
 import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters, mangoDepositoryAndControllerInteractionsSuite } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
-import { mangoDepositoryInsuranceSuite } from "./suite/mangoDepositoryInsuranceSuite";
-import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
+import { mangoDepositoryInsuranceSuite } from "./suite/depositoryInsuranceSuite";
+import { mangoDepositorySetupSuite } from "./suite/depositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 

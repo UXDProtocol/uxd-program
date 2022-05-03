@@ -2,8 +2,10 @@
 members = [
     "programs/*"
 ]
+[profile.test]
+overflow-checks = false
 
-# Might lengthen the build process but improve computing usage. Use sccache to offset
+# # Might lengthen the build process but improve computing usage. Use sccache to offset
 [profile.release]
 lto = "fat"
 codegen-units = 1

@@ -93,13 +93,13 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
     const pa = mangoAccount.perpAccounts[pmi];
     const pm = await mango.getPerpMarket(SYM);
     const cache = await mango.group.loadCache(provider);
-    const accountValue = mangoAccount.computeValue(mango.group, cache).toBig();
+    const accountValue = mangoAccount.computeValue(mango.group, cache).toBig().toNumber();
     const accountingInsuranceDepositedValue = nativeToUi(depositoryAccount.insuranceAmountDeposited.toNumber(), depository.quoteMintDecimals);
     // 
     const collateralSpotAmount = await depository.getCollateralBalance(mango);
     // const insuranceSpotAmount = await 
     //
-    const collateralDepositInterests = collateralSpotAmount.toBig().sub(depositoryAccount.collateralAmountDeposited);
+    const collateralDepositInterests = collateralSpotAmount.toBig().sub(depositoryAccount.collateralAmountDeposited).toNumber();
     // const insuranceDepositInterests = insuranceSpotAmount.toBig().sub(depositoryAccount.insuranceAmountDeposited);
     //
     const accountValueMinusTotalInsuranceDeposited = accountValue - accountingInsuranceDepositedValue;

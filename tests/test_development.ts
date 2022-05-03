@@ -1,9 +1,9 @@
 import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET } from "@uxdprotocol/uxd-client";
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
-import { printDepositoryInfo, printUserInfo, transferAllSol, transferSol, transferTokens } from "./utils";
+import { printDepositoryInfo, printUserInfo, transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
 import { depositInsuranceMangoDepositoryTest } from "./cases/depositInsuranceMangoDepositoryTest";
-import { initializeMangoDepositoryTest } from "./cases/initializeMangoDepositoryTest";
+import { registerMangoDepositoryTest } from "./cases/registerMangoDepositoryTest";
 import { mango } from "./fixtures";
 import { withdrawInsuranceMangoDepositoryTest } from "./cases/withdrawInsuranceMangoDepositoryTest";
 import { mintWithMangoDepositoryTest } from "./cases/mintWithMangoDepositoryTest";
@@ -66,6 +66,7 @@ describe("Integration tests SOL", function () {
         // it(`Mint 80 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
         //     const mintedAmount = await mintWithMangoDepositoryTest(80, slippage, user, controller, depository, mango, payer);
         // });
+
     });
 
     describe.skip("Quote Mint And Redeem Suite", async function () {
@@ -112,5 +113,6 @@ describe("Integration tests SOL", function () {
 
     this.afterAll("Transfer funds back to bank", async function () {
         await transferAllSol(user, bank.publicKey);
+        await transferAllTokens(USDC_DEVNET, USDC_DECIMALS, user, bank.publicKey);
     });
 });

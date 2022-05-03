@@ -14,7 +14,7 @@ pub enum UxdError {
     InvalidLimitPrice,
     #[msg("Could not fill the order given order book state and provided slippage.")]
     EffectiveOrderPriceBeyondLimitPrice,
-    #[msg("Collateral amount must be > 0 in order to mint.")]
+    #[msg("Collateral amount cannot be 0")]
     InvalidCollateralAmount,
     #[msg("Quote amount must be > 0 in order to mint.")]
     InvalidQuoteAmount,
@@ -32,7 +32,7 @@ pub enum UxdError {
     PerpOrderPartiallyFilled,
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
     RedeemableGlobalSupplyCapReached,
-    #[msg("Operation not allowed due to being over the Redeemable soft Cap.")]
+    #[msg("Operation not allowed due to being over the Mango Redeemable soft Cap.")]
     MangoDepositoriesSoftCapOverflow,
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
     MaxNumberOfMangoDepositoriesRegisteredReached,
@@ -93,12 +93,18 @@ pub enum UxdError {
     InvalidCollateralMint,
     #[msg("The provided quote mint does not match the depository's quote mint.")]
     InvalidQuoteMint,
-    #[msg("The authority's Quote ATA's mint does not match the Depository's one.")]
-    InvalidAuthorityQuoteATAMint,
     #[msg("The Mango Account isn't the Depository one.")]
     InvalidMangoAccount,
     #[msg("The Redeemable Mint provided does not match the Controller's one.")]
     InvalidRedeemableMint,
+    #[msg("The provided perp_market is not the one tied to this Depository.")]
+    InvalidDexMarket,
+    #[msg("The provided token account is not owner by the expected party.")]
+    InvalidOwner,
+    #[msg("The max base quantity must be above 0.")]
+    InvalidMaxBaseQuantity,
+    #[msg("The max quote quantity must be above 0.")]
+    InvalidMaxQuoteQuantity,
 
     #[msg("Default - Check the source code for more info")]
     Default,
