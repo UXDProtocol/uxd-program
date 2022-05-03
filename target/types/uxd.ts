@@ -693,6 +693,124 @@ export type Uxd = {
           "type": "f32"
         }
       ]
+    },
+    {
+      "name": "createDepositoryMsolConfig",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "targetLiquidityRatio",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "enableMsolSwap",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolConfig",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "enable",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "setMsolLiquidityRatio",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolConfig",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "targetLiquidityRatio",
+          "type": "u16"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -844,6 +962,34 @@ export type Uxd = {
           {
             "name": "totalAmountRebalanced",
             "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mSolConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "depository",
+            "type": "publicKey"
+          },
+          {
+            "name": "controller",
+            "type": "publicKey"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
+          },
+          {
+            "name": "targetLiquidityRatio",
+            "type": "u16"
           }
         ]
       }
@@ -1282,6 +1428,41 @@ export type Uxd = {
           "index": false
         }
       ]
+    },
+    {
+      "name": "CreateDepositoryMSolConfigEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "msolConfig",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "enabled",
+          "type": "bool",
+          "index": false
+        },
+        {
+          "name": "targetLiquidityRatio",
+          "type": "u16",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -1507,6 +1688,21 @@ export type Uxd = {
     },
     {
       "code": 6044,
+      "name": "TargetLiquidityRatioExceedMax",
+      "msg": "Target liquidity ratio for msol config exceed 100%"
+    },
+    {
+      "code": 6045,
+      "name": "InvalidEnablingMsolSwap",
+      "msg": "SOL/mSOL swap has already enabled / disabled"
+    },
+    {
+      "code": 6046,
+      "name": "InvalidNonNativeMintUsed",
+      "msg": "Must use native mint for setting msol config"
+    },
+    {
+      "code": 6047,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
@@ -2208,6 +2404,124 @@ export const IDL: Uxd = {
           "type": "f32"
         }
       ]
+    },
+    {
+      "name": "createDepositoryMsolConfig",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "targetLiquidityRatio",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "enableMsolSwap",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolConfig",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "enable",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "setMsolLiquidityRatio",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "msolConfig",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "targetLiquidityRatio",
+          "type": "u16"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -2359,6 +2673,34 @@ export const IDL: Uxd = {
           {
             "name": "totalAmountRebalanced",
             "type": "u128"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mSolConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "depository",
+            "type": "publicKey"
+          },
+          {
+            "name": "controller",
+            "type": "publicKey"
+          },
+          {
+            "name": "enabled",
+            "type": "bool"
+          },
+          {
+            "name": "targetLiquidityRatio",
+            "type": "u16"
           }
         ]
       }
@@ -2797,6 +3139,41 @@ export const IDL: Uxd = {
           "index": false
         }
       ]
+    },
+    {
+      "name": "CreateDepositoryMSolConfigEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "msolConfig",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "enabled",
+          "type": "bool",
+          "index": false
+        },
+        {
+          "name": "targetLiquidityRatio",
+          "type": "u16",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -3022,6 +3399,21 @@ export const IDL: Uxd = {
     },
     {
       "code": 6044,
+      "name": "TargetLiquidityRatioExceedMax",
+      "msg": "Target liquidity ratio for msol config exceed 100%"
+    },
+    {
+      "code": 6045,
+      "name": "InvalidEnablingMsolSwap",
+      "msg": "SOL/mSOL swap has already enabled / disabled"
+    },
+    {
+      "code": 6046,
+      "name": "InvalidNonNativeMintUsed",
+      "msg": "Must use native mint for setting msol config"
+    },
+    {
+      "code": 6047,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
