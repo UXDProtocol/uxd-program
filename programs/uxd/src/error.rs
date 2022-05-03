@@ -110,6 +110,13 @@ pub enum UxdError {
     #[msg("The max quote quantity must be above 0.")]
     InvalidMaxQuoteQuantity,
 
+    #[msg("Target liquidity ratio for msol config exceed 100%")]
+    TargetLiquidityRatioExceedMax,
+    #[msg("SOL/mSOL swap has already enabled / disabled")]
+    InvalidEnablingMsolSwap,
+    #[msg("Must use native mint for setting msol config")]
+    InvalidNonNativeMintUsed,
+
     #[msg("Default - Check the source code for more info")]
     Default,
 }
