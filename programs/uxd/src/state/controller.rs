@@ -2,10 +2,24 @@ use crate::error::UxdError;
 use anchor_lang::prelude::*;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
-pub const MAX_REGISTERED_ZO_DEPOSITORIES: usize = 8;
+pub const MAX_REGISTERED_ZO_DEPOSITORIES: usize = 4;
 
-pub const CONTROLLER_SPACE: usize =
-    8 + 1 + 1 + 1 + 32 + 32 + 1 + (32 * 8) + 1 + 16 + 8 + 16 + 1 + (32 * 8) + 1 + 254;
+pub const CONTROLLER_SPACE: usize = 8
+    + 1
+    + 1
+    + 1
+    + 32
+    + 32
+    + 1
+    + (32 * MAX_REGISTERED_MANGO_DEPOSITORIES)
+    + 1
+    + 16
+    + 8
+    + 16
+    + 1
+    + (32 * MAX_REGISTERED_ZO_DEPOSITORIES)
+    + 1
+    + 254;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -20,7 +34,7 @@ pub struct Controller {
     pub redeemable_mint_decimals: u8,
     //
     // The Mango Depositories registered with this Controller
-    pub registered_mango_depositories: [Pubkey; 8], //  - IDL bug with constant, so hard 8 literal. -- Still not working in 0.20.0 although it should
+    pub registered_mango_depositories: [Pubkey; MAX_REGISTERED_MANGO_DEPOSITORIES],
     pub registered_mango_depositories_count: u8,
     //
     // Progressive roll out and safety ----------
@@ -42,7 +56,7 @@ pub struct Controller {
     //
     pub _reserved: u8,
     // The ZO Depositories registered with this Controller
-    pub registered_zo_depositories: [Pubkey; 8], //  - IDL bug with constant, so hard 8 literal. -- Still not working in 0.20.0 although it should
+    pub registered_zo_depositories: [Pubkey; MAX_REGISTERED_ZO_DEPOSITORIES],
     pub registered_zo_depositories_count: u8,
 }
 

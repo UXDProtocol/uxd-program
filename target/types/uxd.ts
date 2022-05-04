@@ -318,7 +318,7 @@ export type Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -455,7 +455,7 @@ export type Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -3242,11 +3242,6 @@ export const IDL: Uxd = {
           "name": "zoProgram",
           "isMut": false,
           "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
         }
       ],
       "args": [
@@ -3504,11 +3499,6 @@ export const IDL: Uxd = {
         },
         {
           "name": "zoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }

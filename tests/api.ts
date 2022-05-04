@@ -1,9 +1,9 @@
 import { getConnection, TXN_OPTS } from "./connection";
 import { uxdClient } from "./constants";
-import { Keypair, PublicKey, Signer, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
+import { Keypair, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller, PnLPolarity, ZoDepository, Zo, CONTROL_ACCOUNT_SIZE, createAssocTokenIx, findATAAddrSync } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, Controller, PnLPolarity, createAssocTokenIx, findATAAddrSync, ZoDepository, Zo, CONTROL_ACCOUNT_SIZE, } from "@uxdprotocol/uxd-client";
 import { BN, web3 } from "@project-serum/anchor";
 
 // Permissionned Calls --------------------------------------------------------
