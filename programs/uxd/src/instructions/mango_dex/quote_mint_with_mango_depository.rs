@@ -60,7 +60,7 @@ pub struct QuoteMintWithMangoDepository<'info> {
         bump = controller.load()?.redeemable_mint_bump,
         constraint = redeemable_mint.key() == controller.load()?.redeemable_mint @UxdError::InvalidRedeemableMint
     )]
-    pub redeemable_mint: Account<'info, Mint>,
+    pub redeemable_mint: Box<Account<'info, Mint>>,
 
     /// #6 The `user`'s ATA for one the `mango depository`s `quote_mint`
     /// Will be debited during this instruction
@@ -69,16 +69,16 @@ pub struct QuoteMintWithMangoDepository<'info> {
         constraint = user_quote.mint == depository.load()?.quote_mint,
         constraint = user_quote.owner == *user.key,
     )]
-    pub user_quote: Account<'info, TokenAccount>,
+    pub user_quote: Box<Account<'info, TokenAccount>>,
 
     /// #7 The `user`'s ATA for the `controller`'s `redeemable_mint`
     /// Will be credited during this instruction
     #[account(
         mut,
-        constraint = user_redeemable.mint == controller.redeemable_mint,
+        constraint = user_redeemable.mint == controller.load()?.redeemable_mint,
         constraint = user_redeemable.owner == *user.key,
     )]
-    pub user_redeemable: Account<'info, TokenAccount>,
+    pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
     /// #9 The MangoMarkets Account (MangoAccount) managed by the `depository` ******************
     /// CHECK : Seeds checked. Depository registered
@@ -210,10 +210,10 @@ pub fn handler(
         quote_amount,
     )?;
 
-    drop(depository);
-
     // - 5 [MINT REDEEMABLE TO USER] ------------------------------------------
     let quote_mint_fee = depository.quote_mint_and_redeem_fee;
+
+    drop(depository);
 
     // Math: 5 bps fee would equate to bps_minted_to_user
     // being 9995 since 10000 - 5 = 9995
@@ -285,8 +285,8 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
     fn check_redeemable_global_supply_cap_overflow(&self) -> Result<()> {
         require!(
-            self.controller.redeemable_circulating_supply 
-            <= self.controller.redeemable_global_supply_cap, 
+            self.controller.load()?.redeemable_circulating_supply 
+            <= self.controller.load()?.redeemable_global_supply_cap, 
             UxdError::RedeemableGlobalSupplyCapReached
         );
        
@@ -367,7 +367,7 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
             &self.mango_group,
             self.mango_program.key,
             self.mango_perp_market.key,
-            &self.depository.collateral_mint,
+            &self.depository.load()?.collateral_mint,
         )?;
 
         Ok(())

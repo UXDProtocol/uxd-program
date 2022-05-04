@@ -46,7 +46,7 @@ describe("Integration tests SOL", function () {
         //     await initializeMangoDepositoryTest(authority, controller, mangoDepositorySOL, mango, payer);
         // });
         it(`Initialize ${mangoDepositoryBTC.collateralMintSymbol} Depository`, async function () {
-            await initializeMangoDepositoryTest(authority, controller, mangoDepositoryBTC, mango, payer);
+            await registerMangoDepositoryTest(authority, controller, mangoDepositoryBTC, mango, payer);
         });
         // it(`Initialize ${mangoDepositoryETH.collateralMintSymbol} Depository`, async function () {
         //     await initializeMangoDepositoryTest(authority, controller, mangoDepositoryETH, mango, payer);

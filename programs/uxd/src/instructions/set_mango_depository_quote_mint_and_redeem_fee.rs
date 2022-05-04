@@ -14,21 +14,21 @@ pub struct SetMangoDepositoryQuoteMintAndRedeemFee<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
+        bump = controller.load()?.bump,
         has_one = authority @UxdError::InvalidAuthority,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #3 UXDProgram on chain account bound to a Controller instance.
     /// The `MangoDepository` manages a MangoAccount for a single Collateral.
     #[account(
         mut,
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.bump,
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
     )]
-    pub depository: Box<Account<'info, MangoDepository>>,
+    pub depository: AccountLoader<'info, MangoDepository>,
 }
 
 pub fn handler(
@@ -37,6 +37,7 @@ pub fn handler(
 ) -> Result<()> {
     ctx.accounts
         .depository
+        .load_mut()?
         .quote_mint_and_redeem_fee = quote_fee;
 
     Ok(())

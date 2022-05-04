@@ -74,6 +74,4 @@ pub struct MangoDepository {
     //
     // The amount of fees accrued from quote minting
     pub total_quote_mint_and_redeem_fees: u128,
-    //
-    pub _reserved: MangoDepositoryPadding,
 }

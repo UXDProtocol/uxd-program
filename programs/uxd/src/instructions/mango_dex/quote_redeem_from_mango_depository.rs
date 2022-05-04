@@ -36,35 +36,35 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
-        bump = controller.bump,
+        bump = controller.load()?.bump,
         has_one = redeemable_mint,
-        constraint = controller.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
-    pub controller: Box<Account<'info, Controller>>,
+    pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance.
     /// The `MangoDepository` manages a MangoAccount for a single Collateral.
     #[account(
         mut,
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.bump,
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = mango_account @UxdError::InvalidMangoAccount,
     )]
-    pub depository: Box<Account<'info, MangoDepository>>,
+    pub depository: AccountLoader<'info, MangoDepository>,
 
     /// #5 The redeemable mint managed by the `controller` instance
     /// Tokens will be minted during this instruction
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = controller.redeemable_mint_bump,
+        bump = controller.load()?.redeemable_mint_bump,
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
     /// #x The quote mint of the depository
     #[account(
-      constraint = quote_mint.key() == depository.quote_mint,
+      constraint = quote_mint.key() == depository.load()?.quote_mint,
     )]
     pub quote_mint: Box<Account<'info, Mint>>,
 
@@ -72,7 +72,7 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     /// Will be credited during this instruction
     #[account(
         mut,
-        constraint = user_quote.mint == depository.quote_mint,
+        constraint = user_quote.mint == depository.load()?.quote_mint,
         constraint = user_quote.owner == *user.key,
     )]
     pub user_quote: Box<Account<'info, TokenAccount>>,
@@ -81,7 +81,7 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     /// Will be debited during this instruction
     #[account(
         mut,
-        constraint = user_redeemable.mint == controller.redeemable_mint,
+        constraint = user_redeemable.mint == controller.load()?.redeemable_mint,
         constraint = user_redeemable.owner == *user.key,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
@@ -90,8 +90,8 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
-        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.collateral_mint.as_ref()],
-        bump = depository.mango_account_bump,
+        seeds = [MANGO_ACCOUNT_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.mango_account_bump,
     )]
     pub mango_account: AccountInfo<'info>,
 
@@ -146,7 +146,7 @@ pub fn handler(
     ctx: Context<QuoteRedeemFromMangoDepository>,
     redeemable_amount: u64,
 ) -> Result<()> {
-    let depository = &ctx.accounts.depository;
+    let depository = ctx.accounts.depository.load()?;
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         depository.collateral_mint.as_ref(),
@@ -249,6 +249,8 @@ pub fn handler(
         false,
     )?;
 
+    drop(depository);
+
     // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
     ctx.accounts.update_onchain_accounting(
         redeemable_amount,
@@ -303,8 +305,8 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
         redeemable_amount: u64,
         quote_withdraw_amount: u64,
     ) -> Result<()> {
-        let depository = &mut self.depository;
-        let controller = &mut self.controller;
+        let depository = &mut self.depository.load_mut()?;
+        let controller = &mut self.controller.load_mut()?;
         let fees_accrued: u64 = redeemable_amount
             .checked_sub(quote_withdraw_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
@@ -370,7 +372,7 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
             &self.mango_group,
             self.mango_program.key,
             self.mango_perp_market.key,
-            &self.depository.collateral_mint,
+            &self.depository.load()?.collateral_mint,
         )?;
 
         Ok(())

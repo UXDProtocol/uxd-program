@@ -15,7 +15,7 @@ pub mod test;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("2VtNQownd795CtuxKK4LeCMkW4TegVRo2CGwUuw8iJVq");
+solana_program::declare_id!("AoU9Qtoi68VNmcprEhH3qkmYqKNBxXNrUHGi3XyGz3rL");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -36,7 +36,7 @@ pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
 
 const BPS_POW: u8 = 4; // Raise a number to BPS_POW to get order of magnitude of
-pub const BPS_UNIT_CONVERSION: u64 = (10 as u64).pow(BPS_POW.into());
+pub const BPS_UNIT_CONVERSION: u64 = (10 as u64).pow(BPS_POW as u32);
 
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 
