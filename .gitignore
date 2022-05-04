@@ -16,7 +16,6 @@ test-ledger/
 /programs/uxd/.coderrect/**
 /programs/uxd/target/**
 /programs/uxd/Cargo.lock
-yarn-error.log
 programs/uxd/src/lib.rs.bak
 .gitignore
 Anchor.toml.bak
