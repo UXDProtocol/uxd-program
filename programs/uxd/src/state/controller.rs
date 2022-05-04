@@ -4,6 +4,8 @@ use anchor_lang::prelude::*;
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 pub const MAX_REGISTERED_ZO_DEPOSITORIES: usize = 4;
 
+pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 383;
+// 885
 pub const CONTROLLER_SPACE: usize = 8
     + 1
     + 1
@@ -16,10 +18,9 @@ pub const CONTROLLER_SPACE: usize = 8
     + 16
     + 8
     + 16
-    + 1
     + (32 * MAX_REGISTERED_ZO_DEPOSITORIES)
     + 1
-    + 254;
+    + MANGO_DEPOSITORY_RESERVED_SPACE;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -53,8 +54,6 @@ pub struct Controller {
     // This should always be equal to the sum of all Depositories' `redeemable_amount_under_management`
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
-    //
-    pub _reserved: u8,
     // The ZO Depositories registered with this Controller
     pub registered_zo_depositories: [Pubkey; MAX_REGISTERED_ZO_DEPOSITORIES],
     pub registered_zo_depositories_count: u8,

@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
 pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 496;
+// 783
 pub const MANGO_DEPOSITORY_SPACE: usize = 8
     + 1
     + 2

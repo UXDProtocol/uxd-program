@@ -1,7 +1,25 @@
 use anchor_lang::prelude::*;
 
-pub const ZO_DEPOSITORY_SPACE: usize =
-    8 + 1 + 1 + 1 + 1 + 32 + 32 + 1 + 32 + 1 + 32 + 32 + 16 + 16 + 16 + 16 + 16 + 2048;
+pub const ZO_DEPOSITORY_RESERVED_SPACE: usize = 2048;
+// 2302
+pub const ZO_DEPOSITORY_SPACE: usize = 8
+    + 1
+    + 1
+    + 1
+    + 1
+    + 32
+    + 32
+    + 1
+    + 32
+    + 1
+    + 32
+    + 32
+    + 16
+    + 16
+    + 16
+    + 16
+    + 16
+    + ZO_DEPOSITORY_RESERVED_SPACE;
 
 #[account(zero_copy)]
 #[repr(packed)]

@@ -1308,10 +1308,6 @@
             "type": "u128"
           },
           {
-            "name": "reserved",
-            "type": "u8"
-          },
-          {
             "name": "registeredZoDepositories",
             "type": {
               "array": [
@@ -2302,8 +2298,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
-  ],
-  "metadata": {
-    "address": "65YBszAjd9Wa8nWjhsuxYonnnvNjxv391QhW9JEQScXU"
-  }
+  ]
 }

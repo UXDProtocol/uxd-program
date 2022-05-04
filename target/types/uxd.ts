@@ -1308,10 +1308,6 @@ export type Uxd = {
             "type": "u128"
           },
           {
-            "name": "reserved",
-            "type": "u8"
-          },
-          {
             "name": "registeredZoDepositories",
             "type": {
               "array": [
@@ -3613,10 +3609,6 @@ export const IDL: Uxd = {
           {
             "name": "redeemableCirculatingSupply",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": "u8"
           },
           {
             "name": "registeredZoDepositories",
