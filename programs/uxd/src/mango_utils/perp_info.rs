@@ -2,10 +2,9 @@ use crate::error::UxdError;
 use anchor_lang::prelude::*;
 use fixed::types::I80F48;
 use mango::ids::mngo_token;
-use mango::state::MangoAccount;
-use mango::state::MangoCache;
-use mango::state::MangoGroup;
-use mango::state::CENTIBPS_PER_UNIT;
+use mango::state::{MangoAccount, MangoCache, MangoGroup, CENTIBPS_PER_UNIT};
+
+use super::get_native_deposit;
 
 #[derive(Debug)]
 pub struct PerpInfo {
@@ -31,32 +30,22 @@ impl PerpInfo {
         mango_group_key: &Pubkey,
         mango_program_key: &Pubkey,
     ) -> Result<Self> {
+        // load mango CPI account's state
         let mango_group = MangoGroup::load_checked(mango_group_ai, mango_program_key)
             .map_err(ProgramError::from)?;
         let mango_cache = MangoCache::load_checked(mango_cache_ai, mango_program_key, &mango_group)
-            .map_err(ProgramError::from)?;
+            .map_err(|me| ProgramError::from(me))?;
+        let mango_account =
+            MangoAccount::load_checked(mango_account_ai, mango_program_key, mango_group_key)
+                .map_err(|me| ProgramError::from(me))?;
+
         let perp_market_index = mango_group
             .find_perp_market_index(perp_market_key)
             .ok_or_else(|| error!(UxdError::MangoPerpMarketIndexNotFound))?;
-        let mango_account =
-            MangoAccount::load_checked(mango_account_ai, mango_program_key, mango_group_key)
-                .map_err(ProgramError::from)?;
-        PerpInfo::init(
-            &mango_group,
-            &mango_account,
-            &mango_cache,
-            perp_market_index,
-        )
-    }
 
-    pub fn init(
-        mango_group: &MangoGroup,
-        mango_account: &MangoAccount,
-        mango_cache: &MangoCache,
-        perp_market_index: usize,
-    ) -> Result<Self> {
-        let ref_fee = determine_ref_fee(mango_group, mango_account, mango_cache)?;
+        let ref_fee = determine_ref_fee(&mango_group, &mango_cache, &mango_account)?;
         let taker_fee = mango_group.perp_markets[perp_market_index].taker_fee;
+
         Ok(PerpInfo {
             market_index: perp_market_index,
             price: mango_cache.price_cache[perp_market_index].price,
@@ -76,19 +65,12 @@ impl PerpInfo {
 // If you hold 10k MNGO or more in your MangoAccount as of 02/20/2022, you skip this fee.
 fn determine_ref_fee(
     mango_group: &MangoGroup,
-    mango_account: &MangoAccount,
     mango_cache: &MangoCache,
+    mango_account: &MangoAccount,
 ) -> Result<I80F48> {
-    let mngo_index = match mango_group.find_token_index(&mngo_token::id()) {
-        None => return Ok(I80F48::ZERO),
-        Some(i) => i,
-    };
-    let mngo_cache = &mango_cache.root_bank_cache[mngo_index];
-    // If the user's MNGO deposit is non-zero then the rootbank cache will be checked already in `place_perp_order`.
-    // If it's zero then cache may be out of date, but it doesn't matter because 0 * index = 0
-    let mngo_deposits = mango_account
-        .get_native_deposit(mngo_cache, mngo_index)
-        .map_err(ProgramError::from)?;
+    let mngo_deposits =
+        get_native_deposit(&mngo_token::id(), mango_group, mango_cache, mango_account)
+            .map_err(|me| ProgramError::from(me))?;
     let ref_mngo_req = I80F48::from_num(mango_group.ref_mngo_required);
     if mngo_deposits >= ref_mngo_req {
         return Ok(I80F48::ZERO);
