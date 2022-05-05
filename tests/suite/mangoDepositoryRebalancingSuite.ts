@@ -1,6 +1,6 @@
 
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, PnLPolarity, WSOL_DEVNET } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, PnLPolarity, WSOL_DEVNET } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { rebalanceMangoDepositoryLiteTest } from "../cases/rebalanceMangoDepositoryLiteTest";
 import { TXN_OPTS } from "../connection";

@@ -1,6 +1,6 @@
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, Mango, MangoDepository, findATAAddrSync, PnLPolarity } from "@uxdprotocol/uxd-client";
+import { Controller, Mango, MangoDepository, findATAAddrSync, PnLPolarity } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { rebalanceMangoDepositoryLite } from "../api";
 import { CLUSTER, slippageBase } from "../constants";

@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
 pub const CONTROLLER_SPACE: usize =
-    8 + 1 + 1 + 1 + 32 + 32 + 1 + (32 * 8) + 1 + 16 + 8 + 16 + 1 + 254;
+    8 + 1 + 1 + 1 + 32 + 32 + 1 + (32 * 8) + 1 + 16 + 8 + 16 + 1 + 511;
 
 #[account(zero_copy)]
 #[repr(packed)]

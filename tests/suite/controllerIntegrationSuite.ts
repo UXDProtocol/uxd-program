@@ -1,5 +1,5 @@
 import { Signer } from "@solana/web3.js";
-import { Controller } from "@uxdprotocol/uxd-client";
+import { Controller } from "@uxd-protocol/uxd-client";
 import { initializeControllerTest } from "../cases/initializeControllerTest";
 import { setRedeemableGlobalSupplyCapTest } from "../cases/setRedeemableGlobalSupplyCapTest";
 import { setRedeemableSoftCapMangoDepositoryTest } from "../cases/setRedeemableSoftCapMangoDepositoryTest";

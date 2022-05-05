@@ -1,5 +1,5 @@
 import { Keypair, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET } from "@uxd-protocol/uxd-client";
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
 import { printDepositoryInfo, printUserInfo, transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
 import { depositInsuranceMangoDepositoryTest } from "./cases/depositInsuranceMangoDepositoryTest";
@@ -29,10 +29,10 @@ beforeEach("\n", function () { console.log("====================================
 describe("Integration tests SOL", function () {
     const user: Signer = new Keypair();
 
-    this.beforeAll("Init and fund user (10 SOL and 10k usdc)", async function () {
+    this.beforeAll("Init and fund user (1 SOL and 1k usdc)", async function () {
         console.log("USER =>", user.publicKey.toString());
-        await transferSol(10, bank, user.publicKey);
-        await transferTokens(10000, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
+        await transferSol(1, bank, user.publicKey);
+        await transferTokens(1000, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
     });
 
     describe("Init", async function () {
@@ -40,7 +40,7 @@ describe("Integration tests SOL", function () {
             await initializeControllerTest(authority, controller, payer);
         });
 
-        it.skip(`Initialize ${mangoDepositorySOL.collateralMintSymbol} Depository`, async function () {
+        it(`Initialize ${mangoDepositorySOL.collateralMintSymbol} Depository`, async function () {
             await registerMangoDepositoryTest(authority, controller, mangoDepositorySOL, mango, payer);
         });
         it.skip(`Initialize ${mangoDepositoryBTC.collateralMintSymbol} Depository`, async function () {
@@ -66,9 +66,9 @@ describe("Integration tests SOL", function () {
 
     describe("Test minting/redeeming", async function () {
 
-        it.skip(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
+        it(`Mint 1 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
             const perpPrice = await mangoDepositorySOL.getCollateralPerpPriceUI(mango);
-            const amount = 10 / perpPrice;
+            const amount = 1 / perpPrice;
             console.log("[🧾 amount", amount, mangoDepositorySOL.collateralMintSymbol, "]");
             const mintedAmount = await mintWithMangoDepositoryTest(amount, slippage, user, controller, mangoDepositorySOL, mango, payer);
             await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, mangoDepositorySOL, mango, payer);
@@ -89,7 +89,7 @@ describe("Integration tests SOL", function () {
         mangoDepositoryRebalancingSuite(user, bank, controller, mangoDepositorySOL, paramsRebalancing);
     });
 
-    describe.skip("info", async function () {
+    describe("info", async function () {
         it("info", async function () {
             await printUserInfo(user.publicKey, controller, mangoDepositorySOL);
             await printDepositoryInfo(controller, mangoDepositorySOL, mango);
@@ -97,7 +97,7 @@ describe("Integration tests SOL", function () {
     });
 
     this.afterAll("Transfer funds back to bank", async function () {
-        await transferAllSol(user, bank.publicKey);
         await transferAllTokens(USDC_DEVNET, USDC_DECIMALS, user, bank.publicKey);
+        await transferAllSol(user, bank.publicKey);
     });
 });
