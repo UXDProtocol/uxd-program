@@ -26,7 +26,6 @@ mod test_order {
     }
 
     use crate::{
-        error::UxdError,
         mango_utils::{base_delta, quote_delta, taker_fee_amount_ceil},
     };
 
@@ -51,18 +50,7 @@ mod test_order {
                     let expected_quote_delta = I80F48::from_num(taker_quote).dist(I80F48::from_num(taker_quote_post)).checked_mul(quote_lot_size).unwrap();
                     prop_assert_eq!(quote_delta, expected_quote_delta)
                 },
-                Err(error) => {
-                match error {
-                        UxdError::ProgramError(_) => prop_assert!(false),
-                        UxdError::UxdError { uxd_error_code, line: _, source_file_id } => {
-                            prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsLimitUtils);
-                            match uxd_error_code {
-                                UxdError::MathError => prop_assert!(false),
-                                _default => prop_assert!(false)
-                            }
-                        }
-                    }
-                }
+                Err(_error) => prop_assert!(false)
             }
         }
     }
@@ -90,18 +78,7 @@ mod test_order {
                     let expected_base_delta = total_base_pre.dist(I80F48::from_num(total_base_post)).checked_mul(base_lot_size).unwrap();
                     prop_assert_eq!(base_delta, expected_base_delta)
                 },
-                Err(error) => {
-                match error {
-                        UxdError::ProgramError(_) => prop_assert!(false),
-                        UxdError::UxdError { uxd_error_code, line: _, source_file_id } => {
-                            prop_assert_eq!(source_file_id, SourceFileId::MangoUtilsLimitUtils);
-                            match uxd_error_code {
-                                UxdError::MathError => prop_assert!(false),
-                                _default => prop_assert!(false)
-                            }
-                        }
-                    }
-                }
+                Err(_error) => prop_assert!(false)
             }
         }
     }
