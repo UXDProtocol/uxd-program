@@ -1,5 +1,5 @@
 import { Keypair, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, USDC_DEVNET, BTC_DEVNET } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, USDC_DEVNET, BTC_DEVNET } from "@uxd-protocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
 import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";

@@ -3,7 +3,7 @@ import { uxdClient } from "./constants";
 import { Keypair, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller, PnLPolarity, createAssocTokenIx, findATAAddrSync } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, Controller, PnLPolarity, createAssocTokenIx, findATAAddrSync } from "@uxd-protocol/uxd-client";
 import { BN, web3 } from "@project-serum/anchor";
 
 // Permissionned Calls --------------------------------------------------------
