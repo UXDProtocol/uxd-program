@@ -3,12 +3,12 @@ import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, Mango, MangoDepository, findATAAddrSync, uiToNative } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
-import { mintWithMangoDepository, quoteMintWithMangoDepository } from "../api";
+import { mintWithMangoDepository, quoteMintWithMangoDepository, quoteRedeemFromMangoDepository } from "../api";
 import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
-export const quoteMintWithMangoDepositoryTest = async function (quoteAmount: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
-    console.group("🧭 quoteMintWithMangoDepositoryTest");
+export const quoteRedeemFromMangoDepositoryTest = async function (redeemableAmount: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
+    console.group("🧭 quoteRedeemFromMangoDepositoryTest");
     try {
         // GIVEN
         const userQuoteATA: PublicKey = await utils.token.associatedAddress({
@@ -23,7 +23,7 @@ export const quoteMintWithMangoDepositoryTest = async function (quoteAmount: num
         const userRedeemableBalance = await getBalance(userRedeemableATA);
 
         // WHEN
-        const txId = await quoteMintWithMangoDepository(user, payer ?? user, quoteAmount, controller, depository, mango);
+        const txId = await quoteRedeemFromMangoDepository(user, payer ?? user, redeemableAmount, controller, depository, mango);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
@@ -41,8 +41,8 @@ export const quoteMintWithMangoDepositoryTest = async function (quoteAmount: num
         // const quoteAmountNative = uiToNative(quoteAmount, depository.quoteMintDecimals);
         const lessFeesMultiple = 1 - depository.quoteMintAndRedeemFee;
 
-        expect(userQuoteBalance_post).equals(userQuoteBalance - quoteAmount);
-        expect(userRedeemableBalance_post).equals(userRedeemableBalance + (quoteAmount * lessFeesMultiple));
+        expect(userQuoteBalance_post).equals(userQuoteBalance + (redeemableAmount * lessFeesMultiple));
+        expect(userRedeemableBalance_post).equals(userRedeemableBalance - redeemableAmount);
 
         console.groupEnd();
     } catch (error) {

@@ -170,6 +170,31 @@ export async function redeemFromMangoDepository(user: Signer, payer: Signer, sli
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
+export async function quoteRedeemFromMangoDepository(user: Signer, payer: Signer, redeemableAmount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
+    const quoteRedeemFromMangoDepositoryIx = await uxdClient.createQuoteRedeemWithMangoDepositoryInstruction(redeemableAmount, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
+    let signers = [];
+    let tx = new Transaction();
+
+    tx.instructions.push(quoteRedeemFromMangoDepositoryIx);
+    signers.push(user);
+    if (payer) {
+        signers.push(payer);
+    }
+    tx.feePayer = payer.publicKey;
+    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function setMangoDepositoryQuoteMintAndRedeemFee(authority: Signer, controller: Controller, depository: MangoDepository, quoteFee: number): Promise<string> {
+    const setMangoDepositoryQuoteMintAndRedeemFeeIx = await uxdClient.createSetMangoDepositoryQuoteMintAndRedeemFeeInstruction(quoteFee, controller, depository, authority.publicKey, TXN_OPTS);
+    let signers = [];
+    let tx = new Transaction();
+
+    tx.instructions.push(setMangoDepositoryQuoteMintAndRedeemFeeIx);
+    signers.push(authority);
+
+    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
 export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, rebalancingMaxAmountQuote: number, polarity: PnLPolarity, slippage: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const rebalanceMangoDepositoryLiteIx = await uxdClient.createRebalanceMangoDepositoryLiteInstruction(rebalancingMaxAmountQuote, slippage, polarity, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
     let signers = [];
