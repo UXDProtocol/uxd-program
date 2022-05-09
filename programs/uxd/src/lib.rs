@@ -22,12 +22,15 @@ solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 // Version used for accounts structure and future migrations
 pub const MANGO_DEPOSITORY_ACCOUNT_VERSION: u8 = 2;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
+pub const SAFETY_VAULT_ACCOUNT_VERSION: u8 = 0;
 
 // These are just "namespaces" seeds for the PDA creations.
 pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
+pub const SAFETY_VAULT_NAMESPACE: &[u8] = b"SAFETYVAULT";
+pub const QUOTE_VAULT_NAMESPACE: &[u8] = b"QUOTEVAULT";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
