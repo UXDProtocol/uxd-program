@@ -11,7 +11,6 @@ import { redeemFromMangoDepositoryTest } from "./cases/redeemFromMangoDepository
 import { initializeControllerTest } from "./cases/initializeControllerTest";
 import { MangoDepositoryRebalancingSuiteParameters, mangoDepositoryRebalancingSuite } from "./suite/mangoDepositoryRebalancingSuite";
 
-console.log(uxdProgramId.toString());
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -40,7 +39,7 @@ describe("Integration tests SOL", function () {
             await initializeControllerTest(authority, controller, payer);
         });
 
-        it.skip(`Initialize ${mangoDepositorySOL.collateralMintSymbol} Depository`, async function () {
+        it(`Initialize ${mangoDepositorySOL.collateralMintSymbol} Depository`, async function () {
             await registerMangoDepositoryTest(authority, controller, mangoDepositorySOL, mango, payer);
         });
         it.skip(`Initialize ${mangoDepositoryBTC.collateralMintSymbol} Depository`, async function () {
@@ -50,11 +49,11 @@ describe("Integration tests SOL", function () {
             await registerMangoDepositoryTest(authority, controller, mangoDepositoryETH, mango, payer);
         });
 
-        it.skip(`Deposit 100 USDC of insurance`, async function () {
+        it(`Deposit 100 USDC of insurance`, async function () {
             await depositInsuranceMangoDepositoryTest(100, authority, controller, mangoDepositorySOL, mango);
         });
 
-        it.skip(`Withdraw 1 USDC of insurance`, async function () {
+        it(`Withdraw 1 USDC of insurance`, async function () {
             await withdrawInsuranceMangoDepositoryTest(1, authority, controller, mangoDepositorySOL, mango);
         });
 
@@ -66,7 +65,7 @@ describe("Integration tests SOL", function () {
 
     describe("Test minting/redeeming", async function () {
 
-        it.skip(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
+        it.only(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${slippage / slippageBase * 100} % slippage)`, async function () {
             const perpPrice = await mangoDepositorySOL.getCollateralPerpPriceUI(mango);
             const amount = 10 / perpPrice;
             console.log("[🧾 amount", amount, mangoDepositorySOL.collateralMintSymbol, "]");
