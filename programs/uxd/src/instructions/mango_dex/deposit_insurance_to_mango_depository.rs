@@ -61,6 +61,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
 
     /// #7 [MangoMarkets CPI] Cache
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_cache: UncheckedAccount<'info>,
 
     /// #8 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`
