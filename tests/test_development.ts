@@ -69,9 +69,9 @@ describe("Integration tests SOL", function () {
 
     });
 
-    describe.skip("Quote Mint And Redeem Suite", async function () {
-        quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC, mango);
-    });
+    // describe.skip("Quote Mint And Redeem Suite", async function () {
+    //     quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC, mango);
+    // });
 
     // describe("Quote mint and redeem", async function () {
     //     it("Mint 10 BTC", async function() {
