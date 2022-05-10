@@ -4,6 +4,7 @@ use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::SAFETY_VAULT_NAMESPACE;
+use crate::COLLATERAL_VAULT_NAMESPACE;
 use crate::QUOTE_VAULT_NAMESPACE;
 use crate::SAFETY_VAULT_SPACE;
 use crate::state::MangoDepository;
@@ -60,15 +61,31 @@ pub struct InitializeSafetyVault<'info> {
         bump,
         token::mint = quote_mint,
         token::authority = safety_vault,
-        payer = payer
+        payer = payer,
     )]
     pub quote_vault: Account<'info, TokenAccount>,
+
+    #[account(
+        init,
+        seeds = [COLLATERAL_VAULT_NAMESPACE, safety_vault.key().as_ref()],
+        bump,
+        token::mint = collateral_mint,
+        token::authority = safety_vault,
+        payer = payer,
+    )]
+    pub collateral_vault: Account<'info, TokenAccount>,
 
     /// #7 The mint of the quote which collateral will be liquidated into
     #[account(
         constraint = quote_mint.key() == depository.load()?.quote_mint,
     )]
     pub quote_mint: Account<'info, Mint>,
+
+    /// #8 The mint of the collateral of the depository
+    #[account(
+        constraint = collateral_mint.key() == depository.load()?.collateral_mint,
+    )]
+    pub collateral_mint: Account<'info, Mint>,
 
     /// #8 System Program
     pub system_program: Program<'info, System>,
@@ -88,10 +105,19 @@ pub fn handler(ctx: Context<InitializeSafetyVault>,) -> Result<()> {
         .bumps
         .get("safety_vault")
         .ok_or_else(|| error!(UxdError::BumpError))?;
+    safety_vault.quote_vault_bump = *ctx
+        .bumps
+        .get("quote_vault")
+        .ok_or_else(|| error!(UxdError::BumpError))?;
+    safety_vault.collateral_vault_bump = *ctx
+        .bumps
+        .get("collateral_vault")
+        .ok_or_else(|| error!(UxdError::BumpError))?;
     safety_vault.version = SAFETY_VAULT_ACCOUNT_VERSION;
     safety_vault.authority = ctx.accounts.authority.key();
     safety_vault.depository = ctx.accounts.depository.key();
     safety_vault.quote_vault = ctx.accounts.quote_vault.key();
+    safety_vault.collateral_vault = ctx.accounts.collateral_vault.key();
     safety_vault.collateral_liquidated = 0 as u128;
     safety_vault.quote_vault_balance = 0 as u128;
 

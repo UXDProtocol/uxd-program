@@ -70,6 +70,8 @@ pub enum UxdError {
     InvalidMangoGroup,
     #[msg("The order quantity is below contract_size of the perp market.")]
     QuantityBelowContractSize,
+    #[msg("Target collateral is higher than the depository's current collateral.")]
+    LiquidateCollateral,
 
     /// Anchor DSL related errors
     ///

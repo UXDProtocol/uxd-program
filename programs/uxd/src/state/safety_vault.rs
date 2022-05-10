@@ -5,6 +5,8 @@ pub const SAFETY_VAULT_SPACE: usize = 8
     + 1
     + 1
     + 1
+    + 1
+    + 32
     + 32
     + 32
     + 32
@@ -17,6 +19,7 @@ pub const SAFETY_VAULT_SPACE: usize = 8
 pub struct SafetyVault {
     pub bump: u8,
     pub quote_vault_bump: u8,
+    pub collateral_vault_bump: u8,
     // Version used
     pub version: u8,
     // The account with authority over the controller
@@ -25,6 +28,8 @@ pub struct SafetyVault {
     pub depository: Pubkey,
     // The token account of the SafetyVault to hold the quote
     pub quote_vault: Pubkey,
+    // The token account of the SafetyVault to hold the collateral
+    pub collateral_vault: Pubkey,
     //
     // Accounting -------------------------------
     //
