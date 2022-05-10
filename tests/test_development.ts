@@ -96,7 +96,7 @@ describe("Integration tests SOL", function () {
     });
 
     this.afterAll("Transfer funds back to bank", async function () {
-        await transferAllSol(user, bank.publicKey);
         await transferAllTokens(USDC_DEVNET, USDC_DECIMALS, user, bank.publicKey);
+        await transferAllSol(user, bank.publicKey);
     });
 });

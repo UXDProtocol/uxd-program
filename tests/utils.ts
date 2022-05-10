@@ -46,11 +46,14 @@ export async function transferTokens(amountUI: number, mint: PublicKey, decimals
 }
 
 export async function transferAllTokens(mint: PublicKey, decimals: number, from: Signer, to: PublicKey): Promise<string> {
+    const sender = findATAAddrSync(from.publicKey, mint)[0];
+    if (!await getConnection().getAccountInfo(sender)) {
+        return "No account";
+    }
     const token = new Token(getConnection(), mint, TOKEN_PROGRAM_ID, from);
-    const sender = await token.getOrCreateAssociatedAccountInfo(from.publicKey);
     const receiver = await token.getOrCreateAssociatedAccountInfo(to);
-    const amount = await getBalance(sender.address);
-    const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender.address, receiver.address, from.publicKey, [], uiToNative(amount, decimals).toNumber());
+    const amount = await getBalance(sender);
+    const transferTokensIx = Token.createTransferInstruction(TOKEN_PROGRAM_ID, sender, receiver.address, from.publicKey, [], uiToNative(amount, decimals).toNumber());
     const transaction = new anchor.web3.Transaction().add(transferTokensIx);
     return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
         from,
@@ -240,7 +243,7 @@ const createWrappedSolTokenAccount = async (
     return [transferItx, createItx];
 };
 
-function createAssociatedTokenAccountItx(payerKey, walletKey, mintKey) {
+export function createAssociatedTokenAccountItx(payerKey, walletKey, mintKey) {
     const assocKey = findAssociatedTokenAddress(walletKey, mintKey);
 
     return new anchor.web3.TransactionInstruction({

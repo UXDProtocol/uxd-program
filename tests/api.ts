@@ -2,7 +2,7 @@ import { getConnection, TXN_OPTS } from "./connection";
 import { uxdClient } from "./constants";
 import { Keypair, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
-import { prepareWrappedSolTokenAccount } from "./utils";
+import { createAssociatedTokenAccountItx, prepareWrappedSolTokenAccount } from "./utils";
 import { MangoDepository, Mango, Controller, PnLPolarity, createAssocTokenIx, findATAAddrSync, uiToNative } from "@uxd-protocol/uxd-client";
 import { web3 } from "@project-serum/anchor";
 
@@ -90,15 +90,13 @@ export async function setMangoDepositoriesRedeemableSoftCap(authority: Signer, c
 // Permissionless Calls -------------------------------------------------------
 
 export async function mintWithMangoDepository(user: Signer, payer: Signer, slippage: number, collateralAmount: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
-    console.log("AMOUNT ", collateralAmount);
     const mintWithMangoDepositoryIx = await uxdClient.createMintWithMangoDepositoryInstruction(collateralAmount, slippage, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
     let signers = [];
     let tx = new Transaction();
-    console.log("IN");
 
     const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
     if (!await getConnection().getAccountInfo(userRedeemableAta)) {
-        const createUserRedeemableAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
+        const createUserRedeemableAtaIx = createAssociatedTokenAccountItx(payer.publicKey, user.publicKey, controller.redeemableMintPda);
         tx.add(createUserRedeemableAtaIx);
     }
 
@@ -175,15 +173,6 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
             nativeAmount.toNumber()
         );
         tx.add(...prepareWrappedSolIxs);
-    } else {
-        // TEMPORARY - Also make a WSOL account to prevent program doing it and save some computing
-        const createWSOLATAIxs = await prepareWrappedSolTokenAccount(
-            getConnection(),
-            payer.publicKey,
-            user.publicKey,
-            0
-        );
-        tx.add(...createWSOLATAIxs);
     }
 
     const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];

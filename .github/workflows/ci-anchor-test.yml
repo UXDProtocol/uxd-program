@@ -11,7 +11,7 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   SOLANA_VERSION: 1.8.14
-  ANCHOR_VERSION: 0.21.0
+  ANCHOR_VERSION: 0.24.2
   CLUSTER: "devnet"
   DEVNET_RPC: https://api.devnet.solana.com 
   # DEVNET_FAUCET: "9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g"
