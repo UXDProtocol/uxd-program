@@ -165,8 +165,8 @@ pub fn handler(
     // - [Calculates the quantity of short to close]
     let quote_exposure_delta = I80F48::from_num(amount_to_liquidate);
 
-        // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees don't overflow the redeemed amount]
-        let max_fee_amount = quote_exposure_delta
+    // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees don't overflow the redeemed amount]
+    let max_fee_amount = quote_exposure_delta
         .checked_mul(perp_info.effective_fee)
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_ceil()
