@@ -46,7 +46,8 @@ export type Uxd = {
           "name": "redeemableMintDecimals",
           "type": "u8"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "setRedeemableGlobalSupplyCap",
@@ -67,7 +68,8 @@ export type Uxd = {
           "name": "redeemableGlobalSupplyCap",
           "type": "u128"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "setMangoDepositoriesRedeemableSoftCap",
@@ -88,7 +90,8 @@ export type Uxd = {
           "name": "redeemableSoftCap",
           "type": "u64"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "registerMangoDepository",
@@ -154,7 +157,8 @@ export type Uxd = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [],
+      "returns": null
     },
     {
       "name": "depositInsuranceToMangoDepository",
@@ -225,7 +229,8 @@ export type Uxd = {
           "name": "amount",
           "type": "u64"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "withdrawInsuranceFromMangoDepository",
@@ -306,7 +311,8 @@ export type Uxd = {
           "name": "amount",
           "type": "u64"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "rebalanceMangoDepositoryLite",
@@ -452,7 +458,8 @@ export type Uxd = {
           "name": "limitPrice",
           "type": "f32"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "mintWithMangoDepository",
@@ -567,7 +574,8 @@ export type Uxd = {
           "name": "limitPrice",
           "type": "f32"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "redeemFromMangoDepository",
@@ -692,229 +700,8 @@ export type Uxd = {
           "name": "limitPrice",
           "type": "f32"
         }
-      ]
-    },
-    {
-      "name": "quoteMintWithMangoDepository",
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "redeemableMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userQuote",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mangoAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mangoGroup",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mangoCache",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mangoRootBank",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mangoNodeBank",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mangoVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mangoPerpMarket",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
       ],
-      "args": [
-        {
-          "name": "quoteAmount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "quoteRedeemFromMangoDepository",
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "redeemableMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "quoteMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "userQuote",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mangoAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mangoGroup",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mangoCache",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mangoSigner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mangoRootBank",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mangoNodeBank",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mangoVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mangoPerpMarket",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "redeemableAmount",
-          "type": "u64"
-        }
-      ]
+      "returns": null
     }
   ],
   "accounts": [
@@ -971,10 +758,6 @@ export type Uxd = {
           {
             "name": "redeemableCirculatingSupply",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": "u8"
           }
         ]
       }
@@ -1820,7 +1603,8 @@ export const IDL: Uxd = {
           "name": "redeemableMintDecimals",
           "type": "u8"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "setRedeemableGlobalSupplyCap",
@@ -1841,7 +1625,8 @@ export const IDL: Uxd = {
           "name": "redeemableGlobalSupplyCap",
           "type": "u128"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "setMangoDepositoriesRedeemableSoftCap",
@@ -1862,7 +1647,8 @@ export const IDL: Uxd = {
           "name": "redeemableSoftCap",
           "type": "u64"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "registerMangoDepository",
@@ -1928,7 +1714,8 @@ export const IDL: Uxd = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [],
+      "returns": null
     },
     {
       "name": "depositInsuranceToMangoDepository",
@@ -1999,7 +1786,8 @@ export const IDL: Uxd = {
           "name": "amount",
           "type": "u64"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "withdrawInsuranceFromMangoDepository",
@@ -2341,7 +2129,8 @@ export const IDL: Uxd = {
           "name": "limitPrice",
           "type": "f32"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "redeemFromMangoDepository",
@@ -2466,7 +2255,8 @@ export const IDL: Uxd = {
           "name": "limitPrice",
           "type": "f32"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "quoteMintWithMangoDepository",
@@ -2572,7 +2362,8 @@ export const IDL: Uxd = {
           "name": "quoteAmount",
           "type": "u64"
         }
-      ]
+      ],
+      "returns": null
     },
     {
       "name": "quoteRedeemFromMangoDepository",
@@ -2688,7 +2479,8 @@ export const IDL: Uxd = {
           "name": "redeemableAmount",
           "type": "u64"
         }
-      ]
+      ],
+      "returns": null
     }
   ],
   "accounts": [
@@ -2745,10 +2537,6 @@ export const IDL: Uxd = {
           {
             "name": "redeemableCirculatingSupply",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": "u8"
           }
         ]
       }
