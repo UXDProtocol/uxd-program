@@ -118,8 +118,8 @@ pub fn handler(ctx: Context<InitializeSafetyVault>,) -> Result<()> {
     safety_vault.depository = ctx.accounts.depository.key();
     safety_vault.quote_vault = ctx.accounts.quote_vault.key();
     safety_vault.collateral_vault = ctx.accounts.collateral_vault.key();
-    safety_vault.collateral_liquidated = 0 as u128;
-    safety_vault.quote_vault_balance = 0 as u128;
+    safety_vault.collateral_liquidated = 0u128;
+    safety_vault.quote_vault_balance = 0u128;
 
     Ok(())
 }
