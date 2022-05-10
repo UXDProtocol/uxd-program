@@ -87,6 +87,12 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: "14"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
       # Create Keypair
       - name: Create Runner keypair and funds it
         run: |
@@ -115,7 +121,7 @@ jobs:
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
       - name: Upgrade resident program with latest code
         run: |
-          npm install
+          npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} build
           solana program deploy ./target/deploy/uxd.so --program-id ${{ env.RESIDENT_PROGRAM_KEYPAIR }} --upgrade-authority ${{ env.CI_DEPLOYMENT_AUTHORITY_WALLET_PATH }} -v
@@ -277,6 +283,12 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: "14"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
       # Create Keypair
       - name: Create Runner keypair and funds it
         run: |
@@ -312,13 +324,13 @@ jobs:
       - name: Start Keeper and Market Making bot for the perp
         run: |
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-          npm install
+          npm ci --ignore-scripts
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} npm run keeper &
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL npm run mm &
           cd -
       - name: Anchor Test (skip build and deploy)
         run: |
-          npm install
+          npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
           sed  -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_SOL }}/g" ./Anchor.toml
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
@@ -366,6 +378,12 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: "14"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
       # Create Keypair
       - name: Create Runner keypair and funds it
         run: |
@@ -401,13 +419,13 @@ jobs:
       - name: Start Keeper and Market Making bot for the perp
         run: |
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-          npm install
+          npm ci --ignore-scripts
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} npm run keeper &
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC npm run mm &
           cd -
       - name: Anchor Test (skip build and deploy)
         run: |
-          npm install
+          npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
           sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_BTC }}/g" ./Anchor.toml
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
@@ -456,6 +474,12 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: "14"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
       # Create Keypair
       - name: Create Runner keypair and funds it
         run: |
@@ -491,13 +515,13 @@ jobs:
       - name: Start Keeper and Market Making bot for the perp
         run: |
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-          npm install
+          npm ci --ignore-scripts
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} npm run keeper &
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH npm run mm &
           cd -
       - name: Anchor Test (skip build and deploy)
         run: |
-          npm install
+          npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
           sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_ETH }}/g" ./Anchor.toml
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
@@ -546,6 +570,12 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: "14"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
       # Create Keypair
       - name: Create Runner keypair and funds it
         run: |
@@ -574,7 +604,7 @@ jobs:
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
       - name: Anchor Test (skip build and deploy)
         run: |
-          npm install
+          npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
           sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_REBALANCING }}/g" ./Anchor.toml
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
