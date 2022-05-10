@@ -72,6 +72,8 @@ pub enum UxdError {
     QuantityBelowContractSize,
     #[msg("Target collateral is higher than the depository's current collateral.")]
     LiquidateCollateral,
+    #[msg("The collateral factor is higher than 1.")]
+    CollateralFactorTooHigh,
 
     /// Anchor DSL related errors
     ///
