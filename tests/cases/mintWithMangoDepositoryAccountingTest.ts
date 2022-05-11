@@ -1,12 +1,11 @@
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, Mango, MangoDepository, findATAAddrSync, nativeToUi } from "@uxdprotocol/uxd-client";
+import { Controller, Mango, MangoDepository, findATAAddrSync, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { mintWithMangoDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
-import { CLUSTER, slippageBase } from "../constants";
+import { CLUSTER } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
-import { depositInsuranceMangoDepositoryTest } from "./depositInsuranceMangoDepositoryTest";
 
 export const mintWithMangoDepositoryAccountingTest = async function (collateralAmount: number, slippage: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> {
     console.group("🧭 mintWithMangoDepositoryTest");

@@ -46,8 +46,7 @@
           "name": "redeemableMintDecimals",
           "type": "u8"
         }
-      ],
-      "returns": null
+      ]
     },
     {
       "name": "setRedeemableGlobalSupplyCap",
@@ -68,8 +67,7 @@
           "name": "redeemableGlobalSupplyCap",
           "type": "u128"
         }
-      ],
-      "returns": null
+      ]
     },
     {
       "name": "setMangoDepositoriesRedeemableSoftCap",
@@ -90,8 +88,7 @@
           "name": "redeemableSoftCap",
           "type": "u64"
         }
-      ],
-      "returns": null
+      ]
     },
     {
       "name": "registerMangoDepository",
@@ -157,8 +154,7 @@
           "isSigner": false
         }
       ],
-      "args": [],
-      "returns": null
+      "args": []
     },
     {
       "name": "depositInsuranceToMangoDepository",
@@ -195,7 +191,7 @@
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -229,8 +225,7 @@
           "name": "amount",
           "type": "u64"
         }
-      ],
-      "returns": null
+      ]
     },
     {
       "name": "withdrawInsuranceFromMangoDepository",
@@ -311,8 +306,7 @@
           "name": "amount",
           "type": "u64"
         }
-      ],
-      "returns": null
+      ]
     },
     {
       "name": "rebalanceMangoDepositoryLite",
@@ -458,8 +452,7 @@
           "name": "limitPrice",
           "type": "f32"
         }
-      ],
-      "returns": null
+      ]
     },
     {
       "name": "mintWithMangoDepository",
@@ -574,8 +567,7 @@
           "name": "limitPrice",
           "type": "f32"
         }
-      ],
-      "returns": null
+      ]
     },
     {
       "name": "redeemFromMangoDepository",
@@ -700,8 +692,7 @@
           "name": "limitPrice",
           "type": "f32"
         }
-      ],
-      "returns": null
+      ]
     }
   ],
   "accounts": [
@@ -1515,5 +1506,8 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "3eWZV2aosf4C6HzYScArN3pAHAbokdzixHsNTDn6cDBL"
+  }
 }
