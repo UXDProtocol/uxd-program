@@ -32,15 +32,15 @@ impl PerpInfo {
         mango_program_key: &Pubkey,
     ) -> Result<Self> {
         let mango_group = MangoGroup::load_checked(mango_group_ai, mango_program_key)
-            .map_err(|me| ProgramError::from(me))?;
+            .map_err(ProgramError::from)?;
         let mango_cache = MangoCache::load_checked(mango_cache_ai, mango_program_key, &mango_group)
-            .map_err(|me| ProgramError::from(me))?;
+            .map_err(ProgramError::from)?;
         let perp_market_index = mango_group
             .find_perp_market_index(perp_market_key)
             .ok_or_else(|| error!(UxdError::MangoPerpMarketIndexNotFound))?;
         let mango_account =
             MangoAccount::load_checked(mango_account_ai, mango_program_key, mango_group_key)
-                .map_err(|me| ProgramError::from(me))?;
+                .map_err(ProgramError::from)?;
         PerpInfo::init(
             &mango_group,
             &mango_account,
@@ -88,7 +88,7 @@ fn determine_ref_fee(
     // If it's zero then cache may be out of date, but it doesn't matter because 0 * index = 0
     let mngo_deposits = mango_account
         .get_native_deposit(mngo_cache, mngo_index)
-        .map_err(|me| ProgramError::from(me))?;
+        .map_err(ProgramError::from)?;
     let ref_mngo_req = I80F48::from_num(mango_group.ref_mngo_required);
     if mngo_deposits >= ref_mngo_req {
         return Ok(I80F48::ZERO);

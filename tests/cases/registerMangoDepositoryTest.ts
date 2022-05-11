@@ -1,5 +1,5 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, Mango } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, Mango } from "@uxd-protocol/uxd-client";
 import { registerMangoDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection } from "../connection";

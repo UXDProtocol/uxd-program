@@ -191,7 +191,7 @@
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {

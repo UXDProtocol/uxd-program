@@ -15,6 +15,6 @@ url = "https://anchor.projectserum.com"
 # The quick version for development - Keep this version as the CI swap this line for its needs
 test = "npx ts-mocha --require tests/fixtures.ts -p ./tsconfig.json -t 500000 tests/test_development.ts --reporter mochawesome --require mochawesome/register --reporter-options quiet=true,reportTitle=uxdprogram-test_integration --trace-warnings"
 # Sol only version
-# test = "npm ts-mocha --require tests/fixtures.ts -p ./tsconfig.json -t 500000 tests/test_ci_sol.ts --reporter mochawesome --require mochawesome/register --reporter-options quiet=true,reportTitle=uxdprogram-test_integration --trace-warnings"
+# test = "npx ts-mocha --require tests/fixtures.ts -p ./tsconfig.json -t 500000 tests/test_ci_sol.ts --reporter mochawesome --require mochawesome/register --reporter-options quiet=true,reportTitle=uxdprogram-test_integration --trace-warnings"
 # Longer version
-# test = "npm ts-mocha --require tests/fixtures.ts -p ./tsconfig.json -t 500000 tests/test_integration.ts --reporter mochawesome --require mochawesome/register --reporter-options quiet=true,reportTitle=uxdprogram-test_integration --trace-warnings"
+# test = "npx ts-mocha --require tests/fixtures.ts -p ./tsconfig.json -t 500000 tests/test_integration.ts --reporter mochawesome --require mochawesome/register --reporter-options quiet=true,reportTitle=uxdprogram-test_integration --trace-warnings"

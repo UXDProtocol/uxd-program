@@ -1,5 +1,5 @@
 import { Keypair, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET } from "@uxd-protocol/uxd-client";
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
 import { printDepositoryInfo, printUserInfo, transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
 import { depositInsuranceMangoDepositoryTest } from "./cases/depositInsuranceMangoDepositoryTest";
@@ -112,7 +112,7 @@ describe("Integration tests SOL", function () {
     // });
 
     this.afterAll("Transfer funds back to bank", async function () {
-        await transferAllSol(user, bank.publicKey);
         await transferAllTokens(USDC_DEVNET, USDC_DECIMALS, user, bank.publicKey);
+        await transferAllSol(user, bank.publicKey);
     });
 });

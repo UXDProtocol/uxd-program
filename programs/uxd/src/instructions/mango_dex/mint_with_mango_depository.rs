@@ -388,7 +388,7 @@ impl<'info> MintWithMangoDepository<'info> {
             self.mango_program.key,
             self.mango_group.key,
         )
-        .map_err(|me| ProgramError::from(me))?;
+        .map_err(ProgramError::from)?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 
@@ -450,8 +450,8 @@ fn check_perp_order_fully_filled(
     pre_pa: &PerpAccount,
     post_pa: &PerpAccount,
 ) -> Result<()> {
-    let pre_position = total_perp_base_lot_position(&pre_pa)?;
-    let post_position = total_perp_base_lot_position(&post_pa)?;
+    let pre_position = total_perp_base_lot_position(pre_pa)?;
+    let post_position = total_perp_base_lot_position(post_pa)?;
     let filled_amount = (post_position
         .checked_sub(pre_position)
         .ok_or_else(|| error!(UxdError::MathError))?)

@@ -1,5 +1,5 @@
 import { Keypair, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxd-protocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
 import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
@@ -50,7 +50,7 @@ describe("Integration tests SOL", function () {
         mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositorySOL);
     });
 
-    describe.only("mangoDepositoryMintRedeemSuite SOL", function () {
+    describe("mangoDepositoryMintRedeemSuite SOL", function () {
         mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositorySOL, 20);
     });
 

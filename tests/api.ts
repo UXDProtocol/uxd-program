@@ -2,9 +2,9 @@ import { getConnection, TXN_OPTS } from "./connection";
 import { uxdClient } from "./constants";
 import { Keypair, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
-import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller, PnLPolarity, createAssocTokenIx, findATAAddrSync } from "@uxdprotocol/uxd-client";
-import { BN, web3 } from "@project-serum/anchor";
+import { createAssociatedTokenAccountItx, prepareWrappedSolTokenAccount } from "./utils";
+import { MangoDepository, Mango, Controller, PnLPolarity, createAssocTokenIx, findATAAddrSync, uiToNative } from "@uxd-protocol/uxd-client";
+import { web3 } from "@project-serum/anchor";
 
 // Permissionned Calls --------------------------------------------------------
 
@@ -96,25 +96,23 @@ export async function mintWithMangoDepository(user: Signer, payer: Signer, slipp
 
     const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
     if (!await getConnection().getAccountInfo(userRedeemableAta)) {
-        const createUserRedeemableAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
+        const createUserRedeemableAtaIx = createAssociatedTokenAccountItx(payer.publicKey, user.publicKey, controller.redeemableMintPda);
         tx.add(createUserRedeemableAtaIx);
     }
 
     if (depository.collateralMint.equals(NATIVE_MINT)) {
-        const nativeAmount = collateralAmount * 10 ** depository.collateralMintDecimals;
+        const nativeAmount = uiToNative(collateralAmount, depository.collateralMintDecimals);
         const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
             getConnection(),
             payer.publicKey,
             user.publicKey,
-            nativeAmount
+            nativeAmount.toNumber()
         );
         tx.add(...prepareWrappedSolIxs);
     } else {
-        console.log("Find user ata");
         const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
         if (!await getConnection().getAccountInfo(userCollateralAta)) {
             const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
-            console.log("will create user ata");
             tx.add(createUserCollateralAtaIx);
         }
     }
@@ -206,23 +204,14 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
     if (polarity == PnLPolarity.Positive && depository.collateralMint.equals(NATIVE_MINT)) {
         const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
         const rebalancingMaxAmountCollateral = rebalancingMaxAmountQuote / mangoPerpPrice;
-        const nativeAmount = rebalancingMaxAmountCollateral * 10 ** depository.collateralMintDecimals;
+        const nativeAmount = uiToNative(rebalancingMaxAmountCollateral, depository.collateralMintDecimals);
         const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
             getConnection(),
             payer.publicKey,
             user.publicKey,
-            nativeAmount
+            nativeAmount.toNumber()
         );
         tx.add(...prepareWrappedSolIxs);
-    } else {
-        // TEMPORARY - Also make a WSOL account to prevent program doing it and save some computing
-        const createWSOLATAIxs = await prepareWrappedSolTokenAccount(
-            getConnection(),
-            payer.publicKey,
-            user.publicKey,
-            0
-        );
-        tx.add(...createWSOLATAIxs);
     }
 
     const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
