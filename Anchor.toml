@@ -6,7 +6,7 @@ wallet = "~/.config/solana/id.json"
 uxd = "UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr"
 
 [programs.devnet] 
-uxd = "Hxe5F6biJ9a9fBqqu9dWFpJaPprFk9y2fJykVEurzfHV"
+uxd = "72dZW8NFPGwua2jGtCZSep9giDNHVfW5TkaVFZqQpCy2"
 
 [registry]
 url = "https://anchor.projectserum.com"
