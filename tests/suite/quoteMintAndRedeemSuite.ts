@@ -1,10 +1,10 @@
-import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, Mango, PnLPolarity } from "@uxdprotocol/uxd-client";
+import { Connection, Signer } from "@solana/web3.js";
+import { Controller, MangoDepository, Mango, PnLPolarity } from "@uxd-protocol/uxd-client";
 import { quoteMintWithMangoDepository, quoteRedeemFromMangoDepository, setMangoDepositoryQuoteMintAndRedeemFee } from "../api";
 import { quoteMintWithMangoDepositoryTest } from "../cases/quoteMintWithMangoDepositoryTest";
 import { quoteRedeemFromMangoDepositoryTest } from "../cases/quoteRedeemFromMangoDepositoryTest";
 import { setMangoDepositoryQuoteMintAndRedeemFeeTest } from "../cases/setMangoDepositoryQuoteMintAndRedeemFeeTest";
-import { TXN_OPTS } from "../connection";
+import { getConnection, TXN_OPTS } from "../connection";
 
 
 export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MangoDepository, mango: Mango) {

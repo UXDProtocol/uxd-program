@@ -1,5 +1,5 @@
 import { Keypair, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET } from "@uxd-protocol/uxd-client";
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
 import { printDepositoryInfo, printUserInfo, transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
 import { depositInsuranceMangoDepositoryTest } from "./cases/depositInsuranceMangoDepositoryTest";
@@ -11,10 +11,12 @@ import { redeemFromMangoDepositoryTest } from "./cases/redeemFromMangoDepository
 import { initializeControllerTest } from "./cases/initializeControllerTest";
 import { MangoDepositoryRebalancingSuiteParameters, mangoDepositoryRebalancingSuite } from "./suite/mangoDepositoryRebalancingSuite";
 import { quoteMintAndRedeemSuite } from "./suite/quoteMintAndRedeemSuite";
+import { utils } from "@project-serum/anchor";
+import { setMangoDepositoriesRedeemableSoftCap } from "./api";
 
 console.log(uxdProgramId.toString());
 // const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
-const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", UXD_DECIMALS, uxdProgramId);
 // const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controller = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 const payer = bank;
@@ -28,16 +30,16 @@ beforeEach("\n", function () { console.log("====================================
 describe("Integration tests SOL", function () {
     const user: Signer = new Keypair();
 
-    this.beforeAll("Init and fund user (10 SOL and 10k usdc)", async function () {
+    this.beforeAll("Init and fund user (10 SOL and 100 usdc)", async function () {
         console.log("USER =>", user.publicKey.toString());
         await transferSol(5, bank, user.publicKey);
-        await transferTokens(10000, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
-        await transferTokens(10, BTC_DEVNET, BTC_DECIMALS, bank, user.publicKey);
+        await transferTokens(200, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
+        await transferTokens(1.1, BTC_DEVNET, BTC_DECIMALS, bank, user.publicKey);
     });
 
 
 
-    describe("Init", async function () {
+    describe.skip("Init", async function () {
         it("Initialize Controller", async function () {
             await initializeControllerTest(authority, controller, payer);
         });
@@ -53,11 +55,20 @@ describe("Integration tests SOL", function () {
         // });
 
         it(`Deposit 100 USDC of insurance`, async function () {
+            const authorityQuoteATA = await utils.token.associatedAddress({
+                mint: mangoDepositoryBTC.quoteMint,
+                owner: authority.publicKey,
+              });
+            console.log("AHFKAJSD: ", authorityQuoteATA.toString());
             await depositInsuranceMangoDepositoryTest(100, authority, controller, mangoDepositoryBTC, mango);
         });
 
+        it("Increase soft cap", async function () {
+            await setMangoDepositoriesRedeemableSoftCap(authority, controller, 10_000_000);
+        });
+
         it("Mint 1 BTC", async function() {
-            await mintWithMangoDepositoryTest(10, slippage, user, controller, mangoDepositoryBTC, mango, payer);
+            await mintWithMangoDepositoryTest(1, slippage, user, controller, mangoDepositoryBTC, mango, payer);
         });
         // it(`Withdraw 10 USDC of insurance`, async function () {
         //     await withdrawInsuranceMangoDepositoryTest(10, authority, controller, mangoDepositorySOL, mango);
@@ -69,7 +80,8 @@ describe("Integration tests SOL", function () {
 
     });
 
-    describe.skip("Quote Mint And Redeem Suite", async function () {
+    describe("Quote Mint And Redeem Suite", async function () {
+        // console.log(mango.client.connection);
         quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC, mango);
     });
 
@@ -112,7 +124,7 @@ describe("Integration tests SOL", function () {
     // });
 
     this.afterAll("Transfer funds back to bank", async function () {
-        await transferAllSol(user, bank.publicKey);
         await transferAllTokens(USDC_DEVNET, USDC_DECIMALS, user, bank.publicKey);
+        await transferAllSol(user, bank.publicKey);
     });
 });

@@ -1,6 +1,6 @@
 import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { redeemFromMangoDepositoryTest } from "../cases/redeemFromMangoDepositoryTest";

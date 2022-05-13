@@ -15,7 +15,7 @@ pub mod test;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("GEJsNmKSEJMh1G65WVBB1pzSC924myWm7jLkeRF7rfx1");
+solana_program::declare_id!("Ey9KK7StPP51xQmbAA6QAFvgLXFvZJcqFzDRkUERJucj");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -180,7 +180,7 @@ pub mod uxd {
     ///  Beyond 90% the `MangoAccount` can be liquidated by other mango accounts.
     ///  (And borrows/withdraws are still disabled)
     ///
-    /// Note:
+    /// Note: 
     ///  As the funding rate care be either negative or positive, the insurance
     ///  is there as a buffer to ensure that redeemables can be swapped back
     ///  at all time (by unwinding the backing amount of delta neutral
@@ -385,6 +385,13 @@ pub mod uxd {
         instructions::quote_redeem_from_mango_depository::handler(ctx, redeemable_amount)
     }
 
+    pub fn set_mango_depository_quote_mint_and_redeem_fee(
+        ctx: Context<SetMangoDepositoryQuoteMintAndRedeemFee>,
+        quote_fee: u8,
+    ) -> Result<()> {
+        msg!("[set_mango_depository_quote_mint_and_redeem_fee] quote_fee {}", quote_fee);
+        instructions::set_mango_depository_quote_mint_and_redeem_fee::handler(ctx, quote_fee)
+    }
 }
 
 /// Checks that the perp_market_index provided matches the collateral of the depository.

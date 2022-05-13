@@ -1,16 +1,15 @@
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, Mango, MangoDepository, findATAAddrSync, nativeToUi } from "@uxdprotocol/uxd-client";
+import { Controller, Mango, MangoDepository, findATAAddrSync, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { redeemFromMangoDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
-import { CLUSTER, slippageBase } from "../constants";
+import { CLUSTER } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
 export const redeemFromMangoDepositoryAccountingTest = async function (redeemableAmount: number, slippage: number, collateralUnitShift: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer): Promise<number> {
     console.group("🧭 redeemWithMangoDepositoryTest");
     try {
-        const connection = getConnection();
         const options = TXN_OPTS;
 
         // GIVEN
@@ -25,11 +24,11 @@ export const redeemFromMangoDepositoryAccountingTest = async function (redeemabl
             userCollateralBalance = await getBalance(userCollateralATA);
         }
 
-        const depositoryAccount = await depository.getOnchainAccount(connection, options);
+        const depositoryAccount = await depository.getOnchainAccount(getConnection(), options);
         const depositoryRedeemable = nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), depository.quoteMintDecimals);
         const depositoryCollateral = nativeToUi(depositoryAccount.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals);
         const depositoryTakerFees = nativeToUi(depositoryAccount.totalAmountPaidTakerFee.toNumber(), depository.quoteMintDecimals);
-        const controllerAccount = await controller.getOnchainAccount(connection, options);
+        const controllerAccount = await controller.getOnchainAccount(getConnection(), options);
         const controllerRedeemable = nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
 
         // WHEN
@@ -63,10 +62,10 @@ export const redeemFromMangoDepositoryAccountingTest = async function (redeemabl
         const redeemableNativeUnitPrecision = Math.pow(10, -controller.redeemableMintDecimals);
         const estimatedAmountRedeemableLostInSlippage = Math.abs(redeemableDelta - redeemableProcessedByRedeeming) - estimatedAmountRedeemableLostInTakerFees;
         // Get onchain depository and controller for post accounting
-        const depositoryAccount_post = await depository.getOnchainAccount(connection, TXN_OPTS);
+        const depositoryAccount_post = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
         const depositoryRedeemable_post = nativeToUi(depositoryAccount_post.redeemableAmountUnderManagement.toNumber(), depository.quoteMintDecimals);
         const depositoryCollateral_post = nativeToUi(depositoryAccount_post.collateralAmountDeposited.toNumber(), depository.collateralMintDecimals);
-        const controllerAccount_post = await controller.getOnchainAccount(connection, TXN_OPTS);
+        const controllerAccount_post = await controller.getOnchainAccount(getConnection(), TXN_OPTS);
         const controllerRedeemable_post = nativeToUi(controllerAccount_post.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
         const depositoryTakerFees_post = nativeToUi(depositoryAccount_post.totalAmountPaidTakerFee.toNumber(), depository.quoteMintDecimals);
 
@@ -86,8 +85,6 @@ export const redeemFromMangoDepositoryAccountingTest = async function (redeemabl
         expect(controllerRedeemable_post).closeTo(controllerRedeemable - redeemableDelta, redeemableNativeUnitPrecision, "Controller RedeemableCirculatingSupply is incorrect");
         expect(depositoryTakerFees_post).to.be.within(depositoryTakerFees, depositoryTakerFees + (mangoTakerFee * collateralDelta * mangoPerpPrice), "Depository TotalAmountPaidTakerFee is incorrect");
         expect(depositoryCollateral_post).closeTo(depositoryCollateral - collateralDelta, collateralNativeUnitPrecision, "Depository CollateralAmountDeposited is incorrect");
-
-
 
         console.groupEnd();
         return redeemableDelta;

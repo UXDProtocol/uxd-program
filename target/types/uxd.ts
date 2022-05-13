@@ -191,7 +191,7 @@ export type Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -915,6 +915,32 @@ export type Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "setMangoDepositoryQuoteMintAndRedeemFee",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "quoteFee",
+          "type": "u8"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -971,10 +997,6 @@ export type Uxd = {
           {
             "name": "redeemableCirculatingSupply",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": "u8"
           }
         ]
       }
@@ -1965,7 +1987,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2262,6 +2284,238 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
+          "name": "mangoGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoCache",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoSigner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoRootBank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoNodeBank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "rebalanceMangoDepositoryLite",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "quoteMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoSigner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoGroup",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoCache",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoRootBankQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoNodeBankQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoVaultQuote",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoRootBankCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoNodeBankCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoVaultCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoPerpMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoBids",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoAsks",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoEventQueue",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "maxRebalancingAmount",
+          "type": "u64"
+        },
+        {
+          "name": "polarity",
+          "type": {
+            "defined": "PnlPolarity"
+          }
+        },
+        {
+          "name": "limitPrice",
+          "type": "f32"
+        }
+      ]
+    },
+    {
+      "name": "mintWithMangoDepository",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "redeemableMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "userRedeemable",
           "isMut": true,
           "isSigner": false
@@ -2293,6 +2547,26 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoPerpMarket",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoBids",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoAsks",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoEventQueue",
           "isMut": true,
           "isSigner": false
         },
@@ -2689,6 +2963,32 @@ export const IDL: Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "setMangoDepositoryQuoteMintAndRedeemFee",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "quoteFee",
+          "type": "u8"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -2745,10 +3045,6 @@ export const IDL: Uxd = {
           {
             "name": "redeemableCirculatingSupply",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": "u8"
           }
         ]
       }

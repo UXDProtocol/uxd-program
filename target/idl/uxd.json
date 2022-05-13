@@ -191,7 +191,7 @@
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -915,6 +915,32 @@
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "setMangoDepositoryQuoteMintAndRedeemFee",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "quoteFee",
+          "type": "u8"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -971,10 +997,6 @@
           {
             "name": "redeemableCirculatingSupply",
             "type": "u128"
-          },
-          {
-            "name": "reserved",
-            "type": "u8"
           }
         ]
       }
@@ -1769,5 +1791,8 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "Ey9KK7StPP51xQmbAA6QAFvgLXFvZJcqFzDRkUERJucj"
+  }
 }

@@ -1,5 +1,5 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { depositInsuranceMangoDepositoryTest } from "../cases/depositInsuranceMangoDepositoryTest";
 import { withdrawInsuranceMangoDepositoryTest } from "../cases/withdrawInsuranceMangoDepositoryTest";
