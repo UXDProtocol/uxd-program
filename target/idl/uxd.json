@@ -915,6 +915,32 @@
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "setMangoDepositoryQuoteMintAndRedeemFee",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "quoteFee",
+          "type": "u8"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1767,6 +1793,6 @@
     }
   ],
   "metadata": {
-    "address": "72dZW8NFPGwua2jGtCZSep9giDNHVfW5TkaVFZqQpCy2"
+    "address": "Ey9KK7StPP51xQmbAA6QAFvgLXFvZJcqFzDRkUERJucj"
   }
 }

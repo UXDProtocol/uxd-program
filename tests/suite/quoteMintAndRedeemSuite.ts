@@ -1,10 +1,10 @@
-import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, Mango, PnLPolarity } from "@uxdprotocol/uxd-client";
+import { Connection, Signer } from "@solana/web3.js";
+import { Controller, MangoDepository, Mango, PnLPolarity } from "@uxd-protocol/uxd-client";
 import { quoteMintWithMangoDepository, quoteRedeemFromMangoDepository, setMangoDepositoryQuoteMintAndRedeemFee } from "../api";
 import { quoteMintWithMangoDepositoryTest } from "../cases/quoteMintWithMangoDepositoryTest";
 import { quoteRedeemFromMangoDepositoryTest } from "../cases/quoteRedeemFromMangoDepositoryTest";
 import { setMangoDepositoryQuoteMintAndRedeemFeeTest } from "../cases/setMangoDepositoryQuoteMintAndRedeemFeeTest";
-import { TXN_OPTS } from "../connection";
+import { getConnection, TXN_OPTS } from "../connection";
 
 
 export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MangoDepository, mango: Mango) {
@@ -18,7 +18,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
 
     it(`Quote mint or redeem a small amount (without fees)`, async function () {
-        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
+        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, getConnection(), TXN_OPTS);
         const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
         
         if (Math.abs(offsetUnrealizedPnl) < 10) { // add something here

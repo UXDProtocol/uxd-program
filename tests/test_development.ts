@@ -12,6 +12,7 @@ import { initializeControllerTest } from "./cases/initializeControllerTest";
 import { MangoDepositoryRebalancingSuiteParameters, mangoDepositoryRebalancingSuite } from "./suite/mangoDepositoryRebalancingSuite";
 import { quoteMintAndRedeemSuite } from "./suite/quoteMintAndRedeemSuite";
 import { utils } from "@project-serum/anchor";
+import { setMangoDepositoriesRedeemableSoftCap } from "./api";
 
 console.log(uxdProgramId.toString());
 // const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -38,7 +39,7 @@ describe("Integration tests SOL", function () {
 
 
 
-    describe("Init", async function () {
+    describe.skip("Init", async function () {
         it("Initialize Controller", async function () {
             await initializeControllerTest(authority, controller, payer);
         });
@@ -62,6 +63,10 @@ describe("Integration tests SOL", function () {
             await depositInsuranceMangoDepositoryTest(100, authority, controller, mangoDepositoryBTC, mango);
         });
 
+        it("Increase soft cap", async function () {
+            await setMangoDepositoriesRedeemableSoftCap(authority, controller, 10_000_000);
+        });
+
         it("Mint 1 BTC", async function() {
             await mintWithMangoDepositoryTest(1, slippage, user, controller, mangoDepositoryBTC, mango, payer);
         });
@@ -75,9 +80,10 @@ describe("Integration tests SOL", function () {
 
     });
 
-    // describe.skip("Quote Mint And Redeem Suite", async function () {
-    //     quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC, mango);
-    // });
+    describe("Quote Mint And Redeem Suite", async function () {
+        // console.log(mango.client.connection);
+        quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC, mango);
+    });
 
     // describe("Quote mint and redeem", async function () {
     //     it("Mint 10 BTC", async function() {
