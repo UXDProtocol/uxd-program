@@ -18,7 +18,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
 
     it(`Quote mint or redeem a small amount (without fees)`, async function () {
-        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, getConnection(), TXN_OPTS);
+        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
         const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
         
         if (Math.abs(offsetUnrealizedPnl) < 10) { // add something here
