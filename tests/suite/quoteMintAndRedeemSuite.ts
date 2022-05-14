@@ -1,5 +1,6 @@
 import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, Mango, PnLPolarity } from "@uxd-protocol/uxd-client";
+import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { quoteMintWithMangoDepositoryTest } from "../cases/quoteMintWithMangoDepositoryTest";
 import { quoteRedeemFromMangoDepositoryTest } from "../cases/quoteRedeemFromMangoDepositoryTest";
 import { setMangoDepositoryQuoteMintAndRedeemFeeTest } from "../cases/setMangoDepositoryQuoteMintAndRedeemFeeTest";
@@ -8,9 +9,10 @@ import { mango } from "../fixtures";
 
 
 export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MangoDepository) {
-    // it("Quote mint 0 (should fail)", async function () {
+    it(`Ensure user has UXD`, async function () {
+        await mintWithMangoDepositoryTest(0.01, 500, user, controller, depository, mango);
+    });
 
-    // });
 
     it(`Change the quote mint and redeem fees to 0`, async function () {
         await setMangoDepositoryQuoteMintAndRedeemFeeTest(0, authority, controller, depository);

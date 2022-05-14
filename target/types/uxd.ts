@@ -855,7 +855,7 @@ export type Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -2651,7 +2651,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {

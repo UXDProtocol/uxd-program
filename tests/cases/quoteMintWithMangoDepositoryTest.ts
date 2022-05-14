@@ -1,6 +1,6 @@
 import { utils } from "@project-serum/anchor";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, Mango, MangoDepository } from "@uxdprotocol/uxd-client";
+import { Controller, Mango, MangoDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { quoteMintWithMangoDepository } from "../api";
 import { CLUSTER } from "../constants";
@@ -19,8 +19,10 @@ export const quoteMintWithMangoDepositoryTest = async function (quoteAmount: num
             owner: user.publicKey,
         });
         // CHECK IF EXIST, ELSE 0 (TODO)
-        const userQuoteBalance = await getBalance(userQuoteATA);
-        const userRedeemableBalance = await getBalance(userRedeemableATA);
+        let userQuoteBalance = await getBalance(userQuoteATA);
+        let userRedeemableBalance = await getBalance(userRedeemableATA);
+        if (isNaN(userQuoteBalance)) { userQuoteBalance = 0; }
+        if (isNaN(userRedeemableBalance)) { userRedeemableBalance = 0; }
 
         // WHEN
         const txId = await quoteMintWithMangoDepository(user, payer ?? user, quoteAmount, controller, depository, mango);

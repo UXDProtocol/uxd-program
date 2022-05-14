@@ -855,7 +855,7 @@
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1793,6 +1793,6 @@
     }
   ],
   "metadata": {
-    "address": "4GkmxgK9sFMh2ogo83SoWAj2CKZs36tNxn21swL6obPW"
+    "address": "DjtbiSj9PvcfG1NB1q4KPrNiBcQJ4zTJKAqj2qJkcBNy"
   }
 }

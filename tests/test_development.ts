@@ -1,5 +1,5 @@
 import { Keypair, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET } from "@uxd-protocol/uxd-client";
+import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET, UXD_DEVNET } from "@uxd-protocol/uxd-client";
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
 import { printDepositoryInfo, printUserInfo, transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
 import { depositInsuranceMangoDepositoryTest } from "./cases/depositInsuranceMangoDepositoryTest";
@@ -34,6 +34,7 @@ describe("Integration tests SOL", function () {
         console.log("USER =>", user.publicKey.toString());
         await transferSol(5, bank, user.publicKey);
         await transferTokens(200, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
+        // await transferTokens(10, UXD_DEVNET, UXD_DECIMALS, bank, user.publicKey);
         await transferTokens(1.1, BTC_DEVNET, BTC_DECIMALS, bank, user.publicKey);
     });
 
@@ -55,10 +56,6 @@ describe("Integration tests SOL", function () {
         // });
 
         it(`Deposit 100 USDC of insurance`, async function () {
-            const authorityQuoteATA = await utils.token.associatedAddress({
-                mint: mangoDepositoryBTC.quoteMint,
-                owner: authority.publicKey,
-            });
             await depositInsuranceMangoDepositoryTest(100, authority, controller, mangoDepositoryBTC, mango);
         });
 
@@ -123,6 +120,8 @@ describe("Integration tests SOL", function () {
 
     this.afterAll("Transfer funds back to bank", async function () {
         await transferAllTokens(USDC_DEVNET, USDC_DECIMALS, user, bank.publicKey);
+        await transferAllTokens(BTC_DEVNET, BTC_DECIMALS, user, bank.publicKey);
+        // await transferAllTokens(UXD_DEVNET, UXD_DECIMALS, user, bank.publicKey);
         await transferAllSol(user, bank.publicKey);
     });
 });

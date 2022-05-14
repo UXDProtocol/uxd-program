@@ -179,9 +179,9 @@ export async function quoteRedeemFromMangoDepository(user: Signer, payer: Signer
     let signers = [];
     let tx = new Transaction();
 
-    const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
-    if (!await getConnection().getAccountInfo(userCollateralAta)) {
-        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
+    const userQuoteATA = findATAAddrSync(user.publicKey, depository.quoteMint)[0];
+    if (!await getConnection().getAccountInfo(userQuoteATA)) {
+        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userQuoteATA, depository.collateralMint);
         tx.add(createUserCollateralAtaIx);
     }
 

@@ -1,7 +1,7 @@
 import { utils } from "@project-serum/anchor";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, Mango, MangoDepository, findATAAddrSync, uiToNative } from "@uxdprotocol/uxd-client";
+import { Controller, Mango, MangoDepository, findATAAddrSync, uiToNative } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { mintWithMangoDepository, quoteMintWithMangoDepository, quoteRedeemFromMangoDepository } from "../api";
 import { CLUSTER, slippageBase } from "../constants";
@@ -19,8 +19,10 @@ export const quoteRedeemFromMangoDepositoryTest = async function (redeemableAmou
             mint: controller.redeemableMintPda,
             owner: user.publicKey,
         });
-        const userQuoteBalance = await getBalance(userQuoteATA);
-        const userRedeemableBalance = await getBalance(userRedeemableATA);
+        let userQuoteBalance = await getBalance(userQuoteATA);
+        let userRedeemableBalance = await getBalance(userRedeemableATA);
+        if (isNaN(userQuoteBalance)) { userQuoteBalance = 0; }
+        if (isNaN(userRedeemableBalance)) { userRedeemableBalance = 0; }
 
         // WHEN
         const txId = await quoteRedeemFromMangoDepository(user, payer ?? user, redeemableAmount, controller, depository, mango);
@@ -40,6 +42,8 @@ export const quoteRedeemFromMangoDepositoryTest = async function (redeemableAmou
 
         // const quoteAmountNative = uiToNative(quoteAmount, depository.quoteMintDecimals);
         const lessFeesMultiple = 1 - depository.quoteMintAndRedeemFee;
+
+        console.log(userQuoteBalance);
 
         expect(userQuoteBalance_post).equals(userQuoteBalance + (redeemableAmount * lessFeesMultiple));
         expect(userRedeemableBalance_post).equals(userRedeemableBalance - redeemableAmount);

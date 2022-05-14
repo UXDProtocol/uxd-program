@@ -62,13 +62,13 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
-    /// #x The quote mint of the depository
+    /// #6 The quote mint of the depository
     #[account(
       constraint = quote_mint.key() == depository.load()?.quote_mint,
     )]
     pub quote_mint: Box<Account<'info, Mint>>,
 
-    /// #6 The `user`'s ATA for one the `mango depository`s `quote_mint`
+    /// #7 The `user`'s ATA for one the `mango depository`s `quote_mint`
     /// Will be credited during this instruction
     #[account(
         mut,
@@ -77,7 +77,7 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     )]
     pub user_quote: Box<Account<'info, TokenAccount>>,
 
-    /// #7 The `user`'s ATA for the `controller`'s `redeemable_mint`
+    /// #8 The `user`'s ATA for the `controller`'s `redeemable_mint`
     /// Will be debited during this instruction
     #[account(
         mut,
@@ -101,6 +101,7 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
 
     /// #11 [MangoMarkets CPI] Cache
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_cache: UncheckedAccount<'info>,
 
     /// #12 [MangoMarkets CPI] Signer PDA
@@ -199,14 +200,14 @@ pub fn handler(
     require!(perp_unrealized_pnl.is_positive(), UxdError::InvalidPnlPolarity);
 
     let quote_redeemable: u64 = perp_unrealized_pnl
-    .checked_abs()
-    .ok_or_else(|| error!(UxdError::MathError))?
-    .checked_to_num::<i128>()
-    .ok_or_else(|| error!(UxdError::MathError))?
-    .checked_add(quote_minted.try_into().unwrap())
-    .ok_or_else(|| error!(UxdError::MathError))?
-    .try_into()
-    .unwrap();
+        .checked_abs()
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_to_num::<i128>()
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_add(quote_minted.try_into().unwrap())
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .try_into()
+        .unwrap();
 
     // Check to ensure we are not redeeming more than we allocate to resolve positive PnL
     require!(redeemable_amount <= quote_redeemable, UxdError::RedeemableAmountTooHigh);
