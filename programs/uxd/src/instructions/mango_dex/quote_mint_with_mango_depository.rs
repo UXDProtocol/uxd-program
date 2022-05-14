@@ -1,6 +1,6 @@
-use crate::BPS_POW;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::PerpInfo;
+use crate::validate_perp_market_mint_matches_depository_collateral_mint;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::UxdError;
@@ -9,7 +9,6 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
-use crate::validate_perp_market_mint_matches_depository_collateral_mint;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -38,7 +37,7 @@ pub struct QuoteMintWithMangoDepository<'info> {
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
         constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
-    )] 
+    )]
     pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance.
@@ -80,7 +79,7 @@ pub struct QuoteMintWithMangoDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #9 The MangoMarkets Account (MangoAccount) managed by the `depository` ******************
+    /// #8 The MangoMarkets Account (MangoAccount) managed by the `depository` ******************
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
@@ -89,53 +88,52 @@ pub struct QuoteMintWithMangoDepository<'info> {
     )]
     pub mango_account: AccountInfo<'info>,
 
-    /// #10 [MangoMarkets CPI] Index grouping perp and spot markets
+    /// #9 [MangoMarkets CPI] Index grouping perp and spot markets
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_group: UncheckedAccount<'info>,
 
-    /// #11 [MangoMarkets CPI] Cache
+    /// #10 [MangoMarkets CPI] Cache
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_cache: UncheckedAccount<'info>,
 
-    /// #12 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
+    /// #11 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_root_bank: UncheckedAccount<'info>,
 
-    /// #13 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
+    /// #12 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_node_bank: UncheckedAccount<'info>,
 
-    /// #14 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`
+    /// #13 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_vault: UncheckedAccount<'info>,
 
-    /// #15 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
+    /// #14 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_perp_market: UncheckedAccount<'info>,
 
-    /// #16 System Program
+    /// #15 System Program
     pub system_program: Program<'info, System>,
 
-    /// #17 Token Program
+    /// #16 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #18 Associated Token Program
+    /// #17 Associated Token Program
     pub associated_token_program: Program<'info, AssociatedToken>,
 
-    /// #19 MangoMarketv3 Program
+    /// #18 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 
-    /// #20 Rent Sysvar
+    /// #19 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(
-    ctx: Context<QuoteMintWithMangoDepository>,
-    quote_amount: u64,
-) -> Result<()> {
+pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) -> Result<()> {
     let depository = ctx.accounts.depository.load()?;
     let controller = &ctx.accounts.controller;
     let depository_pda_signer: &[&[&[u8]]] = &[&[
@@ -188,7 +186,10 @@ pub fn handler(
     let quote_minted = depository.net_quote_minted;
 
     // Only allow quote minting if PnL is negative
-    require!(perp_unrealized_pnl.is_negative(), UxdError::InvalidPnlPolarity);
+    require!(
+        perp_unrealized_pnl.is_negative(),
+        UxdError::InvalidPnlPolarity
+    );
 
     // Will become negative if more has been minted than the current negative PnL
     let quote_mintable: u64 = perp_unrealized_pnl
@@ -205,8 +206,8 @@ pub fn handler(
     // - 4 [DEPOSIT QUOTE MINT INTO MANGO ACCOUNT] -------------------------------
     mango_markets_v3::deposit(
         ctx.accounts
-        .into_deposit_quote_to_mango_context()
-        .with_signer(depository_pda_signer),
+            .into_deposit_quote_to_mango_context()
+            .with_signer(depository_pda_signer),
         quote_amount,
     )?;
 
@@ -243,10 +244,8 @@ pub fn handler(
     )?;
 
     // - 6 [UPDATE ACCOUNTING] ------------------------------------------------
-    ctx.accounts.update_onchain_accounting(
-        quote_amount,
-        redeemable_mint_amount_less_fees,
-    )?;
+    ctx.accounts
+        .update_onchain_accounting(quote_amount, redeemable_mint_amount_less_fees)?;
 
     // - 7 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
@@ -256,7 +255,7 @@ pub fn handler(
 
 impl<'info> QuoteMintWithMangoDepository<'info> {
     pub fn into_deposit_quote_to_mango_context(
-        &self
+        &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Deposit<'info>> {
         let cpi_accounts = mango_markets_v3::Deposit {
             mango_group: self.mango_group.to_account_info(),
@@ -285,11 +284,11 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
     fn check_redeemable_global_supply_cap_overflow(&self) -> Result<()> {
         require!(
-            self.controller.load()?.redeemable_circulating_supply 
-            <= self.controller.load()?.redeemable_global_supply_cap, 
+            self.controller.load()?.redeemable_circulating_supply
+                <= self.controller.load()?.redeemable_global_supply_cap,
             UxdError::RedeemableGlobalSupplyCapReached
         );
-       
+
         Ok(())
     }
 
@@ -357,12 +356,12 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> QuoteMintWithMangoDepository<'info> {
-    pub fn validate(
-        &self,
-        quote_amount: u64,
-    ) -> Result<()> {
+    pub fn validate(&self, quote_amount: u64) -> Result<()> {
         require!(quote_amount != 0, UxdError::InvalidQuoteAmount);
-        require!(self.user_quote.amount >= quote_amount, UxdError::InsufficientQuoteAmountMint);
+        require!(
+            self.user_quote.amount >= quote_amount,
+            UxdError::InsufficientQuoteAmountMint
+        );
         validate_perp_market_mint_matches_depository_collateral_mint(
             &self.mango_group,
             self.mango_program.key,

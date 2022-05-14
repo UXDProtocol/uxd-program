@@ -1,11 +1,10 @@
 import { utils } from "@project-serum/anchor";
-import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, Mango, MangoDepository, findATAAddrSync, uiToNative } from "@uxdprotocol/uxd-client";
+import { Controller, Mango, MangoDepository } from "@uxdprotocol/uxd-client";
 import { expect } from "chai";
-import { mintWithMangoDepository, quoteMintWithMangoDepository } from "../api";
-import { CLUSTER, slippageBase } from "../constants";
-import { getSolBalance, getBalance } from "../utils";
+import { quoteMintWithMangoDepository } from "../api";
+import { CLUSTER } from "../constants";
+import { getBalance } from "../utils";
 
 export const quoteMintWithMangoDepositoryTest = async function (quoteAmount: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
     console.group("🧭 quoteMintWithMangoDepositoryTest");
@@ -19,6 +18,7 @@ export const quoteMintWithMangoDepositoryTest = async function (quoteAmount: num
             mint: controller.redeemableMintPda,
             owner: user.publicKey,
         });
+        // CHECK IF EXIST, ELSE 0 (TODO)
         const userQuoteBalance = await getBalance(userQuoteATA);
         const userRedeemableBalance = await getBalance(userRedeemableATA);
 

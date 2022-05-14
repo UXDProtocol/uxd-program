@@ -744,12 +744,12 @@
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1793,6 +1793,6 @@
     }
   ],
   "metadata": {
-    "address": "Ey9KK7StPP51xQmbAA6QAFvgLXFvZJcqFzDRkUERJucj"
+    "address": "4GkmxgK9sFMh2ogo83SoWAj2CKZs36tNxn21swL6obPW"
   }
 }

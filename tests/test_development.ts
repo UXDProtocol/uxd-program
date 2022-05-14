@@ -39,7 +39,7 @@ describe("Integration tests SOL", function () {
 
 
 
-    describe.skip("Init", async function () {
+    describe("Init", async function () {
         it("Initialize Controller", async function () {
             await initializeControllerTest(authority, controller, payer);
         });
@@ -58,8 +58,7 @@ describe("Integration tests SOL", function () {
             const authorityQuoteATA = await utils.token.associatedAddress({
                 mint: mangoDepositoryBTC.quoteMint,
                 owner: authority.publicKey,
-              });
-            console.log("AHFKAJSD: ", authorityQuoteATA.toString());
+            });
             await depositInsuranceMangoDepositoryTest(100, authority, controller, mangoDepositoryBTC, mango);
         });
 
@@ -67,7 +66,7 @@ describe("Integration tests SOL", function () {
             await setMangoDepositoriesRedeemableSoftCap(authority, controller, 10_000_000);
         });
 
-        it("Mint 1 BTC", async function() {
+        it("Mint 1 BTC", async function () {
             await mintWithMangoDepositoryTest(1, slippage, user, controller, mangoDepositoryBTC, mango, payer);
         });
         // it(`Withdraw 10 USDC of insurance`, async function () {
@@ -80,9 +79,8 @@ describe("Integration tests SOL", function () {
 
     });
 
-    describe("Quote Mint And Redeem Suite", async function () {
-        // console.log(mango.client.connection);
-        quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC, mango);
+    describe.only("Quote Mint And Redeem Suite", async function () {
+        quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC);
     });
 
     // describe("Quote mint and redeem", async function () {

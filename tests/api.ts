@@ -131,7 +131,13 @@ export async function quoteMintWithMangoDepository(user: Signer, payer: Signer, 
     let signers = [];
     let tx = new Transaction();
 
-    tx.instructions.push(quoteMintWithMangoDepositoryIx);
+    const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
+    if (!await getConnection().getAccountInfo(userRedeemableAta)) {
+        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
+        tx.add(createUserCollateralAtaIx);
+    }
+
+    tx.add(quoteMintWithMangoDepositoryIx);
     signers.push(user);
     if (payer) {
         signers.push(payer);
@@ -173,7 +179,13 @@ export async function quoteRedeemFromMangoDepository(user: Signer, payer: Signer
     let signers = [];
     let tx = new Transaction();
 
-    tx.instructions.push(quoteRedeemFromMangoDepositoryIx);
+    const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
+    if (!await getConnection().getAccountInfo(userCollateralAta)) {
+        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
+        tx.add(createUserCollateralAtaIx);
+    }
+
+    tx.add(quoteRedeemFromMangoDepositoryIx);
     signers.push(user);
     if (payer) {
         signers.push(payer);
