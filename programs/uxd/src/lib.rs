@@ -15,7 +15,7 @@ pub mod test;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("3eWZV2aosf4C6HzYScArN3pAHAbokdzixHsNTDn6cDBL");
+solana_program::declare_id!("6k1FocL2LrevETpyRqdFf5hhtudT6bAL9GxedFe951gH");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -34,6 +34,9 @@ pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million r
 
 pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
+
+const BPS_POW: u8 = 4; // Raise a number to BPS_POW to get order of magnitude of
+pub const BPS_UNIT_CONVERSION: u64 = (10 as u64).pow(BPS_POW as u32);
 
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 
@@ -177,7 +180,7 @@ pub mod uxd {
     ///  Beyond 90% the `MangoAccount` can be liquidated by other mango accounts.
     ///  (And borrows/withdraws are still disabled)
     ///
-    /// Note:
+    /// Note: 
     ///  As the funding rate care be either negative or positive, the insurance
     ///  is there as a buffer to ensure that redeemables can be swapped back
     ///  at all time (by unwinding the backing amount of delta neutral
@@ -358,6 +361,36 @@ pub mod uxd {
             limit_price
         );
         instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, limit_price)
+    }
+
+    #[access_control(
+        ctx.accounts.validate(quote_amount)
+    )]
+    pub fn quote_mint_with_mango_depository(
+        ctx: Context<QuoteMintWithMangoDepository>,
+        quote_amount: u64,
+    ) -> Result<()> {
+        msg!("[quote_mint_with_mango_depository] quote_amount {}", quote_amount);
+        instructions::quote_mint_with_mango_depository::handler(ctx, quote_amount)
+    }
+
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn quote_redeem_from_mango_depository(
+        ctx: Context<QuoteRedeemFromMangoDepository>,
+        redeemable_amount: u64,
+    ) -> Result<()> {
+        msg!("[quote_redeem_from_mango_depository] redeemable_amount {}", redeemable_amount);
+        instructions::quote_redeem_from_mango_depository::handler(ctx, redeemable_amount)
+    }
+
+    pub fn set_mango_depository_quote_mint_and_redeem_fee(
+        ctx: Context<SetMangoDepositoryQuoteMintAndRedeemFee>,
+        quote_fee: u8,
+    ) -> Result<()> {
+        msg!("[set_mango_depository_quote_mint_and_redeem_fee] quote_fee {}", quote_fee);
+        instructions::set_mango_depository_quote_mint_and_redeem_fee::handler(ctx, quote_fee)
     }
 }
 

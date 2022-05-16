@@ -8,6 +8,7 @@ import { mangoDepositoryInsuranceSuite } from "./suite/depositoryInsuranceSuite"
 import { mangoDepositorySetupSuite } from "./suite/depositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
+import { quoteMintAndRedeemSuite } from "./suite/quoteMintAndRedeemSuite";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -39,6 +40,11 @@ describe("Integration tests SOL", function () {
     describe("mangoDepositoryRebalancingSuite SOL", function () {
         const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositorySOL, paramsRebalancing);
+    });
+
+    // Skipped as it's handle bu the test_ci_quote_mint_redeem.ts
+    describe.skip("mangoDepositoryQuoteMintRedeemSuite SOL", function () {
+        quoteMintAndRedeemSuite(authority, user, bank, controllerUXD, mangoDepositorySOL);
     });
 
     describe("mangoDepositoryInsuranceSuite SOL", function () {
