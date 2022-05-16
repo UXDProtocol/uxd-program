@@ -325,7 +325,7 @@ jobs:
       - name: Start Keeper and Market Making bot for the perp
         run: |
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-          npm ci --ignore-scripts
+          npm install
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} npm run keeper &
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL npm run mm &
           cd -
@@ -420,7 +420,7 @@ jobs:
       - name: Start Keeper and Market Making bot for the perp
         run: |
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-          npm ci --ignore-scripts
+          npm install
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} npm run keeper &
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC npm run mm &
           cd -
@@ -516,7 +516,7 @@ jobs:
       - name: Start Keeper and Market Making bot for the perp
         run: |
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-          npm ci --ignore-scripts
+          npm install
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} npm run keeper &
           GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH npm run mm &
           cd -
