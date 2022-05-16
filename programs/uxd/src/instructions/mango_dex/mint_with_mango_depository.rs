@@ -473,6 +473,10 @@ impl<'info> MintWithMangoDepository<'info> {
             self.user_collateral.amount >= collateral_amount,
             UxdError::InsufficientCollateralAmount
         );
+        require!(
+            !&self.depository.load()?.disabled,
+            UxdError::MintingDisabled
+        );
 
         validate_perp_market_mint_matches_depository_collateral_mint(
             &self.mango_group,
