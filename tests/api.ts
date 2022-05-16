@@ -5,7 +5,7 @@ import { NATIVE_MINT } from "@solana/spl-token";
 import { createAssociatedTokenAccountItx, prepareWrappedSolTokenAccount } from "./utils";
 import { MangoDepository, Mango, Controller, PnLPolarity, createAssocTokenIx, findATAAddrSync, uiToNative } from "@uxd-protocol/uxd-client";
 import { web3 } from "@project-serum/anchor";
-import { Payer } from "@uxd-protocol/uxd-client/node_modules/@blockworks-foundation/mango-client";
+import { Payer } from "@blockworks-foundation/mango-client";
 
 // Permissionned Calls --------------------------------------------------------
 
