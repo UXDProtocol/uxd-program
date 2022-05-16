@@ -1,5 +1,5 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, Mango, PnLPolarity } from "@uxd-protocol/uxd-client";
+import { Controller, MangoDepository, PnLPolarity } from "@uxd-protocol/uxd-client";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { quoteMintWithMangoDepositoryTest } from "../cases/quoteMintWithMangoDepositoryTest";
 import { quoteRedeemFromMangoDepositoryTest } from "../cases/quoteRedeemFromMangoDepositoryTest";
@@ -20,10 +20,11 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
 
     it(`Quote mint or redeem a small amount (without fees)`, async function () {
+
         const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
         const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-        if (Math.abs(offsetUnrealizedPnl) < 1) { // add something here
+        if (Math.abs(offsetUnrealizedPnl) < 1) {
             console.log("🔵  skipping rebalancing, unrealized pnl too small");
             return;
         }
@@ -31,10 +32,12 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
             case `Positive`: {
                 console.log("Quote Redeem!");
                 await quoteRedeemFromMangoDepositoryTest(1, user, controller, depository, mango, payer);
+                break;
             }
             case `Negative`: {
                 console.log("Quote Mint!");
                 await quoteMintWithMangoDepositoryTest(1, user, controller, depository, mango, payer);
+                break;
             }
         }
     });
@@ -47,7 +50,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
         const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-        if (Math.abs(offsetUnrealizedPnl) < 1) { // add something here
+        if (Math.abs(offsetUnrealizedPnl) < 1) {
             console.log("🔵  skipping rebalancing, unrealized pnl too small");
             return;
         }
@@ -55,10 +58,12 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
             case `Positive`: {
                 console.log("Quote Redeem!");
                 await quoteRedeemFromMangoDepositoryTest(1, user, controller, depository, mango, payer);
+                break;
             }
             case `Negative`: {
                 console.log("Quote Mint!");
                 await quoteMintWithMangoDepositoryTest(1, user, controller, depository, mango, payer);
+                break;
             }
         }
     });

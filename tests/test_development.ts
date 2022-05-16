@@ -32,7 +32,7 @@ describe("Integration tests SOL", function () {
 
     this.beforeAll("Init and fund user (10 SOL and 100 usdc)", async function () {
         console.log("USER =>", user.publicKey.toString());
-        await transferSol(5, bank, user.publicKey);
+        await transferSol(1, bank, user.publicKey);
         await transferTokens(200, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
         // await transferTokens(10, UXD_DEVNET, UXD_DECIMALS, bank, user.publicKey);
         await transferTokens(1.1, BTC_DEVNET, BTC_DECIMALS, bank, user.publicKey);

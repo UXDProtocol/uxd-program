@@ -191,13 +191,27 @@ pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) ->
         UxdError::InvalidPnlPolarity
     );
 
+    // // Will become negative if more has been minted than the current negative PnL
+    // let quote_mintable: u64 = perp_unrealized_pnl
+    //     .checked_abs()
+    //     .ok_or_else(|| error!(UxdError::MathError))?
+    //     .checked_to_num::<u64>()
+    //     .ok_or_else(|| error!(UxdError::MathError))?
+    //     .checked_sub(quote_minted.try_into().unwrap())
+    //     .ok_or_else(|| error!(UxdError::MathError))?;
+
     // Will become negative if more has been minted than the current negative PnL
     let quote_mintable: u64 = perp_unrealized_pnl
+        .checked_sub(
+            I80F48::checked_from_num(
+                quote_minted
+            )
+            .ok_or_else(|| error!(UxdError::MathError))?
+        )
+        .ok_or_else(|| error!(UxdError::MathError))?
         .checked_abs()
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_to_num::<u64>()
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_sub(quote_minted.try_into().unwrap())
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     // Check to ensure we are not minting more than we allocate to resolve negative PnL

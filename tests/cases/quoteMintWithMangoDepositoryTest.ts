@@ -1,8 +1,9 @@
 import { utils } from "@project-serum/anchor";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, Mango, MangoDepository } from "@uxd-protocol/uxd-client";
+import { Controller, Mango, MangoDepository, UXD_DECIMALS } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { quoteMintWithMangoDepository } from "../api";
+import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
 import { getBalance } from "../utils";
 
@@ -40,11 +41,13 @@ export const quoteMintWithMangoDepositoryTest = async function (quoteAmount: num
         const userQuoteBalance_post = await getBalance(userQuoteATA_post);
         const userRedeemableBalance_post = await getBalance(userRedeemableATA_post);
 
-        // const quoteAmountNative = uiToNative(quoteAmount, depository.quoteMintDecimals);
-        const lessFeesMultiple = 1 - depository.quoteMintAndRedeemFee;
+        const bps_pow = Math.pow(10, 4);
+        const lessFeesMultiple = 1 - ((await depository.getOnchainAccount(getConnection(), TXN_OPTS)).quoteMintAndRedeemFee / bps_pow);
+        const quoteNativeUnitPrecision = Math.pow(10, -depository.quoteMintDecimals);
+        const redeemableNativeUnitPrecision = Math.pow(10, -controller.redeemableMintDecimals);
 
-        expect(userQuoteBalance_post).equals(userQuoteBalance - quoteAmount);
-        expect(userRedeemableBalance_post).equals(userRedeemableBalance + (quoteAmount * lessFeesMultiple));
+        expect(userQuoteBalance_post).closeTo(userQuoteBalance - quoteAmount, quoteNativeUnitPrecision);
+        expect(userRedeemableBalance_post).closeTo(userRedeemableBalance + (quoteAmount * lessFeesMultiple), redeemableNativeUnitPrecision);
 
         console.groupEnd();
     } catch (error) {
