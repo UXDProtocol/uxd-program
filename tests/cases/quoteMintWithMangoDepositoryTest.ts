@@ -19,7 +19,6 @@ export const quoteMintWithMangoDepositoryTest = async function (quoteAmount: num
             mint: controller.redeemableMintPda,
             owner: user.publicKey,
         });
-        // CHECK IF EXIST, ELSE 0 (TODO)
         let userQuoteBalance = await getBalance(userQuoteATA);
         let userRedeemableBalance = await getBalance(userRedeemableATA);
         if (isNaN(userQuoteBalance)) { userQuoteBalance = 0; }
@@ -30,16 +29,8 @@ export const quoteMintWithMangoDepositoryTest = async function (quoteAmount: num
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
-        const userQuoteATA_post: PublicKey = await utils.token.associatedAddress({
-            mint: depository.quoteMint,
-            owner: user.publicKey,
-        });
-        const userRedeemableATA_post: PublicKey = await utils.token.associatedAddress({
-            mint: controller.redeemableMintPda,
-            owner: user.publicKey,
-        });
-        const userQuoteBalance_post = await getBalance(userQuoteATA_post);
-        const userRedeemableBalance_post = await getBalance(userRedeemableATA_post);
+        const userQuoteBalance_post = await getBalance(userQuoteATA);
+        const userRedeemableBalance_post = await getBalance(userRedeemableATA);
 
         const bps_pow = Math.pow(10, 4);
         const lessFeesMultiple = 1 - ((await depository.getOnchainAccount(getConnection(), TXN_OPTS)).quoteMintAndRedeemFee / bps_pow);

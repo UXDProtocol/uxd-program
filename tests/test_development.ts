@@ -76,7 +76,7 @@ describe("Integration tests SOL", function () {
 
     });
 
-    describe.only("Quote Mint And Redeem Suite", async function () {
+    describe("Quote Mint And Redeem Suite", async function () {
         quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC);
     });
 
@@ -121,7 +121,6 @@ describe("Integration tests SOL", function () {
     this.afterAll("Transfer funds back to bank", async function () {
         await transferAllTokens(USDC_DEVNET, USDC_DECIMALS, user, bank.publicKey);
         await transferAllTokens(BTC_DEVNET, BTC_DECIMALS, user, bank.publicKey);
-        // await transferAllTokens(UXD_DEVNET, UXD_DECIMALS, user, bank.publicKey);
         await transferAllSol(user, bank.publicKey);
     });
 });

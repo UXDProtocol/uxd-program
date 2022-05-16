@@ -11,9 +11,9 @@ import { mango } from "../fixtures";
 
 
 export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MangoDepository) {
-    it(`Ensure user has UXD`, async function () {
-        await mintWithMangoDepositoryTest(0.01, 500, user, controller, depository, mango);
-    });
+    // it(`Ensure user has UXD`, async function () {
+    //     await mintWithMangoDepositoryTest(0.01, 500, user, controller, depository, mango);
+    // });
 
     it(`Change the quote mint and redeem fees to 0`, async function () {
         await setMangoDepositoryQuoteMintAndRedeemFeeTest(0, authority, controller, depository);
