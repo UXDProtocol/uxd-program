@@ -1,6 +1,5 @@
 import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, PnLPolarity } from "@uxd-protocol/uxd-client";
-import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { quoteMintWithMangoDepositoryAccountingTest } from "../cases/quoteMintWithMangoDepositoryAccountingTest";
 import { quoteMintWithMangoDepositoryTest } from "../cases/quoteMintWithMangoDepositoryTest";
 import { quoteRedeemFromMangoDepositoryAccountingTest } from "../cases/quoteRedeemFromMangoDepositoryAccountingTest";
@@ -112,4 +111,30 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
             }
         }
     });
+
+    it(`Quote mint or redeem remaining amount (with fees)`, async function () {
+        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
+        const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
+
+        // Else the collateral price might change and fail the test
+        const amount = offsetUnrealizedPnl * 0.9;
+
+        if (Math.abs(offsetUnrealizedPnl) < 1) {
+            console.log("🔵  skipping rebalancing, unrealized pnl too small");
+            return;
+        }
+        switch (polarity) {
+            case `Positive`: {
+                console.log("Quote Redeem! Amount:", amount);
+                await quoteRedeemFromMangoDepositoryTest(amount, user, controller, depository, mango, payer);
+                break;
+            }
+            case `Negative`: {
+                console.log("Quote Mint! Amount:", amount);
+                await quoteMintWithMangoDepositoryTest(amount, user, controller, depository, mango, payer);
+                break;
+            }
+        }
+    });
+
 }
