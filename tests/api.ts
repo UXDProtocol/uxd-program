@@ -5,6 +5,7 @@ import { NATIVE_MINT } from "@solana/spl-token";
 import { createAssociatedTokenAccountItx, prepareWrappedSolTokenAccount } from "./utils";
 import { MangoDepository, Mango, Controller, PnLPolarity, createAssocTokenIx, findATAAddrSync, uiToNative } from "@uxd-protocol/uxd-client";
 import { web3 } from "@project-serum/anchor";
+import { Payer } from "@uxd-protocol/uxd-client/node_modules/@blockworks-foundation/mango-client";
 
 // Permissionned Calls --------------------------------------------------------
 
@@ -184,6 +185,8 @@ export async function quoteRedeemFromMangoDepository(user: Signer, payer: Signer
         const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userQuoteATA, depository.collateralMint);
         tx.add(createUserCollateralAtaIx);
     }
+
+    await depository.settleMangoDepositoryMangoAccountPnl(payer as Payer, mango);
 
     tx.add(quoteRedeemFromMangoDepositoryIx);
     signers.push(user);

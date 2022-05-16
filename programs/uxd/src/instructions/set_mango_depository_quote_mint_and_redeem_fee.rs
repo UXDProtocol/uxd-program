@@ -1,8 +1,8 @@
 use crate::error::UxdError;
+use crate::state::MangoDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
-use crate::state::MangoDepository;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]

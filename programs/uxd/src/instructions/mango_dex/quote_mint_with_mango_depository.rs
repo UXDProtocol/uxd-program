@@ -191,22 +191,10 @@ pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) ->
         UxdError::InvalidPnlPolarity
     );
 
-    // // Will become negative if more has been minted than the current negative PnL
-    // let quote_mintable: u64 = perp_unrealized_pnl
-    //     .checked_abs()
-    //     .ok_or_else(|| error!(UxdError::MathError))?
-    //     .checked_to_num::<u64>()
-    //     .ok_or_else(|| error!(UxdError::MathError))?
-    //     .checked_sub(quote_minted.try_into().unwrap())
-    //     .ok_or_else(|| error!(UxdError::MathError))?;
-
     // Will become negative if more has been minted than the current negative PnL
     let quote_mintable: u64 = perp_unrealized_pnl
         .checked_sub(
-            I80F48::checked_from_num(
-                quote_minted
-            )
-            .ok_or_else(|| error!(UxdError::MathError))?
+            I80F48::checked_from_num(quote_minted).ok_or_else(|| error!(UxdError::MathError))?,
         )
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_abs()
@@ -363,7 +351,7 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
             self.mango_program.key,
             self.mango_group.key,
         )
-        .map_err(|me| ProgramError::from(me))?;
+        .map_err(ProgramError::from)?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 }

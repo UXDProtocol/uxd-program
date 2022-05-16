@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod test_perp_account_utils {
 
-    use crate::{mango_utils::total_perp_base_lot_position};
+    use crate::mango_utils::total_perp_base_lot_position;
 
     use fixed::types::I80F48;
     use mango::state::PerpAccount;
@@ -24,7 +24,7 @@ mod test_perp_account_utils {
 
     proptest! {
         #[test]
-        fn test_total_perp_base_lot_position(taker_base in i64::MIN..i64::MAX, base_position in i64::MIN..i64::MAX) {
+        fn test_total_perp_base_lot_position(taker_base in (i64::MIN / 2)..(i64::MAX /2), base_position in (i64::MIN /2)..(i64::MAX / 2)) {
             let perp_account = mocked_perp_account(taker_base, base_position);
             let res = total_perp_base_lot_position(&perp_account);
 

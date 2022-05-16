@@ -1,14 +1,14 @@
-use crate::BPS_UNIT_CONVERSION;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::PerpInfo;
+use crate::validate_perp_market_mint_matches_depository_collateral_mint;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::UxdError;
+use crate::BPS_UNIT_CONVERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
-use crate::validate_perp_market_mint_matches_depository_collateral_mint;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -86,7 +86,7 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #9 The MangoMarkets Account (MangoAccount) managed by the `depository` ******************
+    /// #9 The MangoMarkets Account (MangoAccount) managed by the `depository`
     /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
@@ -143,10 +143,7 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(
-    ctx: Context<QuoteRedeemFromMangoDepository>,
-    redeemable_amount: u64,
-) -> Result<()> {
+pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: u64) -> Result<()> {
     let depository = ctx.accounts.depository.load()?;
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
@@ -182,6 +179,11 @@ pub fn handler(
     let redeemable_under_management = i128::try_from(depository.redeemable_amount_under_management)
         .map_err(|_e| error!(UxdError::MathError))?;
 
+    msg!(
+        "redeemable_under_management {}",
+        redeemable_under_management
+    );
+
     // Will not overflow as `perp_position_notional_size` and `redeemable_under_management`
     // will vary together.
     let perp_unrealized_pnl = I80F48::checked_from_num(
@@ -190,6 +192,7 @@ pub fn handler(
             .ok_or_else(|| error!(UxdError::MathError))?,
     )
     .ok_or_else(|| error!(UxdError::MathError))?;
+    msg!("perp_unrealized_pnl {}", perp_unrealized_pnl);
 
     // - 2 [FIND HOW MUCH REDEEMABLE CAN BE MINTED] ---------------------------
 
@@ -197,20 +200,29 @@ pub fn handler(
     let quote_minted = depository.net_quote_minted;
 
     // Only allow quote redeeming if PnL is positive
-    require!(perp_unrealized_pnl.is_positive(), UxdError::InvalidPnlPolarity);
+    require!(
+        perp_unrealized_pnl.is_positive(),
+        UxdError::InvalidPnlPolarity
+    );
 
     let quote_redeemable: u64 = perp_unrealized_pnl
         .checked_abs()
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_to_num::<i128>()
         .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_add(quote_minted.try_into().unwrap())
+        .checked_add(quote_minted)
         .ok_or_else(|| error!(UxdError::MathError))?
         .try_into()
         .unwrap();
 
+    msg!("redeemable_amount {}", redeemable_amount);
+    msg!("quote_redeemable {}", quote_redeemable);
+
     // Check to ensure we are not redeeming more than we allocate to resolve positive PnL
-    require!(redeemable_amount <= quote_redeemable, UxdError::RedeemableAmountTooHigh);
+    require!(
+        redeemable_amount <= quote_redeemable,
+        UxdError::RedeemableAmountTooHigh
+    );
 
     // - 3 [BURN USER'S REDEEMABLE] -------------------------------------------
     // Burn will fail if user does not have enough redeemable
@@ -228,7 +240,7 @@ pub fn handler(
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_sub(quote_redeem_fee.into())
         .ok_or_else(|| error!(UxdError::MathError))?;
-    
+
     // Math: Multiplies the redeemable_amount by how many BPS the user will get
     // but the units are still in units of BPS, not as a decimal, so then
     // divide by the BPS_POW to get to the right order of magnitude.
@@ -250,13 +262,10 @@ pub fn handler(
         false,
     )?;
 
-    drop(depository);
-
     // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
-    ctx.accounts.update_onchain_accounting(
-        redeemable_amount,
-        quote_withdraw_amount_less_fees,
-    )?;
+    drop(depository);
+    ctx.accounts
+        .update_onchain_accounting(redeemable_amount, quote_withdraw_amount_less_fees)?;
 
     Ok(())
 }
@@ -271,7 +280,7 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
-    
+
     pub fn into_withdraw_quote_mint_from_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Withdraw<'info>> {
@@ -357,17 +366,14 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
             self.mango_program.key,
             self.mango_group.key,
         )
-        .map_err(|me| ProgramError::from(me))?;
+        .map_err(ProgramError::from)?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
 }
 
 // Validate input arguments
 impl<'info> QuoteRedeemFromMangoDepository<'info> {
-    pub fn validate(
-        &self,
-        redeemable_amount: u64,
-    ) -> Result<()> {
+    pub fn validate(&self, redeemable_amount: u64) -> Result<()> {
         require!(redeemable_amount != 0, UxdError::InvalidRedeemableAmount);
         validate_perp_market_mint_matches_depository_collateral_mint(
             &self.mango_group,
