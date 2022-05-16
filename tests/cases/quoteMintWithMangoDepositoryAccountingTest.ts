@@ -43,7 +43,7 @@ export const quoteMintWithMangoDepositoryAccountingTest = async function (quoteA
         const controllerRedeemableCirculatingSupply_post = nativeToUi(controllerAccount_post.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
 
         // Accounting tests
-        expect(depositoryNetQuoteMinted_post).closeTo(depositoryNetQuoteMinted_post + quoteAmount, quoteNativeUnitPrecision);
+        expect(depositoryNetQuoteMinted_post).closeTo(depositoryNetQuoteMinted + quoteAmount, quoteNativeUnitPrecision);
         expect(depositoryRedeemableAmountUnderManagement_post).closeTo(depositoryRedeemableAmountUnderManagement + (quoteAmount * lessFeesMultiple), redeemableNativeUnitPrecision);
         expect(depositoryTotalQuoteMintAndRedeemFees_post).closeTo(depositoryTotalQuoteMintAndRedeemFees + (quoteAmount * feesAccruedMultiple), quoteNativeUnitPrecision);
         expect(controllerRedeemableCirculatingSupply_post).closeTo(controllerRedeemableCirculatingSupply + (quoteAmount * lessFeesMultiple), redeemableNativeUnitPrecision);
