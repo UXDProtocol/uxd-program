@@ -5,7 +5,7 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use anchor_lang::prelude::*;
 
-/// Takes 12 accounts
+/// Takes 3 accounts
 #[derive(Accounts)]
 pub struct DisableDepositoryMinting<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
