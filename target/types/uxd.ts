@@ -941,6 +941,32 @@ export type Uxd = {
           "type": "u8"
         }
       ]
+    },
+    {
+      "name": "disableDepositoryMinting",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "disable",
+          "type": "bool"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1100,6 +1126,10 @@ export type Uxd = {
           {
             "name": "totalQuoteMintAndRedeemFees",
             "type": "u128"
+          },
+          {
+            "name": "disabled",
+            "type": "bool"
           }
         ]
       }
@@ -1733,61 +1763,71 @@ export type Uxd = {
     },
     {
       "code": 6038,
+      "name": "MintingDisabled",
+      "msg": "Minting is disabled for the current depository"
+    },
+    {
+      "code": 6039,
+      "name": "MintingAlreadyDisabledOrEnabled",
+      "msg": "Minting has already disabled/enabled"
+    },
+    {
+      "code": 6040,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6039,
+      "code": 6041,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6040,
+      "code": 6042,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6041,
+      "code": 6043,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6042,
+      "code": 6044,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6043,
+      "code": 6045,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6044,
+      "code": 6046,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6045,
+      "code": 6047,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6046,
+      "code": 6048,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6047,
+      "code": 6049,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6048,
+      "code": 6050,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6049,
+      "code": 6051,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
@@ -2737,6 +2777,32 @@ export const IDL: Uxd = {
           "type": "u8"
         }
       ]
+    },
+    {
+      "name": "disableDepositoryMinting",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "disable",
+          "type": "bool"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -2896,6 +2962,10 @@ export const IDL: Uxd = {
           {
             "name": "totalQuoteMintAndRedeemFees",
             "type": "u128"
+          },
+          {
+            "name": "disabled",
+            "type": "bool"
           }
         ]
       }
@@ -3529,61 +3599,71 @@ export const IDL: Uxd = {
     },
     {
       "code": 6038,
+      "name": "MintingDisabled",
+      "msg": "Minting is disabled for the current depository"
+    },
+    {
+      "code": 6039,
+      "name": "MintingAlreadyDisabledOrEnabled",
+      "msg": "Minting has already disabled/enabled"
+    },
+    {
+      "code": 6040,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6039,
+      "code": 6041,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6040,
+      "code": 6042,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6041,
+      "code": 6043,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6042,
+      "code": 6044,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6043,
+      "code": 6045,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6044,
+      "code": 6046,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6045,
+      "code": 6047,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6046,
+      "code": 6048,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6047,
+      "code": 6049,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6048,
+      "code": 6050,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6049,
+      "code": 6051,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
