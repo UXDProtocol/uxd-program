@@ -16,9 +16,12 @@ export const quoteMintWithMangoDepositoryAccountingTest = async function (quoteA
 
         // GIVEN
         const depositoryAccount = await depository.getOnchainAccount(connection, options);
-        const depositoryRedeemable = nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), depository.quoteMintDecimals);
         const controllerAccount = await controller.getOnchainAccount(connection, options);
-        const controllerRedeemable = nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
+
+        const depositoryNetQuoteMinted = nativeToUi(depositoryAccount.netQuoteMinted.toNumber(), depository.quoteMintDecimals);
+        const depositoryRedeemableAmountUnderManagement = nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), controller.redeemableMintDecimals);
+        const depositoryTotalQuoteMintAndRedeemFees = nativeToUi(depositoryAccount.totalQuoteMintAndRedeemFees.toNumber(), depository.quoteMintDecimals);
+        const controllerRedeemableCirculatingSupply = nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
         
         // WHEN
         const txId = await quoteMintWithMangoDepository(user, payer ?? user, quoteAmount, controller, depository, mango);
@@ -26,13 +29,24 @@ export const quoteMintWithMangoDepositoryAccountingTest = async function (quoteA
         
         // THEN
         const depositoryAccount_post = await depository.getOnchainAccount(connection, options);
-        const depositoryRedeemable_post = nativeToUi(depositoryAccount_post.redeemableAmountUnderManagement.toNumber(), depository.quoteMintDecimals);
         const controllerAccount_post = await controller.getOnchainAccount(connection, options);
-        const controllerRedeemable_post = nativeToUi(controllerAccount_post.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
-        
-        // Accounting
-        // Check depository and controller balances
-        // expect(depositoryRedeemable_post).equals()
+
+        const bps_pow = Math.pow(10, 4);
+        const feesAccruedMultiple = depositoryAccount.quoteMintAndRedeemFee / bps_pow;
+        const lessFeesMultiple = 1 - feesAccruedMultiple;
+        const quoteNativeUnitPrecision = Math.pow(10, -depository.quoteMintDecimals);
+        const redeemableNativeUnitPrecision = Math.pow(10, -controller.redeemableMintDecimals);
+
+        const depositoryNetQuoteMinted_post = nativeToUi(depositoryAccount_post.netQuoteMinted.toNumber(), depository.quoteMintDecimals);
+        const depositoryRedeemableAmountUnderManagement_post = nativeToUi(depositoryAccount_post.redeemableAmountUnderManagement.toNumber(), controller.redeemableMintDecimals);
+        const depositoryTotalQuoteMintAndRedeemFees_post = nativeToUi(depositoryAccount_post.totalQuoteMintAndRedeemFees.toNumber(), depository.quoteMintDecimals);
+        const controllerRedeemableCirculatingSupply_post = nativeToUi(controllerAccount_post.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
+
+        // Accounting tests
+        expect(depositoryNetQuoteMinted_post).closeTo(depositoryNetQuoteMinted_post + quoteAmount, quoteNativeUnitPrecision);
+        expect(depositoryRedeemableAmountUnderManagement_post).closeTo(depositoryRedeemableAmountUnderManagement + (quoteAmount * lessFeesMultiple), redeemableNativeUnitPrecision);
+        expect(depositoryTotalQuoteMintAndRedeemFees_post).closeTo(depositoryTotalQuoteMintAndRedeemFees + (quoteAmount * feesAccruedMultiple), quoteNativeUnitPrecision);
+        expect(controllerRedeemableCirculatingSupply_post).closeTo(controllerRedeemableCirculatingSupply + (quoteAmount * lessFeesMultiple), redeemableNativeUnitPrecision);
 
         console.groupEnd();
     } catch (error) {
