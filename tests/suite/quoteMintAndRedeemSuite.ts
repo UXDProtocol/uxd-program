@@ -13,11 +13,9 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         await mintWithMangoDepositoryTest(0.01, 500, user, controller, depository, mango);
     });
 
-
     it(`Change the quote mint and redeem fees to 0`, async function () {
         await setMangoDepositoryQuoteMintAndRedeemFeeTest(0, authority, controller, depository);
     });
-
 
     it(`Quote mint or redeem a small amount (without fees)`, async function () {
 

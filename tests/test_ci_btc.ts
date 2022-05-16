@@ -8,6 +8,7 @@ import { mangoDepositoryInsuranceSuite } from "./suite/depositoryInsuranceSuite"
 import { mangoDepositorySetupSuite } from "./suite/depositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
+import { quoteMintAndRedeemSuite } from "./suite/quoteMintAndRedeemSuite";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -39,6 +40,11 @@ describe("Integration tests BTC", function () {
     describe.skip("mangoDepositoryRebalancingSuite BTC", function () {
         const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryBTC, paramsRebalancing);
+    });
+
+    // Skipped as it's handle bu the test_ci_quote_mint_redeem.ts
+    describe.skip("mangoDepositoryQuoteMintRedeemSuite BTC", function () {
+        quoteMintAndRedeemSuite(authority, user, bank, controllerUXD, mangoDepositoryBTC);
     });
 
     describe("mangoDepositoryInsuranceSuite BTC", function () {
