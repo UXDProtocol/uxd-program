@@ -211,7 +211,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mango-explorer
+          touch requirements.txt && echo mango-explorer > requirements.txt
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           mango-explorer-version
       - name: Run marketmaker
@@ -308,7 +308,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mango-explorer
+          touch requirements.txt && echo mango-explorer > requirements.txt
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           mango-explorer-version
       - name: Run marketmaker
@@ -406,7 +406,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install mango-explorer
+          touch requirements.txt && echo mango-explorer > requirements.txt
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           mango-explorer-version
       - name: Run marketmaker
