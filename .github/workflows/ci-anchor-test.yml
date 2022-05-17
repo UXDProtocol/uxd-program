@@ -218,6 +218,7 @@ jobs:
           echo 'CURRENT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"' > .envrc
           echo -e '\n\n export PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin' >> .envrc
           direnv allow
+          cat .envrc
           python3 -m venv .venv
           python -m pip install --upgrade pip
           touch requirements.txt && echo mango-explorer > requirements.txt
@@ -328,7 +329,7 @@ jobs:
           touch requirements.txt && echo mango-explorer > requirements.txt
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           mango-explorer-version
-          marketmaker --name "UXD-SOL-MM" --market SOL-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_SOL }} &
+          marketmaker --name "UXD-BTC-MM" --market BTC-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_BTC }} &
           cd -
       - name: Anchor Test (skip build and deploy)
         run: |
@@ -435,7 +436,7 @@ jobs:
           touch requirements.txt && echo mango-explorer > requirements.txt
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           mango-explorer-version
-          marketmaker --name "UXD-SOL-MM" --market SOL-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_SOL }} &
+          marketmaker --name "UXD-ETH-MM" --market ETH-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_ETH }} &
           cd -
       - name: Anchor Test (skip build and deploy)
         run: |

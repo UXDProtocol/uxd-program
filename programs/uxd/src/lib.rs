@@ -418,7 +418,10 @@ pub mod uxd {
         ctx: Context<DisableDepositoryMinting>,
         disable_minting: bool,
     ) -> Result<()> {
-        msg!("[disable_depository_minting] disable_minting {}", disable_minting);
+        msg!(
+            "[disable_depository_minting] disable_minting {}",
+            disable_minting
+        );
         instructions::disable_depository_minting::handler(ctx, disable_minting)
     }
 }
