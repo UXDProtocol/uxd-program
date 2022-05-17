@@ -215,8 +215,8 @@ jobs:
           cd mmfolder
           python3 -m venv .venv
           touch .envrc
-          echo "CURRENT_DIRECTORY=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" && pwd )" > .envrc
-          echo "export PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin" >> .envrc
+          echo 'CURRENT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"' > .envrc
+          echo -e '\n\n export PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin' >> .envrc
           direnv allow
           python3 -m venv .venv
           python -m pip install --upgrade pip
