@@ -33,15 +33,15 @@ pub struct DisableDepositoryMinting<'info> {
 
 pub fn handler(ctx: Context<DisableDepositoryMinting>, disable: bool) -> Result<()> {
     let depository = &mut ctx.accounts.depository.load_mut()?;
-    depository.disabled = disable;
+    depository.minting_disabled = disable;
     Ok(())
 }
 
 // Validate input arguments
 impl<'info> DisableDepositoryMinting<'info> {
-    pub fn validate(&self, disable: bool) -> Result<()> {
+    pub fn validate(&self, disable_minting: bool) -> Result<()> {
         require!(
-            self.depository.load()?.disabled != disable,
+            self.depository.load()?.minting_disabled != disable_minting,
             UxdError::MintingAlreadyDisabledOrEnabled
         );
         Ok(())

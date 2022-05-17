@@ -82,7 +82,7 @@ pub enum UxdError {
     RedeemableAmountTooHigh,
     #[msg("Minting is disabled for the current depository")]
     MintingDisabled,
-    #[msg("Minting has already disabled/enabled")]
+    #[msg("Minting is already disabled/enabled")]
     MintingAlreadyDisabledOrEnabled,
 
     /// Anchor DSL related errors

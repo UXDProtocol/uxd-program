@@ -412,14 +412,14 @@ pub mod uxd {
     ///  This ix is for toggling that flag.
     ///
     #[access_control(
-        ctx.accounts.validate(disable)
+        ctx.accounts.validate(disable_minting)
     )]
     pub fn disable_depository_minting(
         ctx: Context<DisableDepositoryMinting>,
-        disable: bool,
+        disable_minting: bool,
     ) -> Result<()> {
-        msg!("[disable_depository_minting] disable {}", disable);
-        instructions::disable_depository_minting::handler(ctx, disable)
+        msg!("[disable_depository_minting] disable_minting {}", disable_minting);
+        instructions::disable_depository_minting::handler(ctx, disable_minting)
     }
 }
 

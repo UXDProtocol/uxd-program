@@ -77,5 +77,5 @@ pub struct MangoDepository {
     pub total_quote_mint_and_redeem_fees: u128,
     //
     // Flag for enabling / disabling minting with this depository's collateral_mint
-    pub disabled: bool,
+    pub minting_disabled: bool,
 }

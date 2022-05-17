@@ -474,7 +474,7 @@ impl<'info> MintWithMangoDepository<'info> {
             UxdError::InsufficientCollateralAmount
         );
         require!(
-            !&self.depository.load()?.disabled,
+            !&self.depository.load()?.minting_disabled,
             UxdError::MintingDisabled
         );
 

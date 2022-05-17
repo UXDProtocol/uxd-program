@@ -123,7 +123,7 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     depository.redeemable_amount_under_management = u128::MIN;
     depository.total_amount_paid_taker_fee = u128::MIN;
     depository.total_amount_rebalanced = u128::MIN;
-    depository.disabled = false; // enable minting by default
+    depository.minting_disabled = false; // enable minting by default
 
     // - Update Controller state
     ctx.accounts
