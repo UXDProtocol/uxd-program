@@ -202,19 +202,21 @@ jobs:
             ./target/release
             ./target/bpfel-unknown-unknown
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
-      # Checkout Mango Client
-      - name: Checkout MangoClient-v3
-        uses: actions/checkout@v2
+      # Market Making
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
         with:
-          repository: blockworks-foundation/mango-client-v3
-          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-      - name: Start Keeper and Market Making bot for the perp
+          python-version: "3.10"
+      - name: Install dependencies
         run: |
-          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-          npm install
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} npm run keeper &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_SOL }} MARKET=SOL npm run mm &
-          cd -
+          python -m pip install --upgrade pip
+          pip install mango-explorer
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          mango-explorer-version
+      - name: Run marketmaker
+        run: |
+          marketmaker --name "UXD-SOL-MM" --market SOL-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_SOL }} &
       - name: Anchor Test (skip build and deploy)
         run: |
           npm ci --ignore-scripts
@@ -297,19 +299,21 @@ jobs:
             ./target/release
             ./target/bpfel-unknown-unknown
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
-       # Checkout Mango Client
-      - name: Checkout MangoClient-v3
-        uses: actions/checkout@v2
+      # Market Making
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
         with:
-          repository: blockworks-foundation/mango-client-v3
-          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-      - name: Start Keeper and Market Making bot for the perp
+          python-version: "3.10"
+      - name: Install dependencies
         run: |
-          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-          npm install
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} npm run keeper &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_BTC }} MARKET=BTC npm run mm &
-          cd -
+          python -m pip install --upgrade pip
+          pip install mango-explorer
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          mango-explorer-version
+      - name: Run marketmaker
+        run: |
+          marketmaker --name "UXD-SOL-MM" --market SOL-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_BTC }} &
       - name: Anchor Test (skip build and deploy)
         run: |
           npm ci --ignore-scripts
@@ -393,19 +397,21 @@ jobs:
             ./target/release
             ./target/bpfel-unknown-unknown
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
-      # Checkout Mango Client
-      - name: Checkout MangoClient-v3
-        uses: actions/checkout@v2
+      # Market Making
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
         with:
-          repository: blockworks-foundation/mango-client-v3
-          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-      - name: Start Keeper and Market Making bot for the perp
+          python-version: "3.10"
+      - name: Install dependencies
         run: |
-          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/mango-client-v3
-          npm install
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} npm run keeper &
-          GROUP=devnet.2 CLUSTER=${{ env.CLUSTER }} KEYPAIR=${{ env.RUNNER_WALLET_PATH }} MANGO_ACCOUNT_PUBKEY=${{ env.MANGO_ACCOUNT_MM_ETH }} MARKET=ETH npm run mm &
-          cd -
+          python -m pip install --upgrade pip
+          pip install mango-explorer
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          mango-explorer-version
+      - name: Run marketmaker
+        run: |
+          marketmaker --name "UXD-SOL-MM" --market SOL-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_ETH }} &
       - name: Anchor Test (skip build and deploy)
         run: |
           npm ci --ignore-scripts
