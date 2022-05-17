@@ -251,6 +251,17 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
     return txId;
 }
 
+export async function disableDepositoryMinting(authority: Signer, controller: Controller, depository: MangoDepository, disableMinting: boolean): Promise<string> {
+    const disableDepositoryMintingIx = await uxdClient.createDisableDepositoryMintingInstruction(disableMinting, controller, depository, authority.publicKey, TXN_OPTS);
+    let signers = [];
+    let tx = new Transaction();
+
+    tx.instructions.push(disableDepositoryMintingIx);
+    signers.push(authority);
+
+    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
 // Non UXD API calls ----------------------------------------------------------
 
 export async function settleDepositoryPnl(payer: Signer, depository: MangoDepository, mango: Mango): Promise<string> {

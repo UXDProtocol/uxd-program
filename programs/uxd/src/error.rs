@@ -80,6 +80,10 @@ pub enum UxdError {
     QuoteAmountTooHigh,
     #[msg("The amount trying to be quote redeemed is larger than quote redeemable.")]
     RedeemableAmountTooHigh,
+    #[msg("Minting is disabled for the current depository")]
+    MintingDisabled,
+    #[msg("Minting is already disabled/enabled")]
+    MintingAlreadyDisabledOrEnabled,
 
     /// Anchor DSL related errors
     ///
