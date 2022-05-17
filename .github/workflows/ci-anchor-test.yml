@@ -213,6 +213,7 @@ jobs:
           sudo apt install direnv
           mkdir mmfolder
           cd mmfolder
+          python3 -m venv .venv
           touch .envrc
           echo "CURRENT_DIRECTORY=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" && pwd )" > .envrc
           echo "export PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin" >> .envrc
@@ -317,6 +318,7 @@ jobs:
           sudo apt install direnv
           mkdir mmfolder
           cd mmfolder
+          python3 -m venv .venv
           touch .envrc
           echo "CURRENT_DIRECTORY=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" && pwd )" > .envrc
           echo "export PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin" >> .envrc
@@ -422,10 +424,12 @@ jobs:
           sudo apt install direnv
           mkdir mmfolder
           cd mmfolder
+          python3 -m venv .venv
           touch .envrc
           echo "CURRENT_DIRECTORY=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" && pwd )" > .envrc
           echo "export PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin" >> .envrc
           direnv allow
+          cat .envrc
           python3 -m venv .venv
           python -m pip install --upgrade pip
           touch requirements.txt && echo mango-explorer > requirements.txt
