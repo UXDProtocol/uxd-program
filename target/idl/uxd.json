@@ -963,7 +963,7 @@
       ],
       "args": [
         {
-          "name": "disable",
+          "name": "disableMinting",
           "type": "bool"
         }
       ]
@@ -1128,7 +1128,7 @@
             "type": "u128"
           },
           {
-            "name": "disabled",
+            "name": "mintingDisabled",
             "type": "bool"
           }
         ]
@@ -1769,7 +1769,7 @@
     {
       "code": 6039,
       "name": "MintingAlreadyDisabledOrEnabled",
-      "msg": "Minting has already disabled/enabled"
+      "msg": "Minting is already disabled/enabled"
     },
     {
       "code": 6040,

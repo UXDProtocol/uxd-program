@@ -963,7 +963,7 @@ export type Uxd = {
       ],
       "args": [
         {
-          "name": "disable",
+          "name": "disableMinting",
           "type": "bool"
         }
       ]
@@ -1128,7 +1128,7 @@ export type Uxd = {
             "type": "u128"
           },
           {
-            "name": "disabled",
+            "name": "mintingDisabled",
             "type": "bool"
           }
         ]
@@ -1769,7 +1769,7 @@ export type Uxd = {
     {
       "code": 6039,
       "name": "MintingAlreadyDisabledOrEnabled",
-      "msg": "Minting has already disabled/enabled"
+      "msg": "Minting is already disabled/enabled"
     },
     {
       "code": 6040,
@@ -2799,7 +2799,7 @@ export const IDL: Uxd = {
       ],
       "args": [
         {
-          "name": "disable",
+          "name": "disableMinting",
           "type": "bool"
         }
       ]
@@ -2964,7 +2964,7 @@ export const IDL: Uxd = {
             "type": "u128"
           },
           {
-            "name": "disabled",
+            "name": "mintingDisabled",
             "type": "bool"
           }
         ]
@@ -3605,7 +3605,7 @@ export const IDL: Uxd = {
     {
       "code": 6039,
       "name": "MintingAlreadyDisabledOrEnabled",
-      "msg": "Minting has already disabled/enabled"
+      "msg": "Minting is already disabled/enabled"
     },
     {
       "code": 6040,
