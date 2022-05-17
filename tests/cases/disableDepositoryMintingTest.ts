@@ -8,7 +8,7 @@ import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER, slippageBase } from "../constants";
 import { getSolBalance, getBalance } from "../utils";
 
-export const disableDepositoryMintingTest = async function (disable: boolean, authority: Signer, controller: Controller, depository: MangoDepository) {
+export const disableDepositoryMintingTest = async function (disableMinting: boolean, authority: Signer, controller: Controller, depository: MangoDepository) {
     const connection = getConnection();
     const options = TXN_OPTS;
 
@@ -16,17 +16,17 @@ export const disableDepositoryMintingTest = async function (disable: boolean, au
     try {
         // GIVEN
         const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
-        const mintingDisabled = depositoryOnchainAccount.disabled;
+        const mintingDisabled = depositoryOnchainAccount.mintingDisabled;
         
         // WHEN
-        const txId = await disableDepositoryMinting(authority, controller, depository, disable);
+        const txId = await disableDepositoryMinting(authority, controller, depository, disableMinting);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
         const depositoryOnchainAccount_post = await depository.getOnchainAccount(connection, options);
-        const mintingDisabled_post = depositoryOnchainAccount_post.disabled;
+        const mintingDisabled_post = depositoryOnchainAccount_post.mintingDisabled;
 
-        expect(mintingDisabled_post).equals(disable, "The quote fee has not changed.");
+        expect(mintingDisabled_post).equals(disableMinting, "The quote fee has not changed.");
         console.log(`🧾 Previous ${depository.collateralMintSymbol} minting is`, mintingDisabled, "now is", mintingDisabled_post);
         console.groupEnd();
     } catch (error) {
