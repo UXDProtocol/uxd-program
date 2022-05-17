@@ -17,26 +17,9 @@ It currently sits at:
 
 _____
 
-## Where to start?
+## UXDProtocol business knowledge
 
-In this readme, you can skip to Program Architecture section, or directly go to the lib.rs file to see the code comments (about each instruction and it's inputs).
 If you want to learn more about the high level concept of UXDProtocol, the [UXDProtocol Git book](https://docs.uxd.fi/uxdprotocol/) is available.
-
-_____
-
-## Known shortcomings
-
-### Composability risk with MangoMarkets (and DEX in general)
-
-As we are built on top of DEXes, we are vulnerable to them changing code or behavior. As such, we have our unit test / ci running on their repositories.
-In the future we will try to implement a place perp order v2 to return the order book exploration logic back to the mango repository. [PR on Mango Market](https://github.com/blockworks-foundation/mango-v3/pull/124)
-
-### Rebalancing (lite for now)
-
-Current rebalancing is a bit convoluted, but we are limited computing wise and # of input account wise, as it needs to be an atomic instruction.
-Later on it won't requires any external input (except to pay for fees in order to keep the system closed).
-
-_____
 
 ## Running tests
 
@@ -48,10 +31,12 @@ $> cargo test && cargo build-bpf && cargo test-bpf
 
 ### E2E Tests
 
-In order to have the environment ready to host test, the mango market devnet must be running as expected. To do so we must run market making bots and the Keeper, from [MangoClientV3](https://github.com/blockworks-foundation/mango-client-v3) repo.
-Keep does the cranking (settle orders), and MM bots ensure that the order book is coherent. (Although sometimes it's still not coherent, as anyone can mess with it)
+In order to have the environment ready to host test, the mango market devnet must be running as expected. To do so we must run market making bots and the Keeper, from [MangoClientV3](https://github.com/blockworks-foundation/mango-client-v3) repo or [mango-explorer](https://github.com/blockworks-foundation/mango-explorer/blob/main/docs/MarketmakingOrderChain.md).
+Keeper does the cranking (settle orders), and MM bots ensure that the order book is coherent.
 
-When test are failing due to odd reasons, first thing to do is to check the [MangoMarkets V3](https://devnet.mango.markets/?name=SOL-PERP) related perp (here for SOL-PERP). Verify that the order book is not borked with a weird stuck order or that the oracle price is not far away from the perp price for some reason.
+When test are failing due to odd reasons, first thing to do is to check the [MangoMarkets V3](https://devnet.mango.markets/?name=SOL-PERP) market state. Verify that the order book is being updated, and run a market making bot.
+
+(deprecated, see <https://github.com/blockworks-foundation/mango-explorer/blob/main/docs/MarketmakingOrderChain.md> for updated way)
 
 ```Zsh
 $> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) yarn keeper 
@@ -79,13 +64,13 @@ If you made changes to the Rust code, you have to re-run the lengthy :
 $> anchor test
 ```
 
-Loop theses as many time as you want, and if you want a clean slate, just reset the program_id with the script again.
+Loop theses as many time as you want, and if you want a clean slate, just reset the program_id with the script (`./script/reset_program_id.sh`).
 
 _____
 
 ## Codebase org
 
-The program is contained in `programs/uxd/`.
+The program (smart contract) is contained in `programs/uxd/`.
 Its instructions are in `programs/uxd/src/instructions/`.
 
 The project follows the code org as done in [Jet protocol](https://github.com/jet-lab/jet-v1) codebase.
@@ -94,19 +79,17 @@ The project uses `Anchor` for safety, maintainability and readability.
 
 The project relies on `Mango Markets` [program](https://github.com/blockworks-foundation/mango-v3), a decentralized derivative exchange platform build on Solana, and controlled by a DAO.
 
-This program contains 2 set of instructions, one permissionned and one permissionless
+This program contains 2 set of instructions, one permissionned and one permissionless. Permissionned instruction are called by [our DAO](https://governance.uxd.fi/dao/UXP).
 
 _____
 
 ## Program Architecture
 
-![uxd schema](uxd.jpg)
-
 The initial state is initialized through calling `initializeController`, from there a mint is created for Redeemable, the signer is kept as the administrative authority, and that's it.
 
-It owns the Redeemable Mint currently. In the future there could be added instruction to transfer Authority/Mint to another program for migration purposes, if needs be.
+The `Controller` owns the Redeemable Mint. There is only a single `Controller` that can ever exists due to the chosen seed derivation.
 
-Each `Depository` is used to `mint()` and `redeem()` Redeemable tokens with a specific collateral mint, and to do so each instantiate a Mango PDA that is used to deposit/withdraw collateral to mango and open/close short perp.
+Each `Depository` is used to `mint()` and `redeem()` Redeemable (UXD) tokens with a specific collateral mint, and to do so each instantiate a MangoAccount PDA that is used to deposit/withdraw collateral to mango and open/close short perp.
 
 ## Admin instructions
 
@@ -137,6 +120,10 @@ Change the value of the global supply cap (virtual, not on the mint) for the Red
 
 Change the value of the Mango Depositories operations (Mint/Redeem) Redeemable cap, prevent minting/redeeming over this limit.
 
+### `SetMangoDepositoryQuoteMintAndRedeemFee`
+
+Change the value of the Mango Depositories quote redeem/mint fee.
+
 ## User instructions
 
 They allow end users to mint and redeem redeemable tokens, they are permissionless.
@@ -150,6 +137,10 @@ Check that the position was fully opened else abort
 Deduct perp opening fees from the quote amount
 Mint equivalent amount of UXD to user (as the value of the short perp - taker fees)
 
+### `QuoteRedeemFromMangoDepository`
+
+Similar to classic mint but only available when the DN position PnL is negative. Takes USDC (quote) as input, erase some negative PnL balance and mint equivalent UXD amount.
+
 ### `redeem_uxd`
 
 User send an amount of UXD to a given `Depository`
@@ -160,6 +151,10 @@ We calculate how much USDC value that was, deduct fees
 We burn the same value of UXD from what the user sent
 We withdraw the collateral amount equivalent to the perp short that has been closed previously (post taxes calculation)
 We send that back to the user (and his remaining UXD are back too, if any)
+
+### `QuoteMintWithMangoDepository`
+
+Similar to classic redeem but only available when the DN position PnL is positive. Takes UXD as input, returns some USDC (quote) from the positive PnL balance.
 
 ### `RebalanceMangoDepositoryLite`
 
