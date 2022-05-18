@@ -266,7 +266,7 @@ pub mod uxd {
         limit_price: f32,
     ) -> Result<()> {
         msg!(
-            "[rebalance_mango_depository_lite] limit_price {}, polarity {}",
+            "[rebalance_mango_depository_lite] max_rebalancing_amount {}, limit_price {}, polarity {}",
             limit_price,
             polarity
         );
