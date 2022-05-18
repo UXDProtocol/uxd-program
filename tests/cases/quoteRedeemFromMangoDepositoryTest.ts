@@ -1,12 +1,11 @@
 import { utils } from "@project-serum/anchor";
-import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, Mango, MangoDepository, findATAAddrSync, uiToNative } from "@uxd-protocol/uxd-client";
+import { Controller, Mango, MangoDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
-import { mintWithMangoDepository, quoteMintWithMangoDepository, quoteRedeemFromMangoDepository } from "../api";
-import { getConnection, TXN_COMMIT, TXN_OPTS } from "../connection";
-import { CLUSTER, slippageBase } from "../constants";
-import { getSolBalance, getBalance } from "../utils";
+import { quoteRedeemFromMangoDepository } from "../api";
+import { getConnection, TXN_OPTS } from "../connection";
+import { CLUSTER } from "../constants";
+import { getBalance } from "../utils";
 
 export const quoteRedeemFromMangoDepositoryTest = async function (redeemableAmount: number, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
     console.group("🧭 quoteRedeemFromMangoDepositoryTest");
