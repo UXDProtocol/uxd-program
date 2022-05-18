@@ -236,6 +236,13 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
         tx.add(createUserCollateralAtaIx);
     }
 
+    const userQuoteATA = findATAAddrSync(user.publicKey, depository.quoteMint)[0];
+
+    if (!await getConnection().getAccountInfo(userQuoteATA)) {
+        const createUserQuoteAtaIx = createAssocTokenIx(user.publicKey, userQuoteATA, depository.quoteMint);
+        tx.add(createUserQuoteAtaIx);
+    }
+
     tx.add(rebalanceMangoDepositoryLiteIx);
     signers.push(user);
     if (payer) {
