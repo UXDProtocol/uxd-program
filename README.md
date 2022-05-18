@@ -38,6 +38,18 @@ When test are failing due to odd reasons, first thing to do is to check the [Man
 
 (deprecated, see <https://github.com/blockworks-foundation/mango-explorer/blob/main/docs/MarketmakingOrderChain.md> for updated way)
 
+A example script to run a maker maker for SOL/BTC/ETH markets on MangoMarketsv3 using mango-explorer is
+
+```Zsh
+#!/bin/sh
+
+marketmaker --name "UXD-SOL-MM" --market SOL-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --pulse-interval 30—log-level INFO --cluster-name devnet --account 2s2hNn44RTWQsTEkBbpy8ieA8NtLBFQif3Q41BmfPu3a  &
+
+marketmaker --name "UXD-BTC-MM" --market BTC-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --pulse-interval 30 --log-level INFO --cluster-name devnet --account 2s2hNn44RTWQsTEkBbpy8ieA8NtLBFQif3Q41BmfPu3a  &
+
+marketmaker --name "UXD-ETH-MM" --market ETH-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --pulse-interval 30 --log-level INFO --cluster-name devnet --account 2s2hNn44RTWQsTEkBbpy8ieA8NtLBFQif3Q41BmfPu3a
+```
+
 ```Zsh
 $> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) yarn keeper 
 $> GROUP=devnet.2 CLUSTER=devnet KEYPAIR=$(cat /Users/acamill/.config/solana/id.json) MANGO_ACCOUNT_PUBKEY=8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w MARKET=SOL yarn mm # in a https://github.com/blockworks-foundation/mango-client-v3 repo to run the Market Making bot

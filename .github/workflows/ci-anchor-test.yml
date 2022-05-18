@@ -202,29 +202,29 @@ jobs:
             ./target/release
             ./target/bpfel-unknown-unknown
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
-      # Market Making
-      - uses: actions/checkout@v3
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
-      - name: Install dependencies and run marketmaker
-        run: |
-          sudo apt install direnv
-          mkdir mmfolder
-          cd mmfolder
-          python3 -m venv .venv
-          touch .envrc
-          echo 'CURRENT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"' > .envrc
-          echo -e '\n\nexport PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin' >> .envrc
-          direnv allow
-          cat .envrc
-          python -m pip install --upgrade pip
-          touch requirements.txt && echo mango-explorer > requirements.txt
-          pip install -r requirements.txt
-          mango-explorer-version
-          marketmaker --name "UXD-SOL-MM" --market SOL-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_SOL }} &
-          cd -
+      # # Market Making
+      # - uses: actions/checkout@v3
+      # - name: Set up Python 3.10
+      #   uses: actions/setup-python@v3
+      #   with:
+      #     python-version: "3.10"
+      # - name: Install dependencies and run marketmaker
+      #   run: |
+      #     sudo apt install direnv
+      #     mkdir mmfolder
+      #     cd mmfolder
+      #     python -m venv .venv
+      #     touch .envrc
+      #     echo 'CURRENT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"' > .envrc
+      #     echo -e '\nexport PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin' >> .envrc
+      #     direnv allow
+      #     cat .envrc
+      #     python -m pip install --upgrade pip
+      #     touch requirements.txt && echo mango-explorer > requirements.txt
+      #     pip install -r requirements.txt
+      #     mango-explorer-version
+      #     marketmaker --name "UXD-SOL-MM" --market SOL-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_SOL }} &
+      #     cd -
       - name: Anchor Test (skip build and deploy)
         run: |
           npm ci --ignore-scripts
@@ -307,28 +307,28 @@ jobs:
             ./target/release
             ./target/bpfel-unknown-unknown
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
-      # Market Making
-      - uses: actions/checkout@v3
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
-      - name: Install dependencies and run marketmaker
-        run: |
-          sudo apt install direnv
-          mkdir mmfolder
-          cd mmfolder
-          python3 -m venv .venv
-          touch .envrc
-          echo "CURRENT_DIRECTORY=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" && pwd )" > .envrc
-          echo -e "\n\nexport PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin" >> .envrc
-          direnv allow
-          python -m pip install --upgrade pip
-          touch requirements.txt && echo mango-explorer > requirements.txt
-          pip install -r requirements.txt
-          mango-explorer-version
-          marketmaker --name "UXD-BTC-MM" --market BTC-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_BTC }} &
-          cd -
+      # # Market Making
+      # - uses: actions/checkout@v3
+      # - name: Set up Python 3.10
+      #   uses: actions/setup-python@v3
+      #   with:
+      #     python-version: "3.10"
+      # - name: Install dependencies and run marketmaker
+      #   run: |
+      #     sudo apt install direnv
+      #     mkdir mmfolder
+      #     cd mmfolder
+      #     python -m venv .venv
+      #     touch .envrc
+      #     echo 'CURRENT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"' > .envrc
+      #     echo -e '\nexport PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin' >> .envrc
+      #     direnv allow
+      #     python -m pip install --upgrade pip
+      #     touch requirements.txt && echo mango-explorer > requirements.txt
+      #     pip install -r requirements.txt
+      #     mango-explorer-version
+      #     marketmaker --name "UXD-BTC-MM" --market BTC-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_BTC }} &
+      #     cd -
       - name: Anchor Test (skip build and deploy)
         run: |
           npm ci --ignore-scripts
@@ -412,29 +412,29 @@ jobs:
             ./target/release
             ./target/bpfel-unknown-unknown
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
-      # Market Making
-      - uses: actions/checkout@v3
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.10"
-      - name: Install dependencies and run marketmaker
-        run: |
-          sudo apt install direnv
-          mkdir mmfolder
-          cd mmfolder
-          python3 -m venv .venv
-          touch .envrc
-          echo "CURRENT_DIRECTORY=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" && pwd )" > .envrc
-          echo -e "\n\nexport PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin" >> .envrc
-          direnv allow
-          cat .envrc
-          python -m pip install --upgrade pip
-          touch requirements.txt && echo mango-explorer > requirements.txt
-          pip install -r requirements.txt
-          mango-explorer-version
-          marketmaker --name "UXD-ETH-MM" --market ETH-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_ETH }} &
-          cd -
+      # # Market Making
+      # - uses: actions/checkout@v3
+      # - name: Set up Python 3.10
+      #   uses: actions/setup-python@v3
+      #   with:
+      #     python-version: "3.10"
+      # - name: Install dependencies and run marketmaker
+      #   run: |
+      #     sudo apt install direnv
+      #     mkdir mmfolder
+      #     cd mmfolder
+      #     python -m venv .venv
+      #     touch .envrc
+      #     echo 'CURRENT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"' > .envrc
+      #     echo -e '\nexport PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin' >> .envrc
+      #     direnv allow
+      #     cat .envrc
+      #     python -m pip install --upgrade pip
+      #     touch requirements.txt && echo mango-explorer > requirements.txt
+      #     pip install -r requirements.txt
+      #     mango-explorer-version
+      #     marketmaker --name "UXD-ETH-MM" --market ETH-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_ETH }} &
+      #     cd -
       - name: Anchor Test (skip build and deploy)
         run: |
           npm ci --ignore-scripts
