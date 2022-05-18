@@ -15,3 +15,5 @@ echo $CI_RESIDENT_PROGRAM_PUBKEY
 sed -i.bak "s/$OLD_PUBKEY/$CI_RESIDENT_PROGRAM_PUBKEY/g" ./Anchor.toml
 sed -i.bak "s/$OLD_PUBKEY/$CI_RESIDENT_PROGRAM_PUBKEY/g" ./programs/uxd/src/lib.rs
 sed -i.bak "s/$OLD_PUBKEY/$CI_RESIDENT_PROGRAM_PUBKEY/g" ./target/idl/uxd.json
+sed -i.bak "s/jsonIdl\[\"metadata\"\]\[\"address\"\]/\"$CI_RESIDENT_PROGRAM_PUBKEY\"/g" ./tests/constants.ts
+
