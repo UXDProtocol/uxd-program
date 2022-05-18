@@ -43,11 +43,11 @@ A example script to run a maker maker for SOL/BTC/ETH markets on MangoMarketsv3 
 ```Zsh
 #!/bin/sh
 
-marketmaker --name "UXD-SOL-MM" --market SOL-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --pulse-interval 30—log-level INFO --cluster-name devnet --account 2s2hNn44RTWQsTEkBbpy8ieA8NtLBFQif3Q41BmfPu3a  &
+marketmaker --name "UXD-SOL-MM" --market SOL-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.02 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --pulse-interval 30 --log-level INFO --cluster-name devnet --account 2s2hNn44RTWQsTEkBbpy8ieA8NtLBFQif3Q41BmfPu3a  &
 
-marketmaker --name "UXD-BTC-MM" --market BTC-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --pulse-interval 30 --log-level INFO --cluster-name devnet --account 2s2hNn44RTWQsTEkBbpy8ieA8NtLBFQif3Q41BmfPu3a  &
+marketmaker --name "UXD-BTC-MM" --market BTC-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.02 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --pulse-interval 30 --log-level INFO --cluster-name devnet --account 2s2hNn44RTWQsTEkBbpy8ieA8NtLBFQif3Q41BmfPu3a  &
 
-marketmaker --name "UXD-ETH-MM" --market ETH-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --pulse-interval 30 --log-level INFO --cluster-name devnet --account 2s2hNn44RTWQsTEkBbpy8ieA8NtLBFQif3Q41BmfPu3a
+marketmaker --name "UXD-ETH-MM" --market ETH-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.02 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --pulse-interval 30 --log-level INFO --cluster-name devnet --account 2s2hNn44RTWQsTEkBbpy8ieA8NtLBFQif3Q41BmfPu3a
 ```
 
 ```Zsh

@@ -605,7 +605,7 @@ jobs:
         run: |
           npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
-          sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_QUOTE_MINT_REDEEM }}/g" ./Anchor.toml
+          sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_QUOTE_MINT_REDEEM }}/g" ./Anchor.toml
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
       - name: Returning funded runner wallet SOLs to the bank
         run: |
