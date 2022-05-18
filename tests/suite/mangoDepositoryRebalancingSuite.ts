@@ -58,7 +58,7 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
         switch (polarity) {
             case `Positive`: {
                 // Transfer COLLATERAL, will receive equivalent QUOTE back from the positive PNL
-                const collateralAmount = Math.floor(rebalanceAmountSmall / perpPrice);
+                const collateralAmount = rebalanceAmountSmall / perpPrice;
                 // For Wsol we send sol, the API handle the wrapping before each minting
                 if (depository.collateralMint.equals(WSOL_DEVNET)) {
                     await transferSol(collateralAmount, payer, user.publicKey);
@@ -97,7 +97,7 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
         switch (polarity) {
             case `Positive`: {
                 // Transfer COLLATERAL, will receive equivalent QUOTE back from the positive PNL
-                const collateralAmount = Math.floor(rebalanceAmount / perpPrice);
+                const collateralAmount = rebalanceAmount / perpPrice;
                 // For Wsol we send sol, the API handle the wrapping before each minting
                 if (depository.collateralMint.equals(WSOL_DEVNET)) {
                     await transferSol(collateralAmount, payer, user.publicKey);

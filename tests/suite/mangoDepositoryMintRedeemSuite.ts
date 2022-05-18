@@ -10,9 +10,9 @@ import { getBalance, printUserInfo, transferAllTokens, transferSol, transferToke
 
 export const mangoDepositoryMintRedeemSuite = function (user: Signer, payer: Signer, controller: Controller, depository: MangoDepository, slippage: number) {
 
-    it(`Transfer 5,000 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
+    before(`Transfer 5,000 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const amount = Math.floor(5_000 / perpPrice);
+        const amount = 5_000 / perpPrice;
         console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
         // For Wsol we send sol, the API handle the wrapping before each minting
         if (depository.collateralMint.equals(NATIVE_MINT)) {
