@@ -6,5 +6,4 @@ export let mango: Mango;
 
 export async function mochaGlobalSetup() {
     mango = await createAndInitializeMango(getConnection(), CLUSTER);
-    console.log("MANGO INIT");
 } 
