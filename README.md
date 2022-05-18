@@ -140,7 +140,7 @@ Change the value of the Mango Depositories quote redeem/mint fee.
 
 They allow end users to mint and redeem redeemable tokens, they are permissionless.
 
-### `mint_uxd`
+### `MintWithMangoDepository`
 
 Send collateral to the `Depository` taking that given mint
 Estimate how much fill we can get to know how much collateral need to be actually deposited to mango to improve efficiency
@@ -153,7 +153,7 @@ Mint equivalent amount of UXD to user (as the value of the short perp - taker fe
 
 Similar to classic mint but only available when the DN position PnL is negative. Takes USDC (quote) as input, erase some negative PnL balance and mint equivalent UXD amount.
 
-### `redeem_uxd`
+### `RedeemFromMangoDepository`
 
 User send an amount of UXD to a given `Depository`
 We calculate how much collateral that's worth, provided the user slippage and the perp price from Mango
