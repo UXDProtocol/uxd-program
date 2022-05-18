@@ -1,35 +1,31 @@
-import { utils } from "@project-serum/anchor";
-import { NATIVE_MINT } from "@solana/spl-token";
-import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, Mango, MangoDepository, findATAAddrSync, uiToNative, nativeToUi } from "@uxd-protocol/uxd-client";
+import { Signer } from "@solana/web3.js";
+import { Controller, Mango, MangoDepository, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
-import { mintWithMangoDepository, quoteMintWithMangoDepository, quoteRedeemFromMangoDepository } from "../api";
+import { quoteRedeemFromMangoDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
-import { CLUSTER, slippageBase } from "../constants";
-import { getSolBalance, getBalance } from "../utils";
+import { CLUSTER } from "../constants";
 
-export const quoteRedeemFromMangoDepositoryAccountingTest = async function(redeemableAmount, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
+export const quoteRedeemFromMangoDepositoryAccountingTest = async function (redeemableAmount, user: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
     console.group("🧭 quoteRedeemFromMangoDepositoryAccountingTest");
     try {
-        const connection = getConnection();
         const options = TXN_OPTS;
 
         // GIVEN
-        const depositoryAccount = await depository.getOnchainAccount(connection, options);
-        const controllerAccount = await controller.getOnchainAccount(connection, options);
+        const depositoryAccount = await depository.getOnchainAccount(getConnection(), options);
+        const controllerAccount = await controller.getOnchainAccount(getConnection(), options);
 
         const depositoryNetQuoteMinted = nativeToUi(depositoryAccount.netQuoteMinted.toNumber(), depository.quoteMintDecimals);
         const depositoryRedeemableAmountUnderManagement = nativeToUi(depositoryAccount.redeemableAmountUnderManagement.toNumber(), controller.redeemableMintDecimals);
         const depositoryTotalQuoteMintAndRedeemFees = nativeToUi(depositoryAccount.totalQuoteMintAndRedeemFees.toNumber(), depository.quoteMintDecimals);
         const controllerRedeemableCirculatingSupply = nativeToUi(controllerAccount.redeemableCirculatingSupply.toNumber(), controller.redeemableMintDecimals);
-    
+
         // WHEN
         const txId = await quoteRedeemFromMangoDepository(user, payer ?? user, redeemableAmount, controller, depository, mango);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
-        const depositoryAccount_post = await depository.getOnchainAccount(connection, options);
-        const controllerAccount_post = await controller.getOnchainAccount(connection, options);
+        const depositoryAccount_post = await depository.getOnchainAccount(getConnection(), options);
+        const controllerAccount_post = await controller.getOnchainAccount(getConnection(), options);
 
         const bps_pow = Math.pow(10, 4);
         const feesAccruedMultiple = depositoryAccount.quoteMintAndRedeemFee / bps_pow;
