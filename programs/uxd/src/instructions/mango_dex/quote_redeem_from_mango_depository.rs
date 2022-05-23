@@ -205,15 +205,7 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
         UxdError::InvalidPnlPolarity
     );
 
-    let quote_redeemable: u64 = perp_unrealized_pnl
-        .checked_abs()
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_to_num::<i128>()
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_add(quote_minted)
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .try_into()
-        .unwrap();
+    let quote_redeemable: u64 = calculate_quote_redeemable(perp_unrealized_pnl, quote_minted)?;
 
     msg!("redeemable_amount {}", redeemable_amount);
     msg!("quote_redeemable {}", quote_redeemable);
@@ -268,6 +260,22 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
         .update_onchain_accounting(redeemable_amount, quote_withdraw_amount_less_fees)?;
 
     Ok(())
+}
+
+pub fn calculate_quote_redeemable(
+    perp_unrealized_pnl: I80F48,
+    quote_minted: i128,
+) -> Result<u64> {
+    let quote_redeemable = perp_unrealized_pnl
+        .checked_abs()
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_add(
+            I80F48::checked_from_num(quote_minted)
+            .ok_or_else(|| error!(UxdError::MathError))?
+        )
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    quote_redeemable.checked_to_num::<u64>()
+        .ok_or_else(|| error!(UxdError::MathError))
 }
 
 impl<'info> QuoteRedeemFromMangoDepository<'info> {
