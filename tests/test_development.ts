@@ -76,7 +76,7 @@ describe("Integration tests SOL", function () {
 
     });
 
-    describe("Quote Mint And Redeem Suite", async function () {
+    describe.only("Quote Mint And Redeem Suite", async function () {
         quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC);
     });
 

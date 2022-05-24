@@ -1,6 +1,7 @@
 import { NATIVE_MINT } from "@solana/spl-token";
 import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, PnLPolarity } from "@uxd-protocol/uxd-client";
+import { expect } from "chai";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { quoteMintWithMangoDepositoryAccountingTest } from "../cases/quoteMintWithMangoDepositoryAccountingTest";
 import { quoteMintWithMangoDepositoryTest } from "../cases/quoteMintWithMangoDepositoryTest";
@@ -128,6 +129,78 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
                 break;
             }
         }
+    });
+    
+    it(`Quote mint or redeem with the wrong polarity (should fail)`, async function () {
+
+        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
+        const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
+
+        if (Math.abs(offsetUnrealizedPnl) < 10) {
+            console.log("🔵  skipping mint/redeem, unrealized pnl too small");
+            return;
+        }
+        try {
+            switch (polarity) {
+                case `Negative`: {
+                    await quoteRedeemFromMangoDepositoryTest(10, user, controller, depository, mango, payer);
+                    break;
+                }
+                case `Positive`: {
+                    await quoteMintWithMangoDepositoryTest(10, user, controller, depository, mango, payer);
+                    break;
+                }
+            }
+        } catch {
+            expect(true, "Failing as planned");
+        }
+        expect(false, "Should have failed - Did the wrong instruction given polarity");
+    });
+
+    it(`Quote mint or redeem more than is available to mint (should fail)`, async function () {
+
+        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
+        const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
+
+        const amountToMintOrRedeem = Math.abs(offsetUnrealizedPnl) * 1.5
+
+        try {
+            switch (polarity) {
+                case `Positive`: {
+                    await quoteRedeemFromMangoDepositoryTest(amountToMintOrRedeem, user, controller, depository, mango, payer);
+                    break;
+                }
+                case `Negative`: {
+                    await quoteMintWithMangoDepositoryTest(amountToMintOrRedeem, user, controller, depository, mango, payer);
+                    break;
+                }
+            }
+        } catch {
+            expect(true, "Failing as planned");
+        }
+        expect(false, "Should have failed - Minting or redeeming more than available");
+    });
+
+    it(`Quote mint or redeem 0 (should fail)`, async function () {
+
+        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
+        const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
+
+        try {
+            switch (polarity) {
+                case `Positive`: {
+                    await quoteRedeemFromMangoDepositoryTest(0, user, controller, depository, mango, payer);
+                    break;
+                }
+                case `Negative`: {
+                    await quoteMintWithMangoDepositoryTest(0, user, controller, depository, mango, payer);
+                    break;
+                }
+            }
+        } catch {
+            expect(true, "Failing as planned");
+        }
+        expect(false, "Should have failed - Tried minting or redeeming 0");
     });
 
     it(`Quote mint or redeem 1000$ (with fees)`, async function () {

@@ -191,16 +191,7 @@ pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) ->
         UxdError::InvalidPnlPolarity
     );
 
-    // Will become negative if more has been minted than the current negative PnL
-    let quote_mintable: u64 = perp_unrealized_pnl
-        .checked_sub(
-            I80F48::checked_from_num(quote_minted).ok_or_else(|| error!(UxdError::MathError))?,
-        )
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_abs()
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_to_num::<u64>()
-        .ok_or_else(|| error!(UxdError::MathError))?;
+    let quote_mintable: u64 = calculate_quote_mintable(perp_unrealized_pnl, quote_minted)?;
 
     // Check to ensure we are not minting more than we allocate to resolve negative PnL
     require!(quote_amount <= quote_mintable, UxdError::QuoteAmountTooHigh);
@@ -253,6 +244,23 @@ pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) ->
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
     Ok(())
+}
+
+pub fn calculate_quote_mintable(
+    perp_unrealized_pnl: I80F48,
+    quote_minted: i128,
+) -> Result<u64> {
+    let quote_mintable = perp_unrealized_pnl
+    .checked_sub(
+        I80F48::checked_from_num(quote_minted).ok_or_else(|| error!(UxdError::MathError))?,
+    )
+    .ok_or_else(|| error!(UxdError::MathError))?
+    .checked_abs()
+    .ok_or_else(|| error!(UxdError::MathError))?;
+
+    quote_mintable
+        .checked_to_num::<u64>()
+        .ok_or_else(|| error!(UxdError::MathError))
 }
 
 impl<'info> QuoteMintWithMangoDepository<'info> {
