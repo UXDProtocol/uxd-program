@@ -14,6 +14,8 @@ use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::price_to_lot_price;
 use crate::state::SafetyVault;
 use crate::validate_perp_market_mint_matches_depository_collateral_mint;
+use amm_anchor::Amm;
+use amm_anchor::swap_base_in;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -75,6 +77,8 @@ pub struct LiquidationKillSwitch<'info> {
     )]
     pub collateral_vault: Account<'info, TokenAccount>,
 
+    // - MANGO ACCOUNTS -------------------------------------------------------
+
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
@@ -127,6 +131,68 @@ pub struct LiquidationKillSwitch<'info> {
     #[account(mut)]
     pub mango_event_queue: UncheckedAccount<'info>,
 
+    // - RAYDIUM ACCOUNTS -----------------------------------------------------
+
+    /// CHECK: Safe. amm Account
+    #[account(mut)]
+    pub amm: AccountInfo<'info>,
+
+    /// CHECK: Safe. Amm authority Account
+    pub amm_authority: AccountInfo<'info>,
+
+    /// CHECK: Safe. amm open_orders Account
+    #[account(mut)]
+    pub amm_open_orders: AccountInfo<'info>,
+
+    /// CHECK: Safe. amm target_orders Account
+    #[account(mut)]
+    pub amm_target_orders: AccountInfo<'info>,
+
+    /// CHECK: Safe. pool_token_coin Amm Account to swap FROM or To,
+    #[account(mut)]
+    pub pool_coin_token_account: AccountInfo<'info>,
+
+    /// CHECK: Safe. pool_token_pc Amm Account to swap FROM or To,
+    #[account(mut)]
+    pub pool_pc_token_account: AccountInfo<'info>,
+
+    /// CHECK: Safe. serum dex program id
+    pub serum_program: AccountInfo<'info>,
+
+    /// CHECK: Safe. serum market Account. serum_dex program is the owner.
+    #[account(mut)]
+    pub serum_market: AccountInfo<'info>,
+
+    /// CHECK: Safe. bids Account
+    #[account(mut)]
+    pub serum_bids: AccountInfo<'info>,
+
+    /// CHECK: Safe. asks Account
+    #[account(mut)]
+    pub serum_asks: AccountInfo<'info>,
+
+    /// CHECK: Safe. event_q Account
+    #[account(mut)]
+    pub serum_event_queue: AccountInfo<'info>,
+
+    /// CHECK: Safe. coin_vault Account
+    #[account(mut)]
+    pub serum_coin_vault_account: AccountInfo<'info>,
+
+    /// CHECK: Safe. pc_vault Account
+    #[account(mut)]
+    pub serum_pc_vault_account: AccountInfo<'info>,
+
+    /// CHECK: Safe. vault_signer Account
+    #[account(mut)]
+    pub serum_vault_signer: AccountInfo<'info>,
+
+    /// CHECK: Safe. The spl token program
+    #[account(address = spl_token::ID)]
+    pub spl_token_program: AccountInfo<'info>,
+
+    // - MISC ACCOUNTS --------------------------------------------------------
+
     /// #18 System Program
     pub system_program: Program<'info, System>,
 
@@ -135,6 +201,8 @@ pub struct LiquidationKillSwitch<'info> {
 
     /// #20 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
+
+    pub raydium_program: Program<'info, Amm>,
 }
 
 pub fn handler(
@@ -143,19 +211,29 @@ pub fn handler(
     limit_price: f32,
 ) -> Result<()> {
     let depository = ctx.accounts.depository.load()?;
+    let safety_vault = ctx.accounts.safety_vault.load()?;
     let collateral_mint = depository.collateral_mint;
     let depository_bump = depository.bump;
     let amount_to_liquidate = depository
         .collateral_amount_deposited
         .checked_sub(target_collateral)
         .ok_or_else(|| error!(UxdError::MathError))?;
-    drop(depository);
 
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
         collateral_mint.as_ref(),
         &[depository_bump]
     ]];
+
+    let safety_vault_pda_signer: &[&[&[u8]]] = &[&[
+        SAFETY_VAULT_NAMESPACE,
+        ctx.accounts.depository.key().as_ref(), // Is this the right way to get this?
+        &[safety_vault.bump]
+    ]];
+
+    drop(depository);
+    drop(safety_vault);
+
     
     // - 1 [CLOSE THE EQUIVALENT PERP SHORT ON MANGO] -------------------------
 
@@ -239,6 +317,15 @@ pub fn handler(
 
     // DO SWAP CPI IN THIS IX OR IN ANOTHER ONE?
 
+    // - 3 [CPI SWAP FROM COLLATERAL TO QUOTE] --------------------------------
+    amm_anchor::swap_base_in(
+        ctx.accounts
+            .into_swap_collateral_raydium_context()
+            .with_signer(safety_vault_pda_signer), 
+        safety_vault, 
+        minimum_amount_out,
+    );
+
     Ok(())
 }
 
@@ -276,6 +363,33 @@ impl<'info> LiquidationKillSwitch<'info> {
             signer: self.mango_signer.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_swap_collateral_raydium_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, amm_anchor::SwapBaseIn<'info>> {
+        let cpi_accounts = amm_anchor::SwapBaseIn {
+            amm: self.amm.to_account_info(),
+            amm_authority: self.amm_authority.to_account_info(),
+            amm_open_orders: self.amm_open_orders.to_account_info(),
+            amm_target_orders: self.amm_target_orders.to_account_info(),
+            pool_coin_token_account: self.pool_coin_token_account.to_account_info(),
+            pool_pc_token_account: self.pool_pc_token_account.to_account_info(),
+            serum_program: self.serum_program.to_account_info(),
+            serum_market: self.serum_market.to_account_info(),
+            serum_bids: self.serum_bids.to_account_info(),
+            serum_asks: self.serum_asks.to_account_info(),
+            serum_event_queue: self.serum_event_queue.to_account_info(),
+            serum_coin_vault_account: self.serum_coin_vault_account.to_account_info(),
+            serum_pc_vault_account: self.serum_pc_vault_account.to_account_info(),
+            serum_vault_signer: self.serum_vault_signer.to_account_info(),
+            user_source_token_account: self.collateral_vault.to_account_info(),
+            user_destination_token_account: self.quote_vault.to_account_info(),
+            user_source_owner: self.safety_vault.to_account_info(),
+            spl_token_program: self.spl_token_program.to_account_info(),
+        };
+        let cpi_program = self.raydium_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 }

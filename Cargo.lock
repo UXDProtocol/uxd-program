@@ -29,6 +29,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b2d54853319fd101b8dd81de382bcbf3e03410a64d8928bbee85a3e7dcde483"
 
 [[package]]
+name = "amm-anchor"
+version = "0.1.0"
+source = "git+https://github.com/raydium-io/raydium-contract-instructions#9e8945236e9ca7bfad003e054f141439f3fe4c94"
+dependencies = [
+ "anchor-lang",
+ "raydium-contract-instructions",
+ "solana-program",
+ "spl-token",
+]
+
+[[package]]
 name = "anchor-attribute-access-control"
 version = "0.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1274,6 +1285,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "raydium-contract-instructions"
+version = "0.1.0"
+source = "git+https://github.com/raydium-io/raydium-contract-instructions#9e8945236e9ca7bfad003e054f141439f3fe4c94"
+dependencies = [
+ "solana-program",
+ "spl-token",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1772,6 +1792,7 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 name = "uxd"
 version = "3.1.0"
 dependencies = [
+ "amm-anchor",
  "anchor-comp",
  "anchor-lang",
  "anchor-spl",
