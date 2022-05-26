@@ -1,5 +1,5 @@
 import { Keypair, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, USDC_DEVNET, ETH_DEVNET } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, USDC_DEVNET, ETH_DEVNET } from "@uxd-protocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
 import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
@@ -8,6 +8,7 @@ import { mangoDepositoryInsuranceSuite } from "./suite/depositoryInsuranceSuite"
 import { mangoDepositorySetupSuite } from "./suite/depositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
+import { quoteMintAndRedeemSuite } from "./suite/quoteMintAndRedeemSuite";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -39,6 +40,11 @@ describe("Integration tests ETH", function () {
     describe.skip("mangoDepositoryRebalancingSuite ETH", function () {
         const paramsETH = new MangoDepositoryRebalancingSuiteParameters(20)
         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryETH, paramsETH);
+    });
+
+    // Skipped as it's handle bu the test_ci_quote_mint_redeem.ts
+    describe.skip("mangoDepositoryQuoteMintRedeemSuite ETH", function () {
+        quoteMintAndRedeemSuite(authority, user, bank, controllerUXD, mangoDepositoryETH);
     });
 
     describe("mangoDepositoryInsuranceSuite ETH", function () {

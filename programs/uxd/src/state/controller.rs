@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
 pub const CONTROLLER_SPACE: usize =
-    8 + 1 + 1 + 1 + 32 + 32 + 1 + (32 * 8) + 1 + 16 + 8 + 16 + 1 + 254;
+    8 + 1 + 1 + 1 + 32 + 32 + 1 + (32 * MAX_REGISTERED_MANGO_DEPOSITORIES) + 1 + 16 + 8 + 16 + 512;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -19,7 +19,7 @@ pub struct Controller {
     pub redeemable_mint_decimals: u8,
     //
     // The Mango Depositories registered with this Controller
-    pub registered_mango_depositories: [Pubkey; 8], //  - IDL bug with constant, so hard 8 literal. -- Still not working in 0.20.0 although it should
+    pub registered_mango_depositories: [Pubkey; MAX_REGISTERED_MANGO_DEPOSITORIES],
     pub registered_mango_depositories_count: u8,
     //
     // Progressive roll out and safety ----------
@@ -38,8 +38,6 @@ pub struct Controller {
     // This should always be equal to the sum of all Depositories' `redeemable_amount_under_management`
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
-    //
-    pub _reserved: u8,
 }
 
 impl Controller {

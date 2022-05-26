@@ -1,5 +1,5 @@
 import { Keypair, PublicKey, Signer } from "@solana/web3.js";
-import { UXDClient } from "@uxdprotocol/uxd-client";
+import { UXDClient } from "@uxd-protocol/uxd-client";
 import * as jsonIdl from "../target/idl/uxd.json";
 
 // TESTING wallets for convenience (The user and admin). To remove when going open source

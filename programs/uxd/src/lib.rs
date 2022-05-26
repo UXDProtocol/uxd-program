@@ -15,7 +15,7 @@ pub mod test;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("65YBszAjd9Wa8nWjhsuxYonnnvNjxv391QhW9JEQScXU");
+solana_program::declare_id!("6k1FocL2LrevETpyRqdFf5hhtudT6bAL9GxedFe951gH");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -38,6 +38,9 @@ pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million r
 
 pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
+
+const BPS_POW: u8 = 4; // Raise a number to BPS_POW to get order of magnitude of
+pub const BPS_UNIT_CONVERSION: u64 = (10u64).pow(BPS_POW as u32);
 
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 
@@ -267,7 +270,8 @@ pub mod uxd {
         limit_price: f32,
     ) -> Result<()> {
         msg!(
-            "[rebalance_mango_depository_lite] limit_price {}, polarity {}",
+            "[rebalance_mango_depository_lite] max_rebalancing_amount {}, limit_price {}, polarity {}",
+            max_rebalancing_amount,
             limit_price,
             polarity
         );
@@ -363,6 +367,92 @@ pub mod uxd {
         );
         instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, limit_price)
     }
+
+    #[access_control(
+        ctx.accounts.validate(quote_amount)
+    )]
+    pub fn quote_mint_with_mango_depository(
+        ctx: Context<QuoteMintWithMangoDepository>,
+        quote_amount: u64,
+    ) -> Result<()> {
+        msg!(
+            "[quote_mint_with_mango_depository] quote_amount {}",
+            quote_amount
+        );
+        instructions::quote_mint_with_mango_depository::handler(ctx, quote_amount)
+    }
+
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn quote_redeem_from_mango_depository(
+        ctx: Context<QuoteRedeemFromMangoDepository>,
+        redeemable_amount: u64,
+    ) -> Result<()> {
+        msg!(
+            "[quote_redeem_from_mango_depository] redeemable_amount {}",
+            redeemable_amount
+        );
+        instructions::quote_redeem_from_mango_depository::handler(ctx, redeemable_amount)
+    }
+
+    pub fn set_mango_depository_quote_mint_and_redeem_fee(
+        ctx: Context<SetMangoDepositoryQuoteMintAndRedeemFee>,
+        quote_fee: u8,
+    ) -> Result<()> {
+        msg!(
+            "[set_mango_depository_quote_mint_and_redeem_fee] quote_fee {}",
+            quote_fee
+        );
+        instructions::set_mango_depository_quote_mint_and_redeem_fee::handler(ctx, quote_fee)
+    }
+
+    /// Disable or enable minting for given Mango Depository.
+    ///
+    /// Parameters:
+    ///     - disable: true to disable, false to enable.
+    ///
+    /// Note:
+    ///  The disabled flag is false by default that a freshly registered mango depository has enabled minting.
+    ///  This ix is for toggling that flag.
+    ///
+    #[access_control(
+        ctx.accounts.validate(disable_minting)
+    )]
+    pub fn disable_depository_minting(
+        ctx: Context<DisableDepositoryMinting>,
+        disable_minting: bool,
+    ) -> Result<()> {
+        msg!(
+            "[disable_depository_minting] disable_minting {}",
+            disable_minting
+        );
+        instructions::disable_depository_minting::handler(ctx, disable_minting)
+    }
+
+    pub fn initialize_safety_vault(
+        ctx: Context<InitializeSafetyVault>,
+    ) -> Result<()> {
+        msg!("[initialize_safety_vault]");
+        instructions::initialize_safety_vault::handler(ctx)
+    }
+
+    #[access_control(
+        ctx.accounts.validate(target_collateral)
+    )]
+    pub fn liquidation_kill_switch(
+        ctx: Context<LiquidationKillSwitch>,
+        target_collateral: u128,
+        limit_price: f32,
+    ) -> Result<()> {
+        msg!(
+            "[liquidation_kill_switch] target_collateral {}",
+            target_collateral
+        );
+        instructions::liquidation_kill_switch::handler(ctx, target_collateral, limit_price)
+    }
+
+
 }
 
 /// Checks that the perp_market_index provided matches the collateral of the depository.

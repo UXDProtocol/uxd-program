@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 496;
+pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 462;
 pub const MANGO_DEPOSITORY_SPACE: usize = 8
     + 1
     + 2
@@ -19,6 +19,10 @@ pub const MANGO_DEPOSITORY_SPACE: usize = 8
     + 16
     + 16
     + 16
+    + 16
+    + 1
+    + 16
+    + 1
     + MANGO_DEPOSITORY_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -62,4 +66,16 @@ pub struct MangoDepository {
     //
     // The amount of DN position that has been rebalanced (in quote native units)
     pub total_amount_rebalanced: u128,
+    //
+    // The amount of redeemable that has been minted with quote mint
+    pub net_quote_minted: i128, // ** Change to make both ways
+    //
+    // The amount of fees taken per quote mint and quote redeem
+    pub quote_mint_and_redeem_fee: u8, // in units of BPs
+    //
+    // The amount of fees accrued from quote minting
+    pub total_quote_mint_and_redeem_fees: u128,
+    //
+    // Flag for enabling / disabling minting with this depository's collateral_mint
+    pub minting_disabled: bool,
 }

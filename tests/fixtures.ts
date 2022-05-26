@@ -1,4 +1,4 @@
-import { createAndInitializeMango, Mango } from "@uxdprotocol/uxd-client";
+import { createAndInitializeMango, Mango } from "@uxd-protocol/uxd-client";
 import { CLUSTER } from "./constants";
 import { getConnection } from "./connection";
 

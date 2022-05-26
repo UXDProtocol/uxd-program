@@ -1,8 +1,8 @@
 import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET } from "@uxd-protocol/uxd-client";
-import { bank, uxdProgramId } from "./constants";
+import { authority, bank, uxdProgramId } from "./constants";
 import { transferAllSol, transferSol } from "./utils";
-import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
+import { quoteMintAndRedeemSuite } from "./suite/quoteMintAndRedeemSuite";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -17,7 +17,7 @@ console.log(`ETH 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDe
 beforeEach("\n", function () { console.log("=============================================\n\n") });
 
 
-describe("Integration tests Rebalancing", function () {
+describe("Integration tests Quote Mint Redeem", function () {
     const user: Signer = new Keypair();
 
     this.beforeAll("Init and fund user", async function () {
@@ -25,19 +25,16 @@ describe("Integration tests Rebalancing", function () {
         await transferSol(1, bank, user.publicKey);
     });
 
-    describe("mangoDepositoryRebalancingSuite SOL", function () {
-        const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
-        mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositorySOL, paramsRebalancing);
+    describe("mangoDepositoryQuoteMintRedeemSuite SOL", function () {
+        quoteMintAndRedeemSuite(authority, user, bank, controllerUXD, mangoDepositorySOL);
     });
 
-    describe("mangoDepositoryRebalancingSuite BTC", function () {
-        const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
-        mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryBTC, paramsRebalancing);
+    describe("mangoDepositoryQuoteMintRedeemSuite BTC", function () {
+        quoteMintAndRedeemSuite(authority, user, bank, controllerUXD, mangoDepositoryBTC);
     });
 
-    describe("mangoDepositoryRebalancingSuite ETH", function () {
-        const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
-        mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryETH, paramsRebalancing);
+    describe("mangoDepositoryQuoteMintRedeemSuite ETH", function () {
+        quoteMintAndRedeemSuite(authority, user, bank, controllerUXD, mangoDepositoryETH);
     });
 
     this.afterAll("Transfer funds back to bank", async function () {

@@ -1,6 +1,6 @@
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, findATAAddrSync } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, findATAAddrSync } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { redeemFromMangoDepositoryTest } from "../cases/redeemFromMangoDepositoryTest";
@@ -10,7 +10,7 @@ import { getBalance, printUserInfo, transferAllTokens, transferSol, transferToke
 
 export const mangoDepositoryMintRedeemSuite = function (user: Signer, payer: Signer, controller: Controller, depository: MangoDepository, slippage: number) {
 
-    it(`Transfer 5,000 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
+    before(`Transfer 5,000 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
         const amount = 5_000 / perpPrice;
         console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
