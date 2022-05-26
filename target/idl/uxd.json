@@ -847,6 +847,54 @@
           }
         ]
       }
+    },
+    {
+      "name": "SafetyVault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "quoteVaultBump",
+            "type": "u8"
+          },
+          {
+            "name": "collateralVaultBump",
+            "type": "u8"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "depository",
+            "type": "publicKey"
+          },
+          {
+            "name": "quoteVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralLiquidated",
+            "type": "u128"
+          },
+          {
+            "name": "quoteVaultBalance",
+            "type": "u128"
+          }
+        ]
+      }
     }
   ],
   "types": [
@@ -1452,61 +1500,71 @@
     },
     {
       "code": 6033,
+      "name": "LiquidateCollateral",
+      "msg": "Target collateral is higher than the depository's current collateral."
+    },
+    {
+      "code": 6034,
+      "name": "CollateralFactorTooHigh",
+      "msg": "The collateral factor is higher than 1."
+    },
+    {
+      "code": 6035,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6034,
+      "code": 6036,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6035,
+      "code": 6037,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6036,
+      "code": 6038,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6037,
+      "code": 6039,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6038,
+      "code": 6040,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6039,
+      "code": 6041,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6040,
+      "code": 6042,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6041,
+      "code": 6043,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6042,
+      "code": 6044,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6043,
+      "code": 6045,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6044,
+      "code": 6046,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }

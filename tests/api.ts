@@ -3,8 +3,9 @@ import { uxdClient } from "./constants";
 import { Keypair, Signer, Transaction } from '@solana/web3.js';
 import { NATIVE_MINT } from "@solana/spl-token";
 import { prepareWrappedSolTokenAccount } from "./utils";
-import { MangoDepository, Mango, Controller, PnLPolarity, createAssocTokenIx, findATAAddrSync } from "@uxdprotocol/uxd-client";
+import { MangoDepository, Mango, Controller, PnLPolarity, createAssocTokenIx, findATAAddrSync } from "@uxd-protocol/uxd-client";
 import { BN, web3 } from "@project-serum/anchor";
+import { SafetyVault } from "@uxd-protocol/uxd-client/dist/types/mango/safetyVault";
 
 // Permissionned Calls --------------------------------------------------------
 
@@ -206,6 +207,36 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
     // console.log("🔗 depository PnL settlement Tx:", `'https://explorer.solana.com/tx/${settlePnlTxID}?cluster=${CLUSTER}'`);
 
     return txId;
+}
+
+export async function initializeSafetyVault(authority: Signer, payer: Signer, controller: Controller, depository: MangoDepository, safetyVault: SafetyVault): Promise<string> {
+    const initializeSafetyVaultIx = uxdClient.createInitializeSafetyVaultInstruction(controller, depository, safetyVault, authority.publicKey, TXN_OPTS, payer.publicKey);
+
+    const signers = [];
+    const tx = new Transaction();
+
+    tx.instructions.push(initializeSafetyVaultIx);
+    signers.push(authority);
+    if (payer) {
+        signers.push(payer);
+    }
+    tx.feePayer = payer.publicKey;
+    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function liquidationKillSwitch(authority: Signer, payer: Signer, targetCollateral: number, slippage: number, controller: Controller, depository: MangoDepository, safetyVault: SafetyVault, mango: Mango): Promise<string> {
+    const liquidationKillSwitchIx = uxdClient.createLiquidationKillSwitchInstruction(targetCollateral, slippage, controller, depository, safetyVault, mango, authority.publicKey, TXN_OPTS, payer.publicKey);
+
+    const signers = [];
+    const tx = new Transaction();
+    
+    tx.instructions.push(liquidationKillSwitchIx);
+    signers.push(authority);
+    if (payer) {
+        signers.push(payer);
+    }
+    tx.feePayer = payer.publicKey;
+    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
 // Non UXD API calls ----------------------------------------------------------
