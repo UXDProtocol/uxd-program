@@ -213,8 +213,8 @@ pub fn handler(
     target_collateral: u128,
     limit_price: f32,
 ) -> Result<()> {
-    let depository = ctx.accounts.depository.load()?;
-    let safety_vault = ctx.accounts.safety_vault.load()?;
+    let mut depository = ctx.accounts.depository.load_mut()?;
+    let mut safety_vault = ctx.accounts.safety_vault.load_mut()?;
     let collateral_mint = depository.collateral_mint;
     let depository_bump = depository.bump;
     let amount_to_liquidate = depository
@@ -233,9 +233,6 @@ pub fn handler(
         ctx.accounts.depository.key().as_ref(), // Is this the right way to get this?
         &[safety_vault.bump]
     ]];
-
-    drop(depository);
-    drop(safety_vault);
 
     
     // - 1 [CLOSE THE EQUIVALENT PERP SHORT ON MANGO] -------------------------
@@ -318,6 +315,17 @@ pub fn handler(
         false,
     )?;
 
+    // - 3 [UPDATE ONCHAIN ACCOUNTING] ----------------------------------------
+    safety_vault.collateral_liquidated = safety_vault.collateral_liquidated
+        .checked_add(collateral_withdraw_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    depository.collateral_amount_deposited = depository.collateral_amount_deposited
+        .checked_sub(collateral_withdraw_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+
+    drop(depository);
+    drop(safety_vault);
     // DO SWAP CPI IN THIS IX OR IN ANOTHER ONE?
 
     // - 3 [CPI SWAP FROM COLLATERAL TO QUOTE] --------------------------------
