@@ -409,7 +409,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
             .ok_or_else(|| error!(UxdError::MathError))?;
         depository.redeemable_amount_under_management = depository
             .redeemable_amount_under_management
-            .checked_add(redeemable_burnt_amount)
+            .checked_sub(redeemable_burnt_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
         depository.total_amount_paid_taker_fee = depository
             .total_amount_paid_taker_fee
@@ -417,7 +417,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
         // Controller
         controller.redeemable_circulating_supply = controller
             .redeemable_circulating_supply
-            .checked_add(redeemable_burnt_amount)
+            .checked_sub(redeemable_burnt_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
         Ok(())
     }
