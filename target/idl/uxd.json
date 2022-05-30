@@ -2084,7 +2084,6 @@
       "msg": "The order quantity is below contract_size of the perp market."
     },
     {
-<<<<<<< HEAD
       "code": 6036,
       "name": "QuoteAmountTooHigh",
       "msg": "The amount trying to be quote minted is larger than quote mintable."
@@ -2106,170 +2105,91 @@
     },
     {
       "code": 6040,
-||||||| parent of 92c5ce1... wip
-      "code": 6033,
-=======
-      "code": 6033,
       "name": "MSolSwappingDisabled",
       "msg": "Msol swapping is disabled"
     },
     {
-      "code": 6034,
->>>>>>> 92c5ce1... wip
+      "code": 6041,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-<<<<<<< HEAD
-      "code": 6041,
-||||||| parent of 92c5ce1... wip
-      "code": 6034,
-=======
-      "code": 6035,
->>>>>>> 92c5ce1... wip
+      "code": 6042,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-<<<<<<< HEAD
-      "code": 6042,
-||||||| parent of 92c5ce1... wip
-      "code": 6035,
-=======
-      "code": 6036,
->>>>>>> 92c5ce1... wip
+      "code": 6043,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-<<<<<<< HEAD
-      "code": 6043,
-||||||| parent of 92c5ce1... wip
-      "code": 6036,
-=======
-      "code": 6037,
->>>>>>> 92c5ce1... wip
+      "code": 6044,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-<<<<<<< HEAD
-      "code": 6044,
-||||||| parent of 92c5ce1... wip
-      "code": 6037,
-=======
-      "code": 6038,
->>>>>>> 92c5ce1... wip
+      "code": 6045,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-<<<<<<< HEAD
-      "code": 6045,
-||||||| parent of 92c5ce1... wip
-      "code": 6038,
-=======
-      "code": 6039,
->>>>>>> 92c5ce1... wip
+      "code": 6046,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-<<<<<<< HEAD
-      "code": 6046,
-||||||| parent of 92c5ce1... wip
-      "code": 6039,
-=======
-      "code": 6040,
->>>>>>> 92c5ce1... wip
+      "code": 6047,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-<<<<<<< HEAD
-      "code": 6047,
-||||||| parent of 92c5ce1... wip
-      "code": 6040,
-=======
-      "code": 6041,
->>>>>>> 92c5ce1... wip
+      "code": 6048,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-<<<<<<< HEAD
-      "code": 6048,
-||||||| parent of 92c5ce1... wip
-      "code": 6041,
-=======
-      "code": 6042,
->>>>>>> 92c5ce1... wip
+      "code": 6049,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-<<<<<<< HEAD
-      "code": 6049,
-||||||| parent of 92c5ce1... wip
-      "code": 6042,
-=======
-      "code": 6043,
->>>>>>> 92c5ce1... wip
+      "code": 6050,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-<<<<<<< HEAD
-      "code": 6050,
-||||||| parent of 92c5ce1... wip
-      "code": 6043,
-=======
-      "code": 6044,
->>>>>>> 92c5ce1... wip
+      "code": 6051,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-<<<<<<< HEAD
-      "code": 6051,
-||||||| parent of 92c5ce1... wip
-      "code": 6044,
-=======
-      "code": 6045,
->>>>>>> 92c5ce1... wip
+      "code": 6052,
       "name": "TargetLiquidityRatioExceedMax",
       "msg": "Target liquidity ratio for msol config exceed 100%"
     },
     {
-<<<<<<< HEAD
-      "code": 6052,
-||||||| parent of 92c5ce1... wip
-      "code": 6045,
-=======
-      "code": 6046,
->>>>>>> 92c5ce1... wip
+      "code": 6053,
       "name": "InvalidEnablingMsolSwap",
       "msg": "SOL/mSOL swap has already enabled / disabled"
     },
     {
-<<<<<<< HEAD
-      "code": 6053,
-||||||| parent of 92c5ce1... wip
-      "code": 6046,
-=======
-      "code": 6047,
->>>>>>> 92c5ce1... wip
+      "code": 6054,
       "name": "InvalidNonNativeMintUsed",
       "msg": "Must use native mint for setting msol config"
     },
     {
-<<<<<<< HEAD
-      "code": 6054,
-||||||| parent of 92c5ce1... wip
-      "code": 6047,
-=======
-      "code": 6048,
->>>>>>> 92c5ce1... wip
+      "code": 6055,
+      "name": "InvalidNonNativeMintAtaUsed",
+      "msg": "Must use native mint for passthrough account"
+    },
+    {
+      "code": 6056,
+      "name": "InvalidNonMSolMintAtaUsed",
+      "msg": "Must use msol for passthrough account"
+    },
+    {
+      "code": 6057,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
