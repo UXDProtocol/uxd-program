@@ -11,6 +11,7 @@ use crate::MSOL_CONFIG_NAMESPACE;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
+use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use fixed::types::I80F48;
@@ -121,7 +122,7 @@ pub struct SwapDepositoryMsol<'info> {
     /// #15
     /// CHECK: Marinade CPI
     #[account(mut)]
-    pub msol_mint: UncheckedAccount<'info>,
+    pub msol_mint: Box<Account<'info, Mint>>,
 
     /// #16
     /// CHECK: Marinade CPI

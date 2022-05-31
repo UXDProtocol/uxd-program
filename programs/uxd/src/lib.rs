@@ -16,6 +16,8 @@ pub mod test;
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
 solana_program::declare_id!("H4fDUuiTmRNrUVCaswDNFXAe1vR2UEgpdV8iQkzEn2C3");
+#[cfg(feature = "internal")]
+solana_program::declare_id!("EmXCGBmeZ7vTZu1NcuR5Cod8438aQdghhVa69zcBVF23");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
