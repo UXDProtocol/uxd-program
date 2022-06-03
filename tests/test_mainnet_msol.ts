@@ -65,7 +65,7 @@ describe.skip("Mainnet token transfer", function () {
 
 describe("Mainnet Integration tests SOL", function () {
   this.beforeAll("Init and fund user", async function () {
-    const uiAmount = 0.01;
+    const uiAmount = 0.003;
     const txId = await transferSol(uiAmount, payer, user.publicKey);
     console.log("transfer", uiAmount, "SOL to", user.publicKey.toString());
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}'`);
