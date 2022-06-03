@@ -1145,8 +1145,8 @@
       ],
       "args": [
         {
-          "name": "targetCollateral",
-          "type": "u128"
+          "name": "amountToLiquidate",
+          "type": "u64"
         },
         {
           "name": "limitPrice",
@@ -2075,5 +2075,8 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "5xrtgpKYSfiJVh3HsgF9M4HY5xNcwBJLMiyW3Ywe4g88"
+  }
 }

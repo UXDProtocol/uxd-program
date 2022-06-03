@@ -71,14 +71,14 @@ pub struct LiquidationKillSwitch<'info> {
         seeds = [QUOTE_VAULT_NAMESPACE, safety_vault.key().as_ref()],
         bump = safety_vault.load()?.quote_vault_bump,
     )]
-    pub quote_vault: Account<'info, TokenAccount>,
+    pub quote_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
         seeds = [COLLATERAL_VAULT_NAMESPACE, safety_vault.key().as_ref()],
         bump = safety_vault.load()?.collateral_vault_bump,
     )]
-    pub collateral_vault: Account<'info, TokenAccount>,
+    pub collateral_vault: Box<Account<'info, TokenAccount>>,
 
     // - MANGO ACCOUNTS -------------------------------------------------------
 
@@ -199,7 +199,6 @@ pub struct LiquidationKillSwitch<'info> {
     pub system_program: Program<'info, System>,
 
     /// #19 Token Program
-    #[account(address = spl_token::ID)]
     pub token_program: Program<'info, Token>,
 
     /// #20 MangoMarketv3 Program
@@ -210,17 +209,18 @@ pub struct LiquidationKillSwitch<'info> {
 
 pub fn handler(
     ctx: Context<LiquidationKillSwitch>, 
-    target_collateral: u128,
+    amount_to_liquidate: u64, 
     limit_price: f32,
 ) -> Result<()> {
-    let mut depository = ctx.accounts.depository.load_mut()?;
-    let mut safety_vault = ctx.accounts.safety_vault.load_mut()?;
+    let depository = ctx.accounts.depository.load()?;
+    let safety_vault = ctx.accounts.safety_vault.load()?;
     let collateral_mint = depository.collateral_mint;
     let depository_bump = depository.bump;
     let amount_to_liquidate = depository
         .collateral_amount_deposited
-        .checked_sub(target_collateral)
+        .checked_sub(amount_to_liquidate.into())
         .ok_or_else(|| error!(UxdError::MathError))?;
+    msg!("amount_to_liquidate: {}", amount_to_liquidate);
 
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
@@ -228,12 +228,14 @@ pub fn handler(
         &[depository_bump]
     ]];
 
-    let safety_vault_pda_signer: &[&[&[u8]]] = &[&[
-        SAFETY_VAULT_NAMESPACE,
-        ctx.accounts.depository.key().as_ref(), // Is this the right way to get this?
-        &[safety_vault.bump]
-    ]];
+    // let safety_vault_pda_signer: &[&[&[u8]]] = &[&[
+    //     SAFETY_VAULT_NAMESPACE,
+    //     ctx.accounts.depository.key().as_ref(), // Is this the right way to get this?
+    //     &[safety_vault.bump]
+    // ]];
 
+    drop(depository);
+    drop(safety_vault);
     
     // - 1 [CLOSE THE EQUIVALENT PERP SHORT ON MANGO] -------------------------
 
@@ -249,18 +251,23 @@ pub fn handler(
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_ceil()
         .ok_or_else(|| error!(UxdError::MathError))?;
+    msg!("max_fee_amount: {}", max_fee_amount);
     let quote_exposure_delta_minus_fees = quote_exposure_delta
         .checked_sub(max_fee_amount)
         .ok_or_else(|| error!(UxdError::MathError))?;
+    msg!("quote_exposure_delta_minus_fees: {}", quote_exposure_delta_minus_fees);
 
     // - [Perp account state PRE perp order]
     let pre_pa = ctx.accounts.perp_account(&perp_info)?;
+    msg!("pre_pa_base: {:?}\n pre_pa_quote: {:?}\n pre_pa_taker_base: {:?}\n pre_pa_taker_quote: {:?}\n", pre_pa.base_position, pre_pa.quote_position, pre_pa.taker_base, pre_pa.taker_quote);
 
     let max_quote_quantity: i64 = quote_exposure_delta_minus_fees
         .checked_div(perp_info.quote_lot_size)
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
+    msg!("max_quote_quantity: {}", max_quote_quantity);
+    msg!("perp_info.quote_lot_size: {}", perp_info.quote_lot_size);
 
     require!(
         !max_quote_quantity.is_zero(),
@@ -273,6 +280,7 @@ pub fn handler(
     let limit_price =
         I80F48::checked_from_num(limit_price).ok_or_else(|| error!(UxdError::MathError))?;
     let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
+    msg!("limit_price_lot: {:?}", limit_price_lot);
 
     // - [CPI MangoMarkets - Place perp order]
     mango_markets_v3::place_perp_order2(
@@ -292,6 +300,7 @@ pub fn handler(
 
     // - [Perp account state POST perp order]
     let post_pa = ctx.accounts.perp_account(&perp_info)?;
+    msg!("post_pa_base: {:?}\n post_pa_quote: {:?}\n post_pa_taker_base: {:?}\n post_pa_taker_quote: {:?}\n", post_pa.base_position, post_pa.quote_position, post_pa.taker_base, post_pa.taker_quote);
 
     // - 2 [WITHDRAW COLLATERAL FROM MANGO] -----------------------------------
     require!(
@@ -316,16 +325,10 @@ pub fn handler(
     )?;
 
     // - 3 [UPDATE ONCHAIN ACCOUNTING] ----------------------------------------
-    safety_vault.collateral_liquidated = safety_vault.collateral_liquidated
-        .checked_add(collateral_withdraw_amount.into())
-        .ok_or_else(|| error!(UxdError::MathError))?;
-    depository.collateral_amount_deposited = depository.collateral_amount_deposited
-        .checked_sub(collateral_withdraw_amount.into())
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
-
-    drop(depository);
-    drop(safety_vault);
+    ctx.accounts.update_onchain_accounting(
+        collateral_withdraw_amount.into()
+    )?;
+        
     // DO SWAP CPI IN THIS IX OR IN ANOTHER ONE?
 
     // - 3 [CPI SWAP FROM COLLATERAL TO QUOTE] --------------------------------
@@ -434,13 +437,30 @@ impl<'info> LiquidationKillSwitch<'info> {
         .map_err(|me| ProgramError::from(me))?;
         Ok(mango_account.perp_accounts[perp_info.market_index])
     }
+
+    fn update_onchain_accounting(
+        &mut self,
+        collateral_withdraw_amount: u128,
+    ) -> Result<()> {
+        let depository = &mut self.depository.load_mut()?;
+        let safety_vault = &mut self.safety_vault.load_mut()?;
+
+        depository.collateral_amount_deposited = depository.collateral_amount_deposited
+            .checked_sub(collateral_withdraw_amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        safety_vault.collateral_liquidated = safety_vault.collateral_liquidated
+            .checked_add(collateral_withdraw_amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        Ok(())
+    }
 }
 
 // Validate input arguments
 impl<'info> LiquidationKillSwitch<'info> {
-    pub fn validate(&self, target_collateral: u128) -> Result<()> {
+    pub fn validate(&self, amount_to_liquidate: u64) -> Result<()> {
         require!(
-            target_collateral < self.depository.load()?.collateral_amount_deposited, 
+            u128::from(amount_to_liquidate) < self.depository.load()?.collateral_amount_deposited, 
             UxdError::LiquidateCollateral
         );
 

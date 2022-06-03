@@ -6,7 +6,7 @@ import { liquidationKillSwitch } from "../api";
 import { CLUSTER } from "../constants";
 import { getBalance, getSolBalance } from "../utils";
 
-export const liquidationKillSwitchTest = async function(targetCollateral: number, slippage: number, controller: Controller, depository: MangoDepository, safetyVault: SafetyVault, mango: Mango, authority: Signer, payer?: Signer): Promise<number> {
+export const liquidationKillSwitchTest = async function(amountToLiquidate: number, slippage: number, controller: Controller, depository: MangoDepository, safetyVault: SafetyVault, mango: Mango, authority: Signer, payer?: Signer) {
     console.group("🧭 liquidationKillSwitchTest");
     try {
         // GIVEN
@@ -18,10 +18,10 @@ export const liquidationKillSwitchTest = async function(targetCollateral: number
         } else {
             safetyVaultCollateralBalance = await getBalance(safetyVaultCollateralATA);
         }
-        const collateralWithdrawn: number = safetyVaultCollateralBalance - targetCollateral;
+        const collateralWithdrawn: number = safetyVaultCollateralBalance - amountToLiquidate;
 
         // WHEN
-        const txId = await liquidationKillSwitch(authority, payer ?? authority, targetCollateral, slippage, controller, depository, safetyVault, mango);
+        const txId = await liquidationKillSwitch(authority, payer ?? authority, amountToLiquidate, slippage, controller, depository, safetyVault, mango);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN

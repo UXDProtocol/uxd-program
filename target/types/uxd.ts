@@ -1145,8 +1145,8 @@ export type Uxd = {
       ],
       "args": [
         {
-          "name": "targetCollateral",
-          "type": "u128"
+          "name": "amountToLiquidate",
+          "type": "u64"
         },
         {
           "name": "limitPrice",
@@ -3225,8 +3225,8 @@ export const IDL: Uxd = {
       ],
       "args": [
         {
-          "name": "targetCollateral",
-          "type": "u128"
+          "name": "amountToLiquidate",
+          "type": "u64"
         },
         {
           "name": "limitPrice",

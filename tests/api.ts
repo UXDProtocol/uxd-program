@@ -261,7 +261,7 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
 }
 
 export async function initializeSafetyVault(authority: Signer, payer: Signer, controller: Controller, depository: MangoDepository, safetyVault: SafetyVault): Promise<string> {
-    const initializeSafetyVaultIx = uxdClient.createInitializeSafetyVaultInstruction(controller, depository, safetyVault, authority.publicKey, TXN_OPTS, payer.publicKey);
+    const initializeSafetyVaultIx = await uxdClient.createInitializeSafetyVaultInstruction(controller, depository, safetyVault, authority.publicKey, TXN_OPTS, payer.publicKey);
 
     const signers = [];
     const tx = new Transaction();
@@ -275,8 +275,8 @@ export async function initializeSafetyVault(authority: Signer, payer: Signer, co
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function liquidationKillSwitch(authority: Signer, payer: Signer, targetCollateral: number, slippage: number, controller: Controller, depository: MangoDepository, safetyVault: SafetyVault, mango: Mango): Promise<string> {
-    const liquidationKillSwitchIx = uxdClient.createLiquidationKillSwitchInstruction(targetCollateral, slippage, controller, depository, safetyVault, mango, authority.publicKey, TXN_OPTS, payer.publicKey);
+export async function liquidationKillSwitch(authority: Signer, payer: Signer, amountToLiquidate: number, slippage: number, controller: Controller, depository: MangoDepository, safetyVault: SafetyVault, mango: Mango): Promise<string> {
+    const liquidationKillSwitchIx = await uxdClient.createLiquidationKillSwitchInstruction(amountToLiquidate, slippage, controller, depository, safetyVault, mango, authority.publicKey, TXN_OPTS, payer.publicKey);
 
     const signers = [];
     const tx = new Transaction();

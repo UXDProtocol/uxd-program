@@ -1,8 +1,8 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
-import { SafetyVault } from "@uxd-protocol/uxd-client/dist/types/mango/safetyVault";
+import { Controller, MangoDepository, SafetyVault } from "@uxd-protocol/uxd-client";
 import { initializeSafetyVault } from "../api";
 import { getConnection } from "../connection";
+import { CLUSTER } from "../constants";
 
 export const initializeSafetyVaultTest = async function(authority: Signer, controller: Controller, depository: MangoDepository, safetyVault: SafetyVault, payer?: Signer) {
     console.group("⏱ initializeSafetyVaultTest");
@@ -17,7 +17,6 @@ export const initializeSafetyVaultTest = async function(authority: Signer, contr
 
         // THEN
         console.log(`🧾 Initialized`, depository.collateralMint, "Safety Vault");
-        safetyVault.info();
         console.groupEnd();
     } catch (error) {
         console.error("❌", error);

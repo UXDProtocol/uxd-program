@@ -1,21 +1,21 @@
-use crate::error::UxdError;
 use anchor_lang::prelude::*;
 
 pub const SAFETY_VAULT_SPACE: usize = 8
-    + 1
-    + 1
-    + 1
-    + 1
-    + 32
-    + 32
-    + 32
-    + 32
-    + 16
-    + 16;
+    + 1   // bump
+    + 1   // quote_vault_bump
+    + 1   // collateral_vault_bump
+    + 1   // version
+    + 32  // authority
+    + 32  // depository
+    + 32  // quote_vault
+    + 32  // collateral_vault
+    + 16  // collateral_liquidated
+    + 16; // quote_vault_balance
 
 // This is the safety vault that will handle the result of kill-switch
 // operations, holding the USDC from liquidating
 #[account(zero_copy)]
+#[repr(packed)]
 pub struct SafetyVault {
     pub bump: u8,
     pub quote_vault_bump: u8,

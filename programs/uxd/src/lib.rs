@@ -15,7 +15,7 @@ pub mod test;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("6k1FocL2LrevETpyRqdFf5hhtudT6bAL9GxedFe951gH");
+solana_program::declare_id!("5xrtgpKYSfiJVh3HsgF9M4HY5xNcwBJLMiyW3Ywe4g88");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -438,18 +438,18 @@ pub mod uxd {
     }
 
     #[access_control(
-        ctx.accounts.validate(target_collateral)
+        ctx.accounts.validate(amount_to_liquidate)
     )]
     pub fn liquidation_kill_switch(
         ctx: Context<LiquidationKillSwitch>,
-        target_collateral: u128,
+        amount_to_liquidate: u64,
         limit_price: f32,
     ) -> Result<()> {
         msg!(
-            "[liquidation_kill_switch] target_collateral {}",
-            target_collateral
+            "[liquidation_kill_switch] amount_to_liquidate {}",
+            amount_to_liquidate
         );
-        instructions::liquidation_kill_switch::handler(ctx, target_collateral, limit_price)
+        instructions::liquidation_kill_switch::handler(ctx, amount_to_liquidate, limit_price)
     }
 
 

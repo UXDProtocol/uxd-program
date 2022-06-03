@@ -1,5 +1,5 @@
 import { Keypair, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET, UXD_DEVNET } from "@uxd-protocol/uxd-client";
+import { Controller, MangoDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET, UXD_DEVNET, SafetyVault } from "@uxd-protocol/uxd-client";
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
 import { printDepositoryInfo, printUserInfo, transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
 import { depositInsuranceMangoDepositoryTest } from "./cases/depositInsuranceMangoDepositoryTest";
@@ -13,10 +13,12 @@ import { MangoDepositoryRebalancingSuiteParameters, mangoDepositoryRebalancingSu
 import { quoteMintAndRedeemSuite } from "./suite/quoteMintAndRedeemSuite";
 import { utils } from "@project-serum/anchor";
 import { setMangoDepositoriesRedeemableSoftCap } from "./api";
+import { killSwitchSuite } from "./suite/killSwitchSuite";
 
 console.log(uxdProgramId.toString());
 // const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", UXD_DECIMALS, uxdProgramId);
+const safetyVaultBTC = new SafetyVault(mangoDepositoryBTC, uxdProgramId);
 // const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const controller = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 const payer = bank;
@@ -35,7 +37,7 @@ describe("Integration tests SOL", function () {
         await transferSol(1, bank, user.publicKey);
         await transferTokens(200, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
         // await transferTokens(10, UXD_DEVNET, UXD_DECIMALS, bank, user.publicKey);
-        await transferTokens(1.1, BTC_DEVNET, BTC_DECIMALS, bank, user.publicKey);
+        await transferTokens(2.1, BTC_DEVNET, BTC_DECIMALS, bank, user.publicKey);
     });
 
 
@@ -64,7 +66,7 @@ describe("Integration tests SOL", function () {
         });
 
         it("Mint 1 BTC", async function () {
-            await mintWithMangoDepositoryTest(1, slippage, user, controller, mangoDepositoryBTC, mango, payer);
+            await mintWithMangoDepositoryTest(2, slippage, user, controller, mangoDepositoryBTC, mango, payer);
         });
         // it(`Withdraw 10 USDC of insurance`, async function () {
         //     await withdrawInsuranceMangoDepositoryTest(10, authority, controller, mangoDepositorySOL, mango);
@@ -76,8 +78,11 @@ describe("Integration tests SOL", function () {
 
     });
 
-    describe("Quote Mint And Redeem Suite", async function () {
-        quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC);
+    // describe("Quote Mint And Redeem Suite", async function () {
+    //     quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC);
+    // });
+    describe.only("Kill Switch Suite", async function () {
+        killSwitchSuite(authority, payer, controller, mangoDepositoryBTC, safetyVaultBTC, 100);
     });
 
     // describe("Quote mint and redeem", async function () {
