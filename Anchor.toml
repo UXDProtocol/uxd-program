@@ -2,11 +2,11 @@
 cluster = "mainnet"
 wallet = "~/.config/solana/id.json"
 
-[programs.mainnet]
-uxd = "UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr"
+# [programs.mainnet]
+# uxd = "UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr"
 
-# [programs.mainnet] // internal mainnet program address
-# uxd = "EmXCGBmeZ7vTZu1NcuR5Cod8438aQdghhVa69zcBVF23"
+[programs.mainnet] # internal mainnet program address
+uxd = "EmXCGBmeZ7vTZu1NcuR5Cod8438aQdghhVa69zcBVF23"
 
 [programs.devnet] 
 uxd = "H4fDUuiTmRNrUVCaswDNFXAe1vR2UEgpdV8iQkzEn2C3"
