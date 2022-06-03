@@ -11,6 +11,9 @@ use crate::MSOL_CONFIG_NAMESPACE;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
+use anchor_lang::system_program;
+use anchor_lang::system_program::Transfer;
+use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
@@ -99,6 +102,7 @@ pub struct SwapDepositoryMsol<'info> {
 
     /// #10 [MangoMarkets CPI] Root Bank for the `depository`'s `msol`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
+    #[account(mut)]
     pub mango_msol_root_bank: UncheckedAccount<'info>,
 
     /// #11 [MangoMarkets CPI] Node Bank for the `depository`'s `msol`
@@ -312,6 +316,19 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
         msg!("msol_swap: withdraw sol from mango success");
 
         // 5. swap msol from sol passthrough ata to msol passthrough ata
+        msg!(
+            "msol_swap: sol_passthrough_ata balance before: ${}",
+            ctx.accounts.sol_passthrough_ata.amount
+        );
+        ctx.accounts.sol_passthrough_ata.reload()?;
+        msg!(
+            "msol_swap: sol_passthrough_ata balance after: ${}",
+            ctx.accounts.sol_passthrough_ata.amount
+        );
+
+        // 5.5 unwrap wsol
+        token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
+
         let cpi_ctx = ctx.accounts.into_marinade_deposit_cpi_ctx();
         let data = marinade_finance::instruction::Deposit {
             lamports: deposit_lamports,
@@ -324,6 +341,16 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
             .map_err(|me| ProgramError::from(me))?;
 
         // 6. deposit msol back to mango from msol passthrough ata
+        msg!(
+            "msol_swap: sol_passthrough_ata balance before: ${}",
+            ctx.accounts.msol_passthrough_ata.amount
+        );
+        ctx.accounts.msol_passthrough_ata.reload()?;
+        msg!(
+            "msol_swap: sol_passthrough_ata balance after: ${}",
+            ctx.accounts.msol_passthrough_ata.amount
+        );
+
         mango_markets_v3::deposit(
             ctx.accounts
                 .into_deposit_to_mango_context(
@@ -364,7 +391,6 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
             msol_liquid_unstake_amount,
             false,
         )?;
-        msg!("msol_swap: withdraw msol from mango success");
 
         // 5. swap sol from msol passthrough ata to sol passthrough ata
         let cpi_ctx = ctx.accounts.into_liquid_unstake_cpi_ctx();
@@ -372,7 +398,31 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
             msol_amount: msol_liquid_unstake_amount,
         };
         cpi_util::invoke_signed(cpi_ctx, instruction_data)?;
-        msg!("msol_swap: swap success");
+        msg!("msol_swap: user lamports ${}", ctx.accounts.user.lamports());
+
+        // 5.5 wrap sol
+        system_program::transfer(
+            ctx.accounts.into_wrap_sol_to_ata_context(),
+            liquid_unstake_lamports,
+        )?;
+
+        msg!(
+            "msol_swap: sol_passthrough_ata balance before: ${}",
+            ctx.accounts.sol_passthrough_ata.amount
+        );
+        msg!(
+            "msol_swap: user lamports before: ${}",
+            ctx.accounts.user.lamports()
+        );
+        ctx.accounts.sol_passthrough_ata.reload()?;
+        msg!(
+            "msol_swap: sol_passthrough_ata balance after: ${}",
+            ctx.accounts.sol_passthrough_ata.amount
+        );
+        msg!(
+            "msol_swap: user lamports after: ${}",
+            ctx.accounts.user.lamports()
+        );
 
         // 6. deposit sol back to mango from sol passthrough ata
         mango_markets_v3::deposit(
@@ -386,7 +436,6 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
                 .with_signer(depository_signer_seed),
             liquid_unstake_lamports,
         )?;
-        msg!("msol_swap: deposit success");
 
         return Ok(());
     }
@@ -473,6 +522,27 @@ impl<'info> SwapDepositoryMsol<'info> {
             signer: self.mango_signer.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_unwrap_wsol_by_closing_ata_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, token::CloseAccount<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = token::CloseAccount {
+            account: self.sol_passthrough_ata.to_account_info(),
+            destination: self.user.to_account_info(),
+            authority: self.user.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_wrap_sol_to_ata_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        let cpi_program = self.system_program.to_account_info();
+        let cpi_accounts = Transfer {
+            from: self.user.to_account_info(),
+            to: self.sol_passthrough_ata.to_account_info(),
+        };
         CpiContext::new(cpi_program, cpi_accounts)
     }
 }

@@ -1151,7 +1151,7 @@ export type Uxd = {
         },
         {
           "name": "mangoMsolRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -3349,7 +3349,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "mangoMsolRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
