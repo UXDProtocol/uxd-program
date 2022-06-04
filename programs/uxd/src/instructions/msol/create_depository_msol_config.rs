@@ -41,7 +41,7 @@ pub struct CreateDepositoryMSolConfig<'info> {
     /// #5 Msol config account for the `depository` instance
     #[account(
         init,
-        seeds = [MSOL_CONFIG_NAMESPACE, depository.key().as_ref(), &[2u8]],
+        seeds = [MSOL_CONFIG_NAMESPACE, depository.key().as_ref()],
         bump,
         payer = payer,
         space = MSOL_CONFIG_SPACE

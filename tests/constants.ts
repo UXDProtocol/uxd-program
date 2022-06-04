@@ -29,10 +29,10 @@ export const bank: Signer = bankKeypair;
 console.log(`BANK => 🔗https://solscan.io/account/${bank.publicKey}?cluster=devnet`);
 
 // Get this from anchor.toml TODO
-export const CLUSTER = "devnet";
+export const CLUSTER = "mainnet";
 
 // ----------------------------------------------------------------------------
-export const uxdProgramId: PublicKey = new PublicKey(jsonIdl["metadata"]["address"]);
+export const uxdProgramId: PublicKey = new PublicKey("EmXCGBmeZ7vTZu1NcuR5Cod8438aQdghhVa69zcBVF23");
 console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
 export const uxdClient = new UXDClient(uxdProgramId);
 

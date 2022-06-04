@@ -37,7 +37,7 @@ pub struct EnableMsolSwap<'info> {
     /// #5 Msol config account for the `depository` instance
     #[account(
         mut,
-        seeds = [MSOL_CONFIG_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        seeds = [MSOL_CONFIG_NAMESPACE, depository.key().as_ref()],
         bump = msol_config.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = depository @UxdError::InvalidDepository,
