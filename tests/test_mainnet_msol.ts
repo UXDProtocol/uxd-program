@@ -5,6 +5,8 @@ import {
   createAssocTokenIx,
   findATAAddrSync,
   MangoDepository,
+  MSOL,
+  MsolConfig,
   SOL_DECIMALS,
   USDC_DECIMALS,
   WSOL,
@@ -22,7 +24,7 @@ import { transferAllSol, transferAllTokens, transferSol } from "./utils";
 import { mintWithMangoDepositoryTest } from "./cases/mintWithMangoDepositoryTest";
 import { web3 } from "@project-serum/anchor";
 import { getConnection, TXN_OPTS } from "./connection";
-import { createDepositoryMsolConfig, enableMsolSwap, swapDepositoryMsol } from "./api";
+import { createAta, createDepositoryMsolConfig, enableMsolSwap, swapDepositoryMsol } from "./api";
 import { redeemFromMangoDepositoryTest } from "./cases/redeemFromMangoDepositoryTest";
 import { setRedeemableSoftCapMangoDepositoryTest } from "./cases/setRedeemableSoftCapMangoDepositoryTest";
 
@@ -50,6 +52,9 @@ const mangoDepositorySOL = new MangoDepository(
   USDC_DECIMALS,
   uxdProgramId
 );
+
+const msolConfig = new MsolConfig(mangoDepositorySOL.pda, uxdProgramId);
+console.log(`msolConfigPda = ${msolConfig.pda.toString()}`);
 
 describe.skip("Mainnet token transfer", function () {
   it.skip("Transfer all USDC to authority from payer", async function () {
@@ -94,27 +99,13 @@ describe("Mainnet Integration tests SOL", function () {
     await setRedeemableSoftCapMangoDepositoryTest(100000000, authority, controller);
   });
 
-  it(`Redeem 0.4 ${controller.redeemableMintSymbol} for 2% slippage)`, async function () {
-    await redeemFromMangoDepositoryTest(0.4, 20, user, controller, mangoDepositorySOL, mango, payer);
+  it(`Redeem 0.5 ${controller.redeemableMintSymbol} for 2% slippage)`, async function () {
+    await redeemFromMangoDepositoryTest(0.5, 20, user, controller, mangoDepositorySOL, mango, payer);
   });
 
   describe("Test mSOL", async function () {
-    const msolMint = new PublicKey("mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So");
-
-    const userMSolAta = findATAAddrSync(user.publicKey, msolMint)[0];
-    console.log(`userMSolAta = ${userMSolAta}`);
-
-    const userWSolAta = findATAAddrSync(user.publicKey, WSOL)[0];
-    console.log(`userWSolAta = ${userWSolAta}`);
-
-    const msolConfigPda = PublicKey.findProgramAddressSync(
-      [Buffer.from("MSOLCONFIG"), mangoDepositorySOL.pda.toBuffer()],
-      uxdProgramId
-    )[0];
-    console.log(`msolPda = ${msolConfigPda}`);
-
     it("register msol config", async function () {
-      if (await getConnection().getAccountInfo(msolConfigPda)) {
+      if (await getConnection().getAccountInfo(msolConfig.pda)) {
         console.log("🚧 Already initialized.");
       } else {
         const txId = await createDepositoryMsolConfig(
@@ -122,56 +113,38 @@ describe("Mainnet Integration tests SOL", function () {
           payer,
           controller,
           mangoDepositorySOL,
-          msolConfigPda,
+          msolConfig.pda,
           5000
         );
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}'`);
       }
     });
 
+    it("create wsol ata", async function () {
+      try {
+        const txId = await createAta(user, payer, WSOL);
+        console.log(`🔗 'https://explorer.solana.com/tx/${txId}'`);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+
+    it("create msol ata", async function () {
+      try {
+        const txId = await createAta(user, payer, MSOL);
+        console.log(`🔗 'https://explorer.solana.com/tx/${txId}'`);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+
     it.skip("enable msol config", async function () {
-      const txId = await enableMsolSwap(authority, payer, controller, mangoDepositorySOL, msolConfigPda, true);
+      const txId = await enableMsolSwap(authority, payer, controller, mangoDepositorySOL, msolConfig.pda, true);
       console.log(`🔗 'https://explorer.solana.com/tx/${txId}'`);
     });
 
-    it("prepare user's wsol ata", async function () {
-      if (await getConnection().getAccountInfo(userWSolAta)) {
-        console.log("🚧 Already initialized.");
-      } else {
-        let signers = [];
-        let tx = new Transaction();
-        const createUserRedeemableAtaIx = createAssocTokenIx(user.publicKey, userWSolAta, WSOL);
-        tx.add(createUserRedeemableAtaIx);
-        signers.push(user);
-        if (payer) {
-          signers.push(payer);
-        }
-        tx.feePayer = payer.publicKey;
-        const txAtaId = await web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-        console.log(`🔗 'https://explorer.solana.com/tx/${txAtaId}'`);
-      }
-    });
-
-    it("prepare user's msol ata", async function () {
-      if (await getConnection().getAccountInfo(userMSolAta)) {
-        console.log("🚧 Already initialized.");
-      } else {
-        let signers = [];
-        let tx = new Transaction();
-        const createUserRedeemableAtaIx = createAssocTokenIx(user.publicKey, userMSolAta, msolMint);
-        tx.add(createUserRedeemableAtaIx);
-        signers.push(user);
-        if (payer) {
-          signers.push(payer);
-        }
-        tx.feePayer = payer.publicKey;
-        const txAtaId = await web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-        console.log(`🔗 'https://explorer.solana.com/tx/${txAtaId}'`);
-      }
-    });
-
     it("swap msol", async function () {
-      const txId = await swapDepositoryMsol(user, payer, controller, mangoDepositorySOL, msolConfigPda, mango);
+      const txId = await swapDepositoryMsol(user, payer, controller, mangoDepositorySOL, msolConfig.pda, mango);
       console.log(`🔗 'https://explorer.solana.com/tx/${txId}'`);
     });
   });

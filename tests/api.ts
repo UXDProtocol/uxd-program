@@ -11,9 +11,12 @@ import {
   createAssocTokenIx,
   findATAAddrSync,
   uiToNative,
+  WSOL,
+  MSOL,
 } from "@uxd-protocol/uxd-client";
 import { web3 } from "@project-serum/anchor";
 import { Payer } from "@blockworks-foundation/mango-client";
+import { MarinadeConfig } from "@marinade.finance/marinade-ts-sdk";
 
 // Permissionned Calls --------------------------------------------------------
 
@@ -502,18 +505,37 @@ export async function swapDepositoryMsol(
   msolConfigPda: PublicKey,
   mango: Mango
 ): Promise<string> {
-  const ix = uxdClient.swapDepositoryMsolInstruction(
+  const marinadeConfig = new MarinadeConfig({
+    connection: getConnection(),
+    publicKey: user.publicKey,
+  });
+
+  const tx = new Transaction();
+
+  // const userWSolAta = findATAAddrSync(user.publicKey, WSOL)[0];
+  // if (!(await getConnection().getAccountInfo(userWSolAta))) {
+  //   const createUserWSolAtaIx = createAssocTokenIx(user.publicKey, userWSolAta, WSOL);
+  //   tx.add(createUserWSolAtaIx);
+  // }
+
+  // const userMSolAta = findATAAddrSync(user.publicKey, MSOL)[0];
+  // if (!(await getConnection().getAccountInfo(userMSolAta))) {
+  //   const createUserMSolAtaIx = createAssocTokenIx(user.publicKey, userMSolAta, MSOL);
+  //   tx.add(createUserMSolAtaIx);
+  // }
+
+  const ix = await uxdClient.swapDepositoryMsolInstruction(
     controller,
     depository,
     msolConfigPda,
     mango,
+    marinadeConfig,
     TXN_OPTS,
     user.publicKey,
     payer.publicKey
   );
 
   const signers = [];
-  const tx = new Transaction();
 
   tx.instructions.push(ix);
   signers.push(user);
@@ -558,4 +580,23 @@ export async function enableMsolSwap(
 
 export async function settleDepositoryPnl(payer: Signer, depository: MangoDepository, mango: Mango): Promise<string> {
   return depository.settleMangoDepositoryMangoAccountPnl(payer as Keypair, mango);
+}
+
+export async function createAta(user: Signer, payer: Signer, mint: PublicKey): Promise<string> {
+  const tx = new Transaction();
+  const userAta = findATAAddrSync(user.publicKey, mint)[0];
+  if (!(await getConnection().getAccountInfo(userAta))) {
+    const createUserAtaIx = createAssocTokenIx(user.publicKey, userAta, mint);
+    tx.add(createUserAtaIx);
+  } else {
+    throw new Error("has created")
+  }
+  const signers = [];
+
+  signers.push(user);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }

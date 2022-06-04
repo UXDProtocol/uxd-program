@@ -79,7 +79,7 @@ pub struct SwapDepositoryMsol<'info> {
     #[account(mut)]
     pub mango_cache: UncheckedAccount<'info>,
 
-    /// #8 [MangoMarkets CPI] Signer PDA
+    /// #9 [MangoMarkets CPI] Signer PDA
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_signer: UncheckedAccount<'info>,
 
@@ -98,63 +98,63 @@ pub struct SwapDepositoryMsol<'info> {
     #[account(mut)]
     pub mango_sol_vault: UncheckedAccount<'info>,
 
-    /// #10 [MangoMarkets CPI] Root Bank for the `depository`'s `msol`
+    /// #13 [MangoMarkets CPI] Root Bank for the `depository`'s `msol`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_msol_root_bank: UncheckedAccount<'info>,
 
-    /// #11 [MangoMarkets CPI] Node Bank for the `depository`'s `msol`
+    /// #14 [MangoMarkets CPI] Node Bank for the `depository`'s `msol`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_msol_node_bank: UncheckedAccount<'info>,
 
-    /// #12 [MangoMarkets CPI] Vault for the `depository`'s `msol`
+    /// #15 [MangoMarkets CPI] Vault for the `depository`'s `msol`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub mango_msol_vault: UncheckedAccount<'info>,
 
-    /// #13 MangoMarketv3 Program
+    /// #16 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
-
-    /// #14
-    /// CHECK: Marinade CPI
-    #[account(mut)]
-    pub marinade_state: UncheckedAccount<'info>,
-
-    /// #15
-    /// CHECK: Marinade CPI
-    #[account(mut)]
-    pub msol_mint: Box<Account<'info, Mint>>,
-
-    /// #16
-    /// CHECK: Marinade CPI
-    pub msol_mint_authority: UncheckedAccount<'info>,
 
     /// #17
     /// CHECK: Marinade CPI
     #[account(mut)]
-    pub liq_pool_sol_leg_pda: UncheckedAccount<'info>,
+    pub marinade_state: UncheckedAccount<'info>,
 
     /// #18
     /// CHECK: Marinade CPI
     #[account(mut)]
-    pub liq_pool_msol_leg: UncheckedAccount<'info>,
+    pub msol_mint: Box<Account<'info, Mint>>,
 
     /// #19
     /// CHECK: Marinade CPI
-    pub liq_pool_msol_leg_authority: UncheckedAccount<'info>,
+    pub msol_mint_authority: UncheckedAccount<'info>,
 
     /// #20
     /// CHECK: Marinade CPI
     #[account(mut)]
-    pub treasury_msol_account: UncheckedAccount<'info>,
+    pub liq_pool_sol_leg_pda: UncheckedAccount<'info>,
 
     /// #21
     /// CHECK: Marinade CPI
     #[account(mut)]
+    pub liq_pool_msol_leg: UncheckedAccount<'info>,
+
+    /// #22
+    /// CHECK: Marinade CPI
+    pub liq_pool_msol_leg_authority: UncheckedAccount<'info>,
+
+    /// #23
+    /// CHECK: Marinade CPI
+    #[account(mut)]
+    pub treasury_msol_account: UncheckedAccount<'info>,
+
+    /// #24
+    /// CHECK: Marinade CPI
+    #[account(mut)]
     pub reserve_pda: UncheckedAccount<'info>,
 
-    /// #22 sol passthrough ata interact with marinade/mango cpi,
+    /// #25 sol passthrough ata interact with marinade/mango cpi,
     /// either accept sol from mango, then pass it to marinade for swapping, or
     /// accept sol from swapped from marinade, then deposit to mango
     #[account(
@@ -164,7 +164,7 @@ pub struct SwapDepositoryMsol<'info> {
     )]
     pub sol_passthrough_ata: Box<Account<'info, TokenAccount>>,
 
-    /// #23 msol passthrough ata interact with marinade/mango cpi
+    /// #26 msol passthrough ata interact with marinade/mango cpi
     /// either accept msol from mango, then pass it to marinade for swapping, or
     /// accept msol from swapped from marinade, then deposit to mango
     #[account(
@@ -174,15 +174,15 @@ pub struct SwapDepositoryMsol<'info> {
     )]
     pub msol_passthrough_ata: Box<Account<'info, TokenAccount>>,
 
-    /// #24  Program
+    /// #27  Program
     /// CHECK: Marinade CPI
     #[account(address = marinade_finance::ID)]
     pub marinade_finance_program: AccountInfo<'info>,
 
-    /// #25 System Program
+    /// #28 System Program
     pub system_program: Program<'info, System>,
 
-    /// #26 Token Program
+    /// #29 Token Program
     pub token_program: Program<'info, Token>,
 }
 
