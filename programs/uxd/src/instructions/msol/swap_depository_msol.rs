@@ -385,13 +385,12 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
             liquid_unstake_lamports,
         )?;
 
-        let ix = sync_native(
-            ctx.accounts.token_program.key,
-            &ctx.accounts.sol_passthrough_ata.key(),
-        )?;
         let ctx_sync_native = ctx.accounts.into_sync_native_wsol_ata();
         invoke_signed(
-            &ix,
+            &sync_native(
+                ctx.accounts.token_program.key,
+                &ctx.accounts.sol_passthrough_ata.key(),
+            )?,
             &[ctx_sync_native.accounts.account.clone()],
             ctx_sync_native.signer_seeds,
         )?;

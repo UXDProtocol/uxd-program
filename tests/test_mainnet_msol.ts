@@ -65,7 +65,7 @@ describe.skip("Mainnet token transfer", function () {
 
 describe("Mainnet Integration tests SOL", function () {
   this.beforeAll("Init and fund user", async function () {
-    const uiAmount = 0.003;
+    const uiAmount = 0.013;
     const txId = await transferSol(uiAmount, payer, user.publicKey);
     console.log("transfer", uiAmount, "SOL to", user.publicKey.toString());
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}'`);
@@ -86,7 +86,7 @@ describe("Mainnet Integration tests SOL", function () {
     await depositInsuranceMangoDepositoryTest(23.300486, authority, controller, mangoDepositorySOL, mango);
   });
 
-  it.skip(`Mint 0.01 ${controller.redeemableMintSymbol} for 2% slippage)`, async function () {
+  it(`Mint 0.01 ${controller.redeemableMintSymbol} for 2% slippage)`, async function () {
     await mintWithMangoDepositoryTest(0.01, 20, user, controller, mangoDepositorySOL, mango, payer);
   });
 
