@@ -192,7 +192,7 @@ pub struct SwapDepositoryMsol<'info> {
 
 pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
     // 1. get depository's sol and msol amount
-    msg!("msol_swap: 1 - get depository's sol and msol amount");
+    msg!("1 - get depository's sol and msol amount");
     let mango_group =
         MangoGroup::load_checked(&ctx.accounts.mango_group, ctx.accounts.mango_program.key)
             .map_err(|me| ProgramError::from(me))?;
@@ -237,7 +237,7 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
 
     // 2. liquidity ratio
     // liquidity_ratio[t] = liquid_SOL[t]/(liquid_SOL[t] + marinade_SOL[t]*MSOL_underlying_SOL[t])
-    msg!("msol_swap: 2 - liquidity ratio");
+    msg!("2 - liquidity ratio");
     let marinade_state: Account<marinade_finance::state::State> =
         Account::try_from(&ctx.accounts.marinade_state)?;
 
@@ -261,7 +261,7 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     // 3. target_liquidity_ratio
-    msg!("msol_swap: 3 - target_liquidity_ratio");
+    msg!("3 - target_liquidity_ratio");
 
     let msol_config = ctx.accounts.msol_config.load()?;
 
@@ -279,7 +279,7 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     if diff_to_target_liquidity.is_zero() {
-        msg!("msol_swap: 4 - when equals target liquidity ratio");
+        msg!("4 - when = target liquidity ratio");
         return Ok(());
     }
 
@@ -295,13 +295,19 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
     ]];
 
     if diff_to_target_liquidity.is_positive() {
-        msg!("msol_swap: 4 - when > target liquidity ratio");
+        msg!("4 - when > target liquidity ratio");
 
         let deposit_lamports: u64 = diff_to_target_liquidity
             .checked_mul(total_depository_amount_lamports)
             .ok_or_else(|| error!(UxdError::MathError))?
             .checked_to_num()
             .ok_or_else(|| error!(UxdError::MathError))?;
+
+        if deposit_lamports == 0 {
+            msg!("deposit lamports is zero, no swapping is required");
+            // marinade deposit gives program error when lamports input is 0
+            return Ok(());
+        }
 
         mango_markets_v3::withdraw(
             ctx.accounts
@@ -346,7 +352,7 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
 
         return Ok(());
     } else if diff_to_target_liquidity.is_negative() {
-        msg!("msol_swap: 4 - when < target liquidity ratio");
+        msg!("4 - when < target liquidity ratio");
 
         let liquid_unstake_lamports: u64 = diff_to_target_liquidity
             .abs()
@@ -358,6 +364,11 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
         let msol_liquid_unstake_amount = marinade_state
             .calc_msol_from_lamports(liquid_unstake_lamports)
             .map_err(|me| ProgramError::from(me))?;
+
+        if msol_liquid_unstake_amount == 0 {
+            msg!("msol liquid unstake amount is zero, no swapping is required");
+            return Ok(());
+        }
 
         mango_markets_v3::withdraw(
             ctx.accounts
@@ -385,6 +396,7 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
             liquid_unstake_lamports,
         )?;
 
+        // anchor has a sync native wrapper function that yet to be unreleased
         let ctx_sync_native = ctx.accounts.into_sync_native_wsol_ata();
         invoke_signed(
             &sync_native(

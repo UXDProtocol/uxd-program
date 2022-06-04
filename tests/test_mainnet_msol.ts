@@ -86,7 +86,7 @@ describe("Mainnet Integration tests SOL", function () {
     await depositInsuranceMangoDepositoryTest(23.300486, authority, controller, mangoDepositorySOL, mango);
   });
 
-  it(`Mint 0.01 ${controller.redeemableMintSymbol} for 2% slippage)`, async function () {
+  it.skip(`Mint 0.01 ${controller.redeemableMintSymbol} for 2% slippage)`, async function () {
     await mintWithMangoDepositoryTest(0.01, 20, user, controller, mangoDepositorySOL, mango, payer);
   });
 
