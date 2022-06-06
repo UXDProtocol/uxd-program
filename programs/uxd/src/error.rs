@@ -84,6 +84,8 @@ pub enum UxdError {
     MintingDisabled,
     #[msg("Minting is already disabled/enabled")]
     MintingAlreadyDisabledOrEnabled,
+    #[msg("Msol swapping is disabled")]
+    MSolSwappingDisabled,
 
     /// Anchor DSL related errors
     ///
@@ -116,6 +118,10 @@ pub enum UxdError {
     InvalidEnablingMsolSwap,
     #[msg("Must use native mint for setting msol config")]
     InvalidNonNativeMintUsed,
+    #[msg("Must use native mint for passthrough account")]
+    InvalidNonNativeMintAtaUsed,
+    #[msg("Must use msol for passthrough account")]
+    InvalidNonMSolMintAtaUsed,
 
     #[msg("Default - Check the source code for more info")]
     Default,

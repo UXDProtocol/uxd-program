@@ -1018,6 +1018,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "marinade-finance"
+version = "0.1.0"
+source = "git+https://github.com/UXDProtocol/liquid-staking-program#467a599a6dc3aa38de1e6f54f8f9c2542288b28a"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "bincode",
+ "spl-token",
+]
+
+[[package]]
+name = "marinade-onchain-helper"
+version = "0.1.0"
+source = "git+https://github.com/UXDProtocol/marinade-onchain-helper#d0308387addf4eeff465dd656581e9f5ded0c2bc"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "marinade-finance",
+ "solana-program",
+]
+
+[[package]]
 name = "memchr"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1889,6 +1911,8 @@ dependencies = [
  "anchor-spl",
  "fixed",
  "mango",
+ "marinade-finance",
+ "marinade-onchain-helper",
  "num-traits",
  "proptest",
  "solana-program",

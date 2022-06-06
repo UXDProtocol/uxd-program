@@ -4,7 +4,7 @@ import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
 
-const SOLANA_FEES_LAMPORT: number = 1238880;
+const SOLANA_FEES_LAMPORT: number = 5000;
 
 export async function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
     const transaction = new anchor.web3.Transaction().add(
@@ -188,7 +188,7 @@ export const prepareWrappedSolTokenAccount = async (
 };
 
 // derives the canonical token account address for a given wallet and mint
-function findAssociatedTokenAddress(walletKey, mintKey) {
+export function findAssociatedTokenAddress(walletKey, mintKey) {
     if (!walletKey || !mintKey) return;
     return findAddr(
         [walletKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintKey.toBuffer()],
@@ -197,7 +197,7 @@ function findAssociatedTokenAddress(walletKey, mintKey) {
 }
 
 // simple shorthand
-function findAddr(seeds, programId) {
+export function findAddr(seeds, programId) {
     return anchor.utils.publicKey.findProgramAddressSync(seeds, programId)[0];
 }
 

@@ -1,10 +1,8 @@
 use crate::error::UxdError;
+use crate::mango_utils::determine_ref_fee;
 use anchor_lang::prelude::*;
 use fixed::types::I80F48;
-use mango::ids::mngo_token;
-use mango::state::{MangoAccount, MangoCache, MangoGroup, CENTIBPS_PER_UNIT};
-
-use super::get_native_deposit;
+use mango::state::{MangoAccount, MangoCache, MangoGroup};
 
 #[derive(Debug)]
 pub struct PerpInfo {
@@ -58,24 +56,6 @@ impl PerpInfo {
             effective_fee: ref_fee + taker_fee,
         })
     }
-}
-
-// Check for Ref fees (fees added on mango v3.3.5)
-// Referral fees
-// If you hold 10k MNGO or more in your MangoAccount as of 02/20/2022, you skip this fee.
-fn determine_ref_fee(
-    mango_group: &MangoGroup,
-    mango_cache: &MangoCache,
-    mango_account: &MangoAccount,
-) -> Result<I80F48> {
-    let mngo_deposits =
-        get_native_deposit(&mngo_token::id(), mango_group, mango_cache, mango_account)
-            .map_err(|me| ProgramError::from(me))?;
-    let ref_mngo_req = I80F48::from_num(mango_group.ref_mngo_required);
-    if mngo_deposits >= ref_mngo_req {
-        return Ok(I80F48::ZERO);
-    }
-    Ok(I80F48::from_num(mango_group.ref_share_centibps) / CENTIBPS_PER_UNIT)
 }
 
 // Convert price into a quote lot per base lot price.

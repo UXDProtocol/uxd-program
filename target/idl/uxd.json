@@ -1085,6 +1085,157 @@
           "type": "u16"
         }
       ]
+    },
+    {
+      "name": "swapDepositoryMsol",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoGroup",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoCache",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoSigner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mangoSolRootBank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoSolNodeBank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoSolVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoMsolRootBank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoMsolNodeBank",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoMsolVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolMintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolSolLegPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLeg",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "liqPoolMsolLegAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryMsolAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "reservePda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "solPassthroughAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "msolPassthroughAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "marinadeFinanceProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -1954,76 +2105,91 @@
     },
     {
       "code": 6040,
+      "name": "MSolSwappingDisabled",
+      "msg": "Msol swapping is disabled"
+    },
+    {
+      "code": 6041,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6041,
+      "code": 6042,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6042,
+      "code": 6043,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6043,
+      "code": 6044,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6044,
+      "code": 6045,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6045,
+      "code": 6046,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6046,
+      "code": 6047,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6047,
+      "code": 6048,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6048,
+      "code": 6049,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6049,
+      "code": 6050,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6050,
+      "code": 6051,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6051,
+      "code": 6052,
       "name": "TargetLiquidityRatioExceedMax",
       "msg": "Target liquidity ratio for msol config exceed 100%"
     },
     {
-      "code": 6052,
+      "code": 6053,
       "name": "InvalidEnablingMsolSwap",
       "msg": "SOL/mSOL swap has already enabled / disabled"
     },
     {
-      "code": 6053,
+      "code": 6054,
       "name": "InvalidNonNativeMintUsed",
       "msg": "Must use native mint for setting msol config"
     },
     {
-      "code": 6054,
+      "code": 6055,
+      "name": "InvalidNonNativeMintAtaUsed",
+      "msg": "Must use native mint for passthrough account"
+    },
+    {
+      "code": 6056,
+      "name": "InvalidNonMSolMintAtaUsed",
+      "msg": "Must use msol for passthrough account"
+    },
+    {
+      "code": 6057,
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
