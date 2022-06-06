@@ -15,6 +15,7 @@ use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
+
 use marinade_onchain_helper::cpi_context_accounts::MarinadeLiquidUnstake;
 use marinade_onchain_helper::{cpi_context_accounts::MarinadeDeposit, cpi_util};
 use solana_program::program::invoke_signed;
@@ -203,7 +204,7 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
     )?;
     msg!("msol_info {:?}", msol_info);
 
-    // 3. load msol config state and get target 
+    // 3. load msol config state and get target
     let msol_config = ctx.accounts.msol_config.load()?;
 
     // 4. difference of the current liquidity ratio to the target
@@ -211,11 +212,6 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
         .diff_to_target_liquidity(msol_info.liquidity_ratio()?)
         .map_err(ProgramError::from)?;
     msg!("diff_to_target_liquidity {:?}", diff_to_target_liquidity);
-
-    if diff_to_target_liquidity.is_zero() {
-        msg!("when = target liquidity ratio");
-        return Ok(());
-    }
 
     // 5. depository seed
     let depository = ctx.accounts.depository.load()?;
@@ -229,142 +225,152 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
         &[depository_bump],
     ]];
 
-    if diff_to_target_liquidity.is_positive() {
+    let swap_route = if diff_to_target_liquidity.is_positive() {
         msg!("when > target liquidity ratio");
-
-        // 6. lamports need to withdraw from mango
-        let deposit_lamports: u64 = diff_to_target_liquidity
-            .checked_mul(msol_info.total_depository_amount_lamports()?)
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_to_num()
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        // marinade deposit gives program error when lamports input is 0
-        if deposit_lamports == 0 {
-            msg!("deposit lamports is zero, no swapping is required");
-            return Ok(());
-        }
-
-        // 7. withdraw sol from depository account to passthrough ata
-        mango_markets_v3::withdraw(
-            ctx.accounts
-                .into_withdraw_from_mango_context(
-                    &ctx.accounts.mango_sol_root_bank,
-                    &ctx.accounts.mango_sol_node_bank,
-                    &ctx.accounts.mango_sol_vault,
-                    &ctx.accounts.sol_passthrough_ata,
-                )
-                .with_signer(depository_signer_seed),
-            deposit_lamports,
-            false,
-        )?;
-
-        // 8. unwrap wsol
-        ctx.accounts.sol_passthrough_ata.reload()?;
-        token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
-
-        // 9. convert sol from wsol passthrough to msol and transfer to msol passthrough
-        let cpi_ctx = ctx.accounts.into_marinade_deposit_cpi_ctx();
-        let data = marinade_finance::instruction::Deposit {
-            lamports: deposit_lamports,
-        };
-        cpi_util::invoke_signed(cpi_ctx, data)?;
-
-        // 10. msol amount converted
-        let msol_deposit_amount = marinade_state
-            .calc_msol_from_lamports(deposit_lamports)
-            .map_err(ProgramError::from)?;
-
-        // 11. deposit msol back to mango from msol passthrough
-        mango_markets_v3::deposit(
-            ctx.accounts
-                .into_deposit_to_mango_context(
-                    &ctx.accounts.mango_msol_root_bank,
-                    &ctx.accounts.mango_msol_node_bank,
-                    &ctx.accounts.mango_msol_vault,
-                    &ctx.accounts.msol_passthrough_ata,
-                )
-                .with_signer(depository_signer_seed),
-            msol_deposit_amount,
-        )?;
-
-        return Ok(());
+        MsolSwapRoute::Deposit
     } else if diff_to_target_liquidity.is_negative() {
         msg!("when < target liquidity ratio");
+        MsolSwapRoute::LiquidUnstake
+    } else {
+        msg!("when = target liquidity ratio");
+        MsolSwapRoute::NoSwapRequired
+    };
 
-        // 6. msol equivalent lamports need to withdraw from mango
-        let liquid_unstake_lamports: u64 = diff_to_target_liquidity
-            .abs()
-            .checked_mul(msol_info.total_depository_amount_lamports()?)
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_to_num()
-            .ok_or_else(|| error!(UxdError::MathError))?;
+    match swap_route {
+        MsolSwapRoute::Deposit => {
+            // 6. lamports need to withdraw from mango
+            let deposit_lamports: u64 = diff_to_target_liquidity
+                .checked_mul(msol_info.total_depository_amount_lamports()?)
+                .ok_or_else(|| error!(UxdError::MathError))?
+                .checked_to_num()
+                .ok_or_else(|| error!(UxdError::MathError))?;
 
-        // 7. msol amount of (6)
-        let msol_liquid_unstake_amount = marinade_state
-            .calc_msol_from_lamports(liquid_unstake_lamports)
-            .map_err(ProgramError::from)?;
+            // marinade deposit gives program error when lamports input is 0
+            if deposit_lamports == 0 {
+                msg!("deposit lamports is zero, no swapping is required");
+                return Ok(());
+            }
 
-        if msol_liquid_unstake_amount == 0 {
-            msg!("msol liquid unstake amount is zero, no swapping is required");
-            return Ok(());
+            // 7. withdraw sol from depository account to passthrough ata
+            mango_markets_v3::withdraw(
+                ctx.accounts
+                    .into_withdraw_from_mango_context(
+                        &ctx.accounts.mango_sol_root_bank,
+                        &ctx.accounts.mango_sol_node_bank,
+                        &ctx.accounts.mango_sol_vault,
+                        &ctx.accounts.sol_passthrough_ata,
+                    )
+                    .with_signer(depository_signer_seed),
+                deposit_lamports,
+                false,
+            )?;
+
+            // 8. unwrap wsol
+            ctx.accounts.sol_passthrough_ata.reload()?;
+            token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
+
+            // 9. convert sol from wsol passthrough to msol and transfer to msol passthrough
+            let cpi_ctx = ctx.accounts.into_marinade_deposit_cpi_ctx();
+            let data = marinade_finance::instruction::Deposit {
+                lamports: deposit_lamports,
+            };
+            cpi_util::invoke_signed(cpi_ctx, data)?;
+
+            // 10. msol amount converted
+            let msol_deposit_amount = marinade_state
+                .calc_msol_from_lamports(deposit_lamports)
+                .map_err(ProgramError::from)?;
+
+            // 11. deposit msol back to mango from msol passthrough
+            mango_markets_v3::deposit(
+                ctx.accounts
+                    .into_deposit_to_mango_context(
+                        &ctx.accounts.mango_msol_root_bank,
+                        &ctx.accounts.mango_msol_node_bank,
+                        &ctx.accounts.mango_msol_vault,
+                        &ctx.accounts.msol_passthrough_ata,
+                    )
+                    .with_signer(depository_signer_seed),
+                msol_deposit_amount,
+            )?;
         }
+        MsolSwapRoute::LiquidUnstake => {
+            // 6. msol equivalent lamports need to withdraw from mango
+            let liquid_unstake_lamports: u64 = diff_to_target_liquidity
+                .abs()
+                .checked_mul(msol_info.total_depository_amount_lamports()?)
+                .ok_or_else(|| error!(UxdError::MathError))?
+                .checked_to_num()
+                .ok_or_else(|| error!(UxdError::MathError))?;
 
-        // 8. withdraw msol from depository account to passthrough ata
-        mango_markets_v3::withdraw(
-            ctx.accounts
-                .into_withdraw_from_mango_context(
-                    &ctx.accounts.mango_msol_root_bank,
-                    &ctx.accounts.mango_msol_node_bank,
-                    &ctx.accounts.mango_msol_vault,
-                    &ctx.accounts.msol_passthrough_ata,
-                )
-                .with_signer(depository_signer_seed),
-            msol_liquid_unstake_amount,
-            false,
-        )?;
+            // 7. msol amount of (6)
+            let msol_liquid_unstake_amount = marinade_state
+                .calc_msol_from_lamports(liquid_unstake_lamports)
+                .map_err(ProgramError::from)?;
 
-        // 9. convert msol from msol passthrough to sol and transfer to the user
-        let cpi_ctx = ctx.accounts.into_liquid_unstake_cpi_ctx();
-        let instruction_data = marinade_finance::instruction::LiquidUnstake {
-            msol_amount: msol_liquid_unstake_amount,
-        };
-        cpi_util::invoke_signed(cpi_ctx, instruction_data)?;
+            if msol_liquid_unstake_amount == 0 {
+                msg!("msol liquid unstake amount is zero, no swapping is required");
+                return Ok(());
+            }
 
-        // 10. wrap sol
-        system_program::transfer(
-            ctx.accounts.into_wrap_sol_to_ata_context(),
-            liquid_unstake_lamports,
-        )?;
+            // 8. withdraw msol from depository account to passthrough ata
+            mango_markets_v3::withdraw(
+                ctx.accounts
+                    .into_withdraw_from_mango_context(
+                        &ctx.accounts.mango_msol_root_bank,
+                        &ctx.accounts.mango_msol_node_bank,
+                        &ctx.accounts.mango_msol_vault,
+                        &ctx.accounts.msol_passthrough_ata,
+                    )
+                    .with_signer(depository_signer_seed),
+                msol_liquid_unstake_amount,
+                false,
+            )?;
 
-        // essential call to make after wrapping
-        // shd be replaced by anchor sync native wrapper once it's released
-        // https://github.com/project-serum/anchor/pull/1833
-        let ctx_sync_native = ctx.accounts.into_sync_native_wsol_ata();
-        invoke_signed(
-            &sync_native(
-                ctx.accounts.token_program.key,
-                &ctx.accounts.sol_passthrough_ata.key(),
-            )?,
-            &[ctx_sync_native.accounts.account.clone()],
-            ctx_sync_native.signer_seeds,
-        )?;
+            // 9. convert msol from msol passthrough to sol and transfer to the user
+            let cpi_ctx = ctx.accounts.into_liquid_unstake_cpi_ctx();
+            let instruction_data = marinade_finance::instruction::LiquidUnstake {
+                msol_amount: msol_liquid_unstake_amount,
+            };
+            cpi_util::invoke_signed(cpi_ctx, instruction_data)?;
 
-        // 7. deposit wsol back to mango from wsol passthrough
-        mango_markets_v3::deposit(
-            ctx.accounts
-                .into_deposit_to_mango_context(
-                    &ctx.accounts.mango_sol_root_bank,
-                    &ctx.accounts.mango_sol_node_bank,
-                    &ctx.accounts.mango_sol_vault,
-                    &ctx.accounts.sol_passthrough_ata,
-                )
-                .with_signer(depository_signer_seed),
-            liquid_unstake_lamports,
-        )?;
+            // 10. wrap sol
+            system_program::transfer(
+                ctx.accounts.into_wrap_sol_to_ata_context(),
+                liquid_unstake_lamports,
+            )?;
 
-        return Ok(());
+            // essential call to make after wrapping
+            // shd be replaced by anchor sync native wrapper once it's released
+            // https://github.com/project-serum/anchor/pull/1833
+            let ctx_sync_native = ctx.accounts.into_sync_native_wsol_ata();
+            invoke_signed(
+                &sync_native(
+                    ctx.accounts.token_program.key,
+                    &ctx.accounts.sol_passthrough_ata.key(),
+                )?,
+                &[ctx_sync_native.accounts.account.clone()],
+                ctx_sync_native.signer_seeds,
+            )?;
+
+            // 7. deposit wsol back to mango from wsol passthrough
+            mango_markets_v3::deposit(
+                ctx.accounts
+                    .into_deposit_to_mango_context(
+                        &ctx.accounts.mango_sol_root_bank,
+                        &ctx.accounts.mango_sol_node_bank,
+                        &ctx.accounts.mango_sol_vault,
+                        &ctx.accounts.sol_passthrough_ata,
+                    )
+                    .with_signer(depository_signer_seed),
+                liquid_unstake_lamports,
+            )?;
+        }
+        MsolSwapRoute::NoSwapRequired => {
+            // no action
+        }
     }
+
     Ok(())
 }
 
@@ -487,6 +493,12 @@ impl<'info> SwapDepositoryMsol<'info> {
         require!(msol_config.enabled, UxdError::MSolSwappingDisabled);
         Ok(())
     }
+}
+
+enum MsolSwapRoute {
+    Deposit,
+    LiquidUnstake,
+    NoSwapRequired,
 }
 
 #[derive(Accounts)]
