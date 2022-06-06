@@ -244,7 +244,9 @@ pub fn handler(
     
     // - [Calculates the quantity of short to close]
     let quote_exposure_delta = I80F48::from_num(amount_to_liquidate);
+    let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
 
+    
     // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees don't overflow the redeemed amount]
     let max_fee_amount = quote_exposure_delta
         .checked_mul(perp_info.effective_fee)
@@ -270,6 +272,15 @@ pub fn handler(
     msg!("perp_info.quote_lot_size: {}", perp_info.quote_lot_size);
 
     require!(
+        max_quote_quantity > 0,
+    );
+
+    require!(
+        u128::from(u64::from(max_quote_quantity.abs())) <= ctx.accounts.depository.load()?.collateral_amount_deposited, 
+        UxdError::LiquidateCollateral
+    );
+
+    require!(
         !max_quote_quantity.is_zero(),
         UxdError::QuantityBelowContractSize
     );
@@ -277,8 +288,6 @@ pub fn handler(
     // Note : Reduce the delta neutral position, increasing long exposure, by buying perp.
     //        [BID: taker (us, the caller) | ASK: maker]
     let taker_side = Side::Bid;
-    let limit_price =
-        I80F48::checked_from_num(limit_price).ok_or_else(|| error!(UxdError::MathError))?;
     let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
     msg!("limit_price_lot: {:?}", limit_price_lot);
 
@@ -459,10 +468,10 @@ impl<'info> LiquidationKillSwitch<'info> {
 // Validate input arguments
 impl<'info> LiquidationKillSwitch<'info> {
     pub fn validate(&self, amount_to_liquidate: u64) -> Result<()> {
-        require!(
-            u128::from(amount_to_liquidate) < self.depository.load()?.collateral_amount_deposited, 
-            UxdError::LiquidateCollateral
-        );
+        // require!(
+        //     u128::from(amount_to_liquidate) < self.depository.load()?.collateral_amount_deposited, 
+        //     UxdError::LiquidateCollateral
+        // );
 
         validate_perp_market_mint_matches_depository_collateral_mint(
             &self.mango_group,
