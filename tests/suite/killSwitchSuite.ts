@@ -43,6 +43,6 @@ export const killSwitchSuite = function(authority: Signer, payer: Signer, contro
     });
 
     it(`Call Liquidation Kill Switch to x of current collateral`, async function () {
-        await liquidationKillSwitchTest(1000, slippage, controller, depository, safetyVault, mango, authority, payer);
+        await liquidationKillSwitchTest(150, slippage, controller, depository, safetyVault, mango, authority, payer);
     });
 }

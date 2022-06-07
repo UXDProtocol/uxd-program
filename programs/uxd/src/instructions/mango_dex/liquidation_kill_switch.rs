@@ -216,10 +216,6 @@ pub fn handler(
     let safety_vault = ctx.accounts.safety_vault.load()?;
     let collateral_mint = depository.collateral_mint;
     let depository_bump = depository.bump;
-    let amount_to_liquidate = depository
-        .collateral_amount_deposited
-        .checked_sub(amount_to_liquidate.into())
-        .ok_or_else(|| error!(UxdError::MathError))?;
     msg!("amount_to_liquidate: {}", amount_to_liquidate);
 
     let depository_pda_signer: &[&[&[u8]]] = &[&[
@@ -244,7 +240,6 @@ pub fn handler(
     
     // - [Calculates the quantity of short to close]
     let quote_exposure_delta = I80F48::from_num(amount_to_liquidate);
-    let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
 
     
     // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees don't overflow the redeemed amount]
@@ -263,22 +258,14 @@ pub fn handler(
     let pre_pa = ctx.accounts.perp_account(&perp_info)?;
     msg!("pre_pa_base: {:?}\n pre_pa_quote: {:?}\n pre_pa_taker_base: {:?}\n pre_pa_taker_quote: {:?}\n", pre_pa.base_position, pre_pa.quote_position, pre_pa.taker_base, pre_pa.taker_quote);
 
-    let max_quote_quantity: i64 = quote_exposure_delta_minus_fees
+    // Will fail if max_quote_quantity was computed to a negative number
+    let max_quote_quantity: u64 = quote_exposure_delta_minus_fees
         .checked_div(perp_info.quote_lot_size)
         .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_to_num()
+        .checked_to_num::<u64>()
         .ok_or_else(|| error!(UxdError::MathError))?;
     msg!("max_quote_quantity: {}", max_quote_quantity);
     msg!("perp_info.quote_lot_size: {}", perp_info.quote_lot_size);
-
-    require!(
-        max_quote_quantity > 0,
-    );
-
-    require!(
-        u128::from(u64::from(max_quote_quantity.abs())) <= ctx.accounts.depository.load()?.collateral_amount_deposited, 
-        UxdError::LiquidateCollateral
-    );
 
     require!(
         !max_quote_quantity.is_zero(),
@@ -288,6 +275,8 @@ pub fn handler(
     // Note : Reduce the delta neutral position, increasing long exposure, by buying perp.
     //        [BID: taker (us, the caller) | ASK: maker]
     let taker_side = Side::Bid;
+    let limit_price =
+        I80F48::checked_from_num(limit_price).ok_or_else(|| error!(UxdError::MathError))?;
     let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
     msg!("limit_price_lot: {:?}", limit_price_lot);
 
@@ -299,7 +288,9 @@ pub fn handler(
         taker_side,
         limit_price_lot.to_num(),
         i64::MAX,
-        max_quote_quantity,
+        max_quote_quantity
+            .try_into()
+            .unwrap(),
         0,
         OrderType::ImmediateOrCancel,
         true,
