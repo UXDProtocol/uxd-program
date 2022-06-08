@@ -186,41 +186,35 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
 
     // Will not overflow as `perp_position_notional_size` and `redeemable_under_management`
     // will vary together.
-    let perp_unrealized_pnl = I80F48::checked_from_num(
-        redeemable_under_management
-            .checked_sub(perp_position_notional_size)
-            .ok_or_else(|| error!(UxdError::MathError))?,
-    )
-    .ok_or_else(|| error!(UxdError::MathError))?;
+    let perp_unrealized_pnl = redeemable_under_management
+        .checked_sub(perp_position_notional_size)
+        .ok_or_else(|| error!(UxdError::MathError))?;
     msg!("perp_unrealized_pnl {}", perp_unrealized_pnl);
 
-    // - 2 [FIND HOW MUCH REDEEMABLE CAN BE MINTED] ---------------------------
+    // - 2 [FIND HOW MUCH REDEEMABLE CAN BE REDEEMED] -------------------------
 
     // Get how much redeemable has already been minted with the quote mint
     let quote_minted = depository.net_quote_minted;
 
-    // Only allow quote redeeming if PnL is positive
+    // This is the combination of the raw unrealized PnL and the quote that has previously been minted/redeemed
+    let adjusted_unrealized_pnl = perp_unrealized_pnl
+        .checked_add(quote_minted)
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    // In order to redeem, the adjusted PnL must be positive so that we can convert it into more delta neutral position
     require!(
-        perp_unrealized_pnl.is_positive(),
+        adjusted_unrealized_pnl.is_positive(),
         UxdError::InvalidPnlPolarity
     );
 
-    let quote_redeemable: u64 = perp_unrealized_pnl
-        .checked_abs()
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_to_num::<i128>()
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_add(quote_minted)
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .try_into()
-        .unwrap();
-
     msg!("redeemable_amount {}", redeemable_amount);
-    msg!("quote_redeemable {}", quote_redeemable);
+    msg!("adjusted_unrealized_pnl {}", adjusted_unrealized_pnl);
 
-    // Check to ensure we are not redeeming more than we allocate to resolve positive PnL
+    // Checks that the requested redeem amount is lesser than or equal to the available amount
+    let redeemable_amount_i128 =
+        i128::try_from(redeemable_amount).map_err(|_| error!(UxdError::MathError))?;
     require!(
-        redeemable_amount <= quote_redeemable,
+        redeemable_amount_i128 <= adjusted_unrealized_pnl,
         UxdError::RedeemableAmountTooHigh
     );
 
