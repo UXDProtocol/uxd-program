@@ -179,29 +179,23 @@ pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) ->
 
     // - 2 [FIND HOW MUCH REDEEMABLE CAN BE MINTED] ---------------------------
 
-    // Get how much redeemable has already been minted with the quote mint
-    let quote_minted = depository.net_quote_minted;
-
-    // This is the combination of the raw unrealized PnL and the quote that has previously been minted/redeemed
-    // It informs us about what's available to be minted
-    let adjusted_unrealized_pnl = perp_unrealized_pnl
-        .checked_add(quote_minted)
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
     // In order to mint, the adjusted PnL must be negative so that we can erase it with the inputted quote
     require!(
-        adjusted_unrealized_pnl.is_negative(),
+        perp_unrealized_pnl.is_negative(),
         UxdError::InvalidPnlPolarity
     );
 
     msg!("quote_amount {}", quote_amount);
-    msg!("adjusted_unrealized_pnl {}", adjusted_unrealized_pnl);
+    msg!("perp_unrealized_pnl {}", perp_unrealized_pnl);
 
     // Checks that the requested mint amount is lesser than or equal to the available amount
     let quote_amount_i128 =
         i128::try_from(quote_amount).map_err(|_| error!(UxdError::MathError))?;
+    let unrealized_pnl_abs = perp_unrealized_pnl
+        .checked_abs()
+        .ok_or_else(|| error!(UxdError::MathError))?;
     require!(
-        quote_amount_i128 <= adjusted_unrealized_pnl,
+        quote_amount_i128 <= unrealized_pnl_abs,
         UxdError::QuoteAmountTooHigh
     );
 

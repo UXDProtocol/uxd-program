@@ -193,28 +193,20 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
 
     // - 2 [FIND HOW MUCH REDEEMABLE CAN BE REDEEMED] -------------------------
 
-    // Get how much redeemable has already been minted with the quote mint
-    let quote_minted = depository.net_quote_minted;
-
-    // This is the combination of the raw unrealized PnL and the quote that has previously been minted/redeemed
-    let adjusted_unrealized_pnl = perp_unrealized_pnl
-        .checked_add(quote_minted)
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
     // In order to redeem, the adjusted PnL must be positive so that we can convert it into more delta neutral position
     require!(
-        adjusted_unrealized_pnl.is_positive(),
+        perp_unrealized_pnl.is_positive(),
         UxdError::InvalidPnlPolarity
     );
 
     msg!("redeemable_amount {}", redeemable_amount);
-    msg!("adjusted_unrealized_pnl {}", adjusted_unrealized_pnl);
+    msg!("perp_unrealized_pnl {}", perp_unrealized_pnl);
 
     // Checks that the requested redeem amount is lesser than or equal to the available amount
     let redeemable_amount_i128 =
         i128::try_from(redeemable_amount).map_err(|_| error!(UxdError::MathError))?;
     require!(
-        redeemable_amount_i128 <= adjusted_unrealized_pnl,
+        redeemable_amount_i128 <= perp_unrealized_pnl,
         UxdError::RedeemableAmountTooHigh
     );
 
