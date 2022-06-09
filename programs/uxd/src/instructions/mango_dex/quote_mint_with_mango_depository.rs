@@ -308,7 +308,7 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
         // Mango Depository
         depository.net_quote_minted = depository
             .net_quote_minted
-            .checked_add(quote_amount_deposited.into())
+            .checked_add(redeemable_minted_amount.into())
             .ok_or_else(|| error!(UxdError::MathError))?;
         depository.redeemable_amount_under_management = depository
             .redeemable_amount_under_management
@@ -363,6 +363,10 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
         require!(
             self.user_quote.amount >= quote_amount,
             UxdError::InsufficientQuoteAmountMint
+        );
+        require!(
+            !self.depository.load()?.minting_disabled,
+            UxdError::MintingDisabled
         );
         validate_perp_market_mint_matches_depository_collateral_mint(
             &self.mango_group,
