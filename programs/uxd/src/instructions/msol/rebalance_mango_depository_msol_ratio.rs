@@ -24,7 +24,7 @@ use spl_token::instruction::sync_native;
 use super::MsolInfo;
 
 #[derive(Accounts)]
-pub struct SwapDepositoryMsol<'info> {
+pub struct RebalanceMangoDepositoryMsolRatio<'info> {
     /// #1 Public call accessible to any user
     #[account(mut)]
     pub user: Signer<'info>,
@@ -187,7 +187,7 @@ pub struct SwapDepositoryMsol<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
+pub fn handler(ctx: Context<RebalanceMangoDepositoryMsolRatio>) -> Result<()> {
     // 1. load marinade state
     let marinade_state: Account<marinade_finance::state::State> =
         Account::try_from(&ctx.accounts.marinade_state)?;
@@ -254,12 +254,7 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
             // 7. withdraw sol from depository account to passthrough ata
             mango_markets_v3::withdraw(
                 ctx.accounts
-                    .into_withdraw_from_mango_context(
-                        &ctx.accounts.mango_sol_root_bank,
-                        &ctx.accounts.mango_sol_node_bank,
-                        &ctx.accounts.mango_sol_vault,
-                        &ctx.accounts.sol_passthrough_ata,
-                    )
+                    .into_withdraw_from_mango_sol_context()
                     .with_signer(depository_signer_seed),
                 deposit_lamports,
                 false,
@@ -284,12 +279,7 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
             // 11. deposit msol back to mango from msol passthrough
             mango_markets_v3::deposit(
                 ctx.accounts
-                    .into_deposit_to_mango_context(
-                        &ctx.accounts.mango_msol_root_bank,
-                        &ctx.accounts.mango_msol_node_bank,
-                        &ctx.accounts.mango_msol_vault,
-                        &ctx.accounts.msol_passthrough_ata,
-                    )
+                    .into_deposit_to_mango_msol_context()
                     .with_signer(depository_signer_seed),
                 msol_deposit_amount,
             )?;
@@ -316,12 +306,7 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
             // 8. withdraw msol from depository account to passthrough ata
             mango_markets_v3::withdraw(
                 ctx.accounts
-                    .into_withdraw_from_mango_context(
-                        &ctx.accounts.mango_msol_root_bank,
-                        &ctx.accounts.mango_msol_node_bank,
-                        &ctx.accounts.mango_msol_vault,
-                        &ctx.accounts.msol_passthrough_ata,
-                    )
+                    .into_withdraw_from_mango_msol_context()
                     .with_signer(depository_signer_seed),
                 msol_liquid_unstake_amount,
                 false,
@@ -356,12 +341,7 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
             // 7. deposit wsol back to mango from wsol passthrough
             mango_markets_v3::deposit(
                 ctx.accounts
-                    .into_deposit_to_mango_context(
-                        &ctx.accounts.mango_sol_root_bank,
-                        &ctx.accounts.mango_sol_node_bank,
-                        &ctx.accounts.mango_sol_vault,
-                        &ctx.accounts.sol_passthrough_ata,
-                    )
+                    .into_deposit_to_mango_sol_context()
                     .with_signer(depository_signer_seed),
                 liquid_unstake_lamports,
             )?;
@@ -374,7 +354,7 @@ pub fn handler(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
     Ok(())
 }
 
-impl<'info> SwapDepositoryMsol<'info> {
+impl<'info> RebalanceMangoDepositoryMsolRatio<'info> {
     pub fn into_marinade_deposit_cpi_ctx(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, MarinadeDeposit<'info>> {
@@ -414,43 +394,70 @@ impl<'info> SwapDepositoryMsol<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_deposit_to_mango_context(
+    pub fn into_deposit_to_mango_msol_context(
         &self,
-        root_bank: &UncheckedAccount<'info>,
-        node_bank: &UncheckedAccount<'info>,
-        vault: &UncheckedAccount<'info>,
-        passthrough_ata: &Account<'info, TokenAccount>,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Deposit<'info>> {
         let cpi_accounts = mango_markets_v3::Deposit {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.mango_account.to_account_info(),
             owner: self.user.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
-            root_bank: root_bank.to_account_info(),
-            node_bank: node_bank.to_account_info(),
-            vault: vault.to_account_info(),
-            owner_token_account: passthrough_ata.to_account_info(),
+            root_bank: self.mango_msol_root_bank.to_account_info(),
+            node_bank: self.mango_msol_node_bank.to_account_info(),
+            vault: self.mango_msol_vault.to_account_info(),
+            owner_token_account: self.msol_passthrough_ata.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_withdraw_from_mango_context(
+    pub fn into_deposit_to_mango_sol_context(
         &self,
-        root_bank: &UncheckedAccount<'info>,
-        node_bank: &UncheckedAccount<'info>,
-        vault: &UncheckedAccount<'info>,
-        passthrough_ata: &Account<'info, TokenAccount>,
+    ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Deposit<'info>> {
+        let cpi_accounts = mango_markets_v3::Deposit {
+            mango_group: self.mango_group.to_account_info(),
+            mango_account: self.mango_account.to_account_info(),
+            owner: self.user.to_account_info(),
+            mango_cache: self.mango_cache.to_account_info(),
+            root_bank: self.mango_sol_root_bank.to_account_info(),
+            node_bank: self.mango_sol_node_bank.to_account_info(),
+            vault: self.mango_sol_vault.to_account_info(),
+            owner_token_account: self.sol_passthrough_ata.to_account_info(),
+        };
+        let cpi_program = self.mango_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_withdraw_from_mango_msol_context(
+        &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Withdraw<'info>> {
         let cpi_accounts = mango_markets_v3::Withdraw {
             mango_group: self.mango_group.to_account_info(),
             mango_account: self.mango_account.to_account_info(),
             owner: self.depository.to_account_info(),
             mango_cache: self.mango_cache.to_account_info(),
-            root_bank: root_bank.to_account_info(),
-            node_bank: node_bank.to_account_info(),
-            vault: vault.to_account_info(),
-            token_account: passthrough_ata.to_account_info(),
+            root_bank: self.mango_msol_root_bank.to_account_info(),
+            node_bank: self.mango_msol_node_bank.to_account_info(),
+            vault: self.mango_msol_vault.to_account_info(),
+            token_account: self.msol_passthrough_ata.to_account_info(),
+            signer: self.mango_signer.to_account_info(),
+        };
+        let cpi_program = self.mango_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_withdraw_from_mango_sol_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Withdraw<'info>> {
+        let cpi_accounts = mango_markets_v3::Withdraw {
+            mango_group: self.mango_group.to_account_info(),
+            mango_account: self.mango_account.to_account_info(),
+            owner: self.depository.to_account_info(),
+            mango_cache: self.mango_cache.to_account_info(),
+            root_bank: self.mango_sol_root_bank.to_account_info(),
+            node_bank: self.mango_sol_node_bank.to_account_info(),
+            vault: self.mango_sol_vault.to_account_info(),
+            token_account: self.sol_passthrough_ata.to_account_info(),
             signer: self.mango_signer.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
@@ -487,7 +494,7 @@ impl<'info> SwapDepositoryMsol<'info> {
     }
 }
 
-impl<'info> SwapDepositoryMsol<'info> {
+impl<'info> RebalanceMangoDepositoryMsolRatio<'info> {
     pub fn validate(&mut self) -> Result<()> {
         let msol_config = self.msol_config.load()?;
         require!(msol_config.enabled, UxdError::MSolSwappingDisabled);

@@ -462,9 +462,11 @@ pub mod uxd {
     #[access_control(
         ctx.accounts.validate()
     )]
-    pub fn swap_depository_msol(ctx: Context<SwapDepositoryMsol>) -> Result<()> {
-        msg!("[swap_depository_msol]");
-        instructions::swap_depository_msol::handler(ctx)
+    pub fn rebalance_mango_depository_msol_ratio(
+        ctx: Context<RebalanceMangoDepositoryMsolRatio>,
+    ) -> Result<()> {
+        msg!("[rebalance_mango_depository_msol_ratio]");
+        instructions::rebalance_mango_depository_msol_ratio::handler(ctx)
     }
 }
 

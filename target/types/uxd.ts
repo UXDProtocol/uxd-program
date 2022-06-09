@@ -1087,7 +1087,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "swapDepositoryMsol",
+      "name": "rebalanceMangoDepositoryMsolRatio",
       "accounts": [
         {
           "name": "user",
@@ -1443,6 +1443,23 @@ export type Uxd = {
           },
           {
             "name": "Negative"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MsolSwapRoute",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Deposit"
+          },
+          {
+            "name": "LiquidUnstake"
+          },
+          {
+            "name": "NoSwapRequired"
           }
         ]
       }
@@ -3285,7 +3302,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "swapDepositoryMsol",
+      "name": "rebalanceMangoDepositoryMsolRatio",
       "accounts": [
         {
           "name": "user",
@@ -3641,6 +3658,23 @@ export const IDL: Uxd = {
           },
           {
             "name": "Negative"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MsolSwapRoute",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Deposit"
+          },
+          {
+            "name": "LiquidUnstake"
+          },
+          {
+            "name": "NoSwapRequired"
           }
         ]
       }
