@@ -135,13 +135,17 @@ dependencies = [
 
 [[package]]
 name = "anchor-comp"
-version = "0.1.6"
-source = "git+https://github.com/UXDProtocol/anchor-comp#dabd24a18e4ddd153ec46b731160078420cea460"
+version = "0.2.3"
+source = "git+https://github.com/UXDProtocol/anchor-comp?branch=mango_msol#2a07948f05ebd511585c14dad39fa4e00718f315"
 dependencies = [
  "anchor-lang",
  "mango",
+ "marinade-finance",
+ "marinade-onchain-helper",
  "serum_dex",
  "solana-program",
+ "spl-governance",
+ "spl-token",
 ]
 
 [[package]]
@@ -959,8 +963,8 @@ dependencies = [
 
 [[package]]
 name = "mango"
-version = "3.4.3"
-source = "git+https://github.com/blockworks-foundation/mango-v3#5a23b6310fc4cfd5aaef6b9bdbcc6c6c0f3d2898"
+version = "3.4.6"
+source = "git+https://github.com/blockworks-foundation/mango-v3?tag=v3.4.6#b6f30798c3a32af1c3db87219ed036036ea07cdc"
 dependencies = [
  "anchor-lang",
  "arrayref",
@@ -989,7 +993,7 @@ dependencies = [
 [[package]]
 name = "mango-common"
 version = "3.0.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3#5a23b6310fc4cfd5aaef6b9bdbcc6c6c0f3d2898"
+source = "git+https://github.com/blockworks-foundation/mango-v3?tag=v3.4.6#b6f30798c3a32af1c3db87219ed036036ea07cdc"
 dependencies = [
  "bytemuck",
  "solana-program",
@@ -998,7 +1002,7 @@ dependencies = [
 [[package]]
 name = "mango-logs"
 version = "0.1.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3#5a23b6310fc4cfd5aaef6b9bdbcc6c6c0f3d2898"
+source = "git+https://github.com/blockworks-foundation/mango-v3?tag=v3.4.6#b6f30798c3a32af1c3db87219ed036036ea07cdc"
 dependencies = [
  "anchor-lang",
  "base64 0.13.0",
@@ -1007,7 +1011,7 @@ dependencies = [
 [[package]]
 name = "mango-macro"
 version = "3.0.0"
-source = "git+https://github.com/blockworks-foundation/mango-v3#5a23b6310fc4cfd5aaef6b9bdbcc6c6c0f3d2898"
+source = "git+https://github.com/blockworks-foundation/mango-v3?tag=v3.4.6#b6f30798c3a32af1c3db87219ed036036ea07cdc"
 dependencies = [
  "bytemuck",
  "mango-common",
@@ -1715,6 +1719,55 @@ dependencies = [
  "borsh 0.9.3",
  "solana-program",
  "spl-token",
+]
+
+[[package]]
+name = "spl-governance"
+version = "2.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ab3e781972cd03348c14217739ddf946ab5324c32a85392237cf3ab9492df7a"
+dependencies = [
+ "arrayref",
+ "bincode",
+ "borsh 0.9.3",
+ "num-derive",
+ "num-traits",
+ "serde",
+ "serde_derive",
+ "solana-program",
+ "spl-governance-addin-api",
+ "spl-governance-tools",
+ "spl-token",
+ "thiserror",
+]
+
+[[package]]
+name = "spl-governance-addin-api"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5df620226aed88689457ef18a80dfed709721365bee0bf8c843dcef30279d5fc"
+dependencies = [
+ "borsh 0.9.3",
+ "solana-program",
+ "spl-governance-tools",
+]
+
+[[package]]
+name = "spl-governance-tools"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a206f0837415046d919f3075d6b3af9bd3f1f707c887898c335a6210b194627"
+dependencies = [
+ "arrayref",
+ "bincode",
+ "borsh 0.9.3",
+ "num-derive",
+ "num-traits",
+ "serde",
+ "serde_derive",
+ "solana-program",
+ "spl-token",
+ "thiserror",
 ]
 
 [[package]]
