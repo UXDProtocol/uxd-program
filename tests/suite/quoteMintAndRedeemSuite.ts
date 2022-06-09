@@ -8,6 +8,7 @@ import { quoteMintWithMangoDepositoryTest } from "../cases/quoteMintWithMangoDep
 import { quoteRedeemFromMangoDepositoryAccountingTest } from "../cases/quoteRedeemFromMangoDepositoryAccountingTest";
 import { quoteRedeemFromMangoDepositoryTest } from "../cases/quoteRedeemFromMangoDepositoryTest";
 import { setMangoDepositoryQuoteMintAndRedeemFeeTest } from "../cases/setMangoDepositoryQuoteMintAndRedeemFeeTest";
+import { setMangoDepositoryQuoteMintAndRedeemSoftCapTest } from "../cases/setMangoDepositoryQuoteMintAndRedeemSoftCapTest";
 import { TXN_OPTS } from "../connection";
 import { slippageBase } from "../constants";
 import { mango } from "../fixtures";
@@ -37,6 +38,10 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         const amount = 3000 / perpPrice;
         console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
         await mintWithMangoDepositoryTest(amount, 20, user, controller, depository, mango, payer);
+    });
+
+    it(`Change the quote mint and redeem soft cap to 1_000_000`, async function () {
+        await setMangoDepositoryQuoteMintAndRedeemSoftCapTest(1_000_000, authority, controller, depository);
     });
 
     it(`Change the quote mint and redeem fees to 0`, async function () {
@@ -130,7 +135,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
             }
         }
     });
-    
+
     it(`Quote mint or redeem with the wrong polarity (should fail)`, async function () {
 
         const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
@@ -203,6 +208,10 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         expect(false, "Should have failed - Tried minting or redeeming 0");
     });
 
+    it(`Change the quote mint and redeem soft cap to 5_000`, async function () {
+        await setMangoDepositoryQuoteMintAndRedeemSoftCapTest(5_000, authority, controller, depository);
+    });
+
     it(`Quote mint or redeem 1000$ (with fees)`, async function () {
 
         const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
@@ -223,4 +232,23 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
             }
         }
     });
+
+    it(`Quote redeem 10_000$ (should fail)`, async function () {
+        try {
+            await quoteRedeemFromMangoDepositoryTest(10_000, user, controller, depository, mango, payer);
+        } catch {
+            expect(true, "Failing as planned");
+        }
+        expect(false, "Should have failed - No collateral deposited yet");
+    });
+
+    it(`Quote mint 10_000$ (should fail)`, async function () {
+        try {
+            await quoteMintWithMangoDepositoryTest(10_000, user, controller, depository, mango, payer);
+        } catch {
+            expect(true, "Failing as planned");
+        }
+        expect(false, "Should have failed - No collateral deposited yet");
+    });
+
 }

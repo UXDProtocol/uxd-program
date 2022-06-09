@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 
 pub const CONTROLLER_SPACE: usize =
-    8 + 1 + 1 + 1 + 32 + 32 + 1 + (32 * MAX_REGISTERED_MANGO_DEPOSITORIES) + 1 + 16 + 8 + 16 + 512;
+    8 + 1 + 1 + 1 + 32 + 32 + 1 + (32 * MAX_REGISTERED_MANGO_DEPOSITORIES) + 1 + 16 + 8 + 16 + 8 + 504;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -38,6 +38,8 @@ pub struct Controller {
     // This should always be equal to the sum of all Depositories' `redeemable_amount_under_management`
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
+    // The max amount of Redeemable affected by quote Mint and Redeem operations on `MangoDepository` instances
+    pub mango_depositories_quote_redeemable_soft_cap: u64,
 }
 
 impl Controller {

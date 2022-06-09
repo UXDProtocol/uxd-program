@@ -34,6 +34,7 @@ pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million r
 
 pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
+pub const DEFAULT_MANGO_DEPOSITORIES_QUOTE_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
 
 const BPS_POW: u8 = 4; // Raise a number to BPS_POW to get order of magnitude of
 pub const BPS_UNIT_CONVERSION: u64 = (10u64).pow(BPS_POW as u32);
@@ -46,6 +47,8 @@ const MANGO_PERP_MAX_FILL_EVENTS: u8 = u8::MAX;
 #[program]
 #[deny(unused_must_use)]
 pub mod uxd {
+
+    use crate::instructions::set_mango_depository_quote_mint_and_redeem_soft_cap::SetMangoDepositoryQuoteMintAndRedeemSoftCap;
 
     use super::*;
 
@@ -129,6 +132,17 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[set_mango_depositories_redeemable_soft_cap]");
         instructions::set_mango_depositories_redeemable_soft_cap::handler(ctx, redeemable_soft_cap)
+    }
+
+    pub fn set_mango_depository_quote_mint_and_redeem_soft_cap(
+        ctx: Context<SetMangoDepositoryQuoteMintAndRedeemSoftCap>,
+        quote_mint_and_redeem_soft_cap: u64,
+    ) -> Result<()> {
+        msg!("[set_mango_depository_quote_mint_and_redeem_soft_cap]");
+        instructions::set_mango_depository_quote_mint_and_redeem_soft_cap::handler(
+            ctx,
+            quote_mint_and_redeem_soft_cap,
+        )
     }
 
     /// Create a new`MangoDepository` and registers it to the provided

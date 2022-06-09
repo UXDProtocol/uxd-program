@@ -4,6 +4,7 @@ use crate::Controller;
 use crate::CONTROLLER_ACCOUNT_VERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CONTROLLER_SPACE;
+use crate::DEFAULT_MANGO_DEPOSITORIES_QUOTE_REDEEMABLE_SOFT_CAP;
 use crate::DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
 use crate::DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP;
 use crate::REDEEMABLE_MINT_NAMESPACE;
@@ -85,6 +86,10 @@ pub fn handler(ctx: Context<InitializeController>, redeemable_mint_decimals: u8)
             .checked_mul(redeemable_mint_unit)
             .ok_or_else(|| error!(UxdError::MathError))?;
     controller.redeemable_circulating_supply = u128::MIN;
+    controller.mango_depositories_quote_redeemable_soft_cap =
+        DEFAULT_MANGO_DEPOSITORIES_QUOTE_REDEEMABLE_SOFT_CAP
+            .checked_mul(redeemable_mint_unit.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
 
     emit!(InitializeControllerEvent {
         version: controller.version,

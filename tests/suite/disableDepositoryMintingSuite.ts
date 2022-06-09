@@ -1,7 +1,6 @@
 import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
-import { disableDepositoryMinting } from "../api";
 import { disableDepositoryMintingTest } from "../cases/disableDepositoryMintingTest";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { mango } from "../fixtures";

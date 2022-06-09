@@ -157,6 +157,17 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
     // - [Perp account state PRE perp order]
     let pre_pa = ctx.accounts.perp_account(&perp_info)?;
 
+    // - [Verify that requested amount is below quote soft cap]
+    let quote_redeem_soft_cap = ctx
+        .accounts
+        .controller
+        .load()?
+        .mango_depositories_quote_redeemable_soft_cap;
+    require!(
+        redeemable_amount <= quote_redeem_soft_cap,
+        UxdError::QuoteAmountExceedsSoftCap
+    );
+
     // - 1 [FIND CURRENT UNREALIZED PNL AMOUNT] -------------------------------
 
     // - [find out current perp Unrealized PnL]
