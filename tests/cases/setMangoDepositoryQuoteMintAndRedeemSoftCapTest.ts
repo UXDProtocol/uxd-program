@@ -1,3 +1,4 @@
+import { nativeToUi } from "@blockworks-foundation/mango-client";
 import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
@@ -22,8 +23,9 @@ export const setMangoDepositoryQuoteMintAndRedeemSoftCapTest = async function (s
         // THEN
         const controllerOnChainAccount_post = await controller.getOnchainAccount(connection, options);
         const softCap_post = controllerOnChainAccount_post.mangoDepositoriesQuoteRedeemableSoftCap;
+        const softCap_postUi = nativeToUi(softCap_post.toNumber(), depository.quoteMintDecimals);
 
-        expect(softCap_post).equals(softCap, "The soft cap has not changed.");
+        expect(softCap_postUi).equals(softCap, "The soft cap has not changed.");
         console.log(`🧾 Previous soft cap was`, softCap_pre, "now is", softCap_post);
         controller.info();
         console.groupEnd();

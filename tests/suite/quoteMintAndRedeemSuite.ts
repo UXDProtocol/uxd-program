@@ -50,10 +50,10 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
     it(`Quote mint or redeem 10$ (without fees)`, async function () {
 
-        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
-        const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
+        const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
+        const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-        if (Math.abs(offsetUnrealizedPnl) < 10) {
+        if (Math.abs(unrealizedPnl) < 10) {
             console.log("🔵  skipping mint/redeem, unrealized pnl too small");
             return;
         }
@@ -71,10 +71,10 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
     it(`Accounting test for quote mint or redeem 10$ (without fees)`, async function () {
 
-        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
-        const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
+        const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
+        const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-        if (Math.abs(offsetUnrealizedPnl) < 10) {
+        if (Math.abs(unrealizedPnl) < 10) {
             console.log("🔵  skipping quote mint/redeem, unrealized pnl too small");
             return;
         }
@@ -96,10 +96,10 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
     it(`Quote mint or redeem 10$ (with fees)`, async function () {
 
-        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
-        const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
+        const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
+        const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-        if (Math.abs(offsetUnrealizedPnl) < 10) {
+        if (Math.abs(unrealizedPnl) < 10) {
             console.log("🔵  skipping mint/redeem, unrealized pnl too small");
             return;
         }
@@ -117,10 +117,10 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
     it(`Accounting test for quote mint or redeem 10$ (with fees)`, async function () {
 
-        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
-        const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
+        const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
+        const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-        if (Math.abs(offsetUnrealizedPnl) < 10) {
+        if (Math.abs(unrealizedPnl) < 10) {
             console.log("🔵  skipping quote mint/redeem, unrealized pnl too small");
             return;
         }
@@ -138,10 +138,10 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
     it(`Quote mint or redeem with the wrong polarity (should fail)`, async function () {
 
-        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
-        const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
+        const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
+        const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-        if (Math.abs(offsetUnrealizedPnl) < 10) {
+        if (Math.abs(unrealizedPnl) < 10) {
             console.log("🔵  skipping mint/redeem, unrealized pnl too small");
             return;
         }
@@ -164,10 +164,10 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
     it(`Quote mint or redeem more than is available to mint (should fail)`, async function () {
 
-        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
-        const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
+        const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
+        const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-        const amountToMintOrRedeem = Math.abs(offsetUnrealizedPnl) * 1.5
+        const amountToMintOrRedeem = Math.abs(unrealizedPnl) * 1.5
 
         try {
             switch (polarity) {
@@ -188,8 +188,8 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
     it(`Quote mint or redeem 0 (should fail)`, async function () {
 
-        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
-        const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
+        const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
+        const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
         try {
             switch (polarity) {
@@ -214,10 +214,10 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
     it(`Quote mint or redeem 1000$ (with fees)`, async function () {
 
-        const offsetUnrealizedPnl = await depository.getOffsetUnrealizedPnl(mango, TXN_OPTS);
-        const polarity = offsetUnrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
+        const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
+        const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-        if (Math.abs(offsetUnrealizedPnl) < 1000) {
+        if (Math.abs(unrealizedPnl) < 1000) {
             console.log("🔵  skipping mint/redeem, unrealized pnl too small");
             return;
         }
