@@ -35,7 +35,7 @@ describe("Integration tests SOL", function () {
         await transferSol(1, bank, user.publicKey);
         await transferTokens(200, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
         // await transferTokens(10, UXD_DEVNET, UXD_DECIMALS, bank, user.publicKey);
-        await transferTokens(1.1, BTC_DEVNET, BTC_DECIMALS, bank, user.publicKey);
+        await transferTokens(2.1, BTC_DEVNET, BTC_DECIMALS, bank, user.publicKey);
     });
 
 
@@ -64,7 +64,7 @@ describe("Integration tests SOL", function () {
         });
 
         it("Mint 1 BTC", async function () {
-            await mintWithMangoDepositoryTest(1, slippage, user, controller, mangoDepositoryBTC, mango, payer);
+            await mintWithMangoDepositoryTest(2, slippage, user, controller, mangoDepositoryBTC, mango, payer);
         });
         // it(`Withdraw 10 USDC of insurance`, async function () {
         //     await withdrawInsuranceMangoDepositoryTest(10, authority, controller, mangoDepositorySOL, mango);
@@ -76,7 +76,7 @@ describe("Integration tests SOL", function () {
 
     });
 
-    describe("Quote Mint And Redeem Suite", async function () {
+    describe.only("Quote Mint And Redeem Suite", async function () {
         quoteMintAndRedeemSuite(authority, user, payer, controller, mangoDepositoryBTC);
     });
 

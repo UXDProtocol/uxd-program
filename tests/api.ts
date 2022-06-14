@@ -208,6 +208,17 @@ export async function setMangoDepositoryQuoteMintAndRedeemFee(authority: Signer,
     return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
+export async function setMangoDepositoryQuoteMintAndRedeemSoftCap(authority: Signer, controller: Controller, depository: MangoDepository, softCap: number): Promise<string> {
+    const setMangoDepositoryQuoteMintAndRedeemSoftCapIx = await uxdClient.createSetMangoDepositoryQuoteMintAndRedeemSoftCapInstruction(softCap, controller, depository, authority.publicKey, TXN_OPTS);
+    let signers = [];
+    let tx = new Transaction();
+
+    tx.instructions.push(setMangoDepositoryQuoteMintAndRedeemSoftCapIx);
+    signers.push(authority);
+
+    return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
 export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, rebalancingMaxAmountQuote: number, polarity: PnLPolarity, slippage: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
     const rebalanceMangoDepositoryLiteIx = await uxdClient.createRebalanceMangoDepositoryLiteInstruction(rebalancingMaxAmountQuote, slippage, polarity, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
     let signers = [];

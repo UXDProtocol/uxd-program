@@ -84,6 +84,8 @@ pub enum UxdError {
     MintingDisabled,
     #[msg("Minting is already disabled/enabled")]
     MintingAlreadyDisabledOrEnabled,
+    #[msg("The quote amount requested is beyond the soft cap limitation")]
+    QuoteAmountExceedsSoftCap,
 
     /// Anchor DSL related errors
     ///

@@ -149,6 +149,17 @@ pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) ->
     // - [Perp account state PRE perp order]
     let pre_pa = ctx.accounts.perp_account(&perp_info)?;
 
+    // - [Verify that requested amount is below quote soft cap]
+    let quote_mint_soft_cap = ctx
+        .accounts
+        .controller
+        .load()?
+        .mango_depositories_quote_redeemable_soft_cap;
+    require!(
+        quote_amount <= quote_mint_soft_cap,
+        UxdError::QuoteAmountExceedsSoftCap
+    );
+
     // - 1 [FIND CURRENT UNREALIZED PNL AMOUNT] -------------------------------
 
     // - [find out current perp Unrealized PnL]
@@ -173,37 +184,31 @@ pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) ->
 
     // Will not overflow as `perp_position_notional_size` and `redeemable_under_management`
     // will vary together.
-    let perp_unrealized_pnl = I80F48::checked_from_num(
-        redeemable_under_management
-            .checked_sub(perp_position_notional_size)
-            .ok_or_else(|| error!(UxdError::MathError))?,
-    )
-    .ok_or_else(|| error!(UxdError::MathError))?;
+    let perp_unrealized_pnl = redeemable_under_management
+        .checked_sub(perp_position_notional_size)
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     // - 2 [FIND HOW MUCH REDEEMABLE CAN BE MINTED] ---------------------------
 
-    // Get how much redeemable has already been minted with the quote mint
-    let quote_minted = depository.net_quote_minted;
-
-    // Only allow quote minting if PnL is negative
+    // In order to mint, the adjusted PnL must be negative so that we can erase it with the inputted quote
     require!(
         perp_unrealized_pnl.is_negative(),
         UxdError::InvalidPnlPolarity
     );
 
-    // Will become negative if more has been minted than the current negative PnL
-    let quote_mintable: u64 = perp_unrealized_pnl
-        .checked_sub(
-            I80F48::checked_from_num(quote_minted).ok_or_else(|| error!(UxdError::MathError))?,
-        )
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_abs()
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_to_num::<u64>()
-        .ok_or_else(|| error!(UxdError::MathError))?;
+    msg!("quote_amount {}", quote_amount);
+    msg!("perp_unrealized_pnl {}", perp_unrealized_pnl);
 
-    // Check to ensure we are not minting more than we allocate to resolve negative PnL
-    require!(quote_amount <= quote_mintable, UxdError::QuoteAmountTooHigh);
+    // Checks that the requested mint amount is lesser than or equal to the available amount
+    let quote_amount_i128 =
+        i128::try_from(quote_amount).map_err(|_| error!(UxdError::MathError))?;
+    let unrealized_pnl_abs = perp_unrealized_pnl
+        .checked_abs()
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    require!(
+        quote_amount_i128 <= unrealized_pnl_abs,
+        UxdError::QuoteAmountTooHigh
+    );
 
     // - 4 [DEPOSIT QUOTE MINT INTO MANGO ACCOUNT] -------------------------------
     mango_markets_v3::deposit(
@@ -308,7 +313,7 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
         // Mango Depository
         depository.net_quote_minted = depository
             .net_quote_minted
-            .checked_add(quote_amount_deposited.into())
+            .checked_add(redeemable_minted_amount.into())
             .ok_or_else(|| error!(UxdError::MathError))?;
         depository.redeemable_amount_under_management = depository
             .redeemable_amount_under_management
@@ -363,6 +368,10 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
         require!(
             self.user_quote.amount >= quote_amount,
             UxdError::InsufficientQuoteAmountMint
+        );
+        require!(
+            !self.depository.load()?.minting_disabled,
+            UxdError::MintingDisabled
         );
         validate_perp_market_mint_matches_depository_collateral_mint(
             &self.mango_group,
