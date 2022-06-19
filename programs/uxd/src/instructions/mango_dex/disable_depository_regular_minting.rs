@@ -7,7 +7,7 @@ use anchor_lang::prelude::*;
 
 /// Takes 3 accounts
 #[derive(Accounts)]
-pub struct DisableDepositoryMinting<'info> {
+pub struct DisableDepositoryRegularMinting<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
 
@@ -31,17 +31,17 @@ pub struct DisableDepositoryMinting<'info> {
     pub depository: AccountLoader<'info, MangoDepository>,
 }
 
-pub fn handler(ctx: Context<DisableDepositoryMinting>, disable: bool) -> Result<()> {
+pub fn handler(ctx: Context<DisableDepositoryRegularMinting>, disable: bool) -> Result<()> {
     let depository = &mut ctx.accounts.depository.load_mut()?;
-    depository.minting_disabled = disable;
+    depository.regular_minting_disabled = disable;
     Ok(())
 }
 
 // Validate input arguments
-impl<'info> DisableDepositoryMinting<'info> {
-    pub fn validate(&self, disable_minting: bool) -> Result<()> {
+impl<'info> DisableDepositoryRegularMinting<'info> {
+    pub fn validate(&self, disable: bool) -> Result<()> {
         require!(
-            self.depository.load()?.minting_disabled != disable_minting,
+            self.depository.load()?.regular_minting_disabled != disable,
             UxdError::MintingAlreadyDisabledOrEnabled
         );
         Ok(())

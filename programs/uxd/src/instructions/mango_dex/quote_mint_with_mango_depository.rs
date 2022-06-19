@@ -370,7 +370,7 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
             UxdError::InsufficientQuoteAmountMint
         );
         require!(
-            !self.depository.load()?.minting_disabled,
+            !self.depository.load()?.regular_minting_disabled,
             UxdError::MintingDisabled
         );
         validate_perp_market_mint_matches_depository_collateral_mint(

@@ -417,27 +417,27 @@ pub mod uxd {
         instructions::set_mango_depository_quote_mint_and_redeem_fee::handler(ctx, quote_fee)
     }
 
-    /// Disable or enable minting for given Mango Depository.
+    /// Disable or enable regular minting for given Mango Depository.
     ///
     /// Parameters:
     ///     - disable: true to disable, false to enable.
     ///
     /// Note:
-    ///  The disabled flag is false by default that a freshly registered mango depository has enabled minting.
+    ///  The disabled flag is false by default that a freshly registered mango depository has enabled regular minting.
     ///  This ix is for toggling that flag.
     ///
     #[access_control(
-        ctx.accounts.validate(disable_minting)
+        ctx.accounts.validate(disable)
     )]
-    pub fn disable_depository_minting(
-        ctx: Context<DisableDepositoryMinting>,
-        disable_minting: bool,
+    pub fn disable_depository_regular_minting(
+        ctx: Context<DisableDepositoryRegularMinting>,
+        disable: bool,
     ) -> Result<()> {
         msg!(
-            "[disable_depository_minting] disable_minting {}",
-            disable_minting
+            "[disable_depository_minting] disable {}",
+            disable
         );
-        instructions::disable_depository_minting::handler(ctx, disable_minting)
+        instructions::disable_depository_regular_minting::handler(ctx, disable)
     }
 }
 
