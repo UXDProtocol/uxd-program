@@ -1448,7 +1448,7 @@ export type Uxd = {
       }
     },
     {
-      "name": "MsolSwapRoute",
+      "name": "RebalanceRoute",
       "type": {
         "kind": "enum",
         "variants": [
@@ -3663,7 +3663,7 @@ export const IDL: Uxd = {
       }
     },
     {
-      "name": "MsolSwapRoute",
+      "name": "RebalanceRoute",
       "type": {
         "kind": "enum",
         "variants": [

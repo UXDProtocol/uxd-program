@@ -1448,7 +1448,7 @@
       }
     },
     {
-      "name": "MsolSwapRoute",
+      "name": "RebalanceRoute",
       "type": {
         "kind": "enum",
         "variants": [
