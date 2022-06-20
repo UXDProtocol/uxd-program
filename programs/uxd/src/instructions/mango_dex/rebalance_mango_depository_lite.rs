@@ -599,10 +599,12 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             .ok_or_else(|| error!(UxdError::MathError))?;
         depository.total_amount_rebalanced = depository
             .total_amount_rebalanced
-            .wrapping_add(rebalanced_amount);
+            .checked_add(rebalanced_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
         depository.total_amount_paid_taker_fee = depository
             .total_amount_paid_taker_fee
-            .wrapping_add(fee_amount);
+            .checked_add(fee_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
         Ok(())
     }
 
@@ -619,10 +621,12 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
             .ok_or_else(|| error!(UxdError::MathError))?;
         depository.total_amount_rebalanced = depository
             .total_amount_rebalanced
-            .wrapping_add(rebalanced_amount);
+            .checked_add(rebalanced_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
         depository.total_amount_paid_taker_fee = depository
             .total_amount_paid_taker_fee
-            .wrapping_add(fee_amount);
+            .checked_add(fee_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
         Ok(())
     }
 }
