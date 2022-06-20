@@ -964,7 +964,7 @@
       ]
     },
     {
-      "name": "disableDepositoryMinting",
+      "name": "disableDepositoryRegularMinting",
       "accounts": [
         {
           "name": "authority",
@@ -984,7 +984,7 @@
       ],
       "args": [
         {
-          "name": "disableMinting",
+          "name": "disable",
           "type": "bool"
         }
       ]
@@ -1153,7 +1153,7 @@
             "type": "u128"
           },
           {
-            "name": "mintingDisabled",
+            "name": "regularMintingDisabled",
             "type": "bool"
           }
         ]
@@ -1861,8 +1861,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info"
     }
-  ],
-  "metadata": {
-    "address": "3peupr3gav9raFZHfmTuNcG25ufyLCwfAziawNk6XcdQ"
-  }
+  ]
 }

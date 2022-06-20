@@ -17,7 +17,7 @@ pub struct PerpInfo {
     pub quote_lot_size: I80F48,
     // taker_fee + ref_fee if any
     // ref_fee : 1bps or 0 with 10K MNGO on the account(as of 02/20/2022)
-    // taker_fee : 0.004 = 4bps on most perp markets (as of 02/20/2022)
+    // taker_fee : 0.0004 = 4bps on most perp markets (as of 02/20/2022)
     pub effective_fee: I80F48,
 }
 

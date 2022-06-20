@@ -76,6 +76,6 @@ pub struct MangoDepository {
     // The amount of fees accrued from quote minting
     pub total_quote_mint_and_redeem_fees: u128,
     //
-    // Flag for enabling / disabling minting with this depository's collateral_mint
-    pub minting_disabled: bool,
+    // Flag to indicate whether minting through collateral deposits is allowed
+    pub regular_minting_disabled: bool,
 }

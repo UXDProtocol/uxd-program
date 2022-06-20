@@ -964,7 +964,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "disableDepositoryMinting",
+      "name": "disableDepositoryRegularMinting",
       "accounts": [
         {
           "name": "authority",
@@ -984,7 +984,7 @@ export type Uxd = {
       ],
       "args": [
         {
-          "name": "disableMinting",
+          "name": "disable",
           "type": "bool"
         }
       ]
@@ -1153,7 +1153,7 @@ export type Uxd = {
             "type": "u128"
           },
           {
-            "name": "mintingDisabled",
+            "name": "regularMintingDisabled",
             "type": "bool"
           }
         ]
@@ -2830,7 +2830,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "disableDepositoryMinting",
+      "name": "disableDepositoryRegularMinting",
       "accounts": [
         {
           "name": "authority",
@@ -2850,7 +2850,7 @@ export const IDL: Uxd = {
       ],
       "args": [
         {
-          "name": "disableMinting",
+          "name": "disable",
           "type": "bool"
         }
       ]
@@ -3019,7 +3019,7 @@ export const IDL: Uxd = {
             "type": "u128"
           },
           {
-            "name": "mintingDisabled",
+            "name": "regularMintingDisabled",
             "type": "bool"
           }
         ]
