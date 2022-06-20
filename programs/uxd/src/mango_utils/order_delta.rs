@@ -48,11 +48,17 @@ pub fn base_delta(
 
 // returns the amount of taker_fee paid for trading raw_quote_amount (rounded up)
 pub fn taker_fee_amount_ceil(raw_quote_amount: I80F48, taker_fee: I80F48) -> Result<I80F48> {
-    raw_quote_amount
+    let fee_amount = raw_quote_amount
         .checked_mul(taker_fee)
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_ceil()
-        .ok_or_else(|| error!(UxdError::MathError))
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    return match fee_amount.is_positive() {
+        true => fee_amount
+            .checked_ceil()
+            .ok_or_else(|| error!(UxdError::MathError)),
+        false => fee_amount
+            .checked_floor()
+            .ok_or_else(|| error!(UxdError::MathError)),
+    };
 }
 
 // Note : removes the taker fees from the redeemable_delta.
@@ -60,7 +66,7 @@ pub fn taker_fee_amount_ceil(raw_quote_amount: I80F48, taker_fee: I80F48) -> Res
 //  Mango system needs to call (after this ix, by the user or anyone) the consumeEvents ix, that will process the `fillEvent` in that case
 //  and update all mango internals / resolve the unsettled balance change, and process fees.
 //  The amount minted/redeemed offsets accordingly to reflect that change that will be settled in the future.
-// MangoMarkets v3.3.5 : Fees are not reflected directly in the quote_position, still not in the taker_quote
+// MangoMarkets v3.3.5 : Fees are now reflected directly in the quote_position, still not in the taker_quote
 pub fn derive_order_delta(
     pre_pa: &PerpAccount,
     post_pa: &PerpAccount,
