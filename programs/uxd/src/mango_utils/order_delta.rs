@@ -51,6 +51,8 @@ pub fn taker_fee_amount_ceil(raw_quote_amount: I80F48, taker_fee: I80F48) -> Res
     let fee_amount = raw_quote_amount
         .checked_mul(taker_fee)
         .ok_or_else(|| error!(UxdError::MathError))?;
+    // The absolute amount of fee paid must always be rounded up in the business logic
+    // hence the sign being taken into consideration
     return match fee_amount.is_positive() {
         true => fee_amount
             .checked_ceil()
