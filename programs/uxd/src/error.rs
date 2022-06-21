@@ -80,10 +80,10 @@ pub enum UxdError {
     QuoteAmountTooHigh,
     #[msg("The amount trying to be quote redeemed is larger than quote redeemable.")]
     RedeemableAmountTooHigh,
-    #[msg("Minting is disabled for the current depository.")]
-    MintingDisabled,
-    #[msg("Minting is already disabled/enabled.")]
-    MintingAlreadyDisabledOrEnabled,
+    #[msg("Only redeem is allowed for the current mango depository")]
+    InRedeemOnlyMode,
+    #[msg("Redeem only mode has already disabled/enabled.")]
+    RedeemOnlyModeHasAlreadyDisabledOrEnabled,
     #[msg("The quote amount requested is beyond the soft cap limitation.")]
     QuoteAmountExceedsSoftCap,
     #[msg("The quote currency is not the expected one.")]

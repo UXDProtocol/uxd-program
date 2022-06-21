@@ -964,7 +964,7 @@
       ]
     },
     {
-      "name": "disableDepositoryRegularMinting",
+      "name": "enableMangoDepositoryRedeemOnlyMode",
       "accounts": [
         {
           "name": "authority",
@@ -984,7 +984,7 @@
       ],
       "args": [
         {
-          "name": "disable",
+          "name": "enable",
           "type": "bool"
         }
       ]
@@ -1153,7 +1153,7 @@
             "type": "u128"
           },
           {
-            "name": "regularMintingDisabled",
+            "name": "redeemOnlyModeEnabled",
             "type": "bool"
           }
         ]
@@ -1788,13 +1788,13 @@
     },
     {
       "code": 6038,
-      "name": "MintingDisabled",
-      "msg": "Minting is disabled for the current depository."
+      "name": "InRedeemOnlyMode",
+      "msg": "Only redeem is allowed for the current mango depository"
     },
     {
       "code": 6039,
-      "name": "MintingAlreadyDisabledOrEnabled",
-      "msg": "Minting is already disabled/enabled."
+      "name": "RedeemOnlyModeHasAlreadyDisabledOrEnabled",
+      "msg": "Redeem only mode has already disabled/enabled."
     },
     {
       "code": 6040,
@@ -1866,8 +1866,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "HGTKXaAihQNqBTuA5Nd4fPTWKJdFmwzTgbyMjPrQJaai"
-  }
+  ]
 }

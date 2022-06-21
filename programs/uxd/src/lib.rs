@@ -418,24 +418,25 @@ pub mod uxd {
         instructions::set_mango_depository_quote_mint_and_redeem_fee::handler(ctx, quote_fee)
     }
 
-    /// Disable or enable regular minting for given Mango Depository.
+    /// Toggle redeem only mode for a mango depository. Both minting through collateral deposits 
+    /// and quote minting is disabled on when redeem only mode is on.
     ///
     /// Parameters:
-    ///     - disable: true to disable, false to enable.
+    ///     - enable: true to enable, false to disable.
     ///
     /// Note:
-    ///  The disabled flag is false by default that a freshly registered mango depository has enabled regular minting.
-    ///  This ix is for toggling that flag.
+    /// Redeem only mode is set as false when registering a new mango depository.
+    /// So minting is allowed by default.
     ///
     #[access_control(
-        ctx.accounts.validate(disable)
+        ctx.accounts.validate(enable)
     )]
-    pub fn disable_depository_regular_minting(
-        ctx: Context<DisableDepositoryRegularMinting>,
-        disable: bool,
+    pub fn enable_mango_depository_redeem_only_mode(
+        ctx: Context<EnableMangoDepositoryRedeemOnlyMode>,
+        enable: bool,
     ) -> Result<()> {
-        msg!("[disable_depository_minting] disable {}", disable);
-        instructions::disable_depository_regular_minting::handler(ctx, disable)
+        msg!("[enable_mango_depository_redeem_only_mode] enable {}", enable);
+        instructions::enable_mango_depository_redeem_only_mode::handler(ctx, enable)
     }
 }
 
