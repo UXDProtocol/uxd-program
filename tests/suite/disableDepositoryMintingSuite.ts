@@ -1,7 +1,7 @@
 import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
-import { disableDepositoryMintingTest } from "../cases/disableDepositoryMintingTest";
+import { disableDepositoryRegularMintingTest } from "../cases/disableDepositoryMintingTest";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { mango } from "../fixtures";
 
@@ -14,7 +14,7 @@ export const disableDepositoryMintingSuite = function (
 ) {
   it(`Enable ${depository.collateralMintSymbol} minting (should fail)`, async function () {
     try {
-      await disableDepositoryMintingTest(false, authority, controller, depository);
+      await disableDepositoryRegularMintingTest(false, authority, controller, depository);
     } catch {
       expect(true, "Failing as planned");
     }
@@ -22,12 +22,12 @@ export const disableDepositoryMintingSuite = function (
   });
 
   it(`Disable ${depository.collateralMintSymbol} minting`, async function () {
-    await disableDepositoryMintingTest(true, authority, controller, depository);
+    await disableDepositoryRegularMintingTest(true, authority, controller, depository);
   });
 
   it(`Disable ${depository.collateralMintSymbol} minting again (should fail)`, async function () {
     try {
-      await disableDepositoryMintingTest(true, authority, controller, depository);
+      await disableDepositoryRegularMintingTest(true, authority, controller, depository);
     } catch {
       expect(true, "Failing as planned");
     }
@@ -44,6 +44,6 @@ export const disableDepositoryMintingSuite = function (
   });
 
   it(`Enable ${depository.collateralMintSymbol} minting`, async function () {
-    await disableDepositoryMintingTest(false, authority, controller, depository);
+    await disableDepositoryRegularMintingTest(false, authority, controller, depository);
   });
 };
