@@ -1789,77 +1789,82 @@ export type Uxd = {
     {
       "code": 6038,
       "name": "MintingDisabled",
-      "msg": "Minting is disabled for the current depository"
+      "msg": "Minting is disabled for the current depository."
     },
     {
       "code": 6039,
       "name": "MintingAlreadyDisabledOrEnabled",
-      "msg": "Minting is already disabled/enabled"
+      "msg": "Minting is already disabled/enabled."
     },
     {
       "code": 6040,
       "name": "QuoteAmountExceedsSoftCap",
-      "msg": "The quote amount requested is beyond the soft cap limitation"
+      "msg": "The quote amount requested is beyond the soft cap limitation."
     },
     {
       "code": 6041,
+      "name": "InvalidQuoteCurrency",
+      "msg": "The quote currency is not the expected one."
+    },
+    {
+      "code": 6042,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6042,
+      "code": 6043,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6043,
+      "code": 6044,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6044,
+      "code": 6045,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6045,
+      "code": 6046,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6046,
+      "code": 6047,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6047,
+      "code": 6048,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6048,
+      "code": 6049,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6049,
+      "code": 6050,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6050,
+      "code": 6051,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6051,
+      "code": 6052,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6052,
+      "code": 6053,
       "name": "Default",
-      "msg": "Default - Check the source code for more info"
+      "msg": "Default - Check the source code for more info."
     }
   ]
 };
@@ -3655,77 +3660,82 @@ export const IDL: Uxd = {
     {
       "code": 6038,
       "name": "MintingDisabled",
-      "msg": "Minting is disabled for the current depository"
+      "msg": "Minting is disabled for the current depository."
     },
     {
       "code": 6039,
       "name": "MintingAlreadyDisabledOrEnabled",
-      "msg": "Minting is already disabled/enabled"
+      "msg": "Minting is already disabled/enabled."
     },
     {
       "code": 6040,
       "name": "QuoteAmountExceedsSoftCap",
-      "msg": "The quote amount requested is beyond the soft cap limitation"
+      "msg": "The quote amount requested is beyond the soft cap limitation."
     },
     {
       "code": 6041,
+      "name": "InvalidQuoteCurrency",
+      "msg": "The quote currency is not the expected one."
+    },
+    {
+      "code": 6042,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6042,
+      "code": 6043,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6043,
+      "code": 6044,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6044,
+      "code": 6045,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6045,
+      "code": 6046,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6046,
+      "code": 6047,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6047,
+      "code": 6048,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6048,
+      "code": 6049,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6049,
+      "code": 6050,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6050,
+      "code": 6051,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6051,
+      "code": 6052,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6052,
+      "code": 6053,
       "name": "Default",
-      "msg": "Default - Check the source code for more info"
+      "msg": "Default - Check the source code for more info."
     }
   ]
 };

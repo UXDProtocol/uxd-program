@@ -3,6 +3,7 @@ use crate::state::*;
 use anchor_lang::prelude::*;
 use error::UxdError;
 use mango::state::MangoGroup;
+use mango::state::QUOTE_INDEX;
 
 #[macro_use]
 pub mod error;
@@ -433,21 +434,19 @@ pub mod uxd {
         ctx: Context<DisableDepositoryRegularMinting>,
         disable: bool,
     ) -> Result<()> {
-        msg!(
-            "[disable_depository_minting] disable {}",
-            disable
-        );
+        msg!("[disable_depository_minting] disable {}", disable);
         instructions::disable_depository_regular_minting::handler(ctx, disable)
     }
 }
 
-/// Checks that the perp_market_index provided matches the collateral of the depository.
+/// Checks that the perp_market_index provided matches the collateral of the depository. Same for Quote.
 /// To be used anywhere a MangoMarkets' PerpMarket AccountInfo is passed.
-pub fn validate_perp_market_mint_matches_depository_collateral_mint(
+pub fn validate_perp_market_mints_matches_depository_mints(
     mango_group_ai: &AccountInfo,
     mango_program_key: &Pubkey,
     mango_perp_market_key: &Pubkey,
     collateral_mint_key: &Pubkey,
+    quote_mint_key: &Pubkey,
 ) -> Result<()> {
     let mango_group = MangoGroup::load_checked(mango_group_ai, mango_program_key)
         .map_err(|_| error!(UxdError::InvalidMangoGroup))?;
@@ -455,9 +454,16 @@ pub fn validate_perp_market_mint_matches_depository_collateral_mint(
         .find_perp_market_index(mango_perp_market_key)
         .ok_or_else(|| error!(UxdError::MangoPerpMarketIndexNotFound))?;
 
+    // validates the collateral mint
     require!(
         mango_group.tokens[perp_market_index].mint == *collateral_mint_key,
         UxdError::MangoPerpMarketIndexNotFound
+    );
+
+    // validates the quote mint
+    require!(
+        mango_group.tokens[QUOTE_INDEX].mint == *quote_mint_key,
+        UxdError::InvalidQuoteCurrency
     );
     Ok(())
 }

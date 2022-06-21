@@ -88,7 +88,7 @@ pub fn handler(ctx: Context<InitializeController>, redeemable_mint_decimals: u8)
     controller.redeemable_circulating_supply = u128::MIN;
     controller.mango_depositories_quote_redeemable_soft_cap =
         DEFAULT_MANGO_DEPOSITORIES_QUOTE_REDEEMABLE_SOFT_CAP
-            .checked_mul(redeemable_mint_unit.into())
+            .checked_mul(redeemable_mint_unit)
             .ok_or_else(|| error!(UxdError::MathError))?;
 
     emit!(InitializeControllerEvent {

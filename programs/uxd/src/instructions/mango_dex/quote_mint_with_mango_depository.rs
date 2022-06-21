@@ -1,6 +1,6 @@
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::PerpInfo;
-use crate::validate_perp_market_mint_matches_depository_collateral_mint;
+use crate::validate_perp_market_mints_matches_depository_mints;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::UxdError;
@@ -373,11 +373,12 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
             !self.depository.load()?.regular_minting_disabled,
             UxdError::MintingDisabled
         );
-        validate_perp_market_mint_matches_depository_collateral_mint(
+        validate_perp_market_mints_matches_depository_mints(
             &self.mango_group,
             self.mango_program.key,
             self.mango_perp_market.key,
             &self.depository.load()?.collateral_mint,
+            &self.depository.load()?.quote_mint,
         )?;
 
         Ok(())

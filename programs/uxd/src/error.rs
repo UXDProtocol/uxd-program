@@ -80,12 +80,14 @@ pub enum UxdError {
     QuoteAmountTooHigh,
     #[msg("The amount trying to be quote redeemed is larger than quote redeemable.")]
     RedeemableAmountTooHigh,
-    #[msg("Minting is disabled for the current depository")]
+    #[msg("Minting is disabled for the current depository.")]
     MintingDisabled,
-    #[msg("Minting is already disabled/enabled")]
+    #[msg("Minting is already disabled/enabled.")]
     MintingAlreadyDisabledOrEnabled,
-    #[msg("The quote amount requested is beyond the soft cap limitation")]
+    #[msg("The quote amount requested is beyond the soft cap limitation.")]
     QuoteAmountExceedsSoftCap,
+    #[msg("The quote currency is not the expected one.")]
+    InvalidQuoteCurrency,
 
     /// Anchor DSL related errors
     ///
@@ -112,6 +114,6 @@ pub enum UxdError {
     #[msg("The max quote quantity must be above 0.")]
     InvalidMaxQuoteQuantity,
 
-    #[msg("Default - Check the source code for more info")]
+    #[msg("Default - Check the source code for more info.")]
     Default,
 }
