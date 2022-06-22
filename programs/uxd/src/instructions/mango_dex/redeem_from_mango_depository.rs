@@ -2,7 +2,7 @@ use crate::error::UxdError;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::PerpInfo;
-use crate::validate_perp_market_mint_matches_depository_collateral_mint;
+use crate::validate_perp_market_mints_matches_depository_mints;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -409,15 +409,16 @@ impl<'info> RedeemFromMangoDepository<'info> {
             .ok_or_else(|| error!(UxdError::MathError))?;
         depository.redeemable_amount_under_management = depository
             .redeemable_amount_under_management
-            .checked_add(redeemable_burnt_amount)
+            .checked_sub(redeemable_burnt_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
         depository.total_amount_paid_taker_fee = depository
             .total_amount_paid_taker_fee
-            .wrapping_add(fee_amount);
+            .checked_add(fee_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
         // Controller
         controller.redeemable_circulating_supply = controller
             .redeemable_circulating_supply
-            .checked_add(redeemable_burnt_amount)
+            .checked_sub(redeemable_burnt_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
         Ok(())
     }
@@ -433,11 +434,12 @@ impl<'info> RedeemFromMangoDepository<'info> {
             UxdError::InsufficientRedeemableAmount
         );
 
-        validate_perp_market_mint_matches_depository_collateral_mint(
+        validate_perp_market_mints_matches_depository_mints(
             &self.mango_group,
             self.mango_program.key,
             self.mango_perp_market.key,
             &self.depository.load()?.collateral_mint,
+            &self.depository.load()?.quote_mint,
         )?;
         Ok(())
     }
