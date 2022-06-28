@@ -9,7 +9,7 @@ import { mangoDepositorySetupSuite } from "./suite/depositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 import { mangoDepositoryAndControllerAccountingSuite } from "./suite/mangoDepositoryAndControllerAccountingSuite";
-import { disableDepositoryMintingSuite } from "./suite/disableDepositoryMintingSuite";
+import { enableMangoDepositoryRedeemOnlyModeSuite } from "./suite/enableMangoDepositoryRedeemOnlyModeSuite";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -52,7 +52,7 @@ describe("Integration tests SOL", function () {
     });
 
     describe("disableDepositoryMintingSuite SOL", function () {
-        disableDepositoryMintingSuite(authority, user, bank, controllerUXD, mangoDepositorySOL);
+        enableMangoDepositoryRedeemOnlyModeSuite(authority, user, bank, controllerUXD, mangoDepositorySOL);
     });
 
     describe("mangoDepositoryMintRedeemSuite SOL", function () {

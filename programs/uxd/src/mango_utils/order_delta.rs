@@ -53,14 +53,14 @@ pub fn taker_fee_amount_ceil(raw_quote_amount: I80F48, taker_fee: I80F48) -> Res
         .ok_or_else(|| error!(UxdError::MathError))?;
     // The absolute amount of fee paid must always be rounded up in the business logic
     // hence the sign being taken into consideration
-    return match fee_amount.is_positive() {
+    match fee_amount.is_positive() {
         true => fee_amount
             .checked_ceil()
             .ok_or_else(|| error!(UxdError::MathError)),
         false => fee_amount
             .checked_floor()
             .ok_or_else(|| error!(UxdError::MathError)),
-    };
+    }
 }
 
 // Note : removes the taker fees from the redeemable_delta.

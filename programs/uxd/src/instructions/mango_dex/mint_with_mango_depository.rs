@@ -475,8 +475,8 @@ impl<'info> MintWithMangoDepository<'info> {
             UxdError::InsufficientCollateralAmount
         );
         require!(
-            !&self.depository.load()?.regular_minting_disabled,
-            UxdError::MintingDisabled
+            !&self.depository.load()?.redeem_only_mode_enabled,
+            UxdError::InRedeemOnlyMode
         );
 
         validate_perp_market_mints_matches_depository_mints(

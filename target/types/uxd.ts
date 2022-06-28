@@ -964,7 +964,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "disableDepositoryRegularMinting",
+      "name": "enableMangoDepositoryRedeemOnlyMode",
       "accounts": [
         {
           "name": "authority",
@@ -984,7 +984,7 @@ export type Uxd = {
       ],
       "args": [
         {
-          "name": "disable",
+          "name": "enable",
           "type": "bool"
         }
       ]
@@ -1153,7 +1153,7 @@ export type Uxd = {
             "type": "u128"
           },
           {
-            "name": "regularMintingDisabled",
+            "name": "redeemOnlyModeEnabled",
             "type": "bool"
           }
         ]
@@ -1788,13 +1788,13 @@ export type Uxd = {
     },
     {
       "code": 6038,
-      "name": "MintingDisabled",
-      "msg": "Minting is disabled for the current depository."
+      "name": "InRedeemOnlyMode",
+      "msg": "Only redeem is allowed for the current mango depository"
     },
     {
       "code": 6039,
-      "name": "MintingAlreadyDisabledOrEnabled",
-      "msg": "Minting is already disabled/enabled."
+      "name": "RedeemOnlyModeHasAlreadyDisabledOrEnabled",
+      "msg": "Redeem only mode has already disabled/enabled."
     },
     {
       "code": 6040,
@@ -2835,7 +2835,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "disableDepositoryRegularMinting",
+      "name": "enableMangoDepositoryRedeemOnlyMode",
       "accounts": [
         {
           "name": "authority",
@@ -2855,7 +2855,7 @@ export const IDL: Uxd = {
       ],
       "args": [
         {
-          "name": "disable",
+          "name": "enable",
           "type": "bool"
         }
       ]
@@ -3024,7 +3024,7 @@ export const IDL: Uxd = {
             "type": "u128"
           },
           {
-            "name": "regularMintingDisabled",
+            "name": "redeemOnlyModeEnabled",
             "type": "bool"
           }
         ]
@@ -3659,13 +3659,13 @@ export const IDL: Uxd = {
     },
     {
       "code": 6038,
-      "name": "MintingDisabled",
-      "msg": "Minting is disabled for the current depository."
+      "name": "InRedeemOnlyMode",
+      "msg": "Only redeem is allowed for the current mango depository"
     },
     {
       "code": 6039,
-      "name": "MintingAlreadyDisabledOrEnabled",
-      "msg": "Minting is already disabled/enabled."
+      "name": "RedeemOnlyModeHasAlreadyDisabledOrEnabled",
+      "msg": "Redeem only mode has already disabled/enabled."
     },
     {
       "code": 6040,

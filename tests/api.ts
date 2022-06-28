@@ -270,8 +270,8 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
     return txId;
 }
 
-export async function disableDepositoryRegularMinting(authority: Signer, controller: Controller, depository: MangoDepository, disableMinting: boolean): Promise<string> {
-    const disableDepositoryMintingIx = uxdClient.createDisableDepositoryRegularMintingInstruction(disableMinting, controller, depository, authority.publicKey, TXN_OPTS);
+export async function enableMangoDepositoryRedeemOnlyMode(authority: Signer, controller: Controller, depository: MangoDepository, enable: boolean): Promise<string> {
+    const disableDepositoryMintingIx = uxdClient.createEnableMangoDepositoryRedeemOnlyModeInstruction(enable, controller, depository, authority.publicKey, TXN_OPTS);
     let signers = [];
     let tx = new Transaction();
 
