@@ -97,7 +97,7 @@ mod test_order {
                         .floor()
                 };
                 prop_assert_eq!(taker_fee_amount, fee_amount_ceil)
-              },                  
+              },
               Err(_) => todo!(),
             }
         }
