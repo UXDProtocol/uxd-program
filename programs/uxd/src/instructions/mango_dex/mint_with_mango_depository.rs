@@ -114,9 +114,11 @@ pub struct MintWithMangoDepository<'info> {
     pub mango_group: AccountInfo<'info>,
 
     /// #11 [MangoMarkets CPI] Cache
+    #[account(mut)]
     pub mango_cache: AccountInfo<'info>,
 
     /// #12 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
+    #[account(mut)]
     pub mango_root_bank: AccountInfo<'info>,
 
     /// #13 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`

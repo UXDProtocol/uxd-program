@@ -114,9 +114,11 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     pub mango_group: AccountInfo<'info>,
 
     /// #12 [MangoMarkets CPI] Cache
+    #[account(mut)]
     pub mango_cache: AccountInfo<'info>,
 
     /// #13 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`
+    #[account(mut)]
     pub mango_root_bank_quote: AccountInfo<'info>,
 
     /// #14 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`
@@ -128,6 +130,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     pub mango_vault_quote: AccountInfo<'info>,
 
     /// #16 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
+    #[account(mut)]
     pub mango_root_bank_collateral: AccountInfo<'info>,
 
     /// #17 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`

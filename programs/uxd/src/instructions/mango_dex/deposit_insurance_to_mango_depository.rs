@@ -77,9 +77,11 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     pub mango_group: AccountInfo<'info>,
 
     /// #9 [MangoMarkets CPI] Cache
+    #[account(mut)]
     pub mango_cache: AccountInfo<'info>,
 
     /// #10 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`
+    #[account(mut)]
     pub mango_root_bank: AccountInfo<'info>,
 
     /// #11 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`
