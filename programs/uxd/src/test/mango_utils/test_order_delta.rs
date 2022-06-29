@@ -88,7 +88,17 @@ mod test_order {
             taker_fee in 0.0000f64..0.001f64, // 0 bps to 10 bps
         ) {
             match taker_fee_amount_ceil(I80F48::from_num(raw_quote_amount), I80F48::from_num(taker_fee)) {
-              Ok(taker_fee_amount) => prop_assert_eq!(taker_fee_amount, I80F48::from_num(raw_quote_amount).checked_mul(I80F48::from_num(taker_fee)).unwrap().ceil()),                  Err(_) => todo!(),
+              Ok(taker_fee_amount) => {
+                let fee_amount = I80F48::from_num(raw_quote_amount).checked_mul(I80F48::from_num(taker_fee)).unwrap();
+                let fee_amount_ceil = match fee_amount.is_positive() {
+                    true => fee_amount
+                        .ceil(),
+                    false => fee_amount
+                        .floor()
+                };
+                prop_assert_eq!(taker_fee_amount, fee_amount_ceil)
+              },                  
+              Err(_) => todo!(),
             }
         }
     }
