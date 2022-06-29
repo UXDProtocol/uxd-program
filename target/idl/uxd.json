@@ -201,12 +201,12 @@
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -388,12 +388,12 @@
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "mangoRootBankQuote",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -408,7 +408,7 @@
         },
         {
           "name": "mangoRootBankCollateral",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -539,12 +539,12 @@
         },
         {
           "name": "mangoCache",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "mangoRootBank",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -1661,8 +1661,5 @@
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     }
-  ],
-  "metadata": {
-    "address": "BA67esrWE7cPzQWtAftaTbrVWtmHZJ1PbbBBpZgpjH4p"
-  }
+  ]
 }
