@@ -29,8 +29,8 @@ pub struct Deposit<'info> {
 /// 0. `[]` mango_group_ai - MangoGroup that this mango account is for
 /// 1. `[writable]` mango_account_ai - the mango account for this user
 /// 2. `[signer]` owner_ai - Solana account of owner of the mango account
-/// 3. `[]` mango_cache_ai - MangoCache
-/// 4. `[]` root_bank_ai - RootBank owned by MangoGroup
+/// 3. `[writable]` mango_cache_ai - MangoCache
+/// 4. `[writable]` root_bank_ai - RootBank owned by MangoGroup
 /// 5. `[writable]` node_bank_ai - NodeBank owned by RootBank
 /// 6. `[writable]` vault_ai - TokenAccount owned by MangoGroup
 /// 7. `[]` token_prog_ai - acc pointed to by SPL token program id
@@ -55,8 +55,8 @@ fn deposit_instruction(
         AccountMeta::new_readonly(*mango_group_pubkey, false),
         AccountMeta::new(*mango_account_pubkey, false),
         AccountMeta::new_readonly(*owner_pubkey, true),
-        AccountMeta::new_readonly(*mango_cache_pubkey, false),
-        AccountMeta::new_readonly(*mango_root_bank_pubkey, false),
+        AccountMeta::new(*mango_cache_pubkey, false),
+        AccountMeta::new(*mango_root_bank_pubkey, false),
         AccountMeta::new(*mango_node_bank_pubkey, false),
         AccountMeta::new(*mango_vault_pubkey, false),
         AccountMeta::new_readonly(*token_program_id, false),
