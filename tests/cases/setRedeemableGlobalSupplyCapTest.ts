@@ -1,5 +1,5 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, nativeToUi } from "@uxdprotocol/uxd-client";
+import { Controller, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { setRedeemableGlobalSupplyCap } from "../api";
 import { CLUSTER } from "../constants";
@@ -29,6 +29,7 @@ export const setRedeemableGlobalSupplyCapTest = async function (supplyCapAmount:
         controller.info();
         console.groupEnd();
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }

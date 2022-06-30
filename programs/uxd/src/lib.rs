@@ -1,18 +1,14 @@
-use crate::error::check_assert;
-use crate::error::SourceFileId;
-use crate::error::UxdErrorCode;
 use crate::instructions::*;
 use crate::state::*;
 use anchor_lang::prelude::*;
 use error::UxdError;
 use mango::state::MangoGroup;
+use mango::state::QUOTE_INDEX;
 
 #[macro_use]
 pub mod error;
-
 pub mod events;
 pub mod instructions;
-pub mod mango_program;
 pub mod mango_utils;
 pub mod state;
 pub mod test;
@@ -20,7 +16,7 @@ pub mod test;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("BA67esrWE7cPzQWtAftaTbrVWtmHZJ1PbbBBpZgpjH4p");
+solana_program::declare_id!("9PjjDLyfxPmnMRNZ8L5WFZBsqjaZZihfh2x6H4QWLGQF");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -39,17 +35,21 @@ pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million r
 
 pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
+pub const DEFAULT_MANGO_DEPOSITORIES_QUOTE_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
 
-const SLIPPAGE_BASIS: u32 = 1000;
+const BPS_POW: u8 = 4; // Raise a number to BPS_POW to get order of magnitude of
+pub const BPS_UNIT_CONVERSION: u64 = (10u64).pow(BPS_POW as u32);
+
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 
-pub type UxdResult<T = ()> = Result<T, UxdError>;
-
-declare_check_assert_macros!(SourceFileId::Lib);
+/// When looping through the orderbook to fill, it's FoK, so will fail either way.
+const MANGO_PERP_MAX_FILL_EVENTS: u8 = u8::MAX;
 
 #[program]
 #[deny(unused_must_use)]
 pub mod uxd {
+
+    use crate::instructions::set_mango_depository_quote_mint_and_redeem_soft_cap::SetMangoDepositoryQuoteMintAndRedeemSoftCap;
 
     use super::*;
 
@@ -72,12 +72,9 @@ pub mod uxd {
     pub fn initialize_controller(
         ctx: Context<InitializeController>,
         redeemable_mint_decimals: u8,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[initialize_controller]");
-        instructions::initialize_controller::handler(ctx, redeemable_mint_decimals).map_err(|e| {
-            msg!("<*> {}", e); // log the error
-            e.into() // convert UxdError to generic ProgramError
-        })
+        instructions::initialize_controller::handler(ctx, redeemable_mint_decimals)
     }
 
     /// Sets the `redeemable_global_supply_cap` of the provided `Controller`
@@ -102,13 +99,9 @@ pub mod uxd {
     pub fn set_redeemable_global_supply_cap(
         ctx: Context<SetRedeemableGlobalSupplyCap>,
         redeemable_global_supply_cap: u128,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[set_redeemable_global_supply_cap]");
         instructions::set_redeemable_global_supply_cap::handler(ctx, redeemable_global_supply_cap)
-            .map_err(|e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            })
     }
 
     /// Sets the `mango_depositories_redeemable_soft_cap` of the provided
@@ -137,13 +130,20 @@ pub mod uxd {
     pub fn set_mango_depositories_redeemable_soft_cap(
         ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
         redeemable_soft_cap: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[set_mango_depositories_redeemable_soft_cap]");
         instructions::set_mango_depositories_redeemable_soft_cap::handler(ctx, redeemable_soft_cap)
-            .map_err(|e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            })
+    }
+
+    pub fn set_mango_depository_quote_mint_and_redeem_soft_cap(
+        ctx: Context<SetMangoDepositoryQuoteMintAndRedeemSoftCap>,
+        quote_mint_and_redeem_soft_cap: u64,
+    ) -> Result<()> {
+        msg!("[set_mango_depository_quote_mint_and_redeem_soft_cap]");
+        instructions::set_mango_depository_quote_mint_and_redeem_soft_cap::handler(
+            ctx,
+            quote_mint_and_redeem_soft_cap,
+        )
     }
 
     /// Create a new`MangoDepository` and registers it to the provided
@@ -162,12 +162,9 @@ pub mod uxd {
     ///  In the new version of the MangoMarket Accounts
     ///  this become mandatory too. (we are still using the old init)
     ///
-    pub fn register_mango_depository(ctx: Context<RegisterMangoDepository>) -> ProgramResult {
+    pub fn register_mango_depository(ctx: Context<RegisterMangoDepository>) -> Result<()> {
         msg!("[register_mango_depository]");
-        instructions::register_mango_depository::handler(ctx).map_err(|e| {
-            msg!("<*> {}", e); // log the error
-            e.into() // convert UxdError to generic ProgramError
-        })
+        instructions::register_mango_depository::handler(ctx)
     }
 
     /// Deposit `MangoDepository.quote_mint` tokens in the `MangoDepository`
@@ -208,12 +205,9 @@ pub mod uxd {
     pub fn deposit_insurance_to_mango_depository(
         ctx: Context<DepositInsuranceToMangoDepository>,
         amount: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[deposit_insurance_to_mango_depository]");
-        instructions::deposit_insurance_to_mango_depository::handler(ctx, amount).map_err(|e| {
-            msg!("<*> {}", e); // log the error
-            e.into() // convert UxdError to generic ProgramError
-        })
+        instructions::deposit_insurance_to_mango_depository::handler(ctx, amount)
     }
 
     /// Withdraw `MangoDepository.quote_mint` tokens from the `MangoDepository`
@@ -237,12 +231,9 @@ pub mod uxd {
     pub fn withdraw_insurance_from_mango_depository(
         ctx: Context<WithdrawInsuranceFromMangoDepository>,
         amount: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         msg!("[withdraw_insurance_from_mango_depository]");
-        instructions::withdraw_insurance_from_mango_depository::handler(ctx, amount).map_err(|e| {
-            msg!("<*> {}", e); // log the error
-            e.into() // convert UxdError to generic ProgramError
-        })
+        instructions::withdraw_insurance_from_mango_depository::handler(ctx, amount)
     }
 
     /// Rebalance the delta neutral position of the underlying `MangoDepository`.
@@ -252,8 +243,7 @@ pub mod uxd {
     ///        instruction will attempt to rebalance, in native unit.
     ///     - polarity: the direction of the rebalancing. This is known on chain
     ///        but required as an argument for clarity.
-    ///     - slippage: the maximum deviation in price the user is ok to take
-    ///        compared to market price at execution time.
+    ///     - limit_price: the worst price the user is willing to trade at.
     ///
     /// Note:
     ///  Acts as a swap, reducing the oustanding PnL (paper profit or losses) on
@@ -279,29 +269,29 @@ pub mod uxd {
     ///  has to pay borrow rates for it. Some day when computing is plentiful and input
     ///  accounts are increased through TransactionsV2 proposal, we can
     ///  also call the onchain version.
-    #[access_control(ctx.accounts.validate(max_rebalancing_amount, &polarity, slippage))]
+    ///
+    /// Note:
+    ///  TEMPORARY Although this create the associated token account for WSOL
+    ///  when the PnL is Negative, it's too short on computing. Please create beforehand.
+    #[access_control(ctx.accounts.validate(max_rebalancing_amount, &polarity, limit_price))]
     pub fn rebalance_mango_depository_lite(
         ctx: Context<RebalanceMangoDepositoryLite>,
         max_rebalancing_amount: u64,
         polarity: PnlPolarity,
-        slippage: u32,
-    ) -> ProgramResult {
-        // Computing too short
-        // msg!(
-        //     "[rebalance_mango_depository_lite] slippage {}, polarity {}",
-        //     slippage,
-        //     polarity
-        // );
+        limit_price: f32,
+    ) -> Result<()> {
+        msg!(
+            "[rebalance_mango_depository_lite] max_rebalancing_amount {}, limit_price {}, polarity {}",
+            max_rebalancing_amount,
+            limit_price,
+            polarity
+        );
         instructions::rebalance_mango_depository_lite::handler(
             ctx,
             max_rebalancing_amount,
             &polarity,
-            slippage,
+            limit_price,
         )
-        .map_err(|e| {
-            msg!("<*> {}", e); // log the error
-            e.into() // convert UxdError to generic ProgramError
-        })
     }
 
     /// Mint redeemable tokens in exchange of `MangoDepository.collateral_mint`
@@ -310,8 +300,7 @@ pub mod uxd {
     /// Parameters:
     ///     - collateral_amount: the amount of collateral to use, in
     ///        collateral_mint native unit.
-    ///     - slippage: the maximum deviation in price the user is ok to take
-    ///        compared to market price at execution time.
+    ///     - limit_price: the worse price the user is willing to trade at.
     ///
     /// Flow:
     ///  - Starts by scanning the order book for the amount that we can fill.
@@ -331,34 +320,28 @@ pub mod uxd {
     ///  expressed in USD value.
     ///
     #[access_control(
-        ctx.accounts.validate(collateral_amount, slippage)
+        ctx.accounts.validate(collateral_amount, limit_price)
     )]
     pub fn mint_with_mango_depository(
         ctx: Context<MintWithMangoDepository>,
         collateral_amount: u64,
-        slippage: u32,
-    ) -> ProgramResult {
-        msg!(
-            "[mint_with_mango_depository] collateral_amount {}, slippage {}",
-            collateral_amount,
-            slippage
-        );
-        instructions::mint_with_mango_depository::handler(ctx, collateral_amount, slippage).map_err(
-            |e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            },
-        )
+        limit_price: f32,
+    ) -> Result<()> {
+        // msg!(
+        //     "[mint_with_mango_depository] collateral_amount {}, limit_price {}",
+        //     collateral_amount,
+        //     limit_price
+        // );
+        instructions::mint_with_mango_depository::handler(ctx, collateral_amount, limit_price)
     }
 
-    /// Redeem `MangoDepository.collateral_mint` by burning redeemable tokens
+    /// Redeem `MangoDepository.collateral_mint` by burning redeemable
     /// tokens, and unwind a part of the delta neutral position.
     ///
     /// Parameters:
     ///     - redeemable_amount: the amount of collateral to use, in
     ///        redeemable_mint native unit.
-    ///     - slippage: the maximum deviation in price the user is ok to take
-    ///        compared to market price at execution time.
+    ///     - limit_price: the worse price the user is willing to trade at.
     ///
     /// Flow:
     ///  - Starts by scanning the order book to find the best order for
@@ -381,41 +364,106 @@ pub mod uxd {
     ///  expressed in USD value.
     ///
     #[access_control(
-        ctx.accounts.validate(redeemable_amount, slippage)
+        ctx.accounts.validate(redeemable_amount, limit_price)
     )]
     pub fn redeem_from_mango_depository(
         ctx: Context<RedeemFromMangoDepository>,
         redeemable_amount: u64,
-        slippage: u32,
-    ) -> ProgramResult {
+        limit_price: f32,
+    ) -> Result<()> {
         msg!(
-            "[redeem_from_mango_depository] redeemable_amount {}, slippage {}",
+            "[redeem_from_mango_depository] redeemable_amount {}, limit_price {}",
             redeemable_amount,
-            slippage
+            limit_price
         );
-        instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, slippage)
-            .map_err(|e| {
-                msg!("<*> {}", e); // log the error
-                e.into() // convert UxdError to generic ProgramError
-            })
+        instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, limit_price)
+    }
+
+    #[access_control(
+        ctx.accounts.validate(quote_amount)
+    )]
+    pub fn quote_mint_with_mango_depository(
+        ctx: Context<QuoteMintWithMangoDepository>,
+        quote_amount: u64,
+    ) -> Result<()> {
+        msg!(
+            "[quote_mint_with_mango_depository] quote_amount {}",
+            quote_amount
+        );
+        instructions::quote_mint_with_mango_depository::handler(ctx, quote_amount)
+    }
+
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn quote_redeem_from_mango_depository(
+        ctx: Context<QuoteRedeemFromMangoDepository>,
+        redeemable_amount: u64,
+    ) -> Result<()> {
+        msg!(
+            "[quote_redeem_from_mango_depository] redeemable_amount {}",
+            redeemable_amount
+        );
+        instructions::quote_redeem_from_mango_depository::handler(ctx, redeemable_amount)
+    }
+
+    pub fn set_mango_depository_quote_mint_and_redeem_fee(
+        ctx: Context<SetMangoDepositoryQuoteMintAndRedeemFee>,
+        quote_fee: u8,
+    ) -> Result<()> {
+        msg!(
+            "[set_mango_depository_quote_mint_and_redeem_fee] quote_fee {}",
+            quote_fee
+        );
+        instructions::set_mango_depository_quote_mint_and_redeem_fee::handler(ctx, quote_fee)
+    }
+
+    /// Disable or enable regular minting for given Mango Depository.
+    ///
+    /// Parameters:
+    ///     - disable: true to disable, false to enable.
+    ///
+    /// Note:
+    ///  The disabled flag is false by default that a freshly registered mango depository has enabled regular minting.
+    ///  This ix is for toggling that flag.
+    ///
+    #[access_control(
+        ctx.accounts.validate(disable)
+    )]
+    pub fn disable_depository_regular_minting(
+        ctx: Context<DisableDepositoryRegularMinting>,
+        disable: bool,
+    ) -> Result<()> {
+        msg!("[disable_depository_minting] disable {}", disable);
+        instructions::disable_depository_regular_minting::handler(ctx, disable)
     }
 }
 
-/// Checks that the perp_market_index provided matches the collateral of the depository.
+/// Checks that the perp_market_index provided matches the collateral of the depository. Same for Quote.
 /// To be used anywhere a MangoMarkets' PerpMarket AccountInfo is passed.
-pub fn validate_perp_market_mint_matches_depository_collateral_mint(
+pub fn validate_perp_market_mints_matches_depository_mints(
     mango_group_ai: &AccountInfo,
     mango_program_key: &Pubkey,
     mango_perp_market_key: &Pubkey,
     collateral_mint_key: &Pubkey,
-) -> UxdResult {
-    let mango_group = MangoGroup::load_checked(mango_group_ai, mango_program_key)?;
+    quote_mint_key: &Pubkey,
+) -> Result<()> {
+    let mango_group = MangoGroup::load_checked(mango_group_ai, mango_program_key)
+        .map_err(|_| error!(UxdError::InvalidMangoGroup))?;
     let perp_market_index = mango_group
         .find_perp_market_index(mango_perp_market_key)
-        .ok_or(throw_err!(UxdErrorCode::MangoPerpMarketIndexNotFound))?;
-    check!(
+        .ok_or_else(|| error!(UxdError::MangoPerpMarketIndexNotFound))?;
+
+    // validates the collateral mint
+    require!(
         mango_group.tokens[perp_market_index].mint == *collateral_mint_key,
-        UxdErrorCode::MangoPerpMarketIndexNotFound
-    )?;
+        UxdError::MangoPerpMarketIndexNotFound
+    );
+
+    // validates the quote mint
+    require!(
+        mango_group.tokens[QUOTE_INDEX].mint == *quote_mint_key,
+        UxdError::InvalidQuoteCurrency
+    );
     Ok(())
 }

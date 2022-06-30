@@ -1,6 +1,5 @@
-use anchor_lang::prelude::*;
-
 use crate::instructions::rebalance_mango_depository_lite::PnlPolarity;
+use anchor_lang::prelude::*;
 
 // - Global Events ------------------------------------------------------------
 
@@ -91,31 +90,9 @@ pub struct SetMangoDepositoryRedeemableSoftCapEvent {
     pub redeemable_soft_cap: u64,
 }
 
-// - Mango Depositories -------------------------------------------------------
-
-/// Event called in [instructions::mango_dex::deposit_insurance_to_mango_depository::handler].
+/// Event called in [instructions::*::deposit_insurance_to_*_depository::handler].
 #[event]
-pub struct DepositInsuranceToMangoDepositoryEvent {
-    /// The controller version.
-    #[index]
-    pub version: u8,
-    /// The controller.
-    #[index]
-    pub controller: Pubkey,
-    /// The depository.
-    #[index]
-    pub depository: Pubkey,
-    // The insurance mint.
-    pub insurance_mint: Pubkey,
-    // The insurance mint decimals.
-    pub insurance_mint_decimals: u8,
-    // The deposited amount in native units.
-    pub deposited_amount: u64,
-}
-
-/// Event called in [instructions::mango_dex::deposit_insurance_to_mango_depository::handler].
-#[event]
-pub struct DepositInsuranceToMangoDepositoryEventV2 {
+pub struct DepositInsuranceToDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,
@@ -153,9 +130,9 @@ pub struct WithdrawInsuranceFromMangoDepositoryEvent {
     pub withdrawn_amount: u64,
 }
 
-/// Event called in [instructions::mango_dex::withdraw_insurance_from_mango_depository::handler].
+// Event called in [instructions::*_dex::withdraw_insurance_from_*_depository::handler].
 #[event]
-pub struct WithdrawInsuranceFromMangoDepositoryEventV2 {
+pub struct WithdrawInsuranceFromDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,
@@ -188,19 +165,19 @@ pub struct MintWithMangoDepositoryEvent {
     /// The user making the call.
     #[index]
     pub user: Pubkey,
-    // The collateral amount in native units.
+    // The collateral amount in native units. (input)
     pub collateral_amount: u64,
-    // The user selected slippage.
-    pub slippage: u32,
+    // The user provided limit_price. (input)
+    pub limit_price: f32,
     // The different deltas after successful minting operation.
-    pub collateral_delta: u64,
-    pub redeemable_delta: u64,
-    pub fee_delta: u64,
+    pub base_delta: i64,
+    pub quote_delta: i64,
+    pub fee_delta: i64,
 }
 
-/// Event called in [instructions::mango_dex::redeem_from_mango_depository::handler].
+/// Event called in [instructions::*_dex::redeem_from_*_depository::handler].
 #[event]
-pub struct RedeemFromMangoDepositoryEvent {
+pub struct RedeemFromDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,
@@ -213,14 +190,14 @@ pub struct RedeemFromMangoDepositoryEvent {
     /// The user making the call.
     #[index]
     pub user: Pubkey,
-    // The redeemable amount in native units.
+    // The redeemable amount in native units. (input)
     pub redeemable_amount: u64,
-    // The user selected slippage.
-    pub slippage: u32,
+    // The user provided limit_price. (input)
+    pub limit_price: f32,
     // The different deltas after successful minting operation.
-    pub collateral_delta: u64,
-    pub redeemable_delta: u64,
-    pub fee_delta: u64,
+    pub base_delta: i64,
+    pub quote_delta: i64,
+    pub fee_delta: i64,
 }
 
 /// Event called in [instructions::rebalance_mango_depository_lite::handler].
@@ -241,16 +218,16 @@ pub struct RebalanceMangoDepositoryLiteEvent {
     /// The user making the call.
     #[index]
     pub user: Pubkey,
-    // The polarity of the rebalancing operation
+    // The polarity of the rebalancing operation. (input)
     pub polarity: PnlPolarity,
     // The desired rebalancing amount in Quote native units. (input)
     pub rebalancing_amount: u64,
     // The actual rebalancing amount in Quote native units.
     pub rebalanced_amount: u64,
-    // The user selected slippage.
-    pub slippage: u32,
+    // The user provided limit_price. (input)
+    pub limit_price: f32,
     // The different deltas after successful rebalancing operation.
-    pub collateral_delta: u64,
-    pub quote_delta: u64,
-    pub fee_delta: u64,
+    pub base_delta: i64,
+    pub quote_delta: i64,
+    pub fee_delta: i64,
 }

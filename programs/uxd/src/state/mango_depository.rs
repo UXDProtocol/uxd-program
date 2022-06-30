@@ -1,14 +1,32 @@
-use crate::declare_check_assert_macros;
-use crate::error::SourceFileId;
-use crate::error::UxdError;
-use crate::error::UxdErrorCode;
-use crate::UxdResult;
 use anchor_lang::prelude::*;
 
-declare_check_assert_macros!(SourceFileId::StateMangoDepository);
+pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 462;
+pub const MANGO_DEPOSITORY_SPACE: usize = 8
+    + 1
+    + 2
+    + 1
+    + 1
+    + 32
+    + 1
+    + 32
+    + 32
+    + 32
+    + 1
+    + 32
+    + 32
+    + 16
+    + 16
+    + 16
+    + 16
+    + 16
+    + 16
+    + 1
+    + 16
+    + 1
+    + MANGO_DEPOSITORY_RESERVED_SPACE;
 
-#[account]
-#[derive(Default)]
+#[account(zero_copy)]
+#[repr(packed)]
 pub struct MangoDepository {
     pub bump: u8,
     pub _unused: [u8; 2],
@@ -49,103 +67,15 @@ pub struct MangoDepository {
     // The amount of DN position that has been rebalanced (in quote native units)
     pub total_amount_rebalanced: u128,
     //
-    pub _reserved: MangoDepositoryPadding,
-}
-
-#[derive(Clone)]
-pub struct MangoDepositoryPadding([u8; 496]);
-
-impl AnchorSerialize for MangoDepositoryPadding {
-    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
-        writer.write_all(&self.0)
-    }
-}
-
-impl AnchorDeserialize for MangoDepositoryPadding {
-    fn deserialize(_: &mut &[u8]) -> Result<Self, std::io::Error> {
-        Ok(Self([0u8; 496]))
-    }
-}
-
-impl Default for MangoDepositoryPadding {
-    fn default() -> Self {
-        MangoDepositoryPadding([0u8; 496])
-    }
-}
-
-pub enum AccountingEvent {
-    Deposit,
-    Withdraw,
-}
-
-impl MangoDepository {
-    pub fn update_insurance_amount_deposited(
-        &mut self,
-        event_type: &AccountingEvent,
-        amount: u64,
-    ) -> UxdResult {
-        self.insurance_amount_deposited = match event_type {
-            AccountingEvent::Deposit => self
-                .insurance_amount_deposited
-                .checked_add(amount.into())
-                .ok_or(math_err!())?,
-            AccountingEvent::Withdraw => self
-                .insurance_amount_deposited
-                .checked_sub(amount.into())
-                .ok_or(math_err!())?,
-        };
-        Ok(())
-    }
-
-    pub fn update_collateral_amount_deposited(
-        &mut self,
-        event_type: &AccountingEvent,
-        amount: u64,
-    ) -> UxdResult {
-        self.collateral_amount_deposited = match event_type {
-            AccountingEvent::Deposit => self
-                .collateral_amount_deposited
-                .checked_add(amount.into())
-                .ok_or(math_err!())?,
-            AccountingEvent::Withdraw => self
-                .collateral_amount_deposited
-                .checked_sub(amount.into())
-                .ok_or(math_err!())?,
-        };
-        Ok(())
-    }
-
-    pub fn update_redeemable_amount_under_management(
-        &mut self,
-        event_type: &AccountingEvent,
-        amount: u64,
-    ) -> UxdResult {
-        self.redeemable_amount_under_management = match event_type {
-            AccountingEvent::Deposit => self
-                .redeemable_amount_under_management
-                .checked_add(amount.into())
-                .ok_or(math_err!())?,
-            AccountingEvent::Withdraw => self
-                .redeemable_amount_under_management
-                .checked_sub(amount.into())
-                .ok_or(math_err!())?,
-        };
-        Ok(())
-    }
-
-    pub fn update_total_amount_paid_taker_fee(&mut self, amount: u64) -> UxdResult {
-        self.total_amount_paid_taker_fee = self
-            .total_amount_paid_taker_fee
-            .checked_add(amount.into())
-            .ok_or(math_err!())?;
-        Ok(())
-    }
-
-    pub fn update_rebalanced_amount(&mut self, amount: u64) -> UxdResult {
-        self.total_amount_rebalanced = self
-            .total_amount_rebalanced
-            .checked_add(amount.into())
-            .ok_or(math_err!())?;
-        Ok(())
-    }
+    // The amount of redeemable that has been minted with quote mint
+    pub net_quote_minted: i128, // ** Change to make both ways
+    //
+    // The amount of fees taken per quote mint and quote redeem
+    pub quote_mint_and_redeem_fee: u8, // in units of BPs
+    //
+    // The amount of fees accrued from quote minting
+    pub total_quote_mint_and_redeem_fees: u128,
+    //
+    // Flag to indicate whether minting through collateral deposits is allowed
+    pub regular_minting_disabled: bool,
 }

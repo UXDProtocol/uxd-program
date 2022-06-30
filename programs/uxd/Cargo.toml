@@ -1,9 +1,10 @@
 [package]
 name = "uxd"
-version = "3.0.2"
+version = "3.1.0"
 authors = ["acammm <alexcamill@gmail.com>"]
 description = "UXDProtocol Program, managing a redeemable mint backed by a delta neutral position."
 edition = "2021"
+rust-version = "1.56"
 
 [lib]
 crate-type = ["cdylib", "lib"]
@@ -21,13 +22,16 @@ development = []
 
 [dependencies]
 solana-program = "^1.8.0"
-spl-token = { version = "^3.3.0", features = ["no-entrypoint"] }
-mango = { version = "3.4.2", git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
-anchor-lang = { version = "0.21.0", features = ["init-if-needed"] }
-anchor-spl = "0.21.0"
+spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
+mango = { tag = "v3.4.6", git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
+anchor-lang = "0.24.2"
+anchor-spl = "0.24.2"
+anchor-comp = { version = "0.2.3", git = "https://github.com/UXDProtocol/anchor-comp", default-features = false, features = ["no-entrypoint", "development"] }
+# anchor-comp = { version = "0.2.3", git = "https://github.com/UXDProtocol/anchor-comp", default-features = false, features = ["no-entrypoint", "production"] }
 fixed = "^1.9.0"
-thiserror = "^1.0.30"
-num_enum = "^0.5.6"
+num-traits = "0.2.14"
+spl-math = { version = "0.1.0", features = ["no-entrypoint"] }
+
 
 [dev-dependencies]
 proptest = "1.0.0"

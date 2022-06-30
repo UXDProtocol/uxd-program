@@ -1,13 +1,15 @@
 import { Keypair, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxd-protocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
 import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters, mangoDepositoryAndControllerInteractionsSuite } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
-import { mangoDepositoryInsuranceSuite } from "./suite/mangoDepositoryInsuranceSuite";
-import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
+import { mangoDepositoryInsuranceSuite } from "./suite/depositoryInsuranceSuite";
+import { mangoDepositorySetupSuite } from "./suite/depositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
+import { mangoDepositoryAndControllerAccountingSuite } from "./suite/mangoDepositoryAndControllerAccountingSuite";
+import { disableDepositoryMintingSuite } from "./suite/disableDepositoryMintingSuite";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -49,6 +51,10 @@ describe("Integration tests SOL", function () {
         mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositorySOL);
     });
 
+    describe("disableDepositoryMintingSuite SOL", function () {
+        disableDepositoryMintingSuite(authority, user, bank, controllerUXD, mangoDepositorySOL);
+    });
+
     describe("mangoDepositoryMintRedeemSuite SOL", function () {
         mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositorySOL, 20);
     });
@@ -58,13 +64,19 @@ describe("Integration tests SOL", function () {
         mangoDepositoryAndControllerInteractionsSuite(authority, user, bank, controllerUXD, mangoDepositorySOL, paramsSol);
     });
 
+    describe("mangoDepositoryAndControllerAccountingSuite SOL", function () {
+        const slippage = 20;
+        const collateralUnitShift = SOL_DECIMALS - 2; // SOL units - target units
+        mangoDepositoryAndControllerAccountingSuite(authority, user, bank, controllerUXD, mangoDepositorySOL, slippage, collateralUnitShift);
+    })
+
     this.afterAll("Transfer funds back to bank", async function () {
         await transferAllSol(user, bank.publicKey);
     });
 });
 
 // BTC
-describe("Integration tests BTC", function () {
+describe.skip("Integration tests BTC", function () {
 
     this.beforeAll("Init and fund user", async function () {
         console.log("USER =>", user.publicKey.toString());
@@ -99,7 +111,7 @@ describe("Integration tests BTC", function () {
 });
 
 // ETH
-describe("Integration tests ETH", function () {
+describe.skip("Integration tests ETH", function () {
 
     this.beforeAll("Init and fund user", async function () {
         console.log("USER =>", user.publicKey.toString());

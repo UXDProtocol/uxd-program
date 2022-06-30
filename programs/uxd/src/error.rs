@@ -1,231 +1,96 @@
-use crate::UxdResult;
-use crate::MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
-use crate::MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP;
-use anchor_lang::prelude::error;
-use anchor_lang::prelude::ProgramError;
-use mango::error::MangoError;
-use num_enum::IntoPrimitive;
-use thiserror::Error;
+use anchor_lang::prelude::*;
 
-#[repr(u8)]
-#[derive(Debug, Clone, Eq, PartialEq, Copy)]
-pub enum SourceFileId {
-    InstructionInitializeController = 0,
-    InstructionSetRedeemableGlobalSupplyCap = 1,
-    InstructionSetMangoDepositoriesRedeemableSoftCap = 2,
-    InstructionRegisterMangoDepository = 3,
-    InstructionMangoDexMintWithMangoDepository = 4,
-    InstructionMangoDexRedeemFromMangoDepository = 5,
-    InstructionMangoDexDepositInsuranceToMangoDepository = 6,
-    InstructionMangoDexWithdrawInsuranceFromMangoDepository = 7,
-    MangoProgramAnchorMango = 8,
-    MangoProgramDeposit = 9,
-    MangoProgramInitMangoAccount = 10,
-    MangoProgramPlacePerpOrder = 11,
-    MangoProgramWithdraw = 12,
-    MangoUtilsLimitUtils = 13,
-    MangoUtilsOrderDelta = 14,
-    MangoUtilsOrder = 15,
-    MangoUtilsPerpAccountUtils = 16,
-    MangoUtilsPerpInfo = 17,
-    StateController = 18,
-    StateMangoDepository = 19,
-    Error = 20,
-    Lib = 21,
-    InstructionMangoDexRebalanceMangoDepositoryLite = 22,
-    InstructionMangoDexMigrateMangoDepositoryToV2 = 23,
-}
-
-impl std::fmt::Display for SourceFileId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SourceFileId::InstructionInitializeController => {
-                write!(f, "src/instructions/initialize_controller.rs")
-            }
-            SourceFileId::InstructionSetRedeemableGlobalSupplyCap => {
-                write!(f, "src/instructions/set_redeemable_global_supply_cap.rs")
-            }
-            SourceFileId::InstructionSetMangoDepositoriesRedeemableSoftCap => {
-                write!(
-                    f,
-                    "src/instructions/set_mango_depositories_redeemable_soft_cap.rs"
-                )
-            }
-            SourceFileId::InstructionRegisterMangoDepository => {
-                write!(f, "src/instructions/register_mango_depository.rs")
-            }
-            SourceFileId::InstructionMangoDexMintWithMangoDepository => {
-                write!(
-                    f,
-                    "src/instructions/mango_dex/mint_with_mango_depository.rs"
-                )
-            }
-            SourceFileId::InstructionMangoDexRedeemFromMangoDepository => {
-                write!(
-                    f,
-                    "src/instructions/mango_dex/redeem_from_mango_depository.rs"
-                )
-            }
-            SourceFileId::InstructionMangoDexDepositInsuranceToMangoDepository => {
-                write!(
-                    f,
-                    "src/instructions/mango_dex/deposit_insurance_to_mango_depository.rs"
-                )
-            }
-            SourceFileId::InstructionMangoDexWithdrawInsuranceFromMangoDepository => {
-                write!(
-                    f,
-                    "src/instructions/mango_dex/withdraw_insurance_from_mango_depository.rs"
-                )
-            }
-            SourceFileId::MangoProgramAnchorMango => {
-                write!(f, "src/mango_program/anchor_mango.rs")
-            }
-            SourceFileId::MangoProgramDeposit => {
-                write!(f, "src/mango_program/deposit.rs")
-            }
-            SourceFileId::MangoProgramInitMangoAccount => {
-                write!(f, "src/mango_program/init_mango_account.rs")
-            }
-            SourceFileId::MangoProgramPlacePerpOrder => {
-                write!(f, "src/mango_program/place_perp_order.rs")
-            }
-            SourceFileId::MangoProgramWithdraw => {
-                write!(f, "src/mango_program/withdraw.rs")
-            }
-            SourceFileId::MangoUtilsLimitUtils => {
-                write!(f, "src/mango_utils/limit_utils.rs")
-            }
-            SourceFileId::MangoUtilsOrderDelta => {
-                write!(f, "src/mango_utils/order_delta.rs")
-            }
-            SourceFileId::MangoUtilsOrder => {
-                write!(f, "src/mango_utils/order.rs")
-            }
-            SourceFileId::MangoUtilsPerpAccountUtils => {
-                write!(f, "src/mango_utils/perp_account_utils.rs")
-            }
-            SourceFileId::MangoUtilsPerpInfo => {
-                write!(f, "src/mango_utils/perp_info.rs")
-            }
-            SourceFileId::StateController => {
-                write!(f, "src/state/controller.rs")
-            }
-            SourceFileId::StateMangoDepository => {
-                write!(f, "src/state/mango_depository.rs")
-            }
-            SourceFileId::Error => {
-                write!(f, "src/error.rs")
-            }
-            SourceFileId::Lib => {
-                write!(f, "src/lib.rs")
-            }
-            SourceFileId::InstructionMangoDexRebalanceMangoDepositoryLite => {
-                write!(
-                    f,
-                    "src/instructions/mango_dex/rebalance_mango_depository_lite.rs"
-                )
-            }
-            SourceFileId::InstructionMangoDexMigrateMangoDepositoryToV2 => {
-                write!(
-                    f,
-                    "src/instructions/mango_dex/migrate_mango_depository_to_v2.rs"
-                )
-            }
-        }
-    }
-}
-
-#[derive(Error, Debug, PartialEq, Eq)]
+#[error_code]
 pub enum UxdError {
-    #[error(transparent)]
-    ProgramError(#[from] ProgramError),
-    #[error("{uxd_error_code}; {source_file_id}:{line}")]
-    UxdErrorCode {
-        uxd_error_code: UxdErrorCode,
-        line: u32,
-        source_file_id: SourceFileId,
-    },
-}
-
-// GENERIC PROGRAM ERRORS
-#[derive(Debug, Error, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
-#[repr(u32)]
-pub enum UxdErrorCode {
-    #[error("The redeemable mint decimals must be between 0 and 9 (inclusive).")]
-    InvalidRedeemableMintDecimals = 0,
-    #[error("Redeemable global supply above {}.", MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP)]
+    /// Program errors
+    ///
+    #[msg("The redeemable mint decimals must be between 0 and 9 (inclusive).")]
+    InvalidRedeemableMintDecimals,
+    #[msg("Redeemable global supply above.")]
     InvalidRedeemableGlobalSupplyCap,
-    #[error("The associated mango root bank index cannot be found for the deposited coin..")]
+    #[msg("The associated mango root bank index cannot be found for the deposited coin..")]
     RootBankIndexNotFound,
-    #[error("The slippage value is invalid. Must be in the [0...1000] range points.")]
-    InvalidSlippage,
-    #[error("Could not fill the order given order book state and provided slippage.")]
+    #[msg("The provided limit_price value is invalid, must be > 0")]
+    InvalidLimitPrice,
+    #[msg("Could not fill the order given order book state and provided slippage.")]
     EffectiveOrderPriceBeyondLimitPrice,
-    #[error("Collateral amount must be > 0 in order to mint.")]
+    #[msg("Collateral amount cannot be 0")]
     InvalidCollateralAmount,
-    #[error("The balance of the collateral ATA is not enough to fulfill the mint operation.")]
-    InsufficientCollateralAmount,
-    #[error("The redeemable amount for redeem must be superior to 0.")]
+    #[msg("Quote amount must be > 0 in order to mint.")]
+    InvalidQuoteAmount,
+    #[msg("Redeemable amount must be > 0 in order to redeem.")]
     InvalidRedeemableAmount,
-    #[error("The balance of the redeemable ATA is not enough to fulfill the redeem operation.")]
+    #[msg("The balance of the collateral ATA is not enough to fulfill the mint operation.")]
+    InsufficientCollateralAmount,
+    #[msg("The balance of the quote ATA is not enough to fulfil the mint operation.")]
+    InsufficientQuoteAmountMint,
+    #[msg("The balance of the redeemable ATA is not enough to fulfil the redeem operation.")]
+    InsufficientRedeemableAmountMint,
+    #[msg("The balance of the redeemable ATA is not enough to fulfill the redeem operation.")]
     InsufficientRedeemableAmount,
-    #[error("The perp position could not be fully filled with the provided slippage.")]
+    #[msg("The perp position could not be fully filled with the provided slippage.")]
     PerpOrderPartiallyFilled,
-    #[error("Minting amount would go past the Redeemable Global Supply Cap.")]
-    RedeemableGlobalSupplyCapReached = 10,
-    #[error("Operation not allowed due to being over the Redeemable soft Cap.")]
+    #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
+    RedeemableGlobalSupplyCapReached,
+    #[msg("Operation not allowed due to being over the Mango Redeemable soft Cap.")]
     MangoDepositoriesSoftCapOverflow,
-    #[error("Cannot register more mango depositories, the limit has been reached.")]
+    #[msg("Cannot register more mango depositories, the limit has been reached.")]
     MaxNumberOfMangoDepositoriesRegisteredReached,
-    #[error("The amount to withdraw from the Insurance Fund must be superior to zero..")]
+    #[msg("The amount to withdraw from the Insurance Fund must be superior to zero..")]
     InvalidInsuranceAmount,
-    #[error("The Insurance ATA from authority doesn't have enough balance.")]
-    InsufficientAuthorityInsuranceAmount,
-    #[error("The rebalanced amount must be superior to zero..")]
+    #[msg("The Quote ATA from authority doesn't have enough balance.")]
+    InsufficientAuthorityQuoteAmount,
+    #[msg("The rebalanced amount must be superior to zero..")]
     InvalidRebalancedAmount,
-    #[error("Insufficient order book depth for order.")]
+    #[msg("Insufficient order book depth for order.")]
     InsufficientOrderBookDepth,
-    #[error("The executed order size does not match the expected one.")]
+    #[msg("The executed order size does not match the expected one.")]
     InvalidExecutedOrderSize,
-    #[error("Could not find the perp market index for the given collateral.")]
-    MangoPerpMarketIndexNotFound,
-    #[error(
-        "Mango depositories redeemable soft cap above {}.",
-        MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP
-    )]
+    #[msg("Mango depositories redeemable soft cap above.")]
     InvalidMangoDepositoriesRedeemableSoftCap,
-    #[error("Quote_lot_delta can't be 0.")]
-    InvalidQuoteDelta = 20,
-    #[error("The perp order wasn't executed in the right direction.")]
+    #[msg("Quote_lot_delta can't be 0.")]
+    InvalidQuoteDelta,
+    #[msg("The perp order wasn't executed in the right direction.")]
     InvalidOrderDirection,
-    #[error("Math error.")]
+    #[msg("Math error.")]
     MathError,
-    #[error("The order couldn't be executed with the provided slippage.")]
+    #[msg("The order couldn't be executed with the provided slippage.")]
     SlippageReached,
-    #[error("The rebalancing amount must be above 0.")]
+    #[msg("The rebalancing amount must be above 0.")]
     InvalidRebalancingAmount,
-    #[error("The Quote amount in the provided user_quote ATA must be >= max_amount_rebalancing.")]
+    #[msg("The Quote amount in the provided user_quote ATA must be >= max_amount_rebalancing.")]
     InsufficientQuoteAmount,
-    #[error("The PnL polarity provided is not the same as the perp position's one.")]
+    #[msg("The PnL polarity provided is not the same as the perp position's one.")]
     InvalidPnlPolarity,
-    #[error("The rebalanced amount doesn't match the expected rebalance amount.")]
+    #[msg("The rebalanced amount doesn't match the expected rebalance amount.")]
     RebalancingError,
-    #[error("A bump was expected but is missing.")]
+    #[msg("A bump was expected but is missing.")]
     BumpError,
-    #[error("The order is below size is below the min lot size.")]
+    #[msg("The order is below size is below the min lot size.")]
     OrderSizeBelowMinLotSize,
-    #[error("The collateral delta post perp order doesn't match the planned one.")]
+    #[msg("The collateral delta post perp order doesn't match the planned one.")]
     InvalidCollateralDelta,
-    #[error("The order quantity is below contract_size of the perp market.")]
+    #[msg("The perp market index could not be found for this MangoMarkets Pair.")]
+    MangoPerpMarketIndexNotFound,
+    #[msg("Could not load the provided MangoGroup account.")]
+    InvalidMangoGroup,
+    #[msg("The order quantity is below contract_size of the perp market.")]
     QuantityBelowContractSize,
-    #[error("MangoErrorCode::Default Check the source code for more info")]
-    Default = u32::MAX,
-}
+    #[msg("The amount trying to be quote minted is larger than quote mintable.")]
+    QuoteAmountTooHigh,
+    #[msg("The amount trying to be quote redeemed is larger than quote redeemable.")]
+    RedeemableAmountTooHigh,
+    #[msg("Minting is disabled for the current depository.")]
+    MintingDisabled,
+    #[msg("Minting is already disabled/enabled.")]
+    MintingAlreadyDisabledOrEnabled,
+    #[msg("The quote amount requested is beyond the soft cap limitation.")]
+    QuoteAmountExceedsSoftCap,
+    #[msg("The quote currency is not the expected one.")]
+    InvalidQuoteCurrency,
 
-// ANCHOR IDL ERRORS
-#[error(offset = 200)]
-pub enum UxdIdlErrorCode {
+    /// Anchor DSL related errors
+    ///
     #[msg("Only the Program initializer authority can access this instructions.")]
     InvalidAuthority,
     #[msg("The Depository's controller doesn't match the provided Controller.")]
@@ -236,111 +101,19 @@ pub enum UxdIdlErrorCode {
     InvalidCollateralMint,
     #[msg("The provided quote mint does not match the depository's quote mint.")]
     InvalidQuoteMint,
-    #[msg("The authority's Quote ATA's mint does not match the Depository's one.")]
-    InvalidAuthorityQuoteATAMint,
     #[msg("The Mango Account isn't the Depository one.")]
     InvalidMangoAccount,
     #[msg("The Redeemable Mint provided does not match the Controller's one.")]
     InvalidRedeemableMint,
-}
+    #[msg("The provided perp_market is not the one tied to this Depository.")]
+    InvalidDexMarket,
+    #[msg("The provided token account is not owner by the expected party.")]
+    InvalidOwner,
+    #[msg("The max base quantity must be above 0.")]
+    InvalidMaxBaseQuantity,
+    #[msg("The max quote quantity must be above 0.")]
+    InvalidMaxQuoteQuantity,
 
-impl From<UxdError> for ProgramError {
-    fn from(e: UxdError) -> ProgramError {
-        match e {
-            UxdError::ProgramError(pe) => pe,
-            UxdError::UxdErrorCode {
-                uxd_error_code,
-                line: _,
-                source_file_id: _,
-            } => ProgramError::Custom(uxd_error_code.into()),
-        }
-    }
-}
-
-impl From<MangoError> for UxdError {
-    fn from(me: MangoError) -> Self {
-        let pe: ProgramError = me.into();
-        pe.into()
-    }
-}
-
-#[inline]
-pub fn check_assert(
-    cond: bool,
-    uxd_error_code: UxdErrorCode,
-    line: u32,
-    source_file_id: SourceFileId,
-) -> UxdResult<()> {
-    if cond {
-        Ok(())
-    } else {
-        Err(UxdError::UxdErrorCode {
-            uxd_error_code,
-            line,
-            source_file_id,
-        })
-    }
-}
-
-#[macro_export]
-macro_rules! declare_check_assert_macros {
-    ($source_file_id:expr) => {
-        #[allow(unused_macros)]
-        macro_rules! check {
-            ($cond:expr, $err:expr) => {
-                check_assert($cond, $err, line!(), $source_file_id)
-            };
-        }
-
-        #[allow(unused_macros)]
-        macro_rules! check_eq {
-            ($x:expr, $y:expr, $err:expr) => {
-                check_assert($x == $y, $err, line!(), $source_file_id)
-            };
-        }
-
-        #[allow(unused_macros)]
-        macro_rules! throw {
-            () => {
-                UxdError::UxdErrorCode {
-                    uxd_error_code: UxdErrorCode::Default,
-                    line: line!(),
-                    source_file_id: $source_file_id,
-                }
-            };
-        }
-
-        #[allow(unused_macros)]
-        macro_rules! throw_err {
-            ($err:expr) => {
-                UxdError::UxdErrorCode {
-                    uxd_error_code: $err,
-                    line: line!(),
-                    source_file_id: $source_file_id,
-                }
-            };
-        }
-
-        #[allow(unused_macros)]
-        macro_rules! math_err {
-            () => {
-                UxdError::UxdErrorCode {
-                    uxd_error_code: UxdErrorCode::MathError,
-                    line: line!(),
-                    source_file_id: $source_file_id,
-                }
-            };
-        }
-
-        #[allow(unused_macros)]
-        macro_rules! bump_err {
-            () => {
-                UxdError::UxdErrorCode {
-                    uxd_error_code: UxdErrorCode::BumpError,
-                    line: line!(),
-                    source_file_id: $source_file_id,
-                }
-            };
-        }
-    };
+    #[msg("Default - Check the source code for more info.")]
+    Default,
 }

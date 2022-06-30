@@ -1,10 +1,10 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, Mango } from "@uxdprotocol/uxd-client";
+import { Controller, MangoDepository, Mango } from "@uxd-protocol/uxd-client";
 import { registerMangoDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection } from "../connection";
 
-export const initializeMangoDepositoryTest = async function (authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
+export const registerMangoDepositoryTest = async function (authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
     console.group("🧭 initializeMangoDepositoryTest");
     try {
         // WHEN
@@ -20,6 +20,7 @@ export const initializeMangoDepositoryTest = async function (authority: Signer, 
         depository.info();
         console.groupEnd();
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }

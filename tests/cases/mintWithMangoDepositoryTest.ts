@@ -1,6 +1,6 @@
 import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, Mango, MangoDepository, findATAAddrSync } from "@uxdprotocol/uxd-client";
+import { Controller, Mango, MangoDepository, findATAAddrSync } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { mintWithMangoDepository } from "../api";
 import { CLUSTER, slippageBase } from "../constants";
@@ -65,10 +65,12 @@ export const mintWithMangoDepositoryTest = async function (collateralAmount: num
         expect(collateralAmount).closeTo(collateralProcessedByMinting + collateralOddLotLeftOver, collateralNativeUnitPrecision, "The amount of collateral left over + processed is not equal to the collateral amount inputted initially");
         expect(redeemableDelta).greaterThanOrEqual(worthExecutionPriceRedeemableDelta, "The amount minted is out of the slippage range");
         expect(collateralOddLotLeftOver).lessThanOrEqual(minTradingSizeCollateral * 2, "The collateral odd lot returned is higher than twice the minTradingSize for that perp.");
+        expect(collateralDelta).to.be.lessThanOrEqual(collateralAmount, "User paid more collateral than inputted amount");
 
         console.groupEnd();
         return redeemableDelta;
     } catch (error) {
+        console.error("❌", error);
         console.groupEnd();
         throw error;
     }
