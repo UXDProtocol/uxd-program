@@ -15,7 +15,7 @@ pub struct OrderDelta {
 }
 
 // Quote delta between two states of perp account
-pub fn quote_delta(
+pub(crate) fn quote_delta(
     pre_pa: &PerpAccount,
     post_pa: &PerpAccount,
     quote_lot_size: I80F48,
@@ -31,7 +31,7 @@ pub fn quote_delta(
 }
 
 // Quote delta between two states of perp account
-pub fn base_delta(
+pub(crate) fn base_delta(
     pre_pa: &PerpAccount,
     post_pa: &PerpAccount,
     base_lot_size: I80F48,
@@ -47,20 +47,20 @@ pub fn base_delta(
 }
 
 // returns the amount of taker_fee paid for trading raw_quote_amount (rounded up)
-pub fn taker_fee_amount_ceil(raw_quote_amount: I80F48, taker_fee: I80F48) -> Result<I80F48> {
+pub(crate) fn taker_fee_amount_ceil(raw_quote_amount: I80F48, taker_fee: I80F48) -> Result<I80F48> {
     let fee_amount = raw_quote_amount
         .checked_mul(taker_fee)
         .ok_or_else(|| error!(UxdError::MathError))?;
     // The absolute amount of fee paid must always be rounded up in the business logic
     // hence the sign being taken into consideration
-    return match fee_amount.is_positive() {
+    match fee_amount.is_positive() {
         true => fee_amount
             .checked_ceil()
             .ok_or_else(|| error!(UxdError::MathError)),
         false => fee_amount
             .checked_floor()
             .ok_or_else(|| error!(UxdError::MathError)),
-    };
+    }
 }
 
 // Note : removes the taker fees from the redeemable_delta.
@@ -69,7 +69,7 @@ pub fn taker_fee_amount_ceil(raw_quote_amount: I80F48, taker_fee: I80F48) -> Res
 //  and update all mango internals / resolve the unsettled balance change, and process fees.
 //  The amount minted/redeemed offsets accordingly to reflect that change that will be settled in the future.
 // MangoMarkets v3.3.5 : Fees are now reflected directly in the quote_position, still not in the taker_quote
-pub fn derive_order_delta(
+pub(crate) fn derive_order_delta(
     pre_pa: &PerpAccount,
     post_pa: &PerpAccount,
     perp_info: &PerpInfo,

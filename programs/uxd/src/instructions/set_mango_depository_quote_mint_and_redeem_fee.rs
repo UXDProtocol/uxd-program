@@ -32,7 +32,7 @@ pub struct SetMangoDepositoryQuoteMintAndRedeemFee<'info> {
     pub depository: AccountLoader<'info, MangoDepository>,
 }
 
-pub fn handler(
+pub(crate) fn handler(
     ctx: Context<SetMangoDepositoryQuoteMintAndRedeemFee>,
     quote_fee: u8, // in bps
 ) -> Result<()> {
