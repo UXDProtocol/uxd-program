@@ -23,6 +23,7 @@ pub const MANGO_DEPOSITORY_SPACE: usize = 8
     + 1
     + 16
     + 1
+    + 1
     + MANGO_DEPOSITORY_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -73,9 +74,14 @@ pub struct MangoDepository {
     // The amount of fees taken per quote mint and quote redeem
     pub quote_mint_and_redeem_fee: u8, // in units of BPs
     //
-    // The amount of fees accrued from quote minting
+    // The amount of fees accrued from quote minting and redeeming
     pub total_quote_mint_and_redeem_fees: u128,
     //
     // Flag to indicate whether minting through collateral deposits is allowed
     pub regular_minting_disabled: bool,
+    // The amount of fees taken per regular mint and redeem
+    pub mint_and_redeem_fee: u8, // in units of BPs
+    //
+    // The amount of fees accrued from minting and redeeming
+    pub total_mint_and_redeem_fees: u128,
 }

@@ -407,15 +407,30 @@ pub mod uxd {
         instructions::quote_redeem_from_mango_depository::handler(ctx, redeemable_amount)
     }
 
+    /// Set the amount of BPS collected on each quote mint/redeem operation.
+    /// This is optional and the proceeds go to the protocol.
     pub fn set_mango_depository_quote_mint_and_redeem_fee(
         ctx: Context<SetMangoDepositoryQuoteMintAndRedeemFee>,
-        quote_fee: u8,
+        quote_fee: u8, // In bps
     ) -> Result<()> {
         msg!(
             "[set_mango_depository_quote_mint_and_redeem_fee] quote_fee {}",
             quote_fee
         );
         instructions::set_mango_depository_quote_mint_and_redeem_fee::handler(ctx, quote_fee)
+    }
+
+    /// Set the amount of BPS collected on each mint/redeem operation.
+    /// This is optional and the proceeds go to the protocol.
+    pub fn set_mango_depository_mint_and_redeem_fee(
+        ctx: Context<SetMangoDepositoryMintAndRedeemFee>,
+        fee: u8, // In bps
+    ) -> Result<()> {
+        msg!(
+            "[set_mango_depository_mint_and_redeem_fee] quote_fee {}",
+            fee
+        );
+        instructions::set_mango_depository_mint_and_redeem_fee::handler(ctx, fee)
     }
 
     /// Disable or enable regular minting for given Mango Depository.
