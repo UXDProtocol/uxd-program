@@ -31,7 +31,7 @@ pub struct DisableDepositoryRegularMinting<'info> {
     pub depository: AccountLoader<'info, MangoDepository>,
 }
 
-pub fn handler(ctx: Context<DisableDepositoryRegularMinting>, disable: bool) -> Result<()> {
+pub(crate) fn handler(ctx: Context<DisableDepositoryRegularMinting>, disable: bool) -> Result<()> {
     let depository = &mut ctx.accounts.depository.load_mut()?;
     depository.regular_minting_disabled = disable;
     Ok(())
@@ -39,7 +39,7 @@ pub fn handler(ctx: Context<DisableDepositoryRegularMinting>, disable: bool) -> 
 
 // Validate input arguments
 impl<'info> DisableDepositoryRegularMinting<'info> {
-    pub fn validate(&self, disable: bool) -> Result<()> {
+    pub(crate) fn validate(&self, disable: bool) -> Result<()> {
         require!(
             self.depository.load()?.regular_minting_disabled != disable,
             UxdError::MintingAlreadyDisabledOrEnabled

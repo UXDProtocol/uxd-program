@@ -21,7 +21,7 @@ pub struct SetRedeemableGlobalSupplyCap<'info> {
     pub controller: AccountLoader<'info, Controller>,
 }
 
-pub fn handler(
+pub(crate) fn handler(
     ctx: Context<SetRedeemableGlobalSupplyCap>,
     redeemable_global_supply_cap: u128,
 ) -> Result<()> {
@@ -39,7 +39,7 @@ pub fn handler(
 #[allow(clippy::absurd_extreme_comparisons)]
 impl<'info> SetRedeemableGlobalSupplyCap<'info> {
     // Asserts that the redeemable global supply cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
-    pub fn validate(&self, redeemable_global_supply_cap: u128) -> Result<()> {
+    pub(crate) fn validate(&self, redeemable_global_supply_cap: u128) -> Result<()> {
         require!(
             redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP,
             UxdError::InvalidRedeemableGlobalSupplyCap
