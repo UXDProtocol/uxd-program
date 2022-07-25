@@ -1,6 +1,5 @@
 use crate::error::UxdError;
-use crate::MANGO_PERP_MAX_FILL_EVENTS;
-// use crate::events::RebalanceMangoDepositoryLiteEvent;
+use crate::events::RebalanceMangoDepositoryLiteEvent;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::total_perp_base_lot_position;
@@ -11,6 +10,7 @@ use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
+use crate::MANGO_PERP_MAX_FILL_EVENTS;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -298,9 +298,9 @@ pub fn handler(
     let max_quote_quantity = rebalancing_amount
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
-    let limit_price =
+    let limit_price_fixed =
         I80F48::checked_from_num(limit_price).ok_or_else(|| error!(UxdError::MathError))?;
-    let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
+    let limit_price_lot = price_to_lot_price(limit_price_fixed, &perp_info)?;
     let reduce_only = taker_side == Side::Bid;
 
     require!(max_quote_quantity != 0, UxdError::QuantityBelowContractSize);
@@ -439,20 +439,20 @@ pub fn handler(
         }
     }
 
-    // emit!(RebalanceMangoDepositoryLiteEvent {
-    //     version: controller.version,
-    //     depository_version: depository.version,
-    //     controller: controller.key(),
-    //     depository: depository.key(),
-    //     user: ctx.accounts.user.key(),
-    //     polarity: polarity.clone(),
-    //     rebalancing_amount: max_rebalancing_amount,
-    //     rebalanced_amount: rebalancing_quote_amount.to_num(),
-    //     limit_price,
-    //     base_delta: order_delta.base.to_num(),
-    //     quote_delta: order_delta.quote.to_num(),
-    //     fee_delta: order_delta.fee.to_num(),
-    // });
+    emit!(RebalanceMangoDepositoryLiteEvent {
+        version: ctx.accounts.controller.load()?.version,
+        depository_version: ctx.accounts.depository.load()?.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        polarity: polarity.clone(),
+        rebalancing_amount: max_rebalancing_amount,
+        rebalanced_amount: rebalancing_quote_amount.to_num(),
+        limit_price,
+        base_delta: order_delta.base.to_num(),
+        quote_delta: order_delta.quote.to_num(),
+        fee_delta: order_delta.fee.to_num(),
+    });
 
     Ok(())
 }

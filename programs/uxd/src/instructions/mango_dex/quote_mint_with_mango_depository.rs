@@ -196,7 +196,6 @@ pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) ->
         UxdError::InvalidPnlPolarity
     );
 
-    msg!("quote_amount {}", quote_amount);
     msg!("perp_unrealized_pnl {}", perp_unrealized_pnl);
 
     // Checks that the requested mint amount is lesser than or equal to the available amount

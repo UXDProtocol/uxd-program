@@ -1,5 +1,4 @@
-use crate::MANGO_PERP_MAX_FILL_EVENTS;
-// use crate::events::MintWithMangoDepositoryEvent2;
+use crate::events::MintWithMangoDepositoryEvent;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::total_perp_base_lot_position;
@@ -11,6 +10,7 @@ use crate::UxdError;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
+use crate::MANGO_PERP_MAX_FILL_EVENTS;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
@@ -208,9 +208,9 @@ pub fn handler(
     // Note : Augment the delta neutral position, increasing short exposure, by selling perp.
     //        [BID: maker | ASK: taker (us, the caller)]
     let taker_side = Side::Ask;
-    let limit_price =
+    let limit_price_fixed =
         I80F48::checked_from_num(limit_price).ok_or_else(|| error!(UxdError::MathError))?;
-    let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
+    let limit_price_lot = price_to_lot_price(limit_price_fixed, &perp_info)?;
     let max_base_quantity_num = max_base_quantity.to_num();
     // - [MangoMarkets CPI - Place perp order]
     mango_markets_v3::place_perp_order2(
@@ -291,17 +291,17 @@ pub fn handler(
     // - 6 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
-    // emit!(MintWithMangoDepositoryEvent {
-    //     version: controller.version,
-    //     controller: controller.key(),
-    //     depository: depository.key(),
-    //     user: ctx.accounts.user.key(),
-    //     collateral_amount,
-    //     limit_price,
-    //     base_delta: order_delta.base.to_num(),
-    //     quote_delta: order_delta.quote.to_num(),
-    //     fee_delta: order_delta.fee.to_num(),
-    // });
+    emit!(MintWithMangoDepositoryEvent {
+        version: ctx.accounts.controller.load()?.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        collateral_amount,
+        limit_price,
+        base_delta: order_delta.base.to_num(),
+        quote_delta: order_delta.quote.to_num(),
+        fee_delta: order_delta.fee.to_num(),
+    });
 
     Ok(())
 }
