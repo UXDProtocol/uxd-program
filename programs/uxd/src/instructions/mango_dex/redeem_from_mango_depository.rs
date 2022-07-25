@@ -159,7 +159,7 @@ pub struct RedeemFromMangoDepository<'info> {
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 
-pub fn handler(
+pub(crate) fn handler(
     ctx: Context<RedeemFromMangoDepository>,
     redeemable_amount: u64,
     limit_price: f32,
@@ -217,7 +217,7 @@ pub fn handler(
     // - [CPI MangoMarkets - Place perp order]
     mango_markets_v3::place_perp_order2(
         ctx.accounts
-            .into_close_mango_short_perp_context()
+            .to_close_mango_short_perp_context()
             .with_signer(depository_signer_seed),
         taker_side,
         limit_price_lot.to_num(),
@@ -255,7 +255,7 @@ pub fn handler(
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     token::burn(
-        ctx.accounts.into_burn_redeemable_context(),
+        ctx.accounts.to_burn_redeemable_context(),
         redeemable_burn_amount,
     )?;
 
@@ -270,7 +270,7 @@ pub fn handler(
     // - [CPI MangoMarkets - Withdraw]
     mango_markets_v3::withdraw(
         ctx.accounts
-            .into_withdraw_collateral_from_mango_context()
+            .to_withdraw_collateral_from_mango_context()
             .with_signer(depository_signer_seed),
         collateral_withdraw_amount,
         false,
@@ -278,7 +278,7 @@ pub fn handler(
 
     // - [If ATA mint is WSOL, unwrap]
     if collateral_mint == spl_token::native_mint::id() {
-        token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
+        token::close_account(ctx.accounts.to_unwrap_wsol_by_closing_ata_context())?;
     }
 
     // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
@@ -307,7 +307,9 @@ pub fn handler(
 // MARK: - Contexts -----
 
 impl<'info> RedeemFromMangoDepository<'info> {
-    pub fn into_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+    fn to_burn_redeemable_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
@@ -317,7 +319,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_close_mango_short_perp_context(
+    fn to_close_mango_short_perp_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::PlacePerpOrder2<'info>> {
         let cpi_accounts = mango_markets_v3::PlacePerpOrder2 {
@@ -334,7 +336,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_withdraw_collateral_from_mango_context(
+    fn to_withdraw_collateral_from_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Withdraw<'info>> {
         let cpi_accounts = mango_markets_v3::Withdraw {
@@ -352,7 +354,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_unwrap_wsol_by_closing_ata_context(
+    fn to_unwrap_wsol_by_closing_ata_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, CloseAccount<'info>> {
         let cpi_program = self.token_program.to_account_info();
@@ -426,7 +428,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> RedeemFromMangoDepository<'info> {
-    pub fn validate(&self, redeemable_amount: u64, limit_price: f32) -> Result<()> {
+    pub(crate) fn validate(&self, redeemable_amount: u64, limit_price: f32) -> Result<()> {
         require!(limit_price > 0f32, UxdError::InvalidLimitPrice);
         require!(redeemable_amount != 0, UxdError::InvalidRedeemableAmount);
         require!(
