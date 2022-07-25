@@ -133,7 +133,7 @@ pub struct QuoteMintWithMangoDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) -> Result<()> {
+pub(crate) fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) -> Result<()> {
     let depository = ctx.accounts.depository.load()?;
     let controller = &ctx.accounts.controller;
     let depository_pda_signer: &[&[&[u8]]] = &[&[
@@ -213,7 +213,7 @@ pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) ->
     // - 4 [DEPOSIT QUOTE MINT INTO MANGO ACCOUNT] -------------------------------
     mango_markets_v3::deposit(
         ctx.accounts
-            .into_deposit_quote_to_mango_context()
+            .to_deposit_quote_to_mango_context()
             .with_signer(depository_pda_signer),
         quote_amount,
     )?;
@@ -245,7 +245,7 @@ pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) ->
 
     token::mint_to(
         ctx.accounts
-            .into_mint_redeemable_context()
+            .to_mint_redeemable_context()
             .with_signer(controller_pda_signer),
         redeemable_mint_amount_less_fees,
     )?;
@@ -261,7 +261,7 @@ pub fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: u64) ->
 }
 
 impl<'info> QuoteMintWithMangoDepository<'info> {
-    pub fn into_deposit_quote_to_mango_context(
+    fn to_deposit_quote_to_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Deposit<'info>> {
         let cpi_accounts = mango_markets_v3::Deposit {
@@ -278,7 +278,9 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+    fn to_mint_redeemable_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = MintTo {
             mint: self.redeemable_mint.to_account_info(),
@@ -363,7 +365,7 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> QuoteMintWithMangoDepository<'info> {
-    pub fn validate(&self, quote_amount: u64) -> Result<()> {
+    pub(crate) fn validate(&self, quote_amount: u64) -> Result<()> {
         require!(quote_amount != 0, UxdError::InvalidQuoteAmount);
         require!(
             self.user_quote.amount >= quote_amount,

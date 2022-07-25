@@ -19,7 +19,7 @@ pub struct SetMangoDepositoryQuoteMintAndRedeemSoftCap<'info> {
     pub controller: AccountLoader<'info, Controller>,
 }
 
-pub fn handler(
+pub(crate) fn handler(
     ctx: Context<SetMangoDepositoryQuoteMintAndRedeemSoftCap>,
     quote_redeemable_soft_cap: u64, // in redeemable native units
 ) -> Result<()> {
