@@ -173,7 +173,7 @@ pub struct MintWithMangoDepositoryEvent {
     pub base_delta: i64,
     pub quote_delta: i64,
     pub dex_fee_delta: i64,
-    pub mint_fee_delta: i64,
+    pub mint_fee_delta: u64,
 }
 
 /// Event called in [instructions::mango_dex::redeem_from_mango_depository::handler].
@@ -199,6 +199,7 @@ pub struct RedeemFromMangoDepositoryEvent {
     pub base_delta: i64,
     pub quote_delta: i64,
     pub fee_delta: i64,
+    pub redeem_fee_delta: u64,
 }
 
 /// Event called in [instructions::rebalance_mango_depository_lite::handler].

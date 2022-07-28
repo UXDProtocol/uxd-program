@@ -1,3 +1,4 @@
+use crate::BPS_UNIT_CONVERSION;
 use crate::error::UxdError;
 use crate::events::RedeemFromMangoDepositoryEvent;
 use crate::mango_utils::derive_order_delta;
@@ -168,6 +169,7 @@ pub(crate) fn handler(
     let depository = ctx.accounts.depository.load()?;
     let collateral_mint = depository.collateral_mint;
     let depository_bump = depository.bump;
+    let regular_redeem_fee = depository.regular_redeem_fee;
     drop(depository);
 
     let depository_signer_seed: &[&[&[u8]]] = &[&[
@@ -265,7 +267,27 @@ pub(crate) fn handler(
         .base
         .checked_abs()
         .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_to_num()
+        .checked_to_num::<u64>()
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    // Math: 5 bps fee would equate to bps_redeemed_to_user
+    // being 9995 since 10000 - 5 = 9995
+    let bps_redeemed_to_user: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_sub(regular_redeem_fee.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    // Math: Multiplies the redeemable_amount by how many BPS the user will get
+    // but the units are still in units of BPS, not as a decimal, so then
+    // divide by the BPS_POW to get to the right order of magnitude.
+    let collateral_withdraw_amount_less_fees: u64 = bps_redeemed_to_user
+        .checked_mul_int(collateral_withdraw_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_div_int(BPS_UNIT_CONVERSION.into())
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_floor()
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_to_num::<u64>()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     // - [CPI MangoMarkets - Withdraw]
@@ -273,7 +295,7 @@ pub(crate) fn handler(
         ctx.accounts
             .to_withdraw_collateral_from_mango_context()
             .with_signer(depository_signer_seed),
-        collateral_withdraw_amount,
+        collateral_withdraw_amount_less_fees,
         false,
     )?;
 
@@ -283,24 +305,29 @@ pub(crate) fn handler(
     }
 
     // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
+    let redeem_fee_amount = collateral_withdraw_amount
+        .checked_sub(collateral_withdraw_amount_less_fees)
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     ctx.accounts.update_onchain_accounting(
         collateral_withdraw_amount.into(),
         redeemable_burn_amount.into(),
         order_delta.fee.abs().to_num(),
+        redeem_fee_amount
     )?;
 
-    emit!(RedeemFromMangoDepositoryEvent {
-        version: ctx.accounts.controller.load()?.version,
-        controller: ctx.accounts.controller.key(),
-        depository: ctx.accounts.depository.key(),
-        user: ctx.accounts.user.key(),
-        redeemable_amount,
-        limit_price,
-        base_delta: order_delta.base.to_num(),
-        quote_delta: order_delta.quote.to_num(),
-        fee_delta: order_delta.fee.to_num(),
-    });
+    // emit!(RedeemFromMangoDepositoryEvent {
+    //     version: controller.version,
+    //     controller: controller.key(),
+    //     depository: depository.key(),
+    //     user: ctx.accounts.user.key(),
+    //     redeemable_amount,
+    //     limit_price,
+    //     base_delta: order_delta.base.to_num(),
+    //     quote_delta: order_delta.quote.to_num(),
+    //     fee_delta: order_delta.fee.to_num(),
+    //     redeem_fee_delta: redeem_fee_amount
+    // });
 
     Ok(())
 }
@@ -402,6 +429,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
         collateral_withdrawn_amount: u128,
         redeemable_burnt_amount: u128,
         fee_amount: u128,
+        redeem_fee_amount: u64,
     ) -> Result<()> {
         let depository = &mut self.depository.load_mut()?;
         let controller = &mut self.controller.load_mut()?;
@@ -417,6 +445,10 @@ impl<'info> RedeemFromMangoDepository<'info> {
         depository.total_amount_paid_taker_fee = depository
             .total_amount_paid_taker_fee
             .checked_add(fee_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        depository.total_redeem_fees = depository
+            .total_redeem_fees
+            .checked_add(redeem_fee_amount.into())
             .ok_or_else(|| error!(UxdError::MathError))?;
         // Controller
         controller.redeemable_circulating_supply = controller

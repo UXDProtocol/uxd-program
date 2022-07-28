@@ -313,14 +313,14 @@ pub(crate) fn handler(
     }
 
     // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
-    let mint_fee_amount: u64 = redeemable_mint_amount
+    let mint_fee_amount = redeemable_mint_amount
         .checked_sub(redeemable_mint_amount_less_fees)
         .ok_or_else(|| error!(UxdError::MathError))?;
     ctx.accounts.update_onchain_accounting(
         collateral_shorted_amount.into(),
         redeemable_mint_amount_less_fees.into(),
         order_delta.fee.to_num(),
-        mint_fee_amount.into(),
+        mint_fee_amount,
     )?;
 
     // - 6 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
@@ -458,7 +458,7 @@ impl<'info> MintWithMangoDepository<'info> {
         collateral_shorted_amount: u128,
         redeemable_minted_amount: u128,
         dex_fee_amount: u128,
-        mint_fee_amount: u128,
+        mint_fee_amount: u64,
     ) -> Result<()> {
         let depository = &mut self.depository.load_mut()?;
         let controller = &mut self.controller.load_mut()?;
@@ -477,7 +477,7 @@ impl<'info> MintWithMangoDepository<'info> {
             .ok_or_else(|| error!(UxdError::MathError))?;
         depository.total_mint_fees = depository
             .total_mint_fees
-            .checked_add(mint_fee_amount)
+            .checked_add(mint_fee_amount.into())
             .ok_or_else(|| error!(UxdError::MathError))?;
         // Controller
         controller.redeemable_circulating_supply = controller
