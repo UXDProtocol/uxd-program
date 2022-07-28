@@ -127,7 +127,10 @@ pub(crate) fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     depository.quote_mint_and_redeem_fee = u8::MIN;
     depository.total_quote_mint_and_redeem_fees = u128::MIN;
     depository.regular_minting_disabled = false; // enable minting by default
-    depository.mint_and_redeem_fee = u8::MIN;
+    depository.regular_mint_fee = u8::MIN;
+    depository.regular_redeem_fee = u8::MIN;
+    depository.total_mint_fees = u128::MIN;
+    depository.total_redeem_fees = u128::MIN;
 
     // - Update Controller state
     ctx.accounts

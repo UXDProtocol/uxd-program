@@ -79,9 +79,13 @@ pub struct MangoDepository {
     //
     // Flag to indicate whether minting through collateral deposits is allowed
     pub regular_minting_disabled: bool,
-    // The amount of fees taken per regular mint and redeem
-    pub mint_and_redeem_fee: u8, // in units of BPs
     //
-    // The amount of fees accrued from minting and redeeming
-    pub total_mint_and_redeem_fees: u128,
+    // The amount of fees taken per regular mint
+    pub regular_mint_fee: u8, // in units of BPs
+    // The amount of fees taken per regular redeem
+    pub regular_redeem_fee: u8, // in units of BPs
+    // The amount of fees accrued from regular minting
+    pub total_mint_fees: u128,
+    // The amount of fees accrued from regular redeeming
+    pub total_redeem_fees: u128,
 }

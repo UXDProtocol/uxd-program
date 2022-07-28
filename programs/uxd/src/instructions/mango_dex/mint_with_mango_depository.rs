@@ -5,7 +5,6 @@ use crate::MANGO_PERP_MAX_FILL_EVENTS;
 // use crate::events::MintWithMangoDepositoryEvent2;
 =======
 use crate::MANGO_PERP_MAX_FILL_EVENTS;
-use crate::events::MintWithMangoDepositoryEvent;
 // use crate::events::MintWithMangoDepositoryEvent2;
 >>>>>>> f129778... Add new fee collection on mint
 use crate::mango_utils::derive_order_delta;
@@ -165,6 +164,7 @@ pub(crate) fn handler(
     let depository = ctx.accounts.depository.load()?;
     let collateral_mint = depository.collateral_mint;
     let depository_bump = depository.bump;
+    let regular_mint_fee = depository.regular_mint_fee;
     drop(depository);
 
     let depository_pda_signer: &[&[&[u8]]] = &[&[
@@ -279,13 +279,12 @@ pub(crate) fn handler(
     );
 
     // - 4 [MINTS THE HEDGED AMOUNT OF REDEEMABLE (minus dex fees, minus optional fees)] -
-    let quote_mint_fee = depository.mint_and_redeem_fee;
 
     // Math: 5 bps fee would equate to bps_minted_to_user
     // being 9995 since 10000 - 5 = 9995
     let bps_minted_to_user: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
         .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_sub(quote_mint_fee.into())
+        .checked_sub(regular_mint_fee.into())
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     // Math: Multiplies the quote_amount by how many BPS the user will get,
@@ -314,31 +313,31 @@ pub(crate) fn handler(
     }
 
     // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
-    let local_fee_amount: u64 = redeemable_mint_amount
+    let mint_fee_amount: u64 = redeemable_mint_amount
         .checked_sub(redeemable_mint_amount_less_fees)
         .ok_or_else(|| error!(UxdError::MathError))?;
     ctx.accounts.update_onchain_accounting(
         collateral_shorted_amount.into(),
         redeemable_mint_amount_less_fees.into(),
         order_delta.fee.to_num(),
-        local_fee_amount.into(),
+        mint_fee_amount.into(),
     )?;
 
     // - 6 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
-    emit!(MintWithMangoDepositoryEvent {
-        version: controller.version,
-        controller: controller.key(),
-        depository: depository.key(),
-        user: ctx.accounts.user.key(),
-        collateral_amount,
-        limit_price,
-        base_delta: order_delta.base.to_num(),
-        quote_delta: order_delta.quote.to_num(),
-        dex_fee_delta: order_delta.fee.to_num(),
-        local_fee_delta: local_fee_amount.to_num(),
-    });
+    // emit!(MintWithMangoDepositoryEvent {
+    //     version: controller.version,
+    //     controller: controller.key(),
+    //     depository: depository.key(),
+    //     user: ctx.accounts.user.key(),
+    //     collateral_amount,
+    //     limit_price,
+    //     base_delta: order_delta.base.to_num(),
+    //     quote_delta: order_delta.quote.to_num(),
+    //     dex_fee_delta: order_delta.fee.to_num(),
+    //     mint_fee_delta: mint_fee_amount.to_num(),
+    // });
 
     Ok(())
 }
@@ -459,7 +458,7 @@ impl<'info> MintWithMangoDepository<'info> {
         collateral_shorted_amount: u128,
         redeemable_minted_amount: u128,
         dex_fee_amount: u128,
-        local_fee_amount: u128,
+        mint_fee_amount: u128,
     ) -> Result<()> {
         let depository = &mut self.depository.load_mut()?;
         let controller = &mut self.controller.load_mut()?;
@@ -476,9 +475,9 @@ impl<'info> MintWithMangoDepository<'info> {
             .total_amount_paid_taker_fee
             .checked_add(dex_fee_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
-        depository.total_mint_and_redeem_fees = depository
-            .total_mint_and_redeem_fees
-            .checked_add(local_fee_amount)
+        depository.total_mint_fees = depository
+            .total_mint_fees
+            .checked_add(mint_fee_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
         // Controller
         controller.redeemable_circulating_supply = controller

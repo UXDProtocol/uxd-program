@@ -36,7 +36,7 @@ pub fn handler(
     ctx: Context<SetMangoDepositoryMintAndRedeemFee>,
     fee: u8, // in bps
 ) -> Result<()> {
-    ctx.accounts.depository.load_mut()?.mint_and_redeem_fee = fee;
+    ctx.accounts.depository.load_mut()?.regular_mint_fee = fee;
 
     Ok(())
 }
