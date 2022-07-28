@@ -1,4 +1,3 @@
-use crate::BPS_UNIT_CONVERSION;
 use crate::error::UxdError;
 use crate::events::RedeemFromMangoDepositoryEvent;
 use crate::mango_utils::derive_order_delta;
@@ -7,6 +6,7 @@ use crate::mango_utils::PerpInfo;
 use crate::validate_perp_market_mints_matches_depository_mints;
 use crate::Controller;
 use crate::MangoDepository;
+use crate::BPS_UNIT_CONVERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
@@ -313,7 +313,7 @@ pub(crate) fn handler(
         collateral_withdraw_amount.into(),
         redeemable_burn_amount.into(),
         order_delta.fee.abs().to_num(),
-        redeem_fee_amount
+        redeem_fee_amount,
     )?;
 
     // emit!(RedeemFromMangoDepositoryEvent {
