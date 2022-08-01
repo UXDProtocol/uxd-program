@@ -1,12 +1,4 @@
-<<<<<<< HEAD
 use crate::events::MintWithMangoDepositoryEvent;
-||||||| parent of f129778... Add new fee collection on mint
-use crate::MANGO_PERP_MAX_FILL_EVENTS;
-// use crate::events::MintWithMangoDepositoryEvent2;
-=======
-use crate::MANGO_PERP_MAX_FILL_EVENTS;
-// use crate::events::MintWithMangoDepositoryEvent2;
->>>>>>> f129778... Add new fee collection on mint
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::total_perp_base_lot_position;
@@ -326,18 +318,18 @@ pub(crate) fn handler(
     // - 6 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
-    // emit!(MintWithMangoDepositoryEvent {
-    //     version: controller.version,
-    //     controller: controller.key(),
-    //     depository: depository.key(),
-    //     user: ctx.accounts.user.key(),
-    //     collateral_amount,
-    //     limit_price,
-    //     base_delta: order_delta.base.to_num(),
-    //     quote_delta: order_delta.quote.to_num(),
-    //     dex_fee_delta: order_delta.fee.to_num(),
-    //     mint_fee_delta: mint_fee_amount.to_num(),
-    // });
+    emit!(MintWithMangoDepositoryEvent {
+        version: ctx.accounts.controller.load()?.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        collateral_amount,
+        limit_price,
+        base_delta: order_delta.base.to_num(),
+        quote_delta: order_delta.quote.to_num(),
+        dex_fee_delta: order_delta.fee.to_num(),
+        mint_fee_delta: mint_fee_amount,
+    });
 
     Ok(())
 }

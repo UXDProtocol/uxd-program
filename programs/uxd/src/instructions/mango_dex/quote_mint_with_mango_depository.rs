@@ -12,7 +12,6 @@ use crate::REDEEMABLE_MINT_NAMESPACE;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::MintTo;
@@ -274,9 +273,7 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    fn to_mint_redeemable_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+    fn to_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = MintTo {
             mint: self.redeemable_mint.to_account_info(),

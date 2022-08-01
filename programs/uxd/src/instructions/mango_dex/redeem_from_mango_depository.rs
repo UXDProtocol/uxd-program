@@ -326,18 +326,18 @@ pub(crate) fn handler(
         redeem_fee_amount,
     )?;
 
-    // emit!(RedeemFromMangoDepositoryEvent {
-    //     version: controller.version,
-    //     controller: controller.key(),
-    //     depository: depository.key(),
-    //     user: ctx.accounts.user.key(),
-    //     redeemable_amount,
-    //     limit_price,
-    //     base_delta: order_delta.base.to_num(),
-    //     quote_delta: order_delta.quote.to_num(),
-    //     fee_delta: order_delta.fee.to_num(),
-    //     redeem_fee_delta: redeem_fee_amount
-    // });
+    emit!(RedeemFromMangoDepositoryEvent {
+        version: ctx.accounts.controller.load()?.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        redeemable_amount,
+        limit_price,
+        base_delta: order_delta.base.to_num(),
+        quote_delta: order_delta.quote.to_num(),
+        fee_delta: order_delta.fee.to_num(),
+        redeem_fee_delta: redeem_fee_amount
+    });
 
     Ok(())
 }

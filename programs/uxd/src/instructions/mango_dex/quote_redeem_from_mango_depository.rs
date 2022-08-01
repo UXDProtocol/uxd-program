@@ -12,7 +12,6 @@ use crate::REDEEMABLE_MINT_NAMESPACE;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
@@ -221,10 +220,7 @@ pub(crate) fn handler(
 
     // - 3 [BURN USER'S REDEEMABLE] -------------------------------------------
     // Burn will fail if user does not have enough redeemable
-    token::burn(
-        ctx.accounts.to_burn_redeemable_context(),
-        redeemable_amount,
-    )?;
+    token::burn(ctx.accounts.to_burn_redeemable_context(), redeemable_amount)?;
 
     // - 4 [WITHDRAW QUOTE MINT FROM MANGO ACCOUNT] ---------------------------
     let quote_redeem_fee = depository.quote_mint_and_redeem_fee;
@@ -266,9 +262,7 @@ pub(crate) fn handler(
 }
 
 impl<'info> QuoteRedeemFromMangoDepository<'info> {
-    fn to_burn_redeemable_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+    fn to_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
