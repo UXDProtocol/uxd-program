@@ -192,8 +192,18 @@ pub(crate) fn handler(
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_ceil()
         .ok_or_else(|| error!(UxdError::MathError))?;
+
+    // - [Calculate the regular redeem fee and remove it from the exposure delta]
+    let regular_redeem_fee_amount = quote_exposure_delta
+        .checked_mul(regular_redeem_fee.into())
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_div_int(BPS_UNIT_CONVERSION.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
     let quote_exposure_delta_minus_fees = quote_exposure_delta
         .checked_sub(max_fee_amount)
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_sub(regular_redeem_fee_amount)
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     // - [Perp account state PRE perp order]
