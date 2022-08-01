@@ -186,11 +186,9 @@ pub(crate) fn handler(
     // - [Calculates the quantity of short to close]
     let quote_exposure_delta = I80F48::from_num(redeemable_amount);
 
-    // - [Find the max taker fees mango will take on the perp order and remove it from the exposure delta to be sure the amount order + fees don't overflow the redeemed amount]
-    let max_fee_amount = quote_exposure_delta
+    // - [Find the taker fees mango will take on the perp order]
+    let taker_fee_amount = quote_exposure_delta
         .checked_mul(perp_info.effective_fee)
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_ceil()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     // - [Calculate the regular redeem fee and remove it from the exposure delta]
@@ -200,16 +198,19 @@ pub(crate) fn handler(
         .checked_div_int(BPS_UNIT_CONVERSION.into())
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    let quote_exposure_delta_minus_fees = quote_exposure_delta
-        .checked_sub(max_fee_amount)
+    // - [Remove the max taker fee and regular redeem fee from the exposure delta to be sure the amount order + fees don't overflow the redeemed amount]]
+    let quote_exposure_delta_minus_max_fees = quote_exposure_delta
+        .checked_sub(taker_fee_amount)
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_sub(regular_redeem_fee_amount)
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_floor()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     // - [Perp account state PRE perp order]
     let pre_pa = ctx.accounts.perp_account(&perp_info)?;
 
-    let max_quote_quantity: i64 = quote_exposure_delta_minus_fees
+    let max_quote_quantity: i64 = quote_exposure_delta_minus_max_fees
         .checked_div(perp_info.quote_lot_size)
         .ok_or_else(|| error!(UxdError::MathError))?
         .checked_to_num()
