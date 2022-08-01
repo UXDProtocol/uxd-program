@@ -132,13 +132,10 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     /// #17 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #18 Associated Token Program
-    pub associated_token_program: Program<'info, AssociatedToken>,
-
-    /// #19 MangoMarketv3 Program
+    /// #18 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 
-    /// #20 Rent Sysvar
+    /// #19 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
