@@ -209,7 +209,6 @@ pub(crate) fn handler(
         UxdError::InvalidPnlPolarity
     );
 
-    msg!("redeemable_amount {}", redeemable_amount);
     msg!("perp_unrealized_pnl {}", perp_unrealized_pnl);
 
     // Checks that the requested redeem amount is lesser than or equal to the available amount
