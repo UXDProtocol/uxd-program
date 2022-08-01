@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 462;
+pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 429;
 pub const MANGO_DEPOSITORY_SPACE: usize = 8
     + 1
     + 2
@@ -24,6 +24,9 @@ pub const MANGO_DEPOSITORY_SPACE: usize = 8
     + 16
     + 1
     + 1
+    + 1
+    + 16
+    + 16
     + MANGO_DEPOSITORY_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -85,7 +88,7 @@ pub struct MangoDepository {
     // The amount of fees taken per regular redeem
     pub regular_redeem_fee: u8, // in units of BPs
     // The amount of fees accrued from regular minting
-    pub total_mint_fees: u128,
+    pub total_regular_mint_fees: u128,
     // The amount of fees accrued from regular redeeming
-    pub total_redeem_fees: u128,
+    pub total_regular_redeem_fees: u128,
 }

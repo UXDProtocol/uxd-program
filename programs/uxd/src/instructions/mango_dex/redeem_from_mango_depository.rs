@@ -456,8 +456,8 @@ impl<'info> RedeemFromMangoDepository<'info> {
             .total_amount_paid_taker_fee
             .checked_add(fee_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
-        depository.total_redeem_fees = depository
-            .total_redeem_fees
+        depository.total_regular_redeem_fees = depository
+            .total_regular_redeem_fees
             .checked_add(redeem_fee_amount.into())
             .ok_or_else(|| error!(UxdError::MathError))?;
         // Controller

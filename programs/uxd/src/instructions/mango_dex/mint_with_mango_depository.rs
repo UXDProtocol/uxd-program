@@ -475,8 +475,8 @@ impl<'info> MintWithMangoDepository<'info> {
             .total_amount_paid_taker_fee
             .checked_add(dex_fee_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
-        depository.total_mint_fees = depository
-            .total_mint_fees
+        depository.total_regular_mint_fees = depository
+            .total_regular_mint_fees
             .checked_add(mint_fee_amount.into())
             .ok_or_else(|| error!(UxdError::MathError))?;
         // Controller

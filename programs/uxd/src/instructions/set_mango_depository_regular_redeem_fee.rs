@@ -7,7 +7,7 @@ use anchor_lang::prelude::*;
 
 /// Takes 3 accounts
 #[derive(Accounts)]
-pub struct SetMangoDepositoryMintFee<'info> {
+pub struct SetMangoDepositoryRegularRedeemFee<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
 
@@ -33,10 +33,10 @@ pub struct SetMangoDepositoryMintFee<'info> {
 }
 
 pub fn handler(
-    ctx: Context<SetMangoDepositoryMintFee>,
+    ctx: Context<SetMangoDepositoryRegularRedeemFee>,
     fee: u8, // in bps
 ) -> Result<()> {
-    ctx.accounts.depository.load_mut()?.regular_mint_fee = fee;
+    ctx.accounts.depository.load_mut()?.regular_redeem_fee = fee;
 
     Ok(())
 }

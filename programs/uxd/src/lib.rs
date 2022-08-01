@@ -422,22 +422,22 @@ pub mod uxd {
 
     /// Set the amount of BPS collected on each mint operation.
     /// This is optional and the proceeds go to the protocol.
-    pub fn set_mango_depository_mint_fee(
-        ctx: Context<SetMangoDepositoryMintFee>,
+    pub fn set_mango_depository_regular_mint_fee(
+        ctx: Context<SetMangoDepositoryRegularMintFee>,
         fee: u8, // In bps
     ) -> Result<()> {
-        msg!("[set_mango_depository_mint_fee] fee {}", fee);
-        instructions::set_mango_depository_mint_fee::handler(ctx, fee)
+        msg!("[set_mango_depository_regular_mint_fee] fee {}", fee);
+        instructions::set_mango_depository_regular_mint_fee::handler(ctx, fee)
     }
 
     /// Set the amount of BPS collected on each redeem operation.
     /// This is optional and the proceeds go to the protocol.
-    pub fn set_mango_depository_redeem_fee(
-        ctx: Context<SetMangoDepositoryRedeemFee>,
+    pub fn set_mango_depository_regular_redeem_fee(
+        ctx: Context<SetMangoDepositoryRegularRedeemFee>,
         fee: u8, // In bps
     ) -> Result<()> {
-        msg!("[set_mango_depository_redeem_fee] fee {}", fee);
-        instructions::set_mango_depository_redeem_fee::handler(ctx, fee)
+        msg!("[set_mango_depository_regular_redeem_fee] fee {}", fee);
+        instructions::set_mango_depository_regular_redeem_fee::handler(ctx, fee)
     }
 
     /// Disable or enable regular minting for given Mango Depository.
