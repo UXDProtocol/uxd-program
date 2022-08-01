@@ -123,13 +123,10 @@ pub struct QuoteMintWithMangoDepository<'info> {
     /// #16 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #17 Associated Token Program
-    pub associated_token_program: Program<'info, AssociatedToken>,
-
-    /// #18 MangoMarketv3 Program
+    /// #17 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 
-    /// #19 Rent Sysvar
+    /// #18 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
