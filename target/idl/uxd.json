@@ -799,11 +799,6 @@
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
           "isMut": false,
           "isSigner": false
@@ -915,11 +910,6 @@
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
           "isMut": false,
           "isSigner": false
@@ -959,6 +949,58 @@
       "args": [
         {
           "name": "quoteFee",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "setMangoDepositoryRegularMintFee",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "fee",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "setMangoDepositoryRegularRedeemFee",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "fee",
           "type": "u8"
         }
       ]
@@ -1155,6 +1197,22 @@
           {
             "name": "regularMintingDisabled",
             "type": "bool"
+          },
+          {
+            "name": "regularMintFee",
+            "type": "u8"
+          },
+          {
+            "name": "regularRedeemFee",
+            "type": "u8"
+          },
+          {
+            "name": "totalRegularMintFees",
+            "type": "u128"
+          },
+          {
+            "name": "totalRegularRedeemFees",
+            "type": "u128"
           }
         ]
       }
@@ -1471,14 +1529,19 @@
           "index": false
         },
         {
-          "name": "feeDelta",
+          "name": "dexFeeDelta",
           "type": "i64",
+          "index": false
+        },
+        {
+          "name": "mintFeeDelta",
+          "type": "u64",
           "index": false
         }
       ]
     },
     {
-      "name": "RedeemFromDepositoryEvent",
+      "name": "RedeemFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -1523,6 +1586,11 @@
         {
           "name": "feeDelta",
           "type": "i64",
+          "index": false
+        },
+        {
+          "name": "redeemFeeDelta",
+          "type": "u64",
           "index": false
         }
       ]
@@ -1866,8 +1934,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "9PjjDLyfxPmnMRNZ8L5WFZBsqjaZZihfh2x6H4QWLGQF"
-  }
+  ]
 }
