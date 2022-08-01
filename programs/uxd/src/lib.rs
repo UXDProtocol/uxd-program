@@ -327,11 +327,11 @@ pub mod uxd {
         collateral_amount: u64,
         limit_price: f32,
     ) -> Result<()> {
-        // msg!(
-        //     "[mint_with_mango_depository] collateral_amount {}, limit_price {}",
-        //     collateral_amount,
-        //     limit_price
-        // );
+        msg!(
+            "[mint_with_mango_depository] collateral_amount {}, limit_price {}",
+            collateral_amount,
+            limit_price
+        );
         instructions::mint_with_mango_depository::handler(ctx, collateral_amount, limit_price)
     }
 
