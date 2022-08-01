@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::events::RedeemFromMangoDepositoryEvent;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::PerpInfo;
@@ -210,9 +211,9 @@ pub(crate) fn handler(
     // Note : Reduce the delta neutral position, increasing long exposure, by buying perp.
     //        [BID: taker (us, the caller) | ASK: maker]
     let taker_side = Side::Bid;
-    let limit_price =
+    let limit_price_fixed =
         I80F48::checked_from_num(limit_price).ok_or_else(|| error!(UxdError::MathError))?;
-    let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
+    let limit_price_lot = price_to_lot_price(limit_price_fixed, &perp_info)?;
 
     // - [CPI MangoMarkets - Place perp order]
     mango_markets_v3::place_perp_order2(
@@ -289,17 +290,17 @@ pub(crate) fn handler(
         order_delta.fee.abs().to_num(),
     )?;
 
-    // emit!(RedeemFromMangoDepositoryEvent {
-    //     version: controller.version,
-    //     controller: controller.key(),
-    //     depository: depository.key(),
-    //     user: ctx.accounts.user.key(),
-    //     redeemable_amount,
-    //     limit_price,
-    //     base_delta: order_delta.base.to_num(),
-    //     quote_delta: order_delta.quote.to_num(),
-    //     fee_delta: order_delta.fee.to_num(),
-    // });
+    emit!(RedeemFromMangoDepositoryEvent {
+        version: ctx.accounts.controller.load()?.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        redeemable_amount,
+        limit_price,
+        base_delta: order_delta.base.to_num(),
+        quote_delta: order_delta.quote.to_num(),
+        fee_delta: order_delta.fee.to_num(),
+    });
 
     Ok(())
 }
@@ -379,7 +380,7 @@ impl<'info> RedeemFromMangoDepository<'info> {
             self.mango_group.key,
             self.mango_program.key,
         )?;
-        // msg!("perp_info {:?}", perp_info);
+        msg!("perp_info {:?}", perp_info);
         Ok(perp_info)
     }
 
