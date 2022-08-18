@@ -90,6 +90,12 @@ pub enum UxdError {
     InvalidQuoteCurrency,
     #[msg("The mango group is not the expected one.")]
     UnmatchedMangoGroupWithController,
+    #[msg("The mercurial vault lp mint does not match the Depository's one.")]
+    InvalidMercurialVaultLpMint,
+    #[msg("The mercurial vault collateral mint does not match the Depository's one.")]
+    InvalidMercurialVaultCollateralMint,
+    #[msg("Cannot register more mercurial vault depositories, the limit has been reached.")]
+    MaxNumberOfMercurialVaultDepositoriesRegisteredReached,
 
     /// Anchor DSL related errors
     ///

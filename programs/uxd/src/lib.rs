@@ -29,6 +29,7 @@ pub const MANGO_GROUP: &str = "98pjRuQjK3qA6gXts96PqZT4Ze5QmnCmt3QYjhbUSPue";
 
 // Version used for accounts structure and future migrations
 pub const MANGO_DEPOSITORY_ACCOUNT_VERSION: u8 = 2;
+pub const MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
@@ -36,6 +37,7 @@ pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
+pub const MERCURIAL_VAULT_DEPOSITORY_NAMESPACE: &[u8] = b"MERCURIALVAULTDEPOSITORY";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -414,6 +416,32 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[disable_depository_minting] disable {}", disable);
         instructions::disable_depository_regular_minting::handler(ctx, disable)
+    }
+
+    // Mint Redeemable tokens by depositing Collateral to mercurial vault.
+    #[access_control(
+            ctx.accounts.validate(collateral_amount, slippage)
+        )]
+    pub fn mint_with_mercurial_vault(
+        ctx: Context<MintWithMercurialVaultDepository>,
+        collateral_amount: u64,
+        slippage: u32,
+    ) -> Result<()> {
+        msg!("[mint_with_mercurial_vault]");
+        instructions::mint_with_mercurial_vault_depository::handler(
+            ctx,
+            collateral_amount,
+            slippage,
+        )
+    }
+
+    // Create and Register a new `MercurialVaultDepository` to the `Controller`.
+    // Each `Depository` account manages a specific collateral mint.
+    pub fn register_mercurial_vault_depository(
+        ctx: Context<RegisterMercurialVaultDepository>,
+    ) -> Result<()> {
+        msg!("[register_mercurial_vault_depository]");
+        instructions::register_mercurial_vault_depository::handler(ctx)
     }
 }
 

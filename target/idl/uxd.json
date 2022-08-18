@@ -930,6 +930,132 @@
           "type": "bool"
         }
       ]
+    },
+    {
+      "name": "mintWithMercurialVault",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "redeemableMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userRedeemable",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "collateralAmount",
+          "type": "u64"
+        },
+        {
+          "name": "slippage",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "registerMercurialVaultDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVault",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultLpMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryVTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -990,6 +1116,19 @@
           {
             "name": "mangoDepositoriesQuoteRedeemableSoftCap",
             "type": "u64"
+          },
+          {
+            "name": "registeredMercurialVaultDepositories",
+            "type": {
+              "array": [
+                "publicKey",
+                8
+              ]
+            }
+          },
+          {
+            "name": "registeredMercurialVaultDepositoriesCount",
+            "type": "u8"
           }
         ]
       }
@@ -1097,6 +1236,155 @@
           {
             "name": "regularMintingDisabled",
             "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MercurialVaultDepository",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "collateralMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "controller",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "vTokenMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "vTokenDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "vTokensVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "vTokensVaultBump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WrappedMercurialVault",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "enabled",
+            "type": "u8"
+          },
+          {
+            "name": "bumps",
+            "type": {
+              "defined": "WrappedVaultBumps"
+            }
+          },
+          {
+            "name": "totalAmount",
+            "type": "u64"
+          },
+          {
+            "name": "tokenVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "feeVault",
+            "type": "publicKey"
+          },
+          {
+            "name": "tokenMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "lpMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "strategies",
+            "type": {
+              "array": [
+                "publicKey",
+                30
+              ]
+            }
+          },
+          {
+            "name": "base",
+            "type": "publicKey"
+          },
+          {
+            "name": "admin",
+            "type": "publicKey"
+          },
+          {
+            "name": "operator",
+            "type": "publicKey"
+          },
+          {
+            "name": "lockedProfitTracker",
+            "type": {
+              "defined": "WrappedLockedProfitTracker"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "WrappedLockedProfitTracker",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lastUpdatedLockedProfit",
+            "type": "u64"
+          },
+          {
+            "name": "lastReport",
+            "type": "u64"
+          },
+          {
+            "name": "lockedProfitDegradation",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WrappedVaultBumps",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vaultBump",
+            "type": "u8"
+          },
+          {
+            "name": "tokenVaultBump",
+            "type": "u8"
           }
         ]
       }
@@ -1935,66 +2223,78 @@
     },
     {
       "code": 6043,
+      "name": "InvalidMercurialVaultLpMint",
+      "msg": "The mercurial vault lp mint does not match the Depository's one."
+    },
+    {
+      "code": 6044,
+      "name": "InvalidMercurialVaultCollateralMint",
+      "msg": "The mercurial vault collateral mint does not match the Depository's one."
+    },
+    {
+      "code": 6045,
+      "name": "MaxNumberOfMercurialVaultDepositoriesRegisteredReached",
+      "msg": "Cannot register more mercurial vault depositories, the limit has been reached."
+    },
+    {
+      "code": 6046,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6044,
+      "code": 6047,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6045,
+      "code": 6048,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6046,
+      "code": 6049,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6047,
+      "code": 6050,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6048,
+      "code": 6051,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6049,
+      "code": 6052,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6050,
+      "code": 6053,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6051,
+      "code": 6054,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6052,
+      "code": 6055,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6053,
+      "code": 6056,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6054,
+      "code": 6057,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "AURBE2zC7HH64PcH23xYtbfUU6pQLUdY3Asfw6wwifuA"
-  }
+  ]
 }

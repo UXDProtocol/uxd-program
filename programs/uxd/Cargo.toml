@@ -28,6 +28,8 @@ anchor-lang = "0.24.2"
 anchor-spl = "0.24.2"
 anchor-comp = { version = "0.2.3", git = "https://github.com/UXDProtocol/anchor-comp", default-features = false, features = ["no-entrypoint", "development"] }
 # anchor-comp = { version = "0.2.3", git = "https://github.com/UXDProtocol/anchor-comp", default-features = false, features = ["no-entrypoint", "production"] }
+mercurial-vault = { git = "https://github.com/mercurial-finance/mercurial_sdk",  branch="main"}
+
 fixed = "^1.9.0"
 num-traits = "0.2.14"
 spl-math = { version = "0.1.0", features = ["no-entrypoint"] }

@@ -1043,6 +1043,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "mercurial-vault"
+version = "0.4.0"
+source = "git+https://github.com/mercurial-finance/mercurial_sdk?branch=main#25239a99d65b3a48c28f9fa2fd72e8d5f47dd10d"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "serde",
+ "solana-program",
+ "spl-token",
+]
+
+[[package]]
 name = "num-derive"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1939,6 +1951,7 @@ dependencies = [
  "anchor-spl",
  "fixed",
  "mango",
+ "mercurial-vault",
  "num-traits",
  "proptest",
  "solana-program",

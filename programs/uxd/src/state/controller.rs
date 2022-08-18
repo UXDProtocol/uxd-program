@@ -2,6 +2,7 @@ use crate::error::UxdError;
 use anchor_lang::prelude::*;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
+pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 8;
 
 pub const CONTROLLER_SPACE: usize = 8
     + 1
@@ -16,7 +17,9 @@ pub const CONTROLLER_SPACE: usize = 8
     + 8
     + 16
     + 8
-    + 504;
+    + (32 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
+    + 1
+    + 247;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -52,6 +55,11 @@ pub struct Controller {
     pub redeemable_circulating_supply: u128,
     // The max amount of Redeemable affected by quote Mint and Redeem operations on `MangoDepository` instances
     pub mango_depositories_quote_redeemable_soft_cap: u64,
+    //
+    // The Mercurial Vault Depositories registered with this Controller
+    pub registered_mercurial_vault_depositories:
+        [Pubkey; MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES],
+    pub registered_mercurial_vault_depositories_count: u8,
 }
 
 impl Controller {
@@ -72,6 +80,27 @@ impl Controller {
         // Add the new Mango Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_mango_depositories[new_entry_index] = mango_depository_id;
+        Ok(())
+    }
+
+    pub fn add_registered_mercurial_vault_depository_entry(
+        &mut self,
+        mercurial_vault_depository_id: Pubkey,
+    ) -> Result<()> {
+        let current_size = usize::from(self.registered_mercurial_vault_depositories_count);
+        require!(
+            current_size < MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES,
+            UxdError::MaxNumberOfMercurialVaultDepositoriesRegisteredReached
+        );
+        // Increment registered Mercurial Vault Depositories count
+        self.registered_mercurial_vault_depositories_count = self
+            .registered_mercurial_vault_depositories_count
+            .checked_add(1)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        // Add the new Mercurial Vault Depository ID to the array of registered Depositories
+        let new_entry_index = current_size;
+        self.registered_mercurial_vault_depositories[new_entry_index] =
+            mercurial_vault_depository_id;
         Ok(())
     }
 }
