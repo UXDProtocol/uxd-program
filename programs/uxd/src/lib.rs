@@ -438,11 +438,22 @@ pub mod uxd {
         instructions::disable_depository_regular_minting::handler(ctx, disable)
     }
 
-    pub fn extract_mango_depository_collateral_deposit_interests(
-        ctx: Context<ExtractMangoDepositoryCollateralDepositInterests>,
+
+    /// Withdraw `MangoDepository.collateral_mint` tokens from the `MangoDepository`
+    /// underlying `MangoAccount` in the amount of collateral interests only when it is
+    /// positive.
+    ///
+    /// Notes:
+    ///  The interest is the difference of the total collateral deposited and total size of the perp opened.
+    ///  Ideally after the withdrawal, the collateral remained shd be same as the perp.
+    ///  In case of decommissioning of depository, interest (collateral, insurance fund) should be withdrawn first
+    ///  for accounting purpose.
+    ///
+    pub fn withdraw_mango_depository_collateral_deposit_interests(
+        ctx: Context<WithdrawMangoDepositoryCollateralDepositInterests>,
     ) -> Result<()> {
-        msg!("[extract_mango_depository_collateral_deposit_interests]");
-        instructions::extract_mango_depository_collateral_deposit_interests::handler(ctx)
+        msg!("[withdraw_mango_depository_collateral_deposit_interests]");
+        instructions::withdraw_mango_depository_collateral_deposit_interests::handler(ctx)
     }
 }
 

@@ -130,9 +130,9 @@ pub struct WithdrawInsuranceFromMangoDepositoryEvent {
     pub withdrawn_amount: u64,
 }
 
-/// Event called in [instructions::mango_dex::withdraw_insurance_from_mango_depository::handler].
+/// Event called in [instructions::mango_dex::withdraw_mango_depository_collateral_deposit_interests::handler].
 #[event]
-pub struct ExtractMangoDepositoryCollateralDepositInterestsEvent {
+pub struct WithdrawMangoDepositoryCollateralDepositInterestsEvent {
     /// The controller version.
     #[index]
     pub version: u8,
@@ -146,8 +146,8 @@ pub struct ExtractMangoDepositoryCollateralDepositInterestsEvent {
     pub collateral_mint: Pubkey,
     // The collateral mint decimals.
     pub collateral_mint_decimals: u8,
-    // The extracted amount in native units.
-    pub extracted_amount: u64,
+    // The withdrawn amount in native units.
+    pub withdrawn_amount: u64,
 }
 
 // Event called in [instructions::*_dex::withdraw_insurance_from_*_depository::handler].
