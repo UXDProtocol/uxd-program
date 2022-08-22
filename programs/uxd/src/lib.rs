@@ -437,6 +437,13 @@ pub mod uxd {
         msg!("[disable_depository_minting] disable {}", disable);
         instructions::disable_depository_regular_minting::handler(ctx, disable)
     }
+
+    pub fn extract_mango_depository_collateral_deposit_interests(
+        ctx: Context<ExtractMangoDepositoryCollateralDepositInterests>,
+    ) -> Result<()> {
+        msg!("[extract_mango_depository_collateral_deposit_interests]");
+        instructions::extract_mango_depository_collateral_deposit_interests::handler(ctx)
+    }
 }
 
 /// Checks that the perp_market_index provided matches the collateral of the depository. Same for Quote.
