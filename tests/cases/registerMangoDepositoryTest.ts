@@ -16,7 +16,7 @@ export const registerMangoDepositoryTest = async function (authority: Signer, co
         }
 
         // THEN
-        console.log(`🧾 Initialized`, depository.collateralMintSymbol, "Depository");
+        console.log(`🧾 Initialized`, depository.collateralMintSymbol, "Mango Depository");
         depository.info();
         console.groupEnd();
     } catch (error) {

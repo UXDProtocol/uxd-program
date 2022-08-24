@@ -11,6 +11,7 @@ import {
   createAssocTokenIx,
   findATAAddrSync,
   uiToNative,
+  MercurialVaultDepository,
 } from "@uxd-protocol/uxd-client";
 import { web3 } from "@project-serum/anchor";
 import { Payer } from "@blockworks-foundation/mango-client";
@@ -29,6 +30,41 @@ export async function initializeController(authority: Signer, payer: Signer, con
   const tx = new Transaction();
 
   tx.instructions.push(initControllerIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function mintWithMercurialVaultDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository, collateralAmount: number, minimumLpTokenAmount: number): Promise<string> {
+  const mintWithMercurialVaultDepositoryIx = uxdClient.createMintWithMercurialVaultInstruction(controller, depository, authority.publicKey, collateralAmount, minimumLpTokenAmount, TXN_OPTS, payer.publicKey);
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  if (!await getConnection().getAccountInfo(authorityRedeemableAta)) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(authority.publicKey, authorityRedeemableAta, controller.redeemableMintPda);
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(mintWithMercurialVaultDepositoryIx);
+  signers.push(authority);
+
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function registerMercurialVaultDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository): Promise<string> {
+  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(controller, depository, authority.publicKey, TXN_OPTS, payer.publicKey);
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(registerMercurialVaultDepositoryIx);
   signers.push(authority);
   if (payer) {
     signers.push(payer);

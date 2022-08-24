@@ -229,13 +229,6 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
   console.groupEnd();
 }
 
-/**
- *
- * @param {*} connection
- * @param {anchor.web3.PublicKey} userKey
- * @param {number} amountNative
- * @returns {Promise<anchor.web3.TransactionInstruction[]>}
- */
 export const prepareWrappedSolTokenAccount = async (connection, payerKey, userKey, amountNative) => {
   const wsolTokenKey = findAssociatedTokenAddress(userKey, NATIVE_MINT);
   const tokenAccount = await connection.getParsedAccountInfo(wsolTokenKey);

@@ -18,7 +18,7 @@ pub mod test;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("HtBAjXoadvKg8KBAtcUL1BjgxM55itScsZYe9LHt3NiP");
+solana_program::declare_id!("5VcUPTTwGHaNk9bv7mN3D29ufvkrhrfQ4fTHWvatdh3U");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -420,18 +420,18 @@ pub mod uxd {
 
     // Mint Redeemable tokens by depositing Collateral to mercurial vault.
     #[access_control(
-            ctx.accounts.validate(collateral_amount, slippage)
-        )]
+        ctx.accounts.validate(collateral_amount, minimum_lp_token_amount)
+    )]
     pub fn mint_with_mercurial_vault(
         ctx: Context<MintWithMercurialVaultDepository>,
         collateral_amount: u64,
-        slippage: u32,
+        minimum_lp_token_amount: u64,
     ) -> Result<()> {
         msg!("[mint_with_mercurial_vault]");
         instructions::mint_with_mercurial_vault_depository::handler(
             ctx,
             collateral_amount,
-            slippage,
+            minimum_lp_token_amount,
         )
     }
 

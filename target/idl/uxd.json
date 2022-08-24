@@ -970,6 +970,31 @@
           "isSigner": false
         },
         {
+          "name": "mercurialVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultLpMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryLpTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultProgramCollateralTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -991,8 +1016,8 @@
           "type": "u64"
         },
         {
-          "name": "slippage",
-          "type": "u32"
+          "name": "minimumLpTokenAmount",
+          "type": "u64"
         }
       ]
     },
@@ -1035,7 +1060,7 @@
           "isSigner": false
         },
         {
-          "name": "depositoryVTokenVault",
+          "name": "depositoryLpTokenVault",
           "isMut": true,
           "isSigner": false
         },
@@ -1270,120 +1295,19 @@
             "type": "u128"
           },
           {
-            "name": "vTokenMint",
+            "name": "lpTokenMint",
             "type": "publicKey"
           },
           {
-            "name": "vTokenDecimals",
+            "name": "lpTokenDecimals",
             "type": "u8"
           },
           {
-            "name": "vTokensVault",
+            "name": "lpTokensVault",
             "type": "publicKey"
           },
           {
-            "name": "vTokensVaultBump",
-            "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "WrappedMercurialVault",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "enabled",
-            "type": "u8"
-          },
-          {
-            "name": "bumps",
-            "type": {
-              "defined": "WrappedVaultBumps"
-            }
-          },
-          {
-            "name": "totalAmount",
-            "type": "u64"
-          },
-          {
-            "name": "tokenVault",
-            "type": "publicKey"
-          },
-          {
-            "name": "feeVault",
-            "type": "publicKey"
-          },
-          {
-            "name": "tokenMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "lpMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "strategies",
-            "type": {
-              "array": [
-                "publicKey",
-                30
-              ]
-            }
-          },
-          {
-            "name": "base",
-            "type": "publicKey"
-          },
-          {
-            "name": "admin",
-            "type": "publicKey"
-          },
-          {
-            "name": "operator",
-            "type": "publicKey"
-          },
-          {
-            "name": "lockedProfitTracker",
-            "type": {
-              "defined": "WrappedLockedProfitTracker"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "WrappedLockedProfitTracker",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "lastUpdatedLockedProfit",
-            "type": "u64"
-          },
-          {
-            "name": "lastReport",
-            "type": "u64"
-          },
-          {
-            "name": "lockedProfitDegradation",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "WrappedVaultBumps",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "vaultBump",
-            "type": "u8"
-          },
-          {
-            "name": "tokenVaultBump",
+            "name": "lpTokensVaultBump",
             "type": "u8"
           }
         ]

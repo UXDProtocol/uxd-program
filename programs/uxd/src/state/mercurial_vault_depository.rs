@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-pub const MERCURIAL_VAULT_DEPOSITORY_RESERVED_SPACE: usize = 500; // magic number
+pub const MERCURIAL_VAULT_DEPOSITORY_RESERVED_SPACE: usize = 616;
 
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize =
     8 + 1 + 1 + 32 + 1 + 32 + 128 + 32 + 1 + 32 + 1 + MERCURIAL_VAULT_DEPOSITORY_RESERVED_SPACE;
@@ -25,10 +25,10 @@ pub struct MercurialVaultDepository {
     pub collateral_amount_deposited: u128,
 
     // Tokens received in exchange for depositing collateral
-    pub v_token_mint: Pubkey,
-    pub v_token_decimals: u8,
+    pub lp_token_mint: Pubkey,
+    pub lp_token_decimals: u8,
 
     // Keep the mercurial vault tokens
-    pub v_tokens_vault: Pubkey,
-    pub v_tokens_vault_bump: u8,
+    pub lp_tokens_vault: Pubkey,
+    pub lp_tokens_vault_bump: u8,
 }
