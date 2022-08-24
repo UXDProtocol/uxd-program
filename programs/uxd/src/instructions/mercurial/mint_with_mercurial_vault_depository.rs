@@ -10,7 +10,6 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use serde::{Deserialize, Serialize};
 use solana_program::instruction::{AccountMeta, Instruction};
 
 #[derive(Accounts)]
@@ -209,57 +208,6 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
     }
 }
 
-// Structures created to embed params within instructions
-#[repr(C)]
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct MercurialVaultDepositArgs {
-    token_amount: u64,
-    minimum_lp_token_amount: u64,
-}
-
-impl MercurialVaultDepositArgs {
-    pub fn pack(&self) -> Vec<u8> {
-        bincode::serialize(self).unwrap()
-    }
-}
-
-// Create mercurial vault instruction builder
-impl<'info> MintWithMercurialVaultDepository<'info> {
-    pub fn build_mercurial_vault_deposit_instruction(
-        ctx: CpiContext<
-            '_,
-            '_,
-            '_,
-            'info,
-            mercurial_vault::context::DepositWithdrawLiquidity<'info>,
-        >,
-        collateral_amount: u64,
-        minimum_lp_token_amount: u64,
-    ) -> Result<Instruction> {
-        let accounts = vec![
-            AccountMeta::new(ctx.accounts.vault.key(), false),
-            AccountMeta::new(ctx.accounts.token_vault.key(), false),
-            AccountMeta::new(ctx.accounts.lp_mint.key(), false),
-            AccountMeta::new(ctx.accounts.user_token.key(), false),
-            AccountMeta::new(ctx.accounts.user_lp.key(), false),
-            AccountMeta::new_readonly(ctx.accounts.user.key(), true),
-            AccountMeta::new(ctx.accounts.token_program.key(), false),
-        ];
-
-        let instr = MercurialVaultDepositArgs {
-            token_amount: collateral_amount,
-            minimum_lp_token_amount,
-        };
-        let data = instr.pack();
-
-        Ok(Instruction {
-            program_id: mercurial_vault::ID,
-            accounts,
-            data,
-        })
-    }
-}
-
 // Wrap mercurial vault instruction
 impl<'info> MintWithMercurialVaultDepository<'info> {
     pub fn mercurial_vault_deposit(
@@ -273,14 +221,6 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         collateral_amount: u64,
         minimum_lp_token_amount: u64,
     ) -> Result<()> {
-        /*
-        let ix = MintWithMercurialVaultDepository::build_mercurial_vault_deposit_instruction(
-            ctx,
-            collateral_amount,
-            minimum_lp_token_amount,
-        )?;
-        */
-
         let accounts = vec![
             AccountMeta::new(ctx.accounts.vault.key(), false),
             AccountMeta::new(ctx.accounts.token_vault.key(), false),
@@ -291,11 +231,27 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
             AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
         ];
 
-        let instr = MercurialVaultDepositArgs {
+        let instr = mercurial_vault::instruction::Deposit {
             token_amount: collateral_amount,
             minimum_lp_token_amount,
         };
-        let data = instr.pack();
+
+        let mut data: Vec<u8> = Vec::new();
+
+        // TODO
+        // Find a way to not have to specify the anchor discriminator here
+        data.push(0xf2);
+        data.push(0x23);
+        data.push(0xc6);
+        data.push(0x89);
+        data.push(0x52);
+        data.push(0xe1);
+        data.push(0xf2);
+        data.push(0xb6);
+
+        instr.serialize(&mut data)?;
+
+        msg!("DATA {:?}", data);
 
         let ix = Instruction {
             program_id: mercurial_vault::ID,
