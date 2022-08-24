@@ -72,42 +72,9 @@ pub fn handler(ctx: Context<RegisterMercurialVaultDepository>) -> Result<()> {
         .get("depository_lp_token_vault")
         .ok_or_else(|| error!(UxdError::BumpError))?;
 
-    // let mercurial_vault_acc = ctx.accounts.mercurial_vault_acc.load()?;
     let depository = &mut ctx.accounts.depository.load_init()?;
 
-    // TODO: Find a better solution
-    // I have actually vomited writing this cast, but it works for now.
-    // I just want to mint with mercurial and then change things
-    // MVP first
-    // let mut data = &(**ctx.accounts.mercurial_vault_acc.data.borrow_mut());
-
-    // let mercurial_vault_acc = WrappedMercurialVault::try_deserialize(&mut data)?;
-    //let mercurial_vault_acc = mercurial_vault::state::Vault::try_deserialize(&mut data)?;
-
-    // let mercurial_vault_acc: mercurial_vault::state::Vault = ctx.accounts.mercurial_vault_acc.deserialize_data()?;
-
-    /*
-    // - Check the information about mercurial vault
-    require!(
-        ctx.accounts
-            .mercurial_vault_lp_mint
-            .key()
-            .eq(&mercurial_vault_acc.lp_mint),
-        UxdError::InvalidMercurialVaultLpMint
-    );
-
-    msg!("Hello E");
-
-    require!(
-        ctx.accounts
-            .collateral_mint
-            .key()
-            .eq(&mercurial_vault_acc.token_mint),
-        UxdError::InvalidMercurialVaultCollateralMint
-    );
-    */
-
-    // - Initialize Depository state
+    // 1 - Initialize Depository state
     depository.bump = depository_bump;
 
     depository.version = MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION;
@@ -122,7 +89,7 @@ pub fn handler(ctx: Context<RegisterMercurialVaultDepository>) -> Result<()> {
     depository.lp_token_mint = ctx.accounts.mercurial_vault_lp_mint.key();
     depository.lp_token_decimals = ctx.accounts.mercurial_vault_lp_mint.decimals;
 
-    // - Update Controller state
+    // 2 - Update Controller state
     ctx.accounts
         .controller
         .load_mut()?

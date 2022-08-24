@@ -21,18 +21,17 @@ production = []
 development = []
 
 [dependencies]
-solana-program = "^1.8.0"
-spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
+solana-program = "1.9.*"
+spl-token = { version = "3.2.0", features = ["no-entrypoint"] }
 anchor-lang = "0.24.2"
 anchor-spl = "0.24.2"
 
 # anchor-comp = { version = "0.2.3", git = "https://github.com/UXDProtocol/anchor-comp", default-features = false, features = ["no-entrypoint", "production"] }
-anchor-comp = { version = "0.2.3", git = "https://github.com/UXDProtocol/anchor-comp", default-features = false, features = ["no-entrypoint", "development"] }
+anchor-comp = { tag="v0.2.3", git = "https://github.com/UXDProtocol/anchor-comp", default-features = false, features = ["no-entrypoint", "development"] }
 
 mango = { tag = "v3.4.6", git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
 
-# Should not put staging here as the devnet program id in reality is the same as the mainnet one
-mercurial-vault = { git = "https://github.com/mercurial-finance/mercurial_sdk", branch="main", features = ["no-entrypoint"]} 
+mercurial-vault = { git="https://github.com/mercurial-finance/mercurial_sdk", features= ["cpi"], rev="35aa85f8aff7e1ab64b7276a6e4157223c3533bc"  }
 
 fixed = "^1.9.0"
 num-traits = "0.2.14"

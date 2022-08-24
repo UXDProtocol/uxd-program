@@ -136,7 +136,7 @@ dependencies = [
 [[package]]
 name = "anchor-comp"
 version = "0.2.3"
-source = "git+https://github.com/UXDProtocol/anchor-comp#a3e7976d7c915f3a883cfc2c6304913f62743ea0"
+source = "git+https://github.com/UXDProtocol/anchor-comp?tag=v0.2.3#a3e7976d7c915f3a883cfc2c6304913f62743ea0"
 dependencies = [
  "anchor-lang",
  "mango",
@@ -1045,7 +1045,7 @@ dependencies = [
 [[package]]
 name = "mercurial-vault"
 version = "0.4.0"
-source = "git+https://github.com/mercurial-finance/mercurial_sdk?branch=main#25239a99d65b3a48c28f9fa2fd72e8d5f47dd10d"
+source = "git+https://github.com/mercurial-finance/mercurial_sdk?rev=35aa85f8aff7e1ab64b7276a6e4157223c3533bc#35aa85f8aff7e1ab64b7276a6e4157223c3533bc"
 dependencies = [
  "anchor-lang",
  "anchor-spl",

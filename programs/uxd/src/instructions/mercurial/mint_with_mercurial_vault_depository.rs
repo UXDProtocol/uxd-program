@@ -10,7 +10,7 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use solana_program::instruction::{AccountMeta, Instruction};
+use fixed::types::I80F48;
 
 #[derive(Accounts)]
 pub struct MintWithMercurialVaultDepository<'info> {
@@ -104,59 +104,84 @@ pub struct MintWithMercurialVaultDepository<'info> {
 
 pub fn handler(
     ctx: Context<MintWithMercurialVaultDepository>,
-    collateral_amount: u64,       // native units
-    minimum_lp_token_amount: u64, // native units
+    collateral_amount: u64,
+    minimum_lp_token_amount: u64,
 ) -> Result<()> {
     let controller_bump = ctx.accounts.controller.load()?.bump;
     let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller_bump]]];
 
-    let depository = ctx.accounts.depository.load()?;
-    let collateral_mint = depository.collateral_mint;
-    let depository_bump = depository.bump;
-    drop(depository);
-
-    let depository_pda_signer: &[&[&[u8]]] = &[&[
-        MERCURIAL_VAULT_DEPOSITORY_NAMESPACE,
-        collateral_mint.as_ref(),
-        &[depository_bump],
-    ]];
-
     // Deposit the collateral tokens on mercurial vault and mint uxd to user redeemable account
     let before_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
+
+    // 1 - Deposit collateral to mercurial vault and get lp tokens
+    mercurial_vault::cpi::deposit(
+        ctx.accounts
+            .into_deposit_collateral_to_mercurial_vault_context(),
+        collateral_amount,
+        minimum_lp_token_amount,
+    )?;
+
+    // 2 - Reload accounts impacted by the deposit
+    ctx.accounts.mercurial_vault.reload()?;
+    ctx.accounts.depository_lp_token_vault.reload()?;
+    ctx.accounts.mercurial_vault_lp_mint.reload()?;
+
+    // 3 - Calculate the redeemable amount to mint, based on the minted LP tokens amount and the price of the pool
+    let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
+
+    let lp_token_change_u64 = after_lp_token_vault_balance
+        .checked_sub(before_lp_token_vault_balance)
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    let lp_token_change = I80F48::from_num(lp_token_change_u64);
+
+    let current_time = u64::try_from(Clock::get()?.unix_timestamp)
+        .ok()
+        .ok_or(UxdError::MathError)?;
+
+    let unlocked_amount_u64 = ctx
+        .accounts
+        .mercurial_vault
+        .get_unlocked_amount(current_time)
+        .ok_or(UxdError::MathError)?;
+
+    let unlocked_amount = I80F48::from_num(unlocked_amount_u64);
+    let lp_token_total_supply = I80F48::from_num(ctx.accounts.mercurial_vault_lp_mint.supply);
+
+    let vault_virtual_price = unlocked_amount
+        .checked_div(lp_token_total_supply)
+        .ok_or(UxdError::MathError)?;
+
+    let lp_token_minted_value = vault_virtual_price
+        .checked_mul(lp_token_change)
+        .ok_or(UxdError::MathError)?;
+
+    // 4 - Mint redeemable 1:1 - The only allowed mint for mercurial vault depository is USDC for now
+    let redeemable_mint_amount = lp_token_minted_value
+        .checked_to_num()
+        .ok_or(UxdError::MathError)?;
 
     msg!(
         "before_lp_token_vault_balance {}",
         before_lp_token_vault_balance
     );
 
-    // 1 - Deposit collateral to mercurial vault and get lp tokens
-    MintWithMercurialVaultDepository::mercurial_vault_deposit(
-        ctx.accounts
-            .into_deposit_collateral_to_mercurial_vault_context(),
-        // No need to sign with the depository here, there are no related signer, the only signer is the user
-        // .with_signer(depository_pda_signer),
-        collateral_amount,
-        minimum_lp_token_amount,
-    )?;
-
-    let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
-
     msg!(
         "after_lp_token_vault_balance {}",
         after_lp_token_vault_balance
     );
 
-    // 2 - Calculate the redeemable amount to mint, based on the minted LP tokens amount and the price of the pool
-    let lp_token_change = after_lp_token_vault_balance
-        .checked_sub(before_lp_token_vault_balance)
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
-    let redeemable_mint_amount = lp_token_change;
-
+    msg!("current_time {}", current_time);
+    msg!("unlocked_amount {}", unlocked_amount);
+    msg!(
+        "ctx.accounts.mercurial_vault_lp_mint.supply {}",
+        ctx.accounts.mercurial_vault_lp_mint.supply
+    );
+    msg!("vault_virtual_price {}", vault_virtual_price);
     msg!("lp_token_change {}", lp_token_change);
+
     msg!("redeemable_mint_amount {}", redeemable_mint_amount);
 
-    // 3 - Mint redeemable
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
@@ -184,16 +209,23 @@ pub fn handler(
 impl<'info> MintWithMercurialVaultDepository<'info> {
     pub fn into_deposit_collateral_to_mercurial_vault_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, mercurial_vault::context::DepositWithdrawLiquidity<'info>>
-    {
-        let cpi_accounts = mercurial_vault::context::DepositWithdrawLiquidity {
-            vault: self.mercurial_vault.clone(),
-            lp_mint: *self.mercurial_vault_lp_mint.clone(),
-            token_program: self.token_program.clone(),
-            user_lp: *self.depository_lp_token_vault.clone(),
-            token_vault: *self.mercurial_vault_program_collateral_token_vault.clone(),
-            user: self.user.clone(),
-            user_token: *self.user_collateral.clone(),
+    ) -> CpiContext<
+        '_,
+        '_,
+        '_,
+        'info,
+        mercurial_vault::cpi::accounts::DepositWithdrawLiquidity<'info>,
+    > {
+        let cpi_accounts = mercurial_vault::cpi::accounts::DepositWithdrawLiquidity {
+            vault: self.mercurial_vault.to_account_info(),
+            lp_mint: self.mercurial_vault_lp_mint.to_account_info(),
+            token_program: self.token_program.to_account_info(),
+            user_lp: self.depository_lp_token_vault.to_account_info(),
+            token_vault: self
+                .mercurial_vault_program_collateral_token_vault
+                .to_account_info(),
+            user: self.user.to_account_info(),
+            user_token: self.user_collateral.to_account_info(),
         };
         let cpi_program = self.mercurial_vault_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -207,78 +239,6 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
             authority: self.controller.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
-    }
-
-    pub fn into_unwrap_wsol_by_closing_ata_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, token::CloseAccount<'info>> {
-        let cpi_program = self.token_program.to_account_info();
-        let cpi_accounts = token::CloseAccount {
-            account: self.user_collateral.to_account_info(),
-            destination: self.user.to_account_info(),
-            authority: self.user.to_account_info(),
-        };
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-}
-
-// Wrap mercurial vault instruction
-impl<'info> MintWithMercurialVaultDepository<'info> {
-    pub fn mercurial_vault_deposit(
-        ctx: CpiContext<
-            '_,
-            '_,
-            '_,
-            'info,
-            mercurial_vault::context::DepositWithdrawLiquidity<'info>,
-        >,
-        collateral_amount: u64,
-        minimum_lp_token_amount: u64,
-    ) -> Result<()> {
-        let accounts = vec![
-            AccountMeta::new(ctx.accounts.vault.key(), false),
-            AccountMeta::new(ctx.accounts.token_vault.key(), false),
-            AccountMeta::new(ctx.accounts.lp_mint.key(), false),
-            AccountMeta::new(ctx.accounts.user_token.key(), false),
-            AccountMeta::new(ctx.accounts.user_lp.key(), false),
-            AccountMeta::new_readonly(ctx.accounts.user.key(), true),
-            AccountMeta::new_readonly(ctx.accounts.token_program.key(), false),
-        ];
-
-        let instr = mercurial_vault::instruction::Deposit {
-            token_amount: collateral_amount,
-            minimum_lp_token_amount,
-        };
-
-        let mut data: Vec<u8> = Vec::new();
-
-        // TODO
-        // Find a way to not have to specify the anchor discriminator here
-        data.push(0xf2);
-        data.push(0x23);
-        data.push(0xc6);
-        data.push(0x89);
-        data.push(0x52);
-        data.push(0xe1);
-        data.push(0xf2);
-        data.push(0xb6);
-
-        instr.serialize(&mut data)?;
-
-        msg!("DATA {:?}", data);
-
-        let ix = Instruction {
-            program_id: mercurial_vault::ID,
-            accounts,
-            data,
-        };
-
-        solana_program::program::invoke_signed(
-            &ix,
-            &ToAccountInfos::to_account_infos(&ctx),
-            ctx.signer_seeds,
-        )
-        .map_err(Into::into)
     }
 }
 

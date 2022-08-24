@@ -35,7 +35,7 @@ export const mintWithMercurialVaultDepositoryTest = async function (
 
         // THEN
         const userRedeemableBalance_post = await getBalance(userRedeemableATA);
-        const userCollateralBalance_post = await getBalance(userRedeemableATA);
+        const userCollateralBalance_post = await getBalance(userCollateralATA);
 
         const collateralPaid = userCollateralBalance_post - userCollateralBalance_pre;
         const minted = userRedeemableBalance_post - userRedeemableBalance_pre;
