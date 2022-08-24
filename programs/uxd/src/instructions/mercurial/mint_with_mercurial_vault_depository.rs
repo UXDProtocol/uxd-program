@@ -124,16 +124,27 @@ pub fn handler(
     // Deposit the collateral tokens on mercurial vault and mint uxd to user redeemable account
     let before_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
 
+    msg!(
+        "before_lp_token_vault_balance {}",
+        before_lp_token_vault_balance
+    );
+
     // 1 - Deposit collateral to mercurial vault and get lp tokens
     MintWithMercurialVaultDepository::mercurial_vault_deposit(
         ctx.accounts
-            .into_deposit_collateral_to_mercurial_vault_context()
-            .with_signer(depository_pda_signer),
+            .into_deposit_collateral_to_mercurial_vault_context(),
+        // No need to sign with the depository here, there are no related signer, the only signer is the user
+        // .with_signer(depository_pda_signer),
         collateral_amount,
         minimum_lp_token_amount,
     )?;
 
     let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
+
+    msg!(
+        "after_lp_token_vault_balance {}",
+        after_lp_token_vault_balance
+    );
 
     // 2 - Calculate the redeemable amount to mint, based on the minted LP tokens amount and the price of the pool
     let lp_token_change = after_lp_token_vault_balance
@@ -141,6 +152,9 @@ pub fn handler(
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     let redeemable_mint_amount = lp_token_change;
+
+    msg!("lp_token_change {}", lp_token_change);
+    msg!("redeemable_mint_amount {}", redeemable_mint_amount);
 
     // 3 - Mint redeemable
     token::mint_to(
