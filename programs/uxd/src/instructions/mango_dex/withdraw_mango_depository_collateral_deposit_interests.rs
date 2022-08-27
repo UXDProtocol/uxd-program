@@ -202,7 +202,6 @@ impl<'info> WithdrawMangoDepositoryCollateralDepositInterests<'info> {
         let depository = self.depository.load()?;
         let collateral_deposited = depository.collateral_amount_deposited;
         drop(depository);
-        return I80F48::checked_from_num(collateral_deposited)
-            .ok_or_else(|| error!(UxdError::MathError));
+        I80F48::checked_from_num(collateral_deposited).ok_or_else(|| error!(UxdError::MathError))
     }
 }

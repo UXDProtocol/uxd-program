@@ -438,7 +438,6 @@ pub mod uxd {
         instructions::disable_depository_regular_minting::handler(ctx, disable)
     }
 
-
     /// Withdraw `MangoDepository.collateral_mint` tokens from the `MangoDepository`
     /// underlying `MangoAccount` in the amount of collateral interests only when it is
     /// positive.
