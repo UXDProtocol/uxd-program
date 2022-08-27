@@ -444,8 +444,9 @@ pub mod uxd {
     /// positive.
     ///
     /// Notes:
-    ///  The interest is the difference of the total collateral deposited and total size of the perp opened.
-    ///  Ideally after the withdrawal, the collateral remained shd be same as the perp.
+    ///  The interest is defined by the difference of the total collateral balance from depository mango account
+    ///  to the collateral deposited from accounting.
+    ///  Ideally after the withdrawal, the collateral balance remained shd be same as the collateral deposited.
     ///  In case of decommissioning of depository, interest (collateral, insurance fund) should be withdrawn first
     ///  for accounting purpose.
     ///

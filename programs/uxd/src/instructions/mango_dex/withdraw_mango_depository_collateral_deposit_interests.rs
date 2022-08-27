@@ -1,7 +1,5 @@
 use crate::error::UxdError;
 use crate::events::WithdrawMangoDepositoryCollateralDepositInterestsEvent;
-use crate::mango_utils::total_perp_base_lot_position;
-use crate::mango_utils::PerpInfo;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -15,7 +13,6 @@ use fixed::types::I80F48;
 use mango::state::MangoAccount;
 use mango::state::MangoCache;
 use mango::state::MangoGroup;
-use mango::state::PerpAccount;
 
 /// Takes 13 accounts - 5 used locally - 7 for MangoMarkets CPI - 1 Programs
 #[derive(Accounts)]
@@ -43,7 +40,7 @@ pub struct WithdrawMangoDepositoryCollateralDepositInterests<'info> {
     )]
     pub depository: AccountLoader<'info, MangoDepository>,
 
-    /// #4 The `user`'s ATA for the `controller`'s `redeemable_mint`
+    /// #4 The `authority`'s ATA for the `depository`'s `collateral_mint`
     /// Will be credited during this instruction
     #[account(
         mut,
@@ -112,21 +109,19 @@ pub(crate) fn handler(
     ]];
 
     // - 0 [DETERMINES THE AMOUNT OF COLLATERAL TO WITHDRAW] -------------------
-    let perp_position_total_size = ctx.accounts.get_perp_position_total_size()?;
-    let collateral_total_deposit = ctx.accounts.get_collateral_native_deposit()?;
+    let collateral_deposited = ctx.accounts.get_collateral_deposited()?;
+    let collateral_balance = ctx.accounts.get_collateral_balance()?;
 
-    let diff_collateral_to_perp = collateral_total_deposit
-        .checked_sub(perp_position_total_size)
+    let collateral_interests: u64 = collateral_balance
+        .checked_sub(collateral_deposited)
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     require!(
-        diff_collateral_to_perp.is_positive(),
-        UxdError::NonPositiveCollateralInterest
+        collateral_interests > 0,
+        UxdError::NoCollateralDepositInterests
     );
-
-    let interest_amount: u64 = diff_collateral_to_perp
-        .checked_to_num()
-        .ok_or_else(|| error!(UxdError::MathError))?;
 
     // - 1 [WITHDRAW COLLATERAL INTEREST FROM MANGO THEN RETURN TO AUTHORITY] -----------
 
@@ -135,7 +130,7 @@ pub(crate) fn handler(
         ctx.accounts
             .to_withdraw_collateral_interest_from_mango_context()
             .with_signer(depository_signer_seed),
-        interest_amount,
+        collateral_interests,
         false,
     )?;
 
@@ -145,7 +140,7 @@ pub(crate) fn handler(
         depository: ctx.accounts.depository.key(),
         collateral_mint: ctx.accounts.depository.load()?.quote_mint,
         collateral_mint_decimals: ctx.accounts.depository.load()?.quote_mint_decimals,
-        withdrawn_amount: interest_amount,
+        withdrawn_amount: collateral_interests,
     });
 
     Ok(())
@@ -173,7 +168,7 @@ impl<'info> WithdrawMangoDepositoryCollateralDepositInterests<'info> {
 
 impl<'info> WithdrawMangoDepositoryCollateralDepositInterests<'info> {
     // - [Return the collateral mint total deposits from depository mango account]
-    fn get_collateral_native_deposit(&self) -> Result<I80F48> {
+    fn get_collateral_balance(&self) -> Result<I80F48> {
         // - [Loads Mango's account, cache, group]
         let mango_group = MangoGroup::load_checked(&self.mango_group, self.mango_program.key)
             .map_err(ProgramError::from)?;
@@ -202,44 +197,12 @@ impl<'info> WithdrawMangoDepositoryCollateralDepositInterests<'info> {
 }
 
 impl<'info> WithdrawMangoDepositoryCollateralDepositInterests<'info> {
-    // - [Return general information about the perpetual related to the collateral in use]
-    fn perpetual_info(&self) -> Result<PerpInfo> {
-        let perp_info = PerpInfo::new(
-            &self.mango_group,
-            &self.mango_cache,
-            &self.mango_account,
-            self.mango_perp_market.key,
-            self.mango_group.key,
-            self.mango_program.key,
-        )?;
-        msg!("perp_info {:?}", perp_info);
-        Ok(perp_info)
-    }
-
-    // - [Return the PerpAccount that represent the account balances]
-    fn perp_account(&self, perp_info: &PerpInfo) -> Result<PerpAccount> {
-        // - [Loads Mango's accounts]
-        let mango_account = MangoAccount::load_checked(
-            &self.mango_account,
-            self.mango_program.key,
-            self.mango_group.key,
-        )
-        .map_err(ProgramError::from)?;
-        Ok(mango_account.perp_accounts[perp_info.market_index])
-    }
-
-    // Return the total size of depository perp from mango's perp account
-    fn get_perp_position_total_size(&self) -> Result<I80F48> {
-        // - [Get perp information]
-        let perp_info = self.perpetual_info()?;
-
-        // - [Perp account state]
-        let pa = self.perp_account(&perp_info)?;
-
-        let contract_size = perp_info.base_lot_size;
-        let perp_position_total_size = I80F48::from_num(total_perp_base_lot_position(&pa)?)
-            .checked_mul(contract_size)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        Ok(perp_position_total_size)
+    // - [Return the total collateral deposited from depository accounting]
+    fn get_collateral_deposited(&self) -> Result<I80F48> {
+        let depository = self.depository.load()?;
+        let collateral_deposited = depository.collateral_amount_deposited;
+        drop(depository);
+        return I80F48::checked_from_num(collateral_deposited)
+            .ok_or_else(|| error!(UxdError::MathError));
     }
 }

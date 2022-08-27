@@ -88,8 +88,8 @@ pub enum UxdError {
     QuoteAmountExceedsSoftCap,
     #[msg("The quote currency is not the expected one.")]
     InvalidQuoteCurrency,
-    #[msg("The total collateral deposit is not larger then the total perp size.")]
-    NonPositiveCollateralInterest,
+    #[msg("There are no collateral deposit interests at this time.")]
+    NoCollateralDepositInterests,
 
     /// Anchor DSL related errors
     ///
