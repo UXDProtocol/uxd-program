@@ -14,7 +14,7 @@ use mango::state::MangoAccount;
 use mango::state::MangoCache;
 use mango::state::MangoGroup;
 
-/// Takes 13 accounts - 5 used locally - 7 for MangoMarkets CPI - 1 Programs
+/// Takes 12 accounts - 5 used locally - 6 for MangoMarkets CPI - 1 Programs
 #[derive(Accounts)]
 pub struct WithdrawMangoDepositoryCollateralDepositInterests<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
@@ -70,27 +70,22 @@ pub struct WithdrawMangoDepositoryCollateralDepositInterests<'info> {
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     pub mango_signer: UncheckedAccount<'info>,
 
-    /// #9 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market
-    /// CHECK: Mango CPI - checked MangoMarketV3 side
-    #[account(mut)]
-    pub mango_perp_market: UncheckedAccount<'info>,
-
-    /// #10 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
+    /// #9 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub collateral_root_bank: UncheckedAccount<'info>,
 
-    /// #11 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
+    /// #10 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub collateral_node_bank: UncheckedAccount<'info>,
 
-    /// #12 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`
+    /// #11 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`
     /// CHECK: Mango CPI - checked MangoMarketV3 side
     #[account(mut)]
     pub collateral_vault: UncheckedAccount<'info>,
 
-    /// #13 MangoMarketv3 Program
+    /// #12 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 
