@@ -231,11 +231,6 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
           "isMut": false,
           "isSigner": false
@@ -443,11 +438,6 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -561,11 +551,6 @@ export type Uxd = {
         {
           "name": "mangoEventQueue",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -689,17 +674,17 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
         },
         {
           "name": "mangoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "newShit",
           "isMut": false,
           "isSigner": false
         }
@@ -799,17 +784,7 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -905,27 +880,12 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -1478,7 +1438,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "RedeemFromDepositoryEvent",
+      "name": "RedeemFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -2102,11 +2062,6 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
           "isMut": false,
           "isSigner": false
@@ -2314,11 +2269,6 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -2432,11 +2382,6 @@ export const IDL: Uxd = {
         {
           "name": "mangoEventQueue",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -2560,17 +2505,17 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
         },
         {
           "name": "mangoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "newShit",
           "isMut": false,
           "isSigner": false
         }
@@ -2670,17 +2615,7 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -2776,27 +2711,12 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -3349,7 +3269,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "RedeemFromDepositoryEvent",
+      "name": "RedeemFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",

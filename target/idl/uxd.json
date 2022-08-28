@@ -231,11 +231,6 @@
           "isSigner": false
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
           "isMut": false,
           "isSigner": false
@@ -443,11 +438,6 @@
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -561,11 +551,6 @@
         {
           "name": "mangoEventQueue",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
           "isSigner": false
         },
         {
@@ -689,17 +674,17 @@
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
         },
         {
           "name": "mangoProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "newShit",
           "isMut": false,
           "isSigner": false
         }
@@ -799,17 +784,7 @@
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -905,27 +880,12 @@
           "isSigner": false
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "mangoProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
           "isMut": false,
           "isSigner": false
         }
@@ -1478,7 +1438,7 @@
       ]
     },
     {
-      "name": "RedeemFromDepositoryEvent",
+      "name": "RedeemFromMangoDepositoryEvent",
       "fields": [
         {
           "name": "version",
@@ -1866,8 +1826,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "9PjjDLyfxPmnMRNZ8L5WFZBsqjaZZihfh2x6H4QWLGQF"
-  }
+  ]
 }

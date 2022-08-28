@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::events::SetMangoDepositoryQuoteMintAndRedeemSoftCapEvent;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use anchor_lang::prelude::*;
@@ -27,5 +28,10 @@ pub(crate) fn handler(
         .controller
         .load_mut()?
         .mango_depositories_quote_redeemable_soft_cap = quote_redeemable_soft_cap;
+    emit!(SetMangoDepositoryQuoteMintAndRedeemSoftCapEvent {
+        version: ctx.accounts.controller.load()?.version,
+        controller: ctx.accounts.controller.key(),
+        quote_mint_and_redeem_soft_cap: quote_redeemable_soft_cap
+    });
     Ok(())
 }
