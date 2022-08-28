@@ -29,7 +29,7 @@ pub struct SetRedeemableGlobalSupplyCapEvent {
     pub redeemable_global_supply_cap: u128,
 }
 
-// Deprecated, use `RegisterMangoDepositoryEventV2` - Keep for decoding on chain history
+/// Deprecated, use `RegisterMangoDepositoryEventV2` - Keep for decoding on chain history
 /// Event called in [instructions::register_mango_depository::handler].
 #[event]
 pub struct RegisterMangoDepositoryEvent {
@@ -130,7 +130,7 @@ pub struct WithdrawInsuranceFromMangoDepositoryEvent {
     pub withdrawn_amount: u64,
 }
 
-// Event called in [instructions::*_dex::withdraw_insurance_from_*_depository::handler].
+/// Event called in [instructions::*_dex::withdraw_insurance_from_*_depository::handler].
 #[event]
 pub struct WithdrawInsuranceFromDepositoryEvent {
     /// The controller version.
@@ -304,7 +304,7 @@ pub struct QuoteMintWithMangoDepositoryEvent {
     pub quote_mint_fee: u64,
 }
 
-// Event called in [instructions::*_dex::withdraw_insurance_from_*_depository::handler].
+/// Event called in [instructions::*_dex::disable_depository_regular_minting::handler].
 #[event]
 pub struct DisableDepositoryRegularMintingEvent {
     /// The controller version.
