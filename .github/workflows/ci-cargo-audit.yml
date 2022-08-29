@@ -1,11 +1,8 @@
-# CI job for scanning Cargo dependencies for vulnerabilities and report/fail job based on criticality.
-# Critically vulnerable dependencies with fix available will mark the run as failed (X)
-
 name: Cargo Audit
 
 on:
   push:
-    branches: main
+    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
