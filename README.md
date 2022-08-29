@@ -220,3 +220,9 @@ $> solana program set-buffer-authority <BufferID> --new-buffer-authority CzZySsi
 ```
 
 ![Governance upgrade](dao_program_upgrade.png)
+
+_____
+
+## Licensing
+
+The license for UXD Program is the Business Source License 1.1 (`BUSL-1.1`), see [`LICENSE`](./LICENSE).
