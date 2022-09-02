@@ -2,13 +2,12 @@ use crate::error::UxdError;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use anchor_lang::prelude::*;
+use std::cell::RefMut;
 
-/// Takes 3 accounts
 #[derive(Accounts)]
-pub struct SetMangoDepositoryQuoteMintAndRedeemSoftCap<'info> {
+pub struct ApplyControllerChange<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
-
     /// #2 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         mut,
@@ -19,13 +18,11 @@ pub struct SetMangoDepositoryQuoteMintAndRedeemSoftCap<'info> {
     pub controller: AccountLoader<'info, Controller>,
 }
 
-pub fn handler(
-    ctx: Context<SetMangoDepositoryQuoteMintAndRedeemSoftCap>,
-    quote_redeemable_soft_cap: u64, // in redeemable native units
-) -> Result<()> {
-    ctx.accounts
-        .controller
-        .load_mut()?
-        .mango_depositories_quote_redeemable_soft_cap = quote_redeemable_soft_cap;
+pub fn handler<F>(ctx: Context<ApplyControllerChange>, modifier: F) -> Result<()>
+where
+    F: FnOnce(&Context<ApplyControllerChange>, &mut RefMut<Controller>) -> (),
+{
+    let controller = &mut ctx.accounts.controller.load_mut()?;
+    modifier(&ctx, controller);
     Ok(())
 }

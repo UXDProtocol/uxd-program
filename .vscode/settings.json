@@ -57,5 +57,6 @@
         "Tjpk",
         "UXDATA",
         "WSOLATA",
-    ]
+    ],
+    "editor.formatOnSave": true,
 }

@@ -49,7 +49,9 @@ const MANGO_PERP_MAX_FILL_EVENTS: u8 = u8::MAX;
 #[deny(unused_must_use)]
 pub mod uxd {
 
-    use crate::instructions::set_mango_depository_quote_mint_and_redeem_soft_cap::SetMangoDepositoryQuoteMintAndRedeemSoftCap;
+    use crate::events::{
+        SetMangoDepositoryRedeemableSoftCapEvent, SetRedeemableGlobalSupplyCapEvent,
+    };
 
     use super::*;
 
@@ -95,13 +97,23 @@ pub mod uxd {
     /// Note:
     ///  If this is set below the current circulating supply of UXD, it would effectively pause Minting.
     ///
-    #[access_control(ctx.accounts.validate(redeemable_global_supply_cap))]
     pub fn set_redeemable_global_supply_cap(
-        ctx: Context<SetRedeemableGlobalSupplyCap>,
+        ctx: Context<ApplyControllerChange>,
         redeemable_global_supply_cap: u128,
     ) -> Result<()> {
+        require!(
+            redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP,
+            UxdError::InvalidRedeemableGlobalSupplyCap
+        );
         msg!("[set_redeemable_global_supply_cap]");
-        instructions::set_redeemable_global_supply_cap::handler(ctx, redeemable_global_supply_cap)
+        instructions::apply_controller_change::handler(ctx, |ctx, controller| {
+            controller.redeemable_global_supply_cap = redeemable_global_supply_cap;
+            emit!(SetRedeemableGlobalSupplyCapEvent {
+                version: controller.version,
+                controller: ctx.accounts.controller.key(),
+                redeemable_global_supply_cap
+            });
+        })
     }
 
     /// Sets the `mango_depositories_redeemable_soft_cap` of the provided
@@ -126,24 +138,36 @@ pub mod uxd {
     ///  If this is set to 0, it would effectively pause minting on
     ///  MangoMarkets Depositories.
     ///
-    #[access_control(ctx.accounts.validate(redeemable_soft_cap))]
     pub fn set_mango_depositories_redeemable_soft_cap(
-        ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
+        ctx: Context<ApplyControllerChange>,
         redeemable_soft_cap: u64,
     ) -> Result<()> {
+        require!(
+            redeemable_soft_cap <= MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP,
+            UxdError::InvalidMangoDepositoriesRedeemableSoftCap
+        );
         msg!("[set_mango_depositories_redeemable_soft_cap]");
-        instructions::set_mango_depositories_redeemable_soft_cap::handler(ctx, redeemable_soft_cap)
+        instructions::apply_controller_change::handler(ctx, move |ctx, controller| {
+            controller.mango_depositories_redeemable_soft_cap = redeemable_soft_cap;
+            emit!(SetMangoDepositoryRedeemableSoftCapEvent {
+                version: controller.version,
+                controller: ctx.accounts.controller.key(),
+                redeemable_mint_decimals: controller.redeemable_mint_decimals,
+                redeemable_mint: controller.redeemable_mint,
+                redeemable_soft_cap
+            });
+        })
     }
 
     pub fn set_mango_depository_quote_mint_and_redeem_soft_cap(
-        ctx: Context<SetMangoDepositoryQuoteMintAndRedeemSoftCap>,
+        ctx: Context<ApplyControllerChange>,
         quote_mint_and_redeem_soft_cap: u64,
     ) -> Result<()> {
         msg!("[set_mango_depository_quote_mint_and_redeem_soft_cap]");
-        instructions::set_mango_depository_quote_mint_and_redeem_soft_cap::handler(
-            ctx,
-            quote_mint_and_redeem_soft_cap,
-        )
+        instructions::apply_controller_change::handler(ctx, move |_ctx, controller| {
+            controller.mango_depositories_quote_redeemable_soft_cap =
+                quote_mint_and_redeem_soft_cap;
+        })
     }
 
     /// Create a new`MangoDepository` and registers it to the provided
@@ -408,14 +432,16 @@ pub mod uxd {
     }
 
     pub fn set_mango_depository_quote_mint_and_redeem_fee(
-        ctx: Context<SetMangoDepositoryQuoteMintAndRedeemFee>,
+        ctx: Context<ApplyMangoDepositoryChange>,
         quote_fee: u8,
     ) -> Result<()> {
         msg!(
             "[set_mango_depository_quote_mint_and_redeem_fee] quote_fee {}",
             quote_fee
         );
-        instructions::set_mango_depository_quote_mint_and_redeem_fee::handler(ctx, quote_fee)
+        instructions::apply_mango_depository_change::handler(ctx, |ctx, depository| {
+            depository.quote_mint_and_redeem_fee = quote_fee
+        })
     }
 
     /// Disable or enable regular minting for given Mango Depository.
