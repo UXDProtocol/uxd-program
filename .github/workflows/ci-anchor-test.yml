@@ -135,6 +135,7 @@ jobs:
   mango-market-making-SOL-PERP:
     name: Run mango market making ts bot on SOL PERP when doing Testing
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [anchor-build-and-deploy]
     steps:
       # Checkout
