@@ -327,7 +327,7 @@ jobs:
     name: Test Quote mint redeem MangoDepository (SOL, BTC, ETH) against the resident program
     if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
-    needs: [anchor-build-and-deploy, anchor-test-mango-depository-SOL, anchor-test-mango-depository-BTC, anchor-test-mango-depository-ETH]
+    needs: [anchor-build-and-deploy, anchor-test-mango-depository-SOL]
     steps:
       # Checkout
       - uses: actions/checkout@v2
