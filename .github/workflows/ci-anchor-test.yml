@@ -1,8 +1,6 @@
 name: Anchor Test
 
 on:
-  push:
-    branches: [main, v*.*, test/*]
   pull_request:
     branches: [main, v*.*]
   
