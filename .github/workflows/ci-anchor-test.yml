@@ -55,7 +55,6 @@ jobs:
   # Build and deploy an updated program at 3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW
   anchor-build-and-deploy:
     name: Upgrades CI Resident Program
-    if: ${{ false }}  # disable for now
     runs-on: ubuntu-latest
     steps:
       # Checkout
@@ -135,9 +134,37 @@ jobs:
         run: |
           solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
 
+  mango-market-making-SOL-PERP:
+    name: Run mango market making ts bot on SOL PERP when doing Testing
+    runs-on: ubuntu-latest
+    needs: [anchor-build-and-deploy]
+    steps:
+      # Checkout
+      - uses: actions/checkout@v2
+      # Checkout Mango Market Maker
+      - name: Checkout Mango market-maker-ts
+        uses: actions/checkout@v2
+        with:
+          repository: blockworks-foundation/market-maker-ts
+          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/market-maker-ts
+      - name: Setup Market Making bot for SOL PERP
+        run: |
+          cd /home/runner/work/uxd-program/uxd-program
+          mm_keypair=$( cat ${{ env.MANGO_MM_ACCOUNT_KEYPAIR }} )
+          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/market-maker-ts
+          yarn install
+          mm_params='{"group":"devnet.2","mangoAccountName":"mm","interval":500,"tif":10,"batch":2,"assets":{"SOL":{"perp":{"sizePerc":0.05,"leanCoeff":0.0005,"bias":0,"requoteThresh":0.0002,"takeSpammers":true,"spammerCharge":2}}}}'
+          echo "$mm_params" > params/devnet_sol_perp.json
+          touch .env
+          echo "export KEYPAIR=$mm_keypair" > .env
+          echo -e 'export ENDPOINT_URL="https://mango.devnet.rpcpool.com"' >> .env
+          echo -e 'export PARAMS=devnet_sol_perp.json' >> .env
+          . .env && yarn mm
+
   anchor-test-mango-depository-SOL:
     name: Test SOL MangoDepository against the resident program
     runs-on: ubuntu-latest
+    needs: [anchor-build-and-deploy]
     steps:
       # Checkout
       - uses: actions/checkout@v2
@@ -206,25 +233,6 @@ jobs:
             ./target/release
             ./target/bpfel-unknown-unknown
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
-      # Checkout Mango Market Maker
-      - name: Checkout Mango market-maker-ts
-        uses: actions/checkout@v2
-        with:
-          repository: blockworks-foundation/market-maker-ts
-          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/market-maker-ts
-      - name: Start Market Making bot for SOL PERP
-        run: |
-          mm_keypair=$( cat ${{ env.MANGO_MM_ACCOUNT_KEYPAIR }} )
-          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/market-maker-ts
-          yarn install
-          mm_params='{"group":"devnet.2","mangoAccountName":"mm","interval":500,"tif":10,"batch":2,"assets":{"SOL":{"perp":{"sizePerc":0.05,"leanCoeff":0.0005,"bias":0,"requoteThresh":0.0002,"takeSpammers":true,"spammerCharge":2}}}}'
-          echo "$mm_params" > params/devnet_sol_perp.json
-          touch .env
-          echo "export KEYPAIR=$mm_keypair" > .env
-          echo -e 'export ENDPOINT_URL="https://mango.devnet.rpcpool.com"' >> .env
-          echo -e 'export PARAMS=devnet_sol_perp.json' >> .env
-          . .env && yarn mm
-          cd -
       - name: Anchor Test (skip build and deploy)
         run: |
           npm ci --ignore-scripts
