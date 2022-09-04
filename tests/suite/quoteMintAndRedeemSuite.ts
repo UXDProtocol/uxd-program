@@ -18,12 +18,12 @@ import { transferSol, transferTokens } from "../utils";
 export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MangoDepository) {
 
     before(`Transfer 5,000${depository.quoteMintSymbol} from payer to user`, async function () {
-        await transferTokens(5000, depository.quoteMint, depository.quoteMintDecimals, payer, user.publicKey);
+        await transferTokens(50, depository.quoteMint, depository.quoteMintDecimals, payer, user.publicKey);
     });
 
     before(`Transfer 5,000 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const amount = 5_000 / perpPrice;
+        const amount = 50 / perpPrice;
         console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
         // For Wsol we send sol, the API handle the wrapping before each minting
         if (depository.collateralMint.equals(NATIVE_MINT)) {
@@ -35,7 +35,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
     before(`Mint 3000 ${controller.redeemableMintSymbol} (${20 / slippageBase * 100} % slippage)`, async function () {
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const amount = 3000 / perpPrice;
+        const amount = 30 / perpPrice;
         console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
         await mintWithMangoDepositoryTest(amount, 20, user, controller, depository, mango, payer);
     });
@@ -223,11 +223,11 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         }
         switch (polarity) {
             case `Positive`: {
-                await quoteRedeemFromMangoDepositoryTest(1000, user, controller, depository, mango, payer);
+                await quoteRedeemFromMangoDepositoryTest(10, user, controller, depository, mango, payer);
                 break;
             }
             case `Negative`: {
-                await quoteMintWithMangoDepositoryTest(1000, user, controller, depository, mango, payer);
+                await quoteMintWithMangoDepositoryTest(10, user, controller, depository, mango, payer);
                 break;
             }
         }
@@ -235,7 +235,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
     it(`Quote redeem 10_000$ (should fail)`, async function () {
         try {
-            await quoteRedeemFromMangoDepositoryTest(10_000, user, controller, depository, mango, payer);
+            await quoteRedeemFromMangoDepositoryTest(100, user, controller, depository, mango, payer);
         } catch {
             expect(true, "Failing as planned");
         }
@@ -244,7 +244,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
 
     it(`Quote mint 10_000$ (should fail)`, async function () {
         try {
-            await quoteMintWithMangoDepositoryTest(10_000, user, controller, depository, mango, payer);
+            await quoteMintWithMangoDepositoryTest(100, user, controller, depository, mango, payer);
         } catch {
             expect(true, "Failing as planned");
         }
