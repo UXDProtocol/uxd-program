@@ -223,7 +223,7 @@ jobs:
           echo "export KEYPAIR=$mm_keypair" > .env
           echo -e 'export ENDPOINT_URL="https://mango.devnet.rpcpool.com"' >> .env
           echo -e 'export PARAMS=devnet_sol_perp.json' >> .env
-          ./run.sh
+          . .env && yarn mm
           cd -
       - name: Anchor Test (skip build and deploy)
         run: |
