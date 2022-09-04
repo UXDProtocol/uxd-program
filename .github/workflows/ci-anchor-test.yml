@@ -44,6 +44,8 @@ env:
   TEST_CI_ETH: "test_ci_eth"
   TEST_CI_REBALANCING: "test_ci_rebalancing"
   TEST_CI_QUOTE_MINT_REDEEM: "test_ci_quote_mint_redeem"
+  # Mango MM SOL PERP PARAMS
+  MANGO_MM_ACCOUNT_KEYPAIR: "./target/deploy/mango-mm-account-keypair.json"
     
 concurrency:
   group: environment-${{ github.ref }}
@@ -204,28 +206,24 @@ jobs:
             ./target/release
             ./target/bpfel-unknown-unknown
           key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
-      # Market Making
-      - uses: actions/checkout@v3
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v3
+      # Checkout Mango Market Maker
+      - name: Checkout Mango market-maker-ts
+        uses: actions/checkout@v2
         with:
-          python-version: "3.10"
-      - name: Install dependencies and run marketmaker
+          repository: blockworks-foundation/market-maker-ts
+          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/market-maker-ts
+      - name: Start Market Making bot for SOL PERP
         run: |
-          sudo apt install direnv
-          mkdir mmfolder
-          cd mmfolder
-          python -m venv .venv
-          touch .envrc
-          echo 'CURRENT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"' > .envrc
-          echo -e '\nexport PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.10/site-packages/bin' >> .envrc
-          direnv allow
-          cat .envrc
-          python -m pip install --upgrade pip
-          touch requirements.txt && echo mango-explorer > requirements.txt
-          pip install -r requirements.txt
-          mango-explorer-version
-          marketmaker --name "UXD-SOL-MM" --market SOL-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_SOL }} &
+          mm_keypair=$( cat ${{ env.MANGO_MM_ACCOUNT_KEYPAIR }} )
+          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/market-maker-ts
+          yarn install
+          mm_params='{"group":"devnet.2","mangoAccountName":"mm","interval":500,"tif":10,"batch":2,"assets":{"SOL":{"perp":{"sizePerc":0.05,"leanCoeff":0.0005,"bias":0,"requoteThresh":0.0002,"takeSpammers":true,"spammerCharge":2}}}}'
+          echo "$mm_params" > params/devnet_sol_perp.json
+          touch .env
+          echo "export KEYPAIR=$mm_keypair" > .env
+          echo -e 'export ENDPOINT_URL="https://mango.devnet.rpcpool.com"' >> .env
+          echo -e 'export PARAMS=devnet_sol_perp.json' >> .env
+          ./run.sh
           cd -
       - name: Anchor Test (skip build and deploy)
         run: |
