@@ -49,7 +49,7 @@
       ]
     },
     {
-      "name": "setRedeemableGlobalSupplyCap",
+      "name": "editController",
       "accounts": [
         {
           "name": "authority",
@@ -64,50 +64,10 @@
       ],
       "args": [
         {
-          "name": "redeemableGlobalSupplyCap",
-          "type": "u128"
-        }
-      ]
-    },
-    {
-      "name": "setMangoDepositoriesRedeemableSoftCap",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "redeemableSoftCap",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "setMangoDepositoryQuoteMintAndRedeemSoftCap",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "quoteMintAndRedeemSoftCap",
-          "type": "u64"
+          "name": "fields",
+          "type": {
+            "defined": "EditControllerFields"
+          }
         }
       ]
     },
@@ -938,7 +898,7 @@
       ]
     },
     {
-      "name": "setMangoDepositoryQuoteMintAndRedeemFee",
+      "name": "editMangoDepository",
       "accounts": [
         {
           "name": "authority",
@@ -958,8 +918,10 @@
       ],
       "args": [
         {
-          "name": "quoteFee",
-          "type": "u8"
+          "name": "fields",
+          "type": {
+            "defined": "EditMangoDepositoryFields"
+          }
         }
       ]
     },
@@ -1161,6 +1123,46 @@
     }
   ],
   "types": [
+    {
+      "name": "EditControllerFields",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "quoteMintAndRedeemSoftCap",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "redeemableSoftCap",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "redeemableGlobalSupplyCap",
+            "type": {
+              "option": "u128"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "EditMangoDepositoryFields",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "quoteMintAndRedeemFee",
+            "type": {
+              "option": "u8"
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "PnlPolarity",
       "type": {
@@ -1866,8 +1868,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "9PjjDLyfxPmnMRNZ8L5WFZBsqjaZZihfh2x6H4QWLGQF"
-  }
+  ]
 }

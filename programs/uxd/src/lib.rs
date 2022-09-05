@@ -115,7 +115,7 @@ pub mod uxd {
     ///
     #[access_control(ctx.accounts.validate(&fields))]
     pub fn edit_controller(
-        ctx: Context<EditControllerAccounts>,
+        ctx: Context<EditController>,
         fields: EditControllerFields,
     ) -> Result<()> {
         instructions::edit_controller::handler(ctx, &fields)
@@ -383,7 +383,7 @@ pub mod uxd {
     }
 
     pub fn edit_mango_depository(
-        ctx: Context<EditMangoDepositoryAccounts>,
+        ctx: Context<EditMangoDepository>,
         fields: EditMangoDepositoryFields,
     ) -> Result<()> {
         instructions::edit_mango_depository::handler(ctx, &fields)

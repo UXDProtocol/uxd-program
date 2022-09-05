@@ -8,7 +8,7 @@ use crate::MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-pub struct EditControllerAccounts<'info> {
+pub struct EditController<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
     /// #2 The top level UXDProgram on chain account managing the redeemable mint
@@ -28,7 +28,7 @@ pub struct EditControllerFields {
     redeemable_global_supply_cap: Option<u128>,
 }
 
-pub fn handler(ctx: Context<EditControllerAccounts>, fields: &EditControllerFields) -> Result<()> {
+pub fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
     let controller = &mut ctx.accounts.controller.load_mut()?;
     // Optionally edit "quote_mint_and_redeem_soft_cap"
     if let Some(quote_mint_and_redeem_soft_cap) = fields.quote_mint_and_redeem_soft_cap {
@@ -61,7 +61,7 @@ pub fn handler(ctx: Context<EditControllerAccounts>, fields: &EditControllerFiel
 }
 
 #[allow(clippy::absurd_extreme_comparisons)]
-impl<'info> EditControllerAccounts<'info> {
+impl<'info> EditController<'info> {
     pub fn validate(&self, fields: &EditControllerFields) -> Result<()> {
         if let Some(redeemable_soft_cap) = fields.redeemable_soft_cap {
             require!(

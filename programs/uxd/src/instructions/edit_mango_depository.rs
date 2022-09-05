@@ -6,7 +6,7 @@ use crate::MANGO_DEPOSITORY_NAMESPACE;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-pub struct EditMangoDepositoryAccounts<'info> {
+pub struct EditMangoDepository<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
     /// #2 The top level UXDProgram on chain account managing the redeemable mint
@@ -35,7 +35,7 @@ pub struct EditMangoDepositoryFields {
 }
 
 pub fn handler(
-    ctx: Context<EditMangoDepositoryAccounts>,
+    ctx: Context<EditMangoDepository>,
     fields: &EditMangoDepositoryFields,
 ) -> Result<()> {
     let depository = &mut ctx.accounts.depository.load_mut()?;
