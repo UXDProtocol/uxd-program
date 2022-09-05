@@ -38,8 +38,8 @@ export async function initializeController(authority: Signer, payer: Signer, con
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function mintWithMercurialVaultDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository, collateralAmount: number, minimumLpTokenAmount: number): Promise<string> {
-  const mintWithMercurialVaultDepositoryIx = uxdClient.createMintWithMercurialVaultInstruction(controller, depository, authority.publicKey, collateralAmount, minimumLpTokenAmount, TXN_OPTS, payer.publicKey);
+export async function mintWithMercurialPoolDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialPoolDepository, collateralAmount: number, minimumRedeemableAmount: number): Promise<string> {
+  const mintWithMercurialPoolDepositoryIx = uxdClient.createMintWithMercurialPoolInstruction(controller, depository, authority.publicKey, collateralAmount, minimumRedeemableAmount, TXN_OPTS, payer.publicKey);
   let signers = [];
   let tx = new Transaction();
 
@@ -49,7 +49,13 @@ export async function mintWithMercurialVaultDepository(authority: Signer, payer:
     tx.add(createUserRedeemableAtaIx);
   }
 
-  tx.add(mintWithMercurialVaultDepositoryIx);
+  const [userMercurialPoolSecondaryTokenAta] = findATAAddrSync(authority.publicKey, depository.mercurialPoolSecondaryToken.mint);
+  if (!await getConnection().getAccountInfo(userMercurialPoolSecondaryTokenAta)) {
+    const createUserMercurialPoolSecondaryTokenAtaIx = createAssocTokenIx(authority.publicKey, userMercurialPoolSecondaryTokenAta, depository.mercurialPoolSecondaryToken.mint);
+    tx.add(createUserMercurialPoolSecondaryTokenAtaIx);
+  }
+
+  tx.add(mintWithMercurialPoolDepositoryIx);
   signers.push(authority);
 
   if (payer) {
@@ -59,12 +65,39 @@ export async function mintWithMercurialVaultDepository(authority: Signer, payer:
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function registerMercurialVaultDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository): Promise<string> {
-  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(controller, depository, authority.publicKey, TXN_OPTS, payer.publicKey);
+export async function redeemFromMercurialPoolDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialPoolDepository, redeemableAmount: number): Promise<string> {
+  const redeemFromMercurialPoolDepositoryIx = uxdClient.createRedeemFromMercurialPoolInstruction(controller, depository, authority.publicKey, redeemableAmount, TXN_OPTS, payer.publicKey);
   let signers = [];
   let tx = new Transaction();
 
-  tx.instructions.push(registerMercurialVaultDepositoryIx);
+  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  if (!await getConnection().getAccountInfo(authorityRedeemableAta)) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(authority.publicKey, authorityRedeemableAta, controller.redeemableMintPda);
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  const [userMercurialPoolSecondaryTokenAta] = findATAAddrSync(authority.publicKey, depository.mercurialPoolSecondaryToken.mint);
+  if (!await getConnection().getAccountInfo(userMercurialPoolSecondaryTokenAta)) {
+    const createUserMercurialPoolSecondaryTokenAtaIx = createAssocTokenIx(authority.publicKey, userMercurialPoolSecondaryTokenAta, depository.mercurialPoolSecondaryToken.mint);
+    tx.add(createUserMercurialPoolSecondaryTokenAtaIx);
+  }
+
+  tx.add(redeemFromMercurialPoolDepositoryIx);
+  signers.push(authority);
+
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function registerMercurialPoolDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialPoolDepository): Promise<string> {
+  const registerMercurialPoolDepositoryIx = uxdClient.createRegisterMercurialPoolDepositoryInstruction(controller, depository, authority.publicKey, TXN_OPTS, payer.publicKey);
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(registerMercurialPoolDepositoryIx);
   signers.push(authority);
   if (payer) {
     signers.push(payer);

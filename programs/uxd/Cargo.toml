@@ -31,7 +31,8 @@ anchor-comp = { tag="v0.2.3", git = "https://github.com/UXDProtocol/anchor-comp"
 
 mango = { tag = "v3.4.6", git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
 
-mercurial-vault = { git="https://github.com/mercurial-finance/mercurial_sdk", features= ["cpi"], rev="35aa85f8aff7e1ab64b7276a6e4157223c3533bc"  }
+# mercurial-vault = { git="https://github.com/mercurial-finance/mercurial_sdk", features= ["cpi"], rev="35aa85f8aff7e1ab64b7276a6e4157223c3533bc"  }
+mercurial-amm = { git="https://github.com/mercurial-finance/mercurial-dynamic-amm-sdk", features= ["cpi"], rev="8c93e541af252dd0f3fbae56a8eb730adb86feee" }
 
 fixed = "^1.9.0"
 num-traits = "0.2.14"

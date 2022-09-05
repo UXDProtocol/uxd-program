@@ -29,7 +29,7 @@ pub const MANGO_GROUP: &str = "98pjRuQjK3qA6gXts96PqZT4Ze5QmnCmt3QYjhbUSPue";
 
 // Version used for accounts structure and future migrations
 pub const MANGO_DEPOSITORY_ACCOUNT_VERSION: u8 = 2;
-pub const MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
+pub const MERCURIAL_POOL_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
@@ -37,7 +37,8 @@ pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
-pub const MERCURIAL_VAULT_DEPOSITORY_NAMESPACE: &[u8] = b"MERCURIALVAULTDEPOSITORY";
+pub const MERCURIAL_POOL_DEPOSITORY_NAMESPACE: &[u8] = b"MERCURIALPOOLDEPOSITORY";
+pub const MERCURIAL_POOL_DEPOSITORY_LP_VAULT_NAMESPACE: &[u8] = b"MERCURIALPOOLDEPOSITORYLPVAULT";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -420,28 +421,43 @@ pub mod uxd {
 
     // Mint Redeemable tokens by depositing Collateral to mercurial vault.
     #[access_control(
-        ctx.accounts.validate(collateral_amount, minimum_lp_token_amount)
+        ctx.accounts.validate(collateral_amount, minimum_redeemable_amount)
     )]
-    pub fn mint_with_mercurial_vault(
-        ctx: Context<MintWithMercurialVaultDepository>,
+    pub fn mint_with_mercurial_pool(
+        ctx: Context<MintWithMercurialPoolDepository>,
         collateral_amount: u64,
-        minimum_lp_token_amount: u64,
+        minimum_redeemable_amount: u64,
     ) -> Result<()> {
-        msg!("[mint_with_mercurial_vault]");
-        instructions::mint_with_mercurial_vault_depository::handler(
+        msg!("[mint_with_mercurial_pool]");
+        instructions::mint_with_mercurial_pool_depository::handler(
             ctx,
             collateral_amount,
-            minimum_lp_token_amount,
+            minimum_redeemable_amount,
         )
     }
 
-    // Create and Register a new `MercurialVaultDepository` to the `Controller`.
+    // Create and Register a new `MercurialPoolDepository` to the `Controller`.
     // Each `Depository` account manages a specific collateral mint.
-    pub fn register_mercurial_vault_depository(
-        ctx: Context<RegisterMercurialVaultDepository>,
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn register_mercurial_pool_depository(
+        ctx: Context<RegisterMercurialPoolDepository>,
     ) -> Result<()> {
-        msg!("[register_mercurial_vault_depository]");
-        instructions::register_mercurial_vault_depository::handler(ctx)
+        msg!("[register_mercurial_pool_depository]");
+        instructions::register_mercurial_pool_depository::handler(ctx)
+    }
+
+    //
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn redeem_from_mercurial_pool(
+        ctx: Context<RedeemFromMercurialPoolDepository>,
+        redeemable_amount: u64,
+    ) -> Result<()> {
+        msg!("[redeem_from_mercurial_pool]");
+        instructions::redeem_from_mercurial_pool_depository::handler(ctx, redeemable_amount)
     }
 }
 
@@ -471,6 +487,7 @@ pub fn validate_perp_market_mints_matches_depository_mints(
         mango_group.tokens[QUOTE_INDEX].mint == *quote_mint_key,
         UxdError::InvalidQuoteCurrency
     );
+
     Ok(())
 }
 

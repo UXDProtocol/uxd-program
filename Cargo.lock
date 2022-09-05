@@ -1043,9 +1043,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "mercurial-amm"
+version = "0.1.0"
+source = "git+https://github.com/mercurial-finance/mercurial-dynamic-amm-sdk?rev=8c93e541af252dd0f3fbae56a8eb730adb86feee#8c93e541af252dd0f3fbae56a8eb730adb86feee"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "mercurial-vault",
+]
+
+[[package]]
 name = "mercurial-vault"
 version = "0.4.0"
-source = "git+https://github.com/mercurial-finance/mercurial_sdk?rev=35aa85f8aff7e1ab64b7276a6e4157223c3533bc#35aa85f8aff7e1ab64b7276a6e4157223c3533bc"
+source = "git+https://github.com/mercurial-finance/vault-sdk?rev=6daf57a877c36694c8f5b8267ca1e096a1e619d2#6daf57a877c36694c8f5b8267ca1e096a1e619d2"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -1953,7 +1963,7 @@ dependencies = [
  "anchor-spl",
  "fixed",
  "mango",
- "mercurial-vault",
+ "mercurial-amm",
  "num-traits",
  "proptest",
  "solana-program",

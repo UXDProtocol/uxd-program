@@ -73,6 +73,25 @@ pub struct RegisterMangoDepositoryEventV2 {
     pub mango_account: Pubkey,
 }
 
+/// Event called in [instructions::register_mercurial_pool_depository::handler].
+#[event]
+pub struct RegisterMercurialPoolDepositoryEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The depository version.
+    #[index]
+    pub depository_version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    // The collateral mint.
+    pub collateral_mint: Pubkey,
+}
+
 /// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
 #[event]
 pub struct SetMangoDepositoryRedeemableSoftCapEvent {
