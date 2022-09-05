@@ -33,7 +33,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         }
     });
 
-    before(`Mint 30 ${controller.redeemableMintSymbol} (${20 / slippageBase * 100} % slippage)`, async function () {
+    it(`Mint 30 ${controller.redeemableMintSymbol} (${20 / slippageBase * 100} % slippage)`, async function () {
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
         const amount = 30 / perpPrice;
         console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
