@@ -82,17 +82,6 @@ pub mod uxd {
     ///     - fields.redeemable_soft_cap: Option<u64> // ignored if None
     ///     - fields.redeemable_global_supply_cap: Option<128> // ignored if None
     ///
-    /// About: "fields.redeemable_global_supply_cap"
-    ///   Sets the `redeemable_global_supply_cap` of the provided `Controller` account.
-    /// Explanation:
-    ///   The redeemable global supply cap determines the max total supply
-    ///   for the redeemable token. Program will abort when an instruction
-    ///   that mints new redeemable would bring the circulating supply
-    ///   beyond this value.
-    /// Notes:
-    ///   - Purpose of this is to roll out progressively for OI, and limit risks.
-    ///   - If this is set below the current circulating supply of UXD, it would effectively pause Minting.
-    ///
     /// About: "fields.redeemable_soft_cap"
     ///   Sets the `mango_depositories_redeemable_soft_cap` of the provided `Controller` account.
     /// Explanation:
@@ -112,6 +101,17 @@ pub mod uxd {
     ///     MangoMarkets Depositories.
     ///   - If this is set to 0, it would effectively pause minting on
     ///     MangoMarkets Depositories.
+    ///
+    /// About: "fields.redeemable_global_supply_cap"
+    ///   Sets the `redeemable_global_supply_cap` of the provided `Controller` account.
+    /// Explanation:
+    ///   The redeemable global supply cap determines the max total supply
+    ///   for the redeemable token. Program will abort when an instruction
+    ///   that mints new redeemable would bring the circulating supply
+    ///   beyond this value.
+    /// Notes:
+    ///   - Purpose of this is to roll out progressively for OI, and limit risks.
+    ///   - If this is set below the current circulating supply of UXD, it would effectively pause Minting.
     ///
     #[access_control(ctx.accounts.validate(&fields))]
     pub fn edit_controller(
