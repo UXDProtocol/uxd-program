@@ -1,13 +1,12 @@
-use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::error::UxdError;
+use crate::state::MangoDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
-use crate::state::MangoDepository;
+use crate::MANGO_DEPOSITORY_NAMESPACE;
 use anchor_lang::prelude::*;
-use std::cell::RefMut;
 
 #[derive(Accounts)]
-pub struct ApplyMangoDepositoryChange<'info> {
+pub struct EditMangoDepositoryAccounts<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
     /// #2 The top level UXDProgram on chain account managing the redeemable mint
@@ -30,13 +29,23 @@ pub struct ApplyMangoDepositoryChange<'info> {
     pub depository: AccountLoader<'info, MangoDepository>,
 }
 
-pub fn handler<F>(ctx: Context<ApplyMangoDepositoryChange>, modifier: F) -> Result<()>
-where
-    F: FnOnce(&Context<ApplyMangoDepositoryChange>, &mut RefMut<MangoDepository>) -> (),
-{
-    let depository = &mut ctx.accounts
-        .depository
-        .load_mut()?;
-    modifier(&ctx, depository);
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct EditMangoDepositoryFields {
+    quote_mint_and_redeem_fee: Option<u8>,
+}
+
+pub fn handler(
+    ctx: Context<EditMangoDepositoryAccounts>,
+    fields: &EditMangoDepositoryFields,
+) -> Result<()> {
+    let depository = &mut ctx.accounts.depository.load_mut()?;
+    // optional: quote_mint_and_redeem_fee
+    if let Some(quote_mint_and_redeem_fee) = fields.quote_mint_and_redeem_fee {
+        msg!(
+            "[set_mango_depository_quote_mint_and_redeem_fee] quote_fee {}",
+            quote_mint_and_redeem_fee
+        );
+        depository.quote_mint_and_redeem_fee = quote_mint_and_redeem_fee
+    }
     Ok(())
 }

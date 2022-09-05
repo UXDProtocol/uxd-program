@@ -49,10 +49,6 @@ const MANGO_PERP_MAX_FILL_EVENTS: u8 = u8::MAX;
 #[deny(unused_must_use)]
 pub mod uxd {
 
-    use crate::events::{
-        SetMangoDepositoryRedeemableSoftCapEvent, SetRedeemableGlobalSupplyCapEvent,
-    };
-
     use super::*;
 
     /// Initialize a Controller on chain account.
@@ -79,43 +75,35 @@ pub mod uxd {
         instructions::initialize_controller::handler(ctx, redeemable_mint_decimals)
     }
 
-    /// Sets the `redeemable_global_supply_cap` of the provided `Controller`
-    /// account.
+    /// Sets some fields of the provided `Controller` account.
     ///
     /// Parameters:
-    ///     - redeemable_global_supply_cap: the new value.
+    ///     - fields: EditControllerFields // (the new values)
+    ///     - fields.quote_mint_and_redeem_soft_cap: Option<u64> // ignored if None
+    ///     - fields.redeemable_soft_cap: Option<u64> // ignored if None
+    ///     - fields.redeemable_global_supply_cap: Option<128> // ignored if None
     ///
-    /// Note:
+    /// Field: redeemable_soft_cap
     ///  The redeemable global supply cap determines the max total supply
     ///  for the redeemable token. Program will abort when an instruction
     ///  that mints new redeemable would bring the circulating supply
     ///  beyond this value.
-    ///
     /// Note:
-    ///  Purpose of this is to roll out progressively for OI, and limit risks.
+    ///  - Purpose of this is to roll out progressively for OI, and limit risks.
+    ///  - If this is set below the current circulating supply of UXD, it would effectively pause Minting.
     ///
+    /// Field: redeemable_soft_cap
+    ///  The `mango_depositories_redeemable_soft_cap` determines the
+    ///  max amount of redeemable tokens that can be minted during a
+    ///  single operation.
+    ///  The redeemable global supply cap determines the max total supply
+    ///  for the redeemable token. Program will abort when an instruction
+    ///  that mints new redeemable would bring the circulating supply
+    ///  beyond this value.
     /// Note:
-    ///  If this is set below the current circulating supply of UXD, it would effectively pause Minting.
+    ///  - Purpose of this is to roll out progressively for OI, and limit risks.
+    ///  - If this is set below the current circulating supply of UXD, it would effectively pause Minting.
     ///
-    pub fn set_redeemable_global_supply_cap(
-        ctx: Context<ApplyControllerChange>,
-        redeemable_global_supply_cap: u128,
-    ) -> Result<()> {
-        require!(
-            redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP,
-            UxdError::InvalidRedeemableGlobalSupplyCap
-        );
-        msg!("[set_redeemable_global_supply_cap]");
-        instructions::apply_controller_change::handler(ctx, |ctx, controller| {
-            controller.redeemable_global_supply_cap = redeemable_global_supply_cap;
-            emit!(SetRedeemableGlobalSupplyCapEvent {
-                version: controller.version,
-                controller: ctx.accounts.controller.key(),
-                redeemable_global_supply_cap
-            });
-        })
-    }
-
     /// Sets the `mango_depositories_redeemable_soft_cap` of the provided
     /// `Controller` account.
     ///
@@ -138,39 +126,15 @@ pub mod uxd {
     ///  If this is set to 0, it would effectively pause minting on
     ///  MangoMarkets Depositories.
     ///
-    pub fn set_mango_depositories_redeemable_soft_cap(
-        ctx: Context<ApplyControllerChange>,
-        redeemable_soft_cap: u64,
+    #[access_control(ctx.accounts.validate(&fields))]
+    pub fn edit_controller(
+        ctx: Context<EditControllerAccounts>,
+        fields: EditControllerFields,
     ) -> Result<()> {
-        require!(
-            redeemable_soft_cap <= MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP,
-            UxdError::InvalidMangoDepositoriesRedeemableSoftCap
-        );
-        msg!("[set_mango_depositories_redeemable_soft_cap]");
-        instructions::apply_controller_change::handler(ctx, move |ctx, controller| {
-            controller.mango_depositories_redeemable_soft_cap = redeemable_soft_cap;
-            emit!(SetMangoDepositoryRedeemableSoftCapEvent {
-                version: controller.version,
-                controller: ctx.accounts.controller.key(),
-                redeemable_mint_decimals: controller.redeemable_mint_decimals,
-                redeemable_mint: controller.redeemable_mint,
-                redeemable_soft_cap
-            });
-        })
+        instructions::edit_controller::handler(ctx, &fields)
     }
 
-    pub fn set_mango_depository_quote_mint_and_redeem_soft_cap(
-        ctx: Context<ApplyControllerChange>,
-        quote_mint_and_redeem_soft_cap: u64,
-    ) -> Result<()> {
-        msg!("[set_mango_depository_quote_mint_and_redeem_soft_cap]");
-        instructions::apply_controller_change::handler(ctx, move |_ctx, controller| {
-            controller.mango_depositories_quote_redeemable_soft_cap =
-                quote_mint_and_redeem_soft_cap;
-        })
-    }
-
-    /// Create a new`MangoDepository` and registers it to the provided
+    /// Create a new `MangoDepository` and registers it to the provided
     /// `Controller` account.
     ///
     /// Note:
@@ -431,17 +395,11 @@ pub mod uxd {
         instructions::quote_redeem_from_mango_depository::handler(ctx, redeemable_amount)
     }
 
-    pub fn set_mango_depository_quote_mint_and_redeem_fee(
-        ctx: Context<ApplyMangoDepositoryChange>,
-        quote_fee: u8,
+    pub fn edit_mango_depository(
+        ctx: Context<EditMangoDepositoryAccounts>,
+        fields: EditMangoDepositoryFields,
     ) -> Result<()> {
-        msg!(
-            "[set_mango_depository_quote_mint_and_redeem_fee] quote_fee {}",
-            quote_fee
-        );
-        instructions::apply_mango_depository_change::handler(ctx, |ctx, depository| {
-            depository.quote_mint_and_redeem_fee = quote_fee
-        })
+        instructions::edit_mango_depository::handler(ctx, &fields)
     }
 
     /// Disable or enable regular minting for given Mango Depository.
