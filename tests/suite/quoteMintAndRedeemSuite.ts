@@ -17,11 +17,11 @@ import { transferSol, transferTokens } from "../utils";
 
 export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MangoDepository) {
 
-    before(`Transfer 5,000${depository.quoteMintSymbol} from payer to user`, async function () {
+    before(`Transfer 50${depository.quoteMintSymbol} from payer to user`, async function () {
         await transferTokens(50, depository.quoteMint, depository.quoteMintDecimals, payer, user.publicKey);
     });
 
-    before(`Transfer 5,000 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
+    before(`Transfer 50 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
         const amount = 50 / perpPrice;
         console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
@@ -33,7 +33,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         }
     });
 
-    before(`Mint 3000 ${controller.redeemableMintSymbol} (${20 / slippageBase * 100} % slippage)`, async function () {
+    before(`Mint 30 ${controller.redeemableMintSymbol} (${20 / slippageBase * 100} % slippage)`, async function () {
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
         const amount = 30 / perpPrice;
         console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
@@ -217,7 +217,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
         const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-        if (Math.abs(unrealizedPnl) < 1000) {
+        if (Math.abs(unrealizedPnl) < 10) {
             console.log("🔵  skipping mint/redeem, unrealized pnl too small");
             return;
         }
@@ -233,7 +233,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         }
     });
 
-    it(`Quote redeem 10_000$ (should fail)`, async function () {
+    it(`Quote redeem 100$ (should fail)`, async function () {
         try {
             await quoteRedeemFromMangoDepositoryTest(100, user, controller, depository, mango, payer);
         } catch {
@@ -242,7 +242,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         expect(false, "Should have failed - No collateral deposited yet");
     });
 
-    it(`Quote mint 10_000$ (should fail)`, async function () {
+    it(`Quote mint 100$ (should fail)`, async function () {
         try {
             await quoteMintWithMangoDepositoryTest(100, user, controller, depository, mango, payer);
         } catch {

@@ -1,8 +1,6 @@
 name: Anchor Test
 
 on:
-  push:
-    branches: [test/*]
   pull_request:
     branches: [main, v*.*]
   
@@ -50,7 +48,7 @@ env:
 concurrency:
   group: build-${{ github.event.pull_request.number || github.ref }}    
   cancel-in-progress: true
-  
+
 jobs:
 
   # Build and deploy an updated program at 3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW
