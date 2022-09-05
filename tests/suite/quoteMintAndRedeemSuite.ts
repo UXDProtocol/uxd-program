@@ -17,8 +17,8 @@ import { transferSol, transferTokens } from "../utils";
 
 export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MangoDepository) {
 
-    before(`Transfer 50${depository.quoteMintSymbol} from payer to user`, async function () {
-        await transferTokens(50, depository.quoteMint, depository.quoteMintDecimals, payer, user.publicKey);
+    before(`Transfer 100${depository.quoteMintSymbol} from payer to user`, async function () {
+        await transferTokens(100, depository.quoteMint, depository.quoteMintDecimals, payer, user.publicKey);
     });
 
     before(`Transfer 50 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
@@ -212,7 +212,7 @@ export const quoteMintAndRedeemSuite = function (authority: Signer, user: Signer
         await setMangoDepositoryQuoteMintAndRedeemSoftCapTest(5_000, authority, controller, depository);
     });
 
-    it(`Quote mint or redeem 1000$ (with fees)`, async function () {
+    it(`Quote mint or redeem 10$ (with fees)`, async function () {
 
         const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
         const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
