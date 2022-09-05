@@ -78,53 +78,40 @@ pub mod uxd {
     /// Sets some fields of the provided `Controller` account.
     ///
     /// Parameters:
-    ///     - fields: EditControllerFields // (the new values)
     ///     - fields.quote_mint_and_redeem_soft_cap: Option<u64> // ignored if None
     ///     - fields.redeemable_soft_cap: Option<u64> // ignored if None
     ///     - fields.redeemable_global_supply_cap: Option<128> // ignored if None
     ///
-    /// Field: redeemable_soft_cap
-    ///  The redeemable global supply cap determines the max total supply
-    ///  for the redeemable token. Program will abort when an instruction
-    ///  that mints new redeemable would bring the circulating supply
-    ///  beyond this value.
-    /// Note:
-    ///  - Purpose of this is to roll out progressively for OI, and limit risks.
-    ///  - If this is set below the current circulating supply of UXD, it would effectively pause Minting.
+    /// About: "fields.redeemable_global_supply_cap"
+    ///   Sets the `redeemable_global_supply_cap` of the provided `Controller` account.
+    /// Explanation:
+    ///   The redeemable global supply cap determines the max total supply
+    ///   for the redeemable token. Program will abort when an instruction
+    ///   that mints new redeemable would bring the circulating supply
+    ///   beyond this value.
+    /// Notes:
+    ///   - Purpose of this is to roll out progressively for OI, and limit risks.
+    ///   - If this is set below the current circulating supply of UXD, it would effectively pause Minting.
     ///
-    /// Field: redeemable_soft_cap
-    ///  The `mango_depositories_redeemable_soft_cap` determines the
-    ///  max amount of redeemable tokens that can be minted during a
-    ///  single operation.
-    ///  The redeemable global supply cap determines the max total supply
-    ///  for the redeemable token. Program will abort when an instruction
-    ///  that mints new redeemable would bring the circulating supply
-    ///  beyond this value.
-    /// Note:
-    ///  - Purpose of this is to roll out progressively for OI, and limit risks.
-    ///  - If this is set below the current circulating supply of UXD, it would effectively pause Minting.
-    ///
-    /// Sets the `mango_depositories_redeemable_soft_cap` of the provided
-    /// `Controller` account.
-    ///
-    /// Parameters:
-    ///     - redeemable_soft_cap: the new value.
-    ///
-    /// Note:
-    ///  The `mango_depositories_redeemable_soft_cap` determines the
-    ///  max amount of redeemable tokens that can be minted during a
-    ///  single operation.
-    ///
-    /// Note:
-    ///  This only apply to Minting. Redeeming is always possible.
-    ///
-    /// Note:
-    ///  Purpose of this is to control the max amount minted at once on
-    ///  MangoMarkets Depositories.
-    ///
-    /// Note:
-    ///  If this is set to 0, it would effectively pause minting on
-    ///  MangoMarkets Depositories.
+    /// About: "fields.redeemable_soft_cap"
+    ///   Sets the `mango_depositories_redeemable_soft_cap` of the provided `Controller` account.
+    /// Explanation:
+    ///   The `mango_depositories_redeemable_soft_cap` determines the
+    ///   max amount of redeemable tokens that can be minted during a
+    ///   single operation.
+    ///   The redeemable global supply cap determines the max total supply
+    ///   for the redeemable token. Program will abort when an instruction
+    ///   that mints new redeemable would bring the circulating supply
+    ///   beyond this value.
+    /// Notes:
+    ///   - The `mango_depositories_redeemable_soft_cap` determines the
+    ///     max amount of redeemable tokens that can be minted during a
+    ///     single operation.
+    ///   - This only apply to Minting. Redeeming is always possible.
+    ///   - Purpose of this is to control the max amount minted at once on
+    ///     MangoMarkets Depositories.
+    ///   - If this is set to 0, it would effectively pause minting on
+    ///     MangoMarkets Depositories.
     ///
     #[access_control(ctx.accounts.validate(&fields))]
     pub fn edit_controller(
