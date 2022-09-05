@@ -153,7 +153,7 @@ jobs:
           mm_keypair=$( cat ${{ env.MANGO_MM_ACCOUNT_KEYPAIR }} )
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/market-maker-ts
           yarn install
-          mm_params='{"group":"devnet.2","mangoAccountName":"mm","interval":500,"tif":10,"batch":2,"assets":{"SOL":{"perp":{"sizePerc":0.05,"leanCoeff":0.0005,"bias":0,"requoteThresh":0.0002,"takeSpammers":true,"spammerCharge":2}}}}'
+          mm_params='{"group":"devnet.2","mangoAccountName":"mm","interval":500,"tif":10,"batch":2,"assets":{"SOL":{"perp":{"sizePerc":0.8,"leanCoeff":0.0005,"bias":0,"requoteThresh":0.0002,"takeSpammers":true,"spammerCharge":2}}}}'
           echo "$mm_params" > params/devnet_sol_perp.json
           touch .env
           echo "export KEYPAIR=$mm_keypair" > .env
