@@ -24,7 +24,7 @@ pub struct EditControllerAccounts<'info> {
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct EditControllerFields {
     quote_mint_and_redeem_soft_cap: Option<u64>,
-    redeemable_soft_cap: Option<u64>,
+    redeemable_soft_cap: Option<u64>, // in redeemable native units
     redeemable_global_supply_cap: Option<u128>,
 }
 

@@ -31,7 +31,7 @@ pub struct EditMangoDepositoryAccounts<'info> {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct EditMangoDepositoryFields {
-    quote_mint_and_redeem_fee: Option<u8>,
+    quote_mint_and_redeem_fee: Option<u8>, // in bps
 }
 
 pub fn handler(
