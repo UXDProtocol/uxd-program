@@ -102,6 +102,8 @@ pub enum UxdError {
         "Neither the Token A or the Token B of the provided mercurial pool match the provided collateral."
     )]
     MercurialPoolDoNotMatchCollateral,
+    #[msg("Cannot access solana clock")]
+    ClockError,
 
     /// Anchor DSL related errors
     ///

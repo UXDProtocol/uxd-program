@@ -12,8 +12,10 @@ pub mod error;
 pub mod events;
 pub mod instructions;
 pub mod mango_utils;
+pub mod mercurial_utils;
 pub mod state;
 pub mod test;
+pub mod utils;
 
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
