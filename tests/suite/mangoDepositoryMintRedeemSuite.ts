@@ -24,7 +24,7 @@ export const mangoDepositoryMintRedeemSuite = function (user: Signer, payer: Sig
 
     it(`Redeem 1 ${controller.redeemableMintSymbol} (${slippage / slippageBase} % slippage) when no mint has happened (should fail)`, async function () {
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const amount = 100 / perpPrice;
+        const amount = 1 / perpPrice;
         console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
         try {
             await redeemFromMangoDepositoryTest(amount, slippage, user, controller, depository, mango, payer);
@@ -53,7 +53,7 @@ export const mangoDepositoryMintRedeemSuite = function (user: Signer, payer: Sig
 
     it(`Redeem 30 ${controller.redeemableMintSymbol} when not enough has been minted yet (should fail)`, async function () {
         try {
-            await redeemFromMangoDepositoryTest(300, slippage, user, controller, depository, mango, payer);
+            await redeemFromMangoDepositoryTest(30, slippage, user, controller, depository, mango, payer);
         } catch {
             expect(true, "Failing as planned");
         }
