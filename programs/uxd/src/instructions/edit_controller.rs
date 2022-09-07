@@ -28,7 +28,7 @@ pub struct EditControllerFields {
     redeemable_global_supply_cap: Option<u128>,
 }
 
-pub fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
+pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
     let controller = &mut ctx.accounts.controller.load_mut()?;
     // Optionally edit "quote_mint_and_redeem_soft_cap"
     if let Some(quote_mint_and_redeem_soft_cap) = fields.quote_mint_and_redeem_soft_cap {
@@ -62,7 +62,7 @@ pub fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> R
 
 #[allow(clippy::absurd_extreme_comparisons)]
 impl<'info> EditController<'info> {
-    pub fn validate(&self, fields: &EditControllerFields) -> Result<()> {
+    pub(crate) fn validate(&self, fields: &EditControllerFields) -> Result<()> {
         if let Some(redeemable_soft_cap) = fields.redeemable_soft_cap {
             require!(
                 redeemable_soft_cap <= MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP,

@@ -16,7 +16,6 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
-use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use fixed::types::I80F48;
@@ -133,17 +132,17 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     /// #17 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #18 Associated Token Program
-    pub associated_token_program: Program<'info, AssociatedToken>,
-
-    /// #19 MangoMarketv3 Program
+    /// #18 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 
-    /// #20 Rent Sysvar
+    /// #19 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: u64) -> Result<()> {
+pub(crate) fn handler(
+    ctx: Context<QuoteRedeemFromMangoDepository>,
+    redeemable_amount: u64,
+) -> Result<()> {
     let depository = ctx.accounts.depository.load()?;
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
@@ -210,7 +209,6 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
         UxdError::InvalidPnlPolarity
     );
 
-    msg!("redeemable_amount {}", redeemable_amount);
     msg!("perp_unrealized_pnl {}", perp_unrealized_pnl);
 
     // Checks that the requested redeem amount is lesser than or equal to the available amount
@@ -224,7 +222,7 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
     // - 3 [BURN USER'S REDEEMABLE] -------------------------------------------
     // Burn will fail if user does not have enough redeemable
     token::burn(
-        ctx.accounts.into_burn_redeemable_context(),
+        ctx.accounts.to_burn_redeemable_context(),
         redeemable_amount,
     )?;
 
@@ -253,7 +251,7 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
 
     mango_markets_v3::withdraw(
         ctx.accounts
-            .into_withdraw_quote_mint_from_mango_context()
+            .to_withdraw_quote_mint_from_mango_context()
             .with_signer(depository_signer_seed),
         quote_withdraw_amount_less_fees,
         false,
@@ -268,7 +266,9 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
 }
 
 impl<'info> QuoteRedeemFromMangoDepository<'info> {
-    pub fn into_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+    fn to_burn_redeemable_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
@@ -278,7 +278,7 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_withdraw_quote_mint_from_mango_context(
+    fn to_withdraw_quote_mint_from_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Withdraw<'info>> {
         let cpi_accounts = mango_markets_v3::Withdraw {
@@ -293,16 +293,6 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
             signer: self.mango_signer.to_account_info(),
         };
         let cpi_program = self.mango_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
-    pub fn into_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
-        let cpi_program = self.token_program.to_account_info();
-        let cpi_accounts = MintTo {
-            mint: self.redeemable_mint.to_account_info(),
-            to: self.user_redeemable.to_account_info(),
-            authority: self.controller.to_account_info(),
-        };
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
@@ -370,7 +360,7 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> QuoteRedeemFromMangoDepository<'info> {
-    pub fn validate(&self, redeemable_amount: u64) -> Result<()> {
+    pub(crate) fn validate(&self, redeemable_amount: u64) -> Result<()> {
         require!(redeemable_amount != 0, UxdError::InvalidRedeemableAmount);
         validate_perp_market_mints_matches_depository_mints(
             &self.mango_group,

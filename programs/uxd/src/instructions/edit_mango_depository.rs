@@ -34,7 +34,7 @@ pub struct EditMangoDepositoryFields {
     quote_mint_and_redeem_fee: Option<u8>, // in bps
 }
 
-pub fn handler(
+pub(crate) fn handler(
     ctx: Context<EditMangoDepository>,
     fields: &EditMangoDepositoryFields,
 ) -> Result<()> {

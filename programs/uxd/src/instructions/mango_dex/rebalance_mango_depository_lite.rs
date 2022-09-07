@@ -1,6 +1,5 @@
 use crate::error::UxdError;
-use crate::MANGO_PERP_MAX_FILL_EVENTS;
-// use crate::events::RebalanceMangoDepositoryLiteEvent;
+use crate::events::RebalanceMangoDepositoryLiteEvent;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::total_perp_base_lot_position;
@@ -11,6 +10,7 @@ use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
+use crate::MANGO_PERP_MAX_FILL_EVENTS;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -168,7 +168,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 
-pub fn handler(
+pub(crate) fn handler(
     ctx: Context<RebalanceMangoDepositoryLite>,
     max_rebalancing_amount: u64,
     polarity: &PnlPolarity,
@@ -298,16 +298,16 @@ pub fn handler(
     let max_quote_quantity = rebalancing_amount
         .checked_to_num()
         .ok_or_else(|| error!(UxdError::MathError))?;
-    let limit_price =
+    let limit_price_fixed =
         I80F48::checked_from_num(limit_price).ok_or_else(|| error!(UxdError::MathError))?;
-    let limit_price_lot = price_to_lot_price(limit_price, &perp_info)?;
+    let limit_price_lot = price_to_lot_price(limit_price_fixed, &perp_info)?;
     let reduce_only = taker_side == Side::Bid;
 
     require!(max_quote_quantity != 0, UxdError::QuantityBelowContractSize);
 
     mango_markets_v3::place_perp_order2(
         ctx.accounts
-            .into_place_perp_order_context()
+            .to_place_perp_order_context()
             .with_signer(depository_signer_seed),
         taker_side,
         limit_price_lot.to_num(),
@@ -363,7 +363,7 @@ pub fn handler(
             // - [Deposit collateral to MangoAccount]
             mango_markets_v3::deposit(
                 ctx.accounts
-                    .into_deposit_user_collateral_to_mango_context()
+                    .to_deposit_user_collateral_to_mango_context()
                     .with_signer(depository_signer_seed),
                 collateral_deposit_amount,
             )?;
@@ -379,7 +379,7 @@ pub fn handler(
             // - [Withdraw mango quote to the passthrough account]
             mango_markets_v3::withdraw(
                 ctx.accounts
-                    .into_withdraw_quote_from_mango_to_user_context()
+                    .to_withdraw_quote_from_mango_to_user_context()
                     .with_signer(depository_signer_seed),
                 quote_withdraw_amount,
                 false, // Settle PNL before calling this IX if this fails
@@ -404,7 +404,7 @@ pub fn handler(
             // - [Deposit quote to MangoAccount]
             mango_markets_v3::deposit(
                 ctx.accounts
-                    .into_deposit_user_quote_to_mango_context()
+                    .to_deposit_user_quote_to_mango_context()
                     .with_signer(depository_signer_seed),
                 quote_deposit_amount,
             )?;
@@ -419,7 +419,7 @@ pub fn handler(
             // - [Mango withdraw CPI]
             mango_markets_v3::withdraw(
                 ctx.accounts
-                    .into_withdraw_collateral_from_mango_to_user_context()
+                    .to_withdraw_collateral_from_mango_to_user_context()
                     .with_signer(depository_signer_seed),
                 collateral_withdraw_amount,
                 false,
@@ -427,7 +427,7 @@ pub fn handler(
 
             // - [If ATA mint is WSOL, unwrap]
             if collateral_mint == spl_token::native_mint::id() {
-                token::close_account(ctx.accounts.into_unwrap_wsol_by_closing_ata_context())?;
+                token::close_account(ctx.accounts.to_unwrap_wsol_by_closing_ata_context())?;
             }
 
             // - 6 [UPDATE ACCOUNTING] ------------------------------------------------
@@ -439,26 +439,26 @@ pub fn handler(
         }
     }
 
-    // emit!(RebalanceMangoDepositoryLiteEvent {
-    //     version: controller.version,
-    //     depository_version: depository.version,
-    //     controller: controller.key(),
-    //     depository: depository.key(),
-    //     user: ctx.accounts.user.key(),
-    //     polarity: polarity.clone(),
-    //     rebalancing_amount: max_rebalancing_amount,
-    //     rebalanced_amount: rebalancing_quote_amount.to_num(),
-    //     limit_price,
-    //     base_delta: order_delta.base.to_num(),
-    //     quote_delta: order_delta.quote.to_num(),
-    //     fee_delta: order_delta.fee.to_num(),
-    // });
+    emit!(RebalanceMangoDepositoryLiteEvent {
+        version: ctx.accounts.controller.load()?.version,
+        depository_version: ctx.accounts.depository.load()?.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        polarity: polarity.clone(),
+        rebalancing_amount: max_rebalancing_amount,
+        rebalanced_amount: rebalancing_quote_amount.to_num(),
+        limit_price,
+        base_delta: order_delta.base.to_num(),
+        quote_delta: order_delta.quote.to_num(),
+        fee_delta: order_delta.fee.to_num(),
+    });
 
     Ok(())
 }
 
 impl<'info> RebalanceMangoDepositoryLite<'info> {
-    pub fn into_deposit_user_collateral_to_mango_context(
+    fn to_deposit_user_collateral_to_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Deposit<'info>> {
         let cpi_accounts = mango_markets_v3::Deposit {
@@ -475,7 +475,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_deposit_user_quote_to_mango_context(
+    fn to_deposit_user_quote_to_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Deposit<'info>> {
         let cpi_accounts = mango_markets_v3::Deposit {
@@ -492,7 +492,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_withdraw_quote_from_mango_to_user_context(
+    fn to_withdraw_quote_from_mango_to_user_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Withdraw<'info>> {
         let cpi_accounts = mango_markets_v3::Withdraw {
@@ -510,7 +510,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_withdraw_collateral_from_mango_to_user_context(
+    fn to_withdraw_collateral_from_mango_to_user_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Withdraw<'info>> {
         let cpi_accounts = mango_markets_v3::Withdraw {
@@ -528,7 +528,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_place_perp_order_context(
+    fn to_place_perp_order_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::PlacePerpOrder2<'info>> {
         let cpi_accounts = mango_markets_v3::PlacePerpOrder2 {
@@ -545,7 +545,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_unwrap_wsol_by_closing_ata_context(
+    fn to_unwrap_wsol_by_closing_ata_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::CloseAccount<'info>> {
         let cpi_program = self.token_program.to_account_info();
@@ -633,7 +633,7 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
 
 // Validate input arguments
 impl<'info> RebalanceMangoDepositoryLite<'info> {
-    pub fn validate(
+    pub(crate) fn validate(
         &self,
         max_rebalancing_amount: u64,
         polarity: &PnlPolarity,
