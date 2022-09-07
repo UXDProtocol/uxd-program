@@ -1,18 +1,17 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, MercurialPoolDepository, findATAAddrSync } from "@uxd-protocol/uxd-client";
-import { mintWithMercurialPoolDepository } from "../api";
+import { Controller, MercurialVaultDepository, findATAAddrSync } from "@uxd-protocol/uxd-client";
+import { redeemFromMercurialVaultDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getBalance } from "../utils";
 
-export const mintWithMercurialPoolDepositoryTest = async function (
-    collateralAmount: number,
-    minimumRedeemableAmount: number,
+export const redeemFromMercurialVaultDepositoryTest = async function (
+    redeemableAmount: number,
     user: Signer,
     controller: Controller,
-    depository: MercurialPoolDepository,
+    depository: MercurialVaultDepository,
     payer?: Signer,
 ): Promise<void> {
-    console.group("🧭 mintWithMercurialPoolDepositoryTest");
+    console.group("🧭 redeemFromMercurialVaultDepositoryTest");
 
     try {
         // GIVEN
@@ -23,7 +22,7 @@ export const mintWithMercurialPoolDepositoryTest = async function (
 
         // WHEN
         // Simulates user experience from the front end
-        const txId = await mintWithMercurialPoolDepository(user, payer ?? user, controller, depository, collateralAmount, minimumRedeemableAmount);
+        const txId = await redeemFromMercurialVaultDepository(user, payer ?? user, controller, depository, redeemableAmount);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
@@ -34,7 +33,7 @@ export const mintWithMercurialPoolDepositoryTest = async function (
         const minted = userRedeemableBalance_post - userRedeemableBalance_pre;
 
         console.log(
-            `🧾 Minted`, Number(minted.toFixed(depository.mercurialPoolLpMint.decimals)), controller.redeemableMintSymbol,
+            `🧾 Redeemed`, Number(minted.toFixed(depository.mercurialVaultLpMint.decimals)), controller.redeemableMintSymbol,
             "by locking", Number(collateralPaid.toFixed(depository.collateralMint.decimals)), depository.collateralMint.symbol,
         );
 

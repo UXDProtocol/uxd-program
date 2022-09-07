@@ -932,7 +932,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "mintWithMercurialPool",
+      "name": "mintWithMercurialVault",
       "accounts": [
         {
           "name": "user",
@@ -975,67 +975,22 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "userMercurialPoolSecondaryToken",
+          "name": "depositoryLpTokenVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "mercurialPoolSecondaryTokenMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryPoolLpTokenVault",
+          "name": "mercurialVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "mercurialPool",
+          "name": "mercurialVaultLpMint",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "mercurialPoolLpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultA",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultALp",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultALpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultATokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultB",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultBLpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultBLp",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultBTokenVault",
+          "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
           "isSigner": false
         },
@@ -1053,26 +1008,17 @@ export type Uxd = {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
-        },
-        {
-          "name": "mercurialPoolProgram",
-          "isMut": false,
-          "isSigner": false
         }
       ],
       "args": [
         {
           "name": "collateralAmount",
           "type": "u64"
-        },
-        {
-          "name": "minimumRedeemableAmount",
-          "type": "u64"
         }
       ]
     },
     {
-      "name": "registerMercurialPoolDepository",
+      "name": "registerMercurialVaultDepository",
       "accounts": [
         {
           "name": "authority",
@@ -1100,17 +1046,17 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "mercurialPool",
+          "name": "mercurialVault",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "mercurialPoolLpMint",
+          "name": "mercurialVaultLpMint",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "depositoryPoolLpTokenVault",
+          "name": "depositoryLpTokenVault",
           "isMut": true,
           "isSigner": false
         },
@@ -1133,7 +1079,7 @@ export type Uxd = {
       "args": []
     },
     {
-      "name": "redeemFromMercurialPool",
+      "name": "redeemFromMercurialVault",
       "accounts": [
         {
           "name": "user",
@@ -1176,62 +1122,22 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "userMercurialPoolSecondaryToken",
+          "name": "depositoryLpTokenVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "depositoryPoolLpTokenVault",
+          "name": "mercurialVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "mercurialPool",
+          "name": "mercurialVaultLpMint",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "mercurialPoolLpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultA",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultALp",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultALpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultATokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultB",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultBLpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultBLp",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultBTokenVault",
+          "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
           "isSigner": false
         },
@@ -1247,11 +1153,6 @@ export type Uxd = {
         },
         {
           "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialPoolProgram",
           "isMut": false,
           "isSigner": false
         }
@@ -1324,7 +1225,7 @@ export type Uxd = {
             "type": "u64"
           },
           {
-            "name": "registeredMercurialPoolDepositories",
+            "name": "registeredMercurialVaultDepositories",
             "type": {
               "array": [
                 "publicKey",
@@ -1333,7 +1234,7 @@ export type Uxd = {
             }
           },
           {
-            "name": "registeredMercurialPoolDepositoriesCount",
+            "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
           }
         ]
@@ -1447,7 +1348,7 @@ export type Uxd = {
       }
     },
     {
-      "name": "mercurialPoolDepository",
+      "name": "mercurialVaultDepository",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1476,30 +1377,24 @@ export type Uxd = {
             "type": "u128"
           },
           {
-            "name": "mercurialPool",
+            "name": "mercurialVault",
             "type": "publicKey"
           },
           {
-            "name": "poolLpMint",
+            "name": "mercurialVaultLpMint",
             "type": "publicKey"
           },
           {
-            "name": "poolLpMintDecimals",
+            "name": "mercurialVaultLpMintDecimals",
             "type": "u8"
           },
           {
-            "name": "poolLpTokenVault",
+            "name": "lpTokenVault",
             "type": "publicKey"
           },
           {
-            "name": "poolLpTokenVaultBump",
+            "name": "lpTokenVaultBump",
             "type": "u8"
-          },
-          {
-            "name": "isCollateralMercurialPoolTokenAOrB",
-            "type": {
-              "defined": "MercurialPoolToken"
-            }
           }
         ]
       }
@@ -1556,20 +1451,6 @@ export type Uxd = {
           },
           {
             "name": "Negative"
-          }
-        ]
-      }
-    },
-    {
-      "name": "MercurialPoolToken",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "TokenA"
-          },
-          {
-            "name": "TokenB"
           }
         ]
       }
@@ -2397,18 +2278,18 @@ export type Uxd = {
     },
     {
       "code": 6046,
-      "name": "MercurialPoolIsNotStable",
-      "msg": "The mercurial pool should be stable."
+      "name": "MercurialVaultDoNotMatchCollateral",
+      "msg": "The provided collateral do not match the provided mercurial vault token."
     },
     {
       "code": 6047,
-      "name": "MercurialPoolDoNotMatchCollateral",
-      "msg": "Neither the Token A or the Token B of the provided mercurial pool match the provided collateral."
+      "name": "ClockError",
+      "msg": "Cannot access solana clock"
     },
     {
       "code": 6048,
-      "name": "ClockError",
-      "msg": "Cannot access solana clock"
+      "name": "CollateralEqualToRedeemable",
+      "msg": "Collateral should be different than redeemable."
     },
     {
       "code": 6049,
@@ -2467,8 +2348,8 @@ export type Uxd = {
     },
     {
       "code": 6060,
-      "name": "InvalidMercurialPool",
-      "msg": "The provided mercurial pool does not match the Depository's one."
+      "name": "InvalidMercurialVault",
+      "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
       "code": 6061,
@@ -3412,7 +3293,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "mintWithMercurialPool",
+      "name": "mintWithMercurialVault",
       "accounts": [
         {
           "name": "user",
@@ -3455,67 +3336,22 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "userMercurialPoolSecondaryToken",
+          "name": "depositoryLpTokenVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "mercurialPoolSecondaryTokenMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryPoolLpTokenVault",
+          "name": "mercurialVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "mercurialPool",
+          "name": "mercurialVaultLpMint",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "mercurialPoolLpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultA",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultALp",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultALpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultATokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultB",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultBLpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultBLp",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultBTokenVault",
+          "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
           "isSigner": false
         },
@@ -3533,26 +3369,17 @@ export const IDL: Uxd = {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
-        },
-        {
-          "name": "mercurialPoolProgram",
-          "isMut": false,
-          "isSigner": false
         }
       ],
       "args": [
         {
           "name": "collateralAmount",
           "type": "u64"
-        },
-        {
-          "name": "minimumRedeemableAmount",
-          "type": "u64"
         }
       ]
     },
     {
-      "name": "registerMercurialPoolDepository",
+      "name": "registerMercurialVaultDepository",
       "accounts": [
         {
           "name": "authority",
@@ -3580,17 +3407,17 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "mercurialPool",
+          "name": "mercurialVault",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "mercurialPoolLpMint",
+          "name": "mercurialVaultLpMint",
           "isMut": false,
           "isSigner": false
         },
         {
-          "name": "depositoryPoolLpTokenVault",
+          "name": "depositoryLpTokenVault",
           "isMut": true,
           "isSigner": false
         },
@@ -3613,7 +3440,7 @@ export const IDL: Uxd = {
       "args": []
     },
     {
-      "name": "redeemFromMercurialPool",
+      "name": "redeemFromMercurialVault",
       "accounts": [
         {
           "name": "user",
@@ -3656,62 +3483,22 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "userMercurialPoolSecondaryToken",
+          "name": "depositoryLpTokenVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "depositoryPoolLpTokenVault",
+          "name": "mercurialVault",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "mercurialPool",
+          "name": "mercurialVaultLpMint",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "mercurialPoolLpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultA",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultALp",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultALpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultATokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultB",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultBLpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultBLp",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultBTokenVault",
+          "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
           "isSigner": false
         },
@@ -3727,11 +3514,6 @@ export const IDL: Uxd = {
         },
         {
           "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialPoolProgram",
           "isMut": false,
           "isSigner": false
         }
@@ -3804,7 +3586,7 @@ export const IDL: Uxd = {
             "type": "u64"
           },
           {
-            "name": "registeredMercurialPoolDepositories",
+            "name": "registeredMercurialVaultDepositories",
             "type": {
               "array": [
                 "publicKey",
@@ -3813,7 +3595,7 @@ export const IDL: Uxd = {
             }
           },
           {
-            "name": "registeredMercurialPoolDepositoriesCount",
+            "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
           }
         ]
@@ -3927,7 +3709,7 @@ export const IDL: Uxd = {
       }
     },
     {
-      "name": "mercurialPoolDepository",
+      "name": "mercurialVaultDepository",
       "type": {
         "kind": "struct",
         "fields": [
@@ -3956,30 +3738,24 @@ export const IDL: Uxd = {
             "type": "u128"
           },
           {
-            "name": "mercurialPool",
+            "name": "mercurialVault",
             "type": "publicKey"
           },
           {
-            "name": "poolLpMint",
+            "name": "mercurialVaultLpMint",
             "type": "publicKey"
           },
           {
-            "name": "poolLpMintDecimals",
+            "name": "mercurialVaultLpMintDecimals",
             "type": "u8"
           },
           {
-            "name": "poolLpTokenVault",
+            "name": "lpTokenVault",
             "type": "publicKey"
           },
           {
-            "name": "poolLpTokenVaultBump",
+            "name": "lpTokenVaultBump",
             "type": "u8"
-          },
-          {
-            "name": "isCollateralMercurialPoolTokenAOrB",
-            "type": {
-              "defined": "MercurialPoolToken"
-            }
           }
         ]
       }
@@ -4036,20 +3812,6 @@ export const IDL: Uxd = {
           },
           {
             "name": "Negative"
-          }
-        ]
-      }
-    },
-    {
-      "name": "MercurialPoolToken",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "TokenA"
-          },
-          {
-            "name": "TokenB"
           }
         ]
       }
@@ -4877,18 +4639,18 @@ export const IDL: Uxd = {
     },
     {
       "code": 6046,
-      "name": "MercurialPoolIsNotStable",
-      "msg": "The mercurial pool should be stable."
+      "name": "MercurialVaultDoNotMatchCollateral",
+      "msg": "The provided collateral do not match the provided mercurial vault token."
     },
     {
       "code": 6047,
-      "name": "MercurialPoolDoNotMatchCollateral",
-      "msg": "Neither the Token A or the Token B of the provided mercurial pool match the provided collateral."
+      "name": "ClockError",
+      "msg": "Cannot access solana clock"
     },
     {
       "code": 6048,
-      "name": "ClockError",
-      "msg": "Cannot access solana clock"
+      "name": "CollateralEqualToRedeemable",
+      "msg": "Collateral should be different than redeemable."
     },
     {
       "code": 6049,
@@ -4947,8 +4709,8 @@ export const IDL: Uxd = {
     },
     {
       "code": 6060,
-      "name": "InvalidMercurialPool",
-      "msg": "The provided mercurial pool does not match the Depository's one."
+      "name": "InvalidMercurialVault",
+      "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
       "code": 6061,

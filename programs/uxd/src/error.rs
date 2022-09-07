@@ -96,14 +96,12 @@ pub enum UxdError {
     InvalidMercurialVaultCollateralMint,
     #[msg("Cannot register more mercurial vault depositories, the limit has been reached.")]
     MaxNumberOfMercurialVaultDepositoriesRegisteredReached,
-    #[msg("The mercurial pool should be stable.")]
-    MercurialPoolIsNotStable,
-    #[msg(
-        "Neither the Token A or the Token B of the provided mercurial pool match the provided collateral."
-    )]
-    MercurialPoolDoNotMatchCollateral,
+    #[msg("The provided collateral do not match the provided mercurial vault token.")]
+    MercurialVaultDoNotMatchCollateral,
     #[msg("Cannot access solana clock")]
     ClockError,
+    #[msg("Collateral should be different than redeemable.")]
+    CollateralEqualToRedeemable,
 
     /// Anchor DSL related errors
     ///
@@ -129,8 +127,8 @@ pub enum UxdError {
     InvalidMaxBaseQuantity,
     #[msg("The max quote quantity must be above 0.")]
     InvalidMaxQuoteQuantity,
-    #[msg("The provided mercurial pool does not match the Depository's one.")]
-    InvalidMercurialPool,
+    #[msg("The provided mercurial vault does not match the Depository's one.")]
+    InvalidMercurialVault,
 
     #[msg("Default - Check the source code for more info.")]
     Default,

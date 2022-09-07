@@ -1,3 +1,3 @@
-pub mod utils;
+pub mod decimals;
 
-pub use utils::*;
+pub use decimals::*;

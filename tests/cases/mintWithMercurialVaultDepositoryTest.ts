@@ -1,17 +1,17 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, MercurialPoolDepository, findATAAddrSync } from "@uxd-protocol/uxd-client";
-import { redeemFromMercurialPoolDepository } from "../api";
+import { Controller, MercurialVaultDepository, findATAAddrSync } from "@uxd-protocol/uxd-client";
+import { mintWithMercurialVaultDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getBalance } from "../utils";
 
-export const redeemFromMercurialPoolDepositoryTest = async function (
-    redeemableAmount: number,
+export const mintWithMercurialVaultDepositoryTest = async function (
+    collateralAmount: number,
     user: Signer,
     controller: Controller,
-    depository: MercurialPoolDepository,
+    depository: MercurialVaultDepository,
     payer?: Signer,
 ): Promise<void> {
-    console.group("🧭 redeemFromMercurialPoolDepositoryTest");
+    console.group("🧭 mintWithMercurialVaultDepositoryTest");
 
     try {
         // GIVEN
@@ -22,7 +22,7 @@ export const redeemFromMercurialPoolDepositoryTest = async function (
 
         // WHEN
         // Simulates user experience from the front end
-        const txId = await redeemFromMercurialPoolDepository(user, payer ?? user, controller, depository, redeemableAmount);
+        const txId = await mintWithMercurialVaultDepository(user, payer ?? user, controller, depository, collateralAmount);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN
@@ -33,7 +33,7 @@ export const redeemFromMercurialPoolDepositoryTest = async function (
         const minted = userRedeemableBalance_post - userRedeemableBalance_pre;
 
         console.log(
-            `🧾 Redeemed`, Number(minted.toFixed(depository.mercurialPoolLpMint.decimals)), controller.redeemableMintSymbol,
+            `🧾 Minted`, Number(minted.toFixed(depository.mercurialVaultLpMint.decimals)), controller.redeemableMintSymbol,
             "by locking", Number(collateralPaid.toFixed(depository.collateralMint.decimals)), depository.collateralMint.symbol,
         );
 

@@ -1,9 +1,6 @@
 import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, Signer, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
-import { Controller, MangoDepository, MercurialPoolDepository, USDC, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET, UXD_DEVNET, WSOL_DEVNET, createAndInitializeMango, createAssocTokenIx } from "@uxd-protocol/uxd-client";
-import AmmImpl, { PROGRAM_ID, DEVNET_POOL } from '@mercurial-finance/dynamic-amm-sdk';
-import { VAULT_PROGRAM_ID } from "@mercurial-finance/dynamic-amm-sdk/dist/cjs/src/amm/constants";
-import { Amm, IDL as AmmIdl } from '@mercurial-finance/dynamic-amm-sdk/dist/cjs/src/amm/idl';
-import { Vault, IDL as VaultIdl } from '@mercurial-finance/dynamic-amm-sdk/dist/cjs/src/amm/vault-idl';
+import { Controller, MangoDepository, MercurialVaultDepository, USDC, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET, UXD_DEVNET, WSOL_DEVNET, createAndInitializeMango, createAssocTokenIx } from "@uxd-protocol/uxd-client";
+import VaultImpl, { getVaultPdas, PROGRAM_ID as MERCURIAL_VAULT_PROGRAM_ID } from '@mercurial-finance/vault-sdk';
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
 import { prepareWrappedSolTokenAccount, printDepositoryInfo, printUserInfo, transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
 import { depositInsuranceMangoDepositoryTest } from "./cases/depositInsuranceMangoDepositoryTest";
@@ -19,12 +16,11 @@ import {
 } from "./suite/mangoDepositoryRebalancingSuite";
 import { quoteMintAndRedeemSuite } from "./suite/quoteMintAndRedeemSuite";
 import { setMangoDepositoriesRedeemableSoftCap } from "./api";
-import { registerMercurialPoolDepositoryTest } from "./cases/registerMercurialPoolDepositoryTest";
+import { registerMercurialVaultDepositoryTest } from "./cases/registerMercurialVaultDepositoryTest";
 import { getConnection, TXN_OPTS } from "./connection";
 import { StaticTokenListResolutionStrategy, TokenInfo } from "@solana/spl-token-registry";
-import { mintWithMercurialPoolDepositoryTest } from "./cases/mintWithMercurialPoolDepositoryTest";
-import { redeemFromMercurialPoolDepositoryTest } from "./cases/redeemFromMercurialPoolDepositoryTest";
-import VaultImpl, { getVaultPdas } from "@mercurial-finance/vault-sdk";
+import { mintWithMercurialVaultDepositoryTest } from "./cases/mintWithMercurialVaultDepositoryTest";
+import { redeemFromMercurialVaultDepositoryTest } from "./cases/redeemFromMercurialVaultDepositoryTest";
 import { NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { VAULT_BASE_KEY } from "@mercurial-finance/vault-sdk/src/vault/constants";
 import { ASSOCIATED_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
@@ -42,8 +38,8 @@ const mangoDepositorySOL = new MangoDepository(
 // const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 // const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 
-let mercurialPoolDepositoryUSDC: MercurialPoolDepository;
-let mercurialPool: AmmImpl;
+let mercurialVaultDepositoryUSDC: MercurialVaultDepository;
+let mercurialVault: VaultImpl;
 
 const controller = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 const payer = bank;
