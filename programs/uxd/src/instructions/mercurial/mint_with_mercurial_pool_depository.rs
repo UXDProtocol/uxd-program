@@ -1,5 +1,6 @@
 use crate::error::UxdError;
 use crate::mercurial_utils::MercurialPoolInfos;
+use crate::state::MercurialPoolToken;
 use crate::utils;
 use crate::Controller;
 use crate::MercurialPoolDepository;
@@ -80,6 +81,9 @@ pub struct MintWithMercurialPoolDepository<'info> {
     pub user_mercurial_pool_secondary_token: Box<Account<'info, TokenAccount>>,
 
     /// #10
+    pub mercurial_pool_secondary_token_mint: Box<Account<'info, Mint>>,
+
+    /// #11
     #[account(
         mut,
         seeds = [MERCURIAL_POOL_DEPOSITORY_LP_VAULT_NAMESPACE, mercurial_pool.key().as_ref(), collateral_mint.key().as_ref()],
@@ -89,63 +93,62 @@ pub struct MintWithMercurialPoolDepository<'info> {
     )]
     pub depository_pool_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
-    /// #11
+    /// #12
     #[account(mut)]
     pub mercurial_pool: Box<Account<'info, amm::state::Pool>>,
 
-    /// #12
+    /// #13
     #[account(mut)]
     pub mercurial_pool_lp_mint: Box<Account<'info, Mint>>,
 
-    /// #13
+    /// #14
     #[account(mut)]
     pub mercurial_vault_a: Box<Account<'info, mercurial_vault::state::Vault>>,
 
-    /// #14
+    /// #15
     #[account(
         mut,
         token::mint = mercurial_vault_a_lp_mint,
     )]
     pub mercurial_vault_a_lp: Box<Account<'info, TokenAccount>>,
 
-    /// #15
+    /// #16
     #[account(mut)]
     pub mercurial_vault_a_lp_mint: Box<Account<'info, Mint>>,
 
-    /// #16
+    /// #17
     #[account(mut)]
     pub mercurial_vault_a_token_vault: Box<Account<'info, TokenAccount>>,
 
-    /// #17
+    /// #18
     #[account(mut)]
     pub mercurial_vault_b: Box<Account<'info, mercurial_vault::state::Vault>>,
 
-    /// #18
+    /// #19
     #[account(mut)]
     pub mercurial_vault_b_lp_mint: Box<Account<'info, Mint>>,
 
-    /// #19
+    /// #20
     #[account(
         mut,
         token::mint = mercurial_vault_b_lp_mint,
     )]
     pub mercurial_vault_b_lp: Box<Account<'info, TokenAccount>>,
 
-    /// #20
+    /// #21
     #[account(mut)]
     pub mercurial_vault_b_token_vault: Box<Account<'info, TokenAccount>>,
 
-    /// #21
-    /// CHECK: Mercurial Amm CPI - checked Mercurial side
-    pub mercurial_vault_program: UncheckedAccount<'info>,
-
     /// #22
-    pub system_program: Program<'info, System>,
+    pub mercurial_vault_program: Program<'info, mercurial_vault::program::Vault>,
 
     /// #23
-    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
 
     /// #24
+    pub token_program: Program<'info, Token>,
+
+    /// #25
     pub mercurial_pool_program: Program<'info, amm::program::Amm>,
 }
 
@@ -179,13 +182,19 @@ pub fn handler(
     );
 
     // 1 - Deposit collateral to mercurial pool and get lp tokens
-    let token_a_amount = if depository.collateral_is_mercurial_pool_token_a {
+    let token_a_amount = if depository
+        .is_collateral_mercurial_pool_token_a_or_b
+        .eq(&MercurialPoolToken::TokenA)
+    {
         collateral_amount
     } else {
         0
     };
 
-    let token_b_amount = if depository.collateral_is_mercurial_pool_token_b {
+    let token_b_amount = if depository
+        .is_collateral_mercurial_pool_token_a_or_b
+        .eq(&MercurialPoolToken::TokenB)
+    {
         collateral_amount
     } else {
         0
@@ -214,6 +223,22 @@ pub fn handler(
     ctx.accounts.depository_pool_lp_token_vault.reload()?;
     ctx.accounts.mercurial_pool_lp_mint.reload()?;
 
+    msg!(
+        "depository.is_collateral_mercurial_pool_token_a_or_b: {}",
+        depository.is_collateral_mercurial_pool_token_a_or_b
+    );
+
+    msg!(
+        "ctx.accounts.collateral_mint.decimals: {}",
+        ctx.accounts.collateral_mint.decimals
+    );
+
+    msg!(
+        "ctx.accounts.mercurial_pool_secondary_token_mint.decimals: {}",
+        ctx.accounts.mercurial_pool_secondary_token_mint.decimals
+    );
+
+    /*
     // 3 - Calculate the value of the minted lp tokens
     let mercurial_pool_infos = MercurialPoolInfos::new(
         *ctx.accounts.mercurial_vault_a.clone(),
@@ -223,6 +248,22 @@ pub fn handler(
         *ctx.accounts.mercurial_vault_b_lp.clone(),
         *ctx.accounts.mercurial_vault_b_lp_mint.clone(),
         *ctx.accounts.mercurial_pool_lp_mint.clone(),
+        if depository
+            .is_collateral_mercurial_pool_token_a_or_b
+            .eq(&MercurialPoolToken::TokenA)
+        {
+            *ctx.accounts.collateral_mint.clone()
+        } else {
+            *ctx.accounts.mercurial_pool_secondary_token_mint.clone()
+        },
+        if depository
+            .is_collateral_mercurial_pool_token_a_or_b
+            .eq(&MercurialPoolToken::TokenB)
+        {
+            *ctx.accounts.collateral_mint.clone()
+        } else {
+            *ctx.accounts.mercurial_pool_secondary_token_mint.clone()
+        },
     )?;
 
     msg!("Mercurial pool infos: {}", mercurial_pool_infos);
@@ -282,75 +323,8 @@ pub fn handler(
     // 8 - Check that we don't mint more UXD than the fixed limit
     // @TODO
     // ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
-
+    */
     Ok(())
-
-    /*
-    let pool_token_a_underlying_amount = ctx
-        .accounts
-        .mercurial_vault_a
-        .get_amount_by_share(
-            current_time,
-            ctx.accounts.mercurial_vault_a_lp.amount,
-            ctx.accounts.mercurial_vault_a_lp_mint.supply,
-        )
-        .ok_or(UxdError::MathError)?;
-
-    let pool_token_b_underlying_amount = ctx
-        .accounts
-        .mercurial_vault_b
-        .get_amount_by_share(
-            current_time,
-            ctx.accounts.mercurial_vault_b_lp.amount,
-            ctx.accounts.mercurial_vault_b_lp_mint.supply,
-        )
-        .ok_or(UxdError::MathError)?;
-
-    let base_pool_token_a_underlying_amount = utils::nativeToBase(
-        I80F48::checked_from_num(pool_token_a_underlying_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?,
-        9,
-    )?;
-
-    let base_pool_token_b_underlying_amount = utils::nativeToBase(
-        I80F48::checked_from_num(pool_token_b_underlying_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?,
-        6,
-    )?;
-
-    // The value of the whole pool. This simple addition only works if the two mint share the same decimals
-    let base_pool_dollar_value = base_pool_token_a_underlying_amount
-        .checked_add(base_pool_token_b_underlying_amount)
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
-    let base_pool_lp_mint_supply = utils::nativeToBase(
-        I80F48::checked_from_num(ctx.accounts.mercurial_pool_lp_mint.supply)
-            .ok_or_else(|| error!(UxdError::MathError))?,
-        9,
-    )?;
-
-    let base_one_lp_token_dollar_value = base_pool_dollar_value
-        .checked_div(base_pool_lp_mint_supply)
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
-    let after_pool_lp_token_vault_balance = ctx.accounts.depository_pool_lp_token_vault.amount;
-
-    let lp_token_change = I80F48::checked_from_num(
-        after_pool_lp_token_vault_balance
-            .checked_sub(before_pool_lp_token_vault_balance)
-            .ok_or_else(|| error!(UxdError::MathError))?,
-    )
-    .ok_or_else(|| error!(UxdError::MathError))?;
-
-    let minted_lp_token_value = lp_token_change
-        .checked_mul(base_one_lp_token_dollar_value)
-        .ok_or_else(|| error!(UxdError::MathError))?;
-        */
-
-    // 5 - Mint redeemable 1:1 - The only allowed mint for mercurial vault depository is USDC for now
-    /*let redeemable_mint_amount = lp_token_minted_value
-    .checked_to_num()
-    .ok_or(UxdError::MathError)?;*/
 }
 
 // Into functions
@@ -359,13 +333,19 @@ impl<'info> MintWithMercurialPoolDepository<'info> {
         &self,
         depository: &MercurialPoolDepository,
     ) -> CpiContext<'_, '_, '_, 'info, amm::cpi::accounts::AddOrRemoveBalanceLiquidity<'info>> {
-        let user_a_token = if depository.collateral_is_mercurial_pool_token_a {
+        let user_a_token = if depository
+            .is_collateral_mercurial_pool_token_a_or_b
+            .eq(&MercurialPoolToken::TokenA)
+        {
             self.user_collateral.to_account_info()
         } else {
             self.user_mercurial_pool_secondary_token.to_account_info()
         };
 
-        let user_b_token = if depository.collateral_is_mercurial_pool_token_b {
+        let user_b_token = if depository
+            .is_collateral_mercurial_pool_token_a_or_b
+            .eq(&MercurialPoolToken::TokenB)
+        {
             self.user_collateral.to_account_info()
         } else {
             self.user_mercurial_pool_secondary_token.to_account_info()
@@ -374,8 +354,8 @@ impl<'info> MintWithMercurialPoolDepository<'info> {
         let cpi_accounts = amm::cpi::accounts::AddOrRemoveBalanceLiquidity {
             user: self.user.to_account_info(),
             user_pool_lp: self.depository_pool_lp_token_vault.to_account_info(),
-            user_a_token: user_a_token,
-            user_b_token: user_b_token,
+            user_a_token,
+            user_b_token,
             pool: self.mercurial_pool.to_account_info(),
             a_vault_lp: self.mercurial_vault_a_lp.to_account_info(),
             a_vault: self.mercurial_vault_a.to_account_info(),

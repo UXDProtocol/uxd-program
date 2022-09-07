@@ -1,5 +1,6 @@
 use crate::error::UxdError;
 use crate::events::RegisterMercurialPoolDepositoryEvent;
+use crate::state::MercurialPoolToken;
 use crate::Controller;
 use crate::MercurialPoolDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -92,18 +93,16 @@ pub fn handler(ctx: Context<RegisterMercurialPoolDepository>) -> Result<()> {
 
     depository.mercurial_pool = ctx.accounts.mercurial_pool.key();
 
-    if ctx
+    depository.is_collateral_mercurial_pool_token_a_or_b = if ctx
         .accounts
         .mercurial_pool
         .token_a_mint
         .eq(&ctx.accounts.collateral_mint.key())
     {
-        depository.collateral_is_mercurial_pool_token_a = true;
-        depository.collateral_is_mercurial_pool_token_b = false;
+        MercurialPoolToken::TokenA
     } else {
-        depository.collateral_is_mercurial_pool_token_a = false;
-        depository.collateral_is_mercurial_pool_token_b = true;
-    }
+        MercurialPoolToken::TokenB
+    };
 
     // 2 - Update Controller state
     ctx.accounts

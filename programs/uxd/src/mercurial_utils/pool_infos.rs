@@ -32,6 +32,8 @@ fn get_pool_token_base_amounts(
     vault_a_lp_mint: Account<Mint>,
     vault_b_lp: Account<TokenAccount>,
     vault_b_lp_mint: Account<Mint>,
+    token_a_mint: Account<Mint>,
+    token_b_mint: Account<Mint>,
 ) -> Result<(I80F48, I80F48), UxdError> {
     let clock = Clock::get().ok().ok_or(UxdError::ClockError)?;
 
@@ -52,7 +54,7 @@ fn get_pool_token_base_amounts(
             I80F48::checked_from_num(token_a_amount).ok_or_else(|| UxdError::MathError)?,
         )
         .ok_or_else(|| UxdError::MathError)?,
-        9,
+        token_a_mint.decimals,
     )?;
 
     let token_b_base_amount = utils::native_to_base(
@@ -60,7 +62,7 @@ fn get_pool_token_base_amounts(
             I80F48::checked_from_num(token_b_amount).ok_or_else(|| UxdError::MathError)?,
         )
         .ok_or_else(|| UxdError::MathError)?,
-        6,
+        token_b_mint.decimals,
     )?;
 
     Ok((token_a_base_amount, token_b_base_amount))
@@ -89,6 +91,8 @@ impl MercurialPoolInfos {
         vault_b_lp: Account<TokenAccount>,
         vault_b_lp_mint: Account<Mint>,
         lp_mint: Account<Mint>,
+        token_a_mint: Account<Mint>,
+        token_b_mint: Account<Mint>,
     ) -> Result<Self, UxdError> {
         let (pool_token_a_base_amount, pool_token_b_base_amount) = get_pool_token_base_amounts(
             vault_a,
@@ -97,6 +101,8 @@ impl MercurialPoolInfos {
             vault_a_lp_mint,
             vault_b_lp,
             vault_b_lp_mint,
+            token_a_mint,
+            token_b_mint,
         )?;
 
         let pool_base_value =
@@ -104,7 +110,7 @@ impl MercurialPoolInfos {
 
         let pool_lp_mint_base_supply = utils::native_to_base(
             I80F48::checked_from_num(lp_mint.supply).ok_or_else(|| UxdError::MathError)?,
-            9,
+            lp_mint.decimals,
         )?;
 
         let one_lp_token_base_value = pool_base_value

@@ -980,6 +980,11 @@ export type Uxd = {
           "isSigner": false
         },
         {
+          "name": "mercurialPoolSecondaryTokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "depositoryPoolLpTokenVault",
           "isMut": true,
           "isSigner": false
@@ -1491,12 +1496,10 @@ export type Uxd = {
             "type": "u8"
           },
           {
-            "name": "collateralIsMercurialPoolTokenA",
-            "type": "bool"
-          },
-          {
-            "name": "collateralIsMercurialPoolTokenB",
-            "type": "bool"
+            "name": "isCollateralMercurialPoolTokenAOrB",
+            "type": {
+              "defined": "MercurialPoolToken"
+            }
           }
         ]
       }
@@ -1553,6 +1556,20 @@ export type Uxd = {
           },
           {
             "name": "Negative"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MercurialPoolToken",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "TokenA"
+          },
+          {
+            "name": "TokenB"
           }
         ]
       }
@@ -3443,6 +3460,11 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
+          "name": "mercurialPoolSecondaryTokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "depositoryPoolLpTokenVault",
           "isMut": true,
           "isSigner": false
@@ -3954,12 +3976,10 @@ export const IDL: Uxd = {
             "type": "u8"
           },
           {
-            "name": "collateralIsMercurialPoolTokenA",
-            "type": "bool"
-          },
-          {
-            "name": "collateralIsMercurialPoolTokenB",
-            "type": "bool"
+            "name": "isCollateralMercurialPoolTokenAOrB",
+            "type": {
+              "defined": "MercurialPoolToken"
+            }
           }
         ]
       }
@@ -4016,6 +4036,20 @@ export const IDL: Uxd = {
           },
           {
             "name": "Negative"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MercurialPoolToken",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "TokenA"
+          },
+          {
+            "name": "TokenB"
           }
         ]
       }

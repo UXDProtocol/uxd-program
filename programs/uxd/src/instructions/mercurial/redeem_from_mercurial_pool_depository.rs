@@ -95,9 +95,8 @@ pub struct RedeemFromMercurialPoolDepository<'info> {
     pub mercurial_pool_lp_mint: Box<Account<'info, Mint>>,
 
     /// #13
-    /// CHECK: Mercurial Amm CPI - checked Mercurial side
     #[account(mut)]
-    pub mercurial_vault_a: UncheckedAccount<'info>,
+    pub mercurial_vault_a: Box<Account<'info, mercurial_vault::state::Vault>>,
 
     /// #14
     #[account(
@@ -115,9 +114,8 @@ pub struct RedeemFromMercurialPoolDepository<'info> {
     pub mercurial_vault_a_token_vault: Box<Account<'info, TokenAccount>>,
 
     /// #17
-    /// CHECK: Mercurial Amm CPI - checked Mercurial side
     #[account(mut)]
-    pub mercurial_vault_b: UncheckedAccount<'info>,
+    pub mercurial_vault_b: Box<Account<'info, mercurial_vault::state::Vault>>,
 
     /// #18
     #[account(mut)]
@@ -135,8 +133,7 @@ pub struct RedeemFromMercurialPoolDepository<'info> {
     pub mercurial_vault_b_token_vault: Box<Account<'info, TokenAccount>>,
 
     /// #21
-    /// CHECK: Mercurial Amm CPI - checked Mercurial side
-    pub mercurial_vault_program: UncheckedAccount<'info>,
+    pub mercurial_vault_program: Program<'info, mercurial_vault::program::Vault>,
 
     /// #22
     pub system_program: Program<'info, System>,
@@ -220,36 +217,6 @@ pub fn handler(
     // let pool_lp_token_change = I80F48::from_num(pool_lp_token_change_u64);
 
     msg!("Pool Token Change {}", pool_lp_token_change_u64);
-
-    /*
-    let current_time = u64::try_from(Clock::get()?.unix_timestamp)
-        .ok()
-        .ok_or(UxdError::MathError)?;
-
-    let unlocked_amount_u64 = ctx
-        .accounts
-        .mercurial_pool
-        .get_unlocked_amount(current_time)
-        .ok_or(UxdError::MathError)?;
-
-    let unlocked_amount = I80F48::from_num(unlocked_amount_u64);
-    let lp_token_total_supply = I80F48::from_num(ctx.accounts.mercurial_vault_lp_mint.supply);
-
-    let vault_virtual_price = unlocked_amount
-        .checked_div(lp_token_total_supply)
-        .ok_or(UxdError::MathError)?;
-
-    let lp_token_minted_value = vault_virtual_price
-        .checked_mul(lp_token_change)
-        .ok_or(UxdError::MathError)?;
-        */
-
-    // let lp_token_minted_value = 0;
-
-    // 4 - Mint redeemable 1:1 - The only allowed mint for mercurial vault depository is USDC for now
-    /*let redeemable_mint_amount = lp_token_minted_value
-    .checked_to_num()
-    .ok_or(UxdError::MathError)?;*/
 
     let redeemable_burn_amount = redeemable_amount;
 

@@ -980,6 +980,11 @@
           "isSigner": false
         },
         {
+          "name": "mercurialPoolSecondaryTokenMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "depositoryPoolLpTokenVault",
           "isMut": true,
           "isSigner": false
@@ -1292,10 +1297,7 @@
           {
             "name": "registeredMangoDepositories",
             "type": {
-              "array": [
-                "publicKey",
-                8
-              ]
+              "array": ["publicKey", 8]
             }
           },
           {
@@ -1321,10 +1323,7 @@
           {
             "name": "registeredMercurialPoolDepositories",
             "type": {
-              "array": [
-                "publicKey",
-                8
-              ]
+              "array": ["publicKey", 8]
             }
           },
           {
@@ -1346,10 +1345,7 @@
           {
             "name": "unused",
             "type": {
-              "array": [
-                "u8",
-                2
-              ]
+              "array": ["u8", 2]
             }
           },
           {
@@ -1371,10 +1367,7 @@
           {
             "name": "unused2",
             "type": {
-              "array": [
-                "u8",
-                32
-              ]
+              "array": ["u8", 32]
             }
           },
           {
@@ -1384,10 +1377,7 @@
           {
             "name": "unused3",
             "type": {
-              "array": [
-                "u8",
-                32
-              ]
+              "array": ["u8", 32]
             }
           },
           {
@@ -1491,12 +1481,10 @@
             "type": "u8"
           },
           {
-            "name": "collateralIsMercurialPoolTokenA",
-            "type": "bool"
-          },
-          {
-            "name": "collateralIsMercurialPoolTokenB",
-            "type": "bool"
+            "name": "isCollateralMercurialPoolTokenAOrB",
+            "type": {
+              "defined": "MercurialPoolToken"
+            }
           }
         ]
       }
@@ -1553,6 +1541,20 @@
           },
           {
             "name": "Negative"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MercurialPoolToken",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "TokenA"
+          },
+          {
+            "name": "TokenB"
           }
         ]
       }
@@ -2458,5 +2460,8 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ]
+  ],
+  "metadata": {
+    "address": "AURBE2zC7HH64PcH23xYtbfUU6pQLUdY3Asfw6wwifuA"
+  }
 }

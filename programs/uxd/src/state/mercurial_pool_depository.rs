@@ -49,7 +49,22 @@ pub struct MercurialPoolDepository {
     pub pool_lp_token_vault: Pubkey,
     pub pool_lp_token_vault_bump: u8,
 
-    // TODO: change to enum
-    pub collateral_is_mercurial_pool_token_a: bool,
-    pub collateral_is_mercurial_pool_token_b: bool,
+    // Specify which token of the mercurial pool is the same mint as the collateral mint
+    pub is_collateral_mercurial_pool_token_a_or_b: MercurialPoolToken,
+}
+
+// Tokens part of mercurial pool
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq)]
+pub enum MercurialPoolToken {
+    TokenA,
+    TokenB,
+}
+
+impl std::fmt::Display for MercurialPoolToken {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MercurialPoolToken::TokenA => f.write_str("TokenA"),
+            MercurialPoolToken::TokenB => f.write_str("TokenB"),
+        }
+    }
 }
