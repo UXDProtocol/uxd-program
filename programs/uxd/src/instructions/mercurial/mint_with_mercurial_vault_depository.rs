@@ -175,21 +175,15 @@ pub fn handler(
     );
 
     // 5 - Mint redeemable 1:1 with provided collateral
-    // Ignore possible decay of value due to precision loss
+    // Ignore possible decay of value due to precision loss (value in the pool is lower than minted UXD)
     // A redeem fee is applied that covers possible losses
-    let redeemable_amount =
-        if ctx.accounts.collateral_mint.decimals != ctx.accounts.redeemable_mint.decimals {
-            utils::change_decimals_place(
-                I80F48::checked_from_num(collateral_amount)
-                    .ok_or_else(|| error!(UxdError::MathError))?,
-                ctx.accounts.collateral_mint.decimals,
-                ctx.accounts.redeemable_mint.decimals,
-            )?
-            .checked_to_num()
-            .ok_or_else(|| error!(UxdError::MathError))?
-        } else {
-            collateral_amount
-        };
+    let redeemable_amount = utils::change_decimals_place(
+        I80F48::checked_from_num(collateral_amount).ok_or_else(|| error!(UxdError::MathError))?,
+        ctx.accounts.collateral_mint.decimals,
+        ctx.accounts.redeemable_mint.decimals,
+    )?
+    .checked_to_num()
+    .ok_or_else(|| error!(UxdError::MathError))?;
 
     token::mint_to(
         ctx.accounts
