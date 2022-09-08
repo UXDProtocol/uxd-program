@@ -124,15 +124,38 @@ pub fn handler(
         before_lp_token_vault_balance
     );
 
+    let before_collateral_balance = ctx.accounts.user_collateral.amount;
+
+    msg!("before_collateral_balance: {}", before_collateral_balance);
+
     // 1 - Calculate the right amount of lp token to withdraw to match redeemable 1:1
-    let lp_token_amount = redeemable_amount;
+    let current_time = u64::try_from(Clock::get()?.unix_timestamp)
+        .ok()
+        .ok_or(UxdError::MathError)?;
+
+    // Because it's u64 type, we will never withdraw too much due to precision loss, but withdraw less.
+    // The user pays for precision loss by getting less collateral.
+    let lp_token_amount_to_match_redeemable_amount = ctx
+        .accounts
+        .mercurial_vault
+        .get_unmint_amount(
+            current_time,
+            redeemable_amount,
+            ctx.accounts.mercurial_vault_lp_mint.supply,
+        )
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    msg!(
+        "lp_token_amount_to_match_redeemable_amount: {}",
+        lp_token_amount_to_match_redeemable_amount
+    );
 
     // 2 - Redeem collateral from mercurial vault for lp tokens
     mercurial_vault::cpi::withdraw(
         ctx.accounts
             .into_withdraw_collateral_from_mercurial_vault_context()
             .with_signer(depository_signer_seed),
-        lp_token_amount,
+        lp_token_amount_to_match_redeemable_amount,
         // Do not check slippage here
         0,
     )?;
@@ -142,10 +165,8 @@ pub fn handler(
         ctx.accounts.user_collateral.amount
     );
 
-    // 2 - Reload accounts impacted by the deposit (We need updated numbers for further calculation)
-    ctx.accounts.mercurial_vault.reload()?;
+    // 3 - Reload accounts impacted by the deposit (We need updated numbers for further calculation)
     ctx.accounts.depository_lp_token_vault.reload()?;
-    ctx.accounts.mercurial_vault_lp_mint.reload()?;
     ctx.accounts.user_collateral.reload()?;
 
     msg!(
@@ -160,29 +181,48 @@ pub fn handler(
         after_lp_token_vault_balance
     );
 
+    let after_collateral_balance = ctx.accounts.user_collateral.amount;
+
+    msg!("after_collateral_balance: {}", after_collateral_balance);
+
     let vault_lp_token_change = before_lp_token_vault_balance
         .checked_sub(after_lp_token_vault_balance)
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     msg!("vault_lp_token_change: {}", vault_lp_token_change);
 
-    // Check slippage
+    let collateral_balance_change = after_collateral_balance
+        .checked_sub(before_collateral_balance)
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
-    let redeemable_burn_amount = redeemable_amount;
+    msg!("collateral_balance_change: {}", collateral_balance_change);
 
-    msg!("redeemable_burn_amount {}", redeemable_burn_amount);
+    // 4 - Check the amount of paid LP Token and check the amount of received collateral
+    // Should never fail except if mercurial program do not do what it's supposed to do
+    require!(
+        vault_lp_token_change == lp_token_amount_to_match_redeemable_amount,
+        UxdError::SlippageReached,
+    );
 
+    let redeemable_amount_minus_precision_loss = redeemable_amount
+        .checked_sub(1)
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    require!(
+        collateral_balance_change == redeemable_amount
+            || collateral_balance_change == redeemable_amount_minus_precision_loss,
+        UxdError::SlippageReached,
+    );
+
+    // 5 - Burn redeemable
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
-        redeemable_burn_amount,
+        redeemable_amount,
     )?;
 
-    // 4 - Update accounting
+    // 6 - Update accounting
     // @TODO
 
-    // 6 - Check that we don't mint more UXD than the fixed limit
-    // @TODO
-    // ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
     Ok(())
 }
 
@@ -203,7 +243,7 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
             lp_mint: self.mercurial_vault_lp_mint.to_account_info(),
             user_token: self.user_collateral.to_account_info(),
             user_lp: self.depository_lp_token_vault.to_account_info(),
-            user: self.user.to_account_info(),
+            user: self.depository.to_account_info(),
             token_program: self.token_program.to_account_info(),
         };
         let cpi_program = self.mercurial_vault_program.to_account_info();
@@ -224,6 +264,8 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
 // Validate
 impl<'info> RedeemFromMercurialVaultDepository<'info> {
     pub fn validate(&self, redeemable_amount: u64) -> Result<()> {
+        require!(redeemable_amount != 0, UxdError::InvalidRedeemableAmount);
+
         Ok(())
     }
 }

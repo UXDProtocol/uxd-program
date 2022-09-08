@@ -29,12 +29,12 @@ export const redeemFromMercurialVaultDepositoryTest = async function (
         const userRedeemableBalance_post = await getBalance(userRedeemableATA);
         const userCollateralBalance_post = await getBalance(userCollateralATA);
 
-        const collateralPaid = userCollateralBalance_pre - userCollateralBalance_post;
-        const minted = userRedeemableBalance_post - userRedeemableBalance_pre;
+        const collateralReceived = userCollateralBalance_post - userCollateralBalance_pre;
+        const redeemable = userRedeemableBalance_pre - userRedeemableBalance_post;
 
         console.log(
-            `🧾 Redeemed`, Number(minted.toFixed(depository.mercurialVaultLpMint.decimals)), controller.redeemableMintSymbol,
-            "by locking", Number(collateralPaid.toFixed(depository.collateralMint.decimals)), depository.collateralMint.symbol,
+            `🧾 Redeemed`, Number(collateralReceived.toFixed(depository.collateralMint.decimals)), depository.collateralMint.symbol,
+            "for", Number(redeemable.toFixed(depository.mercurialVaultLpMint.decimals)), controller.redeemableMintSymbol,
         );
 
         console.groupEnd();

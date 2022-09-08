@@ -11,20 +11,20 @@ pub fn change_decimals_place(
     let decimals_pow = I80F48::checked_from_num(
         10u64
             .checked_pow(decimals.into())
-            .ok_or_else(|| UxdError::MathError)?,
+            .ok_or(UxdError::MathError)?,
     )
-    .ok_or_else(|| UxdError::MathError)?;
+    .ok_or(UxdError::MathError)?;
 
     let target_decimals = I80F48::checked_from_num(
         10u64
             .checked_pow(target_decimals.into())
-            .ok_or_else(|| UxdError::MathError)?,
+            .ok_or(UxdError::MathError)?,
     )
-    .ok_or_else(|| UxdError::MathError)?;
+    .ok_or(UxdError::MathError)?;
 
     Ok(number
         .checked_div(decimals_pow)
-        .ok_or_else(|| UxdError::MathError)?
+        .ok_or(UxdError::MathError)?
         .checked_mul(target_decimals)
-        .ok_or_else(|| UxdError::MathError)?)
+        .ok_or(UxdError::MathError)?)
 }

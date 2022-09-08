@@ -1,5 +1,4 @@
 use crate::error::UxdError;
-use crate::program::Uxd;
 use crate::Controller;
 use crate::MercurialVaultDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -135,6 +134,7 @@ pub fn handler(
     ctx.accounts.depository_lp_token_vault.reload()?;
     ctx.accounts.mercurial_vault_lp_mint.reload()?;
 
+    // 3 - Calculate the exact value of minted lp tokens
     let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
 
     msg!(
@@ -142,7 +142,6 @@ pub fn handler(
         after_lp_token_vault_balance,
     );
 
-    // 3 - Calculate the exact value of minted lp tokens
     let lp_token_change = I80F48::checked_from_num(
         after_lp_token_vault_balance
             .checked_sub(before_lp_token_vault_balance)

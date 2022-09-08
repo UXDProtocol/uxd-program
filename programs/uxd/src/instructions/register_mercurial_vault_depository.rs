@@ -14,12 +14,14 @@ use anchor_spl::token::TokenAccount;
 
 #[derive(Accounts)]
 pub struct RegisterMercurialVaultDepository<'info> {
+    /// #1
     pub authority: Signer<'info>,
 
-    // In order to use with governance program, as the PDA cannot be the payer in nested TX.
+    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
 
+    /// #3
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -28,6 +30,7 @@ pub struct RegisterMercurialVaultDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
+    /// #4
     #[account(
         init,
         seeds = [MERCURIAL_VAULT_DEPOSITORY_NAMESPACE, mercurial_vault.key().as_ref(), collateral_mint.key().as_ref()],
@@ -37,12 +40,16 @@ pub struct RegisterMercurialVaultDepository<'info> {
     )]
     pub depository: AccountLoader<'info, MercurialVaultDepository>,
 
+    /// #5
     pub collateral_mint: Box<Account<'info, Mint>>,
 
+    /// #6
     pub mercurial_vault: Box<Account<'info, mercurial_vault::state::Vault>>,
 
+    /// #7
     pub mercurial_vault_lp_mint: Box<Account<'info, Mint>>,
 
+    /// #8
     #[account(
         init,
         seeds = [MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE, mercurial_vault.key().as_ref(), collateral_mint.key().as_ref()],
@@ -53,10 +60,13 @@ pub struct RegisterMercurialVaultDepository<'info> {
     )]
     pub depository_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
+    /// #9
     pub system_program: Program<'info, System>,
 
+    /// #10
     pub token_program: Program<'info, Token>,
 
+    /// #11
     pub rent: Sysvar<'info, Rent>,
 }
 
