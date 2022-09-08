@@ -129,6 +129,20 @@ pub fn handler(ctx: Context<RegisterMercurialVaultDepository>) -> Result<()> {
 
 // Validate
 impl<'info> RegisterMercurialVaultDepository<'info> {
+    // Only few stablecoin collateral mint are whitelisted
+    // This check exists to avoid the creation of a imbalanced mercurial vault depository
+    // Redeemable and collateral should always be 1:1
+    pub fn validate_collateral_mint(&self) -> Result<()> {
+        let usdc_mint: Pubkey = Pubkey::new(b"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+
+        require!(
+            self.collateral_mint.key().eq(&usdc_mint),
+            UxdError::CollateralMintNotAllowed,
+        );
+
+        Ok(())
+    }
+
     pub fn validate(&self) -> Result<()> {
         require!(
             self.mercurial_vault
@@ -145,14 +159,8 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
             UxdError::CollateralEqualToRedeemable,
         );
 
-        // Do not validate this for now as devnet doesn't work with UXD pool for now
-        /* let usdc_mint: Pubkey = Pubkey::new(b"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-
-        // Only accept USDC mint for now, as other collaterals will cause logic errors on mint/redeem with mercurial vault
-        require!(
-            self.collateral_mint.key().eq(&usdc_mint),
-            UxdError::InvalidCollateralAmount
-        );*/
+        #[cfg(feature = "production")]
+        self.validate_collateral_mint()?;
 
         Ok(())
     }

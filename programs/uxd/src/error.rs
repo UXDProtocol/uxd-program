@@ -102,6 +102,8 @@ pub enum UxdError {
     ClockError,
     #[msg("Collateral should be different than redeemable.")]
     CollateralEqualToRedeemable,
+    #[msg("Provided collateral mint is not allowed.")]
+    CollateralMintNotAllowed,
 
     /// Anchor DSL related errors
     ///
