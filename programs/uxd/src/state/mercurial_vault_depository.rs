@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
-pub const MERCURIAL_VAULT_DEPOSITORY_RESERVED_SPACE: usize = 583;
+// Total account size target: 900
+pub const MERCURIAL_VAULT_DEPOSITORY_RESERVED_SPACE: usize = 479;
 
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 1
@@ -9,10 +10,12 @@ pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 1
     + 32
     + 128
+    + 128
     + 32
     + 32
     + 1
     + 32
+    + 1
     + 1
     + MERCURIAL_VAULT_DEPOSITORY_RESERVED_SPACE;
 
@@ -35,6 +38,10 @@ pub struct MercurialVaultDepository {
     // Updated after each mint/redeem
     // In Collateral native units
     pub collateral_amount_deposited: u128,
+
+    // The amount of minted redeemable using this repository
+    // Equals to collateral_amount_deposited, minus precision loss
+    pub minted_redeemable_amount: u128,
 
     // mercurial_vault linked to the depository
     pub mercurial_vault: Pubkey,

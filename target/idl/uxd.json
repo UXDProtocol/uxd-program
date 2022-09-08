@@ -1362,6 +1362,10 @@
             "type": "u128"
           },
           {
+            "name": "mintedRedeemableAmount",
+            "type": "u128"
+          },
+          {
             "name": "mercurialVault",
             "type": "publicKey"
           },
@@ -2338,6 +2342,11 @@
     },
     {
       "code": 6061,
+      "name": "InvalidMercurialVaultCollateralTokenSafe",
+      "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
+    },
+    {
+      "code": 6062,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

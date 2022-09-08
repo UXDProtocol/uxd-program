@@ -1377,6 +1377,10 @@ export type Uxd = {
             "type": "u128"
           },
           {
+            "name": "mintedRedeemableAmount",
+            "type": "u128"
+          },
+          {
             "name": "mercurialVault",
             "type": "publicKey"
           },
@@ -2353,6 +2357,11 @@ export type Uxd = {
     },
     {
       "code": 6061,
+      "name": "InvalidMercurialVaultCollateralTokenSafe",
+      "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
+    },
+    {
+      "code": 6062,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
@@ -3738,6 +3747,10 @@ export const IDL: Uxd = {
             "type": "u128"
           },
           {
+            "name": "mintedRedeemableAmount",
+            "type": "u128"
+          },
+          {
             "name": "mercurialVault",
             "type": "publicKey"
           },
@@ -4714,6 +4727,11 @@ export const IDL: Uxd = {
     },
     {
       "code": 6061,
+      "name": "InvalidMercurialVaultCollateralTokenSafe",
+      "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
+    },
+    {
+      "code": 6062,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

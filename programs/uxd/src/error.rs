@@ -129,6 +129,8 @@ pub enum UxdError {
     InvalidMaxQuoteQuantity,
     #[msg("The provided mercurial vault does not match the Depository's one.")]
     InvalidMercurialVault,
+    #[msg("The provided mercurial vault collateral token safe does not match the mercurial vault one.")]
+    InvalidMercurialVaultCollateralTokenSafe,
 
     #[msg("Default - Check the source code for more info.")]
     Default,

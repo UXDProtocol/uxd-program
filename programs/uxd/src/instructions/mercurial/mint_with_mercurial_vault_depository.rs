@@ -1,11 +1,11 @@
 use crate::error::UxdError;
+use crate::utils;
 use crate::Controller;
 use crate::MercurialVaultDepository;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
-use crate::utils;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::Mint;
@@ -40,6 +40,8 @@ pub struct MintWithMercurialVaultDepository<'info> {
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = mercurial_vault @UxdError::InvalidMercurialVault,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
+        has_one = mercurial_vault_lp_mint @UxdError::InvalidMercurialVaultLpMint,
     )]
     pub depository: AccountLoader<'info, MercurialVaultDepository>,
 
@@ -81,7 +83,10 @@ pub struct MintWithMercurialVaultDepository<'info> {
     pub depository_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
     /// #10
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = mercurial_vault.token_vault == mercurial_vault_collateral_token_safe.key() @UxdError::InvalidMercurialVaultCollateralTokenSafe,
+    )]
     pub mercurial_vault: Box<Account<'info, mercurial_vault::state::Vault>>,
 
     /// #11
@@ -106,19 +111,10 @@ pub fn handler(
     ctx: Context<MintWithMercurialVaultDepository>,
     collateral_amount: u64,
 ) -> Result<()> {
-    msg!("collateral_amount: {}", collateral_amount,);
-
     let controller_bump = ctx.accounts.controller.load()?.bump;
     let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller_bump]]];
 
-    let depository = ctx.accounts.depository.load()?;
-
     let before_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
-
-    msg!(
-        "before_lp_token_vault_balance: {}",
-        before_lp_token_vault_balance,
-    );
 
     // 1 - Deposit collateral to mercurial vault and get lp tokens
     mercurial_vault::cpi::deposit(
@@ -137,19 +133,12 @@ pub fn handler(
     // 3 - Calculate the exact value of minted lp tokens
     let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
 
-    msg!(
-        "after_lp_token_vault_balance: {}",
-        after_lp_token_vault_balance,
-    );
-
     let lp_token_change = I80F48::checked_from_num(
         after_lp_token_vault_balance
             .checked_sub(before_lp_token_vault_balance)
-            .ok_or_else(|| error!(UxdError::MathError))?,
+            .ok_or(error!(UxdError::MathError))?,
     )
-    .ok_or_else(|| error!(UxdError::MathError))?;
-
-    msg!("lp_token_change: {}", lp_token_change);
+    .ok_or(error!(UxdError::MathError))?;
 
     let current_time = u64::try_from(Clock::get()?.unix_timestamp)
         .ok()
@@ -162,24 +151,22 @@ pub fn handler(
             current_time,
             lp_token_change
                 .checked_to_num()
-                .ok_or_else(|| error!(UxdError::MathError))?,
+                .ok_or(error!(UxdError::MathError))?,
             ctx.accounts.mercurial_vault_lp_mint.supply,
         )
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
-    msg!("minted_lp_token_value: {}", minted_lp_token_value);
+        .ok_or(error!(UxdError::MathError))?;
 
     // 4 - Check that the minted value matches the provided collateral
     // When manipulating LP tokens/collateral numbers, precision loss may occur.
     // The maximum allowed precision loss is 1 (native unit).
     let collateral_amount_minus_precision_loss = collateral_amount
         .checked_sub(1)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or(error!(UxdError::MathError))?;
 
     require!(
         // Without precision loss
         minted_lp_token_value == collateral_amount
-            || 
+            ||
         // With precision loss 
         minted_lp_token_value == collateral_amount_minus_precision_loss,
         UxdError::SlippageReached,
@@ -188,21 +175,18 @@ pub fn handler(
     // 5 - Mint redeemable 1:1 with provided collateral
     // Ignore possible decay of value due to precision loss
     // A redeem fee is applied that covers possible losses
-    let redeemable_amount = if ctx.accounts.collateral_mint.decimals != ctx.accounts.redeemable_mint.decimals {
-        utils::change_decimals_place(
-        I80F48::checked_from_num(collateral_amount).ok_or_else(|| error!(UxdError::MathError))?,
-        ctx.accounts.collateral_mint.decimals,
-        ctx.accounts.redeemable_mint.decimals)?
-        // Due to possible decimal change calculations, precision loss is possible.
-        // Thus we use floor() here to be sure that the users pays the difference.
-        // .floor()
-        .checked_to_num()
-        .ok_or_else(|| error!(UxdError::MathError))?
-    } else {
-        collateral_amount
-    };
-
-    msg!("redeemable_amount: {}", redeemable_amount);
+    let redeemable_amount =
+        if ctx.accounts.collateral_mint.decimals != ctx.accounts.redeemable_mint.decimals {
+            utils::change_decimals_place(
+                I80F48::checked_from_num(collateral_amount).ok_or(error!(UxdError::MathError))?,
+                ctx.accounts.collateral_mint.decimals,
+                ctx.accounts.redeemable_mint.decimals,
+            )?
+            .checked_to_num()
+            .ok_or(error!(UxdError::MathError))?
+        } else {
+            collateral_amount
+        };
 
     token::mint_to(
         ctx.accounts
@@ -211,12 +195,13 @@ pub fn handler(
         redeemable_amount,
     )?;
 
-    // 6 - Update accounting
-    // @TODO
+    // 6 - Update Onchain accounting to reflect the changes
+    ctx.accounts
+        .update_onchain_accounting(collateral_amount.into(), redeemable_amount.into())?;
 
     // 7 - Check that we don't mint more UXD than the fixed limit
-    // @TODO
-    // ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
+    ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
+
     Ok(())
 }
 
@@ -253,6 +238,55 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
             authority: self.controller.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+// Additional convenience methods related to the inputted accounts
+impl<'info> MintWithMercurialVaultDepository<'info> {
+    // Update the accounting in the Depository and Controller Accounts to reflect changes
+    fn update_onchain_accounting(
+        &mut self,
+        collateral_amount_deposited: u128,
+        redeemable_minted_amount: u128,
+    ) -> Result<()> {
+        let mut depository = self.depository.load_mut()?;
+        let mut controller = self.controller.load_mut()?;
+
+        // Depository
+        depository.collateral_amount_deposited = depository
+            .collateral_amount_deposited
+            .checked_add(collateral_amount_deposited)
+            .ok_or(error!(UxdError::MathError))?;
+
+        depository.minted_redeemable_amount = depository
+            .minted_redeemable_amount
+            .checked_add(redeemable_minted_amount)
+            .ok_or(error!(UxdError::MathError))?;
+
+        // Controller
+        controller.redeemable_circulating_supply = controller
+            .redeemable_circulating_supply
+            .checked_add(redeemable_minted_amount)
+            .ok_or(error!(UxdError::MathError))?;
+
+        drop(depository);
+        drop(controller);
+
+        Ok(())
+    }
+
+    // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
+    fn check_redeemable_global_supply_cap_overflow(&self) -> Result<()> {
+        let controller = self.controller.load()?;
+
+        require!(
+            controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
+            UxdError::RedeemableGlobalSupplyCapReached
+        );
+
+        drop(controller);
+
+        Ok(())
     }
 }
 

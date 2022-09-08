@@ -44,6 +44,9 @@ pub struct RegisterMercurialVaultDepository<'info> {
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #6
+    #[account(
+        constraint = mercurial_vault.lp_mint == mercurial_vault_lp_mint.key() @UxdError::InvalidMercurialVaultLpMint,
+    )]
     pub mercurial_vault: Box<Account<'info, mercurial_vault::state::Vault>>,
 
     /// #7
@@ -76,12 +79,12 @@ pub fn handler(ctx: Context<RegisterMercurialVaultDepository>) -> Result<()> {
     let depository_bump = *ctx
         .bumps
         .get("depository")
-        .ok_or_else(|| error!(UxdError::BumpError))?;
+        .ok_or(error!(UxdError::BumpError))?;
 
     let depository_lp_token_vault_bump = *ctx
         .bumps
         .get("depository_lp_token_vault")
-        .ok_or_else(|| error!(UxdError::BumpError))?;
+        .ok_or(error!(UxdError::BumpError))?;
 
     let depository = &mut ctx.accounts.depository.load_init()?;
 
