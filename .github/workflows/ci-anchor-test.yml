@@ -55,7 +55,6 @@ jobs:
   anchor-build-and-deploy:
     name: Upgrades CI Resident Program
     runs-on: ubuntu-latest
-    if: ${{ false }}
     steps:
       # Checkout
       - uses: actions/checkout@v2
@@ -137,19 +136,11 @@ jobs:
   mango-market-making-SOL-PERP:
     name: Run mango market making ts bot on SOL PERP when doing Testing
     runs-on: ubuntu-latest
-<<<<<<< HEAD
     timeout-minutes: 15
     needs: [anchor-build-and-deploy]
-||||||| parent of 404c6b6... Fix mango market on ci script (#183)
-    needs: [anchor-build-and-deploy]
-=======
-    timeout-minutes: 15
-    # needs: [anchor-build-and-deploy]
->>>>>>> 404c6b6... Fix mango market on ci script (#183)
     steps:
       # Checkout
       - uses: actions/checkout@v2
-<<<<<<< HEAD
       # Checkout Mango Market Maker
       - name: Checkout Mango market-maker-ts
         uses: actions/checkout@v2
@@ -169,129 +160,11 @@ jobs:
           echo -e 'export ENDPOINT_URL="https://mango.devnet.rpcpool.com"' >> .env
           echo -e 'export PARAMS=devnet_sol_perp.json' >> .env
           . .env && yarn mm
-||||||| parent of 404c6b6... Fix mango market on ci script (#183)
-      # Install Rust
-      - name: Rust toolchain installation
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
-          profile: minimal
-      # Install solana
-      - name: Cache Solana Tool Suite
-        uses: actions/cache@v2  
-        id: cache-solana
-        with:
-          path: |
-            ~/.cache/solana/
-            ~/.local/share/solana/
-          key: solana-${{ runner.os }}-v0000-${{ env.SOLANA_VERSION }}
-      - name: install solana
-        if: steps.cache-solana.outputs.cache-hit != 'true'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config build-essential libudev-dev
-          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
-      - name: Add Solana to PATH
-        run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
-      - name: Setup solana 
-        run: |
-          solana --version
-          solana config set -u d
-          solana config set --url ${{ env.DEVNET_RPC}}
-      - name: Node 14 installation
-        uses: actions/setup-node@v2
-        with:
-          node-version: "14"
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-
-      # Create Keypair
-      - name: Create Runner keypair and funds it
-        run: |
-          solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }} --no-passphrase --silent
-          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) 1 --allow-unfunded-recipient
-          solana balance
-      # Cargo caching
-      - name: Cache Cargo registry + index
-        uses: actions/cache@v2  
-        id: cache-anchor
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: cargo-${{ runner.os }}-v0000-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache target folder
-        uses: actions/cache@v2
-        id: cache-programs
-        with:
-          path: |
-            ./target/debug
-            ./target/release
-            ./target/bpfel-unknown-unknown
-          key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
-      # # Market Making
-      # - uses: actions/checkout@v3
-      # - name: Set up Python 3.10
-      #   uses: actions/setup-python@v3
-      #   with:
-      #     python-version: "3.10"
-      # - name: Install dependencies and run marketmaker
-      #   run: |
-      #     sudo apt install direnv
-      #     mkdir mmfolder
-      #     cd mmfolder
-      #     python -m venv .venv
-      #     touch .envrc
-      #     echo 'CURRENT_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"' > .envrc
-      #     echo -e '\nexport PATH=$CURRENT_DIRECTORY/.venv/bin:$PATH:$CURRENT_DIRECTORY/.venv/lib/python3.9/site-packages/bin' >> .envrc
-      #     direnv allow
-      #     python -m pip install --upgrade pip
-      #     touch requirements.txt && echo mango-explorer > requirements.txt
-      #     pip install -r requirements.txt
-      #     mango-explorer-version
-      #     marketmaker --name "UXD-BTC-MM" --market BTC-PERP --oracle-provider pyth --chain ratios --ratios-spread 0.005 --chain ratios --ratios-position-size 0.2 --chain fixedspread --fixedspread-value 0.1 --order-type LIMIT --log-level INFO --cluster-name devnet --account ${{ env.MANGO_ACCOUNT_MM_BTC }} &
-      #     cd -
-      - name: Anchor Test (skip build and deploy)
-        run: |
-          npm ci --ignore-scripts
-          ./scripts/swap_ci_resident_program_id.sh
-          sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_BTC }}/g" ./Anchor.toml
-          npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
-      - name: Returning funded runner wallet SOLs to the bank
-        run: |
-          solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
-=======
-      # Checkout Mango Market Maker
-      - name: Checkout Mango market-maker-ts
-        uses: actions/checkout@v2
-        with:
-          repository: blockworks-foundation/market-maker-ts
-          path: /home/runner/work/uxd-program/uxd-program/third-party-dependencies/market-maker-ts
-      - name: Setup Market Making bot for SOL PERP
-        run: |
-          cd /home/runner/work/uxd-program/uxd-program
-          mm_keypair=$( cat ${{ env.MANGO_MM_ACCOUNT_KEYPAIR }} )
-          cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/market-maker-ts
-          yarn install
-          mm_params='{"group":"devnet.2","mangoAccountName":"mm","interval":200,"tif":10,"batch":2,"assets":{"SOL":{"perp":{"sizePerc":0.8,"leanCoeff":0.0005,"bias":0,"requoteThresh":0.0002,"takeSpammers":true,"spammerCharge":2}}}}'
-          echo "$mm_params" > params/devnet_sol_perp.json
-          touch .env
-          echo "export KEYPAIR=$mm_keypair" > .env
-          echo -e 'export ENDPOINT_URL="https://mango.devnet.rpcpool.com"' >> .env
-          echo -e 'export PARAMS=devnet_sol_perp.json' >> .env
-          . .env && yarn mm
->>>>>>> 404c6b6... Fix mango market on ci script (#183)
 
   anchor-test-mango-depository-SOL:
     name: Test SOL MangoDepository against the resident program
     runs-on: ubuntu-latest
-    #needs: [anchor-build-and-deploy]
+    needs: [anchor-build-and-deploy]
     steps:
       # Checkout
       - uses: actions/checkout@v2
