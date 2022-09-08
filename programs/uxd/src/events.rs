@@ -73,9 +73,9 @@ pub struct RegisterMangoDepositoryEventV2 {
     pub mango_account: Pubkey,
 }
 
-/// Event called in [instructions::register_mercurial_pool_depository::handler].
+/// Event called in [instructions::register_mercurial_vault_depository::handler].
 #[event]
-pub struct RegisterMercurialPoolDepositoryEvent {
+pub struct RegisterMercurialVaultDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,

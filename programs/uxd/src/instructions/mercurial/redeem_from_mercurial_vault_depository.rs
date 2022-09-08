@@ -71,6 +71,7 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #9
+    /// Token account holding the LP tokens minted by depositing collateral on mercurial vault
     #[account(
         mut,
         seeds = [MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE, mercurial_vault.key().as_ref(), collateral_mint.key().as_ref()],
@@ -92,6 +93,7 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     pub mercurial_vault_lp_mint: Box<Account<'info, Mint>>,
 
     /// #12
+    /// Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.
     #[account(mut)]
     pub mercurial_vault_collateral_token_safe: Box<Account<'info, TokenAccount>>,
 
@@ -129,7 +131,7 @@ pub fn handler(
     // 1 - Calculate the right amount of lp token to withdraw to match redeemable 1:1
     let current_time = u64::try_from(Clock::get()?.unix_timestamp)
         .ok()
-        .ok_or(UxdError::MathError)?;
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     // Because it's u64 type, we will never withdraw too much due to precision loss, but withdraw less.
     // The user pays for precision loss by getting less collateral.
@@ -141,7 +143,7 @@ pub fn handler(
             redeemable_amount,
             ctx.accounts.mercurial_vault_lp_mint.supply,
         )
-        .ok_or(error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     // 2 - Redeem collateral from mercurial vault for lp tokens
     mercurial_vault::cpi::withdraw(
@@ -164,11 +166,11 @@ pub fn handler(
 
     let vault_lp_token_change = before_lp_token_vault_balance
         .checked_sub(after_lp_token_vault_balance)
-        .ok_or(error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     let collateral_balance_change = after_collateral_balance
         .checked_sub(before_collateral_balance)
-        .ok_or(error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     require!(
         vault_lp_token_change == lp_token_amount_to_match_redeemable_amount,
@@ -177,7 +179,7 @@ pub fn handler(
 
     let redeemable_amount_minus_precision_loss = redeemable_amount
         .checked_sub(1)
-        .ok_or(error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     require!(
         collateral_balance_change == redeemable_amount
@@ -248,18 +250,18 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
         depository.collateral_amount_deposited = depository
             .collateral_amount_deposited
             .checked_sub(collateral_withdrawn_amount)
-            .ok_or(error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathError))?;
 
         depository.minted_redeemable_amount = depository
             .minted_redeemable_amount
             .checked_sub(redeemable_burnt_amount)
-            .ok_or(error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathError))?;
 
         // Controller
         controller.redeemable_circulating_supply = controller
             .redeemable_circulating_supply
             .checked_sub(redeemable_burnt_amount)
-            .ok_or(error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathError))?;
 
         drop(depository);
         drop(controller);

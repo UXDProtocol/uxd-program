@@ -73,6 +73,7 @@ pub struct MintWithMercurialVaultDepository<'info> {
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #9
+    /// Token account holding the LP tokens minted by depositing collateral on mercurial vault
     #[account(
         mut,
         seeds = [MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE, mercurial_vault.key().as_ref(), collateral_mint.key().as_ref()],
@@ -94,6 +95,7 @@ pub struct MintWithMercurialVaultDepository<'info> {
     pub mercurial_vault_lp_mint: Box<Account<'info, Mint>>,
 
     /// #12
+    /// Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.
     #[account(mut)]
     pub mercurial_vault_collateral_token_safe: Box<Account<'info, TokenAccount>>,
 
@@ -136,13 +138,13 @@ pub fn handler(
     let lp_token_change = I80F48::checked_from_num(
         after_lp_token_vault_balance
             .checked_sub(before_lp_token_vault_balance)
-            .ok_or(error!(UxdError::MathError))?,
+            .ok_or_else(|| error!(UxdError::MathError))?,
     )
-    .ok_or(error!(UxdError::MathError))?;
+    .ok_or_else(|| error!(UxdError::MathError))?;
 
     let current_time = u64::try_from(Clock::get()?.unix_timestamp)
         .ok()
-        .ok_or(UxdError::MathError)?;
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     let minted_lp_token_value = ctx
         .accounts
@@ -151,17 +153,17 @@ pub fn handler(
             current_time,
             lp_token_change
                 .checked_to_num()
-                .ok_or(error!(UxdError::MathError))?,
+                .ok_or_else(|| error!(UxdError::MathError))?,
             ctx.accounts.mercurial_vault_lp_mint.supply,
         )
-        .ok_or(error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     // 4 - Check that the minted value matches the provided collateral
     // When manipulating LP tokens/collateral numbers, precision loss may occur.
     // The maximum allowed precision loss is 1 (native unit).
     let collateral_amount_minus_precision_loss = collateral_amount
         .checked_sub(1)
-        .ok_or(error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathError))?;
 
     require!(
         // Without precision loss
@@ -178,12 +180,13 @@ pub fn handler(
     let redeemable_amount =
         if ctx.accounts.collateral_mint.decimals != ctx.accounts.redeemable_mint.decimals {
             utils::change_decimals_place(
-                I80F48::checked_from_num(collateral_amount).ok_or(error!(UxdError::MathError))?,
+                I80F48::checked_from_num(collateral_amount)
+                    .ok_or_else(|| error!(UxdError::MathError))?,
                 ctx.accounts.collateral_mint.decimals,
                 ctx.accounts.redeemable_mint.decimals,
             )?
             .checked_to_num()
-            .ok_or(error!(UxdError::MathError))?
+            .ok_or_else(|| error!(UxdError::MathError))?
         } else {
             collateral_amount
         };
@@ -256,18 +259,18 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         depository.collateral_amount_deposited = depository
             .collateral_amount_deposited
             .checked_add(collateral_amount_deposited)
-            .ok_or(error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathError))?;
 
         depository.minted_redeemable_amount = depository
             .minted_redeemable_amount
             .checked_add(redeemable_minted_amount)
-            .ok_or(error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathError))?;
 
         // Controller
         controller.redeemable_circulating_supply = controller
             .redeemable_circulating_supply
             .checked_add(redeemable_minted_amount)
-            .ok_or(error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathError))?;
 
         drop(depository);
         drop(controller);

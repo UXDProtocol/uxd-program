@@ -46,11 +46,11 @@ pub struct MercurialVaultDepository {
     // mercurial_vault linked to the depository
     pub mercurial_vault: Pubkey,
 
-    // Tokens received in exchange for depositing collateral
+    // LP tokens received in exchange for depositing collateral
     pub mercurial_vault_lp_mint: Pubkey,
     pub mercurial_vault_lp_mint_decimals: u8,
 
-    // Keep the mercurial vault tokens
+    // Token account holding the LP tokens minted by depositing collateral on mercurial vault
     pub lp_token_vault: Pubkey,
     pub lp_token_vault_bump: u8,
 }

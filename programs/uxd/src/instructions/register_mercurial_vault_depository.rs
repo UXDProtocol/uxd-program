@@ -1,5 +1,5 @@
 use crate::error::UxdError;
-use crate::events::RegisterMercurialPoolDepositoryEvent;
+use crate::events::RegisterMercurialVaultDepositoryEvent;
 use crate::state::MercurialVaultDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
@@ -53,6 +53,7 @@ pub struct RegisterMercurialVaultDepository<'info> {
     pub mercurial_vault_lp_mint: Box<Account<'info, Mint>>,
 
     /// #8
+    /// Token account holding the LP tokens minted by depositing collateral on mercurial vault
     #[account(
         init,
         seeds = [MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE, mercurial_vault.key().as_ref(), collateral_mint.key().as_ref()],
@@ -79,12 +80,12 @@ pub fn handler(ctx: Context<RegisterMercurialVaultDepository>) -> Result<()> {
     let depository_bump = *ctx
         .bumps
         .get("depository")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
 
     let depository_lp_token_vault_bump = *ctx
         .bumps
         .get("depository_lp_token_vault")
-        .ok_or(error!(UxdError::BumpError))?;
+        .ok_or_else(|| error!(UxdError::BumpError))?;
 
     let depository = &mut ctx.accounts.depository.load_init()?;
 
@@ -92,9 +93,12 @@ pub fn handler(ctx: Context<RegisterMercurialVaultDepository>) -> Result<()> {
     depository.bump = depository_bump;
 
     depository.version = MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION;
+
     depository.collateral_mint = collateral_mint;
     depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
+
     depository.controller = ctx.accounts.controller.key();
+
     depository.collateral_amount_deposited = u128::MIN;
 
     depository.lp_token_vault = ctx.accounts.depository_lp_token_vault.key();
@@ -112,7 +116,7 @@ pub fn handler(ctx: Context<RegisterMercurialVaultDepository>) -> Result<()> {
         .add_registered_mercurial_vault_depository_entry(ctx.accounts.depository.key())?;
 
     // 3 - Emit event
-    emit!(RegisterMercurialPoolDepositoryEvent {
+    emit!(RegisterMercurialVaultDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,
         depository_version: depository.version,
         controller: ctx.accounts.controller.key(),

@@ -22,9 +22,9 @@ pub fn change_decimals_place(
     )
     .ok_or(UxdError::MathError)?;
 
-    Ok(number
+    number
         .checked_div(decimals_pow)
         .ok_or(UxdError::MathError)?
         .checked_mul(target_decimals)
-        .ok_or(UxdError::MathError)?)
+        .ok_or(UxdError::MathError)
 }
