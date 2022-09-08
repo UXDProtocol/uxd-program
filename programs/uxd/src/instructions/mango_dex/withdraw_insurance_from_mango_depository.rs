@@ -10,7 +10,7 @@ use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
 use anchor_spl::token::TokenAccount;
 
-/// Takes 12 accounts - 4 used locally - 7 for MangoMarkets CPI - 3 Programs
+/// Takes 12 accounts - 4 used locally - 7 for MangoMarkets CPI - 1 Programs
 #[derive(Accounts)]
 pub struct WithdrawInsuranceFromMangoDepository<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
