@@ -1,5 +1,6 @@
 use crate::error::UxdError;
 use crate::events::RegisterMercurialVaultDepositoryEvent;
+use crate::state::mercurial_vault_depository::MINIMUM_REDEEMING_FEE_IN_BPS;
 use crate::state::MercurialVaultDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
@@ -74,7 +75,11 @@ pub struct RegisterMercurialVaultDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<RegisterMercurialVaultDepository>) -> Result<()> {
+pub fn handler(
+    ctx: Context<RegisterMercurialVaultDepository>,
+    minting_fee_in_bps: u8,
+    redeeming_fee_in_bps: u8,
+) -> Result<()> {
     let depository_bump = *ctx
         .bumps
         .get("depository")
@@ -99,6 +104,9 @@ pub fn handler(ctx: Context<RegisterMercurialVaultDepository>) -> Result<()> {
 
     depository.collateral_amount_deposited = u128::MIN;
     depository.minted_redeemable_amount = u128::MIN;
+
+    depository.minting_fee_in_bps = minting_fee_in_bps;
+    depository.redeeming_fee_in_bps = redeeming_fee_in_bps;
 
     depository.lp_token_vault = ctx.accounts.depository_lp_token_vault.key();
     depository.lp_token_vault_bump = depository_lp_token_vault_bump;
@@ -142,7 +150,7 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
         Ok(())
     }
 
-    pub fn validate(&self) -> Result<()> {
+    pub fn validate(&self, _minting_fee_in_bps: u8, redeeming_fee_in_bps: u8) -> Result<()> {
         require!(
             self.mercurial_vault
                 .token_mint
@@ -156,6 +164,11 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
                 .key()
                 .ne(&self.controller.load()?.redeemable_mint),
             UxdError::CollateralEqualToRedeemable,
+        );
+
+        require!(
+            redeeming_fee_in_bps >= MINIMUM_REDEEMING_FEE_IN_BPS,
+            UxdError::MinimumRedeemingFeeError,
         );
 
         #[cfg(feature = "production")]

@@ -436,13 +436,19 @@ pub mod uxd {
     // Create and Register a new `MercurialVaultDepository` to the `Controller`.
     // Each `Depository` account manages a specific collateral mint.
     #[access_control(
-        ctx.accounts.validate()
+        ctx.accounts.validate(minting_fee_in_bps, redeeming_fee_in_bps)
     )]
     pub fn register_mercurial_vault_depository(
         ctx: Context<RegisterMercurialVaultDepository>,
+        minting_fee_in_bps: u8,
+        redeeming_fee_in_bps: u8,
     ) -> Result<()> {
         msg!("[register_mercurial_vault_depository]");
-        instructions::register_mercurial_vault_depository::handler(ctx)
+        instructions::register_mercurial_vault_depository::handler(
+            ctx,
+            minting_fee_in_bps,
+            redeeming_fee_in_bps,
+        )
     }
 
     //

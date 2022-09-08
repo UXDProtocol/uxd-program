@@ -13,7 +13,13 @@ pub fn change_decimals_place(
     }
 
     // E.g actual_decimals = 9 and target_decimals = 6 equals 3
-    let decimals_diff: u32 = actual_decimals.abs_diff(target_decimals).into();
+    let decimals_diff: u32 = I80F48::checked_from_num(actual_decimals)
+        .ok_or(UxdError::MathError)?
+        .checked_sub(I80F48::checked_from_num(target_decimals).ok_or(UxdError::MathError)?)
+        .ok_or(UxdError::MathError)?
+        .abs()
+        .checked_to_num()
+        .ok_or(UxdError::MathError)?;
 
     // E.g decimals_diff = 3 equals 1_000
     // E.g decimals_diff = 6 equals 1_000_000
