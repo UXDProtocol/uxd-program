@@ -26,7 +26,7 @@ use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 
-/// Takes 20 accounts
+/// Takes 19 accounts
 #[derive(Accounts)]
 pub struct MintWithMangoDepository<'info> {
     /// #1 Public call accessible to any user
@@ -137,13 +137,10 @@ pub struct MintWithMangoDepository<'info> {
     #[account(mut)]
     pub mango_event_queue: UncheckedAccount<'info>,
 
-    /// #18 System Program
-    pub system_program: Program<'info, System>,
-
-    /// #19 Token Program
+    /// #18 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #20 MangoMarketv3 Program
+    /// #19 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 
@@ -341,9 +338,7 @@ impl<'info> MintWithMangoDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    fn to_mint_redeemable_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+    fn to_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = MintTo {
             mint: self.redeemable_mint.to_account_info(),

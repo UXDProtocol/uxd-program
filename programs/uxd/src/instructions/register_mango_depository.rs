@@ -11,7 +11,6 @@ use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
-use anchor_spl::token::Token;
 use mango::state::MangoAccount;
 use std::mem::size_of;
 
@@ -72,13 +71,10 @@ pub struct RegisterMangoDepository<'info> {
     /// #9 System Program
     pub system_program: Program<'info, System>,
 
-    /// #10 Token Program
-    pub token_program: Program<'info, Token>,
-
-    /// #11 MangoMarketv3 Program
+    /// #10 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 
-    /// #12 Rent Sysvar
+    /// #11 Rent Sysvar
     pub rent: Sysvar<'info, Rent>,
 }
 
