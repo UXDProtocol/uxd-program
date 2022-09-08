@@ -8,7 +8,6 @@ use crate::MANGO_DEPOSITORY_NAMESPACE;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
-use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
 /// Takes 12 accounts
@@ -79,10 +78,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     #[account(mut)]
     pub mango_vault: UncheckedAccount<'info>,
 
-    /// #11 Token Program
-    pub token_program: Program<'info, Token>,
-
-    /// #12 MangoMarketv3 Program
+    /// #11 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 

@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::events::SetMangoDepositoryQuoteMintAndRedeemSoftCapEvent;
 use crate::events::SetMangoDepositoryRedeemableSoftCapEvent;
 use crate::events::SetRedeemableGlobalSupplyCapEvent;
 use crate::Controller;
@@ -34,6 +35,11 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
     if let Some(quote_mint_and_redeem_soft_cap) = fields.quote_mint_and_redeem_soft_cap {
         msg!("[set_mango_depository_quote_mint_and_redeem_soft_cap]");
         controller.mango_depositories_quote_redeemable_soft_cap = quote_mint_and_redeem_soft_cap;
+        emit!(SetMangoDepositoryQuoteMintAndRedeemSoftCapEvent {
+            version: ctx.accounts.controller.load()?.version,
+            controller: ctx.accounts.controller.key(),
+            quote_mint_and_redeem_soft_cap: quote_mint_and_redeem_soft_cap
+        });
     }
     // Optionally edit "redeemable_soft_cap"
     if let Some(redeemable_soft_cap) = fields.redeemable_soft_cap {

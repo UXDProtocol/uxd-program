@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::events::SetMangoDepositoryQuoteMintAndRedeemFeeEvent;
 use crate::state::MangoDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
@@ -45,7 +46,13 @@ pub(crate) fn handler(
             "[set_mango_depository_quote_mint_and_redeem_fee] quote_fee {}",
             quote_mint_and_redeem_fee
         );
-        depository.quote_mint_and_redeem_fee = quote_mint_and_redeem_fee
+        depository.quote_mint_and_redeem_fee = quote_mint_and_redeem_fee;
+        emit!(SetMangoDepositoryQuoteMintAndRedeemFeeEvent {
+            version: ctx.accounts.controller.load()?.version,
+            controller: ctx.accounts.controller.key(),
+            depository: ctx.accounts.depository.key(),
+            quote_mint_and_redeem_fee: quote_mint_and_redeem_fee
+        });
     }
     Ok(())
 }

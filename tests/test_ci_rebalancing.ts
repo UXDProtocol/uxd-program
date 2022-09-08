@@ -30,12 +30,14 @@ describe("Integration tests Rebalancing", function () {
         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositorySOL, paramsRebalancing);
     });
 
-    describe("mangoDepositoryRebalancingSuite BTC", function () {
+    // BTC is not supported as collateral anymore
+    describe.skip("mangoDepositoryRebalancingSuite BTC", function () {
         const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryBTC, paramsRebalancing);
     });
 
-    describe("mangoDepositoryRebalancingSuite ETH", function () {
+    // ETH is not supported as collateral anymore
+    describe.skip("mangoDepositoryRebalancingSuite ETH", function () {
         const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(20)
         mangoDepositoryRebalancingSuite(user, bank, controllerUXD, mangoDepositoryETH, paramsRebalancing);
     });

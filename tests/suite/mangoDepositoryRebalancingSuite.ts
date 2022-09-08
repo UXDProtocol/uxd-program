@@ -82,10 +82,10 @@ export const mangoDepositoryRebalancingSuite = function (user: Signer, payer: Si
         return rebalancedAmount;
     });
 
-    it(`Rebalance 500$ of the depository unrealized PnL (${params.slippage / slippageBase * 100}% slippage)`, async function () {
+    it(`Rebalance 5$ of the depository unrealized PnL (${params.slippage / slippageBase * 100}% slippage)`, async function () {
         const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
         const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const rebalanceAmount = 500;
+        const rebalanceAmount = 5;
         const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
         console.log("🔵 unrealizedPnl on ", depository.collateralMintSymbol, "depository:", unrealizedPnl, "| Polarity:", polarity);
