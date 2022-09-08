@@ -24,7 +24,7 @@ use mango::matching::Side;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 
-/// Takes 25 accounts
+/// Takes 24 accounts
 #[derive(Accounts)]
 pub struct RebalanceMangoDepositoryLite<'info> {
     /// #1 Public call accessible to any user
@@ -158,13 +158,10 @@ pub struct RebalanceMangoDepositoryLite<'info> {
     #[account(mut)]
     pub mango_event_queue: UncheckedAccount<'info>,
 
-    /// #23 System Program
-    pub system_program: Program<'info, System>,
-
-    /// #24 Token Program
+    /// #23 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #25 MangoMarketv3 Program
+    /// #24 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 
