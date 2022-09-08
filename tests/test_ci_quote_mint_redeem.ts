@@ -29,11 +29,13 @@ describe("Integration tests Quote Mint Redeem", function () {
         quoteMintAndRedeemSuite(authority, user, bank, controllerUXD, mangoDepositorySOL);
     });
 
-    describe("mangoDepositoryQuoteMintRedeemSuite BTC", function () {
+    // BTC is not supported as collateral anymore
+    describe.skip("mangoDepositoryQuoteMintRedeemSuite BTC", function () {
         quoteMintAndRedeemSuite(authority, user, bank, controllerUXD, mangoDepositoryBTC);
     });
 
-    describe("mangoDepositoryQuoteMintRedeemSuite ETH", function () {
+    // ETH is not supported as collateral anymore
+    describe.skip("mangoDepositoryQuoteMintRedeemSuite ETH", function () {
         quoteMintAndRedeemSuite(authority, user, bank, controllerUXD, mangoDepositoryETH);
     });
 

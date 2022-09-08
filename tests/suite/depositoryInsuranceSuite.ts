@@ -39,17 +39,17 @@ export const mangoDepositoryInsuranceSuite = function (authority: Signer, contro
         expect(false, "Should have failed - Amount is too big");
     });
 
-    it(`Deposit 100_000 USDC of insurance`, async function () {
-        await depositInsuranceMangoDepositoryTest(100_000, authority, controller, depository, mango);
+    it(`Deposit 1000 USDC of insurance`, async function () {
+        await depositInsuranceMangoDepositoryTest(1000, authority, controller, depository, mango);
     });
 
     it(`Withdraw 1 USDC of insurance`, async function () {
         await withdrawInsuranceMangoDepositoryTest(1, authority, controller, depository, mango);
     });
 
-    it(`Withdraw 500_000 USDC of insurance (should fail)`, async function () {
+    it(`Withdraw 5000 USDC of insurance (should fail)`, async function () {
         try {
-            await withdrawInsuranceMangoDepositoryTest(500_000, authority, controller, depository, mango);
+            await withdrawInsuranceMangoDepositoryTest(5000, authority, controller, depository, mango);
         } catch {
             expect(true, "Failing as planned");
         }
@@ -66,7 +66,7 @@ export const mangoDepositoryInsuranceSuite = function (authority: Signer, contro
     });
 
     // Due to mango health constraints we cannot remove the entirety 
-    it(`Withdraw 99_900 USDC of insurance`, async function () {
-        await depositInsuranceMangoDepositoryTest(99_900, authority, controller, depository, mango);
+    it(`Withdraw 999 USDC of insurance`, async function () {
+        await depositInsuranceMangoDepositoryTest(999, authority, controller, depository, mango);
     });
 };

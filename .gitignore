@@ -5,6 +5,7 @@
 !/target/deploy/ci-resident-keypair.json
 !/target/deploy/ci-resident-upgrade-authority.json
 !/target/deploy/bank-keypair.json
+!/target/deploy/mango-mm-account-keypair.json
 !/target/idl/
 !/target/idl/uxd.json
 !/target/types
