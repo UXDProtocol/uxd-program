@@ -75,8 +75,6 @@ pub struct RegisterMercurialVaultDepository<'info> {
 }
 
 pub fn handler(ctx: Context<RegisterMercurialVaultDepository>) -> Result<()> {
-    let collateral_mint = ctx.accounts.collateral_mint.key();
-
     let depository_bump = *ctx
         .bumps
         .get("depository")
@@ -94,12 +92,13 @@ pub fn handler(ctx: Context<RegisterMercurialVaultDepository>) -> Result<()> {
 
     depository.version = MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION;
 
-    depository.collateral_mint = collateral_mint;
+    depository.collateral_mint = ctx.accounts.collateral_mint.key();
     depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
 
     depository.controller = ctx.accounts.controller.key();
 
     depository.collateral_amount_deposited = u128::MIN;
+    depository.minted_redeemable_amount = u128::MIN;
 
     depository.lp_token_vault = ctx.accounts.depository_lp_token_vault.key();
     depository.lp_token_vault_bump = depository_lp_token_vault_bump;
@@ -130,7 +129,7 @@ pub fn handler(ctx: Context<RegisterMercurialVaultDepository>) -> Result<()> {
 // Validate
 impl<'info> RegisterMercurialVaultDepository<'info> {
     // Only few stablecoin collateral mint are whitelisted
-    // This check exists to avoid the creation of a imbalanced mercurial vault depository
+    // This check exists to avoid the creation of an imbalanced mercurial vault depository
     // Redeemable and collateral should always be 1:1
     pub fn validate_collateral_mint(&self) -> Result<()> {
         let usdc_mint: Pubkey = Pubkey::new(b"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
