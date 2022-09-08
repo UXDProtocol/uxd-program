@@ -164,7 +164,7 @@ jobs:
   anchor-test-mango-depository-SOL:
     name: Test SOL MangoDepository against the resident program
     runs-on: ubuntu-latest
-    #needs: [anchor-build-and-deploy]
+    needs: [anchor-build-and-deploy]
     steps:
       # Checkout
       - uses: actions/checkout@v2
