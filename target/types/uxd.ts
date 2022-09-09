@@ -160,6 +160,11 @@ export type Uxd = {
           "isSigner": false
         },
         {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "mangoProgram",
           "isMut": false,
           "isSigner": false
@@ -223,6 +228,11 @@ export type Uxd = {
         {
           "name": "mangoVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -294,6 +304,16 @@ export type Uxd = {
         {
           "name": "mangoVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -423,6 +443,11 @@ export type Uxd = {
           "isSigner": false
         },
         {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -536,6 +561,11 @@ export type Uxd = {
         {
           "name": "mangoEventQueue",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -656,6 +686,11 @@ export type Uxd = {
         {
           "name": "mangoEventQueue",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -857,6 +892,11 @@ export type Uxd = {
         {
           "name": "mangoPerpMarket",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2111,6 +2151,11 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "mangoProgram",
           "isMut": false,
           "isSigner": false
@@ -2174,6 +2219,11 @@ export const IDL: Uxd = {
         {
           "name": "mangoVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2245,6 +2295,16 @@ export const IDL: Uxd = {
         {
           "name": "mangoVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2374,6 +2434,11 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -2487,6 +2552,11 @@ export const IDL: Uxd = {
         {
           "name": "mangoEventQueue",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2607,6 +2677,11 @@ export const IDL: Uxd = {
         {
           "name": "mangoEventQueue",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -2808,6 +2883,11 @@ export const IDL: Uxd = {
         {
           "name": "mangoPerpMarket",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
           "isSigner": false
         },
         {

@@ -22,7 +22,7 @@ use fixed::types::I80F48;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 
-/// Takes 17 accounts
+/// Takes 18 accounts
 #[derive(Accounts)]
 pub struct QuoteRedeemFromMangoDepository<'info> {
     /// #1 Public call accessible to any user
@@ -127,10 +127,13 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     #[account(mut)]
     pub mango_perp_market: UncheckedAccount<'info>,
 
-    /// #16 Token Program
+    /// #16 System Program
+    pub system_program: Program<'info, System>,
+
+    /// #17 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #17 MangoMarketv3 Program
+    /// #18 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 
