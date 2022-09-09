@@ -160,6 +160,11 @@
           "isSigner": false
         },
         {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "mangoProgram",
           "isMut": false,
           "isSigner": false
@@ -223,6 +228,11 @@
         {
           "name": "mangoVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -294,6 +304,16 @@
         {
           "name": "mangoVault",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -423,6 +443,11 @@
           "isSigner": false
         },
         {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -536,6 +561,11 @@
         {
           "name": "mangoEventQueue",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -656,6 +686,11 @@
         {
           "name": "mangoEventQueue",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -857,6 +892,11 @@
         {
           "name": "mangoPerpMarket",
           "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1946,8 +1986,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "HtBAjXoadvKg8KBAtcUL1BjgxM55itScsZYe9LHt3NiP"
-  }
+  ]
 }
