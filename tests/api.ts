@@ -134,8 +134,8 @@ export async function quoteMintWithMangoDepository(user: Signer, payer: Signer, 
 
     const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
     if (!await getConnection().getAccountInfo(userRedeemableAta)) {
-        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
-        tx.add(createUserCollateralAtaIx);
+        const createRedeemableAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
+        tx.add(createRedeemableAtaIx);
     }
 
     tx.add(quoteMintWithMangoDepositoryIx);
@@ -161,8 +161,8 @@ export async function redeemFromMangoDepository(user: Signer, payer: Signer, sli
 
     const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
     if (!await getConnection().getAccountInfo(userRedeemableAta)) {
-        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
-        tx.add(createUserCollateralAtaIx);
+        const createUserRedeemableAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
+        tx.add(createUserRedeemableAtaIx);
     }
 
     tx.add(redeemFromMangoDepositoryIx);
@@ -182,8 +182,8 @@ export async function quoteRedeemFromMangoDepository(user: Signer, payer: Signer
 
     const userQuoteATA = findATAAddrSync(user.publicKey, depository.quoteMint)[0];
     if (!await getConnection().getAccountInfo(userQuoteATA)) {
-        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userQuoteATA, depository.collateralMint);
-        tx.add(createUserCollateralAtaIx);
+        const createUserQuoteAtaIx = createAssocTokenIx(user.publicKey, userQuoteATA, depository.collateralMint);
+        tx.add(createUserQuoteAtaIx);
     }
 
     await depository.settleMangoDepositoryMangoAccountPnl(payer as Payer, mango);
@@ -242,7 +242,7 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
 
     const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
 
-    if (!await getConnection().getAccountInfo(userCollateralAta) && !depository.collateralMint.equals(NATIVE_MINT)) {
+    if (!await getConnection().getAccountInfo(userCollateralAta)) {
         const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
         tx.add(createUserCollateralAtaIx);
     }
