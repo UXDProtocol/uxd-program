@@ -1,7 +1,7 @@
 use crate::error::UxdError;
-use crate::utils;
 use crate::Controller;
 use crate::MercurialVaultDepository;
+use crate::BPS_UNIT_CONVERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
@@ -174,30 +174,60 @@ pub fn handler(
         UxdError::SlippageReached,
     );
 
-    // 5 - Mint redeemable 1:1 with provided collateral
+    // 5 - Calculate the redeemable amount to send back to the user.
+    // Mint redeemable 1:1 with provided collateral minus minus fees
     // Ignore possible decay of value due to precision loss (value in the pool is lower than minted UXD)
     // A redeem fee is applied that covers possible losses
-    let redeemable_amount = utils::change_decimals_place(
-        I80F48::checked_from_num(collateral_amount).ok_or_else(|| error!(UxdError::MathError))?,
-        ctx.accounts.collateral_mint.decimals,
-        ctx.accounts.redeemable_mint.decimals,
-    )?
-    .checked_to_num()
-    .ok_or_else(|| error!(UxdError::MathError))?;
+    //
+    // /!\ We assume here than redeemable mint have the same amount of decimals as the collateral mint
+    let base_redeemable_amount = collateral_amount;
 
+    let minting_fee_in_bps = ctx.accounts.depository.load()?.minting_fee_in_bps;
+
+    // Math: 5 bps fee would equate to bps_minted_to_user
+    // being 9995 since 10000 - 5 = 9995
+    let bps_minted_to_user: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_sub(minting_fee_in_bps.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    // Math: Multiplies the base_redeemable_amount by how many BPS the user will get
+    // but the units are still in units of BPS, not as a decimal, so then
+    // divide by the BPS_POW to get to the right order of magnitude.
+    let redeemable_amount_less_fees: u64 = bps_minted_to_user
+        .checked_mul_int(base_redeemable_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_div_int(BPS_UNIT_CONVERSION.into())
+        .ok_or_else(|| error!(UxdError::MathError))?
+        // Round down the number to attribute the precision loss to the user
+        .checked_floor()
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_to_num::<u64>()
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    let total_paid_fees = base_redeemable_amount
+        .checked_sub(redeemable_amount_less_fees)
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    // 6 - Mint redeemable
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
             .with_signer(controller_pda_signer),
-        redeemable_amount,
+        redeemable_amount_less_fees,
     )?;
 
-    // 6 - Update Onchain accounting to reflect the changes
-    ctx.accounts
-        .update_onchain_accounting(collateral_amount.into(), redeemable_amount.into())?;
+    // 7 - Update Onchain accounting to reflect the changes
+    ctx.accounts.update_onchain_accounting(
+        collateral_amount.into(),
+        redeemable_amount_less_fees.into(),
+        total_paid_fees.into(),
+    )?;
 
-    // 7 - Check that we don't mint more UXD than the fixed limit
+    // 8 - Check that we don't mint more UXD than the fixed limit
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
+
+    msg!("collateral_amount: {}, base_redeemable_amount: {}, minting_fee_in_bps: {}, bps_minted_to_user: {}, redeemable_amount_less_fees: {}, total_paid_fees: {}, lp_token_change: {}", collateral_amount, base_redeemable_amount, minting_fee_in_bps, bps_minted_to_user, redeemable_amount_less_fees, total_paid_fees, lp_token_change);
 
     Ok(())
 }
@@ -245,6 +275,7 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         &mut self,
         collateral_amount_deposited: u128,
         redeemable_minted_amount: u128,
+        total_paid_fees: u128,
     ) -> Result<()> {
         let mut depository = self.depository.load_mut()?;
         let mut controller = self.controller.load_mut()?;
@@ -258,6 +289,11 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         depository.minted_redeemable_amount = depository
             .minted_redeemable_amount
             .checked_add(redeemable_minted_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        depository.total_paid_mint_fees = depository
+            .total_paid_mint_fees
+            .checked_add(total_paid_fees)
             .ok_or_else(|| error!(UxdError::MathError))?;
 
         // Controller

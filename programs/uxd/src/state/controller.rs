@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 8;
 
+// Total should be 885 bytes
 pub const CONTROLLER_SPACE: usize = 8
     + 1
     + 1

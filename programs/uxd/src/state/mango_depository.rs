@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 
+// Total should be 783 bytes
 pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 462;
 pub const MANGO_DEPOSITORY_SPACE: usize = 8
     + 1

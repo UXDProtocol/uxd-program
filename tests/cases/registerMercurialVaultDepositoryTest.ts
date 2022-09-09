@@ -4,14 +4,14 @@ import { registerMercurialVaultDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection } from "../connection";
 
-export const registerMercurialVaultDepositoryTest = async function (authority: Signer, controller: Controller, depository: MercurialVaultDepository, payer?: Signer) {
+export const registerMercurialVaultDepositoryTest = async function (authority: Signer, controller: Controller, depository: MercurialVaultDepository, mintingFeeInBps: number, redeemingFeeInBps: number, payer?: Signer) {
     console.group("🧭 initializeMercurialVaultDepositoryTest");
     try {
         // WHEN
         if (await getConnection().getAccountInfo(depository.pda)) {
             console.log("🚧 Already registered.");
         } else {
-            const txId = await registerMercurialVaultDepository(authority, payer ?? authority, controller, depository);
+            const txId = await registerMercurialVaultDepository(authority, payer ?? authority, controller, depository, mintingFeeInBps, redeemingFeeInBps);
             console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
         }
 

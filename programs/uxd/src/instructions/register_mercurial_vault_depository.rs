@@ -108,6 +108,9 @@ pub fn handler(
     depository.minting_fee_in_bps = minting_fee_in_bps;
     depository.redeeming_fee_in_bps = redeeming_fee_in_bps;
 
+    depository.total_paid_mint_fees = u128::MIN;
+    depository.total_paid_redeem_fees = u128::MIN;
+
     depository.lp_token_vault = ctx.accounts.depository_lp_token_vault.key();
     depository.lp_token_vault_bump = depository_lp_token_vault_bump;
 

@@ -92,12 +92,12 @@ export async function redeemFromMercurialPoolDepository(authority: Signer, payer
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function registerMercurialPoolDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialPoolDepository): Promise<string> {
-  const registerMercurialPoolDepositoryIx = uxdClient.createRegisterMercurialPoolDepositoryInstruction(controller, depository, authority.publicKey, TXN_OPTS, payer.publicKey);
+export async function registerMercurialVaultDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository, mintingFeeInBps: number, redeemingFeeInBps: number): Promise<string> {
+  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(controller, depository, authority.publicKey, TXN_OPTS, mintingFeeInBps, redeemingFeeInBps, payer.publicKey);
   let signers = [];
   let tx = new Transaction();
 
-  tx.instructions.push(registerMercurialPoolDepositoryIx);
+  tx.instructions.push(registerMercurialVaultDepositoryIx);
   signers.push(authority);
   if (payer) {
     signers.push(payer);

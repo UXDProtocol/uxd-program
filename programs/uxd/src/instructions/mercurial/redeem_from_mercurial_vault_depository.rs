@@ -1,6 +1,7 @@
 use crate::error::UxdError;
 use crate::Controller;
 use crate::MercurialVaultDepository;
+use crate::BPS_UNIT_CONVERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
@@ -11,6 +12,7 @@ use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
+use fixed::types::I80F48;
 
 #[derive(Accounts)]
 pub struct RedeemFromMercurialVaultDepository<'info> {
@@ -128,43 +130,101 @@ pub fn handler(
 
     let before_collateral_balance = ctx.accounts.user_collateral.amount;
 
-    // 1 - Calculate the right amount of lp token to withdraw to match redeemable 1:1
+    // 1 - Calculate the collateral amount to redeem. Redeem 1:1 less redeeming fees
+    let base_collateral_amount = redeemable_amount;
+
+    let redeeming_fee_in_bps = ctx.accounts.depository.load()?.redeeming_fee_in_bps;
+
+    // Math: 5 bps fee would equate to bps_redeemed_to_user
+    // being 9995 since 10000 - 5 = 9995
+    let bps_redeemed_to_user: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_sub(redeeming_fee_in_bps.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    msg!(
+        "before_lp_token_vault_balance: {}",
+        before_lp_token_vault_balance
+    );
+    msg!("before_collateral_balance: {}", before_collateral_balance);
+    msg!("base_collateral_amount: {}", base_collateral_amount);
+    msg!("bps_redeemed_to_user: {}", bps_redeemed_to_user);
+    msg!("redeeming_fee_in_bps: {}", redeeming_fee_in_bps);
+
+    // Math: Multiplies the base_redeemable_amount by how many BPS the user will get
+    // but the units are still in units of BPS, not as a decimal, so then
+    // divide by the BPS_POW to get to the right order of magnitude.
+    let collateral_amount_less_fees: u64 = bps_redeemed_to_user
+        .checked_mul_int(base_collateral_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_div_int(BPS_UNIT_CONVERSION.into())
+        .ok_or_else(|| error!(UxdError::MathError))?
+        // Round down the number to attribute the precision loss to the user
+        .checked_floor()
+        .ok_or_else(|| error!(UxdError::MathError))?
+        .checked_to_num::<u64>()
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    msg!(
+        "collateral_amount_less_fees: {}",
+        collateral_amount_less_fees
+    );
+
+    let total_paid_fees = base_collateral_amount
+        .checked_sub(collateral_amount_less_fees)
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    msg!("total_paid_fees: {}", total_paid_fees);
+
+    // 2 - Calculate the right amount of lp token to withdraw to match collateral_amount_less_fees
     let current_time = u64::try_from(Clock::get()?.unix_timestamp)
         .ok()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     // Because it's u64 type, we will never withdraw too much due to precision loss, but withdraw less.
     // The user pays for precision loss by getting less collateral.
-    let lp_token_amount_to_match_redeemable_amount = ctx
+    let lp_token_amount_to_match_collateral_amount_less_fees = ctx
         .accounts
         .mercurial_vault
         .get_unmint_amount(
             current_time,
-            redeemable_amount,
+            collateral_amount_less_fees,
             ctx.accounts.mercurial_vault_lp_mint.supply,
         )
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    // 2 - Redeem collateral from mercurial vault for lp tokens
+    msg!(
+        "lp_token_amount_to_match_collateral_amount_less_fees: {}",
+        lp_token_amount_to_match_collateral_amount_less_fees
+    );
+
+    // 3 - Redeem collateral from mercurial vault for lp tokens
     mercurial_vault::cpi::withdraw(
         ctx.accounts
             .into_withdraw_collateral_from_mercurial_vault_context()
             .with_signer(depository_signer_seed),
-        lp_token_amount_to_match_redeemable_amount,
+        lp_token_amount_to_match_collateral_amount_less_fees,
         // Do not check slippage here
         0,
     )?;
 
-    // 3 - Reload accounts impacted by the deposit (We need updated numbers for further calculation)
+    // 4 - Reload accounts impacted by the withdraw (We need updated numbers for further calculation)
     ctx.accounts.depository_lp_token_vault.reload()?;
     ctx.accounts.user_collateral.reload()?;
 
-    // 4 - Check the amount of paid LP Token and check the amount of received collateral
+    // 5 - Check the amount of paid LP Token and the amount of received collateral
     // Should never fail except if mercurial program do not do what it's supposed to do
     let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
     let after_collateral_balance = ctx.accounts.user_collateral.amount;
 
-    let vault_lp_token_change = before_lp_token_vault_balance
+    msg!(
+        "after_lp_token_vault_balance: {}",
+        after_lp_token_vault_balance
+    );
+
+    msg!("after_collateral_balance: {}", after_collateral_balance);
+
+    let lp_token_change = before_lp_token_vault_balance
         .checked_sub(after_lp_token_vault_balance)
         .ok_or_else(|| error!(UxdError::MathError))?;
 
@@ -172,30 +232,41 @@ pub fn handler(
         .checked_sub(before_collateral_balance)
         .ok_or_else(|| error!(UxdError::MathError))?;
 
+    msg!("lp_token_change: {}", lp_token_change);
+
+    msg!("collateral_balance_change: {}", collateral_balance_change);
+
     require!(
-        vault_lp_token_change == lp_token_amount_to_match_redeemable_amount,
+        lp_token_change == lp_token_amount_to_match_collateral_amount_less_fees,
         UxdError::SlippageReached,
     );
 
-    let redeemable_amount_minus_precision_loss = redeemable_amount
+    // There can be precision loss when calculating how many LP to withdraw, and also when withdrawing the collateral
+    // The maximum amount of accepted precision loss is 1 (native units)
+    let collateral_amount_less_fees_minus_precision_loss = collateral_amount_less_fees
         .checked_sub(1)
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     require!(
-        collateral_balance_change == redeemable_amount
-            || collateral_balance_change == redeemable_amount_minus_precision_loss,
+        collateral_balance_change == collateral_amount_less_fees
+            || collateral_balance_change == collateral_amount_less_fees_minus_precision_loss,
         UxdError::SlippageReached,
     );
 
-    // 5 - Burn redeemable
+    // 6 - Burn redeemable
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         redeemable_amount,
     )?;
 
-    // 6 - Update Onchain accounting to reflect the changes
-    ctx.accounts
-        .update_onchain_accounting(collateral_balance_change.into(), redeemable_amount.into())?;
+    // 7 - Update Onchain accounting to reflect the changes
+    ctx.accounts.update_onchain_accounting(
+        collateral_balance_change.into(),
+        redeemable_amount.into(),
+        total_paid_fees.into(),
+    )?;
+
+    msg!("redeemable_amount: {}, base_collateral_amount: {}, redeeming_fee_in_bps: {}, bps_redeemed_to_user: {}, collateral_amount_less_fees: {}, total_paid_fees: {}, lp_token_change: {}", redeemable_amount, base_collateral_amount, redeeming_fee_in_bps, bps_redeemed_to_user, collateral_amount_less_fees, total_paid_fees, lp_token_change);
 
     Ok(())
 }
@@ -242,6 +313,7 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
         &mut self,
         collateral_withdrawn_amount: u128,
         redeemable_burnt_amount: u128,
+        total_paid_fees: u128,
     ) -> Result<()> {
         let mut depository = self.depository.load_mut()?;
         let mut controller = self.controller.load_mut()?;
@@ -255,6 +327,11 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
         depository.minted_redeemable_amount = depository
             .minted_redeemable_amount
             .checked_sub(redeemable_burnt_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        depository.total_paid_redeem_fees = depository
+            .total_paid_redeem_fees
+            .checked_add(total_paid_fees)
             .ok_or_else(|| error!(UxdError::MathError))?;
 
         // Controller

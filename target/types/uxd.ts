@@ -1416,6 +1416,14 @@ export type Uxd = {
           {
             "name": "redeemingFeeInBps",
             "type": "u8"
+          },
+          {
+            "name": "totalPaidMintFees",
+            "type": "u128"
+          },
+          {
+            "name": "totalPaidRedeemFees",
+            "type": "u128"
           }
         ]
       }
@@ -3813,6 +3821,14 @@ export const IDL: Uxd = {
           {
             "name": "redeemingFeeInBps",
             "type": "u8"
+          },
+          {
+            "name": "totalPaidMintFees",
+            "type": "u128"
+          },
+          {
+            "name": "totalPaidRedeemFees",
+            "type": "u128"
           }
         ]
       }

@@ -2,7 +2,7 @@ import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, Signer, Syst
 import { Controller, MangoDepository, MercurialVaultDepository, USDC, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET, UXD_DEVNET, WSOL_DEVNET, createAndInitializeMango, createAssocTokenIx } from "@uxd-protocol/uxd-client";
 import VaultImpl, { getVaultPdas, PROGRAM_ID as MERCURIAL_VAULT_PROGRAM_ID } from '@mercurial-finance/vault-sdk';
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
-import { prepareWrappedSolTokenAccount, printDepositoryInfo, printUserInfo, transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
+import { getBalance, prepareWrappedSolTokenAccount, printDepositoryInfo, printUserInfo, transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
 import { depositInsuranceMangoDepositoryTest } from "./cases/depositInsuranceMangoDepositoryTest";
 import { registerMangoDepositoryTest } from "./cases/registerMangoDepositoryTest";
 import { mango } from "./fixtures";
@@ -24,6 +24,7 @@ import { redeemFromMercurialVaultDepositoryTest } from "./cases/redeemFromMercur
 import { NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { VAULT_BASE_KEY } from "@mercurial-finance/vault-sdk/src/vault/constants";
 import { ASSOCIATED_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
+import { findATAAddrSync } from "@uxd-protocol/uxd-client";
 
 console.log(uxdProgramId.toString());
 const mangoDepositorySOL = new MangoDepository(
