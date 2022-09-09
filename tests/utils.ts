@@ -16,7 +16,7 @@ export async function transferSol(amountUi: number, from: Signer, to: PublicKey)
     );
     return await anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
         from,
-    ]);
+    ], TXN_OPTS);
 }
 
 export async function transferAllSol(from: Signer, to: PublicKey): Promise<string> {
@@ -30,7 +30,7 @@ export async function transferAllSol(from: Signer, to: PublicKey): Promise<strin
     );
     return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
         from,
-    ]);
+    ], TXN_OPTS);
 
 }
 
@@ -42,7 +42,7 @@ export async function transferTokens(amountUI: number, mint: PublicKey, decimals
     const transaction = new anchor.web3.Transaction().add(transferTokensIx);
     return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
         from,
-    ]);
+    ], TXN_OPTS);
 }
 
 export async function transferAllTokens(mint: PublicKey, decimals: number, from: Signer, to: PublicKey): Promise<string> {
@@ -57,7 +57,7 @@ export async function transferAllTokens(mint: PublicKey, decimals: number, from:
     const transaction = new anchor.web3.Transaction().add(transferTokensIx);
     return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [
         from,
-    ]);
+    ], TXN_OPTS);
 }
 
 export async function getSolBalance(wallet: PublicKey): Promise<number> {
