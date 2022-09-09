@@ -1,11 +1,11 @@
 import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
-import { setMangoDepositoryQuoteMintAndRedeemFee } from "../api";
+import { editMangoDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
 
-export const editMangoDepository = async function (
+export const editMangoDepositoryTest = async function (
   authority: Signer,
   controller: Controller,
   depository: MangoDepository,
@@ -16,7 +16,7 @@ export const editMangoDepository = async function (
   const connection = getConnection();
   const options = TXN_OPTS;
 
-  console.group("🧭 editMangoDepository");
+  console.group("🧭 editMangoDepositoryTest");
   try {
     // GIVEN
     const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);

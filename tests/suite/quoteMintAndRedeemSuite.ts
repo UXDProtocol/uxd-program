@@ -2,7 +2,7 @@ import { NATIVE_MINT } from "@solana/spl-token";
 import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, PnLPolarity } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
-import { editMangoDepository } from "../cases/editMangoDepositoryTest";
+import { editMangoDepositoryTest } from "../cases/editMangoDepositoryTest";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { quoteMintWithMangoDepositoryAccountingTest } from "../cases/quoteMintWithMangoDepositoryAccountingTest";
 import { quoteMintWithMangoDepositoryTest } from "../cases/quoteMintWithMangoDepositoryTest";
@@ -46,7 +46,7 @@ export const quoteMintAndRedeemSuite = function (
   });
 
   it(`Change the quote mint and redeem soft cap to 500_000`, async function () {
-    await editMangoDepository(authority, controller, depository, {
+    await editMangoDepositoryTest(authority, controller, depository, {
       quoteMintAndRedeemFee: 500_000,
     });
   });
