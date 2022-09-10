@@ -132,7 +132,7 @@ pub fn handler(
     ctx.accounts.depository_lp_token_vault.reload()?;
     ctx.accounts.mercurial_vault_lp_mint.reload()?;
 
-    // 3 - Calculate the exact value of minted lp tokens
+    // 3 - Calculate the value of minted lp tokens
     let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
 
     let lp_token_change = I80F48::checked_from_num(
@@ -148,7 +148,7 @@ pub fn handler(
             .ok_or_else(|| error!(UxdError::MathError))?,
     )?;
 
-    // 4 - Check that the minted value matches the provided collateral
+    // 4 - Check that the minted lp token value matches the provided collateral
     // When manipulating LP tokens/collateral numbers, precision loss may occur.
     // The maximum allowed precision loss is 1 (native unit).
     let collateral_amount_minus_precision_loss = collateral_amount

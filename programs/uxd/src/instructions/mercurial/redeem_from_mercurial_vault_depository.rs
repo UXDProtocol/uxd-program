@@ -129,33 +129,21 @@ pub fn handler(
     let before_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
     let before_collateral_balance = ctx.accounts.user_collateral.amount;
 
-    // 1 - Calculate the collateral amount to redeem. Redeem 1:1 less redeeming fees
+    // 1 - Calculate the collateral amount to redeem. Redeem 1:1 less redeeming fees.
     let base_collateral_amount = redeemable_amount;
 
     let collateral_amount_less_fees = ctx
         .accounts
         .calculate_collateral_amount_less_fees(base_collateral_amount)?;
 
-    msg!(
-        "collateral_amount_less_fees: {}",
-        collateral_amount_less_fees
-    );
-
     let total_paid_fees = base_collateral_amount
         .checked_sub(collateral_amount_less_fees)
         .ok_or_else(|| error!(UxdError::MathError))?;
-
-    msg!("total_paid_fees: {}", total_paid_fees);
 
     // 2 - Calculate the right amount of lp token to withdraw to match collateral_amount_less_fees
     let lp_token_amount_to_match_collateral_amount_less_fees = ctx
         .accounts
         .calculate_lp_amount_to_withdraw_to_match_collateral(collateral_amount_less_fees)?;
-
-    msg!(
-        "lp_token_amount_to_match_collateral_amount_less_fees: {}",
-        lp_token_amount_to_match_collateral_amount_less_fees
-    );
 
     // 3 - Redeem collateral from mercurial vault for lp tokens
     mercurial_vault::cpi::withdraw(
