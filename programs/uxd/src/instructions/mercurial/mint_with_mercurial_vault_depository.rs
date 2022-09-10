@@ -13,6 +13,7 @@ use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use fixed::types::I80F48;
+use num_traits::Num;
 
 #[derive(Accounts)]
 pub struct MintWithMercurialVaultDepository<'info> {
@@ -175,12 +176,8 @@ pub fn handler(
     );
 
     // 5 - Calculate the redeemable amount to send back to the user.
-    // Mint redeemable 1:1 with provided collateral minus minus fees
-    // Ignore possible decay of value due to precision loss (value in the pool is lower than minted UXD)
-    // A redeem fee is applied that covers possible losses
-    //
-    // /!\ We assume here than redeemable mint have the same amount of decimals as the collateral mint
-    let base_redeemable_amount = collateral_amount;
+    // Mint redeemable 1:1 with provided collateral minus fees minus minting precision loss
+    let base_redeemable_amount = minted_lp_token_value;
 
     let minting_fee_in_bps = ctx.accounts.depository.load()?.minting_fee_in_bps;
 

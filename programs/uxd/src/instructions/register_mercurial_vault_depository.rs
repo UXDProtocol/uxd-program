@@ -1,6 +1,5 @@
 use crate::error::UxdError;
 use crate::events::RegisterMercurialVaultDepositoryEvent;
-use crate::state::mercurial_vault_depository::MINIMUM_REDEEMING_FEE_IN_BPS;
 use crate::state::MercurialVaultDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
@@ -153,7 +152,7 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
         Ok(())
     }
 
-    pub fn validate(&self, _minting_fee_in_bps: u8, redeeming_fee_in_bps: u8) -> Result<()> {
+    pub fn validate(&self, _minting_fee_in_bps: u8, _redeeming_fee_in_bps: u8) -> Result<()> {
         require!(
             self.mercurial_vault
                 .token_mint
@@ -167,11 +166,6 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
                 .key()
                 .ne(&self.controller.load()?.redeemable_mint),
             UxdError::CollateralEqualToRedeemable,
-        );
-
-        require!(
-            redeeming_fee_in_bps >= MINIMUM_REDEEMING_FEE_IN_BPS,
-            UxdError::MinimumRedeemingFeeError,
         );
 
         #[cfg(feature = "production")]

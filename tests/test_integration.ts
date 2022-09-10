@@ -1,20 +1,28 @@
-import { Keypair, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET } from "@uxd-protocol/uxd-client";
-import { authority, bank, uxdProgramId } from "./constants";
-import { transferAllSol, transferSol } from "./utils";
+import { Keypair, PublicKey, Signer } from "@solana/web3.js";
+import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
+import { authority, bank, SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS, uxdProgramId } from "./constants";
+import { transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters, mangoDepositoryAndControllerInteractionsSuite } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
 import { mangoDepositoryInsuranceSuite } from "./suite/depositoryInsuranceSuite";
-import { mangoDepositorySetupSuite } from "./suite/depositorySetupSuite";
+import { mercurialVaultDepositorySetupSuite } from "./suite/mercurialVaultDepositorySetup";
+import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 import { mangoDepositoryAndControllerAccountingSuite } from "./suite/mangoDepositoryAndControllerAccountingSuite";
 import { disableDepositoryMintingSuite } from "./suite/disableDepositoryMintingSuite";
+import { getConnection } from "./connection";
+import { mercurialVaultDepositoryMintRedeemSuite } from "./suite/mercurialVaultMintAndRedeemSuite";
 
+// Mango
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+
+// Mercurial
+let mercurialVaultDepositoryUSDC: MercurialVaultDepository;
+
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 console.log(`SOL 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositorySOL.mangoAccountPda}'`);
@@ -30,9 +38,43 @@ describe("UXD Controller Suite", function () {
 
 let user: Signer = new Keypair();
 
-// SOL
-describe("Integration tests SOL", function () {
+describe("Mercurial vault integration tests: USDC", function () {
+    this.beforeAll("Init and fund user", async function () {
+        console.log("USER =>", user.publicKey.toString());
+        await transferSol(1, bank, user.publicKey);
 
+        mercurialVaultDepositoryUSDC = await MercurialVaultDepository.initialize({
+            connection: getConnection(),
+            collateralMint: {
+                mint: SOLEND_USDC_DEVNET,
+                name: 'USDC',
+                symbol: 'USDC',
+                decimals: SOLEND_USDC_DEVNET_DECIMALS,
+            },
+            uxdProgramId: uxdProgramId,
+            cluster: 'devnet',
+        });
+    });
+
+    describe("mercurialVaultDepositorySetupSuite SOL", function () {
+        let mintingFeeInBps = 0;
+        let redeemingFeeInBps = 5;
+
+        mercurialVaultDepositorySetupSuite(authority, bank, controllerUXD, mercurialVaultDepositoryUSDC, mintingFeeInBps, redeemingFeeInBps);
+    });
+
+    describe("mercurialVaultDepositoryMintRedeemSuite SOL", function () {
+        mercurialVaultDepositoryMintRedeemSuite(user, bank, controllerUXD, mercurialVaultDepositoryUSDC);
+    });
+
+    this.afterAll("Transfer funds back to bank", async function () {
+        await transferAllSol(user, bank.publicKey);
+        await transferAllTokens(SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS, user, bank.publicKey);
+    });
+});
+
+
+describe.skip("Mango integration tests: SOL", function () {
     this.beforeAll("Init and fund user", async function () {
         console.log("USER =>", user.publicKey.toString());
         await transferSol(1, bank, user.publicKey);
@@ -75,9 +117,7 @@ describe("Integration tests SOL", function () {
     });
 });
 
-// BTC
-describe.skip("Integration tests BTC", function () {
-
+describe.skip("Mango integration tests: BTC", function () {
     this.beforeAll("Init and fund user", async function () {
         console.log("USER =>", user.publicKey.toString());
         await transferSol(1, bank, user.publicKey);
@@ -110,9 +150,8 @@ describe.skip("Integration tests BTC", function () {
     });
 });
 
-// ETH
-describe.skip("Integration tests ETH", function () {
-
+// Mango: ETH
+describe.skip("Mango integration tests: ETH", function () {
     this.beforeAll("Init and fund user", async function () {
         console.log("USER =>", user.publicKey.toString());
         await transferSol(1, bank, user.publicKey);

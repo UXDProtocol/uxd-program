@@ -21,8 +21,6 @@ pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 16
     + MERCURIAL_VAULT_RESERVED_SPACE;
 
-pub const MINIMUM_REDEEMING_FEE_IN_BPS: u8 = 1;
-
 #[account(zero_copy)]
 #[repr(packed)]
 pub struct MercurialVaultDepository {
@@ -67,11 +65,6 @@ pub struct MercurialVaultDepository {
     // thus sending less collateral to the user.
     // E.g, with a redeeming fee of 5 bps, if the user redeem for 1_000_000 UXD (6 decimals), it should receive 999_500 USDC (6 decimals)
     // Calculation: (10_000 - 5) * 1_000_000 / 10_000
-    //
-    // /!\ Redeeming fee should always be minimum 1, because at minting, we ignore a precision loss and send to the user 1:1 redeemable.
-    // this precision loss must be applied to the user to avoid the protocol losing money.
-    //
-    // By enforcing a minimum redeem fee of 1, we avoid a miss-configuration of the depository
     pub redeeming_fee_in_bps: u8,
 
     // The amount of fees accrued from minting

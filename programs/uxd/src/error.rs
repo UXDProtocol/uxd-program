@@ -104,8 +104,6 @@ pub enum UxdError {
     CollateralEqualToRedeemable,
     #[msg("Provided collateral mint is not allowed.")]
     CollateralMintNotAllowed,
-    #[msg("Provided redeeming fee is lower than the minimum redeeming fee.")]
-    MinimumRedeemingFeeError,
 
     /// Anchor DSL related errors
     ///

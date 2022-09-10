@@ -18,7 +18,7 @@ import {
   mangoDepositoryAndControllerInteractionsSuite,
 } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
 import { mangoDepositoryInsuranceSuite } from "./suite/depositoryInsuranceSuite";
-import { mangoDepositorySetupSuite } from "./suite/depositorySetupSuite";
+import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import {
   mangoDepositoryRebalancingSuite,
