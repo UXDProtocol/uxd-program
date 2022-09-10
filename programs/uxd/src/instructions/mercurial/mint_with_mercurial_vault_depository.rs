@@ -13,7 +13,6 @@ use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use fixed::types::I80F48;
-use num_traits::Num;
 
 #[derive(Accounts)]
 pub struct MintWithMercurialVaultDepository<'info> {
@@ -143,21 +142,11 @@ pub fn handler(
     )
     .ok_or_else(|| error!(UxdError::MathError))?;
 
-    let current_time = u64::try_from(Clock::get()?.unix_timestamp)
-        .ok()
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
-    let minted_lp_token_value = ctx
-        .accounts
-        .mercurial_vault
-        .get_amount_by_share(
-            current_time,
-            lp_token_change
-                .checked_to_num()
-                .ok_or_else(|| error!(UxdError::MathError))?,
-            ctx.accounts.mercurial_vault_lp_mint.supply,
-        )
-        .ok_or_else(|| error!(UxdError::MathError))?;
+    let minted_lp_token_value = ctx.accounts.calculate_lp_tokens_value(
+        lp_token_change
+            .checked_to_num()
+            .ok_or_else(|| error!(UxdError::MathError))?,
+    )?;
 
     // 4 - Check that the minted value matches the provided collateral
     // When manipulating LP tokens/collateral numbers, precision loss may occur.
@@ -179,28 +168,9 @@ pub fn handler(
     // Mint redeemable 1:1 with provided collateral minus fees minus minting precision loss
     let base_redeemable_amount = minted_lp_token_value;
 
-    let minting_fee_in_bps = ctx.accounts.depository.load()?.minting_fee_in_bps;
-
-    // Math: 5 bps fee would equate to bps_minted_to_user
-    // being 9995 since 10000 - 5 = 9995
-    let bps_minted_to_user: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_sub(minting_fee_in_bps.into())
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
-    // Math: Multiplies the base_redeemable_amount by how many BPS the user will get
-    // but the units are still in units of BPS, not as a decimal, so then
-    // divide by the BPS_POW to get to the right order of magnitude.
-    let redeemable_amount_less_fees: u64 = bps_minted_to_user
-        .checked_mul_int(base_redeemable_amount.into())
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_div_int(BPS_UNIT_CONVERSION.into())
-        .ok_or_else(|| error!(UxdError::MathError))?
-        // Round down the number to attribute the precision loss to the user
-        .checked_floor()
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_to_num::<u64>()
-        .ok_or_else(|| error!(UxdError::MathError))?;
+    let redeemable_amount_less_fees = ctx
+        .accounts
+        .calculate_redeemable_amount_less_fees(base_redeemable_amount)?;
 
     let total_paid_fees = base_redeemable_amount
         .checked_sub(redeemable_amount_less_fees)
@@ -224,7 +194,7 @@ pub fn handler(
     // 8 - Check that we don't mint more UXD than the fixed limit
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
-    msg!("collateral_amount: {}, base_redeemable_amount: {}, minting_fee_in_bps: {}, bps_minted_to_user: {}, redeemable_amount_less_fees: {}, total_paid_fees: {}, lp_token_change: {}", collateral_amount, base_redeemable_amount, minting_fee_in_bps, bps_minted_to_user, redeemable_amount_less_fees, total_paid_fees, lp_token_change);
+    msg!("collateral_amount: {}, base_redeemable_amount: {}, redeemable_amount_less_fees: {}, total_paid_fees: {}, lp_token_change: {}", collateral_amount, base_redeemable_amount, redeemable_amount_less_fees, total_paid_fees, lp_token_change);
 
     Ok(())
 }
@@ -317,6 +287,47 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         drop(controller);
 
         Ok(())
+    }
+
+    fn calculate_lp_tokens_value(&self, lp_token_amount: u64) -> Result<u64> {
+        let current_time = u64::try_from(Clock::get()?.unix_timestamp)
+            .ok()
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        self.mercurial_vault
+            .get_amount_by_share(
+                current_time,
+                lp_token_amount,
+                self.mercurial_vault_lp_mint.supply,
+            )
+            .ok_or_else(|| error!(UxdError::MathError))
+    }
+
+    fn calculate_redeemable_amount_less_fees(&self, base_redeemable_amount: u64) -> Result<u64> {
+        let minting_fee_in_bps = self.depository.load()?.minting_fee_in_bps;
+
+        // Math: 5 bps fee would equate to bps_minted_to_user
+        // being 9995 since 10000 - 5 = 9995
+        let bps_minted_to_user: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_sub(minting_fee_in_bps.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        // Math: Multiplies the base_redeemable_amount by how many BPS the user will get
+        // but the units are still in units of BPS, not as a decimal, so then
+        // divide by the BPS_POW to get to the right order of magnitude.
+        let redeemable_amount_less_fees: u64 = bps_minted_to_user
+            .checked_mul_int(base_redeemable_amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_div_int(BPS_UNIT_CONVERSION.into())
+            .ok_or_else(|| error!(UxdError::MathError))?
+            // Round down the number to attribute the precision loss to the user
+            .checked_floor()
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_to_num::<u64>()
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        Ok(redeemable_amount_less_fees)
     }
 }
 

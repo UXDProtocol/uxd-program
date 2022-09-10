@@ -127,43 +127,14 @@ pub fn handler(
     ]];
 
     let before_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
-
     let before_collateral_balance = ctx.accounts.user_collateral.amount;
 
     // 1 - Calculate the collateral amount to redeem. Redeem 1:1 less redeeming fees
     let base_collateral_amount = redeemable_amount;
 
-    let redeeming_fee_in_bps = ctx.accounts.depository.load()?.redeeming_fee_in_bps;
-
-    // Math: 5 bps fee would equate to bps_redeemed_to_user
-    // being 9995 since 10000 - 5 = 9995
-    let bps_redeemed_to_user: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_sub(redeeming_fee_in_bps.into())
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
-    msg!(
-        "before_lp_token_vault_balance: {}",
-        before_lp_token_vault_balance
-    );
-    msg!("before_collateral_balance: {}", before_collateral_balance);
-    msg!("base_collateral_amount: {}", base_collateral_amount);
-    msg!("bps_redeemed_to_user: {}", bps_redeemed_to_user);
-    msg!("redeeming_fee_in_bps: {}", redeeming_fee_in_bps);
-
-    // Math: Multiplies the base_redeemable_amount by how many BPS the user will get
-    // but the units are still in units of BPS, not as a decimal, so then
-    // divide by the BPS_POW to get to the right order of magnitude.
-    let collateral_amount_less_fees: u64 = bps_redeemed_to_user
-        .checked_mul_int(base_collateral_amount.into())
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_div_int(BPS_UNIT_CONVERSION.into())
-        .ok_or_else(|| error!(UxdError::MathError))?
-        // Round down the number to attribute the precision loss to the user
-        .checked_floor()
-        .ok_or_else(|| error!(UxdError::MathError))?
-        .checked_to_num::<u64>()
-        .ok_or_else(|| error!(UxdError::MathError))?;
+    let collateral_amount_less_fees = ctx
+        .accounts
+        .calculate_collateral_amount_less_fees(base_collateral_amount)?;
 
     msg!(
         "collateral_amount_less_fees: {}",
@@ -177,21 +148,9 @@ pub fn handler(
     msg!("total_paid_fees: {}", total_paid_fees);
 
     // 2 - Calculate the right amount of lp token to withdraw to match collateral_amount_less_fees
-    let current_time = u64::try_from(Clock::get()?.unix_timestamp)
-        .ok()
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
-    // Because it's u64 type, we will never withdraw too much due to precision loss, but withdraw less.
-    // The user pays for precision loss by getting less collateral.
     let lp_token_amount_to_match_collateral_amount_less_fees = ctx
         .accounts
-        .mercurial_vault
-        .get_unmint_amount(
-            current_time,
-            collateral_amount_less_fees,
-            ctx.accounts.mercurial_vault_lp_mint.supply,
-        )
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .calculate_lp_amount_to_withdraw_to_match_collateral(collateral_amount_less_fees)?;
 
     msg!(
         "lp_token_amount_to_match_collateral_amount_less_fees: {}",
@@ -217,13 +176,6 @@ pub fn handler(
     let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
     let after_collateral_balance = ctx.accounts.user_collateral.amount;
 
-    msg!(
-        "after_lp_token_vault_balance: {}",
-        after_lp_token_vault_balance
-    );
-
-    msg!("after_collateral_balance: {}", after_collateral_balance);
-
     let lp_token_change = before_lp_token_vault_balance
         .checked_sub(after_lp_token_vault_balance)
         .ok_or_else(|| error!(UxdError::MathError))?;
@@ -231,10 +183,6 @@ pub fn handler(
     let collateral_balance_change = after_collateral_balance
         .checked_sub(before_collateral_balance)
         .ok_or_else(|| error!(UxdError::MathError))?;
-
-    msg!("lp_token_change: {}", lp_token_change);
-
-    msg!("collateral_balance_change: {}", collateral_balance_change);
 
     require!(
         lp_token_change == lp_token_amount_to_match_collateral_amount_less_fees,
@@ -266,7 +214,7 @@ pub fn handler(
         total_paid_fees.into(),
     )?;
 
-    msg!("redeemable_amount: {}, base_collateral_amount: {}, redeeming_fee_in_bps: {}, bps_redeemed_to_user: {}, collateral_amount_less_fees: {}, total_paid_fees: {}, lp_token_change: {}", redeemable_amount, base_collateral_amount, redeeming_fee_in_bps, bps_redeemed_to_user, collateral_amount_less_fees, total_paid_fees, lp_token_change);
+    msg!("redeemable_amount: {}, base_collateral_amount: {}, collateral_amount_less_fees: {}, total_paid_fees: {}, lp_token_change: {}", redeemable_amount, base_collateral_amount,  collateral_amount_less_fees, total_paid_fees, lp_token_change);
 
     Ok(())
 }
@@ -344,6 +292,52 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
         drop(controller);
 
         Ok(())
+    }
+
+    fn calculate_collateral_amount_less_fees(&self, base_collateral_amount: u64) -> Result<u64> {
+        let redeeming_fee_in_bps = self.depository.load()?.redeeming_fee_in_bps;
+
+        // Math: 5 bps fee would equate to bps_redeemed_to_user
+        // being 9995 since 10000 - 5 = 9995
+        let bps_redeemed_to_user: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_sub(redeeming_fee_in_bps.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        // Math: Multiplies the base_collateral_amount by how many BPS the user will get
+        // but the units are still in units of BPS, not as a decimal, so then
+        // divide by the BPS_POW to get to the right order of magnitude.
+        let collateral_amount_less_fees: u64 = bps_redeemed_to_user
+            .checked_mul_int(base_collateral_amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_div_int(BPS_UNIT_CONVERSION.into())
+            .ok_or_else(|| error!(UxdError::MathError))?
+            // Round down the number to attribute the precision loss to the user
+            .checked_floor()
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_to_num::<u64>()
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        Ok(collateral_amount_less_fees)
+    }
+
+    fn calculate_lp_amount_to_withdraw_to_match_collateral(
+        &self,
+        target_collateral_value: u64,
+    ) -> Result<u64> {
+        let current_time = u64::try_from(Clock::get()?.unix_timestamp)
+            .ok()
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        // Because it's u64 type, we will never withdraw too much due to precision loss, but withdraw less.
+        // The user pays for precision loss by getting less collateral.
+        self.mercurial_vault
+            .get_unmint_amount(
+                current_time,
+                target_collateral_value,
+                self.mercurial_vault_lp_mint.supply,
+            )
+            .ok_or_else(|| error!(UxdError::MathError))
     }
 }
 
