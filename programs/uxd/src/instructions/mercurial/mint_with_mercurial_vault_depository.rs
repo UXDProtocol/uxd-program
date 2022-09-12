@@ -176,7 +176,13 @@ pub fn handler(
         .checked_sub(redeemable_amount_less_fees)
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    // 6 - Mint redeemable
+    // 6 - Redeemable amount should be positive
+    require!(
+        redeemable_amount_less_fees > 0,
+        UxdError::MinimumMintedRedeemableAmountError
+    );
+
+    // 7 - Mint redeemable
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
@@ -184,14 +190,14 @@ pub fn handler(
         redeemable_amount_less_fees,
     )?;
 
-    // 7 - Update Onchain accounting to reflect the changes
+    // 8 - Update Onchain accounting to reflect the changes
     ctx.accounts.update_onchain_accounting(
         collateral_amount.into(),
         redeemable_amount_less_fees.into(),
         total_paid_fees.into(),
     )?;
 
-    // 8 - Check that we don't mint more UXD than the fixed limit
+    // 9 - Check that we don't mint more UXD than the fixed limit
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
     msg!("collateral_amount: {}, base_redeemable_amount: {}, redeemable_amount_less_fees: {}, total_paid_fees: {}, lp_token_change: {}", collateral_amount, base_redeemable_amount, redeemable_amount_less_fees, total_paid_fees, lp_token_change);

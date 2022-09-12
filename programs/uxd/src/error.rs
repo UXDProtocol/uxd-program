@@ -104,6 +104,10 @@ pub enum UxdError {
     CollateralEqualToRedeemable,
     #[msg("Provided collateral mint is not allowed.")]
     CollateralMintNotAllowed,
+    #[msg("Mint resulted to 0 redeemable token being minted.")]
+    MinimumMintedRedeemableAmountError,
+    #[msg("Redeem resulted to 0 collateral token being redeemed.")]
+    MinimumRedeemedCollateralAmountError,
 
     /// Anchor DSL related errors
     ///

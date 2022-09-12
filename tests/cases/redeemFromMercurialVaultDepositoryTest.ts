@@ -1,8 +1,10 @@
 import { Signer } from "@solana/web3.js";
 import { Controller, MercurialVaultDepository, findATAAddrSync } from "@uxd-protocol/uxd-client";
+import { expect } from "chai";
 import { redeemFromMercurialVaultDepository } from "../api";
+import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
-import { getBalance } from "../utils";
+import { getBalance, ceilAtDecimals } from "../utils";
 
 export const redeemFromMercurialVaultDepositoryTest = async function (
     redeemableAmount: number,
@@ -10,7 +12,7 @@ export const redeemFromMercurialVaultDepositoryTest = async function (
     controller: Controller,
     depository: MercurialVaultDepository,
     payer?: Signer,
-): Promise<void> {
+): Promise<number> {
     console.group("🧭 redeemFromMercurialVaultDepositoryTest");
 
     try {
@@ -29,15 +31,35 @@ export const redeemFromMercurialVaultDepositoryTest = async function (
         const userRedeemableBalance_post = await getBalance(userRedeemableATA);
         const userCollateralBalance_post = await getBalance(userCollateralATA);
 
-        const collateralReceived = userCollateralBalance_post - userCollateralBalance_pre;
-        const redeemable = userRedeemableBalance_pre - userRedeemableBalance_post;
+        const collateralDelta = Number((userCollateralBalance_post - userCollateralBalance_pre).toFixed(depository.collateralMint.decimals));
+        const redeemableDelta = Number((userRedeemableBalance_pre - userRedeemableBalance_post).toFixed(controller.redeemableMintDecimals));
+
+        const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMint.decimals);
+
+        const onchainDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
+
+        const estimatedFeesPaid = ceilAtDecimals(redeemableAmount - ((10_000 - onchainDepository.redeemingFeeInBps) * redeemableAmount / 10_000), controller.redeemableMintDecimals);
 
         console.log(
-            `🧾 Redeemed`, Number(collateralReceived.toFixed(depository.collateralMint.decimals)), depository.collateralMint.symbol,
-            "for", Number(redeemable.toFixed(depository.mercurialVaultLpMint.decimals)), controller.redeemableMintSymbol,
+            `🧾 Redeemed`, Number(collateralDelta.toFixed(depository.collateralMint.decimals)), depository.collateralMint.symbol,
+            "for", Number(redeemableDelta.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol,
+            "with", estimatedFeesPaid, "fees paid."
         );
 
+        const estimatedCollateralAmount = Number((redeemableAmount - estimatedFeesPaid).toFixed(depository.collateralMint.decimals));
+
+        // Check used redeemable
+        expect(redeemableDelta).equal(redeemableAmount, "The amount of redeemable used for redeem should be exactly the one specified by the user");
+
+        // Check redeemed collateral amount
+        // handle precision loss
+        expect(collateralDelta)
+            .lte(estimatedCollateralAmount)
+            .gte(Number((estimatedCollateralAmount - collateralNativeUnitPrecision).toFixed(controller.redeemableMintDecimals)));
+
         console.groupEnd();
+
+        return collateralDelta;
     } catch (error) {
         console.error("❌", error);
         console.groupEnd();

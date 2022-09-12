@@ -159,17 +159,24 @@ pub fn handler(
     ctx.accounts.depository_lp_token_vault.reload()?;
     ctx.accounts.user_collateral.reload()?;
 
-    // 5 - Check the amount of paid LP Token and the amount of received collateral
-    // Should never fail except if mercurial program do not do what it's supposed to do
-    let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
+    // 5 - Check that a positive amount of collateral have been redeemed
     let after_collateral_balance = ctx.accounts.user_collateral.amount;
-
-    let lp_token_change = before_lp_token_vault_balance
-        .checked_sub(after_lp_token_vault_balance)
-        .ok_or_else(|| error!(UxdError::MathError))?;
 
     let collateral_balance_change = after_collateral_balance
         .checked_sub(before_collateral_balance)
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    require!(
+        collateral_balance_change > 0,
+        UxdError::MinimumRedeemedCollateralAmountError
+    );
+
+    // 6 - Check the amount of paid LP Token and the amount of received collateral
+    // Should never fail except if mercurial program do not do what it's supposed to do
+    let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
+
+    let lp_token_change = before_lp_token_vault_balance
+        .checked_sub(after_lp_token_vault_balance)
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     require!(
@@ -189,13 +196,13 @@ pub fn handler(
         UxdError::SlippageReached,
     );
 
-    // 6 - Burn redeemable
+    // 7 - Burn redeemable
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         redeemable_amount,
     )?;
 
-    // 7 - Update Onchain accounting to reflect the changes
+    // 8 - Update Onchain accounting to reflect the changes
     ctx.accounts.update_onchain_accounting(
         collateral_balance_change.into(),
         redeemable_amount.into(),

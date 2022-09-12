@@ -15,6 +15,10 @@ import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
+export function ceilAtDecimals(number: number, decimals: number): number {
+    return Number((Math.ceil(number * (10 ** decimals)) / (10 ** decimals)).toFixed(decimals));
+}
+
 export async function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
   const transaction = new anchor.web3.Transaction().add(
     anchor.web3.SystemProgram.transfer({
