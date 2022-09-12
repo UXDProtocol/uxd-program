@@ -9,9 +9,17 @@ overflow-checks = false
 # Might lengthen the build process but improve computing usage. Use sccache to offset
 [profile.release]
 lto = "fat"
+strip = true
+debug = false
+opt-level = "z"
 codegen-units = 1
+debug-assertions = false
+panic = "abort"
 
 [profile.release.build-override]
-opt-level = 3
-incremental = false
+opt-level = "z"
+strip = true
+debug = false
 codegen-units = 1
+incremental = false
+debug-assertions = false
