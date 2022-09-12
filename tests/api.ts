@@ -204,12 +204,8 @@ export async function mintWithMangoDepository(
   } else {
     const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
     if (!(await getConnection().getAccountInfo(userCollateralAta))) {
-      const createUserCollateralAtaIx = createAssocTokenIx(
-        user.publicKey,
-        userCollateralAta,
-        depository.collateralMint
-      );
-      tx.add(createUserCollateralAtaIx);
+      const createRedeemableAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
+      tx.add(createRedeemableAtaIx);
     }
   }
 
@@ -292,12 +288,8 @@ export async function redeemFromMangoDepository(
 
   const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
   if (!(await getConnection().getAccountInfo(userRedeemableAta))) {
-    const createUserCollateralAtaIx = createAssocTokenIx(
-      user.publicKey,
-      userRedeemableAta,
-      controller.redeemableMintPda
-    );
-    tx.add(createUserCollateralAtaIx);
+    const createRedeemableAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
+    tx.add(createRedeemableAtaIx);
   }
 
   tx.add(redeemFromMangoDepositoryIx);
@@ -332,8 +324,8 @@ export async function quoteRedeemFromMangoDepository(
 
   const userQuoteATA = findATAAddrSync(user.publicKey, depository.quoteMint)[0];
   if (!(await getConnection().getAccountInfo(userQuoteATA))) {
-    const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userQuoteATA, depository.collateralMint);
-    tx.add(createUserCollateralAtaIx);
+    const createUserQuoteAtaIx = createAssocTokenIx(user.publicKey, userQuoteATA, depository.quoteMint);
+    tx.add(createUserQuoteAtaIx);
   }
 
   await depository.settleMangoDepositoryMangoAccountPnl(payer as Payer, mango);
