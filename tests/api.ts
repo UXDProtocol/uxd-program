@@ -204,8 +204,12 @@ export async function mintWithMangoDepository(
   } else {
     const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
     if (!(await getConnection().getAccountInfo(userCollateralAta))) {
-      const createRedeemableAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
-      tx.add(createRedeemableAtaIx);
+      const createUserCollateralAtaIx = createAssocTokenIx(
+        user.publicKey,
+        userCollateralAta,
+        depository.collateralMint
+      );
+      tx.add(createUserCollateralAtaIx);
     }
   }
 
