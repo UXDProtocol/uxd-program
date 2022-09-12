@@ -62,8 +62,8 @@ export const editControllerTest = async function (
         quoteMintAndRedeemSoftCap_post
       );
     } else {
-      expect(quoteMintAndRedeemSoftCap_pre).equals(
-        quoteMintAndRedeemSoftCap_post,
+      expect(quoteMintAndRedeemSoftCap_pre.cmp(quoteMintAndRedeemSoftCap_post)).equals(
+        0,
         "Quote Mint And Redeem SoftCap must not have changed"
       );
     }
@@ -81,7 +81,7 @@ export const editControllerTest = async function (
         ")"
       );
     } else {
-      expect(redeemableSoftCap_pre).equals(redeemableSoftCap_post, "Redeemable SoftCap must not have changed");
+      expect(redeemableSoftCap_pre.cmp(redeemableSoftCap_post)).equals(0, "Redeemable SoftCap must not have changed");
     }
 
     if (uiFields.redeemableGlobalSupplyCap !== undefined) {
@@ -103,8 +103,8 @@ export const editControllerTest = async function (
         ")"
       );
     } else {
-      expect(redeemableGlobalSupplyCap_pre).equals(
-        redeemableGlobalSupplyCap_post,
+      expect(redeemableGlobalSupplyCap_pre.cmp(redeemableGlobalSupplyCap_post)).equals(
+        0,
         "Redeemable Global Supply Cap must not have changed"
       );
     }
