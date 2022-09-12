@@ -417,7 +417,7 @@ export async function editMangoDepository(
   controller: Controller,
   depository: MangoDepository,
   uiFields: {
-    quoteMintAndRedeemFee: number;
+    quoteMintAndRedeemFee?: number;
   }
 ): Promise<string> {
   const editMangoDepositoryIx = await uxdClient.createEditMangoDepositoryInstruction(
