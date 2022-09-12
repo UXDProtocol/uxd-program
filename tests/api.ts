@@ -244,12 +244,8 @@ export async function quoteMintWithMangoDepository(
 
   const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
   if (!(await getConnection().getAccountInfo(userRedeemableAta))) {
-    const createUserRedeemableAtaIx = createAssocTokenIx(
-      user.publicKey,
-      userRedeemableAta,
-      controller.redeemableMintPda
-    );
-    tx.add(createUserRedeemableAtaIx);
+    const createRedeemableAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
+    tx.add(createRedeemableAtaIx);
   }
 
   tx.add(quoteMintWithMangoDepositoryIx);
