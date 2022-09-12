@@ -27,7 +27,7 @@ use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 use num_traits::identities::Zero;
 
-/// Takes 21 accounts
+/// Takes 22 accounts
 #[derive(Accounts)]
 pub struct RedeemFromMangoDepository<'info> {
     /// #1 Public call accessible to any user
@@ -150,10 +150,13 @@ pub struct RedeemFromMangoDepository<'info> {
     #[account(mut)]
     pub mango_event_queue: UncheckedAccount<'info>,
 
-    /// #20 Token Program
+    /// #20 System Program
+    pub system_program: Program<'info, System>,
+
+    /// #21 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #21 MangoMarketv3 Program
+    /// #22 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 
@@ -305,7 +308,9 @@ pub(crate) fn handler(
 // MARK: - Contexts -----
 
 impl<'info> RedeemFromMangoDepository<'info> {
-    fn to_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+    fn to_burn_redeemable_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
