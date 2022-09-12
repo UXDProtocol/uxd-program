@@ -7,7 +7,7 @@ import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
 
 export const setMangoDepositoryQuoteMintAndRedeemSoftCapTest = async function (
-  softCap: number,
+  quoteMintAndRedeemSoftCap: number,
   authority: Signer,
   controller: Controller,
   depository: MangoDepository
@@ -19,19 +19,27 @@ export const setMangoDepositoryQuoteMintAndRedeemSoftCapTest = async function (
   try {
     // GIVEN
     const controllerOnChainAccount = await controller.getOnchainAccount(connection, options);
-    const softCap_pre = controllerOnChainAccount.mangoDepositoriesQuoteRedeemableSoftCap;
+    const quoteMintAndRedeemSoftCap_pre = controllerOnChainAccount.mangoDepositoriesQuoteRedeemableSoftCap;
 
     // WHEN
-    const txId = await setMangoDepositoryQuoteMintAndRedeemSoftCap(authority, controller, depository, softCap);
+    const txId = await setMangoDepositoryQuoteMintAndRedeemSoftCap(
+      authority,
+      controller,
+      depository,
+      quoteMintAndRedeemSoftCap
+    );
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN
     const controllerOnChainAccount_post = await controller.getOnchainAccount(connection, options);
-    const softCap_post = controllerOnChainAccount_post.mangoDepositoriesQuoteRedeemableSoftCap;
-    const softCap_postUi = nativeToUi(softCap_post.toNumber(), depository.quoteMintDecimals);
+    const quoteMintAndRedeemSoftCap_post = controllerOnChainAccount_post.mangoDepositoriesQuoteRedeemableSoftCap;
+    const quoteMintAndRedeemSoftCap_postUi = nativeToUi(
+      quoteMintAndRedeemSoftCap_post.toNumber(),
+      depository.quoteMintDecimals
+    );
 
-    expect(softCap_postUi).equals(softCap, "The soft cap has not changed.");
-    console.log(`🧾 Previous soft cap was`, softCap_pre, "now is", softCap_post);
+    console.log(`🧾 Previous soft cap was`, quoteMintAndRedeemSoftCap_pre, "now is", quoteMintAndRedeemSoftCap_post);
+    expect(quoteMintAndRedeemSoftCap_postUi).equals(quoteMintAndRedeemSoftCap, "The soft cap must be set.");
     controller.info();
     console.groupEnd();
   } catch (error) {

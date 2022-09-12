@@ -2,7 +2,7 @@ import { nativeToUi } from "@blockworks-foundation/mango-client";
 import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
-import { editController, setMangoDepositoryQuoteMintAndRedeemSoftCap } from "../api";
+import { editController } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
 

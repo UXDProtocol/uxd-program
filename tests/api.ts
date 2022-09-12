@@ -374,11 +374,11 @@ export async function setMangoDepositoryQuoteMintAndRedeemSoftCap(
   authority: Signer,
   controller: Controller,
   depository: MangoDepository,
-  softCap: number
+  quoteMintAndRedeemSoftCap: number
 ): Promise<string> {
   const setMangoDepositoryQuoteMintAndRedeemSoftCapIx =
     await uxdClient.createSetMangoDepositoryQuoteMintAndRedeemSoftCapInstruction(
-      softCap,
+      quoteMintAndRedeemSoftCap,
       controller,
       depository,
       authority.publicKey,
