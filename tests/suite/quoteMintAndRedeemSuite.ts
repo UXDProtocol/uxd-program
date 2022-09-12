@@ -45,9 +45,9 @@ export const quoteMintAndRedeemSuite = function (
     await mintWithMangoDepositoryTest(amount, 20, user, controller, depository, mango, payer);
   });
 
-  it(`Change the quote mint and redeem soft cap to 500_000`, async function () {
+  it(`Change the depository quote mint and redeem fee to 2`, async function () {
     await editMangoDepositoryTest(authority, controller, depository, {
-      quoteMintAndRedeemFee: 500_000,
+      quoteMintAndRedeemFee: 2,
     });
   });
 
