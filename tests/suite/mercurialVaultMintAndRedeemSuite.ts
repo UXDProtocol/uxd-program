@@ -1,13 +1,9 @@
-import { NATIVE_MINT } from "@solana/spl-token";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, findATAAddrSync, MercurialVaultDepository, MercurialVaultDepositoryAccount } from "@uxd-protocol/uxd-client";
+import { Controller, findATAAddrSync, MercurialVaultDepository, MercurialVaultDepositoryAccount } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
-import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { redeemFromMercurialVaultDepositoryTest } from "../cases/redeemFromMercurialVaultDepositoryTest";
 import { mintWithMercurialVaultDepositoryTest } from "../cases/mintWithMercurialVaultDepositoryTest";
-import { slippageBase, SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS } from "../constants";
-import { mango } from "../fixtures";
-import { getBalance, printUserInfo, transferAllTokens, transferSol, transferTokens } from "../utils";
+import { getBalance, transferAllTokens, transferTokens } from "../utils";
 import { getConnection, TXN_OPTS } from "../connection";
 
 let startingRedeemableAccountBalance = 0;
@@ -103,7 +99,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = function (user: Signer, p
         });
     });
 
-    describe("Low numbers", async () => {
+    describe("1 native unit mint/redeem", async () => {
         before(`Setup: Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMint.symbol}`, async function () {
             const collateralAmount = 0.001;
 

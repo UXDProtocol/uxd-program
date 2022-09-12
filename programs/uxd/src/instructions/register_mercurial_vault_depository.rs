@@ -168,6 +168,15 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
             UxdError::CollateralEqualToRedeemable,
         );
 
+        // Collateral mint and redeemable mint should share the same decimals
+        // due to the fact that decimal delta is not handled in the mint/redeem instructions
+        require!(
+            self.collateral_mint
+                .decimals
+                .eq(&self.controller.load()?.redeemable_mint_decimals),
+            UxdError::CollateralMintNotAllowed,
+        );
+
         #[cfg(feature = "production")]
         self.validate_collateral_mint()?;
 

@@ -14,7 +14,7 @@ import { disableDepositoryMintingSuite } from "./suite/disableDepositoryMintingS
 import { getConnection } from "./connection";
 import { mercurialVaultDepositoryMintRedeemSuite } from "./suite/mercurialVaultMintAndRedeemSuite";
 
-// Wrap the tests in IIFE so we can initialize mercurial vault depository
+// Wrap the tests in IIFE so we can initialize mercurial vault
 (async () => {
 
     // Mango
