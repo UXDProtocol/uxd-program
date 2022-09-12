@@ -1,10 +1,14 @@
 name: Soteria Audit
                                           # Update to match your branch names and requirements
 on:
-  push:
-    branches: [main, v*.*]
   pull_request:
     branches: [main, v*.*]
+  push:
+    branches: [main, v*.*]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   audit:
