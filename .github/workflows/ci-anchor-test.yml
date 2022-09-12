@@ -3,6 +3,8 @@ name: Anchor Test
 on:
   pull_request:
     branches: [main, v*.*]
+  push:
+    branches: [main, v*.*]
   
 permissions:
   contents: read
@@ -46,7 +48,7 @@ env:
   MANGO_MM_ACCOUNT_KEYPAIR: "./target/deploy/mango-mm-account-keypair.json"
     
 concurrency:
-  group: build-${{ github.event.pull_request.number || github.ref }}    
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -153,7 +155,7 @@ jobs:
           mm_keypair=$( cat ${{ env.MANGO_MM_ACCOUNT_KEYPAIR }} )
           cd /home/runner/work/uxd-program/uxd-program/third-party-dependencies/market-maker-ts
           yarn install
-          mm_params='{"group":"devnet.2","mangoAccountName":"mm","interval":200,"tif":10,"batch":2,"assets":{"SOL":{"perp":{"sizePerc":0.8,"leanCoeff":0.0005,"bias":0,"requoteThresh":0.0002,"takeSpammers":true,"spammerCharge":2}}}}'
+          mm_params='{"group":"devnet.2","mangoAccountName":"mm","interval":200,"assets":{"SOL":{"perp":{"sizePerc":0.8,"leanCoeff":0,"bias":0,"requoteThresh":0,"takeSpammers":true,"spammerCharge":2}}}}'
           echo "$mm_params" > params/devnet_sol_perp.json
           touch .env
           echo "export KEYPAIR=$mm_keypair" > .env

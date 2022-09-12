@@ -1,27 +1,17 @@
 name: Cargo Audit
 
 on:
+  pull_request:
+    branches: [main, v*.*]
   push:
-    branches: [main]
+    branches: [main, v*.*]
 
 env:
   CARGO_TERM_COLOR: always
 
-# Optimization option by targeting direct paths to only scan when there are changes to dependencies in the push/PR
-# Can also be used to limit testing to specific programs
-
-#  push:
-#    paths: 
-#      - 'Cargo.toml'
-#      - 'Cargo.lock'
-#  pull_request:
-#    paths: 
-#      - 'Cargo.toml'
-#      - 'Cargo.lock'
-      
-# Example of running scheduled scans at 6AM UTC every Monday to regularly check for vulnerable dependencies
-#  schedule:
-#  - cron: '0 6 * * 1'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
   
 # Run the job
 jobs:

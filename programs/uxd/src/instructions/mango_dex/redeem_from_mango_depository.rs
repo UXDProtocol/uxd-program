@@ -308,9 +308,7 @@ pub(crate) fn handler(
 // MARK: - Contexts -----
 
 impl<'info> RedeemFromMangoDepository<'info> {
-    fn to_burn_redeemable_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+    fn to_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
