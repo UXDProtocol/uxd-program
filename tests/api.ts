@@ -478,7 +478,7 @@ export async function rebalanceMangoDepositoryLite(
 
   const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
 
-  if (!(await getConnection().getAccountInfo(userCollateralAta)) && !depository.collateralMint.equals(NATIVE_MINT)) {
+  if (!(await getConnection().getAccountInfo(userCollateralAta))) {
     const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
     tx.add(createUserCollateralAtaIx);
   }
