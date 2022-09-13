@@ -2317,8 +2317,8 @@ export type Uxd = {
     },
     {
       "code": 6048,
-      "name": "CollateralEqualToRedeemable",
-      "msg": "Collateral should be different than redeemable."
+      "name": "CollateralMintEqualToRedeemableMint",
+      "msg": "Collateral mint should be different than redeemable mint."
     },
     {
       "code": 6049,
@@ -4727,8 +4727,8 @@ export const IDL: Uxd = {
     },
     {
       "code": 6048,
-      "name": "CollateralEqualToRedeemable",
-      "msg": "Collateral should be different than redeemable."
+      "name": "CollateralMintEqualToRedeemableMint",
+      "msg": "Collateral mint should be different than redeemable mint."
     },
     {
       "code": 6049,

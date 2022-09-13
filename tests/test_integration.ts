@@ -66,7 +66,7 @@ import { mercurialVaultDepositoryMintRedeemSuite } from "./suite/mercurialVaultM
         });
 
         describe("mercurialVaultDepositoryMintRedeemSuite", function () {
-            mercurialVaultDepositoryMintRedeemSuite(user, bank, controllerUXD, mercurialVaultDepository);
+            mercurialVaultDepositoryMintRedeemSuite(authority, user, bank, controllerUXD, mercurialVaultDepository);
         });
 
         this.afterAll("Transfer funds back to bank", async function () {

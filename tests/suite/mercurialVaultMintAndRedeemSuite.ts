@@ -1,24 +1,36 @@
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, findATAAddrSync, MercurialVaultDepository, MercurialVaultDepositoryAccount } from "@uxd-protocol/uxd-client";
+import { Controller, ControllerAccount, findATAAddrSync, MercurialVaultDepository, MercurialVaultDepositoryAccount, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { redeemFromMercurialVaultDepositoryTest } from "../cases/redeemFromMercurialVaultDepositoryTest";
 import { mintWithMercurialVaultDepositoryTest } from "../cases/mintWithMercurialVaultDepositoryTest";
 import { getBalance, transferAllTokens, transferTokens } from "../utils";
 import { getConnection, TXN_OPTS } from "../connection";
+import { setRedeemableGlobalSupplyCapTest } from "../cases/setRedeemableGlobalSupplyCapTest";
+import { BN } from "@project-serum/anchor";
 
-let startingRedeemableAccountBalance = 0;
+let initialRedeemableAccountBalance: number;
+let initialControllerGlobalRedeemableSupplyCap: BN;
 let userRedeemableATA: PublicKey;
 let onchainDepository: MercurialVaultDepositoryAccount;
+let onchainController: ControllerAccount;
 
-export const mercurialVaultDepositoryMintRedeemSuite = function (user: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository) {
+export const mercurialVaultDepositoryMintRedeemSuite = function (controllerAuthority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository) {
     before(`Setup: Transfer 1 ${depository.collateralMint.symbol} from payer to user`, async function () {
         await transferTokens(0.1, depository.collateralMint.mint, depository.collateralMint.decimals, payer, user.publicKey);
 
         userRedeemableATA = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
 
-        startingRedeemableAccountBalance = await getBalance(userRedeemableATA);
+        [
+            initialRedeemableAccountBalance,
+            onchainDepository,
+            onchainController,
+        ] = await Promise.all([
+            getBalance(userRedeemableATA),
+            depository.getOnchainAccount(getConnection(), TXN_OPTS),
+            controller.getOnchainAccount(getConnection(), TXN_OPTS),
+        ]);
 
-        onchainDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS)
+        initialControllerGlobalRedeemableSupplyCap = onchainController.redeemableGlobalSupplyCap;
     });
 
     describe("Regular mint/redeem", () => {
@@ -33,7 +45,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = function (user: Signer, p
         it(`Redeem all ${controller.redeemableMintSymbol} minted previously for ${depository.collateralMint.symbol}`, async function () {
             const redeemableAccountBalance = await getBalance(userRedeemableATA);
 
-            const previouslyMintedRedeemableAmount = redeemableAccountBalance - startingRedeemableAccountBalance;
+            const previouslyMintedRedeemableAmount = redeemableAccountBalance - initialRedeemableAccountBalance;
 
             console.log("[🧾 redeemableAmount", previouslyMintedRedeemableAmount, depository.collateralMint.symbol, "]");
 
@@ -57,7 +69,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = function (user: Signer, p
         });
 
         it(`Redeem for more ${controller.redeemableMintSymbol} than possessed (should fail)`, async function () {
-            const redeemableAmount = startingRedeemableAccountBalance + 1;
+            const redeemableAmount = initialRedeemableAccountBalance + 1;
 
             console.log("[🧾 redeemableAmount", redeemableAmount, controller.redeemableMintSymbol, "]");
 
@@ -67,7 +79,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = function (user: Signer, p
                 expect(true, "Failing as planned");
             }
 
-            expect(false, `Should have failed - Only owned ${startingRedeemableAccountBalance} ${controller.redeemableMintSymbol}`);
+            expect(false, `Should have failed - Only owned ${initialRedeemableAccountBalance} ${controller.redeemableMintSymbol}`);
         });
 
         it(`Mint for 0 ${depository.collateralMint.symbol} (should fail)`, async function () {
@@ -139,11 +151,37 @@ export const mercurialVaultDepositoryMintRedeemSuite = function (user: Signer, p
         after(`Cleanup: Redeem all ${controller.redeemableMintSymbol} minted previously for ${depository.collateralMint.symbol}`, async function () {
             const redeemableAccountBalance = await getBalance(userRedeemableATA);
 
-            const previouslyMintedRedeemableAmount = redeemableAccountBalance - startingRedeemableAccountBalance;
+            const previouslyMintedRedeemableAmount = redeemableAccountBalance - initialRedeemableAccountBalance;
 
             console.log("[🧾 redeemableAmount", previouslyMintedRedeemableAmount, depository.collateralMint.symbol, "]");
 
             await redeemFromMercurialVaultDepositoryTest(previouslyMintedRedeemableAmount, user, controller, depository, payer);
+        });
+    });
+
+    describe("Global redeemable supply cap overflow", () => {
+        it('Set global redeemable supply cap to 0', async function () {
+            await setRedeemableGlobalSupplyCapTest(0, controllerAuthority, controller);
+        });
+
+        it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMint.symbol} (should fail)`, async function () {
+            const collateralAmount = 0.001;
+
+            console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+
+            try {
+                await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);
+            } catch {
+                expect(true, "Failing as planned");
+            }
+
+            expect(false, `Should have failed - amount of redeemable overflow the global redeemable supply cap`);
+        });
+
+        it(`Reset Global Redeemable supply cap back to `, async function () {
+            const globalRedeemableSupplyCap = nativeToUi(initialControllerGlobalRedeemableSupplyCap, controller.redeemableMintDecimals);
+
+            await setRedeemableGlobalSupplyCapTest(globalRedeemableSupplyCap, controllerAuthority, controller);
         });
     });
 

@@ -100,8 +100,8 @@ pub enum UxdError {
     MercurialVaultDoNotMatchCollateral,
     #[msg("Cannot access solana clock")]
     ClockError,
-    #[msg("Collateral should be different than redeemable.")]
-    CollateralEqualToRedeemable,
+    #[msg("Collateral mint should be different than redeemable mint.")]
+    CollateralMintEqualToRedeemableMint,
     #[msg("Provided collateral mint is not allowed.")]
     CollateralMintNotAllowed,
     #[msg("Mint resulted to 0 redeemable token being minted.")]

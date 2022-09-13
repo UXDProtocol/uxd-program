@@ -165,7 +165,7 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
             self.collateral_mint
                 .key()
                 .ne(&self.controller.load()?.redeemable_mint),
-            UxdError::CollateralEqualToRedeemable,
+            UxdError::CollateralMintEqualToRedeemableMint,
         );
 
         // Collateral mint and redeemable mint should share the same decimals
