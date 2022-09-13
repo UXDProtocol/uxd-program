@@ -171,8 +171,7 @@ pub fn handler(
         UxdError::MinimumRedeemedCollateralAmountError
     );
 
-    // 6 - Check the amount of paid LP Token and the amount of received collateral
-    // Should never fail except if mercurial program do not do what it's supposed to do
+    // 6 - Check the amount of paid LP Token received from mercurial_vault::cpi::withdraw
     let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
 
     let lp_token_change = before_lp_token_vault_balance
@@ -184,25 +183,22 @@ pub fn handler(
         UxdError::SlippageReached,
     );
 
-    // There can be precision loss when calculating how many LP to withdraw, and also when withdrawing the collateral
+    // 7 - Check the amount of received collateral from mercurial_vault::cpi::withdraw
+
+    // There can be precision loss when calculating how many LP to withdraw and also when withdrawing the collateral
     // The maximum amount of accepted precision loss is 1 (native units)
-    let collateral_amount_less_fees_minus_precision_loss = collateral_amount_less_fees
-        .checked_sub(1)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+    RedeemFromMercurialVaultDepository::check_redeemed_collateral_amount_to_match_target(
+        collateral_balance_change,
+        collateral_amount_less_fees,
+    )?;
 
-    require!(
-        collateral_balance_change == collateral_amount_less_fees
-            || collateral_balance_change == collateral_amount_less_fees_minus_precision_loss,
-        UxdError::SlippageReached,
-    );
-
-    // 7 - Burn redeemable
+    // 8 - Burn redeemable
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         redeemable_amount,
     )?;
 
-    // 8 - Update Onchain accounting to reflect the changes
+    // 9 - Update Onchain accounting to reflect the changes
     ctx.accounts.update_onchain_accounting(
         collateral_balance_change.into(),
         redeemable_amount.into(),
@@ -333,6 +329,26 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
                 self.mercurial_vault_lp_mint.supply,
             )
             .ok_or_else(|| error!(UxdError::MathError))
+    }
+
+    // Check that the collateral amount received by the user using this instruction
+    // matches the collateral amount we wanted the user to receive: redeemable amount - fees - precision loss
+    // handle the precision loss
+    fn check_redeemed_collateral_amount_to_match_target(
+        redeemed_collateral_amount: u64,
+        target: u64,
+    ) -> Result<()> {
+        let target_minus_precision_loss = target
+            .checked_sub(1)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        require!(
+            redeemed_collateral_amount == target
+                || redeemed_collateral_amount == target_minus_precision_loss,
+            UxdError::SlippageReached,
+        );
+
+        Ok(())
     }
 }
 

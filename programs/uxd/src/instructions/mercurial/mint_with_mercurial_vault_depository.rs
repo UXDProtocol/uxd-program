@@ -148,21 +148,13 @@ pub fn handler(
             .ok_or_else(|| error!(UxdError::MathError))?,
     )?;
 
-    // 4 - Check that the minted lp token value matches the provided collateral
+    // 4 - Check that the minted lp token value matches the collateral value.
     // When manipulating LP tokens/collateral numbers, precision loss may occur.
     // The maximum allowed precision loss is 1 (native unit).
-    let collateral_amount_minus_precision_loss = collateral_amount
-        .checked_sub(1)
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
-    require!(
-        // Without precision loss
-        minted_lp_token_value == collateral_amount
-            ||
-        // With precision loss 
-        minted_lp_token_value == collateral_amount_minus_precision_loss,
-        UxdError::SlippageReached,
-    );
+    MintWithMercurialVaultDepository::check_minted_lp_token_value_to_match_collateral_value(
+        minted_lp_token_value,
+        collateral_amount,
+    )?;
 
     // 5 - Calculate the redeemable amount to send back to the user.
     // Mint redeemable 1:1 with provided collateral minus fees minus minting precision loss
@@ -334,6 +326,27 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
             .ok_or_else(|| error!(UxdError::MathError))?;
 
         Ok(redeemable_amount_less_fees)
+    }
+
+    // Accept precision loss diff
+    fn check_minted_lp_token_value_to_match_collateral_value(
+        minted_lp_token_value: u64,
+        collateral_amount: u64,
+    ) -> Result<()> {
+        let collateral_amount_minus_precision_loss = collateral_amount
+            .checked_sub(1)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        require!(
+            // Without precision loss
+            minted_lp_token_value == collateral_amount
+            ||
+            // With precision loss 
+            minted_lp_token_value == collateral_amount_minus_precision_loss,
+            UxdError::SlippageReached,
+        );
+
+        Ok(())
     }
 }
 
