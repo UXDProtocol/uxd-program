@@ -124,17 +124,18 @@ Withdraw need to be specific cause it's PDA own accounts.
 
 This would be used to add USDC to a depository mango account to fund it's insurance fund in UXD case.
 
-### `setRedeemableGlobalSupplyCap`
+### `EditController`
 
-Change the value of the global supply cap (virtual, not on the mint) for the Redeemable by the Controller.
+Edit arbitrary fields on the controller
 
-### `setMangoDepositoriesRedeemableSoftCap`
+quote_mint_and_redeem_soft_cap:
+Optionally Change the value of the global supply cap (virtual, not on the mint) for the Redeemable by the Controller.
 
-Change the value of the Mango Depositories operations (Mint/Redeem) Redeemable cap, prevent minting/redeeming over this limit.
+redeemable_soft_cap:
+Optionally Change the value of the Mango Depositories operations (Mint/Redeem) Redeemable cap, prevent minting/redeeming over this limit.
 
-### `SetMangoDepositoryQuoteMintAndRedeemFee`
-
-Change the value of the Mango Depositories quote redeem/mint fee.
+redeemable_global_supply_cap:
+Optionally Change the value of the Mango Depositories quote redeem/mint fee.
 
 ## User instructions
 

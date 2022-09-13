@@ -49,8 +49,6 @@ const MANGO_PERP_MAX_FILL_EVENTS: u8 = u8::MAX;
 #[deny(unused_must_use)]
 pub mod uxd {
 
-    use crate::instructions::set_mango_depository_quote_mint_and_redeem_soft_cap::SetMangoDepositoryQuoteMintAndRedeemSoftCap;
-
     use super::*;
 
     /// Initialize a Controller on chain account.
@@ -77,76 +75,53 @@ pub mod uxd {
         instructions::initialize_controller::handler(ctx, redeemable_mint_decimals)
     }
 
-    /// Sets the `redeemable_global_supply_cap` of the provided `Controller`
-    /// account.
+    /// Sets some fields of the provided `Controller` account.
     ///
     /// Parameters:
-    ///     - redeemable_global_supply_cap: the new value.
+    ///     - fields.quote_mint_and_redeem_soft_cap: Option<u64> // ignored if None
+    ///     - fields.redeemable_soft_cap: Option<u64> // ignored if None
+    ///     - fields.redeemable_global_supply_cap: Option<128> // ignored if None
     ///
-    /// Note:
-    ///  The redeemable global supply cap determines the max total supply
-    ///  for the redeemable token. Program will abort when an instruction
-    ///  that mints new redeemable would bring the circulating supply
-    ///  beyond this value.
+    /// About: "fields.redeemable_soft_cap"
+    ///   Sets the `mango_depositories_redeemable_soft_cap` of the provided `Controller` account.
+    /// Explanation:
+    ///   The `mango_depositories_redeemable_soft_cap` determines the
+    ///   max amount of redeemable tokens that can be minted during a
+    ///   single operation.
+    ///   The redeemable global supply cap determines the max total supply
+    ///   for the redeemable token. Program will abort when an instruction
+    ///   that mints new redeemable would bring the circulating supply
+    ///   beyond this value.
+    /// Notes:
+    ///   - The `mango_depositories_redeemable_soft_cap` determines the
+    ///     max amount of redeemable tokens that can be minted during a
+    ///     single operation.
+    ///   - This only apply to Minting. Redeeming is always possible.
+    ///   - Purpose of this is to control the max amount minted at once on
+    ///     MangoMarkets Depositories.
+    ///   - If this is set to 0, it would effectively pause minting on
+    ///     MangoMarkets Depositories.
     ///
-    /// Note:
-    ///  Purpose of this is to roll out progressively for OI, and limit risks.
+    /// About: "fields.redeemable_global_supply_cap"
+    ///   Sets the `redeemable_global_supply_cap` of the provided `Controller` account.
+    /// Explanation:
+    ///   The redeemable global supply cap determines the max total supply
+    ///   for the redeemable token. Program will abort when an instruction
+    ///   that mints new redeemable would bring the circulating supply
+    ///   beyond this value.
+    /// Notes:
+    ///   - Purpose of this is to roll out progressively for OI, and limit risks.
+    ///   - If this is set below the current circulating supply of UXD, it would effectively pause Minting.
     ///
-    /// Note:
-    ///  If this is set below the current circulating supply of UXD, it would effectively pause Minting.
-    ///
-    #[access_control(ctx.accounts.validate(redeemable_global_supply_cap))]
-    pub fn set_redeemable_global_supply_cap(
-        ctx: Context<SetRedeemableGlobalSupplyCap>,
-        redeemable_global_supply_cap: u128,
+    #[access_control(ctx.accounts.validate(&fields))]
+    pub fn edit_controller(
+        ctx: Context<EditController>,
+        fields: EditControllerFields,
     ) -> Result<()> {
-        msg!("[set_redeemable_global_supply_cap]");
-        instructions::set_redeemable_global_supply_cap::handler(ctx, redeemable_global_supply_cap)
+        instructions::edit_controller::handler(ctx, &fields)
     }
 
-    /// Sets the `mango_depositories_redeemable_soft_cap` of the provided
-    /// `Controller` account.
-    ///
-    /// Parameters:
-    ///     - redeemable_soft_cap: the new value.
-    ///
-    /// Note:
-    ///  The `mango_depositories_redeemable_soft_cap` determines the
-    ///  max amount of redeemable tokens that can be minted during a
-    ///  single operation.
-    ///
-    /// Note:
-    ///  This only apply to Minting. Redeeming is always possible.
-    ///
-    /// Note:
-    ///  Purpose of this is to control the max amount minted at once on
-    ///  MangoMarkets Depositories.
-    ///
-    /// Note:
-    ///  If this is set to 0, it would effectively pause minting on
-    ///  MangoMarkets Depositories.
-    ///
-    #[access_control(ctx.accounts.validate(redeemable_soft_cap))]
-    pub fn set_mango_depositories_redeemable_soft_cap(
-        ctx: Context<SetMangoDepositoriesRedeemableSoftCap>,
-        redeemable_soft_cap: u64,
-    ) -> Result<()> {
-        msg!("[set_mango_depositories_redeemable_soft_cap]");
-        instructions::set_mango_depositories_redeemable_soft_cap::handler(ctx, redeemable_soft_cap)
-    }
-
-    pub fn set_mango_depository_quote_mint_and_redeem_soft_cap(
-        ctx: Context<SetMangoDepositoryQuoteMintAndRedeemSoftCap>,
-        quote_mint_and_redeem_soft_cap: u64,
-    ) -> Result<()> {
-        msg!("[set_mango_depository_quote_mint_and_redeem_soft_cap]");
-        instructions::set_mango_depository_quote_mint_and_redeem_soft_cap::handler(
-            ctx,
-            quote_mint_and_redeem_soft_cap,
-        )
-    }
-
-    /// Create a new`MangoDepository` and registers it to the provided
+    /// Create a new `MangoDepository` and registers it to the provided
     /// `Controller` account.
     ///
     /// Note:
@@ -407,15 +382,11 @@ pub mod uxd {
         instructions::quote_redeem_from_mango_depository::handler(ctx, redeemable_amount)
     }
 
-    pub fn set_mango_depository_quote_mint_and_redeem_fee(
-        ctx: Context<SetMangoDepositoryQuoteMintAndRedeemFee>,
-        quote_fee: u8,
+    pub fn edit_mango_depository(
+        ctx: Context<EditMangoDepository>,
+        fields: EditMangoDepositoryFields,
     ) -> Result<()> {
-        msg!(
-            "[set_mango_depository_quote_mint_and_redeem_fee] quote_fee {}",
-            quote_fee
-        );
-        instructions::set_mango_depository_quote_mint_and_redeem_fee::handler(ctx, quote_fee)
+        instructions::edit_mango_depository::handler(ctx, &fields)
     }
 
     /// Disable or enable regular minting for given Mango Depository.
