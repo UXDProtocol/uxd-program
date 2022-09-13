@@ -254,12 +254,15 @@ export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, 
         tx.add(createUserQuoteAtaIx);
     }
 
-    tx.add(rebalanceMangoDepositoryLiteIx);
     signers.push(user);
     if (payer) {
         signers.push(payer);
     }
+    tx.feePayer = payer.publicKey;
+    await web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 
+    tx = new Transaction();
+    tx.add(rebalanceMangoDepositoryLiteIx);
     tx.feePayer = payer.publicKey;
     let txId = web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 
