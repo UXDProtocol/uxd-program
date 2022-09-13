@@ -49,7 +49,6 @@ import { mercurialVaultDepositoryMintRedeemSuite } from "./suite/mercurialVaultM
         controllerIntegrationSuite(authority, bank, controllerUXD, params);
     });
 
-
     let user: Signer = new Keypair();
 
     describe("Mercurial vault integration tests: USDC", function () {
