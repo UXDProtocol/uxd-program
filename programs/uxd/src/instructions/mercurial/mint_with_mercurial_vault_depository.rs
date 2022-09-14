@@ -267,9 +267,6 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
             .checked_add(redeemable_minted_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
 
-        drop(depository);
-        drop(controller);
-
         Ok(())
     }
 
@@ -281,8 +278,6 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
             controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
             UxdError::RedeemableGlobalSupplyCapReached
         );
-
-        drop(controller);
 
         Ok(())
     }

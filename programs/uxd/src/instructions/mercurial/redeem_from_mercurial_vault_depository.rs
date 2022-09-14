@@ -279,9 +279,6 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
             .checked_sub(redeemable_burnt_amount)
             .ok_or_else(|| error!(UxdError::MathError))?;
 
-        drop(depository);
-        drop(controller);
-
         Ok(())
     }
 
