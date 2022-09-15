@@ -44,7 +44,7 @@ describe("Integration tests SOL", function () {
   });
 
   describe("mangoDepositoryAndControllerInteractionsSuite", function () {
-    const paramsSol = new MangoDepositoryAndControllerInteractionsSuiteParameters(10_000_000, 500, 50_000, 500, 20);
+    const paramsSol = new MangoDepositoryAndControllerInteractionsSuiteParameters(25_000_000, 500, 500_000, 500, 20);
     mangoDepositoryAndControllerInteractionsSuite(authority, user, bank, controllerUXD, mangoDepositorySOL, paramsSol);
   });
 
