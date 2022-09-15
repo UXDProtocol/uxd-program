@@ -309,18 +309,18 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         // Math: Multiplies the base_redeemable_amount by how many BPS the user will get
         // but the units are still in units of BPS, not as a decimal, so then
         // divide by the BPS_POW to get to the right order of magnitude.
-        let redeemable_amount_less_fees: u64 = bps_minted_to_user
+        let redeemable_amount_less_fees = bps_minted_to_user
             .checked_mul_int(base_redeemable_amount.into())
             .ok_or_else(|| error!(UxdError::MathError))?
             .checked_div_int(BPS_UNIT_CONVERSION.into())
             .ok_or_else(|| error!(UxdError::MathError))?
             // Round down the number to attribute the precision loss to the user
             .checked_floor()
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_to_num::<u64>()
             .ok_or_else(|| error!(UxdError::MathError))?;
 
-        Ok(redeemable_amount_less_fees)
+        redeemable_amount_less_fees
+            .checked_to_num::<u64>()
+            .ok_or_else(|| error!(UxdError::MathError))
     }
 
     // Accept precision loss diff

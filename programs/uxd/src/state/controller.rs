@@ -18,9 +18,9 @@ pub const CONTROLLER_SPACE: usize = 8
     + 8
     + 16
     + 8
-    + (32 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
+    + (4 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
     + 1
-    + 247;
+    + 471;
 
 #[account(zero_copy)]
 #[repr(packed)]

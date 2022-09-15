@@ -1,5 +1,5 @@
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, ControllerAccount, findATAAddrSync, MercurialVaultDepository, MercurialVaultDepositoryAccount, nativeToUi } from "@uxd-protocol/uxd-client";
+import { Controller, ControllerAccount, findATAAddrSync, MercurialVaultDepository, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { redeemFromMercurialVaultDepositoryTest } from "../cases/redeemFromMercurialVaultDepositoryTest";
 import { mintWithMercurialVaultDepositoryTest } from "../cases/mintWithMercurialVaultDepositoryTest";
@@ -175,7 +175,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = function (controllerAutho
             expect(false, `Should have failed - amount of redeemable overflow the global redeemable supply cap`);
         });
 
-        it(`Reset Global Redeemable supply cap back to ${initialControllerGlobalRedeemableSupplyCap.toString()}`, async function () {
+        it(`Reset Global Redeemable supply cap back to its original value`, async function () {
             const globalRedeemableSupplyCap = nativeToUi(initialControllerGlobalRedeemableSupplyCap, controller.redeemableMintDecimals);
 
             await setRedeemableGlobalSupplyCapTest(globalRedeemableSupplyCap, controllerAuthority, controller);

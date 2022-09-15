@@ -92,14 +92,10 @@ pub enum UxdError {
     UnmatchedMangoGroupWithController,
     #[msg("The mercurial vault lp mint does not match the Depository's one.")]
     InvalidMercurialVaultLpMint,
-    #[msg("The mercurial vault collateral mint does not match the Depository's one.")]
-    InvalidMercurialVaultCollateralMint,
     #[msg("Cannot register more mercurial vault depositories, the limit has been reached.")]
     MaxNumberOfMercurialVaultDepositoriesRegisteredReached,
     #[msg("The provided collateral do not match the provided mercurial vault token.")]
     MercurialVaultDoNotMatchCollateral,
-    #[msg("Cannot access solana clock")]
-    ClockError,
     #[msg("Collateral mint should be different than redeemable mint.")]
     CollateralMintEqualToRedeemableMint,
     #[msg("Provided collateral mint is not allowed.")]
