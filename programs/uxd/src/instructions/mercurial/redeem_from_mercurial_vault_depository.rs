@@ -141,9 +141,14 @@ pub fn handler(
         .ok_or_else(|| error!(UxdError::MathError))?;
 
     // 2 - Calculate the right amount of lp token to withdraw to match collateral_amount_less_fees
+    // This LP amount is subjected to precision loss (we handle this precision loss later)
     let lp_token_amount_to_match_collateral_amount_less_fees = ctx
         .accounts
         .calculate_lp_amount_to_withdraw_to_match_collateral(collateral_amount_less_fees)?;
+
+    let possible_lp_token_precision_loss_collateral_value = ctx
+        .accounts
+        .calculate_possible_lp_token_precision_loss_collateral_value()?;
 
     // 3 - Redeem collateral from mercurial vault for lp tokens
     mercurial_vault::cpi::withdraw(
@@ -171,7 +176,7 @@ pub fn handler(
         UxdError::MinimumRedeemedCollateralAmountError
     );
 
-    // 6 - Check the amount of paid LP Token received from mercurial_vault::cpi::withdraw
+    // 6 - Check the amount of paid LP Token when calling mercurial_vault::cpi::withdraw
     let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
 
     let lp_token_change = before_lp_token_vault_balance
@@ -183,13 +188,14 @@ pub fn handler(
         UxdError::SlippageReached,
     );
 
-    // 7 - Check the amount of received collateral from mercurial_vault::cpi::withdraw
+    // 7 - Check that the amount of received collateral from mercurial_vault::cpi::withdraw
 
-    // There can be precision loss when calculating how many LP to withdraw and also when withdrawing the collateral
-    // The maximum amount of accepted precision loss is 1 (native units)
+    // There can be precision loss when calculating how many LP token to withdraw and also when withdrawing the collateral
+    // We accept theses losses as they are paid by the user
     RedeemFromMercurialVaultDepository::check_redeemed_collateral_amount_to_match_target(
         collateral_balance_change,
         collateral_amount_less_fees,
+        possible_lp_token_precision_loss_collateral_value,
     )?;
 
     // 8 - Burn redeemable
@@ -328,24 +334,60 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
             .ok_or_else(|| error!(UxdError::MathError))
     }
 
-    // Check that the collateral amount received by the user using this instruction
-    // matches the collateral amount we wanted the user to receive: redeemable amount - fees - precision loss
-    // handle the precision loss
+    // Check that the collateral amount received by the user matches the collateral amount we wanted the user to receive:
+    //     redeemable amount - fees - lp token calculation precision loss - withdraw precision loss
     fn check_redeemed_collateral_amount_to_match_target(
         redeemed_collateral_amount: u64,
         target: u64,
+        possible_lp_token_precision_loss_collateral_value: u64,
     ) -> Result<()> {
-        let target_minus_precision_loss = target
-            .checked_sub(1)
+        // Lp token precision loss + withdraw collateral precision loss
+        let maximum_allowed_precision_loss = possible_lp_token_precision_loss_collateral_value
+            .checked_add(1)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        let target_minimal_allowed_value = target
+            .checked_sub(maximum_allowed_precision_loss)
             .ok_or_else(|| error!(UxdError::MathError))?;
 
         require!(
-            redeemed_collateral_amount == target
-                || redeemed_collateral_amount == target_minus_precision_loss,
+            (target_minimal_allowed_value..target).contains(&redeemed_collateral_amount),
             UxdError::SlippageReached,
         );
 
         Ok(())
+    }
+
+    // Calculate how much collateral could be lost in possible LP token precision loss
+    fn calculate_possible_lp_token_precision_loss_collateral_value(&self) -> Result<u64> {
+        let current_time = u64::try_from(Clock::get()?.unix_timestamp)
+            .ok()
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        // Calculate the price of 1 native LP token
+        // Do not use mercurial_vault.get_amount_by_share because it does not handle precision loss
+        let total_amount = self
+            .mercurial_vault
+            .get_unlocked_amount(current_time)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        let one_lp_token_collateral_value = I80F48::from_num(1)
+            .checked_mul(
+                I80F48::checked_from_num(total_amount)
+                    .ok_or_else(|| error!(UxdError::MathError))?,
+            )
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_div(
+                I80F48::checked_from_num(self.mercurial_vault_lp_mint.supply)
+                    .ok_or_else(|| error!(UxdError::MathError))?,
+            )
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_ceil()
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        one_lp_token_collateral_value
+            .checked_to_num()
+            .ok_or_else(|| error!(UxdError::MathError))
     }
 }
 
