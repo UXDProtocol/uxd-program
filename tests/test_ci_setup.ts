@@ -28,7 +28,7 @@ beforeEach("\n", function () {
 
 describe("UXD Setup", function () {
   describe("controllerIntegrationSuite", function () {
-    const params = new controllerIntegrationSuiteParameters(10_000_000, 50_000);
+    const params = new controllerIntegrationSuiteParameters(25_000_000, 500_000);
     controllerIntegrationSuite(authority, bank, controllerUXD, params);
   });
 

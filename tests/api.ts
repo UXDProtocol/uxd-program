@@ -478,7 +478,8 @@ export async function rebalanceMangoDepositoryLite(
   // - Positive polarity sends COLLATERAL, gets QUOTE back.
   if (polarity == PnLPolarity.Positive && depository.collateralMint.equals(NATIVE_MINT)) {
     const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
-    const rebalancingMaxAmountCollateral = rebalancingMaxAmountQuote / mangoPerpPrice;
+    // Transfer extra collateral to ensure there are enough due to price change
+    const rebalancingMaxAmountCollateral = (rebalancingMaxAmountQuote / mangoPerpPrice) * 1.01;
     const nativeAmount = uiToNative(rebalancingMaxAmountCollateral, depository.collateralMintDecimals);
     const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
       getConnection(),
