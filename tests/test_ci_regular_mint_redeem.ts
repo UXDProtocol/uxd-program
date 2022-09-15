@@ -43,7 +43,8 @@ describe("Integration tests SOL", function () {
     await transferSol(2, bank, user.publicKey);
   });
 
-  describe("mangoDepositoryAndControllerInteractionsSuite", function () {
+  // would affect quote test suite if running on ci in parallel
+  describe.skip("mangoDepositoryAndControllerInteractionsSuite", function () {
     const paramsSol = new MangoDepositoryAndControllerInteractionsSuiteParameters(25_000_000, 500, 500_000, 500, 20);
     mangoDepositoryAndControllerInteractionsSuite(authority, user, bank, controllerUXD, mangoDepositorySOL, paramsSol);
   });
