@@ -1,8 +1,7 @@
-import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, Signer, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
-import { Controller, MangoDepository, MercurialVaultDepository, USDC, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, ETH_DECIMALS, ETH_DEVNET, UXD_DEVNET, WSOL_DEVNET, createAndInitializeMango, createAssocTokenIx } from "@uxd-protocol/uxd-client";
-import VaultImpl, { getVaultPdas, PROGRAM_ID as MERCURIAL_VAULT_PROGRAM_ID } from '@mercurial-finance/vault-sdk';
+import { Keypair, PublicKey, Signer, } from "@solana/web3.js";
+import { Controller, MangoDepository, MercurialVaultDepository, SOL_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, WSOL, USDC_DEVNET, BTC_DECIMALS, BTC_DEVNET, } from "@uxd-protocol/uxd-client";
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
-import { getBalance, prepareWrappedSolTokenAccount, printDepositoryInfo, printUserInfo, transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
+import { printDepositoryInfo, printUserInfo, transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
 import { depositInsuranceMangoDepositoryTest } from "./cases/depositInsuranceMangoDepositoryTest";
 import { registerMangoDepositoryTest } from "./cases/registerMangoDepositoryTest";
 import { mango } from "./fixtures";
@@ -17,14 +16,9 @@ import {
 import { quoteMintAndRedeemSuite } from "./suite/quoteMintAndRedeemSuite";
 import { setMangoDepositoriesRedeemableSoftCap } from "./api";
 import { registerMercurialVaultDepositoryTest } from "./cases/registerMercurialVaultDepositoryTest";
-import { getConnection, TXN_OPTS } from "./connection";
-import { StaticTokenListResolutionStrategy, TokenInfo } from "@solana/spl-token-registry";
+import { getConnection } from "./connection";
 import { mintWithMercurialVaultDepositoryTest } from "./cases/mintWithMercurialVaultDepositoryTest";
 import { redeemFromMercurialVaultDepositoryTest } from "./cases/redeemFromMercurialVaultDepositoryTest";
-import { NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { VAULT_BASE_KEY } from "@mercurial-finance/vault-sdk/src/vault/constants";
-import { ASSOCIATED_PROGRAM_ID } from "@project-serum/anchor/dist/cjs/utils/token";
-import { findATAAddrSync } from "@uxd-protocol/uxd-client";
 
 console.log(uxdProgramId.toString());
 const mangoDepositorySOL = new MangoDepository(
@@ -39,17 +33,19 @@ const mangoDepositorySOL = new MangoDepository(
 // const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 // const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
 
-let mercurialVaultDepositoryUSDC: MercurialVaultDepository;
-let mercurialVault: VaultImpl;
+const SOLEND_USDC_DEVNET = new PublicKey('zVzi5VAf4qMEwzv7NXECVx5v2pQ7xnqVVjCXZwS9XzA');
+const SOLEND_USDC_DEVNET_DECIMALS = 6;
+
+// Do not create the vault. We are building an object with utilities methods.
+let mercurialVaultDepositoryUSDC: MercurialVaultDepository = null;
 
 const controller = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 const payer = bank;
 const slippage = 50; // 5%
 
-const SOLEND_USDC_DEVNET = new PublicKey('zVzi5VAf4qMEwzv7NXECVx5v2pQ7xnqVVjCXZwS9XzA');
-const SOLEND_USDC_DEVNET_DECIMALS = 6;
+console.log(`SOL 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositorySOL.mangoAccountPda}'`);
 
-// console.log(`SOL 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositorySOL.mangoAccountPda}'`);
+let mintedRedeemableAmountWithMercurialVaultDepository = 0;
 
 beforeEach("\n", function () {
   console.log("=============================================\n\n");

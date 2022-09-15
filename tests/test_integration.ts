@@ -1,4 +1,4 @@
-import { Keypair, PublicKey, Signer } from "@solana/web3.js";
+import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
 import { authority, bank, SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS, uxdProgramId } from "./constants";
 import { transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
@@ -14,17 +14,29 @@ import { disableDepositoryMintingSuite } from "./suite/disableDepositoryMintingS
 import { getConnection } from "./connection";
 import { mercurialVaultDepositoryMintRedeemSuite } from "./suite/mercurialVaultMintAndRedeemSuite";
 
-// Wrap the tests in IIFE so we can initialize mercurial vault
+// Mango
+// Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
+const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+
+const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
+
+console.log(`SOL 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositorySOL.mangoAccountPda}'`);
+console.log(`BTC 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryBTC.mangoAccountPda}'`);
+console.log(`ETH 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryETH.mangoAccountPda}'`);
+
+beforeEach("\n", function () { console.log("=============================================\n\n") });
+
+describe("UXD Controller Suite", function () {
+    const params = new controllerIntegrationSuiteParameters(25_000_000, 500_000);
+    controllerIntegrationSuite(authority, bank, controllerUXD, params);
+});
+
 (async () => {
+    let user: Signer = new Keypair();
 
-    // Mango
-    // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
-    const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
-    const mangoDepositoryBTC = new MangoDepository(BTC_DEVNET, "BTC", BTC_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
-    const mangoDepositoryETH = new MangoDepository(ETH_DEVNET, "ETH", ETH_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
-
-    // Mercurial
-    const mercurialVaultDepository: MercurialVaultDepository = await MercurialVaultDepository.initialize({
+    const mercurialVaultDepository = await MercurialVaultDepository.initialize({
         connection: getConnection(),
         collateralMint: {
             mint: SOLEND_USDC_DEVNET,
@@ -36,35 +48,20 @@ import { mercurialVaultDepositoryMintRedeemSuite } from "./suite/mercurialVaultM
         cluster: 'devnet',
     });
 
-    const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
-
-    console.log(`SOL 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositorySOL.mangoAccountPda}'`);
-    console.log(`BTC 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryBTC.mangoAccountPda}'`);
-    console.log(`ETH 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDepositoryETH.mangoAccountPda}'`);
-
-    beforeEach("\n", function () { console.log("=============================================\n\n") });
-
-    describe("UXD Controller Suite", function () {
-        const params = new controllerIntegrationSuiteParameters(25_000_000, 500_000);
-        controllerIntegrationSuite(authority, bank, controllerUXD, params);
-    });
-
-    let user: Signer = new Keypair();
-
-    describe("Mercurial vault integration tests: USDC", function () {
+    describe("Mercurial vault integration tests: USDC", async function () {
         this.beforeAll("Init and fund user", async function () {
             console.log("USER =>", user.publicKey.toString());
-            await transferSol(1, bank, user.publicKey);
+            await transferSol(3, bank, user.publicKey);
         });
 
-        describe("mercurialVaultDepositorySetupSuite", function () {
+        describe("mercurialVaultDepositorySetupSuite", async function () {
             let mintingFeeInBps = 0;
             let redeemingFeeInBps = 5;
 
             mercurialVaultDepositorySetupSuite(authority, bank, controllerUXD, mercurialVaultDepository, mintingFeeInBps, redeemingFeeInBps);
         });
 
-        describe("mercurialVaultDepositoryMintRedeemSuite", function () {
+        describe("mercurialVaultDepositoryMintRedeemSuite", async function () {
             mercurialVaultDepositoryMintRedeemSuite(authority, user, bank, controllerUXD, mercurialVaultDepository);
         });
 
@@ -73,7 +70,6 @@ import { mercurialVaultDepositoryMintRedeemSuite } from "./suite/mercurialVaultM
             await transferAllTokens(SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS, user, bank.publicKey);
         });
     });
-
 
     describe.skip("Mango integration tests: SOL", function () {
         this.beforeAll("Init and fund user", async function () {
