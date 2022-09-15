@@ -141,7 +141,7 @@ export const mangoDepositoryMintRedeemSuite = function (
     expect(false, "Should have failed - User's balance too low");
   });
 
-  it.skip(`Mint -10 ${controller.redeemableMintSymbol} (${
+  it(`Mint -10 ${controller.redeemableMintSymbol} (${
     slippage / slippageBase
   } % slippage) (should fail)`, async function () {
     try {
@@ -152,7 +152,7 @@ export const mangoDepositoryMintRedeemSuite = function (
     expect(false, "Should have failed - Amount is negative");
   });
 
-  it.skip(`Redeem -10 ${controller.redeemableMintSymbol} (${
+  it(`Redeem -10 ${controller.redeemableMintSymbol} (${
     slippage / slippageBase
   } % slippage) (should fail)`, async function () {
     try {
@@ -251,8 +251,6 @@ export const mangoDepositoryMintRedeemSuite = function (
       mango,
       payer
     );
-    // await printUserInfo(user.publicKey, controller, depository);
-    // await printDepositoryInfo(controller, depository, mango);
   });
 
   it(`Mint minimal amount possible ${controller.redeemableMintSymbol} (${
