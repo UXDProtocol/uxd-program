@@ -1,6 +1,6 @@
 import { NATIVE_MINT } from "@solana/spl-token";
-import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, PnLPolarity } from "@uxd-protocol/uxd-client";
+import { PublicKey, Signer } from "@solana/web3.js";
+import { Controller, findATAAddrSync, MangoDepository, PnLPolarity } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { editMangoDepositoryTest } from "../cases/editMangoDepositoryTest";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
@@ -8,12 +8,13 @@ import { quoteMintWithMangoDepositoryAccountingTest } from "../cases/quoteMintWi
 import { quoteMintWithMangoDepositoryTest } from "../cases/quoteMintWithMangoDepositoryTest";
 import { quoteRedeemFromMangoDepositoryAccountingTest } from "../cases/quoteRedeemFromMangoDepositoryAccountingTest";
 import { quoteRedeemFromMangoDepositoryTest } from "../cases/quoteRedeemFromMangoDepositoryTest";
+import { redeemFromMangoDepositoryTest } from "../cases/redeemFromMangoDepositoryTest";
 import { setMangoDepositoryQuoteMintAndRedeemFeeTest } from "../cases/setMangoDepositoryQuoteMintAndRedeemFeeTest";
 import { setMangoDepositoryQuoteMintAndRedeemSoftCapTest } from "../cases/setMangoDepositoryQuoteMintAndRedeemSoftCapTest";
 import { TXN_OPTS } from "../connection";
 import { slippageBase } from "../constants";
 import { mango } from "../fixtures";
-import { transferAllTokens, transferSol, transferTokens } from "../utils";
+import { getBalance, transferAllTokens, transferSol, transferTokens } from "../utils";
 
 export const quoteMintAndRedeemSuite = function (
   authority: Signer,
@@ -26,7 +27,7 @@ export const quoteMintAndRedeemSuite = function (
     await transferTokens(100, depository.quoteMint, depository.quoteMintDecimals, payer, user.publicKey);
   });
 
-  before(`Transfer 50 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
+  it(`Transfer 50 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
     const perpPrice = await depository.getCollateralPerpPriceUI(mango);
     const amount = 50 / perpPrice;
     console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
@@ -36,6 +37,13 @@ export const quoteMintAndRedeemSuite = function (
     } else {
       await transferTokens(amount, depository.collateralMint, depository.collateralMintDecimals, payer, user.publicKey);
     }
+  });
+
+  it(`Mint 50 ${controller.redeemableMintSymbol} (${(20 / slippageBase) * 100} % slippage)`, async function () {
+    const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+    const amount = 50 / perpPrice;
+    console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
+    await mintWithMangoDepositoryTest(amount, 20, user, controller, depository, mango, payer);
   });
 
   it(`Change the quote mint and redeem soft cap to 1_000_000`, async function () {
@@ -245,6 +253,14 @@ export const quoteMintAndRedeemSuite = function (
       expect(true, "Failing as planned");
     }
     expect(false, "Should have failed - No collateral deposited yet");
+  });
+
+  it(`Redeem remaining ${controller.redeemableMintSymbol} (${
+    (20 / slippageBase) * 100
+  } % slippage)`, async function () {
+    const userRedeemableATA: PublicKey = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
+    const remainingRedeemableAmount = await getBalance(userRedeemableATA);
+    await redeemFromMangoDepositoryTest(remainingRedeemableAmount, 20, user, controller, depository, mango, payer);
   });
 
   it(`Return remaining balances from user to the payer`, async function () {
