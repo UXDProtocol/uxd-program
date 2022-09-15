@@ -71,7 +71,7 @@ export async function depositInsuranceToMangoDepository(
   depository: MangoDepository,
   mango: Mango
 ): Promise<string> {
-  const depositInsuranceToMangoDepositoryIx = await uxdClient.createDepositInsuranceToMangoDepositoryInstruction(
+  const depositInsuranceToMangoDepositoryIx = uxdClient.createDepositInsuranceToMangoDepositoryInstruction(
     amount,
     controller,
     depository,
@@ -230,7 +230,7 @@ export async function quoteMintWithMangoDepository(
   depository: MangoDepository,
   mango: Mango
 ): Promise<string> {
-  const quoteMintWithMangoDepositoryIx = await uxdClient.createQuoteMintWithMangoDepositoryInstruction(
+  const quoteMintWithMangoDepositoryIx = uxdClient.createQuoteMintWithMangoDepositoryInstruction(
     quoteAmount,
     controller,
     depository,
@@ -314,7 +314,7 @@ export async function quoteRedeemFromMangoDepository(
   depository: MangoDepository,
   mango: Mango
 ): Promise<string> {
-  const quoteRedeemFromMangoDepositoryIx = await uxdClient.createQuoteRedeemWithMangoDepositoryInstruction(
+  const quoteRedeemFromMangoDepositoryIx = uxdClient.createQuoteRedeemWithMangoDepositoryInstruction(
     redeemableAmount,
     controller,
     depository,
@@ -325,6 +325,16 @@ export async function quoteRedeemFromMangoDepository(
   );
   let signers = [];
   let tx = new Transaction();
+
+  const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
+  if (!(await getConnection().getAccountInfo(userRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      user.publicKey,
+      userRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
 
   const userQuoteATA = findATAAddrSync(user.publicKey, depository.quoteMint)[0];
   if (!(await getConnection().getAccountInfo(userQuoteATA))) {
@@ -349,14 +359,13 @@ export async function setMangoDepositoryQuoteMintAndRedeemFee(
   depository: MangoDepository,
   quoteFee: number
 ): Promise<string> {
-  const setMangoDepositoryQuoteMintAndRedeemFeeIx =
-    await uxdClient.createSetMangoDepositoryQuoteMintAndRedeemFeeInstruction(
-      quoteFee,
-      controller,
-      depository,
-      authority.publicKey,
-      TXN_OPTS
-    );
+  const setMangoDepositoryQuoteMintAndRedeemFeeIx = uxdClient.createSetMangoDepositoryQuoteMintAndRedeemFeeInstruction(
+    quoteFee,
+    controller,
+    depository,
+    authority.publicKey,
+    TXN_OPTS
+  );
   let signers = [];
   let tx = new Transaction();
 
@@ -373,7 +382,7 @@ export async function setMangoDepositoryQuoteMintAndRedeemSoftCap(
   quoteMintAndRedeemSoftCap: number
 ): Promise<string> {
   const setMangoDepositoryQuoteMintAndRedeemSoftCapIx =
-    await uxdClient.createSetMangoDepositoryQuoteMintAndRedeemSoftCapInstruction(
+    uxdClient.createSetMangoDepositoryQuoteMintAndRedeemSoftCapInstruction(
       quoteMintAndRedeemSoftCap,
       controller,
       depository,
@@ -401,7 +410,7 @@ export async function editController(
     redeemableGlobalSupplyCap?: number;
   }
 ): Promise<string> {
-  const editControllerIx = await uxdClient.createEditControllerInstruction(
+  const editControllerIx = uxdClient.createEditControllerInstruction(
     controller,
     authority.publicKey,
     uiFields,
@@ -478,7 +487,7 @@ export async function editMangoDepository(
     quoteMintAndRedeemFee?: number;
   }
 ): Promise<string> {
-  const editMangoDepositoryIx = await uxdClient.createEditMangoDepositoryInstruction(
+  const editMangoDepositoryIx = uxdClient.createEditMangoDepositoryInstruction(
     controller,
     depository,
     authority.publicKey,
