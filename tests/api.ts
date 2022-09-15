@@ -482,7 +482,7 @@ export async function rebalanceMangoDepositoryLite(
 
   const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
 
-  if (!(await getConnection().getAccountInfo(userCollateralAta))) {
+  if (!(await getConnection().getAccountInfo(userCollateralAta)) && !depository.collateralMint.equals(NATIVE_MINT)) {
     const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
     tx.add(createUserCollateralAtaIx);
   }
@@ -498,10 +498,6 @@ export async function rebalanceMangoDepositoryLite(
   if (payer) {
     signers.push(payer);
   }
-  tx.feePayer = payer.publicKey;
-  await web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-
-  tx = new Transaction();
   tx.add(rebalanceMangoDepositoryLiteIx);
   tx.feePayer = payer.publicKey;
   let txId = web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
