@@ -16,32 +16,22 @@ env:
   ANCHOR_VERSION: 0.24.2
   CLUSTER: "devnet"
   DEVNET_RPC: https://api.devnet.solana.com 
-  # DEVNET_FAUCET: "9B5XszUGdMaxCZ7uSQhPzdks5ZQSmWxrmzCSvtJ6Ns6g"
   # Default wallet
   RUNNER_WALLET_PATH: "/home/runner/.config/solana/id.json"
   # Funding wallet
   BANK_WALLET_PATH: "./target/deploy/bank-keypair.json"
   CI_DEPLOYMENT_AUTHORITY_WALLET_PATH: "./target/deploy/ci-resident-upgrade-authority.json"
   # This program stays deployed to test over time
-  # RESIDENT_PROGRAM_ID: 55NneSZjuFv6cVDQxYKZ1UF99JoximnzP9aY65fJ4JT9
-  RESIDENT_PROGRAM_KEYPAIR: ./target/deploy/ci-resident-keypair.json # another way to get the ID
-  # Accounts used to MM on mango market
-  MANGO_ACCOUNT_MM_SOL: "8fbL4156uoVYYyY9cvA6hVBBTdui9356tdKmFbkC6t6w"
-  MANGO_ACCOUNT_MM_BTC: "4Tw2AjjEXSWvFC9CCm88yhswRGgJokxiQnJDtVnVctTc"
-  MANGO_ACCOUNT_MM_ETH: "Bnutxi4RpfduHSuQ2ZtDAEb4GegU3X1gmWZhQpe1YMts"
+  RESIDENT_PROGRAM_KEYPAIR: ./target/deploy/ci-resident-keypair.json
   #
   NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
   #
   DEPLOYMENT_FUNDING_AMOUNT: 10
-  MM_FUNDING_AMOUNT: 0.5  # Keep small it's lost
   TRANSACTION_FEE_OFFSET: 0.005
   # Name of the tests files in the program repo. We use them for sed and swap the `anchor test`
   TEST_DEV: "test_development"
-  TEST_INTEGRATION: "test_integration"
-  # TEST_CI_FRESH: "test_ci_fresh"
-  TEST_CI_SOL: "test_ci_sol"
-  TEST_CI_BTC: "test_ci_btc"
-  TEST_CI_ETH: "test_ci_eth"
+  TEST_CI_SETUP: "test_ci_setup"
+  TEST_CI_REGULAR_MINT_REDEEM: "test_ci_regular_mint_redeem"
   TEST_CI_REBALANCING: "test_ci_rebalancing"
   TEST_CI_QUOTE_MINT_REDEEM: "test_ci_quote_mint_redeem"
   # Mango MM SOL PERP PARAMS
@@ -130,7 +120,7 @@ jobs:
           npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} build
-          solana program deploy ./target/deploy/uxd.so --program-id ${{ env.RESIDENT_PROGRAM_KEYPAIR }} --upgrade-authority ${{ env.CI_DEPLOYMENT_AUTHORITY_WALLET_PATH }} -v
+          solana program deploy ./target/deploy/uxd.so --program-id ${{ env.RESIDENT_PROGRAM_KEYPAIR }} --upgrade-authority ${{ env.CI_DEPLOYMENT_AUTHORITY_WALLET_PATH }}
       - name: Returning funded runner wallet SOLs to the bank
         run: |
           solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
@@ -163,10 +153,9 @@ jobs:
           echo -e 'export PARAMS=devnet_sol_perp.json' >> .env
           . .env && yarn mm
 
-  anchor-test-mango-depository-SOL:
-    name: Test SOL MangoDepository against the resident program
+  anchor-test-setup:
+    name: Setup UXD Suite
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     needs: [anchor-build-and-deploy]
     steps:
       # Checkout
@@ -240,7 +229,90 @@ jobs:
         run: |
           npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
-          sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_SOL }}/g" ./Anchor.toml
+          sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_SETUP }}/g" ./Anchor.toml
+          npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
+      - name: Returning funded runner wallet SOLs to the bank
+        run: |
+          solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
+
+  anchor-test-mango-depository-SOL:
+    name: Test SOL MangoDepository against the resident program
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [anchor-test-setup]
+    steps:
+      # Checkout
+      - uses: actions/checkout@v2
+      # Install Rust
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          profile: minimal
+      # Install solana
+      - name: Cache Solana Tool Suite
+        uses: actions/cache@v2  
+        id: cache-solana
+        with:
+          path: |
+            ~/.cache/solana/
+            ~/.local/share/solana/
+          key: solana-${{ runner.os }}-v0000-${{ env.SOLANA_VERSION }}
+      - name: install solana
+        if: steps.cache-solana.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config build-essential libudev-dev
+          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
+      - name: Add Solana to PATH
+        run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
+      - name: Setup solana 
+        run: |
+          solana --version
+          solana config set -u d
+          solana config set --url ${{ env.DEVNET_RPC}}
+      - name: Node 14 installation
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
+      # Create Keypair
+      - name: Create Runner keypair and funds it
+        run: |
+          solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }} --no-passphrase --silent
+          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) 1 --allow-unfunded-recipient
+          solana balance
+      # Cargo caching
+      - name: Cache Cargo registry + index
+        uses: actions/cache@v2  
+        id: cache-anchor
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: cargo-${{ runner.os }}-v0000-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache target folder
+        uses: actions/cache@v2
+        id: cache-programs
+        with:
+          path: |
+            ./target/debug
+            ./target/release
+            ./target/bpfel-unknown-unknown
+          key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
+      - name: Anchor Test (skip build and deploy)
+        run: |
+          npm ci --ignore-scripts
+          ./scripts/swap_ci_resident_program_id.sh
+          sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_REGULAR_MINT_REDEEM }}/g" ./Anchor.toml
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
       - name: Returning funded runner wallet SOLs to the bank
         run: |
@@ -250,7 +322,7 @@ jobs:
     name: Test Rebalancing MangoDepository (SOL) against the resident program
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [anchor-test-mango-depository-SOL]
+    needs: [anchor-test-setup]
     steps:
       # Checkout
       - uses: actions/checkout@v2
@@ -333,7 +405,7 @@ jobs:
     name: Test Quote mint redeem MangoDepository (SOL) against the resident program
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [anchor-test-mango-depository-SOL]
+    needs: [anchor-test-setup]
     steps:
       # Checkout
       - uses: actions/checkout@v2
