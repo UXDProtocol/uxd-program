@@ -76,19 +76,18 @@ pub struct RegisterMangoDepositoryEventV2 {
 /// Event called in [instructions::register_mercurial_vault_depository::handler].
 #[event]
 pub struct RegisterMercurialVaultDepositoryEvent {
-    /// The controller version.
     #[index]
     pub version: u8,
-    /// The depository version.
     #[index]
     pub depository_version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    // The collateral mint.
+    #[index]
+    pub mercurial_vault: Pubkey,
+    #[index]
+    pub depository_lp_token_vault: Pubkey,
     pub collateral_mint: Pubkey,
 }
 

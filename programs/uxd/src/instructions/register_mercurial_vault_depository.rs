@@ -130,6 +130,8 @@ pub fn handler(
         depository_version: depository.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
+        mercurial_vault: ctx.accounts.mercurial_vault.key(),
+        depository_lp_token_vault: ctx.accounts.depository_lp_token_vault.key(),
         collateral_mint: ctx.accounts.collateral_mint.key(),
     });
 

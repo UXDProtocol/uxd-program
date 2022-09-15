@@ -8,25 +8,22 @@ import { getConnection, TXN_OPTS } from "../connection";
 import { setRedeemableGlobalSupplyCapTest } from "../cases/setRedeemableGlobalSupplyCapTest";
 import { BN } from "@project-serum/anchor";
 
-let initialRedeemableAccountBalance: number;
-let initialControllerGlobalRedeemableSupplyCap: BN;
-let userRedeemableATA: PublicKey;
-let onchainDepository: MercurialVaultDepositoryAccount;
-let onchainController: ControllerAccount;
-
 export const mercurialVaultDepositoryMintRedeemSuite = function (controllerAuthority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository) {
-    before(`Setup: Transfer 1 ${depository.collateralMint.symbol} from payer to user`, async function () {
+    let initialRedeemableAccountBalance: number;
+    let initialControllerGlobalRedeemableSupplyCap: BN;
+    let userRedeemableATA: PublicKey;
+    let onchainController: ControllerAccount;
+
+    before(`Setup: Transfer 0.1 ${depository.collateralMint.symbol} from payer to user`, async function () {
         await transferTokens(0.1, depository.collateralMint.mint, depository.collateralMint.decimals, payer, user.publicKey);
 
         userRedeemableATA = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
 
         [
             initialRedeemableAccountBalance,
-            onchainDepository,
             onchainController,
         ] = await Promise.all([
             getBalance(userRedeemableATA),
-            depository.getOnchainAccount(getConnection(), TXN_OPTS),
             controller.getOnchainAccount(getConnection(), TXN_OPTS),
         ]);
 
@@ -178,7 +175,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = function (controllerAutho
             expect(false, `Should have failed - amount of redeemable overflow the global redeemable supply cap`);
         });
 
-        it(`Reset Global Redeemable supply cap back to `, async function () {
+        it(`Reset Global Redeemable supply cap back to ${initialControllerGlobalRedeemableSupplyCap.toString()}`, async function () {
             const globalRedeemableSupplyCap = nativeToUi(initialControllerGlobalRedeemableSupplyCap, controller.redeemableMintDecimals);
 
             await setRedeemableGlobalSupplyCapTest(globalRedeemableSupplyCap, controllerAuthority, controller);
