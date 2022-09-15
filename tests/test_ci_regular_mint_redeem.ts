@@ -40,7 +40,7 @@ describe("Integration tests SOL", function () {
 
   this.beforeAll("Init and fund user", async function () {
     console.log("USER =>", user.publicKey.toString());
-    await transferSol(1, bank, user.publicKey);
+    await transferSol(2, bank, user.publicKey);
   });
 
   describe("mangoDepositoryAndControllerInteractionsSuite", function () {
