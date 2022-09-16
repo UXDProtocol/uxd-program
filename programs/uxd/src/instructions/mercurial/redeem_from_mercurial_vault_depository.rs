@@ -1,7 +1,7 @@
 use crate::error::UxdError;
+use crate::utils;
 use crate::Controller;
 use crate::MercurialVaultDepository;
-use crate::BPS_UNIT_CONVERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
@@ -132,9 +132,10 @@ pub fn handler(
     // 1 - Calculate the collateral amount to redeem. Redeem 1:1 less redeeming fees.
     let base_collateral_amount = redeemable_amount;
 
-    let collateral_amount_less_fees = ctx
-        .accounts
-        .calculate_collateral_amount_less_fees(base_collateral_amount)?;
+    let collateral_amount_less_fees = utils::calculate_amount_less_fees(
+        base_collateral_amount,
+        ctx.accounts.depository.load()?.redeeming_fee_in_bps,
+    )?;
 
     let total_paid_fees = base_collateral_amount
         .checked_sub(collateral_amount_less_fees)
@@ -286,33 +287,6 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
             .ok_or_else(|| error!(UxdError::MathError))?;
 
         Ok(())
-    }
-
-    fn calculate_collateral_amount_less_fees(&self, base_collateral_amount: u64) -> Result<u64> {
-        let redeeming_fee_in_bps = self.depository.load()?.redeeming_fee_in_bps;
-
-        // Math: 5 bps fee would equate to bps_redeemed_to_user
-        // being 9995 since 10000 - 5 = 9995
-        let bps_redeemed_to_user: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_sub(redeeming_fee_in_bps.into())
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        // Math: Multiplies the base_collateral_amount by how many BPS the user will get
-        // but the units are still in units of BPS, not as a decimal, so then
-        // divide by the BPS_POW to get to the right order of magnitude.
-        let collateral_amount_less_fees: u64 = bps_redeemed_to_user
-            .checked_mul_int(base_collateral_amount.into())
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_div_int(BPS_UNIT_CONVERSION.into())
-            .ok_or_else(|| error!(UxdError::MathError))?
-            // Round down the number to attribute the precision loss to the user
-            .checked_floor()
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_to_num::<u64>()
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        Ok(collateral_amount_less_fees)
     }
 
     fn calculate_lp_amount_to_withdraw_to_match_collateral(

@@ -1,7 +1,7 @@
 use crate::error::UxdError;
+use crate::utils;
 use crate::Controller;
 use crate::MercurialVaultDepository;
-use crate::BPS_UNIT_CONVERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
@@ -160,9 +160,10 @@ pub fn handler(
     // Mint redeemable 1:1 with provided collateral minus fees minus minting precision loss
     let base_redeemable_amount = minted_lp_token_value;
 
-    let redeemable_amount_less_fees = ctx
-        .accounts
-        .calculate_redeemable_amount_less_fees(base_redeemable_amount)?;
+    let redeemable_amount_less_fees = utils::calculate_amount_less_fees(
+        base_redeemable_amount,
+        ctx.accounts.depository.load()?.minting_fee_in_bps,
+    )?;
 
     let total_paid_fees = base_redeemable_amount
         .checked_sub(redeemable_amount_less_fees)
@@ -293,33 +294,6 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
                 lp_token_amount,
                 self.mercurial_vault_lp_mint.supply,
             )
-            .ok_or_else(|| error!(UxdError::MathError))
-    }
-
-    fn calculate_redeemable_amount_less_fees(&self, base_redeemable_amount: u64) -> Result<u64> {
-        let minting_fee_in_bps = self.depository.load()?.minting_fee_in_bps;
-
-        // Math: 5 bps fee would equate to bps_minted_to_user
-        // being 9995 since 10000 - 5 = 9995
-        let bps_minted_to_user: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_sub(minting_fee_in_bps.into())
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        // Math: Multiplies the base_redeemable_amount by how many BPS the user will get
-        // but the units are still in units of BPS, not as a decimal, so then
-        // divide by the BPS_POW to get to the right order of magnitude.
-        let redeemable_amount_less_fees = bps_minted_to_user
-            .checked_mul_int(base_redeemable_amount.into())
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_div_int(BPS_UNIT_CONVERSION.into())
-            .ok_or_else(|| error!(UxdError::MathError))?
-            // Round down the number to attribute the precision loss to the user
-            .checked_floor()
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        redeemable_amount_less_fees
-            .checked_to_num::<u64>()
             .ok_or_else(|| error!(UxdError::MathError))
     }
 
