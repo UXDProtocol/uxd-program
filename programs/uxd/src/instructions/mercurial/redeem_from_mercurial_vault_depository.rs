@@ -206,11 +206,24 @@ pub fn handler(
     )?;
 
     // 9 - Update Onchain accounting to reflect the changes
-    ctx.accounts.update_onchain_accounting(
-        collateral_balance_change.into(),
-        redeemable_amount.into(),
-        total_paid_fees.into(),
-    )?;
+    let redeemable_amount_change = i128::from(redeemable_amount)
+        .checked_mul(-1)
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    ctx.accounts
+        .controller
+        .load_mut()?
+        .update_onchain_accounting_following_mint_or_redeem(redeemable_amount_change)?;
+
+    ctx.accounts
+        .depository
+        .load_mut()?
+        .update_onchain_accounting_following_mint_or_redeem(
+            collateral_balance_change.into(),
+            redeemable_amount_change,
+            0,
+            total_paid_fees.into(),
+        )?;
 
     msg!("redeemable_amount: {}, base_collateral_amount: {}, collateral_amount_less_fees: {}, total_paid_fees: {}, lp_token_change: {}", redeemable_amount, base_collateral_amount,  collateral_amount_less_fees, total_paid_fees, lp_token_change);
 
@@ -254,41 +267,6 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
 
 // Additional convenience methods related to the inputted accounts
 impl<'info> RedeemFromMercurialVaultDepository<'info> {
-    // Update the accounting in the Depository and Controller Accounts to reflect changes
-    fn update_onchain_accounting(
-        &mut self,
-        collateral_withdrawn_amount: u128,
-        redeemable_burnt_amount: u128,
-        total_paid_fees: u128,
-    ) -> Result<()> {
-        let mut depository = self.depository.load_mut()?;
-        let mut controller = self.controller.load_mut()?;
-
-        // Depository
-        depository.collateral_amount_deposited = depository
-            .collateral_amount_deposited
-            .checked_sub(collateral_withdrawn_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        depository.minted_redeemable_amount = depository
-            .minted_redeemable_amount
-            .checked_sub(redeemable_burnt_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        depository.total_paid_redeem_fees = depository
-            .total_paid_redeem_fees
-            .checked_add(total_paid_fees)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        // Controller
-        controller.redeemable_circulating_supply = controller
-            .redeemable_circulating_supply
-            .checked_sub(redeemable_burnt_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        Ok(())
-    }
-
     fn calculate_lp_amount_to_withdraw_to_match_collateral(
         &self,
         target_collateral_value: u64,

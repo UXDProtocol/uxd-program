@@ -184,11 +184,20 @@ pub fn handler(
     )?;
 
     // 8 - Update Onchain accounting to reflect the changes
-    ctx.accounts.update_onchain_accounting(
-        collateral_amount.into(),
-        redeemable_amount_less_fees.into(),
-        total_paid_fees.into(),
-    )?;
+    ctx.accounts
+        .controller
+        .load_mut()?
+        .update_onchain_accounting_following_mint_or_redeem(redeemable_amount_less_fees.into())?;
+
+    ctx.accounts
+        .depository
+        .load_mut()?
+        .update_onchain_accounting_following_mint_or_redeem(
+            collateral_amount.into(),
+            redeemable_amount_less_fees.into(),
+            total_paid_fees.into(),
+            0,
+        )?;
 
     // 9 - Check that we don't mint more UXD than the fixed limit
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
@@ -236,41 +245,6 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
 
 // Additional convenience methods related to the inputted accounts
 impl<'info> MintWithMercurialVaultDepository<'info> {
-    // Update the accounting in the Depository and Controller Accounts to reflect changes
-    fn update_onchain_accounting(
-        &mut self,
-        collateral_amount_deposited: u128,
-        redeemable_minted_amount: u128,
-        total_paid_fees: u128,
-    ) -> Result<()> {
-        let mut depository = self.depository.load_mut()?;
-        let mut controller = self.controller.load_mut()?;
-
-        // Depository
-        depository.collateral_amount_deposited = depository
-            .collateral_amount_deposited
-            .checked_add(collateral_amount_deposited)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        depository.minted_redeemable_amount = depository
-            .minted_redeemable_amount
-            .checked_add(redeemable_minted_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        depository.total_paid_mint_fees = depository
-            .total_paid_mint_fees
-            .checked_add(total_paid_fees)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        // Controller
-        controller.redeemable_circulating_supply = controller
-            .redeemable_circulating_supply
-            .checked_add(redeemable_minted_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        Ok(())
-    }
-
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
     fn check_redeemable_global_supply_cap_overflow(&self) -> Result<()> {
         let controller = self.controller.load()?;

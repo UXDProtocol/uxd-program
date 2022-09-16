@@ -1,4 +1,7 @@
 use anchor_lang::prelude::*;
+use fixed::types::I80F48;
+
+use crate::error::UxdError;
 
 // Total should be 900 bytes
 pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 661;
@@ -74,4 +77,55 @@ pub struct MercurialVaultDepository {
     // The amount of fees accrued from redeeming
     // Expressed in redeemable mint decimals (6)
     pub total_paid_redeem_fees: u128,
+}
+
+impl MercurialVaultDepository {
+    // provides numbers + or - depending on the change
+    pub fn update_onchain_accounting_following_mint_or_redeem(
+        &mut self,
+        collateral_amount_deposited_change: i128,
+        redeemable_amount_change: i128,
+        paid_mint_fees_change: i128,
+        paid_redeem_fees_change: i128,
+    ) -> std::result::Result<(), UxdError> {
+        self.collateral_amount_deposited =
+            I80F48::checked_from_num(self.collateral_amount_deposited)
+                .ok_or(UxdError::MathError)?
+                .checked_add(
+                    I80F48::checked_from_num(collateral_amount_deposited_change)
+                        .ok_or(UxdError::MathError)?,
+                )
+                .ok_or(UxdError::MathError)?
+                .checked_to_num()
+                .ok_or(UxdError::MathError)?;
+
+        self.minted_redeemable_amount = I80F48::checked_from_num(self.minted_redeemable_amount)
+            .ok_or(UxdError::MathError)?
+            .checked_add(
+                I80F48::checked_from_num(redeemable_amount_change).ok_or(UxdError::MathError)?,
+            )
+            .ok_or(UxdError::MathError)?
+            .checked_to_num()
+            .ok_or(UxdError::MathError)?;
+
+        self.total_paid_mint_fees = I80F48::checked_from_num(self.total_paid_mint_fees)
+            .ok_or(UxdError::MathError)?
+            .checked_add(
+                I80F48::checked_from_num(paid_mint_fees_change).ok_or(UxdError::MathError)?,
+            )
+            .ok_or(UxdError::MathError)?
+            .checked_to_num()
+            .ok_or(UxdError::MathError)?;
+
+        self.total_paid_redeem_fees = I80F48::checked_from_num(self.total_paid_redeem_fees)
+            .ok_or(UxdError::MathError)?
+            .checked_add(
+                I80F48::checked_from_num(paid_redeem_fees_change).ok_or(UxdError::MathError)?,
+            )
+            .ok_or(UxdError::MathError)?
+            .checked_to_num()
+            .ok_or(UxdError::MathError)?;
+
+        Ok(())
+    }
 }
