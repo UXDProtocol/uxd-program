@@ -210,6 +210,10 @@ pub fn handler(
         .checked_mul(-1)
         .ok_or_else(|| error!(UxdError::MathError))?;
 
+    let collateral_amount_deposited_change = i128::from(collateral_balance_change)
+        .checked_mul(-1)
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
     ctx.accounts
         .controller
         .load_mut()?
@@ -219,7 +223,7 @@ pub fn handler(
         .depository
         .load_mut()?
         .update_onchain_accounting_following_mint_or_redeem(
-            collateral_balance_change.into(),
+            collateral_amount_deposited_change,
             redeemable_amount_change,
             0,
             total_paid_fees.into(),
