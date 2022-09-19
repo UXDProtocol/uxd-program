@@ -1,7 +1,7 @@
 [package]
 name = "uxd"
-version = "3.1.0"
-authors = ["acammm <alexcamill@gmail.com>"]
+version = "4.0.0"
+authors = ["acammm <alexcamill@gmail.com>, cnek <ctk2012ac@gmail.com>, G. Neut <gregory.neut@gmail.com>, L. Gaye <alg747@protonmail.com>, V. Brunet <wincerouge@gmail.com>"]
 description = "UXDProtocol Program, managing a redeemable mint backed by a delta neutral position."
 edition = "2021"
 rust-version = "1.56"
