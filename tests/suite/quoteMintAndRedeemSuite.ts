@@ -258,13 +258,12 @@ export const quoteMintAndRedeemSuite = function (
     expect(false, "Should have failed - No collateral deposited yet");
   });
 
-  it(`Redeem remaining ${controller.redeemableMintSymbol} (${
-    (20 / slippageBase) * 100
-  } % slippage)`, async function () {
-    const userRedeemableATA: PublicKey = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
-    const remainingRedeemableAmount = await getBalance(userRedeemableATA);
-    await redeemFromMangoDepositoryTest(remainingRedeemableAmount, 20, user, controller, depository, mango, payer);
-  });
+  it(`Redeem remaining ${controller.redeemableMintSymbol} (${(20 / slippageBase) * 100
+    } % slippage)`, async function () {
+      const userRedeemableATA: PublicKey = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
+      const remainingRedeemableAmount = await getBalance(userRedeemableATA);
+      await redeemFromMangoDepositoryTest(remainingRedeemableAmount, 20, user, controller, depository, mango, payer);
+    });
 
   it(`Return remaining balances from user to the payer`, async function () {
     await transferAllTokens(depository.quoteMint, depository.quoteMintDecimals, user, payer.publicKey);
