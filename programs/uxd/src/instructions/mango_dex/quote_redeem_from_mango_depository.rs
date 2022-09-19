@@ -1,3 +1,4 @@
+use crate::events::QuoteRedeemFromMangoDepositoryEvent;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::PerpInfo;
 use crate::validate_perp_market_mints_matches_depository_mints;
@@ -12,17 +13,16 @@ use crate::REDEEMABLE_MINT_NAMESPACE;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
-use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use fixed::types::I80F48;
 use mango::state::MangoAccount;
 use mango::state::PerpAccount;
 
+/// Takes 18 accounts
 #[derive(Accounts)]
 pub struct QuoteRedeemFromMangoDepository<'info> {
     /// #1 Public call accessible to any user
@@ -133,22 +133,25 @@ pub struct QuoteRedeemFromMangoDepository<'info> {
     /// #17 Token Program
     pub token_program: Program<'info, Token>,
 
-    /// #18 Associated Token Program
-    pub associated_token_program: Program<'info, AssociatedToken>,
-
-    /// #19 MangoMarketv3 Program
+    /// #18 MangoMarketv3 Program
     pub mango_program: Program<'info, MangoMarketV3>,
-
-    /// #20 Rent Sysvar
-    pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: u64) -> Result<()> {
+pub(crate) fn handler(
+    ctx: Context<QuoteRedeemFromMangoDepository>,
+    redeemable_amount: u64,
+) -> Result<()> {
     let depository = ctx.accounts.depository.load()?;
+    let collateral_mint = depository.collateral_mint;
+    let depository_bump = depository.bump;
+    let redeemable_amount_under_management = depository.redeemable_amount_under_management;
+    let quote_redeem_fee = depository.quote_mint_and_redeem_fee;
+    drop(depository);
+
     let depository_signer_seed: &[&[&[u8]]] = &[&[
         MANGO_DEPOSITORY_NAMESPACE,
-        depository.collateral_mint.as_ref(),
-        &[depository.bump],
+        collateral_mint.as_ref(),
+        &[depository_bump],
     ]];
 
     // - [Get perp information]
@@ -187,7 +190,7 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
     // minus the perp position notional size in quote.
     // Ideally they stay 1:1, to have the redeemable fully backed by the delta neutral
     // position and no paper profits.
-    let redeemable_under_management = i128::try_from(depository.redeemable_amount_under_management)
+    let redeemable_under_management = i128::try_from(redeemable_amount_under_management)
         .map_err(|_e| error!(UxdError::MathError))?;
 
     msg!(
@@ -210,7 +213,6 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
         UxdError::InvalidPnlPolarity
     );
 
-    msg!("redeemable_amount {}", redeemable_amount);
     msg!("perp_unrealized_pnl {}", perp_unrealized_pnl);
 
     // Checks that the requested redeem amount is lesser than or equal to the available amount
@@ -223,13 +225,9 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
 
     // - 3 [BURN USER'S REDEEMABLE] -------------------------------------------
     // Burn will fail if user does not have enough redeemable
-    token::burn(
-        ctx.accounts.into_burn_redeemable_context(),
-        redeemable_amount,
-    )?;
+    token::burn(ctx.accounts.to_burn_redeemable_context(), redeemable_amount)?;
 
     // - 4 [WITHDRAW QUOTE MINT FROM MANGO ACCOUNT] ---------------------------
-    let quote_redeem_fee = depository.quote_mint_and_redeem_fee;
 
     // Math: 5 bps fee would equate to bps_redeemed_to_user
     // being 9995 since 10000 - 5 = 9995
@@ -253,22 +251,37 @@ pub fn handler(ctx: Context<QuoteRedeemFromMangoDepository>, redeemable_amount: 
 
     mango_markets_v3::withdraw(
         ctx.accounts
-            .into_withdraw_quote_mint_from_mango_context()
+            .to_withdraw_quote_mint_from_mango_context()
             .with_signer(depository_signer_seed),
         quote_withdraw_amount_less_fees,
         false,
     )?;
 
     // - 5 [UPDATE ACCOUNTING] ------------------------------------------------
-    drop(depository);
-    ctx.accounts
-        .update_onchain_accounting(redeemable_amount, quote_withdraw_amount_less_fees)?;
+    let fees_accrued: u64 = redeemable_amount
+        .checked_sub(quote_withdraw_amount_less_fees)
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    ctx.accounts.update_onchain_accounting(
+        redeemable_amount,
+        quote_withdraw_amount_less_fees,
+        fees_accrued,
+    )?;
+
+    emit!(QuoteRedeemFromMangoDepositoryEvent {
+        version: ctx.accounts.controller.load()?.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        quote_redeemable_amount: redeemable_amount,
+        quote_redeem_fee: fees_accrued
+    });
 
     Ok(())
 }
 
 impl<'info> QuoteRedeemFromMangoDepository<'info> {
-    pub fn into_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+    fn to_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
@@ -278,7 +291,7 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_withdraw_quote_mint_from_mango_context(
+    fn to_withdraw_quote_mint_from_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Withdraw<'info>> {
         let cpi_accounts = mango_markets_v3::Withdraw {
@@ -296,27 +309,15 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
-        let cpi_program = self.token_program.to_account_info();
-        let cpi_accounts = MintTo {
-            mint: self.redeemable_mint.to_account_info(),
-            to: self.user_redeemable.to_account_info(),
-            authority: self.controller.to_account_info(),
-        };
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
     // Update the accounting in the Depository and Controller Accounts to reflect changes
     fn update_onchain_accounting(
         &mut self,
         redeemable_amount: u64,
         quote_withdraw_amount: u64,
+        fees_accrued: u64,
     ) -> Result<()> {
         let depository = &mut self.depository.load_mut()?;
         let controller = &mut self.controller.load_mut()?;
-        let fees_accrued: u64 = redeemable_amount
-            .checked_sub(quote_withdraw_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
         // Mango Depository
         depository.net_quote_minted = depository
             .net_quote_minted
@@ -370,7 +371,7 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> QuoteRedeemFromMangoDepository<'info> {
-    pub fn validate(&self, redeemable_amount: u64) -> Result<()> {
+    pub(crate) fn validate(&self, redeemable_amount: u64) -> Result<()> {
         require!(redeemable_amount != 0, UxdError::InvalidRedeemableAmount);
         validate_perp_market_mints_matches_depository_mints(
             &self.mango_group,
