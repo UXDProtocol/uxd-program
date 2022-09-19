@@ -27,19 +27,18 @@ export const quoteMintAndRedeemSuite = function (
     await transferTokens(50, depository.quoteMint, depository.quoteMintDecimals, payer, user.publicKey);
   });
 
-  // // to prepare enough collateral in user's wallet for quote mint, if the polarity is negative
-  // // would transfer back to bank at the end of the test suite
-  // it(`Transfer 50 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
-  //   const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-  //   const amount = 50 / perpPrice;
-  //   console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
-  //   // For Wsol we send sol, the API handle the wrapping before each minting
-  //   if (depository.collateralMint.equals(NATIVE_MINT)) {
-  //     await transferSol(amount, payer, user.publicKey);
-  //   } else {
-  //     await transferTokens(amount, depository.collateralMint, depository.collateralMintDecimals, payer, user.publicKey);
-  //   }
-  // });
+  // to prepare enough SOL for minting below
+  it(`Transfer 50 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
+    const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+    const amount = 50 / perpPrice;
+    console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
+    // For Wsol we send sol, the API handle the wrapping before each minting
+    if (depository.collateralMint.equals(NATIVE_MINT)) {
+      await transferSol(amount, payer, user.publicKey);
+    } else {
+      await transferTokens(amount, depository.collateralMint, depository.collateralMintDecimals, payer, user.publicKey);
+    }
+  });
 
   // to prepare enough redeemable mint in user's wallet for quote redeem, if the polarity is positive
   // would redeem the remaining before the end of the test suite
