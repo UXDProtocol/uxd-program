@@ -51,7 +51,7 @@ pub(crate) fn handler(
             version: ctx.accounts.controller.load()?.version,
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
-            quote_mint_and_redeem_fee: quote_mint_and_redeem_fee
+            quote_mint_and_redeem_fee
         });
     }
     Ok(())

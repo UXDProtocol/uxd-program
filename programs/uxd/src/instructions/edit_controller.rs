@@ -38,7 +38,7 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
         emit!(SetMangoDepositoryQuoteMintAndRedeemSoftCapEvent {
             version: controller.version,
             controller: ctx.accounts.controller.key(),
-            quote_mint_and_redeem_soft_cap: quote_mint_and_redeem_soft_cap
+            quote_mint_and_redeem_soft_cap
         });
     }
     // Optionally edit "redeemable_soft_cap"
