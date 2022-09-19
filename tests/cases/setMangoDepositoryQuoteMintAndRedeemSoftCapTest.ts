@@ -6,32 +6,45 @@ import { setMangoDepositoryQuoteMintAndRedeemSoftCap } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
 
-export const setMangoDepositoryQuoteMintAndRedeemSoftCapTest = async function (softCap: number, authority: Signer, controller: Controller, depository: MangoDepository) {
-    const connection = getConnection();
-    const options = TXN_OPTS;
+export const setMangoDepositoryQuoteMintAndRedeemSoftCapTest = async function (
+  quoteMintAndRedeemSoftCap: number,
+  authority: Signer,
+  controller: Controller,
+  depository: MangoDepository
+) {
+  const connection = getConnection();
+  const options = TXN_OPTS;
 
-    console.group("🧭 setMangoDepositoryQuoteMintAndRedeemSoftCapTest");
-    try {
-        // GIVEN
-        const controllerOnChainAccount = await controller.getOnchainAccount(connection, options);
-        const softCap_pre = controllerOnChainAccount.mangoDepositoriesQuoteRedeemableSoftCap;
+  console.group("🧭 setMangoDepositoryQuoteMintAndRedeemSoftCapTest");
+  try {
+    // GIVEN
+    const controllerOnChainAccount = await controller.getOnchainAccount(connection, options);
+    const quoteMintAndRedeemSoftCap_pre = controllerOnChainAccount.mangoDepositoriesQuoteRedeemableSoftCap;
 
-        // WHEN
-        const txId = await setMangoDepositoryQuoteMintAndRedeemSoftCap(authority, controller, depository, softCap);
-        console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
+    // WHEN
+    const txId = await setMangoDepositoryQuoteMintAndRedeemSoftCap(
+      authority,
+      controller,
+      depository,
+      quoteMintAndRedeemSoftCap
+    );
+    console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
-        // THEN
-        const controllerOnChainAccount_post = await controller.getOnchainAccount(connection, options);
-        const softCap_post = controllerOnChainAccount_post.mangoDepositoriesQuoteRedeemableSoftCap;
-        const softCap_postUi = nativeToUi(softCap_post.toNumber(), depository.quoteMintDecimals);
+    // THEN
+    const controllerOnChainAccount_post = await controller.getOnchainAccount(connection, options);
+    const quoteMintAndRedeemSoftCap_post = controllerOnChainAccount_post.mangoDepositoriesQuoteRedeemableSoftCap;
+    const quoteMintAndRedeemSoftCap_postUi = nativeToUi(
+      quoteMintAndRedeemSoftCap_post.toNumber(),
+      depository.quoteMintDecimals
+    );
 
-        expect(softCap_postUi).equals(softCap, "The soft cap has not changed.");
-        console.log(`🧾 Previous soft cap was`, softCap_pre, "now is", softCap_post);
-        controller.info();
-        console.groupEnd();
-    } catch (error) {
-        console.error("❌", error);
-        console.groupEnd();
-        throw error;
-    }
-}
+    console.log(`🧾 Previous soft cap was`, quoteMintAndRedeemSoftCap_pre, "now is", quoteMintAndRedeemSoftCap_post);
+    expect(quoteMintAndRedeemSoftCap_postUi).equals(quoteMintAndRedeemSoftCap, "The soft cap must be set.");
+    controller.info();
+    console.groupEnd();
+  } catch (error) {
+    console.error("❌", error);
+    console.groupEnd();
+    throw error;
+  }
+};

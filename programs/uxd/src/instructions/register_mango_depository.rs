@@ -17,7 +17,7 @@ use std::mem::size_of;
 
 const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
-/// Takes 12 accounts - 8 used locally - 1 for CPI - 3 Programs - 1 Sysvar
+/// Takes 12 accounts - 7 used locally - 1 for CPI - 3 Programs - 1 Sysvar
 #[derive(Accounts)]
 pub struct RegisterMangoDepository<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
@@ -82,7 +82,7 @@ pub struct RegisterMangoDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
+pub(crate) fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     let collateral_mint = ctx.accounts.collateral_mint.key();
     let quote_mint = ctx.accounts.quote_mint.key();
 
@@ -99,7 +99,7 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     ]];
     mango_markets_v3::init_mango_account(
         ctx.accounts
-            .into_mango_init_account_context()
+            .to_mango_init_account_context()
             .with_signer(depository_signer_seed),
     )?;
 
@@ -145,7 +145,7 @@ pub fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
 }
 
 impl<'info> RegisterMangoDepository<'info> {
-    pub fn into_mango_init_account_context(
+    fn to_mango_init_account_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::InitMangoAccount<'info>> {
         let cpi_accounts = mango_markets_v3::InitMangoAccount {

@@ -11,7 +11,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
-/// Takes 14 accounts - 4 used locally - 7 for MangoMarkets CPI - 3 Programs
+/// Takes 14 accounts - 5 used locally - 6 for MangoMarkets CPI - 3 Programs
 #[derive(Accounts)]
 pub struct WithdrawInsuranceFromMangoDepository<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
@@ -92,7 +92,10 @@ pub struct WithdrawInsuranceFromMangoDepository<'info> {
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 
-pub fn handler(ctx: Context<WithdrawInsuranceFromMangoDepository>, amount: u64) -> Result<()> {
+pub(crate) fn handler(
+    ctx: Context<WithdrawInsuranceFromMangoDepository>,
+    amount: u64,
+) -> Result<()> {
     let depository = ctx.accounts.depository.load()?;
     let collateral_mint = depository.collateral_mint;
     let depository_bump = depository.bump;
@@ -109,7 +112,7 @@ pub fn handler(ctx: Context<WithdrawInsuranceFromMangoDepository>, amount: u64) 
     // - mango withdraw insurance_amount
     mango_markets_v3::withdraw(
         ctx.accounts
-            .into_withdraw_insurance_from_mango_context()
+            .to_withdraw_insurance_from_mango_context()
             .with_signer(depository_signer_seed),
         amount,
         false,
@@ -136,7 +139,7 @@ pub fn handler(ctx: Context<WithdrawInsuranceFromMangoDepository>, amount: u64) 
 }
 
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
-    pub fn into_withdraw_insurance_from_mango_context(
+    fn to_withdraw_insurance_from_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Withdraw<'info>> {
         let cpi_accounts = mango_markets_v3::Withdraw {
@@ -157,7 +160,7 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
-    pub fn validate(&self, insurance_amount: u64) -> Result<()> {
+    pub(crate) fn validate(&self, insurance_amount: u64) -> Result<()> {
         require!(insurance_amount != 0, UxdError::InvalidInsuranceAmount);
         // Mango withdraw will fail with proper error thanks to  `disabled borrow` set to true if the balance is not enough.
         Ok(())

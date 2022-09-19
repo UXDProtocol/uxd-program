@@ -58,7 +58,10 @@ pub struct InitializeController<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<InitializeController>, redeemable_mint_decimals: u8) -> Result<()> {
+pub(crate) fn handler(
+    ctx: Context<InitializeController>,
+    redeemable_mint_decimals: u8,
+) -> Result<()> {
     let controller = &mut ctx.accounts.controller.load_init()?;
     let redeemable_mint_unit = 10_u64
         .checked_pow(redeemable_mint_decimals.into())
@@ -102,7 +105,7 @@ pub fn handler(ctx: Context<InitializeController>, redeemable_mint_decimals: u8)
 // Validate input arguments
 impl<'info> InitializeController<'info> {
     // Asserts that the redeemable mint decimals is between 0 and 9.
-    pub fn validate(&self, decimals: u8) -> Result<()> {
+    pub(crate) fn validate(&self, decimals: u8) -> Result<()> {
         require!(
             decimals <= SOLANA_MAX_MINT_DECIMALS,
             UxdError::InvalidRedeemableMintDecimals
