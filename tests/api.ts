@@ -16,8 +16,6 @@ import {
 import { web3 } from "@project-serum/anchor";
 import { Payer } from "@blockworks-foundation/mango-client";
 
-// Permissionned Calls --------------------------------------------------------
-
 export async function initializeController(authority: Signer, payer: Signer, controller: Controller): Promise<string> {
   const initControllerIx = uxdClient.createInitializeControllerInstruction(
     controller,
@@ -38,8 +36,8 @@ export async function initializeController(authority: Signer, payer: Signer, con
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function mintWithMercurialPoolDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialPoolDepository, collateralAmount: number, minimumRedeemableAmount: number): Promise<string> {
-  const mintWithMercurialPoolDepositoryIx = uxdClient.createMintWithMercurialPoolInstruction(controller, depository, authority.publicKey, collateralAmount, minimumRedeemableAmount, TXN_OPTS, payer.publicKey);
+export async function mintWithMercurialVaultDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository, collateralAmount: number): Promise<string> {
+  const mintWithMercurialVaultDepositoryIx = uxdClient.createMintWithMercurialVaultInstruction(controller, depository, authority.publicKey, collateralAmount, TXN_OPTS, payer.publicKey);
   let signers = [];
   let tx = new Transaction();
 
@@ -49,15 +47,8 @@ export async function mintWithMercurialPoolDepository(authority: Signer, payer: 
     tx.add(createUserRedeemableAtaIx);
   }
 
-  const [userMercurialPoolSecondaryTokenAta] = findATAAddrSync(authority.publicKey, depository.mercurialPoolSecondaryToken.mint);
-  if (!await getConnection().getAccountInfo(userMercurialPoolSecondaryTokenAta)) {
-    const createUserMercurialPoolSecondaryTokenAtaIx = createAssocTokenIx(authority.publicKey, userMercurialPoolSecondaryTokenAta, depository.mercurialPoolSecondaryToken.mint);
-    tx.add(createUserMercurialPoolSecondaryTokenAtaIx);
-  }
-
-  tx.add(mintWithMercurialPoolDepositoryIx);
+  tx.add(mintWithMercurialVaultDepositoryIx);
   signers.push(authority);
-
   if (payer) {
     signers.push(payer);
   }
@@ -65,8 +56,8 @@ export async function mintWithMercurialPoolDepository(authority: Signer, payer: 
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function redeemFromMercurialPoolDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialPoolDepository, redeemableAmount: number): Promise<string> {
-  const redeemFromMercurialPoolDepositoryIx = uxdClient.createRedeemFromMercurialPoolInstruction(controller, depository, authority.publicKey, redeemableAmount, TXN_OPTS, payer.publicKey);
+export async function redeemFromMercurialVaultDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository, redeemableAmount: number): Promise<string> {
+  const redeemFromMercurialVaultDepositoryIx = uxdClient.createRedeemFromMercurialVaultInstruction(controller, depository, authority.publicKey, redeemableAmount, TXN_OPTS, payer.publicKey);
   let signers = [];
   let tx = new Transaction();
 
@@ -76,15 +67,8 @@ export async function redeemFromMercurialPoolDepository(authority: Signer, payer
     tx.add(createUserRedeemableAtaIx);
   }
 
-  const [userMercurialPoolSecondaryTokenAta] = findATAAddrSync(authority.publicKey, depository.mercurialPoolSecondaryToken.mint);
-  if (!await getConnection().getAccountInfo(userMercurialPoolSecondaryTokenAta)) {
-    const createUserMercurialPoolSecondaryTokenAtaIx = createAssocTokenIx(authority.publicKey, userMercurialPoolSecondaryTokenAta, depository.mercurialPoolSecondaryToken.mint);
-    tx.add(createUserMercurialPoolSecondaryTokenAtaIx);
-  }
-
-  tx.add(redeemFromMercurialPoolDepositoryIx);
+  tx.add(redeemFromMercurialVaultDepositoryIx);
   signers.push(authority);
-
   if (payer) {
     signers.push(payer);
   }
@@ -226,8 +210,6 @@ export async function setMangoDepositoriesRedeemableSoftCap(
 
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
-
-// Permissionless Calls -------------------------------------------------------
 
 export async function mintWithMangoDepository(
   user: Signer,
