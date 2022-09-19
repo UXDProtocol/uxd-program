@@ -965,7 +965,10 @@
           {
             "name": "registeredMangoDepositories",
             "type": {
-              "array": ["publicKey", 8]
+              "array": [
+                "publicKey",
+                8
+              ]
             }
           },
           {
@@ -1003,7 +1006,10 @@
           {
             "name": "unused",
             "type": {
-              "array": ["u8", 2]
+              "array": [
+                "u8",
+                2
+              ]
             }
           },
           {
@@ -1025,7 +1031,10 @@
           {
             "name": "unused2",
             "type": {
-              "array": ["u8", 32]
+              "array": [
+                "u8",
+                32
+              ]
             }
           },
           {
@@ -1035,7 +1044,10 @@
           {
             "name": "unused3",
             "type": {
-              "array": ["u8", 32]
+              "array": [
+                "u8",
+                32
+              ]
             }
           },
           {
