@@ -202,8 +202,6 @@ pub fn handler(
     // 9 - Check that we don't mint more UXD than the fixed limit
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
-    msg!("collateral_amount: {}, base_redeemable_amount: {}, redeemable_amount_less_fees: {}, total_paid_fees: {}, lp_token_change: {}", collateral_amount, base_redeemable_amount, redeemable_amount_less_fees, total_paid_fees, lp_token_change);
-
     Ok(())
 }
 

@@ -229,8 +229,6 @@ pub fn handler(
             total_paid_fees.into(),
         )?;
 
-    msg!("redeemable_amount: {}, base_collateral_amount: {}, collateral_amount_less_fees: {}, total_paid_fees: {}, lp_token_change: {}", redeemable_amount, base_collateral_amount,  collateral_amount_less_fees, total_paid_fees, lp_token_change);
-
     Ok(())
 }
 

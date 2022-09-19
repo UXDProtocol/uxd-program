@@ -84,9 +84,7 @@ pub struct RegisterMercurialVaultDepositoryEvent {
     pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
-    #[index]
     pub mercurial_vault: Pubkey,
-    #[index]
     pub depository_lp_token_vault: Pubkey,
     pub collateral_mint: Pubkey,
 }

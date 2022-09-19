@@ -1627,12 +1627,12 @@ export type Uxd = {
         {
           "name": "mercurialVault",
           "type": "publicKey",
-          "index": true
+          "index": false
         },
         {
           "name": "depositoryLpTokenVault",
           "type": "publicKey",
-          "index": true
+          "index": false
         },
         {
           "name": "collateralMint",
@@ -4037,12 +4037,12 @@ export const IDL: Uxd = {
         {
           "name": "mercurialVault",
           "type": "publicKey",
-          "index": true
+          "index": false
         },
         {
           "name": "depositoryLpTokenVault",
           "type": "publicKey",
-          "index": true
+          "index": false
         },
         {
           "name": "collateralMint",
