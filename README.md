@@ -35,7 +35,7 @@ $> cargo test && cargo build-bpf && cargo test-bpf
 In order to have the environment ready to host test, the mango market devnet must be running as expected.
 To achieve this, the easiest way is to use the mango [market making bot](https://github.com/blockworks-foundation/market-maker-ts) in typescript, it cranks the perp market to ensure there are orders created to back the mint and redeem. ([mango-explorer](https://github.com/blockworks-foundation/mango-explorer/blob/main/docs/MarketmakingQuickstart.md) could be another option, but currently is not supported for the latest changes on mango).
 
-An example of the params used for the mm is shown below, noted that for market making, only SOL-PERP is necessarily for testing UXD.
+An example of the param used for the mm is shown below, noted that for market making, only SOL-PERP is necessarily for testing UXD.
 
 ```Zsh
 {"group":"devnet.2","mangoAccountName":"mm","interval":200,"assets":{"SOL":{"perp":{"sizePerc":0.8,"leanCoeff":0,"bias":0,"requoteThresh":0,"takeSpammers":true,"spammerCharge":2}}}}
@@ -107,7 +107,7 @@ Note that it don't do concurrent run of this workflow, as they test some interna
 
 ### Cargo audit test - ci-cargo-audit.yml
 
-Crates security vulnerability checking (tool)[https://github.com/RustSec/rustsec/tree/main/cargo-audit], by RustSec.
+Crates security vulnerability checking [tool](https://github.com/RustSec/rustsec/tree/main/cargo-audit), by RustSec.
 
 ### Cargo lint test - ci-lint-test.yml
 
@@ -115,7 +115,7 @@ Runs cargo fmt, clippy, test and test-bpf.
 
 ### Soteria audit test - ci-soteria-audit.yml
 
-Solana smart contract vulnerability scanning (tool)[https://github.com/silas-x/soteria-action], by Soteria.
+Solana smart contract vulnerability scanning [tool](https://github.com/silas-x/soteria-action), by Soteria.
 
 ---
 
