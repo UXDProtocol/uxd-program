@@ -85,8 +85,12 @@ This program contains 2 set of instructions, one permissionned and one permissio
 
 ## Testing strategy with CI
 
+Four workflow would be kick started for PR branches merging to `main` and `v*.*`.
+
+### Anchor test - ci-anchor-test.yml
+
+E2E test.
 There are a few script in the test folder with following the `test_ci_*.ts`, these are related to the github workflow.
-It's quite unstable to test on devnet with typescript, and expect MangoMarkets order book to be consistent, but it somehow works.
 
 The CI strategy for E2E :
 
@@ -101,9 +105,17 @@ The CI strategy for E2E :
 
 Note that it don't do concurrent run of this workflow, as they test some internal state of the program and would collide.
 
-The CI also runs cargo fmt, clippy, test and test-bpf.
+### Cargo audit test - ci-cargo-audit.yml
 
-Cargo audit and Soteria (automated auditing tool) are run on main branch merges.
+Crates security vulnerability checking (tool)[https://github.com/RustSec/rustsec/tree/main/cargo-audit], by RustSec.
+
+### Cargo lint test - ci-lint-test.yml
+
+Runs cargo fmt, clippy, test and test-bpf.
+
+### Soteria audit test - ci-soteria-audit.yml
+
+Solana smart contract vulnerability scanning (tool)[https://github.com/silas-x/soteria-action], by Soteria.
 
 ---
 
