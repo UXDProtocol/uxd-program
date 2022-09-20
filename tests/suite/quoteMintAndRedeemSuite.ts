@@ -1,6 +1,6 @@
 import { NATIVE_MINT } from "@solana/spl-token";
-import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository, PnLPolarity } from "@uxd-protocol/uxd-client";
+import { PublicKey, Signer } from "@solana/web3.js";
+import { Controller, findATAAddrSync, MangoDepository, PnLPolarity } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { editMangoDepositoryTest } from "../cases/editMangoDepositoryTest";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
@@ -8,12 +8,13 @@ import { quoteMintWithMangoDepositoryAccountingTest } from "../cases/quoteMintWi
 import { quoteMintWithMangoDepositoryTest } from "../cases/quoteMintWithMangoDepositoryTest";
 import { quoteRedeemFromMangoDepositoryAccountingTest } from "../cases/quoteRedeemFromMangoDepositoryAccountingTest";
 import { quoteRedeemFromMangoDepositoryTest } from "../cases/quoteRedeemFromMangoDepositoryTest";
+import { redeemFromMangoDepositoryTest } from "../cases/redeemFromMangoDepositoryTest";
 import { setMangoDepositoryQuoteMintAndRedeemFeeTest } from "../cases/setMangoDepositoryQuoteMintAndRedeemFeeTest";
 import { setMangoDepositoryQuoteMintAndRedeemSoftCapTest } from "../cases/setMangoDepositoryQuoteMintAndRedeemSoftCapTest";
 import { TXN_OPTS } from "../connection";
 import { slippageBase } from "../constants";
 import { mango } from "../fixtures";
-import { transferSol, transferTokens } from "../utils";
+import { getBalance, transferAllTokens, transferSol, transferTokens } from "../utils";
 
 export const quoteMintAndRedeemSuite = function (
   authority: Signer,
@@ -22,11 +23,12 @@ export const quoteMintAndRedeemSuite = function (
   controller: Controller,
   depository: MangoDepository
 ) {
-  before(`Transfer 100${depository.quoteMintSymbol} from payer to user`, async function () {
-    await transferTokens(100, depository.quoteMint, depository.quoteMintDecimals, payer, user.publicKey);
+  before(`Transfer 50${depository.quoteMintSymbol} from payer to user`, async function () {
+    await transferTokens(50, depository.quoteMint, depository.quoteMintDecimals, payer, user.publicKey);
   });
 
-  before(`Transfer 50 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
+  // to prepare enough SOL for minting below
+  it(`Transfer 50 USD worth of ${depository.collateralMintSymbol} from payer to user`, async function () {
     const perpPrice = await depository.getCollateralPerpPriceUI(mango);
     const amount = 50 / perpPrice;
     console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
@@ -38,9 +40,11 @@ export const quoteMintAndRedeemSuite = function (
     }
   });
 
-  it(`Mint 30 ${controller.redeemableMintSymbol} (${(20 / slippageBase) * 100} % slippage)`, async function () {
+  // to prepare enough redeemable mint in user's wallet for quote redeem, if the polarity is positive
+  // would redeem the remaining before the end of the test suite
+  it(`Mint 50 ${controller.redeemableMintSymbol} (${(20 / slippageBase) * 100} % slippage)`, async function () {
     const perpPrice = await depository.getCollateralPerpPriceUI(mango);
-    const amount = 30 / perpPrice;
+    const amount = 50 / perpPrice;
     console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
     await mintWithMangoDepositoryTest(amount, 20, user, controller, depository, mango, payer);
   });
@@ -59,41 +63,41 @@ export const quoteMintAndRedeemSuite = function (
     await setMangoDepositoryQuoteMintAndRedeemFeeTest(0, authority, controller, depository);
   });
 
-  it(`Quote mint or redeem 10$ (without fees)`, async function () {
+  it(`Quote mint or redeem 5$ (without fees)`, async function () {
     const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
     const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-    if (Math.abs(unrealizedPnl) < 10) {
+    if (Math.abs(unrealizedPnl) < 5) {
       console.log("🔵  skipping mint/redeem, unrealized pnl too small");
       return;
     }
     switch (polarity) {
       case `Positive`: {
-        await quoteRedeemFromMangoDepositoryTest(10, user, controller, depository, mango, payer);
+        await quoteRedeemFromMangoDepositoryTest(5, user, controller, depository, mango, payer);
         break;
       }
       case `Negative`: {
-        await quoteMintWithMangoDepositoryTest(10, user, controller, depository, mango, payer);
+        await quoteMintWithMangoDepositoryTest(5, user, controller, depository, mango, payer);
         break;
       }
     }
   });
 
-  it(`Accounting test for quote mint or redeem 10$ (without fees)`, async function () {
+  it(`Accounting test for quote mint or redeem 5$ (without fees)`, async function () {
     const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
     const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-    if (Math.abs(unrealizedPnl) < 10) {
+    if (Math.abs(unrealizedPnl) < 5) {
       console.log("🔵  skipping quote mint/redeem, unrealized pnl too small");
       return;
     }
     switch (polarity) {
       case `Positive`: {
-        await quoteRedeemFromMangoDepositoryAccountingTest(10, user, controller, depository, mango, payer);
+        await quoteRedeemFromMangoDepositoryAccountingTest(5, user, controller, depository, mango, payer);
         break;
       }
       case `Negative`: {
-        await quoteMintWithMangoDepositoryAccountingTest(10, user, controller, depository, mango, payer);
+        await quoteMintWithMangoDepositoryAccountingTest(5, user, controller, depository, mango, payer);
         break;
       }
     }
@@ -103,41 +107,41 @@ export const quoteMintAndRedeemSuite = function (
     await setMangoDepositoryQuoteMintAndRedeemFeeTest(5, authority, controller, depository);
   });
 
-  it(`Quote mint or redeem 10$ (with fees)`, async function () {
+  it(`Quote mint or redeem 5$ (with fees)`, async function () {
     const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
     const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-    if (Math.abs(unrealizedPnl) < 10) {
+    if (Math.abs(unrealizedPnl) < 5) {
       console.log("🔵  skipping mint/redeem, unrealized pnl too small");
       return;
     }
     switch (polarity) {
       case `Positive`: {
-        await quoteRedeemFromMangoDepositoryTest(10, user, controller, depository, mango, payer);
+        await quoteRedeemFromMangoDepositoryTest(5, user, controller, depository, mango, payer);
         break;
       }
       case `Negative`: {
-        await quoteMintWithMangoDepositoryTest(10, user, controller, depository, mango, payer);
+        await quoteMintWithMangoDepositoryTest(5, user, controller, depository, mango, payer);
         break;
       }
     }
   });
 
-  it(`Accounting test for quote mint or redeem 10$ (with fees)`, async function () {
+  it(`Accounting test for quote mint or redeem 5$ (with fees)`, async function () {
     const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
     const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-    if (Math.abs(unrealizedPnl) < 10) {
+    if (Math.abs(unrealizedPnl) < 5) {
       console.log("🔵  skipping quote mint/redeem, unrealized pnl too small");
       return;
     }
     switch (polarity) {
       case `Positive`: {
-        await quoteRedeemFromMangoDepositoryAccountingTest(10, user, controller, depository, mango, payer);
+        await quoteRedeemFromMangoDepositoryAccountingTest(5, user, controller, depository, mango, payer);
         break;
       }
       case `Negative`: {
-        await quoteMintWithMangoDepositoryAccountingTest(10, user, controller, depository, mango, payer);
+        await quoteMintWithMangoDepositoryAccountingTest(5, user, controller, depository, mango, payer);
         break;
       }
     }
@@ -147,18 +151,18 @@ export const quoteMintAndRedeemSuite = function (
     const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
     const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-    if (Math.abs(unrealizedPnl) < 10) {
+    if (Math.abs(unrealizedPnl) < 5) {
       console.log("🔵  skipping mint/redeem, unrealized pnl too small");
       return;
     }
     try {
       switch (polarity) {
         case `Negative`: {
-          await quoteRedeemFromMangoDepositoryTest(10, user, controller, depository, mango, payer);
+          await quoteRedeemFromMangoDepositoryTest(5, user, controller, depository, mango, payer);
           break;
         }
         case `Positive`: {
-          await quoteMintWithMangoDepositoryTest(10, user, controller, depository, mango, payer);
+          await quoteMintWithMangoDepositoryTest(5, user, controller, depository, mango, payer);
           break;
         }
       }
@@ -212,25 +216,25 @@ export const quoteMintAndRedeemSuite = function (
     expect(false, "Should have failed - Tried minting or redeeming 0");
   });
 
-  it(`Change the quote mint and redeem soft cap to 5_000`, async function () {
-    await setMangoDepositoryQuoteMintAndRedeemSoftCapTest(5_000, authority, controller, depository);
+  it(`Change the quote mint and redeem soft cap to 50`, async function () {
+    await setMangoDepositoryQuoteMintAndRedeemSoftCapTest(10, authority, controller, depository);
   });
 
-  it(`Quote mint or redeem 10$ (with fees)`, async function () {
+  it(`Quote mint or redeem 5$ (with fees)`, async function () {
     const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
     const polarity = unrealizedPnl > 0 ? PnLPolarity.Positive : PnLPolarity.Negative;
 
-    if (Math.abs(unrealizedPnl) < 10) {
+    if (Math.abs(unrealizedPnl) < 5) {
       console.log("🔵  skipping mint/redeem, unrealized pnl too small");
       return;
     }
     switch (polarity) {
       case `Positive`: {
-        await quoteRedeemFromMangoDepositoryTest(10, user, controller, depository, mango, payer);
+        await quoteRedeemFromMangoDepositoryTest(5, user, controller, depository, mango, payer);
         break;
       }
       case `Negative`: {
-        await quoteMintWithMangoDepositoryTest(10, user, controller, depository, mango, payer);
+        await quoteMintWithMangoDepositoryTest(5, user, controller, depository, mango, payer);
         break;
       }
     }
@@ -252,5 +256,18 @@ export const quoteMintAndRedeemSuite = function (
       expect(true, "Failing as planned");
     }
     expect(false, "Should have failed - No collateral deposited yet");
+  });
+
+  it(`Redeem remaining ${controller.redeemableMintSymbol} (${
+    (20 / slippageBase) * 100
+  } % slippage)`, async function () {
+    const userRedeemableATA: PublicKey = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
+    const remainingRedeemableAmount = await getBalance(userRedeemableATA);
+    await redeemFromMangoDepositoryTest(remainingRedeemableAmount, 20, user, controller, depository, mango, payer);
+  });
+
+  it(`Return remaining balances from user to the payer`, async function () {
+    await transferAllTokens(depository.quoteMint, depository.quoteMintDecimals, user, payer.publicKey);
+    await transferAllTokens(depository.collateralMint, depository.collateralMintDecimals, user, payer.publicKey);
   });
 };
