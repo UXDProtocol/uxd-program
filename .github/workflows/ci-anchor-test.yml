@@ -12,7 +12,7 @@ permissions:
   
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: 1.8.16
+  SOLANA_VERSION: 1.10.38
   ANCHOR_VERSION: 0.24.2
   CLUSTER: "devnet"
   DEVNET_RPC: https://api.devnet.solana.com 
