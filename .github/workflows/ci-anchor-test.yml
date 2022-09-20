@@ -166,6 +166,7 @@ jobs:
   anchor-test-mango-depository-SOL:
     name: Test SOL MangoDepository against the resident program
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [anchor-build-and-deploy]
     steps:
       # Checkout
@@ -248,7 +249,7 @@ jobs:
   anchor-test-mango-depository-rebalancing:
     name: Test Rebalancing MangoDepository (SOL) against the resident program
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    timeout-minutes: 10
     needs: [anchor-test-mango-depository-SOL]
     steps:
       # Checkout
@@ -331,7 +332,7 @@ jobs:
   anchor-test-mango-depository-quote-mint-redeem:
     name: Test Quote mint redeem MangoDepository (SOL) against the resident program
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    timeout-minutes: 10
     needs: [anchor-test-mango-depository-SOL]
     steps:
       # Checkout
