@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use fixed::types::I80F48;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
-pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 8;
+pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
 pub const CONTROLLER_SPACE: usize = 8
@@ -19,9 +19,9 @@ pub const CONTROLLER_SPACE: usize = 8
     + 8
     + 16
     + 8
-    + (4 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
+    + (32 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
     + 1
-    + 471;
+    + 375;
 
 #[account(zero_copy)]
 #[repr(packed)]

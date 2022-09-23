@@ -1238,7 +1238,7 @@ export type Uxd = {
             "type": {
               "array": [
                 "publicKey",
-                8
+                4
               ]
             }
           },
@@ -3648,7 +3648,7 @@ export const IDL: Uxd = {
             "type": {
               "array": [
                 "publicKey",
-                8
+                4
               ]
             }
           },

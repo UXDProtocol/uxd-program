@@ -1233,7 +1233,7 @@
           {
             "name": "registeredMercurialVaultDepositories",
             "type": {
-              "array": ["publicKey", 8]
+              "array": ["publicKey", 4]
             }
           },
           {
