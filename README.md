@@ -28,7 +28,8 @@ The project follows the code org as done in [Jet protocol](https://github.com/je
 
 The project uses `Anchor` for safety, maintainability and readability.
 
-The project mainly relies on `Mango Markets` [program](https://github.com/blockworks-foundation/mango-v3) currently, a decentralized derivative exchange platform build on Solana, and controlled by a DAO. But would soon interact with other solana protocol.
+For the delta neutral depository the project relies on the `Mango Markets` [program](https://github.com/blockworks-foundation/mango-v3), a decentralised derivative exchange platform build on Solana, and controlled by a DAO.
+The project will implement new depositories with other defi protocol from Solana in the future to build the ALM system.
 
 This program contains 2 set of instructions, one permissionned and one permissionless. Permissionned instruction are called by [our DAO](https://governance.uxd.fi/dao/UXP).
 
@@ -36,31 +37,27 @@ Please refer to the [UXDProgram Git book](https://docs.uxd.fi/uxdprogram-solana/
 
 ## Interaction with UXD Client
 
-[UXD Client](https://github.com/UXDProtocol/uxd-client) is the open sourced typescript client of UXD Program.
+[UXD Client](https://github.com/UXDProtocol/uxd-client) is the open source typescript client of UXD Program.
 
-Each version of program is expected to pair with a specific version of the client, so any enhancement to the program that change the IDL must hv a corresponding update on the client as well.
+Each version of program is expected to pair with a specific version of the client, so any enhancement to the program that change the IDL must have a corresponding update on the client as well.
 
-To run the integration test with a specific client, please specify the version of `@uxd-protocol/uxd-client` on `package.json`.
+To run the integration test with a specific client, please specify the version of `@uxd-protocol/uxd-client` in the `package.json` file.
 
-To test with unpublished changes on client, could run
+To test locally with local client modification, `npm link` can be used as described below:
 
 ```Zsh
+# on the client directory
 $> npm link
-```
-
-on the client directory, and run
-
-```Zsh
+# then run cmd below on the program directory to link the locally build package instead of the fetched one
 $> npm link @uxd-protocol/uxd-client
 ```
 
-on the program directory to link the package to local.
-
 ## Audits
 
-The Program is audited by Bramah Systems and Sec3.dev.
+The Program has been audited by Bramah Systems and Sec3.dev (previously Soteria) three times in the past.
+It is currently under continuous audit by Sec3.dev.
 
-Audit reports could be found on https://docs.uxd.fi/uxdprogram-solana/welcome/audits.
+Audit reports are available at https://docs.uxd.fi/uxdprogram-solana/welcome/audits.
 
 ## Running tests
 
