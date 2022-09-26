@@ -15,13 +15,9 @@ It currently sits at:
 
 - devnet `55NneSZjuFv6cVDQxYKZ1UF99JoximnzP9aY65fJ4JT9` (Used by CI, this address should be update accordingly in ci files)
 
----
-
 ## Getting start
 
 If you want to learn more about the high level concept of UXDProtocol, the [UXDProtocol Git book](https://docs.uxd.fi/uxdprotocol/) is available.
-
----
 
 ## Codebase org
 
@@ -37,8 +33,6 @@ The project mainly relies on `Mango Markets` [program](https://github.com/blockw
 This program contains 2 set of instructions, one permissionned and one permissionless. Permissionned instruction are called by [our DAO](https://governance.uxd.fi/dao/UXP).
 
 Please refer to the [UXDProgram Git book](https://docs.uxd.fi/uxdprogram-solana/welcome/purpose-and-philosophy) for the program architecture.
-
----
 
 ## Interaction with UXD-client
 
@@ -62,15 +56,11 @@ $> npm link @uxd-protocol/uxd-client
 
 on the program directory to link the package to local.
 
----
-
 ## Audits
 
 The Program is audited by Bramah Systems and Sec3.dev.
 
 Audit reports could be found on https://docs.uxd.fi/uxdprogram-solana/welcome/audits.
-
----
 
 ## Running tests
 
@@ -116,8 +106,6 @@ $> anchor test
 
 Loop theses as many time as you want, and if you want a clean slate, just reset the program_id with the script (`./script/reset_program_id.sh`).
 
----
-
 ## Testing strategy with CI
 
 Four workflow would be kick started for PR branches merging to `main` and `v*.*`.
@@ -152,8 +140,6 @@ Runs cargo fmt, clippy, test and test-bpf.
 
 Solana smart contract vulnerability scanning [tool](https://github.com/silas-x/soteria-action), by Soteria.
 
----
-
 ## Deployment and Program Upgrades
 
 By default the program builds with the `development` feature, and the ProgramID for devnet.
@@ -171,8 +157,6 @@ $> solana program set-buffer-authority <BufferID> --new-buffer-authority CzZySsi
 ```
 
 ![Governance upgrade](dao_program_upgrade.png)
-
----
 
 ## Licensing
 
