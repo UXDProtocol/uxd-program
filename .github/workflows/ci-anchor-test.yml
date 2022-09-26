@@ -128,7 +128,7 @@ jobs:
   mango-market-making-SOL-PERP:
     name: Run mango market making ts bot on SOL PERP when doing Testing
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 16
     needs: [anchor-build-and-deploy]
     steps:
       # Checkout
@@ -151,7 +151,8 @@ jobs:
           echo "export KEYPAIR=$mm_keypair" > .env
           echo -e 'export ENDPOINT_URL="https://mango.devnet.rpcpool.com"' >> .env
           echo -e 'export PARAMS=devnet_sol_perp.json' >> .env
-          . .env && yarn mm
+          . .env
+          timeout 15m yarn mm || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
 
   anchor-test-setup:
     name: Setup UXD Suite
