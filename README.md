@@ -34,7 +34,7 @@ This program contains 2 set of instructions, one permissionned and one permissio
 
 Please refer to the [UXDProgram Git book](https://docs.uxd.fi/uxdprogram-solana/welcome/purpose-and-philosophy) for the program architecture.
 
-## Interaction with UXD-client
+## Interaction with UXD Client
 
 [UXD Client](https://github.com/UXDProtocol/uxd-client) is the open sourced typescript client of UXD Program.
 
