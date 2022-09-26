@@ -1,6 +1,5 @@
 # UXD-Program
 
-[![UXD Composability testing](https://github.com/blockworks-foundation/mango-v3/actions/workflows/ci-uxd.yml/badge.svg?branch=main&event=push)](https://github.com/blockworks-foundation/mango-v3/actions/workflows/ci-uxd.yml)
 [![Anchor Test](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-anchor-test.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-anchor-test.yml)
 [![Lint and Test](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-lint-test.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-lint-test.yml)
 [![Soteria Audit](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-soteria-audit.yml/badge.svg)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-soteria-audit.yml)
@@ -18,9 +17,60 @@ It currently sits at:
 
 ---
 
-## UXDProtocol business knowledge
+## Getting start
 
 If you want to learn more about the high level concept of UXDProtocol, the [UXDProtocol Git book](https://docs.uxd.fi/uxdprotocol/) is available.
+
+---
+
+## Codebase org
+
+The program (smart contract) is contained in `programs/uxd/`.
+Its instructions are in `programs/uxd/src/instructions/`.
+
+The project follows the code org as done in [Jet protocol](https://github.com/jet-lab/jet-v1) codebase.
+
+The project uses `Anchor` for safety, maintainability and readability.
+
+The project mainly relies on `Mango Markets` [program](https://github.com/blockworks-foundation/mango-v3) currently, a decentralized derivative exchange platform build on Solana, and controlled by a DAO. But would soon interact with other solana protocol.
+
+This program contains 2 set of instructions, one permissionned and one permissionless. Permissionned instruction are called by [our DAO](https://governance.uxd.fi/dao/UXP).
+
+Please refer to the [UXDProgram Git book](https://docs.uxd.fi/uxdprogram-solana/welcome/purpose-and-philosophy) for the program architecture.
+
+---
+
+## Interaction with UXD-client
+
+[UXD Client](https://github.com/UXDProtocol/uxd-client) is the open sourced typescript client of UXD Program.
+
+Each version of program is expected to pair with a specific version of the client, so any enhancement to the program that change the IDL must hv a corresponding update on the client as well.
+
+To run the integration test with a specific client, please specify the version of `@uxd-protocol/uxd-client` on `package.json`.
+
+To test with unpublished changes on client, could run
+
+```Zsh
+$> npm link
+```
+
+on the client directory, and run
+
+```Zsh
+$> npm link @uxd-protocol/uxd-client
+```
+
+on the program directory to link the package to local.
+
+---
+
+## Audits
+
+The Program is audited by Bramah Systems and Sec3.dev.
+
+Audit reports could be found on https://docs.uxd.fi/uxdprogram-solana/welcome/audits.
+
+---
 
 ## Running tests
 
@@ -68,21 +118,6 @@ Loop theses as many time as you want, and if you want a clean slate, just reset 
 
 ---
 
-## Codebase org
-
-The program (smart contract) is contained in `programs/uxd/`.
-Its instructions are in `programs/uxd/src/instructions/`.
-
-The project follows the code org as done in [Jet protocol](https://github.com/jet-lab/jet-v1) codebase.
-
-The project uses `Anchor` for safety, maintainability and readability.
-
-The project relies on `Mango Markets` [program](https://github.com/blockworks-foundation/mango-v3), a decentralized derivative exchange platform build on Solana, and controlled by a DAO.
-
-This program contains 2 set of instructions, one permissionned and one permissionless. Permissionned instruction are called by [our DAO](https://governance.uxd.fi/dao/UXP).
-
----
-
 ## Testing strategy with CI
 
 Four workflow would be kick started for PR branches merging to `main` and `v*.*`.
@@ -99,7 +134,7 @@ The CI strategy for E2E :
 - upgrade program
 - run the market making bots with the keypair `target/deploy/mango-mm-account-keypair.json`
 - start `test_ci_setup.ts`, to setup controller and all depositories on the resident program, no mint/redeem testing is involved on this test suite, global settings like supply cap and insurance fund should be tested here.
-- then starts 3 testing suites in parallel (`test_ci_regular_mint_redeem.ts`, `test_ci_rebalancing.ts`, `test_ci_quote_mint_redeem.ts`) for each Collateral/Dex whatever case (for now only mango and SOL, later on more with new Dexes).
+- then starts 3 testing suites in series (`test_ci_regular_mint_redeem.ts`, `test_ci_rebalancing.ts`, `test_ci_quote_mint_redeem.ts`) for each Collateral/Dex whatever case (for now only mango and SOL, later on more with new Dexes).
 - here is the job dependencies
   ![ci anchor test flow](ci_workflow.png)
 
