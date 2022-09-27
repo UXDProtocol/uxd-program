@@ -1,6 +1,5 @@
 # UXD-Program
 
-[![UXD Composability testing](https://github.com/blockworks-foundation/mango-v3/actions/workflows/ci-uxd.yml/badge.svg?branch=main&event=push)](https://github.com/blockworks-foundation/mango-v3/actions/workflows/ci-uxd.yml)
 [![Anchor Test](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-anchor-test.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-anchor-test.yml)
 [![Lint and Test](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-lint-test.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-lint-test.yml)
 [![Soteria Audit](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-soteria-audit.yml/badge.svg)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-soteria-audit.yml)
@@ -16,11 +15,49 @@ It currently sits at:
 
 - devnet `55NneSZjuFv6cVDQxYKZ1UF99JoximnzP9aY65fJ4JT9` (Used by CI, this address should be update accordingly in ci files)
 
----
-
-## UXDProtocol business knowledge
+## Getting start
 
 If you want to learn more about the high level concept of UXDProtocol, the [UXDProtocol Git book](https://docs.uxd.fi/uxdprotocol/) is available.
+
+## Codebase org
+
+The program (smart contract) is contained in `programs/uxd/`.
+Its instructions are in `programs/uxd/src/instructions/`.
+
+The project follows the code org as done in [Jet protocol](https://github.com/jet-lab/jet-v1) codebase.
+
+The project uses `Anchor` for safety, maintainability and readability.
+
+For the delta neutral depository the project relies on the `Mango Markets` [program](https://github.com/blockworks-foundation/mango-v3), a decentralised derivative exchange platform build on Solana, and controlled by a DAO.
+The project will implement new depositories with other defi protocol from Solana in the future to build the ALM system.
+
+This program contains 2 set of instructions, one permissionned and one permissionless. Permissionned instruction are called by [our DAO](https://governance.uxd.fi/dao/UXP).
+
+Please refer to the [UXDProgram Git book](https://docs.uxd.fi/uxdprogram-solana/welcome/purpose-and-philosophy) for the program architecture.
+
+## Interaction with UXD Client
+
+[UXD Client](https://github.com/UXDProtocol/uxd-client) is the open source typescript client of UXD Program.
+
+Each version of program is expected to pair with a specific version of the client, so any enhancement to the program that change the IDL must have a corresponding update on the client as well.
+
+To run the integration test with a specific client, please specify the version of `@uxd-protocol/uxd-client` in the `package.json` file.
+
+To test locally with local client modification, `npm link` can be used as described below:
+
+```Zsh
+# on the client directory
+$> npm link
+# then run cmd below on the program directory to link the locally build package instead of the fetched one
+$> npm link @uxd-protocol/uxd-client
+```
+
+## Audits
+
+The Program has been audited by Bramah Systems and Sec3.dev (previously Soteria) three times in the past.
+It is currently under continuous audit by Sec3.dev.
+
+Audit reports are available at https://docs.uxd.fi/uxdprogram-solana/welcome/audits.
 
 ## Running tests
 
@@ -66,23 +103,6 @@ $> anchor test
 
 Loop theses as many time as you want, and if you want a clean slate, just reset the program_id with the script (`./script/reset_program_id.sh`).
 
----
-
-## Codebase org
-
-The program (smart contract) is contained in `programs/uxd/`.
-Its instructions are in `programs/uxd/src/instructions/`.
-
-The project follows the code org as done in [Jet protocol](https://github.com/jet-lab/jet-v1) codebase.
-
-The project uses `Anchor` for safety, maintainability and readability.
-
-The project relies on `Mango Markets` [program](https://github.com/blockworks-foundation/mango-v3), a decentralized derivative exchange platform build on Solana, and controlled by a DAO.
-
-This program contains 2 set of instructions, one permissionned and one permissionless. Permissionned instruction are called by [our DAO](https://governance.uxd.fi/dao/UXP).
-
----
-
 ## Testing strategy with CI
 
 Four workflow would be kick started for PR branches merging to `main` and `v*.*`.
@@ -99,7 +119,7 @@ The CI strategy for E2E :
 - upgrade program
 - run the market making bots with the keypair `target/deploy/mango-mm-account-keypair.json`
 - start `test_ci_setup.ts`, to setup controller and all depositories on the resident program, no mint/redeem testing is involved on this test suite, global settings like supply cap and insurance fund should be tested here.
-- then starts 3 testing suites in parallel (`test_ci_regular_mint_redeem.ts`, `test_ci_rebalancing.ts`, `test_ci_quote_mint_redeem.ts`) for each Collateral/Dex whatever case (for now only mango and SOL, later on more with new Dexes).
+- then starts 3 testing suites in series (`test_ci_regular_mint_redeem.ts`, `test_ci_rebalancing.ts`, `test_ci_quote_mint_redeem.ts`) for each Collateral/Dex whatever case (for now only mango and SOL, later on more with new Dexes).
 - here is the job dependencies
   ![ci anchor test flow](ci_workflow.png)
 
@@ -116,8 +136,6 @@ Runs cargo fmt, clippy, test and test-bpf.
 ### Soteria audit test - ci-soteria-audit.yml
 
 Solana smart contract vulnerability scanning [tool](https://github.com/silas-x/soteria-action), by Soteria.
-
----
 
 ## Deployment and Program Upgrades
 
@@ -136,8 +154,6 @@ $> solana program set-buffer-authority <BufferID> --new-buffer-authority CzZySsi
 ```
 
 ![Governance upgrade](dao_program_upgrade.png)
-
----
 
 ## Licensing
 
