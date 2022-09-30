@@ -55,7 +55,7 @@ pub struct Controller {
 }
 
 impl Controller {
-    pub fn add_registered_mango_depository_entry(
+    pub(crate) fn add_registered_mango_depository_entry(
         &mut self,
         mango_depository_id: Pubkey,
     ) -> Result<()> {

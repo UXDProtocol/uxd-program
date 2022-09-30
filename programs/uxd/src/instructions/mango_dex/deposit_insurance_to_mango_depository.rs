@@ -86,7 +86,7 @@ pub struct DepositInsuranceToMangoDepository<'info> {
     pub mango_program: Program<'info, MangoMarketV3>,
 }
 
-pub fn handler(ctx: Context<DepositInsuranceToMangoDepository>, amount: u64) -> Result<()> {
+pub(crate) fn handler(ctx: Context<DepositInsuranceToMangoDepository>, amount: u64) -> Result<()> {
     let depository = ctx.accounts.depository.load()?;
     let collateral_mint = depository.collateral_mint;
     let depository_bump = depository.bump;
@@ -101,7 +101,7 @@ pub fn handler(ctx: Context<DepositInsuranceToMangoDepository>, amount: u64) -> 
     // - 1 [DEPOSIT INSURANCE TO MANGO] ---------------------------------------
     mango_markets_v3::deposit(
         ctx.accounts
-            .into_deposit_to_mango_context()
+            .to_deposit_to_mango_context()
             .with_signer(depository_signer_seeds),
         amount,
     )?;
@@ -127,7 +127,7 @@ pub fn handler(ctx: Context<DepositInsuranceToMangoDepository>, amount: u64) -> 
 }
 
 impl<'info> DepositInsuranceToMangoDepository<'info> {
-    pub fn into_deposit_to_mango_context(
+    fn to_deposit_to_mango_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, mango_markets_v3::Deposit<'info>> {
         let cpi_accounts = mango_markets_v3::Deposit {
@@ -147,7 +147,7 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> DepositInsuranceToMangoDepository<'info> {
-    pub fn validate(&self, amount: u64) -> Result<()> {
+    pub(crate) fn validate(&self, amount: u64) -> Result<()> {
         require!(amount != 0, UxdError::InvalidInsuranceAmount);
         require!(
             self.authority_quote.amount >= amount,

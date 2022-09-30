@@ -23,7 +23,7 @@ pub struct PerpInfo {
 
 impl PerpInfo {
     // Make sure that this is called in an instruction where a Mango CPI that validate cache is also called, else the cache may be not up to date.
-    pub fn new(
+    pub(crate) fn new(
         mango_group_ai: &AccountInfo,
         mango_cache_ai: &AccountInfo,
         mango_account_ai: &AccountInfo,
@@ -49,7 +49,7 @@ impl PerpInfo {
         )
     }
 
-    pub fn init(
+    fn init(
         mango_group: &MangoGroup,
         mango_account: &MangoAccount,
         mango_cache: &MangoCache,
@@ -98,7 +98,7 @@ fn determine_ref_fee(
 
 // Convert price into a quote lot per base lot price.
 // Price is the value of 1 native base unit expressed in native quote.
-pub fn price_to_lot_price(price: I80F48, perp_info: &PerpInfo) -> Result<I80F48> {
+pub(crate) fn price_to_lot_price(price: I80F48, perp_info: &PerpInfo) -> Result<I80F48> {
     price
         .checked_mul(perp_info.base_lot_size)
         .ok_or_else(|| error!(UxdError::MathError))?

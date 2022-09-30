@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::events::DisableDepositoryRegularMintingEvent;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -31,15 +32,21 @@ pub struct DisableDepositoryRegularMinting<'info> {
     pub depository: AccountLoader<'info, MangoDepository>,
 }
 
-pub fn handler(ctx: Context<DisableDepositoryRegularMinting>, disable: bool) -> Result<()> {
+pub(crate) fn handler(ctx: Context<DisableDepositoryRegularMinting>, disable: bool) -> Result<()> {
     let depository = &mut ctx.accounts.depository.load_mut()?;
     depository.regular_minting_disabled = disable;
+    emit!(DisableDepositoryRegularMintingEvent {
+        version: ctx.accounts.controller.load()?.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        regular_minting_disabled: disable
+    });
     Ok(())
 }
 
 // Validate input arguments
 impl<'info> DisableDepositoryRegularMinting<'info> {
-    pub fn validate(&self, disable: bool) -> Result<()> {
+    pub(crate) fn validate(&self, disable: bool) -> Result<()> {
         require!(
             self.depository.load()?.regular_minting_disabled != disable,
             UxdError::MintingAlreadyDisabledOrEnabled
