@@ -1,5 +1,6 @@
 use crate::error::UxdError;
 use crate::events::WithdrawInsuranceFromDepositoryEvent;
+use crate::validate_mango_group;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -162,6 +163,8 @@ impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
 impl<'info> WithdrawInsuranceFromMangoDepository<'info> {
     pub(crate) fn validate(&self, insurance_amount: u64) -> Result<()> {
         require!(insurance_amount != 0, UxdError::InvalidInsuranceAmount);
+        validate_mango_group(self.mango_group.key())?;
+
         // Mango withdraw will fail with proper error thanks to  `disabled borrow` set to true if the balance is not enough.
         Ok(())
     }

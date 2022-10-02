@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::instructions::*;
 use crate::state::*;
 use anchor_lang::prelude::*;
@@ -39,6 +41,11 @@ pub const DEFAULT_MANGO_DEPOSITORIES_QUOTE_REDEEMABLE_SOFT_CAP: u64 = 10_000; //
 
 const BPS_POW: u8 = 4; // Raise a number to BPS_POW to get order of magnitude of
 pub const BPS_UNIT_CONVERSION: u64 = (10u64).pow(BPS_POW as u32);
+
+#[cfg(feature = "development")]
+pub const MANGO_GROUP: &str = "Ec2enZyoC4nGpEfu2sUNAa2nUGJHWxoUWYSEJ2hNTWTA";
+#[cfg(feature = "production")]
+pub const MANGO_GROUP: &str = "98pjRuQjK3qA6gXts96PqZT4Ze5QmnCmt3QYjhbUSPue";
 
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 
@@ -436,5 +443,14 @@ pub fn validate_perp_market_mints_matches_depository_mints(
         mango_group.tokens[QUOTE_INDEX].mint == *quote_mint_key,
         UxdError::InvalidQuoteCurrency
     );
+    Ok(())
+}
+
+pub(crate) fn validate_mango_group(mango_group: Pubkey) -> Result<()> {
+    require!(
+        mango_group.eq(&Pubkey::from_str(MANGO_GROUP).unwrap()),
+        UxdError::UnmatchedMangoGroupWithController,
+    );
+
     Ok(())
 }

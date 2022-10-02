@@ -88,6 +88,8 @@ pub enum UxdError {
     QuoteAmountExceedsSoftCap,
     #[msg("The quote currency is not the expected one.")]
     InvalidQuoteCurrency,
+    #[msg("The mango group is not the expected one.")]
+    UnmatchedMangoGroupWithController,
 
     /// Anchor DSL related errors
     ///
