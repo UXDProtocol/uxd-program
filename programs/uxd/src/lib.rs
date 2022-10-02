@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::instructions::*;
 use crate::state::*;
 use anchor_lang::prelude::*;
@@ -19,6 +21,11 @@ pub mod test;
 solana_program::declare_id!("HtBAjXoadvKg8KBAtcUL1BjgxM55itScsZYe9LHt3NiP");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
+
+#[cfg(feature = "development")]
+pub const MANGO_GROUP: &str = "Ec2enZyoC4nGpEfu2sUNAa2nUGJHWxoUWYSEJ2hNTWTA";
+#[cfg(feature = "production")]
+pub const MANGO_GROUP: &str = "98pjRuQjK3qA6gXts96PqZT4Ze5QmnCmt3QYjhbUSPue";
 
 // Version used for accounts structure and future migrations
 pub const MANGO_DEPOSITORY_ACCOUNT_VERSION: u8 = 2;
@@ -436,5 +443,14 @@ pub fn validate_perp_market_mints_matches_depository_mints(
         mango_group.tokens[QUOTE_INDEX].mint == *quote_mint_key,
         UxdError::InvalidQuoteCurrency
     );
+    Ok(())
+}
+
+pub(crate) fn validate_mango_group(mango_group: Pubkey) -> Result<()> {
+    require!(
+        mango_group.eq(&Pubkey::from_str(MANGO_GROUP).unwrap()),
+        UxdError::UnmatchedMangoGroupWithController,
+    );
+
     Ok(())
 }

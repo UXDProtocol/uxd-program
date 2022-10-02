@@ -1,5 +1,6 @@
 use crate::error::UxdError;
 use crate::events::DepositInsuranceToDepositoryEvent;
+use crate::validate_mango_group;
 use crate::Controller;
 use crate::MangoDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -153,6 +154,7 @@ impl<'info> DepositInsuranceToMangoDepository<'info> {
             self.authority_quote.amount >= amount,
             UxdError::InsufficientAuthorityQuoteAmount
         );
+        validate_mango_group(self.mango_group.key())?;
         Ok(())
     }
 }
