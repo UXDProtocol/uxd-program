@@ -105,7 +105,7 @@ Loop theses as many time as you want, and if you want a clean slate, just reset 
 
 ## Testing strategy with CI
 
-Four workflow would be kick started for PR branches merging to `main` and `v*.*`.
+Four workflow would be kick started for PR branches merging to `main`.
 
 ### Anchor test - ci-anchor-test.yml
 
@@ -136,6 +136,14 @@ Runs cargo fmt, clippy, test and test-bpf.
 ### Soteria audit test - ci-soteria-audit.yml
 
 Solana smart contract vulnerability scanning [tool](https://github.com/silas-x/soteria-action), by Soteria.
+
+## Branches and Tags
+
+Branch off from `main` for new development changes. Pull requests should always target to `main` as well.
+
+After passing the continuous audit by Sec3.dev, program would get deployed and merged to `main` and tagged with the version name as `v*.*.*`.
+
+Check the [Releases](https://github.com/UXDProtocol/uxd-program/releases) for previous deployed program on mainnet.
 
 ## Deployment and Program Upgrades
 
