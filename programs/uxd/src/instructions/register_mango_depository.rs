@@ -7,6 +7,7 @@ use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_ACCOUNT_VERSION;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::MANGO_DEPOSITORY_SPACE;
+use crate::MANGO_GROUP;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -14,6 +15,7 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use mango::state::MangoAccount;
 use std::mem::size_of;
+use std::str::FromStr;
 
 const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
@@ -159,5 +161,20 @@ impl<'info> RegisterMangoDepository<'info> {
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+// Validate input arguments
+impl<'info> RegisterMangoDepository<'info> {
+    pub(crate) fn validate(&self, _redeemable_depository_supply_cap: u128) -> Result<()> {
+        // Only allow specific MANGO_GROUP to be used for now
+        require!(
+            self.mango_group
+                .key()
+                .eq(&Pubkey::from_str(MANGO_GROUP).unwrap()),
+            UxdError::UnAllowedMangoGroup,
+        );
+
+        Ok(())
     }
 }

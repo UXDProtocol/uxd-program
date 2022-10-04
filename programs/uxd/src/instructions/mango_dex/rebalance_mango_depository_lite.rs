@@ -4,7 +4,6 @@ use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::PerpInfo;
-use crate::validate_mango_group;
 use crate::validate_perp_market_mints_matches_depository_mints;
 use crate::Controller;
 use crate::MangoDepository;
@@ -54,7 +53,7 @@ pub struct RebalanceMangoDepositoryLite<'info> {
         has_one = controller @UxdError::InvalidController,
         has_one = mango_account @UxdError::InvalidMangoAccount,
         has_one = quote_mint @UxdError::InvalidQuoteMint,
-        has_one = collateral_mint @UxdError::InvalidCollateralMint
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
     pub depository: AccountLoader<'info, MangoDepository>,
 
@@ -655,8 +654,6 @@ impl<'info> RebalanceMangoDepositoryLite<'info> {
                 );
             }
         }
-
-        validate_mango_group(self.mango_group.key())?;
 
         validate_perp_market_mints_matches_depository_mints(
             &self.mango_group,

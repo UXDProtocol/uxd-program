@@ -149,6 +149,9 @@ pub mod uxd {
     ///  In the new version of the MangoMarket Accounts
     ///  this become mandatory too. (we are still using the old init)
     ///
+    #[access_control(
+        ctx.accounts.validate(redeemable_depository_supply_cap)
+    )]
     pub fn register_mango_depository(
         ctx: Context<RegisterMangoDepository>,
         redeemable_depository_supply_cap: u128,
@@ -486,7 +489,7 @@ pub fn validate_perp_market_mints_matches_depository_mints(
     quote_mint_key: &Pubkey,
 ) -> Result<()> {
     let mango_group = MangoGroup::load_checked(mango_group_ai, mango_program_key)
-        .map_err(|_| error!(UxdError::InvalidMangoGroup))?;
+        .map_err(|_| error!(UxdError::CannotLoadMangoGroup))?;
     let perp_market_index = mango_group
         .find_perp_market_index(mango_perp_market_key)
         .ok_or_else(|| error!(UxdError::MangoPerpMarketIndexNotFound))?;
@@ -501,15 +504,6 @@ pub fn validate_perp_market_mints_matches_depository_mints(
     require!(
         mango_group.tokens[QUOTE_INDEX].mint == *quote_mint_key,
         UxdError::InvalidQuoteCurrency
-    );
-
-    Ok(())
-}
-
-pub(crate) fn validate_mango_group(mango_group: Pubkey) -> Result<()> {
-    require!(
-        mango_group.eq(&Pubkey::from_str(MANGO_GROUP).unwrap()),
-        UxdError::UnmatchedMangoGroupWithController,
     );
 
     Ok(())

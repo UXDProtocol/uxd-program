@@ -42,6 +42,7 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
         has_one = mercurial_vault @UxdError::InvalidMercurialVault,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
         has_one = mercurial_vault_lp_mint @UxdError::InvalidMercurialVaultLpMint,
+        constraint = depository.load()?.lp_token_vault == depository_lp_token_vault.key() @UxdError::InvalidDepositoryLpTokenVault,
     )]
     pub depository: AccountLoader<'info, MercurialVaultDepository>,
 
