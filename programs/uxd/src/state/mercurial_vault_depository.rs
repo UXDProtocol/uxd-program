@@ -4,7 +4,7 @@ use fixed::types::I80F48;
 use crate::error::UxdError;
 
 // Total should be 900 bytes
-pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 661;
+pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 645;
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 1
     + 1
@@ -20,6 +20,7 @@ pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 1
     + 1
     + 1
+    + 16
     + 16
     + 16
     + MERCURIAL_VAULT_RESERVED_SPACE;
@@ -77,6 +78,9 @@ pub struct MercurialVaultDepository {
     // The amount of fees accrued from redeeming
     // Expressed in redeemable mint decimals (6)
     pub total_paid_redeem_fees: u128,
+
+    // The total amount of circulating UXD originating from that depository
+    pub redeemable_depository_supply_cap: u128,
 }
 
 impl MercurialVaultDepository {

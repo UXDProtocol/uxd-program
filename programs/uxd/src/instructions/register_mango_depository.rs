@@ -7,6 +7,7 @@ use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_ACCOUNT_VERSION;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::MANGO_DEPOSITORY_SPACE;
+use crate::MAX_REDEEMABLE_MANGO_DEPOSITORY_SUPPLY_CAP;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -82,7 +83,10 @@ pub struct RegisterMangoDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub(crate) fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
+pub(crate) fn handler(
+    ctx: Context<RegisterMangoDepository>,
+    redeemable_depository_supply_cap: u128,
+) -> Result<()> {
     let collateral_mint = ctx.accounts.collateral_mint.key();
     let quote_mint = ctx.accounts.quote_mint.key();
 
@@ -124,6 +128,7 @@ pub(crate) fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     depository.total_amount_paid_taker_fee = u128::MIN;
     depository.total_amount_rebalanced = u128::MIN;
     depository.regular_minting_disabled = false; // enable minting by default
+    depository.redeemable_depository_supply_cap = redeemable_depository_supply_cap;
 
     // - Update Controller state
     ctx.accounts
@@ -155,5 +160,17 @@ impl<'info> RegisterMangoDepository<'info> {
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+#[allow(clippy::absurd_extreme_comparisons)]
+impl<'info> RegisterMangoDepository<'info> {
+    pub fn validate(&self, redeemable_depository_supply_cap: u128) -> Result<()> {
+        require!(
+            redeemable_depository_supply_cap <= MAX_REDEEMABLE_MANGO_DEPOSITORY_SUPPLY_CAP,
+            UxdError::InvalidRedeemableMangoDepositorySupplyCapError,
+        );
+
+        Ok(())
     }
 }

@@ -3,6 +3,7 @@ use crate::events::RegisterMercurialVaultDepositoryEvent;
 use crate::state::MercurialVaultDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
+use crate::MAX_REDEEMABLE_MERCURIAL_VAULT_DEPOSITORY_SUPPLY_CAP;
 use crate::MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION;
 use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
@@ -78,6 +79,7 @@ pub fn handler(
     ctx: Context<RegisterMercurialVaultDepository>,
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
+    redeemable_depository_supply_cap: u128,
 ) -> Result<()> {
     let depository_bump = *ctx
         .bumps
@@ -118,6 +120,8 @@ pub fn handler(
 
     depository.mercurial_vault = ctx.accounts.mercurial_vault.key();
 
+    depository.redeemable_depository_supply_cap = redeemable_depository_supply_cap;
+
     // 2 - Update Controller state
     ctx.accounts
         .controller
@@ -154,7 +158,13 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
         Ok(())
     }
 
-    pub fn validate(&self, _minting_fee_in_bps: u8, _redeeming_fee_in_bps: u8) -> Result<()> {
+    #[allow(clippy::absurd_extreme_comparisons)]
+    pub fn validate(
+        &self,
+        _minting_fee_in_bps: u8,
+        _redeeming_fee_in_bps: u8,
+        redeemable_depository_supply_cap: u128,
+    ) -> Result<()> {
         require!(
             self.mercurial_vault
                 .token_mint
@@ -177,6 +187,12 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
                 .decimals
                 .eq(&self.controller.load()?.redeemable_mint_decimals),
             UxdError::CollateralMintNotAllowed,
+        );
+
+        require!(
+            redeemable_depository_supply_cap
+                <= MAX_REDEEMABLE_MERCURIAL_VAULT_DEPOSITORY_SUPPLY_CAP,
+            UxdError::InvalidRedeemableMercurialVaultDepositorySupplyCapError,
         );
 
         #[cfg(feature = "production")]

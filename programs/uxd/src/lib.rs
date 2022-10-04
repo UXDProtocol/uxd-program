@@ -44,6 +44,8 @@ pub const MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE: &[u8] =
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
+pub const MAX_REDEEMABLE_MANGO_DEPOSITORY_SUPPLY_CAP: u128 = u128::MAX;
+pub const MAX_REDEEMABLE_MERCURIAL_VAULT_DEPOSITORY_SUPPLY_CAP: u128 = u128::MAX;
 
 pub const MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = u64::MAX;
 pub const DEFAULT_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP: u64 = 10_000; // 10 Thousand redeemable UI units
@@ -149,9 +151,15 @@ pub mod uxd {
     ///  In the new version of the MangoMarket Accounts
     ///  this become mandatory too. (we are still using the old init)
     ///
-    pub fn register_mango_depository(ctx: Context<RegisterMangoDepository>) -> Result<()> {
+    #[access_control(
+        ctx.accounts.validate(redeemable_depository_supply_cap)
+    )]
+    pub fn register_mango_depository(
+        ctx: Context<RegisterMangoDepository>,
+        redeemable_depository_supply_cap: u128,
+    ) -> Result<()> {
         msg!("[register_mango_depository]");
-        instructions::register_mango_depository::handler(ctx)
+        instructions::register_mango_depository::handler(ctx, redeemable_depository_supply_cap)
     }
 
     /// Deposit `MangoDepository.quote_mint` tokens in the `MangoDepository`
@@ -401,6 +409,13 @@ pub mod uxd {
         instructions::edit_mango_depository::handler(ctx, &fields)
     }
 
+    pub fn edit_mercurial_vault_depository(
+        ctx: Context<EditMercurialVaultDepository>,
+        fields: EditMercurialVaultDepositoryFields,
+    ) -> Result<()> {
+        instructions::edit_mercurial_vault_depository::handler(ctx, &fields)
+    }
+
     /// Disable or enable regular minting for given Mango Depository.
     ///
     /// Parameters:
@@ -436,18 +451,20 @@ pub mod uxd {
     // Create and Register a new `MercurialVaultDepository` to the `Controller`.
     // Each `Depository` account manages a specific collateral mint.
     #[access_control(
-        ctx.accounts.validate(minting_fee_in_bps, redeeming_fee_in_bps)
+        ctx.accounts.validate(minting_fee_in_bps, redeeming_fee_in_bps, redeemable_depository_supply_cap)
     )]
     pub fn register_mercurial_vault_depository(
         ctx: Context<RegisterMercurialVaultDepository>,
         minting_fee_in_bps: u8,
         redeeming_fee_in_bps: u8,
+        redeemable_depository_supply_cap: u128,
     ) -> Result<()> {
         msg!("[register_mercurial_vault_depository]");
         instructions::register_mercurial_vault_depository::handler(
             ctx,
             minting_fee_in_bps,
             redeeming_fee_in_bps,
+            redeemable_depository_supply_cap,
         )
     }
 
