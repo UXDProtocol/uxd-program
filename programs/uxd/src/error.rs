@@ -108,10 +108,6 @@ pub enum UxdError {
     MinimumMintedRedeemableAmountError,
     #[msg("Redeem resulted to 0 collateral token being redeemed.")]
     MinimumRedeemedCollateralAmountError,
-    #[msg("Invalid redeemable mango depository supply cap.")]
-    InvalidRedeemableMangoDepositorySupplyCapError,
-    #[msg("Invalid redeemable mercurial vault depository supply cap.")]
-    InvalidRedeemableMercurialVaultDepositorySupplyCapError,
 
     /// Anchor DSL related errors
     ///

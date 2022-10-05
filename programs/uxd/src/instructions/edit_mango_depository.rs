@@ -5,7 +5,6 @@ use crate::state::MangoDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
-use crate::MAX_REDEEMABLE_MANGO_DEPOSITORY_SUPPLY_CAP;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
@@ -38,7 +37,6 @@ pub struct EditMangoDepositoryFields {
     redeemable_depository_supply_cap: Option<u128>,
 }
 
-#[allow(clippy::absurd_extreme_comparisons)]
 pub(crate) fn handler(
     ctx: Context<EditMangoDepository>,
     fields: &EditMangoDepositoryFields,
@@ -66,12 +64,6 @@ pub(crate) fn handler(
             "[edit_mango_depository] redeemable_depository_supply_cap {}",
             redeemable_depository_supply_cap
         );
-
-        require!(
-            redeemable_depository_supply_cap <= MAX_REDEEMABLE_MANGO_DEPOSITORY_SUPPLY_CAP,
-            UxdError::InvalidRedeemableMangoDepositorySupplyCapError,
-        );
-
         depository.redeemable_depository_supply_cap = redeemable_depository_supply_cap;
         emit!(SetMangoDepositoryRedeemableSupplyCapEvent {
             version: ctx.accounts.controller.load()?.version,

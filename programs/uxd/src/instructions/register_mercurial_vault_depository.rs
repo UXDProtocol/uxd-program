@@ -3,7 +3,6 @@ use crate::events::RegisterMercurialVaultDepositoryEvent;
 use crate::state::MercurialVaultDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
-use crate::MAX_REDEEMABLE_MERCURIAL_VAULT_DEPOSITORY_SUPPLY_CAP;
 use crate::MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION;
 use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
@@ -158,12 +157,11 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
         Ok(())
     }
 
-    #[allow(clippy::absurd_extreme_comparisons)]
     pub fn validate(
         &self,
         _minting_fee_in_bps: u8,
         _redeeming_fee_in_bps: u8,
-        redeemable_depository_supply_cap: u128,
+        _redeemable_depository_supply_cap: u128,
     ) -> Result<()> {
         require!(
             self.mercurial_vault
@@ -187,12 +185,6 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
                 .decimals
                 .eq(&self.controller.load()?.redeemable_mint_decimals),
             UxdError::CollateralMintNotAllowed,
-        );
-
-        require!(
-            redeemable_depository_supply_cap
-                <= MAX_REDEEMABLE_MERCURIAL_VAULT_DEPOSITORY_SUPPLY_CAP,
-            UxdError::InvalidRedeemableMercurialVaultDepositorySupplyCapError,
         );
 
         #[cfg(feature = "production")]

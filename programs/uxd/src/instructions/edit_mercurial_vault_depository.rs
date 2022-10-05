@@ -5,7 +5,6 @@ use crate::events::SetMercurialVaultDepositoryRedeemingFeeInBpsEvent;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
-use crate::MAX_REDEEMABLE_MERCURIAL_VAULT_DEPOSITORY_SUPPLY_CAP;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 use anchor_lang::prelude::*;
 
@@ -42,7 +41,6 @@ pub struct EditMercurialVaultDepositoryFields {
     redeeming_fee_in_bps: Option<u8>,
 }
 
-#[allow(clippy::absurd_extreme_comparisons)]
 pub(crate) fn handler(
     ctx: Context<EditMercurialVaultDepository>,
     fields: &EditMercurialVaultDepositoryFields,
@@ -55,13 +53,6 @@ pub(crate) fn handler(
             "[edit_mercurial_vault_depository] redeemable_depository_supply_cap {}",
             redeemable_depository_supply_cap
         );
-
-        require!(
-            redeemable_depository_supply_cap
-                <= MAX_REDEEMABLE_MERCURIAL_VAULT_DEPOSITORY_SUPPLY_CAP,
-            UxdError::InvalidRedeemableMercurialVaultDepositorySupplyCapError,
-        );
-
         depository.redeemable_depository_supply_cap = redeemable_depository_supply_cap;
         emit!(SetMercurialVaultDepositoryRedeemableSupplyCapEvent {
             version: ctx.accounts.controller.load()?.version,
