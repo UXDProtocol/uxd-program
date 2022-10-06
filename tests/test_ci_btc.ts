@@ -59,7 +59,7 @@ describe("Integration tests BTC", function () {
   });
 
   describe("mangoDepositorySetupSuite BTC", function () {
-    mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryBTC, 100_000);
+    mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryBTC, 1_000, 100_000);
   });
 
   // Skipped as it's handle bu the test_ci_rebalancing.ts

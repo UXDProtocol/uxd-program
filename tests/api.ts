@@ -13,7 +13,7 @@ import {
   uiToNative,
   MercurialVaultDepository,
 } from "@uxd-protocol/uxd-client";
-import { web3 } from "@project-serum/anchor";
+import { BN, web3 } from "@project-serum/anchor";
 import { Payer } from "@blockworks-foundation/mango-client";
 
 export async function initializeController(authority: Signer, payer: Signer, controller: Controller): Promise<string> {
@@ -56,7 +56,13 @@ export async function mintWithMercurialVaultDepository(authority: Signer, payer:
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function redeemFromMercurialVaultDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository, redeemableAmount: number): Promise<string> {
+export async function redeemFromMercurialVaultDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: MercurialVaultDepository,
+  redeemableAmount: number,
+): Promise<string> {
   const redeemFromMercurialVaultDepositoryIx = uxdClient.createRedeemFromMercurialVaultInstruction(controller, depository, authority.publicKey, redeemableAmount, TXN_OPTS, payer.publicKey);
   let signers = [];
   let tx = new Transaction();
@@ -76,8 +82,16 @@ export async function redeemFromMercurialVaultDepository(authority: Signer, paye
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function registerMercurialVaultDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository, mintingFeeInBps: number, redeemingFeeInBps: number): Promise<string> {
-  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(controller, depository, authority.publicKey, TXN_OPTS, mintingFeeInBps, redeemingFeeInBps, payer.publicKey);
+export async function registerMercurialVaultDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: MercurialVaultDepository,
+  mintingFeeInBps: number,
+  redeemingFeeInBps: number,
+  redeemableDepositorySupplyCap: number,
+): Promise<string> {
+  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(controller, depository, authority.publicKey, mintingFeeInBps, redeemingFeeInBps, redeemableDepositorySupplyCap, TXN_OPTS, payer.publicKey);
   let signers = [];
   let tx = new Transaction();
 
@@ -95,13 +109,15 @@ export async function registerMangoDepository(
   payer: Signer,
   controller: Controller,
   depository: MangoDepository,
-  mango: Mango
+  mango: Mango,
+  redeemableDepositorySupplyCap: number,
 ): Promise<string> {
   const registerMangoDepositoryIx = uxdClient.createRegisterMangoDepositoryInstruction(
     controller,
     depository,
     mango,
     authority.publicKey,
+    redeemableDepositorySupplyCap,
     TXN_OPTS,
     payer.publicKey
   );
@@ -552,6 +568,7 @@ export async function editMangoDepository(
   depository: MangoDepository,
   uiFields: {
     quoteMintAndRedeemFee?: number;
+    redeemableDepositorySupplyCap?: BN;
   }
 ): Promise<string> {
   const editMangoDepositoryIx = uxdClient.createEditMangoDepositoryInstruction(
@@ -565,6 +582,32 @@ export async function editMangoDepository(
   let tx = new Transaction();
 
   tx.instructions.push(editMangoDepositoryIx);
+  signers.push(authority);
+
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function editMercurialVaultDepository(
+  authority: Signer,
+  controller: Controller,
+  depository: MangoDepository,
+  uiFields: {
+    redeemableDepositorySupplyCap?: BN;
+    mintingFeeInBps?: number;
+    redeemingFeeInBps?: number;
+  }
+): Promise<string> {
+  const editMercurialVaultDepositoryIx = uxdClient.createEditMercurialVaultDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    uiFields,
+    TXN_OPTS
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(editMercurialVaultDepositoryIx);
   signers.push(authority);
 
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);

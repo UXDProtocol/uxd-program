@@ -59,7 +59,7 @@ describe("Integration tests ETH", function () {
   });
 
   describe("mangoDepositorySetupSuite ETH", function () {
-    mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryETH, 8_000);
+    mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryETH, 1_000, 8_000);
   });
 
   // Skipped as it's handle bu the test_ci_rebalancing.ts

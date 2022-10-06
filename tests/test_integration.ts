@@ -1,7 +1,7 @@
 import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
 import { authority, bank, SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS, uxdProgramId } from "./constants";
-import { transferAllSol, transferAllTokens, transferSol } from "./utils";
+import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters, mangoDepositoryAndControllerInteractionsSuite } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
 import { mangoDepositoryInsuranceSuite } from "./suite/depositoryInsuranceSuite";
@@ -54,11 +54,12 @@ import { getConnection } from "./connection";
             await transferSol(1, bank, user.publicKey);
         });
 
-        let mintingFeeInBps = 0;
-        let redeemingFeeInBps = 5;
+        const mintingFeeInBps = 0;
+        const redeemingFeeInBps = 5;
+        const uiRedeemableDepositorySupplyCap = 1_000;
 
         describe("mercurialVaultDepositorySetupSuite", function () {
-            mercurialVaultDepositorySetupSuite(authority, bank, controllerUXD, mercurialVaultDepository, mintingFeeInBps, redeemingFeeInBps);
+            mercurialVaultDepositorySetupSuite(authority, bank, controllerUXD, mercurialVaultDepository, mintingFeeInBps, redeemingFeeInBps, uiRedeemableDepositorySupplyCap);
         });
 
         describe("mercurialVaultDepositoryMintRedeemSuite", function () {
@@ -75,7 +76,7 @@ import { getConnection } from "./connection";
         });
 
         describe("mangoDepositorySetupSuite SOL", function () {
-            mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositorySOL, 1_000);
+            mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositorySOL, 1_000, 1_000);
         });
 
         describe("mangoDepositoryRebalancingSuite SOL", function () {
@@ -116,7 +117,7 @@ import { getConnection } from "./connection";
         });
 
         describe("mangoDepositorySetupSuite BTC", function () {
-            mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryBTC, 100_000);
+            mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryBTC, 1_000, 100_000);
         });
 
         describe("mangoDepositoryRebalancingSuite BTC", function () {
@@ -147,7 +148,7 @@ import { getConnection } from "./connection";
         });
 
         describe("mangoDepositorySetupSuite ETH", function () {
-            mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryETH, 8_000);
+            mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositoryETH, 1_000, 8_000);
         });
 
         describe("mangoDepositoryRebalancingSuite ETH", function () {

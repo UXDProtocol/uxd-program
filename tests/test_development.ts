@@ -37,6 +37,7 @@ import { getConnection } from "./connection";
 import { registerMercurialVaultDepositoryTest } from "./cases/registerMercurialVaultDepositoryTest";
 import { mintWithMercurialVaultDepositoryTest } from "./cases/mintWithMercurialVaultDepositoryTest";
 import { redeemFromMercurialVaultDepositoryTest } from "./cases/redeemFromMercurialVaultDepositoryTest";
+import { uiToNative } from "@blockworks-foundation/mango-client";
 
 console.log(uxdProgramId.toString());
 const mangoDepositorySOL = new MangoDepository(
@@ -99,12 +100,15 @@ describe("Integration tests", function () {
 
       const mintingFeeInBps = 2;
       const redeemingFeeInBps = 2;
+      const redeemableDepositorySupplyCap = uiToNative(1_000, UXD_DECIMALS);
 
-      await registerMercurialVaultDepositoryTest(authority, controller, mercurialVaultDepositoryUSDC, mintingFeeInBps, redeemingFeeInBps, payer);
+      await registerMercurialVaultDepositoryTest(authority, controller, mercurialVaultDepositoryUSDC, mintingFeeInBps, redeemingFeeInBps, redeemableDepositorySupplyCap, payer);
     });
 
     it(`Initialize ${mangoDepositorySOL.collateralMintSymbol} Depository`, async function () {
-      await registerMangoDepositoryTest(authority, controller, mangoDepositorySOL, mango, payer);
+      const redeemableDepositorySupplyCap = uiToNative(1_000, UXD_DECIMALS);
+
+      await registerMangoDepositoryTest(authority, controller, mangoDepositorySOL, mango, redeemableDepositorySupplyCap, payer);
     });
 
     it(`Deposit 100 USDC of insurance`, async function () {

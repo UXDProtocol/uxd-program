@@ -1,18 +1,19 @@
 import { BN } from "@project-serum/anchor";
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
+import { Controller, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
-import { editMangoDepository } from "../api";
+import { editMercurialVaultDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
 
-export const editMangoDepositoryTest = async function (
+export const editMercurialVaultDepositoryTest = async function (
   authority: Signer,
   controller: Controller,
-  depository: MangoDepository,
+  depository: MercurialVaultDepository,
   uiFields: {
-    quoteMintAndRedeemFee: number;
     redeemableDepositorySupplyCap?: BN;
+    mintingFeeInBps?: number;
+    redeemingFeeInBps?: number;
   }
 ) {
   const connection = getConnection();
@@ -22,30 +23,36 @@ export const editMangoDepositoryTest = async function (
   try {
     // GIVEN
     const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
+
     const {
-      quoteMintAndRedeemFee,
       redeemableDepositorySupplyCap,
+      mintingFeeInBps,
+      redeemingFeeInBps,
     } = depositoryOnchainAccount;
 
     // WHEN
-    const txId = await editMangoDepository(authority, controller, depository, uiFields);
+    const txId = await editMercurialVaultDepository(authority, controller, depository, uiFields);
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN
     const depositoryOnchainAccount_post = await depository.getOnchainAccount(connection, options);
-
     const {
-      quoteMintAndRedeemFee: quoteMintAndRedeemFee_post,
       redeemableDepositorySupplyCap: redeemableDepositorySupplyCap_post,
+      mintingFeeInBps: mintingFeeInBps_post,
+      redeemingFeeInBps: redeemingFeeInBps_post,
     } = depositoryOnchainAccount_post;
 
-    if (uiFields.quoteMintAndRedeemFee) {
-      expect(quoteMintAndRedeemFee_post).equals(uiFields.quoteMintAndRedeemFee, "The quote fee has not changed.");
-      console.log(`🧾 Previous quote fee was`, quoteMintAndRedeemFee, "now is", quoteMintAndRedeemFee_post);
-    }
     if (uiFields.redeemableDepositorySupplyCap) {
       expect(redeemableDepositorySupplyCap_post).equals(uiFields.redeemableDepositorySupplyCap, "The redeemable depository supply cap has not changed.");
       console.log(`🧾 Previous redeemable depository supply cap was`, redeemableDepositorySupplyCap, "now is", redeemableDepositorySupplyCap_post);
+    }
+    if (uiFields.mintingFeeInBps) {
+      expect(mintingFeeInBps_post).equals(uiFields.mintingFeeInBps, "The minting fee has not changed.");
+      console.log(`🧾 Previous minting fee was`, mintingFeeInBps, "now is", mintingFeeInBps_post);
+    }
+    if (uiFields.redeemingFeeInBps) {
+      expect(redeemingFeeInBps_post).equals(uiFields.redeemingFeeInBps, "The redeeming fee has not changed.");
+      console.log(`🧾 Previous redeeming fee was`, redeemingFeeInBps, "now is", redeemingFeeInBps_post);
     }
 
     controller.info();

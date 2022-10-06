@@ -1244,7 +1244,10 @@
           {
             "name": "registeredMangoDepositories",
             "type": {
-              "array": ["publicKey", 8]
+              "array": [
+                "publicKey",
+                8
+              ]
             }
           },
           {
@@ -1270,7 +1273,10 @@
           {
             "name": "registeredMercurialVaultDepositories",
             "type": {
-              "array": ["publicKey", 4]
+              "array": [
+                "publicKey",
+                4
+              ]
             }
           },
           {
@@ -1292,7 +1298,10 @@
           {
             "name": "unused",
             "type": {
-              "array": ["u8", 2]
+              "array": [
+                "u8",
+                2
+              ]
             }
           },
           {
@@ -1314,7 +1323,10 @@
           {
             "name": "unused2",
             "type": {
-              "array": ["u8", 32]
+              "array": [
+                "u8",
+                32
+              ]
             }
           },
           {
@@ -1324,7 +1336,10 @@
           {
             "name": "unused3",
             "type": {
-              "array": ["u8", 32]
+              "array": [
+                "u8",
+                32
+              ]
             }
           },
           {
@@ -2584,6 +2599,6 @@
     }
   ],
   "metadata": {
-    "address": "AURBE2zC7HH64PcH23xYtbfUU6pQLUdY3Asfw6wwifuA"
+    "address": "95An2VwXjCSEnRL5iVt6Xux3JAp16sC7o96QBJwMBWEV"
   }
 }
