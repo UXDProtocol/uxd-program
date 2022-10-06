@@ -202,6 +202,9 @@ pub fn handler(
     // 9 - Check that we don't mint more UXD than the fixed limit
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
+    ctx.accounts
+        .check_redeemable_depository_supply_cap_overflow()?;
+
     Ok(())
 }
 
@@ -287,6 +290,15 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
             UxdError::SlippageReached,
         );
 
+        Ok(())
+    }
+
+    fn check_redeemable_depository_supply_cap_overflow(&self) -> Result<()> {
+        let depository = self.depository.load()?;
+        require!(
+            depository.minted_redeemable_amount <= depository.redeemable_depository_supply_cap,
+            UxdError::RedeemableMercurialVaultDepositorySupplyCapReached
+        );
         Ok(())
     }
 }

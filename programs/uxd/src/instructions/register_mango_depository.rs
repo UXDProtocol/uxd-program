@@ -82,7 +82,10 @@ pub struct RegisterMangoDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub(crate) fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
+pub(crate) fn handler(
+    ctx: Context<RegisterMangoDepository>,
+    redeemable_depository_supply_cap: u128,
+) -> Result<()> {
     let collateral_mint = ctx.accounts.collateral_mint.key();
     let quote_mint = ctx.accounts.quote_mint.key();
 
@@ -124,6 +127,7 @@ pub(crate) fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     depository.total_amount_paid_taker_fee = u128::MIN;
     depository.total_amount_rebalanced = u128::MIN;
     depository.regular_minting_disabled = false; // enable minting by default
+    depository.redeemable_depository_supply_cap = redeemable_depository_supply_cap;
 
     // - Update Controller state
     ctx.accounts

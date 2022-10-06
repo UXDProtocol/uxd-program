@@ -248,90 +248,119 @@ pub struct RebalanceMangoDepositoryLiteEvent {
     pub fee_delta: i64,
 }
 
-/// Event called in [instructions::set_mango_depository_quote_mint_and_redeem_soft_cap::handler].
+/// Event called in [instructions::edit_mango_depository::handler].
 #[event]
 pub struct SetMangoDepositoryQuoteMintAndRedeemSoftCapEvent {
-    /// The controller version.
     #[index]
     pub version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The new quote mint and redeem soft cap
     pub quote_mint_and_redeem_soft_cap: u64,
 }
 
-/// Event called in [instructions::set_mango_depository_quote_mint_and_redeem_fee::handler].
+/// Event called in [instructions::edit_mango_depository::handler].
 #[event]
 pub struct SetMangoDepositoryQuoteMintAndRedeemFeeEvent {
-    /// The controller version.
     #[index]
     pub version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The quote mint and redeem fee.
     #[index]
     pub quote_mint_and_redeem_fee: u8,
+}
+
+/// Event called in [instructions::edit_mango_depository::handler].
+#[event]
+pub struct SetMangoDepositoryRedeemableSupplyCapEvent {
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub redeemable_depository_supply_cap: u128,
+}
+
+/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+#[event]
+pub struct SetMercurialVaultDepositoryRedeemableSupplyCapEvent {
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub redeemable_depository_supply_cap: u128,
+}
+
+/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+#[event]
+pub struct SetMercurialVaultDepositoryMintingFeeInBpsEvent {
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub minting_fee_in_bps: u8,
+}
+
+/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+#[event]
+pub struct SetMercurialVaultDepositoryRedeemingFeeInBpsEvent {
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub redeeming_fee_in_bps: u8,
 }
 
 /// Event called in [instructions::mango_dex::quote_redeem_from_mango_depository::handler].
 #[event]
 pub struct QuoteRedeemFromMangoDepositoryEvent {
-    /// The controller version.
     #[index]
     pub version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The user making the call.
     #[index]
     pub user: Pubkey,
-    /// The quote redeemable amount in native units. (input)
     pub quote_redeemable_amount: u64,
-    /// The total fee from this quote redeem
     pub quote_redeem_fee: u64,
 }
 
 /// Event called in [instructions::mango_dex::quote_mint_with_mango_depository::handler].
 #[event]
 pub struct QuoteMintWithMangoDepositoryEvent {
-    /// The controller version.
     #[index]
     pub version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The user making the call.
     #[index]
     pub user: Pubkey,
-    /// The quote mint amount in native units. (input)
     pub quote_mint_amount: u64,
-    /// The total fee from this quote mint
     pub quote_mint_fee: u64,
 }
 
 /// Event called in [instructions::*_dex::disable_depository_regular_minting::handler].
 #[event]
 pub struct DisableDepositoryRegularMintingEvent {
-    /// The controller version.
     #[index]
     pub version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The state of the depository regular minting
     pub regular_minting_disabled: bool,
 }

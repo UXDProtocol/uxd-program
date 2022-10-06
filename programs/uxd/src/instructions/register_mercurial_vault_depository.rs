@@ -78,6 +78,7 @@ pub fn handler(
     ctx: Context<RegisterMercurialVaultDepository>,
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
+    redeemable_depository_supply_cap: u128,
 ) -> Result<()> {
     let depository_bump = *ctx
         .bumps
@@ -118,6 +119,8 @@ pub fn handler(
 
     depository.mercurial_vault = ctx.accounts.mercurial_vault.key();
 
+    depository.redeemable_depository_supply_cap = redeemable_depository_supply_cap;
+
     // 2 - Update Controller state
     ctx.accounts
         .controller
@@ -154,7 +157,12 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
         Ok(())
     }
 
-    pub fn validate(&self, _minting_fee_in_bps: u8, _redeeming_fee_in_bps: u8) -> Result<()> {
+    pub fn validate(
+        &self,
+        _minting_fee_in_bps: u8,
+        _redeeming_fee_in_bps: u8,
+        _redeemable_depository_supply_cap: u128,
+    ) -> Result<()> {
         require!(
             self.mercurial_vault
                 .token_mint
