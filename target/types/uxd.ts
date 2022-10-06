@@ -2444,7 +2444,7 @@ export type Uxd = {
     },
     {
       "code": 6036,
-      "name": "InvalidMangoGroup",
+      "name": "CannotLoadMangoGroup",
       "msg": "Could not load the provided MangoGroup account."
     },
     {
@@ -2484,111 +2484,116 @@ export type Uxd = {
     },
     {
       "code": 6044,
-      "name": "UnmatchedMangoGroupWithController",
-      "msg": "The mango group is not the expected one."
-    },
-    {
-      "code": 6045,
       "name": "InvalidMercurialVaultLpMint",
       "msg": "The mercurial vault lp mint does not match the Depository's one."
     },
     {
-      "code": 6046,
+      "code": 6045,
       "name": "MaxNumberOfMercurialVaultDepositoriesRegisteredReached",
       "msg": "Cannot register more mercurial vault depositories, the limit has been reached."
     },
     {
-      "code": 6047,
+      "code": 6046,
       "name": "MercurialVaultDoNotMatchCollateral",
       "msg": "The provided collateral do not match the provided mercurial vault token."
     },
     {
-      "code": 6048,
+      "code": 6047,
       "name": "CollateralMintEqualToRedeemableMint",
       "msg": "Collateral mint should be different than redeemable mint."
     },
     {
-      "code": 6049,
+      "code": 6048,
       "name": "CollateralMintNotAllowed",
       "msg": "Provided collateral mint is not allowed."
     },
     {
-      "code": 6050,
+      "code": 6049,
       "name": "MinimumMintedRedeemableAmountError",
       "msg": "Mint resulted to 0 redeemable token being minted."
     },
     {
-      "code": 6051,
+      "code": 6050,
       "name": "MinimumRedeemedCollateralAmountError",
       "msg": "Redeem resulted to 0 collateral token being redeemed."
     },
     {
+      "code": 6051,
+      "name": "InvalidDepositoryLpTokenVault",
+      "msg": "The depository lp token vault does not match the Depository's one."
+    },
+    {
       "code": 6052,
+      "name": "UnAllowedMangoGroup",
+      "msg": "The mango group is not accepted."
+    },
+    {
+      "code": 6053,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6053,
+      "code": 6054,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6054,
+      "code": 6055,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6055,
+      "code": 6056,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6056,
+      "code": 6057,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6057,
+      "code": 6058,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6058,
+      "code": 6059,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6059,
+      "code": 6060,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6060,
+      "code": 6061,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6061,
+      "code": 6062,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6062,
+      "code": 6063,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6063,
+      "code": 6064,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6064,
+      "code": 6065,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6065,
+      "code": 6066,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
@@ -5041,7 +5046,7 @@ export const IDL: Uxd = {
     },
     {
       "code": 6036,
-      "name": "InvalidMangoGroup",
+      "name": "CannotLoadMangoGroup",
       "msg": "Could not load the provided MangoGroup account."
     },
     {
@@ -5081,111 +5086,116 @@ export const IDL: Uxd = {
     },
     {
       "code": 6044,
-      "name": "UnmatchedMangoGroupWithController",
-      "msg": "The mango group is not the expected one."
-    },
-    {
-      "code": 6045,
       "name": "InvalidMercurialVaultLpMint",
       "msg": "The mercurial vault lp mint does not match the Depository's one."
     },
     {
-      "code": 6046,
+      "code": 6045,
       "name": "MaxNumberOfMercurialVaultDepositoriesRegisteredReached",
       "msg": "Cannot register more mercurial vault depositories, the limit has been reached."
     },
     {
-      "code": 6047,
+      "code": 6046,
       "name": "MercurialVaultDoNotMatchCollateral",
       "msg": "The provided collateral do not match the provided mercurial vault token."
     },
     {
-      "code": 6048,
+      "code": 6047,
       "name": "CollateralMintEqualToRedeemableMint",
       "msg": "Collateral mint should be different than redeemable mint."
     },
     {
-      "code": 6049,
+      "code": 6048,
       "name": "CollateralMintNotAllowed",
       "msg": "Provided collateral mint is not allowed."
     },
     {
-      "code": 6050,
+      "code": 6049,
       "name": "MinimumMintedRedeemableAmountError",
       "msg": "Mint resulted to 0 redeemable token being minted."
     },
     {
-      "code": 6051,
+      "code": 6050,
       "name": "MinimumRedeemedCollateralAmountError",
       "msg": "Redeem resulted to 0 collateral token being redeemed."
     },
     {
+      "code": 6051,
+      "name": "InvalidDepositoryLpTokenVault",
+      "msg": "The depository lp token vault does not match the Depository's one."
+    },
+    {
       "code": 6052,
+      "name": "UnAllowedMangoGroup",
+      "msg": "The mango group is not accepted."
+    },
+    {
+      "code": 6053,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6053,
+      "code": 6054,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6054,
+      "code": 6055,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6055,
+      "code": 6056,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6056,
+      "code": 6057,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6057,
+      "code": 6058,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6058,
+      "code": 6059,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6059,
+      "code": 6060,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6060,
+      "code": 6061,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6061,
+      "code": 6062,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6062,
+      "code": 6063,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6063,
+      "code": 6064,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6064,
+      "code": 6065,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6065,
+      "code": 6066,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

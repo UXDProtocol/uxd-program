@@ -3,7 +3,6 @@ use crate::events::RedeemFromMangoDepositoryEvent;
 use crate::mango_utils::derive_order_delta;
 use crate::mango_utils::price_to_lot_price;
 use crate::mango_utils::PerpInfo;
-use crate::validate_mango_group;
 use crate::validate_perp_market_mints_matches_depository_mints;
 use crate::Controller;
 use crate::MangoDepository;
@@ -58,7 +57,7 @@ pub struct RedeemFromMangoDepository<'info> {
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = mango_account @UxdError::InvalidMangoAccount,
-        has_one = collateral_mint @UxdError::InvalidCollateralMint
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
     pub depository: AccountLoader<'info, MangoDepository>,
 
@@ -435,8 +434,6 @@ impl<'info> RedeemFromMangoDepository<'info> {
             self.user_redeemable.amount >= redeemable_amount,
             UxdError::InsufficientRedeemableAmount
         );
-
-        validate_mango_group(self.mango_group.key())?;
 
         validate_perp_market_mints_matches_depository_mints(
             &self.mango_group,

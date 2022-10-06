@@ -77,7 +77,7 @@ pub enum UxdError {
     #[msg("The perp market index could not be found for this MangoMarkets Pair.")]
     MangoPerpMarketIndexNotFound,
     #[msg("Could not load the provided MangoGroup account.")]
-    InvalidMangoGroup,
+    CannotLoadMangoGroup,
     #[msg("The order quantity is below contract_size of the perp market.")]
     QuantityBelowContractSize,
     #[msg("The amount trying to be quote minted is larger than quote mintable.")]
@@ -92,8 +92,6 @@ pub enum UxdError {
     QuoteAmountExceedsSoftCap,
     #[msg("The quote currency is not the expected one.")]
     InvalidQuoteCurrency,
-    #[msg("The mango group is not the expected one.")]
-    UnmatchedMangoGroupWithController,
     #[msg("The mercurial vault lp mint does not match the Depository's one.")]
     InvalidMercurialVaultLpMint,
     #[msg("Cannot register more mercurial vault depositories, the limit has been reached.")]
@@ -108,6 +106,10 @@ pub enum UxdError {
     MinimumMintedRedeemableAmountError,
     #[msg("Redeem resulted to 0 collateral token being redeemed.")]
     MinimumRedeemedCollateralAmountError,
+    #[msg("The depository lp token vault does not match the Depository's one.")]
+    InvalidDepositoryLpTokenVault,
+    #[msg("The mango group is not accepted.")]
+    UnAllowedMangoGroup,
 
     /// Anchor DSL related errors
     ///
