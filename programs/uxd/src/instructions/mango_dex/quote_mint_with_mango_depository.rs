@@ -257,8 +257,11 @@ pub(crate) fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: 
     ctx.accounts
         .update_onchain_accounting(redeemable_mint_amount_less_fees, fees_accrued)?;
 
-    // - 7 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
+    // - 7 [CHECK REDEEMABLE SUPPLY CAPS OVERFLOW] ----------------------
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
+
+    ctx.accounts
+        .check_redeemable_depository_supply_cap_overflow()?;
 
     emit!(QuoteMintWithMangoDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,
@@ -297,6 +300,16 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
             authority: self.controller.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    fn check_redeemable_depository_supply_cap_overflow(&self) -> Result<()> {
+        let depository = self.depository.load()?;
+        require!(
+            depository.redeemable_amount_under_management
+                <= depository.redeemable_depository_supply_cap,
+            UxdError::RedeemableMangoDepositorySupplyCapReached
+        );
+        Ok(())
     }
 
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap

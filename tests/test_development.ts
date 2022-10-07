@@ -100,13 +100,13 @@ describe("Integration tests", function () {
 
       const mintingFeeInBps = 2;
       const redeemingFeeInBps = 2;
-      const redeemableDepositorySupplyCap = uiToNative(1_000, UXD_DECIMALS);
+      const redeemableDepositorySupplyCap = 1_000;
 
       await registerMercurialVaultDepositoryTest(authority, controller, mercurialVaultDepositoryUSDC, mintingFeeInBps, redeemingFeeInBps, redeemableDepositorySupplyCap, payer);
     });
 
     it(`Initialize ${mangoDepositorySOL.collateralMintSymbol} Depository`, async function () {
-      const redeemableDepositorySupplyCap = uiToNative(1_000, UXD_DECIMALS);
+      const redeemableDepositorySupplyCap = 1_000;
 
       await registerMangoDepositoryTest(authority, controller, mangoDepositorySOL, mango, redeemableDepositorySupplyCap, payer);
     });
