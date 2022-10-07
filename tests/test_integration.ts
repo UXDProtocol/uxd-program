@@ -13,6 +13,7 @@ import { mangoDepositoryAndControllerAccountingSuite } from "./suite/mangoDeposi
 import { disableDepositoryMintingSuite } from "./suite/disableDepositoryMintingSuite";
 import { mercurialVaultDepositoryMintRedeemSuite } from "./suite/mercurialVaultMintAndRedeemSuite";
 import { getConnection } from "./connection";
+import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDepositorySuite";
 
 (async () => {
     // Mango
@@ -64,6 +65,10 @@ import { getConnection } from "./connection";
 
         describe("mercurialVaultDepositoryMintRedeemSuite", function () {
             mercurialVaultDepositoryMintRedeemSuite(authority, user, bank, controllerUXD, mercurialVaultDepository);
+        });
+
+        describe("editMercurialVaultDepositorySuite", function () {
+            editMercurialVaultDepositorySuite(authority, user, bank, controllerUXD, mercurialVaultDepository);
         });
 
         this.afterAll("Transfer funds back to bank", () => transferAllSol(user, bank.publicKey));

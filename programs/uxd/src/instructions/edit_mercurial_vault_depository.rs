@@ -19,7 +19,7 @@ pub struct EditMercurialVaultDepository<'info> {
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
         has_one = authority @UxdError::InvalidAuthority,
-        constraint = controller.load()?.registered_mango_depositories.contains(&depository.key()) @UxdError::InvalidDepository
+        constraint = controller.load()?.registered_mercurial_vault_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
     pub controller: AccountLoader<'info, Controller>,
 
