@@ -33,7 +33,6 @@ pub struct MangoDepository {
     pub bump: u8,
     pub _unused: [u8; 2],
     pub mango_account_bump: u8,
-    // Version used
     pub version: u8,
     pub collateral_mint: Pubkey,
     pub collateral_mint_decimals: u8,

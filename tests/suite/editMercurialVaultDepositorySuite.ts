@@ -40,6 +40,7 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
 
         it(`Edit redeemableDepositorySupplyCap alone should work`, async function () {
             const redeemableDepositorySupplyCap = 50;
+            // const redeemableDepositorySupplyCapBN = redeemableDepositorySupplyCap * (10 ** controller.redeemableMintDecimals);
 
             console.log("[🧾 redeemableDepositorySupplyCap", redeemableDepositorySupplyCap, "]");
 
@@ -56,14 +57,16 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
                 redeemableDepositorySupplyCap,
             } = beforeDepository;
 
+            const uiRedeemableDepositorySupplyCap = redeemableDepositorySupplyCap / (10 ** controller.redeemableMintDecimals);
+
             console.log("[🧾 mintingFeeInBps", mintingFeeInBps, "]");
             console.log("[🧾 redeemingFeeInBps", redeemingFeeInBps, "]");
-            console.log("[🧾 redeemableDepositorySupplyCap", redeemableDepositorySupplyCap, "]");
+            console.log("[🧾 redeemableDepositorySupplyCap", uiRedeemableDepositorySupplyCap, "]");
 
             await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
                 mintingFeeInBps,
                 redeemingFeeInBps,
-                redeemableDepositorySupplyCap,
+                redeemableDepositorySupplyCap: uiRedeemableDepositorySupplyCap,
             });
         });
     });

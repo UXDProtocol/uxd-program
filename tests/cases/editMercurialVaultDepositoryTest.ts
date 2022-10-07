@@ -11,7 +11,7 @@ export const editMercurialVaultDepositoryTest = async function (
   controller: Controller,
   depository: MercurialVaultDepository,
   uiFields: {
-    redeemableDepositorySupplyCap?: BN;
+    redeemableDepositorySupplyCap?: number;
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
   }
@@ -43,8 +43,9 @@ export const editMercurialVaultDepositoryTest = async function (
     } = depositoryOnchainAccount_post;
 
     if (uiFields.redeemableDepositorySupplyCap) {
-      expect(redeemableDepositorySupplyCap_post).equals(uiFields.redeemableDepositorySupplyCap, "The redeemable depository supply cap has not changed.");
-      console.log(`🧾 Previous redeemable depository supply cap was`, redeemableDepositorySupplyCap, "now is", redeemableDepositorySupplyCap_post);
+      const nativeRedeemableDepositorySupplyCap = uiFields.redeemableDepositorySupplyCap * (10 ** controller.redeemableMintDecimals);
+      expect(redeemableDepositorySupplyCap_post.toString()).equals(nativeRedeemableDepositorySupplyCap.toString(), "The redeemable depository supply cap has not changed.");
+      console.log(`🧾 Previous redeemable depository supply cap was`, redeemableDepositorySupplyCap.toString(), "now is", redeemableDepositorySupplyCap_post.toString());
     }
     if (uiFields.mintingFeeInBps) {
       expect(mintingFeeInBps_post).equals(uiFields.mintingFeeInBps, "The minting fee has not changed.");

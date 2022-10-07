@@ -29,8 +29,6 @@ pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
 #[repr(packed)]
 pub struct MercurialVaultDepository {
     pub bump: u8,
-
-    // Version used
     pub version: u8,
 
     // Token deposited in the vault

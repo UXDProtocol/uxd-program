@@ -12,7 +12,7 @@ export const editMangoDepositoryTest = async function (
   depository: MangoDepository,
   uiFields: {
     quoteMintAndRedeemFee: number;
-    redeemableDepositorySupplyCap?: BN;
+    redeemableDepositorySupplyCap?: number;
   }
 ) {
   const connection = getConnection();
@@ -44,8 +44,8 @@ export const editMangoDepositoryTest = async function (
       console.log(`🧾 Previous quote fee was`, quoteMintAndRedeemFee, "now is", quoteMintAndRedeemFee_post);
     }
     if (uiFields.redeemableDepositorySupplyCap) {
-      expect(redeemableDepositorySupplyCap_post).equals(uiFields.redeemableDepositorySupplyCap, "The redeemable depository supply cap has not changed.");
-      console.log(`🧾 Previous redeemable depository supply cap was`, redeemableDepositorySupplyCap, "now is", redeemableDepositorySupplyCap_post);
+      expect(redeemableDepositorySupplyCap_post.toString()).equals(uiFields.redeemableDepositorySupplyCap.toString(), "The redeemable depository supply cap has not changed.");
+      console.log(`🧾 Previous redeemable depository supply cap was`, redeemableDepositorySupplyCap.toString(), "now is", redeemableDepositorySupplyCap_post.toString());
     }
 
     controller.info();
