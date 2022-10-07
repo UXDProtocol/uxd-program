@@ -1,4 +1,5 @@
 import { Signer } from "@solana/web3.js";
+import { uiToNative } from "@uxd-protocol/uxd-client";
 import { Controller, MercurialVaultDepository, findMultipleATAAddSync, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { mintWithMercurialVaultDepository } from "../api";
@@ -29,7 +30,7 @@ export const mintWithMercurialVaultDepositoryTest = async function (
             userRedeemableBalance_pre,
             userCollateralBalance_pre,
             onchainController_pre,
-            onchainDepository_pre,
+            onChainDepository_pre,
         ] = await Promise.all([
             getBalance(userRedeemableATA),
             getBalance(userCollateralATA),
@@ -47,7 +48,7 @@ export const mintWithMercurialVaultDepositoryTest = async function (
             userRedeemableBalance_post,
             userCollateralBalance_post,
             onchainController_post,
-            onchainDepository_post,
+            onChainDepository_post,
         ] = await Promise.all([
             getBalance(userRedeemableATA),
             getBalance(userCollateralATA),
@@ -60,11 +61,11 @@ export const mintWithMercurialVaultDepositoryTest = async function (
         const redeemableDelta = Number((userRedeemableBalance_post - userRedeemableBalance_pre).toFixed(controller.redeemableMintDecimals));
 
         const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralMint.decimals);
-        const nativeCollateralAmount = collateralAmount * (10 ** depository.collateralMint.decimals);
+        const nativeCollateralAmount = uiToNative(collateralAmount, depository.collateralMint.decimals);
 
         // Do calculation in native units so we avoid javascript calculation issue with small numbers
         // i.e Javascript calculation precision 0.000005000000000000013
-        const estimatedFeesPaid = Math.floor(Math.ceil(nativeCollateralAmount - ((10_000 - onchainDepository_pre.mintingFeeInBps) * nativeCollateralAmount / 10_000))) / (10 ** depository.collateralMint.decimals);
+        const estimatedFeesPaid = nativeToUi(Math.floor(Math.ceil(nativeCollateralAmount - ((10_000 - onChainDepository_pre.mintingFeeInBps) * nativeCollateralAmount / 10_000))), depository.collateralMint.decimals);
 
         console.log(
             `🧾 Minted`, Number(redeemableDelta.toFixed(depository.mercurialVaultLpMint.decimals)), controller.redeemableMintSymbol,
@@ -84,18 +85,18 @@ export const mintWithMercurialVaultDepositoryTest = async function (
             .gte(Number((estimatedRedeemableAmount - collateralNativeUnitPrecision).toFixed(controller.redeemableMintDecimals)));
 
         // Check depository accounting
-        expect(nativeToUi(onchainDepository_post.collateralAmountDeposited, depository.collateralMint.decimals))
-            .equal(Number((nativeToUi(onchainDepository_pre.collateralAmountDeposited, depository.collateralMint.decimals) + collateralAmount).toFixed(depository.collateralMint.decimals)));
+        expect(nativeToUi(onChainDepository_post.collateralAmountDeposited, depository.collateralMint.decimals))
+            .equal(Number((nativeToUi(onChainDepository_pre.collateralAmountDeposited, depository.collateralMint.decimals) + collateralAmount).toFixed(depository.collateralMint.decimals)));
 
-        expect(nativeToUi(onchainDepository_post.mintedRedeemableAmount, controller.redeemableMintDecimals))
-            .equal(Number((nativeToUi(onchainDepository_pre.mintedRedeemableAmount, controller.redeemableMintDecimals) + redeemableDelta).toFixed(controller.redeemableMintDecimals)));
+        expect(nativeToUi(onChainDepository_post.mintedRedeemableAmount, controller.redeemableMintDecimals))
+            .equal(Number((nativeToUi(onChainDepository_pre.mintedRedeemableAmount, controller.redeemableMintDecimals) + redeemableDelta).toFixed(controller.redeemableMintDecimals)));
 
-        expect(nativeToUi(onchainDepository_post.totalPaidMintFees, depository.collateralMint.decimals))
-            .equal(Number((nativeToUi(onchainDepository_pre.totalPaidMintFees, depository.collateralMint.decimals) + estimatedFeesPaid).toFixed(controller.redeemableMintDecimals)));
+        expect(nativeToUi(onChainDepository_post.totalPaidMintFees, depository.collateralMint.decimals))
+            .equal(Number((nativeToUi(onChainDepository_pre.totalPaidMintFees, depository.collateralMint.decimals) + estimatedFeesPaid).toFixed(controller.redeemableMintDecimals)));
 
         // Check controller accounting
-        expect(nativeToUi(onchainController_post.redeemableCirculatingSupply, depository.collateralMint.decimals))
-            .equal(Number((nativeToUi(onchainController_pre.redeemableCirculatingSupply, depository.collateralMint.decimals) + redeemableDelta).toFixed(controller.redeemableMintDecimals)));
+        expect(nativeToUi(onchainController_post.redeemableCirculatingSupply, controller.redeemableMintDecimals))
+            .equal(Number((nativeToUi(onchainController_pre.redeemableCirculatingSupply, controller.redeemableMintDecimals) + redeemableDelta).toFixed(controller.redeemableMintDecimals)));
 
         console.groupEnd();
 

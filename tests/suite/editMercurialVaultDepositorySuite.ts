@@ -40,7 +40,6 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
 
         it(`Edit redeemableDepositorySupplyCap alone should work`, async function () {
             const redeemableDepositorySupplyCap = 50;
-            // const redeemableDepositorySupplyCapBN = redeemableDepositorySupplyCap * (10 ** controller.redeemableMintDecimals);
 
             console.log("[🧾 redeemableDepositorySupplyCap", redeemableDepositorySupplyCap, "]");
 
@@ -57,7 +56,7 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
                 redeemableDepositorySupplyCap,
             } = beforeDepository;
 
-            const uiRedeemableDepositorySupplyCap = redeemableDepositorySupplyCap / (10 ** controller.redeemableMintDecimals);
+            const uiRedeemableDepositorySupplyCap = nativeToUi(redeemableDepositorySupplyCap, controller.redeemableMintDecimals);
 
             console.log("[🧾 mintingFeeInBps", mintingFeeInBps, "]");
             console.log("[🧾 redeemingFeeInBps", redeemingFeeInBps, "]");

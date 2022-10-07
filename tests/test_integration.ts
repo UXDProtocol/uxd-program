@@ -74,7 +74,7 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
         this.afterAll("Transfer funds back to bank", () => transferAllSol(user, bank.publicKey));
     });
 
-    describe.skip("Mango integration tests: SOL", function () {
+    describe("Mango integration tests: SOL", function () {
         this.beforeAll("Setup: fund user", async function () {
             console.log("USER =>", user.publicKey.toString());
             await transferSol(1, bank, user.publicKey);

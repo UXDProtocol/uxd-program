@@ -17,7 +17,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (controlle
     let initialRedeemableDepositorySupplyCap: BN;
     let userRedeemableATA: PublicKey;
     let onchainController: ControllerAccount;
-    let onchainDepository: MercurialVaultDepositoryAccount;
+    let onChainDepository: MercurialVaultDepositoryAccount;
 
     before('Setup: fund user', async function () {
         console.log('depository.collateralMint.mint', depository.collateralMint.mint.toBase58());
@@ -31,7 +31,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (controlle
         [
             initialRedeemableAccountBalance,
             onchainController,
-            onchainDepository,
+            onChainDepository,
         ] = await Promise.all([
             getBalance(userRedeemableATA),
             controller.getOnchainAccount(getConnection(), TXN_OPTS),
@@ -39,7 +39,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (controlle
         ]);
 
         initialControllerGlobalRedeemableSupplyCap = onchainController.redeemableGlobalSupplyCap;
-        initialRedeemableDepositorySupplyCap = onchainDepository.redeemableDepositorySupplyCap;
+        initialRedeemableDepositorySupplyCap = onChainDepository.redeemableDepositorySupplyCap;
     });
 
     describe("Regular mint/redeem", () => {

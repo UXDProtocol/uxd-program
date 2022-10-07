@@ -1,6 +1,6 @@
 import { BN } from "@project-serum/anchor";
 import { Signer } from "@solana/web3.js";
-import { Controller, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
+import { Controller, MercurialVaultDepository, uiToNative } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { editMercurialVaultDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
@@ -43,7 +43,7 @@ export const editMercurialVaultDepositoryTest = async function (
     } = depositoryOnchainAccount_post;
 
     if (uiFields.redeemableDepositorySupplyCap) {
-      const nativeRedeemableDepositorySupplyCap = uiFields.redeemableDepositorySupplyCap * (10 ** controller.redeemableMintDecimals);
+      const nativeRedeemableDepositorySupplyCap = uiToNative(uiFields.redeemableDepositorySupplyCap, controller.redeemableMintDecimals);
       expect(redeemableDepositorySupplyCap_post.toString()).equals(nativeRedeemableDepositorySupplyCap.toString(), "The redeemable depository supply cap has not changed.");
       console.log(`🧾 Previous redeemable depository supply cap was`, redeemableDepositorySupplyCap.toString(), "now is", redeemableDepositorySupplyCap_post.toString());
     }
