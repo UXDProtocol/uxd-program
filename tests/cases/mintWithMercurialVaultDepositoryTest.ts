@@ -1,11 +1,10 @@
-import { BN } from "@project-serum/anchor";
 import { Signer } from "@solana/web3.js";
-import { Controller, MercurialVaultDepository, findATAAddrSync, findMultipleATAAddSync, nativeToUi } from "@uxd-protocol/uxd-client";
+import { Controller, MercurialVaultDepository, findMultipleATAAddSync, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { mintWithMercurialVaultDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
-import { getBalance, ceilAtDecimals } from "../utils";
+import { getBalance } from "../utils";
 
 export const mintWithMercurialVaultDepositoryTest = async function (
     collateralAmount: number,
