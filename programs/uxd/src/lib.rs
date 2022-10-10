@@ -29,6 +29,7 @@ pub const MANGO_GROUP: &str = "98pjRuQjK3qA6gXts96PqZT4Ze5QmnCmt3QYjhbUSPue";
 // Version used for accounts structure and future migrations
 pub const MANGO_DEPOSITORY_ACCOUNT_VERSION: u8 = 2;
 pub const MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
+pub const MAPLE_POOL_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
@@ -39,6 +40,9 @@ pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
 pub const MERCURIAL_VAULT_DEPOSITORY_NAMESPACE: &[u8] = b"MERCURIALVAULTDEPOSITORY";
 pub const MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE: &[u8] =
     b"MERCURIALVAULTDEPOSITORYLPVAULT";
+
+pub const MAPLE_POOL_DEPOSITORY_NAMESPACE: &[u8] = b"MAPLE_POOL_DEPOSITORY";
+pub const MAPLE_POOL_DEPOSITORY_COLLATERAL_NAMESPACE: &[u8] = b"MAPLE_POOL_DEPOSITORY_COLLATERAL";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -474,6 +478,42 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[redeem_from_mercurial_vault]");
         instructions::redeem_from_mercurial_vault_depository::handler(ctx, redeemable_amount)
+    }
+
+    // Create and Register a new `MaplePoolDepository` to the `Controller`.
+    // Each `Depository` account manages a specific maple pool.
+    #[access_control(
+        ctx.accounts.validate(
+            minted_redeemable_soft_cap,
+            minting_fees_bps,
+            redeeming_fees_bps
+        )
+    )]
+    pub fn register_maple_pool_depository(
+        ctx: Context<RegisterMaplePoolDepository>,
+        minted_redeemable_soft_cap: u128,
+        minting_fees_bps: u8,
+        redeeming_fees_bps: u8,
+    ) -> Result<()> {
+        msg!("[register_maple_pool_depository]");
+        instructions::register_maple_pool_depository::handler(
+            ctx,
+            minted_redeemable_soft_cap,
+            minting_fees_bps,
+            redeeming_fees_bps,
+        )
+    }
+
+    // Mint Redeemable tokens by depositing Collateral to maple pool.
+    #[access_control(
+        ctx.accounts.validate(ammount_collateral_deposited)
+    )]
+    pub fn mint_with_maple_pool(
+        ctx: Context<MintWithMaplePoolDepository>,
+        ammount_collateral_deposited: u64,
+    ) -> Result<()> {
+        msg!("[mint_with_maple_pool]");
+        instructions::mint_with_maple_pool_depository::handler(ctx, ammount_collateral_deposited)
     }
 }
 

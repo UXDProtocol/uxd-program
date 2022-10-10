@@ -1,8 +1,9 @@
+use crate::error::UxdError;
+use crate::BPS_UNIT_CONVERSION;
+use anchor_lang::prelude::*;
 use fixed::types::I80F48;
 
-use crate::{error::UxdError, BPS_UNIT_CONVERSION};
-
-pub fn calculate_amount_less_fees(amount: u64, fee_amount_in_bps: u8) -> Result<u64, UxdError> {
+pub fn calculate_amount_less_fees(amount: u64, fee_amount_in_bps: u8) -> Result<u64> {
     // Math: 5 bps fee would equate to bps_minted_to_user
     // being 9995 since 10000 - 5 = 9995
     let bps_less_fees: I80F48 = I80F48::checked_from_num(BPS_UNIT_CONVERSION)
@@ -22,7 +23,7 @@ pub fn calculate_amount_less_fees(amount: u64, fee_amount_in_bps: u8) -> Result<
         .checked_floor()
         .ok_or(UxdError::MathError)?;
 
-    amount_less_fees
+    return Ok(amount_less_fees
         .checked_to_num::<u64>()
-        .ok_or(UxdError::MathError)
+        .ok_or(UxdError::MathError)?);
 }

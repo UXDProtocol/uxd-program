@@ -89,6 +89,21 @@ pub struct RegisterMercurialVaultDepositoryEvent {
     pub collateral_mint: Pubkey,
 }
 
+/// Event called in [instructions::register_maple_pool_depository::handler].
+#[event]
+pub struct RegisterMaplePoolDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    pub collateral_mint: Pubkey,
+    pub maple_pool: Pubkey,
+}
+
 /// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
 #[event]
 pub struct SetMangoDepositoryRedeemableSoftCapEvent {

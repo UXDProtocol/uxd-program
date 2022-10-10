@@ -12,6 +12,7 @@ import {
   findATAAddrSync,
   uiToNative,
   MercurialVaultDepository,
+  MaplePoolDepository,
 } from "@uxd-protocol/uxd-client";
 import { BN, web3 } from "@project-serum/anchor";
 import { Payer } from "@blockworks-foundation/mango-client";
@@ -36,14 +37,31 @@ export async function initializeController(authority: Signer, payer: Signer, con
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function mintWithMercurialVaultDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository, collateralAmount: number): Promise<string> {
-  const mintWithMercurialVaultDepositoryIx = uxdClient.createMintWithMercurialVaultInstruction(controller, depository, authority.publicKey, collateralAmount, TXN_OPTS, payer.publicKey);
+export async function mintWithMercurialVaultDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: MercurialVaultDepository,
+  collateralAmount: number
+): Promise<string> {
+  const mintWithMercurialVaultDepositoryIx = uxdClient.createMintWithMercurialVaultInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    collateralAmount,
+    TXN_OPTS,
+    payer.publicKey
+  );
   let signers = [];
   let tx = new Transaction();
 
   const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
-  if (!await getConnection().getAccountInfo(authorityRedeemableAta)) {
-    const createUserRedeemableAtaIx = createAssocTokenIx(authority.publicKey, authorityRedeemableAta, controller.redeemableMintPda);
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
     tx.add(createUserRedeemableAtaIx);
   }
 
@@ -61,15 +79,26 @@ export async function redeemFromMercurialVaultDepository(
   payer: Signer,
   controller: Controller,
   depository: MercurialVaultDepository,
-  redeemableAmount: number,
+  redeemableAmount: number
 ): Promise<string> {
-  const redeemFromMercurialVaultDepositoryIx = uxdClient.createRedeemFromMercurialVaultInstruction(controller, depository, authority.publicKey, redeemableAmount, TXN_OPTS, payer.publicKey);
+  const redeemFromMercurialVaultDepositoryIx = uxdClient.createRedeemFromMercurialVaultInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    redeemableAmount,
+    TXN_OPTS,
+    payer.publicKey
+  );
   let signers = [];
   let tx = new Transaction();
 
   const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
-  if (!await getConnection().getAccountInfo(authorityRedeemableAta)) {
-    const createUserRedeemableAtaIx = createAssocTokenIx(authority.publicKey, authorityRedeemableAta, controller.redeemableMintPda);
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
     tx.add(createUserRedeemableAtaIx);
   }
 
@@ -89,14 +118,91 @@ export async function registerMercurialVaultDepository(
   depository: MercurialVaultDepository,
   mintingFeeInBps: number,
   redeemingFeeInBps: number,
-  redeemableDepositorySupplyCap: number,
+  redeemableDepositorySupplyCap: number
 ): Promise<string> {
-  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(controller, depository, authority.publicKey, mintingFeeInBps, redeemingFeeInBps, redeemableDepositorySupplyCap, TXN_OPTS, payer.publicKey);
+  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    mintingFeeInBps,
+    redeemingFeeInBps,
+    redeemableDepositorySupplyCap,
+    TXN_OPTS,
+    payer.publicKey
+  );
   let signers = [];
   let tx = new Transaction();
 
   tx.instructions.push(registerMercurialVaultDepositoryIx);
   signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function registerMaplePoolDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: MaplePoolDepository,
+  uiAccountingSupplyRedeemableSoftCap: number,
+  accountingBpsStampFeeMint: number,
+  accountingBpsStampFeeRedeem: number
+): Promise<string> {
+  const registerMaplePoolDepositoryIx = uxdClient.createRegisterMaplePoolDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    TXN_OPTS,
+    uiAccountingSupplyRedeemableSoftCap,
+    accountingBpsStampFeeMint,
+    accountingBpsStampFeeRedeem,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(registerMaplePoolDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function mintWithMaplePoolDepository(
+  user: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: MaplePoolDepository,
+  uiAmmountCollateralDeposited: number
+): Promise<string> {
+  const mintWithMaplePoolDepositoryIx = uxdClient.createMintWithMaplePoolInstruction(
+    controller,
+    depository,
+    user.publicKey,
+    uiAmmountCollateralDeposited,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [userRedeemableAta] = findATAAddrSync(user.publicKey, controller.redeemableMintPda);
+  if (!(await getConnection().getAccountInfo(userRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      user.publicKey,
+      userRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(mintWithMaplePoolDepositoryIx);
+  signers.push(user);
   if (payer) {
     signers.push(payer);
   }
@@ -110,7 +216,7 @@ export async function registerMangoDepository(
   controller: Controller,
   depository: MangoDepository,
   mango: Mango,
-  redeemableDepositorySupplyCap: number,
+  redeemableDepositorySupplyCap: number
 ): Promise<string> {
   const registerMangoDepositoryIx = uxdClient.createRegisterMangoDepositoryInstruction(
     controller,

@@ -4,6 +4,7 @@ use fixed::types::I80F48;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
+pub const MAX_REGISTERED_MAPLE_POOL_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
 pub const CONTROLLER_SPACE: usize = 8
@@ -21,7 +22,9 @@ pub const CONTROLLER_SPACE: usize = 8
     + 8
     + (32 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
     + 1
-    + 375;
+    + (32 * MAX_REGISTERED_MAPLE_POOL_DEPOSITORIES)
+    + 1
+    + 246;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -62,6 +65,10 @@ pub struct Controller {
     pub registered_mercurial_vault_depositories:
         [Pubkey; MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES],
     pub registered_mercurial_vault_depositories_count: u8,
+
+    // The Maple Pool Depositories registered with this Controller
+    pub registered_maple_pool_depositories: [Pubkey; MAX_REGISTERED_MAPLE_POOL_DEPOSITORIES],
+    pub registered_maple_pool_depositories_count: u8,
 }
 
 impl Controller {

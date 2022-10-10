@@ -38,6 +38,8 @@ pub enum UxdError {
     RedeemableMercurialVaultDepositorySupplyCapReached,
     #[msg("Operation not allowed due to being over the Mango Redeemable soft Cap.")]
     MangoDepositoriesSoftCapOverflow,
+    #[msg("Operation not allowed due to being over the Depository redeemable soft cap.")]
+    DepositoryRedeemableSoftCapOverflow,
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
     MaxNumberOfMangoDepositoriesRegisteredReached,
     #[msg("The amount to withdraw from the Insurance Fund must be superior to zero..")]
@@ -98,6 +100,8 @@ pub enum UxdError {
     MaxNumberOfMercurialVaultDepositoriesRegisteredReached,
     #[msg("The provided collateral do not match the provided mercurial vault token.")]
     MercurialVaultDoNotMatchCollateral,
+    #[msg("The provided collateral do not match the provided maple pool token.")]
+    MaplePoolDoNotMatchCollateral,
     #[msg("Collateral mint should be different than redeemable mint.")]
     CollateralMintEqualToRedeemableMint,
     #[msg("Provided collateral mint is not allowed.")]
@@ -139,7 +143,8 @@ pub enum UxdError {
     InvalidMercurialVault,
     #[msg("The provided mercurial vault collateral token safe does not match the mercurial vault one.")]
     InvalidMercurialVaultCollateralTokenSafe,
-
+    #[msg("The provided maple pool does not match the Depository's one.")]
+    InvalidMaplePool,
     #[msg("Default - Check the source code for more info.")]
     Default,
 }

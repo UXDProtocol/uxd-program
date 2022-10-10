@@ -10,9 +10,11 @@ import {
   BTC_DECIMALS,
   BTC_DEVNET,
   MercurialVaultDepository,
+  MaplePoolDepository,
 } from "@uxd-protocol/uxd-client";
 import { authority, bank, slippageBase, uxdProgramId } from "./constants";
 import {
+  createMaplePoolDepository,
   printDepositoryInfo,
   printUserInfo,
   transferAllSol,
@@ -37,6 +39,7 @@ import { getConnection } from "./connection";
 import { registerMercurialVaultDepositoryTest } from "./cases/registerMercurialVaultDepositoryTest";
 import { mintWithMercurialVaultDepositoryTest } from "./cases/mintWithMercurialVaultDepositoryTest";
 import { redeemFromMercurialVaultDepositoryTest } from "./cases/redeemFromMercurialVaultDepositoryTest";
+import { registerMaplePoolDepositoryTest } from "./cases/registerMaplePoolDepositoryTest";
 import { uiToNative } from "@blockworks-foundation/mango-client";
 
 console.log(uxdProgramId.toString());
@@ -55,11 +58,14 @@ const controller = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 const payer = bank;
 const slippage = 50; // 5%
 
-const SOLEND_USDC_DEVNET = new PublicKey('zVzi5VAf4qMEwzv7NXECVx5v2pQ7xnqVVjCXZwS9XzA');
+const SOLEND_USDC_DEVNET = new PublicKey("zVzi5VAf4qMEwzv7NXECVx5v2pQ7xnqVVjCXZwS9XzA");
 const SOLEND_USDC_DEVNET_DECIMALS = 6;
 
 // Do not create the vault. We are building an object with utilities methods.
 let mercurialVaultDepositoryUSDC: MercurialVaultDepository = null;
+
+// Do not create the maple pool depository. We are building an object with utilities methods.
+let maplePoolDepository: MaplePoolDepository = null;
 
 let mintedRedeemableAmountWithMercurialVaultDepository = 0;
 
@@ -95,20 +101,51 @@ describe("Integration tests", function () {
           name: "USDC",
         },
         uxdProgramId,
-        cluster: 'devnet',
+        cluster: "devnet",
       });
 
       const mintingFeeInBps = 2;
       const redeemingFeeInBps = 2;
-      const redeemableDepositorySupplyCap = 1_000;
 
-      await registerMercurialVaultDepositoryTest(authority, controller, mercurialVaultDepositoryUSDC, mintingFeeInBps, redeemingFeeInBps, redeemableDepositorySupplyCap, payer);
+      await registerMercurialVaultDepositoryTest(
+        authority,
+        controller,
+        mercurialVaultDepositoryUSDC,
+        mintingFeeInBps,
+        redeemingFeeInBps,
+        payer
+      );
+    });
+
+    it(`Initialize and register maple pool depository (credora?)`, async function () {
+      maplePoolDepository = await createMaplePoolDepository();
+
+      const uiAccountingSupplyRedeemableSoftCap = 1000;
+      const accountingBpsStampFeeMint = 2;
+      const accountingBpsStampFeeRedeem = 2;
+
+      await registerMaplePoolDepositoryTest(
+        authority,
+        controller,
+        maplePoolDepository,
+        uiAccountingSupplyRedeemableSoftCap,
+        accountingBpsStampFeeMint,
+        accountingBpsStampFeeRedeem,
+        payer
+      );
     });
 
     it(`Initialize ${mangoDepositorySOL.collateralMintSymbol} Depository`, async function () {
       const redeemableDepositorySupplyCap = 1_000;
 
-      await registerMangoDepositoryTest(authority, controller, mangoDepositorySOL, mango, redeemableDepositorySupplyCap, payer);
+      await registerMangoDepositoryTest(
+        authority,
+        controller,
+        mangoDepositorySOL,
+        mango,
+        redeemableDepositorySupplyCap,
+        payer
+      );
     });
 
     it(`Deposit 100 USDC of insurance`, async function () {
@@ -130,13 +167,25 @@ describe("Integration tests", function () {
 
   describe("Regular Mint/Redeem with Mercurial Vault USDC Depository", async function () {
     it(`Mint for 0.001 USDC`, async function () {
-      mintedRedeemableAmountWithMercurialVaultDepository = await mintWithMercurialVaultDepositoryTest(0.001, user, controller, mercurialVaultDepositoryUSDC, payer);
+      mintedRedeemableAmountWithMercurialVaultDepository = await mintWithMercurialVaultDepositoryTest(
+        0.001,
+        user,
+        controller,
+        mercurialVaultDepositoryUSDC,
+        payer
+      );
     });
 
     it(`Redeem all previously minted redeemable`, async function () {
       console.log(`Redeem for ${mintedRedeemableAmountWithMercurialVaultDepository} UXD`);
 
-      await redeemFromMercurialVaultDepositoryTest(mintedRedeemableAmountWithMercurialVaultDepository, user, controller, mercurialVaultDepositoryUSDC, payer);
+      await redeemFromMercurialVaultDepositoryTest(
+        mintedRedeemableAmountWithMercurialVaultDepository,
+        user,
+        controller,
+        mercurialVaultDepositoryUSDC,
+        payer
+      );
     });
   });
 
@@ -145,47 +194,49 @@ describe("Integration tests", function () {
   });
 
   describe("Test minting/redeeming SOL", async function () {
-    it(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${(slippage / slippageBase) * 100
-      } % slippage)`, async function () {
-        const perpPrice = await mangoDepositorySOL.getCollateralPerpPriceUI(mango);
-        const amount = 10 / perpPrice;
-        console.log("[🧾 amount", amount, mangoDepositorySOL.collateralMintSymbol, "]");
-        const mintedAmount = await mintWithMangoDepositoryTest(
-          amount,
-          slippage,
-          user,
-          controller,
-          mangoDepositorySOL,
-          mango,
-          payer
-        );
-        await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, mangoDepositorySOL, mango, payer);
-      });
+    it(`Mint 10 ${controller.redeemableMintSymbol} then redeem the outcome (${
+      (slippage / slippageBase) * 100
+    } % slippage)`, async function () {
+      const perpPrice = await mangoDepositorySOL.getCollateralPerpPriceUI(mango);
+      const amount = 10 / perpPrice;
+      console.log("[🧾 amount", amount, mangoDepositorySOL.collateralMintSymbol, "]");
+      const mintedAmount = await mintWithMangoDepositoryTest(
+        amount,
+        slippage,
+        user,
+        controller,
+        mangoDepositorySOL,
+        mango,
+        payer
+      );
+      await redeemFromMangoDepositoryTest(mintedAmount, slippage, user, controller, mangoDepositorySOL, mango, payer);
+    });
 
-    it(`Mint twice min mint trading size, then redeem them (${(slippage / slippageBase) * 100
-      }% slippage)`, async function () {
-        const minRedeemAmount = await mangoDepositorySOL.getMinRedeemSizeQuoteUI(mango);
-        const minTradingSize = await mangoDepositorySOL.getMinTradingSizeCollateralUI(mango);
+    it(`Mint twice min mint trading size, then redeem them (${
+      (slippage / slippageBase) * 100
+    }% slippage)`, async function () {
+      const minRedeemAmount = await mangoDepositorySOL.getMinRedeemSizeQuoteUI(mango);
+      const minTradingSize = await mangoDepositorySOL.getMinTradingSizeCollateralUI(mango);
 
-        await mintWithMangoDepositoryTest(
-          minTradingSize * 2,
-          slippage,
-          user,
-          controller,
-          mangoDepositorySOL,
-          mango,
-          payer
-        );
-        await redeemFromMangoDepositoryTest(
-          minRedeemAmount,
-          slippage,
-          user,
-          controller,
-          mangoDepositorySOL,
-          mango,
-          payer
-        );
-      });
+      await mintWithMangoDepositoryTest(
+        minTradingSize * 2,
+        slippage,
+        user,
+        controller,
+        mangoDepositorySOL,
+        mango,
+        payer
+      );
+      await redeemFromMangoDepositoryTest(
+        minRedeemAmount,
+        slippage,
+        user,
+        controller,
+        mangoDepositorySOL,
+        mango,
+        payer
+      );
+    });
   });
 
   // Note - Keep a mint/redeem before rebalancing so that it creates the necessary accounts for computing

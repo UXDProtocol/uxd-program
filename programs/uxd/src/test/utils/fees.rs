@@ -2,10 +2,11 @@
 #[cfg(test)]
 mod test_fees {
     mod test_calculate_amount_less_fees {
-        use crate::{error::UxdError, utils::calculate_amount_less_fees};
+        use crate::utils::calculate_amount_less_fees;
+        use anchor_lang::Result;
 
         #[test]
-        fn test_zero_fees() -> Result<(), UxdError> {
+        fn test_zero_fees() -> Result<()> {
             assert_eq!(calculate_amount_less_fees(0, 0)?, 0);
             assert_eq!(calculate_amount_less_fees(1, 0)?, 1);
             assert_eq!(calculate_amount_less_fees(1_000_000, 0)?, 1_000_000);
@@ -16,7 +17,7 @@ mod test_fees {
         }
 
         #[test]
-        fn test_five_bps_fees() -> Result<(), UxdError> {
+        fn test_five_bps_fees() -> Result<()> {
             assert_eq!(calculate_amount_less_fees(0, 5)?, 0);
             assert_eq!(calculate_amount_less_fees(1, 5)?, 0);
             assert_eq!(calculate_amount_less_fees(1_000_000, 5)?, 999_500);
@@ -27,7 +28,7 @@ mod test_fees {
         }
 
         #[test]
-        fn test_maximum_bps_fees() -> Result<(), UxdError> {
+        fn test_maximum_bps_fees() -> Result<()> {
             assert_eq!(calculate_amount_less_fees(0, 255)?, 0);
             assert_eq!(calculate_amount_less_fees(1, 255)?, 0);
             assert_eq!(calculate_amount_less_fees(1_000_000, 255)?, 974_500);
