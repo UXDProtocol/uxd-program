@@ -83,14 +83,11 @@ pub struct MintWithMaplePoolDepository<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut, address = maple_lender.pool)]
-    pub maple_pool: Box<Account<'info, syrup_cpi::Pool>>,
-
-    #[account(mut)]
-    pub maple_lender: Box<Account<'info, syrup_cpi::Lender>>,
-
     #[account(address = maple_pool.globals)]
     pub maple_globals: Box<Account<'info, syrup_cpi::Globals>>,
+
+    #[account(mut, address = maple_lender.pool)]
+    pub maple_pool: Box<Account<'info, syrup_cpi::Pool>>,
 
     #[account(
         mut,
@@ -98,6 +95,9 @@ pub struct MintWithMaplePoolDepository<'info> {
         constraint = maple_pool_locker.mint == maple_pool.base_mint
     )]
     pub maple_pool_locker: Box<Account<'info, TokenAccount>>,
+
+    #[account(mut)]
+    pub maple_lender: Box<Account<'info, syrup_cpi::Lender>>,
 
     #[account(mut, address = maple_pool.shares_mint)]
     pub maple_shares_mint: Box<Account<'info, Mint>>,

@@ -42,6 +42,8 @@ pub enum UxdError {
     DepositoryRedeemableSoftCapOverflow,
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
     MaxNumberOfMangoDepositoriesRegisteredReached,
+    #[msg("Cannot register more maple pool depositories, the limit has been reached.")]
+    MaxNumberOfMaplePoolDepositoriesRegisteredReached,
     #[msg("The amount to withdraw from the Insurance Fund must be superior to zero..")]
     InvalidInsuranceAmount,
     #[msg("The Quote ATA from authority doesn't have enough balance.")]

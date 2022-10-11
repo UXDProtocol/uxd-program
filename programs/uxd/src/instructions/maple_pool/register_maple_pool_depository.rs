@@ -62,16 +62,9 @@ pub struct RegisterMaplePoolDepository<'info> {
     #[account()]
     pub maple_pool: Box<Account<'info, syrup_cpi::Pool>>,
 
-    #[account(
-        mut,
-        seeds = [
-            b"lender",
-            maple_pool.key().as_ref(),
-            depository.key().as_ref()
-        ],
-        bump
-    )]
-    pub maple_lender: Box<Account<'info, syrup_cpi::Lender>>,
+    /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
+    #[account(mut)]
+    pub maple_lender: AccountInfo<'info>,
 
     #[account(mut, address = maple_pool.shares_mint)]
     pub maple_shares_mint: Box<Account<'info, Mint>>,
@@ -97,15 +90,12 @@ pub fn handler(
     minting_fees_bps: u8,
     redeeming_fees_bps: u8,
 ) -> Result<()> {
-    let depository_bump = *ctx
-        .bumps
-        .get("depository")
-        .ok_or_else(|| error!(UxdError::BumpError))?;
+    let depository_bump = *ctx.bumps.get("depository").ok_or(UxdError::BumpError)?;
 
     let depository_collateral_bump = *ctx
         .bumps
         .get("depository_collateral")
-        .ok_or_else(|| error!(UxdError::BumpError))?;
+        .ok_or(UxdError::BumpError)?;
 
     let depository = &mut ctx.accounts.depository.load_init()?;
 
@@ -136,13 +126,22 @@ pub fn handler(
     depository.minting_fees_total_paid = u128::MIN;
     depository.redeeming_fees_total_paid = u128::MIN;
 
+    // Done modifying the depository
+    drop(depository);
+
     // Create the maple lending accounts by calling maple's contract
     syrup_cpi::cpi::lender_initialize(ctx.accounts.into_initialize_lending_maple_pool_context())?;
+
+    // Add the depository to the controller
+    ctx.accounts
+        .controller
+        .load_mut()?
+        .add_registered_maple_pool_depository_entry(ctx.accounts.depository.key())?;
 
     // Emit event
     emit!(RegisterMaplePoolDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
-        depository_version: depository.version,
+        depository_version: ctx.accounts.depository.load()?.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         collateral_mint: ctx.accounts.collateral_mint.key(),

@@ -7,16 +7,18 @@ import {
   nativeI80F48ToUi,
   nativeToUi,
   uiToNative,
+  MaplePoolDepository,
 } from "@uxd-protocol/uxd-client";
 import { PublicKey, Signer } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
+import { SOLEND_USDC_DEVNET, uxdProgramId } from "./constants";
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
 export function ceilAtDecimals(number: number, decimals: number): number {
-    return Number((Math.ceil(number * (10 ** decimals)) / (10 ** decimals)).toFixed(decimals));
+  return Number((Math.ceil(number * 10 ** decimals) / 10 ** decimals).toFixed(decimals));
 }
 
 export async function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
@@ -278,7 +280,6 @@ const transferSolItx = (fromKey, toKey, amountNative) =>
     lamports: amountNative,
   });
 
-
 const createWrappedSolTokenAccount = async (connection, payerKey, userKey, amountNative = 0) => {
   const assocTokenKey = findAssociatedTokenAddress(userKey, NATIVE_MINT);
   const balanceNeeded = await Token.getMinBalanceRentForExemptAccount(connection);
@@ -312,5 +313,19 @@ export function createAssociatedTokenAccountItx(payerKey, walletKey, mintKey) {
     ],
     programId: ASSOCIATED_TOKEN_PROGRAM_ID,
     data: Buffer.alloc(0),
+  });
+}
+
+export async function createMaplePoolDepositoryDevnetUSDC() {
+  return await MaplePoolDepository.initialize({
+    connection: getConnection(),
+    uxdProgramId: uxdProgramId,
+    syrupProgramId: new PublicKey("5D9yi4BKrxF8h65NkVE1raCCWFKUs5ngub2ECxhvfaZe"),
+    collateralMint: new PublicKey("Doe9rajhwt18aAeaVe8vewzAsBk4kSQ2tTyZVUJhHjhY"),
+    collateralSymbol: "USDC(MapleDevnet)",
+    mapleGlobals: new PublicKey("BDMBzwZEisVTTJzd9HTFsEfHMFFtXqoNjyRtz1Sp6zKP"),
+    maplePool: new PublicKey("FfTKtBGj3F6nRXQiWVqqyw1Z2XVz2icaqLnUFJC4Fzqm"),
+    mapleSharesMint: new PublicKey("8HvMWzFnmZxLsoNwUzj4fqwLmeu7JPgYkgUpUkBtKWue"),
+    cluster: "devnet",
   });
 }

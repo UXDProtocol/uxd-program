@@ -113,6 +113,26 @@ impl Controller {
         Ok(())
     }
 
+    pub fn add_registered_maple_pool_depository_entry(
+        &mut self,
+        maple_pool_depository: Pubkey,
+    ) -> Result<()> {
+        let current_size = usize::from(self.registered_maple_pool_depositories_count);
+        require!(
+            current_size < MAX_REGISTERED_MAPLE_POOL_DEPOSITORIES,
+            UxdError::MaxNumberOfMaplePoolDepositoriesRegisteredReached
+        );
+        // Increment registered Mercurial Pool Depositories count
+        self.registered_maple_pool_depositories_count = self
+            .registered_maple_pool_depositories_count
+            .checked_add(1)
+            .ok_or(UxdError::MathError)?;
+        // Add the new Mercurial Vault Depository ID to the array of registered Depositories
+        let new_entry_index = current_size;
+        self.registered_maple_pool_depositories[new_entry_index] = maple_pool_depository;
+        Ok(())
+    }
+
     // provides numbers + or - depending on the change
     pub fn update_onchain_accounting_following_mint_or_redeem(
         &mut self,
