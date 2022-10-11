@@ -17,7 +17,7 @@ pub mod utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("95An2VwXjCSEnRL5iVt6Xux3JAp16sC7o96QBJwMBWEV");
+solana_program::declare_id!("9eSznVod2d6ov2pZJ9Q6JLdbbJZ4T8tWeWLXyG9qP2kP");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
