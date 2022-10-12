@@ -162,6 +162,9 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         &[depository.bump],
     ]];
 
+    // We will try to deposit the exact amount requested by the user
+    let deposited_collateral_amount = collateral_amount;
+
     // Read all state before deposit
     msg!("[mint_with_maple_pool_depository:before_math]");
     let depository_collateral_amount_before: u64 = ctx.accounts.depository_collateral.amount;
@@ -179,9 +182,6 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         pool_shares_amount_before,
         pool_value_amount_before,
     )?;
-
-    // We will try to deposit the exact amount requested by the user
-    let deposited_collateral_amount = collateral_amount;
 
     // Transfer the collateral to an account owned by the depository
     msg!("[mint_with_maple_pool_depository:transfer_to_depository]");
@@ -316,7 +316,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     );
 
     // Add minting fees on top of the received value we got from the pool
-    msg!("[mint_with_maple_pool_depository:compute_fees]");
+    msg!("[mint_with_maple_pool_depository:compute_redeemable]");
     let redeemable_amount_before_fees: u64 = owned_value_increase;
     let redeemable_amount_after_fees: u64 =
         depository.substract_minting_fees_amount(redeemable_amount_before_fees)?;
@@ -328,10 +328,10 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     );
 
     // Compute how much fees was paid
-    let minting_fees_paid = math_checked_i64_to_u64(math_compute_delta(
-        redeemable_amount_before_fees,
-        redeemable_amount_after_fees,
-    )?)?;
+    msg!("[mint_with_maple_pool_depository:compute_fees]");
+    let redeemable_amount_delta =
+        math_compute_delta(redeemable_amount_before_fees, redeemable_amount_after_fees)?;
+    let minting_fees_paid = math_checked_i64_to_u64(-redeemable_amount_delta)?;
 
     // Mint redeemable to the user
     msg!("[mint_with_maple_pool_depository:mint_redeemable]");
@@ -343,6 +343,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     )?;
 
     // Accouting for depository
+    msg!("[mint_with_maple_pool_depository:accounting_depository]");
     drop(depository);
     let mut depository_accounting = ctx.accounts.depository.load_mut()?;
     depository_accounting.increase_minting_fees_total_paid(minting_fees_paid)?;
@@ -352,6 +353,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     )?;
 
     // Accouting for controller
+    msg!("[mint_with_maple_pool_depository:accounting_controller]");
     drop(controller);
     ctx.accounts
         .controller
