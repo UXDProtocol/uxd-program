@@ -342,26 +342,10 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         redeemable_amount_after_fees,
     )?;
 
-    // Accouting for depository
-    msg!("[mint_with_maple_pool_depository:accounting_depository]");
-    drop(depository);
-    let mut depository_accounting = ctx.accounts.depository.load_mut()?;
-    depository_accounting.increase_minting_fees_total_paid(minting_fees_paid)?;
-    depository_accounting.deposited_collateral_and_minted_redeemable(
-        deposited_collateral_amount,
-        redeemable_amount_after_fees,
-    )?;
-
-    // Accouting for controller
-    msg!("[mint_with_maple_pool_depository:accounting_controller]");
-    drop(controller);
-    ctx.accounts
-        .controller
-        .load_mut()?
-        .update_onchain_accounting_following_mint_or_redeem(redeemable_amount_after_fees.into())?;
-
     // Emit event
     msg!("[mint_with_maple_pool_depository:emit_event]");
+    drop(controller);
+    drop(depository);
     emit!(MintWithMaplePoolDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.load()?.version,
@@ -372,6 +356,22 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         redeemable_minted: redeemable_amount_after_fees,
         fees_paid: minting_fees_paid,
     });
+
+    // Accouting for depository
+    msg!("[mint_with_maple_pool_depository:accounting_depository]");
+    let mut depository_accounting = ctx.accounts.depository.load_mut()?;
+    depository_accounting.increase_minting_fees_total_paid(minting_fees_paid)?;
+    depository_accounting.deposited_collateral_and_minted_redeemable(
+        deposited_collateral_amount,
+        redeemable_amount_after_fees,
+    )?;
+
+    // Accouting for controller
+    msg!("[mint_with_maple_pool_depository:accounting_controller]");
+    ctx.accounts
+        .controller
+        .load_mut()?
+        .update_onchain_accounting_following_mint_or_redeem(redeemable_amount_after_fees.into())?;
 
     // Done
     Ok(())
