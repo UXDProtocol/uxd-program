@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 
 pub fn validate_collateral_mint_usdc(
-    collateral_mint: &Box<Account<Mint>>,
+    collateral_mint: &Account<Mint>,
     controller: &AccountLoader<Controller>,
 ) -> Result<()> {
     // Only few stablecoin collateral mint are whitelisted
@@ -16,20 +16,25 @@ pub fn validate_collateral_mint_usdc(
             UxdError::CollateralMintNotAllowed,
         );
     }
-    // Collateral mint and redeemable mint should share the same decimals
-    // due to the fact that decimal delta is not handled in the mint/redeem instructions
-    require!(
-        collateral_mint
-            .decimals
-            .eq(&controller.load()?.redeemable_mint_decimals),
-        UxdError::CollateralMintNotAllowed,
-    );
-    // Collateral mint should be different than redeemable mint
-    require!(
-        collateral_mint
-            .key()
-            .ne(&controller.load()?.redeemable_mint),
-        UxdError::CollateralMintEqualToRedeemableMint,
-    );
+    // In development, we can't check the address directly as there are many devnet USDC
+    #[cfg(feature = "development")]
+    {
+        // Collateral mint and redeemable mint should share the same decimals
+        // due to the fact that decimal delta is not handled in the mint/redeem instructions
+        require!(
+            collateral_mint
+                .decimals
+                .eq(&controller.load()?.redeemable_mint_decimals),
+            UxdError::CollateralMintNotAllowed,
+        );
+        // Collateral mint should be different than redeemable mint
+        require!(
+            collateral_mint
+                .key()
+                .ne(&controller.load()?.redeemable_mint),
+            UxdError::CollateralMintEqualToRedeemableMint,
+        );
+    }
+    // Done
     Ok(())
 }

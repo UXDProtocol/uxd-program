@@ -108,6 +108,14 @@ pub enum UxdError {
     CollateralMintEqualToRedeemableMint,
     #[msg("Provided collateral mint is not allowed.")]
     CollateralMintNotAllowed,
+    #[msg("Collateral deposit left some value unaccounted for.")]
+    CollateralDepositHasRemainingDust,
+    #[msg("Collateral deposit result in funds movements that doesn't match expectations.")]
+    CollateralDepositUnaccountedFor,
+    #[msg("Collateral deposit didn't result in the correct amounts being moved")]
+    CollateralDepositAmountsDoesntMatch,
+    #[msg("Received token of which the value doesn't match the deposited collateral.")]
+    CollateralDepositDoesntMatchTokenValue,
     #[msg("Mint resulted to 0 redeemable token being minted.")]
     MinimumMintedRedeemableAmountError,
     #[msg("Redeem resulted to 0 collateral token being redeemed.")]
@@ -147,6 +155,14 @@ pub enum UxdError {
     InvalidMercurialVaultCollateralTokenSafe,
     #[msg("The provided maple pool does not match the Depository's one.")]
     InvalidMaplePool,
+    #[msg("The provided maple lender does not match the Depository's one.")]
+    InvalidMapleLender,
+    #[msg("The provided maple shares mint does not match the Depository's one.")]
+    InvalidMapleSharesMint,
+    #[msg("The provided maple locked shares does not match the Depository's one.")]
+    InvalidMapleLockedShares,
+    #[msg("The provided maple lender shares does not match the Depository's one.")]
+    InvalidMapleLenderShares,
     #[msg("Default - Check the source code for more info.")]
     Default,
 }

@@ -27,8 +27,6 @@ export const mintWithMaplePoolDepositoryTest = async function (
     const [userCollateral] = findATAAddrSync(user.publicKey, depository.collateralMint);
     const [userRedeemable] = findATAAddrSync(user.publicKey, controller.redeemableMintPda);
 
-    console.log("->>>>>>>>>>>>>>", depository.maplePoolLocker);
-
     const [userRedeemableBalance_pre, userCollateralBalance_pre, onchainController_pre, onchainDepository_pre] =
       await Promise.all([
         getBalance(userCollateral),
@@ -58,10 +56,10 @@ export const mintWithMaplePoolDepositoryTest = async function (
       ]);
 
     // Use toFixed to avoid +0.010000000000000009 != than +0.01
-    const collateralDelta = Number(
-      (userCollateralBalance_pre - userCollateralBalance_post).toFixed(depository.collateralDecimals)
+    const userCollateralDelta = Number(
+      (userCollateralBalance_post - userCollateralBalance_pre).toFixed(depository.collateralDecimals)
     );
-    const redeemableDelta = Number(
+    const userRedeemableDelta = Number(
       (userRedeemableBalance_post - userRedeemableBalance_pre).toFixed(controller.redeemableMintDecimals)
     );
 
@@ -69,16 +67,16 @@ export const mintWithMaplePoolDepositoryTest = async function (
 
     const estimatedFeesPaid = ceilAtDecimals(
       uiAmmountCollateralDeposited -
-        ((10_000 - onchainDepository_pre.mintingFeesBps) * uiAmmountCollateralDeposited) / 10_000,
+        ((10_000 - onchainDepository_pre.mintingFeesInBps) * uiAmmountCollateralDeposited) / 10_000,
       controller.redeemableMintDecimals
     );
 
     console.log(
       `🧾 Minted`,
-      Number(redeemableDelta),
+      Number(userRedeemableDelta),
       controller.redeemableMintSymbol,
       "by locking",
-      Number(collateralDelta.toFixed(depository.collateralDecimals)),
+      Number((-userCollateralDelta).toFixed(depository.collateralDecimals)),
       "with",
       estimatedFeesPaid,
       "fees paid."
@@ -89,14 +87,14 @@ export const mintWithMaplePoolDepositoryTest = async function (
     );
 
     // Check used collateral
-    expect(collateralDelta).equal(
+    expect(-userCollateralDelta).equal(
       uiAmmountCollateralDeposited,
       "The amount of collateral used for the mint should be exactly the one specified by the user"
     );
 
     // Check minted redeemable amount
     // handle precision loss
-    expect(redeemableDelta)
+    expect(userRedeemableDelta)
       .lte(estimatedRedeemableAmount)
       .gte(
         Number((estimatedRedeemableAmount - collateralNativeUnitPrecision).toFixed(controller.redeemableMintDecimals))
@@ -123,7 +121,8 @@ export const mintWithMaplePoolDepositoryTest = async function (
     ).equal(
       Number(
         (
-          nativeToUi(onchainDepository_pre.mintedRedeemableAmount, controller.redeemableMintDecimals) + redeemableDelta
+          nativeToUi(onchainDepository_pre.mintedRedeemableAmount, controller.redeemableMintDecimals) +
+          userRedeemableDelta
         ).toFixed(controller.redeemableMintDecimals)
       )
     );
@@ -144,14 +143,15 @@ export const mintWithMaplePoolDepositoryTest = async function (
     expect(nativeToUi(onchainController_post.redeemableCirculatingSupply, depository.collateralDecimals)).equal(
       Number(
         (
-          nativeToUi(onchainController_pre.redeemableCirculatingSupply, depository.collateralDecimals) + redeemableDelta
+          nativeToUi(onchainController_pre.redeemableCirculatingSupply, depository.collateralDecimals) +
+          userRedeemableDelta
         ).toFixed(controller.redeemableMintDecimals)
       )
     );
 
     console.groupEnd();
 
-    return redeemableDelta;
+    return userRedeemableDelta;
   } catch (error) {
     console.error("❌", error);
     console.groupEnd();

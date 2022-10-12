@@ -104,6 +104,32 @@ pub struct RegisterMaplePoolDepositoryEvent {
     pub maple_pool: Pubkey,
 }
 
+/// Event called in [instructions::mango_dex::mint_with_mango_depository::handler].
+#[event]
+pub struct MintWithMaplePoolDepositoryEvent {
+    /// The controller version.
+    #[index]
+    pub controller_version: u8,
+    /// The depository version.
+    #[index]
+    pub depository_version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    /// The user making the call.
+    #[index]
+    pub user: Pubkey,
+    /// The collateral amount in native units. (input)
+    pub collateral_amount: u64,
+    /// The redeemable issued in native units. (output)
+    pub redeemable_minted: u64,
+    /// The fees paid in native units. (output)
+    pub fees_paid: u64,
+}
+
 /// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
 #[event]
 pub struct SetMangoDepositoryRedeemableSoftCapEvent {

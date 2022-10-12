@@ -21,8 +21,8 @@ pub const MAPLE_POOL_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<Pubkey>() // maple_lender_shares
 
  + size_of::<u128>() // minted_redeemable_soft_cap
- + size_of::<u8>() // minting_fees_bps
- + size_of::<u8>() // redeeming_fees_bps
+ + size_of::<u8>() // minting_fees_in_bps
+ + size_of::<u8>() // redeeming_fees_in_bps
 
  + size_of::<u128>() // deposited_collateral_amount
  + size_of::<u128>() // minted_redeemable_amount
@@ -56,8 +56,8 @@ pub struct MaplePoolDepository {
 
     // Depository configuration
     pub minted_redeemable_soft_cap: u128,
-    pub minting_fees_bps: u8,
-    pub redeeming_fees_bps: u8,
+    pub minting_fees_in_bps: u8,
+    pub redeeming_fees_in_bps: u8,
 
     // Depository accouting
     pub deposited_collateral_amount: u128,
@@ -68,37 +68,37 @@ pub struct MaplePoolDepository {
 
 impl DepositoryConfiguration for MaplePoolDepository {
     fn get_minted_redeemable_soft_cap(&self) -> u128 {
-        return self.minted_redeemable_soft_cap;
+        self.minted_redeemable_soft_cap
     }
-    fn get_minting_fees_bps(&self) -> u8 {
-        return self.minting_fees_bps;
+    fn get_minting_fees_in_bps(&self) -> u8 {
+        self.minting_fees_in_bps
     }
-    fn get_redeeming_fees_bps(&self) -> u8 {
-        return self.redeeming_fees_bps;
+    fn get_redeeming_fees_in_bps(&self) -> u8 {
+        self.redeeming_fees_in_bps
     }
 }
 
 impl DepositoryAccounting for MaplePoolDepository {
     fn get_deposited_collateral_amount(&self) -> u128 {
-        return self.deposited_collateral_amount;
+        self.deposited_collateral_amount
     }
     fn set_deposited_collateral_amount(&mut self, value: u128) {
         self.deposited_collateral_amount = value;
     }
     fn get_minted_redeemable_amount(&self) -> u128 {
-        return self.minted_redeemable_amount;
+        self.minted_redeemable_amount
     }
     fn set_minted_redeemable_amount(&mut self, value: u128) {
         self.minted_redeemable_amount = value;
     }
     fn get_minting_fees_total_paid(&self) -> u128 {
-        return self.minting_fees_total_paid;
+        self.minting_fees_total_paid
     }
     fn set_minting_fees_total_paid(&mut self, value: u128) {
         self.minting_fees_total_paid = value;
     }
     fn get_redeeming_fees_total_paid(&self) -> u128 {
-        return self.redeeming_fees_total_paid;
+        self.redeeming_fees_total_paid
     }
     fn set_redeeming_fees_total_paid(&mut self, value: u128) {
         self.redeeming_fees_total_paid = value;

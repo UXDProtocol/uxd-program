@@ -54,7 +54,7 @@ pub trait DepositoryAccounting: DepositoryConfiguration {
             self.get_minted_redeemable_amount() <= self.get_minted_redeemable_soft_cap(),
             UxdError::DepositoryRedeemableSoftCapOverflow
         );
-        return Ok(());
+        Ok(())
     }
 
     // Accounting when redeeming/burning
@@ -82,7 +82,7 @@ pub trait DepositoryAccounting: DepositoryConfiguration {
                 .checked_sub(burned_redeemable_amount.into())
                 .ok_or(UxdError::MathError)?,
         );
-        return Ok(());
+        Ok(())
     }
 
     // Account for paid fees during minting

@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use fixed::types::I80F48;
 
 pub fn math_checked_i64_to_u64(input: i64) -> Result<u64> {
-    return Ok(u64::try_from(input).ok().ok_or(UxdError::MathError)?);
+    Ok(u64::try_from(input).ok().ok_or(UxdError::MathError)?)
 }
 
 pub fn math_compute_delta(amount_before: u64, amount_after: u64) -> Result<i64> {
@@ -12,7 +12,25 @@ pub fn math_compute_delta(amount_before: u64, amount_after: u64) -> Result<i64> 
     let delta_fixed = amount_after_fixed
         .checked_sub(amount_before_fixed)
         .ok_or(UxdError::MathError)?;
-    return Ok(delta_fixed
+    Ok(delta_fixed
         .checked_to_num::<i64>()
-        .ok_or(UxdError::MathError)?);
+        .ok_or(UxdError::MathError)?)
+}
+
+pub fn math_is_equal_with_precision_loss(
+    amount_before_precision_loss: u64,
+    amount_after_precision_loss: u64,
+    allowed_precion_loss: u64,
+) -> Result<bool> {
+    let amount_max = amount_before_precision_loss;
+    let amount_min = amount_after_precision_loss
+        .checked_sub(allowed_precion_loss)
+        .ok_or(UxdError::MathError)?;
+    if amount_after_precision_loss > amount_max {
+        return Ok(false);
+    }
+    if amount_after_precision_loss < amount_min {
+        return Ok(false);
+    }
+    Ok(true)
 }

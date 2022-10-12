@@ -23,7 +23,7 @@ pub fn calculate_amount_less_fees(amount: u64, fee_amount_in_bps: u8) -> Result<
         .checked_floor()
         .ok_or(UxdError::MathError)?;
 
-    return Ok(amount_less_fees
+    Ok(amount_less_fees
         .checked_to_num::<u64>()
-        .ok_or(UxdError::MathError)?);
+        .ok_or(UxdError::MathError)?)
 }

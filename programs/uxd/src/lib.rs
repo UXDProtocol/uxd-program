@@ -17,7 +17,7 @@ pub mod utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("95An2VwXjCSEnRL5iVt6Xux3JAp16sC7o96QBJwMBWEV");
+solana_program::declare_id!("6ee2JTmhZdYtTXYm1NPx66ZL7zxtoJj7Fzg9o2g8hfja");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -485,22 +485,22 @@ pub mod uxd {
     #[access_control(
         ctx.accounts.validate(
             minted_redeemable_soft_cap,
-            minting_fees_bps,
-            redeeming_fees_bps
+            minting_fees_in_bps,
+            redeeming_fees_in_bps
         )
     )]
     pub fn register_maple_pool_depository(
         ctx: Context<RegisterMaplePoolDepository>,
         minted_redeemable_soft_cap: u128,
-        minting_fees_bps: u8,
-        redeeming_fees_bps: u8,
+        minting_fees_in_bps: u8,
+        redeeming_fees_in_bps: u8,
     ) -> Result<()> {
         msg!("[register_maple_pool_depository]");
         instructions::register_maple_pool_depository::handler(
             ctx,
             minted_redeemable_soft_cap,
-            minting_fees_bps,
-            redeeming_fees_bps,
+            minting_fees_in_bps,
+            redeeming_fees_in_bps,
         )
     }
 
