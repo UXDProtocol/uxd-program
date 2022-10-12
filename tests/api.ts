@@ -37,7 +37,7 @@ export async function initializeController(authority: Signer, payer: Signer, con
 }
 
 export async function mintWithMercurialVaultDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository, collateralAmount: number): Promise<string> {
-  const mintWithMercurialVaultDepositoryIx = uxdClient.createMintWithMercurialVaultInstruction(controller, depository, authority.publicKey, collateralAmount, TXN_OPTS, payer.publicKey);
+  const mintWithMercurialVaultDepositoryIx = uxdClient.createMintWithMercurialVaultDepositoryInstruction(controller, depository, authority.publicKey, collateralAmount, TXN_OPTS, payer.publicKey);
   let signers = [];
   let tx = new Transaction();
 
@@ -63,7 +63,7 @@ export async function redeemFromMercurialVaultDepository(
   depository: MercurialVaultDepository,
   redeemableAmount: number,
 ): Promise<string> {
-  const redeemFromMercurialVaultDepositoryIx = uxdClient.createRedeemFromMercurialVaultInstruction(controller, depository, authority.publicKey, redeemableAmount, TXN_OPTS, payer.publicKey);
+  const redeemFromMercurialVaultDepositoryIx = uxdClient.createRedeemFromMercurialVaultDepositoryInstruction(controller, depository, authority.publicKey, redeemableAmount, TXN_OPTS, payer.publicKey);
   let signers = [];
   let tx = new Transaction();
 
@@ -590,7 +590,7 @@ export async function editMangoDepository(
 export async function editMercurialVaultDepository(
   authority: Signer,
   controller: Controller,
-  depository: MangoDepository,
+  depository: MercurialVaultDepository,
   uiFields: {
     redeemableDepositorySupplyCap?: BN;
     mintingFeeInBps?: number;

@@ -17,7 +17,7 @@ pub mod utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("9eSznVod2d6ov2pZJ9Q6JLdbbJZ4T8tWeWLXyG9qP2kP");
+solana_program::declare_id!("AHVPRMSoL4zbMxVmYkNndiWnqhpSPyvPkSDRLzTYDLZH");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -436,11 +436,11 @@ pub mod uxd {
     #[access_control(
         ctx.accounts.validate(collateral_amount)
     )]
-    pub fn mint_with_mercurial_vault(
+    pub fn mint_with_mercurial_vault_depository(
         ctx: Context<MintWithMercurialVaultDepository>,
         collateral_amount: u64,
     ) -> Result<()> {
-        msg!("[mint_with_mercurial_vault]");
+        msg!("[mint_with_mercurial_vault_depository]");
         instructions::mint_with_mercurial_vault_depository::handler(ctx, collateral_amount)
     }
 
@@ -468,7 +468,7 @@ pub mod uxd {
     #[access_control(
         ctx.accounts.validate(redeemable_amount)
     )]
-    pub fn redeem_from_mercurial_vault(
+    pub fn redeem_from_mercurial_vault_depository(
         ctx: Context<RedeemFromMercurialVaultDepository>,
         redeemable_amount: u64,
     ) -> Result<()> {

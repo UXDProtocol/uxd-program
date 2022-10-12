@@ -965,7 +965,7 @@
       ]
     },
     {
-      "name": "mintWithMercurialVault",
+      "name": "mintWithMercurialVaultDepository",
       "accounts": [
         {
           "name": "user",
@@ -1125,7 +1125,7 @@
       ]
     },
     {
-      "name": "redeemFromMercurialVault",
+      "name": "redeemFromMercurialVaultDepository",
       "accounts": [
         {
           "name": "user",

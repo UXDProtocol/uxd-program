@@ -65,7 +65,7 @@ export const mintWithMercurialVaultDepositoryTest = async function (
 
         // Do calculation in native units so we avoid javascript calculation issue with small numbers
         // i.e Javascript calculation precision 0.000005000000000000013
-        const estimatedFeesPaid = nativeToUi(Math.floor(Math.ceil(nativeCollateralAmount - ((10_000 - onChainDepository_pre.mintingFeeInBps) * nativeCollateralAmount / 10_000))), depository.collateralMint.decimals);
+        const estimatedFeesPaid = nativeToUi(Math.floor(Math.ceil(nativeCollateralAmount.toNumber() - ((10_000 - onChainDepository_pre.mintingFeeInBps) * nativeCollateralAmount.toNumber() / 10_000))), depository.collateralMint.decimals);
 
         console.log(
             `🧾 Minted`, Number(redeemableDelta.toFixed(depository.mercurialVaultLpMint.decimals)), controller.redeemableMintSymbol,
