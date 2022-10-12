@@ -127,7 +127,7 @@ impl Controller {
             .registered_maple_pool_depositories_count
             .checked_add(1)
             .ok_or(UxdError::MathError)?;
-        // Add the new Mercurial Vault Depository ID to the array of registered Depositories
+        // Add the new Maple Pool Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_maple_pool_depositories[new_entry_index] = maple_pool_depository;
         Ok(())
