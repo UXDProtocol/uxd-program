@@ -508,11 +508,11 @@ pub mod uxd {
     #[access_control(
         ctx.accounts.validate(ammount_collateral_deposited)
     )]
-    pub fn mint_with_maple_pool(
+    pub fn mint_with_maple_pool_depository(
         ctx: Context<MintWithMaplePoolDepository>,
         ammount_collateral_deposited: u64,
     ) -> Result<()> {
-        msg!("[mint_with_maple_pool]");
+        msg!("[mint_with_maple_pool_depository]");
         instructions::mint_with_maple_pool_depository::handler(ctx, ammount_collateral_deposited)
     }
 }

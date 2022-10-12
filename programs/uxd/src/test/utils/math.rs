@@ -48,7 +48,6 @@ mod test_math {
         #[test]
         fn test_equality() -> Result<()> {
             assert_eq!(math_is_equal_with_precision_loss(0, 0, 0)?, true);
-            assert_eq!(math_is_equal_with_precision_loss(0, 0, 1)?, true);
             assert_eq!(math_is_equal_with_precision_loss(1, 1, 0)?, true);
             assert_eq!(math_is_equal_with_precision_loss(1, 0, 1)?, true);
             assert_eq!(math_is_equal_with_precision_loss(1000, 1000, 0)?, true);

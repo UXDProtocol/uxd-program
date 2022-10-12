@@ -107,6 +107,7 @@ pub fn handler(
     redeeming_fees_in_bps: u8,
 ) -> Result<()> {
     // Create the maple lending accounts by calling maple's contract
+    msg!("[register_maple_pool_depository:lender_initialize]");
     syrup_cpi::cpi::lender_initialize(ctx.accounts.into_initialize_lending_maple_pool_context())?;
 
     // Read some of the depositories required informations
@@ -118,6 +119,8 @@ pub fn handler(
         .get("depository_collateral")
         .ok_or(UxdError::BumpError)?;
 
+    // Initialize the depository account
+    msg!("[register_maple_pool_depository:init_depository]");
     let depository = &mut ctx.accounts.depository.load_init()?;
 
     // Initialize depository state
@@ -148,12 +151,14 @@ pub fn handler(
     depository.redeeming_fees_total_paid = u128::MIN;
 
     // Add the depository to the controller
+    msg!("[register_maple_pool_depository:register_depository]");
     ctx.accounts
         .controller
         .load_mut()?
         .add_registered_maple_pool_depository_entry(depository_key)?;
 
     // Emit event
+    msg!("[register_maple_pool_depository:emit_event]");
     emit!(RegisterMaplePoolDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: depository.version,
