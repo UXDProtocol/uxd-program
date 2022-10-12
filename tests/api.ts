@@ -124,10 +124,10 @@ export async function registerMercurialVaultDepository(
     controller,
     depository,
     authority.publicKey,
+    //redeemableDepositorySupplyCap, // conflict :(
+    TXN_OPTS,
     mintingFeeInBps,
     redeemingFeeInBps,
-    redeemableDepositorySupplyCap,
-    TXN_OPTS,
     payer.publicKey
   );
   let signers = [];
@@ -223,7 +223,7 @@ export async function registerMangoDepository(
     depository,
     mango,
     authority.publicKey,
-    redeemableDepositorySupplyCap,
+    //redeemableDepositorySupplyCap, // conflict :(
     TXN_OPTS,
     payer.publicKey
   );

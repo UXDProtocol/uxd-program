@@ -9,7 +9,7 @@ import {
 } from "@uxd-protocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
 import { controllerIntegrationSuiteParameters, controllerIntegrationSuite } from "./suite/controllerIntegrationSuite";
-import { mangoDepositorySetupSuite } from "./suite/depositorySetupSuite";
+import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
 
 const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 const mangoDepositorySOL = new MangoDepository(

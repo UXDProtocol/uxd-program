@@ -27,6 +27,8 @@ export const mintWithMaplePoolDepositoryTest = async function (
     const [userCollateral] = findATAAddrSync(user.publicKey, depository.collateralMint);
     const [userRedeemable] = findATAAddrSync(user.publicKey, controller.redeemableMintPda);
 
+    console.log("->>>>>>>>>>>>>>", depository.maplePoolLocker);
+
     const [userRedeemableBalance_pre, userCollateralBalance_pre, onchainController_pre, onchainDepository_pre] =
       await Promise.all([
         getBalance(userCollateral),
@@ -67,8 +69,7 @@ export const mintWithMaplePoolDepositoryTest = async function (
 
     const estimatedFeesPaid = ceilAtDecimals(
       uiAmmountCollateralDeposited -
-        ((10_000 - onchainDepository_pre.accountingBpsStampFees.bpsStampFeeMint) * uiAmmountCollateralDeposited) /
-          10_000,
+        ((10_000 - onchainDepository_pre.mintingFeesBps) * uiAmmountCollateralDeposited) / 10_000,
       controller.redeemableMintDecimals
     );
 
@@ -103,49 +104,38 @@ export const mintWithMaplePoolDepositoryTest = async function (
 
     // Check depository accounting
     expect(
-      nativeToUi(
-        onchainDepository_post.accountingSupplySheet.supplyCollateralDeposited,
+      nativeToUi(onchainDepository_post.depositedCollateralAmount, depository.collateralDecimals).toFixed(
         depository.collateralDecimals
-      ).toFixed(depository.collateralDecimals)
+      )
     ).equal(
       Number(
         (
-          nativeToUi(
-            onchainDepository_pre.accountingSupplySheet.supplyCollateralDeposited,
-            depository.collateralDecimals
-          ) + uiAmmountCollateralDeposited
+          nativeToUi(onchainDepository_pre.depositedCollateralAmount, depository.collateralDecimals) +
+          uiAmmountCollateralDeposited
         ).toFixed(depository.collateralDecimals)
       )
     );
 
     expect(
-      nativeToUi(
-        onchainDepository_post.accountingSupplySheet.supplyRedeemableMinted,
+      nativeToUi(onchainDepository_post.mintedRedeemableAmount, controller.redeemableMintDecimals).toFixed(
         controller.redeemableMintDecimals
-      ).toFixed(controller.redeemableMintDecimals)
+      )
     ).equal(
       Number(
         (
-          nativeToUi(
-            onchainDepository_pre.accountingSupplySheet.supplyRedeemableMinted,
-            controller.redeemableMintDecimals
-          ) + redeemableDelta
+          nativeToUi(onchainDepository_pre.mintedRedeemableAmount, controller.redeemableMintDecimals) + redeemableDelta
         ).toFixed(controller.redeemableMintDecimals)
       )
     );
 
     expect(
-      nativeToUi(
-        onchainDepository_post.accountingTotalPaidStampFees.totalPaidStampFeeMint,
-        depository.collateralDecimals
-      ).toFixed(controller.redeemableMintDecimals)
+      nativeToUi(onchainDepository_post.mintingFeesTotalPaid, depository.collateralDecimals).toFixed(
+        controller.redeemableMintDecimals
+      )
     ).equal(
       Number(
         (
-          nativeToUi(
-            onchainDepository_pre.accountingTotalPaidStampFees.totalPaidStampFeeMint,
-            depository.collateralDecimals
-          ) + estimatedFeesPaid
+          nativeToUi(onchainDepository_pre.mintingFeesTotalPaid, depository.collateralDecimals) + estimatedFeesPaid
         ).toFixed(controller.redeemableMintDecimals)
       )
     );

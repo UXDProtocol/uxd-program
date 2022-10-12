@@ -12,9 +12,18 @@ import {
   MercurialVaultDepository,
   MaplePoolDepository,
 } from "@uxd-protocol/uxd-client";
-import { authority, bank, slippageBase, uxdProgramId } from "./constants";
 import {
-  createMaplePoolDepository,
+  authority,
+  bank,
+  MAPLE_USDC_DEVNET,
+  MAPLE_USDC_DEVNET_DECIMALS,
+  slippageBase,
+  SOLEND_USDC_DEVNET,
+  SOLEND_USDC_DEVNET_DECIMALS,
+  uxdProgramId,
+} from "./constants";
+import {
+  createMaplePoolDepositoryDevnetUSDC,
   printDepositoryInfo,
   printUserInfo,
   transferAllSol,
@@ -41,6 +50,7 @@ import { mintWithMercurialVaultDepositoryTest } from "./cases/mintWithMercurialV
 import { redeemFromMercurialVaultDepositoryTest } from "./cases/redeemFromMercurialVaultDepositoryTest";
 import { registerMaplePoolDepositoryTest } from "./cases/registerMaplePoolDepositoryTest";
 import { uiToNative } from "@blockworks-foundation/mango-client";
+import { mintWithMaplePoolDepositoryTest } from "./cases/mintWithMaplePoolDepositoryTest";
 
 console.log(uxdProgramId.toString());
 const mangoDepositorySOL = new MangoDepository(
@@ -57,9 +67,6 @@ const mangoDepositorySOL = new MangoDepository(
 const controller = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 const payer = bank;
 const slippage = 50; // 5%
-
-const SOLEND_USDC_DEVNET = new PublicKey("zVzi5VAf4qMEwzv7NXECVx5v2pQ7xnqVVjCXZwS9XzA");
-const SOLEND_USDC_DEVNET_DECIMALS = 6;
 
 // Do not create the vault. We are building an object with utilities methods.
 let mercurialVaultDepositoryUSDC: MercurialVaultDepository = null;
@@ -84,6 +91,7 @@ describe("Integration tests", function () {
     await transferSol(10, bank, user.publicKey);
     await transferTokens(200, USDC_DEVNET, USDC_DECIMALS, bank, user.publicKey);
     await transferTokens(0.001, SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS, bank, user.publicKey);
+    await transferTokens(0.001, MAPLE_USDC_DEVNET, MAPLE_USDC_DEVNET_DECIMALS, bank, user.publicKey);
   });
 
   describe("Init", async function () {
@@ -91,6 +99,7 @@ describe("Integration tests", function () {
       await initializeControllerTest(authority, controller, payer);
     });
 
+    /*
     it(`Initialize and register mercurial USDC vault depository`, async function () {
       mercurialVaultDepositoryUSDC = await MercurialVaultDepository.initialize({
         connection: getConnection(),
@@ -106,6 +115,7 @@ describe("Integration tests", function () {
 
       const mintingFeeInBps = 2;
       const redeemingFeeInBps = 2;
+      const redeemableDepositorySupplyCap = 1_000_000_000;
 
       await registerMercurialVaultDepositoryTest(
         authority,
@@ -113,12 +123,14 @@ describe("Integration tests", function () {
         mercurialVaultDepositoryUSDC,
         mintingFeeInBps,
         redeemingFeeInBps,
+        redeemableDepositorySupplyCap,
         payer
       );
     });
+    */
 
     it(`Initialize and register maple pool depository (credora?)`, async function () {
-      maplePoolDepository = await createMaplePoolDepository();
+      maplePoolDepository = await createMaplePoolDepositoryDevnetUSDC();
 
       const uiAccountingSupplyRedeemableSoftCap = 1000;
       const accountingBpsStampFeeMint = 2;
@@ -135,6 +147,11 @@ describe("Integration tests", function () {
       );
     });
 
+    it(`Mint for 0.001 fake USDC`, async function () {
+      await mintWithMaplePoolDepositoryTest(0.001, user, controller, maplePoolDepository, payer);
+    });
+
+    /*
     it(`Initialize ${mangoDepositorySOL.collateralMintSymbol} Depository`, async function () {
       const redeemableDepositorySupplyCap = 1_000;
 
@@ -163,8 +180,10 @@ describe("Integration tests", function () {
     it(`Withdraw 10 USDC of insurance`, async function () {
       await withdrawInsuranceMangoDepositoryTest(10, authority, controller, mangoDepositorySOL, mango);
     });
+    */
   });
 
+  /*
   describe("Regular Mint/Redeem with Mercurial Vault USDC Depository", async function () {
     it(`Mint for 0.001 USDC`, async function () {
       mintedRedeemableAmountWithMercurialVaultDepository = await mintWithMercurialVaultDepositoryTest(
@@ -244,6 +263,7 @@ describe("Integration tests", function () {
     const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(slippage);
     mangoDepositoryRebalancingSuite(user, bank, controller, mangoDepositorySOL, paramsRebalancing);
   });
+  */
 
   describe.skip("info SOL", async function () {
     it("info", async function () {
