@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::events::SetMercurialVaultDepositoryMintingDisabledEvent;
 use crate::events::SetMercurialVaultDepositoryMintingFeeInBpsEvent;
 use crate::events::SetMercurialVaultDepositoryRedeemableSupplyCapEvent;
 use crate::events::SetMercurialVaultDepositoryRedeemingFeeInBpsEvent;
@@ -39,6 +40,7 @@ pub struct EditMercurialVaultDepositoryFields {
     redeemable_depository_supply_cap: Option<u128>,
     minting_fee_in_bps: Option<u8>,
     redeeming_fee_in_bps: Option<u8>,
+    minting_disabled: Option<bool>,
 }
 
 pub(crate) fn handler(
@@ -89,6 +91,21 @@ pub(crate) fn handler(
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
             redeeming_fee_in_bps
+        });
+    }
+
+    // optional: minting_disabled
+    if let Some(minting_disabled) = fields.minting_disabled {
+        msg!(
+            "[edit_mercurial_vault_depository] minting_disabled {}",
+            minting_disabled
+        );
+        depository.minting_disabled = minting_disabled;
+        emit!(SetMercurialVaultDepositoryMintingDisabledEvent {
+            version: ctx.accounts.controller.load()?.version,
+            controller: ctx.accounts.controller.key(),
+            depository: ctx.accounts.depository.key(),
+            minting_disabled
         });
     }
 

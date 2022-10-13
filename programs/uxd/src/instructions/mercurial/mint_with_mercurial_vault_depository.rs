@@ -309,6 +309,11 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
     pub fn validate(&self, collateral_amount: u64) -> Result<()> {
         require!(collateral_amount != 0, UxdError::InvalidCollateralAmount);
 
+        require!(
+            !&self.depository.load()?.minting_disabled,
+            UxdError::MintingDisabled
+        );
+
         Ok(())
     }
 }

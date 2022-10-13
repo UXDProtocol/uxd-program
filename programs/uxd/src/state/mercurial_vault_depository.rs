@@ -79,6 +79,8 @@ pub struct MercurialVaultDepository {
 
     // The total amount of circulating UXD originating from that depository
     pub redeemable_depository_supply_cap: u128,
+
+    pub minting_disabled: bool,
 }
 
 impl MercurialVaultDepository {

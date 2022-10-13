@@ -595,6 +595,7 @@ export async function editMercurialVaultDepository(
     redeemableDepositorySupplyCap?: BN;
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
+    mintingDisabled?: boolean;
   }
 ): Promise<string> {
   const editMercurialVaultDepositoryIx = uxdClient.createEditMercurialVaultDepositoryInstruction(

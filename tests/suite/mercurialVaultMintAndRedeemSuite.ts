@@ -225,4 +225,32 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (controlle
             });
         });
     });
+
+    describe('Disabled minting', () => {
+        it('Disable minting on mercurial vault depository', async function () {
+            await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
+                mintingDisabled: true,
+            });
+        });
+
+        it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMint.symbol} (should fail)`, async function () {
+            const collateralAmount = 0.001;
+
+            console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+
+            try {
+                await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);
+            } catch {
+                expect(true, "Failing as planned");
+            }
+
+            expect(false, `Should have failed - minting is disabled`);
+        });
+
+        it(`Re-enable minting for mercurial vault depository`, async function () {
+            await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
+                mintingDisabled: false,
+            });
+        });
+    });
 };

@@ -1244,7 +1244,10 @@
           {
             "name": "registeredMangoDepositories",
             "type": {
-              "array": ["publicKey", 8]
+              "array": [
+                "publicKey",
+                8
+              ]
             }
           },
           {
@@ -1270,7 +1273,10 @@
           {
             "name": "registeredMercurialVaultDepositories",
             "type": {
-              "array": ["publicKey", 4]
+              "array": [
+                "publicKey",
+                4
+              ]
             }
           },
           {
@@ -1292,7 +1298,10 @@
           {
             "name": "unused",
             "type": {
-              "array": ["u8", 2]
+              "array": [
+                "u8",
+                2
+              ]
             }
           },
           {
@@ -1314,7 +1323,10 @@
           {
             "name": "unused2",
             "type": {
-              "array": ["u8", 32]
+              "array": [
+                "u8",
+                32
+              ]
             }
           },
           {
@@ -1324,7 +1336,10 @@
           {
             "name": "unused3",
             "type": {
-              "array": ["u8", 32]
+              "array": [
+                "u8",
+                32
+              ]
             }
           },
           {
@@ -1454,6 +1469,10 @@
           {
             "name": "redeemableDepositorySupplyCap",
             "type": "u128"
+          },
+          {
+            "name": "mintingDisabled",
+            "type": "bool"
           }
         ]
       }
@@ -1527,6 +1546,12 @@
             "name": "redeemingFeeInBps",
             "type": {
               "option": "u8"
+            }
+          },
+          {
+            "name": "mintingDisabled",
+            "type": {
+              "option": "bool"
             }
           }
         ]
@@ -2151,6 +2176,31 @@
       ]
     },
     {
+      "name": "SetMercurialVaultDepositoryMintingDisabledEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "mintingDisabled",
+          "type": "bool",
+          "index": true
+        }
+      ]
+    },
+    {
       "name": "QuoteRedeemFromMangoDepositoryEvent",
       "fields": [
         {
@@ -2584,6 +2634,6 @@
     }
   ],
   "metadata": {
-    "address": "AURBE2zC7HH64PcH23xYtbfUU6pQLUdY3Asfw6wwifuA"
+    "address": "AHVPRMSoL4zbMxVmYkNndiWnqhpSPyvPkSDRLzTYDLZH"
   }
 }

@@ -1,4 +1,3 @@
-import { BN } from "@project-serum/anchor";
 import { Signer } from "@solana/web3.js";
 import { Controller, MercurialVaultDepository, uiToNative } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
@@ -14,7 +13,8 @@ export const editMercurialVaultDepositoryTest = async function (
     redeemableDepositorySupplyCap?: number;
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
-  }
+    mintingDisabled?: boolean;
+  },
 ) {
   const connection = getConnection();
   const options = TXN_OPTS;
@@ -28,6 +28,7 @@ export const editMercurialVaultDepositoryTest = async function (
       redeemableDepositorySupplyCap,
       mintingFeeInBps,
       redeemingFeeInBps,
+      mintingDisabled,
     } = depositoryOnchainAccount;
 
     // WHEN
@@ -40,6 +41,7 @@ export const editMercurialVaultDepositoryTest = async function (
       redeemableDepositorySupplyCap: redeemableDepositorySupplyCap_post,
       mintingFeeInBps: mintingFeeInBps_post,
       redeemingFeeInBps: redeemingFeeInBps_post,
+      mintingDisabled: mintingDisabled_post,
     } = depositoryOnchainAccount_post;
 
     if (uiFields.redeemableDepositorySupplyCap) {
@@ -54,6 +56,10 @@ export const editMercurialVaultDepositoryTest = async function (
     if (uiFields.redeemingFeeInBps) {
       expect(redeemingFeeInBps_post).equals(uiFields.redeemingFeeInBps, "The redeeming fee has not changed.");
       console.log(`🧾 Previous redeeming fee was`, redeemingFeeInBps, "now is", redeemingFeeInBps_post);
+    }
+    if (uiFields.mintingDisabled) {
+      expect(mintingDisabled_post).equals(uiFields.mintingDisabled, "The minting disabled state has not changed.");
+      console.log(`🧾 Previous minting disabled state was`, mintingDisabled, "now is", mintingDisabled_post);
     }
 
     controller.info();

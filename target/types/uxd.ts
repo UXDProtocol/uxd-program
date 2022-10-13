@@ -1469,6 +1469,10 @@ export type Uxd = {
           {
             "name": "redeemableDepositorySupplyCap",
             "type": "u128"
+          },
+          {
+            "name": "mintingDisabled",
+            "type": "bool"
           }
         ]
       }
@@ -1542,6 +1546,12 @@ export type Uxd = {
             "name": "redeemingFeeInBps",
             "type": {
               "option": "u8"
+            }
+          },
+          {
+            "name": "mintingDisabled",
+            "type": {
+              "option": "bool"
             }
           }
         ]
@@ -2161,6 +2171,31 @@ export type Uxd = {
         {
           "name": "redeemingFeeInBps",
           "type": "u8",
+          "index": true
+        }
+      ]
+    },
+    {
+      "name": "SetMercurialVaultDepositoryMintingDisabledEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "mintingDisabled",
+          "type": "bool",
           "index": true
         }
       ]
@@ -4071,6 +4106,10 @@ export const IDL: Uxd = {
           {
             "name": "redeemableDepositorySupplyCap",
             "type": "u128"
+          },
+          {
+            "name": "mintingDisabled",
+            "type": "bool"
           }
         ]
       }
@@ -4144,6 +4183,12 @@ export const IDL: Uxd = {
             "name": "redeemingFeeInBps",
             "type": {
               "option": "u8"
+            }
+          },
+          {
+            "name": "mintingDisabled",
+            "type": {
+              "option": "bool"
             }
           }
         ]
@@ -4763,6 +4808,31 @@ export const IDL: Uxd = {
         {
           "name": "redeemingFeeInBps",
           "type": "u8",
+          "index": true
+        }
+      ]
+    },
+    {
+      "name": "SetMercurialVaultDepositoryMintingDisabledEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "mintingDisabled",
+          "type": "bool",
           "index": true
         }
       ]

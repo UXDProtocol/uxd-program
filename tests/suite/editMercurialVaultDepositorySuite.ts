@@ -1,12 +1,6 @@
-import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, ControllerAccount, findATAAddrSync, MercurialVaultDepository, MercurialVaultDepositoryAccount, nativeToUi } from "@uxd-protocol/uxd-client";
-import { expect } from "chai";
-import { redeemFromMercurialVaultDepositoryTest } from "../cases/redeemFromMercurialVaultDepositoryTest";
-import { mintWithMercurialVaultDepositoryTest } from "../cases/mintWithMercurialVaultDepositoryTest";
-import { getBalance, transferAllSol, transferAllTokens, transferSol, transferTokens } from "../utils";
+import { Signer } from "@solana/web3.js";
+import { Controller, MercurialVaultDepository, MercurialVaultDepositoryAccount, nativeToUi } from "@uxd-protocol/uxd-client";
 import { getConnection, TXN_OPTS } from "../connection";
-import { setRedeemableGlobalSupplyCapTest } from "../cases/setRedeemableGlobalSupplyCapTest";
-import { BN } from "@project-serum/anchor";
 import { editMercurialVaultDepositoryTest } from "../cases/editMercurialVaultDepositoryTest";
 
 export const editMercurialVaultDepositorySuite = async function (controllerAuthority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository) {
@@ -48,12 +42,23 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
             });
         });
 
+        it(`Edit mintingDisabled alone should work`, async function () {
+            const mintingDisabled = true;
+
+            console.log("[🧾 mintingDisabled", mintingDisabled, "]");
+
+            await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
+                mintingDisabled,
+            });
+        });
+
         // Restore initial depository values there
         it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableDepositorySupplyCap should work`, async function () {
             const {
                 mintingFeeInBps,
                 redeemingFeeInBps,
                 redeemableDepositorySupplyCap,
+                mintingDisabled,
             } = beforeDepository;
 
             const uiRedeemableDepositorySupplyCap = nativeToUi(redeemableDepositorySupplyCap, controller.redeemableMintDecimals);
@@ -61,10 +66,12 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
             console.log("[🧾 mintingFeeInBps", mintingFeeInBps, "]");
             console.log("[🧾 redeemingFeeInBps", redeemingFeeInBps, "]");
             console.log("[🧾 redeemableDepositorySupplyCap", uiRedeemableDepositorySupplyCap, "]");
+            console.log("[🧾 mintingDisabled", mintingDisabled, "]");
 
             await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
                 mintingFeeInBps,
                 redeemingFeeInBps,
+                mintingDisabled,
                 redeemableDepositorySupplyCap: uiRedeemableDepositorySupplyCap,
             });
         });

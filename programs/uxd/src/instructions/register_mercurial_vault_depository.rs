@@ -121,6 +121,9 @@ pub fn handler(
 
     depository.redeemable_depository_supply_cap = redeemable_depository_supply_cap;
 
+    // enable minting by default
+    depository.minting_disabled = false;
+
     // 2 - Update Controller state
     ctx.accounts
         .controller
