@@ -6,7 +6,6 @@ import { withdrawInsuranceMangoDepositoryTest } from "../cases/withdrawInsurance
 import { mango } from "../fixtures";
 
 export const mangoDepositoryInsuranceSuite = function (authority: Signer, controller: Controller, depository: MangoDepository) {
-
     it("DEPOSIT 0 USDC of insurance (should fail)", async function () {
         try {
             await depositInsuranceMangoDepositoryTest(0, authority, controller, depository, mango);
@@ -26,9 +25,7 @@ export const mangoDepositoryInsuranceSuite = function (authority: Signer, contro
     });
 
 
-    it(`Deposit 1 USDC of insurance`, async function () {
-        await depositInsuranceMangoDepositoryTest(1, authority, controller, depository, mango);
-    });
+    it(`Deposit 1 USDC of insurance`, () => depositInsuranceMangoDepositoryTest(1, authority, controller, depository, mango));
 
     it(`Withdraw 1 USDC of insurance (should fail)`, async function () {
         try {
@@ -39,13 +36,9 @@ export const mangoDepositoryInsuranceSuite = function (authority: Signer, contro
         expect(false, "Should have failed - Amount is too big");
     });
 
-    it(`Deposit 1000 USDC of insurance`, async function () {
-        await depositInsuranceMangoDepositoryTest(1000, authority, controller, depository, mango);
-    });
+    it(`Deposit 1000 USDC of insurance`, () => depositInsuranceMangoDepositoryTest(1000, authority, controller, depository, mango));
 
-    it(`Withdraw 1 USDC of insurance`, async function () {
-        await withdrawInsuranceMangoDepositoryTest(1, authority, controller, depository, mango);
-    });
+    it(`Withdraw 1 USDC of insurance`, () => withdrawInsuranceMangoDepositoryTest(1, authority, controller, depository, mango));
 
     it(`Withdraw 5000 USDC of insurance (should fail)`, async function () {
         try {
@@ -66,7 +59,5 @@ export const mangoDepositoryInsuranceSuite = function (authority: Signer, contro
     });
 
     // Due to mango health constraints we cannot remove the entirety 
-    it(`Withdraw 999 USDC of insurance`, async function () {
-        await depositInsuranceMangoDepositoryTest(999, authority, controller, depository, mango);
-    });
+    it(`Withdraw 999 USDC of insurance`, () => depositInsuranceMangoDepositoryTest(999, authority, controller, depository, mango));
 };

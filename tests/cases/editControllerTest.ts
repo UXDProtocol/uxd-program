@@ -10,11 +10,11 @@ export const editControllerTest = async function (
   authority: Signer,
   controller: Controller,
   uiFields: {
-    quoteMintAndRedeemSoftCap?: {
+    mangoDepositoriesQuoteRedeemableSoftCap?: {
       value: number;
       depository: MangoDepository;
     };
-    redeemableSoftCap?: number;
+    mangoDepositoriesRedeemableSoftCap?: number;
     redeemableGlobalSupplyCap?: number;
   }
 ) {
@@ -26,8 +26,8 @@ export const editControllerTest = async function (
     // GIVEN
     const controllerOnChainAccount = await controller.getOnchainAccount(connection, options);
 
-    const quoteMintAndRedeemSoftCap_pre = controllerOnChainAccount.mangoDepositoriesQuoteRedeemableSoftCap;
-    const redeemableSoftCap_pre = controllerOnChainAccount.mangoDepositoriesRedeemableSoftCap;
+    const mangoDepositoriesQuoteRedeemableSoftCap_pre = controllerOnChainAccount.mangoDepositoriesQuoteRedeemableSoftCap;
+    const mangoDepositoriesRedeemableSoftCap_pre = controllerOnChainAccount.mangoDepositoriesRedeemableSoftCap;
     const redeemableGlobalSupplyCap_pre = controllerOnChainAccount.redeemableGlobalSupplyCap;
 
     // WHEN
@@ -42,46 +42,46 @@ export const editControllerTest = async function (
       controller.redeemableMintDecimals
     );
 
-    const quoteMintAndRedeemSoftCap_post = controllerOnChainAccount_post.mangoDepositoriesQuoteRedeemableSoftCap;
-    const redeemableSoftCap_post = controllerOnChainAccount_post.mangoDepositoriesRedeemableSoftCap;
+    const mangoDepositoriesQuoteRedeemableSoftCap_post = controllerOnChainAccount_post.mangoDepositoriesQuoteRedeemableSoftCap;
+    const mangoDepositoriesRedeemableSoftCap_post = controllerOnChainAccount_post.mangoDepositoriesRedeemableSoftCap;
     const redeemableGlobalSupplyCap_post = controllerOnChainAccount_post.redeemableGlobalSupplyCap;
 
-    if (uiFields.quoteMintAndRedeemSoftCap) {
-      const quoteMintAndRedeemSoftCap_postUi = nativeToUi(
-        quoteMintAndRedeemSoftCap_post.toNumber(),
-        uiFields.quoteMintAndRedeemSoftCap.depository.collateralMintDecimals
+    if (uiFields.mangoDepositoriesQuoteRedeemableSoftCap) {
+      const mangoDepositoriesQuoteRedeemableSoftCap_postUi = nativeToUi(
+        mangoDepositoriesQuoteRedeemableSoftCap_post.toNumber(),
+        uiFields.mangoDepositoriesQuoteRedeemableSoftCap.depository.collateralMintDecimals
       );
-      expect(quoteMintAndRedeemSoftCap_postUi).equals(
-        uiFields.quoteMintAndRedeemSoftCap.value,
-        "Quote Mint And Redeem SoftCap must be set"
+      expect(mangoDepositoriesQuoteRedeemableSoftCap_postUi).equals(
+        uiFields.mangoDepositoriesQuoteRedeemableSoftCap.value,
+        "Mango Depositories Quote Mint And Redeem SoftCap must be set"
       );
       console.log(
-        `🧾 Previous quote mint and redeem soft cap was`,
-        quoteMintAndRedeemSoftCap_pre,
+        `🧾 Previous mango depositories quote mint and redeem soft cap was`,
+        mangoDepositoriesQuoteRedeemableSoftCap_pre,
         "now is",
-        quoteMintAndRedeemSoftCap_post
+        mangoDepositoriesQuoteRedeemableSoftCap_post
       );
     } else {
-      expect(quoteMintAndRedeemSoftCap_pre.cmp(quoteMintAndRedeemSoftCap_post)).equals(
+      expect(mangoDepositoriesQuoteRedeemableSoftCap_pre.cmp(mangoDepositoriesQuoteRedeemableSoftCap_post)).equals(
         0,
-        "Quote Mint And Redeem SoftCap must not have changed"
+        "Mango Depositories Quote Mint And Redeem SoftCap must not have changed"
       );
     }
 
-    if (uiFields.redeemableSoftCap !== undefined) {
-      const redeemableSoftCap_postUi = nativeToUi(redeemableSoftCap_post.toNumber(), controller.redeemableMintDecimals);
-      expect(redeemableSoftCap_postUi).equals(uiFields.redeemableSoftCap, "Redeemable SoftCap must bet set");
+    if (uiFields.mangoDepositoriesRedeemableSoftCap !== undefined) {
+      const mangoDepositoriesRedeemableSoftCap_postUi = nativeToUi(mangoDepositoriesRedeemableSoftCap_post.toNumber(), controller.redeemableMintDecimals);
+      expect(mangoDepositoriesRedeemableSoftCap_postUi).equals(uiFields.mangoDepositoriesRedeemableSoftCap, "Mango Depositories Redeemable SoftCap must bet set");
       console.log(
         `🧾 Previous mango depositories soft cap was`,
-        redeemableSoftCap_pre,
+        mangoDepositoriesRedeemableSoftCap_pre,
         "now is",
-        redeemableSoftCap_post,
+        mangoDepositoriesRedeemableSoftCap_post,
         "(circulating supply",
         redeemableCirculatingSupply,
         ")"
       );
     } else {
-      expect(redeemableSoftCap_pre.cmp(redeemableSoftCap_post)).equals(0, "Redeemable SoftCap must not have changed");
+      expect(mangoDepositoriesRedeemableSoftCap_pre.cmp(mangoDepositoriesRedeemableSoftCap_post)).equals(0, "Mango Depositories Redeemable SoftCap must not have changed");
     }
 
     if (uiFields.redeemableGlobalSupplyCap !== undefined) {

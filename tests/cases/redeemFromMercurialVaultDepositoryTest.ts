@@ -1,5 +1,5 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, MercurialVaultDepository, findATAAddrSync, findMultipleATAAddSync, nativeToUi } from "@uxd-protocol/uxd-client";
+import { Controller, MercurialVaultDepository, findMultipleATAAddSync, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { redeemFromMercurialVaultDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";

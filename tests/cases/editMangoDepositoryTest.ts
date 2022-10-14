@@ -1,4 +1,3 @@
-import { BN } from "@project-serum/anchor";
 import { Signer } from "@solana/web3.js";
 import { uiToNative } from "@uxd-protocol/uxd-client";
 import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
@@ -14,6 +13,7 @@ export const editMangoDepositoryTest = async function (
   uiFields: {
     quoteMintAndRedeemFee?: number;
     redeemableDepositorySupplyCap?: number;
+    regularMintingDisabled?: boolean;
   }
 ) {
   const connection = getConnection();
@@ -26,6 +26,7 @@ export const editMangoDepositoryTest = async function (
     const {
       quoteMintAndRedeemFee,
       redeemableDepositorySupplyCap,
+      regularMintingDisabled,
     } = depositoryOnchainAccount;
 
     // WHEN
@@ -38,6 +39,7 @@ export const editMangoDepositoryTest = async function (
     const {
       quoteMintAndRedeemFee: quoteMintAndRedeemFee_post,
       redeemableDepositorySupplyCap: redeemableDepositorySupplyCap_post,
+      regularMintingDisabled: regularMintingDisabled_post,
     } = depositoryOnchainAccount_post;
 
     if (uiFields.quoteMintAndRedeemFee) {
@@ -47,6 +49,10 @@ export const editMangoDepositoryTest = async function (
     if (uiFields.redeemableDepositorySupplyCap) {
       expect(redeemableDepositorySupplyCap_post.toString()).equals(uiToNative(uiFields.redeemableDepositorySupplyCap, controller.redeemableMintDecimals).toString(), "The redeemable depository supply cap has not changed.");
       console.log(`🧾 Previous redeemable depository supply cap was`, redeemableDepositorySupplyCap.toString(), "now is", redeemableDepositorySupplyCap_post.toString());
+    }
+    if (typeof uiFields.regularMintingDisabled !== 'undefined') {
+      expect(regularMintingDisabled_post).equals(uiFields.regularMintingDisabled, "The regular minting disabled flag has not changed.");
+      console.log(`🧾 Previous regular minting disabled flag was`, regularMintingDisabled, "now is", regularMintingDisabled_post);
     }
 
     controller.info();

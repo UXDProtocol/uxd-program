@@ -187,46 +187,6 @@ export async function withdrawInsuranceFromMangoDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function setRedeemableGlobalSupplyCap(
-  authority: Signer,
-  controller: Controller,
-  supplyCapUiAmount: number
-): Promise<string> {
-  const setRedeemableGlobalSupplyCapIx = uxdClient.createSetRedeemableGlobalSupplyCapInstruction(
-    controller,
-    authority.publicKey,
-    supplyCapUiAmount,
-    TXN_OPTS
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  tx.instructions.push(setRedeemableGlobalSupplyCapIx);
-  signers.push(authority);
-
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function setMangoDepositoriesRedeemableSoftCap(
-  authority: Signer,
-  controller: Controller,
-  supplySoftCapUiAmount: number
-): Promise<string> {
-  const setMangoDepositoriesRedeemableSoftCapIx = uxdClient.createSetMangoDepositoriesRedeemableSoftCapInstruction(
-    controller,
-    authority.publicKey,
-    supplySoftCapUiAmount,
-    TXN_OPTS
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  tx.instructions.push(setMangoDepositoriesRedeemableSoftCapIx);
-  signers.push(authority);
-
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
 export async function mintWithMangoDepository(
   user: Signer,
   payer: Signer,
@@ -420,51 +380,6 @@ export async function quoteRedeemFromMangoDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function setMangoDepositoryQuoteMintAndRedeemFee(
-  authority: Signer,
-  controller: Controller,
-  depository: MangoDepository,
-  quoteFee: number
-): Promise<string> {
-  const setMangoDepositoryQuoteMintAndRedeemFeeIx = uxdClient.createSetMangoDepositoryQuoteMintAndRedeemFeeInstruction(
-    quoteFee,
-    controller,
-    depository,
-    authority.publicKey,
-    TXN_OPTS
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  tx.instructions.push(setMangoDepositoryQuoteMintAndRedeemFeeIx);
-  signers.push(authority);
-
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function setMangoDepositoryQuoteMintAndRedeemSoftCap(
-  authority: Signer,
-  controller: Controller,
-  depository: MangoDepository,
-  quoteMintAndRedeemSoftCap: number
-): Promise<string> {
-  const setMangoDepositoryQuoteMintAndRedeemSoftCapIx =
-    uxdClient.createSetMangoDepositoryQuoteMintAndRedeemSoftCapInstruction(
-      quoteMintAndRedeemSoftCap,
-      controller,
-      depository,
-      authority.publicKey,
-      TXN_OPTS
-    );
-  let signers = [];
-  let tx = new Transaction();
-
-  tx.instructions.push(setMangoDepositoryQuoteMintAndRedeemSoftCapIx);
-  signers.push(authority);
-
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
 export async function editController(
   authority: Signer,
   controller: Controller,
@@ -569,6 +484,7 @@ export async function editMangoDepository(
   uiFields: {
     quoteMintAndRedeemFee?: number;
     redeemableDepositorySupplyCap?: BN;
+    regularMintingDisabled?: boolean;
   }
 ): Promise<string> {
   const editMangoDepositoryIx = uxdClient.createEditMangoDepositoryInstruction(

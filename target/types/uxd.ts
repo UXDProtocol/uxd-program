@@ -939,32 +939,6 @@ export type Uxd = {
       ]
     },
     {
-      "name": "disableDepositoryRegularMinting",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "disable",
-          "type": "bool"
-        }
-      ]
-    },
-    {
       "name": "mintWithMercurialVaultDepository",
       "accounts": [
         {
@@ -1485,13 +1459,13 @@ export type Uxd = {
         "kind": "struct",
         "fields": [
           {
-            "name": "quoteMintAndRedeemSoftCap",
+            "name": "mangoDepositoriesQuoteRedeemableSoftCap",
             "type": {
               "option": "u64"
             }
           },
           {
-            "name": "redeemableSoftCap",
+            "name": "mangoDepositoriesRedeemableSoftCap",
             "type": {
               "option": "u64"
             }
@@ -1520,6 +1494,12 @@ export type Uxd = {
             "name": "redeemableDepositorySupplyCap",
             "type": {
               "option": "u128"
+            }
+          },
+          {
+            "name": "regularMintingDisabled",
+            "type": {
+              "option": "bool"
             }
           }
         ]
@@ -3576,32 +3556,6 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "disableDepositoryRegularMinting",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "disable",
-          "type": "bool"
-        }
-      ]
-    },
-    {
       "name": "mintWithMercurialVaultDepository",
       "accounts": [
         {
@@ -4122,13 +4076,13 @@ export const IDL: Uxd = {
         "kind": "struct",
         "fields": [
           {
-            "name": "quoteMintAndRedeemSoftCap",
+            "name": "mangoDepositoriesQuoteRedeemableSoftCap",
             "type": {
               "option": "u64"
             }
           },
           {
-            "name": "redeemableSoftCap",
+            "name": "mangoDepositoriesRedeemableSoftCap",
             "type": {
               "option": "u64"
             }
@@ -4157,6 +4111,12 @@ export const IDL: Uxd = {
             "name": "redeemableDepositorySupplyCap",
             "type": {
               "option": "u128"
+            }
+          },
+          {
+            "name": "regularMintingDisabled",
+            "type": {
+              "option": "bool"
             }
           }
         ]

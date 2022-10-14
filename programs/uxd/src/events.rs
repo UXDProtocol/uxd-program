@@ -16,7 +16,7 @@ pub struct InitializeControllerEvent {
     pub authority: Pubkey,
 }
 
-/// Event called in [instructions::set_redeemable_global_supply_cap::handler].
+/// Event called in [instructions::edit_controller::handler].
 #[event]
 pub struct SetRedeemableGlobalSupplyCapEvent {
     /// The controller version.
@@ -89,7 +89,7 @@ pub struct RegisterMercurialVaultDepositoryEvent {
     pub collateral_mint: Pubkey,
 }
 
-/// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
+/// Event called in [instructions::edit_controller::handler].
 #[event]
 pub struct SetMangoDepositoryRedeemableSoftCapEvent {
     /// The controller version.
@@ -248,7 +248,7 @@ pub struct RebalanceMangoDepositoryLiteEvent {
     pub fee_delta: i64,
 }
 
-/// Event called in [instructions::edit_mango_depository::handler].
+/// Event called in [instructions::edit_controller::handler].
 #[event]
 pub struct SetMangoDepositoryQuoteMintAndRedeemSoftCapEvent {
     #[index]

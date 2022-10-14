@@ -3,7 +3,5 @@ import { Controller, MercurialVaultDepository, UXD_DECIMALS } from "@uxd-protoco
 import { registerMercurialVaultDepositoryTest } from "../cases/registerMercurialVaultDepositoryTest";
 
 export const mercurialVaultDepositorySetupSuite = function (authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository, mintingFeeInBps: number, redeemingFeeInBps: number, redeemableDepositorySupplyCap: number) {
-    it(`Initialize mercurialVaultDepository`, async function () {
-        await registerMercurialVaultDepositoryTest(authority, controller, depository, mintingFeeInBps, redeemingFeeInBps, redeemableDepositorySupplyCap, payer);
-    });
+    it(`Initialize mercurialVaultDepository`, () => registerMercurialVaultDepositoryTest(authority, controller, depository, mintingFeeInBps, redeemingFeeInBps, redeemableDepositorySupplyCap, payer));
 };

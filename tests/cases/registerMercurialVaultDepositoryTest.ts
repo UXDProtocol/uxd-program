@@ -3,7 +3,6 @@ import { Controller, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
 import { registerMercurialVaultDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection } from "../connection";
-import { BN } from "@project-serum/anchor";
 
 export const registerMercurialVaultDepositoryTest = async function (
     authority: Signer,

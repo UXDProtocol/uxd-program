@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::events::DisableDepositoryRegularMintingEvent;
 use crate::events::SetMangoDepositoryQuoteMintAndRedeemFeeEvent;
 use crate::events::SetMangoDepositoryRedeemableSupplyCapEvent;
 use crate::state::MangoDepository;
@@ -35,6 +36,7 @@ pub struct EditMangoDepository<'info> {
 pub struct EditMangoDepositoryFields {
     quote_mint_and_redeem_fee: Option<u8>, // in bps
     redeemable_depository_supply_cap: Option<u128>,
+    regular_minting_disabled: Option<bool>,
 }
 
 pub(crate) fn handler(
@@ -70,6 +72,21 @@ pub(crate) fn handler(
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
             redeemable_depository_supply_cap
+        });
+    }
+
+    // optional: regular_minting_disabled
+    if let Some(regular_minting_disabled) = fields.regular_minting_disabled {
+        msg!(
+            "[edit_mango_depository] regular_minting_disabled {}",
+            regular_minting_disabled
+        );
+        depository.regular_minting_disabled = regular_minting_disabled;
+        emit!(DisableDepositoryRegularMintingEvent {
+            version: ctx.accounts.controller.load()?.version,
+            controller: ctx.accounts.controller.key(),
+            depository: ctx.accounts.depository.key(),
+            regular_minting_disabled,
         });
     }
 

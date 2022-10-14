@@ -3,13 +3,12 @@ import { Controller, ControllerAccount, findATAAddrSync, MercurialVaultDepositor
 import { expect } from "chai";
 import { redeemFromMercurialVaultDepositoryTest } from "../cases/redeemFromMercurialVaultDepositoryTest";
 import { mintWithMercurialVaultDepositoryTest } from "../cases/mintWithMercurialVaultDepositoryTest";
-import { getBalance, transferAllSol, transferAllTokens, transferSol, transferTokens } from "../utils";
+import { getBalance, transferTokens } from "../utils";
 import { getConnection, TXN_OPTS } from "../connection";
-import { setRedeemableGlobalSupplyCapTest } from "../cases/setRedeemableGlobalSupplyCapTest";
 import { BN } from "@project-serum/anchor";
-import { editMercurialVaultDepository } from "../api";
 import { editMercurialVaultDepositoryTest } from "../cases/editMercurialVaultDepositoryTest";
 import { MercurialVaultDepositoryAccount, uiToNative } from "@uxd-protocol/uxd-client";
+import { editControllerTest } from "../cases/editControllerTest";
 
 export const mercurialVaultDepositoryMintRedeemSuite = async function (controllerAuthority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository) {
     let initialRedeemableAccountBalance: number;
@@ -169,9 +168,9 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (controlle
     });
 
     describe("Global redeemable supply cap overflow", () => {
-        it('Set global redeemable supply cap to 0', async function () {
-            await setRedeemableGlobalSupplyCapTest(0, controllerAuthority, controller);
-        });
+        it('Set global redeemable supply cap to 0', () => editControllerTest(controllerAuthority, controller, {
+            redeemableGlobalSupplyCap: 0
+        }));
 
         it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMint.symbol} (should fail)`, async function () {
             const collateralAmount = 0.001;
@@ -190,7 +189,9 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (controlle
         it(`Reset Global Redeemable supply cap back to its original value`, async function () {
             const globalRedeemableSupplyCap = nativeToUi(initialControllerGlobalRedeemableSupplyCap, controller.redeemableMintDecimals);
 
-            await setRedeemableGlobalSupplyCapTest(globalRedeemableSupplyCap, controllerAuthority, controller);
+            await editControllerTest(controllerAuthority, controller, {
+                redeemableGlobalSupplyCap: globalRedeemableSupplyCap,
+            });
         });
     });
 

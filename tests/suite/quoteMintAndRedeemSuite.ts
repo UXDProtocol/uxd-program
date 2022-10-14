@@ -5,6 +5,7 @@ import { uiToNative } from "@uxd-protocol/uxd-client";
 import { nativeToUi } from "@uxd-protocol/uxd-client";
 import { Controller, findATAAddrSync, MangoDepository, PnLPolarity } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
+import { editControllerTest } from "../cases/editControllerTest";
 import { editMangoDepositoryTest } from "../cases/editMangoDepositoryTest";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { quoteMintWithMangoDepositoryAccountingTest } from "../cases/quoteMintWithMangoDepositoryAccountingTest";
@@ -12,8 +13,6 @@ import { quoteMintWithMangoDepositoryTest } from "../cases/quoteMintWithMangoDep
 import { quoteRedeemFromMangoDepositoryAccountingTest } from "../cases/quoteRedeemFromMangoDepositoryAccountingTest";
 import { quoteRedeemFromMangoDepositoryTest } from "../cases/quoteRedeemFromMangoDepositoryTest";
 import { redeemFromMangoDepositoryTest } from "../cases/redeemFromMangoDepositoryTest";
-import { setMangoDepositoryQuoteMintAndRedeemFeeTest } from "../cases/setMangoDepositoryQuoteMintAndRedeemFeeTest";
-import { setMangoDepositoryQuoteMintAndRedeemSoftCapTest } from "../cases/setMangoDepositoryQuoteMintAndRedeemSoftCapTest";
 import { getConnection, TXN_OPTS } from "../connection";
 import { slippageBase } from "../constants";
 import { mango } from "../fixtures";
@@ -58,9 +57,12 @@ export const quoteMintAndRedeemSuite = function (
     await mintWithMangoDepositoryTest(amount, 20, user, controller, depository, mango, payer);
   });
 
-  it(`Change the quote mint and redeem soft cap to 1_000_000`, async function () {
-    await setMangoDepositoryQuoteMintAndRedeemSoftCapTest(1_000_000, authority, controller, depository);
-  });
+  it(`Change the quote mint and redeem soft cap to 1_000_000`, () => editControllerTest(authority, controller, {
+    mangoDepositoriesQuoteRedeemableSoftCap: {
+      value: 1_000_000,
+      depository,
+    },
+  }));
 
   it(`Change the depository quote mint and redeem fee to 2`, async function () {
     await editMangoDepositoryTest(authority, controller, depository, {
@@ -68,9 +70,12 @@ export const quoteMintAndRedeemSuite = function (
     });
   });
 
-  it(`Change the quote mint and redeem fees to 0`, async function () {
-    await setMangoDepositoryQuoteMintAndRedeemFeeTest(0, authority, controller, depository);
-  });
+  it(`Change the quote mint and redeem fees to 0`, () => editControllerTest(authority, controller, {
+    mangoDepositoriesQuoteRedeemableSoftCap: {
+      value: 0,
+      depository,
+    },
+  }));
 
   it(`Quote mint or redeem 5$ (without fees)`, async function () {
     const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
@@ -112,9 +117,12 @@ export const quoteMintAndRedeemSuite = function (
     }
   });
 
-  it(`Change the quote mint and redeem fees to 5 bps`, async function () {
-    await setMangoDepositoryQuoteMintAndRedeemFeeTest(5, authority, controller, depository);
-  });
+  it(`Change the quote mint and redeem fees to 5 bps`, () => editControllerTest(authority, controller, {
+    mangoDepositoriesQuoteRedeemableSoftCap: {
+      value: 5,
+      depository,
+    },
+  }));
 
   it(`Quote mint or redeem 5$ (with fees)`, async function () {
     const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);
@@ -225,9 +233,12 @@ export const quoteMintAndRedeemSuite = function (
     expect(false, "Should have failed - Tried minting or redeeming 0");
   });
 
-  it(`Change the quote mint and redeem soft cap to 50`, async function () {
-    await setMangoDepositoryQuoteMintAndRedeemSoftCapTest(10, authority, controller, depository);
-  });
+  it(`Change the quote mint and redeem soft cap to 50`, () => editControllerTest(authority, controller, {
+    mangoDepositoriesQuoteRedeemableSoftCap: {
+      value: 10,
+      depository,
+    },
+  }));
 
   it(`Quote mint or redeem 5$ (with fees)`, async function () {
     const unrealizedPnl = await depository.getUnrealizedPnl(mango, TXN_OPTS);

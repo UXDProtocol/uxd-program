@@ -1,6 +1,6 @@
 import { utils } from "@project-serum/anchor";
 import { PublicKey, Signer } from "@solana/web3.js";
-import { Controller, Mango, MangoDepository, UXD_DECIMALS } from "@uxd-protocol/uxd-client";
+import { Controller, Mango, MangoDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { quoteMintWithMangoDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";

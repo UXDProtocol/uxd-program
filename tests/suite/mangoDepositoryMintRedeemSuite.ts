@@ -314,6 +314,41 @@ export const mangoDepositoryMintRedeemSuite = function (
     });
   });
 
+  describe('Disabled minting', () => {
+    it('Disable minting on mango depository', async function () {
+      await editMangoDepositoryTest(authority, controller, depository, {
+        regularMintingDisabled: true,
+      });
+    });
+
+    it(`Mint 10 ${controller.redeemableMintSymbol} (should fail)`, async function () {
+      const perpPrice = await depository.getCollateralPerpPriceUI(mango);
+      const amount = 10 / perpPrice;
+      console.log("[🧾 amount", amount, depository.collateralMintSymbol, "]");
+      try {
+        await mintWithMangoDepositoryTest(
+          amount,
+          slippage,
+          user,
+          controller,
+          depository,
+          mango,
+          payer
+        );
+      } catch {
+        expect(true, "Failing as planned");
+      }
+
+      expect(false, `Should have failed - minting is disabled`);
+    });
+
+    it(`Re-enable minting for mango depository`, async function () {
+      await editMangoDepositoryTest(authority, controller, depository, {
+        regularMintingDisabled: false,
+      });
+    });
+  });
+
   it(`Return remaining ${depository.collateralMintSymbol} user's balance to the payer`, async function () {
     // SOL will remain on the account when using WSOL
     await transferAllTokens(depository.collateralMint, depository.collateralMintDecimals, user, payer.publicKey);

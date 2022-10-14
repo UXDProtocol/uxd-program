@@ -10,7 +10,6 @@ import { mangoDepositorySetupSuite } from "./suite/mangoDepositorySetupSuite";
 import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedeemSuite";
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 import { mangoDepositoryAndControllerAccountingSuite } from "./suite/mangoDepositoryAndControllerAccountingSuite";
-import { disableDepositoryMintingSuite } from "./suite/disableDepositoryMintingSuite";
 import { mercurialVaultDepositoryMintRedeemSuite } from "./suite/mercurialVaultMintAndRedeemSuite";
 import { getConnection } from "./connection";
 import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDepositorySuite";
@@ -93,10 +92,6 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
             mangoDepositoryInsuranceSuite(authority, controllerUXD, mangoDepositorySOL);
         });
 
-        describe("disableDepositoryMintingSuite SOL", function () {
-            disableDepositoryMintingSuite(authority, user, bank, controllerUXD, mangoDepositorySOL);
-        });
-
         describe("mangoDepositoryMintRedeemSuite SOL", function () {
             mangoDepositoryMintRedeemSuite(user, bank, controllerUXD, mangoDepositorySOL, 20);
         });
@@ -109,7 +104,7 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
         describe("mangoDepositoryAndControllerAccountingSuite SOL", function () {
             const slippage = 20;
             const collateralUnitShift = SOL_DECIMALS - 2; // SOL units - target units
-            mangoDepositoryAndControllerAccountingSuite(authority, user, bank, controllerUXD, mangoDepositorySOL, slippage, collateralUnitShift);
+            mangoDepositoryAndControllerAccountingSuite(user, bank, controllerUXD, mangoDepositorySOL, slippage, collateralUnitShift);
         })
 
         this.afterAll("Transfer funds back to bank", () => transferAllSol(user, bank.publicKey));

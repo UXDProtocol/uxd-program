@@ -939,32 +939,6 @@
       ]
     },
     {
-      "name": "disableDepositoryRegularMinting",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "disable",
-          "type": "bool"
-        }
-      ]
-    },
-    {
       "name": "mintWithMercurialVaultDepository",
       "accounts": [
         {
@@ -1485,13 +1459,13 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "quoteMintAndRedeemSoftCap",
+            "name": "mangoDepositoriesQuoteRedeemableSoftCap",
             "type": {
               "option": "u64"
             }
           },
           {
-            "name": "redeemableSoftCap",
+            "name": "mangoDepositoriesRedeemableSoftCap",
             "type": {
               "option": "u64"
             }
@@ -1520,6 +1494,12 @@
             "name": "redeemableDepositorySupplyCap",
             "type": {
               "option": "u128"
+            }
+          },
+          {
+            "name": "regularMintingDisabled",
+            "type": {
+              "option": "bool"
             }
           }
         ]

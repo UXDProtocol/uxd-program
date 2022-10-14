@@ -3,7 +3,6 @@ import { Controller, MangoDepository, Mango } from "@uxd-protocol/uxd-client";
 import { registerMangoDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection } from "../connection";
-import { BN } from "@project-serum/anchor";
 
 export const registerMangoDepositoryTest = async function (authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango, redeemableDepositorySupplyCap: number, payer?: Signer) {
     console.group("🧭 initializeMangoDepositoryTest");

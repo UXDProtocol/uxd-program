@@ -412,26 +412,6 @@ pub mod uxd {
         instructions::edit_mercurial_vault_depository::handler(ctx, &fields)
     }
 
-    /// Disable or enable regular minting for given Mango Depository.
-    ///
-    /// Parameters:
-    ///     - disable: true to disable, false to enable.
-    ///
-    /// Note:
-    ///  The disabled flag is false by default that a freshly registered mango depository has enabled regular minting.
-    ///  This ix is for toggling that flag.
-    ///
-    #[access_control(
-        ctx.accounts.validate(disable)
-    )]
-    pub fn disable_depository_regular_minting(
-        ctx: Context<DisableDepositoryRegularMinting>,
-        disable: bool,
-    ) -> Result<()> {
-        msg!("[disable_depository_minting] disable {}", disable);
-        instructions::disable_depository_regular_minting::handler(ctx, disable)
-    }
-
     // Mint Redeemable tokens by depositing Collateral to mercurial vault.
     #[access_control(
         ctx.accounts.validate(collateral_amount)

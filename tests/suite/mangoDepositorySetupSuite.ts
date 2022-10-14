@@ -6,11 +6,7 @@ import { registerMangoDepositoryTest } from "../cases/registerMangoDepositoryTes
 import { mango } from "../fixtures";
 
 export const mangoDepositorySetupSuite = function (authority: Signer, payer: Signer, controller: Controller, depository: MangoDepository, redeemableDepositorySupplyCap: number, insuranceAmount: number) {
-    it(`Initialize ${depository.collateralMintSymbol} MangoDepository`, async function () {
-        await registerMangoDepositoryTest(authority, controller, depository, mango, redeemableDepositorySupplyCap, payer);
-    });
+    it(`Initialize ${depository.collateralMintSymbol} MangoDepository`, () => registerMangoDepositoryTest(authority, controller, depository, mango, redeemableDepositorySupplyCap, payer));
 
-    it(`Deposit ${insuranceAmount} USDC of insurance`, async function () {
-        await depositInsuranceMangoDepositoryTest(insuranceAmount, authority, controller, depository, mango);
-    });
+    it(`Deposit ${insuranceAmount} USDC of insurance`, () => depositInsuranceMangoDepositoryTest(insuranceAmount, authority, controller, depository, mango));
 };

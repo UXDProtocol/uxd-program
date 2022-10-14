@@ -1,11 +1,9 @@
-import { associatedAddress } from "@project-serum/anchor/dist/cjs/utils/token";
 import { Signer } from "@solana/web3.js";
 import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
+import { editControllerTest } from "../cases/editControllerTest";
 import { mintWithMangoDepositoryTest } from "../cases/mintWithMangoDepositoryTest";
 import { redeemFromMangoDepositoryTest } from "../cases/redeemFromMangoDepositoryTest";
-import { setRedeemableGlobalSupplyCapTest } from "../cases/setRedeemableGlobalSupplyCapTest";
-import { setRedeemableSoftCapMangoDepositoryTest } from "../cases/setRedeemableSoftCapMangoDepositoryTest";
 import { mango } from "../fixtures";
 
 export class MangoDepositoryAndControllerInteractionsSuiteParameters {
@@ -53,12 +51,19 @@ export const mangoDepositoryAndControllerInteractionsSuite = function (
       mango,
       payer
     );
-    await setRedeemableGlobalSupplyCapTest(0, authority, controller);
+
+    await editControllerTest(authority, controller, {
+      redeemableGlobalSupplyCap: 0,
+    });
+
     await redeemFromMangoDepositoryTest(mintedAmount, params.slippage, user, controller, depository, mango, payer);
   });
 
   it(`Set Global Redeemable supply cap to ${params.globalSupplyCapLow} then Mint 10 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage) (should fail)`, async function () {
-    await setRedeemableGlobalSupplyCapTest(params.globalSupplyCapLow, authority, controller);
+    await editControllerTest(authority, controller, {
+      redeemableGlobalSupplyCap: params.globalSupplyCapLow,
+    });
+
     try {
       await mintWithMangoDepositoryTest(10, params.slippage, user, controller, depository, mango, payer);
     } catch {
@@ -68,7 +73,9 @@ export const mangoDepositoryAndControllerInteractionsSuite = function (
   });
 
   it(`Reset Global Redeemable supply cap back to ${params.globalSupplyCap}`, async function () {
-    await setRedeemableGlobalSupplyCapTest(params.globalSupplyCap, authority, controller);
+    await editControllerTest(authority, controller, {
+      redeemableGlobalSupplyCap: params.globalSupplyCap,
+    });
   });
 
   it(`Mint 10 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage) then set the MangoDepositories Redeemable Soft cap to 0 and redeem`, async function () {
@@ -84,12 +91,18 @@ export const mangoDepositoryAndControllerInteractionsSuite = function (
       mango,
       payer
     );
-    await setRedeemableSoftCapMangoDepositoryTest(0, authority, controller);
+
+    await editControllerTest(authority, controller, {
+      mangoDepositoriesRedeemableSoftCap: 0,
+    });
+
     await redeemFromMangoDepositoryTest(mintedAmount, params.slippage, user, controller, depository, mango, payer);
   });
 
   it(`Set the MangoDepositories Redeemable Soft cap to ${params.mangoDepositoriesRedeemableSoftCapLow} then Mint 10 ${depository.collateralMintSymbol} worth of UXD (${params.slippage} slippage) (should fail)`, async function () {
-    await setRedeemableSoftCapMangoDepositoryTest(params.mangoDepositoriesRedeemableSoftCapLow, authority, controller);
+    await editControllerTest(authority, controller, {
+      mangoDepositoriesRedeemableSoftCap: params.mangoDepositoriesRedeemableSoftCapLow,
+    });
     try {
       await mintWithMangoDepositoryTest(10, params.slippage, user, controller, depository, mango, payer);
     } catch {
@@ -98,7 +111,7 @@ export const mangoDepositoryAndControllerInteractionsSuite = function (
     expect(false, "Should have failed - Amount beyond global supply cap");
   });
 
-  it(`Reset MangoDepositories Redeemable Soft cap back to ${params.mangoDepositoriesRedeemableSoftCap}`, async function () {
-    await setRedeemableSoftCapMangoDepositoryTest(params.mangoDepositoriesRedeemableSoftCap, authority, controller);
-  });
+  it(`Reset MangoDepositories Redeemable Soft cap back to ${params.mangoDepositoriesRedeemableSoftCap}`, () => editControllerTest(authority, controller, {
+    mangoDepositoriesRedeemableSoftCap: params.mangoDepositoriesRedeemableSoftCap,
+  }));
 };

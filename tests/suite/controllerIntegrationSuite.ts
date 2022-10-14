@@ -2,8 +2,6 @@ import { Signer } from "@solana/web3.js";
 import { Controller } from "@uxd-protocol/uxd-client";
 import { editControllerTest } from "../cases/editControllerTest";
 import { initializeControllerTest } from "../cases/initializeControllerTest";
-import { setRedeemableGlobalSupplyCapTest } from "../cases/setRedeemableGlobalSupplyCapTest";
-import { setRedeemableSoftCapMangoDepositoryTest } from "../cases/setRedeemableSoftCapMangoDepositoryTest";
 
 export class controllerIntegrationSuiteParameters {
   public globalSupplyCap: number;
@@ -25,24 +23,22 @@ export const controllerIntegrationSuite = function (
     await initializeControllerTest(authority, controller, payer);
   });
 
-  it(`Set Global Redeemable supply cap to ${params.globalSupplyCap}`, async function () {
-    await setRedeemableGlobalSupplyCapTest(params.globalSupplyCap, authority, controller);
-  });
+  it(`Set Global Redeemable supply cap to ${params.globalSupplyCap}`, () => editControllerTest(authority, controller, {
+    redeemableGlobalSupplyCap: params.globalSupplyCap,
+  }));
 
-  it(`Set Mango Depositories Redeemable soft cap to ${params.mangoDepositoriesRedeemableSoftCap}`, async function () {
-    await setRedeemableSoftCapMangoDepositoryTest(params.mangoDepositoriesRedeemableSoftCap, authority, controller);
-  });
+  it(`Set Mango Depositories Redeemable soft cap to ${params.mangoDepositoriesRedeemableSoftCap}`, () => editControllerTest(authority, controller, {
+    mangoDepositoriesRedeemableSoftCap: params.mangoDepositoriesRedeemableSoftCap,
+  }));
 
   it(
     [
       `Set Mango Depositories Redeemable soft cap to ${params.mangoDepositoriesRedeemableSoftCap}`,
       `And set Global Redeemable supply cap to ${params.globalSupplyCap} at the same time`,
     ].join(" "),
-    async function () {
-      await editControllerTest(authority, controller, {
-        redeemableSoftCap: params.mangoDepositoriesRedeemableSoftCap,
-        redeemableGlobalSupplyCap: params.globalSupplyCap,
-      });
-    }
+    () => editControllerTest(authority, controller, {
+      mangoDepositoriesRedeemableSoftCap: params.mangoDepositoriesRedeemableSoftCap,
+      redeemableGlobalSupplyCap: params.globalSupplyCap,
+    })
   );
 };
