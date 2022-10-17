@@ -44,7 +44,7 @@ export const editMercurialVaultDepositoryTest = async function (
       mintingDisabled: mintingDisabled_post,
     } = depositoryOnchainAccount_post;
 
-    if (uiFields.redeemableAmountUnderManagementCap) {
+    if (typeof uiFields.redeemableAmountUnderManagementCap !== 'undefined') {
       const nativeRedeemableAmountUnderManagementCap = uiToNative(uiFields.redeemableAmountUnderManagementCap, controller.redeemableMintDecimals);
       expect(redeemableAmountUnderManagementCap_post.toString()).equals(nativeRedeemableAmountUnderManagementCap.toString(), "The redeemable amount under management cap has not changed.");
       console.log(`🧾 Previous redeemable amount under management cap was`, redeemableAmountUnderManagementCap.toString(), "now is", redeemableAmountUnderManagementCap_post.toString());
