@@ -147,8 +147,8 @@ pub fn handler(
     // Depository accounting
     depository.collateral_amount_deposited = u128::MIN;
     depository.redeemable_amount_under_management = u128::MIN;
-    depository.total_paid_minting_fee = u128::MIN;
-    depository.total_paid_redeeming_fee = u128::MIN;
+    depository.minting_fee_total_accrued = u128::MIN;
+    depository.redeeming_fee_total_accrued = u128::MIN;
 
     // Add the depository to the controller
     msg!("[register_maple_pool_depository:register_depository]");

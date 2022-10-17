@@ -127,7 +127,7 @@ pub struct MintWithMaplePoolDepositoryEvent {
     /// The redeemable issued in native units. (output)
     pub redeemable_amount: u64,
     /// The fees paid in native units. (output)
-    pub paid_minting_fee: u64,
+    pub minting_fee_paid: u64,
 }
 
 /// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].

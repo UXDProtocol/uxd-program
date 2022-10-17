@@ -11,9 +11,7 @@ use fixed::types::I80F48;
 use crate::error::UxdError;
 use crate::events::MintWithMaplePoolDepositoryEvent;
 use crate::state::controller::Controller;
-use crate::state::depository_accounting::DepositoryAccounting;
 use crate::state::maple_pool_depository::MaplePoolDepository;
-use crate::state::DepositoryConfiguration;
 use crate::utils::calculate_amount_less_fees;
 use crate::utils::checked_i64_to_u64;
 use crate::utils::compute_delta;
@@ -318,10 +316,8 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     // Add minting fees on top of the received value we got from the pool
     msg!("[mint_with_maple_pool_depository:compute_redeemable]");
     let redeemable_amount_before_fees: u64 = owned_value_increase;
-    let redeemable_amount_after_fees: u64 = calculate_amount_less_fees(
-        redeemable_amount_before_fees,
-        depository.get_minting_fee_in_bps(),
-    )?;
+    let redeemable_amount_after_fees: u64 =
+        calculate_amount_less_fees(redeemable_amount_before_fees, depository.minting_fee_in_bps)?;
 
     //  Redeemable amount should be positive
     require!(
@@ -333,7 +329,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     msg!("[mint_with_maple_pool_depository:compute_fees]");
     let redeemable_amount_delta =
         compute_delta(redeemable_amount_before_fees, redeemable_amount_after_fees)?;
-    let paid_minting_fee = checked_i64_to_u64(-redeemable_amount_delta)?;
+    let minting_fee_paid = checked_i64_to_u64(-redeemable_amount_delta)?;
 
     // Mint redeemable to the user
     msg!("[mint_with_maple_pool_depository:mint_redeemable]");
@@ -356,14 +352,14 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         user: ctx.accounts.user.key(),
         collateral_amount: collateral_amount_deposited,
         redeemable_amount: redeemable_amount_after_fees,
-        paid_minting_fee: paid_minting_fee,
+        minting_fee_paid: minting_fee_paid,
     });
 
     // Accouting for depository
     msg!("[mint_with_maple_pool_depository:accounting_depository]");
-    let mut depository_accounting = ctx.accounts.depository.load_mut()?;
-    depository_accounting.increase_total_paid_minting_fee(paid_minting_fee)?;
-    depository_accounting.deposited_collateral_and_minted_redeemable(
+    let mut depository = ctx.accounts.depository.load_mut()?;
+    depository.minting_fee_accrued(minting_fee_paid)?;
+    depository.collateral_deposited_and_redeemable_minted(
         collateral_amount_deposited,
         redeemable_amount_after_fees,
     )?;

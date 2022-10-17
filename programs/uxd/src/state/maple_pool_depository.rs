@@ -2,7 +2,7 @@ use std::mem::size_of;
 
 use anchor_lang::prelude::*;
 
-use super::{depository_accounting::DepositoryAccounting, DepositoryConfiguration};
+use crate::error::UxdError;
 
 pub const MAPLE_POOL_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u8>() // bump
@@ -26,8 +26,8 @@ pub const MAPLE_POOL_DEPOSITORY_SPACE: usize = 8 // anchor-pad
 
  + size_of::<u128>() // collateral_amount_deposited
  + size_of::<u128>() // redeemable_amount_under_management
- + size_of::<u128>() // total_paid_minting_fee
- + size_of::<u128>() // total_paid_redeeming_fee
+ + size_of::<u128>() // minting_fee_total_accrued
+ + size_of::<u128>() // redeeming_fee_total_accrued
 
  + 800; // reserved space
 
@@ -62,45 +62,46 @@ pub struct MaplePoolDepository {
     // Depository accouting
     pub collateral_amount_deposited: u128,
     pub redeemable_amount_under_management: u128,
-    pub total_paid_minting_fee: u128,
-    pub total_paid_redeeming_fee: u128,
+    pub minting_fee_total_accrued: u128,
+    pub redeeming_fee_total_accrued: u128,
 }
 
-impl DepositoryConfiguration for MaplePoolDepository {
-    fn get_redeemable_amount_under_management_cap(&self) -> u128 {
-        self.redeemable_amount_under_management_cap
+impl MaplePoolDepository {
+    pub fn collateral_deposited_and_redeemable_minted(
+        &mut self,
+        collateral_amount_added: u64,
+        redeemable_amount_added: u64,
+    ) -> Result<()> {
+        // Check that there was some successful minting
+        require!(
+            collateral_amount_added > 0,
+            UxdError::InvalidCollateralAmount,
+        );
+        require!(
+            redeemable_amount_added > 0,
+            UxdError::MinimumMintedRedeemableAmountError
+        );
+        // Actually add the recent change
+        self.collateral_amount_deposited = self
+            .collateral_amount_deposited
+            .checked_add(collateral_amount_added.into())
+            .ok_or(UxdError::MathError)?;
+        self.redeemable_amount_under_management = self
+            .redeemable_amount_under_management
+            .checked_add(redeemable_amount_added.into())
+            .ok_or(UxdError::MathError)?;
+        // Check that we're not minting past the cap
+        require!(
+            self.redeemable_amount_under_management <= self.redeemable_amount_under_management_cap,
+            UxdError::DepositoryRedeemableCapOverflow
+        );
+        Ok(())
     }
-    fn get_minting_fee_in_bps(&self) -> u8 {
-        self.minting_fee_in_bps
-    }
-    fn get_redeeming_fee_in_bps(&self) -> u8 {
-        self.redeeming_fee_in_bps
-    }
-}
-
-impl DepositoryAccounting for MaplePoolDepository {
-    fn get_collateral_amount_deposited(&self) -> u128 {
-        self.collateral_amount_deposited
-    }
-    fn set_collateral_amount_deposited(&mut self, value: u128) {
-        self.collateral_amount_deposited = value;
-    }
-    fn get_redeemable_amount_under_management(&self) -> u128 {
-        self.redeemable_amount_under_management
-    }
-    fn set_redeemable_amount_under_management(&mut self, value: u128) {
-        self.redeemable_amount_under_management = value;
-    }
-    fn get_total_paid_minting_fee(&self) -> u128 {
-        self.total_paid_minting_fee
-    }
-    fn set_total_paid_minting_fee(&mut self, value: u128) {
-        self.total_paid_minting_fee = value;
-    }
-    fn get_total_paid_redeeming_fee(&self) -> u128 {
-        self.total_paid_redeeming_fee
-    }
-    fn set_total_paid_redeeming_fee(&mut self, value: u128) {
-        self.total_paid_redeeming_fee = value;
+    pub fn minting_fee_accrued(&mut self, minting_fee_paid: u64) -> Result<()> {
+        self.minting_fee_total_accrued = self
+            .minting_fee_total_accrued
+            .checked_add(minting_fee_paid.into())
+            .ok_or(UxdError::MathError)?;
+        Ok(())
     }
 }
