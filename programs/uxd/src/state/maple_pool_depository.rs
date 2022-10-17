@@ -67,6 +67,7 @@ pub struct MaplePoolDepository {
 }
 
 impl MaplePoolDepository {
+    // When we mint, we need to increment the supply counters
     pub fn collateral_deposited_and_redeemable_minted(
         &mut self,
         collateral_amount_added: u64,
@@ -97,6 +98,7 @@ impl MaplePoolDepository {
         );
         Ok(())
     }
+    // When minting fee was paid, we need to add it to the total
     pub fn minting_fee_accrued(&mut self, minting_fee_paid: u64) -> Result<()> {
         self.minting_fee_total_accrued = self
             .minting_fee_total_accrued
