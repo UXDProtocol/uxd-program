@@ -40,11 +40,11 @@ export const editMangoDepositoryTest = async function (
       redeemableAmountUnderManagementCap: redeemableAmountUnderManagementCap_post,
     } = depositoryOnchainAccount_post;
 
-    if (uiFields.quoteMintAndRedeemFee) {
+    if (typeof uiFields.quoteMintAndRedeemFee !== 'undefined') {
       expect(quoteMintAndRedeemFee_post).equals(uiFields.quoteMintAndRedeemFee, "The quote fee has not changed.");
       console.log(`🧾 Previous quote fee was`, quoteMintAndRedeemFee, "now is", quoteMintAndRedeemFee_post);
     }
-    if (uiFields.redeemableAmountUnderManagementCap) {
+    if (typeof uiFields.redeemableAmountUnderManagementCap !== 'undefined') {
       expect(redeemableAmountUnderManagementCap_post.toString()).equals(uiToNative(uiFields.redeemableAmountUnderManagementCap, controller.redeemableMintDecimals).toString(), "The redeemable amount under management cap has not changed.");
       console.log(`🧾 Previous redeemable amount under management cap was`, redeemableAmountUnderManagementCap.toString(), "now is", redeemableAmountUnderManagementCap_post.toString());
     }
