@@ -39,7 +39,7 @@ pub enum UxdError {
     #[msg("Operation not allowed due to being over the Mango Redeemable soft Cap.")]
     MangoDepositoriesSoftCapOverflow,
     #[msg("Operation not allowed due to being over the Depository redeemable soft cap.")]
-    DepositoryRedeemableSoftCapOverflow,
+    DepositoryRedeemableCapOverflow,
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
     MaxNumberOfMangoDepositoriesRegisteredReached,
     #[msg("Cannot register more maple pool depositories, the limit has been reached.")]

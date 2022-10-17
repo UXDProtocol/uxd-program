@@ -103,7 +103,7 @@ pub fn handler(
     depository.controller = ctx.accounts.controller.key();
 
     depository.collateral_amount_deposited = u128::MIN;
-    depository.minted_redeemable_amount = u128::MIN;
+    depository.redeemable_amount_under_management = u128::MIN;
 
     depository.minting_fee_in_bps = minting_fee_in_bps;
     depository.redeeming_fee_in_bps = redeeming_fee_in_bps;

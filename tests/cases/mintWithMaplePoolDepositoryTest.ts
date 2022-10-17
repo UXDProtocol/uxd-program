@@ -67,7 +67,7 @@ export const mintWithMaplePoolDepositoryTest = async function (
 
     const estimatedFeesPaid = ceilAtDecimals(
       uiAmmountCollateralDeposited -
-        ((10_000 - onchainDepository_pre.mintingFeesInBps) * uiAmmountCollateralDeposited) / 10_000,
+        ((10_000 - onchainDepository_pre.mintingFeeInBps) * uiAmmountCollateralDeposited) / 10_000,
       controller.redeemableMintDecimals
     );
 
@@ -124,12 +124,12 @@ export const mintWithMaplePoolDepositoryTest = async function (
     );
 
     expect(
-      nativeToUi(onchainDepository_post.mintingFeesTotalPaid, depository.collateralDecimals).toFixed(
+      nativeToUi(onchainDepository_post.mintingFeeTotalPaid, depository.collateralDecimals).toFixed(
         controller.redeemableMintDecimals
       )
     ).equal(
       (
-        nativeToUi(onchainDepository_pre.mintingFeesTotalPaid, depository.collateralDecimals) + estimatedFeesPaid
+        nativeToUi(onchainDepository_pre.mintingFeeTotalPaid, depository.collateralDecimals) + estimatedFeesPaid
       ).toFixed(controller.redeemableMintDecimals)
     );
 

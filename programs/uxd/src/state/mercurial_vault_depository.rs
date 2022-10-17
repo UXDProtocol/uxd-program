@@ -45,7 +45,7 @@ pub struct MercurialVaultDepository {
 
     // The amount of minted redeemable using this repository
     // Equals to collateral_amount_deposited, minus precision loss
-    pub minted_redeemable_amount: u128,
+    pub redeemable_amount_under_management: u128,
 
     // mercurial_vault linked to the depository
     pub mercurial_vault: Pubkey,
@@ -101,14 +101,16 @@ impl MercurialVaultDepository {
                 .checked_to_num()
                 .ok_or(UxdError::MathError)?;
 
-        self.minted_redeemable_amount = I80F48::checked_from_num(self.minted_redeemable_amount)
-            .ok_or(UxdError::MathError)?
-            .checked_add(
-                I80F48::checked_from_num(redeemable_amount_change).ok_or(UxdError::MathError)?,
-            )
-            .ok_or(UxdError::MathError)?
-            .checked_to_num()
-            .ok_or(UxdError::MathError)?;
+        self.redeemable_amount_under_management =
+            I80F48::checked_from_num(self.redeemable_amount_under_management)
+                .ok_or(UxdError::MathError)?
+                .checked_add(
+                    I80F48::checked_from_num(redeemable_amount_change)
+                        .ok_or(UxdError::MathError)?,
+                )
+                .ok_or(UxdError::MathError)?
+                .checked_to_num()
+                .ok_or(UxdError::MathError)?;
 
         self.total_paid_mint_fees = I80F48::checked_from_num(self.total_paid_mint_fees)
             .ok_or(UxdError::MathError)?

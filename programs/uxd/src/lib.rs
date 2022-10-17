@@ -416,6 +416,13 @@ pub mod uxd {
         instructions::edit_mercurial_vault_depository::handler(ctx, &fields)
     }
 
+    pub fn edit_maple_pool_depository(
+        ctx: Context<EditMaplePoolDepository>,
+        fields: EditMaplePoolDepositoryFields,
+    ) -> Result<()> {
+        instructions::edit_maple_pool_depository::handler(ctx, &fields)
+    }
+
     /// Disable or enable regular minting for given Mango Depository.
     ///
     /// Parameters:
@@ -484,23 +491,23 @@ pub mod uxd {
     // Each `Depository` account manages a specific maple pool.
     #[access_control(
         ctx.accounts.validate(
-            minted_redeemable_soft_cap,
-            minting_fees_in_bps,
-            redeeming_fees_in_bps
+            redeemable_amount_under_management_cap,
+            minting_fee_in_bps,
+            redeeming_fee_in_bps
         )
     )]
     pub fn register_maple_pool_depository(
         ctx: Context<RegisterMaplePoolDepository>,
-        minted_redeemable_soft_cap: u128,
-        minting_fees_in_bps: u8,
-        redeeming_fees_in_bps: u8,
+        redeemable_amount_under_management_cap: u128,
+        minting_fee_in_bps: u8,
+        redeeming_fee_in_bps: u8,
     ) -> Result<()> {
         msg!("[register_maple_pool_depository]");
         instructions::register_maple_pool_depository::handler(
             ctx,
-            minted_redeemable_soft_cap,
-            minting_fees_in_bps,
-            redeeming_fees_in_bps,
+            redeemable_amount_under_management_cap,
+            minting_fee_in_bps,
+            redeeming_fee_in_bps,
         )
     }
 

@@ -297,7 +297,8 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
     fn check_redeemable_depository_supply_cap_overflow(&self) -> Result<()> {
         let depository = self.depository.load()?;
         require!(
-            depository.minted_redeemable_amount <= depository.redeemable_depository_supply_cap,
+            depository.redeemable_amount_under_management
+                <= depository.redeemable_depository_supply_cap,
             UxdError::RedeemableMercurialVaultDepositorySupplyCapReached
         );
         Ok(())

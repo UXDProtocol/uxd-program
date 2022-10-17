@@ -147,18 +147,18 @@ export async function registerMaplePoolDepository(
   payer: Signer,
   controller: Controller,
   depository: MaplePoolDepository,
-  uiAccountingSupplyRedeemableSoftCap: number,
-  accountingBpsStampFeeMint: number,
-  accountingBpsStampFeeRedeem: number
+  uiRedeemableAmountUnderManagementCap: number,
+  mintingFeeInBps: number,
+  redeemingFeeInBps: number
 ): Promise<string> {
   const registerMaplePoolDepositoryIx = uxdClient.createRegisterMaplePoolDepositoryInstruction(
     controller,
     depository,
     authority.publicKey,
     TXN_OPTS,
-    uiAccountingSupplyRedeemableSoftCap,
-    accountingBpsStampFeeMint,
-    accountingBpsStampFeeRedeem,
+    uiRedeemableAmountUnderManagementCap,
+    mintingFeeInBps,
+    redeemingFeeInBps,
     payer.publicKey
   );
   let signers = [];
@@ -714,6 +714,32 @@ export async function editMercurialVaultDepository(
   let tx = new Transaction();
 
   tx.instructions.push(editMercurialVaultDepositoryIx);
+  signers.push(authority);
+
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function editMaplePoolDepository(
+  authority: Signer,
+  controller: Controller,
+  depository: MangoDepository,
+  uiFields: {
+    redeemableAmountUnderManagementCap?: number;
+    mintingFeeInBps?: number;
+    redeemingFeeInBps?: number;
+  }
+): Promise<string> {
+  const editMaplePoolDepositoryIx = uxdClient.createEditMaplePoolDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    uiFields,
+    TXN_OPTS
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(editMaplePoolDepositoryIx);
   signers.push(authority);
 
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);

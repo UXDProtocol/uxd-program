@@ -7,18 +7,18 @@ export const maplePoolDepositorySetupSuite = function (
   payer: Signer,
   controller: Controller,
   depository: MaplePoolDepository,
-  uiAccountingSupplyRedeemableSoftCap: number,
-  accountingBpsStampFeeMint: number,
-  accountingBpsStampFeeRedeem: number
+  uiRedeemableAmountUnderManagementCap: number,
+  mintingFeeInBps: number,
+  redeemingFeeInBps: number
 ) {
   it(`Initialize maplePoolDepository`, async function () {
     await registerMaplePoolDepositoryTest(
       authority,
       controller,
       depository,
-      uiAccountingSupplyRedeemableSoftCap,
-      accountingBpsStampFeeMint,
-      accountingBpsStampFeeRedeem,
+      uiRedeemableAmountUnderManagementCap,
+      mintingFeeInBps,
+      redeemingFeeInBps,
       payer
     );
   });

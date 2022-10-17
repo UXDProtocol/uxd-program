@@ -99,7 +99,6 @@ describe("Integration tests", function () {
       await initializeControllerTest(authority, controller, payer);
     });
 
-    /*
     it(`Initialize and register mercurial USDC vault depository`, async function () {
       mercurialVaultDepositoryUSDC = await MercurialVaultDepository.initialize({
         connection: getConnection(),
@@ -127,7 +126,6 @@ describe("Integration tests", function () {
         payer
       );
     });
-    */
 
     it(`Initialize and register maple pool depository (credora?)`, async function () {
       maplePoolDepository = await createMaplePoolDepositoryDevnetUSDC();
@@ -151,7 +149,6 @@ describe("Integration tests", function () {
       await mintWithMaplePoolDepositoryTest(0.001, user, controller, maplePoolDepository, payer);
     });
 
-    /*
     it(`Initialize ${mangoDepositorySOL.collateralMintSymbol} Depository`, async function () {
       const redeemableDepositorySupplyCap = 1_000;
 
@@ -180,10 +177,8 @@ describe("Integration tests", function () {
     it(`Withdraw 10 USDC of insurance`, async function () {
       await withdrawInsuranceMangoDepositoryTest(10, authority, controller, mangoDepositorySOL, mango);
     });
-    */
   });
 
-  /*
   describe("Regular Mint/Redeem with Mercurial Vault USDC Depository", async function () {
     it(`Mint for 0.001 USDC`, async function () {
       mintedRedeemableAmountWithMercurialVaultDepository = await mintWithMercurialVaultDepositoryTest(
@@ -263,7 +258,6 @@ describe("Integration tests", function () {
     const paramsRebalancing = new MangoDepositoryRebalancingSuiteParameters(slippage);
     mangoDepositoryRebalancingSuite(user, bank, controller, mangoDepositorySOL, paramsRebalancing);
   });
-  */
 
   describe.skip("info SOL", async function () {
     it("info", async function () {

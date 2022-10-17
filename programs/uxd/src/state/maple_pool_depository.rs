@@ -20,14 +20,14 @@ pub const MAPLE_POOL_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<Pubkey>() // maple_locked_shares
  + size_of::<Pubkey>() // maple_lender_shares
 
- + size_of::<u128>() // minted_redeemable_soft_cap
- + size_of::<u8>() // minting_fees_in_bps
- + size_of::<u8>() // redeeming_fees_in_bps
+ + size_of::<u128>() // redeemable_amount_under_management_cap
+ + size_of::<u8>() // minting_fee_in_bps
+ + size_of::<u8>() // redeeming_fee_in_bps
 
- + size_of::<u128>() // deposited_collateral_amount
- + size_of::<u128>() // minted_redeemable_amount
- + size_of::<u128>() // minting_fees_total_paid
- + size_of::<u128>() // redeeming_fees_total_paid
+ + size_of::<u128>() // collateral_amount_deposited
+ + size_of::<u128>() // redeemable_amount_under_management
+ + size_of::<u128>() // total_paid_minting_fees
+ + size_of::<u128>() // total_paid_redeeming_fee
 
  + 800; // reserved space
 
@@ -55,52 +55,52 @@ pub struct MaplePoolDepository {
     pub maple_lender_shares: Pubkey,
 
     // Depository configuration
-    pub minted_redeemable_soft_cap: u128,
-    pub minting_fees_in_bps: u8,
-    pub redeeming_fees_in_bps: u8,
+    pub redeemable_amount_under_management_cap: u128,
+    pub minting_fee_in_bps: u8,
+    pub redeeming_fee_in_bps: u8,
 
     // Depository accouting
-    pub deposited_collateral_amount: u128,
-    pub minted_redeemable_amount: u128,
-    pub minting_fees_total_paid: u128,
-    pub redeeming_fees_total_paid: u128,
+    pub collateral_amount_deposited: u128,
+    pub redeemable_amount_under_management: u128,
+    pub total_paid_minting_fees: u128,
+    pub total_paid_redeeming_fee: u128,
 }
 
 impl DepositoryConfiguration for MaplePoolDepository {
-    fn get_minted_redeemable_soft_cap(&self) -> u128 {
-        self.minted_redeemable_soft_cap
+    fn get_redeemable_amount_under_management_cap(&self) -> u128 {
+        self.redeemable_amount_under_management_cap
     }
-    fn get_minting_fees_in_bps(&self) -> u8 {
-        self.minting_fees_in_bps
+    fn get_minting_fee_in_bps(&self) -> u8 {
+        self.minting_fee_in_bps
     }
-    fn get_redeeming_fees_in_bps(&self) -> u8 {
-        self.redeeming_fees_in_bps
+    fn get_redeeming_fee_in_bps(&self) -> u8 {
+        self.redeeming_fee_in_bps
     }
 }
 
 impl DepositoryAccounting for MaplePoolDepository {
-    fn get_deposited_collateral_amount(&self) -> u128 {
-        self.deposited_collateral_amount
+    fn get_collateral_amount_deposited(&self) -> u128 {
+        self.collateral_amount_deposited
     }
-    fn set_deposited_collateral_amount(&mut self, value: u128) {
-        self.deposited_collateral_amount = value;
+    fn set_collateral_amount_deposited(&mut self, value: u128) {
+        self.collateral_amount_deposited = value;
     }
-    fn get_minted_redeemable_amount(&self) -> u128 {
-        self.minted_redeemable_amount
+    fn get_redeemable_amount_under_management(&self) -> u128 {
+        self.redeemable_amount_under_management
     }
-    fn set_minted_redeemable_amount(&mut self, value: u128) {
-        self.minted_redeemable_amount = value;
+    fn set_redeemable_amount_under_management(&mut self, value: u128) {
+        self.redeemable_amount_under_management = value;
     }
-    fn get_minting_fees_total_paid(&self) -> u128 {
-        self.minting_fees_total_paid
+    fn get_total_paid_minting_fees(&self) -> u128 {
+        self.total_paid_minting_fees
     }
-    fn set_minting_fees_total_paid(&mut self, value: u128) {
-        self.minting_fees_total_paid = value;
+    fn set_total_paid_minting_fees(&mut self, value: u128) {
+        self.total_paid_minting_fees = value;
     }
-    fn get_redeeming_fees_total_paid(&self) -> u128 {
-        self.redeeming_fees_total_paid
+    fn get_total_paid_redeeming_fee(&self) -> u128 {
+        self.total_paid_redeeming_fee
     }
-    fn set_redeeming_fees_total_paid(&mut self, value: u128) {
-        self.redeeming_fees_total_paid = value;
+    fn set_total_paid_redeeming_fee(&mut self, value: u128) {
+        self.total_paid_redeeming_fee = value;
     }
 }

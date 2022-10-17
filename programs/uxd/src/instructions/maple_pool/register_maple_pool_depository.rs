@@ -102,9 +102,9 @@ pub struct RegisterMaplePoolDepository<'info> {
 
 pub fn handler(
     ctx: Context<RegisterMaplePoolDepository>,
-    minted_redeemable_soft_cap: u128,
-    minting_fees_in_bps: u8,
-    redeeming_fees_in_bps: u8,
+    redeemable_amount_under_management_cap: u128,
+    minting_fee_in_bps: u8,
+    redeeming_fee_in_bps: u8,
 ) -> Result<()> {
     // Create the maple lending accounts by calling maple's contract
     msg!("[register_maple_pool_depository:lender_initialize]");
@@ -140,15 +140,15 @@ pub fn handler(
     depository.maple_lender_shares = ctx.accounts.maple_lender_shares.key();
 
     // Depository configuration
-    depository.minted_redeemable_soft_cap = minted_redeemable_soft_cap;
-    depository.minting_fees_in_bps = minting_fees_in_bps;
-    depository.redeeming_fees_in_bps = redeeming_fees_in_bps;
+    depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
+    depository.minting_fee_in_bps = minting_fee_in_bps;
+    depository.redeeming_fee_in_bps = redeeming_fee_in_bps;
 
     // Depository accounting
-    depository.deposited_collateral_amount = u128::MIN;
-    depository.minted_redeemable_amount = u128::MIN;
-    depository.minting_fees_total_paid = u128::MIN;
-    depository.redeeming_fees_total_paid = u128::MIN;
+    depository.collateral_amount_deposited = u128::MIN;
+    depository.redeemable_amount_under_management = u128::MIN;
+    depository.total_paid_minting_fees = u128::MIN;
+    depository.total_paid_redeeming_fee = u128::MIN;
 
     // Add the depository to the controller
     msg!("[register_maple_pool_depository:register_depository]");
@@ -199,9 +199,9 @@ impl<'info> RegisterMaplePoolDepository<'info> {
 impl<'info> RegisterMaplePoolDepository<'info> {
     pub fn validate(
         &self,
-        _minted_redeemable_soft_cap: u128,
-        _minting_fees_in_bps: u8,
-        _redeeming_fees_in_bps: u8,
+        _redeemable_amount_under_management_cap: u128,
+        _minting_fee_in_bps: u8,
+        _redeeming_fee_in_bps: u8,
     ) -> Result<()> {
         validate_collateral_mint_usdc(&self.collateral_mint, &self.controller)?;
         Ok(())
