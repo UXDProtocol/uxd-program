@@ -137,7 +137,7 @@
       ],
       "args": [
         {
-          "name": "redeemableDepositorySupplyCap",
+          "name": "redeemableAmountUnderManagementCap",
           "type": "u128"
         }
       ]
@@ -1119,7 +1119,7 @@
           "type": "u8"
         },
         {
-          "name": "redeemableDepositorySupplyCap",
+          "name": "redeemableAmountUnderManagementCap",
           "type": "u128"
         }
       ]
@@ -1244,7 +1244,10 @@
           {
             "name": "registeredMangoDepositories",
             "type": {
-              "array": ["publicKey", 8]
+              "array": [
+                "publicKey",
+                8
+              ]
             }
           },
           {
@@ -1270,7 +1273,10 @@
           {
             "name": "registeredMercurialVaultDepositories",
             "type": {
-              "array": ["publicKey", 4]
+              "array": [
+                "publicKey",
+                4
+              ]
             }
           },
           {
@@ -1292,7 +1298,10 @@
           {
             "name": "unused",
             "type": {
-              "array": ["u8", 2]
+              "array": [
+                "u8",
+                2
+              ]
             }
           },
           {
@@ -1314,7 +1323,10 @@
           {
             "name": "unused2",
             "type": {
-              "array": ["u8", 32]
+              "array": [
+                "u8",
+                32
+              ]
             }
           },
           {
@@ -1324,7 +1336,10 @@
           {
             "name": "unused3",
             "type": {
-              "array": ["u8", 32]
+              "array": [
+                "u8",
+                32
+              ]
             }
           },
           {
@@ -1376,7 +1391,7 @@
             "type": "bool"
           },
           {
-            "name": "redeemableDepositorySupplyCap",
+            "name": "redeemableAmountUnderManagementCap",
             "type": "u128"
           }
         ]
@@ -1412,7 +1427,7 @@
             "type": "u128"
           },
           {
-            "name": "mintedRedeemableAmount",
+            "name": "redeemableAmountUnderManagement",
             "type": "u128"
           },
           {
@@ -1444,15 +1459,15 @@
             "type": "u8"
           },
           {
-            "name": "totalPaidMintFees",
+            "name": "mintingFeeTotalAccrued",
             "type": "u128"
           },
           {
-            "name": "totalPaidRedeemFees",
+            "name": "redeemingFeeTotalAccrued",
             "type": "u128"
           },
           {
-            "name": "redeemableDepositorySupplyCap",
+            "name": "redeemableAmountUnderManagementCap",
             "type": "u128"
           },
           {
@@ -1502,7 +1517,7 @@
             }
           },
           {
-            "name": "redeemableDepositorySupplyCap",
+            "name": "redeemableAmountUnderManagementCap",
             "type": {
               "option": "u128"
             }
@@ -1516,7 +1531,7 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "redeemableDepositorySupplyCap",
+            "name": "redeemableAmountUnderManagementCap",
             "type": {
               "option": "u128"
             }
@@ -2061,7 +2076,7 @@
       ]
     },
     {
-      "name": "SetMangoDepositoryRedeemableSupplyCapEvent",
+      "name": "SetMangoDepositoryRedeemableAmountUnderManagementCapEvent",
       "fields": [
         {
           "name": "version",
@@ -2079,14 +2094,14 @@
           "index": true
         },
         {
-          "name": "redeemableDepositorySupplyCap",
+          "name": "redeemableAmountUnderManagementCap",
           "type": "u128",
           "index": true
         }
       ]
     },
     {
-      "name": "SetMercurialVaultDepositoryRedeemableSupplyCapEvent",
+      "name": "SetMercurialVaultDepositoryRedeemableAmountUnderManagementCapEvent",
       "fields": [
         {
           "name": "version",
@@ -2104,7 +2119,7 @@
           "index": true
         },
         {
-          "name": "redeemableDepositorySupplyCap",
+          "name": "redeemableAmountUnderManagementCap",
           "type": "u128",
           "index": true
         }
@@ -2354,13 +2369,13 @@
     },
     {
       "code": 6014,
-      "name": "RedeemableMangoDepositorySupplyCapReached",
-      "msg": "Minting amount would go past the mango depository Redeemable Depository Supply Cap."
+      "name": "RedeemableMangoAmountUnderManagementCap",
+      "msg": "Minting amount would go past the mango depository Redeemable Amount Under Management Cap."
     },
     {
       "code": 6015,
-      "name": "RedeemableMercurialVaultDepositorySupplyCapReached",
-      "msg": "Minting amount would go past the mercurial vault depository Redeemable Depository Supply Cap."
+      "name": "RedeemableMercurialVaultAmountUnderManagementCap",
+      "msg": "Minting amount would go past the mercurial vault depository Redeemable Amount Under Management Cap."
     },
     {
       "code": 6016,
@@ -2619,6 +2634,6 @@
     }
   ],
   "metadata": {
-    "address": "AURBE2zC7HH64PcH23xYtbfUU6pQLUdY3Asfw6wwifuA"
+    "address": "GDphnrotUNwqA9TVoE2mUgaggFMwnr3V2qWebgpDrHVt"
   }
 }

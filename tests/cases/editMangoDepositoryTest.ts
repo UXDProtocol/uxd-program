@@ -13,7 +13,7 @@ export const editMangoDepositoryTest = async function (
   depository: MangoDepository,
   uiFields: {
     quoteMintAndRedeemFee?: number;
-    redeemableDepositorySupplyCap?: number;
+    redeemableAmountUnderManagementCap?: number;
   }
 ) {
   const connection = getConnection();
@@ -25,7 +25,7 @@ export const editMangoDepositoryTest = async function (
     const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
     const {
       quoteMintAndRedeemFee,
-      redeemableDepositorySupplyCap,
+      redeemableAmountUnderManagementCap,
     } = depositoryOnchainAccount;
 
     // WHEN
@@ -37,16 +37,16 @@ export const editMangoDepositoryTest = async function (
 
     const {
       quoteMintAndRedeemFee: quoteMintAndRedeemFee_post,
-      redeemableDepositorySupplyCap: redeemableDepositorySupplyCap_post,
+      redeemableAmountUnderManagementCap: redeemableAmountUnderManagementCap_post,
     } = depositoryOnchainAccount_post;
 
     if (uiFields.quoteMintAndRedeemFee) {
       expect(quoteMintAndRedeemFee_post).equals(uiFields.quoteMintAndRedeemFee, "The quote fee has not changed.");
       console.log(`🧾 Previous quote fee was`, quoteMintAndRedeemFee, "now is", quoteMintAndRedeemFee_post);
     }
-    if (uiFields.redeemableDepositorySupplyCap) {
-      expect(redeemableDepositorySupplyCap_post.toString()).equals(uiToNative(uiFields.redeemableDepositorySupplyCap, controller.redeemableMintDecimals).toString(), "The redeemable depository supply cap has not changed.");
-      console.log(`🧾 Previous redeemable depository supply cap was`, redeemableDepositorySupplyCap.toString(), "now is", redeemableDepositorySupplyCap_post.toString());
+    if (uiFields.redeemableAmountUnderManagementCap) {
+      expect(redeemableAmountUnderManagementCap_post.toString()).equals(uiToNative(uiFields.redeemableAmountUnderManagementCap, controller.redeemableMintDecimals).toString(), "The redeemable amount under management cap has not changed.");
+      console.log(`🧾 Previous redeemable amount under management cap was`, redeemableAmountUnderManagementCap.toString(), "now is", redeemableAmountUnderManagementCap_post.toString());
     }
 
     controller.info();

@@ -273,7 +273,7 @@ pub struct SetMangoDepositoryQuoteMintAndRedeemFeeEvent {
 
 /// Event called in [instructions::edit_mango_depository::handler].
 #[event]
-pub struct SetMangoDepositoryRedeemableSupplyCapEvent {
+pub struct SetMangoDepositoryRedeemableAmountUnderManagementCapEvent {
     #[index]
     pub version: u8,
     #[index]
@@ -281,12 +281,12 @@ pub struct SetMangoDepositoryRedeemableSupplyCapEvent {
     #[index]
     pub depository: Pubkey,
     #[index]
-    pub redeemable_depository_supply_cap: u128,
+    pub redeemable_amount_under_management_cap: u128,
 }
 
 /// Event called in [instructions::edit_mercurial_vault_depository::handler].
 #[event]
-pub struct SetMercurialVaultDepositoryRedeemableSupplyCapEvent {
+pub struct SetMercurialVaultDepositoryRedeemableAmountUnderManagementCapEvent {
     #[index]
     pub version: u8,
     #[index]
@@ -294,7 +294,7 @@ pub struct SetMercurialVaultDepositoryRedeemableSupplyCapEvent {
     #[index]
     pub depository: Pubkey,
     #[index]
-    pub redeemable_depository_supply_cap: u128,
+    pub redeemable_amount_under_management_cap: u128,
 }
 
 /// Event called in [instructions::edit_mercurial_vault_depository::handler].

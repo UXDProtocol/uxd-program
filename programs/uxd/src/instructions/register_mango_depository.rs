@@ -86,7 +86,7 @@ pub struct RegisterMangoDepository<'info> {
 
 pub(crate) fn handler(
     ctx: Context<RegisterMangoDepository>,
-    redeemable_depository_supply_cap: u128,
+    redeemable_amount_under_management_cap: u128,
 ) -> Result<()> {
     let collateral_mint = ctx.accounts.collateral_mint.key();
     let quote_mint = ctx.accounts.quote_mint.key();
@@ -129,7 +129,7 @@ pub(crate) fn handler(
     depository.total_amount_paid_taker_fee = u128::MIN;
     depository.total_amount_rebalanced = u128::MIN;
     depository.regular_minting_disabled = false; // enable minting by default
-    depository.redeemable_depository_supply_cap = redeemable_depository_supply_cap;
+    depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
 
     // - Update Controller state
     ctx.accounts
@@ -166,7 +166,7 @@ impl<'info> RegisterMangoDepository<'info> {
 
 // Validate input arguments
 impl<'info> RegisterMangoDepository<'info> {
-    pub(crate) fn validate(&self, _redeemable_depository_supply_cap: u128) -> Result<()> {
+    pub(crate) fn validate(&self, _redeemable_amount_under_management_cap: u128) -> Result<()> {
         // Only allow specific MANGO_GROUP to be used for now
         require!(
             self.mango_group

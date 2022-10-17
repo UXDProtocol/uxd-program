@@ -32,10 +32,12 @@ pub enum UxdError {
     PerpOrderPartiallyFilled,
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
     RedeemableGlobalSupplyCapReached,
-    #[msg("Minting amount would go past the mango depository Redeemable Depository Supply Cap.")]
-    RedeemableMangoDepositorySupplyCapReached,
-    #[msg("Minting amount would go past the mercurial vault depository Redeemable Depository Supply Cap.")]
-    RedeemableMercurialVaultDepositorySupplyCapReached,
+    #[msg(
+        "Minting amount would go past the mango depository Redeemable Amount Under Management Cap."
+    )]
+    RedeemableMangoAmountUnderManagementCap,
+    #[msg("Minting amount would go past the mercurial vault depository Redeemable Amount Under Management Cap.")]
+    RedeemableMercurialVaultAmountUnderManagementCap,
     #[msg("Operation not allowed due to being over the Mango Redeemable soft Cap.")]
     MangoDepositoriesSoftCapOverflow,
     #[msg("Cannot register more mango depositories, the limit has been reached.")]

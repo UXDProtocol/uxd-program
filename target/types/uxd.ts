@@ -137,7 +137,7 @@ export type Uxd = {
       ],
       "args": [
         {
-          "name": "redeemableDepositorySupplyCap",
+          "name": "redeemableAmountUnderManagementCap",
           "type": "u128"
         }
       ]
@@ -1119,7 +1119,7 @@ export type Uxd = {
           "type": "u8"
         },
         {
-          "name": "redeemableDepositorySupplyCap",
+          "name": "redeemableAmountUnderManagementCap",
           "type": "u128"
         }
       ]
@@ -1391,7 +1391,7 @@ export type Uxd = {
             "type": "bool"
           },
           {
-            "name": "redeemableDepositorySupplyCap",
+            "name": "redeemableAmountUnderManagementCap",
             "type": "u128"
           }
         ]
@@ -1427,7 +1427,7 @@ export type Uxd = {
             "type": "u128"
           },
           {
-            "name": "mintedRedeemableAmount",
+            "name": "redeemableAmountUnderManagement",
             "type": "u128"
           },
           {
@@ -1459,15 +1459,15 @@ export type Uxd = {
             "type": "u8"
           },
           {
-            "name": "totalPaidMintFees",
+            "name": "mintingFeeTotalAccrued",
             "type": "u128"
           },
           {
-            "name": "totalPaidRedeemFees",
+            "name": "redeemingFeeTotalAccrued",
             "type": "u128"
           },
           {
-            "name": "redeemableDepositorySupplyCap",
+            "name": "redeemableAmountUnderManagementCap",
             "type": "u128"
           },
           {
@@ -1517,7 +1517,7 @@ export type Uxd = {
             }
           },
           {
-            "name": "redeemableDepositorySupplyCap",
+            "name": "redeemableAmountUnderManagementCap",
             "type": {
               "option": "u128"
             }
@@ -1531,7 +1531,7 @@ export type Uxd = {
         "kind": "struct",
         "fields": [
           {
-            "name": "redeemableDepositorySupplyCap",
+            "name": "redeemableAmountUnderManagementCap",
             "type": {
               "option": "u128"
             }
@@ -2076,7 +2076,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "SetMangoDepositoryRedeemableSupplyCapEvent",
+      "name": "SetMangoDepositoryRedeemableAmountUnderManagementCapEvent",
       "fields": [
         {
           "name": "version",
@@ -2094,14 +2094,14 @@ export type Uxd = {
           "index": true
         },
         {
-          "name": "redeemableDepositorySupplyCap",
+          "name": "redeemableAmountUnderManagementCap",
           "type": "u128",
           "index": true
         }
       ]
     },
     {
-      "name": "SetMercurialVaultDepositoryRedeemableSupplyCapEvent",
+      "name": "SetMercurialVaultDepositoryRedeemableAmountUnderManagementCapEvent",
       "fields": [
         {
           "name": "version",
@@ -2119,7 +2119,7 @@ export type Uxd = {
           "index": true
         },
         {
-          "name": "redeemableDepositorySupplyCap",
+          "name": "redeemableAmountUnderManagementCap",
           "type": "u128",
           "index": true
         }
@@ -2369,13 +2369,13 @@ export type Uxd = {
     },
     {
       "code": 6014,
-      "name": "RedeemableMangoDepositorySupplyCapReached",
-      "msg": "Minting amount would go past the mango depository Redeemable Depository Supply Cap."
+      "name": "RedeemableMangoAmountUnderManagementCap",
+      "msg": "Minting amount would go past the mango depository Redeemable Amount Under Management Cap."
     },
     {
       "code": 6015,
-      "name": "RedeemableMercurialVaultDepositorySupplyCapReached",
-      "msg": "Minting amount would go past the mercurial vault depository Redeemable Depository Supply Cap."
+      "name": "RedeemableMercurialVaultAmountUnderManagementCap",
+      "msg": "Minting amount would go past the mercurial vault depository Redeemable Amount Under Management Cap."
     },
     {
       "code": 6016,
@@ -2774,7 +2774,7 @@ export const IDL: Uxd = {
       ],
       "args": [
         {
-          "name": "redeemableDepositorySupplyCap",
+          "name": "redeemableAmountUnderManagementCap",
           "type": "u128"
         }
       ]
@@ -3756,7 +3756,7 @@ export const IDL: Uxd = {
           "type": "u8"
         },
         {
-          "name": "redeemableDepositorySupplyCap",
+          "name": "redeemableAmountUnderManagementCap",
           "type": "u128"
         }
       ]
@@ -4028,7 +4028,7 @@ export const IDL: Uxd = {
             "type": "bool"
           },
           {
-            "name": "redeemableDepositorySupplyCap",
+            "name": "redeemableAmountUnderManagementCap",
             "type": "u128"
           }
         ]
@@ -4064,7 +4064,7 @@ export const IDL: Uxd = {
             "type": "u128"
           },
           {
-            "name": "mintedRedeemableAmount",
+            "name": "redeemableAmountUnderManagement",
             "type": "u128"
           },
           {
@@ -4096,15 +4096,15 @@ export const IDL: Uxd = {
             "type": "u8"
           },
           {
-            "name": "totalPaidMintFees",
+            "name": "mintingFeeTotalAccrued",
             "type": "u128"
           },
           {
-            "name": "totalPaidRedeemFees",
+            "name": "redeemingFeeTotalAccrued",
             "type": "u128"
           },
           {
-            "name": "redeemableDepositorySupplyCap",
+            "name": "redeemableAmountUnderManagementCap",
             "type": "u128"
           },
           {
@@ -4154,7 +4154,7 @@ export const IDL: Uxd = {
             }
           },
           {
-            "name": "redeemableDepositorySupplyCap",
+            "name": "redeemableAmountUnderManagementCap",
             "type": {
               "option": "u128"
             }
@@ -4168,7 +4168,7 @@ export const IDL: Uxd = {
         "kind": "struct",
         "fields": [
           {
-            "name": "redeemableDepositorySupplyCap",
+            "name": "redeemableAmountUnderManagementCap",
             "type": {
               "option": "u128"
             }
@@ -4713,7 +4713,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "SetMangoDepositoryRedeemableSupplyCapEvent",
+      "name": "SetMangoDepositoryRedeemableAmountUnderManagementCapEvent",
       "fields": [
         {
           "name": "version",
@@ -4731,14 +4731,14 @@ export const IDL: Uxd = {
           "index": true
         },
         {
-          "name": "redeemableDepositorySupplyCap",
+          "name": "redeemableAmountUnderManagementCap",
           "type": "u128",
           "index": true
         }
       ]
     },
     {
-      "name": "SetMercurialVaultDepositoryRedeemableSupplyCapEvent",
+      "name": "SetMercurialVaultDepositoryRedeemableAmountUnderManagementCapEvent",
       "fields": [
         {
           "name": "version",
@@ -4756,7 +4756,7 @@ export const IDL: Uxd = {
           "index": true
         },
         {
-          "name": "redeemableDepositorySupplyCap",
+          "name": "redeemableAmountUnderManagementCap",
           "type": "u128",
           "index": true
         }
@@ -5006,13 +5006,13 @@ export const IDL: Uxd = {
     },
     {
       "code": 6014,
-      "name": "RedeemableMangoDepositorySupplyCapReached",
-      "msg": "Minting amount would go past the mango depository Redeemable Depository Supply Cap."
+      "name": "RedeemableMangoAmountUnderManagementCap",
+      "msg": "Minting amount would go past the mango depository Redeemable Amount Under Management Cap."
     },
     {
       "code": 6015,
-      "name": "RedeemableMercurialVaultDepositorySupplyCapReached",
-      "msg": "Minting amount would go past the mercurial vault depository Redeemable Depository Supply Cap."
+      "name": "RedeemableMercurialVaultAmountUnderManagementCap",
+      "msg": "Minting amount would go past the mercurial vault depository Redeemable Amount Under Management Cap."
     },
     {
       "code": 6016,

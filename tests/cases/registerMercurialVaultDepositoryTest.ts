@@ -11,7 +11,7 @@ export const registerMercurialVaultDepositoryTest = async function (
     depository: MercurialVaultDepository,
     mintingFeeInBps: number,
     redeemingFeeInBps: number,
-    redeemableDepositorySupplyCap: number,
+    redeemableAmountUnderManagementCap: number,
     payer?: Signer,
 ) {
     console.group("🧭 initializeMercurialVaultDepositoryTest");
@@ -20,7 +20,7 @@ export const registerMercurialVaultDepositoryTest = async function (
         if (await getConnection().getAccountInfo(depository.pda)) {
             console.log("🚧 Already registered.");
         } else {
-            const txId = await registerMercurialVaultDepository(authority, payer ?? authority, controller, depository, mintingFeeInBps, redeemingFeeInBps, redeemableDepositorySupplyCap);
+            const txId = await registerMercurialVaultDepository(authority, payer ?? authority, controller, depository, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap);
             console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
         }
 

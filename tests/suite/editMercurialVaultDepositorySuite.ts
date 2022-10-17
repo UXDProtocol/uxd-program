@@ -32,13 +32,13 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
             });
         });
 
-        it(`Edit redeemableDepositorySupplyCap alone should work`, async function () {
-            const redeemableDepositorySupplyCap = 50;
+        it(`Edit redeemableAmountUnderManagementCap alone should work`, async function () {
+            const redeemableAmountUnderManagementCap = 50;
 
-            console.log("[🧾 redeemableDepositorySupplyCap", redeemableDepositorySupplyCap, "]");
+            console.log("[🧾 redeemableAmountUnderManagementCap", redeemableAmountUnderManagementCap, "]");
 
             await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-                redeemableDepositorySupplyCap,
+                redeemableAmountUnderManagementCap,
             });
         });
 
@@ -53,26 +53,26 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
         });
 
         // Restore initial depository values there
-        it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableDepositorySupplyCap should work`, async function () {
+        it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap should work`, async function () {
             const {
                 mintingFeeInBps,
                 redeemingFeeInBps,
-                redeemableDepositorySupplyCap,
+                redeemableAmountUnderManagementCap,
                 mintingDisabled,
             } = beforeDepository;
 
-            const uiRedeemableDepositorySupplyCap = nativeToUi(redeemableDepositorySupplyCap, controller.redeemableMintDecimals);
+            const uiRedeemableAmountUnderManagementCap = nativeToUi(redeemableAmountUnderManagementCap, controller.redeemableMintDecimals);
 
             console.log("[🧾 mintingFeeInBps", mintingFeeInBps, "]");
             console.log("[🧾 redeemingFeeInBps", redeemingFeeInBps, "]");
-            console.log("[🧾 redeemableDepositorySupplyCap", uiRedeemableDepositorySupplyCap, "]");
+            console.log("[🧾 redeemableAmountUnderManagementCap", uiRedeemableAmountUnderManagementCap, "]");
             console.log("[🧾 mintingDisabled", mintingDisabled, "]");
 
             await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
                 mintingFeeInBps,
                 redeemingFeeInBps,
                 mintingDisabled,
-                redeemableDepositorySupplyCap: uiRedeemableDepositorySupplyCap,
+                redeemableAmountUnderManagementCap: uiRedeemableAmountUnderManagementCap,
             });
         });
     });

@@ -1,7 +1,7 @@
 use crate::error::UxdError;
 use crate::events::SetMercurialVaultDepositoryMintingDisabledEvent;
 use crate::events::SetMercurialVaultDepositoryMintingFeeInBpsEvent;
-use crate::events::SetMercurialVaultDepositoryRedeemableSupplyCapEvent;
+use crate::events::SetMercurialVaultDepositoryRedeemableAmountUnderManagementCapEvent;
 use crate::events::SetMercurialVaultDepositoryRedeemingFeeInBpsEvent;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
 use crate::Controller;
@@ -37,7 +37,7 @@ pub struct EditMercurialVaultDepository<'info> {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct EditMercurialVaultDepositoryFields {
-    redeemable_depository_supply_cap: Option<u128>,
+    redeemable_amount_under_management_cap: Option<u128>,
     minting_fee_in_bps: Option<u8>,
     redeeming_fee_in_bps: Option<u8>,
     minting_disabled: Option<bool>,
@@ -49,19 +49,23 @@ pub(crate) fn handler(
 ) -> Result<()> {
     let depository = &mut ctx.accounts.depository.load_mut()?;
 
-    // optional: redeemable_depository_supply_cap
-    if let Some(redeemable_depository_supply_cap) = fields.redeemable_depository_supply_cap {
+    // optional: redeemable_amount_under_management_cap
+    if let Some(redeemable_amount_under_management_cap) =
+        fields.redeemable_amount_under_management_cap
+    {
         msg!(
-            "[edit_mercurial_vault_depository] redeemable_depository_supply_cap {}",
-            redeemable_depository_supply_cap
+            "[edit_mercurial_vault_depository] redeemable_amount_under_management_cap {}",
+            redeemable_amount_under_management_cap
         );
-        depository.redeemable_depository_supply_cap = redeemable_depository_supply_cap;
-        emit!(SetMercurialVaultDepositoryRedeemableSupplyCapEvent {
-            version: ctx.accounts.controller.load()?.version,
-            controller: ctx.accounts.controller.key(),
-            depository: ctx.accounts.depository.key(),
-            redeemable_depository_supply_cap
-        });
+        depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
+        emit!(
+            SetMercurialVaultDepositoryRedeemableAmountUnderManagementCapEvent {
+                version: ctx.accounts.controller.load()?.version,
+                controller: ctx.accounts.controller.key(),
+                depository: ctx.accounts.depository.key(),
+                redeemable_amount_under_management_cap
+            }
+        );
     }
 
     // optional: minting_fee_in_bps

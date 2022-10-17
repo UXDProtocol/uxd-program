@@ -267,19 +267,19 @@ export const mangoDepositoryMintRedeemSuite = function (
   });
 
   describe("Redeemable depository supply cap overflow", () => {
-    let initialRedeemableDepositorySupplyCap: BN;
+    let initialRedeemableAmountUnderManagementCap: BN;
 
     before(async () => {
       const onChainDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
 
-      initialRedeemableDepositorySupplyCap = onChainDepository.redeemableDepositorySupplyCap;
+      initialRedeemableAmountUnderManagementCap = onChainDepository.redeemableAmountUnderManagementCap;
     });
 
     it('Set redeemable depository supply cap to 0,0005 more than actual minted amount', async function () {
       const onChainDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
 
       await editMangoDepositoryTest(authority, controller, depository, {
-        redeemableDepositorySupplyCap: onChainDepository.mintedRedeemableAmount + uiToNative(0.0005, controller.redeemableMintDecimals),
+        redeemableAmountUnderManagementCap: onChainDepository.redeemableAmountUnderManagement + uiToNative(0.0005, controller.redeemableMintDecimals),
       });
     });
 
@@ -306,10 +306,10 @@ export const mangoDepositoryMintRedeemSuite = function (
     });
 
     it(`Reset redeemable depository supply cap back to its original value`, async function () {
-      const redeemableDepositorySupplyCap = nativeToUi(initialRedeemableDepositorySupplyCap, controller.redeemableMintDecimals);
+      const redeemableAmountUnderManagementCap = nativeToUi(initialRedeemableAmountUnderManagementCap, controller.redeemableMintDecimals);
 
       await editMangoDepositoryTest(authority, controller, depository, {
-        redeemableDepositorySupplyCap,
+        redeemableAmountUnderManagementCap,
       });
     });
   });

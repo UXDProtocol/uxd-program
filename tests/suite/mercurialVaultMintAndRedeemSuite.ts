@@ -14,7 +14,7 @@ import { MercurialVaultDepositoryAccount, uiToNative } from "@uxd-protocol/uxd-c
 export const mercurialVaultDepositoryMintRedeemSuite = async function (controllerAuthority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository) {
     let initialRedeemableAccountBalance: number;
     let initialControllerGlobalRedeemableSupplyCap: BN;
-    let initialRedeemableDepositorySupplyCap: BN;
+    let initialRedeemableAmountUnderManagementCap: BN;
     let userRedeemableATA: PublicKey;
     let onchainController: ControllerAccount;
     let onChainDepository: MercurialVaultDepositoryAccount;
@@ -39,7 +39,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (controlle
         ]);
 
         initialControllerGlobalRedeemableSupplyCap = onchainController.redeemableGlobalSupplyCap;
-        initialRedeemableDepositorySupplyCap = onChainDepository.redeemableDepositorySupplyCap;
+        initialRedeemableAmountUnderManagementCap = onChainDepository.redeemableAmountUnderManagementCap;
     });
 
     describe("Regular mint/redeem", () => {
@@ -54,11 +54,11 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (controlle
         it(`Redeem all ${controller.redeemableMintSymbol} minted previously for ${depository.collateralMint.symbol}`, async function () {
             const redeemableAccountBalance = await getBalance(userRedeemableATA);
 
-            const previouslyMintedRedeemableAmount = redeemableAccountBalance - initialRedeemableAccountBalance;
+            const previouslyRedeemableAmountUnderManagement = redeemableAccountBalance - initialRedeemableAccountBalance;
 
-            console.log("[🧾 redeemableAmount", previouslyMintedRedeemableAmount, depository.collateralMint.symbol, "]");
+            console.log("[🧾 redeemableAmount", previouslyRedeemableAmountUnderManagement, depository.collateralMint.symbol, "]");
 
-            await redeemFromMercurialVaultDepositoryTest(previouslyMintedRedeemableAmount, user, controller, depository, payer);
+            await redeemFromMercurialVaultDepositoryTest(previouslyRedeemableAmountUnderManagement, user, controller, depository, payer);
         });
     });
 
@@ -160,11 +160,11 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (controlle
         after(`Cleanup: Redeem all ${controller.redeemableMintSymbol} minted previously for ${depository.collateralMint.symbol}`, async function () {
             const redeemableAccountBalance = await getBalance(userRedeemableATA);
 
-            const previouslyMintedRedeemableAmount = redeemableAccountBalance - initialRedeemableAccountBalance;
+            const previouslyRedeemableAmountUnderManagement = redeemableAccountBalance - initialRedeemableAccountBalance;
 
-            console.log("[🧾 redeemableAmount", previouslyMintedRedeemableAmount, depository.collateralMint.symbol, "]");
+            console.log("[🧾 redeemableAmountUnderManagement", previouslyRedeemableAmountUnderManagement, depository.collateralMint.symbol, "]");
 
-            await redeemFromMercurialVaultDepositoryTest(previouslyMintedRedeemableAmount, user, controller, depository, payer);
+            await redeemFromMercurialVaultDepositoryTest(previouslyRedeemableAmountUnderManagement, user, controller, depository, payer);
         });
     });
 
@@ -199,7 +199,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (controlle
             const onChainDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
 
             await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-                redeemableDepositorySupplyCap: onChainDepository.mintedRedeemableAmount + uiToNative(0.0005, controller.redeemableMintDecimals),
+                redeemableAmountUnderManagementCap: onChainDepository.redeemableAmountUnderManagement + uiToNative(0.0005, controller.redeemableMintDecimals),
             });
         });
 
@@ -218,10 +218,10 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (controlle
         });
 
         it(`Reset redeemable depository supply cap back to its original value`, async function () {
-            const redeemableDepositorySupplyCap = nativeToUi(initialRedeemableDepositorySupplyCap, controller.redeemableMintDecimals);
+            const redeemableAmountUnderManagementCap = nativeToUi(initialRedeemableAmountUnderManagementCap, controller.redeemableMintDecimals);
 
             await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-                redeemableDepositorySupplyCap,
+                redeemableAmountUnderManagementCap,
             });
         });
     });

@@ -1,6 +1,6 @@
 use crate::error::UxdError;
 use crate::events::SetMangoDepositoryQuoteMintAndRedeemFeeEvent;
-use crate::events::SetMangoDepositoryRedeemableSupplyCapEvent;
+use crate::events::SetMangoDepositoryRedeemableAmountUnderManagementCapEvent;
 use crate::state::MangoDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
@@ -34,7 +34,7 @@ pub struct EditMangoDepository<'info> {
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct EditMangoDepositoryFields {
     quote_mint_and_redeem_fee: Option<u8>, // in bps
-    redeemable_depository_supply_cap: Option<u128>,
+    redeemable_amount_under_management_cap: Option<u128>,
 }
 
 pub(crate) fn handler(
@@ -58,18 +58,20 @@ pub(crate) fn handler(
         });
     }
 
-    // optional: redeemable_depository_supply_cap
-    if let Some(redeemable_depository_supply_cap) = fields.redeemable_depository_supply_cap {
+    // optional: redeemable_amount_under_management_cap
+    if let Some(redeemable_amount_under_management_cap) =
+        fields.redeemable_amount_under_management_cap
+    {
         msg!(
-            "[edit_mango_depository] redeemable_depository_supply_cap {}",
-            redeemable_depository_supply_cap
+            "[edit_mango_depository] redeemable_amount_under_management_cap {}",
+            redeemable_amount_under_management_cap
         );
-        depository.redeemable_depository_supply_cap = redeemable_depository_supply_cap;
-        emit!(SetMangoDepositoryRedeemableSupplyCapEvent {
+        depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
+        emit!(SetMangoDepositoryRedeemableAmountUnderManagementCapEvent {
             version: ctx.accounts.controller.load()?.version,
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
-            redeemable_depository_supply_cap
+            redeemable_amount_under_management_cap
         });
     }
 

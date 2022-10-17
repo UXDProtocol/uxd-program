@@ -45,7 +45,7 @@ pub struct MercurialVaultDepository {
 
     // The amount of minted redeemable using this repository
     // Equals to collateral_amount_deposited, minus precision loss
-    pub minted_redeemable_amount: u128,
+    pub redeemable_amount_under_management: u128,
 
     // mercurial_vault linked to the depository
     pub mercurial_vault: Pubkey,
@@ -71,14 +71,14 @@ pub struct MercurialVaultDepository {
 
     // The amount of fees accrued from minting
     // Expressed in redeemable mint decimals (6)
-    pub total_paid_mint_fees: u128,
+    pub minting_fee_total_accrued: u128,
 
     // The amount of fees accrued from redeeming
     // Expressed in redeemable mint decimals (6)
-    pub total_paid_redeem_fees: u128,
+    pub redeeming_fee_total_accrued: u128,
 
     // The total amount of circulating UXD originating from that depository
-    pub redeemable_depository_supply_cap: u128,
+    pub redeemable_amount_under_management_cap: u128,
 
     pub minting_disabled: bool,
 }
@@ -89,8 +89,8 @@ impl MercurialVaultDepository {
         &mut self,
         collateral_amount_deposited_change: i128,
         redeemable_amount_change: i128,
-        paid_mint_fees_change: i128,
-        paid_redeem_fees_change: i128,
+        paid_minting_fees_change: i128,
+        paid_redeeming_fees_change: i128,
     ) -> std::result::Result<(), UxdError> {
         self.collateral_amount_deposited =
             I80F48::checked_from_num(self.collateral_amount_deposited)
@@ -103,32 +103,36 @@ impl MercurialVaultDepository {
                 .checked_to_num()
                 .ok_or(UxdError::MathError)?;
 
-        self.minted_redeemable_amount = I80F48::checked_from_num(self.minted_redeemable_amount)
+        self.redeemable_amount_under_management =
+            I80F48::checked_from_num(self.redeemable_amount_under_management)
+                .ok_or(UxdError::MathError)?
+                .checked_add(
+                    I80F48::checked_from_num(redeemable_amount_change)
+                        .ok_or(UxdError::MathError)?,
+                )
+                .ok_or(UxdError::MathError)?
+                .checked_to_num()
+                .ok_or(UxdError::MathError)?;
+
+        self.minting_fee_total_accrued = I80F48::checked_from_num(self.minting_fee_total_accrued)
             .ok_or(UxdError::MathError)?
             .checked_add(
-                I80F48::checked_from_num(redeemable_amount_change).ok_or(UxdError::MathError)?,
+                I80F48::checked_from_num(paid_minting_fees_change).ok_or(UxdError::MathError)?,
             )
             .ok_or(UxdError::MathError)?
             .checked_to_num()
             .ok_or(UxdError::MathError)?;
 
-        self.total_paid_mint_fees = I80F48::checked_from_num(self.total_paid_mint_fees)
-            .ok_or(UxdError::MathError)?
-            .checked_add(
-                I80F48::checked_from_num(paid_mint_fees_change).ok_or(UxdError::MathError)?,
-            )
-            .ok_or(UxdError::MathError)?
-            .checked_to_num()
-            .ok_or(UxdError::MathError)?;
-
-        self.total_paid_redeem_fees = I80F48::checked_from_num(self.total_paid_redeem_fees)
-            .ok_or(UxdError::MathError)?
-            .checked_add(
-                I80F48::checked_from_num(paid_redeem_fees_change).ok_or(UxdError::MathError)?,
-            )
-            .ok_or(UxdError::MathError)?
-            .checked_to_num()
-            .ok_or(UxdError::MathError)?;
+        self.redeeming_fee_total_accrued =
+            I80F48::checked_from_num(self.redeeming_fee_total_accrued)
+                .ok_or(UxdError::MathError)?
+                .checked_add(
+                    I80F48::checked_from_num(paid_redeeming_fees_change)
+                        .ok_or(UxdError::MathError)?,
+                )
+                .ok_or(UxdError::MathError)?
+                .checked_to_num()
+                .ok_or(UxdError::MathError)?;
 
         Ok(())
     }

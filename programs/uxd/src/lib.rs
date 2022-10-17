@@ -17,7 +17,7 @@ pub mod utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("EfZZDERMuEfFfamxTZFHSCpn8Gmcq91SPEq4tMt9RCBF");
+solana_program::declare_id!("GDphnrotUNwqA9TVoE2mUgaggFMwnr3V2qWebgpDrHVt");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -148,14 +148,17 @@ pub mod uxd {
     ///  this become mandatory too. (we are still using the old init)
     ///
     #[access_control(
-        ctx.accounts.validate(redeemable_depository_supply_cap)
+        ctx.accounts.validate(redeemable_amount_under_management_cap)
     )]
     pub fn register_mango_depository(
         ctx: Context<RegisterMangoDepository>,
-        redeemable_depository_supply_cap: u128,
+        redeemable_amount_under_management_cap: u128,
     ) -> Result<()> {
         msg!("[register_mango_depository]");
-        instructions::register_mango_depository::handler(ctx, redeemable_depository_supply_cap)
+        instructions::register_mango_depository::handler(
+            ctx,
+            redeemable_amount_under_management_cap,
+        )
     }
 
     /// Deposit `MangoDepository.quote_mint` tokens in the `MangoDepository`
@@ -447,20 +450,20 @@ pub mod uxd {
     // Create and Register a new `MercurialVaultDepository` to the `Controller`.
     // Each `Depository` account manages a specific collateral mint.
     #[access_control(
-        ctx.accounts.validate(minting_fee_in_bps, redeeming_fee_in_bps, redeemable_depository_supply_cap)
+        ctx.accounts.validate(minting_fee_in_bps, redeeming_fee_in_bps, redeemable_amount_under_management_cap)
     )]
     pub fn register_mercurial_vault_depository(
         ctx: Context<RegisterMercurialVaultDepository>,
         minting_fee_in_bps: u8,
         redeeming_fee_in_bps: u8,
-        redeemable_depository_supply_cap: u128,
+        redeemable_amount_under_management_cap: u128,
     ) -> Result<()> {
         msg!("[register_mercurial_vault_depository]");
         instructions::register_mercurial_vault_depository::handler(
             ctx,
             minting_fee_in_bps,
             redeeming_fee_in_bps,
-            redeemable_depository_supply_cap,
+            redeemable_amount_under_management_cap,
         )
     }
 

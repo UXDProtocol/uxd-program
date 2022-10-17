@@ -10,7 +10,7 @@ export const editMercurialVaultDepositoryTest = async function (
   controller: Controller,
   depository: MercurialVaultDepository,
   uiFields: {
-    redeemableDepositorySupplyCap?: number;
+    redeemableAmountUnderManagementCap?: number;
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
@@ -25,7 +25,7 @@ export const editMercurialVaultDepositoryTest = async function (
     const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
 
     const {
-      redeemableDepositorySupplyCap,
+      redeemableAmountUnderManagementCap,
       mintingFeeInBps,
       redeemingFeeInBps,
       mintingDisabled,
@@ -38,16 +38,16 @@ export const editMercurialVaultDepositoryTest = async function (
     // THEN
     const depositoryOnchainAccount_post = await depository.getOnchainAccount(connection, options);
     const {
-      redeemableDepositorySupplyCap: redeemableDepositorySupplyCap_post,
+      redeemableAmountUnderManagementCap: redeemableAmountUnderManagementCap_post,
       mintingFeeInBps: mintingFeeInBps_post,
       redeemingFeeInBps: redeemingFeeInBps_post,
       mintingDisabled: mintingDisabled_post,
     } = depositoryOnchainAccount_post;
 
-    if (uiFields.redeemableDepositorySupplyCap) {
-      const nativeRedeemableDepositorySupplyCap = uiToNative(uiFields.redeemableDepositorySupplyCap, controller.redeemableMintDecimals);
-      expect(redeemableDepositorySupplyCap_post.toString()).equals(nativeRedeemableDepositorySupplyCap.toString(), "The redeemable depository supply cap has not changed.");
-      console.log(`🧾 Previous redeemable depository supply cap was`, redeemableDepositorySupplyCap.toString(), "now is", redeemableDepositorySupplyCap_post.toString());
+    if (uiFields.redeemableAmountUnderManagementCap) {
+      const nativeRedeemableAmountUnderManagementCap = uiToNative(uiFields.redeemableAmountUnderManagementCap, controller.redeemableMintDecimals);
+      expect(redeemableAmountUnderManagementCap_post.toString()).equals(nativeRedeemableAmountUnderManagementCap.toString(), "The redeemable amount under management cap has not changed.");
+      console.log(`🧾 Previous redeemable amount under management cap was`, redeemableAmountUnderManagementCap.toString(), "now is", redeemableAmountUnderManagementCap_post.toString());
     }
     if (uiFields.mintingFeeInBps) {
       expect(mintingFeeInBps_post).equals(uiFields.mintingFeeInBps, "The minting fee has not changed.");

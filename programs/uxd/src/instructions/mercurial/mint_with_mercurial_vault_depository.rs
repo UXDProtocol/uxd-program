@@ -204,7 +204,7 @@ pub fn handler(
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
     ctx.accounts
-        .check_redeemable_depository_supply_cap_overflow()?;
+        .check_redeemable_amount_under_management_cap_overflow()?;
 
     Ok(())
 }
@@ -294,11 +294,12 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         Ok(())
     }
 
-    fn check_redeemable_depository_supply_cap_overflow(&self) -> Result<()> {
+    fn check_redeemable_amount_under_management_cap_overflow(&self) -> Result<()> {
         let depository = self.depository.load()?;
         require!(
-            depository.minted_redeemable_amount <= depository.redeemable_depository_supply_cap,
-            UxdError::RedeemableMercurialVaultDepositorySupplyCapReached
+            depository.redeemable_amount_under_management
+                <= depository.redeemable_amount_under_management_cap,
+            UxdError::RedeemableMercurialVaultAmountUnderManagementCap
         );
         Ok(())
     }

@@ -82,11 +82,11 @@ export const redeemFromMercurialVaultDepositoryTest = async function (
         expect(nativeToUi(onChainDepository_post.collateralAmountDeposited, depository.collateralMint.decimals))
             .equal(Number((nativeToUi(onChainDepository_pre.collateralAmountDeposited, depository.collateralMint.decimals) - collateralDelta).toFixed(depository.collateralMint.decimals)));
 
-        expect(nativeToUi(onChainDepository_post.mintedRedeemableAmount, controller.redeemableMintDecimals))
-            .equal(Number((nativeToUi(onChainDepository_pre.mintedRedeemableAmount, controller.redeemableMintDecimals) - redeemableAmount).toFixed(controller.redeemableMintDecimals)));
+        expect(nativeToUi(onChainDepository_post.redeemableAmountUnderManagement, controller.redeemableMintDecimals))
+            .equal(Number((nativeToUi(onChainDepository_pre.redeemableAmountUnderManagement, controller.redeemableMintDecimals) - redeemableAmount).toFixed(controller.redeemableMintDecimals)));
 
-        expect(nativeToUi(onChainDepository_post.totalPaidRedeemFees, controller.redeemableMintDecimals))
-            .equal(Number((nativeToUi(onChainDepository_pre.totalPaidRedeemFees, controller.redeemableMintDecimals) + estimatedFeesPaid).toFixed(controller.redeemableMintDecimals)));
+        expect(nativeToUi(onChainDepository_post.redeemingFeeTotalAccrued, controller.redeemableMintDecimals))
+            .equal(Number((nativeToUi(onChainDepository_pre.redeemingFeeTotalAccrued, controller.redeemableMintDecimals) + estimatedFeesPaid).toFixed(controller.redeemableMintDecimals)));
 
         // Check controller accounting
         expect(nativeToUi(onchainController_post.redeemableCirculatingSupply, controller.redeemableMintDecimals))

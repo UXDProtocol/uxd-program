@@ -46,7 +46,6 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
             decimals: SOLEND_USDC_DEVNET_DECIMALS,
         },
         uxdProgramId,
-        cluster: 'devnet',
     });
 
     describe("Mercurial vault integration tests: USDC", async function () {
@@ -57,10 +56,10 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
 
         const mintingFeeInBps = 0;
         const redeemingFeeInBps = 5;
-        const uiRedeemableDepositorySupplyCap = 1_000;
+        const uiRedeemableAmountUnderManagementCap = 1_000;
 
         describe("mercurialVaultDepositorySetupSuite", function () {
-            mercurialVaultDepositorySetupSuite(authority, bank, controllerUXD, mercurialVaultDepository, mintingFeeInBps, redeemingFeeInBps, uiRedeemableDepositorySupplyCap);
+            mercurialVaultDepositorySetupSuite(authority, bank, controllerUXD, mercurialVaultDepository, mintingFeeInBps, redeemingFeeInBps, uiRedeemableAmountUnderManagementCap);
         });
 
         describe("mercurialVaultDepositoryMintRedeemSuite", function () {

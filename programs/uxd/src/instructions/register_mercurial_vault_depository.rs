@@ -78,7 +78,7 @@ pub fn handler(
     ctx: Context<RegisterMercurialVaultDepository>,
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
-    redeemable_depository_supply_cap: u128,
+    redeemable_amount_under_management_cap: u128,
 ) -> Result<()> {
     let depository_bump = *ctx
         .bumps
@@ -103,13 +103,13 @@ pub fn handler(
     depository.controller = ctx.accounts.controller.key();
 
     depository.collateral_amount_deposited = u128::MIN;
-    depository.minted_redeemable_amount = u128::MIN;
+    depository.redeemable_amount_under_management = u128::MIN;
 
     depository.minting_fee_in_bps = minting_fee_in_bps;
     depository.redeeming_fee_in_bps = redeeming_fee_in_bps;
 
-    depository.total_paid_mint_fees = u128::MIN;
-    depository.total_paid_redeem_fees = u128::MIN;
+    depository.minting_fee_total_accrued = u128::MIN;
+    depository.redeeming_fee_total_accrued = u128::MIN;
 
     depository.lp_token_vault = ctx.accounts.depository_lp_token_vault.key();
     depository.lp_token_vault_bump = depository_lp_token_vault_bump;
@@ -119,7 +119,7 @@ pub fn handler(
 
     depository.mercurial_vault = ctx.accounts.mercurial_vault.key();
 
-    depository.redeemable_depository_supply_cap = redeemable_depository_supply_cap;
+    depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
 
     // enable minting by default
     depository.minting_disabled = false;
@@ -164,7 +164,7 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
         &self,
         _minting_fee_in_bps: u8,
         _redeeming_fee_in_bps: u8,
-        _redeemable_depository_supply_cap: u128,
+        _redeemable_amount_under_management_cap: u128,
     ) -> Result<()> {
         require!(
             self.mercurial_vault

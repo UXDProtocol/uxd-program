@@ -261,7 +261,7 @@ pub(crate) fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: 
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
 
     ctx.accounts
-        .check_redeemable_depository_supply_cap_overflow()?;
+        .check_redeemable_amount_under_management_cap_overflow()?;
 
     emit!(QuoteMintWithMangoDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,
@@ -302,12 +302,12 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    fn check_redeemable_depository_supply_cap_overflow(&self) -> Result<()> {
+    fn check_redeemable_amount_under_management_cap_overflow(&self) -> Result<()> {
         let depository = self.depository.load()?;
         require!(
             depository.redeemable_amount_under_management
-                <= depository.redeemable_depository_supply_cap,
-            UxdError::RedeemableMangoDepositorySupplyCapReached
+                <= depository.redeemable_amount_under_management_cap,
+            UxdError::RedeemableMangoAmountUnderManagementCap
         );
         Ok(())
     }

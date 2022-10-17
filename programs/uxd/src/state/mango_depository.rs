@@ -81,5 +81,7 @@ pub struct MangoDepository {
     pub regular_minting_disabled: bool,
     //
     // The total amount of circulating UXD originating from that depository
-    pub redeemable_depository_supply_cap: u128,
+    pub redeemable_amount_under_management_cap: u128,
 }
+
+// redeemable_depository_supply_cap -> redeemable_amount_under_management_cap

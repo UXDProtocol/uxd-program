@@ -89,9 +89,9 @@ export async function registerMercurialVaultDepository(
   depository: MercurialVaultDepository,
   mintingFeeInBps: number,
   redeemingFeeInBps: number,
-  redeemableDepositorySupplyCap: number,
+  redeemableAmountUnderManagementCap: number,
 ): Promise<string> {
-  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(controller, depository, authority.publicKey, mintingFeeInBps, redeemingFeeInBps, redeemableDepositorySupplyCap, TXN_OPTS, payer.publicKey);
+  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(controller, depository, authority.publicKey, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap, TXN_OPTS, payer.publicKey);
   let signers = [];
   let tx = new Transaction();
 
@@ -110,14 +110,14 @@ export async function registerMangoDepository(
   controller: Controller,
   depository: MangoDepository,
   mango: Mango,
-  redeemableDepositorySupplyCap: number,
+  redeemableAmountUnderManagementCap: number,
 ): Promise<string> {
   const registerMangoDepositoryIx = uxdClient.createRegisterMangoDepositoryInstruction(
     controller,
     depository,
     mango,
     authority.publicKey,
-    redeemableDepositorySupplyCap,
+    redeemableAmountUnderManagementCap,
     TXN_OPTS,
     payer.publicKey
   );
@@ -568,7 +568,7 @@ export async function editMangoDepository(
   depository: MangoDepository,
   uiFields: {
     quoteMintAndRedeemFee?: number;
-    redeemableDepositorySupplyCap?: BN;
+    redeemableAmountUnderManagementCap?: BN;
   }
 ): Promise<string> {
   const editMangoDepositoryIx = uxdClient.createEditMangoDepositoryInstruction(
@@ -592,7 +592,7 @@ export async function editMercurialVaultDepository(
   controller: Controller,
   depository: MercurialVaultDepository,
   uiFields: {
-    redeemableDepositorySupplyCap?: BN;
+    redeemableAmountUnderManagementCap?: BN;
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
