@@ -722,7 +722,7 @@ export async function editMercurialVaultDepository(
 export async function editMaplePoolDepository(
   authority: Signer,
   controller: Controller,
-  depository: MangoDepository,
+  depository: MaplePoolDepository,
   uiFields: {
     redeemableAmountUnderManagementCap?: number;
     mintingFeeInBps?: number;

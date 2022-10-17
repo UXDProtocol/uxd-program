@@ -1723,11 +1723,11 @@
             "type": "u128"
           },
           {
-            "name": "totalPaidMintingFees",
+            "name": "mintingFeeTotalAccrued",
             "type": "u128"
           },
           {
-            "name": "totalPaidRedeemingFee",
+            "name": "redeemingFeeTotalAccrued",
             "type": "u128"
           }
         ]
@@ -2154,7 +2154,7 @@
           "index": false
         },
         {
-          "name": "paidMintingFee",
+          "name": "mintingFeePaid",
           "type": "u64",
           "index": false
         }
@@ -3174,5 +3174,8 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ]
+  ],
+  "metadata": {
+    "address": "6ee2JTmhZdYtTXYm1NPx66ZL7zxtoJj7Fzg9o2g8hfja"
+  }
 }

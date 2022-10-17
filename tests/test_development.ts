@@ -43,7 +43,7 @@ import {
   mangoDepositoryRebalancingSuite,
 } from "./suite/mangoDepositoryRebalancingSuite";
 import { quoteMintAndRedeemSuite } from "./suite/quoteMintAndRedeemSuite";
-import { setMangoDepositoriesRedeemableSoftCap } from "./api";
+import { editMaplePoolDepository, setMangoDepositoriesRedeemableSoftCap } from "./api";
 import { getConnection } from "./connection";
 import { registerMercurialVaultDepositoryTest } from "./cases/registerMercurialVaultDepositoryTest";
 import { mintWithMercurialVaultDepositoryTest } from "./cases/mintWithMercurialVaultDepositoryTest";
@@ -51,6 +51,8 @@ import { redeemFromMercurialVaultDepositoryTest } from "./cases/redeemFromMercur
 import { registerMaplePoolDepositoryTest } from "./cases/registerMaplePoolDepositoryTest";
 import { uiToNative } from "@blockworks-foundation/mango-client";
 import { mintWithMaplePoolDepositoryTest } from "./cases/mintWithMaplePoolDepositoryTest";
+import { editMangoDepositoryTest } from "./cases/editMangoDepositoryTest";
+import { editMaplePoolDepositoryTest } from "./cases/editMaplePoolDepositoryTest";
 
 console.log(uxdProgramId.toString());
 const mangoDepositorySOL = new MangoDepository(
@@ -99,6 +101,7 @@ describe("Integration tests", function () {
       await initializeControllerTest(authority, controller, payer);
     });
 
+    /*
     it(`Initialize and register mercurial USDC vault depository`, async function () {
       mercurialVaultDepositoryUSDC = await MercurialVaultDepository.initialize({
         connection: getConnection(),
@@ -126,29 +129,58 @@ describe("Integration tests", function () {
         payer
       );
     });
+    */
 
     it(`Initialize and register maple pool depository (credora?)`, async function () {
       maplePoolDepository = await createMaplePoolDepositoryDevnetUSDC();
 
-      const uiAccountingSupplyRedeemableSoftCap = 1000;
-      const accountingBpsStampFeeMint = 2;
-      const accountingBpsStampFeeRedeem = 2;
+      const uiRedeemableAmountUnderManagementCap = 1000;
+      const mintingFeeInBps = 0;
+      const redeemingFeeInBps = 0;
 
       await registerMaplePoolDepositoryTest(
         authority,
         controller,
         maplePoolDepository,
-        uiAccountingSupplyRedeemableSoftCap,
-        accountingBpsStampFeeMint,
-        accountingBpsStampFeeRedeem,
+        uiRedeemableAmountUnderManagementCap,
+        mintingFeeInBps,
+        redeemingFeeInBps,
         payer
       );
     });
 
-    it(`Mint for 0.001 fake USDC`, async function () {
-      await mintWithMaplePoolDepositoryTest(0.001, user, controller, maplePoolDepository, payer);
+    it(`Reset the depository fee and cap in case it was already modified by another test`, async function () {
+      await editMaplePoolDepositoryTest(authority, controller, maplePoolDepository, {
+        redeemableAmountUnderManagementCap: 1_000,
+        mintingFeeInBps: 0,
+      });
     });
 
+    it(`Mint for 0.0001 fake USDC with no fees`, async function () {
+      await mintWithMaplePoolDepositoryTest(0.0001, user, controller, maplePoolDepository, payer);
+    });
+
+    it(`Set minting fee to 200 bps`, async function () {
+      await editMaplePoolDepositoryTest(authority, controller, maplePoolDepository, {
+        mintingFeeInBps: 200,
+      });
+    });
+
+    it(`Mint for 0.0001 fake USDC with fees`, async function () {
+      await mintWithMaplePoolDepositoryTest(0.0001, user, controller, maplePoolDepository, payer);
+    });
+
+    it(`Set cap to 0`, async function () {
+      await editMaplePoolDepositoryTest(authority, controller, maplePoolDepository, {
+        redeemableAmountUnderManagementCap: 0,
+      });
+    });
+
+    it(`Mint for 0.0001 fake USDC`, async function () {
+      await mintWithMaplePoolDepositoryTest(0.0001, user, controller, maplePoolDepository, payer);
+    });
+
+    /*
     it(`Initialize ${mangoDepositorySOL.collateralMintSymbol} Depository`, async function () {
       const redeemableDepositorySupplyCap = 1_000;
 
@@ -177,8 +209,10 @@ describe("Integration tests", function () {
     it(`Withdraw 10 USDC of insurance`, async function () {
       await withdrawInsuranceMangoDepositoryTest(10, authority, controller, mangoDepositorySOL, mango);
     });
+    */
   });
 
+  /*
   describe("Regular Mint/Redeem with Mercurial Vault USDC Depository", async function () {
     it(`Mint for 0.001 USDC`, async function () {
       mintedRedeemableAmountWithMercurialVaultDepository = await mintWithMercurialVaultDepositoryTest(
@@ -265,6 +299,7 @@ describe("Integration tests", function () {
       await printDepositoryInfo(controller, mangoDepositorySOL, mango);
     });
   });
+  */
 
   this.afterAll("Transfer funds back to bank", async function () {
     await transferAllTokens(USDC_DEVNET, USDC_DECIMALS, user, bank.publicKey);

@@ -1,5 +1,5 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, ControllerAccount, MaplePoolDepository, nativeToUi } from "@uxd-protocol/uxd-client";
+import { Controller, MaplePoolDepository, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { mintWithMaplePoolDepositoryTest } from "../cases/mintWithMaplePoolDepositoryTest";
 import { transferTokens } from "../utils";

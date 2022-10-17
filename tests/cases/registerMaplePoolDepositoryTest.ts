@@ -16,7 +16,7 @@ export const registerMaplePoolDepositoryTest = async function (
   console.group("🧭 initializeMaplePoolDepositoryTest");
   try {
     // WHEN
-    if (await getConnection().getAccountInfo(depository.depository)) {
+    if (await getConnection().getAccountInfo(depository.pda)) {
       console.log("🚧 Already registered.");
     } else {
       const txId = await registerMaplePoolDepository(

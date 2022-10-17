@@ -1,5 +1,5 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, MaplePoolDepository, MaplePoolDepositoryAccount, nativeToUi } from "@uxd-protocol/uxd-client";
+import { Controller, MaplePoolDepository, nativeToUi } from "@uxd-protocol/uxd-client";
 import { getConnection, TXN_OPTS } from "../connection";
 import { editMaplePoolDepositoryTest } from "../cases/editMaplePoolDepositoryTest";
 
@@ -10,13 +10,8 @@ export const editMaplePoolDepositorySuite = async function (
   controller: Controller,
   depository: MaplePoolDepository
 ) {
-  let beforeDepository: MaplePoolDepositoryAccount;
-
-  describe("Edit mint/redeem", () => {
-    // Snapshot the initial depository values
-    before(async () => {
-      beforeDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
-    });
+  describe("Edit mint/redeem", async () => {
+    let beforeDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
 
     it(`Edit mintingFeeInBps alone should work`, async function () {
       const mintingFeeInBps = 50;

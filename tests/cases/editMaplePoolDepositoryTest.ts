@@ -42,7 +42,7 @@ export const editMaplePoolDepositoryTest = async function (
       redeemingFeeInBps: redeemingFeeInBps_post,
     } = depositoryOnchainAccount_post;
 
-    if (uiFields.redeemableAmountUnderManagementCap) {
+    if (uiFields.redeemableAmountUnderManagementCap !== undefined) {
       const nativeRedeemableDepositorySupplyCap = uiToNative(
         uiFields.redeemableAmountUnderManagementCap,
         controller.redeemableMintDecimals
@@ -58,11 +58,11 @@ export const editMaplePoolDepositoryTest = async function (
         redeemableAmountUnderManagementCap_post.toString()
       );
     }
-    if (uiFields.mintingFeeInBps) {
+    if (uiFields.mintingFeeInBps !== undefined) {
       expect(mintingFeeInBps_post).equals(uiFields.mintingFeeInBps, "The minting fee has not changed.");
       console.log(`🧾 Previous minting fee was`, mintingFeeInBps_pre, "now is", mintingFeeInBps_post);
     }
-    if (uiFields.redeemingFeeInBps) {
+    if (uiFields.redeemingFeeInBps !== undefined) {
       expect(redeemingFeeInBps_post).equals(uiFields.redeemingFeeInBps, "The redeeming fee has not changed.");
       console.log(`🧾 Previous redeeming fee was`, redeemingFeeInBps_pre, "now is", redeemingFeeInBps_post);
     }

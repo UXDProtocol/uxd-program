@@ -1723,11 +1723,11 @@ export type Uxd = {
             "type": "u128"
           },
           {
-            "name": "totalPaidMintingFees",
+            "name": "mintingFeeTotalAccrued",
             "type": "u128"
           },
           {
-            "name": "totalPaidRedeemingFee",
+            "name": "redeemingFeeTotalAccrued",
             "type": "u128"
           }
         ]
@@ -2154,7 +2154,7 @@ export type Uxd = {
           "index": false
         },
         {
-          "name": "paidMintingFee",
+          "name": "mintingFeePaid",
           "type": "u64",
           "index": false
         }
@@ -4902,11 +4902,11 @@ export const IDL: Uxd = {
             "type": "u128"
           },
           {
-            "name": "totalPaidMintingFees",
+            "name": "mintingFeeTotalAccrued",
             "type": "u128"
           },
           {
-            "name": "totalPaidRedeemingFee",
+            "name": "redeemingFeeTotalAccrued",
             "type": "u128"
           }
         ]
@@ -5333,7 +5333,7 @@ export const IDL: Uxd = {
           "index": false
         },
         {
-          "name": "paidMintingFee",
+          "name": "mintingFeePaid",
           "type": "u64",
           "index": false
         }

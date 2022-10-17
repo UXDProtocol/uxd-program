@@ -113,23 +113,23 @@ export const mintWithMaplePoolDepositoryTest = async function (
     );
 
     expect(
-      nativeToUi(onchainDepository_post.mintedRedeemableAmount, controller.redeemableMintDecimals).toFixed(
+      nativeToUi(onchainDepository_post.redeemableAmountUnderManagement, controller.redeemableMintDecimals).toFixed(
         controller.redeemableMintDecimals
       )
     ).equal(
       (
-        nativeToUi(onchainDepository_pre.mintedRedeemableAmount, controller.redeemableMintDecimals) +
+        nativeToUi(onchainDepository_pre.redeemableAmountUnderManagement, controller.redeemableMintDecimals) +
         userRedeemableDelta
       ).toFixed(controller.redeemableMintDecimals)
     );
 
     expect(
-      nativeToUi(onchainDepository_post.mintingFeeTotalPaid, depository.collateralDecimals).toFixed(
+      nativeToUi(onchainDepository_post.mintingFeeTotalAccrued, depository.collateralDecimals).toFixed(
         controller.redeemableMintDecimals
       )
     ).equal(
       (
-        nativeToUi(onchainDepository_pre.mintingFeeTotalPaid, depository.collateralDecimals) + estimatedFeesPaid
+        nativeToUi(onchainDepository_pre.mintingFeeTotalAccrued, depository.collateralDecimals) + estimatedFeesPaid
       ).toFixed(controller.redeemableMintDecimals)
     );
 
