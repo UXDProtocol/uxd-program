@@ -147,7 +147,7 @@ pub fn handler(
     // Depository accounting
     depository.collateral_amount_deposited = u128::MIN;
     depository.redeemable_amount_under_management = u128::MIN;
-    depository.total_paid_minting_fees = u128::MIN;
+    depository.total_paid_minting_fee = u128::MIN;
     depository.total_paid_redeeming_fee = u128::MIN;
 
     // Add the depository to the controller

@@ -26,7 +26,7 @@ pub const MAPLE_POOL_DEPOSITORY_SPACE: usize = 8 // anchor-pad
 
  + size_of::<u128>() // collateral_amount_deposited
  + size_of::<u128>() // redeemable_amount_under_management
- + size_of::<u128>() // total_paid_minting_fees
+ + size_of::<u128>() // total_paid_minting_fee
  + size_of::<u128>() // total_paid_redeeming_fee
 
  + 800; // reserved space
@@ -62,7 +62,7 @@ pub struct MaplePoolDepository {
     // Depository accouting
     pub collateral_amount_deposited: u128,
     pub redeemable_amount_under_management: u128,
-    pub total_paid_minting_fees: u128,
+    pub total_paid_minting_fee: u128,
     pub total_paid_redeeming_fee: u128,
 }
 
@@ -91,11 +91,11 @@ impl DepositoryAccounting for MaplePoolDepository {
     fn set_redeemable_amount_under_management(&mut self, value: u128) {
         self.redeemable_amount_under_management = value;
     }
-    fn get_total_paid_minting_fees(&self) -> u128 {
-        self.total_paid_minting_fees
+    fn get_total_paid_minting_fee(&self) -> u128 {
+        self.total_paid_minting_fee
     }
-    fn set_total_paid_minting_fees(&mut self, value: u128) {
-        self.total_paid_minting_fees = value;
+    fn set_total_paid_minting_fee(&mut self, value: u128) {
+        self.total_paid_minting_fee = value;
     }
     fn get_total_paid_redeeming_fee(&self) -> u128 {
         self.total_paid_redeeming_fee

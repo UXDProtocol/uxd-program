@@ -125,9 +125,9 @@ pub struct MintWithMaplePoolDepositoryEvent {
     /// The collateral amount in native units. (input)
     pub collateral_amount: u64,
     /// The redeemable issued in native units. (output)
-    pub redeemable_minted: u64,
+    pub redeemable_amount: u64,
     /// The fees paid in native units. (output)
-    pub fees_paid: u64,
+    pub paid_minting_fee: u64,
 }
 
 /// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].

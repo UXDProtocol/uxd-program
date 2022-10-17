@@ -355,14 +355,14 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         depository: ctx.accounts.depository.key(),
         user: ctx.accounts.user.key(),
         collateral_amount: collateral_amount_deposited,
-        redeemable_minted: redeemable_amount_after_fees,
+        redeemable_amount: redeemable_amount_after_fees,
         paid_minting_fee: paid_minting_fee,
     });
 
     // Accouting for depository
     msg!("[mint_with_maple_pool_depository:accounting_depository]");
     let mut depository_accounting = ctx.accounts.depository.load_mut()?;
-    depository_accounting.increase_total_paid_minting_fees(paid_minting_fee)?;
+    depository_accounting.increase_total_paid_minting_fee(paid_minting_fee)?;
     depository_accounting.deposited_collateral_and_minted_redeemable(
         collateral_amount_deposited,
         redeemable_amount_after_fees,

@@ -17,8 +17,8 @@ pub trait DepositoryAccounting: DepositoryConfiguration {
 
     // The amount of fees accrued from minting
     // Expressed in redeemable mint decimals (6)
-    fn get_total_paid_minting_fees(&self) -> u128;
-    fn set_total_paid_minting_fees(&mut self, value: u128);
+    fn get_total_paid_minting_fee(&self) -> u128;
+    fn set_total_paid_minting_fee(&mut self, value: u128);
     // The amount of fees accrued from redeeming
     // Expressed in redeemable mint decimals (6)
     fn get_total_paid_redeeming_fee(&self) -> u128;
@@ -87,20 +87,20 @@ pub trait DepositoryAccounting: DepositoryConfiguration {
     }
 
     // Account for paid fees during minting
-    fn increase_total_paid_minting_fees(&mut self, minting_fees_paid: u64) -> Result<()> {
-        self.set_total_paid_minting_fees(
-            self.get_total_paid_minting_fees()
-                .checked_add(minting_fees_paid.into())
+    fn increase_total_paid_minting_fee(&mut self, paid_minting_fee: u64) -> Result<()> {
+        self.set_total_paid_minting_fee(
+            self.get_total_paid_minting_fee()
+                .checked_add(paid_minting_fee.into())
                 .ok_or(UxdError::MathError)?,
         );
         Ok(())
     }
 
     // Account for paid fees during redeeming
-    fn increase_total_paid_redeeming_fee(&mut self, redeeming_fee_paid: u64) -> Result<()> {
+    fn increase_total_paid_redeeming_fee(&mut self, paid_redeeming_fee: u64) -> Result<()> {
         self.set_total_paid_redeeming_fee(
             self.get_total_paid_redeeming_fee()
-                .checked_add(redeeming_fee_paid.into())
+                .checked_add(paid_redeeming_fee.into())
                 .ok_or(UxdError::MathError)?,
         );
         Ok(())
