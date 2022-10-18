@@ -176,7 +176,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     let owned_shares_amount_before: u64 = ctx
         .accounts
         .compute_owned_shares_amount(locked_shares_amount_before, lender_shares_amount_before)?;
-    let owned_value_amount_before: u64 = ctx.accounts.compute_owned_value_amount(
+    let owned_value_amount_before: u64 = ctx.accounts.compute_share_value_amount(
         owned_shares_amount_before,
         pool_shares_amount_before,
         pool_value_amount_before,
@@ -220,7 +220,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     let owned_shares_amount_after: u64 = ctx
         .accounts
         .compute_owned_shares_amount(locked_shares_amount_after, lender_shares_amount_after)?;
-    let owned_value_amount_after: u64 = ctx.accounts.compute_owned_value_amount(
+    let owned_value_amount_after: u64 = ctx.accounts.compute_share_value_amount(
         owned_shares_amount_after,
         pool_shares_amount_after,
         pool_value_amount_after,
@@ -307,9 +307,22 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         UxdError::CollateralDepositDoesntMatchTokenValue,
     );
 
-    // Check that the shares we received match the collateral value
+    // Check that the shares we received match the collateral value (allowing for precision loss)
+    let single_share_value_amount = ctx.accounts.compute_share_value_amount(
+        1,
+        pool_shares_amount_after,
+        pool_value_amount_after,
+    )?;
+    msg!(
+        "[mint_with_maple_pool_depository:check_precision_loss:{}]",
+        single_share_value_amount
+    );
     require!(
-        is_equal_with_precision_loss(collateral_amount_deposited, owned_value_increase, 1)?,
+        is_equal_with_precision_loss(
+            collateral_amount_deposited,
+            owned_value_increase,
+            single_share_value_amount
+        )?,
         UxdError::CollateralDepositDoesntMatchTokenValue,
     );
 
@@ -435,22 +448,22 @@ impl<'info> MintWithMaplePoolDepository<'info> {
 
     // Precision loss may lower the returned owner value amount.
     // Precision loss of 1 native unit may be expected.
-    pub fn compute_owned_value_amount(
+    pub fn compute_share_value_amount(
         &self,
-        owned_shares_amount: u64,
+        shares_amount: u64,
         pool_shares_amount: u64,
         pool_value_amount: u64,
     ) -> Result<u64> {
         if pool_value_amount == 0 {
             return Ok(0);
         }
-        let owned_shares_amount_fixed =
-            I80F48::checked_from_num(owned_shares_amount).ok_or(UxdError::MathError)?;
+        let shares_amount_fixed =
+            I80F48::checked_from_num(shares_amount).ok_or(UxdError::MathError)?;
         let pool_shares_amount_fixed =
             I80F48::checked_from_num(pool_shares_amount).ok_or(UxdError::MathError)?;
         let pool_value_amount_fixed =
             I80F48::checked_from_num(pool_value_amount).ok_or(UxdError::MathError)?;
-        let owned_value_amount_fixed = owned_shares_amount_fixed
+        let owned_value_amount_fixed = shares_amount_fixed
             .checked_mul(pool_value_amount_fixed)
             .ok_or(UxdError::MathError)?
             .checked_div(pool_shares_amount_fixed)
