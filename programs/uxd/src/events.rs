@@ -377,3 +377,60 @@ pub struct DisableDepositoryRegularMintingEvent {
     pub depository: Pubkey,
     pub regular_minting_disabled: bool,
 }
+
+/// Event called in [instructions::initialize_identity_depository::handler].
+#[event]
+pub struct InitializeIdentityDepositoryEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The depository version.
+    #[index]
+    pub depository_version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    /// The collateral mint.
+    pub collateral_mint: Pubkey,
+}
+
+/// Event called in [instructions::mint_with_identity_depository::handler].
+#[event]
+pub struct MintWithIdentityDepositoryEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    /// The user making the call.
+    #[index]
+    pub user: Pubkey,
+    /// The collateral amount in native units. (input)
+    pub collateral_amount: u64,
+}
+
+/// Event called in [instructions::redeem_from_identity_depository::handler].
+#[event]
+pub struct RedeemFromIdentityDepositoryEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    /// The user making the call.
+    #[index]
+    pub user: Pubkey,
+    /// The redeemable amount in native units. (input)
+    pub redeemable_amount: u64,
+}
