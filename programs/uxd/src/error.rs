@@ -116,6 +116,9 @@ pub enum UxdError {
     #[msg("The max quote quantity must be above 0.")]
     InvalidMaxQuoteQuantity,
 
+    #[msg("Mango Depositories suspended due to the 12/10/22 exploit.")]
+    MangoDepositorySuspended,
+
     #[msg("Default - Check the source code for more info.")]
     Default,
 }

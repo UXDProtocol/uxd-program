@@ -146,7 +146,8 @@ pub mod uxd {
     ///
     pub fn register_mango_depository(ctx: Context<RegisterMangoDepository>) -> Result<()> {
         msg!("[register_mango_depository]");
-        instructions::register_mango_depository::handler(ctx)
+        return Error::MangoDepositorySuspended;
+        // instructions::register_mango_depository::handler(ctx)
     }
 
     /// Deposit `MangoDepository.quote_mint` tokens in the `MangoDepository`
@@ -189,7 +190,8 @@ pub mod uxd {
         amount: u64,
     ) -> Result<()> {
         msg!("[deposit_insurance_to_mango_depository]");
-        instructions::deposit_insurance_to_mango_depository::handler(ctx, amount)
+        return Error::MangoDepositorySuspended;
+        // instructions::deposit_insurance_to_mango_depository::handler(ctx, amount)
     }
 
     /// Withdraw `MangoDepository.quote_mint` tokens from the `MangoDepository`
@@ -215,7 +217,8 @@ pub mod uxd {
         amount: u64,
     ) -> Result<()> {
         msg!("[withdraw_insurance_from_mango_depository]");
-        instructions::withdraw_insurance_from_mango_depository::handler(ctx, amount)
+        return Error::MangoDepositorySuspended;
+        // instructions::withdraw_insurance_from_mango_depository::handler(ctx, amount)
     }
 
     /// Rebalance the delta neutral position of the underlying `MangoDepository`.
@@ -268,12 +271,13 @@ pub mod uxd {
             limit_price,
             polarity
         );
-        instructions::rebalance_mango_depository_lite::handler(
-            ctx,
-            max_rebalancing_amount,
-            &polarity,
-            limit_price,
-        )
+        return Error::MangoDepositorySuspended;
+        // instructions::rebalance_mango_depository_lite::handler(
+        //     ctx,
+        //     max_rebalancing_amount,
+        //     &polarity,
+        //     limit_price,
+        // )
     }
 
     /// Mint redeemable tokens in exchange of `MangoDepository.collateral_mint`
@@ -314,7 +318,8 @@ pub mod uxd {
             collateral_amount,
             limit_price
         );
-        instructions::mint_with_mango_depository::handler(ctx, collateral_amount, limit_price)
+        return Error::MangoDepositorySuspended;
+        // instructions::mint_with_mango_depository::handler(ctx, collateral_amount, limit_price)
     }
 
     /// Redeem `MangoDepository.collateral_mint` by burning redeemable
@@ -358,7 +363,8 @@ pub mod uxd {
             redeemable_amount,
             limit_price
         );
-        instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, limit_price)
+        return Error::MangoDepositorySuspended;
+        // instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, limit_price)
     }
 
     #[access_control(
@@ -372,7 +378,8 @@ pub mod uxd {
             "[quote_mint_with_mango_depository] quote_amount {}",
             quote_amount
         );
-        instructions::quote_mint_with_mango_depository::handler(ctx, quote_amount)
+        return Error::MangoDepositorySuspended;
+        // instructions::quote_mint_with_mango_depository::handler(ctx, quote_amount)
     }
 
     #[access_control(
@@ -386,7 +393,8 @@ pub mod uxd {
             "[quote_redeem_from_mango_depository] redeemable_amount {}",
             redeemable_amount
         );
-        instructions::quote_redeem_from_mango_depository::handler(ctx, redeemable_amount)
+        return Error::MangoDepositorySuspended;
+        // instructions::quote_redeem_from_mango_depository::handler(ctx, redeemable_amount)
     }
 
     pub fn edit_mango_depository(
