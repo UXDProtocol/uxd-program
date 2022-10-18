@@ -30,12 +30,16 @@ pub const MANGO_GROUP: &str = "98pjRuQjK3qA6gXts96PqZT4Ze5QmnCmt3QYjhbUSPue";
 // Version used for accounts structure and future migrations
 pub const MANGO_DEPOSITORY_ACCOUNT_VERSION: u8 = 2;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
+pub const IDENTITY_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
 pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
 pub const MANGO_ACCOUNT_NAMESPACE: &[u8] = b"MANGOACCOUNT";
 pub const CONTROLLER_NAMESPACE: &[u8] = b"CONTROLLER";
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
+pub const IDENTITY_DEPOSITORY_NAMESPACE: &[u8] = b"IDENTITYDEPOSITORY";
+pub const IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE: &[u8] =
+    b"IDENTITYDEPOSITORYCOLLATERALVAULT";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -422,6 +426,41 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[disable_depository_minting] disable {}", disable);
         instructions::disable_depository_regular_minting::handler(ctx, disable)
+    }
+
+    pub fn initialize_identity_depository(
+        ctx: Context<InitializeIdentityDepository>,
+    ) -> Result<()> {
+        msg!("[initialize_identity_depository]");
+        instructions::initialize_identity_depository::handler(ctx)
+    }
+
+    #[access_control(
+        ctx.accounts.validate(collateral_amount)
+    )]
+    pub fn mint_with_identity_depository(
+        ctx: Context<MintWithIdentityDepository>,
+        collateral_amount: u64,
+    ) -> Result<()> {
+        msg!(
+            "[mint_with_identity_depository] collateral_amount {}",
+            collateral_amount,
+        );
+        instructions::mint_with_identity_depository::handler(ctx, collateral_amount)
+    }
+
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn redeem_from_identity_depository(
+        ctx: Context<RedeemFromIdentityDepository>,
+        redeemable_amount: u64,
+    ) -> Result<()> {
+        msg!(
+            "[redeem_from_identity_depository] redeemable_amount {}",
+            redeemable_amount,
+        );
+        instructions::redeem_from_identity_depository::handler(ctx, redeemable_amount)
     }
 }
 
