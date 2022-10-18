@@ -120,6 +120,11 @@ pub fn handler(
     let before_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
 
     // 1 - Deposit collateral to mercurial vault and get lp tokens
+    // Precision loss may occur on transferred LP token amounts, calculate the possible loss and check it later
+    let possible_lp_token_precision_loss_collateral_value = ctx
+        .accounts
+        .calculate_possible_lp_token_precision_loss_collateral_value()?;
+
     mercurial_vault::cpi::deposit(
         ctx.accounts
             .into_deposit_collateral_to_mercurial_vault_context(),
@@ -152,9 +157,11 @@ pub fn handler(
     // 4 - Check that the minted lp token value matches the collateral value.
     // When manipulating LP tokens/collateral numbers, precision loss may occur.
     // The maximum allowed precision loss is 1 (native unit).
+    // Plus the possible LP token precision loss that may have occurred in deposit
     MintWithMercurialVaultDepository::check_minted_lp_token_value_to_match_collateral_value(
         minted_lp_token_value,
         collateral_amount,
+        possible_lp_token_precision_loss_collateral_value,
     )?;
 
     // 5 - Calculate the redeemable amount to send back to the user.
@@ -276,18 +283,20 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
     // Accept precision loss diff
     fn check_minted_lp_token_value_to_match_collateral_value(
         minted_lp_token_value: u64,
-        collateral_amount: u64,
+        target: u64,
+        possible_lp_token_precision_loss_collateral_value: u64,
     ) -> Result<()> {
-        let collateral_amount_minus_precision_loss = collateral_amount
-            .checked_sub(1)
+        // Lp token precision loss + withdraw collateral precision loss
+        let maximum_allowed_precision_loss = possible_lp_token_precision_loss_collateral_value
+            .checked_add(1)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        let target_minimal_allowed_value = target
+            .checked_sub(maximum_allowed_precision_loss)
             .ok_or_else(|| error!(UxdError::MathError))?;
 
         require!(
-            // Without precision loss
-            minted_lp_token_value == collateral_amount
-            ||
-            // With precision loss 
-            minted_lp_token_value == collateral_amount_minus_precision_loss,
+            (target_minimal_allowed_value..target).contains(&minted_lp_token_value),
             UxdError::SlippageReached,
         );
 
@@ -302,6 +311,38 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
             UxdError::RedeemableMercurialVaultAmountUnderManagementCap
         );
         Ok(())
+    }
+
+    // Calculate how much collateral could be lost in possible LP token precision loss
+    fn calculate_possible_lp_token_precision_loss_collateral_value(&self) -> Result<u64> {
+        let current_time = u64::try_from(Clock::get()?.unix_timestamp)
+            .ok()
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        // Calculate the price of 1 native LP token
+        // Do not use mercurial_vault.get_amount_by_share because it does not handle precision loss
+        let total_amount = self
+            .mercurial_vault
+            .get_unlocked_amount(current_time)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        let one_lp_token_collateral_value = I80F48::from_num(1)
+            .checked_mul(
+                I80F48::checked_from_num(total_amount)
+                    .ok_or_else(|| error!(UxdError::MathError))?,
+            )
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_div(
+                I80F48::checked_from_num(self.mercurial_vault_lp_mint.supply)
+                    .ok_or_else(|| error!(UxdError::MathError))?,
+            )
+            .ok_or_else(|| error!(UxdError::MathError))?
+            .checked_ceil()
+            .ok_or_else(|| error!(UxdError::MathError))?;
+
+        one_lp_token_collateral_value
+            .checked_to_num()
+            .ok_or_else(|| error!(UxdError::MathError))
     }
 }
 
