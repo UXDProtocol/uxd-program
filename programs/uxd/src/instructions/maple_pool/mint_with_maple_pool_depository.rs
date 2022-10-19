@@ -313,15 +313,18 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         pool_shares_amount_after,
         pool_value_amount_after,
     )?;
+    let allowed_precision_loss_amount = single_share_value_amount
+        .checked_add(1)
+        .ok_or(UxdError::MathError)?;
     msg!(
-        "[mint_with_maple_pool_depository:check_precision_loss:{}]",
-        single_share_value_amount
+        "[mint_with_maple_pool_depository:allow_precision_loss:{}]",
+        allowed_precision_loss_amount
     );
     require!(
         is_equal_with_precision_loss(
             collateral_amount_deposited,
             owned_value_increase,
-            single_share_value_amount
+            allowed_precision_loss_amount
         )?,
         UxdError::CollateralDepositDoesntMatchTokenValue,
     );
