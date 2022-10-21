@@ -1019,6 +1019,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "mango-v3-reimbursement"
+version = "0.1.0"
+source = "git+https://github.com/UXDProtocol/mango-v3-reimbursement?branch=adapt-dependencies#d690d37ab7377aeae63a6d37e241fc9f565f2dea"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "solana-program",
+ "static_assertions",
+]
+
+[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1939,6 +1950,7 @@ dependencies = [
  "anchor-spl",
  "fixed",
  "mango",
+ "mango-v3-reimbursement",
  "num-traits",
  "proptest",
  "solana-program",

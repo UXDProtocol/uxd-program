@@ -24,6 +24,7 @@ development = []
 solana-program = "^1.8.0"
 spl-token = { version = "3.3.0", features = ["no-entrypoint"] }
 mango = { tag = "v3.4.6", git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
+mango-v3-reimbursement = { git = "https://github.com/UXDProtocol/mango-v3-reimbursement", branch="adapt-dependencies", features = ["cpi"] }
 anchor-lang = "0.24.2"
 anchor-spl = "0.24.2"
 anchor-comp = { version = "0.2.3", git = "https://github.com/UXDProtocol/anchor-comp", default-features = false, features = ["no-entrypoint", "development"] }
