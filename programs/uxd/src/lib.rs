@@ -415,6 +415,19 @@ pub mod uxd {
         msg!("[disable_depository_minting] disable {}", disable);
         instructions::disable_depository_regular_minting::handler(ctx, disable)
     }
+
+    pub fn mango_reimburse(
+        ctx: Context<MangoReimburse>,
+        token_index: usize,
+        index_into_table: usize,
+    ) -> Result<()> {
+        msg!(
+            "[mango_reimburse] token_index {} / index_into_table {}",
+            token_index,
+            index_into_table
+        );
+        instructions::mango_reimburse::handler(ctx, token_index, index_into_table)
+    }
 }
 
 /// Checks that the perp_market_index provided matches the collateral of the depository. Same for Quote.

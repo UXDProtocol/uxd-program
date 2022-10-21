@@ -90,6 +90,10 @@ pub enum UxdError {
     InvalidQuoteCurrency,
     #[msg("The mango group is not the expected one.")]
     UnmatchedMangoGroupWithController,
+    #[msg("Mango reimburse led to getting 0 tokens.")]
+    MangoReimburseSentBackZeroToken,
+    #[msg("Token accounts balances are different than expected.")]
+    TokenAccountsBalanceUnexpectedDifferences,
 
     /// Anchor DSL related errors
     ///
