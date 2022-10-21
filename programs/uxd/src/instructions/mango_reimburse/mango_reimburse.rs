@@ -86,8 +86,8 @@ pub struct MangoReimburse<'info> {
     /// #11
     #[account(
         mut,
-        seeds = [b"ReimbursementAccount".as_ref(), mango_reimbursement_group.key().as_ref(), depository.key().as_ref()],
-        bump,
+        // seeds = [b"ReimbursementAccount".as_ref(), mango_reimbursement_group.key().as_ref(), depository.key().as_ref()],
+        // bump,
     )]
     pub mango_reimbursement_account: AccountLoader<'info, ReimbursementAccount>,
 
@@ -145,6 +145,15 @@ pub(crate) fn handler(
     let depository_token_account_balance_at_start = ctx.accounts.depository_token_account.amount;
     let authority_token_account_balance_at_start = ctx.accounts.authority_token_account.amount;
 
+    msg!(
+        "depository_token_account_balance_at_start: {}",
+        depository_token_account_balance_at_start
+    );
+    msg!(
+        "authority_token_account_balance_at_start: {}",
+        authority_token_account_balance_at_start
+    );
+
     // 2 - Receive tokens from mango reimbursement program in the depository's token ATA
     mango_v3_reimbursement::cpi::reimburse(
         ctx.accounts
@@ -161,9 +170,16 @@ pub(crate) fn handler(
     let depository_token_account_balance_after_reimburse_call =
         ctx.accounts.depository_token_account.amount;
 
+    msg!(
+        "depository_token_account_balance_after_reimburse_call: {}",
+        depository_token_account_balance_after_reimburse_call
+    );
+
     let received_token_amount = depository_token_account_balance_after_reimburse_call
         .checked_sub(depository_token_account_balance_at_start)
         .ok_or_else(|| error!(UxdError::MathError))?;
+
+    msg!("received_token_amount: {}", received_token_amount);
 
     require!(
         received_token_amount > 0,
@@ -187,6 +203,15 @@ pub(crate) fn handler(
 
     let authority_token_account_balance_after_final_transfer =
         ctx.accounts.authority_token_account.amount;
+
+    msg!(
+        "depository_token_account_balance_after_final_transfer: {}",
+        depository_token_account_balance_after_final_transfer
+    );
+    msg!(
+        "authority_token_account_balance_after_final_transfer: {}",
+        authority_token_account_balance_after_final_transfer
+    );
 
     // Depository's token account balance should be the same
     require!(

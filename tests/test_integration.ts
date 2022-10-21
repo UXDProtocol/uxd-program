@@ -10,6 +10,8 @@ import { mangoDepositoryMintRedeemSuite } from "./suite/mangoDepositoryMintRedee
 import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParameters } from "./suite/mangoDepositoryRebalancingSuite";
 import { mangoDepositoryAndControllerAccountingSuite } from "./suite/mangoDepositoryAndControllerAccountingSuite";
 import { disableDepositoryMintingSuite } from "./suite/disableDepositoryMintingSuite";
+import { mangoReimbursementSuite } from "./suite/mangoReimbursementSuite";
+import { AnchorProvider } from "@project-serum/anchor";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -23,15 +25,30 @@ console.log(`ETH 🥭🔗 'https://devnet.mango.markets/account?pubkey=${mangoDe
 
 beforeEach("\n", function () { console.log("=============================================\n\n") });
 
-describe("UXD Controller Suite", function () {
+describe.skip("UXD Controller Suite", function () {
     const params = new controllerIntegrationSuiteParameters(25_000_000, 500_000);
     controllerIntegrationSuite(authority, bank, controllerUXD, params);
 });
 
 let user: Signer = new Keypair();
 
+describe("Integration tests mango reimbursement", function () {
+    this.beforeAll("Init and fund user", async function () {
+        console.log("USER =>", user.publicKey.toString());
+        await transferSol(1, bank, user.publicKey);
+    });
+
+    describe("mangoReimbursementSuite", function () {
+        mangoReimbursementSuite(authority, bank, mangoDepositorySOL, controllerUXD, AnchorProvider.local("https://mango.devnet.rpcpool.com"));
+    });
+
+    this.afterAll("Transfer funds back to bank", async function () {
+        await transferAllSol(user, bank.publicKey);
+    });
+});
+
 // SOL
-describe("Integration tests SOL", function () {
+describe.skip("Integration tests SOL", function () {
 
     this.beforeAll("Init and fund user", async function () {
         console.log("USER =>", user.publicKey.toString());
