@@ -64,6 +64,7 @@ pub struct MangoReimburse<'info> {
     pub depository_token_account: Box<Account<'info, TokenAccount>>,
 
     /// #8
+    /// CHECK : Seeds checked. Depository registered
     #[account(
         mut,
         seeds = [MANGO_ACCOUNT_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
@@ -106,6 +107,7 @@ pub struct MangoReimburse<'info> {
     pub mango_reimbursement_claim_mint: Box<Account<'info, Mint>>,
 
     /// #14
+    /// CHECK: Checked by the mango reimbursement program
     pub mango_reimbursement_table: UncheckedAccount<'info>,
 
     /// #15
