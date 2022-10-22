@@ -14,3 +14,7 @@ export function getConnection(): Connection {
   const provider = AnchorProvider.local("https://mango.devnet.rpcpool.com");
   return provider.connection;
 }
+
+export function getProvider(): AnchorProvider {
+  return AnchorProvider.local("https://mango.devnet.rpcpool.com");
+}

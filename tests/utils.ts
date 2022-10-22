@@ -12,8 +12,22 @@ import { PublicKey, Signer } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
+import { MangoV3ReimbursementProgramId } from "./constants";
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
+
+export async function findMangoReimbursementAccountAddress(mangoReimbursementGroup: PublicKey, mangoAccountOwner: PublicKey) {
+  return (
+    await PublicKey.findProgramAddress(
+      [
+        Buffer.from("ReimbursementAccount"),
+        mangoReimbursementGroup.toBuffer()!,
+        mangoAccountOwner.toBuffer(),
+      ],
+      MangoV3ReimbursementProgramId
+    )
+  )[0];
+}
 
 export async function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
   const transaction = new anchor.web3.Transaction().add(

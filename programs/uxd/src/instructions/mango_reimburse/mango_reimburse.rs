@@ -58,8 +58,8 @@ pub struct MangoReimburse<'info> {
     /// before transferring it to authority_token_account
     #[account(
         mut,
-        constraint = authority_token_account.mint == token_mint.key(),
-        constraint = &authority_token_account.owner == authority.key @UxdError::InvalidOwner,
+        constraint = depository_token_account.mint == token_mint.key(),
+        constraint = depository_token_account.owner == depository.key() @UxdError::InvalidOwner,
     )]
     pub depository_token_account: Box<Account<'info, TokenAccount>>,
 
@@ -84,11 +84,7 @@ pub struct MangoReimburse<'info> {
     pub mango_reimbursement_vault: Account<'info, TokenAccount>,
 
     /// #11
-    #[account(
-        mut,
-        // seeds = [b"ReimbursementAccount".as_ref(), mango_reimbursement_group.key().as_ref(), depository.key().as_ref()],
-        // bump,
-    )]
+    #[account(mut)]
     pub mango_reimbursement_account: AccountLoader<'info, ReimbursementAccount>,
 
     /// #12

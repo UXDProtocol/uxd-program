@@ -1,8 +1,9 @@
-import { getConnection, TXN_OPTS } from "./connection";
-import { uxdClient } from "./constants";
-import { Keypair, Signer, Transaction } from "@solana/web3.js";
+import { getConnection, getProvider, TXN_OPTS } from "./connection";
+import { MANGO_REIMBURSEMENT_TABLE, uxdClient } from "./constants";
+import { Keypair, PublicKey, Signer, Transaction } from "@solana/web3.js";
 import { NATIVE_MINT } from "@solana/spl-token";
-import { createAssociatedTokenAccountItx, prepareWrappedSolTokenAccount } from "./utils";
+import { createAssociatedTokenAccountItx, findMangoReimbursementAccountAddress, prepareWrappedSolTokenAccount } from "./utils";
+import { MangoV3ReimbursementClient, ID as MangoV3ReimbursementProgramId } from '@blockworks-foundation/mango-v3-reimbursement-lib/dist/client';
 import {
   MangoDepository,
   Mango,
@@ -62,6 +63,98 @@ export async function registerMangoDepository(
   }
   tx.feePayer = payer.publicKey;
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function mangoReimbursement(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: MangoDepository,
+  mangoReimbursementGroup: PublicKey,
+  tokenMint: PublicKey,
+): Promise<void> {
+  const mangoV3ReimbursementClient = new MangoV3ReimbursementClient(getProvider());
+
+  const onChainMangoReimbursementGroup = await mangoV3ReimbursementClient.program.account.group.fetch(mangoReimbursementGroup);
+
+  const tokenIndex = onChainMangoReimbursementGroup.mints.findIndex(mint => mint.equals(tokenMint));
+  const mangoReimbursementVault = onChainMangoReimbursementGroup.vaults[tokenIndex];
+  const mangoReimbursementClaimMint = onChainMangoReimbursementGroup.claimMints[tokenIndex];
+
+  const [mangoReimbursementClaimMintTokenAccount] = findATAAddrSync(onChainMangoReimbursementGroup.claimTransferDestination, mangoReimbursementClaimMint);
+
+  // Setup the reimbursement account
+  const mangoReimbursementAccount = await findMangoReimbursementAccountAddress(mangoReimbursementGroup, depository.pda);
+
+  const signers = [];
+  const tx = new Transaction();
+
+  if (!(await getConnection().getAccountInfo(mangoReimbursementAccount))) {
+    const ix = await mangoV3ReimbursementClient.program.methods
+      .createReimbursementAccount()
+      .accounts({
+        group: mangoReimbursementGroup,
+        mangoAccountOwner: depository.pda,
+        payer: payer.publicKey,
+      })
+      .instruction();
+
+    tx.add(ix);
+  } else {
+    console.log('Reimbursement account already set up', mangoReimbursementAccount.toBase58());
+  }
+
+  // Find at the mango_account_owner within the table
+  const rows = await mangoV3ReimbursementClient.decodeTable(onChainMangoReimbursementGroup);
+
+  const indexToTable = rows.findIndex((row) => row.owner.equals(depository.pda));
+
+  const mangoReimburseIx = uxdClient.createMangoReimburseInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    tokenMint,
+    tokenIndex,
+    MangoV3ReimbursementProgramId,
+    mangoReimbursementGroup,
+    mangoReimbursementVault,
+    mangoReimbursementAccount,
+    mangoReimbursementClaimMintTokenAccount,
+    mangoReimbursementClaimMint,
+    MANGO_REIMBURSEMENT_TABLE,
+    indexToTable,
+    TXN_OPTS,
+  );
+
+  // Init the authority token account if not initialized
+  const [authorityTokenAccount] = findATAAddrSync(authority.publicKey, tokenMint);
+  if (!(await getConnection().getAccountInfo(authorityTokenAccount))) {
+    const createAuthorityTokenATAIx = createAssocTokenIx(authority.publicKey, authorityTokenAccount, tokenMint, payer.publicKey);
+    tx.add(createAuthorityTokenATAIx);
+  }
+
+  // Init the depository token account if not initialized
+  const [depositoryTokenAccount] = findATAAddrSync(depository.pda, tokenMint);
+  if (!(await getConnection().getAccountInfo(authorityTokenAccount))) {
+    const createDepositoryTokenATAIx = createAssocTokenIx(depository.pda, depositoryTokenAccount, tokenMint, payer.publicKey);
+    tx.add(createDepositoryTokenATAIx);
+  }
+
+  tx.instructions.push(mangoReimburseIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  tx.recentBlockhash = (await getConnection().getLatestBlockhash()).blockhash;
+  tx.sign(authority, payer);
+
+  console.log('Reimburse tx', tx.serialize().toString('base64'));
+
+  // const signature = await sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  // console.log(
+  //     `reimburse, sig https://explorer.solana.com/tx/${signature}?cluster=devnet`
+  // );
 }
 
 export async function depositInsuranceToMangoDepository(
@@ -426,57 +519,57 @@ export async function editController(
 }
 
 export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, rebalancingMaxAmountQuote: number, polarity: PnLPolarity, slippage: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
-    const rebalanceMangoDepositoryLiteIx = await uxdClient.createRebalanceMangoDepositoryLiteInstruction(rebalancingMaxAmountQuote, slippage, polarity, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
-    let signers = [];
-    let tx = new Transaction();
+  const rebalanceMangoDepositoryLiteIx = await uxdClient.createRebalanceMangoDepositoryLiteInstruction(rebalancingMaxAmountQuote, slippage, polarity, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
+  let signers = [];
+  let tx = new Transaction();
 
-    // Only when polarity is positive this is required 
-    // - Negative polarity sends QUOTE, gets COLLATERAL back.
-    // - Positive polarity sends COLLATERAL, gets QUOTE back.
-    if (polarity == PnLPolarity.Positive && depository.collateralMint.equals(NATIVE_MINT)) {
-        const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const rebalancingMaxAmountCollateral = rebalancingMaxAmountQuote / mangoPerpPrice;
-        const nativeAmount = uiToNative(rebalancingMaxAmountCollateral, depository.collateralMintDecimals);
-        const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
-            getConnection(),
-            payer.publicKey,
-            user.publicKey,
-            nativeAmount.toNumber()
-        );
-        tx.add(...prepareWrappedSolIxs);
-    }
+  // Only when polarity is positive this is required 
+  // - Negative polarity sends QUOTE, gets COLLATERAL back.
+  // - Positive polarity sends COLLATERAL, gets QUOTE back.
+  if (polarity == PnLPolarity.Positive && depository.collateralMint.equals(NATIVE_MINT)) {
+    const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
+    const rebalancingMaxAmountCollateral = rebalancingMaxAmountQuote / mangoPerpPrice;
+    const nativeAmount = uiToNative(rebalancingMaxAmountCollateral, depository.collateralMintDecimals);
+    const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
+      getConnection(),
+      payer.publicKey,
+      user.publicKey,
+      nativeAmount.toNumber()
+    );
+    tx.add(...prepareWrappedSolIxs);
+  }
 
-    const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
+  const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
 
-    if (!await getConnection().getAccountInfo(userCollateralAta)) {
-        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
-        tx.add(createUserCollateralAtaIx);
-    }
+  if (!await getConnection().getAccountInfo(userCollateralAta)) {
+    const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
+    tx.add(createUserCollateralAtaIx);
+  }
 
-    const userQuoteATA = findATAAddrSync(user.publicKey, depository.quoteMint)[0];
+  const userQuoteATA = findATAAddrSync(user.publicKey, depository.quoteMint)[0];
 
-    if (!await getConnection().getAccountInfo(userQuoteATA)) {
-        const createUserQuoteAtaIx = createAssocTokenIx(user.publicKey, userQuoteATA, depository.quoteMint);
-        tx.add(createUserQuoteAtaIx);
-    }
+  if (!await getConnection().getAccountInfo(userQuoteATA)) {
+    const createUserQuoteAtaIx = createAssocTokenIx(user.publicKey, userQuoteATA, depository.quoteMint);
+    tx.add(createUserQuoteAtaIx);
+  }
 
-    signers.push(user);
-    if (payer) {
-        signers.push(payer);
-    }
-    tx.feePayer = payer.publicKey;
-    await web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  signers.push(user);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  await web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 
-    tx = new Transaction();
-    tx.add(rebalanceMangoDepositoryLiteIx);
-    tx.feePayer = payer.publicKey;
-    let txId = web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  tx = new Transaction();
+  tx.add(rebalanceMangoDepositoryLiteIx);
+  tx.feePayer = payer.publicKey;
+  let txId = web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 
-    // PNL should be settled afterward to ensure we have no "borrow" to prevent paying interests
-    // const settlePnlTxID = await settleDepositoryPnl(payer, depository, mango);
-    // console.log("🔗 depository PnL settlement Tx:", `'https://explorer.solana.com/tx/${settlePnlTxID}?cluster=${CLUSTER}'`);
+  // PNL should be settled afterward to ensure we have no "borrow" to prevent paying interests
+  // const settlePnlTxID = await settleDepositoryPnl(payer, depository, mango);
+  // console.log("🔗 depository PnL settlement Tx:", `'https://explorer.solana.com/tx/${settlePnlTxID}?cluster=${CLUSTER}'`);
 
-    return txId;
+  return txId;
 }
 
 export async function editMangoDepository(

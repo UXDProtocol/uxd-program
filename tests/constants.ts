@@ -1,6 +1,7 @@
 import { Keypair, PublicKey, Signer } from "@solana/web3.js";
 import { UXDClient } from "@uxd-protocol/uxd-client";
 import * as jsonIdl from "../target/idl/uxd.json";
+import { ID as LocalMangoV3ReimbursementProgramId } from '@blockworks-foundation/mango-v3-reimbursement-lib/dist/client';
 
 // TESTING wallets for convenience (The user and admin). To remove when going open source
 
@@ -36,3 +37,7 @@ console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
 export const uxdClient = new UXDClient(uxdProgramId);
 
 export const slippageBase = 1000;
+
+export const MangoV3ReimbursementProgramId = LocalMangoV3ReimbursementProgramId;
+
+export const MANGO_REIMBURSEMENT_TABLE = new PublicKey('tab2GSQhmstsCiPmPABk1F8QnffSaFEXnqbef7AkEnB');

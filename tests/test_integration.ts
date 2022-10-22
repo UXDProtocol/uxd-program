@@ -11,7 +11,6 @@ import { mangoDepositoryRebalancingSuite, MangoDepositoryRebalancingSuiteParamet
 import { mangoDepositoryAndControllerAccountingSuite } from "./suite/mangoDepositoryAndControllerAccountingSuite";
 import { disableDepositoryMintingSuite } from "./suite/disableDepositoryMintingSuite";
 import { mangoReimbursementSuite } from "./suite/mangoReimbursementSuite";
-import { AnchorProvider } from "@project-serum/anchor";
 
 // Should use the quote info from mango.quoteToken instead of guessing it, but it's not changing often... 
 const mangoDepositorySOL = new MangoDepository(WSOL, "SOL", SOL_DECIMALS, USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
@@ -39,7 +38,7 @@ describe("Integration tests mango reimbursement", function () {
     });
 
     describe("mangoReimbursementSuite", function () {
-        mangoReimbursementSuite(authority, bank, mangoDepositorySOL, controllerUXD, AnchorProvider.local("https://mango.devnet.rpcpool.com"));
+        mangoReimbursementSuite(authority, bank, mangoDepositorySOL, controllerUXD);
     });
 
     this.afterAll("Transfer funds back to bank", async function () {
