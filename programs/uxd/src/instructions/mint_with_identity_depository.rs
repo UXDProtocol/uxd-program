@@ -1,3 +1,16 @@
+use crate::Controller;
+use crate::UxdError;
+use crate::CONTROLLER_NAMESPACE;
+use crate::REDEEMABLE_MINT_NAMESPACE;
+use anchor_comp::mango_markets_v3;
+use anchor_comp::mango_markets_v3::MangoMarketV3;
+use anchor_lang::prelude::*;
+use anchor_spl::token;
+use anchor_spl::token::Mint;
+use anchor_spl::token::MintTo;
+use anchor_spl::token::Token;
+use anchor_spl::token::TokenAccount;
+
 #[derive(Accounts)]
 pub struct MintWithIdentityDepository<'info> {
     /// #1 Public call accessible to any user
@@ -31,7 +44,7 @@ pub struct MintWithIdentityDepository<'info> {
         mut,
         seeds = [IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE],
         token::authority = depository,
-        token::mint = collateral,
+        token::mint = depository.load()?.collateral_mint,
         bump = depository.load()?.collateral_vault_bump,
     )]
     pub collateral_vault: Box<Account<'info, TokenAccount>>,
@@ -78,7 +91,7 @@ pub(crate) fn handler(
     let collateral_mint = depository.collateral_mint;
 
     // - 1 [TRANSFER COLLATERAL FROM USER TO COLLATERAL_VAULT]
-    // Todo
+    // token::
 
     // - 4 [MINTS 1:1 equivalent]
     let redeemable_mint_amount = collateral_amount;
