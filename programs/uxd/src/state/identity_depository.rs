@@ -2,6 +2,7 @@ use std::mem::size_of;
 
 use anchor_lang::prelude::*;
 
+pub const IDENTITY_DEPOSITORY_RESERVED_SPACE: usize = 512;
 pub const IDENTITY_DEPOSITORY_SPACE: usize = 8
     + size_of<u8>() // bump
     + size_of<u8>() // version
@@ -13,6 +14,7 @@ pub const IDENTITY_DEPOSITORY_SPACE: usize = 8
     + size_of<u128>() // collateral_amount_deposited
     + size_of<u128>() // redeemable_under_management
     + size_of<u8>() // regular_minting_disabled
+    + IDENTITY_DEPOSITORY_RESERVED_SPACE
     ;
 
 #[account(zero_copy)]

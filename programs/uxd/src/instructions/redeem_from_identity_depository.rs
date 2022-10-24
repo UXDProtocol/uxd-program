@@ -1,3 +1,15 @@
+use crate::error::UxdError;
+use crate::Controller;
+use crate::CONTROLLER_NAMESPACE;
+use crate::REDEEMABLE_MINT_NAMESPACE;
+use anchor_lang::prelude::*;
+use anchor_spl::token;
+use anchor_spl::token::Burn;
+use anchor_spl::token::CloseAccount;
+use anchor_spl::token::Mint;
+use anchor_spl::token::Token;
+use anchor_spl::token::TokenAccount;
+
 #[derive(Accounts)]
 pub struct RedeemFromIdentityDepository<'info> {
     /// #1 Public call accessible to any user
@@ -31,7 +43,7 @@ pub struct RedeemFromIdentityDepository<'info> {
         mut,
         seeds = [IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE],
         token::authority = depository,
-        token::mint = collateral,
+        token::mint = depository.load()?.collateral_mint,
         bump = depository.load()?.collateral_vault_bump,
     )]
     pub collateral_vault: Box<Account<'info, TokenAccount>>,
