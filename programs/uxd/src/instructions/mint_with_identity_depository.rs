@@ -10,6 +10,7 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
+use anchor_spl::token::Transfer;
 
 #[derive(Accounts)]
 pub struct MintWithIdentityDepository<'info> {
@@ -87,40 +88,51 @@ pub(crate) fn handler(
     ctx: Context<MintWithIdentityDepository>,
     collateral_amount: u64,
 ) -> Result<()> {
-    let depository = ctx.accounts.depository.load()?;
-    let collateral_mint = depository.collateral_mint;
-
-    // - 1 [TRANSFER COLLATERAL FROM USER TO COLLATERAL_VAULT]
-    // token::
-
-    // - 4 [MINTS 1:1 equivalent]
-    let redeemable_mint_amount = collateral_amount;
-    token::mint_to(
-        ctx.accounts
-            .to_mint_redeemable_context()
-            .with_signer(controller_pda_signer),
-        redeemable_mint_amount,
-    )?;
-
-    // - 3 [UPDATE ACCOUNTING]
+    // - 1 [TRANSFER USER'S COLLATERAL TO DEPOSITORY'S VAULT] -----------------
     ctx.accounts
-        .update_onchain_accounting(collateral_amount.into(), redeemable_mint_amount.into())?;
+        .transfer_user_collateral_to_depository_vault(collateral_amount)?;
 
-    // - 6 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
-    ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
+    // - 2 [MINTS REDEEMABLES 1:1 FOR PROVIDED COLLATERAL] --------------------
+    let redeemable_amount = collateral_amount;
+    ctx.accounts.mint_redeemable_to_user(redeemable_amount)?;
 
-    emit!(MintWithIdentityDepositoryEvent {
-        version: ctx.accounts.controller.load()?.version,
-        controller: ctx.accounts.controller.key(),
-        depository: ctx.accounts.depository.key(),
-        user: ctx.accounts.user.key(),
-        collateral_amount,
-    });
+    // - 3 [UPDATE ACCOUNTING] ------------------------------------------------
+    ctx.accounts
+        .update_onchain_accounting(collateral_amount, redeemable_amount)?;
+
+    // - 4 [SANITY CHECKS] ----------------------------------------------------
+    ctx.accounts.sanity_checks()?;
+
+    // - 5 [EVENT LOGGING] ----------------------------------------------------
+    ctx.accounts.event_logging(collateral_amount)?;
 
     Ok(())
 }
 
-// Validate input arguments
+impl<'info> MintWithIdentityDepository<'info> {
+    fn to_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = MintTo {
+            mint: self.redeemable_mint.to_account_info(),
+            to: self.user_redeemable.to_account_info(),
+            authority: self.controller.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    fn to_transfer_collateral_from_user_to_depository_vault_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = Transfer {
+            from: self.user_collateral.to_account_info(),
+            to: self.collateral_vault.to_account_info(),
+            authority: self.user.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
 impl<'info> MintWithIdentityDepository<'info> {
     pub(crate) fn validate(&self, collateral_amount: u64) -> Result<()> {
         require!(collateral_amount != 0, UxdError::InvalidCollateralAmount);
@@ -133,6 +145,72 @@ impl<'info> MintWithIdentityDepository<'info> {
             UxdError::MintingDisabled
         );
 
+        Ok(())
+    }
+
+    pub(crate) fn transfer_user_collateral_to_depository_vault(&self, amount: u64) -> Result<()> {
+        token::transfer(
+            self.accounts
+                .to_transfer_collateral_from_user_to_depository_vault_context(),
+            amount,
+        )?;
+        Ok(())
+    }
+
+    pub(crate) fn mint_redeemable_to_user(&self, amount: u64) -> Result<()> {
+        let controller_bump = self.accounts.controller.load()?.bump;
+        let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller_bump]]];
+        token::mint_to(
+            self.accounts
+                .to_mint_redeemable_context()
+                .with_signer(controller_pda_signer),
+            amount,
+        )?;
+        Ok(())
+    }
+
+    fn update_onchain_accounting(
+        &mut self,
+        collateral_deposited_amount: u128,
+        redeemable_minted_amount: u128,
+    ) -> Result<()> {
+        let depository = &mut self.depository.load_mut()?;
+        let controller = &mut self.controller.load_mut()?;
+        // Depository
+        depository.collateral_amount_deposited = depository
+            .collateral_amount_deposited
+            .checked_add(collateral_deposited_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        depository.redeemable_amount_under_management = depository
+            .redeemable_amount_under_management
+            .checked_add(redeemable_minted_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        // Controller
+        controller.redeemable_circulating_supply = controller
+            .redeemable_circulating_supply
+            .checked_add(redeemable_minted_amount)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        Ok(())
+    }
+
+    pub(crate) fn sanity_checks(&self) -> Result<()> {
+        let controller = self.controller.load()?;
+        // Check for Global supply cap limitation
+        require!(
+            controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
+            UxdError::RedeemableGlobalSupplyCapReached
+        );
+        Ok(())
+    }
+
+    pub(crate) fn event_logging(&self, collateral_amount: u64) -> Result<()> {
+        emit!(MintWithIdentityDepositoryEvent {
+            version: self.controller.load()?.version,
+            controller: ctx.accounts.controller.key(),
+            depository: ctx.accounts.depository.key(),
+            user: ctx.accounts.user.key(),
+            collateral_amount,
+        });
         Ok(())
     }
 }

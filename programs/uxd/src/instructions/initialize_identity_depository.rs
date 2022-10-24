@@ -59,8 +59,6 @@ pub struct InitializeIdentityDepository<'info> {
 }
 
 pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> {
-    let collateral_mint = ctx.accounts.collateral_mint.key();
-
     let depository_bump = *ctx
         .bumps
         .get("depository")
@@ -74,11 +72,11 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
     let depository = &mut ctx.accounts.depository.load_init()?;
     depository.bump = depository_bump;
     depository.version = IDENTITY_DEPOSITORY_ACCOUNT_VERSION;
-    depository.collateral_mint = collateral_mint;
+    depository.collateral_mint = ctx.accounts.collateral_mint.key();
     depository.collateral_mint_decimals = ctx.accounts.collateral_mint.decimals;
     depository.collateral_amount_deposited = u128::MIN;
     depository.collateral_vault = ctx.accounts.collateral_vault.key();
-    depository.collateral_vault_bump = 
+    depository.collateral_vault_bump = collateral_vault_bump;
     depository.redeemable_amount_under_management = u128::MIN;
     depository.regular_minting_disabled = true;
 

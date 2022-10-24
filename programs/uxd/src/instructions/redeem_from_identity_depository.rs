@@ -5,8 +5,6 @@ use crate::REDEEMABLE_MINT_NAMESPACE;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
-use anchor_spl::token::CloseAccount;
-use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
