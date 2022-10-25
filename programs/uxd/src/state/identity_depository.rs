@@ -4,18 +4,17 @@ use anchor_lang::prelude::*;
 
 pub const IDENTITY_DEPOSITORY_RESERVED_SPACE: usize = 512;
 pub const IDENTITY_DEPOSITORY_SPACE: usize = 8
-    + size_of<u8>() // bump
-    + size_of<u8>() // version
-    + size_of<Pubkey>() // collateral_mint
-    + size_of<u8>() // collateral_mint_decimal
-    + size_of<Pubkey>() // collateral_vault
-    + size_of<u8>() // collateral_vault_bump
-    + size_of<Pubkey>() // controller
-    + size_of<u128>() // collateral_amount_deposited
-    + size_of<u128>() // redeemable_under_management
-    + size_of<u8>() // regular_minting_disabled
-    + IDENTITY_DEPOSITORY_RESERVED_SPACE
-    ;
+    + 1 // bump
+    + 1 // version
+    + 32 // collateral_mint
+    + 1 // collateral_mint_decimal
+    + 32 // collateral_vault
+    + 1 // collateral_vault_bump
+    + 32 // controller
+    + 16 // collateral_amount_deposited
+    + 16 // redeemable_under_management
+    + 1 // regular_minting_disabled
+    + IDENTITY_DEPOSITORY_RESERVED_SPACE;
 
 #[account(zero_copy)]
 #[repr(packed)]
