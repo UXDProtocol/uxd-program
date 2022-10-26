@@ -22,7 +22,7 @@ use crate::MAPLE_POOL_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 
 #[derive(Accounts)]
-#[instruction(collateral_amount_deposited: u64)]
+#[instruction(collateral_amount: u64)]
 pub struct MintWithMaplePoolDepository<'info> {
     /// #1
     pub user: Signer<'info>,
