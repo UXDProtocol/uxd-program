@@ -455,11 +455,8 @@ impl<'info> MintWithMaplePoolDepository<'info> {
 
 // Validate
 impl<'info> MintWithMaplePoolDepository<'info> {
-    pub fn validate(&self, collateral_amount_deposited: u64) -> Result<()> {
-        require!(
-            collateral_amount_deposited > 0,
-            UxdError::InvalidCollateralAmount
-        );
+    pub fn validate(&self, collateral_amount: u64) -> Result<()> {
+        require!(collateral_amount > 0, UxdError::InvalidCollateralAmount);
         Ok(())
     }
 }
