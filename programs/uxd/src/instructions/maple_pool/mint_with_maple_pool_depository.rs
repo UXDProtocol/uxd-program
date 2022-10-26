@@ -16,7 +16,6 @@ use crate::utils::calculate_amount_less_fees;
 use crate::utils::checked_i64_to_u64;
 use crate::utils::compute_delta;
 use crate::utils::is_equal_with_precision_loss;
-use crate::utils::validate_collateral_mint_usdc;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MAPLE_POOL_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::MAPLE_POOL_DEPOSITORY_NAMESPACE;
@@ -25,14 +24,14 @@ use crate::REDEEMABLE_MINT_NAMESPACE;
 #[derive(Accounts)]
 #[instruction(collateral_amount_deposited: u64)]
 pub struct MintWithMaplePoolDepository<'info> {
-    // Account 1
+    /// #1
     pub user: Signer<'info>,
 
-    // Account 2
+    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    // Account 3
+    /// #3
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -42,12 +41,13 @@ pub struct MintWithMaplePoolDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    // Account 4
+    /// #4
     #[account(
         mut,
         seeds = [MAPLE_POOL_DEPOSITORY_NAMESPACE, depository.load()?.maple_pool.key().as_ref(), depository.load()?.collateral_mint.as_ref()],
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
         has_one = maple_pool @UxdError::InvalidMaplePool,
         has_one = maple_lender @UxdError::InvalidMapleLender,
         has_one = maple_shares_mint @UxdError::InvalidMapleSharesMint,
@@ -56,17 +56,16 @@ pub struct MintWithMaplePoolDepository<'info> {
     )]
     pub depository: AccountLoader<'info, MaplePoolDepository>,
 
-    // Account 5
+    /// #5
     #[account(
         mut,
         seeds = [MAPLE_POOL_DEPOSITORY_COLLATERAL_NAMESPACE, depository.key().as_ref(), collateral_mint.key().as_ref()],
         bump = depository.load()?.depository_collateral_bump,
         token::authority = depository,
-        constraint = depository_collateral.mint == collateral_mint.key()
     )]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    // Account 6
+    /// #6
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
@@ -74,7 +73,7 @@ pub struct MintWithMaplePoolDepository<'info> {
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
-    // Account 7
+    /// #7
     #[account(
         mut,
         constraint = user_redeemable.mint == controller.load()?.redeemable_mint @UxdError::InvalidRedeemableMint,
@@ -82,10 +81,10 @@ pub struct MintWithMaplePoolDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    // Account 8
+    /// #8
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    // Account 9
+    /// #9
     #[account(
         mut,
         constraint = user_collateral.mint == maple_pool.base_mint,
@@ -93,15 +92,15 @@ pub struct MintWithMaplePoolDepository<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    // Account 10
+    /// #10
     #[account(address = maple_pool.globals)]
     pub maple_globals: Box<Account<'info, syrup_cpi::Globals>>,
 
-    // Account 11
+    /// #11
     #[account(mut, address = maple_lender.pool)]
     pub maple_pool: Box<Account<'info, syrup_cpi::Pool>>,
 
-    // Account 12
+    /// #12
     #[account(
         mut,
         address = maple_pool.locker,
@@ -109,15 +108,15 @@ pub struct MintWithMaplePoolDepository<'info> {
     )]
     pub maple_pool_locker: Box<Account<'info, TokenAccount>>,
 
-    // Account 13
+    /// #13
     #[account(mut)]
     pub maple_lender: Box<Account<'info, syrup_cpi::Lender>>,
 
-    // Account 14
+    /// #14
     #[account(mut, address = maple_pool.shares_mint)]
     pub maple_shares_mint: Box<Account<'info, Mint>>,
 
-    // Account 15
+    /// #15
     #[account(
         mut,
         address = maple_lender.locked_shares,
@@ -126,7 +125,7 @@ pub struct MintWithMaplePoolDepository<'info> {
     )]
     pub maple_locked_shares: Box<Account<'info, TokenAccount>>,
 
-    // Account 16
+    /// #16
     #[account(
         mut,
         address = maple_lender.lender_shares,
@@ -135,15 +134,15 @@ pub struct MintWithMaplePoolDepository<'info> {
     )]
     pub maple_lender_shares: Box<Account<'info, TokenAccount>>,
 
-    // Account 17
+    /// #17
     pub system_program: Program<'info, System>,
-    // Account 18
+    /// #18
     pub token_program: Program<'info, Token>,
-    // Account 19
+    /// #19
     pub associated_token_program: Program<'info, AssociatedToken>,
-    // Account 20
+    /// #20
     pub syrup_program: Program<'info, syrup_cpi::program::Syrup>,
-    // Account 21
+    /// #21
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -161,6 +160,10 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         &[depository.bump],
     ]];
 
+    // Drop loaded references
+    drop(controller);
+    drop(depository);
+
     // We will try to deposit the exact amount requested by the user
     let collateral_amount_deposited = collateral_amount;
 
@@ -170,16 +173,16 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     let user_collateral_amount_before: u64 = ctx.accounts.user_collateral.amount;
     let pool_collateral_amount_before: u64 = ctx.accounts.maple_pool_locker.amount;
     let pool_shares_amount_before: u64 = ctx.accounts.maple_pool.shares_outstanding;
-    let pool_value_amount_before: u64 = ctx.accounts.maple_pool.total_value;
+    let pool_shares_value_before: u64 = ctx.accounts.maple_pool.total_value;
     let locked_shares_amount_before: u64 = ctx.accounts.maple_locked_shares.amount;
     let lender_shares_amount_before: u64 = ctx.accounts.maple_lender_shares.amount;
     let owned_shares_amount_before: u64 = ctx
         .accounts
         .compute_owned_shares_amount(locked_shares_amount_before, lender_shares_amount_before)?;
-    let owned_value_amount_before: u64 = ctx.accounts.compute_share_value_amount(
+    let owned_shares_value_before: u64 = ctx.accounts.compute_shares_value(
         owned_shares_amount_before,
         pool_shares_amount_before,
-        pool_value_amount_before,
+        pool_shares_value_before,
     )?;
 
     // Transfer the collateral to an account owned by the depository
@@ -214,16 +217,16 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     let user_collateral_amount_after: u64 = ctx.accounts.user_collateral.amount;
     let pool_collateral_amount_after: u64 = ctx.accounts.maple_pool_locker.amount;
     let pool_shares_amount_after: u64 = ctx.accounts.maple_pool.shares_outstanding;
-    let pool_value_amount_after: u64 = ctx.accounts.maple_pool.total_value;
+    let pool_shares_value_after: u64 = ctx.accounts.maple_pool.total_value;
     let locked_shares_amount_after: u64 = ctx.accounts.maple_locked_shares.amount;
     let lender_shares_amount_after: u64 = ctx.accounts.maple_lender_shares.amount;
     let owned_shares_amount_after: u64 = ctx
         .accounts
         .compute_owned_shares_amount(locked_shares_amount_after, lender_shares_amount_after)?;
-    let owned_value_amount_after: u64 = ctx.accounts.compute_share_value_amount(
+    let owned_shares_value_after: u64 = ctx.accounts.compute_shares_value(
         owned_shares_amount_after,
         pool_shares_amount_after,
-        pool_value_amount_after,
+        pool_shares_value_after,
     )?;
 
     // Compute changes in states
@@ -232,17 +235,18 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         depository_collateral_amount_before,
         depository_collateral_amount_after,
     )?;
-    let user_collateral_delta: i64 =
+    let user_collateral_amount_delta: i64 =
         compute_delta(user_collateral_amount_before, user_collateral_amount_after)?;
-    let pool_collateral_delta: i64 =
+    let pool_collateral_amount_delta: i64 =
         compute_delta(pool_collateral_amount_before, pool_collateral_amount_after)?;
-    let pool_shares_delta: i64 =
+    let pool_shares_amount_delta: i64 =
         compute_delta(pool_shares_amount_before, pool_shares_amount_after)?;
-    let pool_value_delta: i64 = compute_delta(pool_value_amount_before, pool_value_amount_after)?;
-    let owned_shares_delta: i64 =
+    let pool_shares_value_delta: i64 =
+        compute_delta(pool_shares_value_before, pool_shares_value_after)?;
+    let owned_shares_amount_delta: i64 =
         compute_delta(owned_shares_amount_before, owned_shares_amount_after)?;
-    let owned_value_delta: i64 =
-        compute_delta(owned_value_amount_before, owned_value_amount_after)?;
+    let owned_shares_value_delta: i64 =
+        compute_delta(owned_shares_value_before, owned_shares_value_after)?;
 
     // The depository collateral account should always be empty
     msg!("[mint_with_maple_pool_depository:check_dust]");
@@ -254,66 +258,64 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     // Validate the deposit was successful and meaningful
     msg!("[mint_with_maple_pool_depository:check_changes]");
     require!(
-        user_collateral_delta < 0,
+        user_collateral_amount_delta < 0,
         UxdError::CollateralDepositUnaccountedFor
     );
     require!(
-        pool_collateral_delta > 0,
+        pool_collateral_amount_delta > 0,
         UxdError::CollateralDepositUnaccountedFor
     );
     require!(
-        pool_shares_delta > 0,
+        pool_shares_amount_delta > 0,
         UxdError::CollateralDepositUnaccountedFor
     );
     require!(
-        pool_value_delta > 0,
+        pool_shares_value_delta > 0,
         UxdError::CollateralDepositUnaccountedFor
     );
     require!(
-        owned_shares_delta > 0,
+        owned_shares_amount_delta > 0,
         UxdError::CollateralDepositUnaccountedFor
     );
     require!(
-        owned_value_delta > 0,
+        owned_shares_value_delta > 0,
         UxdError::CollateralDepositUnaccountedFor
     );
 
     // Because we know the direction of the change, we can use the unsigned values now
-    let user_collateral_decrease = checked_i64_to_u64(-user_collateral_delta)?;
-    let pool_collateral_increase = checked_i64_to_u64(pool_collateral_delta)?;
-    let pool_shares_increase = checked_i64_to_u64(pool_shares_delta)?;
-    let pool_value_increase = checked_i64_to_u64(pool_value_delta)?;
-    let owned_shares_increase = checked_i64_to_u64(owned_shares_delta)?;
-    let owned_value_increase = checked_i64_to_u64(owned_value_delta)?;
+    let user_collateral_amount_decrease = checked_i64_to_u64(-user_collateral_amount_delta)?;
+    let pool_collateral_amount_increase = checked_i64_to_u64(pool_collateral_amount_delta)?;
+    let pool_shares_amount_increase = checked_i64_to_u64(pool_shares_amount_delta)?;
+    let pool_shares_value_increase = checked_i64_to_u64(pool_shares_value_delta)?;
+    let owned_shares_amount_increase = checked_i64_to_u64(owned_shares_amount_delta)?;
+    let owned_shares_value_increase = checked_i64_to_u64(owned_shares_value_delta)?;
 
     // Validate that the collateral value moved exactly to the correct place
     msg!("[mint_with_maple_pool_depository:check_amounts]");
     require!(
-        user_collateral_decrease == collateral_amount_deposited,
+        user_collateral_amount_decrease == collateral_amount_deposited,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        pool_collateral_increase == collateral_amount_deposited,
+        pool_collateral_amount_increase == collateral_amount_deposited,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        pool_value_increase == collateral_amount_deposited,
+        pool_shares_value_increase == collateral_amount_deposited,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
     // Check that we received the correct amount of shares
     require!(
-        owned_shares_increase == pool_shares_increase,
+        owned_shares_amount_increase == pool_shares_amount_increase,
         UxdError::CollateralDepositDoesntMatchTokenValue,
     );
 
     // Check that the shares we received match the collateral value (allowing for precision loss)
-    let single_share_value_amount = ctx.accounts.compute_share_value_amount(
-        1,
-        pool_shares_amount_after,
-        pool_value_amount_after,
-    )?;
-    let allowed_precision_loss_amount = single_share_value_amount
+    let single_share_value =
+        ctx.accounts
+            .compute_shares_value(1, pool_shares_amount_after, pool_shares_value_after)?;
+    let allowed_precision_loss_amount = single_share_value
         .checked_add(1)
         .ok_or(UxdError::MathError)?;
     msg!(
@@ -323,7 +325,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     require!(
         is_equal_with_precision_loss(
             collateral_amount_deposited,
-            owned_value_increase,
+            owned_shares_value_increase,
             allowed_precision_loss_amount
         )?,
         UxdError::CollateralDepositDoesntMatchTokenValue,
@@ -331,7 +333,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
 
     // Add minting fees on top of the received value we got from the pool
     msg!("[mint_with_maple_pool_depository:compute_redeemable]");
-    let redeemable_amount_before_fees: u64 = owned_value_increase;
+    let redeemable_amount_before_fees: u64 = owned_shares_value_increase;
     let redeemable_amount_after_fees: u64 =
         calculate_amount_less_fees(redeemable_amount_before_fees, depository.minting_fee_in_bps)?;
 
@@ -358,8 +360,6 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
 
     // Emit event
     msg!("[mint_with_maple_pool_depository:emit_event]");
-    drop(controller);
-    drop(depository);
     emit!(MintWithMaplePoolDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.load()?.version,
@@ -451,27 +451,27 @@ impl<'info> MintWithMaplePoolDepository<'info> {
 
     // Precision loss may lower the returned owner value amount.
     // Precision loss of 1 native unit may be expected.
-    pub fn compute_share_value_amount(
+    pub fn compute_shares_value(
         &self,
         shares_amount: u64,
         pool_shares_amount: u64,
-        pool_value_amount: u64,
+        pool_shares_value: u64,
     ) -> Result<u64> {
-        if pool_value_amount == 0 {
+        if pool_shares_value == 0 {
             return Ok(0);
         }
         let shares_amount_fixed =
             I80F48::checked_from_num(shares_amount).ok_or(UxdError::MathError)?;
         let pool_shares_amount_fixed =
             I80F48::checked_from_num(pool_shares_amount).ok_or(UxdError::MathError)?;
-        let pool_value_amount_fixed =
-            I80F48::checked_from_num(pool_value_amount).ok_or(UxdError::MathError)?;
-        let owned_value_amount_fixed = shares_amount_fixed
-            .checked_mul(pool_value_amount_fixed)
+        let pool_shares_value_fixed =
+            I80F48::checked_from_num(pool_shares_value).ok_or(UxdError::MathError)?;
+        let shares_value_fixed = shares_amount_fixed
+            .checked_mul(pool_shares_value_fixed)
             .ok_or(UxdError::MathError)?
             .checked_div(pool_shares_amount_fixed)
             .ok_or(UxdError::MathError)?;
-        Ok(owned_value_amount_fixed
+        Ok(shares_value_fixed
             .checked_to_num::<u64>()
             .ok_or(UxdError::MathError)?)
     }
@@ -484,7 +484,6 @@ impl<'info> MintWithMaplePoolDepository<'info> {
             collateral_amount_deposited > 0,
             UxdError::InvalidCollateralAmount
         );
-        validate_collateral_mint_usdc(&self.collateral_mint, &self.controller)?;
         Ok(())
     }
 }

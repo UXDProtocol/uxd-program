@@ -16,15 +16,15 @@ use anchor_spl::token::TokenAccount;
 
 #[derive(Accounts)]
 pub struct RegisterMaplePoolDepository<'info> {
-    // Account 1
+    /// #1
     #[account()]
     pub authority: Signer<'info>,
 
-    // Account 2
+    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    // Account 3
+    /// #3
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -33,7 +33,7 @@ pub struct RegisterMaplePoolDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    // Account 4
+    /// #4
     #[account(
         init,
         seeds = [
@@ -47,7 +47,7 @@ pub struct RegisterMaplePoolDepository<'info> {
     )]
     pub depository: AccountLoader<'info, MaplePoolDepository>,
 
-    // Account 5
+    /// #5
     #[account(
         init,
         seeds = [MAPLE_POOL_DEPOSITORY_COLLATERAL_NAMESPACE, depository.key().as_ref(), collateral_mint.key().as_ref()],
@@ -58,45 +58,45 @@ pub struct RegisterMaplePoolDepository<'info> {
     )]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    // Account 6
+    /// #6
     #[account(
         constraint = collateral_mint.key() == maple_pool.base_mint @UxdError::MaplePoolDoNotMatchCollateral,
         constraint = collateral_mint.key() != maple_pool.shares_mint @UxdError::CollateralMintEqualToRedeemableMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    // Account 7
+    /// #7
     #[account()]
     pub maple_pool: Box<Account<'info, syrup_cpi::Pool>>,
 
-    // Account 8
+    /// #8
     /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
     #[account(mut)]
     pub maple_lender: AccountInfo<'info>,
 
-    // Account 9
+    /// #9
     #[account(mut, address = maple_pool.shares_mint)]
     pub maple_shares_mint: Box<Account<'info, Mint>>,
 
-    // Account 10
+    /// #10
     /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
     #[account(mut)]
     pub maple_locked_shares: AccountInfo<'info>,
 
-    // Account 11
+    /// #11
     /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
     #[account(mut)]
     pub maple_lender_shares: AccountInfo<'info>,
 
-    // Account 12
+    /// #12
     pub system_program: Program<'info, System>,
-    // Account 13
+    /// #13
     pub token_program: Program<'info, Token>,
-    // Account 14
+    /// #14
     pub associated_token_program: Program<'info, AssociatedToken>,
-    // Account 15
+    /// #15
     pub syrup_program: Program<'info, syrup_cpi::program::Syrup>,
-    // Account 16
+    /// #16
     pub rent: Sysvar<'info, Rent>,
 }
 
