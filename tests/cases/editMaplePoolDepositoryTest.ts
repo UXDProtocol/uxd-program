@@ -19,7 +19,7 @@ export const editMaplePoolDepositoryTest = async function (
   const connection = getConnection();
   const options = TXN_OPTS;
 
-  console.group("🧭 editMangoDepositoryTest");
+  console.group("🧭 editMaplePoolDepositoryTest");
   try {
     // GIVEN
     const depositoryOnchainAccount_pre = await depository.getOnchainAccount(connection, options);
