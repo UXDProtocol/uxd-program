@@ -325,7 +325,7 @@ pub struct SetMangoDepositoryRedeemableSupplyCapEvent {
     pub redeemable_depository_supply_cap: u128,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_maple_pool_depository::handler].
 #[event]
 pub struct SetMaplePoolDepositoryRedeemableSupplyCapEvent {
     #[index]
