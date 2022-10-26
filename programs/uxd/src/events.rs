@@ -107,19 +107,14 @@ pub struct RegisterMaplePoolDepositoryEvent {
 /// Event called in [instructions::mango_dex::mint_with_mango_depository::handler].
 #[event]
 pub struct MintWithMaplePoolDepositoryEvent {
-    /// The controller version.
     #[index]
     pub controller_version: u8,
-    /// The depository version.
     #[index]
     pub depository_version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The user making the call.
     #[index]
     pub user: Pubkey,
     /// The collateral amount in native units. (input)
