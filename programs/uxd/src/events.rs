@@ -338,7 +338,7 @@ pub struct SetMaplePoolDepositoryRedeemableSupplyCapEvent {
     pub redeemable_amount_under_management_cap: u128,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_maple_pool_depository::handler].
 #[event]
 pub struct SetMaplePoolDepositoryMintingFeeInBpsEvent {
     #[index]
