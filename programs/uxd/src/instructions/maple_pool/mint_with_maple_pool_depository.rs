@@ -17,14 +17,13 @@ use crate::utils::checked_i64_to_u64;
 use crate::utils::compute_delta;
 use crate::utils::is_equal_with_precision_loss;
 use crate::CONTROLLER_NAMESPACE;
-use crate::MAPLE_POOL_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::MAPLE_POOL_DEPOSITORY_NAMESPACE;
-use crate::REDEEMABLE_MINT_NAMESPACE;
 
 #[derive(Accounts)]
 #[instruction(collateral_amount: u64)]
 pub struct MintWithMaplePoolDepository<'info> {
     /// #1
+    #[account()]
     pub user: Signer<'info>,
 
     /// #2
@@ -60,14 +59,11 @@ pub struct MintWithMaplePoolDepository<'info> {
     pub depository: AccountLoader<'info, MaplePoolDepository>,
 
     /// #5
-    #[account(
-        mut,
-        seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = controller.load()?.redeemable_mint_bump,
-    )]
+    #[account(mut)]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
     /// #6
+    #[account()]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #7
@@ -87,12 +83,7 @@ pub struct MintWithMaplePoolDepository<'info> {
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #9
-    #[account(
-        mut,
-        seeds = [MAPLE_POOL_DEPOSITORY_COLLATERAL_NAMESPACE, depository.key().as_ref()],
-        bump = depository.load()?.depository_collateral_bump,
-        token::authority = depository,
-    )]
+    #[account(mut)]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #10

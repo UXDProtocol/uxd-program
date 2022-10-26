@@ -105,10 +105,19 @@ widthdrawlRequestExecute
 
 ## Notable interesting addresses:
 
+### MAINNET:
+
+ProgramId:      5D9yi4BKrxF8h65NkVE1raCCWFKUs5ngub2ECxhvfaZe
+Pool:           TamdAwg85s9aZ6mwSeAHoczzAV53rFokL5FVKzaF1Tb
+PoolLocker:     92oAd9cm4rV4K4Xx9HPRMoFn7GwMaKsjNSPe7QVxywcy
+Globals         DtnAPKSHwJaYbFdjYibNcjxihVd6pK1agpT86N5tMVPX
+ShareMint:      CesxqgX4BvYudTNU45PArqTgefrRFhE1CwR7ECTDshfY
+
 ### DEVNET:
 
 Program:        5D9yi4BKrxF8h65NkVE1raCCWFKUs5ngub2ECxhvfaZe
 Pool:           FfTKtBGj3F6nRXQiWVqqyw1Z2XVz2icaqLnUFJC4Fzqm
-ShareMint:      8HvMWzFnmZxLsoNwUzj4fqwLmeu7JPgYkgUpUkBtKWue
-Globals:        BDMBzwZEisVTTJzd9HTFsEfHMFFtXqoNjyRtz1Sp6zKP
 PoolLocker:     Gq7sVXvEEKPNapNF2PSGEyy7GmiyJyNRq5LbdenAGdWY
+Globals:        BDMBzwZEisVTTJzd9HTFsEfHMFFtXqoNjyRtz1Sp6zKP
+ShareMint:      8HvMWzFnmZxLsoNwUzj4fqwLmeu7JPgYkgUpUkBtKWue
+
