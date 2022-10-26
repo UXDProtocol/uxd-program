@@ -53,6 +53,7 @@ import { uiToNative } from "@blockworks-foundation/mango-client";
 import { mintWithMaplePoolDepositoryTest } from "./cases/mintWithMaplePoolDepositoryTest";
 import { editMangoDepositoryTest } from "./cases/editMangoDepositoryTest";
 import { editMaplePoolDepositoryTest } from "./cases/editMaplePoolDepositoryTest";
+import { expect } from "chai";
 
 console.log(uxdProgramId.toString());
 const mangoDepositorySOL = new MangoDepository(
@@ -177,7 +178,13 @@ describe("Integration tests", function () {
     });
 
     it(`Mint for 0.0001 fake USDC`, async function () {
-      await mintWithMaplePoolDepositoryTest(0.0001, user, controller, maplePoolDepository, payer);
+      let failure = false;
+      try {
+        await mintWithMaplePoolDepositoryTest(0.0001, user, controller, maplePoolDepository, payer);
+      } catch {
+        failure = true;
+      }
+      expect(failure).equal(true, "This should have failed due to low cap");
     });
 
     /*

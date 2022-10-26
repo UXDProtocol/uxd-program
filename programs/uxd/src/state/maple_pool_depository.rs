@@ -102,6 +102,7 @@ impl MaplePoolDepository {
         );
         Ok(())
     }
+
     // When minting fee was paid, we need to add it to the total
     pub fn minting_fee_accrued(&mut self, minting_fee_paid: u64) -> Result<()> {
         self.minting_fee_total_accrued = self
