@@ -341,7 +341,6 @@ pub struct SetMaplePoolDepositoryMintingFeeInBpsEvent {
     pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
-    #[index]
     pub minting_fee_in_bps: u8,
 }
 
