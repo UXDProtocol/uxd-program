@@ -15,6 +15,8 @@ pub const MAPLE_POOL_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u8>() // depository_collateral_bump
 
  + size_of::<Pubkey>() // maple_pool
+ + size_of::<Pubkey>() // maple_pool_locker
+ + size_of::<Pubkey>() // maple_globals
  + size_of::<Pubkey>() // maple_lender
  + size_of::<Pubkey>() // maple_shares_mint
  + size_of::<Pubkey>() // maple_locked_shares
@@ -47,8 +49,10 @@ pub struct MaplePoolDepository {
     pub depository_collateral: Pubkey,
     pub depository_collateral_bump: u8,
 
-    // Maple accounts
+    // Maple accounts enforced at registration
     pub maple_pool: Pubkey,
+    pub maple_pool_locker: Pubkey,
+    pub maple_globals: Pubkey,
     pub maple_lender: Pubkey,
     pub maple_shares_mint: Pubkey,
     pub maple_locked_shares: Pubkey,

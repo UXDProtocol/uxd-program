@@ -513,7 +513,7 @@ pub mod uxd {
 
     // Mint Redeemable tokens by depositing Collateral to maple pool.
     #[access_control(
-        ctx.accounts.validate(ammount_collateral_deposited)
+        ctx.accounts.validate(collateral_amount)
     )]
     pub fn mint_with_maple_pool_depository(
         ctx: Context<MintWithMaplePoolDepository>,

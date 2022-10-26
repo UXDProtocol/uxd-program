@@ -48,7 +48,10 @@ pub struct MintWithMaplePoolDepository<'info> {
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
+        has_one = depository_collateral @UxdError::InvalidCollateralLocker,
         has_one = maple_pool @UxdError::InvalidMaplePool,
+        has_one = maple_pool_locker @UxdError::InvalidMaplePoolLocker,
+        has_one = maple_globals @UxdError::InvalidMapleGlobals,
         has_one = maple_lender @UxdError::InvalidMapleLender,
         has_one = maple_shares_mint @UxdError::InvalidMapleSharesMint,
         has_one = maple_locked_shares @UxdError::InvalidMapleLockedShares,
@@ -59,79 +62,59 @@ pub struct MintWithMaplePoolDepository<'info> {
     /// #5
     #[account(
         mut,
+        seeds = [REDEEMABLE_MINT_NAMESPACE],
+        bump = controller.load()?.redeemable_mint_bump,
+    )]
+    pub redeemable_mint: Box<Account<'info, Mint>>,
+
+    /// #6
+    pub collateral_mint: Box<Account<'info, Mint>>,
+
+    /// #7
+    #[account(
+        mut,
+        constraint = user_redeemable.owner == user.key()  @UxdError::InvalidOwner,
+        constraint = user_redeemable.mint == redeemable_mint.key() @UxdError::InvalidRedeemableMint,
+    )]
+    pub user_redeemable: Box<Account<'info, TokenAccount>>,
+
+    /// #8
+    #[account(
+        mut,
+        constraint = user_collateral.owner == user.key()  @UxdError::InvalidOwner,
+        constraint = user_collateral.mint == collateral_mint.key() @UxdError::InvalidCollateralMint
+    )]
+    pub user_collateral: Box<Account<'info, TokenAccount>>,
+
+    /// #9
+    #[account(
+        mut,
         seeds = [MAPLE_POOL_DEPOSITORY_COLLATERAL_NAMESPACE, depository.key().as_ref()],
         bump = depository.load()?.depository_collateral_bump,
         token::authority = depository,
     )]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #6
-    #[account(
-        mut,
-        seeds = [REDEEMABLE_MINT_NAMESPACE],
-        bump = controller.load()?.redeemable_mint_bump,
-    )]
-    pub redeemable_mint: Box<Account<'info, Mint>>,
-
-    /// #7
-    #[account(
-        mut,
-        constraint = user_redeemable.mint == controller.load()?.redeemable_mint @UxdError::InvalidRedeemableMint,
-        constraint = &user_redeemable.owner == user.key @UxdError::InvalidOwner,
-    )]
-    pub user_redeemable: Box<Account<'info, TokenAccount>>,
-
-    /// #8
-    pub collateral_mint: Box<Account<'info, Mint>>,
-
-    /// #9
-    #[account(
-        mut,
-        constraint = user_collateral.mint == maple_pool.base_mint,
-        constraint = user_collateral.mint == collateral_mint.key()
-    )]
-    pub user_collateral: Box<Account<'info, TokenAccount>>,
-
     /// #10
-    #[account(address = maple_pool.globals)]
-    pub maple_globals: Box<Account<'info, syrup_cpi::Globals>>,
-
-    /// #11
-    #[account(mut, address = maple_lender.pool)]
+    #[account(mut)]
     pub maple_pool: Box<Account<'info, syrup_cpi::Pool>>,
-
-    /// #12
-    #[account(
-        mut,
-        address = maple_pool.locker,
-        constraint = maple_pool_locker.mint == maple_pool.base_mint
-    )]
+    /// #11
+    #[account(mut)]
     pub maple_pool_locker: Box<Account<'info, TokenAccount>>,
-
+    /// #12
+    #[account()]
+    pub maple_globals: Box<Account<'info, syrup_cpi::Globals>>,
     /// #13
     #[account(mut)]
     pub maple_lender: Box<Account<'info, syrup_cpi::Lender>>,
-
     /// #14
-    #[account(mut, address = maple_pool.shares_mint)]
+    #[account(mut)]
     pub maple_shares_mint: Box<Account<'info, Mint>>,
-
     /// #15
-    #[account(
-        mut,
-        address = maple_lender.locked_shares,
-        constraint = maple_locked_shares.mint == maple_pool.shares_mint,
-        constraint = maple_locked_shares.mint == maple_shares_mint.key()
-    )]
+    #[account(mut)]
     pub maple_locked_shares: Box<Account<'info, TokenAccount>>,
-
     /// #16
-    #[account(
-        mut,
-        address = maple_lender.lender_shares,
-        constraint = maple_lender_shares.mint == maple_pool.shares_mint,
-        constraint = maple_lender_shares.mint == maple_shares_mint.key()
-    )]
+    #[account(mut)]
     pub maple_lender_shares: Box<Account<'info, TokenAccount>>,
 
     /// #17
@@ -147,22 +130,23 @@ pub struct MintWithMaplePoolDepository<'info> {
 }
 
 pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64) -> Result<()> {
-    // Read controlle basics
-    let controller = ctx.accounts.controller.load()?;
-    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.bump]]];
+    // Read useful keys
+    let maple_pool = ctx.accounts.depository.load()?.maple_pool;
+    let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
 
-    // Read depository basics
-    let depository = ctx.accounts.depository.load()?;
-    let depository_pda_signer: &[&[&[u8]]] = &[&[
-        MAPLE_POOL_DEPOSITORY_NAMESPACE,
-        depository.maple_pool.as_ref(),
-        depository.collateral_mint.as_ref(),
-        &[depository.bump],
+    // Make controller signer
+    let controller_pda_signer: &[&[&[u8]]] = &[&[
+        CONTROLLER_NAMESPACE,
+        &[ctx.accounts.controller.load()?.bump],
     ]];
 
-    // Drop loaded references
-    drop(controller);
-    drop(depository);
+    // Make depository signer
+    let depository_pda_signer: &[&[&[u8]]] = &[&[
+        MAPLE_POOL_DEPOSITORY_NAMESPACE,
+        maple_pool.as_ref(),
+        collateral_mint.as_ref(),
+        &[ctx.accounts.depository.load()?.bump],
+    ]];
 
     // We will try to deposit the exact amount requested by the user
     let collateral_amount_deposited = collateral_amount;
@@ -333,9 +317,10 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
 
     // Add minting fees on top of the received value we got from the pool
     msg!("[mint_with_maple_pool_depository:compute_redeemable]");
+    let depository_minting_fee_in_bps = ctx.accounts.depository.load()?.minting_fee_in_bps;
     let redeemable_amount_before_fees: u64 = owned_shares_value_increase;
     let redeemable_amount_after_fees: u64 =
-        calculate_amount_less_fees(redeemable_amount_before_fees, depository.minting_fee_in_bps)?;
+        calculate_amount_less_fees(redeemable_amount_before_fees, depository_minting_fee_in_bps)?;
 
     //  Redeemable amount should be positive
     require!(

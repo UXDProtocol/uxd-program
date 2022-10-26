@@ -23,11 +23,10 @@ pub struct EditMaplePoolDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #3 UXDProgram on chain account bound to a Controller instance.
-    /// The `MaplePoolDepository` manages a MaplePoolAccount for a single Collateral.
+    /// #3
     #[account(
         mut,
-        seeds = [MAPLE_POOL_DEPOSITORY_NAMESPACE, depository.load()?.maple_pool.as_ref(), depository.load()?.collateral_mint.as_ref()],
+        seeds = [MAPLE_POOL_DEPOSITORY_NAMESPACE, depository.load()?.maple_pool.as_ref()],
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
     )]

@@ -50,7 +50,7 @@ pub struct RegisterMaplePoolDepository<'info> {
     /// #5
     #[account(
         init,
-        seeds = [MAPLE_POOL_DEPOSITORY_COLLATERAL_NAMESPACE, depository.key().as_ref(), collateral_mint.key().as_ref()],
+        seeds = [MAPLE_POOL_DEPOSITORY_COLLATERAL_NAMESPACE, depository.key().as_ref()],
         token::authority = depository,
         token::mint = collateral_mint,
         bump,
@@ -66,37 +66,44 @@ pub struct RegisterMaplePoolDepository<'info> {
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #7
-    #[account()]
+    #[account(
+        constraint = maple_pool.base_mint == collateral_mint.key() @UxdError::InvalidCollateralMint,
+        constraint = maple_pool.locker == maple_pool_locker.key() @UxdError::InvalidMaplePoolLocker,
+        constraint = maple_pool.globals == maple_globals.key() @UxdError::InvalidMapleGlobals,
+        constraint = maple_pool.shares_mint == maple_shares_mint.key() @UxdError::InvalidMapleSharesMint,
+    )]
     pub maple_pool: Box<Account<'info, syrup_cpi::Pool>>,
-
     /// #8
-    /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
-    #[account(mut)]
-    pub maple_lender: AccountInfo<'info>,
-
+    #[account(mut, token::authority = maple_pool)]
+    pub maple_pool_locker: Box<Account<'info, TokenAccount>>,
     /// #9
-    #[account(mut, address = maple_pool.shares_mint)]
-    pub maple_shares_mint: Box<Account<'info, Mint>>,
-
+    #[account()]
+    pub maple_globals: Box<Account<'info, syrup_cpi::Globals>>,
     /// #10
     /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
     #[account(mut)]
-    pub maple_locked_shares: AccountInfo<'info>,
-
+    pub maple_lender: AccountInfo<'info>,
     /// #11
+    #[account(mut)]
+    pub maple_shares_mint: Box<Account<'info, Mint>>,
+    /// #12
+    /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
+    #[account(mut)]
+    pub maple_locked_shares: AccountInfo<'info>,
+    /// #13
     /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
     #[account(mut)]
     pub maple_lender_shares: AccountInfo<'info>,
 
-    /// #12
-    pub system_program: Program<'info, System>,
-    /// #13
-    pub token_program: Program<'info, Token>,
     /// #14
-    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
     /// #15
-    pub syrup_program: Program<'info, syrup_cpi::program::Syrup>,
+    pub token_program: Program<'info, Token>,
     /// #16
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    /// #17
+    pub syrup_program: Program<'info, syrup_cpi::program::Syrup>,
+    /// #18
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -133,7 +140,10 @@ pub fn handler(
     depository.depository_collateral = ctx.accounts.depository_collateral.key();
     depository.depository_collateral_bump = depository_collateral_bump;
 
+    // We register all necessary maple accounts to facilitate other instructions safety checks
     depository.maple_pool = ctx.accounts.maple_pool.key();
+    depository.maple_pool_locker = ctx.accounts.maple_pool_locker.key();
+    depository.maple_globals = ctx.accounts.maple_globals.key();
     depository.maple_lender = ctx.accounts.maple_lender.key();
     depository.maple_shares_mint = ctx.accounts.maple_shares_mint.key();
     depository.maple_locked_shares = ctx.accounts.maple_locked_shares.key();
