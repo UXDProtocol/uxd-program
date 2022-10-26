@@ -353,7 +353,6 @@ pub struct SetMaplePoolDepositoryRedeemingFeeInBpsEvent {
     pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
-    #[index]
     pub redeeming_fee_in_bps: u8,
 }
 
