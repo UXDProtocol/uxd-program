@@ -104,7 +104,7 @@ pub struct RegisterMaplePoolDepositoryEvent {
     pub maple_pool: Pubkey,
 }
 
-/// Event called in [instructions::mango_dex::mint_with_mango_depository::handler].
+/// Event called in [instructions::mango_dex::mint_with_maple_pool_depository::handler].
 #[event]
 pub struct MintWithMaplePoolDepositoryEvent {
     #[index]
