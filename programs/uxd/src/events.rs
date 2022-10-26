@@ -351,7 +351,7 @@ pub struct SetMaplePoolDepositoryMintingFeeInBpsEvent {
     pub minting_fee_in_bps: u8,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_maple_pool_depository::handler].
 #[event]
 pub struct SetMaplePoolDepositoryRedeemingFeeInBpsEvent {
     #[index]
