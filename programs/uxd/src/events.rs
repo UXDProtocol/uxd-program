@@ -329,7 +329,6 @@ pub struct SetMaplePoolDepositoryRedeemableSupplyCapEvent {
     pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
-    #[index]
     pub redeemable_amount_under_management_cap: u128,
 }
 
