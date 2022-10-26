@@ -104,22 +104,17 @@ pub struct RegisterMaplePoolDepositoryEvent {
     pub maple_pool: Pubkey,
 }
 
-/// Event called in [instructions::mango_dex::mint_with_mango_depository::handler].
+/// Event called in [instructions::mango_dex::mint_with_maple_pool_depository::handler].
 #[event]
 pub struct MintWithMaplePoolDepositoryEvent {
-    /// The controller version.
     #[index]
     pub controller_version: u8,
-    /// The depository version.
     #[index]
     pub depository_version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The user making the call.
     #[index]
     pub user: Pubkey,
     /// The collateral amount in native units. (input)
@@ -325,7 +320,7 @@ pub struct SetMangoDepositoryRedeemableSupplyCapEvent {
     pub redeemable_depository_supply_cap: u128,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_maple_pool_depository::handler].
 #[event]
 pub struct SetMaplePoolDepositoryRedeemableSupplyCapEvent {
     #[index]
@@ -334,11 +329,10 @@ pub struct SetMaplePoolDepositoryRedeemableSupplyCapEvent {
     pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
-    #[index]
     pub redeemable_amount_under_management_cap: u128,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_maple_pool_depository::handler].
 #[event]
 pub struct SetMaplePoolDepositoryMintingFeeInBpsEvent {
     #[index]
@@ -347,11 +341,10 @@ pub struct SetMaplePoolDepositoryMintingFeeInBpsEvent {
     pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
-    #[index]
     pub minting_fee_in_bps: u8,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_maple_pool_depository::handler].
 #[event]
 pub struct SetMaplePoolDepositoryRedeemingFeeInBpsEvent {
     #[index]
@@ -360,7 +353,6 @@ pub struct SetMaplePoolDepositoryRedeemingFeeInBpsEvent {
     pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
-    #[index]
     pub redeeming_fee_in_bps: u8,
 }
 

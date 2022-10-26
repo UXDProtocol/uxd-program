@@ -59,7 +59,7 @@ pub struct MintWithMaplePoolDepository<'info> {
     /// #5
     #[account(
         mut,
-        seeds = [MAPLE_POOL_DEPOSITORY_COLLATERAL_NAMESPACE, depository.key().as_ref(), collateral_mint.key().as_ref()],
+        seeds = [MAPLE_POOL_DEPOSITORY_COLLATERAL_NAMESPACE, depository.key().as_ref()],
         bump = depository.load()?.depository_collateral_bump,
         token::authority = depository,
     )]
