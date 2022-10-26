@@ -517,10 +517,10 @@ pub mod uxd {
     )]
     pub fn mint_with_maple_pool_depository(
         ctx: Context<MintWithMaplePoolDepository>,
-        ammount_collateral_deposited: u64,
+        collateral_amount: u64,
     ) -> Result<()> {
         msg!("[mint_with_maple_pool_depository]");
-        instructions::mint_with_maple_pool_depository::handler(ctx, ammount_collateral_deposited)
+        instructions::mint_with_maple_pool_depository::handler(ctx, collateral_amount)
     }
 }
 
