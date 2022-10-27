@@ -14,22 +14,18 @@ export const editMercurialVaultDepositoryTest = async function (
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
-  },
+  }
 ) {
   const connection = getConnection();
   const options = TXN_OPTS;
 
-  console.group("🧭 editMangoDepositoryTest");
+  console.group("🧭 editMercurialVaultDepositoryTest");
   try {
     // GIVEN
     const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
 
-    const {
-      redeemableAmountUnderManagementCap,
-      mintingFeeInBps,
-      redeemingFeeInBps,
-      mintingDisabled,
-    } = depositoryOnchainAccount;
+    const { redeemableDepositorySupplyCap, mintingFeeInBps, redeemingFeeInBps, mintingDisabled } =
+      depositoryOnchainAccount;
 
     // WHEN
     const txId = await editMercurialVaultDepository(authority, controller, depository, uiFields);
@@ -44,20 +40,31 @@ export const editMercurialVaultDepositoryTest = async function (
       mintingDisabled: mintingDisabled_post,
     } = depositoryOnchainAccount_post;
 
-    if (typeof uiFields.redeemableAmountUnderManagementCap !== 'undefined') {
-      const nativeRedeemableAmountUnderManagementCap = uiToNative(uiFields.redeemableAmountUnderManagementCap, controller.redeemableMintDecimals);
-      expect(redeemableAmountUnderManagementCap_post.toString()).equals(nativeRedeemableAmountUnderManagementCap.toString(), "The redeemable amount under management cap has not changed.");
-      console.log(`🧾 Previous redeemable amount under management cap was`, redeemableAmountUnderManagementCap.toString(), "now is", redeemableAmountUnderManagementCap_post.toString());
+    if (uiFields.redeemableDepositorySupplyCap) {
+      const nativeRedeemableDepositorySupplyCap = uiToNative(
+        uiFields.redeemableDepositorySupplyCap,
+        controller.redeemableMintDecimals
+      );
+      expect(redeemableDepositorySupplyCap_post.toString()).equals(
+        nativeRedeemableDepositorySupplyCap.toString(),
+        "The redeemable depository supply cap has not changed."
+      );
+      console.log(
+        `🧾 Previous redeemable depository supply cap was`,
+        redeemableDepositorySupplyCap.toString(),
+        "now is",
+        redeemableDepositorySupplyCap_post.toString()
+      );
     }
-    if (typeof uiFields.mintingFeeInBps !== 'undefined') {
+    if (typeof uiFields.mintingFeeInBps !== "undefined") {
       expect(mintingFeeInBps_post).equals(uiFields.mintingFeeInBps, "The minting fee has not changed.");
       console.log(`🧾 Previous minting fee was`, mintingFeeInBps, "now is", mintingFeeInBps_post);
     }
-    if (typeof uiFields.redeemingFeeInBps !== 'undefined') {
+    if (typeof uiFields.redeemingFeeInBps !== "undefined") {
       expect(redeemingFeeInBps_post).equals(uiFields.redeemingFeeInBps, "The redeeming fee has not changed.");
       console.log(`🧾 Previous redeeming fee was`, redeemingFeeInBps, "now is", redeemingFeeInBps_post);
     }
-    if (typeof uiFields.mintingDisabled !== 'undefined') {
+    if (typeof uiFields.mintingDisabled !== "undefined") {
       expect(mintingDisabled_post).equals(uiFields.mintingDisabled, "The minting disabled state has not changed.");
       console.log(`🧾 Previous minting disabled state was`, mintingDisabled, "now is", mintingDisabled_post);
     }
