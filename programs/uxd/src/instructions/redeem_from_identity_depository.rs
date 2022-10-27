@@ -1,12 +1,18 @@
 use crate::error::UxdError;
+use crate::events::RedeemFromIdentityDepositoryEvent;
+use crate::state::identity_depository::IdentityDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
+use crate::IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE;
+use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::Burn;
+use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
+use anchor_spl::token::Transfer;
 
 #[derive(Accounts)]
 pub struct RedeemFromIdentityDepository<'info> {
@@ -88,23 +94,38 @@ pub(crate) fn handler(
     ctx: Context<RedeemFromIdentityDepository>,
     redeemable_amount: u64,
 ) -> Result<()> {
-    let depository = ctx.accounts.depository.load()?;
-
-    // - 1 [TRANSFER COLLATERAL FROM COLLATERAL_VAULT TO USER]
-    let collateral_withdraw_amount = redeemable_amount;
-
-    // todo withdraw
-
-    // - 2 [BURN EQUIVALENT UXD]
-    token::burn(ctx.accounts.to_burn_redeemable_context(), redeemable_amount)?;
-
-    // - 4 [UPDATE ACCOUNTING] ------------------------------------------------
-    // todo
-    ctx.accounts.update_onchain_accounting(
-        collateral_withdraw_amount.into(),
-        redeemable_burn_amount.into(),
+    // - 1 [TRANSFER COLLATERAL FROM DEPOSITORY'S VAULT TO USER]
+    let collateral_amount = redeemable_amount;
+    token::transfer(
+        ctx.accounts
+            .to_transfer_collateral_from_depository_vault_to_user_context(),
+        collateral_amount,
     )?;
 
+    // - 2 [BURN EQUIVALENT UXD] ----------------------------------------------
+    token::burn(ctx.accounts.to_burn_redeemable_context(), redeemable_amount)?;
+
+    // - 3 [UPDATE ACCOUNTING] ------------------------------------------------
+    {
+        let depository = &mut ctx.accounts.depository.load_mut()?;
+        let controller = &mut ctx.accounts.controller.load_mut()?;
+        // Depository
+        depository.collateral_amount_deposited = depository
+            .collateral_amount_deposited
+            .checked_sub(collateral_amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        depository.redeemable_amount_under_management = depository
+            .redeemable_amount_under_management
+            .checked_sub(redeemable_amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        // Controller
+        controller.redeemable_circulating_supply = controller
+            .redeemable_circulating_supply
+            .checked_sub(redeemable_amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
+    }
+
+    // - 5 [EVENT LOGGING] ----------------------------------------------------
     emit!(RedeemFromIdentityDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,
         controller: ctx.accounts.controller.key(),
@@ -114,6 +135,30 @@ pub(crate) fn handler(
     });
 
     Ok(())
+}
+
+impl<'info> RedeemFromIdentityDepository<'info> {
+    fn to_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = Burn {
+            mint: self.redeemable_mint.to_account_info(),
+            from: self.user_redeemable.to_account_info(),
+            authority: self.controller.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    fn to_transfer_collateral_from_depository_vault_to_user_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = Transfer {
+            from: self.collateral_vault.to_account_info(),
+            to: self.user_collateral.to_account_info(),
+            authority: self.controller.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
 }
 
 // Validate input arguments

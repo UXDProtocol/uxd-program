@@ -1,9 +1,11 @@
+use crate::events::MintWithIdentityDepositoryEvent;
+use crate::state::identity_depository::IdentityDepository;
 use crate::Controller;
 use crate::UxdError;
 use crate::CONTROLLER_NAMESPACE;
+use crate::IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE;
+use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
-use anchor_comp::mango_markets_v3;
-use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
 use anchor_spl::token::Mint;
@@ -89,22 +91,63 @@ pub(crate) fn handler(
     collateral_amount: u64,
 ) -> Result<()> {
     // - 1 [TRANSFER USER'S COLLATERAL TO DEPOSITORY'S VAULT] -----------------
-    ctx.accounts
-        .transfer_user_collateral_to_depository_vault(collateral_amount)?;
+    token::transfer(
+        ctx.accounts
+            .to_transfer_collateral_from_user_to_depository_vault_context(),
+        collateral_amount,
+    )?;
 
     // - 2 [MINTS REDEEMABLES 1:1 FOR PROVIDED COLLATERAL] --------------------
     let redeemable_amount = collateral_amount;
-    ctx.accounts.mint_redeemable_to_user(redeemable_amount)?;
+    {
+        let controller_bump = ctx.accounts.controller.load()?.bump;
+        let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller_bump]]];
+        token::mint_to(
+            ctx.accounts
+                .to_mint_redeemable_context()
+                .with_signer(controller_pda_signer),
+            redeemable_amount,
+        )?;
+    }
 
     // - 3 [UPDATE ACCOUNTING] ------------------------------------------------
-    ctx.accounts
-        .update_onchain_accounting(collateral_amount, redeemable_amount)?;
+    {
+        let depository = &mut ctx.accounts.depository.load_mut()?;
+        let controller = &mut ctx.accounts.controller.load_mut()?;
+        // Depository
+        depository.collateral_amount_deposited = depository
+            .collateral_amount_deposited
+            .checked_add(collateral_amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        depository.redeemable_amount_under_management = depository
+            .redeemable_amount_under_management
+            .checked_add(redeemable_amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        // Controller
+        controller.redeemable_circulating_supply = controller
+            .redeemable_circulating_supply
+            .checked_add(redeemable_amount.into())
+            .ok_or_else(|| error!(UxdError::MathError))?;
+    }
 
     // - 4 [SANITY CHECKS] ----------------------------------------------------
-    ctx.accounts.sanity_checks()?;
+    let controller = ctx.accounts.controller.load()?;
+    {
+        // Check for Global supply cap limitation
+        require!(
+            controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
+            UxdError::RedeemableGlobalSupplyCapReached
+        );
+    }
 
     // - 5 [EVENT LOGGING] ----------------------------------------------------
-    ctx.accounts.event_logging(collateral_amount)?;
+    emit!(MintWithIdentityDepositoryEvent {
+        version: controller.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        user: ctx.accounts.user.key(),
+        collateral_amount,
+    });
 
     Ok(())
 }
@@ -145,72 +188,6 @@ impl<'info> MintWithIdentityDepository<'info> {
             UxdError::MintingDisabled
         );
 
-        Ok(())
-    }
-
-    pub(crate) fn transfer_user_collateral_to_depository_vault(&self, amount: u64) -> Result<()> {
-        token::transfer(
-            self.accounts
-                .to_transfer_collateral_from_user_to_depository_vault_context(),
-            amount,
-        )?;
-        Ok(())
-    }
-
-    pub(crate) fn mint_redeemable_to_user(&self, amount: u64) -> Result<()> {
-        let controller_bump = self.accounts.controller.load()?.bump;
-        let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller_bump]]];
-        token::mint_to(
-            self.accounts
-                .to_mint_redeemable_context()
-                .with_signer(controller_pda_signer),
-            amount,
-        )?;
-        Ok(())
-    }
-
-    fn update_onchain_accounting(
-        &mut self,
-        collateral_deposited_amount: u128,
-        redeemable_minted_amount: u128,
-    ) -> Result<()> {
-        let depository = &mut self.depository.load_mut()?;
-        let controller = &mut self.controller.load_mut()?;
-        // Depository
-        depository.collateral_amount_deposited = depository
-            .collateral_amount_deposited
-            .checked_add(collateral_deposited_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        depository.redeemable_amount_under_management = depository
-            .redeemable_amount_under_management
-            .checked_add(redeemable_minted_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        // Controller
-        controller.redeemable_circulating_supply = controller
-            .redeemable_circulating_supply
-            .checked_add(redeemable_minted_amount)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-        Ok(())
-    }
-
-    pub(crate) fn sanity_checks(&self) -> Result<()> {
-        let controller = self.controller.load()?;
-        // Check for Global supply cap limitation
-        require!(
-            controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
-            UxdError::RedeemableGlobalSupplyCapReached
-        );
-        Ok(())
-    }
-
-    pub(crate) fn event_logging(&self, collateral_amount: u64) -> Result<()> {
-        emit!(MintWithIdentityDepositoryEvent {
-            version: self.controller.load()?.version,
-            controller: ctx.accounts.controller.key(),
-            depository: ctx.accounts.depository.key(),
-            user: ctx.accounts.user.key(),
-            collateral_amount,
-        });
         Ok(())
     }
 }

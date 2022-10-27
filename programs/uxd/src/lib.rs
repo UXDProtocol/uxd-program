@@ -159,7 +159,7 @@ pub mod uxd {
         redeemable_amount_under_management_cap: u128,
     ) -> Result<()> {
         msg!("[register_mango_depository]");
-        return Error::MangoDepositorySuspended;
+        return Err(UxdError::MangoDepositorySuspended.into());
         // instructions::register_mango_depository::handler(ctx, redeemable_amount_under_management_cap)
     }
 
@@ -203,7 +203,7 @@ pub mod uxd {
         amount: u64,
     ) -> Result<()> {
         msg!("[deposit_insurance_to_mango_depository]");
-        return Error::MangoDepositorySuspended;
+        return Err(UxdError::MangoDepositorySuspended.into());
         // instructions::deposit_insurance_to_mango_depository::handler(ctx, amount)
     }
 
@@ -230,7 +230,7 @@ pub mod uxd {
         amount: u64,
     ) -> Result<()> {
         msg!("[withdraw_insurance_from_mango_depository]");
-        return Error::MangoDepositorySuspended;
+        return Err(UxdError::MangoDepositorySuspended.into());
         // instructions::withdraw_insurance_from_mango_depository::handler(ctx, amount)
     }
 
@@ -284,7 +284,7 @@ pub mod uxd {
             limit_price,
             polarity
         );
-        return Error::MangoDepositorySuspended;
+        return Err(UxdError::MangoDepositorySuspended.into());
         // instructions::rebalance_mango_depository_lite::handler(
         //     ctx,
         //     max_rebalancing_amount,
@@ -331,7 +331,7 @@ pub mod uxd {
             collateral_amount,
             limit_price
         );
-        return Error::MangoDepositorySuspended;
+        return Err(UxdError::MangoDepositorySuspended.into());
         // instructions::mint_with_mango_depository::handler(ctx, collateral_amount, limit_price)
     }
 
@@ -376,7 +376,7 @@ pub mod uxd {
             redeemable_amount,
             limit_price
         );
-        return Error::MangoDepositorySuspended;
+        return Err(UxdError::MangoDepositorySuspended.into());
         // instructions::redeem_from_mango_depository::handler(ctx, redeemable_amount, limit_price)
     }
 
@@ -391,7 +391,7 @@ pub mod uxd {
             "[quote_mint_with_mango_depository] quote_amount {}",
             quote_amount
         );
-        return Error::MangoDepositorySuspended;
+        return Err(UxdError::MangoDepositorySuspended.into());
         // instructions::quote_mint_with_mango_depository::handler(ctx, quote_amount)
     }
 
@@ -406,7 +406,7 @@ pub mod uxd {
             "[quote_redeem_from_mango_depository] redeemable_amount {}",
             redeemable_amount
         );
-        return Error::MangoDepositorySuspended;
+        return Err(UxdError::MangoDepositorySuspended.into());
         // instructions::quote_redeem_from_mango_depository::handler(ctx, redeemable_amount)
     }
 
@@ -487,7 +487,7 @@ pub mod uxd {
         msg!("[redeem_from_mercurial_vault]");
         instructions::redeem_from_mercurial_vault_depository::handler(ctx, redeemable_amount)
     }
-    
+
     pub fn initialize_identity_depository(
         ctx: Context<InitializeIdentityDepository>,
     ) -> Result<()> {

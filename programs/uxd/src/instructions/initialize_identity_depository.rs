@@ -1,11 +1,17 @@
+use anchor_lang::prelude::*;
+use anchor_spl::token::Mint;
+use anchor_spl::token::Token;
+use anchor_spl::token::TokenAccount;
+
 use crate::IDENTITY_DEPOSITORY_ACCOUNT_VERSION;
+use crate::IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE;
 use crate::error::UxdError;
-use crate::events::RegisterMangoDepositoryEventV2;
+use crate::events::InitializeIdentityDepositoryEvent;
 use crate::state::identity_depository::IDENTITY_DEPOSITORY_SPACE;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
-use std::mem::size_of;
+use crate::state::identity_depository::IdentityDepository;
 
 #[derive(Accounts)]
 pub struct InitializeIdentityDepository<'info> {

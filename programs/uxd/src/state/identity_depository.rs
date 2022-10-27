@@ -1,5 +1,3 @@
-use std::mem::size_of;
-
 use anchor_lang::prelude::*;
 
 pub const IDENTITY_DEPOSITORY_RESERVED_SPACE: usize = 512;
