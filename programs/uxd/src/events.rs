@@ -384,16 +384,12 @@ pub struct InitializeIdentityDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,
-    /// The depository version.
     #[index]
     pub depository_version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The collateral mint.
     pub collateral_mint: Pubkey,
 }
 
@@ -403,10 +399,8 @@ pub struct MintWithIdentityDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
     /// The user making the call.
@@ -422,10 +416,8 @@ pub struct RedeemFromIdentityDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
     /// The user making the call.
