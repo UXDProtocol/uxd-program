@@ -1,7 +1,6 @@
 use crate::events::QuoteRedeemFromMangoDepositoryEvent;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::PerpInfo;
-use crate::validate_mango_group;
 use crate::validate_perp_market_mints_matches_depository_mints;
 use crate::Controller;
 use crate::MangoDepository;
@@ -263,11 +262,8 @@ pub(crate) fn handler(
         .checked_sub(quote_withdraw_amount_less_fees)
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    ctx.accounts.update_onchain_accounting(
-        redeemable_amount,
-        quote_withdraw_amount_less_fees,
-        fees_accrued,
-    )?;
+    ctx.accounts
+        .update_onchain_accounting(redeemable_amount, fees_accrued)?;
 
     emit!(QuoteRedeemFromMangoDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,
@@ -314,7 +310,6 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
     fn update_onchain_accounting(
         &mut self,
         redeemable_amount: u64,
-        quote_withdraw_amount: u64,
         fees_accrued: u64,
     ) -> Result<()> {
         let depository = &mut self.depository.load_mut()?;
@@ -322,7 +317,7 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
         // Mango Depository
         depository.net_quote_minted = depository
             .net_quote_minted
-            .checked_sub(quote_withdraw_amount.into())
+            .checked_sub(redeemable_amount.into())
             .ok_or_else(|| error!(UxdError::MathError))?;
         depository.redeemable_amount_under_management = depository
             .redeemable_amount_under_management
@@ -374,8 +369,6 @@ impl<'info> QuoteRedeemFromMangoDepository<'info> {
 impl<'info> QuoteRedeemFromMangoDepository<'info> {
     pub(crate) fn validate(&self, redeemable_amount: u64) -> Result<()> {
         require!(redeemable_amount != 0, UxdError::InvalidRedeemableAmount);
-
-        validate_mango_group(self.mango_group.key())?;
 
         validate_perp_market_mints_matches_depository_mints(
             &self.mango_group,

@@ -7,6 +7,7 @@ use crate::MANGO_ACCOUNT_NAMESPACE;
 use crate::MANGO_DEPOSITORY_ACCOUNT_VERSION;
 use crate::MANGO_DEPOSITORY_NAMESPACE;
 use crate::MANGO_DEPOSITORY_SPACE;
+use crate::MANGO_GROUP;
 use anchor_comp::mango_markets_v3;
 use anchor_comp::mango_markets_v3::MangoMarketV3;
 use anchor_lang::prelude::*;
@@ -14,6 +15,7 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use mango::state::MangoAccount;
 use std::mem::size_of;
+use std::str::FromStr;
 
 const MANGO_ACCOUNT_SPAN: usize = size_of::<MangoAccount>();
 
@@ -82,7 +84,10 @@ pub struct RegisterMangoDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub(crate) fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
+pub(crate) fn handler(
+    ctx: Context<RegisterMangoDepository>,
+    redeemable_amount_under_management_cap: u128,
+) -> Result<()> {
     let collateral_mint = ctx.accounts.collateral_mint.key();
     let quote_mint = ctx.accounts.quote_mint.key();
 
@@ -124,6 +129,7 @@ pub(crate) fn handler(ctx: Context<RegisterMangoDepository>) -> Result<()> {
     depository.total_amount_paid_taker_fee = u128::MIN;
     depository.total_amount_rebalanced = u128::MIN;
     depository.regular_minting_disabled = false; // enable minting by default
+    depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
 
     // - Update Controller state
     ctx.accounts
@@ -155,5 +161,20 @@ impl<'info> RegisterMangoDepository<'info> {
         };
         let cpi_program = self.mango_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+// Validate input arguments
+impl<'info> RegisterMangoDepository<'info> {
+    pub(crate) fn validate(&self, _redeemable_amount_under_management_cap: u128) -> Result<()> {
+        // Only allow specific MANGO_GROUP to be used for now
+        require!(
+            self.mango_group
+                .key()
+                .eq(&Pubkey::from_str(MANGO_GROUP).unwrap()),
+            UxdError::UnAllowedMangoGroup,
+        );
+
+        Ok(())
     }
 }

@@ -46,7 +46,7 @@ export const editControllerTest = async function (
     const redeemableSoftCap_post = controllerOnChainAccount_post.mangoDepositoriesRedeemableSoftCap;
     const redeemableGlobalSupplyCap_post = controllerOnChainAccount_post.redeemableGlobalSupplyCap;
 
-    if (uiFields.quoteMintAndRedeemSoftCap) {
+    if (typeof uiFields.quoteMintAndRedeemSoftCap !== 'undefined') {
       const quoteMintAndRedeemSoftCap_postUi = nativeToUi(
         quoteMintAndRedeemSoftCap_post.toNumber(),
         uiFields.quoteMintAndRedeemSoftCap.depository.collateralMintDecimals
@@ -68,7 +68,7 @@ export const editControllerTest = async function (
       );
     }
 
-    if (uiFields.redeemableSoftCap !== undefined) {
+    if (typeof uiFields.redeemableSoftCap !== 'undefined') {
       const redeemableSoftCap_postUi = nativeToUi(redeemableSoftCap_post.toNumber(), controller.redeemableMintDecimals);
       expect(redeemableSoftCap_postUi).equals(uiFields.redeemableSoftCap, "Redeemable SoftCap must bet set");
       console.log(
@@ -84,7 +84,7 @@ export const editControllerTest = async function (
       expect(redeemableSoftCap_pre.cmp(redeemableSoftCap_post)).equals(0, "Redeemable SoftCap must not have changed");
     }
 
-    if (uiFields.redeemableGlobalSupplyCap !== undefined) {
+    if (typeof uiFields.redeemableGlobalSupplyCap !== 'undefined') {
       const redeemableGlobalSupplyCap_postUi = nativeToUi(
         redeemableGlobalSupplyCap_post.toNumber(),
         controller.redeemableMintDecimals

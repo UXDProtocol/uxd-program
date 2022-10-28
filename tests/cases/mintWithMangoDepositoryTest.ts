@@ -51,7 +51,6 @@ export const mintWithMangoDepositoryTest = async function (collateralAmount: num
         // The worst price the user could get (lowest amount of UXD)
         const worthExecutionPriceRedeemableDelta = estimatedFrictionlessRedeemableDelta * (slippage / slippageBase)
 
-
         console.log("Efficiency", Number(((redeemableDelta / estimatedFrictionlessRedeemableDelta) * 100).toFixed(2)), "%");
         console.log(
             `🧾 Minted`, Number(redeemableDelta.toFixed(controller.redeemableMintDecimals)), controller.redeemableMintSymbol,

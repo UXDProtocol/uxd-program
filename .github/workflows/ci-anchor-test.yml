@@ -5,22 +5,22 @@ on:
     branches: [main]
   push:
     branches: [main]
-  
+
 permissions:
   contents: read
   pull-requests: write
-  
+
 env:
   CARGO_TERM_COLOR: always
   SOLANA_VERSION: 1.10.38
   ANCHOR_VERSION: 0.24.2
-  CLUSTER: "devnet"
-  DEVNET_RPC: https://api.devnet.solana.com 
+  CLUSTER: 'devnet'
+  DEVNET_RPC: https://api.devnet.solana.com
   # Default wallet
-  RUNNER_WALLET_PATH: "/home/runner/.config/solana/id.json"
+  RUNNER_WALLET_PATH: '/home/runner/.config/solana/id.json'
   # Funding wallet
-  BANK_WALLET_PATH: "./target/deploy/bank-keypair.json"
-  CI_DEPLOYMENT_AUTHORITY_WALLET_PATH: "./target/deploy/ci-resident-upgrade-authority.json"
+  BANK_WALLET_PATH: './target/deploy/bank-keypair.json'
+  CI_DEPLOYMENT_AUTHORITY_WALLET_PATH: './target/deploy/ci-resident-upgrade-authority.json'
   # This program stays deployed to test over time
   RESIDENT_PROGRAM_KEYPAIR: ./target/deploy/ci-resident-keypair.json
   #
@@ -29,20 +29,19 @@ env:
   DEPLOYMENT_FUNDING_AMOUNT: 10
   TRANSACTION_FEE_OFFSET: 0.005
   # Name of the tests files in the program repo. We use them for sed and swap the `anchor test`
-  TEST_DEV: "test_development"
-  TEST_CI_SETUP: "test_ci_setup"
-  TEST_CI_REGULAR_MINT_REDEEM: "test_ci_regular_mint_redeem"
-  TEST_CI_REBALANCING: "test_ci_rebalancing"
-  TEST_CI_QUOTE_MINT_REDEEM: "test_ci_quote_mint_redeem"
+  TEST_DEV: 'test_development'
+  TEST_CI_SETUP: 'test_ci_setup'
+  TEST_CI_REGULAR_MINT_REDEEM: 'test_ci_regular_mint_redeem'
+  TEST_CI_REBALANCING: 'test_ci_rebalancing'
+  TEST_CI_QUOTE_MINT_REDEEM: 'test_ci_quote_mint_redeem'
   # Mango MM SOL PERP PARAMS
-  MANGO_MM_ACCOUNT_KEYPAIR: "./target/deploy/mango-mm-account-keypair.json"
-    
+  MANGO_MM_ACCOUNT_KEYPAIR: './target/deploy/mango-mm-account-keypair.json'
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-
   # Build and deploy an updated program at 3kjnUzQgP8AruD7UpngGw2buFvRZdxXocAbrtqpeDdsW
   anchor-build-and-deploy:
     name: Upgrades CI Resident Program
@@ -59,7 +58,7 @@ jobs:
           profile: minimal
       # Install solana
       - name: Cache Solana Tool Suite
-        uses: actions/cache@v2  
+        uses: actions/cache@v2
         id: cache-solana
         with:
           path: |
@@ -74,7 +73,7 @@ jobs:
           sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
       - name: Add Solana to PATH
         run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
-      - name: Setup solana 
+      - name: Setup solana
         run: |
           solana --version
           solana config set -u d
@@ -82,7 +81,7 @@ jobs:
       - name: Node 14 installation
         uses: actions/setup-node@v2
         with:
-          node-version: "14"
+          node-version: '14'
       - name: Cache dependencies
         uses: actions/cache@v2
         with:
@@ -97,7 +96,7 @@ jobs:
           solana balance
       # Cargo caching
       - name: Cache Cargo registry + index
-        uses: actions/cache@v2  
+        uses: actions/cache@v2
         id: cache-anchor
         with:
           path: |
@@ -171,7 +170,7 @@ jobs:
           profile: minimal
       # Install solana
       - name: Cache Solana Tool Suite
-        uses: actions/cache@v2  
+        uses: actions/cache@v2
         id: cache-solana
         with:
           path: |
@@ -186,7 +185,7 @@ jobs:
           sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
       - name: Add Solana to PATH
         run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
-      - name: Setup solana 
+      - name: Setup solana
         run: |
           solana --version
           solana config set -u d
@@ -194,7 +193,7 @@ jobs:
       - name: Node 14 installation
         uses: actions/setup-node@v2
         with:
-          node-version: "14"
+          node-version: '14'
       - name: Cache dependencies
         uses: actions/cache@v2
         with:
@@ -209,7 +208,7 @@ jobs:
           solana balance
       # Cargo caching
       - name: Cache Cargo registry + index
-        uses: actions/cache@v2  
+        uses: actions/cache@v2
         id: cache-anchor
         with:
           path: |
@@ -254,7 +253,7 @@ jobs:
           profile: minimal
       # Install solana
       - name: Cache Solana Tool Suite
-        uses: actions/cache@v2  
+        uses: actions/cache@v2
         id: cache-solana
         with:
           path: |
@@ -269,7 +268,7 @@ jobs:
           sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
       - name: Add Solana to PATH
         run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
-      - name: Setup solana 
+      - name: Setup solana
         run: |
           solana --version
           solana config set -u d
@@ -277,7 +276,7 @@ jobs:
       - name: Node 14 installation
         uses: actions/setup-node@v2
         with:
-          node-version: "14"
+          node-version: '14'
       - name: Cache dependencies
         uses: actions/cache@v2
         with:
@@ -292,7 +291,7 @@ jobs:
           solana balance
       # Cargo caching
       - name: Cache Cargo registry + index
-        uses: actions/cache@v2  
+        uses: actions/cache@v2
         id: cache-anchor
         with:
           path: |
@@ -337,7 +336,7 @@ jobs:
           profile: minimal
       # Install solana
       - name: Cache Solana Tool Suite
-        uses: actions/cache@v2  
+        uses: actions/cache@v2
         id: cache-solana
         with:
           path: |
@@ -352,7 +351,7 @@ jobs:
           sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
       - name: Add Solana to PATH
         run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
-      - name: Setup solana 
+      - name: Setup solana
         run: |
           solana --version
           solana config set -u d
@@ -360,7 +359,7 @@ jobs:
       - name: Node 14 installation
         uses: actions/setup-node@v2
         with:
-          node-version: "14"
+          node-version: '14'
       - name: Cache dependencies
         uses: actions/cache@v2
         with:
@@ -375,7 +374,7 @@ jobs:
           solana balance
       # Cargo caching
       - name: Cache Cargo registry + index
-        uses: actions/cache@v2  
+        uses: actions/cache@v2
         id: cache-anchor
         with:
           path: |
@@ -420,7 +419,7 @@ jobs:
           profile: minimal
       # Install solana
       - name: Cache Solana Tool Suite
-        uses: actions/cache@v2  
+        uses: actions/cache@v2
         id: cache-solana
         with:
           path: |
@@ -435,7 +434,7 @@ jobs:
           sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
       - name: Add Solana to PATH
         run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
-      - name: Setup solana 
+      - name: Setup solana
         run: |
           solana --version
           solana config set -u d
@@ -443,7 +442,7 @@ jobs:
       - name: Node 14 installation
         uses: actions/setup-node@v2
         with:
-          node-version: "14"
+          node-version: '14'
       - name: Cache dependencies
         uses: actions/cache@v2
         with:
@@ -458,7 +457,7 @@ jobs:
           solana balance
       # Cargo caching
       - name: Cache Cargo registry + index
-        uses: actions/cache@v2  
+        uses: actions/cache@v2
         id: cache-anchor
         with:
           path: |

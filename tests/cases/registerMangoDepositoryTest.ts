@@ -4,19 +4,19 @@ import { registerMangoDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection } from "../connection";
 
-export const registerMangoDepositoryTest = async function (authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango, payer?: Signer) {
+export const registerMangoDepositoryTest = async function (authority: Signer, controller: Controller, depository: MangoDepository, mango: Mango, redeemableAmountUnderManagementCap: number, payer?: Signer) {
     console.group("🧭 initializeMangoDepositoryTest");
     try {
         // WHEN
         if (await getConnection().getAccountInfo(depository.mangoAccountPda)) {
             console.log("🚧 Already registered.");
         } else {
-            const txId = await registerMangoDepository(authority, payer ?? authority, controller, depository, mango);
+            const txId = await registerMangoDepository(authority, payer ?? authority, controller, depository, mango, redeemableAmountUnderManagementCap);
             console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
         }
 
         // THEN
-        console.log(`🧾 Initialized`, depository.collateralMintSymbol, "Depository");
+        console.log(`🧾 Initialized`, depository.collateralMintSymbol, "Mango Depository");
         depository.info();
         console.groupEnd();
     } catch (error) {

@@ -1,4 +1,6 @@
+import { BN } from "@project-serum/anchor";
 import { Signer } from "@solana/web3.js";
+import { uiToNative } from "@uxd-protocol/uxd-client";
 import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { editMangoDepository } from "../api";
@@ -10,7 +12,8 @@ export const editMangoDepositoryTest = async function (
   controller: Controller,
   depository: MangoDepository,
   uiFields: {
-    quoteMintAndRedeemFee: number;
+    quoteMintAndRedeemFee?: number;
+    redeemableAmountUnderManagementCap?: number;
   }
 ) {
   const connection = getConnection();
@@ -20,7 +23,10 @@ export const editMangoDepositoryTest = async function (
   try {
     // GIVEN
     const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
-    const quoteMintAndRedeemFee = depositoryOnchainAccount.quoteMintAndRedeemFee;
+    const {
+      quoteMintAndRedeemFee,
+      redeemableAmountUnderManagementCap,
+    } = depositoryOnchainAccount;
 
     // WHEN
     const txId = await editMangoDepository(authority, controller, depository, uiFields);
@@ -28,10 +34,21 @@ export const editMangoDepositoryTest = async function (
 
     // THEN
     const depositoryOnchainAccount_post = await depository.getOnchainAccount(connection, options);
-    const quoteMintAndRedeemFee_post = depositoryOnchainAccount_post.quoteMintAndRedeemFee;
 
-    expect(quoteMintAndRedeemFee_post).equals(uiFields.quoteMintAndRedeemFee, "The quote fee has not changed.");
-    console.log(`🧾 Previous quote fee was`, quoteMintAndRedeemFee, "now is", quoteMintAndRedeemFee_post);
+    const {
+      quoteMintAndRedeemFee: quoteMintAndRedeemFee_post,
+      redeemableAmountUnderManagementCap: redeemableAmountUnderManagementCap_post,
+    } = depositoryOnchainAccount_post;
+
+    if (typeof uiFields.quoteMintAndRedeemFee !== 'undefined') {
+      expect(quoteMintAndRedeemFee_post).equals(uiFields.quoteMintAndRedeemFee, "The quote fee has not changed.");
+      console.log(`🧾 Previous quote fee was`, quoteMintAndRedeemFee, "now is", quoteMintAndRedeemFee_post);
+    }
+    if (typeof uiFields.redeemableAmountUnderManagementCap !== 'undefined') {
+      expect(redeemableAmountUnderManagementCap_post.toString()).equals(uiToNative(uiFields.redeemableAmountUnderManagementCap, controller.redeemableMintDecimals).toString(), "The redeemable amount under management cap has not changed.");
+      console.log(`🧾 Previous redeemable amount under management cap was`, redeemableAmountUnderManagementCap.toString(), "now is", redeemableAmountUnderManagementCap_post.toString());
+    }
+
     controller.info();
     console.groupEnd();
   } catch (error) {

@@ -15,6 +15,10 @@ import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
+export function ceilAtDecimals(number: number, decimals: number): number {
+    return Number((Math.ceil(number * (10 ** decimals)) / (10 ** decimals)).toFixed(decimals));
+}
+
 export async function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
   const transaction = new anchor.web3.Transaction().add(
     anchor.web3.SystemProgram.transfer({
@@ -229,13 +233,6 @@ export async function printDepositoryInfo(controller: Controller, depository: Ma
   console.groupEnd();
 }
 
-/**
- *
- * @param {*} connection
- * @param {anchor.web3.PublicKey} userKey
- * @param {number} amountNative
- * @returns {Promise<anchor.web3.TransactionInstruction[]>}
- */
 export const prepareWrappedSolTokenAccount = async (connection, payerKey, userKey, amountNative) => {
   const wsolTokenKey = findAssociatedTokenAddress(userKey, NATIVE_MINT);
   const tokenAccount = await connection.getParsedAccountInfo(wsolTokenKey);
@@ -281,13 +278,7 @@ const transferSolItx = (fromKey, toKey, amountNative) =>
     lamports: amountNative,
   });
 
-/**
- *
- * @param {*} connection
- * @param {anchor.web3.PublicKey} userKey
- * @param {number} amountNative
- * @returns {Promise<anchor.web3.TransactionInstruction[]>}
- */
+
 const createWrappedSolTokenAccount = async (connection, payerKey, userKey, amountNative = 0) => {
   const assocTokenKey = findAssociatedTokenAddress(userKey, NATIVE_MINT);
   const balanceNeeded = await Token.getMinBalanceRentForExemptAccount(connection);

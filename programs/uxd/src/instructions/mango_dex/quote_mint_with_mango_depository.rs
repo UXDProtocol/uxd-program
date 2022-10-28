@@ -1,7 +1,6 @@
 use crate::events::QuoteMintWithMangoDepositoryEvent;
 use crate::mango_utils::total_perp_base_lot_position;
 use crate::mango_utils::PerpInfo;
-use crate::validate_mango_group;
 use crate::validate_perp_market_mints_matches_depository_mints;
 use crate::Controller;
 use crate::MangoDepository;
@@ -258,8 +257,11 @@ pub(crate) fn handler(ctx: Context<QuoteMintWithMangoDepository>, quote_amount: 
     ctx.accounts
         .update_onchain_accounting(redeemable_mint_amount_less_fees, fees_accrued)?;
 
-    // - 7 [CHECK GLOBAL REDEEMABLE SUPPLY CAP OVERFLOW] ----------------------
+    // - 7 [CHECK REDEEMABLE SUPPLY CAPS OVERFLOW] ----------------------
     ctx.accounts.check_redeemable_global_supply_cap_overflow()?;
+
+    ctx.accounts
+        .check_redeemable_amount_under_management_cap_overflow()?;
 
     emit!(QuoteMintWithMangoDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,
@@ -298,6 +300,16 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
             authority: self.controller.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    fn check_redeemable_amount_under_management_cap_overflow(&self) -> Result<()> {
+        let depository = self.depository.load()?;
+        require!(
+            depository.redeemable_amount_under_management
+                <= depository.redeemable_amount_under_management_cap,
+            UxdError::RedeemableMangoAmountUnderManagementCap
+        );
+        Ok(())
     }
 
     // Ensure that the minted amount does not raise the Redeemable supply beyond the Global Redeemable Supply Cap
@@ -382,8 +394,6 @@ impl<'info> QuoteMintWithMangoDepository<'info> {
             !self.depository.load()?.regular_minting_disabled,
             UxdError::MintingDisabled
         );
-
-        validate_mango_group(self.mango_group.key())?;
 
         validate_perp_market_mints_matches_depository_mints(
             &self.mango_group,
