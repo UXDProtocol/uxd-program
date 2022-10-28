@@ -62,6 +62,9 @@ pub struct InitializeIdentityDepository<'info> {
 
     /// #8 Token Program
     pub token_program: Program<'info, Token>,
+
+    /// #9 Rent Sysvar
+    pub rent: Sysvar<'info, Rent>,
 }
 
 pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> {
@@ -84,7 +87,7 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
     depository.collateral_vault = ctx.accounts.collateral_vault.key();
     depository.collateral_vault_bump = collateral_vault_bump;
     depository.redeemable_amount_under_management = u128::MIN;
-    depository.regular_minting_disabled = true;
+    depository.minting_disabled = true;
 
     emit!(InitializeIdentityDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,

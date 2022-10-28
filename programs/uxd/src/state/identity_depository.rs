@@ -37,5 +37,5 @@ pub struct IdentityDepository {
     // In Redeemable native units
     pub redeemable_amount_under_management: u128,
     // Flag to indicate whether minting through collateral deposits is allowed
-    pub regular_minting_disabled: bool,
+    pub minting_disabled: bool,
 }
