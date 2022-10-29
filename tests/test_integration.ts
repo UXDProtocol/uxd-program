@@ -31,7 +31,6 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
       decimals: SOLEND_USDC_DEVNET_DECIMALS,
     },
     uxdProgramId,
-    // cluster: "devnet",
   });
 
   describe("Mercurial vault integration tests: USDC", async function () {

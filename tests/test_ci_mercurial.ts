@@ -1,6 +1,7 @@
 import { Signer, Keypair } from "@solana/web3.js";
 import { findATAAddrSync } from "@uxd-protocol/uxd-client";
 import { Controller, MercurialVaultDepository, UXD_DECIMALS } from "@uxd-protocol/uxd-client";
+import { editControllerTest } from "./cases/editControllerTest";
 import { getConnection } from "./connection";
 import { authority, bank, SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS, uxdProgramId } from "./constants";
 import { controllerIntegrationSuiteParameters, controllerIntegrationSuite } from "./suite/controllerIntegrationSuite";
@@ -13,6 +14,12 @@ import { transferSol, transferAllSol, transferAllTokens, getBalance } from "./ut
 
   beforeEach("\n", function () {
     console.log("=============================================\n\n");
+  });
+
+  it("Set controller global supply cap to 25mm", async function () {
+    await editControllerTest(authority, controllerUXD, {
+      redeemableGlobalSupplyCap: 25_000_000,
+    });
   });
 
   let user: Signer = new Keypair();
@@ -31,8 +38,6 @@ import { transferSol, transferAllSol, transferAllTokens, getBalance } from "./ut
   describe("Mercurial vault integration tests: USDC", async function () {
     this.beforeAll("Setup: fund user", async function () {
       console.log("USER =>", user.publicKey.toString());
-      const bankSolendUsdcATA = findATAAddrSync(bank.publicKey, SOLEND_USDC_DEVNET)[0];
-      console.log("solend usdc from bank", await getBalance(bankSolendUsdcATA));
       await transferSol(1, bank, user.publicKey);
     });
 

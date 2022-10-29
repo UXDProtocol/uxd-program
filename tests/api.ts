@@ -162,26 +162,6 @@ export async function editController(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function setMangoDepositoriesRedeemableSoftCap(
-  authority: Signer,
-  controller: Controller,
-  supplySoftCapUiAmount: number
-): Promise<string> {
-  const setMangoDepositoriesRedeemableSoftCapIx = uxdClient.createSetMangoDepositoriesRedeemableSoftCapInstruction(
-    controller,
-    authority.publicKey,
-    supplySoftCapUiAmount,
-    TXN_OPTS
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  tx.instructions.push(setMangoDepositoriesRedeemableSoftCapIx);
-  signers.push(authority);
-
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
 export async function editMercurialVaultDepository(
   authority: Signer,
   controller: Controller,
@@ -204,26 +184,6 @@ export async function editMercurialVaultDepository(
   let tx = new Transaction();
 
   tx.instructions.push(editMercurialVaultDepositoryIx);
-  signers.push(authority);
-
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function setRedeemableGlobalSupplyCap(
-  authority: Signer,
-  controller: Controller,
-  supplyCapUiAmount: number
-): Promise<string> {
-  const setRedeemableGlobalSupplyCapIx = uxdClient.createSetRedeemableGlobalSupplyCapInstruction(
-    controller,
-    authority.publicKey,
-    supplyCapUiAmount,
-    TXN_OPTS
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  tx.instructions.push(setRedeemableGlobalSupplyCapIx);
   signers.push(authority);
 
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
