@@ -9,13 +9,12 @@ import {
 import { expect } from "chai";
 import { redeemFromMercurialVaultDepositoryTest } from "../cases/redeemFromMercurialVaultDepositoryTest";
 import { mintWithMercurialVaultDepositoryTest } from "../cases/mintWithMercurialVaultDepositoryTest";
-import { getBalance, transferAllSol, transferAllTokens, transferSol, transferTokens } from "../utils";
+import { getBalance, transferTokens } from "../utils";
 import { getConnection, TXN_OPTS } from "../connection";
-import { setRedeemableGlobalSupplyCapTest } from "../cases/setRedeemableGlobalSupplyCapTest";
 import { BN } from "@project-serum/anchor";
-import { editMercurialVaultDepository } from "../api";
 import { editMercurialVaultDepositoryTest } from "../cases/editMercurialVaultDepositoryTest";
 import { MercurialVaultDepositoryAccount, uiToNative } from "@uxd-protocol/uxd-client";
+import { editControllerTest } from "../cases/editControllerTest";
 
 export const mercurialVaultDepositoryMintRedeemSuite = async function (
   controllerAuthority: Signer,
@@ -53,7 +52,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
     ]);
 
     initialControllerGlobalRedeemableSupplyCap = onchainController.redeemableGlobalSupplyCap;
-    initialRedeemableDepositorySupplyCap = onChainDepository.redeemableDepositorySupplyCap;
+    initialRedeemableDepositorySupplyCap = onChainDepository.redeemableAmountUnderManagementCap;
   });
 
   describe("Regular mint/redeem", () => {
@@ -246,8 +245,8 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
       const onChainDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
 
       await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-        redeemableDepositorySupplyCap:
-          onChainDepository.mintedRedeemableAmount + uiToNative(0.0005, controller.redeemableMintDecimals),
+        redeemableAmountUnderManagementCap:
+          onChainDepository.redeemableAmountUnderManagement + uiToNative(0.0005, controller.redeemableMintDecimals),
       });
     });
 
@@ -266,13 +265,13 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
     });
 
     it(`Reset redeemable depository supply cap back to its original value`, async function () {
-      const redeemableDepositorySupplyCap = nativeToUi(
+      const redeemableAmountUnderManagementCap = nativeToUi(
         initialRedeemableDepositorySupplyCap,
         controller.redeemableMintDecimals
       );
 
       await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-        redeemableDepositorySupplyCap,
+        redeemableAmountUnderManagementCap,
       });
     });
   });

@@ -1,5 +1,5 @@
 {
-  "version": "4.0.0",
+  "version": "5.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -2632,8 +2632,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "DJF9Fg5QYDecQKkVPk2XsyjNpS2TLdcNMaTpKy2VXg57"
-  }
+  ]
 }

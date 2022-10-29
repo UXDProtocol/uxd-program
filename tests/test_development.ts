@@ -62,7 +62,7 @@ describe("Integration tests", function () {
         mercurialVaultDepositoryUSDC,
         mintingFeeInBps,
         redeemingFeeInBps,
-        redeemableDepositorySupplyCap,
+        redeemableAmountUnderManagementCap,
         payer
       );
     });

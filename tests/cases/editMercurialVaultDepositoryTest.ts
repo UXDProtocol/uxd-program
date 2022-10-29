@@ -24,7 +24,7 @@ export const editMercurialVaultDepositoryTest = async function (
     // GIVEN
     const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
 
-    const { redeemableDepositorySupplyCap, mintingFeeInBps, redeemingFeeInBps, mintingDisabled } =
+    const { redeemableAmountUnderManagementCap, mintingFeeInBps, redeemingFeeInBps, mintingDisabled } =
       depositoryOnchainAccount;
 
     // WHEN
@@ -40,20 +40,20 @@ export const editMercurialVaultDepositoryTest = async function (
       mintingDisabled: mintingDisabled_post,
     } = depositoryOnchainAccount_post;
 
-    if (uiFields.redeemableDepositorySupplyCap) {
+    if (uiFields.redeemableAmountUnderManagementCap) {
       const nativeRedeemableDepositorySupplyCap = uiToNative(
-        uiFields.redeemableDepositorySupplyCap,
+        uiFields.redeemableAmountUnderManagementCap,
         controller.redeemableMintDecimals
       );
-      expect(redeemableDepositorySupplyCap_post.toString()).equals(
+      expect(redeemableAmountUnderManagementCap_post.toString()).equals(
         nativeRedeemableDepositorySupplyCap.toString(),
         "The redeemable depository supply cap has not changed."
       );
       console.log(
         `🧾 Previous redeemable depository supply cap was`,
-        redeemableDepositorySupplyCap.toString(),
+        redeemableAmountUnderManagementCap.toString(),
         "now is",
-        redeemableDepositorySupplyCap_post.toString()
+        redeemableAmountUnderManagementCap_post.toString()
       );
     }
     if (typeof uiFields.mintingFeeInBps !== "undefined") {

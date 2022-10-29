@@ -11,6 +11,6 @@ export const TXN_OPTS = {
 };
 
 export function getConnection(): Connection {
-  const provider = AnchorProvider.env();
+  const provider = AnchorProvider.local("https://mango.devnet.rpcpool.com");
   return provider.connection;
 }
