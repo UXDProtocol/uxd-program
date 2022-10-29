@@ -2,9 +2,9 @@ name: Anchor Test
 
 on:
   pull_request:
-    branches: [main, fix/enhance-test-post-mercurial]
+    branches: [main]
   push:
-    branches: [main, fix/enhance-test-post-mercurial]
+    branches: [main]
 
 permissions:
   contents: read
