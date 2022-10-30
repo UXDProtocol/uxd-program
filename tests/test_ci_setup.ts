@@ -17,7 +17,7 @@ import { mercurialVaultDepositorySetupSuite } from "./suite/mercurialVaultDeposi
     controllerIntegrationSuite(authority, bank, controllerUXD, params);
   });
 
-  let mercurialVaultDepository = await MercurialVaultDepository.initialize({
+  const mercurialVaultDepository = await MercurialVaultDepository.initialize({
     connection: getConnection(),
     collateralMint: {
       mint: SOLEND_USDC_DEVNET,
