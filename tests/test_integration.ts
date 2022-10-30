@@ -22,7 +22,7 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
 
   let user: Signer = new Keypair();
 
-  let mercurialVaultDepository = await MercurialVaultDepository.initialize({
+  const mercurialVaultDepository = await MercurialVaultDepository.initialize({
     connection: getConnection(),
     collateralMint: {
       mint: SOLEND_USDC_DEVNET,
