@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "4.0.0",
+  "version": "5.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -1209,184 +1209,6 @@ export type Uxd = {
           "type": "u64"
         }
       ]
-    },
-    {
-      "name": "initializeIdentityDepository",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "mintWithIdentityDepository",
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "redeemableMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "collateralAmount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "redeemFromIdentityDepository",
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "redeemableMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "redeemableAmount",
-          "type": "u64"
-        }
-      ]
     }
   ],
   "accounts": [
@@ -1460,50 +1282,6 @@ export type Uxd = {
           {
             "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "identityDepository",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "version",
-            "type": "u8"
-          },
-          {
-            "name": "collateralMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "collateralMintDecimals",
-            "type": "u8"
-          },
-          {
-            "name": "collateralVault",
-            "type": "publicKey"
-          },
-          {
-            "name": "collateralVaultBump",
-            "type": "u8"
-          },
-          {
-            "name": "collateralAmountDeposited",
-            "type": "u128"
-          },
-          {
-            "name": "redeemableAmountUnderManagement",
-            "type": "u128"
-          },
-          {
-            "name": "mintingDisabled",
-            "type": "bool"
           }
         ]
       }
@@ -2511,66 +2289,6 @@ export type Uxd = {
           "index": true
         },
         {
-          "name": "regularMintingDisabled",
-          "type": "bool",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "InitializeIdentityDepositoryEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "depositoryVersion",
-          "type": "u8",
-          "index": true
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "collateralMint",
-          "type": "publicKey",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "MintWithIdentityDepositoryEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "user",
-          "type": "publicKey",
-          "index": false
-        },
-        {
           "name": "collateralAmount",
           "type": "u64",
           "index": false
@@ -2941,11 +2659,6 @@ export type Uxd = {
     },
     {
       "code": 6066,
-      "name": "MangoDepositorySuspended",
-      "msg": "Mango Depositories suspended due to the 12/10/22 exploit."
-    },
-    {
-      "code": 6067,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
@@ -2953,7 +2666,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "4.0.0",
+  "version": "5.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -4163,184 +3876,6 @@ export const IDL: Uxd = {
           "type": "u64"
         }
       ]
-    },
-    {
-      "name": "initializeIdentityDepository",
-      "accounts": [
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "mintWithIdentityDepository",
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "redeemableMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "collateralAmount",
-          "type": "u64"
-        }
-      ]
-    },
-    {
-      "name": "redeemFromIdentityDepository",
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "redeemableMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userRedeemable",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "redeemableAmount",
-          "type": "u64"
-        }
-      ]
     }
   ],
   "accounts": [
@@ -4414,50 +3949,6 @@ export const IDL: Uxd = {
           {
             "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "identityDepository",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "version",
-            "type": "u8"
-          },
-          {
-            "name": "collateralMint",
-            "type": "publicKey"
-          },
-          {
-            "name": "collateralMintDecimals",
-            "type": "u8"
-          },
-          {
-            "name": "collateralVault",
-            "type": "publicKey"
-          },
-          {
-            "name": "collateralVaultBump",
-            "type": "u8"
-          },
-          {
-            "name": "collateralAmountDeposited",
-            "type": "u128"
-          },
-          {
-            "name": "redeemableAmountUnderManagement",
-            "type": "u128"
-          },
-          {
-            "name": "mintingDisabled",
-            "type": "bool"
           }
         ]
       }
@@ -5465,66 +4956,6 @@ export const IDL: Uxd = {
           "index": true
         },
         {
-          "name": "regularMintingDisabled",
-          "type": "bool",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "InitializeIdentityDepositoryEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "depositoryVersion",
-          "type": "u8",
-          "index": true
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "collateralMint",
-          "type": "publicKey",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "MintWithIdentityDepositoryEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": false
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "user",
-          "type": "publicKey",
-          "index": false
-        },
-        {
           "name": "collateralAmount",
           "type": "u64",
           "index": false
@@ -5895,11 +5326,6 @@ export const IDL: Uxd = {
     },
     {
       "code": 6066,
-      "name": "MangoDepositorySuspended",
-      "msg": "Mango Depositories suspended due to the 12/10/22 exploit."
-    },
-    {
-      "code": 6067,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

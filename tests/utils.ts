@@ -1,13 +1,4 @@
-import {
-  MangoDepository,
-  Mango,
-  SOL_DECIMALS,
-  findATAAddrSync,
-  Controller,
-  nativeI80F48ToUi,
-  nativeToUi,
-  uiToNative,
-} from "@uxd-protocol/uxd-client";
+import { SOL_DECIMALS, findATAAddrSync, nativeToUi, uiToNative } from "@uxd-protocol/uxd-client";
 import { PublicKey, Signer } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -16,7 +7,7 @@ import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
 export function ceilAtDecimals(number: number, decimals: number): number {
-    return Number((Math.ceil(number * (10 ** decimals)) / (10 ** decimals)).toFixed(decimals));
+  return Number((Math.ceil(number * 10 ** decimals) / 10 ** decimals).toFixed(decimals));
 }
 
 export async function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
@@ -103,136 +94,6 @@ export async function getBalance(tokenAccount: PublicKey): Promise<number> {
   }
 }
 
-export async function printUserInfo(user: PublicKey, controller: Controller, depository: MangoDepository) {
-  const userCollateralATA: PublicKey = findATAAddrSync(user, depository.collateralMint)[0];
-  const userQuoteATA: PublicKey = findATAAddrSync(user, depository.quoteMint)[0];
-  const userRedeemableATA: PublicKey = findATAAddrSync(user, controller.redeemableMintPda)[0];
-
-  console.group("[User balances]");
-  console.log("Native SOL", `\t\t\t\t\t\t\t`, await getSolBalance(user));
-  console.log(`${depository.collateralMintSymbol}`, `\t\t\t\t\t\t\t\t`, await getBalance(userCollateralATA));
-  console.log(`${depository.quoteMintSymbol}`, `\t\t\t\t\t\t\t\t`, await getBalance(userQuoteATA));
-  console.log(`${controller.redeemableMintSymbol}`, `\t\t\t\t\t\t\t\t`, await getBalance(userRedeemableATA));
-  console.groupEnd();
-}
-
-export async function printDepositoryInfo(controller: Controller, depository: MangoDepository, mango: Mango) {
-  const provider = getConnection();
-  const SYM = depository.collateralMintSymbol;
-  const controllerAccount = await controller.getOnchainAccount(getConnection(), TXN_OPTS);
-  const depositoryAccount = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
-  const mangoAccount = await mango.load(depository.mangoAccountPda);
-  const pmi = mango.getPerpMarketConfig(SYM).marketIndex;
-  const pa = mangoAccount.perpAccounts[pmi];
-  const pm = await mango.getPerpMarket(SYM);
-  const cache = await mango.group.loadCache(provider);
-  const accountValue = mangoAccount.computeValue(mango.group, cache).toBig().toNumber();
-  const accountingInsuranceDepositedValue = nativeToUi(
-    depositoryAccount.insuranceAmountDeposited.toNumber(),
-    depository.quoteMintDecimals
-  );
-  //
-  const collateralSpotAmount = await depository.getCollateralBalance(mango);
-  // const insuranceSpotAmount = await
-  //
-  const collateralDepositInterests = collateralSpotAmount
-    .toBig()
-    .sub(depositoryAccount.collateralAmountDeposited)
-    .toNumber();
-  // const insuranceDepositInterests = insuranceSpotAmount.toBig().sub(depositoryAccount.insuranceAmountDeposited);
-  //
-  const accountValueMinusTotalInsuranceDeposited = accountValue - accountingInsuranceDepositedValue;
-  const redeemableUnderManagement = nativeToUi(
-    depositoryAccount.redeemableAmountUnderManagement.toNumber(),
-    controller.redeemableMintDecimals
-  );
-
-  // await mango.printAccountInfo(mangoAccount);
-
-  console.group("[Depository", SYM, "]");
-  console.groupEnd();
-
-  console.group("[Derived Information from onchain accounting and mango account] :");
-  console.table({
-    [`Depository PnL (${depository.quoteMintSymbol})`]: Number(
-      (accountValueMinusTotalInsuranceDeposited - redeemableUnderManagement).toFixed(depository.quoteMintDecimals)
-    ),
-    [`collateral deposit interests (${SYM})`]: Number(
-      nativeToUi(collateralDepositInterests, depository.collateralMintDecimals).toFixed(
-        depository.collateralMintDecimals
-      )
-    ),
-    // [`insurance deposit interests (${depository.insuranceMintSymbol})`]: Number(nativeToUi(insuranceDepositInterests.toNumber(), depository.insuranceMintDecimals).toFixed(depository.insuranceMintDecimals)),
-  });
-  console.groupEnd();
-
-  console.group("[OnChain Accounting (Program)] :");
-  console.table({
-    [`insuranceAmountDeposited (${depository.quoteMintSymbol})`]: accountingInsuranceDepositedValue,
-    [`collateralAmountDeposited (${SYM})`]: nativeToUi(
-      depositoryAccount.collateralAmountDeposited.toNumber(),
-      depository.collateralMintDecimals
-    ),
-    [`depository.redeemableAmountUnderManagement (${controller.redeemableMintSymbol})`]: redeemableUnderManagement,
-    [`controller.redeemableCirculatingSupply (${controller.redeemableMintSymbol})`]: nativeToUi(
-      controllerAccount.redeemableCirculatingSupply.toNumber(),
-      controller.redeemableMintDecimals
-    ),
-    [`totalAmountPaidTakerFee (${depository.quoteMintSymbol})`]: nativeToUi(
-      depositoryAccount.totalAmountPaidTakerFee.toNumber(),
-      depository.quoteMintDecimals
-    ),
-    [`totalAmountRebalanced (${depository.quoteMintSymbol})`]: nativeToUi(
-      depositoryAccount.totalAmountRebalanced.toNumber(),
-      depository.quoteMintDecimals
-    ),
-  });
-  console.groupEnd();
-
-  console.group("[MangoAccount (Program owned)] :");
-  console.table({
-    [`delta neutral position notional size (${depository.quoteMintSymbol})`]:
-      await depository.getDeltaNeutralPositionNotionalSizeUI(mango),
-    [`perp unrealized pnl (${depository.quoteMintSymbol})`]: await depository.getUnrealizedPnl(mango, TXN_OPTS),
-    [`spot_base_position (${SYM})`]: Number(
-      nativeI80F48ToUi(collateralSpotAmount, depository.collateralMintDecimals).toFixed(
-        depository.collateralMintDecimals
-      )
-    ),
-    ["account value (minus insurance) (Quote)"]: Number(
-      accountValueMinusTotalInsuranceDeposited.toFixed(depository.quoteMintDecimals)
-    ),
-    ["account value (Quote)"]: Number(accountValue.toFixed(depository.quoteMintDecimals)),
-  });
-  console.groupEnd();
-
-  console.group("[MangoAccount's PerpAccount (Program owned)] :");
-  console.table({
-    ["perp_base_position"]: Number(
-      nativeToUi(pm.baseLotsToNative(pa.basePosition).toNumber(), depository.collateralMintDecimals).toFixed(
-        depository.collateralMintDecimals
-      )
-    ),
-    ["perp_quote_position"]: Number(
-      nativeI80F48ToUi(pa.quotePosition, depository.quoteMintDecimals).toFixed(depository.quoteMintDecimals)
-    ),
-    ["perp_taker_base"]: Number(
-      nativeToUi(pm.baseLotsToNative(pa.takerBase).toNumber(), depository.collateralMintDecimals).toFixed(
-        depository.collateralMintDecimals
-      )
-    ),
-    ["perp_taker_quote"]: Number(
-      nativeToUi(pa.takerQuote.toNumber(), depository.quoteMintDecimals).toFixed(depository.quoteMintDecimals)
-    ),
-    ["perp_unsettled_funding (Quote)"]: Number(
-      nativeI80F48ToUi(pa.getUnsettledFunding(cache.perpMarketCache[pmi]), depository.quoteMintDecimals).toFixed(
-        depository.quoteMintDecimals
-      )
-    ),
-  });
-  console.groupEnd();
-}
-
 export const prepareWrappedSolTokenAccount = async (connection, payerKey, userKey, amountNative) => {
   const wsolTokenKey = findAssociatedTokenAddress(userKey, NATIVE_MINT);
   const tokenAccount = await connection.getParsedAccountInfo(wsolTokenKey);
@@ -277,7 +138,6 @@ const transferSolItx = (fromKey, toKey, amountNative) =>
     toPubkey: toKey,
     lamports: amountNative,
   });
-
 
 const createWrappedSolTokenAccount = async (connection, payerKey, userKey, amountNative = 0) => {
   const assocTokenKey = findAssociatedTokenAddress(userKey, NATIVE_MINT);

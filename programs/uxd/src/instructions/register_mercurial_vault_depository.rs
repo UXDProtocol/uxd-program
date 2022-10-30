@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::error::UxdError;
 use crate::events::RegisterMercurialVaultDepositoryEvent;
 use crate::state::MercurialVaultDepository;
@@ -150,7 +152,8 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
     // This check exists to avoid the creation of an imbalanced mercurial vault depository
     // Redeemable and collateral should always be 1:1
     pub fn validate_collateral_mint(&self) -> Result<()> {
-        let usdc_mint: Pubkey = Pubkey::new(b"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+        let usdc_mint: Pubkey =
+            Pubkey::from_str("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").unwrap();
 
         require!(
             self.collateral_mint.key().eq(&usdc_mint),

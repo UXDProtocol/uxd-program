@@ -142,9 +142,6 @@ pub enum UxdError {
     #[msg("The provided mercurial vault collateral token safe does not match the mercurial vault one.")]
     InvalidMercurialVaultCollateralTokenSafe,
 
-    #[msg("Mango Depositories suspended due to the 12/10/22 exploit.")]
-    MangoDepositorySuspended,
-
     #[msg("Default - Check the source code for more info.")]
     Default,
 }
