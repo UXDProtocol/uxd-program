@@ -22,7 +22,7 @@ import { transferSol, transferAllSol, transferAllTokens, getBalance } from "./ut
     });
   });
 
-  let user: Signer = new Keypair();
+  const user: Signer = new Keypair();
 
   let mercurialVaultDepository = await MercurialVaultDepository.initialize({
     connection: getConnection(),
