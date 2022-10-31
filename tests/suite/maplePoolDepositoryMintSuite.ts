@@ -22,10 +22,8 @@ export const maplePoolDepositoryMintSuite = async function (
   controller: Controller,
   depository: MaplePoolDepository
 ) {
-  let initialRedeemableAccountBalance: number;
   let initialControllerGlobalRedeemableSupplyCap: BN;
   let initialRedeemableDepositorySupplyCap: BN;
-  let userRedeemableATA: PublicKey;
   let onchainController: ControllerAccount;
   let onChainDepository: MaplePoolDepositoryAccount;
 
@@ -36,10 +34,7 @@ export const maplePoolDepositoryMintSuite = async function (
 
     await transferTokens(0.002, depository.collateralMint, depository.collateralDecimals, payer, user.publicKey);
 
-    userRedeemableATA = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
-
-    [initialRedeemableAccountBalance, onchainController, onChainDepository] = await Promise.all([
-      getBalance(userRedeemableATA),
+    [onchainController, onChainDepository] = await Promise.all([
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
@@ -64,13 +59,13 @@ export const maplePoolDepositoryMintSuite = async function (
 
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralSymbol, "]");
 
+      let failure = false;
       try {
         await mintWithMaplePoolDepositoryTest(collateralAmount, user, controller, depository, payer);
       } catch {
-        expect(true, "Failing as planned");
+        failure = true;
       }
-
-      expect(false, `Should have failed - Do not own enough ${depository.collateralSymbol}`);
+      expect(failure).eq(true, `Should have failed - Do not own enough ${depository.collateralSymbol}`);
     });
 
     it(`Mint for 0 ${depository.collateralSymbol} (should fail)`, async function () {
@@ -78,13 +73,14 @@ export const maplePoolDepositoryMintSuite = async function (
 
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralSymbol, "]");
 
+      let failure = false;
       try {
         await mintWithMaplePoolDepositoryTest(collateralAmount, user, controller, depository, payer);
       } catch {
-        expect(true, "Failing as planned");
+        failure = true;
       }
 
-      expect(false, `Should have failed - Cannot mint for 0 ${depository.collateralSymbol}`);
+      expect(failure).eq(true, `Should have failed - Cannot mint for 0 ${depository.collateralSymbol}`);
     });
   });
 
@@ -105,14 +101,15 @@ export const maplePoolDepositoryMintSuite = async function (
 
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralSymbol, "]");
 
+      let failure = false;
       try {
         await mintWithMaplePoolDepositoryTest(collateralAmount, user, controller, depository, payer);
       } catch {
-        expect(true, "Failing as planned");
+        failure = true;
       }
 
-      expect(
-        false,
+      expect(failure).eq(
+        true,
         `Should have failed - User cannot mint for 0 ${controller.redeemableMintSymbol} (happens due to precision loss and fees)`
       );
     });
@@ -129,13 +126,14 @@ export const maplePoolDepositoryMintSuite = async function (
 
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralSymbol, "]");
 
+      let failure = false;
       try {
         await mintWithMaplePoolDepositoryTest(collateralAmount, user, controller, depository, payer);
       } catch {
-        expect(true, "Failing as planned");
+        failure = true;
       }
 
-      expect(false, `Should have failed - amount of redeemable overflow the global redeemable supply cap`);
+      expect(failure).eq(true, `Should have failed - amount of redeemable overflow the global redeemable supply cap`);
     });
 
     it(`Reset Global Redeemable supply cap back to its original value`, async function () {
@@ -165,13 +163,17 @@ export const maplePoolDepositoryMintSuite = async function (
 
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralSymbol, "]");
 
+      let failure = false;
       try {
         await mintWithMaplePoolDepositoryTest(collateralAmount, user, controller, depository, payer);
       } catch {
-        expect(true, "Failing as planned");
+        failure = true;
       }
 
-      expect(false, `Should have failed - amount of redeemable overflow the redeemable depository supply cap`);
+      expect(failure).eq(
+        true,
+        `Should have failed - amount of redeemable overflow the redeemable depository supply cap`
+      );
     });
 
     it(`Reset redeemable depository supply cap back to its original value`, async function () {
@@ -198,13 +200,14 @@ export const maplePoolDepositoryMintSuite = async function (
 
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralSymbol, "]");
 
+      let failure = false;
       try {
         await mintWithMaplePoolDepositoryTest(collateralAmount, user, controller, depository, payer);
       } catch {
-        expect(true, "Failing as planned");
+        failure = true;
       }
 
-      expect(false, `Should have failed - minting is disabled`);
+      expect(failure).eq(true, `Should have failed - minting is disabled`);
     });
 
     it(`Re-enable minting for maple pool depository`, async function () {
