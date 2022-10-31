@@ -32,7 +32,6 @@ pub struct InitializeIdentityDepository<'info> {
     pub controller: AccountLoader<'info, Controller>,
 
     /// #4 UXDProgram on chain account bound to a Controller instance
-    /// The `MangoDepository` manages a MangoAccount for a single Collateral
     #[account(
         init, 
         seeds = [IDENTITY_DEPOSITORY_NAMESPACE], // Only a single instance per controller instance
