@@ -494,23 +494,23 @@ pub mod uxd {
     // Each `Depository` account manages a specific maple pool.
     #[access_control(
         ctx.accounts.validate(
-            redeemable_amount_under_management_cap,
             minting_fee_in_bps,
-            redeeming_fee_in_bps
+            redeeming_fee_in_bps,
+            redeemable_amount_under_management_cap,
         )
     )]
     pub fn register_maple_pool_depository(
         ctx: Context<RegisterMaplePoolDepository>,
-        redeemable_amount_under_management_cap: u128,
         minting_fee_in_bps: u8,
         redeeming_fee_in_bps: u8,
+        redeemable_amount_under_management_cap: u128,
     ) -> Result<()> {
         msg!("[register_maple_pool_depository]");
         instructions::register_maple_pool_depository::handler(
             ctx,
-            redeemable_amount_under_management_cap,
             minting_fee_in_bps,
             redeeming_fee_in_bps,
+            redeemable_amount_under_management_cap,
         )
     }
 

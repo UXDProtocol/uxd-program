@@ -109,9 +109,9 @@ pub struct RegisterMaplePoolDepository<'info> {
 
 pub fn handler(
     ctx: Context<RegisterMaplePoolDepository>,
-    redeemable_amount_under_management_cap: u128,
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
+    redeemable_amount_under_management_cap: u128,
 ) -> Result<()> {
     // Create the maple lending accounts by calling maple's contract
     msg!("[register_maple_pool_depository:lender_initialize]");
@@ -209,9 +209,9 @@ impl<'info> RegisterMaplePoolDepository<'info> {
 impl<'info> RegisterMaplePoolDepository<'info> {
     pub fn validate(
         &self,
-        _redeemable_amount_under_management_cap: u128,
         _minting_fee_in_bps: u8,
         _redeeming_fee_in_bps: u8,
+        _redeemable_amount_under_management_cap: u128,
     ) -> Result<()> {
         validate_collateral_mint_usdc(&self.collateral_mint, &self.controller)?;
         Ok(())

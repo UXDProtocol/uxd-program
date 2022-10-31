@@ -15,15 +15,6 @@ export const maplePoolDepositoryMintSuite = async function (
   controller: Controller,
   depository: MaplePoolDepository
 ) {
-  before("Setup: fund user", async function () {
-    console.log("depository.collateralMint", depository.collateralMint.toBase58());
-    console.log("depository.collateralDecimals", depository.collateralDecimals);
-    console.log("depository.collateralSymbol", depository.collateralSymbol);
-    console.log("user.publicKey", user.publicKey.toBase58());
-
-    await transferTokens(0.1, depository.collateralMint, depository.collateralDecimals, payer, user.publicKey);
-  });
-
   describe("Regular mint", () => {
     it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol}`, async function () {
       const uiAmmountCollateralDeposited = 0.001;

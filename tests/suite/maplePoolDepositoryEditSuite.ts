@@ -3,7 +3,7 @@ import { Controller, MaplePoolDepository, nativeToUi } from "@uxd-protocol/uxd-c
 import { getConnection, TXN_OPTS } from "../connection";
 import { editMaplePoolDepositoryTest } from "../cases/editMaplePoolDepositoryTest";
 
-export const editMaplePoolDepositorySuite = async function (
+export const maplePoolDepositoryEditSuite = async function (
   controllerAuthority: Signer,
   user: Signer,
   payer: Signer,

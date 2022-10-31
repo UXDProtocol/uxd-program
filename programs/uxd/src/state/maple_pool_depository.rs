@@ -25,7 +25,7 @@ pub const MAPLE_POOL_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u128>() // redeemable_amount_under_management_cap
  + size_of::<u8>() // minting_fee_in_bps
  + size_of::<u8>() // redeeming_fee_in_bps
- + size_of::<bool>() // redeeming_fee_in_bps
+ + size_of::<bool>() // minting_disabled
 
  + size_of::<u128>() // collateral_amount_deposited
  + size_of::<u128>() // redeemable_amount_under_management
