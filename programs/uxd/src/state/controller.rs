@@ -4,6 +4,7 @@ use fixed::types::I80F48;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
+pub const MAX_REGISTERED_MAPLE_POOL_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
 pub const CONTROLLER_SPACE: usize = 8
@@ -21,7 +22,9 @@ pub const CONTROLLER_SPACE: usize = 8
     + 8
     + (32 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
     + 1
-    + 375;
+    + (32 * MAX_REGISTERED_MAPLE_POOL_DEPOSITORIES)
+    + 1
+    + 246;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -62,6 +65,10 @@ pub struct Controller {
     pub registered_mercurial_vault_depositories:
         [Pubkey; MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES],
     pub registered_mercurial_vault_depositories_count: u8,
+
+    // The Maple Pool Depositories registered with this Controller
+    pub registered_maple_pool_depositories: [Pubkey; MAX_REGISTERED_MAPLE_POOL_DEPOSITORIES],
+    pub registered_maple_pool_depositories_count: u8,
 }
 
 impl Controller {
@@ -106,11 +113,31 @@ impl Controller {
         Ok(())
     }
 
+    pub fn add_registered_maple_pool_depository_entry(
+        &mut self,
+        maple_pool_depository: Pubkey,
+    ) -> Result<()> {
+        let current_size = usize::from(self.registered_maple_pool_depositories_count);
+        require!(
+            current_size < MAX_REGISTERED_MAPLE_POOL_DEPOSITORIES,
+            UxdError::MaxNumberOfMaplePoolDepositoriesRegisteredReached
+        );
+        // Increment registered Mercurial Pool Depositories count
+        self.registered_maple_pool_depositories_count = self
+            .registered_maple_pool_depositories_count
+            .checked_add(1)
+            .ok_or(UxdError::MathError)?;
+        // Add the new Maple Pool Depository ID to the array of registered Depositories
+        let new_entry_index = current_size;
+        self.registered_maple_pool_depositories[new_entry_index] = maple_pool_depository;
+        Ok(())
+    }
+
     // provides numbers + or - depending on the change
     pub fn update_onchain_accounting_following_mint_or_redeem(
         &mut self,
         redeemable_amount_change: i128,
-    ) -> std::result::Result<(), UxdError> {
+    ) -> Result<()> {
         self.redeemable_circulating_supply =
             I80F48::checked_from_num(self.redeemable_circulating_supply)
                 .ok_or(UxdError::MathError)?
@@ -121,6 +148,11 @@ impl Controller {
                 .ok_or(UxdError::MathError)?
                 .checked_to_num()
                 .ok_or(UxdError::MathError)?;
+
+        require!(
+            self.redeemable_circulating_supply <= self.redeemable_global_supply_cap,
+            UxdError::RedeemableGlobalSupplyCapReached
+        );
 
         Ok(())
     }

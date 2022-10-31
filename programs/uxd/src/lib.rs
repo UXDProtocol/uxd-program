@@ -17,7 +17,7 @@ pub mod utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("H4fDUuiTmRNrUVCaswDNFXAe1vR2UEgpdV8iQkzEn2C3");
+solana_program::declare_id!("2xmUms9FCuNwjeaUCv8gbNCE6d4khFnyTTv78wPb8ozB");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -29,6 +29,7 @@ pub const MANGO_GROUP: &str = "98pjRuQjK3qA6gXts96PqZT4Ze5QmnCmt3QYjhbUSPue";
 // Version used for accounts structure and future migrations
 pub const MANGO_DEPOSITORY_ACCOUNT_VERSION: u8 = 2;
 pub const MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
+pub const MAPLE_POOL_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
@@ -39,6 +40,9 @@ pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
 pub const MERCURIAL_VAULT_DEPOSITORY_NAMESPACE: &[u8] = b"MERCURIALVAULTDEPOSITORY";
 pub const MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE: &[u8] =
     b"MERCURIALVAULTDEPOSITORYLPVAULT";
+
+pub const MAPLE_POOL_DEPOSITORY_NAMESPACE: &[u8] = b"MAPLE_POOL_DEPOSITORY";
+pub const MAPLE_POOL_DEPOSITORY_COLLATERAL_NAMESPACE: &[u8] = b"MAPLE_POOL_DEPOSITORY_COLLATERAL";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -415,6 +419,13 @@ pub mod uxd {
         instructions::edit_mercurial_vault_depository::handler(ctx, &fields)
     }
 
+    pub fn edit_maple_pool_depository(
+        ctx: Context<EditMaplePoolDepository>,
+        fields: EditMaplePoolDepositoryFields,
+    ) -> Result<()> {
+        instructions::edit_maple_pool_depository::handler(ctx, &fields)
+    }
+
     /// Disable or enable regular minting for given Mango Depository.
     ///
     /// Parameters:
@@ -477,6 +488,42 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[redeem_from_mercurial_vault]");
         instructions::redeem_from_mercurial_vault_depository::handler(ctx, redeemable_amount)
+    }
+
+    // Create and Register a new `MaplePoolDepository` to the `Controller`.
+    // Each `Depository` account manages a specific maple pool.
+    #[access_control(
+        ctx.accounts.validate(
+            redeemable_amount_under_management_cap,
+            minting_fee_in_bps,
+            redeeming_fee_in_bps
+        )
+    )]
+    pub fn register_maple_pool_depository(
+        ctx: Context<RegisterMaplePoolDepository>,
+        redeemable_amount_under_management_cap: u128,
+        minting_fee_in_bps: u8,
+        redeeming_fee_in_bps: u8,
+    ) -> Result<()> {
+        msg!("[register_maple_pool_depository]");
+        instructions::register_maple_pool_depository::handler(
+            ctx,
+            redeemable_amount_under_management_cap,
+            minting_fee_in_bps,
+            redeeming_fee_in_bps,
+        )
+    }
+
+    // Mint Redeemable tokens by depositing Collateral to maple pool.
+    #[access_control(
+        ctx.accounts.validate(collateral_amount)
+    )]
+    pub fn mint_with_maple_pool_depository(
+        ctx: Context<MintWithMaplePoolDepository>,
+        collateral_amount: u64,
+    ) -> Result<()> {
+        msg!("[mint_with_maple_pool_depository]");
+        instructions::mint_with_maple_pool_depository::handler(ctx, collateral_amount)
     }
 }
 

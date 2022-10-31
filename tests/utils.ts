@@ -3,6 +3,7 @@ import { PublicKey, Signer } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
+import { MAPLE_USDC_DEVNET, SOLEND_USDC_DEVNET, uxdProgramId } from "./constants";
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
@@ -172,5 +173,20 @@ export function createAssociatedTokenAccountItx(payerKey, walletKey, mintKey) {
     ],
     programId: ASSOCIATED_TOKEN_PROGRAM_ID,
     data: Buffer.alloc(0),
+  });
+}
+
+export async function createMaplePoolDepositoryDevnetUSDC() {
+  return await MaplePoolDepository.initialize({
+    connection: getConnection(),
+    uxdProgramId: uxdProgramId,
+    syrupProgramId: new PublicKey("5D9yi4BKrxF8h65NkVE1raCCWFKUs5ngub2ECxhvfaZe"),
+    collateralMint: MAPLE_USDC_DEVNET,
+    collateralSymbol: "USDC(MapleDevnet)",
+    mapleGlobals: new PublicKey("BDMBzwZEisVTTJzd9HTFsEfHMFFtXqoNjyRtz1Sp6zKP"),
+    maplePool: new PublicKey("FfTKtBGj3F6nRXQiWVqqyw1Z2XVz2icaqLnUFJC4Fzqm"),
+    maplePoolLocker: new PublicKey("Gq7sVXvEEKPNapNF2PSGEyy7GmiyJyNRq5LbdenAGdWY"),
+    mapleSharesMint: new PublicKey("8HvMWzFnmZxLsoNwUzj4fqwLmeu7JPgYkgUpUkBtKWue"),
+    cluster: "devnet",
   });
 }

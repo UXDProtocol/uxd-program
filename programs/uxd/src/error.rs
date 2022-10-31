@@ -38,10 +38,14 @@ pub enum UxdError {
     RedeemableMangoAmountUnderManagementCap,
     #[msg("Minting amount would go past the mercurial vault depository Redeemable Amount Under Management Cap.")]
     RedeemableMercurialVaultAmountUnderManagementCap,
+    #[msg("Minting amount would go past the maple pool depository Redeemable Amount Under Management Cap.")]
+    RedeemableMaplePoolAmountUnderManagementCap,
     #[msg("Operation not allowed due to being over the Mango Redeemable soft Cap.")]
     MangoDepositoriesSoftCapOverflow,
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
     MaxNumberOfMangoDepositoriesRegisteredReached,
+    #[msg("Cannot register more maple pool depositories, the limit has been reached.")]
+    MaxNumberOfMaplePoolDepositoriesRegisteredReached,
     #[msg("The amount to withdraw from the Insurance Fund must be superior to zero..")]
     InvalidInsuranceAmount,
     #[msg("The Quote ATA from authority doesn't have enough balance.")]
@@ -100,10 +104,20 @@ pub enum UxdError {
     MaxNumberOfMercurialVaultDepositoriesRegisteredReached,
     #[msg("The provided collateral do not match the provided mercurial vault token.")]
     MercurialVaultDoNotMatchCollateral,
+    #[msg("The provided collateral do not match the provided maple pool token.")]
+    MaplePoolDoNotMatchCollateral,
     #[msg("Collateral mint should be different than redeemable mint.")]
     CollateralMintEqualToRedeemableMint,
     #[msg("Provided collateral mint is not allowed.")]
     CollateralMintNotAllowed,
+    #[msg("Collateral deposit left some value unaccounted for.")]
+    CollateralDepositHasRemainingDust,
+    #[msg("Collateral deposit result in funds movements that doesn't match expectations.")]
+    CollateralDepositUnaccountedFor,
+    #[msg("Collateral deposit didn't result in the correct amounts being moved")]
+    CollateralDepositAmountsDoesntMatch,
+    #[msg("Received token of which the value doesn't match the deposited collateral.")]
+    CollateralDepositDoesntMatchTokenValue,
     #[msg("Mint resulted to 0 redeemable token being minted.")]
     MinimumMintedRedeemableAmountError,
     #[msg("Redeem resulted to 0 collateral token being redeemed.")]
@@ -123,6 +137,8 @@ pub enum UxdError {
     InvalidDepository,
     #[msg("The provided collateral mint does not match the depository's collateral mint.")]
     InvalidCollateralMint,
+    #[msg("The provided collateral locker does not match the depository's collateral locker.")]
+    InvalidCollateralLocker,
     #[msg("The provided quote mint does not match the depository's quote mint.")]
     InvalidQuoteMint,
     #[msg("The Mango Account isn't the Depository one.")]
@@ -141,6 +157,20 @@ pub enum UxdError {
     InvalidMercurialVault,
     #[msg("The provided mercurial vault collateral token safe does not match the mercurial vault one.")]
     InvalidMercurialVaultCollateralTokenSafe,
+    #[msg("The provided maple globals does not match the Depository's one.")]
+    InvalidMaplePool,
+    #[msg("The provided maple pool locker does not match the Depository's one.")]
+    InvalidMaplePoolLocker,
+    #[msg("The provided maple lender does not match the Depository's one.")]
+    InvalidMapleGlobals,
+    #[msg("The provided maple pool does not match the Depository's one.")]
+    InvalidMapleLender,
+    #[msg("The provided maple shares mint does not match the Depository's one.")]
+    InvalidMapleSharesMint,
+    #[msg("The provided maple locked shares does not match the Depository's one.")]
+    InvalidMapleLockedShares,
+    #[msg("The provided maple lender shares does not match the Depository's one.")]
+    InvalidMapleLenderShares,
 
     #[msg("Default - Check the source code for more info.")]
     Default,
