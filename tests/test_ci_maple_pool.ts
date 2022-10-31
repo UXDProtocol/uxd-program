@@ -47,11 +47,11 @@ import {
     });
 
     describe("maplePoolDepositoryEditSuite", function () {
-      //maplePoolDepositoryEditSuite(authority, user, bank, controllerUXD, maplePoolDepository);
+      maplePoolDepositoryEditSuite(authority, user, bank, controllerUXD, maplePoolDepository);
     });
 
     describe("maplePoolDepositoryMintSuite", function () {
-      //maplePoolDepositoryMintSuite(authority, user, bank, controllerUXD, maplePoolDepository);
+      maplePoolDepositoryMintSuite(authority, user, bank, controllerUXD, maplePoolDepository);
     });
 
     this.afterAll("Transfer funds back to bank", async function () {
