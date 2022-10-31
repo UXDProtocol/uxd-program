@@ -43,9 +43,20 @@ export const maplePoolDepositoryEditSuite = async function (
       });
     });
 
+    it(`Edit mintingDisabled alone should work`, async function () {
+      const mintingDisabled = true;
+
+      console.log("[🧾 mintingDisabled", mintingDisabled, "]");
+
+      await editMaplePoolDepositoryTest(controllerAuthority, controller, depository, {
+        mintingDisabled,
+      });
+    });
+
     // Restore initial depository values there
     it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap should work`, async function () {
-      const { mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap } = beforeDepository;
+      const { mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap, mintingDisabled } =
+        beforeDepository;
 
       const uiRedeemableAmountUnderManagementCap = nativeToUi(
         redeemableAmountUnderManagementCap,
@@ -55,11 +66,13 @@ export const maplePoolDepositoryEditSuite = async function (
       console.log("[🧾 mintingFeeInBps", mintingFeeInBps, "]");
       console.log("[🧾 redeemingFeeInBps", redeemingFeeInBps, "]");
       console.log("[🧾 redeemableAmountUnderManagementCap", uiRedeemableAmountUnderManagementCap, "]");
+      console.log("[🧾 mintingDisabled", mintingDisabled, "]");
 
       await editMaplePoolDepositoryTest(controllerAuthority, controller, depository, {
         mintingFeeInBps,
         redeemingFeeInBps,
         redeemableAmountUnderManagementCap: uiRedeemableAmountUnderManagementCap,
+        mintingDisabled,
       });
     });
   });
