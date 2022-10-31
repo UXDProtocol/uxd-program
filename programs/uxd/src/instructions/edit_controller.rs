@@ -1,10 +1,7 @@
 use crate::error::UxdError;
-use crate::events::SetMangoDepositoryQuoteMintAndRedeemSoftCapEvent;
-use crate::events::SetMangoDepositoryRedeemableSoftCapEvent;
 use crate::events::SetRedeemableGlobalSupplyCapEvent;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
-use crate::MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP;
 use crate::MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP;
 use anchor_lang::prelude::*;
 
@@ -24,35 +21,11 @@ pub struct EditController<'info> {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct EditControllerFields {
-    quote_mint_and_redeem_soft_cap: Option<u64>,
-    redeemable_soft_cap: Option<u64>, // in redeemable native units
     redeemable_global_supply_cap: Option<u128>,
 }
 
 pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
     let controller = &mut ctx.accounts.controller.load_mut()?;
-    // Optionally edit "quote_mint_and_redeem_soft_cap"
-    if let Some(quote_mint_and_redeem_soft_cap) = fields.quote_mint_and_redeem_soft_cap {
-        msg!("[set_mango_depository_quote_mint_and_redeem_soft_cap]");
-        controller.mango_depositories_quote_redeemable_soft_cap = quote_mint_and_redeem_soft_cap;
-        emit!(SetMangoDepositoryQuoteMintAndRedeemSoftCapEvent {
-            version: controller.version,
-            controller: ctx.accounts.controller.key(),
-            quote_mint_and_redeem_soft_cap
-        });
-    }
-    // Optionally edit "redeemable_soft_cap"
-    if let Some(redeemable_soft_cap) = fields.redeemable_soft_cap {
-        msg!("[set_mango_depositories_redeemable_soft_cap]");
-        controller.mango_depositories_redeemable_soft_cap = redeemable_soft_cap;
-        emit!(SetMangoDepositoryRedeemableSoftCapEvent {
-            version: controller.version,
-            controller: ctx.accounts.controller.key(),
-            redeemable_mint_decimals: controller.redeemable_mint_decimals,
-            redeemable_mint: controller.redeemable_mint,
-            redeemable_soft_cap
-        });
-    }
     // Optionally edit "redeemable_global_supply_cap"
     if let Some(redeemable_global_supply_cap) = fields.redeemable_global_supply_cap {
         msg!("[set_redeemable_global_supply_cap]");
@@ -69,13 +42,6 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
 #[allow(clippy::absurd_extreme_comparisons)]
 impl<'info> EditController<'info> {
     pub(crate) fn validate(&self, fields: &EditControllerFields) -> Result<()> {
-        if let Some(redeemable_soft_cap) = fields.redeemable_soft_cap {
-            require!(
-                redeemable_soft_cap <= MAX_MANGO_DEPOSITORIES_REDEEMABLE_SOFT_CAP,
-                UxdError::InvalidMangoDepositoriesRedeemableSoftCap
-            );
-        }
-        // Asserts that the Mango Depositories redeemable soft cap is between 0 and MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP.
         if let Some(redeemable_global_supply_cap) = fields.redeemable_global_supply_cap {
             require!(
                 redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP,
