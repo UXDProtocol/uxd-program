@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "5.0.0",
+  "version": "5.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -643,7 +643,7 @@ export type Uxd = {
             "type": "u128"
           },
           {
-            "name": "mintingDisabled",
+            "name": "regularMintingDisabled",
             "type": "bool"
           }
         ]
@@ -1415,7 +1415,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "5.0.0",
+  "version": "5.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -2059,7 +2059,7 @@ export const IDL: Uxd = {
             "type": "u128"
           },
           {
-            "name": "mintingDisabled",
+            "name": "regularMintingDisabled",
             "type": "bool"
           }
         ]

@@ -87,7 +87,7 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
     depository.collateral_vault = ctx.accounts.collateral_vault.key();
     depository.collateral_vault_bump = collateral_vault_bump;
     depository.redeemable_amount_under_management = u128::MIN;
-    depository.minting_disabled = true;
+    depository.regular_minting_disabled = true;
 
     emit!(InitializeIdentityDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,

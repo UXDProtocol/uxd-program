@@ -18,6 +18,7 @@ const SOLEND_USDC_DEVNET_DECIMALS = 6;
 
 // Do not create the vault. We are building an object with utilities methods.
 let mercurialVaultDepositoryUSDC: MercurialVaultDepository = null;
+let identityDepository: IdentityDepository = null;
 
 let mintedRedeemableAmountWithMercurialVaultDepository = 0;
 
@@ -40,7 +41,59 @@ describe("Integration tests", function () {
       await initializeControllerTest(authority, controller, payer);
     });
 
-    it(`Initialize and register mercurial USDC vault depository`, async function () {
+    //   it(`Initialize and register Mercurial USDC vault depository`, async function () {
+    //     mercurialVaultDepositoryUSDC = await MercurialVaultDepository.initialize({
+    //       connection: getConnection(),
+    //       collateralMint: {
+    //         mint: SOLEND_USDC_DEVNET,
+    //         decimals: SOLEND_USDC_DEVNET_DECIMALS,
+    //         symbol: "USDC",
+    //         name: "USDC",
+    //       },
+    //       uxdProgramId,
+    //     });
+
+    //     const mintingFeeInBps = 2;
+    //     const redeemingFeeInBps = 2;
+    //     const redeemableAmountUnderManagementCap = 1_000;
+
+    //     await registerMercurialVaultDepositoryTest(
+    //       authority,
+    //       controller,
+    //       mercurialVaultDepositoryUSDC,
+    //       mintingFeeInBps,
+    //       redeemingFeeInBps,
+    //       redeemableAmountUnderManagementCap,
+    //       payer
+    //     );
+    //   });
+    // });
+
+    // describe("Regular Mint/Redeem with Mercurial Vault USDC Depository", async function () {
+    //   it(`Mint for 0.001 USDC`, async function () {
+    //     mintedRedeemableAmountWithMercurialVaultDepository = await mintWithMercurialVaultDepositoryTest(
+    //       0.001,
+    //       user,
+    //       controller,
+    //       mercurialVaultDepositoryUSDC,
+    //       payer
+    //     );
+    //   });
+
+    //   it(`Redeem all previously minted redeemable`, async function () {
+    //     console.log(`Redeem for ${mintedRedeemableAmountWithMercurialVaultDepository} UXD`);
+
+    //     await redeemFromMercurialVaultDepositoryTest(
+    //       mintedRedeemableAmountWithMercurialVaultDepository,
+    //       user,
+    //       controller,
+    //       mercurialVaultDepositoryUSDC,
+    //       payer
+    //     );
+    //   });
+    // });
+
+    it(`Initialize Identity depository`, async function () {
       mercurialVaultDepositoryUSDC = await MercurialVaultDepository.initialize({
         connection: getConnection(),
         collateralMint: {

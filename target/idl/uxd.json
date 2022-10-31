@@ -1,5 +1,5 @@
 {
-  "version": "5.0.0",
+  "version": "5.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -643,7 +643,7 @@
             "type": "u128"
           },
           {
-            "name": "mintingDisabled",
+            "name": "regularMintingDisabled",
             "type": "bool"
           }
         ]

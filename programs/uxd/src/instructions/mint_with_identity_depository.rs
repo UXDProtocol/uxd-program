@@ -183,7 +183,7 @@ impl<'info> MintWithIdentityDepository<'info> {
             UxdError::InsufficientCollateralAmount
         );
         require!(
-            !&self.depository.load()?.minting_disabled,
+            !&self.depository.load()?.regular_minting_disabled,
             UxdError::MintingDisabled
         );
 
