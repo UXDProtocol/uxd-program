@@ -1,9 +1,9 @@
-import { SOL_DECIMALS, findATAAddrSync, nativeToUi, uiToNative } from "@uxd-protocol/uxd-client";
+import { SOL_DECIMALS, findATAAddrSync, nativeToUi, uiToNative, MaplePoolDepository } from "@uxd-protocol/uxd-client";
 import { PublicKey, Signer } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
-import { MAPLE_USDC_DEVNET, SOLEND_USDC_DEVNET, uxdProgramId } from "./constants";
+import { MAPLE_USDC_DEVNET, uxdProgramId } from "./constants";
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
@@ -187,6 +187,5 @@ export async function createMaplePoolDepositoryDevnetUSDC() {
     maplePool: new PublicKey("FfTKtBGj3F6nRXQiWVqqyw1Z2XVz2icaqLnUFJC4Fzqm"),
     maplePoolLocker: new PublicKey("Gq7sVXvEEKPNapNF2PSGEyy7GmiyJyNRq5LbdenAGdWY"),
     mapleSharesMint: new PublicKey("8HvMWzFnmZxLsoNwUzj4fqwLmeu7JPgYkgUpUkBtKWue"),
-    cluster: "devnet",
   });
 }

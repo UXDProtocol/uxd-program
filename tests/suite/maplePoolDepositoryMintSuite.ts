@@ -32,7 +32,7 @@ export const maplePoolDepositoryMintSuite = async function (
   before("Setup: fund user", async function () {
     console.log("depository.collateralMint", depository.collateralMint.toBase58());
     console.log("depository.collateralDecimals", depository.collateralDecimals);
-    console.log(" user.publicKey", user.publicKey.toBase58());
+    console.log("user.publicKey", user.publicKey.toBase58());
 
     await transferTokens(0.002, depository.collateralMint, depository.collateralDecimals, payer, user.publicKey);
 
@@ -48,7 +48,7 @@ export const maplePoolDepositoryMintSuite = async function (
     initialRedeemableDepositorySupplyCap = onChainDepository.redeemableAmountUnderManagementCap;
   });
 
-  describe("Regular mint/redeem", () => {
+  describe("Regular mint", () => {
     it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol}`, async function () {
       const collateralAmount = 0.001;
 
@@ -187,7 +187,7 @@ export const maplePoolDepositoryMintSuite = async function (
   });
 
   describe("Disabled minting", () => {
-    it("Disable minting on mercurial vault depository", async function () {
+    it("Disable minting on maple pool depository", async function () {
       await editMaplePoolDepositoryTest(controllerAuthority, controller, depository, {
         mintingDisabled: true,
       });
@@ -207,7 +207,7 @@ export const maplePoolDepositoryMintSuite = async function (
       expect(false, `Should have failed - minting is disabled`);
     });
 
-    it(`Re-enable minting for mercurial vault depository`, async function () {
+    it(`Re-enable minting for maple pool depository`, async function () {
       await editMaplePoolDepositoryTest(controllerAuthority, controller, depository, {
         mintingDisabled: false,
       });

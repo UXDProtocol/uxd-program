@@ -7,9 +7,9 @@ import {
   createAssocTokenIx,
   findATAAddrSync,
   MercurialVaultDepository,
+  MaplePoolDepository,
 } from "@uxd-protocol/uxd-client";
 import { BN, web3 } from "@project-serum/anchor";
-import { MaplePoolDepository } from "@uxd-protocol/uxd-client/dist/types/maple_pool/depository";
 
 export async function initializeController(authority: Signer, payer: Signer, controller: Controller): Promise<string> {
   const initControllerIx = uxdClient.createInitializeControllerInstruction(
