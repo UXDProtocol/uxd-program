@@ -153,6 +153,7 @@ pub fn handler(
     depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
     depository.minting_fee_in_bps = minting_fee_in_bps;
     depository.redeeming_fee_in_bps = redeeming_fee_in_bps;
+    depository.minting_disabled = false;
 
     // Depository accounting
     depository.collateral_amount_deposited = u128::MIN;
