@@ -6,11 +6,11 @@
 ##### Raw param
 
 - investor
-- globalMarketState
+- globalMarketState (pda seed: "global_market_seed")
 - signingAuthority (pda seed: globalMarketState)
 - investorTokenAccount
 - liquidityPoolTokenAccount
-- lpTokenMint
+- lpTokenMint (pda seed: globalMarketState + "lp-token-mint")
 - investorLpTokenAccount
 - credixPass (pda seed: globalMarketState + investor + "credix-pass")
 - baseTokenMint
@@ -48,7 +48,26 @@ depositBuilder(amount, investor) {
         });
     });
 }
-```
+generateSigningAuthorityPDA() {
+    return (0, pda_utils_1.findSigningAuthorityPDA)(this.address, this.programId);
+}
+findBaseTokenAccount(pk) {
+    return spl_token_1.Token.getAssociatedTokenAddress(spl_token_1.ASSOCIATED_TOKEN_PROGRAM_ID, spl_token_1.TOKEN_PROGRAM_ID, this.baseMintPK, pk, true);
+}
+findLiquidityPoolTokenAccount() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const [signingAuthorityPK] = yield this.generateSigningAuthorityPDA();
+        return this.findBaseTokenAccount(signingAuthorityPK);
+    });
+}
+findLPTokenAccount(pk) {
+    return spl_token_1.Token.getAssociatedTokenAddress(spl_token_1.ASSOCIATED_TOKEN_PROGRAM_ID, spl_token_1.TOKEN_PROGRAM_ID, this.lpMintPK, pk, true);
+}
+generateCredixPassPDA(pk) {
+    const credixSeed = (0, pda_utils_1.encodeSeedString)("credix-pass");
+    const seed = [this.address.toBuffer(), pk.toBuffer(), credixSeed];
+    return web3_js_1.PublicKey.findProgramAddress(seed, this.programId);
+}```
 
 ### Deposit Tranche
 
@@ -77,7 +96,7 @@ depositBuilder(amount, investor) {
 - investor
 - globalMarketState
 - signingAuthority (pda seed: globalMarketState)
-- investorTokenAccount
+- investorLpTokenAccount
 - investorTokenAccount
 - liquidityPoolTokenAccount
 - treasuryPoolTokenAccount

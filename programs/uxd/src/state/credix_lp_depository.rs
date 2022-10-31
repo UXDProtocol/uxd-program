@@ -14,11 +14,14 @@ pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<Pubkey>() // depository_collateral
  + size_of::<u8>() // depository_collateral_bump
 
+ + size_of::<Pubkey>() // depository_shares
+ + size_of::<u8>() // depository_shares_bump
+
  + size_of::<Pubkey>() // credix_global_market_state
  + size_of::<Pubkey>() // credix_signing_authority
- + size_of::<Pubkey>() // credix_lp_collateral
- + size_of::<Pubkey>() // credix_lp_shares_mint
- + size_of::<Pubkey>() // credix_investor_lp_shares
+ + size_of::<Pubkey>() // credix_treasury_collateral
+ + size_of::<Pubkey>() // credix_liquidity_collateral
+ + size_of::<Pubkey>() // credix_shares_mint
  + size_of::<Pubkey>() // credix_pass
 
  + size_of::<u128>() // redeemable_amount_under_management_cap
@@ -52,8 +55,9 @@ pub struct CredixLpDepository {
     pub credix_global_market_state: Pubkey,
     pub credix_signing_authority: Pubkey,
     pub credix_lp_collateral: Pubkey,
-    pub credix_lp_shares_mint: Pubkey,
+    pub credix_shares_mint: Pubkey,
     pub credix_investor_lp_shares: Pubkey,
+    pub credix_pass: Pubkey,
 
     // Depository configuration
     pub redeemable_amount_under_management_cap: u128,

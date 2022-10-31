@@ -48,13 +48,13 @@ pub struct MintWithCredixLpDepository<'info> {
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
         has_one = depository_collateral @UxdError::InvalidCollateralLocker,
-        has_one = credix_lp @UxdError::InvalidCredixLp,
-        has_one = credix_lp_locker @UxdError::InvalidCredixLpLocker,
-        has_one = credix_globals @UxdError::InvalidCredixGlobals,
-        has_one = credix_lender @UxdError::InvalidCredixLender,
-        has_one = credix_shares_mint @UxdError::InvalidCredixSharesMint,
-        has_one = credix_locked_shares @UxdError::InvalidCredixLockedShares,
-        has_one = credix_lender_shares @UxdError::InvalidCredixLenderShares,
+        has_one = credix_global_market_state @UxdError::InvalidCredixGlobalMarketState,
+        has_one = credix_signing_authority @UxdError::InvalidCredixSigningAuthority,
+        has_one = credix_treasury_collateral @UxdError::InvalidCredixTreasuryCollateral,
+        has_one = credix_liquidity_collateral @UxdError::InvalidCredixLiquidityCollateral,
+        has_one = credix_lp_shares_mint @UxdError::InvalidCredixLpSharesMint,
+        has_one = credix_investor_lp_shares @UxdError::InvalidCredixInvestorLpShares,
+        has_one = credix_pass @UxdError::InvalidCredixPass,
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 
@@ -88,25 +88,25 @@ pub struct MintWithCredixLpDepository<'info> {
 
     /// #10
     #[account(mut)]
-    pub credix_lp: Box<Account<'info, syrup_cpi::Pool>>,
+    pub credix_global_market_state: Box<Account<'info, syrup_cpi::Pool>>,
     /// #11
     #[account(mut)]
-    pub credix_lp_locker: Box<Account<'info, TokenAccount>>,
+    pub credix_signing_authority: Box<Account<'info, TokenAccount>>,
     /// #12
-    #[account()]
-    pub credix_globals: Box<Account<'info, syrup_cpi::Globals>>,
+    #[account(mut)]
+    pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,
     /// #13
     #[account(mut)]
-    pub credix_lender: Box<Account<'info, syrup_cpi::Lender>>,
+    pub credix_liquidity_collateral: Box<Account<'info, TokenAccount>>,
     /// #14
     #[account(mut)]
-    pub credix_shares_mint: Box<Account<'info, Mint>>,
+    pub credix_lp_shares_mint: Box<Account<'info, Mint>>,
     /// #15
     #[account(mut)]
-    pub credix_locked_shares: Box<Account<'info, TokenAccount>>,
+    pub credix_investor_lp_shares: Box<Account<'info, TokenAccount>>,
     /// #16
     #[account(mut)]
-    pub credix_lender_shares: Box<Account<'info, TokenAccount>>,
+    pub credix_pass: Box<Account<'info, TokenAccount>>,
 
     /// #17
     pub system_program: Program<'info, System>,
@@ -146,8 +146,11 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
     msg!("[mint_with_credix_lp_depository:before_math]");
     let depository_collateral_amount_before: u64 = ctx.accounts.depository_collateral.amount;
     let user_collateral_amount_before: u64 = ctx.accounts.user_collateral.amount;
-    let pool_collateral_amount_before: u64 = ctx.accounts.credix_lp_locker.amount;
-    let pool_shares_amount_before: u64 = ctx.accounts.credix_lp.shares_outstanding;
+    let liquidity_collateral_amount_before: u64 = ctx.accounts.credix_liquidity_collateral.amount;
+    let pool_shares_amount_before: u64 = ctx
+        .accounts
+        .credix_global_market_state
+        .poolOutstandingCredit;
     let pool_shares_value_before: u64 = ctx.accounts.credix_lp.total_value;
     let locked_shares_amount_before: u64 = ctx.accounts.credix_locked_shares.amount;
     let lender_shares_amount_before: u64 = ctx.accounts.credix_lender_shares.amount;

@@ -2,6 +2,7 @@ use crate::error::UxdError;
 use anchor_lang::prelude::*;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
+pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
 pub const CONTROLLER_SPACE: usize = 8
     + 1
@@ -52,6 +53,9 @@ pub struct Controller {
     pub redeemable_circulating_supply: u128,
     // The max amount of Redeemable affected by quote Mint and Redeem operations on `MangoDepository` instances
     pub mango_depositories_quote_redeemable_soft_cap: u64,
+
+    pub registered_credix_lp_depositories: [Pubkey; MAX_REGISTERED_CREDIX_LP_DEPOSITORIES],
+    pub registered_credix_lp_depositories_count: u8,
 }
 
 impl Controller {
@@ -61,7 +65,7 @@ impl Controller {
     ) -> Result<()> {
         let current_size = usize::from(self.registered_mango_depositories_count);
         require!(
-            current_size < MAX_REGISTERED_MANGO_DEPOSITORIES,
+            current_size < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
             UxdError::MaxNumberOfMangoDepositoriesRegisteredReached
         );
         // Increment registered Mango Depositories count
@@ -72,6 +76,26 @@ impl Controller {
         // Add the new Mango Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_mango_depositories[new_entry_index] = mango_depository_id;
+        Ok(())
+    }
+
+    pub(crate) fn add_registered_credix_lp_depository_entry(
+        &mut self,
+        credix_lp_depository_id: Pubkey,
+    ) -> Result<()> {
+        let current_size = usize::from(self.registered_credix_lp_depositories_count);
+        require!(
+            current_size < MAX_REGISTERED_MANGO_DEPOSITORIES,
+            UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached
+        );
+        // Increment registered Mango Depositories count
+        self.registered_credix_lp_depositories_count = self
+            .registered_credix_lp_depositories_count
+            .checked_add(1)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        // Add the new Mango Depository ID to the array of registered Depositories
+        let new_entry_index = current_size;
+        self.registered_credix_lp_depositories[new_entry_index] = credix_lp_depository_id;
         Ok(())
     }
 }

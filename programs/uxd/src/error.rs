@@ -36,6 +36,8 @@ pub enum UxdError {
     MangoDepositoriesSoftCapOverflow,
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
     MaxNumberOfMangoDepositoriesRegisteredReached,
+    #[msg("Cannot register more credix lp depositories, the limit has been reached.")]
+    MaxNumberOfCredixLpDepositoriesRegisteredReached,
     #[msg("The amount to withdraw from the Insurance Fund must be superior to zero..")]
     InvalidInsuranceAmount,
     #[msg("The Quote ATA from authority doesn't have enough balance.")]
@@ -115,6 +117,21 @@ pub enum UxdError {
     InvalidMaxBaseQuantity,
     #[msg("The max quote quantity must be above 0.")]
     InvalidMaxQuoteQuantity,
+
+    #[msg("The Credix GlobalMarketState isn't the Depository one.")]
+    InvalidCredixGlobalMarketState,
+    #[msg("The Credix SigningAuthority isn't the Depository one.")]
+    InvalidCredixSigningAuthority,
+    #[msg("The Credix TreasuryCollateral isn't the Depository one.")]
+    InvalidCredixTreasuryCollateral,
+    #[msg("The Credix LiquidityCollateral isn't the Depository one.")]
+    InvalidCredixLiquidityCollateral,
+    #[msg("The Credix LpSharesMint isn't the Depository one.")]
+    InvalidCredixLpSharesMint,
+    #[msg("The Credix InvestorLpShares isn't the Depository one.")]
+    InvalidCredixInvestorLpShares,
+    #[msg("The Credix Pass isn't the Depository one.")]
+    InvalidCredixPass,
 
     #[msg("Default - Check the source code for more info.")]
     Default,

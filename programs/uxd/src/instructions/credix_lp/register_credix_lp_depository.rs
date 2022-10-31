@@ -38,8 +38,7 @@ pub struct RegisterCredixLpDepository<'info> {
         init,
         seeds = [
             CREDIX_LP_DEPOSITORY_NAMESPACE,
-            credix_global_market_state.key().as_ref(),
-            collateral_mint.key().as_ref()
+            credix_global_market_state.key().as_ref()
         ],
         bump,
         payer = payer,
@@ -49,8 +48,8 @@ pub struct RegisterCredixLpDepository<'info> {
 
     /// #6
     #[account(
-        constraint = collateral_mint.key() == credix_lp.base_mint @UxdError::CredixLpDoNotMatchCollateral,
-        constraint = collateral_mint.key() != credix_lp.shares_mint @UxdError::CollateralMintEqualToRedeemableMint
+        constraint = collateral_mint.key() == credix_global_market_state.base_token_mint @UxdError::CredixLpDoNotMatchCollateral,
+        constraint = collateral_mint.key() != credix_global_market_state.lp_token_mint @UxdError::CollateralMintEqualToRedeemableMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
@@ -65,35 +64,39 @@ pub struct RegisterCredixLpDepository<'info> {
     )]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
+    /// #6
+    #[account(
+        init,
+        seeds = [CREDIX_LP_DEPOSITORY_SHARES_NAMESPACE, depository.key().as_ref()],
+        token::authority = depository,
+        token::mint = credix_shares_mint,
+        bump,
+        payer = payer,
+    )]
+    pub depository_shares: Box<Account<'info, TokenAccount>>,
+
     /// #7
     #[account(
-        constraint = credix_lp.base_mint == collateral_mint.key() @UxdError::InvalidCollateralMint,
-        constraint = credix_lp.locker == credix_lp_locker.key() @UxdError::InvalidCredixLpLocker,
-        constraint = credix_lp.globals == credix_globals.key() @UxdError::InvalidCredixGlobals,
-        constraint = credix_lp.shares_mint == credix_shares_mint.key() @UxdError::InvalidCredixSharesMint,
+        constraint = credix_global_market_state.base_token_mint == collateral_mint.key() @UxdError::InvalidCollateralMint,
+        constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
+        constraint = credix_global_market_state.shares_mint == credix_shares_mint.key() @UxdError::InvalidCredixLpSharesMint,
     )]
-    pub credix_lp: Box<Account<'info, syrup_cpi::Pool>>,
+    pub credix_global_market_state: Box<Account<'info, syrup_cpi::Pool>>,
     /// #8
-    #[account(mut, token::authority = credix_lp)]
-    pub credix_lp_locker: Box<Account<'info, TokenAccount>>,
-    /// #9
     #[account()]
-    pub credix_globals: Box<Account<'info, syrup_cpi::Globals>>,
+    pub credix_signing_authority: AccountInfo<'info>,
+    /// #9
+    #[account(token::mint = collateral_mint)]
+    pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,
     /// #10
-    /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
-    #[account(mut)]
-    pub credix_lender: AccountInfo<'info>,
+    #[account(token::mint = collateral_mint)]
+    pub credix_liquidity_collateral: Box<Account<'info, TokenAccount>>,
     /// #11
-    #[account(mut)]
+    #[account()]
     pub credix_shares_mint: Box<Account<'info, Mint>>,
-    /// #12
-    /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
-    #[account(mut)]
-    pub credix_locked_shares: AccountInfo<'info>,
     /// #13
-    /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
-    #[account(mut)]
-    pub credix_lender_shares: AccountInfo<'info>,
+    #[account()]
+    pub credix_pass: AccountInfo<'info>,
 
     /// #14
     pub system_program: Program<'info, System>,
@@ -113,10 +116,6 @@ pub fn handler(
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
 ) -> Result<()> {
-    // Create the credix lending accounts by calling credix's contract
-    msg!("[register_credix_lp_depository:lender_initialize]");
-    syrup_cpi::cpi::lender_initialize(ctx.accounts.into_initialize_lending_credix_lp_context())?;
-
     // Read some of the depositories required informations
     let depository_key = ctx.accounts.depository.key();
     let depository_bump = *ctx.bumps.get("depository").ok_or(UxdError::BumpError)?;
@@ -124,6 +123,11 @@ pub fn handler(
     let depository_collateral_bump = *ctx
         .bumps
         .get("depository_collateral")
+        .ok_or(UxdError::BumpError)?;
+
+    let depository_shares_bump = *ctx
+        .bumps
+        .get("depository_shares")
         .ok_or(UxdError::BumpError)?;
 
     // Initialize the depository account
@@ -139,15 +143,16 @@ pub fn handler(
 
     depository.depository_collateral = ctx.accounts.depository_collateral.key();
     depository.depository_collateral_bump = depository_collateral_bump;
+    depository.depository_shares = ctx.accounts.depository_shares.key();
+    depository.depository_shares_bump = depository_shares_bump;
 
     // We register all necessary credix accounts to facilitate other instructions safety checks
-    depository.credix_lp = ctx.accounts.credix_lp.key();
-    depository.credix_lp_locker = ctx.accounts.credix_lp_locker.key();
-    depository.credix_globals = ctx.accounts.credix_globals.key();
-    depository.credix_lender = ctx.accounts.credix_lender.key();
+    depository.credix_global_market_state = ctx.accounts.credix_global_market_state.key();
+    depository.credix_signing_authority = ctx.accounts.credix_signing_authority.key();
+    depository.credix_treasury_collateral = ctx.accounts.credix_treasury_collateral.key();
+    depository.credix_liquidity_collateral = ctx.accounts.credix_liquidity_collateral.key();
     depository.credix_shares_mint = ctx.accounts.credix_shares_mint.key();
-    depository.credix_locked_shares = ctx.accounts.credix_locked_shares.key();
-    depository.credix_lender_shares = ctx.accounts.credix_lender_shares.key();
+    depository.credix_pass = ctx.accounts.credix_pass.key();
 
     // Depository configuration
     depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
@@ -180,29 +185,6 @@ pub fn handler(
 
     // Done
     Ok(())
-}
-
-// Into functions
-impl<'info> RegisterCredixLpDepository<'info> {
-    pub fn into_initialize_lending_credix_lp_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, syrup_cpi::cpi::accounts::LenderInitialize<'info>> {
-        let cpi_accounts = syrup_cpi::cpi::accounts::LenderInitialize {
-            owner: self.depository.to_account_info(),
-            payer: self.payer.to_account_info(),
-            pool: self.credix_lp.to_account_info(),
-            lender: self.credix_lender.to_account_info(),
-            shares_mint: self.credix_shares_mint.to_account_info(),
-            locked_shares: self.credix_locked_shares.to_account_info(),
-            lender_shares: self.credix_lender_shares.to_account_info(),
-            system_program: self.system_program.to_account_info(),
-            token_program: self.token_program.to_account_info(),
-            associated_token_program: self.associated_token_program.to_account_info(),
-            rent: self.rent.to_account_info(),
-        };
-        let cpi_program = self.syrup_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
 }
 
 // Validate
