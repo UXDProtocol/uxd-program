@@ -188,6 +188,31 @@ export async function editMercurialVaultDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
+export async function editIdentityDepository(
+  authority: Signer,
+  controller: Controller,
+  depository: IdentityDepository,
+  uiFields: {
+    redeemableAmountUnderManagementCap?: BN;
+    mintingDisabled?: boolean;
+  }
+): Promise<string> {
+  const editIdentityDepositoryIx = uxdClient.createEditIdentityDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    uiFields,
+    TXN_OPTS
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(editIdentityDepositoryIx);
+  signers.push(authority);
+
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
 export async function initializeIdentityDepository(
   authority: Signer,
   payer: Signer,

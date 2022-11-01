@@ -4,6 +4,8 @@ import {
     ControllerAccount,
     findATAAddrSync,
     IdentityDepository,
+    nativeToUi,
+    uiToNative,
 } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { getBalance, transferTokens } from "../utils";
@@ -12,6 +14,8 @@ import { BN } from "@project-serum/anchor";
 import { IdentityDepositoryAccount } from "@uxd-protocol/uxd-client/dist/types/interfaces";
 import { redeemFromIdentityDepositoryTest } from "../cases/redeemFromIdentityDepositoryTest";
 import { mintWithIdentityDepositoryTest } from "../cases/mintWithIdentityDepositoryTest";
+import { editControllerTest } from "../cases/editControllerTest";
+import { editIdentityDepositoryTest } from "../cases/editIdentityDepositoryTest";
 
 export const identityDepositoryMintRedeemSuite = async function (
     controllerAuthority: Signer,
@@ -189,99 +193,99 @@ export const identityDepositoryMintRedeemSuite = async function (
         );
     });
 
-    // describe("Global redeemable supply cap overflow", () => {
-    //     it("Set global redeemable supply cap to 0", () =>
-    //         editControllerTest(controllerAuthority, controller, {
-    //             redeemableGlobalSupplyCap: 0,
-    //         }));
+    describe("Global redeemable supply cap overflow", () => {
+        it("Set global redeemable supply cap to 0", () =>
+            editControllerTest(controllerAuthority, controller, {
+                redeemableGlobalSupplyCap: 0,
+            }));
 
-    //     it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMint.symbol} (should fail)`, async function () {
-    //         const collateralAmount = 0.001;
+        it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMintSymbol} (should fail)`, async function () {
+            const collateralAmount = 0.001;
 
-    //         console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+            console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMintSymbol, "]");
 
-    //         try {
-    //             await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);
-    //         } catch {
-    //             expect(true, "Failing as planned");
-    //         }
+            try {
+                await mintWithIdentityDepositoryTest(collateralAmount, user, controller, depository, payer);
+            } catch {
+                expect(true, "Failing as planned");
+            }
 
-    //         expect(false, `Should have failed - amount of redeemable overflow the global redeemable supply cap`);
-    //     });
+            expect(false, `Should have failed - amount of redeemable overflow the global redeemable supply cap`);
+        });
 
-    //     it(`Reset Global Redeemable supply cap back to its original value`, async function () {
-    //         const globalRedeemableSupplyCap = nativeToUi(
-    //             initialControllerGlobalRedeemableSupplyCap,
-    //             controller.redeemableMintDecimals
-    //         );
+        it(`Reset Global Redeemable supply cap back to its original value`, async function () {
+            const globalRedeemableSupplyCap = nativeToUi(
+                initialControllerGlobalRedeemableSupplyCap,
+                controller.redeemableMintDecimals
+            );
 
-    //         await editControllerTest(controllerAuthority, controller, {
-    //             redeemableGlobalSupplyCap: globalRedeemableSupplyCap,
-    //         });
-    //     });
-    // });
+            await editControllerTest(controllerAuthority, controller, {
+                redeemableGlobalSupplyCap: globalRedeemableSupplyCap,
+            });
+        });
+    });
 
-    // describe("Redeemable depository supply cap overflow", () => {
-    //     it("Set redeemable depository supply cap to 0,0005 more than actual minted amount", async function () {
-    //         const onChainDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
+    describe("Redeemable depository supply cap overflow", () => {
+        it("Set redeemable depository supply cap to 0,0005 more than actual minted amount", async function () {
+            const onChainDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
 
-    //         await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-    //             redeemableAmountUnderManagementCap:
-    //                 onChainDepository.redeemableAmountUnderManagement + uiToNative(0.0005, controller.redeemableMintDecimals),
-    //         });
-    //     });
+            await editIdentityDepositoryTest(controllerAuthority, controller, depository, {
+                redeemableAmountUnderManagementCap:
+                    onChainDepository.redeemableAmountUnderManagement + uiToNative(0.0005, controller.redeemableMintDecimals),
+            });
+        });
 
-    //     it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMint.symbol} (should fail)`, async function () {
-    //         const collateralAmount = 0.001;
+        it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMintSymbol} (should fail)`, async function () {
+            const collateralAmount = 0.001;
 
-    //         console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+            console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMintSymbol, "]");
 
-    //         try {
-    //             await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);
-    //         } catch {
-    //             expect(true, "Failing as planned");
-    //         }
+            try {
+                await mintWithIdentityDepositoryTest(collateralAmount, user, controller, depository, payer);
+            } catch {
+                expect(true, "Failing as planned");
+            }
 
-    //         expect(false, `Should have failed - amount of redeemable overflow the redeemable depository supply cap`);
-    //     });
+            expect(false, `Should have failed - amount of redeemable overflow the redeemable depository supply cap`);
+        });
 
-    //     it(`Reset redeemable depository supply cap back to its original value`, async function () {
-    //         const redeemableAmountUnderManagementCap = nativeToUi(
-    //             initialRedeemableDepositorySupplyCap,
-    //             controller.redeemableMintDecimals
-    //         );
+        it(`Reset redeemable depository supply cap back to its original value`, async function () {
+            const redeemableAmountUnderManagementCap = nativeToUi(
+                initialRedeemableDepositorySupplyCap,
+                controller.redeemableMintDecimals
+            );
 
-    //         await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-    //             redeemableAmountUnderManagementCap,
-    //         });
-    //     });
-    // });
+            await editIdentityDepositoryTest(controllerAuthority, controller, depository, {
+                redeemableAmountUnderManagementCap,
+            });
+        });
+    });
 
-    // describe("Disabled minting", () => {
-    //     it("Disable minting on mercurial vault depository", async function () {
-    //         await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-    //             mintingDisabled: true,
-    //         });
-    //     });
+    describe("Disabled minting", () => {
+        it("Disable minting on identity depository", async function () {
+            await editIdentityDepositoryTest(controllerAuthority, controller, depository, {
+                mintingDisabled: true,
+            });
+        });
 
-    //     it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMint.symbol} (should fail)`, async function () {
-    //         const collateralAmount = 0.001;
+        it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMintSymbol} (should fail)`, async function () {
+            const collateralAmount = 0.001;
 
-    //         console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+            console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMintSymbol, "]");
 
-    //         try {
-    //             await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);
-    //         } catch {
-    //             expect(true, "Failing as planned");
-    //         }
+            try {
+                await mintWithIdentityDepositoryTest(collateralAmount, user, controller, depository, payer);
+            } catch {
+                expect(true, "Failing as planned");
+            }
 
-    //         expect(false, `Should have failed - minting is disabled`);
-    //     });
+            expect(false, `Should have failed - minting is disabled`);
+        });
 
-    //     it(`Re-enable minting for mercurial vault depository`, async function () {
-    //         await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-    //             mintingDisabled: false,
-    //         });
-    //     });
-    // });
+        it(`Re-enable minting for identity depository`, async function () {
+            await editIdentityDepositoryTest(controllerAuthority, controller, depository, {
+                mintingDisabled: false,
+            });
+        });
+    });
 };
