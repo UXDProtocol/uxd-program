@@ -82,7 +82,7 @@ pub struct RedeemFromIdentityDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #10 System Program
+    /// #10
     pub system_program: Program<'info, System>,
 
     /// #11 Token Program
