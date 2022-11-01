@@ -100,6 +100,34 @@ export type Uxd = {
       ]
     },
     {
+      "name": "editIdentityDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "fields",
+          "type": {
+            "defined": "EditIdentityDepositoryFields"
+          }
+        }
+      ]
+    },
+    {
       "name": "mintWithMercurialVaultDepository",
       "accounts": [
         {
@@ -643,7 +671,11 @@ export type Uxd = {
             "type": "u128"
           },
           {
-            "name": "regularMintingDisabled",
+            "name": "redeemableAmountUnderManagementCap",
+            "type": "u128"
+          },
+          {
+            "name": "mintingDisabled",
             "type": "bool"
           }
         ]
@@ -740,6 +772,26 @@ export type Uxd = {
             "name": "redeemableGlobalSupplyCap",
             "type": {
               "option": "u128"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "EditIdentityDepositoryFields",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "redeemableAmountUnderManagementCap",
+            "type": {
+              "option": "u128"
+            }
+          },
+          {
+            "name": "mintingDisabled",
+            "type": {
+              "option": "bool"
             }
           }
         ]
@@ -860,7 +912,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "SetMercurialVaultDepositoryRedeemableAmountUnderManagementCapEvent",
+      "name": "SetDepositoryRedeemableAmountUnderManagementCapEvent",
       "fields": [
         {
           "name": "version",
@@ -885,7 +937,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "SetMercurialVaultDepositoryMintingFeeInBpsEvent",
+      "name": "SetDepositoryMintingFeeInBpsEvent",
       "fields": [
         {
           "name": "version",
@@ -910,7 +962,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "SetMercurialVaultDepositoryRedeemingFeeInBpsEvent",
+      "name": "SetDepositoryRedeemingFeeInBpsEvent",
       "fields": [
         {
           "name": "version",
@@ -935,7 +987,7 @@ export type Uxd = {
       ]
     },
     {
-      "name": "SetMercurialVaultDepositoryMintingDisabledEvent",
+      "name": "SetDepositoryMintingDisabledEvent",
       "fields": [
         {
           "name": "version",
@@ -956,31 +1008,6 @@ export type Uxd = {
           "name": "mintingDisabled",
           "type": "bool",
           "index": true
-        }
-      ]
-    },
-    {
-      "name": "DisableDepositoryRegularMintingEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": true
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "regularMintingDisabled",
-          "type": "bool",
-          "index": false
         }
       ]
     },
@@ -1516,6 +1543,34 @@ export const IDL: Uxd = {
       ]
     },
     {
+      "name": "editIdentityDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "fields",
+          "type": {
+            "defined": "EditIdentityDepositoryFields"
+          }
+        }
+      ]
+    },
+    {
       "name": "mintWithMercurialVaultDepository",
       "accounts": [
         {
@@ -2059,7 +2114,11 @@ export const IDL: Uxd = {
             "type": "u128"
           },
           {
-            "name": "regularMintingDisabled",
+            "name": "redeemableAmountUnderManagementCap",
+            "type": "u128"
+          },
+          {
+            "name": "mintingDisabled",
             "type": "bool"
           }
         ]
@@ -2156,6 +2215,26 @@ export const IDL: Uxd = {
             "name": "redeemableGlobalSupplyCap",
             "type": {
               "option": "u128"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "EditIdentityDepositoryFields",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "redeemableAmountUnderManagementCap",
+            "type": {
+              "option": "u128"
+            }
+          },
+          {
+            "name": "mintingDisabled",
+            "type": {
+              "option": "bool"
             }
           }
         ]
@@ -2276,7 +2355,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "SetMercurialVaultDepositoryRedeemableAmountUnderManagementCapEvent",
+      "name": "SetDepositoryRedeemableAmountUnderManagementCapEvent",
       "fields": [
         {
           "name": "version",
@@ -2301,7 +2380,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "SetMercurialVaultDepositoryMintingFeeInBpsEvent",
+      "name": "SetDepositoryMintingFeeInBpsEvent",
       "fields": [
         {
           "name": "version",
@@ -2326,7 +2405,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "SetMercurialVaultDepositoryRedeemingFeeInBpsEvent",
+      "name": "SetDepositoryRedeemingFeeInBpsEvent",
       "fields": [
         {
           "name": "version",
@@ -2351,7 +2430,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      "name": "SetMercurialVaultDepositoryMintingDisabledEvent",
+      "name": "SetDepositoryMintingDisabledEvent",
       "fields": [
         {
           "name": "version",
@@ -2372,31 +2451,6 @@ export const IDL: Uxd = {
           "name": "mintingDisabled",
           "type": "bool",
           "index": true
-        }
-      ]
-    },
-    {
-      "name": "DisableDepositoryRegularMintingEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": true
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "regularMintingDisabled",
-          "type": "bool",
-          "index": false
         }
       ]
     },
