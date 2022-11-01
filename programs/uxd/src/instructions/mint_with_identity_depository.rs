@@ -78,7 +78,7 @@ pub struct MintWithIdentityDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #9 System Program
+    /// #9
     pub system_program: Program<'info, System>,
 
     /// #10 Token Program
