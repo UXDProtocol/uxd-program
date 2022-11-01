@@ -12,9 +12,9 @@ pub fn is_equal_with_precision_loss(
     let amount_min = amount_before_precision_loss
         .checked_sub(allowed_precion_loss)
         .ok_or(UxdError::MathError)?;
-    return Ok(is_within_range_inclusive(
+    Ok(is_within_range_inclusive(
         amount_after_precision_loss,
         amount_min,
         amount_max,
-    ));
+    ))
 }

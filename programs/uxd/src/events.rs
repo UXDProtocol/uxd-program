@@ -104,7 +104,7 @@ pub struct RegisterMaplePoolDepositoryEvent {
     pub maple_pool: Pubkey,
 }
 
-/// Event called in [instructions::mango_dex::mint_with_maple_pool_depository::handler].
+/// Event called in [instructions::mint_with_maple_pool_depository::handler].
 #[event]
 pub struct MintWithMaplePoolDepositoryEvent {
     #[index]
@@ -372,7 +372,7 @@ pub struct SetMercurialVaultDepositoryMintingDisabledEvent {
     pub minting_disabled: bool,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_maple_pool_depository::handler].
 #[event]
 pub struct SetMaplePoolDepositoryRedeemableAmountUnderManagementCapEvent {
     #[index]
@@ -385,7 +385,7 @@ pub struct SetMaplePoolDepositoryRedeemableAmountUnderManagementCapEvent {
     pub redeemable_amount_under_management_cap: u128,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_maple_pool_depository::handler].
 #[event]
 pub struct SetMaplePoolDepositoryMintingFeeInBpsEvent {
     #[index]
@@ -398,7 +398,7 @@ pub struct SetMaplePoolDepositoryMintingFeeInBpsEvent {
     pub minting_fee_in_bps: u8,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_maple_pool_depository::handler].
 #[event]
 pub struct SetMaplePoolDepositoryRedeemingFeeInBpsEvent {
     #[index]
@@ -411,7 +411,7 @@ pub struct SetMaplePoolDepositoryRedeemingFeeInBpsEvent {
     pub redeeming_fee_in_bps: u8,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_maple_pool_depository::handler].
 #[event]
 pub struct SetMaplePoolDepositoryMintingDisabledEvent {
     #[index]

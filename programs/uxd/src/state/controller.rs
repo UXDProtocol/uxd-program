@@ -65,7 +65,7 @@ pub struct Controller {
     pub registered_mercurial_vault_depositories:
         [Pubkey; MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES],
     pub registered_mercurial_vault_depositories_count: u8,
-
+    //
     // The Maple Pool Depositories registered with this Controller
     pub registered_maple_pool_depositories: [Pubkey; MAX_REGISTERED_MAPLE_POOL_DEPOSITORIES],
     pub registered_maple_pool_depositories_count: u8,
@@ -101,7 +101,7 @@ impl Controller {
             current_size < MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES,
             UxdError::MaxNumberOfMercurialVaultDepositoriesRegisteredReached
         );
-        // Increment registered Mercurial Pool Depositories count
+        // Increment registered Mercurial Vault Depositories count
         self.registered_mercurial_vault_depositories_count = self
             .registered_mercurial_vault_depositories_count
             .checked_add(1)
@@ -122,7 +122,7 @@ impl Controller {
             current_size < MAX_REGISTERED_MAPLE_POOL_DEPOSITORIES,
             UxdError::MaxNumberOfMaplePoolDepositoriesRegisteredReached
         );
-        // Increment registered Mercurial Pool Depositories count
+        // Increment registered Maple Pool Depositories count
         self.registered_maple_pool_depositories_count = self
             .registered_maple_pool_depositories_count
             .checked_add(1)

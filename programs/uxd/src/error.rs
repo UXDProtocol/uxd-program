@@ -157,13 +157,13 @@ pub enum UxdError {
     InvalidMercurialVault,
     #[msg("The provided mercurial vault collateral token safe does not match the mercurial vault one.")]
     InvalidMercurialVaultCollateralTokenSafe,
-    #[msg("The provided maple globals does not match the Depository's one.")]
+    #[msg("The provided maple pool does not match the Depository's one.")]
     InvalidMaplePool,
     #[msg("The provided maple pool locker does not match the Depository's one.")]
     InvalidMaplePoolLocker,
-    #[msg("The provided maple lender does not match the Depository's one.")]
+    #[msg("The provided maple globals does not match the Depository's one.")]
     InvalidMapleGlobals,
-    #[msg("The provided maple pool does not match the Depository's one.")]
+    #[msg("The provided maple lender does not match the Depository's one.")]
     InvalidMapleLender,
     #[msg("The provided maple shares mint does not match the Depository's one.")]
     InvalidMapleSharesMint,

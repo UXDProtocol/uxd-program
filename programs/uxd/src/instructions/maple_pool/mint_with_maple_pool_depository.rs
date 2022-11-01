@@ -69,7 +69,7 @@ pub struct MintWithMaplePoolDepository<'info> {
     /// #7
     #[account(
         mut,
-        constraint = user_redeemable.owner == user.key()  @UxdError::InvalidOwner,
+        constraint = user_redeemable.owner == user.key() @UxdError::InvalidOwner,
         constraint = user_redeemable.mint == redeemable_mint.key() @UxdError::InvalidRedeemableMint,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
@@ -77,7 +77,7 @@ pub struct MintWithMaplePoolDepository<'info> {
     /// #8
     #[account(
         mut,
-        constraint = user_collateral.owner == user.key()  @UxdError::InvalidOwner,
+        constraint = user_collateral.owner == user.key() @UxdError::InvalidOwner,
         constraint = user_collateral.mint == collateral_mint.key() @UxdError::InvalidCollateralMint
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
@@ -139,11 +139,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         &[ctx.accounts.depository.load()?.bump],
     ]];
 
-    // We will try to deposit the exact amount requested by the user
-    let collateral_amount_deposited = collateral_amount;
-
     // Read all state before deposit
-    msg!("[mint_with_maple_pool_depository:before_math]");
     let depository_collateral_amount_before: u64 = ctx.accounts.depository_collateral.amount;
     let user_collateral_amount_before: u64 = ctx.accounts.user_collateral.amount;
     let pool_collateral_amount_before: u64 = ctx.accounts.maple_pool_locker.amount;
@@ -160,12 +156,22 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         pool_shares_value_before,
     )?;
 
+    // Add some pool state log information
+    msg!(
+        "[mint_with_maple_pool_depository:before:pool_shares_amount:{}]",
+        pool_shares_amount_before
+    );
+    msg!(
+        "[mint_with_maple_pool_depository:before:pool_shares_value:{}]",
+        pool_shares_value_before
+    );
+
     // Transfer the collateral to an account owned by the depository
     msg!("[mint_with_maple_pool_depository:transfer_to_depository]");
     token::transfer(
         ctx.accounts
             .into_transfer_user_collateral_to_depository_collateral_context(),
-        collateral_amount_deposited,
+        collateral_amount,
     )?;
 
     // Do the deposit by placing collateral owned by the depository into the pool
@@ -174,7 +180,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         ctx.accounts
             .into_deposit_collateral_to_maple_pool_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_deposited,
+        collateral_amount,
     )?;
 
     // Refresh account states after deposit
@@ -268,15 +274,15 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     // Validate that the collateral value moved exactly to the correct place
     msg!("[mint_with_maple_pool_depository:check_amounts]");
     require!(
-        user_collateral_amount_decrease == collateral_amount_deposited,
+        user_collateral_amount_decrease == collateral_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        pool_collateral_amount_increase == collateral_amount_deposited,
+        pool_collateral_amount_increase == collateral_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        pool_shares_value_increase == collateral_amount_deposited,
+        pool_shares_value_increase == collateral_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
@@ -291,7 +297,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         ctx.accounts
             .compute_shares_value(1, pool_shares_amount_after, pool_shares_value_after)?;
     let allowed_precision_loss_amount = single_share_value
-        .checked_add(1)
+        .checked_add(2)
         .ok_or(UxdError::MathError)?;
     msg!(
         "[mint_with_maple_pool_depository:allow_precision_loss:{}]",
@@ -299,7 +305,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     );
     require!(
         is_equal_with_precision_loss(
-            collateral_amount_deposited,
+            collateral_amount,
             owned_shares_value_increase,
             allowed_precision_loss_amount
         )?,
@@ -342,7 +348,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         user: ctx.accounts.user.key(),
-        collateral_amount: collateral_amount_deposited,
+        collateral_amount: collateral_amount,
         redeemable_amount: redeemable_amount_after_fees,
         minting_fee_paid: minting_fee_paid,
     });
@@ -352,7 +358,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     let mut depository = ctx.accounts.depository.load_mut()?;
     depository.minting_fee_accrued(minting_fee_paid)?;
     depository.collateral_deposited_and_redeemable_minted(
-        collateral_amount_deposited,
+        collateral_amount,
         redeemable_amount_after_fees,
     )?;
 

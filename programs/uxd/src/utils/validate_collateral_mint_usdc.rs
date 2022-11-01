@@ -10,7 +10,8 @@ pub fn validate_collateral_mint_usdc(
     // Redeemable and collateral should always be 1:1
     #[cfg(feature = "production")]
     {
-        let usdc_mint: Pubkey = Pubkey::new(b"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+        let usdc_mint: Pubkey =
+            Pubkey::from_str(b"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").unwrap();
         require!(
             self.collateral_mint.key().eq(&usdc_mint),
             UxdError::CollateralMintNotAllowed,
