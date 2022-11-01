@@ -85,7 +85,7 @@ pub struct RedeemFromIdentityDepository<'info> {
     /// #10
     pub system_program: Program<'info, System>,
 
-    /// #11 Token Program
+    /// #11
     pub token_program: Program<'info, Token>,
 }
 
