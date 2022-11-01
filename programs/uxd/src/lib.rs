@@ -34,6 +34,7 @@ pub const IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE: &[u8] =
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
+pub const DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
 
 const BPS_POW: u8 = 4; // Raise a number to BPS_POW to get order of magnitude of
 pub const BPS_UNIT_CONVERSION: u64 = (10u64).pow(BPS_POW as u32);
@@ -83,6 +84,13 @@ pub mod uxd {
         fields: EditMercurialVaultDepositoryFields,
     ) -> Result<()> {
         instructions::edit_mercurial_vault_depository::handler(ctx, &fields)
+    }
+
+    pub fn edit_identity_depository(
+        ctx: Context<EditIdentityDepository>,
+        fields: EditIdentityDepositoryFields,
+    ) -> Result<()> {
+        instructions::edit_identity_depository::handler(ctx, &fields)
     }
 
     // Mint Redeemable tokens by depositing Collateral to mercurial vault.

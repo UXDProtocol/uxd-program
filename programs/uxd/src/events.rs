@@ -44,9 +44,9 @@ pub struct RegisterMercurialVaultDepositoryEvent {
     pub collateral_mint: Pubkey,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_*_depository::handler].
 #[event]
-pub struct SetMercurialVaultDepositoryRedeemableAmountUnderManagementCapEvent {
+pub struct SetDepositoryRedeemableAmountUnderManagementCapEvent {
     #[index]
     pub version: u8,
     #[index]
@@ -57,9 +57,9 @@ pub struct SetMercurialVaultDepositoryRedeemableAmountUnderManagementCapEvent {
     pub redeemable_amount_under_management_cap: u128,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_*_depository::handler].
 #[event]
-pub struct SetMercurialVaultDepositoryMintingFeeInBpsEvent {
+pub struct SetDepositoryMintingFeeInBpsEvent {
     #[index]
     pub version: u8,
     #[index]
@@ -70,9 +70,9 @@ pub struct SetMercurialVaultDepositoryMintingFeeInBpsEvent {
     pub minting_fee_in_bps: u8,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_*_depository::handler].
 #[event]
-pub struct SetMercurialVaultDepositoryRedeemingFeeInBpsEvent {
+pub struct SetDepositoryRedeemingFeeInBpsEvent {
     #[index]
     pub version: u8,
     #[index]
@@ -83,9 +83,9 @@ pub struct SetMercurialVaultDepositoryRedeemingFeeInBpsEvent {
     pub redeeming_fee_in_bps: u8,
 }
 
-/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+/// Event called in [instructions::edit_*_depository::handler].
 #[event]
-pub struct SetMercurialVaultDepositoryMintingDisabledEvent {
+pub struct SetDepositoryMintingDisabledEvent {
     #[index]
     pub version: u8,
     #[index]
@@ -94,18 +94,6 @@ pub struct SetMercurialVaultDepositoryMintingDisabledEvent {
     pub depository: Pubkey,
     #[index]
     pub minting_disabled: bool,
-}
-
-/// Event called in [instructions::*_dex::disable_depository_regular_minting::handler].
-#[event]
-pub struct DisableDepositoryRegularMintingEvent {
-    #[index]
-    pub version: u8,
-    #[index]
-    pub controller: Pubkey,
-    #[index]
-    pub depository: Pubkey,
-    pub regular_minting_disabled: bool,
 }
 
 /// Event called in [instructions::initialize_identity_depository::handler].

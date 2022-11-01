@@ -11,7 +11,7 @@ pub const IDENTITY_DEPOSITORY_SPACE: usize = 8
     + 32 // controller
     + 16 // collateral_amount_deposited
     + 16 // redeemable_under_management
-    // + 16 // redeemable_under_management_cap
+    + 16 // redeemable_under_management_cap
     + 1 // regular_minting_disabled
     + IDENTITY_DEPOSITORY_RESERVED_SPACE;
 
@@ -37,7 +37,7 @@ pub struct IdentityDepository {
     // Updated after each mint/redeem
     // In Redeemable native units
     pub redeemable_amount_under_management: u128,
-    // pub redeemable_amount_under_management_cap: u128, // TODO ADD THIS
+    pub redeemable_amount_under_management_cap: u128,
     // Flag to indicate whether minting through collateral deposits is allowed
-    pub regular_minting_disabled: bool,
+    pub minting_disabled: bool,
 }

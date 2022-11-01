@@ -3,6 +3,7 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
+use crate::DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP;
 use crate::IDENTITY_DEPOSITORY_ACCOUNT_VERSION;
 use crate::IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE;
 use crate::error::UxdError;
@@ -86,7 +87,8 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
     depository.collateral_vault = ctx.accounts.collateral_vault.key();
     depository.collateral_vault_bump = collateral_vault_bump;
     depository.redeemable_amount_under_management = u128::MIN;
-    depository.regular_minting_disabled = true;
+    depository.redeemable_amount_under_management_cap = DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP;
+    depository.minting_disabled = true;
 
     emit!(InitializeIdentityDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,
