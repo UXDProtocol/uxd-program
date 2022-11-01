@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::events::SetMercurialVaultDepositoryInterestsAndFeesRedeemAuthorityEvent;
 use crate::events::SetMercurialVaultDepositoryMintingDisabledEvent;
 use crate::events::SetMercurialVaultDepositoryMintingFeeInBpsEvent;
 use crate::events::SetMercurialVaultDepositoryRedeemableAmountUnderManagementCapEvent;
@@ -41,6 +42,7 @@ pub struct EditMercurialVaultDepositoryFields {
     minting_fee_in_bps: Option<u8>,
     redeeming_fee_in_bps: Option<u8>,
     minting_disabled: Option<bool>,
+    interests_and_fees_redeem_authority: Option<Pubkey>,
 }
 
 pub(crate) fn handler(
@@ -111,6 +113,23 @@ pub(crate) fn handler(
             depository: ctx.accounts.depository.key(),
             minting_disabled
         });
+    }
+
+    // optional: interests_and_fees_redeem_authority
+    if let Some(interests_and_fees_redeem_authority) = fields.interests_and_fees_redeem_authority {
+        msg!(
+            "[edit_mercurial_vault_depository] interests_and_fees_redeem_authority {}",
+            interests_and_fees_redeem_authority
+        );
+        depository.interests_and_fees_redeem_authority = interests_and_fees_redeem_authority;
+        emit!(
+            SetMercurialVaultDepositoryInterestsAndFeesRedeemAuthorityEvent {
+                version: ctx.accounts.controller.load()?.version,
+                controller: ctx.accounts.controller.key(),
+                depository: ctx.accounts.depository.key(),
+                interests_and_fees_redeem_authority
+            }
+        );
     }
 
     Ok(())

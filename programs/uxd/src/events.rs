@@ -336,6 +336,19 @@ pub struct SetMercurialVaultDepositoryMintingDisabledEvent {
     pub minting_disabled: bool,
 }
 
+/// Event called in [instructions::edit_mercurial_vault_depository::handler].
+#[event]
+pub struct SetMercurialVaultDepositoryInterestsAndFeesRedeemAuthorityEvent {
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub interests_and_fees_redeem_authority: Pubkey,
+}
+
 /// Event called in [instructions::mango_dex::quote_redeem_from_mango_depository::handler].
 #[event]
 pub struct QuoteRedeemFromMangoDepositoryEvent {

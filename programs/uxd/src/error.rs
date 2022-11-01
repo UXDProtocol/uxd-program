@@ -112,6 +112,8 @@ pub enum UxdError {
     InvalidDepositoryLpTokenVault,
     #[msg("The mango group is not accepted.")]
     UnAllowedMangoGroup,
+    #[msg("Only the mercurial vault interests and fees authority can access this instructions.")]
+    InvalidMercurialVaultInterestsAndFeesAuthority,
 
     /// Anchor DSL related errors
     ///

@@ -467,7 +467,6 @@ pub mod uxd {
         )
     }
 
-    //
     #[access_control(
         ctx.accounts.validate(redeemable_amount)
     )]
@@ -477,6 +476,13 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[redeem_from_mercurial_vault]");
         instructions::redeem_from_mercurial_vault_depository::handler(ctx, redeemable_amount)
+    }
+
+    pub fn collect_interests_and_fees_from_mercurial_vault_depository(
+        ctx: Context<CollectInterestsAndFeesFromMercurialVaultDepository>,
+    ) -> Result<()> {
+        msg!("[collect_interests_and_fees_from_mercurial_vault_depository]");
+        instructions::collect_interests_and_fees_from_mercurial_vault_depository::handler(ctx)
     }
 }
 

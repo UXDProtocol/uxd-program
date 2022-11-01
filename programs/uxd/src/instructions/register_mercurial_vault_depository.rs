@@ -67,12 +67,17 @@ pub struct RegisterMercurialVaultDepository<'info> {
     pub depository_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
     /// #9
-    pub system_program: Program<'info, System>,
+    /// Only wallet able to claim interests and fees
+    /// CHECK: can be any address
+    pub interests_and_fees_redeem_authority: AccountInfo<'info>,
 
     /// #10
-    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
 
     /// #11
+    pub token_program: Program<'info, Token>,
+
+    /// #12
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -125,6 +130,11 @@ pub fn handler(
 
     // enable minting by default
     depository.minting_disabled = false;
+
+    depository.interests_and_fees_redeem_authority =
+        ctx.accounts.interests_and_fees_redeem_authority.key();
+
+    depository.interests_and_fees_total_collected = u128::MIN;
 
     // 2 - Update Controller state
     ctx.accounts

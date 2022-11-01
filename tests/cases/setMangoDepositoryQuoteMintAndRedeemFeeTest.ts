@@ -15,6 +15,12 @@ export const setMangoDepositoryQuoteMintAndRedeemFeeTest = async function (quote
         const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
         const quoteMintAndRedeemFee = depositoryOnchainAccount.quoteMintAndRedeemFee;
 
+        const a = '4';
+
+        const b = {
+            a: a,
+        };
+
         // WHEN
         const txId = await setMangoDepositoryQuoteMintAndRedeemFee(authority, controller, depository, quoteFee);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);

@@ -1,5 +1,5 @@
 export type Uxd = {
-  "version": "4.0.0",
+  "version": "5.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -1094,6 +1094,11 @@ export type Uxd = {
           "isSigner": false
         },
         {
+          "name": "interestsAndFeesRedeemAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1209,6 +1214,77 @@ export type Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "collectInterestsAndFeesFromMercurialVaultDepository",
+      "accounts": [
+        {
+          "name": "interestsAndFeesRedeemAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "interestsAndFeesRedeemAuthorityCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryLpTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultLpMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultCollateralTokenSafe",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -1473,6 +1549,14 @@ export type Uxd = {
           {
             "name": "mintingDisabled",
             "type": "bool"
+          },
+          {
+            "name": "interestsAndFeesRedeemAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "interestsAndFeesTotalCollected",
+            "type": "u128"
           }
         ]
       }
@@ -1552,6 +1636,12 @@ export type Uxd = {
             "name": "mintingDisabled",
             "type": {
               "option": "bool"
+            }
+          },
+          {
+            "name": "interestsAndFeesRedeemAuthority",
+            "type": {
+              "option": "publicKey"
             }
           }
         ]
@@ -2201,6 +2291,31 @@ export type Uxd = {
       ]
     },
     {
+      "name": "SetMercurialVaultDepositoryInterestsAndFeesRedeemAuthorityEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "interestsAndFeesRedeemAuthority",
+          "type": "publicKey",
+          "index": true
+        }
+      ]
+    },
+    {
       "name": "QuoteRedeemFromMangoDepositoryEvent",
       "fields": [
         {
@@ -2564,71 +2679,76 @@ export type Uxd = {
     },
     {
       "code": 6053,
+      "name": "InvalidMercurialVaultInterestsAndFeesAuthority",
+      "msg": "Only the mercurial vault interests and fees authority can access this instructions."
+    },
+    {
+      "code": 6054,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6054,
+      "code": 6055,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6055,
+      "code": 6056,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6056,
+      "code": 6057,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6057,
+      "code": 6058,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6058,
+      "code": 6059,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6059,
+      "code": 6060,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6060,
+      "code": 6061,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6061,
+      "code": 6062,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6062,
+      "code": 6063,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6063,
+      "code": 6064,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6064,
+      "code": 6065,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6065,
+      "code": 6066,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6066,
+      "code": 6067,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
@@ -2636,7 +2756,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  "version": "4.0.0",
+  "version": "5.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -3731,6 +3851,11 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
+          "name": "interestsAndFeesRedeemAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -3846,6 +3971,77 @@ export const IDL: Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "collectInterestsAndFeesFromMercurialVaultDepository",
+      "accounts": [
+        {
+          "name": "interestsAndFeesRedeemAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "interestsAndFeesRedeemAuthorityCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryLpTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultLpMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultCollateralTokenSafe",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -4110,6 +4306,14 @@ export const IDL: Uxd = {
           {
             "name": "mintingDisabled",
             "type": "bool"
+          },
+          {
+            "name": "interestsAndFeesRedeemAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "interestsAndFeesTotalCollected",
+            "type": "u128"
           }
         ]
       }
@@ -4189,6 +4393,12 @@ export const IDL: Uxd = {
             "name": "mintingDisabled",
             "type": {
               "option": "bool"
+            }
+          },
+          {
+            "name": "interestsAndFeesRedeemAuthority",
+            "type": {
+              "option": "publicKey"
             }
           }
         ]
@@ -4838,6 +5048,31 @@ export const IDL: Uxd = {
       ]
     },
     {
+      "name": "SetMercurialVaultDepositoryInterestsAndFeesRedeemAuthorityEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "interestsAndFeesRedeemAuthority",
+          "type": "publicKey",
+          "index": true
+        }
+      ]
+    },
+    {
       "name": "QuoteRedeemFromMangoDepositoryEvent",
       "fields": [
         {
@@ -5201,71 +5436,76 @@ export const IDL: Uxd = {
     },
     {
       "code": 6053,
+      "name": "InvalidMercurialVaultInterestsAndFeesAuthority",
+      "msg": "Only the mercurial vault interests and fees authority can access this instructions."
+    },
+    {
+      "code": 6054,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6054,
+      "code": 6055,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6055,
+      "code": 6056,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6056,
+      "code": 6057,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6057,
+      "code": 6058,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6058,
+      "code": 6059,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6059,
+      "code": 6060,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6060,
+      "code": 6061,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6061,
+      "code": 6062,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6062,
+      "code": 6063,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6063,
+      "code": 6064,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6064,
+      "code": 6065,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6065,
+      "code": 6066,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6066,
+      "code": 6067,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
