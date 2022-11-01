@@ -292,7 +292,7 @@ jobs:
     name: Maple pool mint and edit depository
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [anchor-test-setup]
+    needs: [anchor-test-mercurial]
     steps:
       # Checkout
       - uses: actions/checkout@v2
