@@ -153,8 +153,10 @@ export const maplePoolDepositoryMintSuite = async function (
       const onChainDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
 
       await editMaplePoolDepositoryTest(controllerAuthority, controller, depository, {
-        redeemableAmountUnderManagementCap:
-          onChainDepository.redeemableAmountUnderManagement + uiToNative(0.0005, controller.redeemableMintDecimals),
+        redeemableAmountUnderManagementCap: nativeToUi(
+          onChainDepository.redeemableAmountUnderManagement + 0.0005,
+          controller.redeemableMintDecimals
+        ),
       });
     });
 

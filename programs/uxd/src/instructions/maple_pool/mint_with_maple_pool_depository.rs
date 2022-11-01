@@ -23,7 +23,6 @@ use crate::MAPLE_POOL_DEPOSITORY_NAMESPACE;
 #[instruction(collateral_amount: u64)]
 pub struct MintWithMaplePoolDepository<'info> {
     /// #1
-    #[account()]
     pub user: Signer<'info>,
 
     /// #2
@@ -63,7 +62,6 @@ pub struct MintWithMaplePoolDepository<'info> {
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
     /// #6
-    #[account()]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #7
@@ -93,7 +91,6 @@ pub struct MintWithMaplePoolDepository<'info> {
     #[account(mut)]
     pub maple_pool_locker: Box<Account<'info, TokenAccount>>,
     /// #12
-    #[account()]
     pub maple_globals: Box<Account<'info, syrup_cpi::Globals>>,
     /// #13
     #[account(mut)]
@@ -165,12 +162,12 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         "[mint_with_maple_pool_depository:before:pool_shares_value:{}]",
         pool_shares_value_before
     );
-
-    // Transfer the collateral to an account owned by the depository
     msg!(
-        "[mint_with_maple_pool_depository:transfer_to_depository:{}]",
+        "[mint_with_maple_pool_depository:lender_deposit:{}]",
         collateral_amount
     );
+
+    // Transfer the collateral to an account owned by the depository
     token::transfer(
         ctx.accounts
             .into_transfer_user_collateral_to_depository_collateral_context(),
@@ -178,10 +175,6 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     )?;
 
     // Do the deposit by placing collateral owned by the depository into the pool
-    msg!(
-        "[mint_with_maple_pool_depository:lender_deposit:{}]",
-        collateral_amount
-    );
     syrup_cpi::cpi::lender_deposit(
         ctx.accounts
             .into_deposit_collateral_to_maple_pool_context()

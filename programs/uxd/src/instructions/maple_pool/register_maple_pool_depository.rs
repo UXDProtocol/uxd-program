@@ -17,7 +17,6 @@ use anchor_spl::token::TokenAccount;
 #[derive(Accounts)]
 pub struct RegisterMaplePoolDepository<'info> {
     /// #1
-    #[account()]
     pub authority: Signer<'info>,
 
     /// #2
@@ -77,7 +76,6 @@ pub struct RegisterMaplePoolDepository<'info> {
     #[account(mut, token::authority = maple_pool)]
     pub maple_pool_locker: Box<Account<'info, TokenAccount>>,
     /// #9
-    #[account()]
     pub maple_globals: Box<Account<'info, syrup_cpi::Globals>>,
     /// #10
     /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
@@ -118,9 +116,7 @@ pub fn handler(
     syrup_cpi::cpi::lender_initialize(ctx.accounts.into_initialize_lending_maple_pool_context())?;
 
     // Read some of the depositories required informations
-    let depository_key = ctx.accounts.depository.key();
     let depository_bump = *ctx.bumps.get("depository").ok_or(UxdError::BumpError)?;
-
     let depository_collateral_bump = *ctx
         .bumps
         .get("depository_collateral")
@@ -166,13 +162,13 @@ pub fn handler(
     ctx.accounts
         .controller
         .load_mut()?
-        .add_registered_maple_pool_depository_entry(depository_key)?;
+        .add_registered_maple_pool_depository_entry(ctx.accounts.depository.key())?;
 
     // Emit event
     msg!("[register_maple_pool_depository:emit_event]");
     emit!(RegisterMaplePoolDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
-        depository_version: depository.version,
+        depository_version: ctx.accounts.depository.load()?.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         collateral_mint: ctx.accounts.collateral_mint.key(),
