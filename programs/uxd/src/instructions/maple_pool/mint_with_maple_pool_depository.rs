@@ -167,7 +167,10 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     );
 
     // Transfer the collateral to an account owned by the depository
-    msg!("[mint_with_maple_pool_depository:transfer_to_depository]");
+    msg!(
+        "[mint_with_maple_pool_depository:transfer_to_depository:{}]",
+        collateral_amount
+    );
     token::transfer(
         ctx.accounts
             .into_transfer_user_collateral_to_depository_collateral_context(),
@@ -175,7 +178,10 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     )?;
 
     // Do the deposit by placing collateral owned by the depository into the pool
-    msg!("[mint_with_maple_pool_depository:lender_deposit]");
+    msg!(
+        "[mint_with_maple_pool_depository:lender_deposit:{}]",
+        collateral_amount
+    );
     syrup_cpi::cpi::lender_deposit(
         ctx.accounts
             .into_deposit_collateral_to_maple_pool_context()
@@ -184,7 +190,6 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     )?;
 
     // Refresh account states after deposit
-    msg!("[mint_with_maple_pool_depository:reload_after_result]");
     ctx.accounts.depository_collateral.reload()?;
     ctx.accounts.user_collateral.reload()?;
     ctx.accounts.maple_pool_locker.reload()?;
@@ -193,7 +198,6 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     ctx.accounts.maple_lender_shares.reload()?;
 
     // Read all states after deposit
-    msg!("[mint_with_maple_pool_depository:after_math]");
     let depository_collateral_amount_after: u64 = ctx.accounts.depository_collateral.amount;
     let user_collateral_amount_after: u64 = ctx.accounts.user_collateral.amount;
     let pool_collateral_amount_after: u64 = ctx.accounts.maple_pool_locker.amount;
@@ -210,8 +214,17 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         pool_shares_value_after,
     )?;
 
+    // Add some pool state log information
+    msg!(
+        "[mint_with_maple_pool_depository:after:pool_shares_amount:{}]",
+        pool_shares_amount_after
+    );
+    msg!(
+        "[mint_with_maple_pool_depository:after:pool_shares_value:{}]",
+        pool_shares_value_after
+    );
+
     // Compute changes in states
-    msg!("[mint_with_maple_pool_depository:compute_deltas]");
     let depository_collateral_delta: i64 = compute_delta(
         depository_collateral_amount_before,
         depository_collateral_amount_after,
@@ -230,14 +243,12 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         compute_delta(owned_shares_value_before, owned_shares_value_after)?;
 
     // The depository collateral account should always be empty
-    msg!("[mint_with_maple_pool_depository:check_dust]");
     require!(
         depository_collateral_delta == 0,
         UxdError::CollateralDepositHasRemainingDust
     );
 
     // Validate the deposit was successful and meaningful
-    msg!("[mint_with_maple_pool_depository:check_changes]");
     require!(
         user_collateral_amount_delta < 0,
         UxdError::CollateralDepositUnaccountedFor
@@ -272,7 +283,6 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     let owned_shares_value_increase = checked_i64_to_u64(owned_shares_value_delta)?;
 
     // Validate that the collateral value moved exactly to the correct place
-    msg!("[mint_with_maple_pool_depository:check_amounts]");
     require!(
         user_collateral_amount_decrease == collateral_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
@@ -300,7 +310,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
         .checked_add(2)
         .ok_or(UxdError::MathError)?;
     msg!(
-        "[mint_with_maple_pool_depository:allow_precision_loss:{}]",
+        "[mint_with_maple_pool_depository:allowed_precision_loss:{}]",
         allowed_precision_loss_amount
     );
     require!(
@@ -313,7 +323,6 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     );
 
     // Add minting fees on top of the received value we got from the pool
-    msg!("[mint_with_maple_pool_depository:compute_redeemable]");
     let depository_minting_fee_in_bps = ctx.accounts.depository.load()?.minting_fee_in_bps;
     let redeemable_amount_before_fees: u64 = owned_shares_value_increase;
     let redeemable_amount_after_fees: u64 =
@@ -326,13 +335,15 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     );
 
     // Compute how much fees was paid
-    msg!("[mint_with_maple_pool_depository:compute_fees]");
     let redeemable_amount_delta =
         compute_delta(redeemable_amount_before_fees, redeemable_amount_after_fees)?;
     let minting_fee_paid = checked_i64_to_u64(-redeemable_amount_delta)?;
 
     // Mint redeemable to the user
-    msg!("[mint_with_maple_pool_depository:mint_redeemable]");
+    msg!(
+        "[mint_with_maple_pool_depository:mint_redeemable:{}]",
+        redeemable_amount_after_fees
+    );
     token::mint_to(
         ctx.accounts
             .into_mint_redeemable_context()
@@ -341,7 +352,6 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     )?;
 
     // Emit event
-    msg!("[mint_with_maple_pool_depository:emit_event]");
     emit!(MintWithMaplePoolDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.load()?.version,
@@ -354,7 +364,6 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     });
 
     // Accouting for depository
-    msg!("[mint_with_maple_pool_depository:accounting_depository]");
     let mut depository = ctx.accounts.depository.load_mut()?;
     depository.minting_fee_accrued(minting_fee_paid)?;
     depository.collateral_deposited_and_redeemable_minted(
@@ -363,7 +372,6 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     )?;
 
     // Accouting for controller
-    msg!("[mint_with_maple_pool_depository:accounting_controller]");
     ctx.accounts
         .controller
         .load_mut()?
