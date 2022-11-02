@@ -58,10 +58,5 @@
     "UXDATA",
     "WSOLATA"
   ],
-  "editor.formatOnSave": true,
-  "workbench.colorCustomizations": {
-    "activityBar.background": "#073144",
-    "titleBar.activeBackground": "#094560",
-    "titleBar.activeForeground": "#F7FCFE"
-  }
+  "editor.formatOnSave": true
 }
