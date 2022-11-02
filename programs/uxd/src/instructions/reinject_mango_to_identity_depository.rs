@@ -1,3 +1,4 @@
+use crate::state::MangoDepository;
 use crate::Controller;
 use crate::IdentityDepository;
 use crate::UxdError;
@@ -7,6 +8,8 @@ use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
+
+pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
 
 #[derive(Accounts)]
 pub struct ReinjectMangoToIdentityDepository<'info> {
@@ -21,6 +24,7 @@ pub struct ReinjectMangoToIdentityDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
+        constraint = controller.load()?.registered_mango_depositories.contains(&mango_depository.key()) @UxdError::InvalidDepository,
     )]
     pub controller: AccountLoader<'info, Controller>,
 
@@ -42,6 +46,16 @@ pub struct ReinjectMangoToIdentityDepository<'info> {
         bump = depository.load()?.collateral_vault_bump,
     )]
     pub collateral_vault: Box<Account<'info, TokenAccount>>,
+
+    /// #4 UXDProgram on chain account bound to a Controller instance.
+    /// The `MangoDepository` manages a MangoAccount for a single Collateral.
+    #[account(
+        mut,
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        bump = depository.load()?.bump,
+        has_one = controller @UxdError::InvalidController,
+    )]
+    pub mango_depository: AccountLoader<'info, MangoDepository>,
 
     /// #7 The `user`'s TA for the `depository` `collateral_mint`
     /// Will be debited during this instruction
