@@ -1,6 +1,7 @@
 use crate::error::UxdError;
+use crate::events::SetCredixLpDepositoryMintingDisabledEvent;
 use crate::events::SetCredixLpDepositoryMintingFeeInBpsEvent;
-use crate::events::SetCredixLpDepositoryRedeemableSupplyCapEvent;
+use crate::events::SetCredixLpDepositoryRedeemableAmountUnderManagementCapEvent;
 use crate::events::SetCredixLpDepositoryRedeemingFeeInBpsEvent;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::Controller;
@@ -26,7 +27,11 @@ pub struct EditCredixLpDepository<'info> {
     /// #3
     #[account(
         mut,
-        seeds = [CREDIX_LP_DEPOSITORY_NAMESPACE, depository.load()?.credix_lp.as_ref(), depository.load()?.collateral_mint.as_ref()],
+        seeds = [
+            CREDIX_LP_DEPOSITORY_NAMESPACE,
+            depository.load()?.credix_global_market_state.as_ref(),
+            depository.load()?.collateral_mint.as_ref()
+        ],
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
     )]
@@ -38,6 +43,7 @@ pub struct EditCredixLpDepositoryFields {
     redeemable_amount_under_management_cap: Option<u128>,
     minting_fee_in_bps: Option<u8>,
     redeeming_fee_in_bps: Option<u8>,
+    minting_disabled: Option<bool>,
 }
 
 pub(crate) fn handler(
@@ -55,12 +61,14 @@ pub(crate) fn handler(
             redeemable_amount_under_management_cap
         );
         depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
-        emit!(SetCredixLpDepositoryRedeemableSupplyCapEvent {
-            version: ctx.accounts.controller.load()?.version,
-            controller: ctx.accounts.controller.key(),
-            depository: ctx.accounts.depository.key(),
-            redeemable_amount_under_management_cap
-        });
+        emit!(
+            SetCredixLpDepositoryRedeemableAmountUnderManagementCapEvent {
+                version: ctx.accounts.controller.load()?.version,
+                controller: ctx.accounts.controller.key(),
+                depository: ctx.accounts.depository.key(),
+                redeemable_amount_under_management_cap
+            }
+        );
     }
 
     // optional: minting_fee_in_bps
@@ -90,6 +98,21 @@ pub(crate) fn handler(
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
             redeeming_fee_in_bps
+        });
+    }
+
+    // optional: minting_disabled
+    if let Some(minting_disabled) = fields.minting_disabled {
+        msg!(
+            "[edit_credix_lp_depository] minting_disabled {}",
+            minting_disabled
+        );
+        depository.minting_disabled = minting_disabled;
+        emit!(SetCredixLpDepositoryMintingDisabledEvent {
+            version: ctx.accounts.controller.load()?.version,
+            controller: ctx.accounts.controller.key(),
+            depository: ctx.accounts.depository.key(),
+            minting_disabled
         });
     }
 

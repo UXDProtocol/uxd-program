@@ -125,6 +125,42 @@ pub struct MintWithMaplePoolDepositoryEvent {
     pub minting_fee_paid: u64,
 }
 
+/// Event called in [instructions::register_credix_lp_depository::handler].
+#[event]
+pub struct RegisterCredixLpDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    pub collateral_mint: Pubkey,
+    pub credix_global_market_state: Pubkey,
+}
+
+/// Event called in [instructions::mint_with_credix_lp_depository::handler].
+#[event]
+pub struct MintWithCredixLpDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub user: Pubkey,
+    /// The collateral amount in native units. (input)
+    pub collateral_amount: u64,
+    /// The redeemable issued in native units. (output)
+    pub redeemable_amount: u64,
+    /// The fees paid in native units. (output)
+    pub minting_fee_paid: u64,
+}
+
 /// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
 #[event]
 pub struct SetMangoDepositoryRedeemableSoftCapEvent {
@@ -414,6 +450,58 @@ pub struct SetMaplePoolDepositoryRedeemingFeeInBpsEvent {
 /// Event called in [instructions::edit_maple_pool_depository::handler].
 #[event]
 pub struct SetMaplePoolDepositoryMintingDisabledEvent {
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub minting_disabled: bool,
+}
+
+/// Event called in [instructions::edit_credix_lp_depository::handler].
+#[event]
+pub struct SetCredixLpDepositoryRedeemableAmountUnderManagementCapEvent {
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub redeemable_amount_under_management_cap: u128,
+}
+
+/// Event called in [instructions::edit_credix_lp_depository::handler].
+#[event]
+pub struct SetCredixLpDepositoryMintingFeeInBpsEvent {
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub minting_fee_in_bps: u8,
+}
+
+/// Event called in [instructions::edit_credix_lp_depository::handler].
+#[event]
+pub struct SetCredixLpDepositoryRedeemingFeeInBpsEvent {
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub redeeming_fee_in_bps: u8,
+}
+
+/// Event called in [instructions::edit_credix_lp_depository::handler].
+#[event]
+pub struct SetCredixLpDepositoryMintingDisabledEvent {
     #[index]
     pub version: u8,
     #[index]

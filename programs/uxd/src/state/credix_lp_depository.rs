@@ -27,6 +27,7 @@ pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u128>() // redeemable_amount_under_management_cap
  + size_of::<u8>() // minting_fee_in_bps
  + size_of::<u8>() // redeeming_fee_in_bps
+ + size_of::<bool>() // minting_disabled
 
  + size_of::<u128>() // collateral_amount_deposited
  + size_of::<u128>() // redeemable_amount_under_management
@@ -54,15 +55,16 @@ pub struct CredixLpDepository {
     // Credix accounts enforced at registration
     pub credix_global_market_state: Pubkey,
     pub credix_signing_authority: Pubkey,
-    pub credix_lp_collateral: Pubkey,
-    pub credix_shares_mint: Pubkey,
-    pub credix_investor_lp_shares: Pubkey,
-    pub credix_pass: Pubkey,
+    pub credix_treasury_collateral: Pubkey,
+    pub credix_liquidity_collateral: Pubkey,
+    pub credix_lp_shares_mint: Pubkey,
+    pub credix_locker_lp_shares: Pubkey,
 
     // Depository configuration
     pub redeemable_amount_under_management_cap: u128,
     pub minting_fee_in_bps: u8,
     pub redeeming_fee_in_bps: u8,
+    pub minting_disabled: bool,
 
     // Depository accouting
     pub collateral_amount_deposited: u128,
@@ -99,7 +101,7 @@ impl CredixLpDepository {
         // Check that we're not minting past the cap
         require!(
             self.redeemable_amount_under_management <= self.redeemable_amount_under_management_cap,
-            UxdError::DepositoryRedeemableCapOverflow
+            UxdError::RedeemableCredixLpAmountUnderManagementCap
         );
         Ok(())
     }

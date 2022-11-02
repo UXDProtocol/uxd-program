@@ -1,5 +1,6 @@
 use crate::error::UxdError;
 use anchor_lang::prelude::*;
+use fixed::types::I80F48;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;

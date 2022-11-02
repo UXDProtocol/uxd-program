@@ -30,6 +30,7 @@ pub const MANGO_GROUP: &str = "98pjRuQjK3qA6gXts96PqZT4Ze5QmnCmt3QYjhbUSPue";
 pub const MANGO_DEPOSITORY_ACCOUNT_VERSION: u8 = 2;
 pub const MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const MAPLE_POOL_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
+pub const CREDIX_LP_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
@@ -429,6 +430,13 @@ pub mod uxd {
         instructions::edit_maple_pool_depository::handler(ctx, &fields)
     }
 
+    pub fn edit_credix_lp_depository(
+        ctx: Context<EditCredixLpDepository>,
+        fields: EditCredixLpDepositoryFields,
+    ) -> Result<()> {
+        instructions::edit_credix_lp_depository::handler(ctx, &fields)
+    }
+
     /// Disable or enable regular minting for given Mango Depository.
     ///
     /// Parameters:
@@ -527,6 +535,42 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[mint_with_maple_pool_depository]");
         instructions::mint_with_maple_pool_depository::handler(ctx, collateral_amount)
+    }
+
+    // Create and Register a new `CredixLpDepository` to the `Controller`.
+    // Each `Depository` account manages a specific maple pool.
+    #[access_control(
+        ctx.accounts.validate(
+            minting_fee_in_bps,
+            redeeming_fee_in_bps,
+            redeemable_amount_under_management_cap,
+        )
+    )]
+    pub fn register_credix_lp_depository(
+        ctx: Context<RegisterCredixLpDepository>,
+        minting_fee_in_bps: u8,
+        redeeming_fee_in_bps: u8,
+        redeemable_amount_under_management_cap: u128,
+    ) -> Result<()> {
+        msg!("[register_credix_lp_depository]");
+        instructions::register_credix_lp_depository::handler(
+            ctx,
+            minting_fee_in_bps,
+            redeeming_fee_in_bps,
+            redeemable_amount_under_management_cap,
+        )
+    }
+
+    // Mint Redeemable tokens by depositing Collateral to maple pool.
+    #[access_control(
+        ctx.accounts.validate(collateral_amount)
+    )]
+    pub fn mint_with_credix_lp_depository(
+        ctx: Context<MintWithCredixLpDepository>,
+        collateral_amount: u64,
+    ) -> Result<()> {
+        msg!("[mint_with_credix_lp_depository]");
+        instructions::mint_with_credix_lp_depository::handler(ctx, collateral_amount)
     }
 }
 

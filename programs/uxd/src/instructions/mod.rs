@@ -1,3 +1,4 @@
+pub mod credix_lp;
 pub mod edit_controller;
 pub mod edit_mango_depository;
 pub mod edit_mercurial_vault_depository;
@@ -8,6 +9,7 @@ pub mod mercurial;
 pub mod register_mango_depository;
 pub mod register_mercurial_vault_depository;
 
+pub use credix_lp::*;
 pub use edit_controller::*;
 pub use edit_mango_depository::*;
 pub use edit_mercurial_vault_depository::*;

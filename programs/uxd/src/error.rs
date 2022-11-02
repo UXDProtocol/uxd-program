@@ -40,6 +40,8 @@ pub enum UxdError {
     RedeemableMercurialVaultAmountUnderManagementCap,
     #[msg("Minting amount would go past the maple pool depository Redeemable Amount Under Management Cap.")]
     RedeemableMaplePoolAmountUnderManagementCap,
+    #[msg("Minting amount would go past the credix lp depository Redeemable Amount Under Management Cap.")]
+    RedeemableCredixLpAmountUnderManagementCap,
     #[msg("Operation not allowed due to being over the Mango Redeemable soft Cap.")]
     MangoDepositoriesSoftCapOverflow,
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
@@ -108,6 +110,8 @@ pub enum UxdError {
     MercurialVaultDoNotMatchCollateral,
     #[msg("The provided collateral do not match the provided maple pool token.")]
     MaplePoolDoNotMatchCollateral,
+    #[msg("The provided collateral do not match the provided credix lp token.")]
+    CredixLpDoNotMatchCollateral,
     #[msg("Collateral mint should be different than redeemable mint.")]
     CollateralMintEqualToRedeemableMint,
     #[msg("Provided collateral mint is not allowed.")]
@@ -184,8 +188,8 @@ pub enum UxdError {
     InvalidCredixLiquidityCollateral,
     #[msg("The Credix LpSharesMint isn't the Depository one.")]
     InvalidCredixLpSharesMint,
-    #[msg("The Credix InvestorLpShares isn't the Depository one.")]
-    InvalidCredixInvestorLpShares,
+    #[msg("The Credix LockerLpShares isn't the Depository one.")]
+    InvalidCredixLockerLpShares,
     #[msg("The Credix Pass isn't the Depository one.")]
     InvalidCredixPass,
 
