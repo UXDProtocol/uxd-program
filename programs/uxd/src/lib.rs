@@ -170,4 +170,14 @@ pub mod uxd {
         );
         instructions::redeem_from_identity_depository::handler(ctx, redeemable_amount)
     }
+
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn reinject_mango_to_identity_depository(
+        ctx: Context<ReinjectMangoToIdentityDepository>,
+    ) -> Result<()> {
+        msg!("[reinject_mango_to_identity_depository]");
+        instructions::reinject_mango_to_identity_depository::handler(ctx)
+    }
 }
