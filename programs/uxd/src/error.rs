@@ -32,6 +32,12 @@ pub enum UxdError {
     PerpOrderPartiallyFilled,
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
     RedeemableGlobalSupplyCapReached,
+    #[msg(
+        "Minting amount would go past the mango depository Redeemable Amount Under Management Cap."
+    )]
+    RedeemableMangoAmountUnderManagementCap,
+    #[msg("Minting amount would go past the mercurial vault depository Redeemable Amount Under Management Cap.")]
+    RedeemableMercurialVaultAmountUnderManagementCap,
     #[msg("Operation not allowed due to being over the Mango Redeemable soft Cap.")]
     MangoDepositoriesSoftCapOverflow,
     #[msg("Cannot register more mango depositories, the limit has been reached.")]
@@ -75,7 +81,7 @@ pub enum UxdError {
     #[msg("The perp market index could not be found for this MangoMarkets Pair.")]
     MangoPerpMarketIndexNotFound,
     #[msg("Could not load the provided MangoGroup account.")]
-    InvalidMangoGroup,
+    CannotLoadMangoGroup,
     #[msg("The order quantity is below contract_size of the perp market.")]
     QuantityBelowContractSize,
     #[msg("The amount trying to be quote minted is larger than quote mintable.")]
@@ -90,8 +96,24 @@ pub enum UxdError {
     QuoteAmountExceedsSoftCap,
     #[msg("The quote currency is not the expected one.")]
     InvalidQuoteCurrency,
-    #[msg("The mango group is not the expected one.")]
-    UnmatchedMangoGroupWithController,
+    #[msg("The mercurial vault lp mint does not match the Depository's one.")]
+    InvalidMercurialVaultLpMint,
+    #[msg("Cannot register more mercurial vault depositories, the limit has been reached.")]
+    MaxNumberOfMercurialVaultDepositoriesRegisteredReached,
+    #[msg("The provided collateral do not match the provided mercurial vault token.")]
+    MercurialVaultDoNotMatchCollateral,
+    #[msg("Collateral mint should be different than redeemable mint.")]
+    CollateralMintEqualToRedeemableMint,
+    #[msg("Provided collateral mint is not allowed.")]
+    CollateralMintNotAllowed,
+    #[msg("Mint resulted to 0 redeemable token being minted.")]
+    MinimumMintedRedeemableAmountError,
+    #[msg("Redeem resulted to 0 collateral token being redeemed.")]
+    MinimumRedeemedCollateralAmountError,
+    #[msg("The depository lp token vault does not match the Depository's one.")]
+    InvalidDepositoryLpTokenVault,
+    #[msg("The mango group is not accepted.")]
+    UnAllowedMangoGroup,
 
     /// Anchor DSL related errors
     ///
@@ -117,6 +139,10 @@ pub enum UxdError {
     InvalidMaxBaseQuantity,
     #[msg("The max quote quantity must be above 0.")]
     InvalidMaxQuoteQuantity,
+    #[msg("The provided mercurial vault does not match the Depository's one.")]
+    InvalidMercurialVault,
+    #[msg("The provided mercurial vault collateral token safe does not match the mercurial vault one.")]
+    InvalidMercurialVaultCollateralTokenSafe,
 
     #[msg("The Credix GlobalMarketState isn't the Depository one.")]
     InvalidCredixGlobalMarketState,

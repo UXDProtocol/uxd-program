@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
-pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 462;
+// Total should be 783 bytes
+pub const MANGO_DEPOSITORY_RESERVED_SPACE: usize = 446;
 pub const MANGO_DEPOSITORY_SPACE: usize = 8
     + 1
     + 2
@@ -23,6 +24,7 @@ pub const MANGO_DEPOSITORY_SPACE: usize = 8
     + 1
     + 16
     + 1
+    + 16
     + MANGO_DEPOSITORY_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -31,7 +33,6 @@ pub struct MangoDepository {
     pub bump: u8,
     pub _unused: [u8; 2],
     pub mango_account_bump: u8,
-    // Version used
     pub version: u8,
     pub collateral_mint: Pubkey,
     pub collateral_mint_decimals: u8,
@@ -78,4 +79,9 @@ pub struct MangoDepository {
     //
     // Flag to indicate whether minting through collateral deposits is allowed
     pub regular_minting_disabled: bool,
+    //
+    // The total amount of circulating UXD originating from that depository
+    pub redeemable_amount_under_management_cap: u128,
 }
+
+// redeemable_depository_supply_cap -> redeemable_amount_under_management_cap

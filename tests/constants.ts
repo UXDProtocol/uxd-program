@@ -35,4 +35,8 @@ export const uxdProgramId: PublicKey = new PublicKey(jsonIdl["metadata"]["addres
 console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
 export const uxdClient = new UXDClient(uxdProgramId);
 
+// Used in mercurial vault tests
+export const SOLEND_USDC_DEVNET = new PublicKey('zVzi5VAf4qMEwzv7NXECVx5v2pQ7xnqVVjCXZwS9XzA');
+export const SOLEND_USDC_DEVNET_DECIMALS = 6;
+
 export const slippageBase = 1000;
