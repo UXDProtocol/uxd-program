@@ -13,6 +13,7 @@ pub const IDENTITY_DEPOSITORY_SPACE: usize = 8
     + 16 // redeemable_under_management
     + 16 // redeemable_under_management_cap
     + 1 // regular_minting_disabled
+    + 1 // mango_collateral_reinjected
     + IDENTITY_DEPOSITORY_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -40,4 +41,6 @@ pub struct IdentityDepository {
     pub redeemable_amount_under_management_cap: u128,
     // Flag to indicate whether minting through collateral deposits is allowed
     pub minting_disabled: bool,
+    // has the collateral originally on mango reinjected to this depository
+    pub mango_collateral_reinjected: bool,
 }
