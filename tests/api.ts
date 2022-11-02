@@ -7,6 +7,7 @@ import {
   createAssocTokenIx,
   findATAAddrSync,
   MercurialVaultDepository,
+  MaplePoolDepository,
 } from "@uxd-protocol/uxd-client";
 import { BN, web3 } from "@project-serum/anchor";
 
@@ -59,6 +60,43 @@ export async function mintWithMercurialVaultDepository(
   }
 
   tx.add(mintWithMercurialVaultDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function mintWithMaplePoolDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: MaplePoolDepository,
+  collateralAmount: number
+): Promise<string> {
+  const mintWithMaplePoolDepositoryIx = uxdClient.createMintWithMaplePoolDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    collateralAmount,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(mintWithMaplePoolDepositoryIx);
   signers.push(authority);
   if (payer) {
     signers.push(payer);
@@ -135,6 +173,37 @@ export async function registerMercurialVaultDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
+export async function registerMaplePoolDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: MaplePoolDepository,
+  mintingFeeInBps: number,
+  redeemingFeeInBps: number,
+  redeemableAmountUnderManagementCap: number
+): Promise<string> {
+  const registerMaplePoolDepositoryIx = uxdClient.createRegisterMaplePoolDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    mintingFeeInBps,
+    redeemingFeeInBps,
+    redeemableAmountUnderManagementCap,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(registerMaplePoolDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
 export async function editController(
   authority: Signer,
   controller: Controller,
@@ -184,6 +253,33 @@ export async function editMercurialVaultDepository(
   let tx = new Transaction();
 
   tx.instructions.push(editMercurialVaultDepositoryIx);
+  signers.push(authority);
+
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function editMaplePoolDepository(
+  authority: Signer,
+  controller: Controller,
+  depository: MaplePoolDepository,
+  uiFields: {
+    redeemableAmountUnderManagementCap?: BN;
+    mintingFeeInBps?: number;
+    redeemingFeeInBps?: number;
+    mintingDisabled?: boolean;
+  }
+): Promise<string> {
+  const editMaplePoolDepositoryIx = uxdClient.createEditMaplePoolDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    uiFields,
+    TXN_OPTS
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(editMaplePoolDepositoryIx);
   signers.push(authority);
 
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);

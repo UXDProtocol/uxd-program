@@ -32,6 +32,7 @@ env:
   TEST_DEV: 'test_development'
   TEST_CI_SETUP: 'test_ci_setup'
   TEST_CI_MERCURIAL: 'test_ci_mercurial'
+  TEST_CI_MAPLE_POOL: 'test_ci_maple_pool'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -281,6 +282,90 @@ jobs:
           npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
           sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_MERCURIAL }}/g" ./Anchor.toml
+          npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
+      - name: Returning funded runner wallet SOLs to the bank
+        run: |
+          solana transfer --keypair ${{ env.RUNNER_WALLET_PATH }} ${{ env.BANK_WALLET_PATH }} $(echo $(solana balance --keypair ${{ env.RUNNER_WALLET_PATH }} | awk '{print $1}') - ${{ env.TRANSACTION_FEE_OFFSET }} | bc)
+
+
+  anchor-test-maple-pool:
+    name: Maple pool mint and edit depository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [anchor-test-mercurial]
+    steps:
+      # Checkout
+      - uses: actions/checkout@v2
+      # Install Rust
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          profile: minimal
+      # Install solana
+      - name: Cache Solana Tool Suite
+        uses: actions/cache@v2
+        id: cache-solana
+        with:
+          path: |
+            ~/.cache/solana/
+            ~/.local/share/solana/
+          key: solana-${{ runner.os }}-v0000-${{ env.SOLANA_VERSION }}
+      - name: install solana
+        if: steps.cache-solana.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config build-essential libudev-dev
+          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
+      - name: Add Solana to PATH
+        run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
+      - name: Setup solana
+        run: |
+          solana --version
+          solana config set -u d
+          solana config set --url ${{ env.DEVNET_RPC}}
+      - name: Node 14 installation
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
+      # Create Keypair
+      - name: Create Runner keypair and funds it
+        run: |
+          solana-keygen new -o ${{ env.RUNNER_WALLET_PATH }} --no-passphrase --silent
+          solana transfer --keypair ${{ env.BANK_WALLET_PATH }} $(solana-keygen pubkey ${{ env.RUNNER_WALLET_PATH }}) 1 --allow-unfunded-recipient
+          solana balance
+      # Cargo caching
+      - name: Cache Cargo registry + index
+        uses: actions/cache@v2
+        id: cache-anchor
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: cargo-${{ runner.os }}-v0000-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache target folder
+        uses: actions/cache@v2
+        id: cache-programs
+        with:
+          path: |
+            ./target/debug
+            ./target/release
+            ./target/bpfel-unknown-unknown
+          key: solana-${{ runner.os }}-v0000-${{ hashFiles('**/programs/**/*.rs') }}-${{ hashFiles('**/programs/**/*.toml') }}
+      - name: Anchor Test (skip build and deploy)
+        run: |
+          npm ci --ignore-scripts
+          ./scripts/swap_ci_resident_program_id.sh
+          sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_MAPLE_POOL }}/g" ./Anchor.toml
           npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
       - name: Returning funded runner wallet SOLs to the bank
         run: |

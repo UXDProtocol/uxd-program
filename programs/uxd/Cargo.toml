@@ -25,13 +25,14 @@ solana-program = "1.9.*"
 spl-token = { version = "3.2.0", features = ["no-entrypoint"] }
 anchor-lang = "0.24.2"
 anchor-spl = "0.24.2"
-
 anchor-comp = { tag="v0.2.3", git = "https://github.com/UXDProtocol/anchor-comp", default-features = false, features = ["no-entrypoint", "development"] }
 
 mango = { tag = "v3.4.6", git = "https://github.com/blockworks-foundation/mango-v3", features = ["no-entrypoint"] }
 
 mercurial-vault = { git="https://github.com/mercurial-finance/vault-sdk", features= ["cpi"], rev = "6daf57a877c36694c8f5b8267ca1e096a1e619d2" }
 mercurial-amm = { git="https://github.com/mercurial-finance/mercurial-dynamic-amm-sdk", features= ["cpi"], rev="8c93e541af252dd0f3fbae56a8eb730adb86feee" }
+
+syrup-cpi = "0.2.0"
 
 fixed = "^1.9.0"
 num-traits = "0.2.14"
