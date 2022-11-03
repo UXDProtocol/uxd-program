@@ -1,3 +1,4 @@
+use crate::events::ReinjectMangoToIdentityDepositoryEvent;
 use crate::state::MangoDepository;
 use crate::Controller;
 use crate::IdentityDepository;
@@ -6,11 +7,23 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use anchor_lang::prelude::*;
+use anchor_spl::token;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
+use anchor_spl::token::Transfer;
 use std::str::FromStr;
 
 pub const MANGO_DEPOSITORY_NAMESPACE: &[u8] = b"MANGODEPOSITORY";
+
+#[cfg(feature = "development")]
+pub const BTC_MINT: &str = "3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU";
+#[cfg(feature = "production")]
+pub const BTC_MINT: &str = "9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E";
+
+#[cfg(feature = "development")]
+pub const ETH_MINT: &str = "Cu84KB3tDL6SbFgToHMLYVDJJXdJjenNzSKikeAvzmkA";
+#[cfg(feature = "production")]
+pub const ETH_MINT: &str = "2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk";
 
 #[derive(Accounts)]
 pub struct ReinjectMangoToIdentityDepository<'info> {
@@ -48,7 +61,7 @@ pub struct ReinjectMangoToIdentityDepository<'info> {
     )]
     pub collateral_vault: Box<Account<'info, TokenAccount>>,
 
-    /// #4 UXDProgram on chain account bound to a Controller instance.
+    /// #6 UXDProgram on chain account bound to a Controller instance.
     /// The `MangoDepository` manages a MangoAccount for a single Collateral.
     #[account(
         mut,
@@ -67,15 +80,71 @@ pub struct ReinjectMangoToIdentityDepository<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #9
+    /// #8
     pub system_program: Program<'info, System>,
 
-    /// #10 Token Program
+    /// #9 Token Program
     pub token_program: Program<'info, Token>,
 }
 
 pub(crate) fn handler(ctx: Context<ReinjectMangoToIdentityDepository>) -> Result<()> {
+    // - 1 [GET REDEEMABLE AMOUNT OF THE MANGO DEPOSITORY ] -----------------
+    let depository_redeemable: u128 = ctx
+        .accounts
+        .mango_depository
+        .load()?
+        .redeemable_amount_under_management;
+
+    // - 2 [TRANSFER USER'S COLLATERAL TO DEPOSITORY'S VAULT ON 1:1 REDEEMABLES] -----------------
+    let collateral_amount: u64 = depository_redeemable.try_into().unwrap();
+
+    token::transfer(
+        ctx.accounts
+            .to_transfer_collateral_from_user_to_depository_vault_context(),
+        collateral_amount,
+    )?;
+
+    // - 3 [UPDATE IDENTITY DEPOSITORY STATE] -----------------
+    let depository = &mut ctx.accounts.depository.load_mut()?;
+    depository.update_mango_collateral_reinjected(
+        &ctx.accounts.mango_depository.load()?.collateral_mint,
+    )?;
+
+    // - 4 [UPDATE IDENTITY DEPOSITORY ACCOUNTING] -----------------
+    depository.collateral_amount_deposited = depository
+        .collateral_amount_deposited
+        .checked_add(collateral_amount.into())
+        .ok_or_else(|| error!(UxdError::MathError))?;
+    depository.redeemable_amount_under_management = depository
+        .redeemable_amount_under_management
+        .checked_add(depository_redeemable)
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
+    // - 5 [EVENT LOGGING] ----------------------------------------------------
+    emit!(ReinjectMangoToIdentityDepositoryEvent {
+        version: ctx.accounts.controller.load()?.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        mango_depository: ctx.accounts.mango_depository.key(),
+        user: ctx.accounts.user.key(),
+        collateral_reinjected_amount: collateral_amount,
+    });
+
     Ok(())
+}
+
+impl<'info> ReinjectMangoToIdentityDepository<'info> {
+    fn to_transfer_collateral_from_user_to_depository_vault_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+        let cpi_program = self.token_program.to_account_info();
+        let cpi_accounts = Transfer {
+            from: self.user_collateral.to_account_info(),
+            to: self.collateral_vault.to_account_info(),
+            authority: self.user.to_account_info(),
+        };
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
 }
 
 impl<'info> ReinjectMangoToIdentityDepository<'info> {
@@ -93,29 +162,38 @@ impl<'info> ReinjectMangoToIdentityDepository<'info> {
     }
 }
 
-#[cfg(feature = "development")]
-pub const BTC_MINT: &str = "3UNBZ6o52WTWwjac2kPUb4FyodhU1vFkRJheu1Sh2TvU";
-#[cfg(feature = "production")]
-pub const BTC_MINT: &str = "9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E";
-
-#[cfg(feature = "development")]
-pub const ETH_MINT: &str = "Cu84KB3tDL6SbFgToHMLYVDJJXdJjenNzSKikeAvzmkA";
-#[cfg(feature = "production")]
-pub const ETH_MINT: &str = "2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk";
-
 impl IdentityDepository {
     pub(crate) fn get_mango_collateral_reinjected(&self, collateral_mint: &Pubkey) -> Result<bool> {
         let wsol_mint: Pubkey = spl_token::native_mint::id();
         let btc_mint: Pubkey = Pubkey::from_str(BTC_MINT).unwrap();
         let eth_mint: Pubkey = Pubkey::from_str(ETH_MINT).unwrap();
         if collateral_mint.eq(&wsol_mint) {
-            return Ok(self.mango_collateral_reinjected_wsol);
+            Ok(self.mango_collateral_reinjected_wsol)
         } else if collateral_mint.eq(&btc_mint) {
-            return Ok(self.mango_collateral_reinjected_btc);
+            Ok(self.mango_collateral_reinjected_btc)
         } else if collateral_mint.eq(&eth_mint) {
-            return Ok(self.mango_collateral_reinjected_eth);
+            Ok(self.mango_collateral_reinjected_eth)
+        } else {
+            Err(error!(UxdError::Default))
+        }
+    }
+
+    pub(crate) fn update_mango_collateral_reinjected(
+        &mut self,
+        collateral_mint: &Pubkey,
+    ) -> Result<()> {
+        let wsol_mint: Pubkey = spl_token::native_mint::id();
+        let btc_mint: Pubkey = Pubkey::from_str(BTC_MINT).unwrap();
+        let eth_mint: Pubkey = Pubkey::from_str(ETH_MINT).unwrap();
+        if collateral_mint.eq(&wsol_mint) {
+            self.mango_collateral_reinjected_wsol = true;
+        } else if collateral_mint.eq(&btc_mint) {
+            self.mango_collateral_reinjected_btc = true;
+        } else if collateral_mint.eq(&eth_mint) {
+            self.mango_collateral_reinjected_eth = true;
         } else {
             return Err(error!(UxdError::Default));
         }
+        Ok(())
     }
 }

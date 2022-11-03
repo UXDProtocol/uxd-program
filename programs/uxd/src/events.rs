@@ -144,3 +144,22 @@ pub struct RedeemFromIdentityDepositoryEvent {
     /// The redeemable amount in native units. (input)
     pub redeemable_amount: u64,
 }
+
+/// Event called in [instructions::reinject_mango_to_identity_depository::handler].
+#[event]
+pub struct ReinjectMangoToIdentityDepositoryEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub mango_depository: Pubkey,
+    /// The user making the call.
+    #[index]
+    pub user: Pubkey,
+    /// The reinjected amount in native units. (input)
+    pub collateral_reinjected_amount: u64,
+}
