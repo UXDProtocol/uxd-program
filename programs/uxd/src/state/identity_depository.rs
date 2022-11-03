@@ -42,5 +42,7 @@ pub struct IdentityDepository {
     // Flag to indicate whether minting through collateral deposits is allowed
     pub minting_disabled: bool,
     // has the collateral originally on mango reinjected to this depository
-    pub mango_collateral_reinjected: bool,
+    pub mango_collateral_reinjected_wsol: bool,
+    pub mango_collateral_reinjected_btc: bool,
+    pub mango_collateral_reinjected_eth: bool,
 }

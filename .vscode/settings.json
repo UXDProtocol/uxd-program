@@ -58,6 +58,7 @@
     "thiserror",
     "Tjpk",
     "UXDATA",
+    "wsol",
     "WSOLATA"
   ],
   "editor.formatOnSave": true

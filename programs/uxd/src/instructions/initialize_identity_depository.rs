@@ -89,7 +89,10 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
     depository.redeemable_amount_under_management = u128::MIN;
     depository.redeemable_amount_under_management_cap = DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP;
     depository.minting_disabled = true;
-    depository.mango_collateral_reinjected = false;
+
+    depository.mango_collateral_reinjected_wsol = false;
+    depository.mango_collateral_reinjected_eth = false;
+    depository.mango_collateral_reinjected_btc = false;
 
     emit!(InitializeIdentityDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,
