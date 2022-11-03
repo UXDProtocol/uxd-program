@@ -1278,6 +1278,41 @@ export type Uxd = {
           "index": false
         }
       ]
+    },
+    {
+      "name": "ReinjectMangoToIdentityDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "mangoDepository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralReinjectedAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -2900,6 +2935,41 @@ export const IDL: Uxd = {
         },
         {
           "name": "redeemableAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "ReinjectMangoToIdentityDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "mangoDepository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralReinjectedAmount",
           "type": "u64",
           "index": false
         }
