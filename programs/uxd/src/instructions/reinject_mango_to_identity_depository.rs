@@ -80,7 +80,7 @@ pub struct ReinjectMangoToIdentityDepository<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #8
+    /// #8 System Program
     pub system_program: Program<'info, System>,
 
     /// #9 Token Program
