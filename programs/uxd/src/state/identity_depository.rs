@@ -13,7 +13,7 @@ pub const IDENTITY_DEPOSITORY_SPACE: usize = 8
     + 16 // redeemable_under_management
     + 16 // redeemable_under_management_cap
     + 1 // regular_minting_disabled
-    + 1 // mango_collateral_reinjected
+    + 3 // mango_collateral_reinjected_wsol/btc/eth
     + IDENTITY_DEPOSITORY_RESERVED_SPACE;
 
 #[account(zero_copy)]
