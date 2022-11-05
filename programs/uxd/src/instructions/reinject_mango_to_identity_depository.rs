@@ -65,7 +65,7 @@ pub struct ReinjectMangoToIdentityDepository<'info> {
     /// The `MangoDepository` manages a MangoAccount for a single Collateral.
     #[account(
         mut,
-        seeds = [MANGO_DEPOSITORY_NAMESPACE, depository.load()?.collateral_mint.as_ref()],
+        seeds = [MANGO_DEPOSITORY_NAMESPACE, mango_depository.load()?.collateral_mint.as_ref()],
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
     )]
