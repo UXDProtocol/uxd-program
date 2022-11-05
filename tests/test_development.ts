@@ -1,12 +1,25 @@
 import { Keypair, PublicKey, Signer } from "@solana/web3.js";
-import { Controller, UXD_DECIMALS, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
+import {
+  Controller,
+  UXD_DECIMALS,
+  MercurialVaultDepository,
+  IdentityDepository,
+  USDC_DEVNET,
+  USDC_DECIMALS,
+  MangoDepository,
+  SOL_DECIMALS,
+  WSOL,
+  nativeToUi,
+} from "@uxd-protocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
 import { transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
 import { initializeControllerTest } from "./cases/initializeControllerTest";
-import { getConnection } from "./connection";
+import { getConnection, TXN_OPTS } from "./connection";
 import { registerMercurialVaultDepositoryTest } from "./cases/registerMercurialVaultDepositoryTest";
 import { mintWithMercurialVaultDepositoryTest } from "./cases/mintWithMercurialVaultDepositoryTest";
 import { redeemFromMercurialVaultDepositoryTest } from "./cases/redeemFromMercurialVaultDepositoryTest";
+import { identityDepositorySetupSuite } from "./suite/identityDepositorySetup";
+import { reinjectMangoToIdentityDepositoryTest } from "./cases/reinjectMangoToIdentityDepositoryTest";
 
 console.log(uxdProgramId.toString());
 
@@ -19,6 +32,7 @@ const SOLEND_USDC_DEVNET_DECIMALS = 6;
 // Do not create the vault. We are building an object with utilities methods.
 let mercurialVaultDepositoryUSDC: MercurialVaultDepository = null;
 let identityDepository: IdentityDepository = null;
+let mangoDepositorySOL: MangoDepository = null;
 
 let mintedRedeemableAmountWithMercurialVaultDepository = 0;
 
@@ -94,54 +108,61 @@ describe("Integration tests", function () {
     // });
 
     it(`Initialize Identity depository`, async function () {
-      mercurialVaultDepositoryUSDC = await MercurialVaultDepository.initialize({
-        connection: getConnection(),
-        collateralMint: {
-          mint: SOLEND_USDC_DEVNET,
-          decimals: SOLEND_USDC_DEVNET_DECIMALS,
-          symbol: "USDC",
-          name: "USDC",
-        },
-        uxdProgramId,
-      });
-
-      const mintingFeeInBps = 2;
-      const redeemingFeeInBps = 2;
-      const redeemableAmountUnderManagementCap = 1_000;
-
-      await registerMercurialVaultDepositoryTest(
-        authority,
-        controller,
-        mercurialVaultDepositoryUSDC,
-        mintingFeeInBps,
-        redeemingFeeInBps,
-        redeemableAmountUnderManagementCap,
-        payer
-      );
+      identityDepository = new IdentityDepository(USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+      identityDepositorySetupSuite(authority, bank, controller, identityDepository);
     });
   });
 
-  describe("Regular Mint/Redeem with Mercurial Vault USDC Depository", async function () {
-    it(`Mint for 0.001 USDC`, async function () {
-      mintedRedeemableAmountWithMercurialVaultDepository = await mintWithMercurialVaultDepositoryTest(
-        0.001,
-        user,
-        controller,
-        mercurialVaultDepositoryUSDC,
-        payer
-      );
-    });
+  // describe("Regular Mint/Redeem with Mercurial Vault USDC Depository", async function () {
+  //   it(`Mint for 0.001 USDC`, async function () {
+  //     mintedRedeemableAmountWithMercurialVaultDepository = await mintWithMercurialVaultDepositoryTest(
+  //       0.001,
+  //       user,
+  //       controller,
+  //       mercurialVaultDepositoryUSDC,
+  //       payer
+  //     );
+  //   });
 
-    it(`Redeem all previously minted redeemable`, async function () {
-      console.log(`Redeem for ${mintedRedeemableAmountWithMercurialVaultDepository} UXD`);
+  //   it(`Redeem all previously minted redeemable`, async function () {
+  //     console.log(`Redeem for ${mintedRedeemableAmountWithMercurialVaultDepository} UXD`);
 
-      await redeemFromMercurialVaultDepositoryTest(
-        mintedRedeemableAmountWithMercurialVaultDepository,
-        user,
-        controller,
-        mercurialVaultDepositoryUSDC,
-        payer
+  //     await redeemFromMercurialVaultDepositoryTest(
+  //       mintedRedeemableAmountWithMercurialVaultDepository,
+  //       user,
+  //       controller,
+  //       mercurialVaultDepositoryUSDC,
+  //       payer
+  //     );
+  //   });
+  // });
+
+  describe("Reinject mango depository managed redeemable amount to identity depository", async function () {
+    it(`Reinject ${mangoDepositorySOL.collateralMintSymbol} mango depository`, async function () {
+      mangoDepositorySOL = new MangoDepository(
+        WSOL,
+        "SOL",
+        SOL_DECIMALS,
+        USDC_DEVNET,
+        "USDC",
+        USDC_DECIMALS,
+        uxdProgramId
       );
+
+      await transferTokens(
+        nativeToUi(
+          await (
+            await mangoDepositorySOL.getOnchainAccount(getConnection(), TXN_OPTS)
+          ).redeemableAmountUnderManagement,
+          controller.redeemableMintDecimals
+        ),
+        mangoDepositorySOL.collateralMint,
+        mangoDepositorySOL.collateralMintDecimals,
+        payer,
+        user.publicKey
+      );
+
+      await reinjectMangoToIdentityDepositoryTest(user, bank, controller, identityDepository, mangoDepositorySOL);
     });
   });
 
