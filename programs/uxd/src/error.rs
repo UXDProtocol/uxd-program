@@ -145,6 +145,8 @@ pub enum UxdError {
     InvalidCollateralMint,
     #[msg("The provided collateral locker does not match the depository's collateral locker.")]
     InvalidCollateralLocker,
+    #[msg("The provided shares locker does not match the depository's shares locker.")]
+    InvalidSharesLocker,
     #[msg("The provided quote mint does not match the depository's quote mint.")]
     InvalidQuoteMint,
     #[msg("The Mango Account isn't the Depository one.")]
@@ -188,8 +190,6 @@ pub enum UxdError {
     InvalidCredixLiquidityCollateral,
     #[msg("The Credix LpSharesMint isn't the Depository one.")]
     InvalidCredixLpSharesMint,
-    #[msg("The Credix LockerLpShares isn't the Depository one.")]
-    InvalidCredixLockerLpShares,
     #[msg("The Credix Pass isn't the Depository one.")]
     InvalidCredixPass,
 

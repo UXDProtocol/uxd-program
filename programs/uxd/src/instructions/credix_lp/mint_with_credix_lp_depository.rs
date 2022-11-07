@@ -52,12 +52,12 @@ pub struct MintWithCredixLpDepository<'info> {
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
         has_one = depository_collateral @UxdError::InvalidCollateralLocker,
+        has_one = depository_lp_shares @UxdError::InvalidSharesLocker,
         has_one = credix_global_market_state @UxdError::InvalidCredixGlobalMarketState,
         has_one = credix_signing_authority @UxdError::InvalidCredixSigningAuthority,
         has_one = credix_treasury_collateral @UxdError::InvalidCredixTreasuryCollateral,
         has_one = credix_liquidity_collateral @UxdError::InvalidCredixLiquidityCollateral,
         has_one = credix_lp_shares_mint @UxdError::InvalidCredixLpSharesMint,
-        has_one = credix_locker_lp_shares @UxdError::InvalidCredixLockerLpShares,
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 
@@ -89,6 +89,9 @@ pub struct MintWithCredixLpDepository<'info> {
     #[account(mut)]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
+    #[account(mut)]
+    pub depository_lp_shares: Box<Account<'info, TokenAccount>>,
+
     /// #10
     #[account(mut)]
     pub credix_global_market_state: Box<Account<'info, syrup_cpi::Pool>>,
@@ -104,9 +107,6 @@ pub struct MintWithCredixLpDepository<'info> {
     /// #14
     #[account(mut)]
     pub credix_lp_shares_mint: Box<Account<'info, Mint>>,
-    /// #15
-    #[account(mut)]
-    pub credix_locker_lp_shares: Box<Account<'info, TokenAccount>>,
     /// #16 // TODO
     #[account(mut)]
     pub credix_pass: Box<Account<'info, TokenAccount>>,
@@ -150,8 +150,9 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         .accounts
         .credix_global_market_state
         .pool_outstanding_credit;
+
     let lp_shares_supply_before: u64 = ctx.accounts.credix_lp_shares_mint.supply;
-    let owned_lp_shares_amount_before: u64 = ctx.accounts.credix_locker_lp_shares.amount;
+    let owned_lp_shares_amount_before: u64 = ctx.accounts.depository_lp_shares.amount;
     let owned_lp_shares_value_before: u64 = ctx.accounts.compute_lp_shares_value(
         owned_lp_shares_amount_before,
         lp_shares_supply_before,
@@ -203,11 +204,11 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
 
     // Refresh account states after deposit
     ctx.accounts.depository_collateral.reload()?;
+    ctx.accounts.depository_lp_shares.reload()?;
     ctx.accounts.user_collateral.reload()?;
     ctx.accounts.credix_global_market_state.reload()?;
     ctx.accounts.credix_liquidity_collateral.reload()?;
     ctx.accounts.credix_lp_shares_mint.reload()?;
-    ctx.accounts.credix_locker_lp_shares.reload()?;
 
     // Read all states after deposit
     let depository_collateral_amount_after: u64 = ctx.accounts.depository_collateral.amount;
@@ -217,8 +218,9 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         .accounts
         .credix_global_market_state
         .pool_outstanding_credit;
+
     let lp_shares_supply_after: u64 = ctx.accounts.credix_lp_shares_mint.supply;
-    let owned_lp_shares_amount_after: u64 = ctx.accounts.credix_locker_lp_shares.amount;
+    let owned_lp_shares_amount_after: u64 = ctx.accounts.depository_lp_shares.amount;
     let owned_lp_shares_value_after: u64 = ctx.accounts.compute_lp_shares_value(
         owned_lp_shares_amount_after,
         lp_shares_supply_after,
@@ -263,6 +265,7 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         outstanding_collateral_amount_before,
         outstanding_collateral_amount_after,
     )?;
+
     let lp_shares_supply_delta: i64 =
         compute_delta(lp_shares_supply_before, lp_shares_supply_after)?;
     let owned_lp_shares_amount_delta: i64 =
@@ -414,17 +417,16 @@ impl<'info> MintWithCredixLpDepository<'info> {
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, syrup_cpi::cpi::accounts::LenderDeposit<'info>> {
         let cpi_accounts = syrup_cpi::cpi::accounts::LenderDeposit {
-            globals: self.credix_globals.to_account_info(),
-            pool: self.credix_lp.to_account_info(),
-            pool_locker: self.credix_lp_locker.to_account_info(),
-            lender: self.credix_lender.to_account_info(),
-            lender_user: self.depository.to_account_info(),
-            lender_locker: self.depository_collateral.to_account_info(),
-            shares_mint: self.credix_shares_mint.to_account_info(),
-            locked_shares: self.credix_locked_shares.to_account_info(),
-            lender_shares: self.credix_lender_shares.to_account_info(),
+            base_token_mint: self.collateral_mint.to_account_info(),
+            investor_token_account: self.depository_collateral.to_account_info(),
+            investor_lp_token_account: self.depository_lp_shares.to_account_info(),
+            global_market_state: self.credix_global_market_state.to_account_info(),
+            signing_authority: self.credix_signing_authority.to_account_info(),
+            liquidity_pool_token_account: self.credix_liquidity_collateral.to_account_info(),
+            lp_token_mint: self.credix_lp_shares_mint.to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
+            associated_token_program: self.associated_token_program.to_account_info(),
             rent: self.rent.to_account_info(),
         };
         let cpi_program = self.syrup_program.to_account_info();
@@ -465,22 +467,20 @@ impl<'info> MintWithCredixLpDepository<'info> {
         liquidity_collateral_amount: u64,
         outstanding_collateral_amount: u64,
     ) -> Result<u64> {
-        if lp_shares_amount == 0 {
+        let pool_collateral_amount = liquidity_collateral_amount
+            .checked_add(outstanding_collateral_amount)
+            .ok_or(UxdError::MathError)?;
+        if pool_collateral_amount == 0 {
             return Ok(0);
         }
         let lp_shares_amount_fixed =
             I80F48::checked_from_num(lp_shares_amount).ok_or(UxdError::MathError)?;
         let lp_shares_supply_fixed =
             I80F48::checked_from_num(lp_shares_supply).ok_or(UxdError::MathError)?;
-        let liquidity_collateral_amount_fixed =
-            I80F48::checked_from_num(liquidity_collateral_amount).ok_or(UxdError::MathError)?;
-        let outstanding_collateral_amount_fixed =
-            I80F48::checked_from_num(outstanding_collateral_amount).ok_or(UxdError::MathError)?;
-        let total_collateral_amount_fixed = liquidity_collateral_amount_fixed
-            .checked_add(outstanding_collateral_amount_fixed)
-            .ok_or(UxdError::MathError)?;
+        let pool_collateral_amount_fixed =
+            I80F48::checked_from_num(pool_collateral_amount).ok_or(UxdError::MathError)?;
         let lp_shares_value_fixed = lp_shares_amount_fixed
-            .checked_mul(total_collateral_amount_fixed)
+            .checked_mul(pool_collateral_amount_fixed)
             .ok_or(UxdError::MathError)?
             .checked_div(lp_shares_supply_fixed)
             .ok_or(UxdError::MathError)?;
@@ -494,6 +494,10 @@ impl<'info> MintWithCredixLpDepository<'info> {
 impl<'info> MintWithCredixLpDepository<'info> {
     pub fn validate(&self, collateral_amount: u64) -> Result<()> {
         require!(collateral_amount > 0, UxdError::InvalidCollateralAmount);
+        require!(
+            !&self.depository.load()?.minting_disabled,
+            UxdError::MintingDisabled
+        );
         Ok(())
     }
 }

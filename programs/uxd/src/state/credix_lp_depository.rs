@@ -21,8 +21,7 @@ pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<Pubkey>() // credix_signing_authority
  + size_of::<Pubkey>() // credix_treasury_collateral
  + size_of::<Pubkey>() // credix_liquidity_collateral
- + size_of::<Pubkey>() // credix_shares_mint
- + size_of::<Pubkey>() // credix_pass
+ + size_of::<Pubkey>() // credix_lp_shares_mint
 
  + size_of::<u128>() // redeemable_amount_under_management_cap
  + size_of::<u8>() // minting_fee_in_bps
@@ -52,13 +51,16 @@ pub struct CredixLpDepository {
     pub depository_collateral: Pubkey,
     pub depository_collateral_bump: u8,
 
-    // Credix accounts enforced at registration
+    // The account owned by the despoitory containing the lp shares owned
+    pub depository_lp_shares: Pubkey,
+    pub depository_lp_shares_bump: u8,
+
+    // Credix accounts enforced- at registration
     pub credix_global_market_state: Pubkey,
     pub credix_signing_authority: Pubkey,
     pub credix_treasury_collateral: Pubkey,
     pub credix_liquidity_collateral: Pubkey,
     pub credix_lp_shares_mint: Pubkey,
-    pub credix_locker_lp_shares: Pubkey,
 
     // Depository configuration
     pub redeemable_amount_under_management_cap: u128,
