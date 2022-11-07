@@ -555,7 +555,7 @@
       "name": "reinjectMangoToIdentityDepository",
       "accounts": [
         {
-          "name": "user",
+          "name": "authority",
           "isMut": false,
           "isSigner": true
         },

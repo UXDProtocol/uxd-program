@@ -27,8 +27,9 @@ pub const ETH_MINT: &str = "2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk";
 
 #[derive(Accounts)]
 pub struct ReinjectMangoToIdentityDepository<'info> {
-    /// #1 Public call accessible to any user
-    pub user: Signer<'info>,
+    /// #1 Authored call accessible only to the signer matching Controller.authority
+    pub authority: Signer<'info>,
+
     /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -39,6 +40,7 @@ pub struct ReinjectMangoToIdentityDepository<'info> {
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
         constraint = controller.load()?.registered_mango_depositories.contains(&mango_depository.key()) @UxdError::InvalidDepository,
+        has_one = authority @UxdError::InvalidAuthority,
     )]
     pub controller: AccountLoader<'info, Controller>,
 
@@ -76,7 +78,7 @@ pub struct ReinjectMangoToIdentityDepository<'info> {
     #[account(
         mut,
         constraint = user_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
-        constraint = &user_collateral.owner == user.key @UxdError::InvalidOwner,
+        constraint = &user_collateral.owner == authority.key @UxdError::InvalidOwner,
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
@@ -126,7 +128,7 @@ pub(crate) fn handler(ctx: Context<ReinjectMangoToIdentityDepository>) -> Result
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         mango_depository: ctx.accounts.mango_depository.key(),
-        user: ctx.accounts.user.key(),
+        user: ctx.accounts.authority.key(),
         collateral_reinjected_amount: collateral_amount,
     });
 
@@ -141,7 +143,7 @@ impl<'info> ReinjectMangoToIdentityDepository<'info> {
         let cpi_accounts = Transfer {
             from: self.user_collateral.to_account_info(),
             to: self.collateral_vault.to_account_info(),
-            authority: self.user.to_account_info(),
+            authority: self.authority.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }

@@ -158,15 +158,15 @@ describe("Integration tests", function () {
         identityDepository.collateralMint,
         identityDepository.collateralMintDecimals,
         payer,
-        user.publicKey
+        authority.publicKey
       );
 
-      await reinjectMangoToIdentityDepositoryTest(user, bank, controller, identityDepository, mangoDepositorySOL);
+      await reinjectMangoToIdentityDepositoryTest(authority, bank, controller, identityDepository, mangoDepositorySOL);
     });
   });
 
   this.afterAll("Transfer funds back to bank", async function () {
-    await transferAllTokens(USDC_DEVNET, USDC_DECIMALS, user, bank.publicKey);
+    await transferAllTokens(USDC_DEVNET, USDC_DECIMALS, authority, bank.publicKey);
     await transferAllSol(user, bank.publicKey);
   });
 });

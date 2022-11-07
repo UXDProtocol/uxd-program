@@ -314,7 +314,7 @@ export async function redeemFromIdentityDepository(
 }
 
 export async function reinjectMangoToIdentityDepository(
-  user: Signer,
+  authority: Signer,
   payer: Signer,
   controller: Controller,
   depository: IdentityDepository,
@@ -324,7 +324,7 @@ export async function reinjectMangoToIdentityDepository(
     controller,
     depository,
     mangoDepository,
-    user.publicKey,
+    authority.publicKey,
     TXN_OPTS,
     payer.publicKey
   );
@@ -332,7 +332,7 @@ export async function reinjectMangoToIdentityDepository(
   let tx = new Transaction();
 
   tx.add(reinjectMangoToIdentityDepositoryIx);
-  signers.push(user);
+  signers.push(authority);
   if (payer) {
     signers.push(payer);
   }
