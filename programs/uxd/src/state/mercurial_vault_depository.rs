@@ -26,6 +26,7 @@ pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 1     // minting disabled
     + 32    // interests and fees redeem authority
     + 16    // interests and fees total collected
+    + 8     // last time interests and fees got collected (unix timestamp)
     + MERCURIAL_VAULT_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -90,17 +91,23 @@ pub struct MercurialVaultDepository {
 
     // Total amount of interests collected by interests_and_fees_redeem_authority
     pub interests_and_fees_total_collected: u128,
+
+    // Worth 0 if interests and fees never got collected
+    pub last_interests_and_fees_collection_unix_timestamp: u64,
 }
 
 impl MercurialVaultDepository {
     pub fn update_onchain_accounting_following_interests_and_fees_collection(
         &mut self,
         collected_interests_and_fees: u64,
+        current_time_as_unix_timestamp: u64,
     ) -> std::result::Result<(), UxdError> {
         self.interests_and_fees_total_collected = self
             .interests_and_fees_total_collected
             .checked_add(collected_interests_and_fees.into())
             .ok_or(UxdError::MathError)?;
+
+        self.last_interests_and_fees_collection_unix_timestamp = current_time_as_unix_timestamp;
 
         Ok(())
     }

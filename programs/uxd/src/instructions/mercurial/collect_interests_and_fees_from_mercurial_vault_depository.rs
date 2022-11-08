@@ -181,8 +181,20 @@ pub fn handler(ctx: Context<CollectInterestsAndFeesFromMercurialVaultDepository>
     )?;
 
     // 8 - update accounting
+    let current_time_as_unix_timestamp = u64::try_from(Clock::get()?.unix_timestamp)
+        .ok()
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
     ctx.accounts
         .depository
+        .load_mut()?
+        .update_onchain_accounting_following_interests_and_fees_collection(
+            collateral_balance_change,
+            current_time_as_unix_timestamp,
+        )?;
+
+    ctx.accounts
+        .controller
         .load_mut()?
         .update_onchain_accounting_following_interests_and_fees_collection(
             collateral_balance_change,

@@ -101,7 +101,7 @@ describe("Integration tests", function () {
       const redeemingFeeInBps = 2;
       const redeemableAmountUnderManagementCap = 1_000;
 
-      await registerMercurialVaultDepositoryTest(authority, controller, mercurialVaultDepositoryUSDC, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap, payer);
+      await registerMercurialVaultDepositoryTest(authority, authority.publicKey, controller, mercurialVaultDepositoryUSDC, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap, payer);
     });
 
     it(`Initialize ${mangoDepositorySOL.collateralMintSymbol} Depository`, async function () {

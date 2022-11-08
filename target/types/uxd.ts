@@ -1358,6 +1358,10 @@ export type Uxd = {
           {
             "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "interestsAndFeesTotalCollected",
+            "type": "u128"
           }
         ]
       }
@@ -1557,6 +1561,10 @@ export type Uxd = {
           {
             "name": "interestsAndFeesTotalCollected",
             "type": "u128"
+          },
+          {
+            "name": "lastInterestsAndFeesCollectionUnixTimestamp",
+            "type": "u64"
           }
         ]
       }
@@ -4115,6 +4123,10 @@ export const IDL: Uxd = {
           {
             "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "interestsAndFeesTotalCollected",
+            "type": "u128"
           }
         ]
       }
@@ -4314,6 +4326,10 @@ export const IDL: Uxd = {
           {
             "name": "interestsAndFeesTotalCollected",
             "type": "u128"
+          },
+          {
+            "name": "lastInterestsAndFeesCollectionUnixTimestamp",
+            "type": "u64"
           }
         ]
       }

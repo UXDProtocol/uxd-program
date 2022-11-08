@@ -136,6 +136,8 @@ pub fn handler(
 
     depository.interests_and_fees_total_collected = u128::MIN;
 
+    depository.last_interests_and_fees_collection_unix_timestamp = 0;
+
     // 2 - Update Controller state
     ctx.accounts
         .controller

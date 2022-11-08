@@ -1,6 +1,6 @@
 import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MangoDepository, SOL_DECIMALS, BTC_DECIMALS, USDC_DECIMALS, UXD_DECIMALS, ETH_DECIMALS, WSOL, USDC_DEVNET, BTC_DEVNET, ETH_DEVNET, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
-import { authority, bank, SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS, uxdProgramId } from "./constants";
+import { authority, bank, MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS, uxdProgramId } from "./constants";
 import { transferAllSol, transferSol } from "./utils";
 import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
 import { MangoDepositoryAndControllerInteractionsSuiteParameters, mangoDepositoryAndControllerInteractionsSuite } from "./suite/mangoDepositoryAndControllerInteractionsSuite";
@@ -40,10 +40,10 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
     let mercurialVaultDepository = await MercurialVaultDepository.initialize({
         connection: getConnection(),
         collateralMint: {
-            mint: SOLEND_USDC_DEVNET,
+            mint: MERCURIAL_USDC_DEVNET,
             name: 'USDC',
             symbol: 'USDC',
-            decimals: SOLEND_USDC_DEVNET_DECIMALS,
+            decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
         },
         uxdProgramId,
     });
@@ -59,7 +59,7 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
         const uiRedeemableAmountUnderManagementCap = 1_000;
 
         describe("mercurialVaultDepositorySetupSuite", function () {
-            mercurialVaultDepositorySetupSuite(authority, bank, controllerUXD, mercurialVaultDepository, mintingFeeInBps, redeemingFeeInBps, uiRedeemableAmountUnderManagementCap);
+            mercurialVaultDepositorySetupSuite(authority, authority, bank, controllerUXD, mercurialVaultDepository, mintingFeeInBps, redeemingFeeInBps, uiRedeemableAmountUnderManagementCap);
         });
 
         describe("mercurialVaultDepositoryMintRedeemSuite", function () {

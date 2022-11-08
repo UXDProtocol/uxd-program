@@ -94,6 +94,8 @@ pub(crate) fn handler(
             .checked_mul(redeemable_mint_unit)
             .ok_or_else(|| error!(UxdError::MathError))?;
 
+    controller.interests_and_fees_total_collected = u128::MIN;
+
     emit!(InitializeControllerEvent {
         version: controller.version,
         controller: ctx.accounts.controller.key(),

@@ -1,6 +1,6 @@
 import { getConnection, TXN_OPTS } from "./connection";
 import { uxdClient } from "./constants";
-import { Keypair, Signer, Transaction } from "@solana/web3.js";
+import { Keypair, PublicKey, Signer, Transaction } from "@solana/web3.js";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { createAssociatedTokenAccountItx, prepareWrappedSolTokenAccount } from "./utils";
 import {
@@ -56,6 +56,26 @@ export async function mintWithMercurialVaultDepository(authority: Signer, payer:
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
+export async function collectInterestsAndFeesFromMercurialVaultDepository(interestsAndFeesRedeemAuthority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository): Promise<string> {
+  const collectInterestsAndFeesFromMercurialVaultDepositoryIx = uxdClient.createCollectInterestsAndFeesFromMercurialVaultDepositoryInstruction(controller, interestsAndFeesRedeemAuthority.publicKey, depository, TXN_OPTS, payer.publicKey);
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(interestsAndFeesRedeemAuthority.publicKey, controller.redeemableMintPda);
+  if (!await getConnection().getAccountInfo(authorityRedeemableAta)) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(interestsAndFeesRedeemAuthority.publicKey, authorityRedeemableAta, controller.redeemableMintPda);
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(collectInterestsAndFeesFromMercurialVaultDepositoryIx);
+  signers.push(interestsAndFeesRedeemAuthority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
 export async function redeemFromMercurialVaultDepository(
   authority: Signer,
   payer: Signer,
@@ -84,6 +104,7 @@ export async function redeemFromMercurialVaultDepository(
 
 export async function registerMercurialVaultDepository(
   authority: Signer,
+  interestsAndFeesRedeemAuthority: PublicKey,
   payer: Signer,
   controller: Controller,
   depository: MercurialVaultDepository,
@@ -91,7 +112,7 @@ export async function registerMercurialVaultDepository(
   redeemingFeeInBps: number,
   redeemableAmountUnderManagementCap: number,
 ): Promise<string> {
-  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(controller, depository, authority.publicKey, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap, TXN_OPTS, payer.publicKey);
+  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(controller, depository, authority.publicKey, interestsAndFeesRedeemAuthority, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap, TXN_OPTS, payer.publicKey);
   let signers = [];
   let tx = new Transaction();
 
@@ -596,6 +617,7 @@ export async function editMercurialVaultDepository(
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
+    interestsAndFeesRedeemAuthority?: PublicKey;
   }
 ): Promise<string> {
   const editMercurialVaultDepositoryIx = uxdClient.createEditMercurialVaultDepositoryInstruction(

@@ -1358,6 +1358,10 @@
           {
             "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "interestsAndFeesTotalCollected",
+            "type": "u128"
           }
         ]
       }
@@ -1557,6 +1561,10 @@
           {
             "name": "interestsAndFeesTotalCollected",
             "type": "u128"
+          },
+          {
+            "name": "lastInterestsAndFeesCollectionUnixTimestamp",
+            "type": "u64"
           }
         ]
       }

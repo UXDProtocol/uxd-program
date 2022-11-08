@@ -1,4 +1,4 @@
-import { Signer } from "@solana/web3.js";
+import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MercurialVaultDepository, MercurialVaultDepositoryAccount, nativeToUi } from "@uxd-protocol/uxd-client";
 import { getConnection, TXN_OPTS } from "../connection";
 import { editMercurialVaultDepositoryTest } from "../cases/editMercurialVaultDepositoryTest";
@@ -52,6 +52,16 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
             });
         });
 
+        it(`Edit interestsAndFeesRedeemAuthority alone should work`, async function () {
+            const interestsAndFeesRedeemAuthority = new Keypair().publicKey;
+
+            console.log("[🧾 interestsAndFeesRedeemAuthority", interestsAndFeesRedeemAuthority, "]");
+
+            await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
+                interestsAndFeesRedeemAuthority,
+            });
+        });
+
         // Restore initial depository values there
         it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap should work`, async function () {
             const {
@@ -59,6 +69,7 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
                 redeemingFeeInBps,
                 redeemableAmountUnderManagementCap,
                 mintingDisabled,
+                interestsAndFeesRedeemAuthority,
             } = beforeDepository;
 
             const uiRedeemableAmountUnderManagementCap = nativeToUi(redeemableAmountUnderManagementCap, controller.redeemableMintDecimals);
@@ -67,11 +78,13 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
             console.log("[🧾 redeemingFeeInBps", redeemingFeeInBps, "]");
             console.log("[🧾 redeemableAmountUnderManagementCap", uiRedeemableAmountUnderManagementCap, "]");
             console.log("[🧾 mintingDisabled", mintingDisabled, "]");
+            console.log("[🧾 interestsAndFeesRedeemAuthority", interestsAndFeesRedeemAuthority, "]");
 
             await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
                 mintingFeeInBps,
                 redeemingFeeInBps,
                 mintingDisabled,
+                interestsAndFeesRedeemAuthority,
                 redeemableAmountUnderManagementCap: uiRedeemableAmountUnderManagementCap,
             });
         });

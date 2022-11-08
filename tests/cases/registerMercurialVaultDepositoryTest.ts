@@ -1,12 +1,12 @@
-import { Signer } from "@solana/web3.js";
+import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
 import { registerMercurialVaultDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection } from "../connection";
-import { BN } from "@project-serum/anchor";
 
 export const registerMercurialVaultDepositoryTest = async function (
     authority: Signer,
+    interestsAndFeesRedeemAuthority: PublicKey,
     controller: Controller,
     depository: MercurialVaultDepository,
     mintingFeeInBps: number,
@@ -20,7 +20,7 @@ export const registerMercurialVaultDepositoryTest = async function (
         if (await getConnection().getAccountInfo(depository.pda)) {
             console.log("🚧 Already registered.");
         } else {
-            const txId = await registerMercurialVaultDepository(authority, payer ?? authority, controller, depository, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap);
+            const txId = await registerMercurialVaultDepository(authority, interestsAndFeesRedeemAuthority, payer ?? authority, controller, depository, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap);
             console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
         }
 

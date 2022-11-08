@@ -1,4 +1,4 @@
-import { Signer } from "@solana/web3.js";
+import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, MercurialVaultDepository, uiToNative } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { editMercurialVaultDepository } from "../api";
@@ -14,6 +14,7 @@ export const editMercurialVaultDepositoryTest = async function (
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
+    interestsAndFeesRedeemAuthority?: PublicKey;
   },
 ) {
   const connection = getConnection();
@@ -29,6 +30,7 @@ export const editMercurialVaultDepositoryTest = async function (
       mintingFeeInBps,
       redeemingFeeInBps,
       mintingDisabled,
+      interestsAndFeesRedeemAuthority,
     } = depositoryOnchainAccount;
 
     // WHEN
@@ -42,6 +44,7 @@ export const editMercurialVaultDepositoryTest = async function (
       mintingFeeInBps: mintingFeeInBps_post,
       redeemingFeeInBps: redeemingFeeInBps_post,
       mintingDisabled: mintingDisabled_post,
+      interestsAndFeesRedeemAuthority: interestsAndFeesRedeemAuthority_post,
     } = depositoryOnchainAccount_post;
 
     if (typeof uiFields.redeemableAmountUnderManagementCap !== 'undefined') {
@@ -60,6 +63,10 @@ export const editMercurialVaultDepositoryTest = async function (
     if (typeof uiFields.mintingDisabled !== 'undefined') {
       expect(mintingDisabled_post).equals(uiFields.mintingDisabled, "The minting disabled state has not changed.");
       console.log(`🧾 Previous minting disabled state was`, mintingDisabled, "now is", mintingDisabled_post);
+    }
+    if (typeof uiFields.interestsAndFeesRedeemAuthority !== 'undefined') {
+      expect(interestsAndFeesRedeemAuthority_post).equals(uiFields.interestsAndFeesRedeemAuthority, "The interests and fees redeem authority state has not changed.");
+      console.log(`🧾 Previous interests and fees redeem authority state was`, interestsAndFeesRedeemAuthority, "now is", interestsAndFeesRedeemAuthority_post);
     }
 
     controller.info();

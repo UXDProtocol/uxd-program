@@ -39,4 +39,7 @@ export const uxdClient = new UXDClient(uxdProgramId);
 export const SOLEND_USDC_DEVNET = new PublicKey('zVzi5VAf4qMEwzv7NXECVx5v2pQ7xnqVVjCXZwS9XzA');
 export const SOLEND_USDC_DEVNET_DECIMALS = 6;
 
+export const MERCURIAL_USDC_DEVNET = new PublicKey('6L9fgyYtbz34JvwvYyL6YzJDAywz9PKGttuZuWyuoqje');
+export const MERCURIAL_USDC_DEVNET_DECIMALS = 6;
+
 export const slippageBase = 1000;
