@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::mercurial_utils;
 use crate::utils;
 use crate::Controller;
 use crate::MercurialVaultDepository;
@@ -121,9 +122,11 @@ pub fn handler(
 
     // 1 - Deposit collateral to mercurial vault and get lp tokens
     // Precision loss may occur on transferred LP token amounts, calculate the possible loss and check it later
-    let possible_lp_token_precision_loss_collateral_value = ctx
-        .accounts
-        .calculate_possible_lp_token_precision_loss_collateral_value()?;
+    let possible_lp_token_precision_loss_collateral_value =
+        mercurial_utils::calculate_possible_lp_token_precision_loss_collateral_value(
+            &ctx.accounts.mercurial_vault,
+            ctx.accounts.mercurial_vault_lp_mint.supply,
+        )?;
 
     mercurial_vault::cpi::deposit(
         ctx.accounts
@@ -148,11 +151,14 @@ pub fn handler(
     )
     .ok_or_else(|| error!(UxdError::MathError))?;
 
-    let minted_lp_token_value = ctx.accounts.calculate_lp_tokens_value(
-        lp_token_change
-            .checked_to_num()
-            .ok_or_else(|| error!(UxdError::MathError))?,
-    )?;
+    let minted_lp_token_value =
+        mercurial_utils::calculate_lp_tokens_value::calculate_lp_tokens_value(
+            &ctx.accounts.mercurial_vault,
+            ctx.accounts.mercurial_vault_lp_mint.supply,
+            lp_token_change
+                .checked_to_num()
+                .ok_or_else(|| error!(UxdError::MathError))?,
+        )?;
 
     // 4 - Check that the minted lp token value matches the collateral value.
     // When manipulating LP tokens/collateral numbers, precision loss may occur.
@@ -266,20 +272,6 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         Ok(())
     }
 
-    fn calculate_lp_tokens_value(&self, lp_token_amount: u64) -> Result<u64> {
-        let current_time = u64::try_from(Clock::get()?.unix_timestamp)
-            .ok()
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        self.mercurial_vault
-            .get_amount_by_share(
-                current_time,
-                lp_token_amount,
-                self.mercurial_vault_lp_mint.supply,
-            )
-            .ok_or_else(|| error!(UxdError::MathError))
-    }
-
     // Accept precision loss diff
     fn check_minted_lp_token_value_to_match_collateral_value(
         minted_lp_token_value: u64,
@@ -311,38 +303,6 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
             UxdError::RedeemableMercurialVaultAmountUnderManagementCap
         );
         Ok(())
-    }
-
-    // Calculate how much collateral could be lost in possible LP token precision loss
-    fn calculate_possible_lp_token_precision_loss_collateral_value(&self) -> Result<u64> {
-        let current_time = u64::try_from(Clock::get()?.unix_timestamp)
-            .ok()
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        // Calculate the price of 1 native LP token
-        // Do not use mercurial_vault.get_amount_by_share because it does not handle precision loss
-        let total_amount = self
-            .mercurial_vault
-            .get_unlocked_amount(current_time)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        let one_lp_token_collateral_value = I80F48::from_num(1)
-            .checked_mul(
-                I80F48::checked_from_num(total_amount)
-                    .ok_or_else(|| error!(UxdError::MathError))?,
-            )
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_div(
-                I80F48::checked_from_num(self.mercurial_vault_lp_mint.supply)
-                    .ok_or_else(|| error!(UxdError::MathError))?,
-            )
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_ceil()
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        one_lp_token_collateral_value
-            .checked_to_num()
-            .ok_or_else(|| error!(UxdError::MathError))
     }
 }
 

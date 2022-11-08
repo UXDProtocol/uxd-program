@@ -10,6 +10,7 @@ pub mod error;
 pub mod events;
 pub mod instructions;
 pub mod mango_utils;
+pub mod mercurial_utils;
 pub mod state;
 pub mod test;
 pub mod utils;
