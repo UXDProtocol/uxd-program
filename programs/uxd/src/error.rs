@@ -118,6 +118,14 @@ pub enum UxdError {
     CollateralDepositAmountsDoesntMatch,
     #[msg("Received token of which the value doesn't match the deposited collateral.")]
     CollateralDepositDoesntMatchTokenValue,
+    #[msg("Collateral Withdrawal left some value unaccounted for.")]
+    CollateralWithdrawalHasRemainingDust,
+    #[msg("Collateral Withdrawal result in funds movements that doesn't match expectations.")]
+    CollateralWithdrawalUnaccountedFor,
+    #[msg("Collateral Withdrawal didn't result in the correct amounts being moved")]
+    CollateralWithdrawalAmountsDoesntMatch,
+    #[msg("Received token of which the value doesn't match the Withdrawaled collateral.")]
+    CollateralWithdrawalDoesntMatchTokenValue,
     #[msg("Mint resulted to 0 redeemable token being minted.")]
     MinimumMintedRedeemableAmountError,
     #[msg("Redeem resulted to 0 collateral token being redeemed.")]

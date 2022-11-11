@@ -125,6 +125,27 @@ pub struct MintWithMaplePoolDepositoryEvent {
     pub minting_fee_paid: u64,
 }
 
+/// Event called in [instructions::mint_with_maple_pool_depository::handler].
+#[event]
+pub struct RedeemFromMaplePoolDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub user: Pubkey,
+    /// The collateral amount in native units. (input)
+    pub collateral_amount: u64,
+    /// The redeemable issued in native units. (output)
+    pub redeemable_amount: u64,
+    /// The fees paid in native units. (output)
+    pub redeeming_fee_paid: u64,
+}
+
 /// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
 #[event]
 pub struct SetMangoDepositoryRedeemableSoftCapEvent {
