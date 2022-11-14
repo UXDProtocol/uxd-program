@@ -107,9 +107,11 @@ pub struct RedeemFromMaplePoolDepository<'info> {
 
     /// #17
     /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
+    #[account(mut)]
     pub maple_withdrawal_request: AccountInfo<'info>,
     /// #18
     /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
+    #[account(mut)]
     pub maple_withdrawal_request_locker: AccountInfo<'info>,
 
     /// #19
@@ -125,9 +127,10 @@ pub struct RedeemFromMaplePoolDepository<'info> {
 }
 
 pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u64) -> Result<()> {
-    // Read useful keys
+    // Read useful values
     let maple_pool = ctx.accounts.depository.load()?.maple_pool;
     let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
+    let withdrawal_nonce = ctx.accounts.depository.load()?.withdrawal_nonce;
 
     // Make depository signer
     let depository_pda_signer: &[&[&[u8]]] = &[&[
@@ -265,12 +268,7 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
             .into_withdrawal_request_initialize_from_maple_pool_context()
             .with_signer(depository_pda_signer),
         Nonce {
-            value: ctx
-                .accounts
-                .depository
-                .load()?
-                .withdrawal_nonce
-                .to_be_bytes(),
+            value: withdrawal_nonce.to_be_bytes().clone(),
         },
         shares_amount,
     )?;
