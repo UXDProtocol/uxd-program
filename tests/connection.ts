@@ -11,6 +11,11 @@ export const TXN_OPTS = {
 };
 
 export function getConnection(): Connection {
-  const provider = AnchorProvider.local("https://mango.devnet.rpcpool.com");
-  return provider.connection;
+  const connectionConfig = {
+    commitment: TXN_COMMIT,
+    disableRetryOnRateLimit: false,
+    confirmTransactionInitialTimeout: 60000,
+  };
+  const connection = new Connection("https://mango.devnet.rpcpool.com", connectionConfig);
+  return connection;
 }
