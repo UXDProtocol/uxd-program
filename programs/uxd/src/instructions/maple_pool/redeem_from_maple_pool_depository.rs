@@ -212,7 +212,7 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
         collateral_amount_before_precision_loss
     );
 
-    // Compute the amount of shares that we need to withdraw based on the amount of withdrawn collateral
+    // Compute the amount of shares that we need to withdraw based on the amount of wanted collateral
     let shares_amount = ctx.accounts.compute_shares_amount(
         collateral_amount_before_precision_loss,
         pool_shares_amount_before,
@@ -431,7 +431,7 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
     let owned_shares_amount_decrease = checked_i64_to_u64(-owned_shares_amount_delta)?;
     let owned_shares_value_decrease = checked_i64_to_u64(-owned_shares_value_delta)?;
 
-    // Validate that we didnt get too much collateral
+    // Validate that we didnt return too much collateral
     require!(
         user_redeemable_amount_decrease >= user_collateral_amount_increase,
         UxdError::CollateralWithdrawalAmountsDoesntMatch,
