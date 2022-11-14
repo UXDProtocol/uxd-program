@@ -168,7 +168,7 @@ pub fn handler(
     msg!("[register_maple_pool_depository:emit_event]");
     emit!(RegisterMaplePoolDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
-        depository_version: ctx.accounts.depository.load()?.version,
+        depository_version: depository.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         collateral_mint: ctx.accounts.collateral_mint.key(),
