@@ -1462,6 +1462,132 @@ export type Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "redeemFromMaplePoolDepository",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "redeemableMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userRedeemable",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "maplePool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "maplePoolLocker",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mapleGlobals",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mapleLender",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mapleSharesMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mapleLockedShares",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mapleLenderShares",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mapleWithdrawalRequest",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mapleWithdrawalRequestLocker",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "syrupProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "redeemableAmount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1751,6 +1877,10 @@ export type Uxd = {
           {
             "name": "redeemingFeeTotalAccrued",
             "type": "u128"
+          },
+          {
+            "name": "withdrawalNonce",
+            "type": "u64"
           }
         ]
       }
@@ -2193,6 +2323,51 @@ export type Uxd = {
         },
         {
           "name": "mintingFeePaid",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RedeemFromMaplePoolDepositoryEvent",
+      "fields": [
+        {
+          "name": "controllerVersion",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "depositoryVersion",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "collateralAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "redeemableAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "redeemingFeePaid",
           "type": "u64",
           "index": false
         }
@@ -3149,131 +3324,151 @@ export type Uxd = {
     },
     {
       "code": 6056,
+      "name": "CollateralWithdrawalHasRemainingDust",
+      "msg": "Collateral Withdrawal left some value unaccounted for."
+    },
+    {
+      "code": 6057,
+      "name": "CollateralWithdrawalUnaccountedFor",
+      "msg": "Collateral Withdrawal result in funds movements that doesn't match expectations."
+    },
+    {
+      "code": 6058,
+      "name": "CollateralWithdrawalAmountsDoesntMatch",
+      "msg": "Collateral Withdrawal didn't result in the correct amounts being moved"
+    },
+    {
+      "code": 6059,
+      "name": "CollateralWithdrawalDoesntMatchTokenValue",
+      "msg": "Received token of which the value doesn't match the Withdrawaled collateral."
+    },
+    {
+      "code": 6060,
       "name": "MinimumMintedRedeemableAmountError",
       "msg": "Mint resulted to 0 redeemable token being minted."
     },
     {
-      "code": 6057,
+      "code": 6061,
       "name": "MinimumRedeemedCollateralAmountError",
       "msg": "Redeem resulted to 0 collateral token being redeemed."
     },
     {
-      "code": 6058,
+      "code": 6062,
       "name": "InvalidDepositoryLpTokenVault",
       "msg": "The depository lp token vault does not match the Depository's one."
     },
     {
-      "code": 6059,
+      "code": 6063,
       "name": "UnAllowedMangoGroup",
       "msg": "The mango group is not accepted."
     },
     {
-      "code": 6060,
+      "code": 6064,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6061,
+      "code": 6065,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6062,
+      "code": 6066,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6063,
+      "code": 6067,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6064,
+      "code": 6068,
       "name": "InvalidCollateralLocker",
       "msg": "The provided collateral locker does not match the depository's collateral locker."
     },
     {
-      "code": 6065,
+      "code": 6069,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6066,
+      "code": 6070,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6067,
+      "code": 6071,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6068,
+      "code": 6072,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6069,
+      "code": 6073,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6070,
+      "code": 6074,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6071,
+      "code": 6075,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6072,
+      "code": 6076,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6073,
+      "code": 6077,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6074,
+      "code": 6078,
       "name": "InvalidMaplePool",
-      "msg": "The provided maple globals does not match the Depository's one."
+      "msg": "The provided maple pool does not match the Depository's one."
     },
     {
-      "code": 6075,
+      "code": 6079,
       "name": "InvalidMaplePoolLocker",
       "msg": "The provided maple pool locker does not match the Depository's one."
     },
     {
-      "code": 6076,
+      "code": 6080,
       "name": "InvalidMapleGlobals",
+      "msg": "The provided maple globals does not match the Depository's one."
+    },
+    {
+      "code": 6081,
+      "name": "InvalidMapleLender",
       "msg": "The provided maple lender does not match the Depository's one."
     },
     {
-      "code": 6077,
-      "name": "InvalidMapleLender",
-      "msg": "The provided maple pool does not match the Depository's one."
-    },
-    {
-      "code": 6078,
+      "code": 6082,
       "name": "InvalidMapleSharesMint",
       "msg": "The provided maple shares mint does not match the Depository's one."
     },
     {
-      "code": 6079,
+      "code": 6083,
       "name": "InvalidMapleLockedShares",
       "msg": "The provided maple locked shares does not match the Depository's one."
     },
     {
-      "code": 6080,
+      "code": 6084,
       "name": "InvalidMapleLenderShares",
       "msg": "The provided maple lender shares does not match the Depository's one."
     },
     {
-      "code": 6081,
+      "code": 6085,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
@@ -4744,6 +4939,132 @@ export const IDL: Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "redeemFromMaplePoolDepository",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "redeemableMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userRedeemable",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "maplePool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "maplePoolLocker",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mapleGlobals",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mapleLender",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mapleSharesMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mapleLockedShares",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mapleLenderShares",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mapleWithdrawalRequest",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "mapleWithdrawalRequestLocker",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "syrupProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "redeemableAmount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -5033,6 +5354,10 @@ export const IDL: Uxd = {
           {
             "name": "redeemingFeeTotalAccrued",
             "type": "u128"
+          },
+          {
+            "name": "withdrawalNonce",
+            "type": "u64"
           }
         ]
       }
@@ -5475,6 +5800,51 @@ export const IDL: Uxd = {
         },
         {
           "name": "mintingFeePaid",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "RedeemFromMaplePoolDepositoryEvent",
+      "fields": [
+        {
+          "name": "controllerVersion",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "depositoryVersion",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "collateralAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "redeemableAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "redeemingFeePaid",
           "type": "u64",
           "index": false
         }
@@ -6431,131 +6801,151 @@ export const IDL: Uxd = {
     },
     {
       "code": 6056,
+      "name": "CollateralWithdrawalHasRemainingDust",
+      "msg": "Collateral Withdrawal left some value unaccounted for."
+    },
+    {
+      "code": 6057,
+      "name": "CollateralWithdrawalUnaccountedFor",
+      "msg": "Collateral Withdrawal result in funds movements that doesn't match expectations."
+    },
+    {
+      "code": 6058,
+      "name": "CollateralWithdrawalAmountsDoesntMatch",
+      "msg": "Collateral Withdrawal didn't result in the correct amounts being moved"
+    },
+    {
+      "code": 6059,
+      "name": "CollateralWithdrawalDoesntMatchTokenValue",
+      "msg": "Received token of which the value doesn't match the Withdrawaled collateral."
+    },
+    {
+      "code": 6060,
       "name": "MinimumMintedRedeemableAmountError",
       "msg": "Mint resulted to 0 redeemable token being minted."
     },
     {
-      "code": 6057,
+      "code": 6061,
       "name": "MinimumRedeemedCollateralAmountError",
       "msg": "Redeem resulted to 0 collateral token being redeemed."
     },
     {
-      "code": 6058,
+      "code": 6062,
       "name": "InvalidDepositoryLpTokenVault",
       "msg": "The depository lp token vault does not match the Depository's one."
     },
     {
-      "code": 6059,
+      "code": 6063,
       "name": "UnAllowedMangoGroup",
       "msg": "The mango group is not accepted."
     },
     {
-      "code": 6060,
+      "code": 6064,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6061,
+      "code": 6065,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6062,
+      "code": 6066,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6063,
+      "code": 6067,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6064,
+      "code": 6068,
       "name": "InvalidCollateralLocker",
       "msg": "The provided collateral locker does not match the depository's collateral locker."
     },
     {
-      "code": 6065,
+      "code": 6069,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6066,
+      "code": 6070,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6067,
+      "code": 6071,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6068,
+      "code": 6072,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6069,
+      "code": 6073,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6070,
+      "code": 6074,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6071,
+      "code": 6075,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6072,
+      "code": 6076,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6073,
+      "code": 6077,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6074,
+      "code": 6078,
       "name": "InvalidMaplePool",
-      "msg": "The provided maple globals does not match the Depository's one."
+      "msg": "The provided maple pool does not match the Depository's one."
     },
     {
-      "code": 6075,
+      "code": 6079,
       "name": "InvalidMaplePoolLocker",
       "msg": "The provided maple pool locker does not match the Depository's one."
     },
     {
-      "code": 6076,
+      "code": 6080,
       "name": "InvalidMapleGlobals",
+      "msg": "The provided maple globals does not match the Depository's one."
+    },
+    {
+      "code": 6081,
+      "name": "InvalidMapleLender",
       "msg": "The provided maple lender does not match the Depository's one."
     },
     {
-      "code": 6077,
-      "name": "InvalidMapleLender",
-      "msg": "The provided maple pool does not match the Depository's one."
-    },
-    {
-      "code": 6078,
+      "code": 6082,
       "name": "InvalidMapleSharesMint",
       "msg": "The provided maple shares mint does not match the Depository's one."
     },
     {
-      "code": 6079,
+      "code": 6083,
       "name": "InvalidMapleLockedShares",
       "msg": "The provided maple locked shares does not match the Depository's one."
     },
     {
-      "code": 6080,
+      "code": 6084,
       "name": "InvalidMapleLenderShares",
       "msg": "The provided maple lender shares does not match the Depository's one."
     },
     {
-      "code": 6081,
+      "code": 6085,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

@@ -1,6 +1,6 @@
 import { getConnection, TXN_OPTS } from "./connection";
 import { uxdClient } from "./constants";
-import { Signer, Transaction } from "@solana/web3.js";
+import { Signer, PublicKey, Transaction } from "@solana/web3.js";
 import {
   MangoDepository,
   Controller,
@@ -134,6 +134,51 @@ export async function redeemFromMercurialVaultDepository(
   }
 
   tx.add(redeemFromMercurialVaultDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function redeemFromMaplePoolDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: MaplePoolDepository,
+  redeemableAmount: number
+): Promise<string> {
+  const onChain = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
+  const nonce = onChain.withdrawalNonce;
+
+  const mapleWithdrawalRequest = await depository.findWithdrawalRequestAddress(nonce);
+  const mapleWithdrawalRequestLocker = await depository.findWithdrawalRequestLockerAddress(mapleWithdrawalRequest);
+
+  const redeemFromMaplePoolDepositoryIx = uxdClient.createRedeemFromMaplePoolDepositoryInstruction(
+    controller,
+    depository,
+    mapleWithdrawalRequest,
+    mapleWithdrawalRequestLocker,
+    authority.publicKey,
+    redeemableAmount,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(redeemFromMaplePoolDepositoryIx);
   signers.push(authority);
   if (payer) {
     signers.push(payer);

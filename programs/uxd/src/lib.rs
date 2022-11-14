@@ -525,6 +525,18 @@ pub mod uxd {
         msg!("[mint_with_maple_pool_depository]");
         instructions::mint_with_maple_pool_depository::handler(ctx, collateral_amount)
     }
+
+    // Redeem collateral tokens by burning redeemable from maple pool.
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn redeem_from_maple_pool_depository(
+        ctx: Context<RedeemFromMaplePoolDepository>,
+        redeemable_amount: u64,
+    ) -> Result<()> {
+        msg!("[redeem_from_maple_pool_depository]");
+        instructions::redeem_from_maple_pool_depository::handler(ctx, redeemable_amount)
+    }
 }
 
 /// Checks that the perp_market_index provided matches the collateral of the depository. Same for Quote.

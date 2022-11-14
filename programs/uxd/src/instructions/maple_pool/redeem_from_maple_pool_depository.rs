@@ -105,17 +105,22 @@ pub struct RedeemFromMaplePoolDepository<'info> {
     #[account(mut)]
     pub maple_lender_shares: Box<Account<'info, TokenAccount>>,
 
-    pub maple_withdrawal_request: AccountInfo<'info>,
-
     /// #17
-    pub system_program: Program<'info, System>,
+    /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
+    pub maple_withdrawal_request: AccountInfo<'info>,
     /// #18
-    pub token_program: Program<'info, Token>,
+    /// CHECK: Does not need an ownership check because it is initialised by syrup and checked by syrup.
+    pub maple_withdrawal_request_locker: AccountInfo<'info>,
+
     /// #19
-    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
     /// #20
-    pub syrup_program: Program<'info, syrup_cpi::program::Syrup>,
+    pub token_program: Program<'info, Token>,
     /// #21
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    /// #22
+    pub syrup_program: Program<'info, syrup_cpi::program::Syrup>,
+    /// #23
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -174,7 +179,7 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
         redeemable_amount,
         ctx.accounts.depository.load()?.redeeming_fee_in_bps,
     )?;
-    let collateral_amount_before_precision_loss = redeemable_amount_after_fees;
+    let collateral_amount_before_precision_loss = redeemable_amount_after_fees; // assume 1:1
     require!(
         collateral_amount_before_precision_loss > 0,
         UxdError::MinimumRedeemedCollateralAmountError
@@ -231,7 +236,7 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
                 .depository
                 .load()?
                 .withdrawal_nonce
-                .to_ne_bytes(),
+                .to_be_bytes(),
         },
         shares_amount,
     )?;
@@ -442,10 +447,10 @@ impl<'info> RedeemFromMaplePoolDepository<'info> {
             pool: self.maple_pool.to_account_info(),
             lender: self.maple_lender.to_account_info(),
             lender_owner: self.depository.to_account_info(),
-            shares_mint: self.maple_shares_mint.to_account_info(),
             lender_share_account: self.maple_lender_shares.to_account_info(),
+            shares_mint: self.maple_shares_mint.to_account_info(),
             withdrawal_request: self.maple_withdrawal_request.to_account_info(),
-            withdrawal_request_locker: self.depository_collateral.to_account_info(),
+            withdrawal_request_locker: self.maple_withdrawal_request_locker.to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
             rent: self.rent.to_account_info(),
@@ -467,10 +472,10 @@ impl<'info> RedeemFromMaplePoolDepository<'info> {
             lender_locker: self.depository_collateral.to_account_info(),
             lender_share_account: self.maple_lender_shares.to_account_info(),
             shares_mint: self.maple_shares_mint.to_account_info(),
+            withdrawal_request: self.maple_withdrawal_request.to_account_info(),
+            withdrawal_request_locker: self.maple_withdrawal_request_locker.to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
-            withdrawal_request: self.maple_withdrawal_request.to_account_info(),
-            withdrawal_request_locker: self.depository_collateral.to_account_info(),
         };
         let cpi_program = self.syrup_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -486,10 +491,10 @@ impl<'info> RedeemFromMaplePoolDepository<'info> {
             lender: self.maple_lender.to_account_info(),
             lender_owner: self.depository.to_account_info(),
             lender_share_account: self.maple_lender_shares.to_account_info(),
-            system_program: self.system_program.to_account_info(),
-            token_program: self.token_program.to_account_info(),
             withdrawal_request: self.maple_withdrawal_request.to_account_info(),
             withdrawal_request_locker: self.depository_collateral.to_account_info(),
+            system_program: self.system_program.to_account_info(),
+            token_program: self.token_program.to_account_info(),
         };
         let cpi_program = self.syrup_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
