@@ -14,8 +14,9 @@ import { BN } from "@project-serum/anchor";
 import { editMaplePoolDepositoryTest } from "../cases/editMaplePoolDepositoryTest";
 import { MaplePoolDepositoryAccount, uiToNative } from "@uxd-protocol/uxd-client";
 import { editControllerTest } from "../cases/editControllerTest";
+import { redeemFromMaplePoolDepositoryTest } from "../cases/redeemFromMaplePoolDepositoryTest";
 
-export const maplePoolDepositoryMintSuite = async function (
+export const maplePoolDepositoryMintAndRedeemSuite = async function (
   controllerAuthority: Signer,
   user: Signer,
   payer: Signer,
@@ -43,16 +44,26 @@ export const maplePoolDepositoryMintSuite = async function (
     initialRedeemableDepositorySupplyCap = onChainDepository.redeemableAmountUnderManagementCap;
   });
 
-  describe("Regular mint", () => {
-    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol}`, async function () {
+  describe("Regular mint/redeem", () => {
+    it(`Mint then redeem ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol}`, async function () {
       const collateralAmount = 0.001;
 
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralSymbol, "]");
 
-      await mintWithMaplePoolDepositoryTest(collateralAmount, user, controller, depository, payer);
+      const redeemableAmount = await mintWithMaplePoolDepositoryTest(
+        collateralAmount,
+        user,
+        controller,
+        depository,
+        payer
+      );
+
+      console.log("[🧾 redeemableAmount", redeemableAmount, controller.redeemableMintSymbol, "]");
+
+      await redeemFromMaplePoolDepositoryTest(redeemableAmount, user, controller, depository, payer);
     });
   });
-
+  /*
   describe("Over limits", () => {
     it(`Mint for more ${depository.collateralSymbol} than owned (should fail)`, async function () {
       const collateralAmount = 1_000_000;
@@ -68,6 +79,20 @@ export const maplePoolDepositoryMintSuite = async function (
       expect(failure).eq(true, `Should have failed - Do not own enough ${depository.collateralSymbol}`);
     });
 
+    it(`Redeem for more ${controller.redeemableMintSymbol} than owned (should fail)`, async function () {
+      const redeemableAmount = 1_000_000;
+
+      console.log("[🧾 redeemableAmount", redeemableAmount, controller.redeemableMintSymbol, "]");
+
+      let failure = false;
+      try {
+        await redeemFromMaplePoolDepositoryTest(redeemableAmount, user, controller, depository, payer);
+      } catch {
+        failure = true;
+      }
+      expect(failure).eq(true, `Should have failed - Do not own enough ${controller.redeemableMintSymbol}`);
+    });
+
     it(`Mint for 0 ${depository.collateralSymbol} (should fail)`, async function () {
       const collateralAmount = 0;
 
@@ -81,6 +106,20 @@ export const maplePoolDepositoryMintSuite = async function (
       }
 
       expect(failure).eq(true, `Should have failed - Cannot mint for 0 ${depository.collateralSymbol}`);
+    });
+
+    it(`Redeem for 0 ${controller.redeemableMintSymbol} (should fail)`, async function () {
+      const redeemableAmount = 0;
+
+      console.log("[🧾 redeemableAmount", redeemableAmount, controller.redeemableMintSymbol, "]");
+
+      let failure = false;
+      try {
+        await redeemFromMaplePoolDepositoryTest(redeemableAmount, user, controller, depository, payer);
+      } catch {
+        failure = true;
+      }
+      expect(failure).eq(true, `Should have failed - Do not own enough ${controller.redeemableMintSymbol}`);
     });
   });
 
@@ -111,6 +150,24 @@ export const maplePoolDepositoryMintSuite = async function (
       expect(failure).eq(
         true,
         `Should have failed - User cannot mint for 0 ${controller.redeemableMintSymbol} (happens due to precision loss and fees)`
+      );
+    });
+
+    it(`Redeem for 1 native unit ${controller.redeemableMintSymbol}`, async function () {
+      const redeemableAmount = Math.pow(10, -controller.redeemableMintDecimals);
+
+      console.log("[🧾 redeemableAmount", redeemableAmount, controller.redeemableMintSymbol, "]");
+
+      let failure = false;
+      try {
+        await redeemFromMaplePoolDepositoryTest(redeemableAmount, user, controller, depository, payer);
+      } catch {
+        failure = true;
+      }
+
+      expect(failure).eq(
+        true,
+        `Should have failed - User cannot redeem for 0 ${controller.redeemableMintSymbol} (happens due to precision loss and fees)`
       );
     });
   });
@@ -216,4 +273,5 @@ export const maplePoolDepositoryMintSuite = async function (
       });
     });
   });
+  //*/
 };

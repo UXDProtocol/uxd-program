@@ -4,7 +4,7 @@ import { editControllerTest } from "./cases/editControllerTest";
 import { initializeControllerTest } from "./cases/initializeControllerTest";
 import { authority, bank, uxdProgramId } from "./constants";
 import { maplePoolDepositoryEditSuite } from "./suite/maplePoolDepositoryEditSuite";
-import { maplePoolDepositoryMintSuite } from "./suite/maplePoolDepositoryMintSuite";
+import { maplePoolDepositoryMintAndRedeemSuite } from "./suite/maplePoolDepositoryMintAndRedeemSuite";
 import { maplePoolDepositorySetupSuite } from "./suite/maplePoolDepositorySetupSuite";
 import {
   transferSol,
@@ -50,8 +50,8 @@ import {
       maplePoolDepositoryEditSuite(authority, user, bank, controllerUXD, maplePoolDepository);
     });
 
-    describe("maplePoolDepositoryMintSuite", function () {
-      maplePoolDepositoryMintSuite(authority, user, bank, controllerUXD, maplePoolDepository);
+    describe("maplePoolDepositoryMintAndRedeemSuite", function () {
+      maplePoolDepositoryMintAndRedeemSuite(authority, user, bank, controllerUXD, maplePoolDepository);
     });
 
     this.afterAll("Transfer funds back to bank", async function () {

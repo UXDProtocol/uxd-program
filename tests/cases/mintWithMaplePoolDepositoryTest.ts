@@ -102,12 +102,12 @@ export const mintWithMaplePoolDepositoryTest = async function (
 
     // Check depository accounting
     expect(
-      nativeToUi(onchainDepository_post.depositedCollateralAmount, depository.collateralDecimals).toFixed(
+      nativeToUi(onchainDepository_post.collateralAmountDeposited, depository.collateralDecimals).toFixed(
         depository.collateralDecimals
       )
     ).equal(
       (
-        nativeToUi(onchainDepository_pre.depositedCollateralAmount, depository.collateralDecimals) +
+        nativeToUi(onchainDepository_pre.collateralAmountDeposited, depository.collateralDecimals) +
         uiAmmountCollateralDeposited
       ).toFixed(depository.collateralDecimals)
     );

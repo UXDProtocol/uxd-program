@@ -125,20 +125,9 @@ pub struct RedeemFromMaplePoolDepository<'info> {
 }
 
 pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u64) -> Result<()> {
-    msg!(
-        "[redeem_from_maple_pool_depository:redeemable_amount:{}]",
-        redeemable_amount
-    );
-
     // Read useful keys
     let maple_pool = ctx.accounts.depository.load()?.maple_pool;
     let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
-
-    // Make controller signer
-    let controller_pda_signer: &[&[&[u8]]] = &[&[
-        CONTROLLER_NAMESPACE,
-        &[ctx.accounts.controller.load()?.bump],
-    ]];
 
     // Make depository signer
     let depository_pda_signer: &[&[&[u8]]] = &[&[
@@ -147,8 +136,10 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
         collateral_mint.as_ref(),
         &[ctx.accounts.depository.load()?.bump],
     ]];
+
     // Read all state before deposit
     let depository_collateral_amount_before: u64 = ctx.accounts.depository_collateral.amount;
+    let user_redeemable_amount_before: u64 = ctx.accounts.user_redeemable.amount;
     let user_collateral_amount_before: u64 = ctx.accounts.user_collateral.amount;
     let pool_collateral_amount_before: u64 = ctx.accounts.maple_pool_locker.amount;
     let pool_shares_amount_before: u64 = ctx.accounts.maple_pool.shares_outstanding;
@@ -166,12 +157,44 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
 
     // Add some pool state log information
     msg!(
-        "[redeem_from_maple_pool_depository:before:pool_shares_amount:{}]",
+        "[redeem_from_maple_pool_depository:depository_collateral_amount_before:{}]",
+        depository_collateral_amount_before
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:user_redeemable_amount_before:{}]",
+        user_redeemable_amount_before
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:user_collateral_amount_before:{}]",
+        user_collateral_amount_before
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:pool_collateral_amount_before:{}]",
+        pool_collateral_amount_before
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:pool_shares_amount_before:{}]",
         pool_shares_amount_before
     );
     msg!(
-        "[redeem_from_maple_pool_depository:before:pool_shares_value:{}]",
+        "[redeem_from_maple_pool_depository:pool_shares_value_before:{}]",
         pool_shares_value_before
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:locked_shares_amount_before:{}]",
+        locked_shares_amount_before
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:lender_shares_amount_before:{}]",
+        lender_shares_amount_before
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:owned_shares_amount_before:{}]",
+        owned_shares_amount_before
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:owned_shares_value_before:{}]",
+        owned_shares_value_before
     );
 
     // Calculate the amount of collateral we want to withdraw based on the redeemable amount
@@ -179,7 +202,7 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
         redeemable_amount,
         ctx.accounts.depository.load()?.redeeming_fee_in_bps,
     )?;
-    let collateral_amount_before_precision_loss = redeemable_amount_after_fees; // assume 1:1
+    let collateral_amount_before_precision_loss = redeemable_amount_after_fees; // assume 1:1 on purpose
     require!(
         collateral_amount_before_precision_loss > 0,
         UxdError::MinimumRedeemedCollateralAmountError
@@ -189,15 +212,12 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
         collateral_amount_before_precision_loss
     );
 
-    // Compute the amount of shares that we need to withdraw based on the burned redeemable
-    let single_share_value = ctx.accounts.compute_shares_value(
-        1,
+    // Compute the amount of shares that we need to withdraw based on the amount of withdrawn collateral
+    let shares_amount = ctx.accounts.compute_shares_amount(
+        collateral_amount_before_precision_loss,
         pool_shares_amount_before,
         pool_shares_value_before,
     )?;
-    let shares_amount = collateral_amount_before_precision_loss
-        .checked_div(single_share_value)
-        .ok_or(UxdError::MathError)?;
     msg!(
         "[redeem_from_maple_pool_depository:shares_amount:{}]",
         shares_amount
@@ -218,18 +238,32 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
         collateral_amount_after_precision_loss
     );
 
+    // Burn the user's redeemable
+    msg!(
+        "[redeem_from_maple_pool_depository:redeemable_burn:{}]",
+        redeemable_amount
+    );
+    token::burn(
+        ctx.accounts.into_burn_redeemable_context(),
+        redeemable_amount,
+    )?;
+
     // If we don't have enough unlocked shares, we'll need to try to unlock some (may fail if the deposit lockup period is not passed)
     if lender_shares_amount_before < shares_amount {
+        msg!("[redeem_from_maple_pool_depository:lender_unlock_deposit]");
         syrup_cpi::cpi::lender_unlock_deposit(
             ctx.accounts
-                .into_lender_unlock_deposit_from_maple_pool_context(),
+                .into_lender_unlock_deposit_from_maple_pool_context()
+                .with_signer(depository_pda_signer),
         )?;
     }
 
-    // Run a full withdrawal request through syrup
+    // Run a full withdrawal request (init/exec/close) through syrup
+    msg!("[redeem_from_maple_pool_depository:withdrawal_request_initialize]",);
     syrup_cpi::cpi::withdrawal_request_initialize(
         ctx.accounts
-            .into_withdrawal_request_initialize_from_maple_pool_context(),
+            .into_withdrawal_request_initialize_from_maple_pool_context()
+            .with_signer(depository_pda_signer),
         Nonce {
             value: ctx
                 .accounts
@@ -240,17 +274,22 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
         },
         shares_amount,
     )?;
+    msg!("[redeem_from_maple_pool_depository:withdrawal_request_execute]",);
     syrup_cpi::cpi::withdrawal_request_execute(
         ctx.accounts
-            .into_withdrawal_request_execute_from_maple_pool_context(),
+            .into_withdrawal_request_execute_from_maple_pool_context()
+            .with_signer(depository_pda_signer),
         shares_amount,
     )?;
+    msg!("[redeem_from_maple_pool_depository:withdrawal_request_close]");
     syrup_cpi::cpi::withdrawal_request_close(
         ctx.accounts
-            .into_withdrawal_request_close_from_maple_pool_context(),
+            .into_withdrawal_request_close_from_maple_pool_context()
+            .with_signer(depository_pda_signer),
     )?;
 
     // Transfer the received collateral from the depository to the end user
+    msg!("[redeem_from_maple_pool_depository:collateral_transfer]",);
     token::transfer(
         ctx.accounts
             .into_transfer_depository_collateral_to_user_collateral_context()
@@ -260,6 +299,7 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
 
     // Refresh account states after deposit
     ctx.accounts.depository_collateral.reload()?;
+    ctx.accounts.user_redeemable.reload()?;
     ctx.accounts.user_collateral.reload()?;
     ctx.accounts.maple_pool_locker.reload()?;
     ctx.accounts.maple_pool.reload()?;
@@ -268,6 +308,7 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
 
     // Read all states after deposit
     let depository_collateral_amount_after: u64 = ctx.accounts.depository_collateral.amount;
+    let user_redeemable_amount_after: u64 = ctx.accounts.user_redeemable.amount;
     let user_collateral_amount_after: u64 = ctx.accounts.user_collateral.amount;
     let pool_collateral_amount_after: u64 = ctx.accounts.maple_pool_locker.amount;
     let pool_shares_amount_after: u64 = ctx.accounts.maple_pool.shares_outstanding;
@@ -285,12 +326,44 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
 
     // Add some pool state log information
     msg!(
-        "[redeem_from_maple_pool_depository:after:pool_shares_amount:{}]",
+        "[redeem_from_maple_pool_depository:depository_collateral_amount_after:{}]",
+        depository_collateral_amount_after
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:user_redeemable_amount_after:{}]",
+        user_redeemable_amount_after
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:user_collateral_amount_after:{}]",
+        user_collateral_amount_after
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:pool_collateral_amount_after:{}]",
+        pool_collateral_amount_after
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:pool_shares_amount_after:{}]",
         pool_shares_amount_after
     );
     msg!(
-        "[redeem_from_maple_pool_depository:after:pool_shares_value:{}]",
+        "[redeem_from_maple_pool_depository:pool_shares_value_after:{}]",
         pool_shares_value_after
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:locked_shares_amount_after:{}]",
+        locked_shares_amount_after
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:lender_shares_amount_after:{}]",
+        lender_shares_amount_after
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:owned_shares_amount_after:{}]",
+        owned_shares_amount_after
+    );
+    msg!(
+        "[redeem_from_maple_pool_depository:owned_shares_value_after:{}]",
+        owned_shares_value_after
     );
 
     // Compute changes in states
@@ -298,6 +371,8 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
         depository_collateral_amount_before,
         depository_collateral_amount_after,
     )?;
+    let user_redeemable_amount_delta: i64 =
+        compute_delta(user_redeemable_amount_before, user_redeemable_amount_after)?;
     let user_collateral_amount_delta: i64 =
         compute_delta(user_collateral_amount_before, user_collateral_amount_after)?;
     let pool_collateral_amount_delta: i64 =
@@ -318,6 +393,10 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
     );
 
     // Validate the redeem was successful and meaningful
+    require!(
+        user_redeemable_amount_delta < 0,
+        UxdError::CollateralWithdrawalUnaccountedFor
+    );
     require!(
         user_collateral_amount_delta > 0,
         UxdError::CollateralWithdrawalUnaccountedFor
@@ -344,12 +423,19 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
     );
 
     // Because we know the direction of the change, we can use the unsigned values now
+    let user_redeemable_amount_decrease = checked_i64_to_u64(-user_redeemable_amount_delta)?;
     let user_collateral_amount_increase = checked_i64_to_u64(user_collateral_amount_delta)?;
     let pool_collateral_amount_decrease = checked_i64_to_u64(-pool_collateral_amount_delta)?;
     let pool_shares_amount_decrease = checked_i64_to_u64(-pool_shares_amount_delta)?;
     let pool_shares_value_decrease = checked_i64_to_u64(-pool_shares_value_delta)?;
     let owned_shares_amount_decrease = checked_i64_to_u64(-owned_shares_amount_delta)?;
     let owned_shares_value_decrease = checked_i64_to_u64(-owned_shares_value_delta)?;
+
+    // Validate that we didnt get too much collateral
+    require!(
+        user_redeemable_amount_decrease >= user_collateral_amount_increase,
+        UxdError::CollateralWithdrawalAmountsDoesntMatch,
+    );
 
     // Validate that the collateral value moved exactly to the correct place
     require!(
@@ -380,14 +466,6 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
     // Compute how much fees was paid
     let redeemable_amount_delta = compute_delta(redeemable_amount, redeemable_amount_after_fees)?;
     let redeeming_fee_paid = checked_i64_to_u64(-redeemable_amount_delta)?;
-
-    // Burn the user's redeemable
-    token::burn(
-        ctx.accounts
-            .into_burn_redeemable_context()
-            .with_signer(controller_pda_signer),
-        redeemable_amount,
-    )?;
 
     // Emit event
     emit!(RedeemFromMaplePoolDepositoryEvent {
@@ -506,7 +584,7 @@ impl<'info> RedeemFromMaplePoolDepository<'info> {
         let cpi_accounts = Transfer {
             from: self.depository_collateral.to_account_info(),
             to: self.user_collateral.to_account_info(),
-            authority: self.user.to_account_info(),
+            authority: self.depository.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -517,7 +595,7 @@ impl<'info> RedeemFromMaplePoolDepository<'info> {
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
             from: self.user_redeemable.to_account_info(),
-            authority: self.controller.to_account_info(),
+            authority: self.user.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
@@ -536,7 +614,7 @@ impl<'info> RedeemFromMaplePoolDepository<'info> {
     }
 
     // Precision loss may lower the returned owner value amount.
-    // Precision loss of 1 native unit may be expected.
+    // Precision loss of 1 native unit may be expected due to rounding down of the value.
     pub fn compute_shares_value(
         &self,
         shares_amount: u64,
@@ -558,6 +636,33 @@ impl<'info> RedeemFromMaplePoolDepository<'info> {
             .checked_div(pool_shares_amount_fixed)
             .ok_or(UxdError::MathError)?;
         Ok(shares_value_fixed
+            .checked_to_num::<u64>()
+            .ok_or(UxdError::MathError)?)
+    }
+
+    // Precision loss may lower the returned owner value amount.
+    // Precision loss of 1 native unit may be expected due to rounding down of the value.
+    pub fn compute_shares_amount(
+        &self,
+        collateral_amount: u64,
+        pool_shares_amount: u64,
+        pool_shares_value: u64,
+    ) -> Result<u64> {
+        if pool_shares_value == 0 {
+            return Ok(0);
+        }
+        let collateral_amount_fixed =
+            I80F48::checked_from_num(collateral_amount).ok_or(UxdError::MathError)?;
+        let pool_shares_amount_fixed =
+            I80F48::checked_from_num(pool_shares_amount).ok_or(UxdError::MathError)?;
+        let pool_shares_value_fixed =
+            I80F48::checked_from_num(pool_shares_value).ok_or(UxdError::MathError)?;
+        let shares_amount_fixed = collateral_amount_fixed
+            .checked_mul(pool_shares_amount_fixed)
+            .ok_or(UxdError::MathError)?
+            .checked_div(pool_shares_value_fixed)
+            .ok_or(UxdError::MathError)?;
+        Ok(shares_amount_fixed
             .checked_to_num::<u64>()
             .ok_or(UxdError::MathError)?)
     }
