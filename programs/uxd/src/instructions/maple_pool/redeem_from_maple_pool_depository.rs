@@ -6,7 +6,6 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
-use fixed::types::I80F48;
 use syrup_cpi::Nonce;
 
 use crate::error::UxdError;
@@ -16,6 +15,8 @@ use crate::state::maple_pool_depository::MaplePoolDepository;
 use crate::utils::calculate_amount_less_fees;
 use crate::utils::checked_i64_to_u64;
 use crate::utils::compute_delta;
+use crate::utils::compute_shares_amount_for_value;
+use crate::utils::compute_value_for_shares_amount;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MAPLE_POOL_DEPOSITORY_NAMESPACE;
 
@@ -152,7 +153,7 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
     let owned_shares_amount_before: u64 = ctx
         .accounts
         .compute_owned_shares_amount(locked_shares_amount_before, lender_shares_amount_before)?;
-    let owned_shares_value_before: u64 = ctx.accounts.compute_shares_value(
+    let owned_shares_value_before: u64 = compute_value_for_shares_amount(
         owned_shares_amount_before,
         pool_shares_amount_before,
         pool_shares_value_before,
@@ -216,7 +217,7 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
     );
 
     // Compute the amount of shares that we need to withdraw based on the amount of wanted collateral
-    let shares_amount = ctx.accounts.compute_shares_amount(
+    let shares_amount = compute_shares_amount_for_value(
         collateral_amount_before_precision_loss,
         pool_shares_amount_before,
         pool_shares_value_before,
@@ -227,7 +228,7 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
     );
 
     // Compute the amount of collateral that the withdrawn shares are worth (after potential precision loss)
-    let collateral_amount_after_precision_loss = ctx.accounts.compute_shares_value(
+    let collateral_amount_after_precision_loss = compute_value_for_shares_amount(
         shares_amount,
         pool_shares_amount_before,
         pool_shares_value_before,
@@ -316,7 +317,7 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
     let owned_shares_amount_after: u64 = ctx
         .accounts
         .compute_owned_shares_amount(locked_shares_amount_after, lender_shares_amount_after)?;
-    let owned_shares_value_after: u64 = ctx.accounts.compute_shares_value(
+    let owned_shares_value_after: u64 = compute_value_for_shares_amount(
         owned_shares_amount_after,
         pool_shares_amount_after,
         pool_shares_value_after,
@@ -608,60 +609,6 @@ impl<'info> RedeemFromMaplePoolDepository<'info> {
     ) -> Result<u64> {
         Ok(locked_shares_amount
             .checked_add(lender_shares_amount)
-            .ok_or(UxdError::MathError)?)
-    }
-
-    // Precision loss may lower the returned owner value amount.
-    // Precision loss of 1 native unit may be expected due to rounding down of the value.
-    pub fn compute_shares_value(
-        &self,
-        shares_amount: u64,
-        pool_shares_amount: u64,
-        pool_shares_value: u64,
-    ) -> Result<u64> {
-        if pool_shares_value == 0 {
-            return Ok(0);
-        }
-        let shares_amount_fixed =
-            I80F48::checked_from_num(shares_amount).ok_or(UxdError::MathError)?;
-        let pool_shares_amount_fixed =
-            I80F48::checked_from_num(pool_shares_amount).ok_or(UxdError::MathError)?;
-        let pool_shares_value_fixed =
-            I80F48::checked_from_num(pool_shares_value).ok_or(UxdError::MathError)?;
-        let shares_value_fixed = shares_amount_fixed
-            .checked_mul(pool_shares_value_fixed)
-            .ok_or(UxdError::MathError)?
-            .checked_div(pool_shares_amount_fixed)
-            .ok_or(UxdError::MathError)?;
-        Ok(shares_value_fixed
-            .checked_to_num::<u64>()
-            .ok_or(UxdError::MathError)?)
-    }
-
-    // Precision loss may lower the returned owner value amount.
-    // Precision loss of 1 native unit may be expected due to rounding down of the value.
-    pub fn compute_shares_amount(
-        &self,
-        collateral_amount: u64,
-        pool_shares_amount: u64,
-        pool_shares_value: u64,
-    ) -> Result<u64> {
-        if pool_shares_value == 0 {
-            return Ok(0);
-        }
-        let collateral_amount_fixed =
-            I80F48::checked_from_num(collateral_amount).ok_or(UxdError::MathError)?;
-        let pool_shares_amount_fixed =
-            I80F48::checked_from_num(pool_shares_amount).ok_or(UxdError::MathError)?;
-        let pool_shares_value_fixed =
-            I80F48::checked_from_num(pool_shares_value).ok_or(UxdError::MathError)?;
-        let shares_amount_fixed = collateral_amount_fixed
-            .checked_mul(pool_shares_amount_fixed)
-            .ok_or(UxdError::MathError)?
-            .checked_div(pool_shares_value_fixed)
-            .ok_or(UxdError::MathError)?;
-        Ok(shares_amount_fixed
-            .checked_to_num::<u64>()
             .ok_or(UxdError::MathError)?)
     }
 }
