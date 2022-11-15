@@ -115,7 +115,7 @@ pub fn handler(
     msg!("[register_maple_pool_depository:lender_initialize]");
     syrup_cpi::cpi::lender_initialize(ctx.accounts.into_initialize_lending_maple_pool_context())?;
 
-    // Read some of the depositories required informations
+    // Read some of the depositories required informations (before we start mutating it)
     let depository_bump = *ctx.bumps.get("depository").ok_or(UxdError::BumpError)?;
     let depository_collateral_bump = *ctx
         .bumps
