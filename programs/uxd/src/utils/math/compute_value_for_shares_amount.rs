@@ -9,6 +9,9 @@ pub fn compute_value_for_shares_amount(
     shares_total_amount: u64,
     shares_total_value: u64,
 ) -> Result<u64> {
+    if shares_amount == 0 {
+        return Ok(0);
+    }
     require!(shares_amount <= shares_total_amount, UxdError::MathError);
     let shares_amount_fixed = I80F48::checked_from_num(shares_amount).ok_or(UxdError::MathError)?;
     let shares_total_amount_fixed =
