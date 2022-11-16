@@ -42,7 +42,11 @@ pub struct MintWithMaplePoolDepository<'info> {
     /// #4
     #[account(
         mut,
-        seeds = [MAPLE_POOL_DEPOSITORY_NAMESPACE, depository.load()?.maple_pool.key().as_ref(), depository.load()?.collateral_mint.as_ref()],
+        seeds = [
+            MAPLE_POOL_DEPOSITORY_NAMESPACE,
+            depository.load()?.maple_pool.key().as_ref(),
+            depository.load()?.collateral_mint.as_ref()
+        ],
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
@@ -87,20 +91,26 @@ pub struct MintWithMaplePoolDepository<'info> {
     /// #10
     #[account(mut)]
     pub maple_pool: Box<Account<'info, syrup_cpi::Pool>>,
+
     /// #11
     #[account(mut)]
     pub maple_pool_locker: Box<Account<'info, TokenAccount>>,
+
     /// #12
     pub maple_globals: Box<Account<'info, syrup_cpi::Globals>>,
+
     /// #13
     #[account(mut)]
     pub maple_lender: Box<Account<'info, syrup_cpi::Lender>>,
+
     /// #14
     #[account(mut)]
     pub maple_shares_mint: Box<Account<'info, Mint>>,
+
     /// #15
     #[account(mut)]
     pub maple_locked_shares: Box<Account<'info, TokenAccount>>,
+
     /// #16
     #[account(mut)]
     pub maple_lender_shares: Box<Account<'info, TokenAccount>>,
@@ -144,9 +154,9 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     let pool_shares_value_before: u64 = ctx.accounts.maple_pool.total_value;
     let locked_shares_amount_before: u64 = ctx.accounts.maple_locked_shares.amount;
     let lender_shares_amount_before: u64 = ctx.accounts.maple_lender_shares.amount;
-    let owned_shares_amount_before: u64 = ctx
-        .accounts
-        .compute_owned_shares_amount(locked_shares_amount_before, lender_shares_amount_before)?;
+    let owned_shares_amount_before: u64 = locked_shares_amount_before
+        .checked_add(lender_shares_amount_before)
+        .ok_or(UxdError::MathError)?;
     let owned_shares_value_before: u64 = compute_value_for_shares_amount(
         owned_shares_amount_before,
         pool_shares_amount_before,
@@ -198,9 +208,9 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     let pool_shares_value_after: u64 = ctx.accounts.maple_pool.total_value;
     let locked_shares_amount_after: u64 = ctx.accounts.maple_locked_shares.amount;
     let lender_shares_amount_after: u64 = ctx.accounts.maple_lender_shares.amount;
-    let owned_shares_amount_after: u64 = ctx
-        .accounts
-        .compute_owned_shares_amount(locked_shares_amount_after, lender_shares_amount_after)?;
+    let owned_shares_amount_after: u64 = locked_shares_amount_after
+        .checked_add(lender_shares_amount_after)
+        .ok_or(UxdError::MathError)?;
     let owned_shares_value_after: u64 = compute_value_for_shares_amount(
         owned_shares_amount_after,
         pool_shares_amount_after,
@@ -299,7 +309,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     let single_share_value =
         compute_value_for_shares_amount(1, pool_shares_amount_after, pool_shares_value_after)?;
     let allowed_precision_loss_amount = single_share_value
-        .checked_add(2) // 1 precision loss for the single_share_value + 1 for the maple calculation
+        .checked_add(2) // 1 precision loss for the compute_value_for_shares_amount + 1 for the maple internals calculation
         .ok_or(UxdError::MathError)?;
     msg!(
         "[mint_with_maple_pool_depository:allowed_precision_loss:{}]",
@@ -416,19 +426,6 @@ impl<'info> MintWithMaplePoolDepository<'info> {
             authority: self.controller.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
-    }
-}
-
-// Compute maths functions
-impl<'info> MintWithMaplePoolDepository<'info> {
-    pub fn compute_owned_shares_amount(
-        &self,
-        locked_shares_amount: u64,
-        lender_shares_amount: u64,
-    ) -> Result<u64> {
-        Ok(locked_shares_amount
-            .checked_add(lender_shares_amount)
-            .ok_or(UxdError::MathError)?)
     }
 }
 
