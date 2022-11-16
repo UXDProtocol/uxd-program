@@ -6,7 +6,6 @@ use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
-use fixed::types::I80F48;
 
 use crate::error::UxdError;
 use crate::events::MintWithMaplePoolDepositoryEvent;
@@ -15,6 +14,7 @@ use crate::state::maple_pool_depository::MaplePoolDepository;
 use crate::utils::calculate_amount_less_fees;
 use crate::utils::checked_i64_to_u64;
 use crate::utils::compute_delta;
+use crate::utils::compute_value_for_shares_amount;
 use crate::utils::is_equal_with_precision_loss;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MAPLE_POOL_DEPOSITORY_NAMESPACE;
@@ -147,7 +147,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     let owned_shares_amount_before: u64 = ctx
         .accounts
         .compute_owned_shares_amount(locked_shares_amount_before, lender_shares_amount_before)?;
-    let owned_shares_value_before: u64 = ctx.accounts.compute_shares_value(
+    let owned_shares_value_before: u64 = compute_value_for_shares_amount(
         owned_shares_amount_before,
         pool_shares_amount_before,
         pool_shares_value_before,
@@ -201,7 +201,7 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
     let owned_shares_amount_after: u64 = ctx
         .accounts
         .compute_owned_shares_amount(locked_shares_amount_after, lender_shares_amount_after)?;
-    let owned_shares_value_after: u64 = ctx.accounts.compute_shares_value(
+    let owned_shares_value_after: u64 = compute_value_for_shares_amount(
         owned_shares_amount_after,
         pool_shares_amount_after,
         pool_shares_value_after,
@@ -297,10 +297,9 @@ pub fn handler(ctx: Context<MintWithMaplePoolDepository>, collateral_amount: u64
 
     // Check that the shares we received match the collateral value (allowing for precision loss)
     let single_share_value =
-        ctx.accounts
-            .compute_shares_value(1, pool_shares_amount_after, pool_shares_value_after)?;
+        compute_value_for_shares_amount(1, pool_shares_amount_after, pool_shares_value_after)?;
     let allowed_precision_loss_amount = single_share_value
-        .checked_add(2)
+        .checked_add(2) // 1 precision loss for the single_share_value + 1 for the maple calculation
         .ok_or(UxdError::MathError)?;
     msg!(
         "[mint_with_maple_pool_depository:allowed_precision_loss:{}]",
@@ -429,33 +428,6 @@ impl<'info> MintWithMaplePoolDepository<'info> {
     ) -> Result<u64> {
         Ok(locked_shares_amount
             .checked_add(lender_shares_amount)
-            .ok_or(UxdError::MathError)?)
-    }
-
-    // Precision loss may lower the returned owner value amount.
-    // Precision loss of 1 native unit may be expected.
-    pub fn compute_shares_value(
-        &self,
-        shares_amount: u64,
-        pool_shares_amount: u64,
-        pool_shares_value: u64,
-    ) -> Result<u64> {
-        if pool_shares_value == 0 {
-            return Ok(0);
-        }
-        let shares_amount_fixed =
-            I80F48::checked_from_num(shares_amount).ok_or(UxdError::MathError)?;
-        let pool_shares_amount_fixed =
-            I80F48::checked_from_num(pool_shares_amount).ok_or(UxdError::MathError)?;
-        let pool_shares_value_fixed =
-            I80F48::checked_from_num(pool_shares_value).ok_or(UxdError::MathError)?;
-        let shares_value_fixed = shares_amount_fixed
-            .checked_mul(pool_shares_value_fixed)
-            .ok_or(UxdError::MathError)?
-            .checked_div(pool_shares_amount_fixed)
-            .ok_or(UxdError::MathError)?;
-        Ok(shares_value_fixed
-            .checked_to_num::<u64>()
             .ok_or(UxdError::MathError)?)
     }
 }
