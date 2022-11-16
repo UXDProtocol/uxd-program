@@ -183,9 +183,9 @@ export async function createMaplePoolDepositoryDevnetUSDC() {
     syrupProgramId: new PublicKey("5D9yi4BKrxF8h65NkVE1raCCWFKUs5ngub2ECxhvfaZe"),
     collateralMint: new PublicKey("Doe9rajhwt18aAeaVe8vewzAsBk4kSQ2tTyZVUJhHjhY"),
     collateralSymbol: "USDC(MapleDevnet)",
-    mapleGlobals: new PublicKey("BDMBzwZEisVTTJzd9HTFsEfHMFFtXqoNjyRtz1Sp6zKP"),
     maplePool: new PublicKey("FfTKtBGj3F6nRXQiWVqqyw1Z2XVz2icaqLnUFJC4Fzqm"),
     maplePoolLocker: new PublicKey("Gq7sVXvEEKPNapNF2PSGEyy7GmiyJyNRq5LbdenAGdWY"),
+    mapleGlobals: new PublicKey("BDMBzwZEisVTTJzd9HTFsEfHMFFtXqoNjyRtz1Sp6zKP"),
     mapleSharesMint: new PublicKey("8HvMWzFnmZxLsoNwUzj4fqwLmeu7JPgYkgUpUkBtKWue"),
   });
 }
