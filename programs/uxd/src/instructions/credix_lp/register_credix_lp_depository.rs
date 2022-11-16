@@ -57,7 +57,10 @@ pub struct RegisterCredixLpDepository<'info> {
     /// #6
     #[account(
         init,
-        seeds = [CREDIX_LP_DEPOSITORY_COLLATERAL_NAMESPACE, depository.key().as_ref()],
+        seeds = [
+            CREDIX_LP_DEPOSITORY_COLLATERAL_NAMESPACE,
+            depository.key().as_ref()
+        ],
         token::authority = depository,
         token::mint = collateral_mint,
         bump,
@@ -68,7 +71,10 @@ pub struct RegisterCredixLpDepository<'info> {
     /// #7
     #[account(
         init,
-        seeds = [CREDIX_LP_DEPOSITORY_SHARES_NAMESPACE, depository.key().as_ref()],
+        seeds = [
+            CREDIX_LP_DEPOSITORY_SHARES_NAMESPACE,
+            depository.key().as_ref()
+        ],
         token::authority = depository,
         token::mint = credix_shares_mint,
         bump,
