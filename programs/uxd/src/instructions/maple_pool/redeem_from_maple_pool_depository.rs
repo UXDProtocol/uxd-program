@@ -43,7 +43,11 @@ pub struct RedeemFromMaplePoolDepository<'info> {
     /// #4
     #[account(
         mut,
-        seeds = [MAPLE_POOL_DEPOSITORY_NAMESPACE, depository.load()?.maple_pool.key().as_ref(), depository.load()?.collateral_mint.as_ref()],
+        seeds = [
+            MAPLE_POOL_DEPOSITORY_NAMESPACE,
+            depository.load()?.maple_pool.key().as_ref(),
+            depository.load()?.collateral_mint.as_ref()
+        ],
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
@@ -150,9 +154,9 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
     let pool_shares_value_before: u64 = ctx.accounts.maple_pool.total_value;
     let locked_shares_amount_before: u64 = ctx.accounts.maple_locked_shares.amount;
     let lender_shares_amount_before: u64 = ctx.accounts.maple_lender_shares.amount;
-    let owned_shares_amount_before: u64 = ctx
-        .accounts
-        .compute_owned_shares_amount(locked_shares_amount_before, lender_shares_amount_before)?;
+    let owned_shares_amount_before: u64 = locked_shares_amount_before
+        .checked_add(lender_shares_amount_before)
+        .ok_or(UxdError::MathError)?;
     let owned_shares_value_before: u64 = compute_value_for_shares_amount(
         owned_shares_amount_before,
         pool_shares_amount_before,
@@ -314,9 +318,9 @@ pub fn handler(ctx: Context<RedeemFromMaplePoolDepository>, redeemable_amount: u
     let pool_shares_value_after: u64 = ctx.accounts.maple_pool.total_value;
     let locked_shares_amount_after: u64 = ctx.accounts.maple_locked_shares.amount;
     let lender_shares_amount_after: u64 = ctx.accounts.maple_lender_shares.amount;
-    let owned_shares_amount_after: u64 = ctx
-        .accounts
-        .compute_owned_shares_amount(locked_shares_amount_after, lender_shares_amount_after)?;
+    let owned_shares_amount_after: u64 = locked_shares_amount_after
+        .checked_add(lender_shares_amount_after)
+        .ok_or(UxdError::MathError)?;
     let owned_shares_value_after: u64 = compute_value_for_shares_amount(
         owned_shares_amount_after,
         pool_shares_amount_after,
@@ -597,19 +601,6 @@ impl<'info> RedeemFromMaplePoolDepository<'info> {
             authority: self.user.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
-    }
-}
-
-// Compute maths functions
-impl<'info> RedeemFromMaplePoolDepository<'info> {
-    pub fn compute_owned_shares_amount(
-        &self,
-        locked_shares_amount: u64,
-        lender_shares_amount: u64,
-    ) -> Result<u64> {
-        Ok(locked_shares_amount
-            .checked_add(lender_shares_amount)
-            .ok_or(UxdError::MathError)?)
     }
 }
 

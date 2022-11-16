@@ -1548,12 +1548,12 @@ export type Uxd = {
         },
         {
           "name": "mapleWithdrawalRequest",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "mapleWithdrawalRequestLocker",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -5025,12 +5025,12 @@ export const IDL: Uxd = {
         },
         {
           "name": "mapleWithdrawalRequest",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
           "name": "mapleWithdrawalRequestLocker",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
