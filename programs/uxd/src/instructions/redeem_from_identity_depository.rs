@@ -3,7 +3,7 @@ use crate::events::RedeemFromIdentityDepositoryEvent;
 use crate::state::identity_depository::IdentityDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
-use crate::IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE;
+use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use anchor_lang::prelude::*;
@@ -44,16 +44,12 @@ pub struct RedeemFromIdentityDepository<'info> {
     /// Token account holding the collateral from minting
     #[account(
         mut,
-        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE],
+        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE],
         token::authority = depository,
         token::mint = depository.load()?.collateral_mint,
         bump = depository.load()?.collateral_vault_bump,
     )]
     pub collateral_vault: Box<Account<'info, TokenAccount>>,
-
-    /// #6 The collateral mint used by the `depository` instance
-    /// Required to create the user_collateral ATA if needed
-    pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #7 The redeemable mint managed by the `controller` instance
     /// Tokens will be burnt during this instruction

@@ -514,11 +514,6 @@
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "redeemableMint",
           "isMut": true,
           "isSigner": false

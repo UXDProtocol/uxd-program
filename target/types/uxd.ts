@@ -514,11 +514,6 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
           "name": "redeemableMint",
           "isMut": true,
           "isSigner": false
@@ -2172,11 +2167,6 @@ export const IDL: Uxd = {
         {
           "name": "collateralVault",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
           "isSigner": false
         },
         {

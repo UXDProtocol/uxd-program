@@ -11,7 +11,7 @@ use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP;
 use crate::IDENTITY_DEPOSITORY_ACCOUNT_VERSION;
-use crate::IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE;
+use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
@@ -46,7 +46,7 @@ pub struct InitializeIdentityDepository<'info> {
     /// Token account holding the collateral from minting
     #[account(
         init,
-        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE],
+        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE],
         token::authority = depository,
         token::mint = collateral_mint,
         bump,

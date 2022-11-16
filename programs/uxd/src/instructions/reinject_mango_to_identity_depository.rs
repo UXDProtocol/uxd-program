@@ -4,7 +4,7 @@ use crate::Controller;
 use crate::IdentityDepository;
 use crate::UxdError;
 use crate::CONTROLLER_NAMESPACE;
-use crate::IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE;
+use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use anchor_lang::prelude::*;
 use anchor_spl::token;
@@ -56,7 +56,7 @@ pub struct ReinjectMangoToIdentityDepository<'info> {
     /// Token account holding the collateral from minting
     #[account(
         mut,
-        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE],
+        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE],
         token::authority = depository,
         token::mint = depository.load()?.collateral_mint,
         bump = depository.load()?.collateral_vault_bump,
