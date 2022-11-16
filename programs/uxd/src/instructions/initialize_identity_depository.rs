@@ -77,6 +77,16 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
         .get("collateral_vault")
         .ok_or_else(|| error!(UxdError::BumpError))?;
 
+    let redeemable_mint_unit = 10_u128
+        .checked_pow(
+            ctx.accounts
+                .controller
+                .load()?
+                .redeemable_mint_decimals
+                .into(),
+        )
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
     // - Initialize Depository state
     let depository = &mut ctx.accounts.depository.load_init()?;
     depository.bump = depository_bump;
@@ -87,7 +97,9 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
     depository.collateral_vault = ctx.accounts.collateral_vault.key();
     depository.collateral_vault_bump = collateral_vault_bump;
     depository.redeemable_amount_under_management = u128::MIN;
-    depository.redeemable_amount_under_management_cap = DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP;
+    depository.redeemable_amount_under_management_cap = DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP
+        .checked_mul(redeemable_mint_unit)
+        .ok_or_else(|| error!(UxdError::MathError))?;
     depository.minting_disabled = true;
 
     depository.mango_collateral_reinjected_wsol = false;

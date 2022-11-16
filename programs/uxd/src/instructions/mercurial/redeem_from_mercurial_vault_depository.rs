@@ -13,7 +13,6 @@ use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use fixed::types::I80F48;
 
 #[derive(Accounts)]
 pub struct RedeemFromMercurialVaultDepository<'info> {
