@@ -3,7 +3,7 @@ import { PublicKey, Signer } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
-import { MAPLE_USDC_DEVNET, uxdProgramId } from "./constants";
+import { uxdProgramId } from "./constants";
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
