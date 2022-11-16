@@ -17,6 +17,7 @@ import { initializeControllerTest } from "./cases/initializeControllerTest";
 import { getConnection, TXN_OPTS } from "./connection";
 import { identityDepositorySetupSuite } from "./suite/identityDepositorySetup";
 import { reinjectMangoToIdentityDepositoryTest } from "./cases/reinjectMangoToIdentityDepositoryTest";
+import { identityDepositoryMintRedeemSuite } from "./suite/identityDepositoryMintAndRedeemSuite";
 
 console.log(uxdProgramId.toString());
 
@@ -108,6 +109,10 @@ describe("Integration tests", function () {
   describe("Initialize Identity depository", function () {
     identityDepository = new IdentityDepository(USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
     identityDepositorySetupSuite(authority, bank, controller, identityDepository);
+  });
+
+  describe("Initialize Identity depository", function () {
+    identityDepositoryMintRedeemSuite(authority, user, bank, controller, identityDepository);
   });
 
   // describe("Regular Mint/Redeem with Mercurial Vault USDC Depository", async function () {
