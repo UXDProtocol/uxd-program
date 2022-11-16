@@ -181,7 +181,7 @@ export async function createMaplePoolDepositoryDevnetUSDC() {
     connection: getConnection(),
     uxdProgramId: uxdProgramId,
     syrupProgramId: new PublicKey("5D9yi4BKrxF8h65NkVE1raCCWFKUs5ngub2ECxhvfaZe"),
-    collateralMint: MAPLE_USDC_DEVNET,
+    collateralMint: new PublicKey("Doe9rajhwt18aAeaVe8vewzAsBk4kSQ2tTyZVUJhHjhY"),
     collateralSymbol: "USDC(MapleDevnet)",
     mapleGlobals: new PublicKey("BDMBzwZEisVTTJzd9HTFsEfHMFFtXqoNjyRtz1Sp6zKP"),
     maplePool: new PublicKey("FfTKtBGj3F6nRXQiWVqqyw1Z2XVz2icaqLnUFJC4Fzqm"),

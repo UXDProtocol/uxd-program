@@ -27,7 +27,11 @@ pub struct EditMaplePoolDepository<'info> {
     /// #3
     #[account(
         mut,
-        seeds = [MAPLE_POOL_DEPOSITORY_NAMESPACE, depository.load()?.maple_pool.as_ref(), depository.load()?.collateral_mint.as_ref()],
+        seeds = [
+            MAPLE_POOL_DEPOSITORY_NAMESPACE,
+            depository.load()?.maple_pool.as_ref(),
+            depository.load()?.collateral_mint.as_ref()
+        ],
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
     )]
