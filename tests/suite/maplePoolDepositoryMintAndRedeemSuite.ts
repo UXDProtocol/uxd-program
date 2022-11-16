@@ -63,7 +63,7 @@ export const maplePoolDepositoryMintAndRedeemSuite = async function (
       await redeemFromMaplePoolDepositoryTest(redeemableAmount, user, controller, depository, payer);
     });
   });
-  /*
+
   describe("Over limits", () => {
     it(`Mint for more ${depository.collateralSymbol} than owned (should fail)`, async function () {
       const collateralAmount = 1_000_000;
@@ -273,5 +273,4 @@ export const maplePoolDepositoryMintAndRedeemSuite = async function (
       });
     });
   });
-  //*/
 };
