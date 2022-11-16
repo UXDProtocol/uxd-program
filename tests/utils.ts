@@ -1,4 +1,11 @@
-import { SOL_DECIMALS, findATAAddrSync, nativeToUi, uiToNative, MaplePoolDepository } from "@uxd-protocol/uxd-client";
+import {
+  SOL_DECIMALS,
+  findATAAddrSync,
+  nativeToUi,
+  uiToNative,
+  MaplePoolDepository,
+  CredixLpDepository,
+} from "@uxd-protocol/uxd-client";
 import { PublicKey, Signer } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -198,7 +205,5 @@ export async function createCredixLpDepositoryDevnetUSDC() {
     collateralMint: new PublicKey("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"),
     collateralSymbol: "USDC(CredixDevnet)",
     credixGlobalMarketState: new PublicKey("3vK53tVCPjXtCeXAanDna39NNwAmqxJ2Hd6bLRN3GAgH"),
-    credixTreasuryCollateral: new PublicKey("Gce3rWpp4G3zAcKaNzgAKLPCVq1ua1hfcqPr7pibERGW"), // ??
-    credixSharesMint: new PublicKey("Gce3rWpp4G3zAcKaNzgAKLPCVq1ua1hfcqPr7pibERGW"),
   });
 }
