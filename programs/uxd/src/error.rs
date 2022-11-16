@@ -180,6 +180,8 @@ pub enum UxdError {
     #[msg("The provided maple lender shares does not match the Depository's one.")]
     InvalidMapleLenderShares,
 
+    #[msg("The Credix ProgramState isn't the Depository one.")]
+    InvalidCredixProgramState,
     #[msg("The Credix GlobalMarketState isn't the Depository one.")]
     InvalidCredixGlobalMarketState,
     #[msg("The Credix SigningAuthority isn't the Depository one.")]
@@ -188,8 +190,8 @@ pub enum UxdError {
     InvalidCredixTreasuryCollateral,
     #[msg("The Credix LiquidityCollateral isn't the Depository one.")]
     InvalidCredixLiquidityCollateral,
-    #[msg("The Credix LpSharesMint isn't the Depository one.")]
-    InvalidCredixLpSharesMint,
+    #[msg("The Credix SharesMint isn't the Depository one.")]
+    InvalidCredixSharesMint,
     #[msg("The Credix Pass isn't the Depository one.")]
     InvalidCredixPass,
 

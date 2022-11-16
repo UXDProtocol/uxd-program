@@ -189,3 +189,16 @@ export async function createMaplePoolDepositoryDevnetUSDC() {
     mapleSharesMint: new PublicKey("8HvMWzFnmZxLsoNwUzj4fqwLmeu7JPgYkgUpUkBtKWue"),
   });
 }
+
+export async function createCredixLpDepositoryDevnetUSDC() {
+  return await CredixLpDepository.initialize({
+    connection: getConnection(),
+    uxdProgramId: uxdProgramId,
+    credixProgramId: new PublicKey("CRdXwuY984Au227VnMJ2qvT7gPd83HwARYXcbHfseFKC"),
+    collateralMint: new PublicKey("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"),
+    collateralSymbol: "USDC(CredixDevnet)",
+    credixGlobalMarketState: new PublicKey("3vK53tVCPjXtCeXAanDna39NNwAmqxJ2Hd6bLRN3GAgH"),
+    credixTreasuryCollateral: new PublicKey("Gce3rWpp4G3zAcKaNzgAKLPCVq1ua1hfcqPr7pibERGW"), // ??
+    credixSharesMint: new PublicKey("Gce3rWpp4G3zAcKaNzgAKLPCVq1ua1hfcqPr7pibERGW"),
+  });
+}

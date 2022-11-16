@@ -7,10 +7,9 @@ use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_ACCOUNT_VERSION;
 use crate::CREDIX_LP_DEPOSITORY_COLLATERAL_NAMESPACE;
-use crate::CREDIX_LP_DEPOSITORY_LP_SHARES_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
+use crate::CREDIX_LP_DEPOSITORY_SHARES_NAMESPACE;
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
@@ -48,14 +47,14 @@ pub struct RegisterCredixLpDepository<'info> {
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 
-    /// #6
+    /// #5
     #[account(
         constraint = collateral_mint.key() == credix_global_market_state.base_token_mint @UxdError::CredixLpDoNotMatchCollateral,
         constraint = collateral_mint.key() != credix_global_market_state.lp_token_mint @UxdError::CollateralMintEqualToRedeemableMint
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #5
+    /// #6
     #[account(
         init,
         seeds = [CREDIX_LP_DEPOSITORY_COLLATERAL_NAMESPACE, depository.key().as_ref()],
@@ -66,49 +65,48 @@ pub struct RegisterCredixLpDepository<'info> {
     )]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #5
+    /// #7
     #[account(
         init,
-        seeds = [CREDIX_LP_DEPOSITORY_LP_SHARES_NAMESPACE, depository.key().as_ref()],
+        seeds = [CREDIX_LP_DEPOSITORY_SHARES_NAMESPACE, depository.key().as_ref()],
         token::authority = depository,
-        token::mint = credix_lp_shares_mint,
+        token::mint = credix_shares_mint,
         bump,
         payer = payer,
     )]
-    pub depository_lp_shares: Box<Account<'info, TokenAccount>>,
+    pub depository_shares: Box<Account<'info, TokenAccount>>,
 
-    /// #7
+    /// #8
+    /// CHECK: is a credix PDA, unsure how to double check here
+    pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
+
+    /// #9
     #[account(
         constraint = credix_global_market_state.base_token_mint == collateral_mint.key() @UxdError::InvalidCollateralMint,
-        constraint = credix_global_market_state.lp_token_mint == credix_lp_shares_mint.key() @UxdError::InvalidCredixLpSharesMint,
-        constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
+        constraint = credix_global_market_state.lp_token_mint == credix_shares_mint.key() @UxdError::InvalidCredixSharesMint,
     )]
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
-    /// #8
-    #[account()] // TODO - check
-    pub credix_signing_authority: AccountInfo<'info>,
-    /// #9
-    #[account(token::mint = collateral_mint)]
-    pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,
-    /// #10
-    #[account(token::mint = collateral_mint)]
-    pub credix_liquidity_collateral: Box<Account<'info, TokenAccount>>,
-    /// #11
-    #[account()]
-    pub credix_lp_shares_mint: Box<Account<'info, Mint>>,
-    /// #13
-    #[account()] // TODO - check
-    pub credix_pass: AccountInfo<'info>,
 
-    /// #14
+    /// #10
+    /// CHECK: is a credix PDA, unsure how to double check here
+    pub credix_signing_authority: AccountInfo<'info>,
+
+    /// #11
+    #[account(
+        token::authority = credix_signing_authority,
+        token::mint = collateral_mint,
+    )]
+    pub credix_liquidity_collateral: Box<Account<'info, TokenAccount>>,
+
+    /// #12
+    #[account()]
+    pub credix_shares_mint: Box<Account<'info, Mint>>,
+
+    /// #13
     pub system_program: Program<'info, System>,
-    /// #15
+    /// #14
     pub token_program: Program<'info, Token>,
-    /// #16
-    pub associated_token_program: Program<'info, AssociatedToken>,
-    /// #17
-    pub credix_program: Program<'info, credix_client::program::Credix>,
-    /// #18
+    /// #15
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -125,9 +123,9 @@ pub fn handler(
         .bumps
         .get("depository_collateral")
         .ok_or(UxdError::BumpError)?;
-    let depository_lp_shares_bump = *ctx
+    let depository_shares_bump = *ctx
         .bumps
-        .get("depository_lp_shares")
+        .get("depository_shares")
         .ok_or(UxdError::BumpError)?;
 
     // Initialize the depository account
@@ -144,16 +142,15 @@ pub fn handler(
     depository.depository_collateral = ctx.accounts.depository_collateral.key();
     depository.depository_collateral_bump = depository_collateral_bump;
 
-    depository.depository_lp_shares = ctx.accounts.depository_lp_shares.key();
-    depository.depository_lp_shares_bump = depository_lp_shares_bump;
+    depository.depository_shares = ctx.accounts.depository_shares.key();
+    depository.depository_shares_bump = depository_shares_bump;
 
     // We register all necessary credix accounts to facilitate other instructions safety checks
+    depository.credix_program_state = ctx.accounts.credix_program_state.key();
     depository.credix_global_market_state = ctx.accounts.credix_global_market_state.key();
     depository.credix_signing_authority = ctx.accounts.credix_signing_authority.key();
-    depository.credix_treasury_collateral = ctx.accounts.credix_treasury_collateral.key();
     depository.credix_liquidity_collateral = ctx.accounts.credix_liquidity_collateral.key();
-    depository.credix_lp_shares_mint = ctx.accounts.credix_lp_shares_mint.key();
-    depository.credix_pass = ctx.accounts.credix_pass.key();
+    depository.credix_shares_mint = ctx.accounts.credix_shares_mint.key();
 
     // Depository configuration
     depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
@@ -178,7 +175,7 @@ pub fn handler(
     msg!("[register_credix_lp_depository:emit_event]");
     emit!(RegisterCredixLpDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
-        depository_version: ctx.accounts.depository.load()?.version,
+        depository_version: depository.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         collateral_mint: ctx.accounts.collateral_mint.key(),
