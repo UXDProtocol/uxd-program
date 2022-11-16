@@ -58,6 +58,7 @@ pub struct MintWithCredixLpDepository<'info> {
         has_one = credix_treasury_collateral @UxdError::InvalidCredixTreasuryCollateral,
         has_one = credix_liquidity_collateral @UxdError::InvalidCredixLiquidityCollateral,
         has_one = credix_lp_shares_mint @UxdError::InvalidCredixLpSharesMint,
+        has_one = credix_pass @UxdError::InvalidCredixPass,
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 
@@ -94,7 +95,7 @@ pub struct MintWithCredixLpDepository<'info> {
 
     /// #10
     #[account(mut)]
-    pub credix_global_market_state: Box<Account<'info, syrup_cpi::Pool>>,
+    pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
     /// #11
     #[account(mut)]
     pub credix_signing_authority: Box<Account<'info, TokenAccount>>,
@@ -118,7 +119,7 @@ pub struct MintWithCredixLpDepository<'info> {
     /// #19
     pub associated_token_program: Program<'info, AssociatedToken>,
     /// #20
-    pub syrup_program: Program<'info, syrup_cpi::program::Syrup>,
+    pub credix_program: Program<'info, credix_client::program::Credix>,
     /// #21
     pub rent: Sysvar<'info, Rent>,
 }
@@ -195,7 +196,7 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
     )?;
 
     // Do the deposit by placing collateral owned by the depository into the pool
-    syrup_cpi::cpi::lender_deposit(
+    credix_client::cpi::deposit_funds(
         ctx.accounts
             .into_deposit_collateral_to_credix_lp_context()
             .with_signer(depository_pda_signer),
@@ -415,21 +416,23 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
 impl<'info> MintWithCredixLpDepository<'info> {
     pub fn into_deposit_collateral_to_credix_lp_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, syrup_cpi::cpi::accounts::LenderDeposit<'info>> {
-        let cpi_accounts = syrup_cpi::cpi::accounts::LenderDeposit {
+    ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::DepositFunds<'info>> {
+        let cpi_accounts = credix_client::cpi::accounts::DepositFunds {
             base_token_mint: self.collateral_mint.to_account_info(),
+            investor: self.depository.to_account_info(),
             investor_token_account: self.depository_collateral.to_account_info(),
             investor_lp_token_account: self.depository_lp_shares.to_account_info(),
             global_market_state: self.credix_global_market_state.to_account_info(),
             signing_authority: self.credix_signing_authority.to_account_info(),
             liquidity_pool_token_account: self.credix_liquidity_collateral.to_account_info(),
             lp_token_mint: self.credix_lp_shares_mint.to_account_info(),
+            credix_pass: self.credix_pass.to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
             associated_token_program: self.associated_token_program.to_account_info(),
             rent: self.rent.to_account_info(),
         };
-        let cpi_program = self.syrup_program.to_account_info();
+        let cpi_program = self.credix_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 

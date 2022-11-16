@@ -83,7 +83,7 @@ pub struct RegisterCredixLpDepository<'info> {
         constraint = credix_global_market_state.lp_token_mint == credix_lp_shares_mint.key() @UxdError::InvalidCredixLpSharesMint,
         constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
     )]
-    pub credix_global_market_state: Box<Account<'info, syrup_cpi::Pool>>,
+    pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
     /// #8
     #[account()] // TODO - check
     pub credix_signing_authority: AccountInfo<'info>,
@@ -107,7 +107,7 @@ pub struct RegisterCredixLpDepository<'info> {
     /// #16
     pub associated_token_program: Program<'info, AssociatedToken>,
     /// #17
-    pub syrup_program: Program<'info, syrup_cpi::program::Syrup>,
+    pub credix_program: Program<'info, credix_client::program::Credix>,
     /// #18
     pub rent: Sysvar<'info, Rent>,
 }
@@ -153,6 +153,7 @@ pub fn handler(
     depository.credix_treasury_collateral = ctx.accounts.credix_treasury_collateral.key();
     depository.credix_liquidity_collateral = ctx.accounts.credix_liquidity_collateral.key();
     depository.credix_lp_shares_mint = ctx.accounts.credix_lp_shares_mint.key();
+    depository.credix_pass = ctx.accounts.credix_pass.key();
 
     // Depository configuration
     depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
