@@ -23,7 +23,6 @@ use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 #[instruction(collateral_amount: u64)]
 pub struct MintWithCredixLpDepository<'info> {
     /// #1
-    #[account()]
     pub user: Signer<'info>,
 
     /// #2
@@ -65,7 +64,6 @@ pub struct MintWithCredixLpDepository<'info> {
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
     /// #6
-    #[account()]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #7

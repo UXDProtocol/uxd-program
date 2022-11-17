@@ -85,7 +85,7 @@ impl Controller {
     ) -> Result<()> {
         let current_size = usize::from(self.registered_mango_depositories_count);
         require!(
-            current_size < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
+            current_size < MAX_REGISTERED_MANGO_DEPOSITORIES,
             UxdError::MaxNumberOfMangoDepositoriesRegisteredReached
         );
         // Increment registered Mango Depositories count
@@ -146,7 +146,7 @@ impl Controller {
     ) -> Result<()> {
         let current_size = usize::from(self.registered_credix_lp_depositories_count);
         require!(
-            current_size < MAX_REGISTERED_MANGO_DEPOSITORIES,
+            current_size < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
             UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached
         );
         // Increment registered Mango Depositories count

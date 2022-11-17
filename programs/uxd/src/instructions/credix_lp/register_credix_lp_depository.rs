@@ -17,7 +17,6 @@ use anchor_spl::token::TokenAccount;
 #[derive(Accounts)]
 pub struct RegisterCredixLpDepository<'info> {
     /// #1
-    #[account()]
     pub authority: Signer<'info>,
 
     /// #2
@@ -105,7 +104,6 @@ pub struct RegisterCredixLpDepository<'info> {
     pub credix_liquidity_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #12
-    #[account()]
     pub credix_shares_mint: Box<Account<'info, Mint>>,
 
     /// #13
