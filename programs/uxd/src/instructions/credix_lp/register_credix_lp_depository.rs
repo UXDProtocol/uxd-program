@@ -98,6 +98,7 @@ pub struct RegisterCredixLpDepository<'info> {
 
     /// #11
     #[account(
+        mut,
         token::authority = credix_signing_authority,
         token::mint = collateral_mint,
     )]

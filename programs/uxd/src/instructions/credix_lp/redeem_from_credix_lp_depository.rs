@@ -134,7 +134,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
 
     /// #18
     #[account(mut)]
-    pub credix_multisig: Box<Account<'info, TokenAccount>>,
+    pub credix_multisig: AccountInfo<'info>,
 
     /// #19
     #[account(
