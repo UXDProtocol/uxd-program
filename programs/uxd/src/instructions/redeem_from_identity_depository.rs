@@ -91,9 +91,16 @@ pub(crate) fn handler(
 ) -> Result<()> {
     // - 1 [TRANSFER COLLATERAL FROM DEPOSITORY'S VAULT TO USER]
     let collateral_amount = redeemable_amount;
+
+    let depository = ctx.accounts.depository.load()?;
+    let depository_signer_seed: &[&[&[u8]]] =
+        &[&[IDENTITY_DEPOSITORY_NAMESPACE, &[depository.bump]]];
+    drop(depository);
+
     token::transfer(
         ctx.accounts
-            .to_transfer_collateral_from_depository_vault_to_user_context(),
+            .to_transfer_collateral_from_depository_vault_to_user_context()
+            .with_signer(depository_signer_seed),
         collateral_amount,
     )?;
 
@@ -138,7 +145,7 @@ impl<'info> RedeemFromIdentityDepository<'info> {
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
             from: self.user_redeemable.to_account_info(),
-            authority: self.controller.to_account_info(),
+            authority: self.user.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
@@ -150,7 +157,7 @@ impl<'info> RedeemFromIdentityDepository<'info> {
         let cpi_accounts = Transfer {
             from: self.collateral_vault.to_account_info(),
             to: self.user_collateral.to_account_info(),
-            authority: self.controller.to_account_info(),
+            authority: self.depository.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
