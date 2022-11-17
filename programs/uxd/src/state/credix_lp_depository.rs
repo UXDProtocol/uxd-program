@@ -108,11 +108,47 @@ impl CredixLpDepository {
         Ok(())
     }
 
+    // When we redeem, we need to decrement the supply counters
+    pub fn collateral_withdrawn_and_redeemable_burned(
+        &mut self,
+        collateral_amount_removed: u64,
+        redeemable_amount_removed: u64,
+    ) -> Result<()> {
+        // Check that there was some successful redeeming
+        require!(
+            collateral_amount_removed > 0,
+            UxdError::InvalidCollateralAmount,
+        );
+        require!(
+            redeemable_amount_removed > 0,
+            UxdError::InvalidRedeemableAmount
+        );
+        // Actually add the recent change
+        self.collateral_amount_deposited = self
+            .collateral_amount_deposited
+            .checked_sub(collateral_amount_removed.into())
+            .ok_or(UxdError::MathError)?;
+        self.redeemable_amount_under_management = self
+            .redeemable_amount_under_management
+            .checked_sub(redeemable_amount_removed.into())
+            .ok_or(UxdError::MathError)?;
+        Ok(())
+    }
+
     // When minting fee was paid, we need to add it to the total
     pub fn minting_fee_accrued(&mut self, minting_fee_paid: u64) -> Result<()> {
         self.minting_fee_total_accrued = self
             .minting_fee_total_accrued
             .checked_add(minting_fee_paid.into())
+            .ok_or(UxdError::MathError)?;
+        Ok(())
+    }
+
+    // When redeeming fee was paid, we need to add it to the total
+    pub fn redeeming_fee_accrued(&mut self, redeeming_fee_paid: u64) -> Result<()> {
+        self.redeeming_fee_total_accrued = self
+            .redeeming_fee_total_accrued
+            .checked_add(redeeming_fee_paid.into())
             .ok_or(UxdError::MathError)?;
         Ok(())
     }

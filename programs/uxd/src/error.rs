@@ -186,14 +186,16 @@ pub enum UxdError {
     InvalidCredixGlobalMarketState,
     #[msg("The Credix SigningAuthority isn't the Depository one.")]
     InvalidCredixSigningAuthority,
-    #[msg("The Credix TreasuryCollateral isn't the Depository one.")]
-    InvalidCredixTreasuryCollateral,
     #[msg("The Credix LiquidityCollateral isn't the Depository one.")]
     InvalidCredixLiquidityCollateral,
     #[msg("The Credix SharesMint isn't the Depository one.")]
     InvalidCredixSharesMint,
     #[msg("The Credix Pass isn't the Depository one.")]
     InvalidCredixPass,
+    #[msg("The Credix Multisig isn't the ProgramState one.")]
+    InvalidCredixMultisig,
+    #[msg("The Credix TreasuryCollateral isn't the GlobalMarketState one.")]
+    InvalidCredixTreasuryCollateral,
 
     #[msg("Default - Check the source code for more info.")]
     Default,

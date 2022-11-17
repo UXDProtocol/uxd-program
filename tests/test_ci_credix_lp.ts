@@ -4,7 +4,7 @@ import { editControllerTest } from "./cases/editControllerTest";
 import { initializeControllerTest } from "./cases/initializeControllerTest";
 import { authority, bank, uxdProgramId } from "./constants";
 import { credixLpDepositoryEditSuite } from "./suite/credixLpDepositoryEditSuite";
-import { credixLpDepositoryMintSuite } from "./suite/credixLpDepositoryMintSuite";
+import { credixLpDepositoryMintAndRedeemSuite } from "./suite/credixLpDepositoryMintAndRedeemSuite";
 import { credixLpDepositorySetupSuite } from "./suite/credixLpDepositorySetupSuite";
 import {
   transferSol,
@@ -50,8 +50,8 @@ import {
       credixLpDepositoryEditSuite(authority, user, bank, controllerUXD, credixLpDepository);
     });
 
-    describe("credixLpDepositoryMintSuite", function () {
-      credixLpDepositoryMintSuite(authority, user, bank, controllerUXD, credixLpDepository);
+    describe("credixLpDepositoryMintAndRedeemSuite", function () {
+      credixLpDepositoryMintAndRedeemSuite(authority, user, bank, controllerUXD, credixLpDepository);
     });
 
     this.afterAll("Transfer funds back to bank", async function () {
