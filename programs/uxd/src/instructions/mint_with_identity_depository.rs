@@ -139,6 +139,9 @@ pub(crate) fn handler(
         );
     }
 
+    ctx.accounts
+        .check_redeemable_amount_under_management_cap_overflow()?;
+
     // - 5 [EVENT LOGGING] ----------------------------------------------------
     emit!(MintWithIdentityDepositoryEvent {
         version: controller.version,
@@ -172,6 +175,18 @@ impl<'info> MintWithIdentityDepository<'info> {
             authority: self.user.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+impl<'info> MintWithIdentityDepository<'info> {
+    fn check_redeemable_amount_under_management_cap_overflow(&self) -> Result<()> {
+        let depository = self.depository.load()?;
+        require!(
+            depository.redeemable_amount_under_management
+                <= depository.redeemable_amount_under_management_cap,
+            UxdError::RedeemableIdentityDepositoryAmountUnderManagementCap
+        );
+        Ok(())
     }
 }
 
