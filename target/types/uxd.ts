@@ -550,6 +550,57 @@ export type Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "reinjectMangoToIdentityDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoDepository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -583,13 +634,17 @@ export type Uxd = {
             "type": "u8"
           },
           {
-            "name": "unused",
+            "name": "registeredMangoDepositories",
             "type": {
               "array": [
-                "u8",
-                257
+                "publicKey",
+                8
               ]
             }
+          },
+          {
+            "name": "registeredMangoDepositoriesCount",
+            "type": "u8"
           },
           {
             "name": "redeemableGlobalSupplyCap",
@@ -677,6 +732,129 @@ export type Uxd = {
           {
             "name": "mintingDisabled",
             "type": "bool"
+          },
+          {
+            "name": "mangoCollateralReinjectedWsol",
+            "type": "bool"
+          },
+          {
+            "name": "mangoCollateralReinjectedBtc",
+            "type": "bool"
+          },
+          {
+            "name": "mangoCollateralReinjectedEth",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mangoDepository",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "unused",
+            "type": {
+              "array": [
+                "u8",
+                2
+              ]
+            }
+          },
+          {
+            "name": "mangoAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "collateralMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "unused2",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "quoteMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "unused3",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "quoteMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "mangoAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "controller",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "collateralAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "redeemableAmountUnderManagement",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountPaidTakerFee",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountRebalanced",
+            "type": "u128"
+          },
+          {
+            "name": "netQuoteMinted",
+            "type": "i128"
+          },
+          {
+            "name": "quoteMintAndRedeemFee",
+            "type": "u8"
+          },
+          {
+            "name": "totalQuoteMintAndRedeemFees",
+            "type": "u128"
+          },
+          {
+            "name": "regularMintingDisabled",
+            "type": "bool"
+          },
+          {
+            "name": "redeemableAmountUnderManagementCap",
+            "type": "u128"
           }
         ]
       }
@@ -1100,6 +1278,41 @@ export type Uxd = {
           "index": false
         }
       ]
+    },
+    {
+      "name": "ReinjectMangoToIdentityDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "mangoDepository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralReinjectedAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -1435,6 +1648,11 @@ export type Uxd = {
     },
     {
       "code": 6066,
+      "name": "MangoCollateralReinjected",
+      "msg": "The collateral from this mango depository has reinjected to identity depository"
+    },
+    {
+      "code": 6067,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
@@ -1993,6 +2211,57 @@ export const IDL: Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "reinjectMangoToIdentityDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mangoDepository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -2026,13 +2295,17 @@ export const IDL: Uxd = {
             "type": "u8"
           },
           {
-            "name": "unused",
+            "name": "registeredMangoDepositories",
             "type": {
               "array": [
-                "u8",
-                257
+                "publicKey",
+                8
               ]
             }
+          },
+          {
+            "name": "registeredMangoDepositoriesCount",
+            "type": "u8"
           },
           {
             "name": "redeemableGlobalSupplyCap",
@@ -2120,6 +2393,129 @@ export const IDL: Uxd = {
           {
             "name": "mintingDisabled",
             "type": "bool"
+          },
+          {
+            "name": "mangoCollateralReinjectedWsol",
+            "type": "bool"
+          },
+          {
+            "name": "mangoCollateralReinjectedBtc",
+            "type": "bool"
+          },
+          {
+            "name": "mangoCollateralReinjectedEth",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "mangoDepository",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "unused",
+            "type": {
+              "array": [
+                "u8",
+                2
+              ]
+            }
+          },
+          {
+            "name": "mangoAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "collateralMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "collateralMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "unused2",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "quoteMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "unused3",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "quoteMintDecimals",
+            "type": "u8"
+          },
+          {
+            "name": "mangoAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "controller",
+            "type": "publicKey"
+          },
+          {
+            "name": "insuranceAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "collateralAmountDeposited",
+            "type": "u128"
+          },
+          {
+            "name": "redeemableAmountUnderManagement",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountPaidTakerFee",
+            "type": "u128"
+          },
+          {
+            "name": "totalAmountRebalanced",
+            "type": "u128"
+          },
+          {
+            "name": "netQuoteMinted",
+            "type": "i128"
+          },
+          {
+            "name": "quoteMintAndRedeemFee",
+            "type": "u8"
+          },
+          {
+            "name": "totalQuoteMintAndRedeemFees",
+            "type": "u128"
+          },
+          {
+            "name": "regularMintingDisabled",
+            "type": "bool"
+          },
+          {
+            "name": "redeemableAmountUnderManagementCap",
+            "type": "u128"
           }
         ]
       }
@@ -2543,6 +2939,41 @@ export const IDL: Uxd = {
           "index": false
         }
       ]
+    },
+    {
+      "name": "ReinjectMangoToIdentityDepositoryEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "mangoDepository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "collateralReinjectedAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -2878,6 +3309,11 @@ export const IDL: Uxd = {
     },
     {
       "code": 6066,
+      "name": "MangoCollateralReinjected",
+      "msg": "The collateral from this mango depository has reinjected to identity depository"
+    },
+    {
+      "code": 6067,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

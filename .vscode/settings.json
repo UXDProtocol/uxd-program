@@ -43,6 +43,8 @@
     "rebalance",
     "rebalancing",
     "redeemables",
+    "reinject",
+    "reinjected",
     "repr",
     "rootbank",
     "rustfmt",
@@ -56,6 +58,7 @@
     "thiserror",
     "Tjpk",
     "UXDATA",
+    "wsol",
     "WSOLATA"
   ],
   "editor.formatOnSave": true

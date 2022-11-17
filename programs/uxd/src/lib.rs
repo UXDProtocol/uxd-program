@@ -13,7 +13,7 @@ pub mod utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("FQUH841rVJQ89CUTX44XpNRzrrR9AeGNg5bp5V6Dw4qc");
+solana_program::declare_id!("H4fDUuiTmRNrUVCaswDNFXAe1vR2UEgpdV8iQkzEn2C3");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -29,8 +29,7 @@ pub const MERCURIAL_VAULT_DEPOSITORY_NAMESPACE: &[u8] = b"MERCURIALVAULTDEPOSITO
 pub const MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE: &[u8] =
     b"MERCURIALVAULTDEPOSITORYLPVAULT";
 pub const IDENTITY_DEPOSITORY_NAMESPACE: &[u8] = b"IDENTITYDEPOSITORY";
-pub const IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE: &[u8] =
-    b"IDENTITYDEPOSITORYCOLLATERALVAULT";
+pub const IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE: &[u8] = b"IDENTITYDEPOSITORYCOLLATERAL";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -169,5 +168,15 @@ pub mod uxd {
             redeemable_amount,
         );
         instructions::redeem_from_identity_depository::handler(ctx, redeemable_amount)
+    }
+
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn reinject_mango_to_identity_depository(
+        ctx: Context<ReinjectMangoToIdentityDepository>,
+    ) -> Result<()> {
+        msg!("[reinject_mango_to_identity_depository]");
+        instructions::reinject_mango_to_identity_depository::handler(ctx)
     }
 }

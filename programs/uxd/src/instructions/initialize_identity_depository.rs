@@ -3,16 +3,16 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
-use crate::DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP;
-use crate::IDENTITY_DEPOSITORY_ACCOUNT_VERSION;
-use crate::IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE;
 use crate::error::UxdError;
 use crate::events::InitializeIdentityDepositoryEvent;
+use crate::state::identity_depository::IdentityDepository;
 use crate::state::identity_depository::IDENTITY_DEPOSITORY_SPACE;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
+use crate::DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP;
+use crate::IDENTITY_DEPOSITORY_ACCOUNT_VERSION;
+use crate::IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
-use crate::state::identity_depository::IdentityDepository;
 
 #[derive(Accounts)]
 pub struct InitializeIdentityDepository<'info> {
@@ -34,7 +34,7 @@ pub struct InitializeIdentityDepository<'info> {
 
     /// #4 UXDProgram on chain account bound to a Controller instance
     #[account(
-        init, 
+        init,
         seeds = [IDENTITY_DEPOSITORY_NAMESPACE], // Only a single instance per controller instance
         bump,
         payer = payer,
@@ -89,6 +89,10 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
     depository.redeemable_amount_under_management = u128::MIN;
     depository.redeemable_amount_under_management_cap = DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP;
     depository.minting_disabled = true;
+
+    depository.mango_collateral_reinjected_wsol = false;
+    depository.mango_collateral_reinjected_eth = false;
+    depository.mango_collateral_reinjected_btc = false;
 
     emit!(InitializeIdentityDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,
