@@ -3,7 +3,7 @@ use crate::state::identity_depository::IdentityDepository;
 use crate::Controller;
 use crate::UxdError;
 use crate::CONTROLLER_NAMESPACE;
-use crate::IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE;
+use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use anchor_lang::prelude::*;
@@ -44,7 +44,7 @@ pub struct MintWithIdentityDepository<'info> {
     /// Token account holding the collateral from minting
     #[account(
         mut,
-        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE],
+        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE],
         token::authority = depository,
         token::mint = depository.load()?.collateral_mint,
         bump = depository.load()?.collateral_vault_bump,
@@ -139,6 +139,9 @@ pub(crate) fn handler(
         );
     }
 
+    ctx.accounts
+        .check_redeemable_amount_under_management_cap_overflow()?;
+
     // - 5 [EVENT LOGGING] ----------------------------------------------------
     emit!(MintWithIdentityDepositoryEvent {
         version: controller.version,
@@ -176,6 +179,18 @@ impl<'info> MintWithIdentityDepository<'info> {
 }
 
 impl<'info> MintWithIdentityDepository<'info> {
+    fn check_redeemable_amount_under_management_cap_overflow(&self) -> Result<()> {
+        let depository = self.depository.load()?;
+        require!(
+            depository.redeemable_amount_under_management
+                <= depository.redeemable_amount_under_management_cap,
+            UxdError::RedeemableIdentityDepositoryAmountUnderManagementCap
+        );
+        Ok(())
+    }
+}
+
+impl<'info> MintWithIdentityDepository<'info> {
     pub(crate) fn validate(&self, collateral_amount: u64) -> Result<()> {
         require!(collateral_amount != 0, UxdError::InvalidCollateralAmount);
         require!(
@@ -186,6 +201,9 @@ impl<'info> MintWithIdentityDepository<'info> {
             !&self.depository.load()?.minting_disabled,
             UxdError::MintingDisabled
         );
+
+        #[cfg(feature = "production")]
+        self.validate_collateral_mint()?;
 
         Ok(())
     }

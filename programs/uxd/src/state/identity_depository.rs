@@ -8,7 +8,6 @@ pub const IDENTITY_DEPOSITORY_SPACE: usize = 8
     + 1 // collateral_mint_decimal
     + 32 // collateral_vault
     + 1 // collateral_vault_bump
-    + 32 // controller
     + 16 // collateral_amount_deposited
     + 16 // redeemable_under_management
     + 16 // redeemable_under_management_cap

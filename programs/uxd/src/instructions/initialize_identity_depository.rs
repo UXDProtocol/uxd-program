@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
@@ -11,7 +13,7 @@ use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP;
 use crate::IDENTITY_DEPOSITORY_ACCOUNT_VERSION;
-use crate::IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE;
+use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
@@ -46,7 +48,7 @@ pub struct InitializeIdentityDepository<'info> {
     /// Token account holding the collateral from minting
     #[account(
         init,
-        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_VAULT_NAMESPACE],
+        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE],
         token::authority = depository,
         token::mint = collateral_mint,
         bump,
@@ -77,6 +79,16 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
         .get("collateral_vault")
         .ok_or_else(|| error!(UxdError::BumpError))?;
 
+    let redeemable_mint_unit = 10_u128
+        .checked_pow(
+            ctx.accounts
+                .controller
+                .load()?
+                .redeemable_mint_decimals
+                .into(),
+        )
+        .ok_or_else(|| error!(UxdError::MathError))?;
+
     // - Initialize Depository state
     let depository = &mut ctx.accounts.depository.load_init()?;
     depository.bump = depository_bump;
@@ -87,7 +99,9 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
     depository.collateral_vault = ctx.accounts.collateral_vault.key();
     depository.collateral_vault_bump = collateral_vault_bump;
     depository.redeemable_amount_under_management = u128::MIN;
-    depository.redeemable_amount_under_management_cap = DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP;
+    depository.redeemable_amount_under_management_cap = DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP
+        .checked_mul(redeemable_mint_unit)
+        .ok_or_else(|| error!(UxdError::MathError))?;
     depository.minting_disabled = true;
 
     depository.mango_collateral_reinjected_wsol = false;
@@ -103,4 +117,35 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
     });
 
     Ok(())
+}
+
+// Validate input arguments
+impl<'info> InitializeIdentityDepository<'info> {
+    // Only usdc should be allowed as the collateral mint of this depository
+    pub fn validate_collateral_mint(&self) -> Result<()> {
+        let usdc_mint: Pubkey =
+            Pubkey::from_str("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").unwrap();
+
+        require!(
+            self.collateral_mint.key().eq(&usdc_mint),
+            UxdError::CollateralMintNotAllowed,
+        );
+
+        Ok(())
+    }
+
+    pub(crate) fn validate(&self) -> Result<()> {
+        // Collateral mint and redeemable mint should share the same decimals to justify their 1:1 swapping
+        require!(
+            self.collateral_mint
+                .decimals
+                .eq(&self.controller.load()?.redeemable_mint_decimals),
+            UxdError::CollateralMintNotAllowed,
+        );
+
+        #[cfg(feature = "production")]
+        self.validate_collateral_mint()?;
+
+        Ok(())
+    }
 }
