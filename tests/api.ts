@@ -2,11 +2,11 @@ import { getConnection, TXN_OPTS } from "./connection";
 import { uxdClient } from "./constants";
 import { Signer, Transaction } from "@solana/web3.js";
 import {
-  MangoDepository,
   Controller,
   createAssocTokenIx,
   findATAAddrSync,
   MercurialVaultDepository,
+  IdentityDepository,
 } from "@uxd-protocol/uxd-client";
 import { BN, web3 } from "@project-serum/anchor";
 
@@ -141,7 +141,6 @@ export async function editController(
   uiFields: {
     quoteMintAndRedeemSoftCap?: {
       value: number;
-      depository: MangoDepository;
     };
     redeemableSoftCap?: number;
     redeemableGlobalSupplyCap?: number;
@@ -186,5 +185,130 @@ export async function editMercurialVaultDepository(
   tx.instructions.push(editMercurialVaultDepositoryIx);
   signers.push(authority);
 
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function editIdentityDepository(
+  authority: Signer,
+  controller: Controller,
+  depository: IdentityDepository,
+  uiFields: {
+    redeemableAmountUnderManagementCap?: BN;
+    mintingDisabled?: boolean;
+  }
+): Promise<string> {
+  const editIdentityDepositoryIx = uxdClient.createEditIdentityDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    uiFields,
+    TXN_OPTS
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(editIdentityDepositoryIx);
+  signers.push(authority);
+
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function initializeIdentityDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: IdentityDepository,
+): Promise<string> {
+  const initializeIdentityDepositoryIx = uxdClient.createInitializeIdentityDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(initializeIdentityDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+
+export async function mintWithIdentityDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: IdentityDepository,
+  collateralAmount: number
+): Promise<string> {
+  const mintWithIdentityDepositoryIx = uxdClient.createMintWithIdentityDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    collateralAmount,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(mintWithIdentityDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function redeemFromIdentityDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: IdentityDepository,
+  redeemableAmount: number
+): Promise<string> {
+  const redeemFromIdentityDepositoryIx = uxdClient.createRedeemFromIdentityDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    redeemableAmount,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(redeemFromIdentityDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }

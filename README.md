@@ -28,9 +28,6 @@ The project follows the code org as done in [Jet protocol](https://github.com/je
 
 The project uses `Anchor` for safety, maintainability and readability.
 
-For the delta neutral depository the project relies on the `Mango Markets` [program](https://github.com/blockworks-foundation/mango-v3), a decentralised derivative exchange platform build on Solana, and controlled by a DAO.
-The project will implement new depositories with other defi protocol from Solana in the future to build the ALM system.
-
 This program contains 2 set of instructions, one permissionned and one permissionless. Permissionned instruction are called by [our DAO](https://governance.uxd.fi/dao/UXP).
 
 Please refer to the [UXDProgram Git book](https://docs.uxd.fi/uxdprogram-solana/welcome/purpose-and-philosophy) for the program architecture.
@@ -57,7 +54,7 @@ $> npm link @uxd-protocol/uxd-client
 The Program has been audited by Bramah Systems and Sec3.dev (previously Soteria) three times in the past.
 It is currently under continuous audit by Sec3.dev.
 
-Audit reports are available at https://docs.uxd.fi/uxdprogram-solana/welcome/audits.
+Audit reports are available at <https://docs.uxd.fi/uxdprogram-solana/welcome/audits>.
 
 ## Running tests
 
@@ -69,20 +66,7 @@ $> cargo test && cargo build-bpf && cargo test-bpf
 
 ### E2E Tests
 
-In order to have the environment ready to host test, the mango market devnet must be running as expected.
-To achieve this, the easiest way is to use the mango [market making bot](https://github.com/blockworks-foundation/market-maker-ts) in typescript, it cranks the perp market to ensure there are orders created to back the mint and redeem. ([mango-explorer](https://github.com/blockworks-foundation/mango-explorer/blob/main/docs/MarketmakingQuickstart.md) could be another option, but currently is not supported for the latest changes on mango).
-
-An example of the param used for the mm is shown below, noted that for market making, only SOL-PERP is necessarily for testing UXD.
-
-```Zsh
-{"group":"devnet.2","mangoAccountName":"mm","interval":200,"assets":{"SOL":{"perp":{"sizePerc":0.8,"leanCoeff":0,"bias":0,"requoteThresh":0,"takeSpammers":true,"spammerCharge":2}}}}
-```
-
-make sure this param file is created on the [param](https://github.com/blockworks-foundation/market-maker-ts/tree/main/params) directory and reflected correctly on the .env.
-
-When test are failing due to odd reasons, first thing to do is to check the [MangoMarkets V3](https://devnet.mango.markets/?name=SOL-PERP) market state. Verify that the order book is being updated, and the mm bot is running.
-
-Once this is setup, in another terminal you can build, deploy and run the test :
+Run the test :
 
 ```Zsh
 $> ./scripts/reset_program_id.sh # Optional, will reset the program ID in all files where it's needed to start with a clean slate
@@ -117,9 +101,8 @@ The CI strategy for E2E :
 - use the ci-resident-program (call ./scripts/swap_ci_resident_program.sh)
 - use it's upgrade authority stored in `target/deploy/ci-resident-upgrade-authority.json` for deployment
 - upgrade program
-- run the market making bots with the keypair `target/deploy/mango-mm-account-keypair.json`
 - start `test_ci_setup.ts`, to setup controller and all depositories on the resident program, no mint/redeem testing is involved on this test suite, global settings like supply cap and insurance fund should be tested here.
-- then starts 3 testing suites in series (`test_ci_regular_mint_redeem.ts`, `test_ci_rebalancing.ts`, `test_ci_quote_mint_redeem.ts`) for each Collateral/Dex whatever case (for now only mango and SOL, later on more with new Dexes).
+- then starts test suites in series for each depositories.
 - here is the job dependencies
   ![ci anchor test flow](ci_workflow.png)
 
