@@ -1458,11 +1458,13 @@
     },
     {
       "code": 6029,
+      "name": "RedeemableIdentityDepositoryAmountUnderManagementCap",
+      "msg": "Minting amount would go past the identity depository Redeemable Amount Under Management Cap."
+    },
+    {
+      "code": 6030,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "H4fDUuiTmRNrUVCaswDNFXAe1vR2UEgpdV8iQkzEn2C3"
-  }
+  ]
 }

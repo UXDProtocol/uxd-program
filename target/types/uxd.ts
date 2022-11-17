@@ -1458,6 +1458,11 @@ export type Uxd = {
     },
     {
       "code": 6029,
+      "name": "RedeemableIdentityDepositoryAmountUnderManagementCap",
+      "msg": "Minting amount would go past the identity depository Redeemable Amount Under Management Cap."
+    },
+    {
+      "code": 6030,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
@@ -2924,6 +2929,11 @@ export const IDL: Uxd = {
     },
     {
       "code": 6029,
+      "name": "RedeemableIdentityDepositoryAmountUnderManagementCap",
+      "msg": "Minting amount would go past the identity depository Redeemable Amount Under Management Cap."
+    },
+    {
+      "code": 6030,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

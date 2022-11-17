@@ -135,6 +135,7 @@ pub mod uxd {
         instructions::redeem_from_mercurial_vault_depository::handler(ctx, redeemable_amount)
     }
 
+    #[access_control(ctx.accounts.validate())]
     pub fn initialize_identity_depository(
         ctx: Context<InitializeIdentityDepository>,
     ) -> Result<()> {

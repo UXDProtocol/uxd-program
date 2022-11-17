@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
@@ -115,4 +117,35 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
     });
 
     Ok(())
+}
+
+// Validate input arguments
+impl<'info> InitializeIdentityDepository<'info> {
+    // Only usdc should be allowed as the collateral mint of this depository
+    pub fn validate_collateral_mint(&self) -> Result<()> {
+        let usdc_mint: Pubkey =
+            Pubkey::from_str("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").unwrap();
+
+        require!(
+            self.collateral_mint.key().eq(&usdc_mint),
+            UxdError::CollateralMintNotAllowed,
+        );
+
+        Ok(())
+    }
+
+    pub(crate) fn validate(&self) -> Result<()> {
+        // Collateral mint and redeemable mint should share the same decimals to justify their 1:1 swapping
+        require!(
+            self.collateral_mint
+                .decimals
+                .eq(&self.controller.load()?.redeemable_mint_decimals),
+            UxdError::CollateralMintNotAllowed,
+        );
+
+        #[cfg(feature = "production")]
+        self.validate_collateral_mint()?;
+
+        Ok(())
+    }
 }
