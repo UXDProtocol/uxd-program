@@ -133,6 +133,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
     pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #18
+    /// CHECK: not used by us, checked by credix program
     #[account(mut)]
     pub credix_multisig: AccountInfo<'info>,
 

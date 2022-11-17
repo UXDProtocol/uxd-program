@@ -33,7 +33,7 @@ mercurial-vault = { git="https://github.com/mercurial-finance/vault-sdk", featur
 mercurial-amm = { git="https://github.com/mercurial-finance/mercurial-dynamic-amm-sdk", features= ["cpi"], rev="8c93e541af252dd0f3fbae56a8eb730adb86feee" }
 
 syrup-cpi = "0.2.0"
-credix_client = "0.3.0"
+credix_client = { version="0.3.0", features = ["pre-mainnet", "cpi"], default-features = false}
 
 fixed = "^1.9.0"
 num-traits = "0.2.14"
