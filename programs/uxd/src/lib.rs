@@ -539,7 +539,7 @@ pub mod uxd {
     }
 
     // Create and Register a new `CredixLpDepository` to the `Controller`.
-    // Each `Depository` account manages a specific maple pool.
+    // Each `Depository` account manages a specific credix lp.
     #[access_control(
         ctx.accounts.validate(
             minting_fee_in_bps,
@@ -562,7 +562,7 @@ pub mod uxd {
         )
     }
 
-    // Mint Redeemable tokens by depositing Collateral to maple pool.
+    // Mint Redeemable tokens by depositing Collateral to credix lp.
     #[access_control(
         ctx.accounts.validate(collateral_amount)
     )]
@@ -572,6 +572,18 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[mint_with_credix_lp_depository]");
         instructions::mint_with_credix_lp_depository::handler(ctx, collateral_amount)
+    }
+
+    // Redeem collateral tokens by burning redeemable from credix lp.
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn redeem_from_credix_lp_depository(
+        ctx: Context<RedeemFromCredixLpDepository>,
+        redeemable_amount: u64,
+    ) -> Result<()> {
+        msg!("[redeem_from_credix_lp_depository]");
+        instructions::redeem_from_credix_lp_depository::handler(ctx, redeemable_amount)
     }
 }
 

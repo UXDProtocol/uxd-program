@@ -143,6 +143,43 @@ export async function mintWithCredixLpDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
+export async function redeemFromCredixLpDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: CredixLpDepository,
+  redeemableAmount: number
+): Promise<string> {
+  const redeemFromCredixLpDepositoryIx = uxdClient.createRedeemFromCredixLpDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    redeemableAmount,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(redeemFromCredixLpDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
 export async function redeemFromMercurialVaultDepository(
   authority: Signer,
   payer: Signer,
