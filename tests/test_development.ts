@@ -26,7 +26,7 @@ console.log(uxdProgramId.toString());
 const controller = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 const payer = bank;
 
-const SOLEND_USDC_DEVNET = new PublicKey("zVzi5VAf4qMEwzv7NXECVx5v2pQ7xnqVVjCXZwS9XzA");
+const SOLEND_USDC_DEVNET = new PublicKey("6L9fgyYtbz34JvwvYyL6YzJDAywz9PKGttuZuWyuoqje");
 const SOLEND_USDC_DEVNET_DECIMALS = 6;
 
 // Do not create the vault. We are building an object with utilities methods.

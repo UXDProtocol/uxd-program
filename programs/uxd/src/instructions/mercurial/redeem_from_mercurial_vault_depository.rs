@@ -308,7 +308,7 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
             .ok_or_else(|| error!(UxdError::MathError))?;
 
         require!(
-            (target_minimal_allowed_value..target).contains(&redeemed_collateral_amount),
+            (target_minimal_allowed_value..(target + 1)).contains(&redeemed_collateral_amount),
             UxdError::SlippageReached,
         );
 
