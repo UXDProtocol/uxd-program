@@ -202,9 +202,6 @@ impl<'info> MintWithIdentityDepository<'info> {
             UxdError::MintingDisabled
         );
 
-        #[cfg(feature = "production")]
-        self.validate_collateral_mint()?;
-
         Ok(())
     }
 }
