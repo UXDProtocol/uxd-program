@@ -1,4 +1,4 @@
-import { PublicKey, Signer } from "@solana/web3.js";
+import { Signer } from "@solana/web3.js";
 import { Controller, CredixLpDepository, findMultipleATAAddSync, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { redeemFromCredixLpDepository } from "../api";

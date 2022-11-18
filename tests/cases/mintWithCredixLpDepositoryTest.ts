@@ -1,12 +1,5 @@
-import { BN } from "@project-serum/anchor";
 import { Signer } from "@solana/web3.js";
-import {
-  Controller,
-  CredixLpDepository,
-  findATAAddrSync,
-  findMultipleATAAddSync,
-  nativeToUi,
-} from "@uxd-protocol/uxd-client";
+import { Controller, CredixLpDepository, findATAAddrSync, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { mintWithCredixLpDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";

@@ -32,7 +32,7 @@ export const registerCredixLpDepositoryTest = async function (
     }
 
     // THEN
-    console.log(`🧾 Initialized`, "Maple Pool Depository");
+    console.log(`🧾 Initialized`, "Credix Lp Depository");
     depository.info();
     console.groupEnd();
   } catch (error) {

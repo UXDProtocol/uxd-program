@@ -1565,6 +1565,11 @@
           "isSigner": false
         },
         {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "rent",
           "isMut": false,
           "isSigner": false
@@ -1955,16 +1960,8 @@
             "type": "publicKey"
           },
           {
-            "name": "depositoryCollateralBump",
-            "type": "u8"
-          },
-          {
             "name": "depositoryShares",
             "type": "publicKey"
-          },
-          {
-            "name": "depositorySharesBump",
-            "type": "u8"
           },
           {
             "name": "credixProgramState",

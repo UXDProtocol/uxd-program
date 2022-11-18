@@ -1,12 +1,11 @@
 import { Signer } from "@solana/web3.js";
-import { Controller, ControllerAccount, CredixLpDepository, nativeToUi } from "@uxd-protocol/uxd-client";
+import { Controller, CredixLpDepository, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { mintWithCredixLpDepositoryTest } from "../cases/mintWithCredixLpDepositoryTest";
 import { transferTokens } from "../utils";
 import { getConnection, TXN_OPTS } from "../connection";
 import { BN } from "@project-serum/anchor";
 import { editCredixLpDepositoryTest } from "../cases/editCredixLpDepositoryTest";
-import { CredixLpDepositoryAccount, uiToNative } from "@uxd-protocol/uxd-client";
 import { editControllerTest } from "../cases/editControllerTest";
 import { redeemFromCredixLpDepositoryTest } from "../cases/redeemFromCredixLpDepositoryTest";
 
@@ -19,22 +18,16 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
 ) {
   let initialControllerGlobalRedeemableSupplyCap: BN;
   let initialRedeemableDepositorySupplyCap: BN;
-  let onchainController: ControllerAccount;
-  let onChainDepository: CredixLpDepositoryAccount;
 
   before("Setup: fund user", async function () {
-    console.log("depository.collateralMint", depository.collateralMint.toBase58());
-    console.log("depository.collateralDecimals", depository.collateralDecimals);
-    console.log("user.publicKey", user.publicKey.toBase58());
-
     await transferTokens(0.002, depository.collateralMint, depository.collateralDecimals, payer, user.publicKey);
 
-    [onchainController, onChainDepository] = await Promise.all([
+    let [onChainController, onChainDepository] = await Promise.all([
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
 
-    initialControllerGlobalRedeemableSupplyCap = onchainController.redeemableGlobalSupplyCap;
+    initialControllerGlobalRedeemableSupplyCap = onChainController.redeemableGlobalSupplyCap;
     initialRedeemableDepositorySupplyCap = onChainDepository.redeemableAmountUnderManagementCap;
   });
 

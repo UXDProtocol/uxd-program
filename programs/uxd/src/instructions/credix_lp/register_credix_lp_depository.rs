@@ -6,10 +6,9 @@ use crate::utils::validate_collateral_mint_usdc;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_ACCOUNT_VERSION;
-use crate::CREDIX_LP_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
-use crate::CREDIX_LP_DEPOSITORY_SHARES_NAMESPACE;
 use anchor_lang::prelude::*;
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
@@ -56,13 +55,8 @@ pub struct RegisterCredixLpDepository<'info> {
     /// #6
     #[account(
         init,
-        seeds = [
-            CREDIX_LP_DEPOSITORY_COLLATERAL_NAMESPACE,
-            depository.key().as_ref()
-        ],
-        token::authority = depository,
-        token::mint = collateral_mint,
-        bump,
+        associated_token::mint = collateral_mint,
+        associated_token::authority = depository,
         payer = payer,
     )]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
@@ -70,13 +64,8 @@ pub struct RegisterCredixLpDepository<'info> {
     /// #7
     #[account(
         init,
-        seeds = [
-            CREDIX_LP_DEPOSITORY_SHARES_NAMESPACE,
-            depository.key().as_ref()
-        ],
-        token::authority = depository,
-        token::mint = credix_shares_mint,
-        bump,
+        associated_token::mint = credix_shares_mint,
+        associated_token::authority = depository,
         payer = payer,
     )]
     pub depository_shares: Box<Account<'info, TokenAccount>>,
@@ -111,6 +100,8 @@ pub struct RegisterCredixLpDepository<'info> {
     /// #14
     pub token_program: Program<'info, Token>,
     /// #15
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    /// #16
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -122,15 +113,6 @@ pub fn handler(
 ) -> Result<()> {
     // Read some of the depositories required informations
     let depository_bump = *ctx.bumps.get("depository").ok_or(UxdError::BumpError)?;
-
-    let depository_collateral_bump = *ctx
-        .bumps
-        .get("depository_collateral")
-        .ok_or(UxdError::BumpError)?;
-    let depository_shares_bump = *ctx
-        .bumps
-        .get("depository_shares")
-        .ok_or(UxdError::BumpError)?;
 
     // Initialize the depository account
     msg!("[register_credix_lp_depository:init_depository]");
@@ -144,10 +126,7 @@ pub fn handler(
     depository.collateral_mint = ctx.accounts.collateral_mint.key();
 
     depository.depository_collateral = ctx.accounts.depository_collateral.key();
-    depository.depository_collateral_bump = depository_collateral_bump;
-
     depository.depository_shares = ctx.accounts.depository_shares.key();
-    depository.depository_shares_bump = depository_shares_bump;
 
     // We register all necessary credix accounts to facilitate other instructions safety checks
     depository.credix_program_state = ctx.accounts.credix_program_state.key();

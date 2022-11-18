@@ -341,6 +341,31 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
     let owned_shares_amount_increase = checked_i64_to_u64(owned_shares_amount_delta)?;
     let owned_shares_value_increase = checked_i64_to_u64(owned_shares_value_delta)?;
 
+    msg!(
+        "[mint_with_credix_lp_depository:user_collateral_amount_decrease:{}]",
+        user_collateral_amount_decrease
+    );
+    msg!(
+        "[mint_with_credix_lp_depository:liquidity_collateral_amount_increase:{}]",
+        liquidity_collateral_amount_increase
+    );
+    msg!(
+        "[mint_with_credix_lp_depository:total_shares_amount_increase:{}]",
+        total_shares_amount_increase
+    );
+    msg!(
+        "[mint_with_credix_lp_depository:total_shares_value_increase:{}]",
+        total_shares_value_increase
+    );
+    msg!(
+        "[mint_with_credix_lp_depository:owned_shares_amount_increase:{}]",
+        owned_shares_amount_increase
+    );
+    msg!(
+        "[mint_with_credix_lp_depository:owned_shares_value_increase:{}]",
+        owned_shares_value_increase
+    );
+
     // Validate that the collateral value moved exactly to the correct place
     require!(
         user_collateral_amount_decrease == collateral_amount,

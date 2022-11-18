@@ -1565,6 +1565,11 @@ export type Uxd = {
           "isSigner": false
         },
         {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "rent",
           "isMut": false,
           "isSigner": false
@@ -1955,16 +1960,8 @@ export type Uxd = {
             "type": "publicKey"
           },
           {
-            "name": "depositoryCollateralBump",
-            "type": "u8"
-          },
-          {
             "name": "depositoryShares",
             "type": "publicKey"
-          },
-          {
-            "name": "depositorySharesBump",
-            "type": "u8"
           },
           {
             "name": "credixProgramState",
@@ -5633,6 +5630,11 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "rent",
           "isMut": false,
           "isSigner": false
@@ -6023,16 +6025,8 @@ export const IDL: Uxd = {
             "type": "publicKey"
           },
           {
-            "name": "depositoryCollateralBump",
-            "type": "u8"
-          },
-          {
             "name": "depositoryShares",
             "type": "publicKey"
-          },
-          {
-            "name": "depositorySharesBump",
-            "type": "u8"
           },
           {
             "name": "credixProgramState",

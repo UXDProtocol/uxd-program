@@ -12,10 +12,7 @@ pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<Pubkey>() // collateral_mint
 
  + size_of::<Pubkey>() // depository_collateral
- + size_of::<u8>() // depository_collateral_bump
-
  + size_of::<Pubkey>() // depository_shares
- + size_of::<u8>() // depository_shares_bump
 
  + size_of::<Pubkey>() // credix_program_state
  + size_of::<Pubkey>() // credix_global_market_state
@@ -49,11 +46,9 @@ pub struct CredixLpDepository {
 
     // The account owned by the despoitory containing the collateral during mint/redeem operations
     pub depository_collateral: Pubkey,
-    pub depository_collateral_bump: u8,
 
     // The account owned by the despoitory containing the lp shares owned
     pub depository_shares: Pubkey,
-    pub depository_shares_bump: u8,
 
     // Credix accounts enforced- at registration
     pub credix_program_state: Pubkey,
