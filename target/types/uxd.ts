@@ -1791,7 +1791,7 @@ export type Uxd = {
         },
         {
           "name": "credixMultisig",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -5856,7 +5856,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "credixMultisig",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
