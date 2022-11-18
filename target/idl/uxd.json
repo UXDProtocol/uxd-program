@@ -1645,12 +1645,12 @@
         },
         {
           "name": "credixGlobalMarketState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "credixSigningAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1756,17 +1756,17 @@
         },
         {
           "name": "credixProgramState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "credixGlobalMarketState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "credixSigningAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {

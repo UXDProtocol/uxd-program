@@ -1,6 +1,7 @@
 import { Signer, Keypair } from "@solana/web3.js";
 import { Controller, UXD_DECIMALS } from "@uxd-protocol/uxd-client";
 import { editControllerTest } from "./cases/editControllerTest";
+import { editCredixLpDepositoryTest } from "./cases/editCredixLpDepositoryTest";
 import { initializeControllerTest } from "./cases/initializeControllerTest";
 import { authority, bank, uxdProgramId } from "./constants";
 import { credixLpDepositoryEditSuite } from "./suite/credixLpDepositoryEditSuite";
@@ -27,6 +28,11 @@ import {
   it("Set controller global supply cap to 25mm", async function () {
     await editControllerTest(authority, controllerUXD, {
       redeemableGlobalSupplyCap: 25_000_000,
+    });
+  });
+  it("Set depository redeemable under management cap to 25mm", async function () {
+    await editCredixLpDepositoryTest(authority, controllerUXD, credixLpDepository, {
+      redeemableAmountUnderManagementCap: 25_000_000,
     });
   });
 

@@ -93,21 +93,18 @@ pub struct RedeemFromCredixLpDepository<'info> {
 
     /// #11
     #[account(
-        mut,
         constraint = credix_program_state.credix_multisig_key == credix_multisig.key() @UxdError::InvalidCredixMultisig,
     )]
     pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
 
     /// #12
     #[account(
-        mut,
         constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
     )]
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 
     /// #13
     /// CHECK: checked by the depository's has_one
-    #[account(mut)]
     pub credix_signing_authority: AccountInfo<'info>,
 
     /// #14
@@ -134,7 +131,6 @@ pub struct RedeemFromCredixLpDepository<'info> {
 
     /// #18
     /// CHECK: not used by us, checked by credix program
-    #[account(mut)]
     pub credix_multisig: AccountInfo<'info>,
 
     /// #19

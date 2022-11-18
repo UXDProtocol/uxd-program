@@ -91,12 +91,10 @@ pub struct MintWithCredixLpDepository<'info> {
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
     /// #11
-    #[account(mut)]
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 
     /// #12
     /// CHECK: checked by the depository's has_one
-    #[account(mut)]
     pub credix_signing_authority: AccountInfo<'info>,
 
     /// #13
@@ -341,31 +339,6 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
     let owned_shares_amount_increase = checked_i64_to_u64(owned_shares_amount_delta)?;
     let owned_shares_value_increase = checked_i64_to_u64(owned_shares_value_delta)?;
 
-    msg!(
-        "[mint_with_credix_lp_depository:user_collateral_amount_decrease:{}]",
-        user_collateral_amount_decrease
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:liquidity_collateral_amount_increase:{}]",
-        liquidity_collateral_amount_increase
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:total_shares_amount_increase:{}]",
-        total_shares_amount_increase
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:total_shares_value_increase:{}]",
-        total_shares_value_increase
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:owned_shares_amount_increase:{}]",
-        owned_shares_amount_increase
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:owned_shares_value_increase:{}]",
-        owned_shares_value_increase
-    );
-
     // Validate that the collateral value moved exactly to the correct place
     require!(
         user_collateral_amount_decrease == collateral_amount,
@@ -375,14 +348,14 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         liquidity_collateral_amount_increase == collateral_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
+    require!(
+        total_shares_value_increase == collateral_amount,
+        UxdError::CollateralDepositAmountsDoesntMatch,
+    );
 
     // Check that we received the correct amount of shares
     require!(
         owned_shares_amount_increase == total_shares_amount_increase,
-        UxdError::CollateralDepositDoesntMatchTokenValue,
-    );
-    require!(
-        owned_shares_value_increase == total_shares_value_increase,
         UxdError::CollateralDepositDoesntMatchTokenValue,
     );
 

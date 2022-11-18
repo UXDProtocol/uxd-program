@@ -1645,12 +1645,12 @@ export type Uxd = {
         },
         {
           "name": "credixGlobalMarketState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "credixSigningAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1756,17 +1756,17 @@ export type Uxd = {
         },
         {
           "name": "credixProgramState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "credixGlobalMarketState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "credixSigningAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -5710,12 +5710,12 @@ export const IDL: Uxd = {
         },
         {
           "name": "credixGlobalMarketState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "credixSigningAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -5821,17 +5821,17 @@ export const IDL: Uxd = {
         },
         {
           "name": "credixProgramState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "credixGlobalMarketState",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
           "name": "credixSigningAuthority",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
