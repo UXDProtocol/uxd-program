@@ -68,7 +68,7 @@ pub struct ReinjectMangoToIdentityDepository<'info> {
     #[account(
         mut,
         seeds = [MANGO_DEPOSITORY_NAMESPACE, mango_depository.load()?.collateral_mint.as_ref()],
-        bump = depository.load()?.bump,
+        bump = mango_depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
     )]
     pub mango_depository: AccountLoader<'info, MangoDepository>,
