@@ -206,7 +206,6 @@ jobs:
 
   anchor-test-mercurial:
     name: Mercurial mint/redeem and edit depository
-    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [anchor-test-setup]
@@ -292,7 +291,7 @@ jobs:
     name: Identity mint/redeem and edit depository
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [anchor-test-setup]
+    needs: [anchor-test-mercurial]
     steps:
       # Checkout
       - uses: actions/checkout@v2
