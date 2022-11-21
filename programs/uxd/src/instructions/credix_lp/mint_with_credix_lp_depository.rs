@@ -16,6 +16,7 @@ use crate::utils::checked_i64_to_u64;
 use crate::utils::compute_delta;
 use crate::utils::compute_shares_amount_for_value;
 use crate::utils::compute_value_for_shares_amount;
+use crate::utils::is_within_range_inclusive;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 
@@ -179,7 +180,7 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         total_shares_value_before,
     )?;
     msg!(
-        "[redeem_from_credix_lp_depository:shares_amount:{}]",
+        "[mint_with_credix_lp_depository:shares_amount:{}]",
         shares_amount
     );
     require!(
@@ -194,7 +195,7 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         total_shares_value_before,
     )?;
     msg!(
-        "[redeem_from_credix_lp_depository:collateral_amount_after_precision_loss:{}]",
+        "[mint_with_credix_lp_depository:collateral_amount_after_precision_loss:{}]",
         collateral_amount_after_precision_loss
     );
     require!(
@@ -211,7 +212,7 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         ctx.accounts.depository.load()?.minting_fee_in_bps,
     )?;
     msg!(
-        "[redeem_from_credix_lp_depository:redeemable_amount_after_fees:{}]",
+        "[mint_with_credix_lp_depository:redeemable_amount_after_fees:{}]",
         redeemable_amount_after_fees
     );
     require!(
@@ -359,11 +360,19 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
 
     // Check that the new state of the pool still makes sense
     require!(
-        owned_shares_value_increase == collateral_amount,
+        is_within_range_inclusive(
+            owned_shares_value_increase,
+            collateral_amount_after_precision_loss,
+            collateral_amount
+        ),
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        total_shares_value_increase == collateral_amount,
+        is_within_range_inclusive(
+            total_shares_value_increase,
+            collateral_amount_after_precision_loss,
+            collateral_amount
+        ),
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 

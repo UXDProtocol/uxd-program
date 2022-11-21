@@ -17,6 +17,7 @@ use crate::utils::compute_amount_fraction;
 use crate::utils::compute_delta;
 use crate::utils::compute_shares_amount_for_value;
 use crate::utils::compute_value_for_shares_amount;
+use crate::utils::is_within_range_inclusive;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 
@@ -394,11 +395,19 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
 
     // Check that the new state of the pool still makes sense
     require!(
-        owned_shares_value_decrease == collateral_amount_after_precision_loss,
+        is_within_range_inclusive(
+            owned_shares_value_decrease,
+            collateral_amount_after_precision_loss,
+            collateral_amount_before_precision_loss,
+        ),
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        total_shares_value_decrease == collateral_amount_after_precision_loss,
+        is_within_range_inclusive(
+            total_shares_value_decrease,
+            collateral_amount_after_precision_loss,
+            collateral_amount_before_precision_loss,
+        ),
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
