@@ -13,6 +13,7 @@ use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::utils::calculate_amount_less_fees;
 use crate::utils::checked_i64_to_u64;
+use crate::utils::compute_amount_fraction;
 use crate::utils::compute_delta;
 use crate::utils::compute_shares_amount_for_value;
 use crate::utils::compute_value_for_shares_amount;
@@ -99,6 +100,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
 
     /// #12
     #[account(
+        mut,
         constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
     )]
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
@@ -154,6 +156,12 @@ pub struct RedeemFromCredixLpDepository<'info> {
 }
 
 pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u64) -> Result<()> {
+    // Ready, log the amount
+    msg!(
+        "[redeem_from_credix_lp_depository:redeemable_amount:{}]",
+        redeemable_amount
+    );
+
     // Read useful values
     let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
     let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
@@ -189,49 +197,21 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         total_shares_value_before,
     )?;
 
-    // Add some pool state log information
-    msg!(
-        "[mint_with_credix_lp_depository:liquidity_collateral_amount_before:{}]",
-        liquidity_collateral_amount_before
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:outstanding_collateral_amount_before:{}]",
-        outstanding_collateral_amount_before
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:total_shares_amount_before:{}]",
-        total_shares_amount_before
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:total_shares_value_before:{}]",
-        total_shares_value_before
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:owned_shares_amount_before:{}]",
-        owned_shares_amount_before
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:owned_shares_value_before:{}]",
-        owned_shares_value_before
-    );
-
-    // Calculate the amount of collateral we want to withdraw based on the redeemable amount
-    let redeemable_amount_after_fees = calculate_amount_less_fees(
+    // Apply the redeeming fees
+    let redeemable_amount_after_fees: u64 = calculate_amount_less_fees(
         redeemable_amount,
         ctx.accounts.depository.load()?.redeeming_fee_in_bps,
     )?;
-    let collateral_amount_before_precision_loss = redeemable_amount_after_fees; // assume 1:1 on purpose
-    require!(
-        collateral_amount_before_precision_loss > 0,
-        UxdError::MinimumRedeemedCollateralAmountError
-    );
     msg!(
-        "[redeem_from_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
-        collateral_amount_before_precision_loss
+        "[redeem_from_credix_lp_depository:redeemable_amount_after_fees:{}]",
+        redeemable_amount_after_fees
     );
 
+    // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
+    let collateral_amount_before_precision_loss: u64 = redeemable_amount_after_fees;
+
     // Compute the amount of shares that we need to withdraw based on the amount of wanted collateral
-    let shares_amount = compute_shares_amount_for_value(
+    let shares_amount: u64 = compute_shares_amount_for_value(
         collateral_amount_before_precision_loss,
         total_shares_amount_before,
         total_shares_value_before,
@@ -242,25 +222,41 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
     );
 
     // Compute the amount of collateral that the withdrawn shares are worth (after potential precision loss)
-    let collateral_amount_after_precision_loss = compute_value_for_shares_amount(
+    let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount(
         shares_amount,
         total_shares_amount_before,
         total_shares_value_before,
     )?;
-    require!(
-        collateral_amount_after_precision_loss > 0,
-        UxdError::MinimumRedeemedCollateralAmountError
-    );
     msg!(
         "[redeem_from_credix_lp_depository:collateral_amount_after_precision_loss:{}]",
         collateral_amount_after_precision_loss
     );
+    require!(
+        collateral_amount_after_precision_loss > 0,
+        UxdError::MinimumRedeemedCollateralAmountError
+    );
+
+    // Compute the amount of collateral we will receive after the withdrawal fees
+    let withdrawal_fees_fraction = ctx.accounts.credix_global_market_state.withdrawal_fee;
+    let withdrawal_fees_amount: u64 = compute_amount_fraction(
+        collateral_amount_after_precision_loss,
+        withdrawal_fees_fraction.numerator.into(),
+        withdrawal_fees_fraction.denominator.into(),
+    )?;
+    let collateral_amount_after_withdrawal_fees: u64 = collateral_amount_after_precision_loss
+        .checked_sub(withdrawal_fees_amount)
+        .ok_or(UxdError::MathError)?;
+    msg!(
+        "[redeem_from_credix_lp_depository:collateral_amount_after_withdrawal_fees:{}]",
+        collateral_amount_after_withdrawal_fees
+    );
+    require!(
+        collateral_amount_after_withdrawal_fees > 0,
+        UxdError::MinimumRedeemedCollateralAmountError
+    );
 
     // Burn the user's redeemable
-    msg!(
-        "[redeem_from_credix_lp_depository:redeemable_burn:{}]",
-        redeemable_amount
-    );
+    msg!("[redeem_from_credix_lp_depository:redeemable_burn]",);
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
         redeemable_amount,
@@ -272,7 +268,7 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         ctx.accounts
             .into_withdraw_funds_from_credix_lp_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_after_precision_loss,
+        collateral_amount_before_precision_loss,
     )?;
 
     // Transfer the received collateral from the depository to the end user
@@ -281,7 +277,7 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         ctx.accounts
             .into_transfer_depository_collateral_to_user_collateral_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_after_precision_loss,
+        collateral_amount_after_withdrawal_fees,
     )?;
 
     // Refresh account states after deposit
@@ -316,32 +312,6 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         total_shares_value_after,
     )?;
 
-    // Add some pool state log information
-    msg!(
-        "[mint_with_credix_lp_depository:liquidity_collateral_amount_after:{}]",
-        liquidity_collateral_amount_after
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:outstanding_collateral_amount_after:{}]",
-        outstanding_collateral_amount_after
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:total_shares_amount_after:{}]",
-        total_shares_amount_after
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:total_shares_value_after:{}]",
-        total_shares_value_after
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:owned_shares_amount_after:{}]",
-        owned_shares_amount_after
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:owned_shares_value_after:{}]",
-        owned_shares_value_after
-    );
-
     // Compute changes in states
     let depository_collateral_delta: i64 = compute_delta(
         depository_collateral_amount_before,
@@ -352,18 +322,9 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
     let user_redeemable_amount_delta: i64 =
         compute_delta(user_redeemable_amount_before, user_redeemable_amount_after)?;
 
-    let liquidity_collateral_amount_delta: i64 = compute_delta(
-        liquidity_collateral_amount_before,
-        liquidity_collateral_amount_after,
-    )?;
-    let outstanding_collateral_amount_delta: i64 = compute_delta(
-        outstanding_collateral_amount_before,
-        outstanding_collateral_amount_after,
-    )?;
-
-    let total_shares_amount_delta =
+    let total_shares_amount_delta: i64 =
         compute_delta(total_shares_amount_before, total_shares_amount_after)?;
-    let total_shares_value_delta =
+    let total_shares_value_delta: i64 =
         compute_delta(total_shares_value_before, total_shares_value_after)?;
 
     let owned_shares_amount_delta: i64 =
@@ -387,14 +348,6 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         UxdError::CollateralDepositUnaccountedFor
     );
     require!(
-        liquidity_collateral_amount_delta < 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-    require!(
-        outstanding_collateral_amount_delta == 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-    require!(
         total_shares_amount_delta < 0,
         UxdError::CollateralDepositUnaccountedFor
     );
@@ -412,40 +365,20 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
     );
 
     // Because we know the direction of the change, we can use the unsigned values now
-    let user_collateral_amount_increase = checked_i64_to_u64(user_collateral_amount_delta)?;
-    let user_redeemable_amount_decrease = checked_i64_to_u64(-user_redeemable_amount_delta)?;
-    let liquidity_collateral_amount_decrease =
-        checked_i64_to_u64(-liquidity_collateral_amount_delta)?;
-    let total_shares_amount_decrease = checked_i64_to_u64(-total_shares_amount_delta)?;
-    let total_shares_value_decrease = checked_i64_to_u64(-total_shares_value_delta)?;
-    let owned_shares_amount_decrease = checked_i64_to_u64(-owned_shares_amount_delta)?;
-    let owned_shares_value_decrease = checked_i64_to_u64(-owned_shares_value_delta)?;
+    let user_collateral_amount_increase: u64 = checked_i64_to_u64(user_collateral_amount_delta)?;
+    let user_redeemable_amount_decrease: u64 = checked_i64_to_u64(-user_redeemable_amount_delta)?;
+    let total_shares_amount_decrease: u64 = checked_i64_to_u64(-total_shares_amount_delta)?;
+    let total_shares_value_decrease: u64 = checked_i64_to_u64(-total_shares_value_delta)?;
+    let owned_shares_amount_decrease: u64 = checked_i64_to_u64(-owned_shares_amount_delta)?;
+    let owned_shares_value_decrease: u64 = checked_i64_to_u64(-owned_shares_value_delta)?;
 
-    // Validate the redeemable/collateral computation
-    require!(
-        collateral_amount_after_precision_loss <= redeemable_amount_after_fees,
-        UxdError::CollateralDepositAmountsDoesntMatch,
-    );
-
-    // Validate that the collateral value moved exactly to the correct place
+    // Validate that the locked value moved exactly to the correct place
     require!(
         user_redeemable_amount_decrease == redeemable_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        user_collateral_amount_increase == collateral_amount_after_precision_loss,
-        UxdError::CollateralDepositAmountsDoesntMatch,
-    );
-    require!(
-        liquidity_collateral_amount_decrease == collateral_amount_after_precision_loss,
-        UxdError::CollateralDepositAmountsDoesntMatch,
-    );
-    require!(
-        owned_shares_value_decrease == collateral_amount_after_precision_loss,
-        UxdError::CollateralDepositAmountsDoesntMatch,
-    );
-    require!(
-        total_shares_value_decrease == collateral_amount_after_precision_loss,
+        user_collateral_amount_increase == collateral_amount_after_withdrawal_fees,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
@@ -459,9 +392,20 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
+    // Check that the new state of the pool still makes sense
+    require!(
+        owned_shares_value_decrease == collateral_amount_after_precision_loss,
+        UxdError::CollateralDepositAmountsDoesntMatch,
+    );
+    require!(
+        total_shares_value_decrease == collateral_amount_after_precision_loss,
+        UxdError::CollateralDepositAmountsDoesntMatch,
+    );
+
     // Compute how much fees was paid
-    let redeemable_amount_delta = compute_delta(redeemable_amount, redeemable_amount_after_fees)?;
-    let redeeming_fee_paid = checked_i64_to_u64(-redeemable_amount_delta)?;
+    let redeemable_amount_delta: i64 =
+        compute_delta(redeemable_amount, redeemable_amount_after_fees)?;
+    let redeeming_fee_paid: u64 = checked_i64_to_u64(-redeemable_amount_delta)?;
 
     // Emit event
     emit!(RedeemFromCredixLpDepositoryEvent {

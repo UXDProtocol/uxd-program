@@ -52,8 +52,12 @@ export const redeemFromCredixLpDepositoryTest = async function (
     );
 
     const collateralNativeUnitPrecision = Math.pow(10, -depository.collateralDecimals);
-    const estimatedFeesPaid = ceilAtDecimals(
+    const estimatedRedeemingFeesPaid = ceilAtDecimals(
       redeemableAmount - ((10_000 - onChainDepository_pre.redeemingFeeInBps) * redeemableAmount) / 10_000,
+      controller.redeemableMintDecimals
+    );
+    const estimatedWithdrawingFeesPaid = ceilAtDecimals(
+      redeemableAmount - ((10_000 - 50) * redeemableAmount) / 10_000,
       controller.redeemableMintDecimals
     );
 
@@ -65,12 +69,17 @@ export const redeemFromCredixLpDepositoryTest = async function (
       Number(redeemableDelta.toFixed(controller.redeemableMintDecimals)),
       controller.redeemableMintSymbol,
       "with",
-      estimatedFeesPaid,
-      "fees paid."
+      estimatedRedeemingFeesPaid,
+      "redeeming fees paid",
+      "with",
+      estimatedWithdrawingFeesPaid,
+      "withdrawing fees paid"
     );
 
     const estimatedCollateralAmount = Number(
-      (redeemableAmount - estimatedFeesPaid).toFixed(depository.collateralDecimals)
+      (redeemableAmount - estimatedRedeemingFeesPaid - estimatedWithdrawingFeesPaid).toFixed(
+        depository.collateralDecimals
+      )
     );
 
     // Check used redeemable

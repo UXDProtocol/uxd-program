@@ -1,14 +1,10 @@
 use crate::error::UxdError;
 use anchor_lang::prelude::*;
-use fixed::types::I80F48;
 
 pub fn compute_delta(before: u64, after: u64) -> Result<i64> {
-    let before_fixed = I80F48::checked_from_num(before).ok_or(UxdError::MathError)?;
-    let after_fixed = I80F48::checked_from_num(after).ok_or(UxdError::MathError)?;
-    let delta_fixed = after_fixed
-        .checked_sub(before_fixed)
-        .ok_or(UxdError::MathError)?;
-    Ok(delta_fixed
-        .checked_to_num::<i64>()
+    let before_signed = i64::try_from(before).ok().ok_or(UxdError::MathError)?;
+    let after_signed = i64::try_from(after).ok().ok_or(UxdError::MathError)?;
+    Ok(after_signed
+        .checked_sub(before_signed)
         .ok_or(UxdError::MathError)?)
 }

@@ -1761,7 +1761,7 @@
         },
         {
           "name": "credixGlobalMarketState",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -4060,8 +4060,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "BxYr5TawwhG81hJFrQPyVmcQRhPXfSF759XmhWQH5TKt"
-  }
+  ]
 }
