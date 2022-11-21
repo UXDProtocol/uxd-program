@@ -7,7 +7,6 @@ pub mod mercurial;
 pub mod mint_with_identity_depository;
 pub mod redeem_from_identity_depository;
 pub mod register_mercurial_vault_depository;
-pub mod reinject_mango_to_identity_depository;
 
 pub use edit_controller::*;
 pub use edit_identity_depository::*;
@@ -18,4 +17,3 @@ pub use mercurial::*;
 pub use mint_with_identity_depository::*;
 pub use redeem_from_identity_depository::*;
 pub use register_mercurial_vault_depository::*;
-pub use reinject_mango_to_identity_depository::*;

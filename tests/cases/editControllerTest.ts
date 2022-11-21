@@ -1,6 +1,5 @@
-import { nativeToUi } from "@blockworks-foundation/mango-client";
 import { Signer } from "@solana/web3.js";
-import { Controller, MangoDepository } from "@uxd-protocol/uxd-client";
+import { Controller, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { editController } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";

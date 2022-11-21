@@ -34,9 +34,7 @@ pub struct Controller {
     pub redeemable_mint: Pubkey,
     pub redeemable_mint_decimals: u8,
     //
-    // The Mango Depositories registered with this Controller
-    pub registered_mango_depositories: [Pubkey; MAX_REGISTERED_MANGO_DEPOSITORIES],
-    pub registered_mango_depositories_count: u8,
+    pub _unused: [u8; 257],
     //
     // Progressive roll out and safety ----------
     //

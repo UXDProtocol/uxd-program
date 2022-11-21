@@ -14,7 +14,7 @@ import { mercurialVaultDepositorySetupSuite } from "./suite/mercurialVaultDeposi
   });
 
   describe("controllerIntegrationSuite", function () {
-    const params = new controllerIntegrationSuiteParameters(25_000_000, 500_000);
+    const params = new controllerIntegrationSuiteParameters(25_000_000);
     controllerIntegrationSuite(authority, bank, controllerUXD, params);
   });
 

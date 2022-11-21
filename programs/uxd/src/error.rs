@@ -62,8 +62,6 @@ pub enum UxdError {
     InvalidMercurialVault,
     #[msg("The provided mercurial vault collateral token safe does not match the mercurial vault one.")]
     InvalidMercurialVaultCollateralTokenSafe,
-    #[msg("The collateral from this mango depository has reinjected to identity depository")]
-    MangoCollateralReinjected,
     #[msg("Minting amount would go past the identity depository Redeemable Amount Under Management Cap.")]
     RedeemableIdentityDepositoryAmountUnderManagementCap,
 

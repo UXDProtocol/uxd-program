@@ -6,17 +6,11 @@ import {
   IdentityDepository,
   USDC_DEVNET,
   USDC_DECIMALS,
-  MangoDepository,
-  SOL_DECIMALS,
-  WSOL,
-  nativeToUi,
 } from "@uxd-protocol/uxd-client";
 import { authority, bank, uxdProgramId } from "./constants";
-import { transferAllSol, transferAllTokens, transferSol, transferTokens } from "./utils";
+import { transferAllSol, transferAllTokens, transferSol } from "./utils";
 import { initializeControllerTest } from "./cases/initializeControllerTest";
-import { getConnection, TXN_OPTS } from "./connection";
 import { identityDepositorySetupSuite } from "./suite/identityDepositorySetup";
-import { reinjectMangoToIdentityDepositoryTest } from "./cases/reinjectMangoToIdentityDepositoryTest";
 import { identityDepositoryMintRedeemSuite } from "./suite/identityDepositoryMintAndRedeemSuite";
 import { editIdentityDepositoryTest } from "./cases/editIdentityDepositoryTest";
 import { editIdentityDepositorySuite } from "./suite/editIdentityDepositorySuite";
@@ -32,7 +26,6 @@ const SOLEND_USDC_DEVNET_DECIMALS = 6;
 // Do not create the vault. We are building an object with utilities methods.
 let mercurialVaultDepositoryUSDC: MercurialVaultDepository = null;
 let identityDepository: IdentityDepository = null;
-let mangoDepositorySOL: MangoDepository = null;
 
 let mintedRedeemableAmountWithMercurialVaultDepository = 0;
 
@@ -147,37 +140,6 @@ describe("Integration tests", function () {
   //     );
   //   });
   // });
-
-  describe("Reinject mango depository managed redeemable amount to identity depository", async function () {
-    mangoDepositorySOL = new MangoDepository(
-      WSOL,
-      "SOL",
-      SOL_DECIMALS,
-      USDC_DEVNET,
-      "USDC",
-      USDC_DECIMALS,
-      uxdProgramId
-    );
-
-    it(`Reinject ${mangoDepositorySOL.collateralMintSymbol} mango depository`, async function () {
-      // transfer enough identity collateral token to user for reinjection
-      const mangoDepositoryOnChainAccount = await mangoDepositorySOL.getOnchainAccount(getConnection(), TXN_OPTS);
-      const redeemableAmountUnderManagementUI = nativeToUi(
-        mangoDepositoryOnChainAccount.redeemableAmountUnderManagement,
-        controller.redeemableMintDecimals
-      );
-
-      await transferTokens(
-        redeemableAmountUnderManagementUI,
-        identityDepository.collateralMint,
-        identityDepository.collateralMintDecimals,
-        payer,
-        authority.publicKey
-      );
-
-      await reinjectMangoToIdentityDepositoryTest(authority, bank, controller, identityDepository, mangoDepositorySOL);
-    });
-  });
 
   this.afterAll("Transfer funds back to bank", async function () {
     await transferAllTokens(USDC_DEVNET, USDC_DECIMALS, authority, bank.publicKey);

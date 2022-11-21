@@ -5,7 +5,6 @@ import {
   Controller,
   createAssocTokenIx,
   findATAAddrSync,
-  MangoDepository,
   MercurialVaultDepository,
   IdentityDepository,
 } from "@uxd-protocol/uxd-client";
@@ -305,33 +304,6 @@ export async function redeemFromIdentityDepository(
   }
 
   tx.add(redeemFromIdentityDepositoryIx);
-  signers.push(authority);
-  if (payer) {
-    signers.push(payer);
-  }
-  tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function reinjectMangoToIdentityDepository(
-  authority: Signer,
-  payer: Signer,
-  controller: Controller,
-  depository: IdentityDepository,
-  mangoDepository: MangoDepository
-): Promise<string> {
-  const reinjectMangoToIdentityDepositoryIx = uxdClient.createReinjectMangoToIdentityDepositoryInstruction(
-    controller,
-    depository,
-    mangoDepository,
-    authority.publicKey,
-    TXN_OPTS,
-    payer.publicKey
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  tx.add(reinjectMangoToIdentityDepositoryIx);
   signers.push(authority);
   if (payer) {
     signers.push(payer);
