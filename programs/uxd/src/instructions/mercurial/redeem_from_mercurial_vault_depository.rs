@@ -1,5 +1,6 @@
 use crate::error::UxdError;
 use crate::utils;
+use crate::utils::calculate_possible_lp_token_precision_loss_collateral_value;
 use crate::Controller;
 use crate::MercurialVaultDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -12,7 +13,6 @@ use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use fixed::types::I80F48;
 
 #[derive(Accounts)]
 pub struct RedeemFromMercurialVaultDepository<'info> {
@@ -148,9 +148,11 @@ pub fn handler(
         .accounts
         .calculate_lp_amount_to_withdraw_to_match_collateral(collateral_amount_less_fees)?;
 
-    let possible_lp_token_precision_loss_collateral_value = ctx
-        .accounts
-        .calculate_possible_lp_token_precision_loss_collateral_value()?;
+    let possible_lp_token_precision_loss_collateral_value =
+        calculate_possible_lp_token_precision_loss_collateral_value(
+            &ctx.accounts.mercurial_vault,
+            &ctx.accounts.mercurial_vault_lp_mint,
+        )?;
 
     // 3 - Redeem collateral from mercurial vault for lp tokens
     mercurial_vault::cpi::withdraw(
@@ -306,43 +308,11 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
             .ok_or_else(|| error!(UxdError::MathError))?;
 
         require!(
-            (target_minimal_allowed_value..target).contains(&redeemed_collateral_amount),
+            (target_minimal_allowed_value..(target + 1)).contains(&redeemed_collateral_amount),
             UxdError::SlippageReached,
         );
 
         Ok(())
-    }
-
-    // Calculate how much collateral could be lost in possible LP token precision loss
-    fn calculate_possible_lp_token_precision_loss_collateral_value(&self) -> Result<u64> {
-        let current_time = u64::try_from(Clock::get()?.unix_timestamp)
-            .ok()
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        // Calculate the price of 1 native LP token
-        // Do not use mercurial_vault.get_amount_by_share because it does not handle precision loss
-        let total_amount = self
-            .mercurial_vault
-            .get_unlocked_amount(current_time)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        let one_lp_token_collateral_value = I80F48::from_num(1)
-            .checked_mul(
-                I80F48::checked_from_num(total_amount)
-                    .ok_or_else(|| error!(UxdError::MathError))?,
-            )
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_div(
-                I80F48::checked_from_num(self.mercurial_vault_lp_mint.supply)
-                    .ok_or_else(|| error!(UxdError::MathError))?,
-            )
-            .ok_or_else(|| error!(UxdError::MathError))?
-            .checked_ceil()
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        one_lp_token_collateral_value
-            .checked_to_num()
-            .ok_or_else(|| error!(UxdError::MathError))
     }
 }
 

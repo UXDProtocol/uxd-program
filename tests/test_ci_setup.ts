@@ -1,8 +1,9 @@
-import { MercurialVaultDepository } from "@uxd-protocol/uxd-client";
+import { IdentityDepository, MercurialVaultDepository, USDC_DECIMALS, USDC_DEVNET } from "@uxd-protocol/uxd-client";
 import { Controller, UXD_DECIMALS } from "@uxd-protocol/uxd-client";
 import { getConnection } from "./connection";
 import { authority, bank, SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS, uxdProgramId } from "./constants";
 import { controllerIntegrationSuiteParameters, controllerIntegrationSuite } from "./suite/controllerIntegrationSuite";
+import { identityDepositorySetupSuite } from "./suite/identityDepositorySetup";
 import { mercurialVaultDepositorySetupSuite } from "./suite/mercurialVaultDepositorySetup";
 
 (async () => {
@@ -13,7 +14,7 @@ import { mercurialVaultDepositorySetupSuite } from "./suite/mercurialVaultDeposi
   });
 
   describe("controllerIntegrationSuite", function () {
-    const params = new controllerIntegrationSuiteParameters(25_000_000, 500_000);
+    const params = new controllerIntegrationSuiteParameters(25_000_000);
     controllerIntegrationSuite(authority, bank, controllerUXD, params);
   });
 
@@ -42,5 +43,11 @@ import { mercurialVaultDepositorySetupSuite } from "./suite/mercurialVaultDeposi
       redeemingFeeInBps,
       uiRedeemableDepositorySupplyCap
     );
+  });
+
+  const identityDepository = new IdentityDepository(USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+
+  describe("identityDepositorySetupSuite", function () {
+    identityDepositorySetupSuite(authority, bank, controllerUXD, identityDepository);
   });
 })();
