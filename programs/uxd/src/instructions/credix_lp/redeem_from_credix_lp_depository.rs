@@ -417,7 +417,6 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
     let redeeming_fee_paid: u64 = checked_i64_to_u64(-redeemable_amount_delta)?;
 
     // Emit event
-    msg!("[redeem_from_credix_lp_depository:emit_event]");
     emit!(RedeemFromCredixLpDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.load()?.version,

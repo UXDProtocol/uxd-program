@@ -148,14 +148,12 @@ pub fn handler(
     depository.redeeming_fee_total_accrued = u128::MIN;
 
     // Add the depository to the controller
-    msg!("[register_credix_lp_depository:register_depository]");
     ctx.accounts
         .controller
         .load_mut()?
         .add_registered_credix_lp_depository_entry(ctx.accounts.depository.key())?;
 
     // Emit event
-    msg!("[register_credix_lp_depository:emit_event]");
     emit!(RegisterCredixLpDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: depository.version,

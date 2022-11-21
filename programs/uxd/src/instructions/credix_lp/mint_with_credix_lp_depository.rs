@@ -382,7 +382,6 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
     let minting_fee_paid: u64 = checked_i64_to_u64(-redeemable_amount_delta)?;
 
     // Emit event
-    msg!("[mint_with_credix_lp_depository:emit_event]");
     emit!(MintWithCredixLpDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.load()?.version,
