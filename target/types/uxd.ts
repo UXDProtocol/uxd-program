@@ -545,6 +545,27 @@ export type Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "freezeProgram",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "freeze",
+          "type": "bool"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -624,6 +645,10 @@ export type Uxd = {
           {
             "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
           }
         ]
       }
@@ -1107,6 +1132,26 @@ export type Uxd = {
           "index": false
         }
       ]
+    },
+    {
+      "name": "FreezeProgramEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "isFrozen",
+          "type": "bool",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -1257,6 +1302,16 @@ export type Uxd = {
     },
     {
       "code": 6029,
+      "name": "ProgramAlreadyFrozenOrResumed",
+      "msg": "Program is already frozen/resumed."
+    },
+    {
+      "code": 6030,
+      "name": "ProgramFrozen",
+      "msg": "The program is currently in Frozen state."
+    },
+    {
+      "code": 6031,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
@@ -1810,6 +1865,27 @@ export const IDL: Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "freezeProgram",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "freeze",
+          "type": "bool"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1889,6 +1965,10 @@ export const IDL: Uxd = {
           {
             "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
           }
         ]
       }
@@ -2372,6 +2452,26 @@ export const IDL: Uxd = {
           "index": false
         }
       ]
+    },
+    {
+      "name": "FreezeProgramEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "isFrozen",
+          "type": "bool",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -2522,6 +2622,16 @@ export const IDL: Uxd = {
     },
     {
       "code": 6029,
+      "name": "ProgramAlreadyFrozenOrResumed",
+      "msg": "Program is already frozen/resumed."
+    },
+    {
+      "code": 6030,
+      "name": "ProgramFrozen",
+      "msg": "The program is currently in Frozen state."
+    },
+    {
+      "code": 6031,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

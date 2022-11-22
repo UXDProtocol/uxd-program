@@ -545,6 +545,27 @@
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "freezeProgram",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "freeze",
+          "type": "bool"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -580,7 +601,10 @@
           {
             "name": "unused",
             "type": {
-              "array": ["u8", 257]
+              "array": [
+                "u8",
+                257
+              ]
             }
           },
           {
@@ -590,7 +614,10 @@
           {
             "name": "unused2",
             "type": {
-              "array": ["u8", 8]
+              "array": [
+                "u8",
+                8
+              ]
             }
           },
           {
@@ -600,18 +627,28 @@
           {
             "name": "unused3",
             "type": {
-              "array": ["u8", 8]
+              "array": [
+                "u8",
+                8
+              ]
             }
           },
           {
             "name": "registeredMercurialVaultDepositories",
             "type": {
-              "array": ["publicKey", 4]
+              "array": [
+                "publicKey",
+                4
+              ]
             }
           },
           {
             "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
           }
         ]
       }
@@ -1095,6 +1132,26 @@
           "index": false
         }
       ]
+    },
+    {
+      "name": "FreezeProgramEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "isFrozen",
+          "type": "bool",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -1245,11 +1302,18 @@
     },
     {
       "code": 6029,
+      "name": "ProgramAlreadyFrozenOrResumed",
+      "msg": "Program is already frozen/resumed."
+    },
+    {
+      "code": 6030,
+      "name": "ProgramFrozen",
+      "msg": "The program is currently in Frozen state."
+    },
+    {
+      "code": 6031,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "36N7GZDMv3xkabgWMc2fJqrxm15cgp6oykPs53qDn5Ju"
-  }
+  ]
 }
