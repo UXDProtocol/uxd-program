@@ -46,7 +46,7 @@ export const editControllerTest = async function (
     const redeemableSoftCap_post = controllerOnChainAccount_post.mangoDepositoriesRedeemableSoftCap;
     const redeemableGlobalSupplyCap_post = controllerOnChainAccount_post.redeemableGlobalSupplyCap;
 
-    if (typeof uiFields.quoteMintAndRedeemSoftCap !== 'undefined') {
+    if (typeof uiFields.quoteMintAndRedeemSoftCap !== "undefined") {
       const quoteMintAndRedeemSoftCap_postUi = nativeToUi(
         quoteMintAndRedeemSoftCap_post.toNumber(),
         uiFields.quoteMintAndRedeemSoftCap.depository.collateralMintDecimals
@@ -68,14 +68,14 @@ export const editControllerTest = async function (
       );
     }
 
-    if (typeof uiFields.redeemableSoftCap !== 'undefined') {
+    if (typeof uiFields.redeemableSoftCap !== "undefined") {
       const redeemableSoftCap_postUi = nativeToUi(redeemableSoftCap_post.toNumber(), controller.redeemableMintDecimals);
       expect(redeemableSoftCap_postUi).equals(uiFields.redeemableSoftCap, "Redeemable SoftCap must bet set");
       console.log(
         `🧾 Previous mango depositories soft cap was`,
-        redeemableSoftCap_pre,
+        nativeToUi(redeemableSoftCap_pre, controller.redeemableMintDecimals),
         "now is",
-        redeemableSoftCap_post,
+        nativeToUi(redeemableSoftCap_post, controller.redeemableMintDecimals),
         "(circulating supply",
         redeemableCirculatingSupply,
         ")"
@@ -84,7 +84,7 @@ export const editControllerTest = async function (
       expect(redeemableSoftCap_pre.cmp(redeemableSoftCap_post)).equals(0, "Redeemable SoftCap must not have changed");
     }
 
-    if (typeof uiFields.redeemableGlobalSupplyCap !== 'undefined') {
+    if (typeof uiFields.redeemableGlobalSupplyCap !== "undefined") {
       const redeemableGlobalSupplyCap_postUi = nativeToUi(
         redeemableGlobalSupplyCap_post.toNumber(),
         controller.redeemableMintDecimals
@@ -95,9 +95,9 @@ export const editControllerTest = async function (
       );
       console.log(
         `🧾 Previous global supply cap was`,
-        redeemableGlobalSupplyCap_pre,
+        nativeToUi(redeemableGlobalSupplyCap_pre, controller.redeemableMintDecimals),
         "now is",
-        redeemableGlobalSupplyCap_post,
+        nativeToUi(redeemableGlobalSupplyCap_post, controller.redeemableMintDecimals),
         "(circulating supply",
         redeemableCirculatingSupply,
         ")"

@@ -122,7 +122,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
       }
     );
 
-    it(`Mint for 1 native unit ${depository.collateralSymbol}`, async function () {
+    it(`Mint for 1 native unit ${depository.collateralSymbol} (should fail)`, async function () {
       const collateralAmount = Math.pow(10, -depository.collateralDecimals);
 
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralSymbol, "]");
@@ -140,7 +140,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
       );
     });
 
-    it(`Redeem for 1 native unit ${controller.redeemableMintSymbol}`, async function () {
+    it(`Redeem for 1 native unit ${controller.redeemableMintSymbol} (should fail)`, async function () {
       const redeemableAmount = Math.pow(10, -controller.redeemableMintDecimals);
 
       console.log("[🧾 redeemableAmount", redeemableAmount, controller.redeemableMintSymbol, "]");

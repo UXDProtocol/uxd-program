@@ -424,7 +424,7 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         depository: ctx.accounts.depository.key(),
         user: ctx.accounts.user.key(),
         redeemable_amount: redeemable_amount,
-        collateral_amount: collateral_amount_after_precision_loss,
+        collateral_amount: collateral_amount_before_precision_loss,
         redeeming_fee_paid: redeeming_fee_paid,
     });
 
@@ -432,7 +432,7 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
     let mut depository = ctx.accounts.depository.load_mut()?;
     depository.redeeming_fee_accrued(redeeming_fee_paid)?;
     depository.collateral_withdrawn_and_redeemable_burned(
-        collateral_amount_after_precision_loss,
+        collateral_amount_before_precision_loss,
         redeemable_amount,
     )?;
 

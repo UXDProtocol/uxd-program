@@ -100,7 +100,8 @@ export const redeemFromCredixLpDepositoryTest = async function (
     expect(nativeToUi(onChainDepository_post.collateralAmountDeposited, depository.collateralDecimals)).equal(
       Number(
         (
-          nativeToUi(onChainDepository_pre.collateralAmountDeposited, depository.collateralDecimals) - collateralDelta
+          nativeToUi(onChainDepository_pre.collateralAmountDeposited, depository.collateralDecimals) -
+          (collateralDelta + estimatedWithdrawingFeesPaid)
         ).toFixed(depository.collateralDecimals)
       )
     );
@@ -118,7 +119,7 @@ export const redeemFromCredixLpDepositoryTest = async function (
       Number(
         (
           nativeToUi(onChainDepository_pre.redeemingFeeTotalAccrued, controller.redeemableMintDecimals) +
-          estimatedFeesPaid
+          estimatedRedeemingFeesPaid
         ).toFixed(controller.redeemableMintDecimals)
       )
     );
