@@ -139,10 +139,6 @@ export async function editController(
   authority: Signer,
   controller: Controller,
   uiFields: {
-    quoteMintAndRedeemSoftCap?: {
-      value: number;
-    };
-    redeemableSoftCap?: number;
     redeemableGlobalSupplyCap?: number;
   }
 ): Promise<string> {
@@ -309,5 +305,16 @@ export async function redeemFromIdentityDepository(
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function freezeProgram(authority: Signer, controller: Controller, freeze: boolean): Promise<string> {
+  const freezeProgramIx = uxdClient.createFreezeProgramInstruction(freeze, controller, authority.publicKey, TXN_OPTS);
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(freezeProgramIx);
+  signers.push(authority);
+
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
