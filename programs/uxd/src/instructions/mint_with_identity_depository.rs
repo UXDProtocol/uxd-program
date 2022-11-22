@@ -1,5 +1,6 @@
 use crate::events::MintWithIdentityDepositoryEvent;
 use crate::state::identity_depository::IdentityDepository;
+use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::UxdError;
 use crate::CONTROLLER_NAMESPACE;
@@ -192,6 +193,8 @@ impl<'info> MintWithIdentityDepository<'info> {
 
 impl<'info> MintWithIdentityDepository<'info> {
     pub(crate) fn validate(&self, collateral_amount: u64) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
+
         require!(collateral_amount != 0, UxdError::InvalidCollateralAmount);
         require!(
             self.user_collateral.amount >= collateral_amount,

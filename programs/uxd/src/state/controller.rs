@@ -20,7 +20,8 @@ pub const CONTROLLER_SPACE: usize = 8
     + 8 // unused
     + (32 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
     + 1
-    + 375;
+    + 1
+    + 374;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -58,6 +59,8 @@ pub struct Controller {
     pub registered_mercurial_vault_depositories:
         [Pubkey; MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES],
     pub registered_mercurial_vault_depositories_count: u8,
+    // operational status for all ixs associated with this controller instance
+    pub is_frozen: bool,
 }
 
 impl Controller {

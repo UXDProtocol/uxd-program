@@ -1,6 +1,7 @@
 use crate::error::UxdError;
 use crate::events::RedeemFromIdentityDepositoryEvent;
 use crate::state::identity_depository::IdentityDepository;
+use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
@@ -166,6 +167,8 @@ impl<'info> RedeemFromIdentityDepository<'info> {
 // Validate input arguments
 impl<'info> RedeemFromIdentityDepository<'info> {
     pub(crate) fn validate(&self, redeemable_amount: u64) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
+
         require!(redeemable_amount != 0, UxdError::InvalidRedeemableAmount);
         require!(
             self.user_redeemable.amount >= redeemable_amount,

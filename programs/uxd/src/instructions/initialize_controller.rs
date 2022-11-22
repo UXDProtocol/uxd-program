@@ -82,6 +82,7 @@ pub(crate) fn handler(
         .checked_mul(redeemable_mint_unit.into())
         .ok_or_else(|| error!(UxdError::MathError))?;
     controller.redeemable_circulating_supply = u128::MIN;
+    controller.is_frozen = false;
 
     emit!(InitializeControllerEvent {
         version: controller.version,

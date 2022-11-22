@@ -9,6 +9,7 @@ use crate::error::UxdError;
 use crate::events::InitializeIdentityDepositoryEvent;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::identity_depository::IDENTITY_DEPOSITORY_SPACE;
+use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP;
@@ -135,6 +136,8 @@ impl<'info> InitializeIdentityDepository<'info> {
     }
 
     pub(crate) fn validate(&self) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
+
         // Collateral mint and redeemable mint should share the same decimals to justify their 1:1 swapping
         require!(
             self.collateral_mint
