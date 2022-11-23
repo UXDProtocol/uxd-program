@@ -4,41 +4,79 @@ export type Uxd = {
   "instructions": [
     {
       "name": "initializeController",
+      "docs": [
+        "Initialize a Controller on chain account.",
+        "",
+        "Parameters:",
+        "- redeemable_mint_decimals: the decimals of the redeemable mint.",
+        "",
+        "Note:",
+        "Only one Controller on chain account will ever exist due to the",
+        "PDA derivation seed having no variations.",
+        "",
+        "Note:",
+        "In the case of UXDProtocol this is the one in charge of the UXD mint,",
+        "and it has been locked to a single Controller to ever exist by only",
+        "having one possible derivation. (but it's been made generic, and we",
+        "could have added the authority to the seed generation for instance).",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 The redeemable mint managed by the `controller` instance"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 Token Program"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 Rent Sysvar"
+          ]
         }
       ],
       "args": [
@@ -50,16 +88,62 @@ export type Uxd = {
     },
     {
       "name": "editController",
+      "docs": [
+        "Sets some fields of the provided `Controller` account.",
+        "",
+        "Parameters:",
+        "- fields.quote_mint_and_redeem_soft_cap: Option<u64> // ignored if None",
+        "- fields.redeemable_soft_cap: Option<u64> // ignored if None",
+        "- fields.redeemable_global_supply_cap: Option<128> // ignored if None",
+        "",
+        "About: \"fields.redeemable_soft_cap\"",
+        "Sets the `mango_depositories_redeemable_soft_cap` of the provided `Controller` account.",
+        "Explanation:",
+        "The `mango_depositories_redeemable_soft_cap` determines the",
+        "max amount of redeemable tokens that can be minted during a",
+        "single operation.",
+        "The redeemable global supply cap determines the max total supply",
+        "for the redeemable token. Program will abort when an instruction",
+        "that mints new redeemable would bring the circulating supply",
+        "beyond this value.",
+        "Notes:",
+        "- The `mango_depositories_redeemable_soft_cap` determines the",
+        "max amount of redeemable tokens that can be minted during a",
+        "single operation.",
+        "- This only apply to Minting. Redeeming is always possible.",
+        "- Purpose of this is to control the max amount minted at once on",
+        "MangoMarkets Depositories.",
+        "- If this is set to 0, it would effectively pause minting on",
+        "MangoMarkets Depositories.",
+        "",
+        "About: \"fields.redeemable_global_supply_cap\"",
+        "Sets the `redeemable_global_supply_cap` of the provided `Controller` account.",
+        "Explanation:",
+        "The redeemable global supply cap determines the max total supply",
+        "for the redeemable token. Program will abort when an instruction",
+        "that mints new redeemable would bring the circulating supply",
+        "beyond this value.",
+        "Notes:",
+        "- Purpose of this is to roll out progressively for OI, and limit risks.",
+        "- If this is set below the current circulating supply of UXD, it would effectively pause Minting.",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         }
       ],
       "args": [
@@ -73,66 +157,122 @@ export type Uxd = {
     },
     {
       "name": "registerMangoDepository",
+      "docs": [
+        "Create a new `MangoDepository` and registers it to the provided",
+        "`Controller` account.",
+        "",
+        "Note:",
+        "Each `MangoDepository` account manages a specific collateral mint.",
+        "They will only transact for this specific mint to segregate funding",
+        "rates/deposit yield and risks.",
+        "",
+        "Note:",
+        "Each `MangoDepository` owns a MangoAccount for trading spot/perp,",
+        "leveraged.",
+        "",
+        "Update:",
+        "In the new version of the MangoMarket Accounts",
+        "this become mandatory too. (we are still using the old init)",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The collateral mint used by the `depository` instance"
+          ]
         },
         {
           "name": "quoteMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The insurance mint used by the `depository` instance"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 MangoMarketv3 Program"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 Rent Sysvar"
+          ]
         }
       ],
       "args": [
@@ -144,66 +284,141 @@ export type Uxd = {
     },
     {
       "name": "depositInsuranceToMangoDepository",
+      "docs": [
+        "Deposit `MangoDepository.quote_mint` tokens in the `MangoDepository`",
+        "underlying `MangoAccount`",
+        "",
+        "Parameters:",
+        "- amount: the amount of quote token to deposit in native unit.",
+        "",
+        "Note:",
+        "Each `MangoDepository` underlying `MangoAccount` uses leverage to open",
+        "and maintain short positions.",
+        "",
+        "Note:",
+        "The LTV (Loan to value) ratio is different depending of the mint of",
+        "the `MangoDepository.collateral_mint`.",
+        "",
+        "Note:",
+        "LTV for BTC/ETH/SOL is at 0.9:1 (0.9$ lent for 1$ of value deposited).",
+        "MangoMarkets Assets specs : https://docs.mango.markets/mango/token-specs",
+        "",
+        "Note:",
+        "Beyond 80% the `MangoAccount` cannot borrow further, disabling the",
+        "redemption of redeemable tokens or the withdrawal of deposited insurance.",
+        "(Although the insurance should be gone at that point due to funding,",
+        "except in the case of sharp collateral price increase without rebalancing)",
+        "",
+        "Note:",
+        "Beyond 90% the `MangoAccount` can be liquidated by other mango accounts.",
+        "(And borrows/withdraws are still disabled)",
+        "",
+        "Note:",
+        "As the funding rate care be either negative or positive, the insurance",
+        "is there as a buffer to ensure that redeemables can be swapped back",
+        "at all time (by unwinding the backing amount of delta neutral",
+        "position).",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral"
+          ]
         },
         {
           "name": "authorityQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 The `authority`'s ATA for the `quote_mint`",
+            "Will be debited during this call"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoRootBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoNodeBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Vault for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -215,76 +430,140 @@ export type Uxd = {
     },
     {
       "name": "withdrawInsuranceFromMangoDepository",
+      "docs": [
+        "Withdraw `MangoDepository.quote_mint` tokens from the `MangoDepository`",
+        "underlying `MangoAccount`, if any available, in the limit of the account",
+        "borrow health.",
+        "",
+        "Parameters:",
+        "- amount: the amount of quote token to withdraw in native unit.",
+        "",
+        "Note:",
+        "Withdrawal cannot borrow, nor bring the health of the account in",
+        "liquidation territory.",
+        "",
+        "Notes:",
+        "The `MangoDepository.insurance_amount_deposited` tracks the amount of",
+        "`MangoDepository.quote_mint` tokens deposited, but does not represent",
+        "the available amount as it moves depending of funding rates and",
+        "perp positions PnL settlement (temporarily).",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral"
+          ]
         },
         {
           "name": "authorityQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 The `user`'s ATA for the `controller`'s `redeemable_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoSigner",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 [MangoMarkets CPI] Signer PDA"
+          ]
         },
         {
           "name": "mangoRootBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoNodeBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 [MangoMarkets CPI] Vault for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -296,131 +575,254 @@ export type Uxd = {
     },
     {
       "name": "rebalanceMangoDepositoryLite",
+      "docs": [
+        "Rebalance the delta neutral position of the underlying `MangoDepository`.",
+        "",
+        "Parameters:",
+        "- max_rebalancing_amount: the maximum amount of quote this rebalance",
+        "instruction will attempt to rebalance, in native unit.",
+        "- polarity: the direction of the rebalancing. This is known on chain",
+        "but required as an argument for clarity.",
+        "- limit_price: the worst price the user is willing to trade at.",
+        "",
+        "Note:",
+        "Acts as a swap, reducing the oustanding PnL (paper profit or losses) on",
+        "the underlying `MangoAccount`.",
+        "",
+        "Note:",
+        "This is the \"lite\" version as it force the caller to input some quote or",
+        "collateral. This is done to skip the spot order on mango, saving computing",
+        "and also bypassing the issue with teh 34 accounts limits.",
+        "A new version is designed and waiting for the TransactionV2 proposal to hit",
+        "along with the 1M computing units.",
+        "",
+        "Note:",
+        "Paper profits are represented in Quote, it's currently USDC on",
+        "MangoMarkets, as of 02/17/2022.",
+        "",
+        "Note:",
+        "This call should goes with a call to `@uxdprotocol/uxd-client`'s",
+        "`MangoDepository.settleMangoDepositoryMangoAccountPnl()`, which convert paper",
+        "profits or losses into realized gain/losses. Once rebalancing is out,",
+        "since it's permissionless, the PnL settlement should be called once in a while",
+        "to make sure that unsettled Positive PNL accumulates and that the MangoAccount",
+        "has to pay borrow rates for it. Some day when computing is plentiful and input",
+        "accounts are increased through TransactionsV2 proposal, we can",
+        "also call the onchain version.",
+        "",
+        "Note:",
+        "TEMPORARY Although this create the associated token account for WSOL",
+        "when the PnL is Negative, it's too short on computing. Please create beforehand."
+      ],
       "accounts": [
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user",
+            "Note - Mut required for WSOL unwrapping"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The collateral mint used by the `depository` instance",
+            "Required to create the user_collateral ATA if needed"
+          ]
         },
         {
           "name": "quoteMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The quote mint used by the `depository` instance",
+            "Required to create the user_quote ATA if needed"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The `user`'s TA for the `depository`'s `collateral_mint`",
+            "Will be debited during this instruction when `Polarity` is positive",
+            "Will be credited during this instruction when `Polarity` is negative"
+          ]
         },
         {
           "name": "userQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The `user`'s TA for the `depository`'s `quote_mint`",
+            "Will be credited during this instruction when `Polarity` is positive",
+            "Will be debited during this instruction when `Polarity` is negative"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoSigner",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Signer PDA"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoRootBankQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoNodeBankQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoVaultQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15 [MangoMarkets CPI] Vault `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoRootBankCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#16 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoNodeBankCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#17 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoVaultCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#18 [MangoMarkets CPI] Vault for `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoPerpMarket",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#19 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market"
+          ]
         },
         {
           "name": "mangoBids",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#20 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids"
+          ]
         },
         {
           "name": "mangoAsks",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#21 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks"
+          ]
         },
         {
           "name": "mangoEventQueue",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#22 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#23 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#24 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#25 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -442,106 +844,198 @@ export type Uxd = {
     },
     {
       "name": "mintWithMangoDepository",
+      "docs": [
+        "Mint redeemable tokens in exchange of `MangoDepository.collateral_mint`",
+        "tokens, increasing the size of the delta neutral position.",
+        "",
+        "Parameters:",
+        "- collateral_amount: the amount of collateral to use, in",
+        "collateral_mint native unit.",
+        "- limit_price: the worse price the user is willing to trade at.",
+        "",
+        "Flow:",
+        "- Starts by scanning the order book for the amount that we can fill.",
+        "- Deposit to Mango account",
+        "- Using the spot collateral deposited, the short perp position of equivalent",
+        "size if opened (FoK emulated by using mango IoC + 100% fill verification).",
+        "- Deducts the taker_fees (ceiled) form the value of the opened short, and",
+        "mints the redeemable, then transfer to the user.",
+        "- Internal accounting update + anchor event emission.",
+        "",
+        "Note:",
+        "The caller pays for the incurred slippage and taker_fee (4bps at the time",
+        "of writing). This ensures that the system stay \"closed\".",
+        "",
+        "Note:",
+        "The value of the collateral is derived from the COLLATERAL-PERP price,",
+        "expressed in USD value.",
+        ""
+      ],
       "accounts": [
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance.",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral."
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The redeemable mint managed by the `controller` instance",
+            "Tokens will be minted during this instruction"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The `user`'s TA for the `depository` `collateral_mint`",
+            "Will be debited during this instruction"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The `user`'s TA for the `controller`'s `redeemable_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoRootBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoNodeBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoPerpMarket",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market"
+          ]
         },
         {
           "name": "mangoBids",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids"
+          ]
         },
         {
           "name": "mangoAsks",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#16 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks"
+          ]
         },
         {
           "name": "mangoEventQueue",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#17 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#18 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#19 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#20 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -557,116 +1051,219 @@ export type Uxd = {
     },
     {
       "name": "redeemFromMangoDepository",
+      "docs": [
+        "Redeem `MangoDepository.collateral_mint` by burning redeemable",
+        "tokens, and unwind a part of the delta neutral position.",
+        "",
+        "Parameters:",
+        "- redeemable_amount: the amount of collateral to use, in",
+        "redeemable_mint native unit.",
+        "- limit_price: the worse price the user is willing to trade at.",
+        "",
+        "Flow:",
+        "- Starts by scanning the order book to find the best order for",
+        "the redeemable_amount fillable (the requested amount minus max",
+        "fees, as we repay them by keeping a piece of the DN position).",
+        "- Closes the equivalent part of the delta neutral position (FoK",
+        "emulated by using mango IoC + 100% fill verification).",
+        "- Deducts the taker_fees (ceiled) form the value of the opened short, and",
+        "transfer user redeemable token for that amount.",
+        "- Burns the redeemable equivalent to fees + closed position,",
+        "then withdraw resulting equivalent collateral to the user",
+        "- Internal accounting update + anchor event emission.",
+        "",
+        "Note:",
+        "The caller pays for the incurred slippage and taker_fee (4bps at the time",
+        "of writing). This ensures that the system stay \"closed\".",
+        "",
+        "Note:",
+        "The value of the collateral is derived from the COLLATERAL-PERP price,",
+        "expressed in USD value.",
+        ""
+      ],
       "accounts": [
         {
           "name": "user",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user",
+            "Note - Mut required for WSOL unwrapping"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance.",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral."
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The collateral mint used by the `depository` instance",
+            "Required to create the user_collateral ATA if needed"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The redeemable mint managed by the `controller` instance",
+            "Tokens will be burnt during this instruction"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The `user`'s ATA for the `depository`'s `collateral_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The `user`'s ATA for the `controller`'s `redeemable_mint`",
+            "Will be debited during this instruction"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoSigner",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 [MangoMarkets CPI] Signer PDA"
+          ]
         },
         {
           "name": "mangoRootBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoNodeBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoPerpMarket",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#16 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market"
+          ]
         },
         {
           "name": "mangoBids",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#17 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids"
+          ]
         },
         {
           "name": "mangoAsks",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#18 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks"
+          ]
         },
         {
           "name": "mangoEventQueue",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#19 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#20 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#21 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#22 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -686,87 +1283,143 @@ export type Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance.",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral."
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The redeemable mint managed by the `controller` instance",
+            "Tokens will be minted during this instruction"
+          ]
         },
         {
           "name": "userQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The `user`'s ATA for one the `mango depository`s `quote_mint`",
+            "Will be debited during this instruction"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The `user`'s ATA for the `controller`'s `redeemable_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoRootBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoNodeBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoPerpMarket",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#16 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#17 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -782,97 +1435,159 @@ export type Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance.",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral."
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The redeemable mint managed by the `controller` instance",
+            "Tokens will be minted during this instruction"
+          ]
         },
         {
           "name": "quoteMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The quote mint of the depository"
+          ]
         },
         {
           "name": "userQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The `user`'s ATA for one the `mango depository`s `quote_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The `user`'s ATA for the `controller`'s `redeemable_mint`",
+            "Will be debited during this instruction"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoSigner",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 [MangoMarkets CPI] Signer PDA"
+          ]
         },
         {
           "name": "mangoRootBank",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoNodeBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoPerpMarket",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#16 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#17 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#18 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -888,17 +1603,27 @@ export type Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance.",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral."
+          ]
         }
       ],
       "args": [
@@ -916,17 +1641,27 @@ export type Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance.",
+            "The `MercurialVaultDepository` manages a MercurialVaultAccount for a single Collateral."
+          ]
         }
       ],
       "args": [
@@ -940,21 +1675,42 @@ export type Uxd = {
     },
     {
       "name": "disableDepositoryRegularMinting",
+      "docs": [
+        "Disable or enable regular minting for given Mango Depository.",
+        "",
+        "Parameters:",
+        "- disable: true to disable, false to enable.",
+        "",
+        "Note:",
+        "The disabled flag is false by default that a freshly registered mango depository has enabled regular minting.",
+        "This ix is for toggling that flag.",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral"
+          ]
         }
       ],
       "args": [
@@ -970,77 +1726,124 @@ export type Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12",
+            "Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault."
+          ]
         },
         {
           "name": "mercurialVaultProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15"
+          ]
         }
       ],
       "args": [
@@ -1056,62 +1859,100 @@ export type Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
         },
         {
           "name": "interestsAndFeesRedeemAuthority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9",
+            "Only wallet able to claim interests and fees"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12"
+          ]
         }
       ],
       "args": [
@@ -1135,77 +1976,124 @@ export type Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12",
+            "Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault."
+          ]
         },
         {
           "name": "mercurialVaultProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15"
+          ]
         }
       ],
       "args": [
@@ -1221,67 +2109,108 @@ export type Uxd = {
         {
           "name": "interestsAndFeesRedeemAuthority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "interestsAndFeesRedeemAuthorityCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10",
+            "Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault."
+          ]
         },
         {
           "name": "mercurialVaultProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13"
+          ]
         }
       ],
       "args": []
@@ -2769,41 +3698,79 @@ export const IDL: Uxd = {
   "instructions": [
     {
       "name": "initializeController",
+      "docs": [
+        "Initialize a Controller on chain account.",
+        "",
+        "Parameters:",
+        "- redeemable_mint_decimals: the decimals of the redeemable mint.",
+        "",
+        "Note:",
+        "Only one Controller on chain account will ever exist due to the",
+        "PDA derivation seed having no variations.",
+        "",
+        "Note:",
+        "In the case of UXDProtocol this is the one in charge of the UXD mint,",
+        "and it has been locked to a single Controller to ever exist by only",
+        "having one possible derivation. (but it's been made generic, and we",
+        "could have added the authority to the seed generation for instance).",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 The redeemable mint managed by the `controller` instance"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 Token Program"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 Rent Sysvar"
+          ]
         }
       ],
       "args": [
@@ -2815,16 +3782,62 @@ export const IDL: Uxd = {
     },
     {
       "name": "editController",
+      "docs": [
+        "Sets some fields of the provided `Controller` account.",
+        "",
+        "Parameters:",
+        "- fields.quote_mint_and_redeem_soft_cap: Option<u64> // ignored if None",
+        "- fields.redeemable_soft_cap: Option<u64> // ignored if None",
+        "- fields.redeemable_global_supply_cap: Option<128> // ignored if None",
+        "",
+        "About: \"fields.redeemable_soft_cap\"",
+        "Sets the `mango_depositories_redeemable_soft_cap` of the provided `Controller` account.",
+        "Explanation:",
+        "The `mango_depositories_redeemable_soft_cap` determines the",
+        "max amount of redeemable tokens that can be minted during a",
+        "single operation.",
+        "The redeemable global supply cap determines the max total supply",
+        "for the redeemable token. Program will abort when an instruction",
+        "that mints new redeemable would bring the circulating supply",
+        "beyond this value.",
+        "Notes:",
+        "- The `mango_depositories_redeemable_soft_cap` determines the",
+        "max amount of redeemable tokens that can be minted during a",
+        "single operation.",
+        "- This only apply to Minting. Redeeming is always possible.",
+        "- Purpose of this is to control the max amount minted at once on",
+        "MangoMarkets Depositories.",
+        "- If this is set to 0, it would effectively pause minting on",
+        "MangoMarkets Depositories.",
+        "",
+        "About: \"fields.redeemable_global_supply_cap\"",
+        "Sets the `redeemable_global_supply_cap` of the provided `Controller` account.",
+        "Explanation:",
+        "The redeemable global supply cap determines the max total supply",
+        "for the redeemable token. Program will abort when an instruction",
+        "that mints new redeemable would bring the circulating supply",
+        "beyond this value.",
+        "Notes:",
+        "- Purpose of this is to roll out progressively for OI, and limit risks.",
+        "- If this is set below the current circulating supply of UXD, it would effectively pause Minting.",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         }
       ],
       "args": [
@@ -2838,66 +3851,122 @@ export const IDL: Uxd = {
     },
     {
       "name": "registerMangoDepository",
+      "docs": [
+        "Create a new `MangoDepository` and registers it to the provided",
+        "`Controller` account.",
+        "",
+        "Note:",
+        "Each `MangoDepository` account manages a specific collateral mint.",
+        "They will only transact for this specific mint to segregate funding",
+        "rates/deposit yield and risks.",
+        "",
+        "Note:",
+        "Each `MangoDepository` owns a MangoAccount for trading spot/perp,",
+        "leveraged.",
+        "",
+        "Update:",
+        "In the new version of the MangoMarket Accounts",
+        "this become mandatory too. (we are still using the old init)",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The collateral mint used by the `depository` instance"
+          ]
         },
         {
           "name": "quoteMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The insurance mint used by the `depository` instance"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 MangoMarketv3 Program"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 Rent Sysvar"
+          ]
         }
       ],
       "args": [
@@ -2909,66 +3978,141 @@ export const IDL: Uxd = {
     },
     {
       "name": "depositInsuranceToMangoDepository",
+      "docs": [
+        "Deposit `MangoDepository.quote_mint` tokens in the `MangoDepository`",
+        "underlying `MangoAccount`",
+        "",
+        "Parameters:",
+        "- amount: the amount of quote token to deposit in native unit.",
+        "",
+        "Note:",
+        "Each `MangoDepository` underlying `MangoAccount` uses leverage to open",
+        "and maintain short positions.",
+        "",
+        "Note:",
+        "The LTV (Loan to value) ratio is different depending of the mint of",
+        "the `MangoDepository.collateral_mint`.",
+        "",
+        "Note:",
+        "LTV for BTC/ETH/SOL is at 0.9:1 (0.9$ lent for 1$ of value deposited).",
+        "MangoMarkets Assets specs : https://docs.mango.markets/mango/token-specs",
+        "",
+        "Note:",
+        "Beyond 80% the `MangoAccount` cannot borrow further, disabling the",
+        "redemption of redeemable tokens or the withdrawal of deposited insurance.",
+        "(Although the insurance should be gone at that point due to funding,",
+        "except in the case of sharp collateral price increase without rebalancing)",
+        "",
+        "Note:",
+        "Beyond 90% the `MangoAccount` can be liquidated by other mango accounts.",
+        "(And borrows/withdraws are still disabled)",
+        "",
+        "Note:",
+        "As the funding rate care be either negative or positive, the insurance",
+        "is there as a buffer to ensure that redeemables can be swapped back",
+        "at all time (by unwinding the backing amount of delta neutral",
+        "position).",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral"
+          ]
         },
         {
           "name": "authorityQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 The `authority`'s ATA for the `quote_mint`",
+            "Will be debited during this call"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoRootBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoNodeBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Vault for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -2980,76 +4124,140 @@ export const IDL: Uxd = {
     },
     {
       "name": "withdrawInsuranceFromMangoDepository",
+      "docs": [
+        "Withdraw `MangoDepository.quote_mint` tokens from the `MangoDepository`",
+        "underlying `MangoAccount`, if any available, in the limit of the account",
+        "borrow health.",
+        "",
+        "Parameters:",
+        "- amount: the amount of quote token to withdraw in native unit.",
+        "",
+        "Note:",
+        "Withdrawal cannot borrow, nor bring the health of the account in",
+        "liquidation territory.",
+        "",
+        "Notes:",
+        "The `MangoDepository.insurance_amount_deposited` tracks the amount of",
+        "`MangoDepository.quote_mint` tokens deposited, but does not represent",
+        "the available amount as it moves depending of funding rates and",
+        "perp positions PnL settlement (temporarily).",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral"
+          ]
         },
         {
           "name": "authorityQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 The `user`'s ATA for the `controller`'s `redeemable_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoSigner",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 [MangoMarkets CPI] Signer PDA"
+          ]
         },
         {
           "name": "mangoRootBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoNodeBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 [MangoMarkets CPI] Vault for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -3061,131 +4269,254 @@ export const IDL: Uxd = {
     },
     {
       "name": "rebalanceMangoDepositoryLite",
+      "docs": [
+        "Rebalance the delta neutral position of the underlying `MangoDepository`.",
+        "",
+        "Parameters:",
+        "- max_rebalancing_amount: the maximum amount of quote this rebalance",
+        "instruction will attempt to rebalance, in native unit.",
+        "- polarity: the direction of the rebalancing. This is known on chain",
+        "but required as an argument for clarity.",
+        "- limit_price: the worst price the user is willing to trade at.",
+        "",
+        "Note:",
+        "Acts as a swap, reducing the oustanding PnL (paper profit or losses) on",
+        "the underlying `MangoAccount`.",
+        "",
+        "Note:",
+        "This is the \"lite\" version as it force the caller to input some quote or",
+        "collateral. This is done to skip the spot order on mango, saving computing",
+        "and also bypassing the issue with teh 34 accounts limits.",
+        "A new version is designed and waiting for the TransactionV2 proposal to hit",
+        "along with the 1M computing units.",
+        "",
+        "Note:",
+        "Paper profits are represented in Quote, it's currently USDC on",
+        "MangoMarkets, as of 02/17/2022.",
+        "",
+        "Note:",
+        "This call should goes with a call to `@uxdprotocol/uxd-client`'s",
+        "`MangoDepository.settleMangoDepositoryMangoAccountPnl()`, which convert paper",
+        "profits or losses into realized gain/losses. Once rebalancing is out,",
+        "since it's permissionless, the PnL settlement should be called once in a while",
+        "to make sure that unsettled Positive PNL accumulates and that the MangoAccount",
+        "has to pay borrow rates for it. Some day when computing is plentiful and input",
+        "accounts are increased through TransactionsV2 proposal, we can",
+        "also call the onchain version.",
+        "",
+        "Note:",
+        "TEMPORARY Although this create the associated token account for WSOL",
+        "when the PnL is Negative, it's too short on computing. Please create beforehand."
+      ],
       "accounts": [
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user",
+            "Note - Mut required for WSOL unwrapping"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The collateral mint used by the `depository` instance",
+            "Required to create the user_collateral ATA if needed"
+          ]
         },
         {
           "name": "quoteMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The quote mint used by the `depository` instance",
+            "Required to create the user_quote ATA if needed"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The `user`'s TA for the `depository`'s `collateral_mint`",
+            "Will be debited during this instruction when `Polarity` is positive",
+            "Will be credited during this instruction when `Polarity` is negative"
+          ]
         },
         {
           "name": "userQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The `user`'s TA for the `depository`'s `quote_mint`",
+            "Will be credited during this instruction when `Polarity` is positive",
+            "Will be debited during this instruction when `Polarity` is negative"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoSigner",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Signer PDA"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoRootBankQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13 [MangoMarkets CPI] Root Bank for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoNodeBankQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14 [MangoMarkets CPI] Node Bank for the `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoVaultQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15 [MangoMarkets CPI] Vault `depository`'s `quote_mint`"
+          ]
         },
         {
           "name": "mangoRootBankCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#16 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoNodeBankCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#17 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoVaultCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#18 [MangoMarkets CPI] Vault for `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoPerpMarket",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#19 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market"
+          ]
         },
         {
           "name": "mangoBids",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#20 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids"
+          ]
         },
         {
           "name": "mangoAsks",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#21 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks"
+          ]
         },
         {
           "name": "mangoEventQueue",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#22 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#23 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#24 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#25 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -3207,106 +4538,198 @@ export const IDL: Uxd = {
     },
     {
       "name": "mintWithMangoDepository",
+      "docs": [
+        "Mint redeemable tokens in exchange of `MangoDepository.collateral_mint`",
+        "tokens, increasing the size of the delta neutral position.",
+        "",
+        "Parameters:",
+        "- collateral_amount: the amount of collateral to use, in",
+        "collateral_mint native unit.",
+        "- limit_price: the worse price the user is willing to trade at.",
+        "",
+        "Flow:",
+        "- Starts by scanning the order book for the amount that we can fill.",
+        "- Deposit to Mango account",
+        "- Using the spot collateral deposited, the short perp position of equivalent",
+        "size if opened (FoK emulated by using mango IoC + 100% fill verification).",
+        "- Deducts the taker_fees (ceiled) form the value of the opened short, and",
+        "mints the redeemable, then transfer to the user.",
+        "- Internal accounting update + anchor event emission.",
+        "",
+        "Note:",
+        "The caller pays for the incurred slippage and taker_fee (4bps at the time",
+        "of writing). This ensures that the system stay \"closed\".",
+        "",
+        "Note:",
+        "The value of the collateral is derived from the COLLATERAL-PERP price,",
+        "expressed in USD value.",
+        ""
+      ],
       "accounts": [
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance.",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral."
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The redeemable mint managed by the `controller` instance",
+            "Tokens will be minted during this instruction"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The `user`'s TA for the `depository` `collateral_mint`",
+            "Will be debited during this instruction"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The `user`'s TA for the `controller`'s `redeemable_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoRootBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoNodeBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoPerpMarket",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market"
+          ]
         },
         {
           "name": "mangoBids",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids"
+          ]
         },
         {
           "name": "mangoAsks",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#16 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks"
+          ]
         },
         {
           "name": "mangoEventQueue",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#17 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#18 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#19 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#20 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -3322,116 +4745,219 @@ export const IDL: Uxd = {
     },
     {
       "name": "redeemFromMangoDepository",
+      "docs": [
+        "Redeem `MangoDepository.collateral_mint` by burning redeemable",
+        "tokens, and unwind a part of the delta neutral position.",
+        "",
+        "Parameters:",
+        "- redeemable_amount: the amount of collateral to use, in",
+        "redeemable_mint native unit.",
+        "- limit_price: the worse price the user is willing to trade at.",
+        "",
+        "Flow:",
+        "- Starts by scanning the order book to find the best order for",
+        "the redeemable_amount fillable (the requested amount minus max",
+        "fees, as we repay them by keeping a piece of the DN position).",
+        "- Closes the equivalent part of the delta neutral position (FoK",
+        "emulated by using mango IoC + 100% fill verification).",
+        "- Deducts the taker_fees (ceiled) form the value of the opened short, and",
+        "transfer user redeemable token for that amount.",
+        "- Burns the redeemable equivalent to fees + closed position,",
+        "then withdraw resulting equivalent collateral to the user",
+        "- Internal accounting update + anchor event emission.",
+        "",
+        "Note:",
+        "The caller pays for the incurred slippage and taker_fee (4bps at the time",
+        "of writing). This ensures that the system stay \"closed\".",
+        "",
+        "Note:",
+        "The value of the collateral is derived from the COLLATERAL-PERP price,",
+        "expressed in USD value.",
+        ""
+      ],
       "accounts": [
         {
           "name": "user",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user",
+            "Note - Mut required for WSOL unwrapping"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance.",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral."
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The collateral mint used by the `depository` instance",
+            "Required to create the user_collateral ATA if needed"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The redeemable mint managed by the `controller` instance",
+            "Tokens will be burnt during this instruction"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The `user`'s ATA for the `depository`'s `collateral_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The `user`'s ATA for the `controller`'s `redeemable_mint`",
+            "Will be debited during this instruction"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoSigner",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 [MangoMarkets CPI] Signer PDA"
+          ]
         },
         {
           "name": "mangoRootBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoNodeBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoPerpMarket",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#16 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market"
+          ]
         },
         {
           "name": "mangoBids",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#17 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook bids"
+          ]
         },
         {
           "name": "mangoAsks",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#18 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market orderbook asks"
+          ]
         },
         {
           "name": "mangoEventQueue",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#19 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market event queue"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#20 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#21 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#22 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -3451,87 +4977,143 @@ export const IDL: Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance.",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral."
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The redeemable mint managed by the `controller` instance",
+            "Tokens will be minted during this instruction"
+          ]
         },
         {
           "name": "userQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The `user`'s ATA for one the `mango depository`s `quote_mint`",
+            "Will be debited during this instruction"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The `user`'s ATA for the `controller`'s `redeemable_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoRootBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoNodeBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoPerpMarket",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#16 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#17 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -3547,97 +5129,159 @@ export const IDL: Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance.",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral."
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 The redeemable mint managed by the `controller` instance",
+            "Tokens will be minted during this instruction"
+          ]
         },
         {
           "name": "quoteMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The quote mint of the depository"
+          ]
         },
         {
           "name": "userQuote",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The `user`'s ATA for one the `mango depository`s `quote_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The `user`'s ATA for the `controller`'s `redeemable_mint`",
+            "Will be debited during this instruction"
+          ]
         },
         {
           "name": "mangoAccount",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 The MangoMarkets Account (MangoAccount) managed by the `depository`",
+            "CHECK : Seeds checked. Depository registered"
+          ]
         },
         {
           "name": "mangoGroup",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 [MangoMarkets CPI] Index grouping perp and spot markets"
+          ]
         },
         {
           "name": "mangoCache",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11 [MangoMarkets CPI] Cache"
+          ]
         },
         {
           "name": "mangoSigner",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 [MangoMarkets CPI] Signer PDA"
+          ]
         },
         {
           "name": "mangoRootBank",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12 [MangoMarkets CPI] Root Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoNodeBank",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13 [MangoMarkets CPI] Node Bank for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14 [MangoMarkets CPI] Vault for the `depository`'s `collateral_mint`"
+          ]
         },
         {
           "name": "mangoPerpMarket",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15 [MangoMarkets CPI] `depository`'s `collateral_mint` perp market"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#16 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#17 Token Program"
+          ]
         },
         {
           "name": "mangoProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#18 MangoMarketv3 Program"
+          ]
         }
       ],
       "args": [
@@ -3653,17 +5297,27 @@ export const IDL: Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance.",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral."
+          ]
         }
       ],
       "args": [
@@ -3681,17 +5335,27 @@ export const IDL: Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance.",
+            "The `MercurialVaultDepository` manages a MercurialVaultAccount for a single Collateral."
+          ]
         }
       ],
       "args": [
@@ -3705,21 +5369,42 @@ export const IDL: Uxd = {
     },
     {
       "name": "disableDepositoryRegularMinting",
+      "docs": [
+        "Disable or enable regular minting for given Mango Depository.",
+        "",
+        "Parameters:",
+        "- disable: true to disable, false to enable.",
+        "",
+        "Note:",
+        "The disabled flag is false by default that a freshly registered mango depository has enabled regular minting.",
+        "This ix is for toggling that flag.",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance",
+            "The `MangoDepository` manages a MangoAccount for a single Collateral"
+          ]
         }
       ],
       "args": [
@@ -3735,77 +5420,124 @@ export const IDL: Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12",
+            "Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault."
+          ]
         },
         {
           "name": "mercurialVaultProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15"
+          ]
         }
       ],
       "args": [
@@ -3821,62 +5553,100 @@ export const IDL: Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
         },
         {
           "name": "interestsAndFeesRedeemAuthority",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9",
+            "Only wallet able to claim interests and fees"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12"
+          ]
         }
       ],
       "args": [
@@ -3900,77 +5670,124 @@ export const IDL: Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12",
+            "Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault."
+          ]
         },
         {
           "name": "mercurialVaultProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15"
+          ]
         }
       ],
       "args": [
@@ -3986,67 +5803,108 @@ export const IDL: Uxd = {
         {
           "name": "interestsAndFeesRedeemAuthority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "interestsAndFeesRedeemAuthorityCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10",
+            "Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault."
+          ]
         },
         {
           "name": "mercurialVaultProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13"
+          ]
         }
       ],
       "args": []
