@@ -603,16 +603,24 @@ export type Uxd = {
             "type": {
               "array": [
                 "u8",
-                257
+                255
               ]
             }
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
+          },
+          {
+            "name": "unused2",
+            "type": "u8"
           },
           {
             "name": "redeemableGlobalSupplyCap",
             "type": "u128"
           },
           {
-            "name": "unused2",
+            "name": "unused3",
             "type": {
               "array": [
                 "u8",
@@ -625,7 +633,7 @@ export type Uxd = {
             "type": "u128"
           },
           {
-            "name": "unused3",
+            "name": "unused4",
             "type": {
               "array": [
                 "u8",
@@ -645,10 +653,6 @@ export type Uxd = {
           {
             "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
-          },
-          {
-            "name": "isFrozen",
-            "type": "bool"
           }
         ]
       }
@@ -1923,16 +1927,24 @@ export const IDL: Uxd = {
             "type": {
               "array": [
                 "u8",
-                257
+                255
               ]
             }
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
+          },
+          {
+            "name": "unused2",
+            "type": "u8"
           },
           {
             "name": "redeemableGlobalSupplyCap",
             "type": "u128"
           },
           {
-            "name": "unused2",
+            "name": "unused3",
             "type": {
               "array": [
                 "u8",
@@ -1945,7 +1957,7 @@ export const IDL: Uxd = {
             "type": "u128"
           },
           {
-            "name": "unused3",
+            "name": "unused4",
             "type": {
               "array": [
                 "u8",
@@ -1965,10 +1977,6 @@ export const IDL: Uxd = {
           {
             "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
-          },
-          {
-            "name": "isFrozen",
-            "type": "bool"
           }
         ]
       }
