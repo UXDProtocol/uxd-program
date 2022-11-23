@@ -47,7 +47,7 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
     );
 
     // Check redeemed collateral amount has not decreased lol
-    expect(collateralDelta).gte(0);
+    expect(collateralDelta).lte(0);
 
     // Check depository accounting
     expect(nativeToUi(onChainDepository_post.profitTreasuryTotalCollected, depository.collateralDecimals)).equal(
