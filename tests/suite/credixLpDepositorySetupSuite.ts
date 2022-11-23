@@ -1,5 +1,8 @@
-import { Signer } from "@solana/web3.js";
+import { PublicKey, Signer } from "@solana/web3.js";
+import { findATAAddrSync } from "@uxd-protocol/uxd-client";
 import { Controller, CredixLpDepository } from "@uxd-protocol/uxd-client";
+import { collectProfitOfCredixLpDepositoryTest } from "../cases/collectProfitOfCredixLpDepositoryTest";
+import { editCredixLpDepositoryTest } from "../cases/editCredixLpDepositoryTest";
 import { registerCredixLpDepositoryTest } from "../cases/registerCredixLpDepositoryTest";
 
 export const credixLpDepositorySetupSuite = function (
@@ -21,5 +24,16 @@ export const credixLpDepositorySetupSuite = function (
       uiRedeemableAmountUnderManagementCap,
       payer
     );
+  });
+
+  it(`Collecting profits of credixLpDepository should work`, async function () {
+    let profitTreasuryCollateral = findATAAddrSync(authority.publicKey, depository.collateralMint)[0];
+
+    console.log("[🧾 collectProfits", profitTreasuryCollateral, "]");
+
+    await editCredixLpDepositoryTest(authority, controller, depository, {
+      profitTreasuryCollateral,
+    });
+    await collectProfitOfCredixLpDepositoryTest(authority, controller, depository, payer);
   });
 };

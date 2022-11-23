@@ -1555,6 +1555,11 @@ export type Uxd = {
           "isSigner": false
         },
         {
+          "name": "profitTreasuryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -1831,6 +1836,122 @@ export type Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "collectProfitOfCredixLpDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryShares",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixProgramState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "credixGlobalMarketState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixSigningAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "credixLiquidityCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixSharesMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixPass",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixTreasuryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixMultisig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "credixMultisigCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "profitTreasuryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "credixProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -2013,6 +2134,14 @@ export type Uxd = {
           },
           {
             "name": "redeemingFeeTotalAccrued",
+            "type": "u128"
+          },
+          {
+            "name": "profitTreasuryCollateral",
+            "type": "publicKey"
+          },
+          {
+            "name": "profitTreasuryTotalCollected",
             "type": "u128"
           }
         ]
@@ -2330,6 +2459,12 @@ export type Uxd = {
             "name": "mintingDisabled",
             "type": {
               "option": "bool"
+            }
+          },
+          {
+            "name": "profitTreasuryCollateral",
+            "type": {
+              "option": "publicKey"
             }
           }
         ]
@@ -2805,7 +2940,12 @@ export type Uxd = {
           "index": true
         },
         {
-          "name": "collateralAmount",
+          "name": "collateralAmountBeforeFees",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "collateralAmountAfterFees",
           "type": "u64",
           "index": false
         },
@@ -2816,6 +2956,46 @@ export type Uxd = {
         },
         {
           "name": "redeemingFeePaid",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "CollectProfitOfCredixLpDepositoryEvent",
+      "fields": [
+        {
+          "name": "controllerVersion",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "depositoryVersion",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "profitTreasuryCollateral",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "collateralAmountBeforeFees",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "collateralAmountAfterFees",
           "type": "u64",
           "index": false
         }
@@ -3494,6 +3674,31 @@ export type Uxd = {
       ]
     },
     {
+      "name": "SetCredixLpDepositoryProfitTreasuryCollateralEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "profitTreasuryCollateral",
+          "type": "publicKey",
+          "index": true
+        }
+      ]
+    },
+    {
       "name": "QuoteRedeemFromMangoDepositoryEvent",
       "fields": [
         {
@@ -3937,126 +4142,131 @@ export type Uxd = {
     },
     {
       "code": 6069,
+      "name": "InvalidTreasuryCollateral",
+      "msg": "The provided treasury collateral does not match the depository's treasury collateral."
+    },
+    {
+      "code": 6070,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6070,
+      "code": 6071,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6071,
+      "code": 6072,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6072,
+      "code": 6073,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6073,
+      "code": 6074,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6074,
+      "code": 6075,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6075,
+      "code": 6076,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6076,
+      "code": 6077,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6077,
+      "code": 6078,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6078,
+      "code": 6079,
       "name": "InvalidMaplePool",
       "msg": "The provided maple pool does not match the Depository's one."
     },
     {
-      "code": 6079,
+      "code": 6080,
       "name": "InvalidMaplePoolLocker",
       "msg": "The provided maple pool locker does not match the Depository's one."
     },
     {
-      "code": 6080,
+      "code": 6081,
       "name": "InvalidMapleGlobals",
       "msg": "The provided maple globals does not match the Depository's one."
     },
     {
-      "code": 6081,
+      "code": 6082,
       "name": "InvalidMapleLender",
       "msg": "The provided maple lender does not match the Depository's one."
     },
     {
-      "code": 6082,
+      "code": 6083,
       "name": "InvalidMapleSharesMint",
       "msg": "The provided maple shares mint does not match the Depository's one."
     },
     {
-      "code": 6083,
+      "code": 6084,
       "name": "InvalidMapleLockedShares",
       "msg": "The provided maple locked shares does not match the Depository's one."
     },
     {
-      "code": 6084,
+      "code": 6085,
       "name": "InvalidMapleLenderShares",
       "msg": "The provided maple lender shares does not match the Depository's one."
     },
     {
-      "code": 6085,
+      "code": 6086,
       "name": "InvalidCredixProgramState",
       "msg": "The Credix ProgramState isn't the Depository one."
     },
     {
-      "code": 6086,
+      "code": 6087,
       "name": "InvalidCredixGlobalMarketState",
       "msg": "The Credix GlobalMarketState isn't the Depository one."
     },
     {
-      "code": 6087,
+      "code": 6088,
       "name": "InvalidCredixSigningAuthority",
       "msg": "The Credix SigningAuthority isn't the Depository one."
     },
     {
-      "code": 6088,
+      "code": 6089,
       "name": "InvalidCredixLiquidityCollateral",
       "msg": "The Credix LiquidityCollateral isn't the Depository one."
     },
     {
-      "code": 6089,
+      "code": 6090,
       "name": "InvalidCredixSharesMint",
       "msg": "The Credix SharesMint isn't the Depository one."
     },
     {
-      "code": 6090,
+      "code": 6091,
       "name": "InvalidCredixPass",
       "msg": "The Credix Pass isn't the Depository one."
     },
     {
-      "code": 6091,
+      "code": 6092,
       "name": "InvalidCredixMultisig",
       "msg": "The Credix Multisig isn't the ProgramState one."
     },
     {
-      "code": 6092,
+      "code": 6093,
       "name": "InvalidCredixTreasuryCollateral",
       "msg": "The Credix TreasuryCollateral isn't the GlobalMarketState one."
     },
     {
-      "code": 6093,
+      "code": 6094,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
@@ -5620,6 +5830,11 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
+          "name": "profitTreasuryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -5896,6 +6111,122 @@ export const IDL: Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "collectProfitOfCredixLpDepository",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryShares",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixProgramState",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "credixGlobalMarketState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixSigningAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "credixLiquidityCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixSharesMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixPass",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixTreasuryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixMultisig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "credixMultisigCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "profitTreasuryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "credixProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -6078,6 +6409,14 @@ export const IDL: Uxd = {
           },
           {
             "name": "redeemingFeeTotalAccrued",
+            "type": "u128"
+          },
+          {
+            "name": "profitTreasuryCollateral",
+            "type": "publicKey"
+          },
+          {
+            "name": "profitTreasuryTotalCollected",
             "type": "u128"
           }
         ]
@@ -6395,6 +6734,12 @@ export const IDL: Uxd = {
             "name": "mintingDisabled",
             "type": {
               "option": "bool"
+            }
+          },
+          {
+            "name": "profitTreasuryCollateral",
+            "type": {
+              "option": "publicKey"
             }
           }
         ]
@@ -6870,7 +7215,12 @@ export const IDL: Uxd = {
           "index": true
         },
         {
-          "name": "collateralAmount",
+          "name": "collateralAmountBeforeFees",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "collateralAmountAfterFees",
           "type": "u64",
           "index": false
         },
@@ -6881,6 +7231,46 @@ export const IDL: Uxd = {
         },
         {
           "name": "redeemingFeePaid",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "CollectProfitOfCredixLpDepositoryEvent",
+      "fields": [
+        {
+          "name": "controllerVersion",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "depositoryVersion",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "profitTreasuryCollateral",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "collateralAmountBeforeFees",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "collateralAmountAfterFees",
           "type": "u64",
           "index": false
         }
@@ -7559,6 +7949,31 @@ export const IDL: Uxd = {
       ]
     },
     {
+      "name": "SetCredixLpDepositoryProfitTreasuryCollateralEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "profitTreasuryCollateral",
+          "type": "publicKey",
+          "index": true
+        }
+      ]
+    },
+    {
       "name": "QuoteRedeemFromMangoDepositoryEvent",
       "fields": [
         {
@@ -8002,126 +8417,131 @@ export const IDL: Uxd = {
     },
     {
       "code": 6069,
+      "name": "InvalidTreasuryCollateral",
+      "msg": "The provided treasury collateral does not match the depository's treasury collateral."
+    },
+    {
+      "code": 6070,
       "name": "InvalidQuoteMint",
       "msg": "The provided quote mint does not match the depository's quote mint."
     },
     {
-      "code": 6070,
+      "code": 6071,
       "name": "InvalidMangoAccount",
       "msg": "The Mango Account isn't the Depository one."
     },
     {
-      "code": 6071,
+      "code": 6072,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6072,
+      "code": 6073,
       "name": "InvalidDexMarket",
       "msg": "The provided perp_market is not the one tied to this Depository."
     },
     {
-      "code": 6073,
+      "code": 6074,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6074,
+      "code": 6075,
       "name": "InvalidMaxBaseQuantity",
       "msg": "The max base quantity must be above 0."
     },
     {
-      "code": 6075,
+      "code": 6076,
       "name": "InvalidMaxQuoteQuantity",
       "msg": "The max quote quantity must be above 0."
     },
     {
-      "code": 6076,
+      "code": 6077,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6077,
+      "code": 6078,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6078,
+      "code": 6079,
       "name": "InvalidMaplePool",
       "msg": "The provided maple pool does not match the Depository's one."
     },
     {
-      "code": 6079,
+      "code": 6080,
       "name": "InvalidMaplePoolLocker",
       "msg": "The provided maple pool locker does not match the Depository's one."
     },
     {
-      "code": 6080,
+      "code": 6081,
       "name": "InvalidMapleGlobals",
       "msg": "The provided maple globals does not match the Depository's one."
     },
     {
-      "code": 6081,
+      "code": 6082,
       "name": "InvalidMapleLender",
       "msg": "The provided maple lender does not match the Depository's one."
     },
     {
-      "code": 6082,
+      "code": 6083,
       "name": "InvalidMapleSharesMint",
       "msg": "The provided maple shares mint does not match the Depository's one."
     },
     {
-      "code": 6083,
+      "code": 6084,
       "name": "InvalidMapleLockedShares",
       "msg": "The provided maple locked shares does not match the Depository's one."
     },
     {
-      "code": 6084,
+      "code": 6085,
       "name": "InvalidMapleLenderShares",
       "msg": "The provided maple lender shares does not match the Depository's one."
     },
     {
-      "code": 6085,
+      "code": 6086,
       "name": "InvalidCredixProgramState",
       "msg": "The Credix ProgramState isn't the Depository one."
     },
     {
-      "code": 6086,
+      "code": 6087,
       "name": "InvalidCredixGlobalMarketState",
       "msg": "The Credix GlobalMarketState isn't the Depository one."
     },
     {
-      "code": 6087,
+      "code": 6088,
       "name": "InvalidCredixSigningAuthority",
       "msg": "The Credix SigningAuthority isn't the Depository one."
     },
     {
-      "code": 6088,
+      "code": 6089,
       "name": "InvalidCredixLiquidityCollateral",
       "msg": "The Credix LiquidityCollateral isn't the Depository one."
     },
     {
-      "code": 6089,
+      "code": 6090,
       "name": "InvalidCredixSharesMint",
       "msg": "The Credix SharesMint isn't the Depository one."
     },
     {
-      "code": 6090,
+      "code": 6091,
       "name": "InvalidCredixPass",
       "msg": "The Credix Pass isn't the Depository one."
     },
     {
-      "code": 6091,
+      "code": 6092,
       "name": "InvalidCredixMultisig",
       "msg": "The Credix Multisig isn't the ProgramState one."
     },
     {
-      "code": 6092,
+      "code": 6093,
       "name": "InvalidCredixTreasuryCollateral",
       "msg": "The Credix TreasuryCollateral isn't the GlobalMarketState one."
     },
     {
-      "code": 6093,
+      "code": 6094,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

@@ -161,17 +161,52 @@ export async function redeemFromCredixLpDepository(
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
-  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
-    const createUserRedeemableAtaIx = createAssocTokenIx(
+  const [authorityCollateralAta] = findATAAddrSync(authority.publicKey, depository.collateralMint);
+  if (!(await getConnection().getAccountInfo(authorityCollateralAta))) {
+    const createUserCollateralAtaIx = createAssocTokenIx(
       authority.publicKey,
-      authorityRedeemableAta,
-      controller.redeemableMintPda
+      authorityCollateralAta,
+      depository.collateralMint
     );
-    tx.add(createUserRedeemableAtaIx);
+    tx.add(createUserCollateralAtaIx);
   }
 
   tx.add(redeemFromCredixLpDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function collectProfitOfCredixLpDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: CredixLpDepository
+): Promise<string> {
+  const collectProfitOfCredixLpDepositoryIx = uxdClient.createCollectProfitOfCredixLpDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityCollateralAta] = findATAAddrSync(authority.publicKey, depository.collateralMint);
+  if (!(await getConnection().getAccountInfo(authorityCollateralAta))) {
+    const createUserCollateralAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityCollateralAta,
+      depository.collateralMint
+    );
+    tx.add(createUserCollateralAtaIx);
+  }
+
+  tx.add(collectProfitOfCredixLpDepositoryIx);
   signers.push(authority);
   if (payer) {
     signers.push(payer);

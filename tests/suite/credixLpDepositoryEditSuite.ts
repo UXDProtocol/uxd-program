@@ -1,4 +1,4 @@
-import { Signer } from "@solana/web3.js";
+import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, CredixLpDepository, nativeToUi } from "@uxd-protocol/uxd-client";
 import { getConnection, TXN_OPTS } from "../connection";
 import { editCredixLpDepositoryTest } from "../cases/editCredixLpDepositoryTest";
@@ -53,10 +53,25 @@ export const credixLpDepositoryEditSuite = async function (
       });
     });
 
+    it(`Edit profitTreasuryCollateral alone should work`, async function () {
+      const profitTreasuryCollateral = new PublicKey("6U5vJ63PsiwevAVgzbrr5Lgd3jHEjZzdpEcMwULzoJVz");
+
+      console.log("[🧾 profitTreasuryCollateral", profitTreasuryCollateral, "]");
+
+      await editCredixLpDepositoryTest(controllerAuthority, controller, depository, {
+        profitTreasuryCollateral,
+      });
+    });
+
     // Restore initial depository values there
     it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap should work`, async function () {
-      const { mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap, mintingDisabled } =
-        beforeDepository;
+      const {
+        mintingFeeInBps,
+        redeemingFeeInBps,
+        redeemableAmountUnderManagementCap,
+        mintingDisabled,
+        profitTreasuryCollateral,
+      } = beforeDepository;
 
       const uiRedeemableAmountUnderManagementCap = nativeToUi(
         redeemableAmountUnderManagementCap,
@@ -67,12 +82,14 @@ export const credixLpDepositoryEditSuite = async function (
       console.log("[🧾 redeemingFeeInBps", redeemingFeeInBps, "]");
       console.log("[🧾 redeemableAmountUnderManagementCap", uiRedeemableAmountUnderManagementCap, "]");
       console.log("[🧾 mintingDisabled", mintingDisabled, "]");
+      console.log("[🧾 profitTreasuryCollateral", profitTreasuryCollateral, "]");
 
       await editCredixLpDepositoryTest(controllerAuthority, controller, depository, {
         mintingFeeInBps,
         redeemingFeeInBps,
         redeemableAmountUnderManagementCap: uiRedeemableAmountUnderManagementCap,
         mintingDisabled,
+        profitTreasuryCollateral,
       });
     });
   });

@@ -95,7 +95,7 @@ pub struct MintWithCredixLpDepository<'info> {
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 
     /// #12
-    /// CHECK: checked by the depository's has_one
+    /// CHECK: unused by us, checked by credix
     pub credix_signing_authority: AccountInfo<'info>,
 
     /// #13

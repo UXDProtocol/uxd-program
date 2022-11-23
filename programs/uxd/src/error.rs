@@ -147,6 +147,8 @@ pub enum UxdError {
     InvalidCollateralLocker,
     #[msg("The provided shares locker does not match the depository's shares locker.")]
     InvalidSharesLocker,
+    #[msg("The provided treasury collateral does not match the depository's treasury collateral.")]
+    InvalidTreasuryCollateral,
     #[msg("The provided quote mint does not match the depository's quote mint.")]
     InvalidQuoteMint,
     #[msg("The Mango Account isn't the Depository one.")]

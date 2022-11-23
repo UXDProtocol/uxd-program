@@ -1,6 +1,7 @@
 use crate::error::UxdError;
 use crate::events::SetCredixLpDepositoryMintingDisabledEvent;
 use crate::events::SetCredixLpDepositoryMintingFeeInBpsEvent;
+use crate::events::SetCredixLpDepositoryProfitTreasuryCollateralEvent;
 use crate::events::SetCredixLpDepositoryRedeemableAmountUnderManagementCapEvent;
 use crate::events::SetCredixLpDepositoryRedeemingFeeInBpsEvent;
 use crate::state::credix_lp_depository::CredixLpDepository;
@@ -44,6 +45,7 @@ pub struct EditCredixLpDepositoryFields {
     minting_fee_in_bps: Option<u8>,
     redeeming_fee_in_bps: Option<u8>,
     minting_disabled: Option<bool>,
+    profit_treasury_collateral: Option<Pubkey>,
 }
 
 pub(crate) fn handler(
@@ -113,6 +115,21 @@ pub(crate) fn handler(
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
             minting_disabled
+        });
+    }
+
+    // optional: profit_treasury_collateral
+    if let Some(profit_treasury_collateral) = fields.profit_treasury_collateral {
+        msg!(
+            "[edit_credix_lp_depository] profit_treasury_collateral {}",
+            profit_treasury_collateral
+        );
+        depository.profit_treasury_collateral = profit_treasury_collateral;
+        emit!(SetCredixLpDepositoryProfitTreasuryCollateralEvent {
+            version: ctx.accounts.controller.load()?.version,
+            controller: ctx.accounts.controller.key(),
+            depository: ctx.accounts.depository.key(),
+            profit_treasury_collateral
         });
     }
 

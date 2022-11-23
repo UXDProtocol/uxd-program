@@ -207,5 +207,6 @@ export async function createCredixLpDepositoryDevnetUSDC() {
     credixMultisig: new PublicKey("4u825MpPxsRSxnvAJ8jJRsvAtbXByLhZZTWjEg1Kcjkd"),
     credixTreasuryCollateral: new PublicKey("BDWiqHSTpZAWcERiQuZFQJxich22J5uy9ALXLQ3eryWG"),
     credixMarketName: "credix-marketplace",
+    profitTreasury: new PublicKey("aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC"),
   });
 }

@@ -583,6 +583,17 @@ pub mod uxd {
         msg!("[redeem_from_credix_lp_depository]");
         instructions::redeem_from_credix_lp_depository::handler(ctx, redeemable_amount)
     }
+
+    // Collect collateral tokens when locked value exceed liabilities.
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn collect_profit_of_credix_lp_depository(
+        ctx: Context<CollectProfitOfCredixLpDepository>,
+    ) -> Result<()> {
+        msg!("[collect_profit_of_credix_lp_depository]");
+        instructions::collect_profit_of_credix_lp_depository::handler(ctx)
+    }
 }
 
 /// Checks that the perp_market_index provided matches the collateral of the depository. Same for Quote.
