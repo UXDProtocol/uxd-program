@@ -231,10 +231,6 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         "[collect_profit_of_credix_lp_depository:collateral_amount_after_precision_loss:{}]",
         collateral_amount_after_precision_loss
     );
-    require!(
-        collateral_amount_after_precision_loss > 0,
-        UxdError::MinimumRedeemedCollateralAmountError
-    );
 
     // Compute the amount of collateral we will receive after the withdrawal fees
     let withdrawal_fees_fraction = ctx.accounts.credix_global_market_state.withdrawal_fee;
@@ -250,10 +246,12 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         "[collect_profit_of_credix_lp_depository:collateral_amount_after_withdrawal_fees:{}]",
         collateral_amount_after_withdrawal_fees
     );
-    require!(
-        collateral_amount_after_withdrawal_fees > 0,
-        UxdError::MinimumRedeemedCollateralAmountError
-    );
+
+    // If nothing to withdraw, no need to continue
+    if collateral_amount_after_withdrawal_fees == 0 {
+        msg!("[collect_profit_of_credix_lp_depository:no_profit]",);
+        return Ok(());
+    }
 
     // Run a withdraw CPI from credix into the depository
     msg!("[collect_profit_of_credix_lp_depository:withdraw_funds]",);
@@ -273,7 +271,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         collateral_amount_after_withdrawal_fees,
     )?;
 
-    // Refresh account states after deposit
+    // Refresh account states after withdrawal
     ctx.accounts.depository_collateral.reload()?;
     ctx.accounts.depository_shares.reload()?;
     ctx.accounts.credix_global_market_state.reload()?;
@@ -281,7 +279,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     ctx.accounts.credix_shares_mint.reload()?;
     ctx.accounts.profit_treasury_collateral.reload()?;
 
-    // Read all states after deposit
+    // Read all states after withdrawal
     let depository_collateral_amount_after: u64 = ctx.accounts.depository_collateral.amount;
     let profit_treasury_collateral_amount_after: u64 =
         ctx.accounts.profit_treasury_collateral.amount;
@@ -408,12 +406,6 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     // Accouting for depository
     let mut depository = ctx.accounts.depository.load_mut()?;
     depository.profit_treasury_collected(collateral_amount_after_withdrawal_fees)?;
-
-    /*
-    // force failure
-    msg!("[collect_profit_of_credix_lp_depository:forced failure]",);
-    0_u64.checked_sub(1).ok_or(UxdError::CannotLoadMangoGroup)?;
-    */
 
     // Done
     Ok(())
