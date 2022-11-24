@@ -16,8 +16,8 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
 
   try {
     // GIVEN
-    const [treasuryProfitCollateralBalance_pre, onchainController_pre, onChainDepository_pre] = await Promise.all([
-      getBalance(depository.treasuryProfitCollateral),
+    const [profitTreasuryCollateralBalance_pre, onchainController_pre, onChainDepository_pre] = await Promise.all([
+      getBalance(depository.profitTreasuryCollateral),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
@@ -28,14 +28,14 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN
-    const [treasuryProfitCollateralBalance_post, onchainController_post, onChainDepository_post] = await Promise.all([
-      getBalance(depository.treasuryProfitCollateral),
+    const [profitTreasuryCollateralBalance_post, onchainController_post, onChainDepository_post] = await Promise.all([
+      getBalance(depository.profitTreasuryCollateral),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
 
     const collateralDelta = Number(
-      (treasuryProfitCollateralBalance_post - treasuryProfitCollateralBalance_pre).toFixed(
+      (profitTreasuryCollateralBalance_post - profitTreasuryCollateralBalance_pre).toFixed(
         depository.collateralDecimals
       )
     );
@@ -47,13 +47,13 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
     );
 
     // Check redeemed collateral amount has not decreased lol
-    expect(collateralDelta).lte(0);
+    expect(collateralDelta).gte(0);
 
     // Check depository accounting
     expect(nativeToUi(onChainDepository_post.profitTreasuryTotalCollected, depository.collateralDecimals)).equal(
       Number(
         (
-          nativeToUi(onChainDepository_pre.profitTreasuryTotalCollected, depository.collateralDecimals) -
+          nativeToUi(onChainDepository_pre.profitTreasuryTotalCollected, depository.collateralDecimals) +
           collateralDelta
         ).toFixed(depository.collateralDecimals)
       )
