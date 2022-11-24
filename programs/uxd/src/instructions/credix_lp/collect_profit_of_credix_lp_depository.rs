@@ -360,6 +360,28 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     let owned_shares_amount_decrease: u64 = checked_i64_to_u64(-owned_shares_amount_delta)?;
     let owned_shares_value_decrease: u64 = checked_i64_to_u64(-owned_shares_value_delta)?;
 
+    // Log deltas for debriefing the changes
+    msg!(
+        "[collect_profit_of_credix_lp_depository:profit_treasury_collateral_amount_increase:{}]",
+        profit_treasury_collateral_amount_increase
+    );
+    msg!(
+        "[collect_profit_of_credix_lp_depository:total_shares_amount_decrease:{}]",
+        total_shares_amount_decrease
+    );
+    msg!(
+        "[collect_profit_of_credix_lp_depository:total_shares_value_decrease:{}]",
+        total_shares_value_decrease
+    );
+    msg!(
+        "[collect_profit_of_credix_lp_depository:owned_shares_amount_decrease:{}]",
+        owned_shares_amount_decrease
+    );
+    msg!(
+        "[collect_profit_of_credix_lp_depository:owned_shares_value_decrease:{}]",
+        owned_shares_value_decrease
+    );
+
     // Validate that the locked value moved exactly to the correct place
     require!(
         profit_treasury_collateral_amount_increase

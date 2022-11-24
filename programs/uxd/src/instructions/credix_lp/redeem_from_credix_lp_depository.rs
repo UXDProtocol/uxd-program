@@ -371,6 +371,32 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
     let owned_shares_amount_decrease: u64 = checked_i64_to_u64(-owned_shares_amount_delta)?;
     let owned_shares_value_decrease: u64 = checked_i64_to_u64(-owned_shares_value_delta)?;
 
+    // Log deltas for debriefing the changes
+    msg!(
+        "[redeem_from_credix_lp_depository:user_collateral_amount_increase:{}]",
+        user_collateral_amount_increase
+    );
+    msg!(
+        "[redeem_from_credix_lp_depository:user_redeemable_amount_decrease:{}]",
+        user_redeemable_amount_decrease
+    );
+    msg!(
+        "[redeem_from_credix_lp_depository:total_shares_amount_decrease:{}]",
+        total_shares_amount_decrease
+    );
+    msg!(
+        "[redeem_from_credix_lp_depository:total_shares_value_decrease:{}]",
+        total_shares_value_decrease
+    );
+    msg!(
+        "[redeem_from_credix_lp_depository:owned_shares_amount_decrease:{}]",
+        owned_shares_amount_decrease
+    );
+    msg!(
+        "[redeem_from_credix_lp_depository:owned_shares_value_decrease:{}]",
+        owned_shares_value_decrease
+    );
+
     // Validate that the locked value moved exactly to the correct place
     require!(
         user_redeemable_amount_decrease == redeemable_amount,
