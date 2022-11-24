@@ -163,11 +163,9 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         redeemable_amount
     );
 
-    // Read useful values
+    // Make depository signer
     let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
     let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
-
-    // Make depository signer
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         CREDIX_LP_DEPOSITORY_NAMESPACE,
         credix_global_market_state.as_ref(),

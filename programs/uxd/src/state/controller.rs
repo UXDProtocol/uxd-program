@@ -149,12 +149,12 @@ impl Controller {
             current_size < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
             UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached
         );
-        // Increment registered Mango Depositories count
+        // Increment registered Credix Lp Depositories count
         self.registered_credix_lp_depositories_count = self
             .registered_credix_lp_depositories_count
             .checked_add(1)
             .ok_or_else(|| error!(UxdError::MathError))?;
-        // Add the new Mango Depository ID to the array of registered Depositories
+        // Add the new Credix Lp Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_credix_lp_depositories[new_entry_index] = credix_lp_depository_id;
         Ok(())

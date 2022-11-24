@@ -197,7 +197,7 @@ export async function createMaplePoolDepositoryDevnetUSDC() {
   });
 }
 
-export async function createCredixLpDepositoryDevnetUSDC() {
+export async function createCredixLpDepositoryDevnetUSDC(): Promise<CredixLpDepository> {
   return await CredixLpDepository.initialize({
     connection: getConnection(),
     uxdProgramId: uxdProgramId,

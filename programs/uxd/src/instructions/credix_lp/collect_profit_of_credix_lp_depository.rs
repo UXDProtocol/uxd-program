@@ -139,11 +139,9 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
 }
 
 pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
-    // Read useful values
+    // Make depository signer
     let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
     let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
-
-    // Make depository signer
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         CREDIX_LP_DEPOSITORY_NAMESPACE,
         credix_global_market_state.as_ref(),
@@ -174,35 +172,36 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         total_shares_value_before,
     )?;
 
-    // Compute the amount of owed to the users
-    let liabilities_redeemable_amount: u128 = ctx
-        .accounts
-        .depository
-        .load()?
-        .redeemable_amount_under_management;
+    // How much collateral can we withdraw as profit
+    let profits_value: u128 = {
+        // Compute the set of liabilities owed to the users
+        let liabilities_value: u128 = ctx
+            .accounts
+            .depository
+            .load()?
+            .redeemable_amount_under_management;
+        msg!(
+            "[collect_profit_of_credix_lp_depository:liabilities_value:{}]",
+            liabilities_value
+        );
+        // Compute the set of assets owned in the LP
+        let assets_value: u128 = owned_shares_value_before.into();
+        msg!(
+            "[collect_profit_of_credix_lp_depository:assets_value:{}]",
+            assets_value
+        );
+        // Compute the amount of profits that we can safely withdraw
+        assets_value
+            .checked_sub(liabilities_value)
+            .ok_or(UxdError::MathError)?
+    };
     msg!(
-        "[collect_profit_of_credix_lp_depository:liabilities_redeemable_amount:{}]",
-        liabilities_redeemable_amount
+        "[collect_profit_of_credix_lp_depository:profits_value:{}]",
+        profits_value
     );
 
     // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
-    let assets_redeemable_amount: u128 = owned_shares_value_before.into();
-    msg!(
-        "[collect_profit_of_credix_lp_depository:assets_redeemable_amount:{}]",
-        assets_redeemable_amount
-    );
-
-    // Compute the amount of profits that we can safely withdraw
-    let profits_redeemable_amount: u128 = assets_redeemable_amount
-        .checked_sub(liabilities_redeemable_amount)
-        .ok_or(UxdError::MathError)?;
-    msg!(
-        "[collect_profit_of_credix_lp_depository:profits_redeemable_amount:{}]",
-        profits_redeemable_amount
-    );
-
-    // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
-    let collateral_amount_before_precision_loss: u64 = u64::try_from(profits_redeemable_amount)
+    let collateral_amount_before_precision_loss: u64 = u64::try_from(profits_value)
         .ok()
         .ok_or(UxdError::MathError)?;
     msg!(
@@ -233,23 +232,26 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     );
 
     // Compute the amount of collateral we will receive after the withdrawal fees
-    let withdrawal_fees_fraction = ctx.accounts.credix_global_market_state.withdrawal_fee;
-    let withdrawal_fees_amount: u64 = compute_amount_fraction(
-        collateral_amount_after_precision_loss,
-        withdrawal_fees_fraction.numerator.into(),
-        withdrawal_fees_fraction.denominator.into(),
-    )?;
-    let collateral_amount_after_withdrawal_fees: u64 = collateral_amount_after_precision_loss
-        .checked_sub(withdrawal_fees_amount)
-        .ok_or(UxdError::MathError)?;
+    let collateral_amount_after_credix_withdrawal_fees: u64 = {
+        let credix_withdrawal_fees_fraction =
+            ctx.accounts.credix_global_market_state.withdrawal_fee;
+        let credix_withdrawal_fees_amount: u64 = compute_amount_fraction(
+            collateral_amount_after_precision_loss,
+            credix_withdrawal_fees_fraction.numerator.into(),
+            credix_withdrawal_fees_fraction.denominator.into(),
+        )?;
+        collateral_amount_after_precision_loss
+            .checked_sub(credix_withdrawal_fees_amount)
+            .ok_or(UxdError::MathError)?
+    };
     msg!(
-        "[collect_profit_of_credix_lp_depository:collateral_amount_after_withdrawal_fees:{}]",
-        collateral_amount_after_withdrawal_fees
+        "[collect_profit_of_credix_lp_depository:collateral_amount_after_credix_withdrawal_fees:{}]",
+        collateral_amount_after_credix_withdrawal_fees
     );
 
-    // If nothing to withdraw, no need to continue
-    if collateral_amount_after_withdrawal_fees == 0 {
-        msg!("[collect_profit_of_credix_lp_depository:no_profit]",);
+    // If nothing to withdraw, no need to continue, all profits have already been successfully collected
+    if collateral_amount_after_credix_withdrawal_fees == 0 {
+        msg!("[collect_profit_of_credix_lp_depository:no_profit_to_collect]",);
         return Ok(());
     }
 
@@ -268,7 +270,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         ctx.accounts
             .into_transfer_depository_collateral_to_profit_treasury_collateral_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_after_withdrawal_fees,
+        collateral_amount_after_credix_withdrawal_fees,
     )?;
 
     // Refresh account states after withdrawal
@@ -360,7 +362,8 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
 
     // Validate that the locked value moved exactly to the correct place
     require!(
-        profit_treasury_collateral_amount_increase == collateral_amount_after_withdrawal_fees,
+        profit_treasury_collateral_amount_increase
+            == collateral_amount_after_credix_withdrawal_fees,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
@@ -400,12 +403,12 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         depository: ctx.accounts.depository.key(),
         profit_treasury_collateral: ctx.accounts.profit_treasury_collateral.key(),
         collateral_amount_before_fees: collateral_amount_before_precision_loss,
-        collateral_amount_after_fees: collateral_amount_after_withdrawal_fees,
+        collateral_amount_after_fees: collateral_amount_after_credix_withdrawal_fees,
     });
 
     // Accouting for depository
     let mut depository = ctx.accounts.depository.load_mut()?;
-    depository.profit_treasury_collected(collateral_amount_after_withdrawal_fees)?;
+    depository.profit_treasury_collected(collateral_amount_after_credix_withdrawal_fees)?;
 
     // Done
     Ok(())

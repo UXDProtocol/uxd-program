@@ -157,11 +157,11 @@ pub struct MintWithCredixLpDepositoryEvent {
     pub collateral_amount: u64,
     /// The redeemable issued in native units. (output)
     pub redeemable_amount: u64,
-    /// The fees paid in native units. (output)
+    /// The fees paid in native units.
     pub minting_fee_paid: u64,
 }
 
-/// Event called in [instructions::mint_with_credix_lp_depository::handler].
+/// Event called in [instructions::redeem_from_credix_lp_depository::handler].
 #[event]
 pub struct RedeemFromCredixLpDepositoryEvent {
     #[index]
@@ -174,17 +174,17 @@ pub struct RedeemFromCredixLpDepositoryEvent {
     pub depository: Pubkey,
     #[index]
     pub user: Pubkey,
-    /// The collateral amount in native units. (output)
+    /// The collateral amount in native units.
     pub collateral_amount_before_fees: u64,
     /// The collateral amount in native units. (output)
     pub collateral_amount_after_fees: u64,
     /// The redeemable issued in native units. (input)
     pub redeemable_amount: u64,
-    /// The fees paid in native units. (output)
+    /// The fees paid in native units.
     pub redeeming_fee_paid: u64,
 }
 
-/// Event called in [instructions::mint_with_credix_lp_depository::handler].
+/// Event called in [instructions::collect_profit_of_credix_lp_depository::handler].
 #[event]
 pub struct CollectProfitOfCredixLpDepositoryEvent {
     #[index]
@@ -197,7 +197,7 @@ pub struct CollectProfitOfCredixLpDepositoryEvent {
     pub depository: Pubkey,
     #[index]
     pub profit_treasury_collateral: Pubkey,
-    /// The collateral amount in native units. (output)
+    /// The collateral amount in native units.
     pub collateral_amount_before_fees: u64,
     /// The collateral amount in native units. (output)
     pub collateral_amount_after_fees: u64,

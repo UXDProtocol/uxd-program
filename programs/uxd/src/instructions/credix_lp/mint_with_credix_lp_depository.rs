@@ -132,10 +132,6 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         collateral_amount
     );
 
-    // Read useful keys
-    let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
-    let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
-
     // Make controller signer
     let controller_pda_signer: &[&[&[u8]]] = &[&[
         CONTROLLER_NAMESPACE,
@@ -143,6 +139,8 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
     ]];
 
     // Make depository signer
+    let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
+    let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         CREDIX_LP_DEPOSITORY_NAMESPACE,
         credix_global_market_state.as_ref(),
