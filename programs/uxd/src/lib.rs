@@ -6,6 +6,7 @@ use error::UxdError;
 pub mod error;
 pub mod events;
 pub mod instructions;
+pub mod mercurial_utils;
 pub mod state;
 pub mod test;
 pub mod utils;
@@ -169,5 +170,12 @@ pub mod uxd {
             redeemable_amount,
         );
         instructions::redeem_from_identity_depository::handler(ctx, redeemable_amount)
+    }
+
+    pub fn collect_profit_of_mercurial_vault_depository(
+        ctx: Context<CollectProfitOfMercurialVaultDepository>,
+    ) -> Result<()> {
+        msg!("[collect_profit_of_mercurial_vault_depository]");
+        instructions::collect_profit_of_mercurial_vault_depository::handler(ctx)
     }
 }

@@ -20,7 +20,8 @@ pub const CONTROLLER_SPACE: usize = 8
     + 8 // unused
     + (32 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
     + 1
-    + 375;
+    + 16
+    + 359;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -58,6 +59,9 @@ pub struct Controller {
     pub registered_mercurial_vault_depositories:
         [Pubkey; MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES],
     pub registered_mercurial_vault_depositories_count: u8,
+    //
+    // Total amount of profits collected by any depository
+    pub profits_total_collected: u128,
 }
 
 impl Controller {
@@ -97,6 +101,18 @@ impl Controller {
                 .ok_or(UxdError::MathError)?
                 .checked_to_num()
                 .ok_or(UxdError::MathError)?;
+
+        Ok(())
+    }
+
+    pub fn update_onchain_accounting_following_profits_collection(
+        &mut self,
+        collected_profits: u64,
+    ) -> std::result::Result<(), UxdError> {
+        self.profits_total_collected = self
+            .profits_total_collected
+            .checked_add(collected_profits.into())
+            .ok_or(UxdError::MathError)?;
 
         Ok(())
     }

@@ -4,41 +4,79 @@ export type Uxd = {
   "instructions": [
     {
       "name": "initializeController",
+      "docs": [
+        "Initialize a Controller on chain account.",
+        "",
+        "Parameters:",
+        "- redeemable_mint_decimals: the decimals of the redeemable mint.",
+        "",
+        "Note:",
+        "Only one Controller on chain account will ever exist due to the",
+        "PDA derivation seed having no variations.",
+        "",
+        "Note:",
+        "In the case of UXDProtocol this is the one in charge of the UXD mint,",
+        "and it has been locked to a single Controller to ever exist by only",
+        "having one possible derivation. (but it's been made generic, and we",
+        "could have added the authority to the seed generation for instance).",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 The redeemable mint managed by the `controller` instance"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 Token Program"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 Rent Sysvar"
+          ]
         }
       ],
       "args": [
@@ -54,12 +92,18 @@ export type Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         }
       ],
       "args": [
@@ -77,17 +121,27 @@ export type Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance.",
+            "The `MercurialVaultDepository` manages a MercurialVaultAccount for a single Collateral."
+          ]
         }
       ],
       "args": [
@@ -105,17 +159,26 @@ export type Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance."
+          ]
         }
       ],
       "args": [
@@ -133,77 +196,124 @@ export type Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12",
+            "Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault."
+          ]
         },
         {
           "name": "mercurialVaultProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15"
+          ]
         }
       ],
       "args": [
@@ -219,57 +329,100 @@ export type Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
+        },
+        {
+          "name": "profitsRedeemAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "#9",
+            "Only wallet able to claim interests and fees"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12"
+          ]
         }
       ],
       "args": [
@@ -293,77 +446,124 @@ export type Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12",
+            "Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault."
+          ]
         },
         {
           "name": "mercurialVaultProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15"
+          ]
         }
       ],
       "args": [
@@ -379,47 +579,75 @@ export type Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance"
+          ]
         },
         {
           "name": "collateralVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5",
+            "Token account holding the collateral from minting"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The collateral mint used by the `depository` instance"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 Token Program"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 Rent Sysvar"
+          ]
         }
       ],
       "args": []
@@ -430,52 +658,86 @@ export type Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming"
+          ]
         },
         {
           "name": "collateralVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5",
+            "Token account holding the collateral from minting"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The redeemable mint managed by the `controller` instance",
+            "Tokens will be minted during this instruction"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The `user`'s TA for the `depository` `collateral_mint`",
+            "Will be debited during this instruction"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The `user`'s TA for the `controller`'s `redeemable_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 Token Program"
+          ]
         }
       ],
       "args": [
@@ -491,52 +753,86 @@ export type Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming"
+          ]
         },
         {
           "name": "collateralVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5",
+            "Token account holding the collateral from minting"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The redeemable mint managed by the `controller` instance",
+            "Tokens will be burnt during this instruction"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The `user`'s ATA for the `depository`'s `collateral_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 The `user`'s ATA for the `controller`'s `redeemable_mint`",
+            "Will be debited during this instruction"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         }
       ],
       "args": [
@@ -545,6 +841,118 @@ export type Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "collectProfitOfMercurialVaultDepository",
+      "accounts": [
+        {
+          "name": "profitsRedeemAuthority",
+          "isMut": false,
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
+        },
+        {
+          "name": "profitsRedeemAuthorityCollateral",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
+        },
+        {
+          "name": "depositoryLpTokenVault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#7",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
+        },
+        {
+          "name": "mercurialVault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#8"
+          ]
+        },
+        {
+          "name": "mercurialVaultLpMint",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#9"
+          ]
+        },
+        {
+          "name": "mercurialVaultCollateralTokenSafe",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#10",
+            "Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault."
+          ]
+        },
+        {
+          "name": "mercurialVaultProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "#12"
+          ]
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "#13"
+          ]
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -624,6 +1032,10 @@ export type Uxd = {
           {
             "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "profitsTotalCollected",
+            "type": "u128"
           }
         ]
       }
@@ -764,6 +1176,18 @@ export type Uxd = {
           {
             "name": "mintingDisabled",
             "type": "bool"
+          },
+          {
+            "name": "profitsRedeemAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "profitsTotalCollected",
+            "type": "u128"
+          },
+          {
+            "name": "lastProfitsCollectionUnixTimestamp",
+            "type": "u64"
           }
         ]
       }
@@ -831,6 +1255,12 @@ export type Uxd = {
             "name": "mintingDisabled",
             "type": {
               "option": "bool"
+            }
+          },
+          {
+            "name": "profitsRedeemAuthority",
+            "type": {
+              "option": "publicKey"
             }
           }
         ]
@@ -1014,6 +1444,31 @@ export type Uxd = {
         {
           "name": "mintingDisabled",
           "type": "bool",
+          "index": true
+        }
+      ]
+    },
+    {
+      "name": "SetDepositoryProfitsRedeemAuthorityEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "profitsRedeemAuthority",
+          "type": "publicKey",
           "index": true
         }
       ]
@@ -1212,51 +1667,56 @@ export type Uxd = {
     },
     {
       "code": 6020,
+      "name": "InvalidMercurialVaultProfitsRedeemAuthority",
+      "msg": "Only the mercurial vault profits redeem authority can access this instructions."
+    },
+    {
+      "code": 6021,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6021,
+      "code": 6022,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6022,
+      "code": 6023,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6023,
+      "code": 6024,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6024,
+      "code": 6025,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6025,
+      "code": 6026,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6026,
+      "code": 6027,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6027,
+      "code": 6028,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6028,
+      "code": 6029,
       "name": "RedeemableIdentityDepositoryAmountUnderManagementCap",
       "msg": "Minting amount would go past the identity depository Redeemable Amount Under Management Cap."
     },
     {
-      "code": 6029,
+      "code": 6030,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
@@ -1269,41 +1729,79 @@ export const IDL: Uxd = {
   "instructions": [
     {
       "name": "initializeController",
+      "docs": [
+        "Initialize a Controller on chain account.",
+        "",
+        "Parameters:",
+        "- redeemable_mint_decimals: the decimals of the redeemable mint.",
+        "",
+        "Note:",
+        "Only one Controller on chain account will ever exist due to the",
+        "PDA derivation seed having no variations.",
+        "",
+        "Note:",
+        "In the case of UXDProtocol this is the one in charge of the UXD mint,",
+        "and it has been locked to a single Controller to ever exist by only",
+        "having one possible derivation. (but it's been made generic, and we",
+        "could have added the authority to the seed generation for instance).",
+        ""
+      ],
       "accounts": [
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 The redeemable mint managed by the `controller` instance"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 Token Program"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 Rent Sysvar"
+          ]
         }
       ],
       "args": [
@@ -1319,12 +1817,18 @@ export const IDL: Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         }
       ],
       "args": [
@@ -1342,17 +1846,27 @@ export const IDL: Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance.",
+            "The `MercurialVaultDepository` manages a MercurialVaultAccount for a single Collateral."
+          ]
         }
       ],
       "args": [
@@ -1370,17 +1884,26 @@ export const IDL: Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance."
+          ]
         }
       ],
       "args": [
@@ -1398,77 +1921,124 @@ export const IDL: Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12",
+            "Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault."
+          ]
         },
         {
           "name": "mercurialVaultProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15"
+          ]
         }
       ],
       "args": [
@@ -1484,57 +2054,100 @@ export const IDL: Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
+        },
+        {
+          "name": "profitsRedeemAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "#9",
+            "Only wallet able to claim interests and fees"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12"
+          ]
         }
       ],
       "args": [
@@ -1558,77 +2171,124 @@ export const IDL: Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#12",
+            "Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault."
+          ]
         },
         {
           "name": "mercurialVaultProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#15"
+          ]
         }
       ],
       "args": [
@@ -1644,47 +2304,75 @@ export const IDL: Uxd = {
         {
           "name": "authority",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance"
+          ]
         },
         {
           "name": "collateralVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5",
+            "Token account holding the collateral from minting"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The collateral mint used by the `depository` instance"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 Token Program"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 Rent Sysvar"
+          ]
         }
       ],
       "args": []
@@ -1695,52 +2383,86 @@ export const IDL: Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming"
+          ]
         },
         {
           "name": "collateralVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5",
+            "Token account holding the collateral from minting"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#6 The redeemable mint managed by the `controller` instance",
+            "Tokens will be minted during this instruction"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The `user`'s TA for the `depository` `collateral_mint`",
+            "Will be debited during this instruction"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The `user`'s TA for the `controller`'s `redeemable_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10 Token Program"
+          ]
         }
       ],
       "args": [
@@ -1756,52 +2478,86 @@ export const IDL: Uxd = {
         {
           "name": "user",
           "isMut": false,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#1 Public call accessible to any user"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming"
+          ]
         },
         {
           "name": "collateralVault",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#5",
+            "Token account holding the collateral from minting"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#7 The redeemable mint managed by the `controller` instance",
+            "Tokens will be burnt during this instruction"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#8 The `user`'s ATA for the `depository`'s `collateral_mint`",
+            "Will be credited during this instruction"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#9 The `user`'s ATA for the `controller`'s `redeemable_mint`",
+            "Will be debited during this instruction"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
-          "isSigner": false
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
         }
       ],
       "args": [
@@ -1810,6 +2566,118 @@ export const IDL: Uxd = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "collectProfitOfMercurialVaultDepository",
+      "accounts": [
+        {
+          "name": "profitsRedeemAuthority",
+          "isMut": false,
+          "isSigner": true,
+          "docs": [
+            "#1"
+          ]
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": [
+            "#2"
+          ]
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#3"
+          ]
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#4"
+          ]
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "#5"
+          ]
+        },
+        {
+          "name": "profitsRedeemAuthorityCollateral",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#6"
+          ]
+        },
+        {
+          "name": "depositoryLpTokenVault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#7",
+            "Token account holding the LP tokens minted by depositing collateral on mercurial vault"
+          ]
+        },
+        {
+          "name": "mercurialVault",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#8"
+          ]
+        },
+        {
+          "name": "mercurialVaultLpMint",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#9"
+          ]
+        },
+        {
+          "name": "mercurialVaultCollateralTokenSafe",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#10",
+            "Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault."
+          ]
+        },
+        {
+          "name": "mercurialVaultProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "#11"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "#12"
+          ]
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "#13"
+          ]
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -1889,6 +2757,10 @@ export const IDL: Uxd = {
           {
             "name": "registeredMercurialVaultDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "profitsTotalCollected",
+            "type": "u128"
           }
         ]
       }
@@ -2029,6 +2901,18 @@ export const IDL: Uxd = {
           {
             "name": "mintingDisabled",
             "type": "bool"
+          },
+          {
+            "name": "profitsRedeemAuthority",
+            "type": "publicKey"
+          },
+          {
+            "name": "profitsTotalCollected",
+            "type": "u128"
+          },
+          {
+            "name": "lastProfitsCollectionUnixTimestamp",
+            "type": "u64"
           }
         ]
       }
@@ -2096,6 +2980,12 @@ export const IDL: Uxd = {
             "name": "mintingDisabled",
             "type": {
               "option": "bool"
+            }
+          },
+          {
+            "name": "profitsRedeemAuthority",
+            "type": {
+              "option": "publicKey"
             }
           }
         ]
@@ -2279,6 +3169,31 @@ export const IDL: Uxd = {
         {
           "name": "mintingDisabled",
           "type": "bool",
+          "index": true
+        }
+      ]
+    },
+    {
+      "name": "SetDepositoryProfitsRedeemAuthorityEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "profitsRedeemAuthority",
+          "type": "publicKey",
           "index": true
         }
       ]
@@ -2477,51 +3392,56 @@ export const IDL: Uxd = {
     },
     {
       "code": 6020,
+      "name": "InvalidMercurialVaultProfitsRedeemAuthority",
+      "msg": "Only the mercurial vault profits redeem authority can access this instructions."
+    },
+    {
+      "code": 6021,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6021,
+      "code": 6022,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6022,
+      "code": 6023,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6023,
+      "code": 6024,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6024,
+      "code": 6025,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6025,
+      "code": 6026,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6026,
+      "code": 6027,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6027,
+      "code": 6028,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6028,
+      "code": 6029,
       "name": "RedeemableIdentityDepositoryAmountUnderManagementCap",
       "msg": "Minting amount would go past the identity depository Redeemable Amount Under Management Cap."
     },
     {
-      "code": 6029,
+      "code": 6030,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

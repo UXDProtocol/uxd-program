@@ -7,6 +7,7 @@ import { mercurialVaultDepositorySetupSuite } from "./suite/mercurialVaultDeposi
 import { mercurialVaultDepositoryMintRedeemSuite } from "./suite/mercurialVaultMintAndRedeemSuite";
 import { getConnection } from "./connection";
 import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDepositorySuite";
+import { mercurialVaultDepositoryCollectProfitSuite } from "./suite/mercurialVaultCollectProfitSuite";
 
 (async () => {
   const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
@@ -16,7 +17,7 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
   });
 
   describe("UXD Controller Suite", function () {
-    const params = new controllerIntegrationSuiteParameters(25_000_000, 500_000);
+    const params = new controllerIntegrationSuiteParameters(25_000_000);
     controllerIntegrationSuite(authority, bank, controllerUXD, params);
   });
 
@@ -46,6 +47,7 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
     describe("mercurialVaultDepositorySetupSuite", function () {
       mercurialVaultDepositorySetupSuite(
         authority,
+        authority.publicKey,
         bank,
         controllerUXD,
         mercurialVaultDepository,
@@ -61,6 +63,10 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
 
     describe("editMercurialVaultDepositorySuite", function () {
       editMercurialVaultDepositorySuite(authority, user, bank, controllerUXD, mercurialVaultDepository);
+    });
+
+    describe("mercurialVaultDepositoryCollectProfitSuite", function () {
+      mercurialVaultDepositoryCollectProfitSuite(authority, authority, bank, controllerUXD, mercurialVaultDepository);
     });
 
     this.afterAll("Transfer funds back to bank", async function () {

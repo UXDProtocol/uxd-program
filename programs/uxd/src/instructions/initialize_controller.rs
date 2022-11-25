@@ -83,6 +83,8 @@ pub(crate) fn handler(
         .ok_or_else(|| error!(UxdError::MathError))?;
     controller.redeemable_circulating_supply = u128::MIN;
 
+    controller.profits_total_collected = u128::MIN;
+
     emit!(InitializeControllerEvent {
         version: controller.version,
         controller: ctx.accounts.controller.key(),

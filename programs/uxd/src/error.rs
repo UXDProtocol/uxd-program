@@ -44,6 +44,8 @@ pub enum UxdError {
     MinimumRedeemedCollateralAmountError,
     #[msg("The depository lp token vault does not match the Depository's one.")]
     InvalidDepositoryLpTokenVault,
+    #[msg("Only the mercurial vault profits redeem authority can access this instructions.")]
+    InvalidMercurialVaultProfitsRedeemAuthority,
     /// Anchor DSL related errors
     ///
     #[msg("Only the Program initializer authority can access this instructions.")]

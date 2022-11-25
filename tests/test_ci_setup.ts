@@ -36,6 +36,7 @@ import { mercurialVaultDepositorySetupSuite } from "./suite/mercurialVaultDeposi
   describe("mercurialVaultDepositorySetupSuite", function () {
     mercurialVaultDepositorySetupSuite(
       authority,
+      authority.publicKey,
       bank,
       controllerUXD,
       mercurialVaultDepository,

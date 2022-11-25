@@ -1,6 +1,6 @@
 import { getConnection, TXN_OPTS } from "./connection";
 import { uxdClient } from "./constants";
-import { Signer, Transaction } from "@solana/web3.js";
+import { PublicKey, Signer, Transaction } from "@solana/web3.js";
 import {
   Controller,
   createAssocTokenIx,
@@ -106,6 +106,7 @@ export async function redeemFromMercurialVaultDepository(
 
 export async function registerMercurialVaultDepository(
   authority: Signer,
+  profitsRedeemAuthority: PublicKey,
   payer: Signer,
   controller: Controller,
   depository: MercurialVaultDepository,
@@ -117,6 +118,7 @@ export async function registerMercurialVaultDepository(
     controller,
     depository,
     authority.publicKey,
+    profitsRedeemAuthority,
     mintingFeeInBps,
     redeemingFeeInBps,
     redeemableAmountUnderManagementCap,

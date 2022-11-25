@@ -1,4 +1,4 @@
-import { Signer } from "@solana/web3.js";
+import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, MercurialVaultDepository, uiToNative } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { editMercurialVaultDepository } from "../api";
@@ -14,6 +14,7 @@ export const editMercurialVaultDepositoryTest = async function (
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
+    profitsRedeemAuthority?: PublicKey;
   }
 ) {
   const connection = getConnection();
@@ -24,7 +25,7 @@ export const editMercurialVaultDepositoryTest = async function (
     // GIVEN
     const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
 
-    const { redeemableAmountUnderManagementCap, mintingFeeInBps, redeemingFeeInBps, mintingDisabled } =
+    const { redeemableAmountUnderManagementCap, mintingFeeInBps, redeemingFeeInBps, mintingDisabled, profitsRedeemAuthority, } =
       depositoryOnchainAccount;
 
     // WHEN
@@ -38,6 +39,7 @@ export const editMercurialVaultDepositoryTest = async function (
       mintingFeeInBps: mintingFeeInBps_post,
       redeemingFeeInBps: redeemingFeeInBps_post,
       mintingDisabled: mintingDisabled_post,
+      profitsRedeemAuthority: profitsRedeemAuthority_post,
     } = depositoryOnchainAccount_post;
 
     if (uiFields.redeemableAmountUnderManagementCap) {
@@ -67,6 +69,10 @@ export const editMercurialVaultDepositoryTest = async function (
     if (typeof uiFields.mintingDisabled !== "undefined") {
       expect(mintingDisabled_post).equals(uiFields.mintingDisabled, "The minting disabled state has not changed.");
       console.log(`🧾 Previous minting disabled state was`, mintingDisabled, "now is", mintingDisabled_post);
+    }
+    if (typeof uiFields.profitsRedeemAuthority !== 'undefined') {
+      expect(profitsRedeemAuthority_post).equals(uiFields.profitsRedeemAuthority, "The profits redeem authority state has not changed.");
+      console.log(`🧾 Previous profits redeem authority state was`, profitsRedeemAuthority, "now is", profitsRedeemAuthority_post);
     }
 
     controller.info();
