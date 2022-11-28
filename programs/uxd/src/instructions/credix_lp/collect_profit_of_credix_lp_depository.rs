@@ -432,6 +432,10 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     let mut depository = ctx.accounts.depository.load_mut()?;
     depository.profit_treasury_collected(collateral_amount_after_credix_withdrawal_fees)?;
 
+    // Accouting for controller
+    let mut controller = ctx.accounts.controller.load_mut()?;
+    controller.profit_treasury_collected(collateral_amount_after_credix_withdrawal_fees)?;
+
     // Done
     Ok(())
 }
