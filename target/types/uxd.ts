@@ -1127,6 +1127,10 @@ export type Uxd = {
           {
             "name": "registeredCredixLpDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "profitTreasuryTotalCollected",
+            "type": "u128"
           }
         ]
       }
@@ -3310,6 +3314,10 @@ export const IDL: Uxd = {
           {
             "name": "registeredCredixLpDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "profitTreasuryTotalCollected",
+            "type": "u128"
           }
         ]
       }
