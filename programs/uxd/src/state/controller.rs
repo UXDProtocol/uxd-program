@@ -4,6 +4,7 @@ use fixed::types::I80F48;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
+pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
 pub const CONTROLLER_SPACE: usize = 8
@@ -20,7 +21,9 @@ pub const CONTROLLER_SPACE: usize = 8
     + 8 // unused
     + (32 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
     + 1
-    + 375;
+    + (32 * MAX_REGISTERED_CREDIX_LP_DEPOSITORIES)
+    + 1
+    + 246;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -58,6 +61,10 @@ pub struct Controller {
     pub registered_mercurial_vault_depositories:
         [Pubkey; MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES],
     pub registered_mercurial_vault_depositories_count: u8,
+    //
+    // The Credix Lp Depositories registered with this Controller
+    pub registered_credix_lp_depositories: [Pubkey; MAX_REGISTERED_CREDIX_LP_DEPOSITORIES],
+    pub registered_credix_lp_depositories_count: u8,
 }
 
 impl Controller {
@@ -79,6 +86,26 @@ impl Controller {
         let new_entry_index = current_size;
         self.registered_mercurial_vault_depositories[new_entry_index] =
             mercurial_vault_depository_id;
+        Ok(())
+    }
+
+    pub(crate) fn add_registered_credix_lp_depository_entry(
+        &mut self,
+        credix_lp_depository_id: Pubkey,
+    ) -> Result<()> {
+        let current_size = usize::from(self.registered_credix_lp_depositories_count);
+        require!(
+            current_size < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
+            UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached
+        );
+        // Increment registered Credix Lp Depositories count
+        self.registered_credix_lp_depositories_count = self
+            .registered_credix_lp_depositories_count
+            .checked_add(1)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        // Add the new Credix Lp Depository ID to the array of registered Depositories
+        let new_entry_index = current_size;
+        self.registered_credix_lp_depositories[new_entry_index] = credix_lp_depository_id;
         Ok(())
     }
 

@@ -21,6 +21,7 @@ solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 pub const MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 pub const IDENTITY_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
+pub const CREDIX_LP_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
 pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
@@ -30,6 +31,8 @@ pub const MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE: &[u8] =
     b"MERCURIALVAULTDEPOSITORYLPVAULT";
 pub const IDENTITY_DEPOSITORY_NAMESPACE: &[u8] = b"IDENTITYDEPOSITORY";
 pub const IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE: &[u8] = b"IDENTITYDEPOSITORYCOLLATERAL";
+
+pub const CREDIX_LP_DEPOSITORY_NAMESPACE: &[u8] = b"CREDIX_LP_DEPOSITORY";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -90,6 +93,13 @@ pub mod uxd {
         fields: EditIdentityDepositoryFields,
     ) -> Result<()> {
         instructions::edit_identity_depository::handler(ctx, &fields)
+    }
+
+    pub fn edit_credix_lp_depository(
+        ctx: Context<EditCredixLpDepository>,
+        fields: EditCredixLpDepositoryFields,
+    ) -> Result<()> {
+        instructions::edit_credix_lp_depository::handler(ctx, &fields)
     }
 
     // Mint Redeemable tokens by depositing Collateral to mercurial vault.
@@ -169,5 +179,64 @@ pub mod uxd {
             redeemable_amount,
         );
         instructions::redeem_from_identity_depository::handler(ctx, redeemable_amount)
+    }
+
+    // Create and Register a new `CredixLpDepository` to the `Controller`.
+    // Each `Depository` account manages a specific credix lp.
+    #[access_control(
+        ctx.accounts.validate(
+            minting_fee_in_bps,
+            redeeming_fee_in_bps,
+            redeemable_amount_under_management_cap,
+        )
+    )]
+    pub fn register_credix_lp_depository(
+        ctx: Context<RegisterCredixLpDepository>,
+        minting_fee_in_bps: u8,
+        redeeming_fee_in_bps: u8,
+        redeemable_amount_under_management_cap: u128,
+    ) -> Result<()> {
+        msg!("[register_credix_lp_depository]");
+        instructions::register_credix_lp_depository::handler(
+            ctx,
+            minting_fee_in_bps,
+            redeeming_fee_in_bps,
+            redeemable_amount_under_management_cap,
+        )
+    }
+
+    // Mint Redeemable tokens by depositing Collateral to credix lp.
+    #[access_control(
+        ctx.accounts.validate(collateral_amount)
+    )]
+    pub fn mint_with_credix_lp_depository(
+        ctx: Context<MintWithCredixLpDepository>,
+        collateral_amount: u64,
+    ) -> Result<()> {
+        msg!("[mint_with_credix_lp_depository]");
+        instructions::mint_with_credix_lp_depository::handler(ctx, collateral_amount)
+    }
+
+    // Redeem collateral tokens by burning redeemable from credix lp.
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn redeem_from_credix_lp_depository(
+        ctx: Context<RedeemFromCredixLpDepository>,
+        redeemable_amount: u64,
+    ) -> Result<()> {
+        msg!("[redeem_from_credix_lp_depository]");
+        instructions::redeem_from_credix_lp_depository::handler(ctx, redeemable_amount)
+    }
+
+    // Collect collateral tokens when locked value exceed liabilities (profit).
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn collect_profit_of_credix_lp_depository(
+        ctx: Context<CollectProfitOfCredixLpDepository>,
+    ) -> Result<()> {
+        msg!("[collect_profit_of_credix_lp_depository]");
+        instructions::collect_profit_of_credix_lp_depository::handler(ctx)
     }
 }
