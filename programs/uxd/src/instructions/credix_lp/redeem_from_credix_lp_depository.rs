@@ -236,21 +236,24 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
     );
 
     // Compute the amount of collateral we will receive after the withdrawal fees
-    let withdrawal_fees_fraction = ctx.accounts.credix_global_market_state.withdrawal_fee;
-    let withdrawal_fees_amount: u64 = compute_amount_fraction(
-        collateral_amount_after_precision_loss,
-        withdrawal_fees_fraction.numerator.into(),
-        withdrawal_fees_fraction.denominator.into(),
-    )?;
-    let collateral_amount_after_withdrawal_fees: u64 = collateral_amount_after_precision_loss
-        .checked_sub(withdrawal_fees_amount)
-        .ok_or(UxdError::MathError)?;
+    let collateral_amount_after_credix_withdrawal_fees: u64 = {
+        let credix_withdrawal_fees_fraction =
+            ctx.accounts.credix_global_market_state.withdrawal_fee;
+        let credix_withdrawal_fees_amount: u64 = compute_amount_fraction(
+            collateral_amount_after_precision_loss,
+            credix_withdrawal_fees_fraction.numerator.into(),
+            credix_withdrawal_fees_fraction.denominator.into(),
+        )?;
+        collateral_amount_after_precision_loss
+            .checked_sub(credix_withdrawal_fees_amount)
+            .ok_or(UxdError::MathError)?
+    };
     msg!(
-        "[redeem_from_credix_lp_depository:collateral_amount_after_withdrawal_fees:{}]",
-        collateral_amount_after_withdrawal_fees
+        "[redeem_from_credix_lp_depository:collateral_amount_after_credix_withdrawal_fees:{}]",
+        collateral_amount_after_credix_withdrawal_fees
     );
     require!(
-        collateral_amount_after_withdrawal_fees > 0,
+        collateral_amount_after_credix_withdrawal_fees > 0,
         UxdError::MinimumRedeemedCollateralAmountError
     );
 
@@ -276,7 +279,7 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         ctx.accounts
             .into_transfer_depository_collateral_to_user_collateral_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_after_withdrawal_fees,
+        collateral_amount_after_credix_withdrawal_fees,
     )?;
 
     // Refresh account states after deposit
@@ -403,7 +406,7 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        user_collateral_amount_increase == collateral_amount_after_withdrawal_fees,
+        user_collateral_amount_increase == collateral_amount_after_credix_withdrawal_fees,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
@@ -449,7 +452,7 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         user: ctx.accounts.user.key(),
         redeemable_amount: redeemable_amount,
         collateral_amount_before_fees: collateral_amount_before_precision_loss,
-        collateral_amount_after_fees: collateral_amount_after_withdrawal_fees,
+        collateral_amount_after_fees: collateral_amount_after_credix_withdrawal_fees,
         redeeming_fee_paid: redeeming_fee_paid,
     });
 
