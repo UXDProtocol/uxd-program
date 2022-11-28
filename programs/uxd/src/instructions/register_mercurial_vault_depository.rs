@@ -67,17 +67,12 @@ pub struct RegisterMercurialVaultDepository<'info> {
     pub depository_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
     /// #9
-    /// Only wallet able to claim interests and fees
-    /// CHECK: can be any address
-    pub profits_redeem_authority: AccountInfo<'info>,
-
-    /// #10
     pub system_program: Program<'info, System>,
 
-    /// #11
+    /// #10
     pub token_program: Program<'info, Token>,
 
-    /// #12
+    /// #11
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -128,7 +123,6 @@ pub fn handler(
 
     depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
 
-    depository.profits_redeem_authority = ctx.accounts.profits_redeem_authority.key();
     depository.profits_total_collected = u128::MIN;
     depository.last_profits_collection_unix_timestamp = 0;
 

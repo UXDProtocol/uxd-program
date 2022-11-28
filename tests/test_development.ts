@@ -1,4 +1,5 @@
-import { Keypair, PublicKey, Signer } from "@solana/web3.js";
+import { Keypair, PublicKey, sendAndConfirmTransaction, Signer } from "@solana/web3.js";
+import mercurialVaultSdk from '@mercurial-finance/vault-sdk'
 import {
   Controller,
   UXD_DECIMALS,
@@ -6,22 +7,26 @@ import {
   IdentityDepository,
   USDC_DEVNET,
   USDC_DECIMALS,
+  findATAAddrSync,
 } from "@uxd-protocol/uxd-client";
-import { authority, bank, uxdProgramId } from "./constants";
+import { authority, bank, uxdProgramId, MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS } from "./constants";
 import { transferAllSol, transferAllTokens, transferSol } from "./utils";
 import { initializeControllerTest } from "./cases/initializeControllerTest";
 import { identityDepositorySetupSuite } from "./suite/identityDepositorySetup";
 import { identityDepositoryMintRedeemSuite } from "./suite/identityDepositoryMintAndRedeemSuite";
 import { editIdentityDepositoryTest } from "./cases/editIdentityDepositoryTest";
 import { editIdentityDepositorySuite } from "./suite/editIdentityDepositorySuite";
+import { getConnection, TXN_OPTS } from "./connection";
+import { registerMercurialVaultDepositoryTest } from "./cases/registerMercurialVaultDepositoryTest";
+import { BN } from "@project-serum/anchor";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { VAULT_BASE_KEY } from "@mercurial-finance/vault-sdk/src/vault/constants";
+import { mercurialVaultNativeDeposit } from "./mercurial_vault_utils";
 
 console.log(uxdProgramId.toString());
 
 const controller = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 const payer = bank;
-
-const SOLEND_USDC_DEVNET = new PublicKey("6L9fgyYtbz34JvwvYyL6YzJDAywz9PKGttuZuWyuoqje");
-const SOLEND_USDC_DEVNET_DECIMALS = 6;
 
 // Do not create the vault. We are building an object with utilities methods.
 let mercurialVaultDepositoryUSDC: MercurialVaultDepository = null;
@@ -48,33 +53,54 @@ describe("Integration tests", function () {
       await initializeControllerTest(authority, controller, payer);
     });
 
-    //   it(`Initialize and register Mercurial USDC vault depository`, async function () {
-    //     mercurialVaultDepositoryUSDC = await MercurialVaultDepository.initialize({
-    //       connection: getConnection(),
-    //       collateralMint: {
-    //         mint: SOLEND_USDC_DEVNET,
-    //         decimals: SOLEND_USDC_DEVNET_DECIMALS,
-    //         symbol: "USDC",
-    //         name: "USDC",
-    //       },
-    //       uxdProgramId,
-    //     });
+    it(`Initialize and register Mercurial USDC vault depository`, async function () {
+      mercurialVaultDepositoryUSDC = await MercurialVaultDepository.initialize({
+        connection: getConnection(),
+        collateralMint: {
+          mint: MERCURIAL_USDC_DEVNET,
+          decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
+          symbol: "USDC",
+          name: "USDC",
+        },
+        uxdProgramId,
+      });
 
-    //     const mintingFeeInBps = 2;
-    //     const redeemingFeeInBps = 2;
-    //     const redeemableAmountUnderManagementCap = 1_000;
+      const mintingFeeInBps = 2;
+      const redeemingFeeInBps = 2;
+      const redeemableAmountUnderManagementCap = 1_000;
 
-    //     await registerMercurialVaultDepositoryTest(
-    //       authority,
-    //       controller,
-    //       mercurialVaultDepositoryUSDC,
-    //       mintingFeeInBps,
-    //       redeemingFeeInBps,
-    //       redeemableAmountUnderManagementCap,
-    //       payer
-    //     );
-    //   });
-    // });
+      // Deposit USDC directly from the bank to get back LP tokens used later to try out profits collection
+
+      /*await mercurialVaultNativeDeposit({
+        connection: getConnection(),
+        user: bank,
+        tokenAmount: 1_000,
+        minimumLpTokenAmount: 0,
+        mercurialVaultDepository: mercurialVaultDepositoryUSDC,
+      });*/
+
+      /*
+      const mercurialVaultSdkClient = mercurialVaultSdk.create(getConnection(), {
+        address: MERCURIAL_USDC_DEVNET.toBase58(),
+        name: 'USDC',
+        decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
+        symbol: 'USDC',
+      } as any, {
+        cluster: 'devnet',
+      });
+      */
+
+      await registerMercurialVaultDepositoryTest(
+        authority,
+        authority.publicKey,
+        controller,
+        mercurialVaultDepositoryUSDC,
+        mintingFeeInBps,
+        redeemingFeeInBps,
+        redeemableAmountUnderManagementCap,
+        payer
+      );
+    });
 
     // describe("Regular Mint/Redeem with Mercurial Vault USDC Depository", async function () {
     //   it(`Mint for 0.001 USDC`, async function () {
@@ -101,21 +127,21 @@ describe("Integration tests", function () {
     // });
   });
 
-  describe("Initialize Identity depository", async function () {
-    identityDepository = new IdentityDepository(USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
-    await editIdentityDepositoryTest(authority, controller, identityDepository, {
-      mintingDisabled: false,
-    });
-    identityDepositorySetupSuite(authority, bank, controller, identityDepository);
-  });
+  // describe("Initialize Identity depository", async function () {
+  //   identityDepository = new IdentityDepository(USDC_DEVNET, "USDC", USDC_DECIMALS, uxdProgramId);
+  //   await editIdentityDepositoryTest(authority, controller, identityDepository, {
+  //     mintingDisabled: false,
+  //   });
+  //   identityDepositorySetupSuite(authority, bank, controller, identityDepository);
+  // });
 
-  describe("Edit Identity depository test suite", function () {
-    editIdentityDepositorySuite(authority, user, bank, controller, identityDepository);
-  });
+  // describe("Edit Identity depository test suite", function () {
+  //   editIdentityDepositorySuite(authority, user, bank, controller, identityDepository);
+  // });
 
-  describe("Mint/Redeem Identity depository test suite ", function () {
-    identityDepositoryMintRedeemSuite(authority, user, bank, controller, identityDepository);
-  });
+  // describe("Mint/Redeem Identity depository test suite ", function () {
+  //   identityDepositoryMintRedeemSuite(authority, user, bank, controller, identityDepository);
+  // });
 
   // describe("Regular Mint/Redeem with Mercurial Vault USDC Depository", async function () {
   //   it(`Mint for 0.001 USDC`, async function () {

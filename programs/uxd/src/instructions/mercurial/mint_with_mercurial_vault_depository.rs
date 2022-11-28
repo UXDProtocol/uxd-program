@@ -288,7 +288,7 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
             .ok_or_else(|| error!(UxdError::MathError))?;
 
         require!(
-            (target_minimal_allowed_value..target).contains(&minted_lp_token_value),
+            (target_minimal_allowed_value..(target + 1)).contains(&minted_lp_token_value),
             UxdError::SlippageReached,
         );
 

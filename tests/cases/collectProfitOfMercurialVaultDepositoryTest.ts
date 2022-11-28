@@ -1,6 +1,5 @@
 import { Signer } from "@solana/web3.js";
-import { findATAAddrSync } from "@uxd-protocol/uxd-client";
-import { Controller, MercurialVaultDepository, nativeToUi } from "@uxd-protocol/uxd-client";
+import { findATAAddrSync, Controller, MercurialVaultDepository, nativeToUi } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
 import { collectProfitOfMercurialVaultDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
@@ -52,7 +51,7 @@ export const collectProfitOfMercurialVaultDepositoryTest = async function (
         ]);
 
         // Use toFixed to avoid +0.010000000000000009 != than +0.01
-        const collateralDelta = Number((profitsRedeemAuthorityCollateralBalance_pre - profitsRedeemAuthorityCollateralBalance_post).toFixed(depository.collateralMint.decimals));
+        const collateralDelta = Number((profitsRedeemAuthorityCollateralBalance_post - profitsRedeemAuthorityCollateralBalance_pre).toFixed(depository.collateralMint.decimals));
 
         console.log(
             `🧾 Collected`, collateralDelta, depository.collateralMint.symbol,
@@ -67,8 +66,7 @@ export const collectProfitOfMercurialVaultDepositoryTest = async function (
 
         // Check controller accounting
         expect(nativeToUi(onChainController_post.profitsTotalCollected, depository.collateralMint.decimals))
-            .equal(Number((nativeToUi(onChainController_post.profitsTotalCollected, depository.collateralMint.decimals) + collateralDelta).toFixed(depository.collateralMint.decimals)));
-
+            .equal(Number((nativeToUi(onChainController_pre.profitsTotalCollected, depository.collateralMint.decimals) + collateralDelta).toFixed(depository.collateralMint.decimals)));
 
         console.groupEnd();
 

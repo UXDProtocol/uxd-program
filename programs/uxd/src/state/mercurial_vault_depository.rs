@@ -4,7 +4,7 @@ use fixed::types::I80F48;
 use crate::error::UxdError;
 
 // Total should be 900 bytes
-pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 645;
+pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 677;
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 1     // bump
     + 1     // version
@@ -24,9 +24,8 @@ pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 16    // redeeming fee total accrued
     + 16    // redeemable amount under management cap
     + 1     // minting disabled
-    + 32    // interests and fees redeem authority
-    + 16    // interests and fees total collected
-    + 8     // last time interests and fees got collected (unix timestamp)
+    + 16    // profits total collected
+    + 8     // last time profits got collected (unix timestamp)
     + MERCURIAL_VAULT_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -85,9 +84,6 @@ pub struct MercurialVaultDepository {
     pub redeemable_amount_under_management_cap: u128,
 
     pub minting_disabled: bool,
-
-    // Only wallet able to claim interests and fees
-    pub profits_redeem_authority: Pubkey,
 
     // Total amount of interests collected by interests_and_fees_redeem_authority
     pub profits_total_collected: u128,

@@ -15,13 +15,13 @@ import { BN } from "@project-serum/anchor";
 import { editMercurialVaultDepositoryTest } from "../cases/editMercurialVaultDepositoryTest";
 import { MercurialVaultDepositoryAccount, uiToNative } from "@uxd-protocol/uxd-client";
 import { editControllerTest } from "../cases/editControllerTest";
+import { MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS, uxdProgramId } from "../constants";
 
 export const mercurialVaultDepositoryMintRedeemSuite = async function (
   controllerAuthority: Signer,
   user: Signer,
   payer: Signer,
   controller: Controller,
-  depository: MercurialVaultDepository
 ) {
   let initialRedeemableAccountBalance: number;
   let initialControllerGlobalRedeemableSupplyCap: BN;
@@ -29,11 +29,25 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
   let userRedeemableATA: PublicKey;
   let onchainController: ControllerAccount;
   let onChainDepository: MercurialVaultDepositoryAccount;
+  let depository: MercurialVaultDepository;
+  const collateralSymbol = 'USDC';
 
   before("Setup: fund user", async function () {
+    console.log(" user.publicKey", user.publicKey.toBase58());
+
+    depository = await MercurialVaultDepository.initialize({
+      connection: getConnection(),
+      collateralMint: {
+        mint: MERCURIAL_USDC_DEVNET,
+        name: "USDC",
+        symbol: collateralSymbol,
+        decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
+      },
+      uxdProgramId,
+    });
+
     console.log("depository.collateralMint.mint", depository.collateralMint.mint.toBase58());
     console.log("depository.collateralMint.decimals", depository.collateralMint.decimals);
-    console.log(" user.publicKey", user.publicKey.toBase58());
 
     await transferTokens(
       0.002,
@@ -56,20 +70,20 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
   });
 
   describe("Regular mint/redeem", () => {
-    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMint.symbol}`, async function () {
+    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol}`, async function () {
       const collateralAmount = 0.001;
 
-      console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+      console.log("[🧾 collateralAmount", collateralAmount, collateralSymbol, "]");
 
       await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);
     });
 
-    it(`Redeem all ${controller.redeemableMintSymbol} minted previously for ${depository.collateralMint.symbol}`, async function () {
+    it(`Redeem all ${controller.redeemableMintSymbol} minted previously for ${collateralSymbol}`, async function () {
       const redeemableAccountBalance = await getBalance(userRedeemableATA);
 
       const previouslyMintedRedeemableAmount = redeemableAccountBalance - initialRedeemableAccountBalance;
 
-      console.log("[🧾 redeemableAmount", previouslyMintedRedeemableAmount, depository.collateralMint.symbol, "]");
+      console.log("[🧾 redeemableAmount", previouslyMintedRedeemableAmount, collateralSymbol, "]");
 
       await redeemFromMercurialVaultDepositoryTest(
         previouslyMintedRedeemableAmount,
@@ -82,10 +96,10 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
   });
 
   describe("Over limits", () => {
-    it(`Mint for more ${depository.collateralMint.symbol} than owned (should fail)`, async function () {
+    it(`Mint for more ${collateralSymbol} than owned (should fail)`, async function () {
       const collateralAmount = 1_000_000;
 
-      console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+      console.log("[🧾 collateralAmount", collateralAmount, collateralSymbol, "]");
 
       try {
         await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);
@@ -93,7 +107,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
         expect(true, "Failing as planned");
       }
 
-      expect(false, `Should have failed - Do not own enough ${depository.collateralMint.symbol}`);
+      expect(false, `Should have failed - Do not own enough ${collateralSymbol}`);
     });
 
     it(`Redeem for more ${controller.redeemableMintSymbol} than owned (should fail)`, async function () {
@@ -113,10 +127,10 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
       );
     });
 
-    it(`Mint for 0 ${depository.collateralMint.symbol} (should fail)`, async function () {
+    it(`Mint for 0 ${collateralSymbol} (should fail)`, async function () {
       const collateralAmount = 0;
 
-      console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+      console.log("[🧾 collateralAmount", collateralAmount, collateralSymbol, "]");
 
       try {
         await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);
@@ -124,7 +138,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
         expect(true, "Failing as planned");
       }
 
-      expect(false, `Should have failed - Cannot mint for 0 ${depository.collateralMint.symbol}`);
+      expect(false, `Should have failed - Cannot mint for 0 ${collateralSymbol}`);
     });
 
     it(`Redeem for 0 ${controller.redeemableMintSymbol} (should fail)`, async function () {
@@ -144,20 +158,20 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
 
   describe("1 native unit mint/redeem", async () => {
     before(
-      `Setup: Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMint.symbol}`,
+      `Setup: Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol}`,
       async function () {
         const collateralAmount = 0.001;
 
-        console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+        console.log("[🧾 collateralAmount", collateralAmount, collateralSymbol, "]");
 
         await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);
       }
     );
 
-    it(`Mint for 1 native unit ${depository.collateralMint.symbol}`, async function () {
+    it(`Mint for 1 native unit ${collateralSymbol}`, async function () {
       const collateralAmount = Math.pow(10, -depository.collateralMint.decimals);
 
-      console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+      console.log("[🧾 collateralAmount", collateralAmount, collateralSymbol, "]");
 
       try {
         await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);
@@ -189,13 +203,13 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
     });
 
     after(
-      `Cleanup: Redeem all ${controller.redeemableMintSymbol} minted previously for ${depository.collateralMint.symbol}`,
+      `Cleanup: Redeem all ${controller.redeemableMintSymbol} minted previously for ${collateralSymbol}`,
       async function () {
         const redeemableAccountBalance = await getBalance(userRedeemableATA);
 
         const previouslyMintedRedeemableAmount = redeemableAccountBalance - initialRedeemableAccountBalance;
 
-        console.log("[🧾 redeemableAmount", previouslyMintedRedeemableAmount, depository.collateralMint.symbol, "]");
+        console.log("[🧾 redeemableAmount", previouslyMintedRedeemableAmount, collateralSymbol, "]");
 
         await redeemFromMercurialVaultDepositoryTest(
           previouslyMintedRedeemableAmount,
@@ -214,10 +228,10 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
         redeemableGlobalSupplyCap: 0,
       }));
 
-    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMint.symbol} (should fail)`, async function () {
+    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol} (should fail)`, async function () {
       const collateralAmount = 0.001;
 
-      console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+      console.log("[🧾 collateralAmount", collateralAmount, collateralSymbol, "]");
 
       try {
         await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);
@@ -250,10 +264,10 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
       });
     });
 
-    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMint.symbol} (should fail)`, async function () {
+    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol} (should fail)`, async function () {
       const collateralAmount = 0.001;
 
-      console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+      console.log("[🧾 collateralAmount", collateralAmount, collateralSymbol, "]");
 
       try {
         await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);
@@ -283,10 +297,10 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
       });
     });
 
-    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMint.symbol} (should fail)`, async function () {
+    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol} (should fail)`, async function () {
       const collateralAmount = 0.001;
 
-      console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMint.symbol, "]");
+      console.log("[🧾 collateralAmount", collateralAmount, collateralSymbol, "]");
 
       try {
         await mintWithMercurialVaultDepositoryTest(collateralAmount, user, controller, depository, payer);

@@ -392,20 +392,11 @@ export type Uxd = {
           ]
         },
         {
-          "name": "profitsRedeemAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "#9",
-            "Only wallet able to claim interests and fees"
-          ]
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
           "docs": [
-            "#10"
+            "#9"
           ]
         },
         {
@@ -413,7 +404,7 @@ export type Uxd = {
           "isMut": false,
           "isSigner": false,
           "docs": [
-            "#11"
+            "#10"
           ]
         },
         {
@@ -421,7 +412,7 @@ export type Uxd = {
           "isMut": false,
           "isSigner": false,
           "docs": [
-            "#12"
+            "#11"
           ]
         }
       ],
@@ -846,7 +837,7 @@ export type Uxd = {
       "name": "collectProfitOfMercurialVaultDepository",
       "accounts": [
         {
-          "name": "profitsRedeemAuthority",
+          "name": "authority",
           "isMut": false,
           "isSigner": true,
           "docs": [
@@ -886,7 +877,7 @@ export type Uxd = {
           ]
         },
         {
-          "name": "profitsRedeemAuthorityCollateral",
+          "name": "authorityCollateral",
           "isMut": true,
           "isSigner": false,
           "docs": [
@@ -1178,10 +1169,6 @@ export type Uxd = {
             "type": "bool"
           },
           {
-            "name": "profitsRedeemAuthority",
-            "type": "publicKey"
-          },
-          {
             "name": "profitsTotalCollected",
             "type": "u128"
           },
@@ -1255,12 +1242,6 @@ export type Uxd = {
             "name": "mintingDisabled",
             "type": {
               "option": "bool"
-            }
-          },
-          {
-            "name": "profitsRedeemAuthority",
-            "type": {
-              "option": "publicKey"
             }
           }
         ]
@@ -1444,31 +1425,6 @@ export type Uxd = {
         {
           "name": "mintingDisabled",
           "type": "bool",
-          "index": true
-        }
-      ]
-    },
-    {
-      "name": "SetDepositoryProfitsRedeemAuthorityEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": true
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "profitsRedeemAuthority",
-          "type": "publicKey",
           "index": true
         }
       ]
@@ -1667,56 +1623,51 @@ export type Uxd = {
     },
     {
       "code": 6020,
-      "name": "InvalidMercurialVaultProfitsRedeemAuthority",
-      "msg": "Only the mercurial vault profits redeem authority can access this instructions."
-    },
-    {
-      "code": 6021,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6022,
+      "code": 6021,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6023,
+      "code": 6022,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6024,
+      "code": 6023,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6025,
+      "code": 6024,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6026,
+      "code": 6025,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6027,
+      "code": 6026,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6028,
+      "code": 6027,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6029,
+      "code": 6028,
       "name": "RedeemableIdentityDepositoryAmountUnderManagementCap",
       "msg": "Minting amount would go past the identity depository Redeemable Amount Under Management Cap."
     },
     {
-      "code": 6030,
+      "code": 6029,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
@@ -2117,20 +2068,11 @@ export const IDL: Uxd = {
           ]
         },
         {
-          "name": "profitsRedeemAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "docs": [
-            "#9",
-            "Only wallet able to claim interests and fees"
-          ]
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
           "docs": [
-            "#10"
+            "#9"
           ]
         },
         {
@@ -2138,7 +2080,7 @@ export const IDL: Uxd = {
           "isMut": false,
           "isSigner": false,
           "docs": [
-            "#11"
+            "#10"
           ]
         },
         {
@@ -2146,7 +2088,7 @@ export const IDL: Uxd = {
           "isMut": false,
           "isSigner": false,
           "docs": [
-            "#12"
+            "#11"
           ]
         }
       ],
@@ -2571,7 +2513,7 @@ export const IDL: Uxd = {
       "name": "collectProfitOfMercurialVaultDepository",
       "accounts": [
         {
-          "name": "profitsRedeemAuthority",
+          "name": "authority",
           "isMut": false,
           "isSigner": true,
           "docs": [
@@ -2611,7 +2553,7 @@ export const IDL: Uxd = {
           ]
         },
         {
-          "name": "profitsRedeemAuthorityCollateral",
+          "name": "authorityCollateral",
           "isMut": true,
           "isSigner": false,
           "docs": [
@@ -2903,10 +2845,6 @@ export const IDL: Uxd = {
             "type": "bool"
           },
           {
-            "name": "profitsRedeemAuthority",
-            "type": "publicKey"
-          },
-          {
             "name": "profitsTotalCollected",
             "type": "u128"
           },
@@ -2980,12 +2918,6 @@ export const IDL: Uxd = {
             "name": "mintingDisabled",
             "type": {
               "option": "bool"
-            }
-          },
-          {
-            "name": "profitsRedeemAuthority",
-            "type": {
-              "option": "publicKey"
             }
           }
         ]
@@ -3169,31 +3101,6 @@ export const IDL: Uxd = {
         {
           "name": "mintingDisabled",
           "type": "bool",
-          "index": true
-        }
-      ]
-    },
-    {
-      "name": "SetDepositoryProfitsRedeemAuthorityEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": true
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "profitsRedeemAuthority",
-          "type": "publicKey",
           "index": true
         }
       ]
@@ -3392,56 +3299,51 @@ export const IDL: Uxd = {
     },
     {
       "code": 6020,
-      "name": "InvalidMercurialVaultProfitsRedeemAuthority",
-      "msg": "Only the mercurial vault profits redeem authority can access this instructions."
-    },
-    {
-      "code": 6021,
       "name": "InvalidAuthority",
       "msg": "Only the Program initializer authority can access this instructions."
     },
     {
-      "code": 6022,
+      "code": 6021,
       "name": "InvalidController",
       "msg": "The Depository's controller doesn't match the provided Controller."
     },
     {
-      "code": 6023,
+      "code": 6022,
       "name": "InvalidDepository",
       "msg": "The Depository provided is not registered with the Controller."
     },
     {
-      "code": 6024,
+      "code": 6023,
       "name": "InvalidCollateralMint",
       "msg": "The provided collateral mint does not match the depository's collateral mint."
     },
     {
-      "code": 6025,
+      "code": 6024,
       "name": "InvalidRedeemableMint",
       "msg": "The Redeemable Mint provided does not match the Controller's one."
     },
     {
-      "code": 6026,
+      "code": 6025,
       "name": "InvalidOwner",
       "msg": "The provided token account is not owner by the expected party."
     },
     {
-      "code": 6027,
+      "code": 6026,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6028,
+      "code": 6027,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6029,
+      "code": 6028,
       "name": "RedeemableIdentityDepositoryAmountUnderManagementCap",
       "msg": "Minting amount would go past the identity depository Redeemable Amount Under Management Cap."
     },
     {
-      "code": 6030,
+      "code": 6029,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

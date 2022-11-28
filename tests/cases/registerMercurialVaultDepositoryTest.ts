@@ -6,7 +6,6 @@ import { getConnection } from "../connection";
 
 export const registerMercurialVaultDepositoryTest = async function (
     authority: Signer,
-    profitsRedeemAuthority: PublicKey,
     controller: Controller,
     depository: MercurialVaultDepository,
     mintingFeeInBps: number,
@@ -20,7 +19,7 @@ export const registerMercurialVaultDepositoryTest = async function (
         if (await getConnection().getAccountInfo(depository.pda)) {
             console.log("🚧 Already registered.");
         } else {
-            const txId = await registerMercurialVaultDepository(authority, profitsRedeemAuthority, payer ?? authority, controller, depository, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap);
+            const txId = await registerMercurialVaultDepository(authority, payer ?? authority, controller, depository, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap);
             console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
         }
 

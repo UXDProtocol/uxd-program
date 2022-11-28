@@ -2,13 +2,26 @@ import { Signer } from "@solana/web3.js";
 import { Controller, MercurialVaultDepository, MercurialVaultDepositoryAccount, nativeToUi } from "@uxd-protocol/uxd-client";
 import { getConnection, TXN_OPTS } from "../connection";
 import { editMercurialVaultDepositoryTest } from "../cases/editMercurialVaultDepositoryTest";
+import { MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS, uxdProgramId } from "../constants";
 
-export const editMercurialVaultDepositorySuite = async function (controllerAuthority: Signer, user: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository) {
+export const editMercurialVaultDepositorySuite = async function (controllerAuthority: Signer, user: Signer, payer: Signer, controller: Controller) {
+    let depository: MercurialVaultDepository;
     let beforeDepository: MercurialVaultDepositoryAccount;
 
     describe("Edit mint/redeem", () => {
-        // Snapshot the initial depository values
         before(async () => {
+            depository = await MercurialVaultDepository.initialize({
+                connection: getConnection(),
+                collateralMint: {
+                    mint: MERCURIAL_USDC_DEVNET,
+                    name: "USDC",
+                    symbol: "USDC",
+                    decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
+                },
+                uxdProgramId,
+            });
+
+            // Snapshot the initial depository values
             beforeDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
         });
 

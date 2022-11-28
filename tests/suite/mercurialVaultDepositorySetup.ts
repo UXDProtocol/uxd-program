@@ -1,9 +1,24 @@
 import { PublicKey, Signer } from "@solana/web3.js";
 import { Controller, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
 import { registerMercurialVaultDepositoryTest } from "../cases/registerMercurialVaultDepositoryTest";
+import { getConnection } from "../connection";
+import { MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS, uxdProgramId } from "../constants";
 
-export const mercurialVaultDepositorySetupSuite = function (authority: Signer, profitsRedeemAuthority: PublicKey, payer: Signer, controller: Controller, depository: MercurialVaultDepository, mintingFeeInBps: number, redeemingFeeInBps: number, redeemableAmountUnderManagementCap: number) {
-    it(`Registers mercurialVaultDepository`, async function () {
-        await registerMercurialVaultDepositoryTest(authority, profitsRedeemAuthority, controller, depository, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap, payer);
+export const mercurialVaultDepositorySetupSuite = function (authority: Signer, payer: Signer, controller: Controller, mintingFeeInBps: number, redeemingFeeInBps: number, redeemableAmountUnderManagementCap: number) {
+    let depository: MercurialVaultDepository;
+
+    before(async () => {
+        depository = await MercurialVaultDepository.initialize({
+            connection: getConnection(),
+            collateralMint: {
+                mint: MERCURIAL_USDC_DEVNET,
+                name: "USDC",
+                symbol: "USDC",
+                decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
+            },
+            uxdProgramId,
+        });
     });
+
+    it(`Registers mercurialVaultDepository`, () => registerMercurialVaultDepositoryTest(authority, controller, depository, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap, payer));
 };

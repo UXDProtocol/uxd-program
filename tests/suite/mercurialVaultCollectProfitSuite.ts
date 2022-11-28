@@ -1,35 +1,39 @@
 import { Keypair, Signer } from "@solana/web3.js";
 import { Controller, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
 import { expect } from "chai";
-import { transferTokens } from "../utils";
 import { getConnection } from "../connection";
 import { collectProfitOfMercurialVaultDepositoryTest } from "../cases/collectProfitOfMercurialVaultDepositoryTest";
+import { MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS, uxdProgramId } from "../constants";
+import { transferLpTokenToDepositoryLpVault } from "../mercurial_vault_utils";
 
-export const mercurialVaultDepositoryCollectProfitSuite = async function (controllerAuthority: Signer, profitsRedeemAuthority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository) {
+export const mercurialVaultDepositoryCollectProfitSuite = async function (authority: Signer, payer: Signer, controller: Controller) {
+    const collateralSymbol = 'USDC';
+    let depository: MercurialVaultDepository;
+
     before('Setup: add LP token to mercurial vault depository LP token safe to simulate interests', async function () {
+        depository = await MercurialVaultDepository.initialize({
+            connection: getConnection(),
+            collateralMint: {
+                mint: MERCURIAL_USDC_DEVNET,
+                name: "USDC",
+                symbol: collateralSymbol,
+                decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
+            },
+            uxdProgramId,
+        });
+
         console.log('depository.collateralMint.mint', depository.collateralMint.mint.toBase58());
         console.log('depository.collateralMint.decimals', depository.collateralMint.decimals);
 
-        const onChainDepository = await depository.getOnchainAccount(getConnection());
-
-        await transferTokens(0.1, depository.mercurialVaultLpMint.mint, depository.mercurialVaultLpMint.decimals, payer, onChainDepository.lpTokenVault);
+        // Send LP token directly to depository LP token vault to simulate interest
+        await transferLpTokenToDepositoryLpVault({
+            amount: 0.001,
+            depository,
+            payer,
+        });
     });
 
     describe("Collect profit of mercurial vault depository", () => {
-        it(`Collect some ${depository.collateralMint.symbol} should work`, () => collectProfitOfMercurialVaultDepositoryTest(profitsRedeemAuthority, controller, depository, payer));
-    });
-
-    describe("Wrong authority", () => {
-        it(`Collect some ${depository.collateralMint.symbol} should fail`, async () => {
-            let err = false;
-
-            try {
-                await collectProfitOfMercurialVaultDepositoryTest(new Keypair(), controller, depository, payer);
-            } catch {
-                err = true;
-            }
-
-            expect(err).equals(true, 'Should have failed due to wrong profits redeem authority');
-        });
+        it(`Collect some ${collateralSymbol} should work`, () => collectProfitOfMercurialVaultDepositoryTest(authority, controller, depository, payer));
     });
 };

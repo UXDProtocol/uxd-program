@@ -1,7 +1,6 @@
 use crate::error::UxdError;
 use crate::events::SetDepositoryMintingDisabledEvent;
 use crate::events::SetDepositoryMintingFeeInBpsEvent;
-use crate::events::SetDepositoryProfitsRedeemAuthorityEvent;
 use crate::events::SetDepositoryRedeemableAmountUnderManagementCapEvent;
 use crate::events::SetDepositoryRedeemingFeeInBpsEvent;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
@@ -42,7 +41,6 @@ pub struct EditMercurialVaultDepositoryFields {
     minting_fee_in_bps: Option<u8>,
     redeeming_fee_in_bps: Option<u8>,
     minting_disabled: Option<bool>,
-    profits_redeem_authority: Option<Pubkey>,
 }
 
 pub(crate) fn handler(
@@ -110,21 +108,6 @@ pub(crate) fn handler(
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
             minting_disabled
-        });
-    }
-
-    // optional: profits_redeem_authority
-    if let Some(profits_redeem_authority) = fields.profits_redeem_authority {
-        msg!(
-            "[edit_mercurial_vault_depository] profits_redeem_authority {}",
-            profits_redeem_authority
-        );
-        depository.profits_redeem_authority = profits_redeem_authority;
-        emit!(SetDepositoryProfitsRedeemAuthorityEvent {
-            version: ctx.accounts.controller.load()?.version,
-            controller: ctx.accounts.controller.key(),
-            depository: ctx.accounts.depository.key(),
-            profits_redeem_authority
         });
     }
 

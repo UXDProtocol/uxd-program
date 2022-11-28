@@ -106,7 +106,6 @@ export async function redeemFromMercurialVaultDepository(
 
 export async function registerMercurialVaultDepository(
   authority: Signer,
-  profitsRedeemAuthority: PublicKey,
   payer: Signer,
   controller: Controller,
   depository: MercurialVaultDepository,
@@ -118,7 +117,6 @@ export async function registerMercurialVaultDepository(
     controller,
     depository,
     authority.publicKey,
-    profitsRedeemAuthority,
     mintingFeeInBps,
     redeemingFeeInBps,
     redeemableAmountUnderManagementCap,
@@ -306,6 +304,26 @@ export async function redeemFromIdentityDepository(
   }
 
   tx.add(redeemFromIdentityDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function collectProfitOfMercurialVaultDepository(authority: Signer, payer: Signer, controller: Controller, depository: MercurialVaultDepository): Promise<string> {
+  const collectInterestsAndFeesFromMercurialVaultDepositoryIx = uxdClient.createCollectProfitOfMercurialVaultDepositoryInstruction(controller, authority.publicKey, depository, TXN_OPTS, payer.publicKey);
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  if (!await getConnection().getAccountInfo(authorityRedeemableAta)) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(authority.publicKey, authorityRedeemableAta, controller.redeemableMintPda);
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(collectInterestsAndFeesFromMercurialVaultDepositoryIx);
   signers.push(authority);
   if (payer) {
     signers.push(payer);
