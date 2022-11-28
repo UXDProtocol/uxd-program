@@ -30,11 +30,6 @@ import {
       redeemableGlobalSupplyCap: 25_000_000,
     });
   });
-  it("Set depository redeemable under management cap to 25mm", async function () {
-    await editCredixLpDepositoryTest(authority, controllerUXD, credixLpDepository, {
-      redeemableAmountUnderManagementCap: 25_000_000,
-    });
-  });
 
   const user: Signer = new Keypair();
 

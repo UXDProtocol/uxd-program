@@ -24,6 +24,9 @@ export const credixLpDepositorySetupSuite = function (
       uiRedeemableAmountUnderManagementCap,
       payer
     );
+    await editCredixLpDepositoryTest(authority, controller, depository, {
+      redeemableAmountUnderManagementCap: 25_000_000,
+    });
   });
 
   it(`Collecting profit of credixLpDepository should work`, async function () {
