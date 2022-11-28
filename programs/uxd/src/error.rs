@@ -30,6 +30,14 @@ pub enum UxdError {
     BumpError,
     #[msg("Minting is disabled for the current depository.")]
     MintingDisabled,
+    #[msg("Collateral deposit left some value unaccounted for.")]
+    CollateralDepositHasRemainingDust,
+    #[msg("Collateral deposit result in funds movements that doesn't match expectations.")]
+    CollateralDepositUnaccountedFor,
+    #[msg("Collateral deposit didn't result in the correct amounts being moved")]
+    CollateralDepositAmountsDoesntMatch,
+    #[msg("Received token of which the value doesn't match the deposited collateral.")]
+    CollateralDepositDoesntMatchTokenValue,
     #[msg("The mercurial vault lp mint does not match the Depository's one.")]
     InvalidMercurialVaultLpMint,
     #[msg("Cannot register more mercurial vault depositories, the limit has been reached.")]
@@ -64,6 +72,12 @@ pub enum UxdError {
     InvalidRedeemableMint,
     #[msg("The provided token account is not owner by the expected party.")]
     InvalidOwner,
+    #[msg("The provided depository collateral does not match the depository's one.")]
+    InvalidDepositoryCollateral,
+    #[msg("The provided depository shares does not match the depository's one.")]
+    InvalidDepositoryShares,
+    #[msg("The provided profit treasury collateral does not match the depository's one.")]
+    InvalidProfitTreasuryCollateral,
     #[msg("The provided mercurial vault does not match the Depository's one.")]
     InvalidMercurialVault,
     #[msg("The provided mercurial vault collateral token safe does not match the mercurial vault one.")]

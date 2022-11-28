@@ -1,7 +1,9 @@
 pub mod calculate_amount_less_fees;
 pub mod math;
+pub mod mercurial;
 pub mod validate_collateral_mint_usdc;
 
 pub use calculate_amount_less_fees::*;
 pub use math::*;
+pub use mercurial::*;
 pub use validate_collateral_mint_usdc::*;

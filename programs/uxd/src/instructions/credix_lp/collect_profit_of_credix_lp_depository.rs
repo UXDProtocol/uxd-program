@@ -49,14 +49,14 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
         bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
-        has_one = depository_collateral @UxdError::InvalidCollateralLocker,
-        has_one = depository_shares @UxdError::InvalidSharesLocker,
+        has_one = depository_collateral @UxdError::InvalidDepositoryCollateral,
+        has_one = depository_shares @UxdError::InvalidDepositoryShares,
         has_one = credix_program_state @UxdError::InvalidCredixProgramState,
         has_one = credix_global_market_state @UxdError::InvalidCredixGlobalMarketState,
         has_one = credix_signing_authority @UxdError::InvalidCredixSigningAuthority,
         has_one = credix_liquidity_collateral @UxdError::InvalidCredixLiquidityCollateral,
         has_one = credix_shares_mint @UxdError::InvalidCredixSharesMint,
-        has_one = profit_treasury_collateral @UxdError::InvalidTreasuryCollateral,
+        has_one = profit_treasury_collateral @UxdError::InvalidProfitTreasuryCollateral,
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 

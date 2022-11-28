@@ -1,9 +1,9 @@
 use crate::error::UxdError;
-use crate::events::SetCredixLpDepositoryMintingDisabledEvent;
-use crate::events::SetCredixLpDepositoryMintingFeeInBpsEvent;
-use crate::events::SetCredixLpDepositoryProfitTreasuryCollateralEvent;
-use crate::events::SetCredixLpDepositoryRedeemableAmountUnderManagementCapEvent;
-use crate::events::SetCredixLpDepositoryRedeemingFeeInBpsEvent;
+use crate::events::SetDepositoryMintingDisabledEvent;
+use crate::events::SetDepositoryMintingFeeInBpsEvent;
+use crate::events::SetDepositoryProfitTreasuryCollateralEvent;
+use crate::events::SetDepositoryRedeemableAmountUnderManagementCapEvent;
+use crate::events::SetDepositoryRedeemingFeeInBpsEvent;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
@@ -63,14 +63,12 @@ pub(crate) fn handler(
             redeemable_amount_under_management_cap
         );
         depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
-        emit!(
-            SetCredixLpDepositoryRedeemableAmountUnderManagementCapEvent {
-                version: ctx.accounts.controller.load()?.version,
-                controller: ctx.accounts.controller.key(),
-                depository: ctx.accounts.depository.key(),
-                redeemable_amount_under_management_cap
-            }
-        );
+        emit!(SetDepositoryRedeemableAmountUnderManagementCapEvent {
+            version: ctx.accounts.controller.load()?.version,
+            controller: ctx.accounts.controller.key(),
+            depository: ctx.accounts.depository.key(),
+            redeemable_amount_under_management_cap
+        });
     }
 
     // optional: minting_fee_in_bps
@@ -80,7 +78,7 @@ pub(crate) fn handler(
             minting_fee_in_bps
         );
         depository.minting_fee_in_bps = minting_fee_in_bps;
-        emit!(SetCredixLpDepositoryMintingFeeInBpsEvent {
+        emit!(SetDepositoryMintingFeeInBpsEvent {
             version: ctx.accounts.controller.load()?.version,
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
@@ -95,7 +93,7 @@ pub(crate) fn handler(
             redeeming_fee_in_bps
         );
         depository.redeeming_fee_in_bps = redeeming_fee_in_bps;
-        emit!(SetCredixLpDepositoryRedeemingFeeInBpsEvent {
+        emit!(SetDepositoryRedeemingFeeInBpsEvent {
             version: ctx.accounts.controller.load()?.version,
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
@@ -110,7 +108,7 @@ pub(crate) fn handler(
             minting_disabled
         );
         depository.minting_disabled = minting_disabled;
-        emit!(SetCredixLpDepositoryMintingDisabledEvent {
+        emit!(SetDepositoryMintingDisabledEvent {
             version: ctx.accounts.controller.load()?.version,
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
@@ -125,7 +123,7 @@ pub(crate) fn handler(
             profit_treasury_collateral
         );
         depository.profit_treasury_collateral = profit_treasury_collateral;
-        emit!(SetCredixLpDepositoryProfitTreasuryCollateralEvent {
+        emit!(SetDepositoryProfitTreasuryCollateralEvent {
             version: ctx.accounts.controller.load()?.version,
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
