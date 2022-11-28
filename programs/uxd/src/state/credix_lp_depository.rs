@@ -72,7 +72,7 @@ pub struct CredixLpDepository {
     pub minting_fee_total_accrued: u128,
     pub redeeming_fee_total_accrued: u128,
 
-    // Collection of profits for the treasury
+    // Collection of profit for the treasury
     pub profit_treasury_collateral: Pubkey,
     pub profit_treasury_total_collected: u128,
 }
@@ -155,7 +155,7 @@ impl CredixLpDepository {
         Ok(())
     }
 
-    // When collecting profits, we need to add it to the total
+    // When collecting profit, we need to add it to the total
     pub fn profit_treasury_collected(&mut self, profit_treasury_collected: u64) -> Result<()> {
         self.profit_treasury_total_collected = self
             .profit_treasury_total_collected

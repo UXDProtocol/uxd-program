@@ -26,10 +26,10 @@ export const credixLpDepositorySetupSuite = function (
     );
   });
 
-  it(`Collecting profits of credixLpDepository should work`, async function () {
+  it(`Collecting profit of credixLpDepository should work`, async function () {
     let profitTreasuryCollateral = findATAAddrSync(authority.publicKey, depository.collateralMint)[0];
 
-    console.log("[🧾 collectProfits", profitTreasuryCollateral.toString(), "]");
+    console.log("[🧾 collectProfit", profitTreasuryCollateral.toString(), "]");
 
     await editCredixLpDepositoryTest(authority, controller, depository, {
       profitTreasuryCollateral,

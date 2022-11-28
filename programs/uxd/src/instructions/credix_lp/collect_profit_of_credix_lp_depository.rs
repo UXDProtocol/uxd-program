@@ -173,7 +173,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     )?;
 
     // How much collateral can we withdraw as profit
-    let profits_value: u128 = {
+    let profit_value: u128 = {
         // Compute the set of liabilities owed to the users
         let liabilities_value: u128 = ctx
             .accounts
@@ -190,18 +190,18 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
             "[collect_profit_of_credix_lp_depository:assets_value:{}]",
             assets_value
         );
-        // Compute the amount of profits that we can safely withdraw
+        // Compute the amount of profit that we can safely withdraw
         assets_value
             .checked_sub(liabilities_value)
             .ok_or(UxdError::MathError)?
     };
     msg!(
-        "[collect_profit_of_credix_lp_depository:profits_value:{}]",
-        profits_value
+        "[collect_profit_of_credix_lp_depository:profit_value:{}]",
+        profit_value
     );
 
     // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
-    let collateral_amount_before_precision_loss: u64 = u64::try_from(profits_value)
+    let collateral_amount_before_precision_loss: u64 = u64::try_from(profit_value)
         .ok()
         .ok_or(UxdError::MathError)?;
     msg!(
@@ -249,7 +249,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         collateral_amount_after_credix_withdrawal_fees
     );
 
-    // If nothing to withdraw, no need to continue, all profits have already been successfully collected
+    // If nothing to withdraw, no need to continue, all profit have already been successfully collected
     if collateral_amount_after_credix_withdrawal_fees == 0 {
         msg!("[collect_profit_of_credix_lp_depository:no_profit_to_collect]",);
         return Ok(());
