@@ -18,7 +18,7 @@ import { editControllerTest } from "../cases/editControllerTest";
 import { editIdentityDepositoryTest } from "../cases/editIdentityDepositoryTest";
 
 export const identityDepositoryMintRedeemSuite = async function (
-  controllerAuthority: Signer,
+  authority: Signer,
   user: Signer,
   payer: Signer,
   controller: Controller,
@@ -52,8 +52,13 @@ export const identityDepositoryMintRedeemSuite = async function (
 
   describe("Enable minting", () => {
     it(`Set mintingDisabled to false`, async function () {
-      await editIdentityDepositoryTest(controllerAuthority, controller, depository, {
-        mintingDisabled: false,
+      await editIdentityDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          mintingDisabled: false,
+        },
       });
     });
   });
@@ -64,7 +69,13 @@ export const identityDepositoryMintRedeemSuite = async function (
 
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMintSymbol, "]");
 
-      await mintWithIdentityDepositoryTest(collateralAmount, user, controller, depository, payer);
+      await mintWithIdentityDepositoryTest({
+        collateralAmount,
+        user,
+        controller,
+        depository,
+        payer,
+      });
     });
 
     it(`Redeem all ${controller.redeemableMintSymbol} minted previously for ${depository.collateralMintSymbol}`, async function () {
@@ -74,7 +85,13 @@ export const identityDepositoryMintRedeemSuite = async function (
 
       console.log("[🧾 redeemableAmount", previouslyMintedRedeemableAmount, depository.collateralMintSymbol, "]");
 
-      await redeemFromIdentityDepositoryTest(previouslyMintedRedeemableAmount, user, controller, depository, payer);
+      await redeemFromIdentityDepositoryTest({
+        redeemableAmount: previouslyMintedRedeemableAmount,
+        user,
+        controller,
+        depository,
+        payer,
+      });
     });
   });
 
@@ -85,7 +102,13 @@ export const identityDepositoryMintRedeemSuite = async function (
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMintSymbol, "]");
 
       try {
-        await mintWithIdentityDepositoryTest(collateralAmount, user, controller, depository, payer);
+        await mintWithIdentityDepositoryTest({
+          collateralAmount,
+          user,
+          controller,
+          depository,
+          payer,
+        });
       } catch {
         expect(true, "Failing as planned");
       }
@@ -99,7 +122,13 @@ export const identityDepositoryMintRedeemSuite = async function (
       console.log("[🧾 redeemableAmount", redeemableAmount, controller.redeemableMintSymbol, "]");
 
       try {
-        await redeemFromIdentityDepositoryTest(redeemableAmount, user, controller, depository, payer);
+        await redeemFromIdentityDepositoryTest({
+          redeemableAmount,
+          user,
+          controller,
+          depository,
+          payer,
+        });
       } catch {
         expect(true, "Failing as planned");
       }
@@ -116,7 +145,13 @@ export const identityDepositoryMintRedeemSuite = async function (
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMintSymbol, "]");
 
       try {
-        await mintWithIdentityDepositoryTest(collateralAmount, user, controller, depository, payer);
+        await mintWithIdentityDepositoryTest({
+          collateralAmount,
+          user,
+          controller,
+          depository,
+          payer,
+        });
       } catch {
         expect(true, "Failing as planned");
       }
@@ -130,7 +165,13 @@ export const identityDepositoryMintRedeemSuite = async function (
       console.log("[🧾 redeemableAmount", redeemableAmount, controller.redeemableMintSymbol, "]");
 
       try {
-        await redeemFromIdentityDepositoryTest(redeemableAmount, user, controller, depository, payer);
+        await redeemFromIdentityDepositoryTest({
+          redeemableAmount,
+          user,
+          controller,
+          depository,
+          payer,
+        });
       } catch {
         expect(true, "Failing as planned");
       }
@@ -147,7 +188,13 @@ export const identityDepositoryMintRedeemSuite = async function (
 
         console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMintSymbol, "]");
 
-        await mintWithIdentityDepositoryTest(collateralAmount, user, controller, depository, payer);
+        await mintWithIdentityDepositoryTest({
+          collateralAmount,
+          user,
+          controller,
+          depository,
+          payer,
+        });
       }
     );
 
@@ -157,7 +204,13 @@ export const identityDepositoryMintRedeemSuite = async function (
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMintSymbol, "]");
 
       try {
-        await mintWithIdentityDepositoryTest(collateralAmount, user, controller, depository, payer);
+        await mintWithIdentityDepositoryTest({
+          collateralAmount,
+          user,
+          controller,
+          depository,
+          payer,
+        });
       } catch {
         expect(true, "Failing as planned");
       }
@@ -177,15 +230,25 @@ export const identityDepositoryMintRedeemSuite = async function (
 
         console.log("[🧾 redeemableAmount", previouslyMintedRedeemableAmount, depository.collateralMintSymbol, "]");
 
-        await redeemFromIdentityDepositoryTest(previouslyMintedRedeemableAmount, user, controller, depository, payer);
+        await redeemFromIdentityDepositoryTest({
+          redeemableAmount: previouslyMintedRedeemableAmount,
+          user,
+          controller,
+          depository,
+          payer,
+        });
       }
     );
   });
 
   describe("Global redeemable supply cap overflow", () => {
     it("Set global redeemable supply cap to 0", () =>
-      editControllerTest(controllerAuthority, controller, {
-        redeemableGlobalSupplyCap: 0,
+      editControllerTest({
+        authority,
+        controller,
+        uiFields: {
+          redeemableGlobalSupplyCap: 0,
+        },
       }));
 
     it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMintSymbol} (should fail)`, async function () {
@@ -194,7 +257,13 @@ export const identityDepositoryMintRedeemSuite = async function (
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMintSymbol, "]");
 
       try {
-        await mintWithIdentityDepositoryTest(collateralAmount, user, controller, depository, payer);
+        await mintWithIdentityDepositoryTest({
+          collateralAmount,
+          user,
+          controller,
+          depository,
+          payer,
+        });
       } catch {
         expect(true, "Failing as planned");
       }
@@ -202,14 +271,17 @@ export const identityDepositoryMintRedeemSuite = async function (
       expect(false, `Should have failed - amount of redeemable overflow the global redeemable supply cap`);
     });
 
-    it(`Reset Global Redeemable supply cap back to its original value`, async function () {
+    it("Reset Global Redeemable supply cap back to its original value", async function () {
       const globalRedeemableSupplyCap = nativeToUi(
         initialControllerGlobalRedeemableSupplyCap,
         controller.redeemableMintDecimals
       );
 
-      await editControllerTest(controllerAuthority, controller, {
-        redeemableGlobalSupplyCap: globalRedeemableSupplyCap,
+      await editControllerTest({
+        authority,
+        controller, uiFields: {
+          redeemableGlobalSupplyCap: globalRedeemableSupplyCap,
+        },
       });
     });
   });
@@ -218,9 +290,14 @@ export const identityDepositoryMintRedeemSuite = async function (
     it("Set redeemable depository supply cap to 0,0005 more than actual minted amount", async function () {
       const onChainDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
 
-      await editIdentityDepositoryTest(controllerAuthority, controller, depository, {
-        redeemableAmountUnderManagementCap:
-          onChainDepository.redeemableAmountUnderManagement + uiToNative(0.0005, controller.redeemableMintDecimals),
+      await editIdentityDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          redeemableAmountUnderManagementCap:
+            onChainDepository.redeemableAmountUnderManagement + uiToNative(0.0005, controller.redeemableMintDecimals),
+        },
       });
     });
 
@@ -230,7 +307,13 @@ export const identityDepositoryMintRedeemSuite = async function (
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMintSymbol, "]");
 
       try {
-        await mintWithIdentityDepositoryTest(collateralAmount, user, controller, depository, payer);
+        await mintWithIdentityDepositoryTest({
+          collateralAmount,
+          user,
+          controller,
+          depository,
+          payer,
+        });
       } catch {
         expect(true, "Failing as planned");
       }
@@ -238,22 +321,32 @@ export const identityDepositoryMintRedeemSuite = async function (
       expect(false, `Should have failed - amount of redeemable overflow the redeemable depository supply cap`);
     });
 
-    it(`Reset redeemable depository supply cap back to its original value`, async function () {
+    it("Reset redeemable depository supply cap back to its original value", async function () {
       const redeemableAmountUnderManagementCap = nativeToUi(
         initialRedeemableDepositorySupplyCap,
         controller.redeemableMintDecimals
       );
 
-      await editIdentityDepositoryTest(controllerAuthority, controller, depository, {
-        redeemableAmountUnderManagementCap,
+      await editIdentityDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          redeemableAmountUnderManagementCap,
+        },
       });
     });
   });
 
   describe("Disabled minting", () => {
     it("Disable minting on identity depository", async function () {
-      await editIdentityDepositoryTest(controllerAuthority, controller, depository, {
-        mintingDisabled: true,
+      await editIdentityDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          mintingDisabled: true,
+        },
       });
     });
 
@@ -263,7 +356,13 @@ export const identityDepositoryMintRedeemSuite = async function (
       console.log("[🧾 collateralAmount", collateralAmount, depository.collateralMintSymbol, "]");
 
       try {
-        await mintWithIdentityDepositoryTest(collateralAmount, user, controller, depository, payer);
+        await mintWithIdentityDepositoryTest({
+          collateralAmount,
+          user,
+          controller,
+          depository,
+          payer,
+        });
       } catch {
         expect(true, "Failing as planned");
       }
@@ -271,9 +370,14 @@ export const identityDepositoryMintRedeemSuite = async function (
       expect(false, `Should have failed - minting is disabled`);
     });
 
-    it(`Re-enable minting for identity depository`, async function () {
-      await editIdentityDepositoryTest(controllerAuthority, controller, depository, {
-        mintingDisabled: false,
+    it("Re-enable minting for identity depository", async function () {
+      await editIdentityDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          mintingDisabled: false,
+        },
       });
     });
   });

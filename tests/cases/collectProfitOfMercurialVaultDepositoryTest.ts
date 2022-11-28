@@ -6,19 +6,24 @@ import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
 import { getBalance } from "../utils";
 
-export const collectProfitOfMercurialVaultDepositoryTest = async function (
-    profitsRedeemAuthority: Signer,
-    controller: Controller,
-    depository: MercurialVaultDepository,
-    payer?: Signer,
-): Promise<number> {
+export const collectProfitOfMercurialVaultDepositoryTest = async function ({
+    authority,
+    controller,
+    depository,
+    payer,
+}: {
+    authority: Signer;
+    controller: Controller;
+    depository: MercurialVaultDepository;
+    payer?: Signer;
+}): Promise<number> {
     console.group("🧭 collectProfitOfMercurialVaultDepositoryTest");
 
     try {
         // GIVEN
         const [
             profitsRedeemAuthorityCollateralATA,
-        ] = findATAAddrSync(profitsRedeemAuthority.publicKey, depository.collateralMint.mint);
+        ] = findATAAddrSync(authority.publicKey, depository.collateralMint.mint);
 
         const [
             profitsRedeemAuthorityCollateralBalance_pre,
@@ -36,7 +41,7 @@ export const collectProfitOfMercurialVaultDepositoryTest = async function (
 
         // WHEN
         // Simulates user experience from the front end
-        const txId = await collectProfitOfMercurialVaultDepository(profitsRedeemAuthority, payer ?? profitsRedeemAuthority, controller, depository);
+        const txId = await collectProfitOfMercurialVaultDepository(authority, payer ?? authority, controller, depository);
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN

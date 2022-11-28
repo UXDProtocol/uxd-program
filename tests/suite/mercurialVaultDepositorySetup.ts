@@ -20,5 +20,13 @@ export const mercurialVaultDepositorySetupSuite = function (authority: Signer, p
         });
     });
 
-    it(`Registers mercurialVaultDepository`, () => registerMercurialVaultDepositoryTest(authority, controller, depository, mintingFeeInBps, redeemingFeeInBps, redeemableAmountUnderManagementCap, payer));
+    it("Registers mercurialVaultDepository", () => registerMercurialVaultDepositoryTest({
+        authority,
+        controller,
+        depository,
+        mintingFeeInBps,
+        redeemingFeeInBps,
+        redeemableAmountUnderManagementCap,
+        payer,
+    }));
 };

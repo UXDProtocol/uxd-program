@@ -4,12 +4,17 @@ import { initializeIdentityDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection } from "../connection";
 
-export const initializeIdentityDepositoryTest = async function (
-  authority: Signer,
-  controller: Controller,
-  depository: IdentityDepository,
-  payer?: Signer
-) {
+export const initializeIdentityDepositoryTest = async function ({
+  authority,
+  controller,
+  depository,
+  payer,
+}: {
+  authority: Signer;
+  controller: Controller;
+  depository: IdentityDepository;
+  payer?: Signer;
+}) {
   console.group("🧭 initializeIdentityDepositoryTest");
   try {
     // WHEN

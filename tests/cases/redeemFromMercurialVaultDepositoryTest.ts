@@ -6,13 +6,19 @@ import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
 import { getBalance, ceilAtDecimals } from "../utils";
 
-export const redeemFromMercurialVaultDepositoryTest = async function (
-    redeemableAmount: number,
-    user: Signer,
-    controller: Controller,
-    depository: MercurialVaultDepository,
-    payer?: Signer,
-): Promise<number> {
+export const redeemFromMercurialVaultDepositoryTest = async function ({
+    redeemableAmount,
+    user,
+    controller,
+    depository,
+    payer,
+}: {
+    redeemableAmount: number;
+    user: Signer;
+    controller: Controller;
+    depository: MercurialVaultDepository;
+    payer?: Signer;
+}): Promise<number> {
     console.group("🧭 redeemFromMercurialVaultDepositoryTest");
 
     try {

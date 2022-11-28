@@ -5,13 +5,17 @@ import { editController } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
 
-export const editControllerTest = async function (
-  authority: Signer,
-  controller: Controller,
+export const editControllerTest = async function ({
+  authority,
+  controller,
+  uiFields,
+}: {
+  authority: Signer;
+  controller: Controller;
   uiFields: {
     redeemableGlobalSupplyCap?: number;
-  }
-) {
+  };
+}) {
   const connection = getConnection();
   const options = TXN_OPTS;
 

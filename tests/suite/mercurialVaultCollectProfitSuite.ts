@@ -1,6 +1,5 @@
-import { Keypair, Signer } from "@solana/web3.js";
+import { Signer } from "@solana/web3.js";
 import { Controller, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
-import { expect } from "chai";
 import { getConnection } from "../connection";
 import { collectProfitOfMercurialVaultDepositoryTest } from "../cases/collectProfitOfMercurialVaultDepositoryTest";
 import { MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS, uxdProgramId } from "../constants";
@@ -34,6 +33,11 @@ export const mercurialVaultDepositoryCollectProfitSuite = async function (author
     });
 
     describe("Collect profit of mercurial vault depository", () => {
-        it(`Collect some ${collateralSymbol} should work`, () => collectProfitOfMercurialVaultDepositoryTest(authority, controller, depository, payer));
+        it(`Collect some ${collateralSymbol} should work`, () => collectProfitOfMercurialVaultDepositoryTest({
+            authority,
+            controller,
+            depository,
+            payer,
+        }));
     });
 };

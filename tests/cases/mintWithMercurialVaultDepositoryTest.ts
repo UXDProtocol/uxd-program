@@ -7,13 +7,19 @@ import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
 import { getBalance } from "../utils";
 
-export const mintWithMercurialVaultDepositoryTest = async function (
-    collateralAmount: number,
-    user: Signer,
-    controller: Controller,
-    depository: MercurialVaultDepository,
-    payer?: Signer,
-): Promise<number> {
+export const mintWithMercurialVaultDepositoryTest = async function ({
+    collateralAmount,
+    user,
+    controller,
+    depository,
+    payer,
+}: {
+    collateralAmount: number;
+    user: Signer;
+    controller: Controller;
+    depository: MercurialVaultDepository;
+    payer?: Signer;
+}): Promise<number> {
     console.group("🧭 mintWithMercurialVaultDepositoryTest");
 
     try {

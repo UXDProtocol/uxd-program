@@ -16,7 +16,9 @@ export const controllerIntegrationSuite = function (
   controller: Controller,
   params: controllerIntegrationSuiteParameters
 ) {
-  it("Initialize Controller", async function () {
-    await initializeControllerTest(authority, controller, payer);
-  });
+  it("Initialize Controller", () => initializeControllerTest({
+    authority,
+    controller,
+    payer,
+  }));
 };

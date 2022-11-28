@@ -5,15 +5,20 @@ import { editIdentityDepository } from "../api";
 import { getConnection, TXN_OPTS } from "../connection";
 import { CLUSTER } from "../constants";
 
-export const editIdentityDepositoryTest = async function (
-    authority: Signer,
-    controller: Controller,
-    depository: IdentityDepository,
+export const editIdentityDepositoryTest = async function ({
+    authority,
+    controller,
+    depository,
+    uiFields,
+}: {
+    authority: Signer;
+    controller: Controller;
+    depository: IdentityDepository;
     uiFields: {
         redeemableAmountUnderManagementCap?: number;
         mintingDisabled?: boolean;
-    }
-) {
+    };
+}) {
     const connection = getConnection();
     const options = TXN_OPTS;
 

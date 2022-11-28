@@ -3,7 +3,7 @@ import { Controller, IdentityDepository, IdentityDepositoryAccount, nativeToUi }
 import { getConnection, TXN_OPTS } from "../connection";
 import { editIdentityDepositoryTest } from "../cases/editIdentityDepositoryTest";
 
-export const editIdentityDepositorySuite = async function (controllerAuthority: Signer, user: Signer, payer: Signer, controller: Controller, depository: IdentityDepository) {
+export const editIdentityDepositorySuite = async function (authority: Signer, user: Signer, payer: Signer, controller: Controller, depository: IdentityDepository) {
     let beforeDepository: IdentityDepositoryAccount;
 
     describe("Edit mint/redeem", () => {
@@ -12,44 +12,56 @@ export const editIdentityDepositorySuite = async function (controllerAuthority: 
             beforeDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
         });
 
-
-        it(`Edit redeemableAmountUnderManagementCap alone should work`, async function () {
+        it("Edit redeemableAmountUnderManagementCap alone should work", async function () {
             const redeemableAmountUnderManagementCap = 50;
 
             console.log("[🧾 redeemableAmountUnderManagementCap", redeemableAmountUnderManagementCap, "]");
 
-            await editIdentityDepositoryTest(controllerAuthority, controller, depository, {
-                redeemableAmountUnderManagementCap,
+            await editIdentityDepositoryTest({
+                authority,
+                controller,
+                depository,
+                uiFields: {
+                    redeemableAmountUnderManagementCap,
+                },
             });
         });
 
-        it(`Edit mintingDisabled alone should work`, async function () {
+        it("Edit mintingDisabled alone should work", async function () {
             const mintingDisabled = true;
 
             console.log("[🧾 mintingDisabled", mintingDisabled, "]");
 
-            await editIdentityDepositoryTest(controllerAuthority, controller, depository, {
-                mintingDisabled,
+            await editIdentityDepositoryTest({
+                authority,
+                controller,
+                depository,
+                uiFields: {
+                    mintingDisabled,
+                },
             });
         });
 
         // Restore initial depository values there
-        it(`Edit redeemableAmountUnderManagementCap should work`, async function () {
+        it("Edit redeemableAmountUnderManagementCap should work", async function () {
             const {
-
                 redeemableAmountUnderManagementCap,
                 mintingDisabled,
             } = beforeDepository;
 
             const uiRedeemableAmountUnderManagementCap = nativeToUi(redeemableAmountUnderManagementCap, controller.redeemableMintDecimals);
 
-
             console.log("[🧾 redeemableAmountUnderManagementCap", uiRedeemableAmountUnderManagementCap, "]");
             console.log("[🧾 mintingDisabled", mintingDisabled, "]");
 
-            await editIdentityDepositoryTest(controllerAuthority, controller, depository, {
-                mintingDisabled,
-                redeemableAmountUnderManagementCap: uiRedeemableAmountUnderManagementCap,
+            await editIdentityDepositoryTest({
+                authority,
+                controller,
+                depository,
+                uiFields: {
+                    mintingDisabled,
+                    redeemableAmountUnderManagementCap: uiRedeemableAmountUnderManagementCap,
+                },
             });
         });
     });

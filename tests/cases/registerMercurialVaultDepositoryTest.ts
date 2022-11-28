@@ -1,18 +1,26 @@
-import { PublicKey, Signer } from "@solana/web3.js";
+import { Signer } from "@solana/web3.js";
 import { Controller, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
 import { registerMercurialVaultDepository } from "../api";
 import { CLUSTER } from "../constants";
 import { getConnection } from "../connection";
 
-export const registerMercurialVaultDepositoryTest = async function (
-    authority: Signer,
-    controller: Controller,
-    depository: MercurialVaultDepository,
-    mintingFeeInBps: number,
-    redeemingFeeInBps: number,
-    redeemableAmountUnderManagementCap: number,
-    payer?: Signer,
-) {
+export const registerMercurialVaultDepositoryTest = async function ({
+    authority,
+    controller,
+    depository,
+    mintingFeeInBps,
+    redeemingFeeInBps,
+    redeemableAmountUnderManagementCap,
+    payer,
+}: {
+    authority: Signer;
+    controller: Controller;
+    depository: MercurialVaultDepository;
+    mintingFeeInBps: number;
+    redeemingFeeInBps: number;
+    redeemableAmountUnderManagementCap: number;
+    payer?: Signer;
+}) {
     console.group("🧭 initializeMercurialVaultDepositoryTest");
     try {
         // WHEN

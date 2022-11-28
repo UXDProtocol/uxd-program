@@ -4,7 +4,7 @@ import { getConnection, TXN_OPTS } from "../connection";
 import { editMercurialVaultDepositoryTest } from "../cases/editMercurialVaultDepositoryTest";
 import { MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS, uxdProgramId } from "../constants";
 
-export const editMercurialVaultDepositorySuite = async function (controllerAuthority: Signer, user: Signer, payer: Signer, controller: Controller) {
+export const editMercurialVaultDepositorySuite = async function (authority: Signer, user: Signer, payer: Signer, controller: Controller) {
     let depository: MercurialVaultDepository;
     let beforeDepository: MercurialVaultDepositoryAccount;
 
@@ -25,48 +25,68 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
             beforeDepository = await depository.getOnchainAccount(getConnection(), TXN_OPTS);
         });
 
-        it(`Edit mintingFeeInBps alone should work`, async function () {
+        it("Edit mintingFeeInBps alone should work", async function () {
             const mintingFeeInBps = 50;
 
             console.log("[🧾 mintingFeeInBps", mintingFeeInBps, "]");
 
-            await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-                mintingFeeInBps,
+            await editMercurialVaultDepositoryTest({
+                authority,
+                controller,
+                depository,
+                uiFields: {
+                    mintingFeeInBps,
+                },
             });
         });
 
-        it(`Edit redeemingFeeInBps alone should work`, async function () {
+        it("Edit redeemingFeeInBps alone should work", async function () {
             const redeemingFeeInBps = 50;
 
             console.log("[🧾 redeemingFeeInBps", redeemingFeeInBps, "]");
 
-            await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-                redeemingFeeInBps,
+            await editMercurialVaultDepositoryTest({
+                authority,
+                controller,
+                depository,
+                uiFields: {
+                    redeemingFeeInBps,
+                },
             });
         });
 
-        it(`Edit redeemableAmountUnderManagementCap alone should work`, async function () {
+        it("Edit redeemableAmountUnderManagementCap alone should work", async function () {
             const redeemableAmountUnderManagementCap = 50;
 
             console.log("[🧾 redeemableAmountUnderManagementCap", redeemableAmountUnderManagementCap, "]");
 
-            await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-                redeemableAmountUnderManagementCap,
+            await editMercurialVaultDepositoryTest({
+                authority,
+                controller,
+                depository,
+                uiFields: {
+                    redeemableAmountUnderManagementCap,
+                },
             });
         });
 
-        it(`Edit mintingDisabled alone should work`, async function () {
+        it("Edit mintingDisabled alone should work", async function () {
             const mintingDisabled = true;
 
             console.log("[🧾 mintingDisabled", mintingDisabled, "]");
 
-            await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-                mintingDisabled,
+            await editMercurialVaultDepositoryTest({
+                authority,
+                controller,
+                depository,
+                uiFields: {
+                    mintingDisabled,
+                },
             });
         });
 
         // Restore initial depository values there
-        it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap should work`, async function () {
+        it("Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap should work", async function () {
             const {
                 mintingFeeInBps,
                 redeemingFeeInBps,
@@ -81,11 +101,16 @@ export const editMercurialVaultDepositorySuite = async function (controllerAutho
             console.log("[🧾 redeemableAmountUnderManagementCap", uiRedeemableAmountUnderManagementCap, "]");
             console.log("[🧾 mintingDisabled", mintingDisabled, "]");
 
-            await editMercurialVaultDepositoryTest(controllerAuthority, controller, depository, {
-                mintingFeeInBps,
-                redeemingFeeInBps,
-                mintingDisabled,
-                redeemableAmountUnderManagementCap: uiRedeemableAmountUnderManagementCap,
+            await editMercurialVaultDepositoryTest({
+                authority,
+                controller,
+                depository,
+                uiFields: {
+                    mintingFeeInBps,
+                    redeemingFeeInBps,
+                    mintingDisabled,
+                    redeemableAmountUnderManagementCap: uiRedeemableAmountUnderManagementCap,
+                },
             });
         });
     });
