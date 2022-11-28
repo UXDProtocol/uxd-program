@@ -1127,6 +1127,10 @@
           {
             "name": "registeredCredixLpDepositoriesCount",
             "type": "u8"
+          },
+          {
+            "name": "profitTreasuryTotalCollected",
+            "type": "u128"
           }
         ]
       }
@@ -2178,5 +2182,8 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ]
+  ],
+  "metadata": {
+    "address": "36N7GZDMv3xkabgWMc2fJqrxm15cgp6oykPs53qDn5Ju"
+  }
 }
