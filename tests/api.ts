@@ -7,6 +7,7 @@ import {
   findATAAddrSync,
   MercurialVaultDepository,
   IdentityDepository,
+  CredixLpDepository,
 } from "@uxd-protocol/uxd-client";
 import { BN, web3 } from "@project-serum/anchor";
 
@@ -304,6 +305,146 @@ export async function redeemFromIdentityDepository(
   }
 
   tx.add(redeemFromIdentityDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function registerCredixLpDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: CredixLpDepository,
+  mintingFeeInBps: number,
+  redeemingFeeInBps: number,
+  redeemableAmountUnderManagementCap: number
+): Promise<string> {
+  const registerCredixLpDepositoryIx = uxdClient.createRegisterCredixLpDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    mintingFeeInBps,
+    redeemingFeeInBps,
+    redeemableAmountUnderManagementCap,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(registerCredixLpDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function mintWithCredixLpDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: CredixLpDepository,
+  collateralAmount: number
+): Promise<string> {
+  const mintWithCredixLpDepositoryIx = uxdClient.createMintWithCredixLpDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    collateralAmount,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(mintWithCredixLpDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function redeemFromCredixLpDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: CredixLpDepository,
+  redeemableAmount: number
+): Promise<string> {
+  const redeemFromCredixLpDepositoryIx = uxdClient.createRedeemFromCredixLpDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    redeemableAmount,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityCollateralAta] = findATAAddrSync(authority.publicKey, depository.collateralMint);
+  if (!(await getConnection().getAccountInfo(authorityCollateralAta))) {
+    const createUserCollateralAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityCollateralAta,
+      depository.collateralMint
+    );
+    tx.add(createUserCollateralAtaIx);
+  }
+
+  tx.add(redeemFromCredixLpDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function collectProfitOfCredixLpDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: CredixLpDepository
+): Promise<string> {
+  const collectProfitOfCredixLpDepositoryIx = uxdClient.createCollectProfitOfCredixLpDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    TXN_OPTS,
+    payer.publicKey
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityCollateralAta] = findATAAddrSync(authority.publicKey, depository.collateralMint);
+  if (!(await getConnection().getAccountInfo(authorityCollateralAta))) {
+    const createUserCollateralAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityCollateralAta,
+      depository.collateralMint
+    );
+    tx.add(createUserCollateralAtaIx);
+  }
+
+  tx.add(collectProfitOfCredixLpDepositoryIx);
   signers.push(authority);
   if (payer) {
     signers.push(payer);
