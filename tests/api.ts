@@ -452,3 +452,30 @@ export async function collectProfitOfCredixLpDepository(
   tx.feePayer = payer.publicKey;
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
+
+export async function editCredixLpDepository(
+  authority: Signer,
+  controller: Controller,
+  depository: CredixLpDepository,
+  uiFields: {
+    redeemableAmountUnderManagementCap?: BN;
+    mintingFeeInBps?: number;
+    redeemingFeeInBps?: number;
+    mintingDisabled?: boolean;
+  }
+): Promise<string> {
+  const editCredixLpDepositoryIx = uxdClient.createEditCredixLpDepositoryInstruction(
+    controller,
+    depository,
+    authority.publicKey,
+    uiFields,
+    TXN_OPTS
+  );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(editCredixLpDepositoryIx);
+  signers.push(authority);
+
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
