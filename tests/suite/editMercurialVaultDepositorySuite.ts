@@ -4,7 +4,13 @@ import { getConnection, TXN_OPTS } from "../connection";
 import { editMercurialVaultDepositoryTest } from "../cases/editMercurialVaultDepositoryTest";
 import { MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS, uxdProgramId } from "../constants";
 
-export const editMercurialVaultDepositorySuite = async function (authority: Signer, user: Signer, payer: Signer, controller: Controller) {
+export const editMercurialVaultDepositorySuite = async function ({
+    authority,
+    controller,
+}: {
+    authority: Signer;
+    controller: Controller;
+}) {
     let depository: MercurialVaultDepository;
     let beforeDepository: MercurialVaultDepositoryAccount;
 

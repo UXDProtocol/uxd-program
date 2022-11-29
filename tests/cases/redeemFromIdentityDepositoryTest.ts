@@ -45,7 +45,13 @@ export const redeemFromIdentityDepositoryTest = async function ({
 
         // WHEN
         // Simulates user experience from the front end
-        const txId = await redeemFromIdentityDepository(user, payer ?? user, controller, depository, redeemableAmount);
+        const txId = await redeemFromIdentityDepository({
+            authority: user,
+            payer: payer ?? user,
+            controller,
+            depository,
+            redeemableAmount,
+        });
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN

@@ -46,7 +46,13 @@ export const mintWithMercurialVaultDepositoryTest = async function ({
 
         // WHEN
         // Simulates user experience from the front end
-        const txId = await mintWithMercurialVaultDepository(user, payer ?? user, controller, depository, collateralAmount);
+        const txId = await mintWithMercurialVaultDepository({
+            authority: user,
+            payer: payer ?? user,
+            controller,
+            depository,
+            collateralAmount,
+        });
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN

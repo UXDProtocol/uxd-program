@@ -45,7 +45,13 @@ export const redeemFromMercurialVaultDepositoryTest = async function ({
 
         // WHEN
         // Simulates user experience from the front end
-        const txId = await redeemFromMercurialVaultDepository(user, payer ?? user, controller, depository, redeemableAmount);
+        const txId = await redeemFromMercurialVaultDepository({
+            authority: user,
+            payer: payer ?? user,
+            controller,
+            depository,
+            redeemableAmount,
+        });
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN

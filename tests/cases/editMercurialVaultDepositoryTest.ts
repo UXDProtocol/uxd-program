@@ -33,7 +33,12 @@ export const editMercurialVaultDepositoryTest = async function ({
       depositoryOnchainAccount;
 
     // WHEN
-    const txId = await editMercurialVaultDepository(authority, controller, depository, uiFields);
+    const txId = await editMercurialVaultDepository({
+      authority,
+      controller,
+      depository,
+      uiFields,
+    });
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN

@@ -22,6 +22,8 @@ import { BN } from "@project-serum/anchor";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { VAULT_BASE_KEY } from "@mercurial-finance/vault-sdk/src/vault/constants";
 import { mercurialVaultNativeDeposit } from "./mercurial_vault_utils";
+import { mintWithMercurialVaultDepositoryTest } from "./cases/mintWithMercurialVaultDepositoryTest";
+import { redeemFromMercurialVaultDepositoryTest } from "./cases/redeemFromMercurialVaultDepositoryTest";
 
 console.log(uxdProgramId.toString());
 
@@ -50,7 +52,11 @@ describe("Integration tests", function () {
 
   describe("Init", async function () {
     it("Initialize Controller", async function () {
-      await initializeControllerTest(authority, controller, payer);
+      await initializeControllerTest({
+        authority,
+        controller,
+        payer,
+      });
     });
 
     it(`Initialize and register Mercurial USDC vault depository`, async function () {
@@ -90,39 +96,38 @@ describe("Integration tests", function () {
       });
       */
 
-      await registerMercurialVaultDepositoryTest(
+      await registerMercurialVaultDepositoryTest({
         authority,
-        authority.publicKey,
         controller,
-        mercurialVaultDepositoryUSDC,
+        depository: mercurialVaultDepositoryUSDC,
         mintingFeeInBps,
         redeemingFeeInBps,
         redeemableAmountUnderManagementCap,
         payer
-      );
+      });
     });
 
     // describe("Regular Mint/Redeem with Mercurial Vault USDC Depository", async function () {
     //   it(`Mint for 0.001 USDC`, async function () {
-    //     mintedRedeemableAmountWithMercurialVaultDepository = await mintWithMercurialVaultDepositoryTest(
-    //       0.001,
+    //     mintedRedeemableAmountWithMercurialVaultDepository = await mintWithMercurialVaultDepositoryTest({
+    //       collateralAmount: 0.001,
     //       user,
     //       controller,
-    //       mercurialVaultDepositoryUSDC,
+    //       depository: mercurialVaultDepositoryUSDC,
     //       payer
-    //     );
+    //     });
     //   });
 
     //   it(`Redeem all previously minted redeemable`, async function () {
     //     console.log(`Redeem for ${mintedRedeemableAmountWithMercurialVaultDepository} UXD`);
 
-    //     await redeemFromMercurialVaultDepositoryTest(
-    //       mintedRedeemableAmountWithMercurialVaultDepository,
+    //     await redeemFromMercurialVaultDepositoryTest({
+    //       redeemableAmount: mintedRedeemableAmountWithMercurialVaultDepository,
     //       user,
     //       controller,
-    //       mercurialVaultDepositoryUSDC,
+    //       depository: mercurialVaultDepositoryUSDC,
     //       payer
-    //     );
+    //     });
     //   });
     // });
   });

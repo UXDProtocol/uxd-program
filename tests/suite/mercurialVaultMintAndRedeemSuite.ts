@@ -17,12 +17,17 @@ import { MercurialVaultDepositoryAccount, uiToNative } from "@uxd-protocol/uxd-c
 import { editControllerTest } from "../cases/editControllerTest";
 import { MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS, uxdProgramId } from "../constants";
 
-export const mercurialVaultDepositoryMintRedeemSuite = async function (
-  authority: Signer,
-  user: Signer,
-  payer: Signer,
-  controller: Controller,
-) {
+export const mercurialVaultDepositoryMintRedeemSuite = async function ({
+  authority,
+  user,
+  payer,
+  controller,
+}: {
+  authority: Signer;
+  user: Signer;
+  payer: Signer;
+  controller: Controller;
+}) {
   let initialRedeemableAccountBalance: number;
   let initialControllerGlobalRedeemableSupplyCap: BN;
   let initialRedeemableDepositorySupplyCap: BN;

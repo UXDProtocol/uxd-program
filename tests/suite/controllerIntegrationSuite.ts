@@ -10,12 +10,15 @@ export class controllerIntegrationSuiteParameters {
   }
 }
 
-export const controllerIntegrationSuite = function (
-  authority: Signer,
-  payer: Signer,
-  controller: Controller,
-  params: controllerIntegrationSuiteParameters
-) {
+export const controllerIntegrationSuite = function ({
+  authority,
+  payer,
+  controller,
+}: {
+  authority: Signer;
+  payer: Signer;
+  controller: Controller;
+}) {
   it("Initialize Controller", () => initializeControllerTest({
     authority,
     controller,

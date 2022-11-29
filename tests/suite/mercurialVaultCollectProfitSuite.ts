@@ -5,7 +5,15 @@ import { collectProfitOfMercurialVaultDepositoryTest } from "../cases/collectPro
 import { MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS, uxdProgramId } from "../constants";
 import { transferLpTokenToDepositoryLpVault } from "../mercurial_vault_utils";
 
-export const mercurialVaultDepositoryCollectProfitSuite = async function (authority: Signer, payer: Signer, controller: Controller) {
+export const mercurialVaultDepositoryCollectProfitSuite = async function ({
+    authority,
+    payer,
+    controller,
+}: {
+    authority: Signer;
+    payer: Signer;
+    controller: Controller;
+}) {
     const collateralSymbol = 'USDC';
     let depository: MercurialVaultDepository;
 

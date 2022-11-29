@@ -17,13 +17,19 @@ import { mintWithIdentityDepositoryTest } from "../cases/mintWithIdentityDeposit
 import { editControllerTest } from "../cases/editControllerTest";
 import { editIdentityDepositoryTest } from "../cases/editIdentityDepositoryTest";
 
-export const identityDepositoryMintRedeemSuite = async function (
-  authority: Signer,
-  user: Signer,
-  payer: Signer,
-  controller: Controller,
-  depository: IdentityDepository
-) {
+export const identityDepositoryMintRedeemSuite = async function ({
+  authority,
+  user,
+  payer,
+  controller,
+  depository,
+}: {
+  authority: Signer;
+  user: Signer;
+  payer: Signer;
+  controller: Controller;
+  depository: IdentityDepository;
+}) {
   let initialRedeemableAccountBalance: number;
   let initialControllerGlobalRedeemableSupplyCap: BN;
   let initialRedeemableDepositorySupplyCap: BN;

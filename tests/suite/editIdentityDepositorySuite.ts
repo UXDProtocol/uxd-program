@@ -3,7 +3,15 @@ import { Controller, IdentityDepository, IdentityDepositoryAccount, nativeToUi }
 import { getConnection, TXN_OPTS } from "../connection";
 import { editIdentityDepositoryTest } from "../cases/editIdentityDepositoryTest";
 
-export const editIdentityDepositorySuite = async function (authority: Signer, user: Signer, payer: Signer, controller: Controller, depository: IdentityDepository) {
+export const editIdentityDepositorySuite = async function ({
+    authority,
+    controller,
+    depository,
+}: {
+    authority: Signer;
+    controller: Controller;
+    depository: IdentityDepository;
+}) {
     let beforeDepository: IdentityDepositoryAccount;
 
     describe("Edit mint/redeem", () => {

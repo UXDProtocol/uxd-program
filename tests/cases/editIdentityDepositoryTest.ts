@@ -31,7 +31,12 @@ export const editIdentityDepositoryTest = async function ({
             depositoryOnchainAccount;
 
         // WHEN
-        const txId = await editIdentityDepository(authority, controller, depository, uiFields);
+        const txId = await editIdentityDepository({
+            authority,
+            controller,
+            depository,
+            uiFields,
+        });
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN

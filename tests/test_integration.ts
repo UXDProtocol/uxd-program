@@ -8,15 +8,18 @@ import { mercurialVaultDepositoryMintRedeemSuite } from "./suite/mercurialVaultM
 import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDepositorySuite";
 import { mercurialVaultDepositoryCollectProfitSuite } from "./suite/mercurialVaultCollectProfitSuite";
 
-const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
+const controller = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
 
 beforeEach("\n", function () {
   console.log("=============================================\n\n");
 });
 
 describe("UXD Controller Suite", function () {
-  const params = new controllerIntegrationSuiteParameters(25_000_000);
-  controllerIntegrationSuite(authority, bank, controllerUXD, params);
+  controllerIntegrationSuite({
+    authority,
+    controller,
+    payer: bank,
+  });
 });
 
 let user: Signer = new Keypair();
@@ -27,29 +30,37 @@ describe("Mercurial vault integration tests: USDC", async function () {
     await transferSol(1, bank, user.publicKey);
   });
 
-  const mintingFeeInBps = 0;
-  const redeemingFeeInBps = 5;
-  const uiRedeemableDepositorySupplyCap = 1_000;
-
-  mercurialVaultDepositorySetupSuite(
+  mercurialVaultDepositorySetupSuite({
     authority,
-    bank,
-    controllerUXD,
-    mintingFeeInBps,
-    redeemingFeeInBps,
-    uiRedeemableDepositorySupplyCap
-  );
+    controller,
+    mintingFeeInBps: 0,
+    redeemingFeeInBps: 5,
+    redeemableAmountUnderManagementCap: 1_000,
+    payer: bank,
+  });
 
   describe('mercurialVaultDepositoryMintRedeemSuite', () => {
-    mercurialVaultDepositoryMintRedeemSuite(authority, user, bank, controllerUXD);
+    mercurialVaultDepositoryMintRedeemSuite({
+      authority,
+      user,
+      controller,
+      payer: bank,
+    });
   });
 
   describe('editMercurialVaultDepositorySuite', () => {
-    editMercurialVaultDepositorySuite(authority, user, bank, controllerUXD);
+    editMercurialVaultDepositorySuite({
+      authority,
+      controller,
+    });
   });
 
   describe('mercurialVaultDepositoryCollectProfitSuite', () => {
-    mercurialVaultDepositoryCollectProfitSuite(authority, bank, controllerUXD);
+    mercurialVaultDepositoryCollectProfitSuite({
+      authority,
+      controller,
+      payer: bank,
+    });
   });
 
   this.afterAll("Transfer funds back to bank", async function () {

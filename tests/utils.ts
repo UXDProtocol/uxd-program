@@ -10,7 +10,7 @@ export function ceilAtDecimals(number: number, decimals: number): number {
   return Number((Math.ceil(number * 10 ** decimals) / 10 ** decimals).toFixed(decimals));
 }
 
-export async function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
+export function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
   const transaction = new anchor.web3.Transaction().add(
     anchor.web3.SystemProgram.transfer({
       fromPubkey: from.publicKey,
@@ -18,7 +18,7 @@ export async function transferSol(amountUi: number, from: Signer, to: PublicKey)
       lamports: anchor.web3.LAMPORTS_PER_SOL * amountUi,
     })
   );
-  return await anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [from], TXN_OPTS);
+  return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [from], TXN_OPTS);
 }
 
 export async function transferAllSol(from: Signer, to: PublicKey): Promise<string> {

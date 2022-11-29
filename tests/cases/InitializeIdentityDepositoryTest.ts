@@ -21,7 +21,12 @@ export const initializeIdentityDepositoryTest = async function ({
     if (await getConnection().getAccountInfo(depository.pda)) {
       console.log("🚧 Already initialized.");
     } else {
-      const txId = await initializeIdentityDepository(authority, payer ?? authority, controller, depository);
+      const txId = await initializeIdentityDepository({
+        authority,
+        payer: payer ?? authority,
+        controller,
+        depository,
+      });
       console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
     }
 

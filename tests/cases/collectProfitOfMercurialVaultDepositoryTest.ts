@@ -41,7 +41,12 @@ export const collectProfitOfMercurialVaultDepositoryTest = async function ({
 
         // WHEN
         // Simulates user experience from the front end
-        const txId = await collectProfitOfMercurialVaultDepository(authority, payer ?? authority, controller, depository);
+        const txId = await collectProfitOfMercurialVaultDepository({
+            authority,
+            payer: payer ?? authority,
+            controller,
+            depository,
+        });
         console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
         // THEN

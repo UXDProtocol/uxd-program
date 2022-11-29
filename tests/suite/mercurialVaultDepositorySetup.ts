@@ -4,7 +4,21 @@ import { registerMercurialVaultDepositoryTest } from "../cases/registerMercurial
 import { getConnection } from "../connection";
 import { MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS, uxdProgramId } from "../constants";
 
-export const mercurialVaultDepositorySetupSuite = function (authority: Signer, payer: Signer, controller: Controller, mintingFeeInBps: number, redeemingFeeInBps: number, redeemableAmountUnderManagementCap: number) {
+export const mercurialVaultDepositorySetupSuite = function ({
+    authority,
+    payer,
+    controller,
+    mintingFeeInBps,
+    redeemingFeeInBps,
+    redeemableAmountUnderManagementCap,
+}: {
+    authority: Signer;
+    payer: Signer;
+    controller: Controller;
+    mintingFeeInBps: number;
+    redeemingFeeInBps: number;
+    redeemableAmountUnderManagementCap: number;
+}) {
     let depository: MercurialVaultDepository;
 
     before(async () => {

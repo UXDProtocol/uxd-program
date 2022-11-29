@@ -19,7 +19,11 @@ export const initializeControllerTest = async function ({
         if (await getConnection().getAccountInfo(controller.pda)) {
             console.log("🚧 Already initialized.");
         } else {
-            const txId = await initializeController(authority, payer ?? authority, controller);
+            const txId = await initializeController({
+                authority,
+                payer: payer ?? authority,
+                controller,
+            });
             console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
         }
 

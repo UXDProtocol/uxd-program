@@ -24,11 +24,21 @@ import { transferSol, transferAllSol, transferAllTokens } from "./utils";
     });
 
     describe("editIdentityDepositorySuite", function () {
-      editIdentityDepositorySuite(authority, user, bank, controller, identityDepository);
+      editIdentityDepositorySuite({
+        authority,
+        controller,
+        depository: identityDepository,
+      });
     });
 
     describe("identityDepositoryMintRedeemSuite", function () {
-      identityDepositoryMintRedeemSuite(authority, user, bank, controller, identityDepository);
+      identityDepositoryMintRedeemSuite({
+        authority,
+        user,
+        controller,
+        payer: bank,
+        depository: identityDepository,
+      });
     });
 
     this.afterAll("Transfer funds back to bank", async function () {

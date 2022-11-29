@@ -27,7 +27,11 @@ export const editControllerTest = async function ({
     const redeemableGlobalSupplyCap_pre = controllerOnChainAccount.redeemableGlobalSupplyCap;
 
     // WHEN
-    const txId = await editController(authority, controller, uiFields);
+    const txId = await editController({
+      authority,
+      controller,
+      uiFields,
+    });
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
 
     // THEN
