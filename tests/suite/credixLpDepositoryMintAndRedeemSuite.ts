@@ -233,7 +233,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
   });
 
   describe("Disabled minting", () => {
-    it("Disable minting on maple pool depository", async function () {
+    it("Disable minting on credix lp depository", async function () {
       await editCredixLpDepositoryTest(controllerAuthority, controller, depository, {
         mintingDisabled: true,
       });
@@ -254,7 +254,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
       expect(failure).eq(true, `Should have failed - minting is disabled`);
     });
 
-    it(`Re-enable minting for maple pool depository`, async function () {
+    it(`Re-enable minting for credix lp depository`, async function () {
       await editCredixLpDepositoryTest(controllerAuthority, controller, depository, {
         mintingDisabled: false,
       });
