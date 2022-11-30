@@ -1975,7 +1975,7 @@ export type Uxd = {
     {
       "code": 6015,
       "name": "CollateralDepositAmountsDoesntMatch",
-      "msg": "Collateral deposit didn't result in the correct amounts being moved"
+      "msg": "Collateral deposit didn't result in the correct amounts being moved."
     },
     {
       "code": 6016,
@@ -4112,7 +4112,7 @@ export const IDL: Uxd = {
     {
       "code": 6015,
       "name": "CollateralDepositAmountsDoesntMatch",
-      "msg": "Collateral deposit didn't result in the correct amounts being moved"
+      "msg": "Collateral deposit didn't result in the correct amounts being moved."
     },
     {
       "code": 6016,

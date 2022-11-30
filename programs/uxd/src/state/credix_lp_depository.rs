@@ -154,7 +154,7 @@ impl CredixLpDepository {
     }
 
     // When collecting profit, we need to add it to the total
-    pub fn update_onchain_accounting_following_profits_collection(
+    pub fn update_onchain_accounting_following_profit_collection(
         &mut self,
         profits_collected: u64,
     ) -> Result<()> {

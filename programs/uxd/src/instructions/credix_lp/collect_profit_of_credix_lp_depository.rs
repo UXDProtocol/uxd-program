@@ -11,7 +11,6 @@ use crate::events::CollectProfitOfCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::utils::checked_i64_to_u64;
-use crate::utils::compute_amount_fraction;
 use crate::utils::compute_delta;
 use crate::utils::compute_shares_amount_for_value;
 use crate::utils::compute_value_for_shares_amount;
@@ -229,26 +228,8 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         collateral_amount_after_precision_loss
     );
 
-    // Compute the amount of collateral we will receive after the withdrawal fees
-    let collateral_amount_after_credix_withdrawal_fees: u64 = {
-        let credix_withdrawal_fees_fraction =
-            ctx.accounts.credix_global_market_state.withdrawal_fee;
-        let credix_withdrawal_fees_amount: u64 = compute_amount_fraction(
-            collateral_amount_after_precision_loss,
-            credix_withdrawal_fees_fraction.numerator.into(),
-            credix_withdrawal_fees_fraction.denominator.into(),
-        )?;
-        collateral_amount_after_precision_loss
-            .checked_sub(credix_withdrawal_fees_amount)
-            .ok_or(UxdError::MathError)?
-    };
-    msg!(
-        "[collect_profit_of_credix_lp_depository:collateral_amount_after_credix_withdrawal_fees:{}]",
-        collateral_amount_after_credix_withdrawal_fees
-    );
-
     // If nothing to withdraw, no need to continue, all profit have already been successfully collected
-    if collateral_amount_after_credix_withdrawal_fees == 0 {
+    if collateral_amount_after_precision_loss == 0 {
         msg!("[collect_profit_of_credix_lp_depository:no_profit_to_collect]",);
         return Ok(());
     }
@@ -283,7 +264,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         ctx.accounts
             .into_transfer_depository_collateral_to_authority_collateral_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_after_credix_withdrawal_fees,
+        collateral_amount_after_precision_loss,
     )?;
 
     // Refresh account states after withdrawal
@@ -402,7 +383,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
 
     // Validate that the locked value moved exactly to the correct place
     require!(
-        authority_collateral_amount_increase == collateral_amount_after_credix_withdrawal_fees,
+        authority_collateral_amount_increase == collateral_amount_after_precision_loss,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
@@ -446,19 +427,19 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         collateral_amount_before_fees: collateral_amount_before_precision_loss,
-        collateral_amount_after_fees: collateral_amount_after_credix_withdrawal_fees,
+        collateral_amount_after_fees: collateral_amount_after_precision_loss,
     });
 
     // Accouting for depository
     let mut depository = ctx.accounts.depository.load_mut()?;
-    depository.update_onchain_accounting_following_profits_collection(
-        collateral_amount_after_credix_withdrawal_fees,
+    depository.update_onchain_accounting_following_profit_collection(
+        collateral_amount_after_precision_loss,
     )?;
 
     // Accouting for controller
     let mut controller = ctx.accounts.controller.load_mut()?;
     controller.update_onchain_accounting_following_profit_collection(
-        collateral_amount_after_credix_withdrawal_fees,
+        collateral_amount_after_precision_loss,
     )?;
 
     // Done

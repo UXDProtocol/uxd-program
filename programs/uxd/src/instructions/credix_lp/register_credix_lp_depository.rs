@@ -81,7 +81,7 @@ pub struct RegisterCredixLpDepository<'info> {
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 
     /// #10
-    /// CHECK: is a credix PDA, unsure how to double check here
+    /// CHECK: unused by us, checked by credix
     pub credix_signing_authority: AccountInfo<'info>,
 
     /// #11
