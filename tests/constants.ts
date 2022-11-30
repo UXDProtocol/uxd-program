@@ -30,7 +30,7 @@ console.log(`BANK => 🔗https://solscan.io/account/${bank.publicKey}?cluster=de
 // Get this from anchor.toml TODO
 export const CLUSTER = "devnet";
 
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 export const uxdProgramId: PublicKey = new PublicKey(jsonIdl["metadata"]["address"]);
 console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
 export const uxdClient = new UXDClient(uxdProgramId);

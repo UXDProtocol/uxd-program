@@ -14,7 +14,6 @@ export const editCredixLpDepositoryTest = async function (
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
-    profitTreasuryCollateral?: PublicKey;
   }
 ) {
   const connection = getConnection();
@@ -25,13 +24,8 @@ export const editCredixLpDepositoryTest = async function (
     // GIVEN
     const depositoryOnchainAccount = await depository.getOnchainAccount(connection, options);
 
-    const {
-      redeemableAmountUnderManagementCap,
-      mintingFeeInBps,
-      redeemingFeeInBps,
-      mintingDisabled,
-      profitTreasuryCollateral,
-    } = depositoryOnchainAccount;
+    const { redeemableAmountUnderManagementCap, mintingFeeInBps, redeemingFeeInBps, mintingDisabled } =
+      depositoryOnchainAccount;
 
     // WHEN
     const txId = await editCredixLpDepository(authority, controller, depository, uiFields);
@@ -44,7 +38,6 @@ export const editCredixLpDepositoryTest = async function (
       mintingFeeInBps: mintingFeeInBps_post,
       redeemingFeeInBps: redeemingFeeInBps_post,
       mintingDisabled: mintingDisabled_post,
-      profitTreasuryCollateral: profitTreasuryCollateral_post,
     } = depositoryOnchainAccount_post;
 
     if (uiFields.redeemableAmountUnderManagementCap) {
@@ -74,18 +67,6 @@ export const editCredixLpDepositoryTest = async function (
     if (typeof uiFields.mintingDisabled !== "undefined") {
       expect(mintingDisabled_post).equals(uiFields.mintingDisabled, "The minting disabled state has not changed.");
       console.log(`🧾 Previous minting disabled state was`, mintingDisabled, "now is", mintingDisabled_post);
-    }
-    if (typeof uiFields.profitTreasuryCollateral !== "undefined") {
-      expect(profitTreasuryCollateral_post.toString()).equals(
-        uiFields.profitTreasuryCollateral.toString(),
-        "The profit treasury collateral address has not changed."
-      );
-      console.log(
-        `🧾 Previous profit treasury collateral address was`,
-        profitTreasuryCollateral.toString(),
-        "now is",
-        profitTreasuryCollateral_post.toString()
-      );
     }
 
     controller.info();

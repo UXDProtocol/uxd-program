@@ -3,7 +3,7 @@ import { PublicKey, Signer } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
-import { uxdProgramId } from "./constants";
+import { uxdProgramId, authority } from "./constants";
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
@@ -186,6 +186,6 @@ export async function createCredixLpDepositoryDevnetUSDC(): Promise<CredixLpDepo
     credixMultisig: new PublicKey("4u825MpPxsRSxnvAJ8jJRsvAtbXByLhZZTWjEg1Kcjkd"),
     credixTreasuryCollateral: new PublicKey("BDWiqHSTpZAWcERiQuZFQJxich22J5uy9ALXLQ3eryWG"),
     credixMarketName: "credix-marketplace",
-    profitTreasury: new PublicKey("aca3VWxwBeu8FTZowJ9hfSKGzntjX68EXh1N9xpE1PC"),
+    authority: authority.publicKey,
   });
 }
