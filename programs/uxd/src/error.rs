@@ -64,6 +64,10 @@ pub enum UxdError {
     InvalidMercurialVaultCollateralTokenSafe,
     #[msg("Minting amount would go past the identity depository Redeemable Amount Under Management Cap.")]
     RedeemableIdentityDepositoryAmountUnderManagementCap,
+    #[msg("Program is already frozen/resumed.")]
+    ProgramAlreadyFrozenOrResumed,
+    #[msg("The program is currently in Frozen state.")]
+    ProgramFrozen,
 
     #[msg("Default - Check the source code for more info.")]
     Default,

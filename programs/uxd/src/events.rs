@@ -144,3 +144,16 @@ pub struct RedeemFromIdentityDepositoryEvent {
     /// The redeemable amount in native units. (input)
     pub redeemable_amount: u64,
 }
+
+/// Event called in [instructions::freeze_program::handler].
+#[event]
+pub struct FreezeProgramEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// is program frozen
+    pub is_frozen: bool,
+}

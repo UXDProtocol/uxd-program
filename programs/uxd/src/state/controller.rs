@@ -13,7 +13,9 @@ pub const CONTROLLER_SPACE: usize = 8
     + 32
     + 32
     + 1
-    + 257 // Shh. Free real estate
+    + 255 // Shh. Free real estate
+    + 1
+    + 1
     + 16
     + 8 // unused
     + 16
@@ -34,7 +36,11 @@ pub struct Controller {
     pub redeemable_mint: Pubkey,
     pub redeemable_mint_decimals: u8,
     //
-    pub _unused: [u8; 257],
+    pub _unused: [u8; 255],
+    // operational status for all ixs associated with this controller instance
+    pub is_frozen: bool,
+    //
+    pub _unused2: u8,
     //
     // Progressive roll out and safety ----------
     //
@@ -44,7 +50,7 @@ pub struct Controller {
     //
     // The max amount of Redeemable affected by Mint and Redeem operations on `Depository` instances, variable
     //  in redeemable Redeemable Native Amount
-    pub _unused2: [u8; 8],
+    pub _unused3: [u8; 8],
     //
     // Accounting -------------------------------
     //
@@ -52,7 +58,7 @@ pub struct Controller {
     // This should always be equal to the sum of all Depositories' `redeemable_amount_under_management`
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
-    pub _unused3: [u8; 8],
+    pub _unused4: [u8; 8],
     //
     // The Mercurial Vault Depositories registered with this Controller
     pub registered_mercurial_vault_depositories:

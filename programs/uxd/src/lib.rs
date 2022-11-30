@@ -1,3 +1,5 @@
+use std::cell::Ref;
+
 use crate::instructions::*;
 use crate::state::*;
 use anchor_lang::prelude::*;
@@ -78,6 +80,7 @@ pub mod uxd {
         instructions::edit_controller::handler(ctx, &fields)
     }
 
+    #[access_control(ctx.accounts.validate())]
     pub fn edit_mercurial_vault_depository(
         ctx: Context<EditMercurialVaultDepository>,
         fields: EditMercurialVaultDepositoryFields,
@@ -85,6 +88,7 @@ pub mod uxd {
         instructions::edit_mercurial_vault_depository::handler(ctx, &fields)
     }
 
+    #[access_control(ctx.accounts.validate())]
     pub fn edit_identity_depository(
         ctx: Context<EditIdentityDepository>,
         fields: EditIdentityDepositoryFields,
@@ -170,4 +174,27 @@ pub mod uxd {
         );
         instructions::redeem_from_identity_depository::handler(ctx, redeemable_amount)
     }
+
+    /// Freeze or resume all ixs associated with the controller (except this one).
+    ///
+    /// Parameters:
+    ///     - freeze: bool param to flip the `is_frozen` property in the controller
+    ///
+    /// Note:
+    /// This is a wildcard to stop the program temporarily when a vulnerability has been detected to allow the team to do servicing work.
+    ///
+    #[access_control(
+        ctx.accounts.validate(freeze)
+    )]
+    pub fn freeze_program(ctx: Context<FreezeProgram>, freeze: bool) -> Result<()> {
+        msg!("[freeze_program] {:?}", freeze);
+        instructions::freeze_program::handler(ctx, freeze)
+    }
+}
+
+pub(crate) fn validate_is_program_frozen(
+    controller: Ref<'_, controller::Controller>,
+) -> Result<()> {
+    require!(!controller.is_frozen, UxdError::ProgramFrozen);
+    Ok(())
 }
