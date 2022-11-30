@@ -34,7 +34,7 @@ pub enum UxdError {
     CollateralDepositHasRemainingDust,
     #[msg("Collateral deposit result in funds movements that doesn't match expectations.")]
     CollateralDepositUnaccountedFor,
-    #[msg("Collateral deposit didn't result in the correct amounts being moved")]
+    #[msg("Collateral deposit didn't result in the correct amounts being moved.")]
     CollateralDepositAmountsDoesntMatch,
     #[msg("Received token of which the value doesn't match the deposited collateral.")]
     CollateralDepositDoesntMatchTokenValue,
