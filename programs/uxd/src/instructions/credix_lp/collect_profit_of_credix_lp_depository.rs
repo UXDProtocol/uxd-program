@@ -59,61 +59,61 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 
-    /// #6
+    /// #5
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #9
+    /// #6
     #[account(mut)]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #10
+    /// #7
     #[account(mut)]
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
-    /// #11
+    /// #8
     #[account(
         constraint = credix_program_state.credix_multisig_key == credix_multisig.key() @UxdError::InvalidCredixMultisig,
     )]
     pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
 
-    /// #12
+    /// #9
     #[account(
         mut,
         constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
     )]
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 
-    /// #13
+    /// #10
     /// CHECK: unused by us, checked by credix
     pub credix_signing_authority: AccountInfo<'info>,
 
-    /// #14
+    /// #11
     #[account(mut)]
     pub credix_liquidity_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #15
+    /// #12
     #[account(mut)]
     pub credix_shares_mint: Box<Account<'info, Mint>>,
 
-    /// #16
+    /// #13
     #[account(
         mut,
         constraint = credix_pass.user == depository.key() @UxdError::InvalidCredixPass,
     )]
     pub credix_pass: Box<Account<'info, credix_client::CredixPass>>,
 
-    /// #17
+    /// #14
     #[account(
         mut,
         token::mint = collateral_mint,
     )]
     pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #18
+    /// #15
     /// CHECK: not used by us, checked by credix program
     pub credix_multisig: AccountInfo<'info>,
 
-    /// #19
+    /// #16
     #[account(
         mut,
         token::authority = credix_multisig,
@@ -121,7 +121,7 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     )]
     pub credix_multisig_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #20
+    /// #17
     #[account(
         mut,
         token::authority = authority,
@@ -129,15 +129,15 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     )]
     pub authority_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #21
+    /// #18
     pub system_program: Program<'info, System>,
-    /// #22
+    /// #19
     pub token_program: Program<'info, Token>,
-    /// #23
+    /// #20
     pub associated_token_program: Program<'info, AssociatedToken>,
-    /// #24
+    /// #21
     pub credix_program: Program<'info, credix_client::program::Credix>,
-    /// #25
+    /// #22
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -451,11 +451,15 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
 
     // Accouting for depository
     let mut depository = ctx.accounts.depository.load_mut()?;
-    depository.profits_collected(collateral_amount_after_credix_withdrawal_fees)?;
+    depository.update_onchain_accounting_following_profits_collection(
+        collateral_amount_after_credix_withdrawal_fees,
+    )?;
 
     // Accouting for controller
     let mut controller = ctx.accounts.controller.load_mut()?;
-    controller.profits_collected(collateral_amount_after_credix_withdrawal_fees)?;
+    controller.update_onchain_accounting_following_profit_collection(
+        collateral_amount_after_credix_withdrawal_fees,
+    )?;
 
     // Done
     Ok(())

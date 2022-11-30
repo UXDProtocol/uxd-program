@@ -138,7 +138,10 @@ impl Controller {
     }
 
     // When collecting profit, we need to add it to the total
-    pub fn profits_collected(&mut self, profits_collected: u64) -> Result<()> {
+    pub fn update_onchain_accounting_following_profit_collection(
+        &mut self,
+        profits_collected: u64,
+    ) -> Result<()> {
         self.profits_total_collected = self
             .profits_total_collected
             .checked_add(profits_collected.into())
