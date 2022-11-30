@@ -96,19 +96,6 @@ pub struct SetDepositoryMintingDisabledEvent {
     pub minting_disabled: bool,
 }
 
-/// Event called in [instructions::edit_*_depository::handler].
-#[event]
-pub struct SetDepositoryProfitTreasuryCollateralEvent {
-    #[index]
-    pub version: u8,
-    #[index]
-    pub controller: Pubkey,
-    #[index]
-    pub depository: Pubkey,
-    #[index]
-    pub profit_treasury_collateral: Pubkey,
-}
-
 /// Event called in [instructions::initialize_identity_depository::handler].
 #[event]
 pub struct InitializeIdentityDepositoryEvent {
@@ -228,8 +215,6 @@ pub struct CollectProfitOfCredixLpDepositoryEvent {
     pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
-    #[index]
-    pub profit_treasury_collateral: Pubkey,
     /// The collateral amount in native units.
     pub collateral_amount_before_fees: u64,
     /// The collateral amount in native units. (output)

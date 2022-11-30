@@ -56,7 +56,6 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
         has_one = credix_signing_authority @UxdError::InvalidCredixSigningAuthority,
         has_one = credix_liquidity_collateral @UxdError::InvalidCredixLiquidityCollateral,
         has_one = credix_shares_mint @UxdError::InvalidCredixSharesMint,
-        has_one = profit_treasury_collateral @UxdError::InvalidProfitTreasuryCollateral,
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 
@@ -123,8 +122,12 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     pub credix_multisig_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #20
-    #[account(mut)]
-    pub profit_treasury_collateral: Box<Account<'info, TokenAccount>>,
+    #[account(
+        mut,
+        token::authority = authority,
+        token::mint = collateral_mint,
+    )]
+    pub authority_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #21
     pub system_program: Program<'info, System>,
@@ -147,8 +150,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
 
     // Read all states before collect
     let depository_collateral_amount_before: u64 = ctx.accounts.depository_collateral.amount;
-    let profit_treasury_collateral_amount_before: u64 =
-        ctx.accounts.profit_treasury_collateral.amount;
+    let authority_collateral_amount_before: u64 = ctx.accounts.authority_collateral.amount;
 
     let liquidity_collateral_amount_before: u64 = ctx.accounts.credix_liquidity_collateral.amount;
     let outstanding_collateral_amount_before: u64 = ctx
@@ -279,7 +281,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     msg!("[collect_profit_of_credix_lp_depository:collateral_transfer]",);
     token::transfer(
         ctx.accounts
-            .into_transfer_depository_collateral_to_profit_treasury_collateral_context()
+            .into_transfer_depository_collateral_to_authority_collateral_context()
             .with_signer(depository_pda_signer),
         collateral_amount_after_credix_withdrawal_fees,
     )?;
@@ -290,7 +292,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     ctx.accounts.credix_global_market_state.reload()?;
     ctx.accounts.credix_liquidity_collateral.reload()?;
     ctx.accounts.credix_shares_mint.reload()?;
-    ctx.accounts.profit_treasury_collateral.reload()?;
+    ctx.accounts.authority_collateral.reload()?;
 
     // ---------------------------------------------------------------------
     // -- Phase 3
@@ -300,8 +302,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
 
     // Read all states after withdrawal
     let depository_collateral_amount_after: u64 = ctx.accounts.depository_collateral.amount;
-    let profit_treasury_collateral_amount_after: u64 =
-        ctx.accounts.profit_treasury_collateral.amount;
+    let authority_collateral_amount_after: u64 = ctx.accounts.authority_collateral.amount;
 
     let liquidity_collateral_amount_after: u64 = ctx.accounts.credix_liquidity_collateral.amount;
     let outstanding_collateral_amount_after: u64 = ctx
@@ -326,9 +327,9 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         depository_collateral_amount_before,
         depository_collateral_amount_after,
     )?;
-    let profit_treasury_collateral_amount_delta: i64 = compute_delta(
-        profit_treasury_collateral_amount_before,
-        profit_treasury_collateral_amount_after,
+    let authority_collateral_amount_delta: i64 = compute_delta(
+        authority_collateral_amount_before,
+        authority_collateral_amount_after,
     )?;
 
     let total_shares_amount_delta: i64 =
@@ -349,7 +350,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
 
     // Validate the withdrawal was successful and meaningful
     require!(
-        profit_treasury_collateral_amount_delta > 0,
+        authority_collateral_amount_delta > 0,
         UxdError::CollateralDepositUnaccountedFor
     );
     require!(
@@ -370,8 +371,8 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     );
 
     // Because we know the direction of the change, we can use the unsigned values now
-    let profit_treasury_collateral_amount_increase: u64 =
-        checked_i64_to_u64(profit_treasury_collateral_amount_delta)?;
+    let authority_collateral_amount_increase: u64 =
+        checked_i64_to_u64(authority_collateral_amount_delta)?;
     let total_shares_amount_decrease: u64 = checked_i64_to_u64(-total_shares_amount_delta)?;
     let total_shares_value_decrease: u64 = checked_i64_to_u64(-total_shares_value_delta)?;
     let owned_shares_amount_decrease: u64 = checked_i64_to_u64(-owned_shares_amount_delta)?;
@@ -379,8 +380,8 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
 
     // Log deltas for debriefing the changes
     msg!(
-        "[collect_profit_of_credix_lp_depository:profit_treasury_collateral_amount_increase:{}]",
-        profit_treasury_collateral_amount_increase
+        "[collect_profit_of_credix_lp_depository:authority_collateral_amount_increase:{}]",
+        authority_collateral_amount_increase
     );
     msg!(
         "[collect_profit_of_credix_lp_depository:total_shares_amount_decrease:{}]",
@@ -401,8 +402,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
 
     // Validate that the locked value moved exactly to the correct place
     require!(
-        profit_treasury_collateral_amount_increase
-            == collateral_amount_after_credix_withdrawal_fees,
+        authority_collateral_amount_increase == collateral_amount_after_credix_withdrawal_fees,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
@@ -445,18 +445,17 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         depository_version: ctx.accounts.depository.load()?.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
-        profit_treasury_collateral: ctx.accounts.profit_treasury_collateral.key(),
         collateral_amount_before_fees: collateral_amount_before_precision_loss,
         collateral_amount_after_fees: collateral_amount_after_credix_withdrawal_fees,
     });
 
     // Accouting for depository
     let mut depository = ctx.accounts.depository.load_mut()?;
-    depository.profit_treasury_collected(collateral_amount_after_credix_withdrawal_fees)?;
+    depository.profits_collected(collateral_amount_after_credix_withdrawal_fees)?;
 
     // Accouting for controller
     let mut controller = ctx.accounts.controller.load_mut()?;
-    controller.profit_treasury_collected(collateral_amount_after_credix_withdrawal_fees)?;
+    controller.profits_collected(collateral_amount_after_credix_withdrawal_fees)?;
 
     // Done
     Ok(())
@@ -490,12 +489,12 @@ impl<'info> CollectProfitOfCredixLpDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_depository_collateral_to_profit_treasury_collateral_context(
+    pub fn into_transfer_depository_collateral_to_authority_collateral_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
             from: self.depository_collateral.to_account_info(),
-            to: self.profit_treasury_collateral.to_account_info(),
+            to: self.authority_collateral.to_account_info(),
             authority: self.depository.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();

@@ -95,19 +95,12 @@ pub struct RegisterCredixLpDepository<'info> {
     pub credix_shares_mint: Box<Account<'info, Mint>>,
 
     /// #13
-    #[account(
-        mut,
-        token::mint = collateral_mint
-    )]
-    pub profit_treasury_collateral: Box<Account<'info, TokenAccount>>,
-
-    /// #14
     pub system_program: Program<'info, System>,
-    /// #15
+    /// #14
     pub token_program: Program<'info, Token>,
-    /// #16
+    /// #15
     pub associated_token_program: Program<'info, AssociatedToken>,
-    /// #17
+    /// #16
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -154,8 +147,7 @@ pub fn handler(
     depository.redeeming_fee_total_accrued = u128::MIN;
 
     // Profits collection
-    depository.profit_treasury_collateral = ctx.accounts.profit_treasury_collateral.key();
-    depository.profit_treasury_total_collected = u128::MIN;
+    depository.profits_total_collected = u128::MIN;
 
     // Add the depository to the controller
     ctx.accounts

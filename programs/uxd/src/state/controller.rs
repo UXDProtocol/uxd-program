@@ -67,7 +67,7 @@ pub struct Controller {
     pub registered_credix_lp_depositories_count: u8,
     //
     // Total amount of profit collected into the treasury by any depository
-    pub profit_treasury_total_collected: u128,
+    pub profits_total_collected: u128,
 }
 
 impl Controller {
@@ -138,10 +138,10 @@ impl Controller {
     }
 
     // When collecting profit, we need to add it to the total
-    pub fn profit_treasury_collected(&mut self, profit_treasury_collected: u64) -> Result<()> {
-        self.profit_treasury_total_collected = self
-            .profit_treasury_total_collected
-            .checked_add(profit_treasury_collected.into())
+    pub fn profits_collected(&mut self, profits_collected: u64) -> Result<()> {
+        self.profits_total_collected = self
+            .profits_total_collected
+            .checked_add(profits_collected.into())
             .ok_or(UxdError::MathError)?;
         Ok(())
     }

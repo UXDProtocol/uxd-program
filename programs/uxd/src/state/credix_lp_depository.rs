@@ -30,8 +30,7 @@ pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u128>() // minting_fee_total_accrued
  + size_of::<u128>() // redeeming_fee_total_accrued
 
- + size_of::<Pubkey>() // profit_treasury_collateral
- + size_of::<u128>() // profit_treasury_total_collected
+ + size_of::<u128>() // profits_total_collected
 
  + 800; // reserved space
 
@@ -73,8 +72,7 @@ pub struct CredixLpDepository {
     pub redeeming_fee_total_accrued: u128,
 
     // Collection of profit for the treasury
-    pub profit_treasury_collateral: Pubkey,
-    pub profit_treasury_total_collected: u128,
+    pub profits_total_collected: u128,
 }
 
 impl CredixLpDepository {
@@ -156,10 +154,10 @@ impl CredixLpDepository {
     }
 
     // When collecting profit, we need to add it to the total
-    pub fn profit_treasury_collected(&mut self, profit_treasury_collected: u64) -> Result<()> {
-        self.profit_treasury_total_collected = self
-            .profit_treasury_total_collected
-            .checked_add(profit_treasury_collected.into())
+    pub fn profits_collected(&mut self, profits_collected: u64) -> Result<()> {
+        self.profits_total_collected = self
+            .profits_total_collected
+            .checked_add(profits_collected.into())
             .ok_or(UxdError::MathError)?;
         Ok(())
     }
