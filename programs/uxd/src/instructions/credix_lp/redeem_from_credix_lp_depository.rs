@@ -157,21 +157,11 @@ pub struct RedeemFromCredixLpDepository<'info> {
 }
 
 pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u64) -> Result<()> {
-    // Ready, log the amount
-    msg!(
-        "[redeem_from_credix_lp_depository:redeemable_amount:{}]",
-        redeemable_amount
-    );
-
-    // Make depository signer
-    let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
-    let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
-    let depository_pda_signer: &[&[&[u8]]] = &[&[
-        CREDIX_LP_DEPOSITORY_NAMESPACE,
-        credix_global_market_state.as_ref(),
-        collateral_mint.as_ref(),
-        &[ctx.accounts.depository.load()?.bump],
-    ]];
+    // ---------------------------------------------------------------------
+    // -- Phase 1
+    // -- Fetch all current onchain state
+    // -- and predict all future final state after mutation
+    // ---------------------------------------------------------------------
 
     // Read all states before withdrawal
     let depository_collateral_amount_before: u64 = ctx.accounts.depository_collateral.amount;
@@ -195,6 +185,12 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         total_shares_amount_before,
         total_shares_value_before,
     )?;
+
+    // Initial amount
+    msg!(
+        "[redeem_from_credix_lp_depository:redeemable_amount:{}]",
+        redeemable_amount
+    );
 
     // Apply the redeeming fees
     let redeemable_amount_after_fees: u64 = calculate_amount_less_fees(
@@ -257,6 +253,21 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         UxdError::MinimumRedeemedCollateralAmountError
     );
 
+    // ---------------------------------------------------------------------
+    // -- Phase 2
+    // -- Actually runs the onchain mutation based on computed parameters
+    // ---------------------------------------------------------------------
+
+    // Make depository signer
+    let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
+    let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
+    let depository_pda_signer: &[&[&[u8]]] = &[&[
+        CREDIX_LP_DEPOSITORY_NAMESPACE,
+        credix_global_market_state.as_ref(),
+        collateral_mint.as_ref(),
+        &[ctx.accounts.depository.load()?.bump],
+    ]];
+
     // Burn the user's redeemable
     msg!("[redeem_from_credix_lp_depository:redeemable_burn]",);
     token::burn(
@@ -290,6 +301,12 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
     ctx.accounts.credix_global_market_state.reload()?;
     ctx.accounts.credix_liquidity_collateral.reload()?;
     ctx.accounts.credix_shares_mint.reload()?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 3
+    // -- Strictly verify that the onchain state
+    // -- after mutation exactly match previous predictions
+    // ---------------------------------------------------------------------
 
     // Read all states after withdrawal
     let depository_collateral_amount_after: u64 = ctx.accounts.depository_collateral.amount;
@@ -437,6 +454,11 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
         ),
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
+
+    // ---------------------------------------------------------------------
+    // -- Phase 4
+    // -- Emit resulting event, and update onchain accounting
+    // ---------------------------------------------------------------------
 
     // Compute how much fees was paid
     let redeemable_amount_delta: i64 =

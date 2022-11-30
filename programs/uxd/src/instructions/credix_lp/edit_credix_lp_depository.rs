@@ -20,8 +20,8 @@ pub struct EditCredixLpDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
+        constraint = controller.load()?.registered_credix_lp_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
         has_one = authority @UxdError::InvalidAuthority,
-        constraint = controller.load()?.registered_credix_lp_depositories.contains(&depository.key()) @UxdError::InvalidDepository
     )]
     pub controller: AccountLoader<'info, Controller>,
 

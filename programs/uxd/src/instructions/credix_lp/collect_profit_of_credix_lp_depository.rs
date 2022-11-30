@@ -139,15 +139,11 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
 }
 
 pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
-    // Make depository signer
-    let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
-    let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
-    let depository_pda_signer: &[&[&[u8]]] = &[&[
-        CREDIX_LP_DEPOSITORY_NAMESPACE,
-        credix_global_market_state.as_ref(),
-        collateral_mint.as_ref(),
-        &[ctx.accounts.depository.load()?.bump],
-    ]];
+    // ---------------------------------------------------------------------
+    // -- Phase 1
+    // -- Fetch all current onchain state
+    // -- and predict all future final state after mutation
+    // ---------------------------------------------------------------------
 
     // Read all states before collect
     let depository_collateral_amount_before: u64 = ctx.accounts.depository_collateral.amount;
@@ -255,6 +251,21 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         return Ok(());
     }
 
+    // ---------------------------------------------------------------------
+    // -- Phase 2
+    // -- Actually runs the onchain mutation based on computed parameters
+    // ---------------------------------------------------------------------
+
+    // Make depository signer
+    let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
+    let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
+    let depository_pda_signer: &[&[&[u8]]] = &[&[
+        CREDIX_LP_DEPOSITORY_NAMESPACE,
+        credix_global_market_state.as_ref(),
+        collateral_mint.as_ref(),
+        &[ctx.accounts.depository.load()?.bump],
+    ]];
+
     // Run a withdraw CPI from credix into the depository
     msg!("[collect_profit_of_credix_lp_depository:withdraw_funds]",);
     credix_client::cpi::withdraw_funds(
@@ -280,6 +291,12 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     ctx.accounts.credix_liquidity_collateral.reload()?;
     ctx.accounts.credix_shares_mint.reload()?;
     ctx.accounts.profit_treasury_collateral.reload()?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 3
+    // -- Strictly verify that the onchain state
+    // -- after mutation exactly match previous predictions
+    // ---------------------------------------------------------------------
 
     // Read all states after withdrawal
     let depository_collateral_amount_after: u64 = ctx.accounts.depository_collateral.amount;
@@ -416,6 +433,11 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         ),
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
+
+    // ---------------------------------------------------------------------
+    // -- Phase 4
+    // -- Emit resulting event, and update onchain accounting
+    // ---------------------------------------------------------------------
 
     // Emit event
     emit!(CollectProfitOfCredixLpDepositoryEvent {

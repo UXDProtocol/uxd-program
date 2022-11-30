@@ -126,27 +126,11 @@ pub struct MintWithCredixLpDepository<'info> {
 }
 
 pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64) -> Result<()> {
-    // Ready, log the amount
-    msg!(
-        "[mint_with_credix_lp_depository:collateral_amount:{}]",
-        collateral_amount
-    );
-
-    // Make controller signer
-    let controller_pda_signer: &[&[&[u8]]] = &[&[
-        CONTROLLER_NAMESPACE,
-        &[ctx.accounts.controller.load()?.bump],
-    ]];
-
-    // Make depository signer
-    let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
-    let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
-    let depository_pda_signer: &[&[&[u8]]] = &[&[
-        CREDIX_LP_DEPOSITORY_NAMESPACE,
-        credix_global_market_state.as_ref(),
-        collateral_mint.as_ref(),
-        &[ctx.accounts.depository.load()?.bump],
-    ]];
+    // ---------------------------------------------------------------------
+    // -- Phase 1
+    // -- Fetch all current onchain state
+    // -- and predict all future final state after mutation
+    // ---------------------------------------------------------------------
 
     // Read all state before deposit
     let depository_collateral_amount_before: u64 = ctx.accounts.depository_collateral.amount;
@@ -170,6 +154,12 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         total_shares_amount_before,
         total_shares_value_before,
     )?;
+
+    // Initial amount
+    msg!(
+        "[mint_with_credix_lp_depository:collateral_amount:{}]",
+        collateral_amount
+    );
 
     // Compute the amount of shares that we will get for our collateral
     let shares_amount: u64 = compute_shares_amount_for_value(
@@ -218,6 +208,27 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         UxdError::MinimumRedeemedCollateralAmountError
     );
 
+    // ---------------------------------------------------------------------
+    // -- Phase 2
+    // -- Actually runs the onchain mutation based on computed parameters
+    // ---------------------------------------------------------------------
+
+    // Make controller signer
+    let controller_pda_signer: &[&[&[u8]]] = &[&[
+        CONTROLLER_NAMESPACE,
+        &[ctx.accounts.controller.load()?.bump],
+    ]];
+
+    // Make depository signer
+    let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
+    let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
+    let depository_pda_signer: &[&[&[u8]]] = &[&[
+        CREDIX_LP_DEPOSITORY_NAMESPACE,
+        credix_global_market_state.as_ref(),
+        collateral_mint.as_ref(),
+        &[ctx.accounts.depository.load()?.bump],
+    ]];
+
     // Transfer the collateral to an account owned by the depository
     msg!("[mint_with_credix_lp_depository:collateral_transfer]",);
     token::transfer(
@@ -252,6 +263,12 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
     ctx.accounts.credix_global_market_state.reload()?;
     ctx.accounts.credix_liquidity_collateral.reload()?;
     ctx.accounts.credix_shares_mint.reload()?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 3
+    // -- Strictly verify that the onchain state
+    // -- after mutation exactly match previous predictions
+    // ---------------------------------------------------------------------
 
     // Read all state after deposit
     let depository_collateral_amount_after: u64 = ctx.accounts.depository_collateral.amount;
@@ -399,6 +416,11 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         ),
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
+
+    // ---------------------------------------------------------------------
+    // -- Phase 4
+    // -- Emit resulting event, and update onchain accounting
+    // ---------------------------------------------------------------------
 
     // Compute how much fees was paid
     let redeemable_amount_delta: i64 =
