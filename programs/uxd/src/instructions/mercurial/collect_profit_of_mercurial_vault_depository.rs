@@ -161,7 +161,7 @@ pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<
         UxdError::SlippageReached,
     );
 
-    // 7 - Check that the amount of received collateral from mercurial_vault::cpi::withdraw
+    // 7 - Check the collateral amount received from mercurial_vault::cpi::withdraw
 
     // There can be precision loss when calculating how many LP token to withdraw and also when withdrawing the collateral
     // We accept theses losses as they are paid by the user
