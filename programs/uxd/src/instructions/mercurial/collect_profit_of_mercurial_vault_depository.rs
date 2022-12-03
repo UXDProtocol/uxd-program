@@ -164,7 +164,7 @@ pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<
     // 7 - Check the collateral amount received from mercurial_vault::cpi::withdraw
 
     // There can be precision loss when calculating how many LP token to withdraw and also when withdrawing the collateral
-    // We accept theses losses as they are paid by the user
+    // We accept theses losses as the money is still in the vault. We collect a bit less profit.
     CollectProfitOfMercurialVaultDepository::check_redeemed_collateral_amount_to_match_target(
         collateral_balance_change,
         collectable_profits_value,
