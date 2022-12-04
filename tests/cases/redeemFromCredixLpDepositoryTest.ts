@@ -56,10 +56,6 @@ export const redeemFromCredixLpDepositoryTest = async function (
       redeemableAmount - ((10_000 - onChainDepository_pre.redeemingFeeInBps) * redeemableAmount) / 10_000,
       controller.redeemableMintDecimals
     );
-    const estimatedWithdrawingFeesPaid = ceilAtDecimals(
-      redeemableAmount - ((10_000 - 50) * redeemableAmount) / 10_000,
-      controller.redeemableMintDecimals
-    );
 
     console.log(
       `🧾 Redeemed`,
@@ -70,16 +66,11 @@ export const redeemFromCredixLpDepositoryTest = async function (
       controller.redeemableMintSymbol,
       "with",
       estimatedRedeemingFeesPaid,
-      "redeeming fees paid",
-      "with",
-      estimatedWithdrawingFeesPaid,
-      "withdrawing fees paid"
+      "redeeming fees paid"
     );
 
     const estimatedCollateralAmount = Number(
-      (redeemableAmount - estimatedRedeemingFeesPaid - estimatedWithdrawingFeesPaid).toFixed(
-        depository.collateralDecimals
-      )
+      (redeemableAmount - estimatedRedeemingFeesPaid).toFixed(depository.collateralDecimals)
     );
 
     // Check used redeemable
@@ -100,8 +91,7 @@ export const redeemFromCredixLpDepositoryTest = async function (
     expect(nativeToUi(onChainDepository_post.collateralAmountDeposited, depository.collateralDecimals)).equal(
       Number(
         (
-          nativeToUi(onChainDepository_pre.collateralAmountDeposited, depository.collateralDecimals) -
-          (collateralDelta + estimatedWithdrawingFeesPaid)
+          nativeToUi(onChainDepository_pre.collateralAmountDeposited, depository.collateralDecimals) - collateralDelta
         ).toFixed(depository.collateralDecimals)
       )
     );
