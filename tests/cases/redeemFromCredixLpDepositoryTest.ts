@@ -84,7 +84,9 @@ export const redeemFromCredixLpDepositoryTest = async function (
     expect(collateralDelta)
       .lte(estimatedCollateralAmount)
       .gte(
-        Number((estimatedCollateralAmount - collateralNativeUnitPrecision).toFixed(controller.redeemableMintDecimals))
+        Number(
+          (estimatedCollateralAmount - collateralNativeUnitPrecision * 10).toFixed(controller.redeemableMintDecimals)
+        )
       );
 
     // Check depository accounting
