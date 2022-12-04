@@ -121,7 +121,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
     #[account(
         mut,
         constraint = credix_pass.user == depository.key() @UxdError::InvalidCredixPass,
-        constraint = credix_pass.disable_withdrawal_fee == true @UxdError::InvalidCredixPassNoFees,
+        //constraint = credix_pass.disable_withdrawal_fee == true @UxdError::InvalidCredixPassNoFees,
     )]
     pub credix_pass: Box<Account<'info, credix_client::CredixPass>>,
 
