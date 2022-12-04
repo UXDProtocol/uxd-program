@@ -71,7 +71,7 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
 
     /// #8
     #[account(
-        constraint = credix_program_state.credix_multisig_key == credix_multisig.key() @UxdError::InvalidCredixMultisig,
+        constraint = credix_program_state.credix_multisig_key == credix_multisig_key.key() @UxdError::InvalidCredixMultisig,
     )]
     pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
 
@@ -98,6 +98,7 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     #[account(
         mut,
         constraint = credix_pass.user == depository.key() @UxdError::InvalidCredixPass,
+        constraint = credix_pass.disable_withdrawal_fee == true @UxdError::InvalidCredixPass,
     )]
     pub credix_pass: Box<Account<'info, credix_client::CredixPass>>,
 
@@ -110,12 +111,12 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
 
     /// #15
     /// CHECK: not used by us, checked by credix program
-    pub credix_multisig: AccountInfo<'info>,
+    pub credix_multisig_key: AccountInfo<'info>,
 
     /// #16
     #[account(
         mut,
-        token::authority = credix_multisig,
+        token::authority = credix_multisig_key,
         token::mint = collateral_mint,
     )]
     pub credix_multisig_collateral: Box<Account<'info, TokenAccount>>,
@@ -429,7 +430,7 @@ impl<'info> CollectProfitOfCredixLpDepository<'info> {
             lp_token_mint: self.credix_shares_mint.to_account_info(),
             credix_pass: self.credix_pass.to_account_info(),
             treasury_pool_token_account: self.credix_treasury_collateral.to_account_info(),
-            credix_multisig_key: self.credix_multisig.to_account_info(),
+            credix_multisig_key: self.credix_multisig_key.to_account_info(),
             credix_multisig_token_account: self.credix_multisig_collateral.to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
