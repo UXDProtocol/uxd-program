@@ -2,6 +2,7 @@ use crate::error::UxdError;
 use crate::events::SetDepositoryMintingDisabledEvent;
 use crate::events::SetDepositoryRedeemableAmountUnderManagementCapEvent;
 use crate::state::identity_depository::IdentityDepository;
+use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
@@ -75,4 +76,12 @@ pub(crate) fn handler(
     }
 
     Ok(())
+}
+
+impl<'info> EditIdentityDepository<'info> {
+    pub(crate) fn validate(&self) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
+
+        Ok(())
+    }
 }

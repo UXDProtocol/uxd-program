@@ -873,7 +873,7 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "credixMultisig",
+          "name": "credixMultisigKey",
           "isMut": false,
           "isSigner": false
         },
@@ -989,7 +989,7 @@ export type Uxd = {
           "isSigner": false
         },
         {
-          "name": "credixMultisig",
+          "name": "credixMultisigKey",
           "isMut": false,
           "isSigner": false
         },
@@ -1030,6 +1030,27 @@ export type Uxd = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "freezeProgram",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "freeze",
+          "type": "bool"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1067,16 +1088,24 @@ export type Uxd = {
             "type": {
               "array": [
                 "u8",
-                257
+                255
               ]
             }
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
+          },
+          {
+            "name": "unused2",
+            "type": "u8"
           },
           {
             "name": "redeemableGlobalSupplyCap",
             "type": "u128"
           },
           {
-            "name": "unused2",
+            "name": "unused3",
             "type": {
               "array": [
                 "u8",
@@ -1089,7 +1118,7 @@ export type Uxd = {
             "type": "u128"
           },
           {
-            "name": "unused3",
+            "name": "unused4",
             "type": {
               "array": [
                 "u8",
@@ -1894,6 +1923,26 @@ export type Uxd = {
           "index": false
         }
       ]
+    },
+    {
+      "name": "FreezeProgramEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "isFrozen",
+          "type": "bool",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -2089,46 +2138,56 @@ export type Uxd = {
     },
     {
       "code": 6038,
+      "name": "ProgramAlreadyFrozenOrResumed",
+      "msg": "Program is already frozen/resumed."
+    },
+    {
+      "code": 6039,
+      "name": "ProgramFrozen",
+      "msg": "The program is currently in Frozen state."
+    },
+    {
+      "code": 6040,
       "name": "InvalidCredixProgramState",
       "msg": "The Credix ProgramState isn't the Depository one."
     },
     {
-      "code": 6039,
+      "code": 6041,
       "name": "InvalidCredixGlobalMarketState",
       "msg": "The Credix GlobalMarketState isn't the Depository one."
     },
     {
-      "code": 6040,
+      "code": 6042,
       "name": "InvalidCredixSigningAuthority",
       "msg": "The Credix SigningAuthority isn't the Depository one."
     },
     {
-      "code": 6041,
+      "code": 6043,
       "name": "InvalidCredixLiquidityCollateral",
       "msg": "The Credix LiquidityCollateral isn't the Depository one."
     },
     {
-      "code": 6042,
+      "code": 6044,
       "name": "InvalidCredixSharesMint",
       "msg": "The Credix SharesMint isn't the Depository one."
     },
     {
-      "code": 6043,
+      "code": 6045,
       "name": "InvalidCredixPass",
       "msg": "The Credix Pass isn't the Depository one."
     },
     {
-      "code": 6044,
+      "code": 6046,
       "name": "InvalidCredixMultisig",
       "msg": "The Credix Multisig isn't the ProgramState one."
     },
     {
-      "code": 6045,
+      "code": 6047,
       "name": "InvalidCredixTreasuryCollateral",
       "msg": "The Credix TreasuryCollateral isn't the GlobalMarketState one."
     },
     {
-      "code": 6046,
+      "code": 6048,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
@@ -3010,7 +3069,7 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "credixMultisig",
+          "name": "credixMultisigKey",
           "isMut": false,
           "isSigner": false
         },
@@ -3126,7 +3185,7 @@ export const IDL: Uxd = {
           "isSigner": false
         },
         {
-          "name": "credixMultisig",
+          "name": "credixMultisigKey",
           "isMut": false,
           "isSigner": false
         },
@@ -3167,6 +3226,27 @@ export const IDL: Uxd = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "freezeProgram",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "freeze",
+          "type": "bool"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -3204,16 +3284,24 @@ export const IDL: Uxd = {
             "type": {
               "array": [
                 "u8",
-                257
+                255
               ]
             }
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
+          },
+          {
+            "name": "unused2",
+            "type": "u8"
           },
           {
             "name": "redeemableGlobalSupplyCap",
             "type": "u128"
           },
           {
-            "name": "unused2",
+            "name": "unused3",
             "type": {
               "array": [
                 "u8",
@@ -3226,7 +3314,7 @@ export const IDL: Uxd = {
             "type": "u128"
           },
           {
-            "name": "unused3",
+            "name": "unused4",
             "type": {
               "array": [
                 "u8",
@@ -4031,6 +4119,26 @@ export const IDL: Uxd = {
           "index": false
         }
       ]
+    },
+    {
+      "name": "FreezeProgramEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "isFrozen",
+          "type": "bool",
+          "index": false
+        }
+      ]
     }
   ],
   "errors": [
@@ -4226,46 +4334,56 @@ export const IDL: Uxd = {
     },
     {
       "code": 6038,
+      "name": "ProgramAlreadyFrozenOrResumed",
+      "msg": "Program is already frozen/resumed."
+    },
+    {
+      "code": 6039,
+      "name": "ProgramFrozen",
+      "msg": "The program is currently in Frozen state."
+    },
+    {
+      "code": 6040,
       "name": "InvalidCredixProgramState",
       "msg": "The Credix ProgramState isn't the Depository one."
     },
     {
-      "code": 6039,
+      "code": 6041,
       "name": "InvalidCredixGlobalMarketState",
       "msg": "The Credix GlobalMarketState isn't the Depository one."
     },
     {
-      "code": 6040,
+      "code": 6042,
       "name": "InvalidCredixSigningAuthority",
       "msg": "The Credix SigningAuthority isn't the Depository one."
     },
     {
-      "code": 6041,
+      "code": 6043,
       "name": "InvalidCredixLiquidityCollateral",
       "msg": "The Credix LiquidityCollateral isn't the Depository one."
     },
     {
-      "code": 6042,
+      "code": 6044,
       "name": "InvalidCredixSharesMint",
       "msg": "The Credix SharesMint isn't the Depository one."
     },
     {
-      "code": 6043,
+      "code": 6045,
       "name": "InvalidCredixPass",
       "msg": "The Credix Pass isn't the Depository one."
     },
     {
-      "code": 6044,
+      "code": 6046,
       "name": "InvalidCredixMultisig",
       "msg": "The Credix Multisig isn't the ProgramState one."
     },
     {
-      "code": 6045,
+      "code": 6047,
       "name": "InvalidCredixTreasuryCollateral",
       "msg": "The Credix TreasuryCollateral isn't the GlobalMarketState one."
     },
     {
-      "code": 6046,
+      "code": 6048,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

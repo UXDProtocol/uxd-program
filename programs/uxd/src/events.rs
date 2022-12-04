@@ -220,3 +220,16 @@ pub struct CollectProfitOfCredixLpDepositoryEvent {
     /// The collateral amount in native units. (output)
     pub collateral_amount_after_fees: u64,
 }
+
+/// Event called in [instructions::freeze_program::handler].
+#[event]
+pub struct FreezeProgramEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// is program frozen
+    pub is_frozen: bool,
+}

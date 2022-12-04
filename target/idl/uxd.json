@@ -638,11 +638,6 @@
           "isSigner": false
         },
         {
-          "name": "profitTreasuryCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false
@@ -878,7 +873,7 @@
           "isSigner": false
         },
         {
-          "name": "credixMultisig",
+          "name": "credixMultisigKey",
           "isMut": false,
           "isSigner": false
         },
@@ -994,7 +989,7 @@
           "isSigner": false
         },
         {
-          "name": "credixMultisig",
+          "name": "credixMultisigKey",
           "isMut": false,
           "isSigner": false
         },
@@ -1004,7 +999,7 @@
           "isSigner": false
         },
         {
-          "name": "profitTreasuryCollateral",
+          "name": "authorityCollateral",
           "isMut": true,
           "isSigner": false
         },
@@ -1035,6 +1030,27 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "freezeProgram",
+      "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "freeze",
+          "type": "bool"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1072,16 +1088,24 @@
             "type": {
               "array": [
                 "u8",
-                257
+                255
               ]
             }
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
+          },
+          {
+            "name": "unused2",
+            "type": "u8"
           },
           {
             "name": "redeemableGlobalSupplyCap",
             "type": "u128"
           },
           {
-            "name": "unused2",
+            "name": "unused3",
             "type": {
               "array": [
                 "u8",
@@ -1094,7 +1118,7 @@
             "type": "u128"
           },
           {
-            "name": "unused3",
+            "name": "unused4",
             "type": {
               "array": [
                 "u8",
@@ -1129,7 +1153,7 @@
             "type": "u8"
           },
           {
-            "name": "profitTreasuryTotalCollected",
+            "name": "profitsTotalCollected",
             "type": "u128"
           }
         ]
@@ -1217,11 +1241,7 @@
             "type": "u128"
           },
           {
-            "name": "profitTreasuryCollateral",
-            "type": "publicKey"
-          },
-          {
-            "name": "profitTreasuryTotalCollected",
+            "name": "profitsTotalCollected",
             "type": "u128"
           }
         ]
@@ -1396,12 +1416,6 @@
             "name": "mintingDisabled",
             "type": {
               "option": "bool"
-            }
-          },
-          {
-            "name": "profitTreasuryCollateral",
-            "type": {
-              "option": "publicKey"
             }
           }
         ]
@@ -1656,31 +1670,6 @@
       ]
     },
     {
-      "name": "SetDepositoryProfitTreasuryCollateralEvent",
-      "fields": [
-        {
-          "name": "version",
-          "type": "u8",
-          "index": true
-        },
-        {
-          "name": "controller",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "depository",
-          "type": "publicKey",
-          "index": true
-        },
-        {
-          "name": "profitTreasuryCollateral",
-          "type": "publicKey",
-          "index": true
-        }
-      ]
-    },
-    {
       "name": "InitializeIdentityDepositoryEvent",
       "fields": [
         {
@@ -1924,11 +1913,6 @@
           "index": true
         },
         {
-          "name": "profitTreasuryCollateral",
-          "type": "publicKey",
-          "index": true
-        },
-        {
           "name": "collateralAmountBeforeFees",
           "type": "u64",
           "index": false
@@ -1936,6 +1920,26 @@
         {
           "name": "collateralAmountAfterFees",
           "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "FreezeProgramEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "isFrozen",
+          "type": "bool",
           "index": false
         }
       ]
@@ -2020,7 +2024,7 @@
     {
       "code": 6015,
       "name": "CollateralDepositAmountsDoesntMatch",
-      "msg": "Collateral deposit didn't result in the correct amounts being moved"
+      "msg": "Collateral deposit didn't result in the correct amounts being moved."
     },
     {
       "code": 6016,
@@ -2119,71 +2123,73 @@
     },
     {
       "code": 6035,
-      "name": "InvalidProfitTreasuryCollateral",
-      "msg": "The provided profit treasury collateral does not match the depository's one."
-    },
-    {
-      "code": 6036,
       "name": "InvalidMercurialVault",
       "msg": "The provided mercurial vault does not match the Depository's one."
     },
     {
-      "code": 6037,
+      "code": 6036,
       "name": "InvalidMercurialVaultCollateralTokenSafe",
       "msg": "The provided mercurial vault collateral token safe does not match the mercurial vault one."
     },
     {
-      "code": 6038,
+      "code": 6037,
       "name": "RedeemableIdentityDepositoryAmountUnderManagementCap",
       "msg": "Minting amount would go past the identity depository Redeemable Amount Under Management Cap."
     },
     {
+      "code": 6038,
+      "name": "ProgramAlreadyFrozenOrResumed",
+      "msg": "Program is already frozen/resumed."
+    },
+    {
       "code": 6039,
+      "name": "ProgramFrozen",
+      "msg": "The program is currently in Frozen state."
+    },
+    {
+      "code": 6040,
       "name": "InvalidCredixProgramState",
       "msg": "The Credix ProgramState isn't the Depository one."
     },
     {
-      "code": 6040,
+      "code": 6041,
       "name": "InvalidCredixGlobalMarketState",
       "msg": "The Credix GlobalMarketState isn't the Depository one."
     },
     {
-      "code": 6041,
+      "code": 6042,
       "name": "InvalidCredixSigningAuthority",
       "msg": "The Credix SigningAuthority isn't the Depository one."
     },
     {
-      "code": 6042,
+      "code": 6043,
       "name": "InvalidCredixLiquidityCollateral",
       "msg": "The Credix LiquidityCollateral isn't the Depository one."
     },
     {
-      "code": 6043,
+      "code": 6044,
       "name": "InvalidCredixSharesMint",
       "msg": "The Credix SharesMint isn't the Depository one."
     },
     {
-      "code": 6044,
+      "code": 6045,
       "name": "InvalidCredixPass",
       "msg": "The Credix Pass isn't the Depository one."
     },
     {
-      "code": 6045,
+      "code": 6046,
       "name": "InvalidCredixMultisig",
       "msg": "The Credix Multisig isn't the ProgramState one."
     },
     {
-      "code": 6046,
+      "code": 6047,
       "name": "InvalidCredixTreasuryCollateral",
       "msg": "The Credix TreasuryCollateral isn't the GlobalMarketState one."
     },
     {
-      "code": 6047,
+      "code": 6048,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "36N7GZDMv3xkabgWMc2fJqrxm15cgp6oykPs53qDn5Ju"
-  }
+  ]
 }
