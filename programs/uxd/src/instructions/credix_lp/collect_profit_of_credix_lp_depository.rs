@@ -371,7 +371,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
             collateral_amount_after_precision_loss,
             collateral_amount_before_precision_loss,
         ),
-        UxdError::CollateralDepositAmountsDoesntMatch,
+        UxdError::CollateralDepositDoesntMatchTokenValue,
     );
     require!(
         is_within_range_inclusive(
@@ -379,7 +379,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
             collateral_amount_after_precision_loss,
             collateral_amount_before_precision_loss,
         ),
-        UxdError::CollateralDepositAmountsDoesntMatch,
+        UxdError::CollateralDepositDoesntMatchTokenValue,
     );
 
     // ---------------------------------------------------------------------

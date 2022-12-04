@@ -368,7 +368,7 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
             collateral_amount_after_precision_loss,
             collateral_amount
         ),
-        UxdError::CollateralDepositAmountsDoesntMatch,
+        UxdError::CollateralDepositDoesntMatchTokenValue,
     );
     require!(
         is_within_range_inclusive(
@@ -376,7 +376,7 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
             collateral_amount_after_precision_loss,
             collateral_amount
         ),
-        UxdError::CollateralDepositAmountsDoesntMatch,
+        UxdError::CollateralDepositDoesntMatchTokenValue,
     );
 
     // ---------------------------------------------------------------------
