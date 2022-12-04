@@ -128,12 +128,6 @@ impl Controller {
                 .checked_to_num()
                 .ok_or(UxdError::MathError)?;
 
-        if redeemable_amount_change > 0 {
-            require!(
-                self.redeemable_circulating_supply <= self.redeemable_global_supply_cap,
-                UxdError::RedeemableGlobalSupplyCapReached
-            );
-        }
         Ok(())
     }
 

@@ -12,8 +12,8 @@ use crate::events::MintWithCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::utils::calculate_amount_less_fees;
-use crate::utils::checked_i64_to_u64;
-use crate::utils::compute_delta;
+use crate::utils::compute_decrease;
+use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value;
 use crate::utils::compute_value_for_shares_amount;
 use crate::utils::is_within_range_inclusive;
@@ -294,64 +294,20 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
     )?;
 
     // Compute changes in states
-    let depository_collateral_delta: i64 = compute_delta(
-        depository_collateral_amount_before,
-        depository_collateral_amount_after,
-    )?;
-    let user_collateral_amount_delta: i64 =
-        compute_delta(user_collateral_amount_before, user_collateral_amount_after)?;
-    let user_redeemable_amount_delta: i64 =
-        compute_delta(user_redeemable_amount_before, user_redeemable_amount_after)?;
+    let user_collateral_amount_decrease: u64 =
+        compute_decrease(user_collateral_amount_before, user_collateral_amount_after)?;
+    let user_redeemable_amount_increase: u64 =
+        compute_increase(user_redeemable_amount_before, user_redeemable_amount_after)?;
 
-    let total_shares_amount_delta: i64 =
-        compute_delta(total_shares_amount_before, total_shares_amount_after)?;
-    let total_shares_value_delta: i64 =
-        compute_delta(total_shares_value_before, total_shares_value_after)?;
+    let total_shares_amount_increase: u64 =
+        compute_increase(total_shares_amount_before, total_shares_amount_after)?;
+    let total_shares_value_increase: u64 =
+        compute_increase(total_shares_value_before, total_shares_value_after)?;
 
-    let owned_shares_amount_delta: i64 =
-        compute_delta(owned_shares_amount_before, owned_shares_amount_after)?;
-    let owned_shares_value_delta: i64 =
-        compute_delta(owned_shares_value_before, owned_shares_value_after)?;
-
-    // The depository collateral account should always be empty
-    require!(
-        depository_collateral_delta == 0,
-        UxdError::CollateralDepositHasRemainingDust
-    );
-
-    // Validate the deposit was successful and meaningful
-    require!(
-        user_collateral_amount_delta < 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-    require!(
-        user_redeemable_amount_delta > 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-    require!(
-        total_shares_amount_delta > 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-    require!(
-        total_shares_value_delta > 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-    require!(
-        owned_shares_amount_delta > 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-    require!(
-        owned_shares_value_delta > 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-
-    // Because we know the direction of the change, we can use the unsigned values now
-    let user_collateral_amount_decrease: u64 = checked_i64_to_u64(-user_collateral_amount_delta)?;
-    let user_redeemable_amount_increase: u64 = checked_i64_to_u64(user_redeemable_amount_delta)?;
-    let total_shares_amount_increase: u64 = checked_i64_to_u64(total_shares_amount_delta)?;
-    let total_shares_value_increase: u64 = checked_i64_to_u64(total_shares_value_delta)?;
-    let owned_shares_amount_increase: u64 = checked_i64_to_u64(owned_shares_amount_delta)?;
-    let owned_shares_value_increase: u64 = checked_i64_to_u64(owned_shares_value_delta)?;
+    let owned_shares_amount_increase: u64 =
+        compute_increase(owned_shares_amount_before, owned_shares_amount_after)?;
+    let owned_shares_value_increase: u64 =
+        compute_increase(owned_shares_value_before, owned_shares_value_after)?;
 
     // Log deltas for debriefing the changes
     msg!(
@@ -379,6 +335,12 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         owned_shares_value_increase
     );
 
+    // The depository collateral account should always be empty
+    require!(
+        depository_collateral_amount_before == depository_collateral_amount_after,
+        UxdError::CollateralDepositHasRemainingDust
+    );
+
     // Validate that the locked value moved exactly to the correct place
     require!(
         user_collateral_amount_decrease == collateral_amount,
@@ -391,18 +353,18 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
 
     // Check that we received the correct amount of shares
     require!(
-        owned_shares_amount_increase == shares_amount,
+        total_shares_amount_increase == shares_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        total_shares_amount_increase == shares_amount,
+        owned_shares_amount_increase == shares_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
     // Check that the new state of the pool still makes sense
     require!(
         is_within_range_inclusive(
-            owned_shares_value_increase,
+            total_shares_value_increase,
             collateral_amount_after_precision_loss,
             collateral_amount
         ),
@@ -410,7 +372,7 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
     );
     require!(
         is_within_range_inclusive(
-            total_shares_value_increase,
+            owned_shares_value_increase,
             collateral_amount_after_precision_loss,
             collateral_amount
         ),
@@ -423,9 +385,8 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
     // ---------------------------------------------------------------------
 
     // Compute how much fees was paid
-    let redeemable_amount_delta: i64 =
-        compute_delta(redeemable_amount_before_fees, redeemable_amount_after_fees)?;
-    let minting_fee_paid: u64 = checked_i64_to_u64(-redeemable_amount_delta)?;
+    let minting_fee_paid: u64 =
+        compute_decrease(redeemable_amount_before_fees, redeemable_amount_after_fees)?;
 
     // Emit event
     emit!(MintWithCredixLpDepositoryEvent {
@@ -446,13 +407,20 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
         collateral_amount,
         redeemable_amount_after_fees,
     )?;
+    require!(
+        depository.redeemable_amount_under_management
+            <= depository.redeemable_amount_under_management_cap,
+        UxdError::RedeemableCredixLpAmountUnderManagementCap
+    );
 
     // Accouting for controller
     let redeemable_amount_change: i128 = redeemable_amount_after_fees.into();
-    ctx.accounts
-        .controller
-        .load_mut()?
-        .update_onchain_accounting_following_mint_or_redeem(redeemable_amount_change)?;
+    let mut controller = ctx.accounts.controller.load_mut()?;
+    controller.update_onchain_accounting_following_mint_or_redeem(redeemable_amount_change)?;
+    require!(
+        controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
+        UxdError::RedeemableGlobalSupplyCapReached
+    );
 
     // Done
     Ok(())

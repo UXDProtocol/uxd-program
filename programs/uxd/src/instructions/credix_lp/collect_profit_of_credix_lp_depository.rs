@@ -10,8 +10,8 @@ use crate::error::UxdError;
 use crate::events::CollectProfitOfCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
-use crate::utils::checked_i64_to_u64;
-use crate::utils::compute_delta;
+use crate::utils::compute_decrease;
+use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value;
 use crate::utils::compute_value_for_shares_amount;
 use crate::utils::is_within_range_inclusive;
@@ -304,60 +304,20 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     )?;
 
     // Compute changes in states
-    let depository_collateral_delta: i64 = compute_delta(
-        depository_collateral_amount_before,
-        depository_collateral_amount_after,
-    )?;
-    let authority_collateral_amount_delta: i64 = compute_delta(
+    let authority_collateral_amount_increase: u64 = compute_increase(
         authority_collateral_amount_before,
         authority_collateral_amount_after,
     )?;
 
-    let total_shares_amount_delta: i64 =
-        compute_delta(total_shares_amount_before, total_shares_amount_after)?;
-    let total_shares_value_delta: i64 =
-        compute_delta(total_shares_value_before, total_shares_value_after)?;
+    let total_shares_amount_decrease: u64 =
+        compute_decrease(total_shares_amount_before, total_shares_amount_after)?;
+    let total_shares_value_decrease: u64 =
+        compute_decrease(total_shares_value_before, total_shares_value_after)?;
 
-    let owned_shares_amount_delta: i64 =
-        compute_delta(owned_shares_amount_before, owned_shares_amount_after)?;
-    let owned_shares_value_delta: i64 =
-        compute_delta(owned_shares_value_before, owned_shares_value_after)?;
-
-    // The depository collateral account should always be empty
-    require!(
-        depository_collateral_delta == 0,
-        UxdError::CollateralDepositHasRemainingDust
-    );
-
-    // Validate the withdrawal was successful and meaningful
-    require!(
-        authority_collateral_amount_delta > 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-    require!(
-        total_shares_amount_delta < 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-    require!(
-        total_shares_value_delta < 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-    require!(
-        owned_shares_amount_delta < 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-    require!(
-        owned_shares_value_delta < 0,
-        UxdError::CollateralDepositUnaccountedFor
-    );
-
-    // Because we know the direction of the change, we can use the unsigned values now
-    let authority_collateral_amount_increase: u64 =
-        checked_i64_to_u64(authority_collateral_amount_delta)?;
-    let total_shares_amount_decrease: u64 = checked_i64_to_u64(-total_shares_amount_delta)?;
-    let total_shares_value_decrease: u64 = checked_i64_to_u64(-total_shares_value_delta)?;
-    let owned_shares_amount_decrease: u64 = checked_i64_to_u64(-owned_shares_amount_delta)?;
-    let owned_shares_value_decrease: u64 = checked_i64_to_u64(-owned_shares_value_delta)?;
+    let owned_shares_amount_decrease: u64 =
+        compute_decrease(owned_shares_amount_before, owned_shares_amount_after)?;
+    let owned_shares_value_decrease: u64 =
+        compute_decrease(owned_shares_value_before, owned_shares_value_after)?;
 
     // Log deltas for debriefing the changes
     msg!(
@@ -381,6 +341,12 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
         owned_shares_value_decrease
     );
 
+    // The depository collateral account should always be empty
+    require!(
+        depository_collateral_amount_before == depository_collateral_amount_after,
+        UxdError::CollateralDepositHasRemainingDust
+    );
+
     // Validate that the locked value moved exactly to the correct place
     require!(
         authority_collateral_amount_increase == collateral_amount_after_precision_loss,
@@ -389,18 +355,18 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
 
     // Check that we withdrew the correct amount of shares
     require!(
-        owned_shares_amount_decrease == shares_amount,
+        total_shares_amount_decrease == shares_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        total_shares_amount_decrease == shares_amount,
+        owned_shares_amount_decrease == shares_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
     // Check that the new state of the pool still makes sense
     require!(
         is_within_range_inclusive(
-            owned_shares_value_decrease,
+            total_shares_value_decrease,
             collateral_amount_after_precision_loss,
             collateral_amount_before_precision_loss,
         ),
@@ -408,7 +374,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     );
     require!(
         is_within_range_inclusive(
-            total_shares_value_decrease,
+            owned_shares_value_decrease,
             collateral_amount_after_precision_loss,
             collateral_amount_before_precision_loss,
         ),

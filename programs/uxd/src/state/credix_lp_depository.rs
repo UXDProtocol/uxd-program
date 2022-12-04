@@ -100,11 +100,6 @@ impl CredixLpDepository {
             .redeemable_amount_under_management
             .checked_add(redeemable_amount_added.into())
             .ok_or(UxdError::MathError)?;
-        // Check that we're not minting past the cap
-        require!(
-            self.redeemable_amount_under_management <= self.redeemable_amount_under_management_cap,
-            UxdError::RedeemableCredixLpAmountUnderManagementCap
-        );
         Ok(())
     }
 
