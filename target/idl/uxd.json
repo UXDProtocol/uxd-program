@@ -1086,10 +1086,7 @@
           {
             "name": "unused",
             "type": {
-              "array": [
-                "u8",
-                255
-              ]
+              "array": ["u8", 255]
             }
           },
           {
@@ -1107,10 +1104,7 @@
           {
             "name": "unused3",
             "type": {
-              "array": [
-                "u8",
-                8
-              ]
+              "array": ["u8", 8]
             }
           },
           {
@@ -1120,19 +1114,13 @@
           {
             "name": "unused4",
             "type": {
-              "array": [
-                "u8",
-                8
-              ]
+              "array": ["u8", 8]
             }
           },
           {
             "name": "registeredMercurialVaultDepositories",
             "type": {
-              "array": [
-                "publicKey",
-                4
-              ]
+              "array": ["publicKey", 4]
             }
           },
           {
@@ -1142,10 +1130,7 @@
           {
             "name": "registeredCredixLpDepositories",
             "type": {
-              "array": [
-                "publicKey",
-                4
-              ]
+              "array": ["publicKey", 4]
             }
           },
           {
@@ -2186,5 +2171,8 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ]
+  ],
+  "metadata": {
+    "address": "36N7GZDMv3xkabgWMc2fJqrxm15cgp6oykPs53qDn5Ju"
+  }
 }
