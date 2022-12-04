@@ -90,7 +90,9 @@ export const mintWithCredixLpDepositoryTest = async function (
     expect(userRedeemableDelta)
       .lte(estimatedRedeemableAmount)
       .gte(
-        Number((estimatedRedeemableAmount - collateralNativeUnitPrecision).toFixed(controller.redeemableMintDecimals))
+        Number(
+          (estimatedRedeemableAmount - collateralNativeUnitPrecision * 10).toFixed(controller.redeemableMintDecimals)
+        )
       );
 
     // Check depository accounting
