@@ -99,8 +99,8 @@ pub enum UxdError {
     InvalidCredixPass,
     #[msg("The Credix Pass isn't the without fees.")]
     InvalidCredixPassNoFees,
-    #[msg("The Credix Multisig isn't the ProgramState one.")]
-    InvalidCredixMultisig,
+    #[msg("The Credix Multisig Key isn't the ProgramState one.")]
+    InvalidCredixMultisigKey,
     #[msg("The Credix TreasuryCollateral isn't the GlobalMarketState one.")]
     InvalidCredixTreasuryCollateral,
 

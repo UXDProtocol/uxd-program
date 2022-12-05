@@ -94,7 +94,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
 
     /// #11
     #[account(
-        has_one = credix_multisig_key @UxdError::InvalidCredixMultisig,
+        has_one = credix_multisig_key @UxdError::InvalidCredixMultisigKey,
     )]
     pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
 

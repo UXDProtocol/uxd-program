@@ -71,7 +71,7 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
 
     /// #8
     #[account(
-        constraint = credix_program_state.credix_multisig_key == credix_multisig_key.key() @UxdError::InvalidCredixMultisig,
+        has_one = credix_multisig_key @UxdError::InvalidCredixMultisigKey,
     )]
     pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
 
