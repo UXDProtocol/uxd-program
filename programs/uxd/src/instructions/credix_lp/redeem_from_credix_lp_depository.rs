@@ -17,6 +17,7 @@ use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value;
 use crate::utils::compute_value_for_shares_amount;
 use crate::utils::is_within_range_inclusive;
+use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 
@@ -156,7 +157,10 @@ pub struct RedeemFromCredixLpDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u64) -> Result<()> {
+pub(crate) fn handler(
+    ctx: Context<RedeemFromCredixLpDepository>,
+    redeemable_amount: u64,
+) -> Result<()> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Fetch all current onchain state
@@ -436,7 +440,7 @@ pub fn handler(ctx: Context<RedeemFromCredixLpDepository>, redeemable_amount: u6
 
 // Into functions
 impl<'info> RedeemFromCredixLpDepository<'info> {
-    pub fn into_withdraw_funds_from_credix_lp_context(
+    fn into_withdraw_funds_from_credix_lp_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::WithdrawFunds<'info>> {
         let cpi_accounts = credix_client::cpi::accounts::WithdrawFunds {
@@ -462,7 +466,7 @@ impl<'info> RedeemFromCredixLpDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_depository_collateral_to_user_collateral_context(
+    fn into_transfer_depository_collateral_to_user_collateral_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
@@ -474,7 +478,7 @@ impl<'info> RedeemFromCredixLpDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+    fn into_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
@@ -487,7 +491,8 @@ impl<'info> RedeemFromCredixLpDepository<'info> {
 
 // Validate
 impl<'info> RedeemFromCredixLpDepository<'info> {
-    pub fn validate(&self, redeemable_amount: u64) -> Result<()> {
+    pub(crate) fn validate(&self, redeemable_amount: u64) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
         require!(redeemable_amount > 0, UxdError::InvalidRedeemableAmount);
         Ok(())
     }

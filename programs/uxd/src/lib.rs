@@ -99,6 +99,7 @@ pub mod uxd {
         instructions::edit_identity_depository::handler(ctx, &fields)
     }
 
+    #[access_control(ctx.accounts.validate())]
     pub fn edit_credix_lp_depository(
         ctx: Context<EditCredixLpDepository>,
         fields: EditCredixLpDepositoryFields,
@@ -188,11 +189,7 @@ pub mod uxd {
     // Create and Register a new `CredixLpDepository` to the `Controller`.
     // Each `Depository` account manages a specific credix lp.
     #[access_control(
-        ctx.accounts.validate(
-            minting_fee_in_bps,
-            redeeming_fee_in_bps,
-            redeemable_amount_under_management_cap,
-        )
+        ctx.accounts.validate()
     )]
     pub fn register_credix_lp_depository(
         ctx: Context<RegisterCredixLpDepository>,

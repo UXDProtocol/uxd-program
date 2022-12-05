@@ -3,6 +3,7 @@ use crate::events::RegisterCredixLpDepositoryEvent;
 use crate::state::credix_lp_depository::CREDIX_LP_DEPOSITORY_SPACE;
 use crate::state::CredixLpDepository;
 use crate::utils::validate_collateral_mint_usdc;
+use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_ACCOUNT_VERSION;
@@ -104,7 +105,7 @@ pub struct RegisterCredixLpDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(
+pub(crate) fn handler(
     ctx: Context<RegisterCredixLpDepository>,
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
@@ -171,12 +172,8 @@ pub fn handler(
 
 // Validate
 impl<'info> RegisterCredixLpDepository<'info> {
-    pub fn validate(
-        &self,
-        _minting_fee_in_bps: u8,
-        _redeeming_fee_in_bps: u8,
-        _redeemable_amount_under_management_cap: u128,
-    ) -> Result<()> {
+    pub(crate) fn validate(&self) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
         validate_collateral_mint_usdc(&self.collateral_mint, &self.controller)?;
         Ok(())
     }

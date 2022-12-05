@@ -25,7 +25,8 @@ pub const CONTROLLER_SPACE: usize = 8
     + 1
     + (32 * MAX_REGISTERED_CREDIX_LP_DEPOSITORIES)
     + 1
-    + 246;
+    + 16
+    + 230;
 
 #[account(zero_copy)]
 #[repr(packed)]

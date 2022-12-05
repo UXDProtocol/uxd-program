@@ -15,6 +15,7 @@ use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value;
 use crate::utils::compute_value_for_shares_amount;
 use crate::utils::is_within_range_inclusive;
+use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 
@@ -141,7 +142,7 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
+pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Fetch all current onchain state
@@ -415,7 +416,7 @@ pub fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
 
 // Into functions
 impl<'info> CollectProfitOfCredixLpDepository<'info> {
-    pub fn into_withdraw_funds_from_credix_lp_context(
+    fn into_withdraw_funds_from_credix_lp_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::WithdrawFunds<'info>> {
         let cpi_accounts = credix_client::cpi::accounts::WithdrawFunds {
@@ -441,7 +442,7 @@ impl<'info> CollectProfitOfCredixLpDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_depository_collateral_to_authority_collateral_context(
+    fn into_transfer_depository_collateral_to_authority_collateral_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
@@ -456,7 +457,8 @@ impl<'info> CollectProfitOfCredixLpDepository<'info> {
 
 // Validate
 impl<'info> CollectProfitOfCredixLpDepository<'info> {
-    pub fn validate(&self) -> Result<()> {
+    pub(crate) fn validate(&self) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
         Ok(())
     }
 }

@@ -4,6 +4,7 @@ use crate::events::SetDepositoryMintingFeeInBpsEvent;
 use crate::events::SetDepositoryRedeemableAmountUnderManagementCapEvent;
 use crate::events::SetDepositoryRedeemingFeeInBpsEvent;
 use crate::state::credix_lp_depository::CredixLpDepository;
+use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
@@ -115,4 +116,12 @@ pub(crate) fn handler(
     }
 
     Ok(())
+}
+
+// Validate
+impl<'info> EditCredixLpDepository<'info> {
+    pub(crate) fn validate(&self) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
+        Ok(())
+    }
 }

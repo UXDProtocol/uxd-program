@@ -2158,16 +2158,21 @@
     },
     {
       "code": 6045,
-      "name": "InvalidCredixMultisig",
-      "msg": "The Credix Multisig isn't the ProgramState one."
+      "name": "InvalidCredixPassNoFees",
+      "msg": "The Credix Pass isn't the without fees."
     },
     {
       "code": 6046,
+      "name": "InvalidCredixMultisigKey",
+      "msg": "The Credix Multisig Key isn't the ProgramState one."
+    },
+    {
+      "code": 6047,
       "name": "InvalidCredixTreasuryCollateral",
       "msg": "The Credix TreasuryCollateral isn't the GlobalMarketState one."
     },
     {
-      "code": 6047,
+      "code": 6048,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }

@@ -17,6 +17,7 @@ use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value;
 use crate::utils::compute_value_for_shares_amount;
 use crate::utils::is_within_range_inclusive;
+use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 
@@ -125,7 +126,10 @@ pub struct MintWithCredixLpDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64) -> Result<()> {
+pub(crate) fn handler(
+    ctx: Context<MintWithCredixLpDepository>,
+    collateral_amount: u64,
+) -> Result<()> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Fetch all current onchain state
@@ -428,7 +432,7 @@ pub fn handler(ctx: Context<MintWithCredixLpDepository>, collateral_amount: u64)
 
 // Into functions
 impl<'info> MintWithCredixLpDepository<'info> {
-    pub fn into_deposit_collateral_to_credix_lp_context(
+    fn into_deposit_collateral_to_credix_lp_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::DepositFunds<'info>> {
         let cpi_accounts = credix_client::cpi::accounts::DepositFunds {
@@ -450,7 +454,7 @@ impl<'info> MintWithCredixLpDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_user_collateral_to_depository_collateral_context(
+    fn into_transfer_user_collateral_to_depository_collateral_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
@@ -462,7 +466,7 @@ impl<'info> MintWithCredixLpDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+    fn into_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = MintTo {
             mint: self.redeemable_mint.to_account_info(),
@@ -475,7 +479,8 @@ impl<'info> MintWithCredixLpDepository<'info> {
 
 // Validate
 impl<'info> MintWithCredixLpDepository<'info> {
-    pub fn validate(&self, collateral_amount: u64) -> Result<()> {
+    pub(crate) fn validate(&self, collateral_amount: u64) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
         require!(collateral_amount > 0, UxdError::InvalidCollateralAmount);
         require!(
             !&self.depository.load()?.minting_disabled,
