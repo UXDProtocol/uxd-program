@@ -183,6 +183,6 @@ export async function createCredixLpDepositoryDevnetUSDC(): Promise<CredixLpDepo
     collateralMint: new PublicKey("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"),
     collateralSymbol: "USDC(CredixDevnet)",
     credixProgramId: new PublicKey("CRdXwuY984Au227VnMJ2qvT7gPd83HwARYXcbHfseFKC"),
-    credixMarketName: CredixLpDepository.credixMarketName,
+    credixMarketName: "credix-marketplace",
   });
 }

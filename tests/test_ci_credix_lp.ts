@@ -1,7 +1,6 @@
 import { Signer, Keypair } from "@solana/web3.js";
 import { Controller, UXD_DECIMALS } from "@uxd-protocol/uxd-client";
 import { editControllerTest } from "./cases/editControllerTest";
-import { editCredixLpDepositoryTest } from "./cases/editCredixLpDepositoryTest";
 import { initializeControllerTest } from "./cases/initializeControllerTest";
 import { authority, bank, uxdProgramId } from "./constants";
 import { credixLpDepositoryEditSuite } from "./suite/credixLpDepositoryEditSuite";

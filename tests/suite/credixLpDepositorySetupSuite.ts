@@ -30,7 +30,7 @@ export const credixLpDepositorySetupSuite = function (
   });
 
   it(`Collecting profit of credixLpDepository should work`, async function () {
-    console.log("[🧾 collectProfit", depository.authorityCollateral.toString(), "]");
+    console.log("[🧾 collectProfit]");
 
     await collectProfitOfCredixLpDepositoryTest(authority, controller, depository, payer);
   });
