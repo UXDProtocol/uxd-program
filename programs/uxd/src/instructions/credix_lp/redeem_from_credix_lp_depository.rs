@@ -254,7 +254,7 @@ pub(crate) fn handler(
     msg!("[redeem_from_credix_lp_depository:redeemable_burn]",);
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
-        redeemable_amount,
+        collateral_amount_after_precision_loss,
     )?;
 
     // Run a withdraw CPI from credix into the depository
@@ -263,7 +263,7 @@ pub(crate) fn handler(
         ctx.accounts
             .into_withdraw_funds_from_credix_lp_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_before_precision_loss,
+        collateral_amount_after_precision_loss,
     )?;
 
     // Transfer the received collateral from the depository to the end user

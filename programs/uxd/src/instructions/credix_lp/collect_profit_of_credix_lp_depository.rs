@@ -257,7 +257,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
         ctx.accounts
             .into_withdraw_funds_from_credix_lp_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_before_precision_loss,
+        collateral_amount_after_precision_loss,
     )?;
 
     // Transfer the received collateral from the depository to the end user

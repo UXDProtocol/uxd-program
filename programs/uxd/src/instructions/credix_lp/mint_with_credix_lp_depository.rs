@@ -239,7 +239,7 @@ pub(crate) fn handler(
     token::transfer(
         ctx.accounts
             .into_transfer_user_collateral_to_depository_collateral_context(),
-        collateral_amount,
+        collateral_amount_after_precision_loss,
     )?;
 
     // Do the deposit by placing collateral owned by the depository into the pool
@@ -248,7 +248,7 @@ pub(crate) fn handler(
         ctx.accounts
             .into_deposit_collateral_to_credix_lp_context()
             .with_signer(depository_pda_signer),
-        collateral_amount,
+        collateral_amount_after_precision_loss,
     )?;
 
     // Mint redeemable to the user
@@ -348,7 +348,7 @@ pub(crate) fn handler(
 
     // Validate that the locked value moved exactly to the correct place
     require!(
-        user_collateral_amount_decrease == collateral_amount,
+        user_collateral_amount_decrease == collateral_amount_after_precision_loss,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
