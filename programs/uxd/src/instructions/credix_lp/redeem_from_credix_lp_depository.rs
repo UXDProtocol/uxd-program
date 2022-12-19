@@ -123,7 +123,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
     /// #16
     #[account(
         mut,
-        owner = credix_client::ID, 
+        owner = credix_client::ID,
         seeds = [
             credix_global_market_state.key().as_ref(),
             depository.key().as_ref(),
