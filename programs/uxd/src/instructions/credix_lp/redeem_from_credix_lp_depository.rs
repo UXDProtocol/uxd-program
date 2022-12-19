@@ -21,6 +21,7 @@ use crate::utils::validate_redeemable_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
+use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 
 #[derive(Accounts)]
 #[instruction(redeemable_amount: u64)]
@@ -126,7 +127,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
         seeds = [
             credix_global_market_state.key().as_ref(),
             depository.key().as_ref(),
-            CREDIX_LP_EXTERNAL_PASS_NAMESPACE.as_bytes()
+            CREDIX_LP_EXTERNAL_PASS_NAMESPACE
         ],
         bump,
         seeds::program = credix_client::ID,

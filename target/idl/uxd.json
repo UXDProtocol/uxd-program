@@ -1086,7 +1086,10 @@
           {
             "name": "unused",
             "type": {
-              "array": ["u8", 255]
+              "array": [
+                "u8",
+                255
+              ]
             }
           },
           {
@@ -1104,7 +1107,10 @@
           {
             "name": "unused3",
             "type": {
-              "array": ["u8", 8]
+              "array": [
+                "u8",
+                8
+              ]
             }
           },
           {
@@ -1114,13 +1120,19 @@
           {
             "name": "unused4",
             "type": {
-              "array": ["u8", 8]
+              "array": [
+                "u8",
+                8
+              ]
             }
           },
           {
             "name": "registeredMercurialVaultDepositories",
             "type": {
-              "array": ["publicKey", 4]
+              "array": [
+                "publicKey",
+                4
+              ]
             }
           },
           {
@@ -1130,7 +1142,10 @@
           {
             "name": "registeredCredixLpDepositories",
             "type": {
-              "array": ["publicKey", 4]
+              "array": [
+                "publicKey",
+                4
+              ]
             }
           },
           {
@@ -2154,12 +2169,12 @@
     {
       "code": 6044,
       "name": "InvalidCredixPass",
-      "msg": "The Credix Pass isn't the Depository one."
+      "msg": "The Credix Pass isn't the one owned by the correct depository."
     },
     {
       "code": 6045,
       "name": "InvalidCredixPassNoFees",
-      "msg": "The Credix Pass isn't the without fees."
+      "msg": "The Credix Pass doesn't have the fees exemption."
     },
     {
       "code": 6046,
@@ -2176,8 +2191,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "36N7GZDMv3xkabgWMc2fJqrxm15cgp6oykPs53qDn5Ju"
-  }
+  ]
 }

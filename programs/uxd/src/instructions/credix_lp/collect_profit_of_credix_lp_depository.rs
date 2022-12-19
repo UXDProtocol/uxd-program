@@ -18,6 +18,7 @@ use crate::utils::is_within_range_inclusive;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
+use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 
 #[derive(Accounts)]
 pub struct CollectProfitOfCredixLpDepository<'info> {
@@ -102,7 +103,7 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
         seeds = [
             credix_global_market_state.key().as_ref(),
             depository.key().as_ref(),
-            CREDIX_LP_EXTERNAL_PASS_NAMESPACE.as_bytes()
+            CREDIX_LP_EXTERNAL_PASS_NAMESPACE
         ],
         bump,
         seeds::program = credix_client::ID,
