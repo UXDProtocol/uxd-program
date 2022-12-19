@@ -2169,12 +2169,12 @@ export type Uxd = {
     {
       "code": 6044,
       "name": "InvalidCredixPass",
-      "msg": "The Credix Pass isn't the Depository one."
+      "msg": "The Credix Pass isn't the one owned by the correct depository."
     },
     {
       "code": 6045,
       "name": "InvalidCredixPassNoFees",
-      "msg": "The Credix Pass isn't the without fees."
+      "msg": "The Credix Pass doesn't have the fees exemption."
     },
     {
       "code": 6046,
@@ -4365,12 +4365,12 @@ export const IDL: Uxd = {
     {
       "code": 6044,
       "name": "InvalidCredixPass",
-      "msg": "The Credix Pass isn't the Depository one."
+      "msg": "The Credix Pass isn't the one owned by the correct depository."
     },
     {
       "code": 6045,
       "name": "InvalidCredixPassNoFees",
-      "msg": "The Credix Pass isn't the without fees."
+      "msg": "The Credix Pass doesn't have the fees exemption."
     },
     {
       "code": 6046,
