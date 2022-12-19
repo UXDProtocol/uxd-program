@@ -15,7 +15,8 @@ use crate::utils::calculate_amount_less_fees;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value;
-use crate::utils::compute_value_for_shares_amount;
+use crate::utils::compute_value_ceil_for_shares_amount;
+use crate::utils::compute_value_floor_for_shares_amount;
 use crate::utils::is_within_range_inclusive;
 use crate::utils::validate_collateral_amount;
 use crate::validate_is_program_frozen;
@@ -164,7 +165,7 @@ pub(crate) fn handler(
         .ok_or(UxdError::MathError)?;
 
     let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
-    let owned_shares_value_before: u64 = compute_value_for_shares_amount(
+    let owned_shares_value_before: u64 = compute_value_floor_for_shares_amount(
         owned_shares_amount_before,
         total_shares_amount_before,
         total_shares_value_before,
@@ -191,8 +192,19 @@ pub(crate) fn handler(
         UxdError::MinimumRedeemedCollateralAmountError
     );
 
+    // Compute the optimized amount of collateral that we can withdraw
+    let collateral_amount_before_precision_loss: u64 = compute_value_ceil_for_shares_amount(
+        shares_amount,
+        total_shares_amount_before,
+        total_shares_value_before,
+    )?;
+    msg!(
+        "[mint_with_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
+        collateral_amount_before_precision_loss
+    );
+
     // Compute the amount of collateral that the received shares are worth (after potential precision loss)
-    let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount(
+    let collateral_amount_after_precision_loss: u64 = compute_value_floor_for_shares_amount(
         shares_amount,
         total_shares_amount_before,
         total_shares_value_before,
@@ -249,7 +261,7 @@ pub(crate) fn handler(
     token::transfer(
         ctx.accounts
             .into_transfer_user_collateral_to_depository_collateral_context(),
-        collateral_amount_after_precision_loss,
+        collateral_amount_before_precision_loss,
     )?;
 
     // Do the deposit by placing collateral owned by the depository into the pool
@@ -258,7 +270,7 @@ pub(crate) fn handler(
         ctx.accounts
             .into_deposit_collateral_to_credix_lp_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_after_precision_loss,
+        collateral_amount_before_precision_loss,
     )?;
 
     // Mint redeemable to the user
@@ -302,7 +314,7 @@ pub(crate) fn handler(
         .ok_or(UxdError::MathError)?;
 
     let owned_shares_amount_after: u64 = ctx.accounts.depository_shares.amount;
-    let owned_shares_value_after: u64 = compute_value_for_shares_amount(
+    let owned_shares_value_after: u64 = compute_value_floor_for_shares_amount(
         owned_shares_amount_after,
         total_shares_amount_after,
         total_shares_value_after,
@@ -358,7 +370,7 @@ pub(crate) fn handler(
 
     // Validate that the locked value moved exactly to the correct place
     require!(
-        user_collateral_amount_decrease == collateral_amount_after_precision_loss,
+        user_collateral_amount_decrease == collateral_amount_before_precision_loss,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
@@ -381,7 +393,7 @@ pub(crate) fn handler(
         is_within_range_inclusive(
             total_shares_value_increase,
             collateral_amount_after_precision_loss,
-            collateral_amount
+            collateral_amount_before_precision_loss
         ),
         UxdError::CollateralDepositDoesntMatchTokenValue,
     );
@@ -389,7 +401,7 @@ pub(crate) fn handler(
         is_within_range_inclusive(
             owned_shares_value_increase,
             collateral_amount_after_precision_loss,
-            collateral_amount
+            collateral_amount_before_precision_loss
         ),
         UxdError::CollateralDepositDoesntMatchTokenValue,
     );
@@ -410,7 +422,7 @@ pub(crate) fn handler(
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         user: ctx.accounts.user.key(),
-        collateral_amount: collateral_amount,
+        collateral_amount: collateral_amount_before_precision_loss,
         redeemable_amount: redeemable_amount_after_fees,
         minting_fee_paid: minting_fee_paid,
     });
@@ -419,7 +431,7 @@ pub(crate) fn handler(
     let mut depository = ctx.accounts.depository.load_mut()?;
     depository.minting_fee_accrued(minting_fee_paid)?;
     depository.collateral_deposited_and_redeemable_minted(
-        collateral_amount,
+        collateral_amount_before_precision_loss,
         redeemable_amount_after_fees,
     )?;
     require!(

@@ -13,7 +13,8 @@ use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value;
-use crate::utils::compute_value_for_shares_amount;
+use crate::utils::compute_value_ceil_for_shares_amount;
+use crate::utils::compute_value_floor_for_shares_amount;
 use crate::utils::is_within_range_inclusive;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -174,7 +175,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
         .ok_or(UxdError::MathError)?;
 
     let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
-    let owned_shares_value_before: u64 = compute_value_for_shares_amount(
+    let owned_shares_value_before: u64 = compute_value_floor_for_shares_amount(
         owned_shares_amount_before,
         total_shares_amount_before,
         total_shares_value_before,
@@ -209,17 +210,17 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     );
 
     // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
-    let collateral_amount_before_precision_loss: u64 = u64::try_from(profit_value)
+    let collateral_amount: u64 = u64::try_from(profit_value)
         .ok()
         .ok_or(UxdError::MathError)?;
     msg!(
-        "[collect_profit_of_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
-        collateral_amount_before_precision_loss
+        "[collect_profit_of_credix_lp_depository:collateral_amount:{}]",
+        collateral_amount
     );
 
     // Compute the amount of shares that we need to withdraw based on the amount of wanted collateral
     let shares_amount: u64 = compute_shares_amount_for_value(
-        collateral_amount_before_precision_loss,
+        collateral_amount,
         total_shares_amount_before,
         total_shares_value_before,
     )?;
@@ -229,7 +230,18 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     );
 
     // Compute the amount of collateral that the withdrawn shares are worth (after potential precision loss)
-    let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount(
+    let collateral_amount_before_precision_loss: u64 = compute_value_ceil_for_shares_amount(
+        shares_amount,
+        total_shares_amount_before,
+        total_shares_value_before,
+    )?;
+    msg!(
+        "[collect_profit_of_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
+        collateral_amount_before_precision_loss
+    );
+
+    // Compute the amount of collateral that the withdrawn shares are worth (after potential precision loss)
+    let collateral_amount_after_precision_loss: u64 = compute_value_floor_for_shares_amount(
         shares_amount,
         total_shares_amount_before,
         total_shares_value_before,
@@ -266,7 +278,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
         ctx.accounts
             .into_withdraw_funds_from_credix_lp_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_after_precision_loss,
+        collateral_amount_before_precision_loss,
     )?;
 
     // Transfer the received collateral from the depository to the end user
@@ -308,7 +320,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
         .ok_or(UxdError::MathError)?;
 
     let owned_shares_amount_after: u64 = ctx.accounts.depository_shares.amount;
-    let owned_shares_value_after: u64 = compute_value_for_shares_amount(
+    let owned_shares_value_after: u64 = compute_value_floor_for_shares_amount(
         owned_shares_amount_after,
         total_shares_amount_after,
         total_shares_value_after,

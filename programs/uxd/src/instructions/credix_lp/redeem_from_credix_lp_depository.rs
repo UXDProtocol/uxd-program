@@ -15,7 +15,8 @@ use crate::utils::calculate_amount_less_fees;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value;
-use crate::utils::compute_value_for_shares_amount;
+use crate::utils::compute_value_ceil_for_shares_amount;
+use crate::utils::compute_value_floor_for_shares_amount;
 use crate::utils::is_within_range_inclusive;
 use crate::utils::validate_redeemable_amount;
 use crate::validate_is_program_frozen;
@@ -194,7 +195,7 @@ pub(crate) fn handler(
         .ok_or(UxdError::MathError)?;
 
     let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
-    let owned_shares_value_before: u64 = compute_value_for_shares_amount(
+    let owned_shares_value_before: u64 = compute_value_floor_for_shares_amount(
         owned_shares_amount_before,
         total_shares_amount_before,
         total_shares_value_before,
@@ -217,11 +218,11 @@ pub(crate) fn handler(
     );
 
     // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
-    let collateral_amount_before_precision_loss: u64 = redeemable_amount_after_fees;
+    let collateral_amount: u64 = redeemable_amount_after_fees;
 
     // Compute the amount of shares that we need to withdraw based on the amount of wanted collateral
     let shares_amount: u64 = compute_shares_amount_for_value(
-        collateral_amount_before_precision_loss,
+        collateral_amount,
         total_shares_amount_before,
         total_shares_value_before,
     )?;
@@ -230,8 +231,23 @@ pub(crate) fn handler(
         shares_amount
     );
 
+    // Compute the amount of collateral that the withdrawn shares are worth (before potential precision loss)
+    let collateral_amount_before_precision_loss: u64 = compute_value_ceil_for_shares_amount(
+        shares_amount,
+        total_shares_amount_before,
+        total_shares_value_before,
+    )?;
+    msg!(
+        "[redeem_from_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
+        collateral_amount_before_precision_loss
+    );
+    require!(
+        collateral_amount_before_precision_loss > 0,
+        UxdError::MinimumRedeemedCollateralAmountError
+    );
+
     // Compute the amount of collateral that the withdrawn shares are worth (after potential precision loss)
-    let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount(
+    let collateral_amount_after_precision_loss: u64 = compute_value_floor_for_shares_amount(
         shares_amount,
         total_shares_amount_before,
         total_shares_value_before,
@@ -264,7 +280,7 @@ pub(crate) fn handler(
     msg!("[redeem_from_credix_lp_depository:redeemable_burn]",);
     token::burn(
         ctx.accounts.into_burn_redeemable_context(),
-        collateral_amount_after_precision_loss,
+        collateral_amount_before_precision_loss,
     )?;
 
     // Run a withdraw CPI from credix into the depository
@@ -273,7 +289,7 @@ pub(crate) fn handler(
         ctx.accounts
             .into_withdraw_funds_from_credix_lp_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_after_precision_loss,
+        collateral_amount_before_precision_loss,
     )?;
 
     // Transfer the received collateral from the depository to the end user
@@ -317,7 +333,7 @@ pub(crate) fn handler(
         .ok_or(UxdError::MathError)?;
 
     let owned_shares_amount_after: u64 = ctx.accounts.depository_shares.amount;
-    let owned_shares_value_after: u64 = compute_value_for_shares_amount(
+    let owned_shares_value_after: u64 = compute_value_floor_for_shares_amount(
         owned_shares_amount_after,
         total_shares_amount_after,
         total_shares_value_after,
@@ -377,7 +393,7 @@ pub(crate) fn handler(
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        user_redeemable_amount_decrease == redeemable_amount,
+        user_redeemable_amount_decrease == collateral_amount_before_precision_loss,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
