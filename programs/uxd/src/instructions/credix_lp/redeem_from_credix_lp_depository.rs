@@ -17,6 +17,7 @@ use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value;
 use crate::utils::compute_value_for_shares_amount;
 use crate::utils::is_within_range_inclusive;
+use crate::utils::validate_redeemable_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
@@ -121,10 +122,18 @@ pub struct RedeemFromCredixLpDepository<'info> {
     /// #16
     #[account(
         mut,
+        owner = credix_client::ID, 
+        seeds = [
+            credix_global_market_state.key().as_ref(),
+            depository.key().as_ref(),
+            CREDIX_LP_EXTERNAL_PASS_NAMESPACE.as_bytes()
+        ],
+        bump,
+        seeds::program = credix_client::ID,
         constraint = credix_pass.user == depository.key() @UxdError::InvalidCredixPass,
         constraint = credix_pass.disable_withdrawal_fee == true @UxdError::InvalidCredixPassNoFees,
     )]
-    pub credix_pass: Box<Account<'info, credix_client::CredixPass>>,
+    pub credix_pass: Account<'info, credix_client::CredixPass>,
 
     /// #17
     #[account(
@@ -493,7 +502,7 @@ impl<'info> RedeemFromCredixLpDepository<'info> {
 impl<'info> RedeemFromCredixLpDepository<'info> {
     pub(crate) fn validate(&self, redeemable_amount: u64) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
-        require!(redeemable_amount > 0, UxdError::InvalidRedeemableAmount);
+        validate_redeemable_amount(&self.user_redeemable, redeemable_amount)?;
         Ok(())
     }
 }

@@ -17,25 +17,21 @@ pub fn validate_collateral_mint_usdc(
             UxdError::CollateralMintNotAllowed,
         );
     }
-    // In development, we can't check the address directly as there are many devnet USDC
-    #[cfg(feature = "development")]
-    {
-        // Collateral mint and redeemable mint should share the same decimals
-        // due to the fact that decimal delta is not handled in the mint/redeem instructions
-        require!(
-            collateral_mint
-                .decimals
-                .eq(&controller.load()?.redeemable_mint_decimals),
-            UxdError::CollateralMintNotAllowed,
-        );
-        // Collateral mint should be different than redeemable mint
-        require!(
-            collateral_mint
-                .key()
-                .ne(&controller.load()?.redeemable_mint),
-            UxdError::CollateralMintEqualToRedeemableMint,
-        );
-    }
+    // Collateral mint and redeemable mint should share the same decimals
+    // due to the fact that decimal delta is not handled in the mint/redeem instructions
+    require!(
+        collateral_mint
+            .decimals
+            .eq(&controller.load()?.redeemable_mint_decimals),
+        UxdError::CollateralMintNotAllowed,
+    );
+    // Collateral mint should be different than redeemable mint
+    require!(
+        collateral_mint
+            .key()
+            .ne(&controller.load()?.redeemable_mint),
+        UxdError::CollateralMintEqualToRedeemableMint,
+    );
     // Done
     Ok(())
 }
