@@ -116,7 +116,7 @@ pub struct MintWithCredixLpDepository<'info> {
         seeds = [
             credix_global_market_state.key().as_ref(),
             depository.key().as_ref(),
-            CREDIX_LP_EXTERNAL_PASS_NAMESPACE.as_bytes()
+            CREDIX_LP_EXTERNAL_PASS_NAMESPACE
         ],
         bump,
         seeds::program = credix_client::ID,
