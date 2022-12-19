@@ -7,6 +7,7 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 
+use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 use crate::error::UxdError;
 use crate::events::RedeemFromCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
