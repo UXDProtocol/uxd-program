@@ -17,6 +17,7 @@ use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value;
 use crate::utils::compute_value_for_shares_amount;
 use crate::utils::is_within_range_inclusive;
+use crate::utils::validate_collateral_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
@@ -110,10 +111,18 @@ pub struct MintWithCredixLpDepository<'info> {
     /// #15
     #[account(
         mut,
+        owner = credix_client::ID, 
+        seeds = [
+            credix_global_market_state.key().as_ref(),
+            depository.key().as_ref(),
+            CREDIX_LP_EXTERNAL_PASS_NAMESPACE.as_bytes()
+        ],
+        bump,
+        seeds::program = credix_client::ID,
         constraint = credix_pass.user == depository.key() @UxdError::InvalidCredixPass,
         constraint = credix_pass.disable_withdrawal_fee == true @UxdError::InvalidCredixPassNoFees,
     )]
-    pub credix_pass: Box<Account<'info, credix_client::CredixPass>>,
+    pub credix_pass: Account<'info, credix_client::CredixPass>,
 
     /// #16
     pub system_program: Program<'info, System>,
@@ -482,7 +491,7 @@ impl<'info> MintWithCredixLpDepository<'info> {
 impl<'info> MintWithCredixLpDepository<'info> {
     pub(crate) fn validate(&self, collateral_amount: u64) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
-        require!(collateral_amount > 0, UxdError::InvalidCollateralAmount);
+        validate_collateral_amount(&self.user_collateral, collateral_amount)?;
         require!(
             !&self.depository.load()?.minting_disabled,
             UxdError::MintingDisabled

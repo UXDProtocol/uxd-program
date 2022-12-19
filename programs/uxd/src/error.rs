@@ -95,9 +95,9 @@ pub enum UxdError {
     InvalidCredixLiquidityCollateral,
     #[msg("The Credix SharesMint isn't the Depository one.")]
     InvalidCredixSharesMint,
-    #[msg("The Credix Pass isn't the Depository one.")]
+    #[msg("The Credix Pass isn't the one owned by the correct depository.")]
     InvalidCredixPass,
-    #[msg("The Credix Pass isn't the without fees.")]
+    #[msg("The Credix Pass doesn't have the fees exemption.")]
     InvalidCredixPassNoFees,
     #[msg("The Credix Multisig Key isn't the ProgramState one.")]
     InvalidCredixMultisigKey,
