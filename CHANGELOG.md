@@ -1,10 +1,16 @@
 # CHANGELOG
 
+## [v6.0.0]
+
+Deployed: | Slot:
+
+- Credix Lp Depository ALM integration (mint/redeem/collect)
+
 ## [v5.1.0]
 
 Deployed: | Slot: TBD
 
-- Identity Depository
+- Identity Depository (mint/redeem)
 - Removal of MangoMarketsV3 related code after their exploit
 - Adding a one time MangoMarketsV3 accounting fix instruction
 
@@ -12,7 +18,7 @@ Deployed: | Slot: TBD
 
 Deployed: | Slot:
 
-- Mercurial Vault Depository
+- Mercurial Vault Depository ALM integration (mint/redeem)
 
 ## [v4.0.0]
 
