@@ -7,7 +7,6 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 
-use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 use crate::error::UxdError;
 use crate::events::RedeemFromCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
@@ -22,6 +21,7 @@ use crate::utils::validate_redeemable_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
+use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 
 #[derive(Accounts)]
 #[instruction(redeemable_amount: u64)]
@@ -123,7 +123,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
     /// #16
     #[account(
         mut,
-        owner = credix_client::ID, 
+        owner = credix_client::ID,
         seeds = [
             credix_global_market_state.key().as_ref(),
             depository.key().as_ref(),

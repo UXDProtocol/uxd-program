@@ -6,7 +6,6 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 
-use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 use crate::error::UxdError;
 use crate::events::CollectProfitOfCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
@@ -19,6 +18,7 @@ use crate::utils::is_within_range_inclusive;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
+use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 
 #[derive(Accounts)]
 pub struct CollectProfitOfCredixLpDepository<'info> {
@@ -99,7 +99,7 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     /// #13
     #[account(
         mut,
-        owner = credix_client::ID, 
+        owner = credix_client::ID,
         seeds = [
             credix_global_market_state.key().as_ref(),
             depository.key().as_ref(),
