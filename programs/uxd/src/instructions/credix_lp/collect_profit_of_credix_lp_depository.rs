@@ -403,8 +403,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
         depository_version: ctx.accounts.depository.load()?.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
-        collateral_amount_before_fees: collateral_amount_before_precision_loss,
-        collateral_amount_after_fees: collateral_amount_after_precision_loss,
+        collateral_amount: collateral_amount_after_precision_loss,
     });
 
     // Accouting for depository

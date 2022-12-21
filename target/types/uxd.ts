@@ -748,7 +748,7 @@ export type Uxd = {
         },
         {
           "name": "credixPass",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -864,7 +864,7 @@ export type Uxd = {
         },
         {
           "name": "credixPass",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1868,12 +1868,7 @@ export type Uxd = {
           "index": true
         },
         {
-          "name": "collateralAmountBeforeFees",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "collateralAmountAfterFees",
+          "name": "collateralAmount",
           "type": "u64",
           "index": false
         },
@@ -1913,12 +1908,7 @@ export type Uxd = {
           "index": true
         },
         {
-          "name": "collateralAmountBeforeFees",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "collateralAmountAfterFees",
+          "name": "collateralAmount",
           "type": "u64",
           "index": false
         }
@@ -2944,7 +2934,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "credixPass",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -3060,7 +3050,7 @@ export const IDL: Uxd = {
         },
         {
           "name": "credixPass",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -4064,12 +4054,7 @@ export const IDL: Uxd = {
           "index": true
         },
         {
-          "name": "collateralAmountBeforeFees",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "collateralAmountAfterFees",
+          "name": "collateralAmount",
           "type": "u64",
           "index": false
         },
@@ -4109,12 +4094,7 @@ export const IDL: Uxd = {
           "index": true
         },
         {
-          "name": "collateralAmountBeforeFees",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "collateralAmountAfterFees",
+          "name": "collateralAmount",
           "type": "u64",
           "index": false
         }

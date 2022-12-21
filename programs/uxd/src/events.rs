@@ -194,10 +194,8 @@ pub struct RedeemFromCredixLpDepositoryEvent {
     pub depository: Pubkey,
     #[index]
     pub user: Pubkey,
-    /// The collateral amount in native units.
-    pub collateral_amount_before_fees: u64,
     /// The collateral amount in native units. (output)
-    pub collateral_amount_after_fees: u64,
+    pub collateral_amount: u64,
     /// The redeemable issued in native units. (input)
     pub redeemable_amount: u64,
     /// The fees paid in native units.
@@ -215,10 +213,8 @@ pub struct CollectProfitOfCredixLpDepositoryEvent {
     pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
-    /// The collateral amount in native units.
-    pub collateral_amount_before_fees: u64,
     /// The collateral amount in native units. (output)
-    pub collateral_amount_after_fees: u64,
+    pub collateral_amount: u64,
 }
 
 /// Event called in [instructions::freeze_program::handler].

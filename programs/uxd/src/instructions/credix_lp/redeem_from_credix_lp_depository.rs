@@ -122,7 +122,6 @@ pub struct RedeemFromCredixLpDepository<'info> {
 
     /// #16
     #[account(
-        mut,
         owner = credix_client::ID,
         seeds = [
             credix_global_market_state.key().as_ref(),
@@ -426,8 +425,7 @@ pub(crate) fn handler(
         depository: ctx.accounts.depository.key(),
         user: ctx.accounts.user.key(),
         redeemable_amount: redeemable_amount,
-        collateral_amount_before_fees: collateral_amount_before_precision_loss,
-        collateral_amount_after_fees: collateral_amount_after_precision_loss,
+        collateral_amount: collateral_amount_after_precision_loss,
         redeeming_fee_paid: redeeming_fee_paid,
     });
 

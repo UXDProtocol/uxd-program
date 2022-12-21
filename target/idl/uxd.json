@@ -748,7 +748,7 @@
         },
         {
           "name": "credixPass",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -864,7 +864,7 @@
         },
         {
           "name": "credixPass",
-          "isMut": true,
+          "isMut": false,
           "isSigner": false
         },
         {
@@ -1868,12 +1868,7 @@
           "index": true
         },
         {
-          "name": "collateralAmountBeforeFees",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "collateralAmountAfterFees",
+          "name": "collateralAmount",
           "type": "u64",
           "index": false
         },
@@ -1913,12 +1908,7 @@
           "index": true
         },
         {
-          "name": "collateralAmountBeforeFees",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "collateralAmountAfterFees",
+          "name": "collateralAmount",
           "type": "u64",
           "index": false
         }
