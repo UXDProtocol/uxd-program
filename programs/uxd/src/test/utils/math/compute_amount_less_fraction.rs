@@ -6,6 +6,7 @@ mod test_compute_amount_less_fraction {
 
     #[test]
     fn test_correctness() -> Result<()> {
+        // Test regular cases
         assert_eq!(compute_amount_less_fraction(0, 0, 100)?, 0);
         assert_eq!(compute_amount_less_fraction(0, 10, 100)?, 0);
         assert_eq!(compute_amount_less_fraction(0, 100, 100)?, 0);
@@ -29,6 +30,17 @@ mod test_compute_amount_less_fraction {
         // Test proper precision loss behavior
         assert_eq!(compute_amount_less_fraction(1000, 1, 10000)?, 999);
         assert_eq!(compute_amount_less_fraction(1000, 9999, 10000)?, 0);
+
+        // Test large amounts against u64 overflow
+        assert_eq!(
+            compute_amount_less_fraction(
+                1_000_000_000_000_000_000,
+                2_000_000_000_000_000_000,
+                4_000_000_000_000_000_000
+            )?,
+            500_000_000_000_000_000
+        );
+
         Ok(())
     }
 

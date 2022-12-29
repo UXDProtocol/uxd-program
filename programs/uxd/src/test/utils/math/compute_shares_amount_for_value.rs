@@ -6,6 +6,7 @@ mod test_compute_shares_amount_for_value {
 
     #[test]
     fn test_correctness() -> Result<()> {
+        // Test regular cases and check correct rounding
         assert_eq!(compute_shares_amount_for_value(0, 0, 0)?, 0);
         assert_eq!(compute_shares_amount_for_value(0, 10, 0)?, 0);
         assert_eq!(compute_shares_amount_for_value(0, 0, 10)?, 0);
@@ -27,15 +28,25 @@ mod test_compute_shares_amount_for_value {
         assert_eq!(compute_shares_amount_for_value(1, 100, 10)?, 10);
         assert_eq!(compute_shares_amount_for_value(4, 100, 10)?, 40);
         assert_eq!(compute_shares_amount_for_value(10, 100, 10)?, 100);
+
+        // Test large amounts against u64 overflow
+        assert_eq!(
+            compute_shares_amount_for_value(
+                1_000_000_000_000_000_000,
+                2_000_000_000_000_000_000,
+                4_000_000_000_000_000_000
+            )?,
+            500_000_000_000_000_000
+        );
+
         Ok(())
     }
 
     #[test]
     fn test_incorrectness() -> Result<()> {
         assert_eq!(compute_shares_amount_for_value(1, 0, 0).is_err(), true);
-        assert_eq!(compute_shares_amount_for_value(1, 100, 0).is_err(), true);
-        assert_eq!(compute_shares_amount_for_value(11, 0, 10).is_err(), true);
-        assert_eq!(compute_shares_amount_for_value(11, 100, 10).is_err(), true);
+        assert_eq!(compute_shares_amount_for_value(1, 10, 0).is_err(), true);
+        assert_eq!(compute_shares_amount_for_value(1, 0, 10).is_err(), true);
         Ok(())
     }
 }

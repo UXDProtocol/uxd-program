@@ -8,7 +8,10 @@ pub fn compute_amount_less_fraction(
     fraction_numerator: u64,
     fraction_denominator: u64,
 ) -> Result<u64> {
-    Ok(amount
+    let amount: u128 = amount.into();
+    let fraction_numerator: u128 = fraction_numerator.into();
+    let fraction_denominator: u128 = fraction_denominator.into();
+    let amount_less_fraction: u128 = amount
         .checked_mul(
             fraction_denominator
                 .checked_sub(fraction_numerator)
@@ -16,5 +19,8 @@ pub fn compute_amount_less_fraction(
         )
         .ok_or(UxdError::MathError)?
         .checked_div(fraction_denominator)
+        .ok_or(UxdError::MathError)?;
+    Ok(u64::try_from(amount_less_fraction)
+        .ok()
         .ok_or(UxdError::MathError)?)
 }
