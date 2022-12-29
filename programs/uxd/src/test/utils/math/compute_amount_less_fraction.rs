@@ -40,6 +40,16 @@ mod test_compute_amount_less_fraction {
             )?,
             500_000_000_000_000_000
         );
+        assert_eq!(
+            compute_amount_less_fraction(u64::MAX, u64::MAX, u64::MAX)?,
+            0
+        );
+        assert_eq!(
+            compute_amount_less_fraction(u64::MAX, 42, u64::MAX)?,
+            u64::MAX - 42
+        );
+        assert_eq!(compute_amount_less_fraction(42, u64::MAX, u64::MAX)?, 0);
+        assert_eq!(compute_amount_less_fraction(u64::MAX, 42, 42)?, 0);
 
         Ok(())
     }

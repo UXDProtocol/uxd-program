@@ -38,6 +38,14 @@ mod test_compute_shares_amount_for_value {
             )?,
             500_000_000_000_000_000
         );
+        assert_eq!(
+            compute_shares_amount_for_value(u64::MAX, u64::MAX, u64::MAX)?,
+            u64::MAX
+        );
+        assert_eq!(compute_shares_amount_for_value(42, u64::MAX, u64::MAX)?, 42);
+        assert_eq!(compute_shares_amount_for_value(u64::MAX, 42, u64::MAX)?, 42);
+        assert_eq!(compute_shares_amount_for_value(u64::MAX, 42, 42)?, u64::MAX);
+        assert_eq!(compute_shares_amount_for_value(42, u64::MAX, 42)?, u64::MAX);
 
         Ok(())
     }
