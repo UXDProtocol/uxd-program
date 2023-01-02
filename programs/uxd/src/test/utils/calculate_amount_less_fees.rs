@@ -3,6 +3,7 @@
 mod test_calculate_amount_less_fees {
     use crate::utils::calculate_amount_less_fees;
     use anchor_lang::Result;
+    use proptest::prelude::*;
 
     #[test]
     fn test_zero_fees() -> Result<()> {
@@ -34,6 +35,22 @@ mod test_calculate_amount_less_fees {
         assert_eq!(calculate_amount_less_fees(2_000_000, 255)?, 1_949_000);
         assert_eq!(calculate_amount_less_fees(5_000_000, 255)?, 4_872_500);
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_no_panic() -> Result<()> {
+        proptest!(|(amount: u64, bps: u8)| {
+            prop_assert!(calculate_amount_less_fees(amount, bps).is_ok());
+        });
+        Ok(())
+    }
+
+    #[test]
+    fn test_no_increase() -> Result<()> {
+        proptest!(|(amount: u64, bps: u8)| {
+            prop_assert!(calculate_amount_less_fees(amount, bps)? <= amount);
+        });
         Ok(())
     }
 }

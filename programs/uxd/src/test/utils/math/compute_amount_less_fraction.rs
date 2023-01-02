@@ -3,6 +3,7 @@
 mod test_compute_amount_less_fraction {
     use crate::utils::compute_amount_less_fraction;
     use anchor_lang::Result;
+    use proptest::prelude::*;
 
     #[test]
     fn test_correctness() -> Result<()> {
@@ -62,6 +63,29 @@ mod test_compute_amount_less_fraction {
         assert_eq!(compute_amount_less_fraction(10, 10, 0).is_err(), true);
 
         assert_eq!(compute_amount_less_fraction(0, 101, 100).is_err(), true);
+        Ok(())
+    }
+
+    #[test]
+    fn test_panic_cases() -> Result<()> {
+        proptest!(|(amount: u64, numerator: u64, denominator: u64)| {
+            let result = compute_amount_less_fraction(
+                amount,
+                numerator,
+                denominator
+            );
+            // Some cases are supposed to fail
+            if denominator == 0 {
+                prop_assert!(result.is_err());
+                return Ok(());
+            }
+            if numerator > denominator {
+                prop_assert!(result.is_err());
+                return Ok(());
+            }
+            // In all other cases, we should not panic
+            prop_assert!(result.is_ok());
+        });
         Ok(())
     }
 }

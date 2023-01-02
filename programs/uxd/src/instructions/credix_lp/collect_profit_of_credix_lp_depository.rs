@@ -108,7 +108,7 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
         bump,
         seeds::program = credix_client::ID,
         constraint = credix_pass.user == depository.key() @UxdError::InvalidCredixPass,
-        constraint = credix_pass.disable_withdrawal_fee == true @UxdError::InvalidCredixPassNoFees,
+        constraint = credix_pass.disable_withdrawal_fee @UxdError::InvalidCredixPassNoFees,
     )]
     pub credix_pass: Account<'info, credix_client::CredixPass>,
 
@@ -424,7 +424,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
 
 // Into functions
 impl<'info> CollectProfitOfCredixLpDepository<'info> {
-    fn into_withdraw_funds_from_credix_lp_context(
+    pub fn into_withdraw_funds_from_credix_lp_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::WithdrawFunds<'info>> {
         let cpi_accounts = credix_client::cpi::accounts::WithdrawFunds {
@@ -450,7 +450,7 @@ impl<'info> CollectProfitOfCredixLpDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    fn into_transfer_depository_collateral_to_authority_collateral_context(
+    pub fn into_transfer_depository_collateral_to_authority_collateral_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {

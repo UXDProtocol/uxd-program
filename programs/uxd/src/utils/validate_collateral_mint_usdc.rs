@@ -1,6 +1,9 @@
-use crate::{error::UxdError, state::controller::Controller};
+use crate::error::UxdError;
+use crate::state::controller::Controller;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
+
+#[cfg(feature = "production")]
 use std::str::FromStr;
 
 pub fn validate_collateral_mint_usdc(

@@ -131,7 +131,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
         bump,
         seeds::program = credix_client::ID,
         constraint = credix_pass.user == depository.key() @UxdError::InvalidCredixPass,
-        constraint = credix_pass.disable_withdrawal_fee == true @UxdError::InvalidCredixPassNoFees,
+        constraint = credix_pass.disable_withdrawal_fee @UxdError::InvalidCredixPassNoFees,
     )]
     pub credix_pass: Account<'info, credix_client::CredixPass>,
 
@@ -426,7 +426,7 @@ pub(crate) fn handler(
         user: ctx.accounts.user.key(),
         redeemable_amount: redeemable_amount,
         collateral_amount: collateral_amount_after_precision_loss,
-        redeeming_fee_paid: redeeming_fee_paid,
+        redeeming_fee_paid,
     });
 
     // Accouting for depository
@@ -448,7 +448,7 @@ pub(crate) fn handler(
 
 // Into functions
 impl<'info> RedeemFromCredixLpDepository<'info> {
-    fn into_withdraw_funds_from_credix_lp_context(
+    pub fn into_withdraw_funds_from_credix_lp_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::WithdrawFunds<'info>> {
         let cpi_accounts = credix_client::cpi::accounts::WithdrawFunds {
@@ -474,7 +474,7 @@ impl<'info> RedeemFromCredixLpDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    fn into_transfer_depository_collateral_to_user_collateral_context(
+    pub fn into_transfer_depository_collateral_to_user_collateral_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
@@ -486,7 +486,7 @@ impl<'info> RedeemFromCredixLpDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    fn into_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+    pub fn into_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),

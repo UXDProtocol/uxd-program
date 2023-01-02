@@ -3,6 +3,7 @@
 mod test_compute_shares_amount_for_value {
     use crate::utils::compute_shares_amount_for_value;
     use anchor_lang::Result;
+    use proptest::prelude::*;
 
     #[test]
     fn test_correctness() -> Result<()> {
@@ -55,6 +56,38 @@ mod test_compute_shares_amount_for_value {
         assert_eq!(compute_shares_amount_for_value(1, 0, 0).is_err(), true);
         assert_eq!(compute_shares_amount_for_value(1, 10, 0).is_err(), true);
         assert_eq!(compute_shares_amount_for_value(1, 0, 10).is_err(), true);
+        Ok(())
+    }
+
+    #[test]
+    fn test_panic_cases() -> Result<()> {
+        proptest!(|(value: u64, total_shares_amount: u64, total_shares_value: u64)| {
+            let result = compute_shares_amount_for_value(
+                value,
+                total_shares_amount,
+                total_shares_value
+            );
+            // Some basic cases are supposed to fail
+            if total_shares_amount == 0 {
+                prop_assert!(result.is_err());
+                return Ok(());
+            }
+            if total_shares_value == 0 {
+                prop_assert!(result.is_err());
+                return Ok(());
+            }
+            // u64 is the limit for token amount in solana, we fail if we overflow that
+            let value: u128 = value.into();
+            let total_shares_amount: u128 = total_shares_amount.into();
+            let total_shares_value: u128 = total_shares_value.into();
+            let max_supply: u128 = u64::MAX.into();
+            if value * total_shares_amount / total_shares_value > max_supply {
+                prop_assert!(result.is_err());
+                return Ok(());
+            }
+            // We should not fail in any other case
+            prop_assert!(result.is_ok());
+        });
         Ok(())
     }
 }
