@@ -1,8 +1,9 @@
-import { SOL_DECIMALS, findATAAddrSync, nativeToUi, uiToNative } from "@uxd-protocol/uxd-client";
+import { SOL_DECIMALS, findATAAddrSync, nativeToUi, uiToNative, CredixLpDepository } from "@uxd-protocol/uxd-client";
 import { PublicKey, Signer } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
+import { uxdProgramId } from "./constants";
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
@@ -172,5 +173,16 @@ export function createAssociatedTokenAccountItx(payerKey, walletKey, mintKey) {
     ],
     programId: ASSOCIATED_TOKEN_PROGRAM_ID,
     data: Buffer.alloc(0),
+  });
+}
+
+export async function createCredixLpDepositoryDevnetUSDC(): Promise<CredixLpDepository> {
+  return await CredixLpDepository.initialize({
+    connection: getConnection(),
+    uxdProgramId: uxdProgramId,
+    collateralMint: new PublicKey("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr"),
+    collateralSymbol: "USDC(CredixDevnet)",
+    credixProgramId: new PublicKey("CRdXwuY984Au227VnMJ2qvT7gPd83HwARYXcbHfseFKC"),
+    credixMarketName: "credix-marketplace",
   });
 }

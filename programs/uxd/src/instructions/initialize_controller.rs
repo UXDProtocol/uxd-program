@@ -83,6 +83,7 @@ pub(crate) fn handler(
         .ok_or_else(|| error!(UxdError::MathError))?;
     controller.redeemable_circulating_supply = u128::MIN;
     controller.is_frozen = false;
+    controller.profits_total_collected = u128::MIN;
 
     emit!(InitializeControllerEvent {
         version: controller.version,
