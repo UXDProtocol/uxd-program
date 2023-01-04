@@ -16,6 +16,19 @@
     "mocha": "^9.2.1",
     "mochawesome": "^7.0.1",
     "ts-mocha": "^9.0.2",
-    "typescript": "^4.5.5"
+    "typescript": "^4.5.5",
+    "prettier": "^2.6.2"
+  },
+  "scripts": {
+    "source-lint": "cargo clippy",
+    "source-format": "cargo fmt",
+    "source-format-check": "cargo fmt --check",
+    "tests-lint": "tsc --noEmit --pretty",
+    "tests-format": "prettier --write 'tests/**/*.ts'",
+    "tests-format-check": "prettier --check 'tests/**/*.ts'",
+    "lint": "npm run source-lint && npm run tests-lint",
+    "format": "npm run source-format && npm run tests-format",
+    "format-check": "npm run source-format-check && npm run tests-format-check",
+    "validate": "npm run lint && npm run format-check"
   }
 }
