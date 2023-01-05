@@ -1,6 +1,6 @@
-import { Signer } from "@solana/web3.js";
-import { Controller, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
-import { registerMercurialVaultDepositoryTest } from "../cases/registerMercurialVaultDepositoryTest";
+import { Signer } from '@solana/web3.js';
+import { Controller, MercurialVaultDepository } from '@uxd-protocol/uxd-client';
+import { registerMercurialVaultDepositoryTest } from '../cases/registerMercurialVaultDepositoryTest';
 
 export const mercurialVaultDepositorySetupSuite = function (
   authority: Signer,

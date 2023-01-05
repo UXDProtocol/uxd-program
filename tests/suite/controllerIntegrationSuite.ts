@@ -1,6 +1,6 @@
-import { Signer } from "@solana/web3.js";
-import { Controller } from "@uxd-protocol/uxd-client";
-import { initializeControllerTest } from "../cases/initializeControllerTest";
+import { Signer } from '@solana/web3.js';
+import { Controller } from '@uxd-protocol/uxd-client';
+import { initializeControllerTest } from '../cases/initializeControllerTest';
 
 export class controllerIntegrationSuiteParameters {
   public globalSupplyCap: number;
@@ -16,7 +16,7 @@ export const controllerIntegrationSuite = function (
   controller: Controller,
   params: controllerIntegrationSuiteParameters
 ) {
-  it("Initialize Controller", async function () {
+  it('Initialize Controller', async function () {
     await initializeControllerTest(authority, controller, payer);
   });
 };
