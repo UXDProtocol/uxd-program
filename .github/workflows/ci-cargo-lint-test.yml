@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: 1.10.38
+  SOLANA_VERSION: 1.14.7
   RUST_TOOLCHAIN: nightly-2022-02-01
 
 defaults:
@@ -20,7 +20,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   fmt:
     runs-on: ubuntu-latest
     name: cargo fmt
@@ -79,7 +78,7 @@ jobs:
       - name: Rust toolchain update
         run: |
           rustup update
-      - name: Rust override set nightly 
+      - name: Rust override set nightly
         run: |
           rustup override set nightly
       - name: Cache dependencies

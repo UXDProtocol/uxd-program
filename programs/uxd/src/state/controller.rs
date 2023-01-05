@@ -1,8 +1,12 @@
 use crate::error::UxdError;
 use anchor_lang::prelude::*;
+use fixed::types::I80F48;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
+pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
+pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
+// Total should be 885 bytes
 pub const CONTROLLER_SPACE: usize = 8
     + 1
     + 1
@@ -10,13 +14,19 @@ pub const CONTROLLER_SPACE: usize = 8
     + 32
     + 32
     + 1
-    + (32 * MAX_REGISTERED_MANGO_DEPOSITORIES)
+    + 255 // Shh. Free real estate
+    + 1
     + 1
     + 16
-    + 8
+    + 8 // unused
     + 16
-    + 8
-    + 504;
+    + 8 // unused
+    + (32 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
+    + 1
+    + (32 * MAX_REGISTERED_CREDIX_LP_DEPOSITORIES)
+    + 1
+    + 16
+    + 230;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -30,9 +40,11 @@ pub struct Controller {
     pub redeemable_mint: Pubkey,
     pub redeemable_mint_decimals: u8,
     //
-    // The Mango Depositories registered with this Controller
-    pub registered_mango_depositories: [Pubkey; MAX_REGISTERED_MANGO_DEPOSITORIES],
-    pub registered_mango_depositories_count: u8,
+    pub _unused: [u8; 255],
+    // operational status for all ixs associated with this controller instance
+    pub is_frozen: bool,
+    //
+    pub _unused2: u8,
     //
     // Progressive roll out and safety ----------
     //
@@ -40,9 +52,9 @@ pub struct Controller {
     //  in redeemable Redeemable Native Amount (careful, usually Mint express this in full token, UI amount, u64)
     pub redeemable_global_supply_cap: u128,
     //
-    // The max amount of Redeemable affected by Mint and Redeem operations on `MangoDepository` instances, variable
+    // The max amount of Redeemable affected by Mint and Redeem operations on `Depository` instances, variable
     //  in redeemable Redeemable Native Amount
-    pub mango_depositories_redeemable_soft_cap: u64,
+    pub _unused3: [u8; 8],
     //
     // Accounting -------------------------------
     //
@@ -50,28 +62,91 @@ pub struct Controller {
     // This should always be equal to the sum of all Depositories' `redeemable_amount_under_management`
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
-    // The max amount of Redeemable affected by quote Mint and Redeem operations on `MangoDepository` instances
-    pub mango_depositories_quote_redeemable_soft_cap: u64,
+    pub _unused4: [u8; 8],
+    //
+    // The Mercurial Vault Depositories registered with this Controller
+    pub registered_mercurial_vault_depositories:
+        [Pubkey; MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES],
+    pub registered_mercurial_vault_depositories_count: u8,
+    //
+    // The Credix Lp Depositories registered with this Controller
+    pub registered_credix_lp_depositories: [Pubkey; MAX_REGISTERED_CREDIX_LP_DEPOSITORIES],
+    pub registered_credix_lp_depositories_count: u8,
+    //
+    // Total amount of profit collected into the treasury by any depository
+    pub profits_total_collected: u128,
 }
 
 impl Controller {
-    pub(crate) fn add_registered_mango_depository_entry(
+    pub fn add_registered_mercurial_vault_depository_entry(
         &mut self,
-        mango_depository_id: Pubkey,
+        mercurial_vault_depository_id: Pubkey,
     ) -> Result<()> {
-        let current_size = usize::from(self.registered_mango_depositories_count);
+        let current_size = usize::from(self.registered_mercurial_vault_depositories_count);
         require!(
-            current_size < MAX_REGISTERED_MANGO_DEPOSITORIES,
-            UxdError::MaxNumberOfMangoDepositoriesRegisteredReached
+            current_size < MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES,
+            UxdError::MaxNumberOfMercurialVaultDepositoriesRegisteredReached
         );
-        // Increment registered Mango Depositories count
-        self.registered_mango_depositories_count = self
-            .registered_mango_depositories_count
+        // Increment registered Mercurial Pool Depositories count
+        self.registered_mercurial_vault_depositories_count = self
+            .registered_mercurial_vault_depositories_count
             .checked_add(1)
             .ok_or_else(|| error!(UxdError::MathError))?;
-        // Add the new Mango Depository ID to the array of registered Depositories
+        // Add the new Mercurial Vault Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
-        self.registered_mango_depositories[new_entry_index] = mango_depository_id;
+        self.registered_mercurial_vault_depositories[new_entry_index] =
+            mercurial_vault_depository_id;
+        Ok(())
+    }
+
+    pub(crate) fn add_registered_credix_lp_depository_entry(
+        &mut self,
+        credix_lp_depository_id: Pubkey,
+    ) -> Result<()> {
+        let current_size = usize::from(self.registered_credix_lp_depositories_count);
+        require!(
+            current_size < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
+            UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached
+        );
+        // Increment registered Credix Lp Depositories count
+        self.registered_credix_lp_depositories_count = self
+            .registered_credix_lp_depositories_count
+            .checked_add(1)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        // Add the new Credix Lp Depository ID to the array of registered Depositories
+        let new_entry_index = current_size;
+        self.registered_credix_lp_depositories[new_entry_index] = credix_lp_depository_id;
+        Ok(())
+    }
+
+    // provides numbers + or - depending on the change
+    pub fn update_onchain_accounting_following_mint_or_redeem(
+        &mut self,
+        redeemable_amount_change: i128,
+    ) -> Result<()> {
+        self.redeemable_circulating_supply =
+            I80F48::checked_from_num(self.redeemable_circulating_supply)
+                .ok_or(UxdError::MathError)?
+                .checked_add(
+                    I80F48::checked_from_num(redeemable_amount_change)
+                        .ok_or(UxdError::MathError)?,
+                )
+                .ok_or(UxdError::MathError)?
+                .checked_to_num()
+                .ok_or(UxdError::MathError)?;
+
+        Ok(())
+    }
+
+    // When collecting profit, we need to add it to the total
+    pub fn update_onchain_accounting_following_profit_collection(
+        &mut self,
+        profits_collected: u64,
+    ) -> Result<()> {
+        self.profits_total_collected = self
+            .profits_total_collected
+            .checked_add(profits_collected.into())
+            .ok_or(UxdError::MathError)?;
         Ok(())
     }
 }

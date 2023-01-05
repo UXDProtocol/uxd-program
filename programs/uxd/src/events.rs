@@ -1,4 +1,3 @@
-use crate::instructions::rebalance_mango_depository_lite::PnlPolarity;
 use anchor_lang::prelude::*;
 
 // - Global Events ------------------------------------------------------------
@@ -29,137 +28,97 @@ pub struct SetRedeemableGlobalSupplyCapEvent {
     pub redeemable_global_supply_cap: u128,
 }
 
-/// Deprecated, use `RegisterMangoDepositoryEventV2` - Keep for decoding on chain history
-/// Event called in [instructions::register_mango_depository::handler].
+/// Event called in [instructions::register_mercurial_vault_depository::handler].
 #[event]
-pub struct RegisterMangoDepositoryEvent {
-    /// The controller version.
+pub struct RegisterMercurialVaultDepositoryEvent {
     #[index]
     pub version: u8,
-    /// The controller.
-    #[index]
-    pub controller: Pubkey,
-    /// The depository.
-    #[index]
-    pub depository: Pubkey,
-    /// The collateral mint.
-    pub collateral_mint: Pubkey,
-    /// The insurance mint.
-    pub insurance_mint: Pubkey,
-    /// The MangoAccount PDA.
-    pub mango_account: Pubkey,
-}
-
-/// Event called in [instructions::register_mango_depository::handler].
-#[event]
-pub struct RegisterMangoDepositoryEventV2 {
-    /// The controller version.
-    #[index]
-    pub version: u8,
-    /// The depository version.
     #[index]
     pub depository_version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The collateral mint.
+    pub mercurial_vault: Pubkey,
+    pub depository_lp_token_vault: Pubkey,
     pub collateral_mint: Pubkey,
-    /// The quote mint.
-    pub quote_mint: Pubkey,
-    /// The MangoAccount PDA.
-    pub mango_account: Pubkey,
 }
 
-/// Event called in [instructions::set_mango_depository_redeemable_soft_cap::handler].
+/// Event called in [instructions::edit_*_depository::handler].
 #[event]
-pub struct SetMangoDepositoryRedeemableSoftCapEvent {
-    /// The controller version.
+pub struct SetDepositoryRedeemableAmountUnderManagementCapEvent {
     #[index]
     pub version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The redeemable mint.
-    pub redeemable_mint: Pubkey,
-    /// The redeemable mint decimals.
-    pub redeemable_mint_decimals: u8,
-    /// The new cap.
-    pub redeemable_soft_cap: u64,
-}
-
-/// Event called in [instructions::*::deposit_insurance_to_*_depository::handler].
-#[event]
-pub struct DepositInsuranceToDepositoryEvent {
-    /// The controller version.
-    #[index]
-    pub version: u8,
-    /// The controller.
-    #[index]
-    pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The insurance mint.
-    pub quote_mint: Pubkey,
-    /// The insurance mint decimals.
-    pub quote_mint_decimals: u8,
-    /// The deposited amount in native units.
-    pub deposited_amount: u64,
+    #[index]
+    pub redeemable_amount_under_management_cap: u128,
 }
 
-/// Event called in [instructions::mango_dex::withdraw_insurance_from_mango_depository::handler].
+/// Event called in [instructions::edit_*_depository::handler].
 #[event]
-pub struct WithdrawInsuranceFromMangoDepositoryEvent {
-    /// The controller version.
+pub struct SetDepositoryMintingFeeInBpsEvent {
     #[index]
     pub version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The insurance mint.
-    pub insurance_mint: Pubkey,
-    /// The insurance mint decimals.
-    pub insurance_mint_decimals: u8,
-    /// The withdrawn amount in native units.
-    pub withdrawn_amount: u64,
+    #[index]
+    pub minting_fee_in_bps: u8,
 }
 
-/// Event called in [instructions::*_dex::withdraw_insurance_from_*_depository::handler].
+/// Event called in [instructions::edit_*_depository::handler].
 #[event]
-pub struct WithdrawInsuranceFromDepositoryEvent {
-    /// The controller version.
+pub struct SetDepositoryRedeemingFeeInBpsEvent {
     #[index]
     pub version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The insurance mint.
-    pub quote_mint: Pubkey,
-    /// The insurance mint decimals.
-    pub quote_mint_decimals: u8,
-    /// The withdrawn amount in native units.
-    pub withdrawn_amount: u64,
+    #[index]
+    pub redeeming_fee_in_bps: u8,
 }
 
-/// Event called in [instructions::mango_dex::mint_with_mango_depository::handler].
+/// Event called in [instructions::edit_*_depository::handler].
 #[event]
-pub struct MintWithMangoDepositoryEvent {
+pub struct SetDepositoryMintingDisabledEvent {
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub minting_disabled: bool,
+}
+
+/// Event called in [instructions::initialize_identity_depository::handler].
+#[event]
+pub struct InitializeIdentityDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,
-    /// The controller.
+    #[index]
+    pub depository_version: u8,
     #[index]
     pub controller: Pubkey,
-    /// The depository.
+    #[index]
+    pub depository: Pubkey,
+    pub collateral_mint: Pubkey,
+}
+
+/// Event called in [instructions::mint_with_identity_depository::handler].
+#[event]
+pub struct MintWithIdentityDepositoryEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
     /// The user making the call.
@@ -167,24 +126,16 @@ pub struct MintWithMangoDepositoryEvent {
     pub user: Pubkey,
     /// The collateral amount in native units. (input)
     pub collateral_amount: u64,
-    /// The user provided limit_price. (input)
-    pub limit_price: f32,
-    /// The different deltas after successful minting operation.
-    pub base_delta: i64,
-    pub quote_delta: i64,
-    pub fee_delta: i64,
 }
 
-/// Event called in [instructions::mango_dex::redeem_from_mango_depository::handler].
+/// Event called in [instructions::redeem_from_identity_depository::handler].
 #[event]
-pub struct RedeemFromMangoDepositoryEvent {
+pub struct RedeemFromIdentityDepositoryEvent {
     /// The controller version.
     #[index]
     pub version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
     /// The user making the call.
@@ -192,130 +143,89 @@ pub struct RedeemFromMangoDepositoryEvent {
     pub user: Pubkey,
     /// The redeemable amount in native units. (input)
     pub redeemable_amount: u64,
-    /// The user provided limit_price. (input)
-    pub limit_price: f32,
-    /// The different deltas after successful minting operation.
-    pub base_delta: i64,
-    pub quote_delta: i64,
-    pub fee_delta: i64,
 }
 
-/// Event called in [instructions::rebalance_mango_depository_lite::handler].
+/// Event called in [instructions::register_credix_lp_depository::handler].
 #[event]
-pub struct RebalanceMangoDepositoryLiteEvent {
-    /// The controller version.
+pub struct RegisterCredixLpDepositoryEvent {
     #[index]
-    pub version: u8,
-    /// The depository version.
+    pub controller_version: u8,
     #[index]
     pub depository_version: u8,
-    /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The user making the call.
+    pub collateral_mint: Pubkey,
+    pub credix_global_market_state: Pubkey,
+}
+
+/// Event called in [instructions::mint_with_credix_lp_depository::handler].
+#[event]
+pub struct MintWithCredixLpDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
     #[index]
     pub user: Pubkey,
-    /// The polarity of the rebalancing operation. (input)
-    pub polarity: PnlPolarity,
-    /// The desired rebalancing amount in Quote native units. (input)
-    pub rebalancing_amount: u64,
-    /// The actual rebalancing amount in Quote native units.
-    pub rebalanced_amount: u64,
-    /// The user provided limit_price. (input)
-    pub limit_price: f32,
-    /// The different deltas after successful rebalancing operation.
-    pub base_delta: i64,
-    pub quote_delta: i64,
-    pub fee_delta: i64,
+    /// The collateral amount in native units. (input)
+    pub collateral_amount: u64,
+    /// The redeemable issued in native units. (output)
+    pub redeemable_amount: u64,
+    /// The fees paid in native units.
+    pub minting_fee_paid: u64,
 }
 
-/// Event called in [instructions::set_mango_depository_quote_mint_and_redeem_soft_cap::handler].
+/// Event called in [instructions::redeem_from_credix_lp_depository::handler].
 #[event]
-pub struct SetMangoDepositoryQuoteMintAndRedeemSoftCapEvent {
-    /// The controller version.
+pub struct RedeemFromCredixLpDepositoryEvent {
     #[index]
-    pub version: u8,
-    /// The controller.
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
     #[index]
     pub controller: Pubkey,
-    /// The new quote mint and redeem soft cap
-    pub quote_mint_and_redeem_soft_cap: u64,
-}
-
-/// Event called in [instructions::set_mango_depository_quote_mint_and_redeem_fee::handler].
-#[event]
-pub struct SetMangoDepositoryQuoteMintAndRedeemFeeEvent {
-    /// The controller version.
-    #[index]
-    pub version: u8,
-    /// The controller.
-    #[index]
-    pub controller: Pubkey,
-    /// The depository.
     #[index]
     pub depository: Pubkey,
-    /// The quote mint and redeem fee.
-    #[index]
-    pub quote_mint_and_redeem_fee: u8,
-}
-
-/// Event called in [instructions::mango_dex::quote_redeem_from_mango_depository::handler].
-#[event]
-pub struct QuoteRedeemFromMangoDepositoryEvent {
-    /// The controller version.
-    #[index]
-    pub version: u8,
-    /// The controller.
-    #[index]
-    pub controller: Pubkey,
-    /// The depository.
-    #[index]
-    pub depository: Pubkey,
-    /// The user making the call.
     #[index]
     pub user: Pubkey,
-    /// The quote redeemable amount in native units. (input)
-    pub quote_redeemable_amount: u64,
-    /// The total fee from this quote redeem
-    pub quote_redeem_fee: u64,
+    /// The collateral amount in native units. (output)
+    pub collateral_amount: u64,
+    /// The redeemable issued in native units. (input)
+    pub redeemable_amount: u64,
+    /// The fees paid in native units.
+    pub redeeming_fee_paid: u64,
 }
 
-/// Event called in [instructions::mango_dex::quote_mint_with_mango_depository::handler].
+/// Event called in [instructions::collect_profit_of_credix_lp_depository::handler].
 #[event]
-pub struct QuoteMintWithMangoDepositoryEvent {
+pub struct CollectProfitOfCredixLpDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    /// The collateral amount in native units. (output)
+    pub collateral_amount: u64,
+}
+
+/// Event called in [instructions::freeze_program::handler].
+#[event]
+pub struct FreezeProgramEvent {
     /// The controller version.
     #[index]
     pub version: u8,
     /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The depository.
-    #[index]
-    pub depository: Pubkey,
-    /// The user making the call.
-    #[index]
-    pub user: Pubkey,
-    /// The quote mint amount in native units. (input)
-    pub quote_mint_amount: u64,
-    /// The total fee from this quote mint
-    pub quote_mint_fee: u64,
-}
-
-/// Event called in [instructions::*_dex::disable_depository_regular_minting::handler].
-#[event]
-pub struct DisableDepositoryRegularMintingEvent {
-    /// The controller version.
-    #[index]
-    pub version: u8,
-    /// The controller.
-    #[index]
-    pub controller: Pubkey,
-    /// The depository.
-    #[index]
-    pub depository: Pubkey,
-    /// The state of the depository regular minting
-    pub regular_minting_disabled: bool,
+    /// is program frozen
+    pub is_frozen: bool,
 }

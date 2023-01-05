@@ -1,23 +1,21 @@
-import { getConnection, TXN_OPTS } from "./connection";
-import { uxdClient } from "./constants";
-import { Keypair, Signer, Transaction } from "@solana/web3.js";
-import { NATIVE_MINT } from "@solana/spl-token";
-import { createAssociatedTokenAccountItx, prepareWrappedSolTokenAccount } from "./utils";
+import { getConnection, TXN_OPTS } from './connection';
+import { uxdClient } from './constants';
+import { Signer, Transaction } from '@solana/web3.js';
 import {
-  MangoDepository,
-  Mango,
   Controller,
-  PnLPolarity,
   createAssocTokenIx,
   findATAAddrSync,
-  uiToNative,
-} from "@uxd-protocol/uxd-client";
-import { web3 } from "@project-serum/anchor";
-import { Payer } from "@blockworks-foundation/mango-client";
+  MercurialVaultDepository,
+  IdentityDepository,
+  CredixLpDepository,
+} from '@uxd-protocol/uxd-client';
+import { web3 } from '@project-serum/anchor';
 
-// Permissionned Calls --------------------------------------------------------
-
-export async function initializeController(authority: Signer, payer: Signer, controller: Controller): Promise<string> {
+export async function initializeController(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller
+): Promise<string> {
   const initControllerIx = uxdClient.createInitializeControllerInstruction(
     controller,
     authority.publicKey,
@@ -37,364 +35,117 @@ export async function initializeController(authority: Signer, payer: Signer, con
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function registerMangoDepository(
+export async function mintWithMercurialVaultDepository(
   authority: Signer,
   payer: Signer,
   controller: Controller,
-  depository: MangoDepository,
-  mango: Mango
+  depository: MercurialVaultDepository,
+  collateralAmount: number
 ): Promise<string> {
-  const registerMangoDepositoryIx = uxdClient.createRegisterMangoDepositoryInstruction(
-    controller,
-    depository,
-    mango,
-    authority.publicKey,
-    TXN_OPTS,
-    payer.publicKey
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  tx.instructions.push(registerMangoDepositoryIx);
-  signers.push(authority);
-  if (payer) {
-    signers.push(payer);
-  }
-  tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function depositInsuranceToMangoDepository(
-  authority: Signer,
-  amount: number,
-  controller: Controller,
-  depository: MangoDepository,
-  mango: Mango
-): Promise<string> {
-  const depositInsuranceToMangoDepositoryIx = uxdClient.createDepositInsuranceToMangoDepositoryInstruction(
-    amount,
-    controller,
-    depository,
-    mango,
-    authority.publicKey,
-    TXN_OPTS
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  tx.instructions.push(depositInsuranceToMangoDepositoryIx);
-  signers.push(authority);
-
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function withdrawInsuranceFromMangoDepository(
-  amount: number,
-  authority: Signer,
-  controller: Controller,
-  depository: MangoDepository,
-  mango: Mango
-): Promise<string> {
-  const withdrawInsuranceFromMangoDepository = uxdClient.createWithdrawInsuranceFromMangoDepositoryInstruction(
-    amount,
-    controller,
-    depository,
-    mango,
-    authority.publicKey,
-    TXN_OPTS
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  const authorityQuoteAta = findATAAddrSync(authority.publicKey, depository.quoteMint)[0];
-  if (!(await getConnection().getAccountInfo(authorityQuoteAta))) {
-    const createUserQuoteAtaIx = createAssocTokenIx(authority.publicKey, authorityQuoteAta, depository.quoteMint);
-    tx.add(createUserQuoteAtaIx);
-  }
-
-  tx.instructions.push(withdrawInsuranceFromMangoDepository);
-  signers.push(authority);
-
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function setRedeemableGlobalSupplyCap(
-  authority: Signer,
-  controller: Controller,
-  supplyCapUiAmount: number
-): Promise<string> {
-  const setRedeemableGlobalSupplyCapIx = uxdClient.createSetRedeemableGlobalSupplyCapInstruction(
-    controller,
-    authority.publicKey,
-    supplyCapUiAmount,
-    TXN_OPTS
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  tx.instructions.push(setRedeemableGlobalSupplyCapIx);
-  signers.push(authority);
-
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function setMangoDepositoriesRedeemableSoftCap(
-  authority: Signer,
-  controller: Controller,
-  supplySoftCapUiAmount: number
-): Promise<string> {
-  const setMangoDepositoriesRedeemableSoftCapIx = uxdClient.createSetMangoDepositoriesRedeemableSoftCapInstruction(
-    controller,
-    authority.publicKey,
-    supplySoftCapUiAmount,
-    TXN_OPTS
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  tx.instructions.push(setMangoDepositoriesRedeemableSoftCapIx);
-  signers.push(authority);
-
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-// Permissionless Calls -------------------------------------------------------
-
-export async function mintWithMangoDepository(
-  user: Signer,
-  payer: Signer,
-  slippage: number,
-  collateralAmount: number,
-  controller: Controller,
-  depository: MangoDepository,
-  mango: Mango
-): Promise<string> {
-  const mintWithMangoDepositoryIx = await uxdClient.createMintWithMangoDepositoryInstruction(
-    collateralAmount,
-    slippage,
-    controller,
-    depository,
-    mango,
-    user.publicKey,
-    TXN_OPTS,
-    payer.publicKey
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
-  if (!(await getConnection().getAccountInfo(userRedeemableAta))) {
-    const createUserRedeemableAtaIx = createAssociatedTokenAccountItx(
-      payer.publicKey,
-      user.publicKey,
-      controller.redeemableMintPda
-    );
-    tx.add(createUserRedeemableAtaIx);
-  }
-
-  if (depository.collateralMint.equals(NATIVE_MINT)) {
-    const nativeAmount = uiToNative(collateralAmount, depository.collateralMintDecimals);
-    const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
-      getConnection(),
-      payer.publicKey,
-      user.publicKey,
-      nativeAmount.toNumber()
-    );
-    tx.add(...prepareWrappedSolIxs);
-  } else {
-    const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
-    if (!(await getConnection().getAccountInfo(userCollateralAta))) {
-      const createUserCollateralAtaIx = createAssocTokenIx(
-        user.publicKey,
-        userCollateralAta,
-        depository.collateralMint
-      );
-      tx.add(createUserCollateralAtaIx);
-    }
-  }
-
-  tx.add(mintWithMangoDepositoryIx);
-  signers.push(user);
-  if (payer) {
-    signers.push(payer);
-  }
-  tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function quoteMintWithMangoDepository(
-  user: Signer,
-  payer: Signer,
-  quoteAmount: number,
-  controller: Controller,
-  depository: MangoDepository,
-  mango: Mango
-): Promise<string> {
-  const quoteMintWithMangoDepositoryIx = uxdClient.createQuoteMintWithMangoDepositoryInstruction(
-    quoteAmount,
-    controller,
-    depository,
-    mango,
-    user.publicKey,
-    TXN_OPTS,
-    payer.publicKey
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
-  if (!(await getConnection().getAccountInfo(userRedeemableAta))) {
-    const createRedeemableAtaIx = createAssocTokenIx(user.publicKey, userRedeemableAta, controller.redeemableMintPda);
-    tx.add(createRedeemableAtaIx);
-  }
-
-  tx.add(quoteMintWithMangoDepositoryIx);
-  signers.push(user);
-  if (payer) {
-    signers.push(payer);
-  }
-  tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function redeemFromMangoDepository(
-  user: Signer,
-  payer: Signer,
-  slippage: number,
-  amountRedeemable: number,
-  controller: Controller,
-  depository: MangoDepository,
-  mango: Mango
-): Promise<string> {
-  const redeemFromMangoDepositoryIx = await uxdClient.createRedeemFromMangoDepositoryInstruction(
-    amountRedeemable,
-    slippage,
-    controller,
-    depository,
-    mango,
-    user.publicKey,
-    TXN_OPTS,
-    payer.publicKey
-  );
-
-  let signers = [];
-  let tx = new Transaction();
-
-  const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
-  if (!(await getConnection().getAccountInfo(userCollateralAta))) {
-    const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
-    tx.add(createUserCollateralAtaIx);
-  }
-
-  const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
-  if (!(await getConnection().getAccountInfo(userRedeemableAta))) {
-    const createUserRedeemableAtaIx = createAssocTokenIx(
-      user.publicKey,
-      userRedeemableAta,
-      controller.redeemableMintPda
-    );
-    tx.add(createUserRedeemableAtaIx);
-  }
-
-  tx.add(redeemFromMangoDepositoryIx);
-  signers.push(user);
-  if (payer) {
-    signers.push(payer);
-  }
-
-  tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function quoteRedeemFromMangoDepository(
-  user: Signer,
-  payer: Signer,
-  redeemableAmount: number,
-  controller: Controller,
-  depository: MangoDepository,
-  mango: Mango
-): Promise<string> {
-  const quoteRedeemFromMangoDepositoryIx = uxdClient.createQuoteRedeemWithMangoDepositoryInstruction(
-    redeemableAmount,
-    controller,
-    depository,
-    mango,
-    user.publicKey,
-    TXN_OPTS,
-    payer.publicKey
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  const userRedeemableAta = findATAAddrSync(user.publicKey, controller.redeemableMintPda)[0];
-  if (!(await getConnection().getAccountInfo(userRedeemableAta))) {
-    const createUserRedeemableAtaIx = createAssocTokenIx(
-      user.publicKey,
-      userRedeemableAta,
-      controller.redeemableMintPda
-    );
-    tx.add(createUserRedeemableAtaIx);
-  }
-
-  const userQuoteATA = findATAAddrSync(user.publicKey, depository.quoteMint)[0];
-  if (!(await getConnection().getAccountInfo(userQuoteATA))) {
-    const createUserQuoteAtaIx = createAssocTokenIx(user.publicKey, userQuoteATA, depository.quoteMint);
-    tx.add(createUserQuoteAtaIx);
-  }
-
-  await depository.settleMangoDepositoryMangoAccountPnl(payer as Payer, mango);
-
-  tx.add(quoteRedeemFromMangoDepositoryIx);
-  signers.push(user);
-  if (payer) {
-    signers.push(payer);
-  }
-  tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function setMangoDepositoryQuoteMintAndRedeemFee(
-  authority: Signer,
-  controller: Controller,
-  depository: MangoDepository,
-  quoteFee: number
-): Promise<string> {
-  const setMangoDepositoryQuoteMintAndRedeemFeeIx = uxdClient.createSetMangoDepositoryQuoteMintAndRedeemFeeInstruction(
-    quoteFee,
-    controller,
-    depository,
-    authority.publicKey,
-    TXN_OPTS
-  );
-  let signers = [];
-  let tx = new Transaction();
-
-  tx.instructions.push(setMangoDepositoryQuoteMintAndRedeemFeeIx);
-  signers.push(authority);
-
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-export async function setMangoDepositoryQuoteMintAndRedeemSoftCap(
-  authority: Signer,
-  controller: Controller,
-  depository: MangoDepository,
-  quoteMintAndRedeemSoftCap: number
-): Promise<string> {
-  const setMangoDepositoryQuoteMintAndRedeemSoftCapIx =
-    uxdClient.createSetMangoDepositoryQuoteMintAndRedeemSoftCapInstruction(
-      quoteMintAndRedeemSoftCap,
+  const mintWithMercurialVaultDepositoryIx =
+    uxdClient.createMintWithMercurialVaultDepositoryInstruction(
       controller,
       depository,
       authority.publicKey,
-      TXN_OPTS
+      collateralAmount,
+      TXN_OPTS,
+      payer.publicKey
     );
   let signers = [];
   let tx = new Transaction();
 
-  tx.instructions.push(setMangoDepositoryQuoteMintAndRedeemSoftCapIx);
-  signers.push(authority);
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
 
+  tx.add(mintWithMercurialVaultDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function redeemFromMercurialVaultDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: MercurialVaultDepository,
+  redeemableAmount: number
+): Promise<string> {
+  const redeemFromMercurialVaultDepositoryIx =
+    uxdClient.createRedeemFromMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      redeemableAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(redeemFromMercurialVaultDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function registerMercurialVaultDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: MercurialVaultDepository,
+  mintingFeeInBps: number,
+  redeemingFeeInBps: number,
+  redeemableAmountUnderManagementCap: number
+): Promise<string> {
+  const registerMercurialVaultDepositoryIx =
+    uxdClient.createRegisterMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      mintingFeeInBps,
+      redeemingFeeInBps,
+      redeemableAmountUnderManagementCap,
+      TXN_OPTS,
+      payer.publicKey
+    );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(registerMercurialVaultDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
@@ -402,11 +153,6 @@ export async function editController(
   authority: Signer,
   controller: Controller,
   uiFields: {
-    quoteMintAndRedeemSoftCap?: {
-      value: number;
-      depository: MangoDepository;
-    };
-    redeemableSoftCap?: number;
     redeemableGlobalSupplyCap?: number;
   }
 ): Promise<string> {
@@ -425,178 +171,365 @@ export async function editController(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function rebalanceMangoDepositoryLite(user: Signer, payer: Signer, rebalancingMaxAmountQuote: number, polarity: PnLPolarity, slippage: number, controller: Controller, depository: MangoDepository, mango: Mango): Promise<string> {
-    const rebalanceMangoDepositoryLiteIx = await uxdClient.createRebalanceMangoDepositoryLiteInstruction(rebalancingMaxAmountQuote, slippage, polarity, controller, depository, mango, user.publicKey, TXN_OPTS, payer.publicKey);
-    let signers = [];
-    let tx = new Transaction();
-
-    // Only when polarity is positive this is required 
-    // - Negative polarity sends QUOTE, gets COLLATERAL back.
-    // - Positive polarity sends COLLATERAL, gets QUOTE back.
-    if (polarity == PnLPolarity.Positive && depository.collateralMint.equals(NATIVE_MINT)) {
-        const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
-        const rebalancingMaxAmountCollateral = rebalancingMaxAmountQuote / mangoPerpPrice;
-        const nativeAmount = uiToNative(rebalancingMaxAmountCollateral, depository.collateralMintDecimals);
-        const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
-            getConnection(),
-            payer.publicKey,
-            user.publicKey,
-            nativeAmount.toNumber()
-        );
-        tx.add(...prepareWrappedSolIxs);
-    }
-
-    const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
-
-    if (!await getConnection().getAccountInfo(userCollateralAta)) {
-        const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
-        tx.add(createUserCollateralAtaIx);
-    }
-
-    const userQuoteATA = findATAAddrSync(user.publicKey, depository.quoteMint)[0];
-
-    if (!await getConnection().getAccountInfo(userQuoteATA)) {
-        const createUserQuoteAtaIx = createAssocTokenIx(user.publicKey, userQuoteATA, depository.quoteMint);
-        tx.add(createUserQuoteAtaIx);
-    }
-
-    signers.push(user);
-    if (payer) {
-        signers.push(payer);
-    }
-    tx.feePayer = payer.publicKey;
-    await web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-
-    tx = new Transaction();
-    tx.add(rebalanceMangoDepositoryLiteIx);
-    tx.feePayer = payer.publicKey;
-    let txId = web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-
-    // PNL should be settled afterward to ensure we have no "borrow" to prevent paying interests
-    // const settlePnlTxID = await settleDepositoryPnl(payer, depository, mango);
-    // console.log("🔗 depository PnL settlement Tx:", `'https://explorer.solana.com/tx/${settlePnlTxID}?cluster=${CLUSTER}'`);
-
-    return txId;
-}
-
-export async function editMangoDepository(
+export async function editMercurialVaultDepository(
   authority: Signer,
   controller: Controller,
-  depository: MangoDepository,
+  depository: MercurialVaultDepository,
   uiFields: {
-    quoteMintAndRedeemFee?: number;
+    redeemableAmountUnderManagementCap?: number;
+    mintingFeeInBps?: number;
+    redeemingFeeInBps?: number;
+    mintingDisabled?: boolean;
   }
 ): Promise<string> {
-  const editMangoDepositoryIx = uxdClient.createEditMangoDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    uiFields,
-    TXN_OPTS
-  );
+  const editMercurialVaultDepositoryIx =
+    uxdClient.createEditMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      uiFields,
+      TXN_OPTS
+    );
   let signers = [];
   let tx = new Transaction();
 
-  tx.instructions.push(editMangoDepositoryIx);
+  tx.instructions.push(editMercurialVaultDepositoryIx);
   signers.push(authority);
 
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function rebalanceMangoDepositoryLite(
-  user: Signer,
-  payer: Signer,
-  rebalancingMaxAmountQuote: number,
-  polarity: PnLPolarity,
-  slippage: number,
+export async function editIdentityDepository(
+  authority: Signer,
   controller: Controller,
-  depository: MangoDepository,
-  mango: Mango
+  depository: IdentityDepository,
+  uiFields: {
+    redeemableAmountUnderManagementCap?: number;
+    mintingDisabled?: boolean;
+  }
 ): Promise<string> {
-  const rebalanceMangoDepositoryLiteIx = await uxdClient.createRebalanceMangoDepositoryLiteInstruction(
-    rebalancingMaxAmountQuote,
-    slippage,
-    polarity,
-    controller,
-    depository,
-    mango,
-    user.publicKey,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const editIdentityDepositoryIx =
+    uxdClient.createEditIdentityDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      uiFields,
+      TXN_OPTS
+    );
   let signers = [];
   let tx = new Transaction();
 
-  // Only when polarity is positive this is required
-  // - Negative polarity sends QUOTE, gets COLLATERAL back.
-  // - Positive polarity sends COLLATERAL, gets QUOTE back.
-  if (polarity == PnLPolarity.Positive && depository.collateralMint.equals(NATIVE_MINT)) {
-    const mangoPerpPrice = await depository.getCollateralPerpPriceUI(mango);
-    // Transfer extra collateral to ensure there are enough due to price change
-    const rebalancingMaxAmountCollateral = (rebalancingMaxAmountQuote / mangoPerpPrice) * 1.01;
-    const nativeAmount = uiToNative(rebalancingMaxAmountCollateral, depository.collateralMintDecimals);
-    const prepareWrappedSolIxs = await prepareWrappedSolTokenAccount(
-      getConnection(),
-      payer.publicKey,
-      user.publicKey,
-      nativeAmount.toNumber()
+  tx.instructions.push(editIdentityDepositoryIx);
+  signers.push(authority);
+
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function initializeIdentityDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: IdentityDepository
+): Promise<string> {
+  const initializeIdentityDepositoryIx =
+    uxdClient.createInitializeIdentityDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      TXN_OPTS,
+      payer.publicKey
     );
-    tx.add(...prepareWrappedSolIxs);
-  }
+  let signers = [];
+  let tx = new Transaction();
 
-  const userCollateralAta = findATAAddrSync(user.publicKey, depository.collateralMint)[0];
-
-  if (!(await getConnection().getAccountInfo(userCollateralAta)) && !depository.collateralMint.equals(NATIVE_MINT)) {
-    const createUserCollateralAtaIx = createAssocTokenIx(user.publicKey, userCollateralAta, depository.collateralMint);
-    tx.add(createUserCollateralAtaIx);
-  }
-
-  const userQuoteATA = findATAAddrSync(user.publicKey, depository.quoteMint)[0];
-
-  if (!(await getConnection().getAccountInfo(userQuoteATA))) {
-    const createUserQuoteAtaIx = createAssocTokenIx(user.publicKey, userQuoteATA, depository.quoteMint);
-    tx.add(createUserQuoteAtaIx);
-  }
-
-  signers.push(user);
+  tx.instructions.push(initializeIdentityDepositoryIx);
+  signers.push(authority);
   if (payer) {
     signers.push(payer);
   }
-  tx.add(rebalanceMangoDepositoryLiteIx);
   tx.feePayer = payer.publicKey;
-  let txId = web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-
-  // PNL should be settled afterward to ensure we have no "borrow" to prevent paying interests
-  // const settlePnlTxID = await settleDepositoryPnl(payer, depository, mango);
-  // console.log("🔗 depository PnL settlement Tx:", `'https://explorer.solana.com/tx/${settlePnlTxID}?cluster=${CLUSTER}'`);
-
-  return txId;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function disableDepositoryRegularMinting(
+export async function mintWithIdentityDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: IdentityDepository,
+  collateralAmount: number
+): Promise<string> {
+  const mintWithIdentityDepositoryIx =
+    uxdClient.createMintWithIdentityDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      collateralAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(mintWithIdentityDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function redeemFromIdentityDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: IdentityDepository,
+  redeemableAmount: number
+): Promise<string> {
+  const redeemFromIdentityDepositoryIx =
+    uxdClient.createRedeemFromIdentityDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      redeemableAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(redeemFromIdentityDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function registerCredixLpDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: CredixLpDepository,
+  mintingFeeInBps: number,
+  redeemingFeeInBps: number,
+  redeemableAmountUnderManagementCap: number
+): Promise<string> {
+  const registerCredixLpDepositoryIx =
+    uxdClient.createRegisterCredixLpDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      mintingFeeInBps,
+      redeemingFeeInBps,
+      redeemableAmountUnderManagementCap,
+      TXN_OPTS,
+      payer.publicKey
+    );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(registerCredixLpDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function mintWithCredixLpDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: CredixLpDepository,
+  collateralAmount: number
+): Promise<string> {
+  const mintWithCredixLpDepositoryIx =
+    uxdClient.createMintWithCredixLpDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      collateralAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
+    tx.add(createUserRedeemableAtaIx);
+  }
+
+  tx.add(mintWithCredixLpDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function redeemFromCredixLpDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: CredixLpDepository,
+  redeemableAmount: number
+): Promise<string> {
+  const redeemFromCredixLpDepositoryIx =
+    uxdClient.createRedeemFromCredixLpDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      redeemableAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityCollateralAta] = findATAAddrSync(
+    authority.publicKey,
+    depository.collateralMint
+  );
+  if (!(await getConnection().getAccountInfo(authorityCollateralAta))) {
+    const createUserCollateralAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityCollateralAta,
+      depository.collateralMint
+    );
+    tx.add(createUserCollateralAtaIx);
+  }
+
+  tx.add(redeemFromCredixLpDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function collectProfitOfCredixLpDepository(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller,
+  depository: CredixLpDepository
+): Promise<string> {
+  const collectProfitOfCredixLpDepositoryIx =
+    uxdClient.createCollectProfitOfCredixLpDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      TXN_OPTS,
+      payer.publicKey
+    );
+  let signers = [];
+  let tx = new Transaction();
+
+  const [authorityCollateralAta] = findATAAddrSync(
+    authority.publicKey,
+    depository.collateralMint
+  );
+  if (!(await getConnection().getAccountInfo(authorityCollateralAta))) {
+    const createUserCollateralAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityCollateralAta,
+      depository.collateralMint
+    );
+    tx.add(createUserCollateralAtaIx);
+  }
+
+  tx.add(collectProfitOfCredixLpDepositoryIx);
+  signers.push(authority);
+  if (payer) {
+    signers.push(payer);
+  }
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function editCredixLpDepository(
   authority: Signer,
   controller: Controller,
-  depository: MangoDepository,
-  disableMinting: boolean
+  depository: CredixLpDepository,
+  uiFields: {
+    redeemableAmountUnderManagementCap?: number;
+    mintingFeeInBps?: number;
+    redeemingFeeInBps?: number;
+    mintingDisabled?: boolean;
+  }
 ): Promise<string> {
-  const disableDepositoryMintingIx = uxdClient.createDisableDepositoryRegularMintingInstruction(
-    disableMinting,
+  const editCredixLpDepositoryIx =
+    uxdClient.createEditCredixLpDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      uiFields,
+      TXN_OPTS
+    );
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.instructions.push(editCredixLpDepositoryIx);
+  signers.push(authority);
+
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function freezeProgram(
+  authority: Signer,
+  controller: Controller,
+  freeze: boolean
+): Promise<string> {
+  const freezeProgramIx = uxdClient.createFreezeProgramInstruction(
+    freeze,
     controller,
-    depository,
     authority.publicKey,
     TXN_OPTS
   );
   let signers = [];
   let tx = new Transaction();
 
-  tx.instructions.push(disableDepositoryMintingIx);
+  tx.instructions.push(freezeProgramIx);
   signers.push(authority);
 
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
-// Non UXD API calls ----------------------------------------------------------
-
-export async function settleDepositoryPnl(payer: Signer, depository: MangoDepository, mango: Mango): Promise<string> {
-  return depository.settleMangoDepositoryMangoAccountPnl(payer as Keypair, mango);
 }

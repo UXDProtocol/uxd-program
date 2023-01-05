@@ -1,38 +1,77 @@
 import {
-  Controller,
-  MangoDepository,
-  SOL_DECIMALS,
+  IdentityDepository,
+  MercurialVaultDepository,
   USDC_DECIMALS,
   USDC_DEVNET,
-  UXD_DECIMALS,
-  WSOL,
-} from "@uxd-protocol/uxd-client";
-import { authority, bank, uxdProgramId } from "./constants";
-import { controllerIntegrationSuiteParameters, controllerIntegrationSuite } from "./suite/controllerIntegrationSuite";
-import { mangoDepositorySetupSuite } from "./suite/depositorySetupSuite";
+} from '@uxd-protocol/uxd-client';
+import { Controller, UXD_DECIMALS } from '@uxd-protocol/uxd-client';
+import { getConnection } from './connection';
+import {
+  authority,
+  bank,
+  SOLEND_USDC_DEVNET,
+  SOLEND_USDC_DEVNET_DECIMALS,
+  uxdProgramId,
+} from './constants';
+import {
+  controllerIntegrationSuiteParameters,
+  controllerIntegrationSuite,
+} from './suite/controllerIntegrationSuite';
+import { identityDepositorySetupSuite } from './suite/identityDepositorySetup';
+import { mercurialVaultDepositorySetupSuite } from './suite/mercurialVaultDepositorySetup';
 
-const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
-const mangoDepositorySOL = new MangoDepository(
-  WSOL,
-  "SOL",
-  SOL_DECIMALS,
-  USDC_DEVNET,
-  "USDC",
-  USDC_DECIMALS,
-  uxdProgramId
-);
+(async () => {
+  const controllerUXD = new Controller('UXD', UXD_DECIMALS, uxdProgramId);
 
-beforeEach("\n", function () {
-  console.log("=============================================\n\n");
-});
+  beforeEach('\n', function () {
+    console.log('=============================================\n\n');
+  });
 
-describe("UXD Setup", function () {
-  describe("controllerIntegrationSuite", function () {
-    const params = new controllerIntegrationSuiteParameters(25_000_000, 500_000);
+  describe('controllerIntegrationSuite', function () {
+    const params = new controllerIntegrationSuiteParameters(25_000_000);
     controllerIntegrationSuite(authority, bank, controllerUXD, params);
   });
 
-  describe("mangoDepositorySetupSuite", function () {
-    mangoDepositorySetupSuite(authority, bank, controllerUXD, mangoDepositorySOL, 1_000);
+  const mercurialVaultDepository = await MercurialVaultDepository.initialize({
+    connection: getConnection(),
+    collateralMint: {
+      mint: SOLEND_USDC_DEVNET,
+      name: 'USDC',
+      symbol: 'USDC',
+      decimals: SOLEND_USDC_DEVNET_DECIMALS,
+    },
+    uxdProgramId,
   });
-});
+
+  const mintingFeeInBps = 0;
+  const redeemingFeeInBps = 5;
+  const uiRedeemableDepositorySupplyCap = 1_000;
+
+  describe('mercurialVaultDepositorySetupSuite', function () {
+    mercurialVaultDepositorySetupSuite(
+      authority,
+      bank,
+      controllerUXD,
+      mercurialVaultDepository,
+      mintingFeeInBps,
+      redeemingFeeInBps,
+      uiRedeemableDepositorySupplyCap
+    );
+  });
+
+  const identityDepository = new IdentityDepository(
+    USDC_DEVNET,
+    'USDC',
+    USDC_DECIMALS,
+    uxdProgramId
+  );
+
+  describe('identityDepositorySetupSuite', function () {
+    identityDepositorySetupSuite(
+      authority,
+      bank,
+      controllerUXD,
+      identityDepository
+    );
+  });
+})();
