@@ -1,8 +1,8 @@
-import { AnchorProvider } from "@project-serum/anchor";
-import { Commitment, Connection } from "@solana/web3.js";
+import { AnchorProvider } from '@project-serum/anchor';
+import { Commitment, Connection } from '@solana/web3.js';
 
 // TXN preflight checks options
-export const TXN_COMMIT: Commitment = "confirmed";
+export const TXN_COMMIT: Commitment = 'confirmed';
 
 export const TXN_OPTS = {
   commitment: TXN_COMMIT,
@@ -16,6 +16,9 @@ export function getConnection(): Connection {
     disableRetryOnRateLimit: false,
     confirmTransactionInitialTimeout: 60000,
   };
-  const connection = new Connection("https://mango.devnet.rpcpool.com", connectionConfig);
+  const connection = new Connection(
+    'https://mango.devnet.rpcpool.com',
+    connectionConfig
+  );
   return connection;
 }

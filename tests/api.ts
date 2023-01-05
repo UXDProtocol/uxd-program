@@ -1,6 +1,6 @@
-import { getConnection, TXN_OPTS } from "./connection";
-import { uxdClient } from "./constants";
-import { Signer, Transaction } from "@solana/web3.js";
+import { getConnection, TXN_OPTS } from './connection';
+import { uxdClient } from './constants';
+import { Signer, Transaction } from '@solana/web3.js';
 import {
   Controller,
   createAssocTokenIx,
@@ -8,10 +8,14 @@ import {
   MercurialVaultDepository,
   IdentityDepository,
   CredixLpDepository,
-} from "@uxd-protocol/uxd-client";
-import { BN, web3 } from "@project-serum/anchor";
+} from '@uxd-protocol/uxd-client';
+import { BN, web3 } from '@project-serum/anchor';
 
-export async function initializeController(authority: Signer, payer: Signer, controller: Controller): Promise<string> {
+export async function initializeController(
+  authority: Signer,
+  payer: Signer,
+  controller: Controller
+): Promise<string> {
   const initControllerIx = uxdClient.createInitializeControllerInstruction(
     controller,
     authority.publicKey,
@@ -38,18 +42,22 @@ export async function mintWithMercurialVaultDepository(
   depository: MercurialVaultDepository,
   collateralAmount: number
 ): Promise<string> {
-  const mintWithMercurialVaultDepositoryIx = uxdClient.createMintWithMercurialVaultDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    collateralAmount,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const mintWithMercurialVaultDepositoryIx =
+    uxdClient.createMintWithMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      collateralAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
   if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
       authority.publicKey,
@@ -75,18 +83,22 @@ export async function redeemFromMercurialVaultDepository(
   depository: MercurialVaultDepository,
   redeemableAmount: number
 ): Promise<string> {
-  const redeemFromMercurialVaultDepositoryIx = uxdClient.createRedeemFromMercurialVaultDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    redeemableAmount,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const redeemFromMercurialVaultDepositoryIx =
+    uxdClient.createRedeemFromMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      redeemableAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
   if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
       authority.publicKey,
@@ -114,16 +126,17 @@ export async function registerMercurialVaultDepository(
   redeemingFeeInBps: number,
   redeemableAmountUnderManagementCap: number
 ): Promise<string> {
-  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    mintingFeeInBps,
-    redeemingFeeInBps,
-    redeemableAmountUnderManagementCap,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const registerMercurialVaultDepositoryIx =
+    uxdClient.createRegisterMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      mintingFeeInBps,
+      redeemingFeeInBps,
+      redeemableAmountUnderManagementCap,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
@@ -169,13 +182,14 @@ export async function editMercurialVaultDepository(
     mintingDisabled?: boolean;
   }
 ): Promise<string> {
-  const editMercurialVaultDepositoryIx = uxdClient.createEditMercurialVaultDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    uiFields,
-    TXN_OPTS
-  );
+  const editMercurialVaultDepositoryIx =
+    uxdClient.createEditMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      uiFields,
+      TXN_OPTS
+    );
   let signers = [];
   let tx = new Transaction();
 
@@ -194,13 +208,14 @@ export async function editIdentityDepository(
     mintingDisabled?: boolean;
   }
 ): Promise<string> {
-  const editIdentityDepositoryIx = uxdClient.createEditIdentityDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    uiFields,
-    TXN_OPTS
-  );
+  const editIdentityDepositoryIx =
+    uxdClient.createEditIdentityDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      uiFields,
+      TXN_OPTS
+    );
   let signers = [];
   let tx = new Transaction();
 
@@ -216,13 +231,14 @@ export async function initializeIdentityDepository(
   controller: Controller,
   depository: IdentityDepository
 ): Promise<string> {
-  const initializeIdentityDepositoryIx = uxdClient.createInitializeIdentityDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const initializeIdentityDepositoryIx =
+    uxdClient.createInitializeIdentityDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
@@ -242,18 +258,22 @@ export async function mintWithIdentityDepository(
   depository: IdentityDepository,
   collateralAmount: number
 ): Promise<string> {
-  const mintWithIdentityDepositoryIx = uxdClient.createMintWithIdentityDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    collateralAmount,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const mintWithIdentityDepositoryIx =
+    uxdClient.createMintWithIdentityDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      collateralAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
   if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
       authority.publicKey,
@@ -279,18 +299,22 @@ export async function redeemFromIdentityDepository(
   depository: IdentityDepository,
   redeemableAmount: number
 ): Promise<string> {
-  const redeemFromIdentityDepositoryIx = uxdClient.createRedeemFromIdentityDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    redeemableAmount,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const redeemFromIdentityDepositoryIx =
+    uxdClient.createRedeemFromIdentityDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      redeemableAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
   if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
       authority.publicKey,
@@ -318,16 +342,17 @@ export async function registerCredixLpDepository(
   redeemingFeeInBps: number,
   redeemableAmountUnderManagementCap: number
 ): Promise<string> {
-  const registerCredixLpDepositoryIx = uxdClient.createRegisterCredixLpDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    mintingFeeInBps,
-    redeemingFeeInBps,
-    redeemableAmountUnderManagementCap,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const registerCredixLpDepositoryIx =
+    uxdClient.createRegisterCredixLpDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      mintingFeeInBps,
+      redeemingFeeInBps,
+      redeemableAmountUnderManagementCap,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
@@ -347,18 +372,22 @@ export async function mintWithCredixLpDepository(
   depository: CredixLpDepository,
   collateralAmount: number
 ): Promise<string> {
-  const mintWithCredixLpDepositoryIx = uxdClient.createMintWithCredixLpDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    collateralAmount,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const mintWithCredixLpDepositoryIx =
+    uxdClient.createMintWithCredixLpDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      collateralAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
   if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
       authority.publicKey,
@@ -384,18 +413,22 @@ export async function redeemFromCredixLpDepository(
   depository: CredixLpDepository,
   redeemableAmount: number
 ): Promise<string> {
-  const redeemFromCredixLpDepositoryIx = uxdClient.createRedeemFromCredixLpDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    redeemableAmount,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const redeemFromCredixLpDepositoryIx =
+    uxdClient.createRedeemFromCredixLpDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      redeemableAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityCollateralAta] = findATAAddrSync(authority.publicKey, depository.collateralMint);
+  const [authorityCollateralAta] = findATAAddrSync(
+    authority.publicKey,
+    depository.collateralMint
+  );
   if (!(await getConnection().getAccountInfo(authorityCollateralAta))) {
     const createUserCollateralAtaIx = createAssocTokenIx(
       authority.publicKey,
@@ -420,17 +453,21 @@ export async function collectProfitOfCredixLpDepository(
   controller: Controller,
   depository: CredixLpDepository
 ): Promise<string> {
-  const collectProfitOfCredixLpDepositoryIx = uxdClient.createCollectProfitOfCredixLpDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const collectProfitOfCredixLpDepositoryIx =
+    uxdClient.createCollectProfitOfCredixLpDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityCollateralAta] = findATAAddrSync(authority.publicKey, depository.collateralMint);
+  const [authorityCollateralAta] = findATAAddrSync(
+    authority.publicKey,
+    depository.collateralMint
+  );
   if (!(await getConnection().getAccountInfo(authorityCollateralAta))) {
     const createUserCollateralAtaIx = createAssocTokenIx(
       authority.publicKey,
@@ -460,13 +497,14 @@ export async function editCredixLpDepository(
     mintingDisabled?: boolean;
   }
 ): Promise<string> {
-  const editCredixLpDepositoryIx = uxdClient.createEditCredixLpDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    uiFields,
-    TXN_OPTS
-  );
+  const editCredixLpDepositoryIx =
+    uxdClient.createEditCredixLpDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      uiFields,
+      TXN_OPTS
+    );
   let signers = [];
   let tx = new Transaction();
 
@@ -476,8 +514,17 @@ export async function editCredixLpDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function freezeProgram(authority: Signer, controller: Controller, freeze: boolean): Promise<string> {
-  const freezeProgramIx = uxdClient.createFreezeProgramInstruction(freeze, controller, authority.publicKey, TXN_OPTS);
+export async function freezeProgram(
+  authority: Signer,
+  controller: Controller,
+  freeze: boolean
+): Promise<string> {
+  const freezeProgramIx = uxdClient.createFreezeProgramInstruction(
+    freeze,
+    controller,
+    authority.publicKey,
+    TXN_OPTS
+  );
   let signers = [];
   let tx = new Transaction();
 

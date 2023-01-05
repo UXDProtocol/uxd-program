@@ -1,9 +1,9 @@
-import { PublicKey, Signer } from "@solana/web3.js";
-import { findATAAddrSync } from "@uxd-protocol/uxd-client";
-import { Controller, CredixLpDepository } from "@uxd-protocol/uxd-client";
-import { collectProfitOfCredixLpDepositoryTest } from "../cases/collectProfitOfCredixLpDepositoryTest";
-import { editCredixLpDepositoryTest } from "../cases/editCredixLpDepositoryTest";
-import { registerCredixLpDepositoryTest } from "../cases/registerCredixLpDepositoryTest";
+import { PublicKey, Signer } from '@solana/web3.js';
+import { findATAAddrSync } from '@uxd-protocol/uxd-client';
+import { Controller, CredixLpDepository } from '@uxd-protocol/uxd-client';
+import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitOfCredixLpDepositoryTest';
+import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
+import { registerCredixLpDepositoryTest } from '../cases/registerCredixLpDepositoryTest';
 
 export const credixLpDepositorySetupSuite = function (
   authority: Signer,
@@ -30,8 +30,13 @@ export const credixLpDepositorySetupSuite = function (
   });
 
   it(`Collecting profit of credixLpDepository should work`, async function () {
-    console.log("[🧾 collectProfit]");
+    console.log('[🧾 collectProfit]');
 
-    await collectProfitOfCredixLpDepositoryTest(authority, controller, depository, payer);
+    await collectProfitOfCredixLpDepositoryTest(
+      authority,
+      controller,
+      depository,
+      payer
+    );
   });
 };

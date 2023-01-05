@@ -1,10 +1,15 @@
-import { Signer } from "@solana/web3.js";
-import { Controller, CredixLpDepository, findMultipleATAAddSync, nativeToUi } from "@uxd-protocol/uxd-client";
-import { expect } from "chai";
-import { collectProfitOfCredixLpDepository } from "../api";
-import { getConnection, TXN_OPTS } from "../connection";
-import { CLUSTER } from "../constants";
-import { getBalance } from "../utils";
+import { Signer } from '@solana/web3.js';
+import {
+  Controller,
+  CredixLpDepository,
+  findMultipleATAAddSync,
+  nativeToUi,
+} from '@uxd-protocol/uxd-client';
+import { expect } from 'chai';
+import { collectProfitOfCredixLpDepository } from '../api';
+import { getConnection, TXN_OPTS } from '../connection';
+import { CLUSTER } from '../constants';
+import { getBalance } from '../utils';
 
 export const collectProfitOfCredixLpDepositoryTest = async function (
   authority: Signer,
@@ -12,11 +17,15 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
   depository: CredixLpDepository,
   payer?: Signer
 ): Promise<number> {
-  console.group("🧭 collectProfitOfCredixLpDepositoryTest");
+  console.group('🧭 collectProfitOfCredixLpDepositoryTest');
 
   try {
     // GIVEN
-    const [authorityCollateralBalance_pre, onchainController_pre, onChainDepository_pre] = await Promise.all([
+    const [
+      authorityCollateralBalance_pre,
+      onchainController_pre,
+      onChainDepository_pre,
+    ] = await Promise.all([
       getBalance(depository.authorityCollateral),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
@@ -24,18 +33,31 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
 
     // WHEN
     // Simulates authority experience from the front end
-    const txId = await collectProfitOfCredixLpDepository(authority, payer ?? authority, controller, depository);
-    console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
+    const txId = await collectProfitOfCredixLpDepository(
+      authority,
+      payer ?? authority,
+      controller,
+      depository
+    );
+    console.log(
+      `🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`
+    );
 
     // THEN
-    const [authorityCollateralBalance_post, onchainController_post, onChainDepository_post] = await Promise.all([
+    const [
+      authorityCollateralBalance_post,
+      onchainController_post,
+      onChainDepository_post,
+    ] = await Promise.all([
       getBalance(depository.authorityCollateral),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
 
     const collateralDelta = Number(
-      (authorityCollateralBalance_post - authorityCollateralBalance_pre).toFixed(depository.collateralDecimals)
+      (
+        authorityCollateralBalance_post - authorityCollateralBalance_pre
+      ).toFixed(depository.collateralDecimals)
     );
 
     console.log(
@@ -48,10 +70,18 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
     expect(collateralDelta).gte(0);
 
     // Check depository accounting
-    expect(nativeToUi(onChainDepository_post.profitsTotalCollected, depository.collateralDecimals)).equal(
+    expect(
+      nativeToUi(
+        onChainDepository_post.profitsTotalCollected,
+        depository.collateralDecimals
+      )
+    ).equal(
       Number(
         (
-          nativeToUi(onChainDepository_pre.profitsTotalCollected, depository.collateralDecimals) + collateralDelta
+          nativeToUi(
+            onChainDepository_pre.profitsTotalCollected,
+            depository.collateralDecimals
+          ) + collateralDelta
         ).toFixed(depository.collateralDecimals)
       )
     );
@@ -60,7 +90,7 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
 
     return collateralDelta;
   } catch (error) {
-    console.error("❌", error);
+    console.error('❌', error);
     console.groupEnd();
     throw error;
   }

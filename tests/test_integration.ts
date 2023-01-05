@@ -1,21 +1,34 @@
-import { Keypair, Signer } from "@solana/web3.js";
-import { Controller, UXD_DECIMALS, MercurialVaultDepository } from "@uxd-protocol/uxd-client";
-import { authority, bank, SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS, uxdProgramId } from "./constants";
-import { transferAllSol, transferAllTokens, transferSol } from "./utils";
-import { controllerIntegrationSuite, controllerIntegrationSuiteParameters } from "./suite/controllerIntegrationSuite";
-import { mercurialVaultDepositorySetupSuite } from "./suite/mercurialVaultDepositorySetup";
-import { mercurialVaultDepositoryMintRedeemSuite } from "./suite/mercurialVaultMintAndRedeemSuite";
-import { getConnection } from "./connection";
-import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDepositorySuite";
+import { Keypair, Signer } from '@solana/web3.js';
+import {
+  Controller,
+  UXD_DECIMALS,
+  MercurialVaultDepository,
+} from '@uxd-protocol/uxd-client';
+import {
+  authority,
+  bank,
+  SOLEND_USDC_DEVNET,
+  SOLEND_USDC_DEVNET_DECIMALS,
+  uxdProgramId,
+} from './constants';
+import { transferAllSol, transferAllTokens, transferSol } from './utils';
+import {
+  controllerIntegrationSuite,
+  controllerIntegrationSuiteParameters,
+} from './suite/controllerIntegrationSuite';
+import { mercurialVaultDepositorySetupSuite } from './suite/mercurialVaultDepositorySetup';
+import { mercurialVaultDepositoryMintRedeemSuite } from './suite/mercurialVaultMintAndRedeemSuite';
+import { getConnection } from './connection';
+import { editMercurialVaultDepositorySuite } from './suite/editMercurialVaultDepositorySuite';
 
 (async () => {
-  const controllerUXD = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
+  const controllerUXD = new Controller('UXD', UXD_DECIMALS, uxdProgramId);
 
-  beforeEach("\n", function () {
-    console.log("=============================================\n\n");
+  beforeEach('\n', function () {
+    console.log('=============================================\n\n');
   });
 
-  describe("UXD Controller Suite", function () {
+  describe('UXD Controller Suite', function () {
     const params = new controllerIntegrationSuiteParameters(25_000_000);
     controllerIntegrationSuite(authority, bank, controllerUXD, params);
   });
@@ -26,16 +39,16 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
     connection: getConnection(),
     collateralMint: {
       mint: SOLEND_USDC_DEVNET,
-      name: "USDC",
-      symbol: "USDC",
+      name: 'USDC',
+      symbol: 'USDC',
       decimals: SOLEND_USDC_DEVNET_DECIMALS,
     },
     uxdProgramId,
   });
 
-  describe("Mercurial vault integration tests: USDC", async function () {
-    this.beforeAll("Setup: fund user", async function () {
-      console.log("USER =>", user.publicKey.toString());
+  describe('Mercurial vault integration tests: USDC', async function () {
+    this.beforeAll('Setup: fund user', async function () {
+      console.log('USER =>', user.publicKey.toString());
       await transferSol(1, bank, user.publicKey);
     });
 
@@ -43,7 +56,7 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
     const redeemingFeeInBps = 5;
     const uiRedeemableDepositorySupplyCap = 1_000;
 
-    describe("mercurialVaultDepositorySetupSuite", function () {
+    describe('mercurialVaultDepositorySetupSuite', function () {
       mercurialVaultDepositorySetupSuite(
         authority,
         bank,
@@ -55,16 +68,33 @@ import { editMercurialVaultDepositorySuite } from "./suite/editMercurialVaultDep
       );
     });
 
-    describe("mercurialVaultDepositoryMintRedeemSuite", function () {
-      mercurialVaultDepositoryMintRedeemSuite(authority, user, bank, controllerUXD, mercurialVaultDepository);
+    describe('mercurialVaultDepositoryMintRedeemSuite', function () {
+      mercurialVaultDepositoryMintRedeemSuite(
+        authority,
+        user,
+        bank,
+        controllerUXD,
+        mercurialVaultDepository
+      );
     });
 
-    describe("editMercurialVaultDepositorySuite", function () {
-      editMercurialVaultDepositorySuite(authority, user, bank, controllerUXD, mercurialVaultDepository);
+    describe('editMercurialVaultDepositorySuite', function () {
+      editMercurialVaultDepositorySuite(
+        authority,
+        user,
+        bank,
+        controllerUXD,
+        mercurialVaultDepository
+      );
     });
 
-    this.afterAll("Transfer funds back to bank", async function () {
-      await transferAllTokens(SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS, user, bank.publicKey);
+    this.afterAll('Transfer funds back to bank', async function () {
+      await transferAllTokens(
+        SOLEND_USDC_DEVNET,
+        SOLEND_USDC_DEVNET_DECIMALS,
+        user,
+        bank.publicKey
+      );
       await transferAllSol(user, bank.publicKey);
     });
   });
