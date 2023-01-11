@@ -919,11 +919,6 @@ export type Uxd = {
       name: 'collectProfitOfCredixLpDepository'
       accounts: [
         {
-          name: 'user'
-          isMut: false
-          isSigner: true
-        },
-        {
           name: 'payer'
           isMut: true
           isSigner: true
@@ -3134,11 +3129,6 @@ export const IDL: Uxd = {
     {
       name: 'collectProfitOfCredixLpDepository',
       accounts: [
-        {
-          name: 'user',
-          isMut: false,
-          isSigner: true
-        },
         {
           name: 'payer',
           isMut: true,

@@ -26,17 +26,13 @@ export const credixLpDepositorySetupSuite = function (
     );
     await editCredixLpDepositoryTest(authority, controller, depository, {
       redeemableAmountUnderManagementCap: 25_000_000,
+      profitsBeneficiaryKey: payer.publicKey,
     });
   });
 
   it(`Collecting profit of credixLpDepository should work`, async function () {
     console.log('[🧾 collectProfit]');
 
-    await collectProfitOfCredixLpDepositoryTest(
-      authority,
-      controller,
-      depository,
-      payer
-    );
+    await collectProfitOfCredixLpDepositoryTest(payer, controller, depository);
   });
 };

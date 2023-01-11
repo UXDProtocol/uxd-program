@@ -23,13 +23,10 @@ use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 #[derive(Accounts)]
 pub struct CollectProfitOfCredixLpDepository<'info> {
     /// #1
-    pub user: Signer<'info>,
-
-    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// #3
+    /// #2
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -38,7 +35,7 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #4
+    /// #3
     #[account(
         mut,
         seeds = [
@@ -60,43 +57,43 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 
-    /// #5
+    /// #4
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #6
+    /// #5
     #[account(mut)]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #7
+    /// #6
     #[account(mut)]
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
-    /// #8
+    /// #7
     #[account(
         has_one = credix_multisig_key @UxdError::InvalidCredixMultisigKey,
     )]
     pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
 
-    /// #9
+    /// #8
     #[account(
         mut,
         constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
     )]
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 
-    /// #10
+    /// #9
     /// CHECK: unused by us, checked by credix
     pub credix_signing_authority: AccountInfo<'info>,
 
-    /// #11
+    /// #10
     #[account(mut)]
     pub credix_liquidity_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #12
+    /// #11
     #[account(mut)]
     pub credix_shares_mint: Box<Account<'info, Mint>>,
 
-    /// #13
+    /// #12
     #[account(
         mut,
         owner = credix_client::ID,
@@ -112,18 +109,18 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     )]
     pub credix_pass: Account<'info, credix_client::CredixPass>,
 
-    /// #14
+    /// #13
     #[account(
         mut,
         token::mint = collateral_mint,
     )]
     pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #15
+    /// #14
     /// CHECK: not used by us, checked by credix program
     pub credix_multisig_key: AccountInfo<'info>,
 
-    /// #16
+    /// #15
     #[account(
         mut,
         token::authority = credix_multisig_key,
@@ -131,11 +128,11 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     )]
     pub credix_multisig_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #17
+    /// #16
     /// CHECK: checked by the depository constraints, content not used
     pub profits_beneficiary_key: AccountInfo<'info>,
 
-    /// #18
+    /// #17
     #[account(
         mut,
         token::authority = profits_beneficiary_key,
@@ -143,15 +140,15 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     )]
     pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #19
+    /// #18
     pub system_program: Program<'info, System>,
-    /// #20
+    /// #19
     pub token_program: Program<'info, Token>,
-    /// #21
+    /// #20
     pub associated_token_program: Program<'info, AssociatedToken>,
-    /// #22
+    /// #21
     pub credix_program: Program<'info, credix_client::program::Credix>,
-    /// #23
+    /// #22
     pub rent: Sysvar<'info, Rent>,
 }
 
