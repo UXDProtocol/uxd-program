@@ -456,7 +456,7 @@ export async function collectProfitOfCredixLpDepository(
     uxdClient.createCollectProfitOfCredixLpDepositoryInstruction(
       controller,
       depository,
-      payer,
+      payer.publicKey,
       TXN_OPTS
     );
   let signers = [];

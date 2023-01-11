@@ -133,13 +133,13 @@ export const mintWithCredixLpDepositoryTest = async function (
     // Check depository accounting
     expect(
       nativeToUi(
-        onchainDepository_post.depositedCollateralAmount,
+        onchainDepository_post.collateralAmountDeposited,
         depository.collateralDecimals
       ).toFixed(depository.collateralDecimals)
     ).equal(
       (
         nativeToUi(
-          onchainDepository_pre.depositedCollateralAmount,
+          onchainDepository_pre.collateralAmountDeposited,
           depository.collateralDecimals
         ) + uiAmmountCollateralDeposited
       ).toFixed(depository.collateralDecimals)
