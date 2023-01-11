@@ -1,5 +1,10 @@
-import { Keypair, PublicKey, sendAndConfirmTransaction, Signer } from "@solana/web3.js";
-import mercurialVaultSdk from '@mercurial-finance/vault-sdk'
+import {
+  Keypair,
+  PublicKey,
+  sendAndConfirmTransaction,
+  Signer,
+} from '@solana/web3.js';
+import mercurialVaultSdk from '@mercurial-finance/vault-sdk';
 import {
   Controller,
   UXD_DECIMALS,
@@ -8,26 +13,32 @@ import {
   USDC_DEVNET,
   USDC_DECIMALS,
   findATAAddrSync,
-} from "@uxd-protocol/uxd-client";
-import { authority, bank, uxdProgramId, MERCURIAL_USDC_DEVNET, MERCURIAL_USDC_DEVNET_DECIMALS } from "./constants";
-import { transferAllSol, transferAllTokens, transferSol } from "./utils";
-import { initializeControllerTest } from "./cases/initializeControllerTest";
-import { identityDepositorySetupSuite } from "./suite/identityDepositorySetup";
-import { identityDepositoryMintRedeemSuite } from "./suite/identityDepositoryMintAndRedeemSuite";
-import { editIdentityDepositoryTest } from "./cases/editIdentityDepositoryTest";
-import { editIdentityDepositorySuite } from "./suite/editIdentityDepositorySuite";
-import { getConnection, TXN_OPTS } from "./connection";
-import { registerMercurialVaultDepositoryTest } from "./cases/registerMercurialVaultDepositoryTest";
-import { BN } from "@project-serum/anchor";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { VAULT_BASE_KEY } from "@mercurial-finance/vault-sdk/src/vault/constants";
-import { mercurialVaultNativeDeposit } from "./mercurial_vault_utils";
-import { mintWithMercurialVaultDepositoryTest } from "./cases/mintWithMercurialVaultDepositoryTest";
-import { redeemFromMercurialVaultDepositoryTest } from "./cases/redeemFromMercurialVaultDepositoryTest";
+} from '@uxd-protocol/uxd-client';
+import {
+  authority,
+  bank,
+  uxdProgramId,
+  MERCURIAL_USDC_DEVNET,
+  MERCURIAL_USDC_DEVNET_DECIMALS,
+} from './constants';
+import { transferAllSol, transferAllTokens, transferSol } from './utils';
+import { initializeControllerTest } from './cases/initializeControllerTest';
+import { identityDepositorySetupSuite } from './suite/identityDepositorySetup';
+import { identityDepositoryMintRedeemSuite } from './suite/identityDepositoryMintAndRedeemSuite';
+import { editIdentityDepositoryTest } from './cases/editIdentityDepositoryTest';
+import { editIdentityDepositorySuite } from './suite/editIdentityDepositorySuite';
+import { getConnection, TXN_OPTS } from './connection';
+import { registerMercurialVaultDepositoryTest } from './cases/registerMercurialVaultDepositoryTest';
+import { BN } from '@project-serum/anchor';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { VAULT_BASE_KEY } from '@mercurial-finance/vault-sdk/src/vault/constants';
+import { mercurialVaultNativeDeposit } from './mercurial_vault_utils';
+import { mintWithMercurialVaultDepositoryTest } from './cases/mintWithMercurialVaultDepositoryTest';
+import { redeemFromMercurialVaultDepositoryTest } from './cases/redeemFromMercurialVaultDepositoryTest';
 
 console.log(uxdProgramId.toString());
 
-const controller = new Controller("UXD", UXD_DECIMALS, uxdProgramId);
+const controller = new Controller('UXD', UXD_DECIMALS, uxdProgramId);
 const payer = bank;
 
 // Do not create the vault. We are building an object with utilities methods.
@@ -36,22 +47,22 @@ let identityDepository: IdentityDepository = null;
 
 let mintedRedeemableAmountWithMercurialVaultDepository = 0;
 
-beforeEach("\n", function () {
-  console.log("=============================================\n\n");
+beforeEach('\n', function () {
+  console.log('=============================================\n\n');
 });
 
-describe("Integration tests", function () {
+describe('Integration tests', function () {
   const user: Signer = new Keypair();
 
-  this.beforeAll("Init and fund user (10 SOL and 100 usdc)", async function () {
-    console.log("USER =>", user.publicKey.toString());
+  this.beforeAll('Init and fund user (10 SOL and 100 usdc)', async function () {
+    console.log('USER =>', user.publicKey.toString());
 
     await transferSol(1, bank, user.publicKey);
     // await transferTokens(0.001, SOLEND_USDC_DEVNET, SOLEND_USDC_DEVNET_DECIMALS, bank, user.publicKey);
   });
 
-  describe("Init", async function () {
-    it("Initialize Controller", async function () {
+  describe('Init', async function () {
+    it('Initialize Controller', async function () {
       await initializeControllerTest({
         authority,
         controller,
@@ -65,8 +76,8 @@ describe("Integration tests", function () {
         collateralMint: {
           mint: MERCURIAL_USDC_DEVNET,
           decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
-          symbol: "USDC",
-          name: "USDC",
+          symbol: 'USDC',
+          name: 'USDC',
         },
         uxdProgramId,
       });
@@ -103,7 +114,7 @@ describe("Integration tests", function () {
         mintingFeeInBps,
         redeemingFeeInBps,
         redeemableAmountUnderManagementCap,
-        payer
+        payer,
       });
     });
 
@@ -172,8 +183,13 @@ describe("Integration tests", function () {
   //   });
   // });
 
-  this.afterAll("Transfer funds back to bank", async function () {
-    await transferAllTokens(USDC_DEVNET, USDC_DECIMALS, authority, bank.publicKey);
+  this.afterAll('Transfer funds back to bank', async function () {
+    await transferAllTokens(
+      USDC_DEVNET,
+      USDC_DECIMALS,
+      authority,
+      bank.publicKey
+    );
     await transferAllSol(user, bank.publicKey);
   });
 });

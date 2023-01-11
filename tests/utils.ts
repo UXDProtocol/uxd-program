@@ -1,16 +1,32 @@
-import { SOL_DECIMALS, findATAAddrSync, nativeToUi, uiToNative } from "@uxd-protocol/uxd-client";
-import { PublicKey, Signer } from "@solana/web3.js";
-import * as anchor from "@project-serum/anchor";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { getConnection, TXN_COMMIT, TXN_OPTS } from "./connection";
+import {
+  SOL_DECIMALS,
+  findATAAddrSync,
+  nativeToUi,
+  uiToNative,
+} from '@uxd-protocol/uxd-client';
+import { PublicKey, Signer } from '@solana/web3.js';
+import * as anchor from '@project-serum/anchor';
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  NATIVE_MINT,
+  Token,
+  TOKEN_PROGRAM_ID,
+} from '@solana/spl-token';
+import { getConnection, TXN_COMMIT, TXN_OPTS } from './connection';
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
 export function ceilAtDecimals(number: number, decimals: number): number {
-  return Number((Math.ceil(number * 10 ** decimals) / 10 ** decimals).toFixed(decimals));
+  return Number(
+    (Math.ceil(number * 10 ** decimals) / 10 ** decimals).toFixed(decimals)
+  );
 }
 
-export function transferSol(amountUi: number, from: Signer, to: PublicKey): Promise<string> {
+export function transferSol(
+  amountUi: number,
+  from: Signer,
+  to: PublicKey
+): Promise<string> {
   const transaction = new anchor.web3.Transaction().add(
     anchor.web3.SystemProgram.transfer({
       fromPubkey: from.publicKey,
@@ -18,19 +34,33 @@ export function transferSol(amountUi: number, from: Signer, to: PublicKey): Prom
       lamports: anchor.web3.LAMPORTS_PER_SOL * amountUi,
     })
   );
-  return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [from], TXN_OPTS);
+  return anchor.web3.sendAndConfirmTransaction(
+    getConnection(),
+    transaction,
+    [from],
+    TXN_OPTS
+  );
 }
 
-export async function transferAllSol(from: Signer, to: PublicKey): Promise<string> {
+export async function transferAllSol(
+  from: Signer,
+  to: PublicKey
+): Promise<string> {
   const fromBalance = await getSolBalance(from.publicKey);
   const transaction = new anchor.web3.Transaction().add(
     anchor.web3.SystemProgram.transfer({
       fromPubkey: from.publicKey,
       toPubkey: to,
-      lamports: anchor.web3.LAMPORTS_PER_SOL * fromBalance - SOLANA_FEES_LAMPORT,
+      lamports:
+        anchor.web3.LAMPORTS_PER_SOL * fromBalance - SOLANA_FEES_LAMPORT,
     })
   );
-  return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [from], TXN_OPTS);
+  return anchor.web3.sendAndConfirmTransaction(
+    getConnection(),
+    transaction,
+    [from],
+    TXN_OPTS
+  );
 }
 
 export async function transferTokens(
@@ -52,7 +82,12 @@ export async function transferTokens(
     uiToNative(amountUI, decimals).toNumber()
   );
   const transaction = new anchor.web3.Transaction().add(transferTokensIx);
-  return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [from], TXN_OPTS);
+  return anchor.web3.sendAndConfirmTransaction(
+    getConnection(),
+    transaction,
+    [from],
+    TXN_OPTS
+  );
 }
 
 export async function transferAllTokens(
@@ -63,7 +98,7 @@ export async function transferAllTokens(
 ): Promise<string> {
   const sender = findATAAddrSync(from.publicKey, mint)[0];
   if (!(await getConnection().getAccountInfo(sender))) {
-    return "No account";
+    return 'No account';
   }
   const token = new Token(getConnection(), mint, TOKEN_PROGRAM_ID, from);
   const receiver = await token.getOrCreateAssociatedAccountInfo(to);
@@ -77,7 +112,12 @@ export async function transferAllTokens(
     uiToNative(amount, decimals).toNumber()
   );
   const transaction = new anchor.web3.Transaction().add(transferTokensIx);
-  return anchor.web3.sendAndConfirmTransaction(getConnection(), transaction, [from], TXN_OPTS);
+  return anchor.web3.sendAndConfirmTransaction(
+    getConnection(),
+    transaction,
+    [from],
+    TXN_OPTS
+  );
 }
 
 export async function getSolBalance(wallet: PublicKey): Promise<number> {
@@ -87,18 +127,28 @@ export async function getSolBalance(wallet: PublicKey): Promise<number> {
 
 export async function getBalance(tokenAccount: PublicKey): Promise<number> {
   try {
-    const o = await getConnection().getTokenAccountBalance(tokenAccount, TXN_COMMIT);
-    return o["value"]["uiAmount"];
+    const o = await getConnection().getTokenAccountBalance(
+      tokenAccount,
+      TXN_COMMIT
+    );
+    return o['value']['uiAmount'];
   } catch {
     return 0;
   }
 }
 
-export const prepareWrappedSolTokenAccount = async (connection, payerKey, userKey, amountNative) => {
+export const prepareWrappedSolTokenAccount = async (
+  connection,
+  payerKey,
+  userKey,
+  amountNative
+) => {
   const wsolTokenKey = findAssociatedTokenAddress(userKey, NATIVE_MINT);
   const tokenAccount = await connection.getParsedAccountInfo(wsolTokenKey);
   if (tokenAccount.value) {
-    const balanceNative = Number(tokenAccount.value.data.parsed.info.tokenAmount.amount);
+    const balanceNative = Number(
+      tokenAccount.value.data.parsed.info.tokenAmount.amount
+    );
     if (balanceNative < amountNative) {
       return [
         transferSolItx(userKey, wsolTokenKey, amountNative - balanceNative),
@@ -109,7 +159,12 @@ export const prepareWrappedSolTokenAccount = async (connection, payerKey, userKe
       // no-op we have everything we need
     }
   } else {
-    return createWrappedSolTokenAccount(connection, payerKey, userKey, amountNative);
+    return createWrappedSolTokenAccount(
+      connection,
+      payerKey,
+      userKey,
+      amountNative
+    );
   }
   return [];
 };
@@ -117,7 +172,10 @@ export const prepareWrappedSolTokenAccount = async (connection, payerKey, userKe
 // derives the canonical token account address for a given wallet and mint
 function findAssociatedTokenAddress(walletKey, mintKey) {
   if (!walletKey || !mintKey) return;
-  return findAddr([walletKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintKey.toBuffer()], ASSOCIATED_TOKEN_PROGRAM_ID);
+  return findAddr(
+    [walletKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintKey.toBuffer()],
+    ASSOCIATED_TOKEN_PROGRAM_ID
+  );
 }
 
 // simple shorthand
@@ -139,12 +197,27 @@ const transferSolItx = (fromKey, toKey, amountNative) =>
     lamports: amountNative,
   });
 
-const createWrappedSolTokenAccount = async (connection, payerKey, userKey, amountNative = 0) => {
+const createWrappedSolTokenAccount = async (
+  connection,
+  payerKey,
+  userKey,
+  amountNative = 0
+) => {
   const assocTokenKey = findAssociatedTokenAddress(userKey, NATIVE_MINT);
-  const balanceNeeded = await Token.getMinBalanceRentForExemptAccount(connection);
+  const balanceNeeded = await Token.getMinBalanceRentForExemptAccount(
+    connection
+  );
 
-  const transferItx = transferSolItx(userKey, assocTokenKey, amountNative + balanceNeeded);
-  const createItx = createAssociatedTokenAccountItx(payerKey, userKey, NATIVE_MINT);
+  const transferItx = transferSolItx(
+    userKey,
+    assocTokenKey,
+    amountNative + balanceNeeded
+  );
+  const createItx = createAssociatedTokenAccountItx(
+    payerKey,
+    userKey,
+    NATIVE_MINT
+  );
 
   return [transferItx, createItx];
 };

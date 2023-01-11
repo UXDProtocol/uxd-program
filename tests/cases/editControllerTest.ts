@@ -1,9 +1,9 @@
-import { Signer } from "@solana/web3.js";
-import { Controller, nativeToUi } from "@uxd-protocol/uxd-client";
-import { expect } from "chai";
-import { editController } from "../api";
-import { getConnection, TXN_OPTS } from "../connection";
-import { CLUSTER } from "../constants";
+import { Signer } from '@solana/web3.js';
+import { Controller, nativeToUi } from '@uxd-protocol/uxd-client';
+import { expect } from 'chai';
+import { editController } from '../api';
+import { getConnection, TXN_OPTS } from '../connection';
+import { CLUSTER } from '../constants';
 
 export const editControllerTest = async function ({
   authority,
@@ -19,12 +19,16 @@ export const editControllerTest = async function ({
   const connection = getConnection();
   const options = TXN_OPTS;
 
-  console.group("🧭 editControllerTest");
+  console.group('🧭 editControllerTest');
   try {
     // GIVEN
-    const controllerOnChainAccount = await controller.getOnchainAccount(connection, options);
+    const controllerOnChainAccount = await controller.getOnchainAccount(
+      connection,
+      options
+    );
 
-    const redeemableGlobalSupplyCap_pre = controllerOnChainAccount.redeemableGlobalSupplyCap;
+    const redeemableGlobalSupplyCap_pre =
+      controllerOnChainAccount.redeemableGlobalSupplyCap;
 
     // WHEN
     const txId = await editController({
@@ -32,47 +36,52 @@ export const editControllerTest = async function ({
       controller,
       uiFields,
     });
-    console.log(`🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`);
+    console.log(
+      `🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`
+    );
 
     // THEN
-    const controllerOnChainAccount_post = await controller.getOnchainAccount(connection, options);
+    const controllerOnChainAccount_post = await controller.getOnchainAccount(
+      connection,
+      options
+    );
 
     const redeemableCirculatingSupply = nativeToUi(
       controllerOnChainAccount_post.redeemableCirculatingSupply.toNumber(),
       controller.redeemableMintDecimals
     );
 
-    const redeemableGlobalSupplyCap_post = controllerOnChainAccount_post.redeemableGlobalSupplyCap;
+    const redeemableGlobalSupplyCap_post =
+      controllerOnChainAccount_post.redeemableGlobalSupplyCap;
 
-    if (typeof uiFields.redeemableGlobalSupplyCap !== "undefined") {
+    if (typeof uiFields.redeemableGlobalSupplyCap !== 'undefined') {
       const redeemableGlobalSupplyCap_postUi = nativeToUi(
         redeemableGlobalSupplyCap_post.toNumber(),
         controller.redeemableMintDecimals
       );
       expect(redeemableGlobalSupplyCap_postUi).equals(
         uiFields.redeemableGlobalSupplyCap,
-        "Redeemable Global Supply Cap must bet set"
+        'Redeemable Global Supply Cap must bet set'
       );
       console.log(
         `🧾 Previous global supply cap was`,
         redeemableGlobalSupplyCap_pre,
-        "now is",
+        'now is',
         redeemableGlobalSupplyCap_post,
-        "(circulating supply",
+        '(circulating supply',
         redeemableCirculatingSupply,
-        ")"
+        ')'
       );
     } else {
-      expect(redeemableGlobalSupplyCap_pre.cmp(redeemableGlobalSupplyCap_post)).equals(
-        0,
-        "Redeemable Global Supply Cap must not have changed"
-      );
+      expect(
+        redeemableGlobalSupplyCap_pre.cmp(redeemableGlobalSupplyCap_post)
+      ).equals(0, 'Redeemable Global Supply Cap must not have changed');
     }
 
     controller.info();
     console.groupEnd();
   } catch (error) {
-    console.error("❌", error);
+    console.error('❌', error);
     console.groupEnd();
     throw error;
   }

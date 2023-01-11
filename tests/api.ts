@@ -1,14 +1,14 @@
-import { getConnection, TXN_OPTS } from "./connection";
-import { uxdClient } from "./constants";
-import { PublicKey, Signer, Transaction } from "@solana/web3.js";
+import { getConnection, TXN_OPTS } from './connection';
+import { uxdClient } from './constants';
+import { PublicKey, Signer, Transaction } from '@solana/web3.js';
 import {
   Controller,
   createAssocTokenIx,
   findATAAddrSync,
   MercurialVaultDepository,
   IdentityDepository,
-} from "@uxd-protocol/uxd-client";
-import { BN, web3 } from "@project-serum/anchor";
+} from '@uxd-protocol/uxd-client';
+import { BN, web3 } from '@project-serum/anchor';
 
 export async function initializeController({
   authority,
@@ -51,18 +51,22 @@ export async function mintWithMercurialVaultDepository({
   depository: MercurialVaultDepository;
   collateralAmount: number;
 }): Promise<string> {
-  const mintWithMercurialVaultDepositoryIx = uxdClient.createMintWithMercurialVaultDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    collateralAmount,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const mintWithMercurialVaultDepositoryIx =
+    uxdClient.createMintWithMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      collateralAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
   if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
       authority.publicKey,
@@ -94,18 +98,22 @@ export async function redeemFromMercurialVaultDepository({
   depository: MercurialVaultDepository;
   redeemableAmount: number;
 }): Promise<string> {
-  const redeemFromMercurialVaultDepositoryIx = uxdClient.createRedeemFromMercurialVaultDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    redeemableAmount,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const redeemFromMercurialVaultDepositoryIx =
+    uxdClient.createRedeemFromMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      redeemableAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
   if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
       authority.publicKey,
@@ -141,16 +149,17 @@ export async function registerMercurialVaultDepository({
   redeemingFeeInBps: number;
   redeemableAmountUnderManagementCap: number;
 }): Promise<string> {
-  const registerMercurialVaultDepositoryIx = uxdClient.createRegisterMercurialVaultDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    mintingFeeInBps,
-    redeemingFeeInBps,
-    redeemableAmountUnderManagementCap,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const registerMercurialVaultDepositoryIx =
+    uxdClient.createRegisterMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      mintingFeeInBps,
+      redeemingFeeInBps,
+      redeemableAmountUnderManagementCap,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
@@ -176,7 +185,7 @@ export async function editController({
     };
     redeemableSoftCap?: number;
     redeemableGlobalSupplyCap?: number;
-  }
+  };
 }): Promise<string> {
   const editControllerIx = uxdClient.createEditControllerInstruction(
     controller,
@@ -209,13 +218,14 @@ export async function editMercurialVaultDepository({
     mintingDisabled?: boolean;
   };
 }): Promise<string> {
-  const editMercurialVaultDepositoryIx = uxdClient.createEditMercurialVaultDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    uiFields,
-    TXN_OPTS
-  );
+  const editMercurialVaultDepositoryIx =
+    uxdClient.createEditMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      uiFields,
+      TXN_OPTS
+    );
   let signers = [];
   let tx = new Transaction();
 
@@ -237,15 +247,16 @@ export async function editIdentityDepository({
   uiFields: {
     redeemableAmountUnderManagementCap?: BN;
     mintingDisabled?: boolean;
-  }
+  };
 }): Promise<string> {
-  const editIdentityDepositoryIx = uxdClient.createEditIdentityDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    uiFields,
-    TXN_OPTS
-  );
+  const editIdentityDepositoryIx =
+    uxdClient.createEditIdentityDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      uiFields,
+      TXN_OPTS
+    );
   let signers = [];
   let tx = new Transaction();
 
@@ -259,20 +270,21 @@ export async function initializeIdentityDepository({
   authority,
   payer,
   controller,
-  depository
+  depository,
 }: {
   authority: Signer;
   payer: Signer;
   controller: Controller;
   depository: IdentityDepository;
 }): Promise<string> {
-  const initializeIdentityDepositoryIx = uxdClient.createInitializeIdentityDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const initializeIdentityDepositoryIx =
+    uxdClient.createInitializeIdentityDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
@@ -298,18 +310,22 @@ export async function mintWithIdentityDepository({
   depository: IdentityDepository;
   collateralAmount: number;
 }): Promise<string> {
-  const mintWithIdentityDepositoryIx = uxdClient.createMintWithIdentityDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    collateralAmount,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const mintWithIdentityDepositoryIx =
+    uxdClient.createMintWithIdentityDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      collateralAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
   if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
       authority.publicKey,
@@ -341,18 +357,22 @@ export async function redeemFromIdentityDepository({
   depository: IdentityDepository;
   redeemableAmount: number;
 }): Promise<string> {
-  const redeemFromIdentityDepositoryIx = uxdClient.createRedeemFromIdentityDepositoryInstruction(
-    controller,
-    depository,
-    authority.publicKey,
-    redeemableAmount,
-    TXN_OPTS,
-    payer.publicKey
-  );
+  const redeemFromIdentityDepositoryIx =
+    uxdClient.createRedeemFromIdentityDepositoryInstruction(
+      controller,
+      depository,
+      authority.publicKey,
+      redeemableAmount,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
   if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
       authority.publicKey,
@@ -382,13 +402,27 @@ export async function collectProfitOfMercurialVaultDepository({
   controller: Controller;
   depository: MercurialVaultDepository;
 }): Promise<string> {
-  const collectInterestsAndFeesFromMercurialVaultDepositoryIx = uxdClient.createCollectProfitOfMercurialVaultDepositoryInstruction(controller, authority.publicKey, depository, TXN_OPTS, payer.publicKey);
+  const collectInterestsAndFeesFromMercurialVaultDepositoryIx =
+    uxdClient.createCollectProfitOfMercurialVaultDepositoryInstruction(
+      controller,
+      authority.publicKey,
+      depository,
+      TXN_OPTS,
+      payer.publicKey
+    );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(authority.publicKey, controller.redeemableMintPda);
-  if (!await getConnection().getAccountInfo(authorityRedeemableAta)) {
-    const createUserRedeemableAtaIx = createAssocTokenIx(authority.publicKey, authorityRedeemableAta, controller.redeemableMintPda);
+  const [authorityRedeemableAta] = findATAAddrSync(
+    authority.publicKey,
+    controller.redeemableMintPda
+  );
+  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+    const createUserRedeemableAtaIx = createAssocTokenIx(
+      authority.publicKey,
+      authorityRedeemableAta,
+      controller.redeemableMintPda
+    );
     tx.add(createUserRedeemableAtaIx);
   }
 
