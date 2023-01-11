@@ -132,6 +132,7 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     pub credix_multisig_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #17
+    /// CHECK: checked by the depository constraints, content not used
     pub profits_beneficiary_key: AccountInfo<'info>,
 
     /// #18

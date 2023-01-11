@@ -33,7 +33,7 @@ pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u128>() // profits_total_collected
  + size_of::<Pubkey>() // profits_beneficiary_key
 
- + 800; // reserved space
+ + 768; // reserved space
 
 #[account(zero_copy)]
 #[repr(packed)]

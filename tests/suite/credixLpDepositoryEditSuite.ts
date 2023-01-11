@@ -85,7 +85,7 @@ export const credixLpDepositoryEditSuite = async function (
     });
 
     it(`Edit profitsBeneficiaryKey alone should work`, async function () {
-      const profitsBeneficiaryKey = new PublicKey('0');
+      const profitsBeneficiaryKey = new PublicKey('42');
 
       console.log('[🧾 profitsBeneficiaryKey', profitsBeneficiaryKey, ']');
 
@@ -106,6 +106,7 @@ export const credixLpDepositoryEditSuite = async function (
         redeemingFeeInBps,
         redeemableAmountUnderManagementCap,
         mintingDisabled,
+        profitsBeneficiaryKey,
       } = beforeDepository;
 
       const uiRedeemableAmountUnderManagementCap = nativeToUi(
@@ -121,6 +122,7 @@ export const credixLpDepositoryEditSuite = async function (
         ']'
       );
       console.log('[🧾 mintingDisabled', mintingDisabled, ']');
+      console.log('[🧾 profitsBeneficiaryKey', profitsBeneficiaryKey, ']');
 
       await editCredixLpDepositoryTest(
         controllerAuthority,
@@ -132,6 +134,7 @@ export const credixLpDepositoryEditSuite = async function (
           redeemableAmountUnderManagementCap:
             uiRedeemableAmountUnderManagementCap,
           mintingDisabled,
+          profitsBeneficiaryKey,
         }
       );
     });
