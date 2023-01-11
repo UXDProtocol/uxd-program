@@ -1,6 +1,7 @@
 use crate::error::UxdError;
 use crate::events::SetDepositoryMintingDisabledEvent;
 use crate::events::SetDepositoryMintingFeeInBpsEvent;
+use crate::events::SetDepositoryProfitsBeneficiaryKeyEvent;
 use crate::events::SetDepositoryRedeemableAmountUnderManagementCapEvent;
 use crate::events::SetDepositoryRedeemingFeeInBpsEvent;
 use crate::state::credix_lp_depository::CredixLpDepository;
@@ -45,6 +46,7 @@ pub struct EditCredixLpDepositoryFields {
     minting_fee_in_bps: Option<u8>,
     redeeming_fee_in_bps: Option<u8>,
     minting_disabled: Option<bool>,
+    profits_beneficiary_key: Option<Pubkey>,
 }
 
 pub(crate) fn handler(
@@ -112,6 +114,21 @@ pub(crate) fn handler(
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
             minting_disabled
+        });
+    }
+
+    // optional: profits_beneficiary_key
+    if let Some(profits_beneficiary_key) = fields.profits_beneficiary_key {
+        msg!(
+            "[edit_credix_lp_depository] profits_beneficiary_key {}",
+            profits_beneficiary_key
+        );
+        depository.profits_beneficiary_key = profits_beneficiary_key;
+        emit!(SetDepositoryProfitsBeneficiaryKeyEvent {
+            version: ctx.accounts.controller.load()?.version,
+            controller: ctx.accounts.controller.key(),
+            depository: ctx.accounts.depository.key(),
+            profits_beneficiary_key
         });
     }
 

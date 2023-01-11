@@ -18,6 +18,7 @@ export const editCredixLpDepositoryTest = async function (
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
+    profitsBeneficiaryKey?: PublicKey;
   }
 ) {
   const connection = getConnection();
@@ -36,6 +37,7 @@ export const editCredixLpDepositoryTest = async function (
       mintingFeeInBps,
       redeemingFeeInBps,
       mintingDisabled,
+      profitsBeneficiaryKey,
     } = depositoryOnchainAccount;
 
     // WHEN
@@ -60,6 +62,7 @@ export const editCredixLpDepositoryTest = async function (
       mintingFeeInBps: mintingFeeInBps_post,
       redeemingFeeInBps: redeemingFeeInBps_post,
       mintingDisabled: mintingDisabled_post,
+      profitsBeneficiaryKey: profitsBeneficiaryKey_post,
     } = depositoryOnchainAccount_post;
 
     if (uiFields.redeemableAmountUnderManagementCap) {
@@ -112,6 +115,18 @@ export const editCredixLpDepositoryTest = async function (
         mintingDisabled,
         'now is',
         mintingDisabled_post
+      );
+    }
+    if (typeof uiFields.profitsBeneficiaryKey !== 'undefined') {
+      expect(profitsBeneficiaryKey_post).equals(
+        uiFields.profitsBeneficiaryKey,
+        'The profits beneficiary key state has not changed.'
+      );
+      console.log(
+        `🧾 Previous profits beneficiary key state was`,
+        profitsBeneficiaryKey,
+        'now is',
+        profitsBeneficiaryKey_post
       );
     }
 

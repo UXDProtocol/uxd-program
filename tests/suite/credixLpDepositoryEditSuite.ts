@@ -84,6 +84,21 @@ export const credixLpDepositoryEditSuite = async function (
       );
     });
 
+    it(`Edit profitsBeneficiaryKey alone should work`, async function () {
+      const profitsBeneficiaryKey = new PublicKey('0');
+
+      console.log('[🧾 profitsBeneficiaryKey', profitsBeneficiaryKey, ']');
+
+      await editCredixLpDepositoryTest(
+        controllerAuthority,
+        controller,
+        depository,
+        {
+          profitsBeneficiaryKey,
+        }
+      );
+    });
+
     // Restore initial depository values there
     it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap should work`, async function () {
       const {
