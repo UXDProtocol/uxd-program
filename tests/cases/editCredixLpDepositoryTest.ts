@@ -1,4 +1,4 @@
-import { Signer } from '@solana/web3.js';
+import { PublicKey, Signer } from '@solana/web3.js';
 import {
   Controller,
   CredixLpDepository,
