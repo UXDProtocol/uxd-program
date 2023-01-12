@@ -1,4 +1,4 @@
-import { Signer } from '@solana/web3.js';
+import { PublicKey, Signer } from '@solana/web3.js';
 import { Controller, MercurialVaultDepository } from '@uxd-protocol/uxd-client';
 import { getConnection } from '../connection';
 import { collectProfitOfMercurialVaultDepositoryTest } from '../cases/collectProfitOfMercurialVaultDepositoryTest';
@@ -8,14 +8,18 @@ import {
   uxdProgramId,
 } from '../constants';
 import { transferLpTokenToDepositoryLpVault } from '../mercurial_vault_utils';
+import { editMercurialVaultDepositoryTest } from '../cases/editMercurialVaultDepositoryTest';
+import { expect } from 'chai';
 
 export const mercurialVaultDepositoryCollectProfitSuite = async function ({
   authority,
   payer,
+  profitsBeneficiaryKey,
   controller,
 }: {
   authority: Signer;
   payer: Signer;
+  profitsBeneficiaryKey: Signer;
   controller: Controller;
 }) {
   const collateralSymbol = 'USDC';
@@ -54,9 +58,45 @@ export const mercurialVaultDepositoryCollectProfitSuite = async function ({
   );
 
   describe('Collect profit of mercurial vault depository', () => {
+    it(`Set profit beneficiary as empty Public key (All zeroes)`, () =>
+      editMercurialVaultDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          profitsBeneficiaryKey: PublicKey.default,
+        },
+      }));
+
+    it(`Collect profits should fail before initializing profit beneficiary`, async function () {
+      try {
+        await collectProfitOfMercurialVaultDepositoryTest({
+          controller,
+          depository,
+          payer,
+        });
+      } catch {
+        expect(true, 'Failing as planned');
+      }
+
+      expect(
+        false,
+        `Should have failed - Cannot redeem for 0 ${controller.redeemableMintSymbol}`
+      );
+    });
+
+    it(`Set profit beneficiary before collecting profits`, () =>
+      editMercurialVaultDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          profitsBeneficiaryKey: profitsBeneficiaryKey.publicKey,
+        },
+      }));
+
     it(`Collect some ${collateralSymbol} should work`, () =>
       collectProfitOfMercurialVaultDepositoryTest({
-        authority,
         controller,
         depository,
         payer,
