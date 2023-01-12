@@ -20,7 +20,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   fmt:
     runs-on: ubuntu-latest
     name: cargo fmt
@@ -79,7 +78,7 @@ jobs:
       - name: Rust toolchain update
         run: |
           rustup update
-      - name: Rust override set nightly 
+      - name: Rust override set nightly
         run: |
           rustup override set nightly
       - name: Cache dependencies
