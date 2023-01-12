@@ -96,6 +96,19 @@ pub struct SetDepositoryMintingDisabledEvent {
     pub minting_disabled: bool,
 }
 
+/// Event called in [instructions::edit_*_depository::handler].
+#[event]
+pub struct SetDepositoryProfitsBeneficiaryKeyEvent {
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub profits_beneficiary_key: Pubkey,
+}
+
 /// Event called in [instructions::initialize_identity_depository::handler].
 #[event]
 pub struct InitializeIdentityDepositoryEvent {
