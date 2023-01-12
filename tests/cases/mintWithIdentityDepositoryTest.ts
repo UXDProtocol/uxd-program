@@ -1,5 +1,4 @@
 import { Signer } from '@solana/web3.js';
-import { uiToNative } from '@uxd-protocol/uxd-client';
 import {
   Controller,
   IdentityDepository,
@@ -82,15 +81,6 @@ export const mintWithIdentityDepositoryTest = async function ({
       (userRedeemableBalance_post - userRedeemableBalance_pre).toFixed(
         controller.redeemableMintDecimals
       )
-    );
-
-    const collateralNativeUnitPrecision = Math.pow(
-      10,
-      -depository.collateralMintDecimals
-    );
-    const nativeCollateralAmount = uiToNative(
-      collateralAmount,
-      depository.collateralMintDecimals
     );
 
     console.log(

@@ -66,7 +66,7 @@ export async function transferAllSol(
 }
 
 export async function transferTokens(
-  amountUI: number,
+  amountUi: number,
   mint: PublicKey,
   decimals: number,
   from: Signer,
@@ -81,7 +81,7 @@ export async function transferTokens(
     receiver.address,
     from.publicKey,
     [],
-    uiToNative(amountUI, decimals).toNumber()
+    uiToNative(amountUi, decimals).toNumber()
   );
   const transaction = new anchor.web3.Transaction().add(transferTokensIx);
   return anchor.web3.sendAndConfirmTransaction(
@@ -102,24 +102,8 @@ export async function transferAllTokens(
   if (!(await getConnection().getAccountInfo(sender))) {
     return 'No account';
   }
-  const token = new Token(getConnection(), mint, TOKEN_PROGRAM_ID, from);
-  const receiver = await token.getOrCreateAssociatedAccountInfo(to);
-  const amount = await getBalance(sender);
-  const transferTokensIx = Token.createTransferInstruction(
-    TOKEN_PROGRAM_ID,
-    sender,
-    receiver.address,
-    from.publicKey,
-    [],
-    uiToNative(amount, decimals).toNumber()
-  );
-  const transaction = new anchor.web3.Transaction().add(transferTokensIx);
-  return anchor.web3.sendAndConfirmTransaction(
-    getConnection(),
-    transaction,
-    [from],
-    TXN_OPTS
-  );
+  const amountUi = await getBalance(sender);
+  return transferTokens(amountUi, mint, decimals, from, to);
 }
 
 export async function getSolBalance(wallet: PublicKey): Promise<number> {
@@ -261,6 +245,5 @@ export async function createCredixLpDepositoryDevnetUSDC(): Promise<CredixLpDepo
     credixProgramId: new PublicKey(
       'CRdXwuY984Au227VnMJ2qvT7gPd83HwARYXcbHfseFKC'
     ),
-    credixMarketName: 'credix-marketplace',
   });
 }

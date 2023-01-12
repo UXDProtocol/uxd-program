@@ -2,7 +2,7 @@ import { Signer } from '@solana/web3.js';
 import {
   Controller,
   CredixLpDepository,
-  findMultipleATAAddSync,
+  findATAAddrSync,
   nativeToUi,
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
@@ -19,6 +19,11 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
 ): Promise<number> {
   console.group('🧭 collectProfitOfCredixLpDepositoryTest');
 
+  const [authorityCollateralAta] = findATAAddrSync(
+    authority.publicKey,
+    depository.collateralMint
+  );
+
   try {
     // GIVEN
     const [
@@ -26,7 +31,7 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
       onchainController_pre,
       onChainDepository_pre,
     ] = await Promise.all([
-      getBalance(depository.authorityCollateral),
+      getBalance(authorityCollateralAta),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
@@ -49,7 +54,7 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
       onchainController_post,
       onChainDepository_post,
     ] = await Promise.all([
-      getBalance(depository.authorityCollateral),
+      getBalance(authorityCollateralAta),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);

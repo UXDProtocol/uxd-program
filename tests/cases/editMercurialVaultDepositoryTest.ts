@@ -2,7 +2,7 @@ import { Signer } from '@solana/web3.js';
 import {
   Controller,
   MercurialVaultDepository,
-  uiToNative,
+  nativeToUi,
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
 import { editMercurialVaultDepository } from '../api';
@@ -68,12 +68,12 @@ export const editMercurialVaultDepositoryTest = async function ({
     } = depositoryOnchainAccount_post;
 
     if (uiFields.redeemableAmountUnderManagementCap) {
-      const nativeRedeemableDepositorySupplyCap = uiToNative(
-        uiFields.redeemableAmountUnderManagementCap,
+      const redeemableAmountUnderManagementCapUi = nativeToUi(
+        redeemableAmountUnderManagementCap_post,
         controller.redeemableMintDecimals
       );
-      expect(redeemableAmountUnderManagementCap_post.toString()).equals(
-        nativeRedeemableDepositorySupplyCap.toString(),
+      expect(redeemableAmountUnderManagementCapUi).equals(
+        uiFields.redeemableAmountUnderManagementCap,
         'The redeemable depository supply cap has not changed.'
       );
       console.log(

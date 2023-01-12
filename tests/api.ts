@@ -9,7 +9,7 @@ import {
   IdentityDepository,
   CredixLpDepository,
 } from '@uxd-protocol/uxd-client';
-import { BN, web3 } from '@project-serum/anchor';
+import { web3 } from '@project-serum/anchor';
 
 export async function initializeController({
   authority,
@@ -209,7 +209,7 @@ export async function editMercurialVaultDepository({
   controller: Controller;
   depository: MercurialVaultDepository;
   uiFields: {
-    redeemableAmountUnderManagementCap?: BN;
+    redeemableAmountUnderManagementCap?: number;
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
@@ -242,7 +242,7 @@ export async function editIdentityDepository({
   controller: Controller;
   depository: IdentityDepository;
   uiFields: {
-    redeemableAmountUnderManagementCap?: BN;
+    redeemableAmountUnderManagementCap?: number;
     mintingDisabled?: boolean;
   };
 }): Promise<string> {
@@ -546,7 +546,7 @@ export async function editCredixLpDepository(
   controller: Controller,
   depository: CredixLpDepository,
   uiFields: {
-    redeemableAmountUnderManagementCap?: BN;
+    redeemableAmountUnderManagementCap?: number;
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
