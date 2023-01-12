@@ -36,7 +36,6 @@ pub struct CollectProfitOfMercurialVaultDepository<'info> {
         has_one = mercurial_vault @UxdError::InvalidMercurialVault,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
         has_one = mercurial_vault_lp_mint @UxdError::InvalidMercurialVaultLpMint,
-        has_one = profits_beneficiary_key @UxdError::InvalidProfitsBeneficiary,
         constraint = depository.load()?.lp_token_vault == depository_lp_token_vault.key() @UxdError::InvalidDepositoryLpTokenVault,
     )]
     pub depository: AccountLoader<'info, MercurialVaultDepository>,
@@ -45,18 +44,14 @@ pub struct CollectProfitOfMercurialVaultDepository<'info> {
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #5
-    /// CHECK: checked by the depository constraints, content not used
-    pub profits_beneficiary_key: AccountInfo<'info>,
-
-    /// #6
     #[account(
         mut,
         constraint = profits_beneficiary_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
-        constraint = &profits_beneficiary_collateral.owner == profits_beneficiary_key.key @UxdError::InvalidOwner,
+        constraint = profits_beneficiary_collateral.owner == depository.load()?.profits_beneficiary_key @UxdError::InvalidOwner,
     )]
     pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #7
+    /// #6
     /// Token account holding the LP tokens minted by depositing collateral on mercurial vault
     #[account(
         mut,
@@ -67,29 +62,29 @@ pub struct CollectProfitOfMercurialVaultDepository<'info> {
     )]
     pub depository_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
-    /// #8
+    /// #7
     #[account(
         mut,
         constraint = mercurial_vault.token_vault == mercurial_vault_collateral_token_safe.key() @UxdError::InvalidMercurialVaultCollateralTokenSafe,
     )]
     pub mercurial_vault: Box<Account<'info, mercurial_vault::state::Vault>>,
 
-    /// #9
+    /// #8
     #[account(mut)]
     pub mercurial_vault_lp_mint: Box<Account<'info, Mint>>,
 
-    /// #10
+    /// #9
     /// Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.
     #[account(mut)]
     pub mercurial_vault_collateral_token_safe: Box<Account<'info, TokenAccount>>,
 
-    /// #11
+    /// #10
     pub mercurial_vault_program: Program<'info, mercurial_vault::program::Vault>,
 
-    /// #12
+    /// #11
     pub system_program: Program<'info, System>,
 
-    /// #13
+    /// #12
     pub token_program: Program<'info, Token>,
 }
 
@@ -292,6 +287,10 @@ impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
 // Validate
 impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
     pub(crate) fn validate(&self) -> Result<()> {
+        require!(
+            self.depository.load()?.profits_beneficiary_key != Pubkey::new_from_array([0u8; 32]),
+            UxdError::ProfitsBeneficiaryNotInitialized
+        );
         validate_is_program_frozen(self.controller.load()?)?;
         Ok(())
     }
