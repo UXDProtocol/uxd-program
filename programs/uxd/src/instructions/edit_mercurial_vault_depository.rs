@@ -4,6 +4,7 @@ use crate::events::SetDepositoryMintingFeeInBpsEvent;
 use crate::events::SetDepositoryRedeemableAmountUnderManagementCapEvent;
 use crate::events::SetDepositoryRedeemingFeeInBpsEvent;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
+use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
@@ -112,4 +113,12 @@ pub(crate) fn handler(
     }
 
     Ok(())
+}
+
+impl<'info> EditMercurialVaultDepository<'info> {
+    pub(crate) fn validate(&self) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
+
+        Ok(())
+    }
 }

@@ -187,7 +187,7 @@ pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<
     ctx.accounts
         .controller
         .load_mut()?
-        .update_onchain_accounting_following_profits_collection(collateral_balance_change)?;
+        .update_onchain_accounting_following_profit_collection(collateral_balance_change)?;
 
     Ok(())
 }

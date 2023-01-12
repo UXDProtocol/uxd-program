@@ -1,6 +1,7 @@
 use crate::error::UxdError;
 use crate::mercurial_utils;
 use crate::utils;
+use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::MercurialVaultDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -319,6 +320,8 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
 // Validate
 impl<'info> RedeemFromMercurialVaultDepository<'info> {
     pub fn validate(&self, redeemable_amount: u64) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
+
         require!(redeemable_amount != 0, UxdError::InvalidRedeemableAmount);
 
         Ok(())

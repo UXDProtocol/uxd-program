@@ -1,5 +1,6 @@
 use crate::error::UxdError;
 use crate::events::SetRedeemableGlobalSupplyCapEvent;
+use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP;
@@ -42,6 +43,8 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
 #[allow(clippy::absurd_extreme_comparisons)]
 impl<'info> EditController<'info> {
     pub(crate) fn validate(&self, fields: &EditControllerFields) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
+
         if let Some(redeemable_global_supply_cap) = fields.redeemable_global_supply_cap {
             require!(
                 redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP,

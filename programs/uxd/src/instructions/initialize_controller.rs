@@ -82,6 +82,8 @@ pub(crate) fn handler(
         .checked_mul(redeemable_mint_unit.into())
         .ok_or_else(|| error!(UxdError::MathError))?;
     controller.redeemable_circulating_supply = u128::MIN;
+    controller.is_frozen = false;
+    controller.profits_total_collected = u128::MIN;
 
     controller.profits_total_collected = u128::MIN;
 

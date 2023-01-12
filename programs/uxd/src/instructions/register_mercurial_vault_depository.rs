@@ -3,6 +3,7 @@ use std::str::FromStr;
 use crate::error::UxdError;
 use crate::events::RegisterMercurialVaultDepositoryEvent;
 use crate::state::MercurialVaultDepository;
+use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION;
@@ -172,6 +173,8 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
         _redeeming_fee_in_bps: u8,
         _redeemable_amount_under_management_cap: u128,
     ) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
+
         require!(
             self.mercurial_vault
                 .token_mint

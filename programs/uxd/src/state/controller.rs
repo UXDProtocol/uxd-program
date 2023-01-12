@@ -4,6 +4,7 @@ use fixed::types::I80F48;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
+pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
 pub const CONTROLLER_SPACE: usize = 8
@@ -13,15 +14,19 @@ pub const CONTROLLER_SPACE: usize = 8
     + 32
     + 32
     + 1
-    + 257 // Shh. Free real estate
+    + 255 // Shh. Free real estate
+    + 1
+    + 1
     + 16
     + 8 // unused
     + 16
     + 8 // unused
     + (32 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
     + 1
+    + (32 * MAX_REGISTERED_CREDIX_LP_DEPOSITORIES)
+    + 1
     + 16
-    + 359;
+    + 230;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -35,7 +40,11 @@ pub struct Controller {
     pub redeemable_mint: Pubkey,
     pub redeemable_mint_decimals: u8,
     //
-    pub _unused: [u8; 257],
+    pub _unused: [u8; 255],
+    // operational status for all ixs associated with this controller instance
+    pub is_frozen: bool,
+    //
+    pub _unused2: u8,
     //
     // Progressive roll out and safety ----------
     //
@@ -45,7 +54,7 @@ pub struct Controller {
     //
     // The max amount of Redeemable affected by Mint and Redeem operations on `Depository` instances, variable
     //  in redeemable Redeemable Native Amount
-    pub _unused2: [u8; 8],
+    pub _unused3: [u8; 8],
     //
     // Accounting -------------------------------
     //
@@ -53,14 +62,18 @@ pub struct Controller {
     // This should always be equal to the sum of all Depositories' `redeemable_amount_under_management`
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
-    pub _unused3: [u8; 8],
+    pub _unused4: [u8; 8],
     //
     // The Mercurial Vault Depositories registered with this Controller
     pub registered_mercurial_vault_depositories:
         [Pubkey; MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES],
     pub registered_mercurial_vault_depositories_count: u8,
     //
-    // Total amount of profits collected by any depository
+    // The Credix Lp Depositories registered with this Controller
+    pub registered_credix_lp_depositories: [Pubkey; MAX_REGISTERED_CREDIX_LP_DEPOSITORIES],
+    pub registered_credix_lp_depositories_count: u8,
+    //
+    // Total amount of profit collected into the treasury by any depository
     pub profits_total_collected: u128,
 }
 
@@ -86,11 +99,31 @@ impl Controller {
         Ok(())
     }
 
+    pub(crate) fn add_registered_credix_lp_depository_entry(
+        &mut self,
+        credix_lp_depository_id: Pubkey,
+    ) -> Result<()> {
+        let current_size = usize::from(self.registered_credix_lp_depositories_count);
+        require!(
+            current_size < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
+            UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached
+        );
+        // Increment registered Credix Lp Depositories count
+        self.registered_credix_lp_depositories_count = self
+            .registered_credix_lp_depositories_count
+            .checked_add(1)
+            .ok_or_else(|| error!(UxdError::MathError))?;
+        // Add the new Credix Lp Depository ID to the array of registered Depositories
+        let new_entry_index = current_size;
+        self.registered_credix_lp_depositories[new_entry_index] = credix_lp_depository_id;
+        Ok(())
+    }
+
     // provides numbers + or - depending on the change
     pub fn update_onchain_accounting_following_mint_or_redeem(
         &mut self,
         redeemable_amount_change: i128,
-    ) -> std::result::Result<(), UxdError> {
+    ) -> Result<()> {
         self.redeemable_circulating_supply =
             I80F48::checked_from_num(self.redeemable_circulating_supply)
                 .ok_or(UxdError::MathError)?
@@ -105,15 +138,15 @@ impl Controller {
         Ok(())
     }
 
-    pub fn update_onchain_accounting_following_profits_collection(
+    // When collecting profit, we need to add it to the total
+    pub fn update_onchain_accounting_following_profit_collection(
         &mut self,
-        collected_profits: u64,
-    ) -> std::result::Result<(), UxdError> {
+        profits_collected: u64,
+    ) -> Result<()> {
         self.profits_total_collected = self
             .profits_total_collected
-            .checked_add(collected_profits.into())
+            .checked_add(profits_collected.into())
             .ok_or(UxdError::MathError)?;
-
         Ok(())
     }
 }

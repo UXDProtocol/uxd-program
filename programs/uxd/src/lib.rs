@@ -1,3 +1,5 @@
+use std::cell::Ref;
+
 use crate::instructions::*;
 use crate::state::*;
 use anchor_lang::prelude::*;
@@ -22,6 +24,7 @@ solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 pub const MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 pub const IDENTITY_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
+pub const CREDIX_LP_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
 pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
@@ -31,6 +34,9 @@ pub const MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE: &[u8] =
     b"MERCURIALVAULTDEPOSITORYLPVAULT";
 pub const IDENTITY_DEPOSITORY_NAMESPACE: &[u8] = b"IDENTITYDEPOSITORY";
 pub const IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE: &[u8] = b"IDENTITYDEPOSITORYCOLLATERAL";
+
+pub const CREDIX_LP_DEPOSITORY_NAMESPACE: &[u8] = b"CREDIX_LP_DEPOSITORY";
+pub const CREDIX_LP_EXTERNAL_PASS_NAMESPACE: &[u8] = b"credix-pass";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -79,6 +85,7 @@ pub mod uxd {
         instructions::edit_controller::handler(ctx, &fields)
     }
 
+    #[access_control(ctx.accounts.validate())]
     pub fn edit_mercurial_vault_depository(
         ctx: Context<EditMercurialVaultDepository>,
         fields: EditMercurialVaultDepositoryFields,
@@ -86,11 +93,20 @@ pub mod uxd {
         instructions::edit_mercurial_vault_depository::handler(ctx, &fields)
     }
 
+    #[access_control(ctx.accounts.validate())]
     pub fn edit_identity_depository(
         ctx: Context<EditIdentityDepository>,
         fields: EditIdentityDepositoryFields,
     ) -> Result<()> {
         instructions::edit_identity_depository::handler(ctx, &fields)
+    }
+
+    #[access_control(ctx.accounts.validate())]
+    pub fn edit_credix_lp_depository(
+        ctx: Context<EditCredixLpDepository>,
+        fields: EditCredixLpDepositoryFields,
+    ) -> Result<()> {
+        instructions::edit_credix_lp_depository::handler(ctx, &fields)
     }
 
     // Mint Redeemable tokens by depositing Collateral to mercurial vault.
@@ -172,10 +188,88 @@ pub mod uxd {
         instructions::redeem_from_identity_depository::handler(ctx, redeemable_amount)
     }
 
+    // Create and Register a new `CredixLpDepository` to the `Controller`.
+    // Each `Depository` account manages a specific credix lp.
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn register_credix_lp_depository(
+        ctx: Context<RegisterCredixLpDepository>,
+        minting_fee_in_bps: u8,
+        redeeming_fee_in_bps: u8,
+        redeemable_amount_under_management_cap: u128,
+    ) -> Result<()> {
+        msg!("[register_credix_lp_depository]");
+        instructions::register_credix_lp_depository::handler(
+            ctx,
+            minting_fee_in_bps,
+            redeeming_fee_in_bps,
+            redeemable_amount_under_management_cap,
+        )
+    }
+
+    // Mint Redeemable tokens by depositing Collateral to credix lp.
+    #[access_control(
+        ctx.accounts.validate(collateral_amount)
+    )]
+    pub fn mint_with_credix_lp_depository(
+        ctx: Context<MintWithCredixLpDepository>,
+        collateral_amount: u64,
+    ) -> Result<()> {
+        msg!("[mint_with_credix_lp_depository]");
+        instructions::mint_with_credix_lp_depository::handler(ctx, collateral_amount)
+    }
+
+    // Redeem collateral tokens by burning redeemable from credix lp.
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn redeem_from_credix_lp_depository(
+        ctx: Context<RedeemFromCredixLpDepository>,
+        redeemable_amount: u64,
+    ) -> Result<()> {
+        msg!("[redeem_from_credix_lp_depository]");
+        instructions::redeem_from_credix_lp_depository::handler(ctx, redeemable_amount)
+    }
+
+    // Collect collateral tokens when locked value exceed liabilities (profit).
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn collect_profit_of_credix_lp_depository(
+        ctx: Context<CollectProfitOfCredixLpDepository>,
+    ) -> Result<()> {
+        msg!("[collect_profit_of_credix_lp_depository]");
+        instructions::collect_profit_of_credix_lp_depository::handler(ctx)
+    }
+
+    /// Freeze or resume all ixs associated with the controller (except this one).
+    ///
+    /// Parameters:
+    ///     - freeze: bool param to flip the `is_frozen` property in the controller
+    ///
+    /// Note:
+    /// This is a wildcard to stop the program temporarily when a vulnerability has been detected to allow the team to do servicing work.
+    ///
+    #[access_control(
+        ctx.accounts.validate(freeze)
+    )]
+    pub fn freeze_program(ctx: Context<FreezeProgram>, freeze: bool) -> Result<()> {
+        msg!("[freeze_program] {:?}", freeze);
+        instructions::freeze_program::handler(ctx, freeze)
+    }
+
     pub fn collect_profit_of_mercurial_vault_depository(
         ctx: Context<CollectProfitOfMercurialVaultDepository>,
     ) -> Result<()> {
         msg!("[collect_profit_of_mercurial_vault_depository]");
         instructions::collect_profit_of_mercurial_vault_depository::handler(ctx)
     }
+}
+
+pub(crate) fn validate_is_program_frozen(
+    controller: Ref<'_, controller::Controller>,
+) -> Result<()> {
+    require!(!controller.is_frozen, UxdError::ProgramFrozen);
+    Ok(())
 }
