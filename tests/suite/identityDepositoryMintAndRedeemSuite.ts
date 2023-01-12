@@ -5,7 +5,6 @@ import {
   findATAAddrSync,
   IdentityDepository,
   nativeToUi,
-  uiToNative,
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
 import { getBalance, transferTokens } from '../utils';
@@ -374,8 +373,10 @@ export const identityDepositoryMintRedeemSuite = async function (
         depository,
         {
           redeemableAmountUnderManagementCap:
-            onChainDepository.redeemableAmountUnderManagement +
-            uiToNative(0.0005, controller.redeemableMintDecimals),
+            nativeToUi(
+              onChainDepository.redeemableAmountUnderManagement,
+              controller.redeemableMintDecimals
+            ) + 0.0005,
         }
       );
     });

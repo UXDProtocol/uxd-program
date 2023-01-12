@@ -1,5 +1,4 @@
 import { Signer } from '@solana/web3.js';
-import { uiToNative } from '@uxd-protocol/uxd-client';
 import {
   Controller,
   MercurialVaultDepository,
@@ -78,28 +77,14 @@ export const mintWithMercurialVaultDepositoryTest = async function (
       )
     );
 
-    const collateralNativeUnitPrecision = Math.pow(
+    const collateralNativeUnit = Math.pow(
       10,
       -depository.collateralMint.decimals
     );
-    const nativeCollateralAmount = uiToNative(
-      collateralAmount,
-      depository.collateralMint.decimals
-    );
 
-    // Do calculation in native units so we avoid javascript calculation issue with small numbers
-    // i.e Javascript calculation precision 0.000005000000000000013
-    const estimatedFeesPaid = nativeToUi(
-      Math.floor(
-        Math.ceil(
-          nativeCollateralAmount.toNumber() -
-            ((10_000 - onChainDepository_pre.mintingFeeInBps) *
-              nativeCollateralAmount.toNumber()) /
-              10_000
-        )
-      ),
-      depository.collateralMint.decimals
-    );
+    const estimatedFeesPaid =
+      (collateralAmount * onChainDepository_pre.mintingFeeInBps) / 10_000;
+    const estimatedRedeemableAmount = collateralAmount - estimatedFeesPaid;
 
     console.log(
       `🧾 Minted`,
@@ -111,12 +96,6 @@ export const mintWithMercurialVaultDepositoryTest = async function (
       'with',
       estimatedFeesPaid,
       'fees paid.'
-    );
-
-    const estimatedRedeemableAmount = Number(
-      (collateralAmount - estimatedFeesPaid).toFixed(
-        controller.redeemableMintDecimals
-      )
     );
 
     // Check used collateral
@@ -131,7 +110,7 @@ export const mintWithMercurialVaultDepositoryTest = async function (
       .lte(estimatedRedeemableAmount)
       .gte(
         Number(
-          (estimatedRedeemableAmount - collateralNativeUnitPrecision).toFixed(
+          (estimatedRedeemableAmount - collateralNativeUnit).toFixed(
             controller.redeemableMintDecimals
           )
         )
