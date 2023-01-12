@@ -590,45 +590,44 @@ export async function freezeProgram(
 }
 
 export async function collectProfitOfMercurialVaultDepository({
-  authority,
   payer,
   controller,
   depository,
+  profitsBeneficiaryKey,
 }: {
-  authority: Signer;
   payer: Signer;
   controller: Controller;
   depository: MercurialVaultDepository;
+  profitsBeneficiaryKey: PublicKey;
 }): Promise<string> {
   const collectInterestsAndFeesFromMercurialVaultDepositoryIx =
     uxdClient.createCollectProfitOfMercurialVaultDepositoryInstruction(
       controller,
-      authority.publicKey,
       depository,
+      profitsBeneficiaryKey,
       TXN_OPTS,
       payer.publicKey
     );
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(
-    authority.publicKey,
-    controller.redeemableMintPda
+  const [profitsBeneficiaryCollateralAta] = findATAAddrSync(
+    profitsBeneficiaryKey,
+    depository.collateralMint.mint
   );
-  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
-    const createUserRedeemableAtaIx = createAssocTokenIx(
-      authority.publicKey,
-      authorityRedeemableAta,
+  if (
+    !(await getConnection().getAccountInfo(profitsBeneficiaryCollateralAta))
+  ) {
+    const createProfitsBeneficiaryCollateralAtaIx = createAssocTokenIx(
+      profitsBeneficiaryKey,
+      profitsBeneficiaryCollateralAta,
       controller.redeemableMintPda
     );
-    tx.add(createUserRedeemableAtaIx);
+    tx.add(createProfitsBeneficiaryCollateralAtaIx);
   }
 
   tx.add(collectInterestsAndFeesFromMercurialVaultDepositoryIx);
-  signers.push(authority);
-  if (payer) {
-    signers.push(payer);
-  }
+  signers.push(payer);
   tx.feePayer = payer.publicKey;
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
