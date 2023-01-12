@@ -1,5 +1,6 @@
 use crate::error::UxdError;
 use crate::mercurial_utils;
+use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::MercurialVaultDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -284,6 +285,14 @@ impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
             UxdError::SlippageReached,
         );
 
+        Ok(())
+    }
+}
+
+// Validate
+impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
+    pub(crate) fn validate(&self) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
         Ok(())
     }
 }
