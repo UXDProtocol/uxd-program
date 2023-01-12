@@ -30,13 +30,13 @@ export const freezeProgramSuite = async function (
 
   it(`mintWithMercurialVaultDepositoryTest under frozen program`, async function () {
     try {
-      await mintWithMercurialVaultDepositoryTest(
-        1,
+      await mintWithMercurialVaultDepositoryTest({
+        collateralAmount: 1,
         user,
         controller,
-        mercurialVaultDepository,
-        payer
-      );
+        depository: mercurialVaultDepository,
+        payer,
+      });
     } catch {
       expect(true, 'Failing as planned');
     }
@@ -45,13 +45,13 @@ export const freezeProgramSuite = async function (
 
   it(`redeemFromMercurialVaultDepositoryTest under frozen program`, async function () {
     try {
-      await redeemFromMercurialVaultDepositoryTest(
-        1,
+      await redeemFromMercurialVaultDepositoryTest({
+        redeemableAmount: 1,
         user,
         controller,
-        mercurialVaultDepository,
-        payer
-      );
+        depository: mercurialVaultDepository,
+        payer,
+      });
     } catch {
       expect(true, 'Failing as planned');
     }
@@ -60,7 +60,7 @@ export const freezeProgramSuite = async function (
 
   it(`editControllerTest under frozen program`, async function () {
     try {
-      await editControllerTest(authority, controller, {});
+      await editControllerTest({ authority, controller, uiFields: {} });
     } catch {
       expect(true, 'Failing as planned');
     }
@@ -69,12 +69,12 @@ export const freezeProgramSuite = async function (
 
   it(`editIdentityDepositoryTest under frozen program`, async function () {
     try {
-      await editIdentityDepositoryTest(
+      await editIdentityDepositoryTest({
         authority,
         controller,
-        identityDepository,
-        {}
-      );
+        depository: identityDepository,
+        uiFields: {},
+      });
     } catch {
       expect(true, 'Failing as planned');
     }
@@ -83,12 +83,12 @@ export const freezeProgramSuite = async function (
 
   it(`editMercurialVaultDepositoryTest under frozen program`, async function () {
     try {
-      await editMercurialVaultDepositoryTest(
+      await editMercurialVaultDepositoryTest({
         authority,
         controller,
-        mercurialVaultDepository,
-        {}
-      );
+        depository: mercurialVaultDepository,
+        uiFields: {},
+      });
     } catch {
       expect(true, 'Failing as planned');
     }
@@ -97,12 +97,12 @@ export const freezeProgramSuite = async function (
 
   it(`initializeIdentityDepositoryTest under frozen program`, async function () {
     try {
-      await initializeIdentityDepositoryTest(
+      await initializeIdentityDepositoryTest({
         authority,
         controller,
-        identityDepository,
-        payer
-      );
+        depository: identityDepository,
+        payer,
+      });
     } catch {
       expect(true, 'Failing as planned');
     }
@@ -111,13 +111,13 @@ export const freezeProgramSuite = async function (
 
   it(`mintWithIdentityDepositoryTest under frozen program`, async function () {
     try {
-      await mintWithIdentityDepositoryTest(
-        1,
+      await mintWithIdentityDepositoryTest({
+        collateralAmount: 1,
         user,
         controller,
-        identityDepository,
-        payer
-      );
+        depository: identityDepository,
+        payer,
+      });
     } catch {
       expect(true, 'Failing as planned');
     }
@@ -126,13 +126,13 @@ export const freezeProgramSuite = async function (
 
   it(`redeemFromIdentityDepositoryTest under frozen program`, async function () {
     try {
-      await redeemFromIdentityDepositoryTest(
-        1,
+      await redeemFromIdentityDepositoryTest({
+        redeemableAmount: 1,
         user,
         controller,
-        identityDepository,
-        payer
-      );
+        depository: identityDepository,
+        payer,
+      });
     } catch {
       expect(true, 'Failing as planned');
     }
@@ -141,15 +141,15 @@ export const freezeProgramSuite = async function (
 
   it(`registerMercurialVaultDepositoryTest under frozen program`, async function () {
     try {
-      await registerMercurialVaultDepositoryTest(
+      await registerMercurialVaultDepositoryTest({
         authority,
         controller,
-        mercurialVaultDepository,
-        1,
-        1,
-        1,
-        payer
-      );
+        depository: mercurialVaultDepository,
+        mintingFeeInBps: 1,
+        redeemingFeeInBps: 1,
+        redeemableAmountUnderManagementCap: 1,
+        payer,
+      });
     } catch {
       expect(true, 'Failing as planned');
     }
