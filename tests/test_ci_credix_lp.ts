@@ -31,6 +31,7 @@ import {
   });
 
   const user: Signer = new Keypair();
+  const profitsBeneficiary: Signer = new Keypair();
 
   const credixLpDepository = await createCredixLpDepositoryDevnetUSDC();
   const collateralMint = credixLpDepository.collateralMint;
@@ -52,6 +53,7 @@ import {
       credixLpDepositorySetupSuite(
         authority,
         bank,
+        profitsBeneficiary,
         controllerUXD,
         credixLpDepository,
         0,

@@ -118,15 +118,15 @@ export const editCredixLpDepositoryTest = async function (
       );
     }
     if (typeof uiFields.profitsBeneficiaryCollateral !== 'undefined') {
-      expect(profitsBeneficiaryCollateral_post).equals(
-        uiFields.profitsBeneficiaryCollateral,
+      expect(profitsBeneficiaryCollateral_post.toBase58()).equals(
+        uiFields.profitsBeneficiaryCollateral.toBase58(),
         'The profits beneficiary collateral state has not changed.'
       );
       console.log(
         `🧾 Previous profits beneficiary collateral state was`,
-        profitsBeneficiaryCollateral,
+        profitsBeneficiaryCollateral.toBase58(),
         'now is',
-        profitsBeneficiaryCollateral_post
+        profitsBeneficiaryCollateral_post.toBase58()
       );
     }
 

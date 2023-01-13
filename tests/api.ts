@@ -449,6 +449,7 @@ export async function redeemFromCredixLpDepository(
 
 export async function collectProfitOfCredixLpDepository(
   payer: Signer,
+  profitsBeneficiary: Signer,
   controller: Controller,
   depository: CredixLpDepository
 ): Promise<string> {
@@ -461,20 +462,23 @@ export async function collectProfitOfCredixLpDepository(
     );
   let signers = [];
   let tx = new Transaction();
-  const [payerCollateralAta] = findATAAddrSync(
-    payer.publicKey,
+  const [profitsBeneficiaryCollateralAta] = findATAAddrSync(
+    profitsBeneficiary.publicKey,
     depository.collateralMint
   );
-  if (!(await getConnection().getAccountInfo(payerCollateralAta))) {
+  if (
+    !(await getConnection().getAccountInfo(profitsBeneficiaryCollateralAta))
+  ) {
     const createPayerCollateralAtaIx = createAssocTokenIx(
-      payer.publicKey,
-      payerCollateralAta,
+      profitsBeneficiary.publicKey,
+      profitsBeneficiaryCollateralAta,
       depository.collateralMint
     );
     tx.add(createPayerCollateralAtaIx);
   }
   tx.add(collectProfitOfCredixLpDepositoryIx);
   signers.push(payer);
+  signers.push(profitsBeneficiary);
   tx.feePayer = payer.publicKey;
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
