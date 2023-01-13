@@ -488,7 +488,7 @@ export async function editCredixLpDepository(
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
-    profitsBeneficiaryKey?: PublicKey;
+    profitsBeneficiaryCollateral?: PublicKey;
   }
 ): Promise<string> {
   const editCredixLpDepositoryIx =

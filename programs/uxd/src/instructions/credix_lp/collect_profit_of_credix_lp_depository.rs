@@ -53,7 +53,7 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
         has_one = credix_signing_authority @UxdError::InvalidCredixSigningAuthority,
         has_one = credix_liquidity_collateral @UxdError::InvalidCredixLiquidityCollateral,
         has_one = credix_shares_mint @UxdError::InvalidCredixSharesMint,
-        has_one = profits_beneficiary_key @UxdError::InvalidProfitsBeneficiary,
+        has_one = profits_beneficiary_collateral @UxdError::InvalidProfitsBeneficiaryCollateral,
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 
@@ -129,26 +129,21 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     pub credix_multisig_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #16
-    /// CHECK: checked by the depository constraints, content not used
-    pub profits_beneficiary_key: AccountInfo<'info>,
-
-    /// #17
     #[account(
         mut,
-        token::authority = profits_beneficiary_key,
         token::mint = collateral_mint,
     )]
     pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #18
+    /// #17
     pub system_program: Program<'info, System>,
-    /// #19
+    /// #18
     pub token_program: Program<'info, Token>,
-    /// #20
+    /// #19
     pub associated_token_program: Program<'info, AssociatedToken>,
-    /// #21
+    /// #20
     pub credix_program: Program<'info, credix_client::program::Credix>,
-    /// #22
+    /// #21
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -470,6 +465,11 @@ impl<'info> CollectProfitOfCredixLpDepository<'info> {
 impl<'info> CollectProfitOfCredixLpDepository<'info> {
     pub(crate) fn validate(&self) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
+        require!(
+            self.depository.load()?.profits_beneficiary_collateral
+                != Pubkey::new_from_array([0u8; 32]),
+            UxdError::UninitializedProfitsBeneficiaryCollateral
+        );
         Ok(())
     }
 }

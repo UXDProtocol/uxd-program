@@ -24,9 +24,13 @@ export const credixLpDepositorySetupSuite = function (
       uiRedeemableAmountUnderManagementCap,
       payer
     );
+    const payerCollateralAta = findATAAddrSync(
+      payer.publicKey,
+      depository.collateralMint
+    )[0];
     await editCredixLpDepositoryTest(authority, controller, depository, {
       redeemableAmountUnderManagementCap: 25_000_000,
-      profitsBeneficiaryKey: payer.publicKey,
+      profitsBeneficiaryCollateral: payerCollateralAta,
     });
   });
 

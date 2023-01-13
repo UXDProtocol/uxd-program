@@ -98,7 +98,7 @@ pub struct SetDepositoryMintingDisabledEvent {
 
 /// Event called in [instructions::edit_*_depository::handler].
 #[event]
-pub struct SetDepositoryProfitsBeneficiaryKeyEvent {
+pub struct SetDepositoryProfitsBeneficiaryCollateralEvent {
     #[index]
     pub version: u8,
     #[index]
@@ -106,7 +106,7 @@ pub struct SetDepositoryProfitsBeneficiaryKeyEvent {
     #[index]
     pub depository: Pubkey,
     #[index]
-    pub profits_beneficiary_key: Pubkey,
+    pub profits_beneficiary_collateral: Pubkey,
 }
 
 /// Event called in [instructions::initialize_identity_depository::handler].

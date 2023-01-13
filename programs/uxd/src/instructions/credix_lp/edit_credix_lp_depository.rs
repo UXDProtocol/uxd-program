@@ -1,7 +1,7 @@
 use crate::error::UxdError;
 use crate::events::SetDepositoryMintingDisabledEvent;
 use crate::events::SetDepositoryMintingFeeInBpsEvent;
-use crate::events::SetDepositoryProfitsBeneficiaryKeyEvent;
+use crate::events::SetDepositoryProfitsBeneficiaryCollateralEvent;
 use crate::events::SetDepositoryRedeemableAmountUnderManagementCapEvent;
 use crate::events::SetDepositoryRedeemingFeeInBpsEvent;
 use crate::state::credix_lp_depository::CredixLpDepository;
@@ -46,7 +46,7 @@ pub struct EditCredixLpDepositoryFields {
     minting_fee_in_bps: Option<u8>,
     redeeming_fee_in_bps: Option<u8>,
     minting_disabled: Option<bool>,
-    profits_beneficiary_key: Option<Pubkey>,
+    profits_beneficiary_collateral: Option<Pubkey>,
 }
 
 pub(crate) fn handler(
@@ -117,18 +117,18 @@ pub(crate) fn handler(
         });
     }
 
-    // optional: profits_beneficiary_key
-    if let Some(profits_beneficiary_key) = fields.profits_beneficiary_key {
+    // optional: profits_beneficiary_collateral
+    if let Some(profits_beneficiary_collateral) = fields.profits_beneficiary_collateral {
         msg!(
-            "[edit_credix_lp_depository] profits_beneficiary_key {}",
-            profits_beneficiary_key
+            "[edit_credix_lp_depository] profits_beneficiary_collateral {}",
+            profits_beneficiary_collateral
         );
-        depository.profits_beneficiary_key = profits_beneficiary_key;
-        emit!(SetDepositoryProfitsBeneficiaryKeyEvent {
+        depository.profits_beneficiary_collateral = profits_beneficiary_collateral;
+        emit!(SetDepositoryProfitsBeneficiaryCollateralEvent {
             version: ctx.accounts.controller.load()?.version,
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
-            profits_beneficiary_key
+            profits_beneficiary_collateral
         });
     }
 

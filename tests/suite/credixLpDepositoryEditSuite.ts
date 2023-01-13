@@ -84,17 +84,21 @@ export const credixLpDepositoryEditSuite = async function (
       );
     });
 
-    it(`Edit profitsBeneficiaryKey alone should work`, async function () {
-      const profitsBeneficiaryKey = new PublicKey('42');
+    it(`Edit profitsBeneficiaryCollateral alone should work`, async function () {
+      const profitsBeneficiaryCollateral = new PublicKey('42');
 
-      console.log('[🧾 profitsBeneficiaryKey', profitsBeneficiaryKey, ']');
+      console.log(
+        '[🧾 profitsBeneficiaryCollateral',
+        profitsBeneficiaryCollateral,
+        ']'
+      );
 
       await editCredixLpDepositoryTest(
         controllerAuthority,
         controller,
         depository,
         {
-          profitsBeneficiaryKey,
+          profitsBeneficiaryCollateral,
         }
       );
     });
@@ -106,7 +110,7 @@ export const credixLpDepositoryEditSuite = async function (
         redeemingFeeInBps,
         redeemableAmountUnderManagementCap,
         mintingDisabled,
-        profitsBeneficiaryKey,
+        profitsBeneficiaryCollateral,
       } = beforeDepository;
 
       const uiRedeemableAmountUnderManagementCap = nativeToUi(
@@ -122,7 +126,11 @@ export const credixLpDepositoryEditSuite = async function (
         ']'
       );
       console.log('[🧾 mintingDisabled', mintingDisabled, ']');
-      console.log('[🧾 profitsBeneficiaryKey', profitsBeneficiaryKey, ']');
+      console.log(
+        '[🧾 profitsBeneficiaryCollateral',
+        profitsBeneficiaryCollateral,
+        ']'
+      );
 
       await editCredixLpDepositoryTest(
         controllerAuthority,
@@ -134,7 +142,7 @@ export const credixLpDepositoryEditSuite = async function (
           redeemableAmountUnderManagementCap:
             uiRedeemableAmountUnderManagementCap,
           mintingDisabled,
-          profitsBeneficiaryKey,
+          profitsBeneficiaryCollateral,
         }
       );
     });
