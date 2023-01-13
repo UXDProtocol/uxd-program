@@ -12,7 +12,6 @@ import { getBalance } from '../utils';
 
 export const collectProfitOfCredixLpDepositoryTest = async function (
   payer: Signer,
-  profitsBeneficiary: Signer,
   controller: Controller,
   depository: CredixLpDepository
 ): Promise<number> {
@@ -34,7 +33,6 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
     // Simulates user experience from the front end
     const txId = await collectProfitOfCredixLpDepository(
       payer,
-      profitsBeneficiary,
       controller,
       depository
     );

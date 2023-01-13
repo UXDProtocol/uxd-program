@@ -38,24 +38,27 @@ import {
   const collateralDecimals = credixLpDepository.collateralDecimals;
 
   describe('Credix Lp integration tests: USDC', async function () {
-    this.beforeAll('Setup: fund user', async function () {
-      await transferSol(1, bank, user.publicKey);
-      await transferSol(1, bank, profitsBeneficiary.publicKey);
-      await transferTokens(
-        0.1,
-        collateralMint,
-        collateralDecimals,
-        bank,
-        user.publicKey
-      );
-      await transferTokens(
-        0.1,
-        collateralMint,
-        collateralDecimals,
-        bank,
-        profitsBeneficiary.publicKey
-      );
-    });
+    this.beforeAll(
+      'Setup: fund user and profitsBeneficiary',
+      async function () {
+        await transferSol(1, bank, user.publicKey);
+        await transferSol(1, bank, profitsBeneficiary.publicKey);
+        await transferTokens(
+          0.1,
+          collateralMint,
+          collateralDecimals,
+          bank,
+          user.publicKey
+        );
+        await transferTokens(
+          0.1,
+          collateralMint,
+          collateralDecimals,
+          bank,
+          profitsBeneficiary.publicKey
+        );
+      }
+    );
 
     describe('credixLpDepositorySetupSuite', function () {
       credixLpDepositorySetupSuite(
@@ -71,13 +74,7 @@ import {
     });
 
     describe('credixLpDepositoryEditSuite', function () {
-      credixLpDepositoryEditSuite(
-        authority,
-        user,
-        bank,
-        controllerUXD,
-        credixLpDepository
-      );
+      credixLpDepositoryEditSuite(authority, controllerUXD, credixLpDepository);
     });
 
     describe('credixLpDepositoryMintAndRedeemSuite', function () {

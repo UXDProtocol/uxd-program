@@ -40,12 +40,7 @@ export const credixLpDepositorySetupSuite = function (
     await editCredixLpDepositoryTest(authority, controller, depository, {
       profitsBeneficiaryCollateral: profitsBeneficiaryCollateral,
     });
-    await collectProfitOfCredixLpDepositoryTest(
-      payer,
-      profitsBeneficiary,
-      controller,
-      depository
-    );
+    await collectProfitOfCredixLpDepositoryTest(payer, controller, depository);
   });
 
   it(`Collecting profit of credixLpDepository should not work for invalid collateral address`, async function () {
@@ -57,7 +52,6 @@ export const credixLpDepositorySetupSuite = function (
     try {
       await collectProfitOfCredixLpDepositoryTest(
         payer,
-        profitsBeneficiary,
         controller,
         depository
       );
