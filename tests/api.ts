@@ -449,6 +449,7 @@ export async function redeemFromCredixLpDepository(
 
 export async function collectProfitOfCredixLpDepository(
   payer: Signer,
+  profitsBeneficiaryCollateral: PublicKey,
   controller: Controller,
   depository: CredixLpDepository
 ): Promise<string> {
@@ -457,6 +458,7 @@ export async function collectProfitOfCredixLpDepository(
       controller,
       depository,
       payer.publicKey,
+      profitsBeneficiaryCollateral,
       TXN_OPTS
     );
   let signers = [];

@@ -1,4 +1,4 @@
-import { Signer } from '@solana/web3.js';
+import { PublicKey, Signer } from '@solana/web3.js';
 import {
   Controller,
   CredixLpDepository,
@@ -12,6 +12,7 @@ import { getBalance } from '../utils';
 
 export const collectProfitOfCredixLpDepositoryTest = async function (
   payer: Signer,
+  profitsBeneficiaryCollateral: PublicKey,
   controller: Controller,
   depository: CredixLpDepository
 ): Promise<number> {
@@ -24,7 +25,7 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
       onchainController_pre,
       onChainDepository_pre,
     ] = await Promise.all([
-      getBalance(depository.profitsBeneficiaryCollateral),
+      getBalance(profitsBeneficiaryCollateral),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
@@ -33,6 +34,7 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
     // Simulates user experience from the front end
     const txId = await collectProfitOfCredixLpDepository(
       payer,
+      profitsBeneficiaryCollateral,
       controller,
       depository
     );
@@ -46,7 +48,7 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
       onchainController_post,
       onChainDepository_post,
     ] = await Promise.all([
-      getBalance(depository.profitsBeneficiaryCollateral),
+      getBalance(profitsBeneficiaryCollateral),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
