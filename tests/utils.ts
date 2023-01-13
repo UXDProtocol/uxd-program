@@ -235,15 +235,20 @@ export function createAssociatedTokenAccountItx(payerKey, walletKey, mintKey) {
 }
 
 export async function createCredixLpDepositoryDevnetUSDC(): Promise<CredixLpDepository> {
-  return await CredixLpDepository.initialize({
-    connection: getConnection(),
-    uxdProgramId: uxdProgramId,
-    collateralMint: new PublicKey(
-      'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr'
-    ),
-    collateralSymbol: 'USDC(CredixDevnet)',
-    credixProgramId: new PublicKey(
-      'CRdXwuY984Au227VnMJ2qvT7gPd83HwARYXcbHfseFKC'
-    ),
-  });
+  try {
+    return await CredixLpDepository.initialize({
+      connection: getConnection(),
+      uxdProgramId: uxdProgramId,
+      collateralMint: new PublicKey(
+        'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr'
+      ),
+      collateralSymbol: 'USDC(CredixDevnet)',
+      credixProgramId: new PublicKey(
+        'CRdXwuY984Au227VnMJ2qvT7gPd83HwARYXcbHfseFKC'
+      ),
+    });
+  } catch (error) {
+    console.error('Failed to initialize devnet credix depository');
+    throw error;
+  }
 }
