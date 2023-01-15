@@ -213,6 +213,7 @@ export async function editMercurialVaultDepository({
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
+    profitsBeneficiaryCollateral?: PublicKey;
   };
 }): Promise<string> {
   const editMercurialVaultDepositoryIx =
@@ -593,38 +594,24 @@ export async function collectProfitOfMercurialVaultDepository({
   payer,
   controller,
   depository,
-  profitsBeneficiaryKey,
+  profitsBeneficiaryCollateral,
 }: {
   payer: Signer;
   controller: Controller;
   depository: MercurialVaultDepository;
-  profitsBeneficiaryKey: PublicKey;
+  profitsBeneficiaryCollateral: PublicKey;
 }): Promise<string> {
   const collectInterestsAndFeesFromMercurialVaultDepositoryIx =
     uxdClient.createCollectProfitOfMercurialVaultDepositoryInstruction(
       controller,
       depository,
-      profitsBeneficiaryKey,
+      profitsBeneficiaryCollateral,
       TXN_OPTS,
       payer.publicKey
     );
+
   let signers = [];
   let tx = new Transaction();
-
-  const [profitsBeneficiaryCollateralAta] = findATAAddrSync(
-    profitsBeneficiaryKey,
-    depository.collateralMint.mint
-  );
-  if (
-    !(await getConnection().getAccountInfo(profitsBeneficiaryCollateralAta))
-  ) {
-    const createProfitsBeneficiaryCollateralAtaIx = createAssocTokenIx(
-      profitsBeneficiaryKey,
-      profitsBeneficiaryCollateralAta,
-      controller.redeemableMintPda
-    );
-    tx.add(createProfitsBeneficiaryCollateralAtaIx);
-  }
 
   tx.add(collectInterestsAndFeesFromMercurialVaultDepositoryIx);
   signers.push(payer);

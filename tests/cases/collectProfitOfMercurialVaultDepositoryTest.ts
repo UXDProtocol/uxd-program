@@ -24,22 +24,16 @@ export const collectProfitOfMercurialVaultDepositoryTest = async function ({
 
   try {
     // GIVEN
-    const profitsBeneficiaryKey = await depository.getProfitsBeneficiaryKey(
-      getConnection(),
-      TXN_OPTS
-    );
-
-    const [profitsBeneficiaryCollateralAta] = findATAAddrSync(
-      profitsBeneficiaryKey,
-      depository.collateralMint.mint
-    );
+    const profitsBeneficiaryCollateral = (
+      await depository.getOnchainAccount(getConnection(), TXN_OPTS)
+    ).profitsBeneficiaryCollateral;
 
     const [
       profitsBeneficiaryCollateralBalance_pre,
       onChainDepository_pre,
       onChainController_pre,
     ] = await Promise.all([
-      getBalance(profitsBeneficiaryCollateralAta),
+      getBalance(profitsBeneficiaryCollateral),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
@@ -59,7 +53,7 @@ export const collectProfitOfMercurialVaultDepositoryTest = async function ({
       payer: payer,
       controller,
       depository,
-      profitsBeneficiaryKey,
+      profitsBeneficiaryCollateral,
     });
     console.log(
       `🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`
@@ -71,7 +65,7 @@ export const collectProfitOfMercurialVaultDepositoryTest = async function ({
       onChainDepository_post,
       onChainController_post,
     ] = await Promise.all([
-      getBalance(profitsBeneficiaryCollateralAta),
+      getBalance(profitsBeneficiaryCollateral),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);

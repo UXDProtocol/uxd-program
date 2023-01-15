@@ -107,17 +107,21 @@ export const editMercurialVaultDepositorySuite = async function ({
       });
     });
 
-    it(`Edit profitsBeneficiaryKey alone should work`, async function () {
-      const profitsBeneficiaryKey = new PublicKey('42');
+    it(`Edit profitsBeneficiaryCollateral alone should work`, async function () {
+      const profitsBeneficiaryCollateral = new PublicKey('42');
 
-      console.log('[🧾 profitsBeneficiaryKey', profitsBeneficiaryKey, ']');
+      console.log(
+        '[🧾 profitsBeneficiaryCollateral',
+        profitsBeneficiaryCollateral,
+        ']'
+      );
 
       await editMercurialVaultDepositoryTest({
         authority,
         controller,
         depository,
         uiFields: {
-          profitsBeneficiaryKey,
+          profitsBeneficiaryCollateral,
         },
       });
     });
@@ -129,7 +133,7 @@ export const editMercurialVaultDepositorySuite = async function ({
         redeemingFeeInBps,
         redeemableAmountUnderManagementCap,
         mintingDisabled,
-        profitsBeneficiaryKey,
+        profitsBeneficiaryCollateral,
       } = beforeDepository;
 
       const uiRedeemableAmountUnderManagementCap = nativeToUi(
@@ -145,7 +149,11 @@ export const editMercurialVaultDepositorySuite = async function ({
         ']'
       );
       console.log('[🧾 mintingDisabled', mintingDisabled, ']');
-      console.log('[🧾 profitsBeneficiaryKey', profitsBeneficiaryKey, ']');
+      console.log(
+        '[🧾 profitsBeneficiaryCollateral',
+        profitsBeneficiaryCollateral,
+        ']'
+      );
 
       await editMercurialVaultDepositoryTest({
         authority,
