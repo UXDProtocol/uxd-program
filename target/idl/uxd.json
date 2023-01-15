@@ -1996,7 +1996,7 @@
       ]
     },
     {
-      "name": "SetDepositoryProfitsBeneficiaryKeyEvent",
+      "name": "SetDepositoryProfitsBeneficiaryCollateralEvent",
       "fields": [
         {
           "name": "version",

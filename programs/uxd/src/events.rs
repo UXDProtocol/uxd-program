@@ -98,7 +98,7 @@ pub struct SetDepositoryMintingDisabledEvent {
 
 /// Event called in [instructions::edit_*_depository::handler].
 #[event]
-pub struct SetDepositoryProfitsBeneficiaryKeyEvent {
+pub struct SetDepositoryProfitsBeneficiaryCollateralEvent {
     #[index]
     pub version: u8,
     #[index]

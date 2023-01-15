@@ -1,7 +1,7 @@
 use crate::error::UxdError;
 use crate::events::SetDepositoryMintingDisabledEvent;
 use crate::events::SetDepositoryMintingFeeInBpsEvent;
-use crate::events::SetDepositoryProfitsBeneficiaryKeyEvent;
+use crate::events::SetDepositoryProfitsBeneficiaryCollateralEvent;
 use crate::events::SetDepositoryRedeemableAmountUnderManagementCapEvent;
 use crate::events::SetDepositoryRedeemingFeeInBpsEvent;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
@@ -121,7 +121,7 @@ pub(crate) fn handler(
             profits_beneficiary_collateral
         );
         depository.profits_beneficiary_collateral = profits_beneficiary_collateral;
-        emit!(SetDepositoryProfitsBeneficiaryKeyEvent {
+        emit!(SetDepositoryProfitsBeneficiaryCollateralEvent {
             version: ctx.accounts.controller.load()?.version,
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),

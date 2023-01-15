@@ -1996,7 +1996,7 @@ export type Uxd = {
       ]
     },
     {
-      name: 'SetDepositoryProfitsBeneficiaryKeyEvent'
+      name: 'SetDepositoryProfitsBeneficiaryCollateralEvent'
       fields: [
         {
           name: 'version'
@@ -4543,7 +4543,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      name: 'SetDepositoryProfitsBeneficiaryKeyEvent',
+      name: 'SetDepositoryProfitsBeneficiaryCollateralEvent',
       fields: [
         {
           name: 'version',
