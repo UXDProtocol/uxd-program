@@ -74,7 +74,11 @@ pub enum UxdError {
     InvalidDepositoryCollateral,
     #[msg("The provided depository shares does not match the depository's one.")]
     InvalidDepositoryShares,
-    #[msg("The provided mercurial vault does not match the Depository's one.")]
+    #[msg("The Profits beneficiary collateral provided does not match the depository's one.")]
+    InvalidProfitsBeneficiaryCollateral,
+    #[msg("The Profits beneficiary collateral provided is set to an invalid value.")]
+    UninitializedProfitsBeneficiaryCollateral,
+    #[msg("The profits beneficiary hasn't setup for this depository")]
     InvalidMercurialVault,
     #[msg("The provided mercurial vault collateral token safe does not match the mercurial vault one.")]
     InvalidMercurialVaultCollateralTokenSafe,

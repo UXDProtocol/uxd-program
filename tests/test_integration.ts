@@ -8,10 +8,7 @@ import {
   MERCURIAL_USDC_DEVNET_DECIMALS,
 } from './constants';
 import { transferAllSol, transferAllTokens, transferSol } from './utils';
-import {
-  controllerIntegrationSuite,
-  controllerIntegrationSuiteParameters,
-} from './suite/controllerIntegrationSuite';
+import { controllerIntegrationSuite } from './suite/controllerIntegrationSuite';
 import { mercurialVaultDepositorySetupSuite } from './suite/mercurialVaultDepositorySetup';
 import { mercurialVaultDepositoryMintRedeemSuite } from './suite/mercurialVaultMintAndRedeemSuite';
 import { editMercurialVaultDepositorySuite } from './suite/editMercurialVaultDepositorySuite';
@@ -32,6 +29,7 @@ describe('UXD Controller Suite', function () {
 });
 
 let user: Signer = new Keypair();
+let profitsBeneficiary: Signer = new Keypair();
 
 describe('Mercurial vault integration tests: USDC', async function () {
   this.beforeAll('Setup: fund user', async function () {
@@ -68,6 +66,7 @@ describe('Mercurial vault integration tests: USDC', async function () {
     mercurialVaultDepositoryCollectProfitSuite({
       authority,
       controller,
+      profitsBeneficiary,
       payer: bank,
     });
   });
@@ -77,6 +76,12 @@ describe('Mercurial vault integration tests: USDC', async function () {
       MERCURIAL_USDC_DEVNET,
       MERCURIAL_USDC_DEVNET_DECIMALS,
       user,
+      bank.publicKey
+    );
+    await transferAllTokens(
+      MERCURIAL_USDC_DEVNET,
+      MERCURIAL_USDC_DEVNET_DECIMALS,
+      profitsBeneficiary,
       bank.publicKey
     );
     await transferAllSol(user, bank.publicKey);

@@ -213,6 +213,7 @@ export async function editMercurialVaultDepository({
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
+    profitsBeneficiaryCollateral?: PublicKey;
   };
 }): Promise<string> {
   const editMercurialVaultDepositoryIx =
@@ -590,45 +591,30 @@ export async function freezeProgram(
 }
 
 export async function collectProfitOfMercurialVaultDepository({
-  authority,
   payer,
   controller,
   depository,
+  profitsBeneficiaryCollateral,
 }: {
-  authority: Signer;
   payer: Signer;
   controller: Controller;
   depository: MercurialVaultDepository;
+  profitsBeneficiaryCollateral: PublicKey;
 }): Promise<string> {
   const collectInterestsAndFeesFromMercurialVaultDepositoryIx =
     uxdClient.createCollectProfitOfMercurialVaultDepositoryInstruction(
       controller,
-      authority.publicKey,
       depository,
+      profitsBeneficiaryCollateral,
       TXN_OPTS,
       payer.publicKey
     );
+
   let signers = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(
-    authority.publicKey,
-    controller.redeemableMintPda
-  );
-  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
-    const createUserRedeemableAtaIx = createAssocTokenIx(
-      authority.publicKey,
-      authorityRedeemableAta,
-      controller.redeemableMintPda
-    );
-    tx.add(createUserRedeemableAtaIx);
-  }
-
   tx.add(collectInterestsAndFeesFromMercurialVaultDepositoryIx);
-  signers.push(authority);
-  if (payer) {
-    signers.push(payer);
-  }
+  signers.push(payer);
   tx.feePayer = payer.publicKey;
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }

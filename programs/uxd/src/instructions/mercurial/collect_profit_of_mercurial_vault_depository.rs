@@ -1,5 +1,6 @@
 use crate::error::UxdError;
 use crate::mercurial_utils;
+use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::MercurialVaultDepository;
 use crate::CONTROLLER_NAMESPACE;
@@ -14,23 +15,19 @@ use fixed::types::I80F48;
 #[derive(Accounts)]
 pub struct CollectProfitOfMercurialVaultDepository<'info> {
     /// #1
-    pub authority: Signer<'info>,
-
-    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// #3
+    /// #2
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
-        has_one = authority @UxdError::InvalidAuthority,
         constraint = controller.load()?.registered_mercurial_vault_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #4
+    /// #3
     #[account(
         mut,
         seeds = [MERCURIAL_VAULT_DEPOSITORY_NAMESPACE, depository.load()?.mercurial_vault.key().as_ref(), depository.load()?.collateral_mint.as_ref()],
@@ -39,22 +36,22 @@ pub struct CollectProfitOfMercurialVaultDepository<'info> {
         has_one = mercurial_vault @UxdError::InvalidMercurialVault,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
         has_one = mercurial_vault_lp_mint @UxdError::InvalidMercurialVaultLpMint,
+        has_one = profits_beneficiary_collateral @UxdError::InvalidProfitsBeneficiaryCollateral,
         constraint = depository.load()?.lp_token_vault == depository_lp_token_vault.key() @UxdError::InvalidDepositoryLpTokenVault,
     )]
     pub depository: AccountLoader<'info, MercurialVaultDepository>,
 
-    /// #5
+    /// #4
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #6
+    /// #5
     #[account(
         mut,
-        constraint = authority_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
-        constraint = &authority_collateral.owner == authority.key @UxdError::InvalidOwner,
+        constraint = profits_beneficiary_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
     )]
-    pub authority_collateral: Box<Account<'info, TokenAccount>>,
+    pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #7
+    /// #6
     /// Token account holding the LP tokens minted by depositing collateral on mercurial vault
     #[account(
         mut,
@@ -65,29 +62,29 @@ pub struct CollectProfitOfMercurialVaultDepository<'info> {
     )]
     pub depository_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
-    /// #8
+    /// #7
     #[account(
         mut,
         constraint = mercurial_vault.token_vault == mercurial_vault_collateral_token_safe.key() @UxdError::InvalidMercurialVaultCollateralTokenSafe,
     )]
     pub mercurial_vault: Box<Account<'info, mercurial_vault::state::Vault>>,
 
-    /// #9
+    /// #8
     #[account(mut)]
     pub mercurial_vault_lp_mint: Box<Account<'info, Mint>>,
 
-    /// #10
+    /// #9
     /// Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.
     #[account(mut)]
     pub mercurial_vault_collateral_token_safe: Box<Account<'info, TokenAccount>>,
 
-    /// #11
+    /// #10
     pub mercurial_vault_program: Program<'info, mercurial_vault::program::Vault>,
 
-    /// #12
+    /// #11
     pub system_program: Program<'info, System>,
 
-    /// #13
+    /// #12
     pub token_program: Program<'info, Token>,
 }
 
@@ -106,7 +103,7 @@ pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<
     ]];
 
     let before_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
-    let before_collateral_balance = ctx.accounts.authority_collateral.amount;
+    let before_collateral_balance = ctx.accounts.profits_beneficiary_collateral.amount;
 
     // 1 - calculate the value of collectable interests and fees (in USDC unit)
     let collectable_profits_value = ctx.accounts.calculate_collectable_profits_value()?;
@@ -135,10 +132,10 @@ pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<
 
     // 4 - Reload accounts impacted by the withdraw (We need updated numbers for further calculation)
     ctx.accounts.depository_lp_token_vault.reload()?;
-    ctx.accounts.authority_collateral.reload()?;
+    ctx.accounts.profits_beneficiary_collateral.reload()?;
 
     // 5 - Check that a positive amount of collateral have been redeemed
-    let after_collateral_balance = ctx.accounts.authority_collateral.amount;
+    let after_collateral_balance = ctx.accounts.profits_beneficiary_collateral.amount;
 
     let collateral_balance_change = after_collateral_balance
         .checked_sub(before_collateral_balance)
@@ -207,7 +204,7 @@ impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
             vault: self.mercurial_vault.to_account_info(),
             token_vault: self.mercurial_vault_collateral_token_safe.to_account_info(),
             lp_mint: self.mercurial_vault_lp_mint.to_account_info(),
-            user_token: self.authority_collateral.to_account_info(),
+            user_token: self.profits_beneficiary_collateral.to_account_info(),
             user_lp: self.depository_lp_token_vault.to_account_info(),
             user: self.depository.to_account_info(),
             token_program: self.token_program.to_account_info(),
@@ -283,6 +280,19 @@ impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
             UxdError::SlippageReached,
         );
 
+        Ok(())
+    }
+}
+
+// Validate
+impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
+    pub(crate) fn validate(&self) -> Result<()> {
+        validate_is_program_frozen(self.controller.load()?)?;
+        require!(
+            self.depository.load()?.profits_beneficiary_collateral
+                != Pubkey::new_from_array([0u8; 32]),
+            UxdError::UninitializedProfitsBeneficiaryCollateral
+        );
         Ok(())
     }
 }

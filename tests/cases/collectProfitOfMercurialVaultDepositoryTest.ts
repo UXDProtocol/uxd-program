@@ -1,4 +1,4 @@
-import { Signer } from '@solana/web3.js';
+import { PublicKey, Signer } from '@solana/web3.js';
 import {
   findATAAddrSync,
   Controller,
@@ -12,31 +12,28 @@ import { CLUSTER } from '../constants';
 import { getBalance } from '../utils';
 
 export const collectProfitOfMercurialVaultDepositoryTest = async function ({
-  authority,
   controller,
   depository,
   payer,
 }: {
-  authority: Signer;
   controller: Controller;
   depository: MercurialVaultDepository;
-  payer?: Signer;
+  payer: Signer;
 }): Promise<number> {
   console.group('🧭 collectProfitOfMercurialVaultDepositoryTest');
 
   try {
     // GIVEN
-    const [profitsRedeemAuthorityCollateralATA] = findATAAddrSync(
-      authority.publicKey,
-      depository.collateralMint.mint
-    );
+    const profitsBeneficiaryCollateral = (
+      await depository.getOnchainAccount(getConnection(), TXN_OPTS)
+    ).profitsBeneficiaryCollateral;
 
     const [
-      profitsRedeemAuthorityCollateralBalance_pre,
+      profitsBeneficiaryCollateralBalance_pre,
       onChainDepository_pre,
       onChainController_pre,
     ] = await Promise.all([
-      getBalance(profitsRedeemAuthorityCollateralATA),
+      getBalance(profitsBeneficiaryCollateral),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
@@ -53,10 +50,10 @@ export const collectProfitOfMercurialVaultDepositoryTest = async function ({
     // WHEN
     // Simulates user experience from the front end
     const txId = await collectProfitOfMercurialVaultDepository({
-      authority,
-      payer: payer ?? authority,
+      payer: payer,
       controller,
       depository,
+      profitsBeneficiaryCollateral,
     });
     console.log(
       `🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`
@@ -64,11 +61,11 @@ export const collectProfitOfMercurialVaultDepositoryTest = async function ({
 
     // THEN
     const [
-      profitsRedeemAuthorityCollateralBalance_post,
+      profitsBeneficiaryCollateralBalance_post,
       onChainDepository_post,
       onChainController_post,
     ] = await Promise.all([
-      getBalance(profitsRedeemAuthorityCollateralATA),
+      getBalance(profitsBeneficiaryCollateral),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
@@ -76,8 +73,8 @@ export const collectProfitOfMercurialVaultDepositoryTest = async function ({
     // Use toFixed to avoid +0.010000000000000009 != than +0.01
     const collateralDelta = Number(
       (
-        profitsRedeemAuthorityCollateralBalance_post -
-        profitsRedeemAuthorityCollateralBalance_pre
+        profitsBeneficiaryCollateralBalance_post -
+        profitsBeneficiaryCollateralBalance_pre
       ).toFixed(depository.collateralMint.decimals)
     );
 

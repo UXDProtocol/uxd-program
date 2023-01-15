@@ -4,7 +4,7 @@ use fixed::types::I80F48;
 use crate::error::UxdError;
 
 // Total should be 900 bytes
-pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 677;
+pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 588;
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 1     // bump
     + 1     // version
@@ -26,6 +26,7 @@ pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 1     // minting disabled
     + 16    // profits total collected
     + 8     // last time profits got collected (unix timestamp)
+    + 32     // profits beneficiary
     + MERCURIAL_VAULT_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -90,6 +91,9 @@ pub struct MercurialVaultDepository {
 
     // Worth 0 if interests and fees never got collected
     pub last_profits_collection_unix_timestamp: u64,
+
+    // Receiver of the depository's profits
+    pub profits_beneficiary_collateral: Pubkey,
 }
 
 impl MercurialVaultDepository {

@@ -259,6 +259,9 @@ pub mod uxd {
         instructions::freeze_program::handler(ctx, freeze)
     }
 
+    #[access_control(
+        ctx.accounts.validate()
+    )]
     pub fn collect_profit_of_mercurial_vault_depository(
         ctx: Context<CollectProfitOfMercurialVaultDepository>,
     ) -> Result<()> {

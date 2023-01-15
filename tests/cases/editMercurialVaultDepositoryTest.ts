@@ -1,4 +1,4 @@
-import { Signer } from '@solana/web3.js';
+import { PublicKey, Signer } from '@solana/web3.js';
 import {
   Controller,
   MercurialVaultDepository,
@@ -23,6 +23,7 @@ export const editMercurialVaultDepositoryTest = async function ({
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
+    profitsBeneficiaryCollateral?: PublicKey;
   };
 }) {
   const connection = getConnection();
@@ -41,6 +42,7 @@ export const editMercurialVaultDepositoryTest = async function ({
       mintingFeeInBps,
       redeemingFeeInBps,
       mintingDisabled,
+      profitsBeneficiaryCollateral,
     } = depositoryOnchainAccount;
 
     // WHEN
@@ -65,6 +67,7 @@ export const editMercurialVaultDepositoryTest = async function ({
       mintingFeeInBps: mintingFeeInBps_post,
       redeemingFeeInBps: redeemingFeeInBps_post,
       mintingDisabled: mintingDisabled_post,
+      profitsBeneficiaryCollateral: profitsBeneficiaryCollateral_post,
     } = depositoryOnchainAccount_post;
 
     if (uiFields.redeemableAmountUnderManagementCap) {
@@ -117,6 +120,18 @@ export const editMercurialVaultDepositoryTest = async function ({
         mintingDisabled,
         'now is',
         mintingDisabled_post
+      );
+    }
+    if (typeof uiFields.profitsBeneficiaryCollateral !== 'undefined') {
+      expect(profitsBeneficiaryCollateral_post).equals(
+        uiFields.profitsBeneficiaryCollateral,
+        'The profits beneficiary key state has not changed.'
+      );
+      console.log(
+        `🧾 Previous profits beneficiary key state was`,
+        profitsBeneficiaryCollateral,
+        'now is',
+        profitsBeneficiaryCollateral_post
       );
     }
 
