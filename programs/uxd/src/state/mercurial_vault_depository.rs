@@ -93,7 +93,7 @@ pub struct MercurialVaultDepository {
     pub last_profits_collection_unix_timestamp: u64,
 
     // Receiver of the depository's profits
-    pub profits_beneficiary_key: Pubkey,
+    pub profits_beneficiary_collateral: Pubkey,
 }
 
 impl MercurialVaultDepository {

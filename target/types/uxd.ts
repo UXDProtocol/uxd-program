@@ -1701,7 +1701,7 @@ export type Uxd = {
             type: 'u64'
           },
           {
-            name: 'profitsBeneficiaryKey'
+            name: 'profitsBeneficiaryCollateral'
             type: 'publicKey'
           }
         ]
@@ -1805,7 +1805,7 @@ export type Uxd = {
             }
           },
           {
-            name: 'profitsBeneficiaryKey'
+            name: 'profitsBeneficiaryCollateral'
             type: {
               option: 'publicKey'
             }
@@ -2014,7 +2014,7 @@ export type Uxd = {
           index: true
         },
         {
-          name: 'profitsBeneficiaryKey'
+          name: 'profitsBeneficiaryCollateral'
           type: 'publicKey'
           index: true
         }
@@ -2459,13 +2459,13 @@ export type Uxd = {
     },
     {
       code: 6034
-      name: 'InvalidProfitsBeneficiary'
-      msg: "The Profits beneficiary provided does not match the depository's one."
+      name: 'InvalidProfitsBeneficiaryCollateral'
+      msg: "The Profits beneficiary collateral provided does not match the depository's one."
     },
     {
       code: 6035
-      name: 'ProfitsBeneficiaryNotInitialized'
-      msg: "The Profits beneficiary provided does not match the depository's one."
+      name: 'UninitializedProfitsBeneficiaryCollateral'
+      msg: 'The Profits beneficiary collateral provided is set to an invalid value.'
     },
     {
       code: 6036
@@ -4248,7 +4248,7 @@ export const IDL: Uxd = {
             type: 'u64'
           },
           {
-            name: 'profitsBeneficiaryKey',
+            name: 'profitsBeneficiaryCollateral',
             type: 'publicKey'
           }
         ]
@@ -4352,7 +4352,7 @@ export const IDL: Uxd = {
             }
           },
           {
-            name: 'profitsBeneficiaryKey',
+            name: 'profitsBeneficiaryCollateral',
             type: {
               option: 'publicKey'
             }
@@ -4561,7 +4561,7 @@ export const IDL: Uxd = {
           index: true
         },
         {
-          name: 'profitsBeneficiaryKey',
+          name: 'profitsBeneficiaryCollateral',
           type: 'publicKey',
           index: true
         }
@@ -5006,13 +5006,13 @@ export const IDL: Uxd = {
     },
     {
       code: 6034,
-      name: 'InvalidProfitsBeneficiary',
-      msg: "The Profits beneficiary provided does not match the depository's one."
+      name: 'InvalidProfitsBeneficiaryCollateral',
+      msg: "The Profits beneficiary collateral provided does not match the depository's one."
     },
     {
       code: 6035,
-      name: 'ProfitsBeneficiaryNotInitialized',
-      msg: "The Profits beneficiary provided does not match the depository's one."
+      name: 'UninitializedProfitsBeneficiaryCollateral',
+      msg: 'The Profits beneficiary collateral provided is set to an invalid value.'
     },
     {
       code: 6036,

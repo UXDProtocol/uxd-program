@@ -36,6 +36,7 @@ pub struct CollectProfitOfMercurialVaultDepository<'info> {
         has_one = mercurial_vault @UxdError::InvalidMercurialVault,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
         has_one = mercurial_vault_lp_mint @UxdError::InvalidMercurialVaultLpMint,
+        has_one = profits_beneficiary_collateral @UxdError::InvalidProfitsBeneficiaryCollateral,
         constraint = depository.load()?.lp_token_vault == depository_lp_token_vault.key() @UxdError::InvalidDepositoryLpTokenVault,
     )]
     pub depository: AccountLoader<'info, MercurialVaultDepository>,
@@ -47,7 +48,6 @@ pub struct CollectProfitOfMercurialVaultDepository<'info> {
     #[account(
         mut,
         constraint = profits_beneficiary_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
-        constraint = profits_beneficiary_collateral.owner == depository.load()?.profits_beneficiary_key @UxdError::InvalidOwner,
     )]
     pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
@@ -287,11 +287,12 @@ impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
 // Validate
 impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
     pub(crate) fn validate(&self) -> Result<()> {
-        require!(
-            self.depository.load()?.profits_beneficiary_key != Pubkey::new_from_array([0u8; 32]),
-            UxdError::ProfitsBeneficiaryNotInitialized
-        );
         validate_is_program_frozen(self.controller.load()?)?;
+        require!(
+            self.depository.load()?.profits_beneficiary_collateral
+                != Pubkey::new_from_array([0u8; 32]),
+            UxdError::UninitializedProfitsBeneficiaryCollateral
+        );
         Ok(())
     }
 }
