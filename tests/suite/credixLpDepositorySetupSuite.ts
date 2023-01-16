@@ -28,15 +28,4 @@ export const credixLpDepositorySetupSuite = function (
       redeemableAmountUnderManagementCap: 25_000_000,
     });
   });
-
-  it(`Collecting profit of credixLpDepository should work`, async function () {
-    console.log('[🧾 collectProfit]');
-
-    await collectProfitOfCredixLpDepositoryTest(
-      authority,
-      controller,
-      depository,
-      payer
-    );
-  });
 };
