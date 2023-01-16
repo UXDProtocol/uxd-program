@@ -1,7 +1,8 @@
-import { Signer } from '@solana/web3.js';
+import { PublicKey, Signer } from '@solana/web3.js';
 import {
   Controller,
   CredixLpDepository,
+  findATAAddrSync,
   nativeToUi,
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
@@ -12,11 +13,13 @@ import { BN } from '@project-serum/anchor';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
 import { editControllerTest } from '../cases/editControllerTest';
 import { redeemFromCredixLpDepositoryTest } from '../cases/redeemFromCredixLpDepositoryTest';
+import { collectProfitsOfCredixLpDepositoryTest } from '../cases/collectProfitsOfCredixLpDepositoryTest';
 
 export const credixLpDepositoryMintAndRedeemSuite = async function (
-  controllerAuthority: Signer,
+  authority: Signer,
   user: Signer,
   payer: Signer,
+  profitsBeneficiary: Signer,
   controller: Controller,
   depository: CredixLpDepository
 ) {
@@ -278,7 +281,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
 
   describe('Global redeemable supply cap overflow', () => {
     it('Set global redeemable supply cap to 0', () =>
-      editControllerTest(controllerAuthority, controller, {
+      editControllerTest(authority, controller, {
         redeemableGlobalSupplyCap: 0,
       }));
 
@@ -317,7 +320,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
         controller.redeemableMintDecimals
       );
 
-      await editControllerTest(controllerAuthority, controller, {
+      await editControllerTest(authority, controller, {
         redeemableGlobalSupplyCap: globalRedeemableSupplyCap,
       });
     });
@@ -330,18 +333,13 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
         TXN_OPTS
       );
 
-      await editCredixLpDepositoryTest(
-        controllerAuthority,
-        controller,
-        depository,
-        {
-          redeemableAmountUnderManagementCap:
-            nativeToUi(
-              onChainDepository.redeemableAmountUnderManagement,
-              controller.redeemableMintDecimals
-            ) + 0.0005,
-        }
-      );
+      await editCredixLpDepositoryTest(authority, controller, depository, {
+        redeemableAmountUnderManagementCap:
+          nativeToUi(
+            onChainDepository.redeemableAmountUnderManagement,
+            controller.redeemableMintDecimals
+          ) + 0.0005,
+      });
     });
 
     it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol} (should fail)`, async function () {
@@ -379,27 +377,17 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
         controller.redeemableMintDecimals
       );
 
-      await editCredixLpDepositoryTest(
-        controllerAuthority,
-        controller,
-        depository,
-        {
-          redeemableAmountUnderManagementCap,
-        }
-      );
+      await editCredixLpDepositoryTest(authority, controller, depository, {
+        redeemableAmountUnderManagementCap,
+      });
     });
   });
 
   describe('Disabled minting', () => {
     it('Disable minting on credix lp depository', async function () {
-      await editCredixLpDepositoryTest(
-        controllerAuthority,
-        controller,
-        depository,
-        {
-          mintingDisabled: true,
-        }
-      );
+      await editCredixLpDepositoryTest(authority, controller, depository, {
+        mintingDisabled: true,
+      });
     });
 
     it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol} (should fail)`, async function () {
@@ -429,13 +417,49 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
     });
 
     it(`Re-enable minting for credix lp depository`, async function () {
-      await editCredixLpDepositoryTest(
-        controllerAuthority,
+      await editCredixLpDepositoryTest(authority, controller, depository, {
+        mintingDisabled: false,
+      });
+    });
+  });
+
+  describe('Collecting profits', () => {
+    it(`Collecting profits of credixLpDepository should work`, async function () {
+      console.log('[🧾 collectProfits]');
+      const profitsBeneficiaryCollateral = findATAAddrSync(
+        profitsBeneficiary.publicKey,
+        depository.collateralMint
+      )[0];
+      await editCredixLpDepositoryTest(authority, controller, depository, {
+        profitsBeneficiaryCollateral: profitsBeneficiaryCollateral,
+      });
+      await collectProfitsOfCredixLpDepositoryTest(
+        payer,
+        profitsBeneficiaryCollateral,
         controller,
-        depository,
-        {
-          mintingDisabled: false,
-        }
+        depository
+      );
+    });
+
+    it(`Collecting profits of credixLpDepository should not work for invalid collateral address`, async function () {
+      console.log('[🧾 collectProfits]');
+      await editCredixLpDepositoryTest(authority, controller, depository, {
+        profitsBeneficiaryCollateral: PublicKey.default,
+      });
+      let failure = false;
+      try {
+        await collectProfitsOfCredixLpDepositoryTest(
+          payer,
+          PublicKey.default,
+          controller,
+          depository
+        );
+      } catch {
+        failure = true;
+      }
+      expect(failure).eq(
+        true,
+        `Should have failed - Invalid profit beneficiary`
       );
     });
   });

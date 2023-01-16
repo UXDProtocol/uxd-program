@@ -465,11 +465,6 @@ impl<'info> CollectProfitOfCredixLpDepository<'info> {
 impl<'info> CollectProfitOfCredixLpDepository<'info> {
     pub(crate) fn validate(&self) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
-        require!(
-            self.depository.load()?.profits_beneficiary_collateral
-                != Pubkey::new_from_array([0u8; 32]),
-            UxdError::UninitializedProfitsBeneficiaryCollateral
-        );
         Ok(())
     }
 }
