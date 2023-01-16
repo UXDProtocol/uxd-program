@@ -178,7 +178,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     )?;
 
     // How much collateral can we withdraw as profits
-    let profit_value: u128 = {
+    let profits_value: u128 = {
         // Compute the set of liabilities owed to the users
         let liabilities_value: u128 = ctx
             .accounts
@@ -201,12 +201,12 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
             .ok_or(UxdError::MathError)?
     };
     msg!(
-        "[collect_profits_of_credix_lp_depository:profit_value:{}]",
-        profit_value
+        "[collect_profits_of_credix_lp_depository:profits_value:{}]",
+        profits_value
     );
 
     // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
-    let collateral_amount_before_precision_loss: u64 = u64::try_from(profit_value)
+    let collateral_amount_before_precision_loss: u64 = u64::try_from(profits_value)
         .ok()
         .ok_or(UxdError::MathError)?;
     msg!(
@@ -238,7 +238,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
 
     // If nothing to withdraw, no need to continue, all profits have already been successfully collected
     if collateral_amount_after_precision_loss == 0 {
-        msg!("[collect_profits_of_credix_lp_depository:no_profit_to_collect]",);
+        msg!("[collect_profits_of_credix_lp_depository:no_profits_to_collect]",);
         return Ok(());
     }
 
@@ -406,13 +406,13 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
 
     // Accouting for depository
     let mut depository = ctx.accounts.depository.load_mut()?;
-    depository.update_onchain_accounting_following_profit_collection(
+    depository.update_onchain_accounting_following_profits_collection(
         collateral_amount_after_precision_loss,
     )?;
 
     // Accouting for controller
     let mut controller = ctx.accounts.controller.load_mut()?;
-    controller.update_onchain_accounting_following_profit_collection(
+    controller.update_onchain_accounting_following_profits_collection(
         collateral_amount_after_precision_loss,
     )?;
 
