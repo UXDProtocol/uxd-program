@@ -4,25 +4,29 @@ use fixed::types::I80F48;
 use crate::error::UxdError;
 
 // Total should be 900 bytes
-pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 645;
+pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 588;
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
-    + 1
-    + 1
-    + 32
-    + 1
-    + 32
-    + 16
-    + 16
-    + 32
-    + 32
-    + 1
-    + 32
-    + 1
-    + 1
-    + 1
-    + 16
-    + 16
-    + 16
+    + 1     // bump
+    + 1     // version
+    + 32    // collateral mint
+    + 1     // collateral mint decimals
+    + 32    // controller
+    + 16    // collateral amount deposited
+    + 16    // redeemable amount under management
+    + 32    // mercurial vault
+    + 32    // mercurial vault lp mint
+    + 1     // mercurial vault lp mint decimals
+    + 32    // lp token vault
+    + 1     // lp token vault bump
+    + 1     // minting fee in bps
+    + 1     // redeeming fee in bps
+    + 16    // minting fee total accrued
+    + 16    // redeeming fee total accrued
+    + 16    // redeemable amount under management cap
+    + 1     // minting disabled
+    + 16    // profits total collected
+    + 8     // last time profits got collected (unix timestamp)
+    + 32     // profits beneficiary
     + MERCURIAL_VAULT_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -81,9 +85,33 @@ pub struct MercurialVaultDepository {
     pub redeemable_amount_under_management_cap: u128,
 
     pub minting_disabled: bool,
+
+    // Total amount of interests collected by interests_and_fees_redeem_authority
+    pub profits_total_collected: u128,
+
+    // Worth 0 if interests and fees never got collected
+    pub last_profits_collection_unix_timestamp: u64,
+
+    // Receiver of the depository's profits
+    pub profits_beneficiary_collateral: Pubkey,
 }
 
 impl MercurialVaultDepository {
+    pub fn update_onchain_accounting_following_profits_collection(
+        &mut self,
+        collected_profits: u64,
+        current_time_as_unix_timestamp: u64,
+    ) -> std::result::Result<(), UxdError> {
+        self.profits_total_collected = self
+            .profits_total_collected
+            .checked_add(collected_profits.into())
+            .ok_or(UxdError::MathError)?;
+
+        self.last_profits_collection_unix_timestamp = current_time_as_unix_timestamp;
+
+        Ok(())
+    }
+
     // provides numbers + or - depending on the change
     pub fn update_onchain_accounting_following_mint_or_redeem(
         &mut self,

@@ -1046,6 +1046,72 @@
           "type": "bool"
         }
       ]
+    },
+    {
+      "name": "collectProfitOfMercurialVaultDepository",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "profitsBeneficiaryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryLpTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultLpMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultCollateralTokenSafe",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -1081,7 +1147,10 @@
           {
             "name": "unused",
             "type": {
-              "array": ["u8", 255]
+              "array": [
+                "u8",
+                255
+              ]
             }
           },
           {
@@ -1099,7 +1168,10 @@
           {
             "name": "unused3",
             "type": {
-              "array": ["u8", 8]
+              "array": [
+                "u8",
+                8
+              ]
             }
           },
           {
@@ -1109,13 +1181,19 @@
           {
             "name": "unused4",
             "type": {
-              "array": ["u8", 8]
+              "array": [
+                "u8",
+                8
+              ]
             }
           },
           {
             "name": "registeredMercurialVaultDepositories",
             "type": {
-              "array": ["publicKey", 4]
+              "array": [
+                "publicKey",
+                4
+              ]
             }
           },
           {
@@ -1125,7 +1203,10 @@
           {
             "name": "registeredCredixLpDepositories",
             "type": {
-              "array": ["publicKey", 4]
+              "array": [
+                "publicKey",
+                4
+              ]
             }
           },
           {
@@ -1367,6 +1448,18 @@
           {
             "name": "mintingDisabled",
             "type": "bool"
+          },
+          {
+            "name": "profitsTotalCollected",
+            "type": "u128"
+          },
+          {
+            "name": "lastProfitsCollectionUnixTimestamp",
+            "type": "u64"
+          },
+          {
+            "name": "profitsBeneficiaryCollateral",
+            "type": "publicKey"
           }
         ]
       }
@@ -1472,6 +1565,12 @@
             "name": "mintingDisabled",
             "type": {
               "option": "bool"
+            }
+          },
+          {
+            "name": "profitsBeneficiaryCollateral",
+            "type": {
+              "option": "publicKey"
             }
           }
         ]
@@ -2201,8 +2300,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "36N7GZDMv3xkabgWMc2fJqrxm15cgp6oykPs53qDn5Ju"
-  }
+  ]
 }

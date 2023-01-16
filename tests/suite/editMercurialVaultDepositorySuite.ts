@@ -86,8 +86,23 @@ export const editMercurialVaultDepositorySuite = async function (
         depository,
         {
           mintingDisabled,
-        }
+    it(`Edit profitsBeneficiaryCollateral alone should work`, async function () {
+      const profitsBeneficiaryCollateral = new Keypair().publicKey;
+
+      console.log(
+        '[🧾 profitsBeneficiaryCollateral',
+        profitsBeneficiaryCollateral,
+        ']'
       );
+
+      await editMercurialVaultDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          profitsBeneficiaryCollateral,
+        },
+      });
     });
 
     // Restore initial depository values there
@@ -97,6 +112,7 @@ export const editMercurialVaultDepositorySuite = async function (
         redeemingFeeInBps,
         redeemableAmountUnderManagementCap,
         mintingDisabled,
+        profitsBeneficiaryCollateral,
       } = beforeDepository;
 
       const uiRedeemableAmountUnderManagementCap = nativeToUi(
@@ -112,6 +128,11 @@ export const editMercurialVaultDepositorySuite = async function (
         ']'
       );
       console.log('[🧾 mintingDisabled', mintingDisabled, ']');
+      console.log(
+        '[🧾 profitsBeneficiaryCollateral',
+        profitsBeneficiaryCollateral,
+        ']'
+      );
 
       await editMercurialVaultDepositoryTest(
         controllerAuthority,

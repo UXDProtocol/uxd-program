@@ -404,13 +404,13 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
         collateral_amount: collateral_amount_after_precision_loss,
     });
 
-    // Accouting for depository
+    // Accounting for depository
     let mut depository = ctx.accounts.depository.load_mut()?;
     depository.update_onchain_accounting_following_profit_collection(
         collateral_amount_after_precision_loss,
     )?;
 
-    // Accouting for controller
+    // Accounting for controller
     let mut controller = ctx.accounts.controller.load_mut()?;
     controller.update_onchain_accounting_following_profit_collection(
         collateral_amount_after_precision_loss,
