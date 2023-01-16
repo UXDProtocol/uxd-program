@@ -36,16 +36,6 @@ import { mercurialVaultDepositoryCollectProfitSuite } from './suite/mercurialVau
 
   let user: Signer = new Keypair();
   let profitsBeneficiary: Signer = new Keypair();
-  const mercurialVaultDepository = await MercurialVaultDepository.initialize({
-    connection: getConnection(),
-    collateralMint: {
-      mint: MERCURIAL_USDC_DEVNET,
-      name: 'USDC',
-      symbol: 'USDC',
-      decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
-    },
-    uxdProgramId,
-  });
 
   describe('Mercurial vault integration tests: USDC', async function () {
     this.beforeAll('Setup: fund user', async function () {
@@ -57,7 +47,18 @@ import { mercurialVaultDepositoryCollectProfitSuite } from './suite/mercurialVau
     const redeemingFeeInBps = 5;
     const uiRedeemableDepositorySupplyCap = 1_000;
 
-    describe('mercurialVaultDepositorySetupSuite', function () {
+    describe('mercurialVaultDepositorySetupSuite', async function () {
+      const mercurialVaultDepository =
+        await MercurialVaultDepository.initialize({
+          connection: getConnection(),
+          collateralMint: {
+            mint: MERCURIAL_USDC_DEVNET,
+            name: 'USDC',
+            symbol: 'USDC',
+            decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
+          },
+          uxdProgramId,
+        });
       mercurialVaultDepositorySetupSuite(
         authority,
         bank,
@@ -69,7 +70,18 @@ import { mercurialVaultDepositoryCollectProfitSuite } from './suite/mercurialVau
       );
     });
 
-    describe('mercurialVaultDepositoryMintRedeemSuite', function () {
+    describe('mercurialVaultDepositoryMintRedeemSuite', async function () {
+      const mercurialVaultDepository =
+        await MercurialVaultDepository.initialize({
+          connection: getConnection(),
+          collateralMint: {
+            mint: MERCURIAL_USDC_DEVNET,
+            name: 'USDC',
+            symbol: 'USDC',
+            decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
+          },
+          uxdProgramId,
+        });
       mercurialVaultDepositoryMintRedeemSuite(
         authority,
         user,
