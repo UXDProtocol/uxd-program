@@ -7,8 +7,6 @@ import {
 import {
   authority,
   bank,
-  SOLEND_USDC_DEVNET,
-  SOLEND_USDC_DEVNET_DECIMALS,
   uxdProgramId,
   MERCURIAL_USDC_DEVNET,
   MERCURIAL_USDC_DEVNET_DECIMALS,
@@ -37,7 +35,17 @@ import { mercurialVaultDepositoryCollectProfitSuite } from './suite/mercurialVau
   });
 
   let user: Signer = new Keypair();
-let profitsBeneficiary: Signer = new Keypair();
+  let profitsBeneficiary: Signer = new Keypair();
+  const mercurialVaultDepository = await MercurialVaultDepository.initialize({
+    connection: getConnection(),
+    collateralMint: {
+      mint: MERCURIAL_USDC_DEVNET,
+      name: 'USDC',
+      symbol: 'USDC',
+      decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
+    },
+    uxdProgramId,
+  });
 
   describe('Mercurial vault integration tests: USDC', async function () {
     this.beforeAll('Setup: fund user', async function () {
@@ -71,28 +79,28 @@ let profitsBeneficiary: Signer = new Keypair();
       );
     });
 
-  describe('mercurialVaultDepositoryCollectProfitSuite', () => {
-    mercurialVaultDepositoryCollectProfitSuite({
+    describe('mercurialVaultDepositoryCollectProfitSuite', () => {
+      mercurialVaultDepositoryCollectProfitSuite({
         authority,
-      controller,
-      profitsBeneficiary,
-      payer: bank,
-    });
+        controller: controllerUXD,
+        profitsBeneficiary,
+        payer: bank,
+      });
     });
 
     this.afterAll('Transfer funds back to bank', async function () {
       await transferAllTokens(
-      MERCURIAL_USDC_DEVNET,
-      MERCURIAL_USDC_DEVNET_DECIMALS,
+        MERCURIAL_USDC_DEVNET,
+        MERCURIAL_USDC_DEVNET_DECIMALS,
         user,
         bank.publicKey
       );
-    await transferAllTokens(
-      MERCURIAL_USDC_DEVNET,
-      MERCURIAL_USDC_DEVNET_DECIMALS,
-      profitsBeneficiary,
-      bank.publicKey
-    );
+      await transferAllTokens(
+        MERCURIAL_USDC_DEVNET,
+        MERCURIAL_USDC_DEVNET_DECIMALS,
+        profitsBeneficiary,
+        bank.publicKey
+      );
       await transferAllSol(user, bank.publicKey);
     });
   });

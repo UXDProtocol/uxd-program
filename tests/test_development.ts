@@ -11,8 +11,8 @@ import {
 import {
   authority,
   bank,
-  SOLEND_USDC_DEVNET,
-  SOLEND_USDC_DEVNET_DECIMALS,
+  MERCURIAL_USDC_DEVNET,
+  MERCURIAL_USDC_DEVNET_DECIMALS,
   uxdProgramId,
 } from './constants';
 import {
@@ -44,10 +44,10 @@ import { editControllerTest } from './cases/editControllerTest';
   let mercurialVaultDepository = await MercurialVaultDepository.initialize({
     connection: getConnection(),
     collateralMint: {
-      mint: SOLEND_USDC_DEVNET,
+      mint: MERCURIAL_USDC_DEVNET,
       name: 'USDC',
       symbol: 'USDC',
-      decimals: SOLEND_USDC_DEVNET_DECIMALS,
+      decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
     },
     uxdProgramId,
   });
@@ -77,8 +77,8 @@ import { editControllerTest } from './cases/editControllerTest';
         );
         await transferTokens(
           10,
-          SOLEND_USDC_DEVNET,
-          SOLEND_USDC_DEVNET_DECIMALS,
+          MERCURIAL_USDC_DEVNET,
+          MERCURIAL_USDC_DEVNET_DECIMALS,
           bank,
           user.publicKey
         );
@@ -105,8 +105,8 @@ import { editControllerTest } from './cases/editControllerTest';
         bank.publicKey
       );
       await transferAllTokens(
-        SOLEND_USDC_DEVNET,
-        SOLEND_USDC_DEVNET_DECIMALS,
+        MERCURIAL_USDC_DEVNET,
+        MERCURIAL_USDC_DEVNET_DECIMALS,
         authority,
         bank.publicKey
       );

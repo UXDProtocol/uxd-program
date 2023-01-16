@@ -64,13 +64,8 @@ export const mercurialVaultDepositoryCollectProfitSuite = async function ({
 
   describe('Collect profit of mercurial vault depository', () => {
     it(`Set profit beneficiary as empty Public key (All zeroes)`, async () =>
-      editMercurialVaultDepositoryTest({
-        authority,
-        controller,
-        depository,
-        uiFields: {
-          profitsBeneficiaryCollateral: PublicKey.default,
-        },
+      editMercurialVaultDepositoryTest(authority, controller, depository, {
+        profitsBeneficiaryCollateral: PublicKey.default,
       }));
 
     it(`Collect profits should fail before initializing profit beneficiary`, async function () {
@@ -101,14 +96,14 @@ export const mercurialVaultDepositoryCollectProfitSuite = async function ({
         await token.getOrCreateAssociatedAccountInfo(
           profitsBeneficiary.publicKey
         );
-      await editMercurialVaultDepositoryTest({
+      await editMercurialVaultDepositoryTest(
         authority,
         controller,
         depository,
-        uiFields: {
+        {
           profitsBeneficiaryCollateral: profitsBeneficiaryAccountInfo.address,
-        },
-      });
+        }
+      );
     });
 
     it(`Collect some ${collateralSymbol} should work`, async () =>

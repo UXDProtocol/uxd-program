@@ -1,4 +1,4 @@
-import { Signer } from '@solana/web3.js';
+import { PublicKey, Signer } from '@solana/web3.js';
 import {
   Controller,
   MercurialVaultDepository,
@@ -19,6 +19,8 @@ export const editMercurialVaultDepositoryTest = async function (
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
     profitsBeneficiaryCollateral?: PublicKey;
+  }
+) {
   const connection = getConnection();
   const options = TXN_OPTS;
 
