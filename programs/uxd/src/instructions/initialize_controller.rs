@@ -85,8 +85,6 @@ pub(crate) fn handler(
     controller.is_frozen = false;
     controller.profits_total_collected = u128::MIN;
 
-    controller.profits_total_collected = u128::MIN;
-
     emit!(InitializeControllerEvent {
         version: controller.version,
         controller: ctx.accounts.controller.key(),
