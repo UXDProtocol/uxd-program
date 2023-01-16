@@ -61,7 +61,7 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
     );
 
     console.log(
-      `🧾 Collected profit:`,
+      `🧾 Collected profits:`,
       Number(collateralDelta.toFixed(depository.collateralDecimals)),
       depository.collateralSymbol
     );

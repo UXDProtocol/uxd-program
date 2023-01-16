@@ -186,13 +186,13 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
             .load()?
             .redeemable_amount_under_management;
         msg!(
-            "[collect_profit_of_credix_lp_depository:liabilities_value:{}]",
+            "[collect_profits_of_credix_lp_depository:liabilities_value:{}]",
             liabilities_value
         );
         // Compute the set of assets owned in the LP
         let assets_value: u128 = owned_shares_value_before.into();
         msg!(
-            "[collect_profit_of_credix_lp_depository:assets_value:{}]",
+            "[collect_profits_of_credix_lp_depository:assets_value:{}]",
             assets_value
         );
         // Compute the amount of profits that we can safely withdraw
@@ -201,7 +201,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
             .ok_or(UxdError::MathError)?
     };
     msg!(
-        "[collect_profit_of_credix_lp_depository:profit_value:{}]",
+        "[collect_profits_of_credix_lp_depository:profit_value:{}]",
         profit_value
     );
 
@@ -210,7 +210,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
         .ok()
         .ok_or(UxdError::MathError)?;
     msg!(
-        "[collect_profit_of_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
+        "[collect_profits_of_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
         collateral_amount_before_precision_loss
     );
 
@@ -221,7 +221,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
         total_shares_value_before,
     )?;
     msg!(
-        "[collect_profit_of_credix_lp_depository:shares_amount:{}]",
+        "[collect_profits_of_credix_lp_depository:shares_amount:{}]",
         shares_amount
     );
 
@@ -232,13 +232,13 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
         total_shares_value_before,
     )?;
     msg!(
-        "[collect_profit_of_credix_lp_depository:collateral_amount_after_precision_loss:{}]",
+        "[collect_profits_of_credix_lp_depository:collateral_amount_after_precision_loss:{}]",
         collateral_amount_after_precision_loss
     );
 
     // If nothing to withdraw, no need to continue, all profits have already been successfully collected
     if collateral_amount_after_precision_loss == 0 {
-        msg!("[collect_profit_of_credix_lp_depository:no_profit_to_collect]",);
+        msg!("[collect_profits_of_credix_lp_depository:no_profit_to_collect]",);
         return Ok(());
     }
 
@@ -258,7 +258,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     ]];
 
     // Run a withdraw CPI from credix into the depository
-    msg!("[collect_profit_of_credix_lp_depository:withdraw_funds]",);
+    msg!("[collect_profits_of_credix_lp_depository:withdraw_funds]",);
     credix_client::cpi::withdraw_funds(
         ctx.accounts
             .into_withdraw_funds_from_credix_lp_context()
@@ -267,7 +267,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     )?;
 
     // Transfer the received collateral from the depository to the end user
-    msg!("[collect_profit_of_credix_lp_depository:collateral_transfer]",);
+    msg!("[collect_profits_of_credix_lp_depository:collateral_transfer]",);
     token::transfer(
         ctx.accounts
             .into_transfer_depository_collateral_to_profits_beneficiary_collateral_context()
@@ -330,23 +330,23 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
 
     // Log deltas for debriefing the changes
     msg!(
-        "[collect_profit_of_credix_lp_depository:profits_beneficiary_collateral_amount_increase:{}]",
+        "[collect_profits_of_credix_lp_depository:profits_beneficiary_collateral_amount_increase:{}]",
         profits_beneficiary_collateral_amount_increase
     );
     msg!(
-        "[collect_profit_of_credix_lp_depository:total_shares_amount_decrease:{}]",
+        "[collect_profits_of_credix_lp_depository:total_shares_amount_decrease:{}]",
         total_shares_amount_decrease
     );
     msg!(
-        "[collect_profit_of_credix_lp_depository:total_shares_value_decrease:{}]",
+        "[collect_profits_of_credix_lp_depository:total_shares_value_decrease:{}]",
         total_shares_value_decrease
     );
     msg!(
-        "[collect_profit_of_credix_lp_depository:owned_shares_amount_decrease:{}]",
+        "[collect_profits_of_credix_lp_depository:owned_shares_amount_decrease:{}]",
         owned_shares_amount_decrease
     );
     msg!(
-        "[collect_profit_of_credix_lp_depository:owned_shares_value_decrease:{}]",
+        "[collect_profits_of_credix_lp_depository:owned_shares_value_decrease:{}]",
         owned_shares_value_decrease
     );
 

@@ -31,7 +31,7 @@ export const credixLpDepositorySetupSuite = function (
     });
   });
 
-  it(`Collecting profit of credixLpDepository should work`, async function () {
+  it(`Collecting profits of credixLpDepository should work`, async function () {
     console.log('[🧾 collectProfit]');
     const profitsBeneficiaryCollateral = findATAAddrSync(
       profitsBeneficiary.publicKey,
@@ -48,7 +48,7 @@ export const credixLpDepositorySetupSuite = function (
     );
   });
 
-  it(`Collecting profit of credixLpDepository should not work for invalid collateral address`, async function () {
+  it(`Collecting profits of credixLpDepository should not work for invalid collateral address`, async function () {
     console.log('[🧾 collectProfit]');
     await editCredixLpDepositoryTest(authority, controller, depository, {
       profitsBeneficiaryCollateral: PublicKey.default,
@@ -64,6 +64,9 @@ export const credixLpDepositorySetupSuite = function (
     } catch {
       failure = true;
     }
-    expect(failure).eq(true, `Should have failed - Invalid profit beneficiary`);
+    expect(failure).eq(
+      true,
+      `Should have failed - Invalid profits beneficiary`
+    );
   });
 };
