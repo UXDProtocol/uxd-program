@@ -123,15 +123,15 @@ export const editMercurialVaultDepositoryTest = async function ({
       );
     }
     if (typeof uiFields.profitsBeneficiaryCollateral !== 'undefined') {
-      expect(profitsBeneficiaryCollateral_post).equals(
-        uiFields.profitsBeneficiaryCollateral,
+      expect(profitsBeneficiaryCollateral_post.toBase58()).equals(
+        uiFields.profitsBeneficiaryCollateral.toBase58(),
         'The profits beneficiary key state has not changed.'
       );
       console.log(
         `🧾 Previous profits beneficiary key state was`,
-        profitsBeneficiaryCollateral,
+        profitsBeneficiaryCollateral.toBase58(),
         'now is',
-        profitsBeneficiaryCollateral_post
+        profitsBeneficiaryCollateral_post.toBase58()
       );
     }
 

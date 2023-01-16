@@ -1,4 +1,4 @@
-import { PublicKey, Signer } from '@solana/web3.js';
+import { Keypair, Signer } from '@solana/web3.js';
 import {
   Controller,
   MercurialVaultDepository,
@@ -108,7 +108,7 @@ export const editMercurialVaultDepositorySuite = async function ({
     });
 
     it(`Edit profitsBeneficiaryCollateral alone should work`, async function () {
-      const profitsBeneficiaryCollateral = new PublicKey('42');
+      const profitsBeneficiaryCollateral = new Keypair().publicKey;
 
       console.log(
         '[🧾 profitsBeneficiaryCollateral',
