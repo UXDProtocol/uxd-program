@@ -264,32 +264,20 @@ export const identityDepositoryMintRedeemSuite = async function (
       }
     );
 
-    it(`Mint for 1 native unit ${depository.collateralMintSymbol}`, async function () {
+    it(`Mint for 1 native unit ${depository.collateralMintSymbol} (should succeed, because no precision loss on identity)`, async function () {
       const collateralAmount = Math.pow(10, -depository.collateralMintDecimals);
-
       console.log(
         '[🧾 collateralAmount',
         collateralAmount,
         depository.collateralMintSymbol,
         ']'
       );
-
-      let failure = false;
-      try {
-        await mintWithIdentityDepositoryTest(
-          collateralAmount,
-          user,
-          controller,
-          depository,
-          payer
-        );
-      } catch {
-        failure = true;
-      }
-
-      expect(failure).eq(
-        true,
-        `Should have failed - User cannot mint for 0 ${controller.redeemableMintSymbol} (happens due to precision loss and fees)`
+      await mintWithIdentityDepositoryTest(
+        collateralAmount,
+        user,
+        controller,
+        depository,
+        payer
       );
     });
 
