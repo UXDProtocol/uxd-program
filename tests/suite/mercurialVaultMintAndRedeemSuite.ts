@@ -476,7 +476,6 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function (
       );
 
       let failure = false;
-      let failure = false;
       try {
         await mintWithMercurialVaultDepositoryTest(
           collateralAmount,

@@ -135,7 +135,6 @@ export const identityDepositoryMintRedeemSuite = async function (
       );
 
       let failure = false;
-      let failure = false;
       try {
         await mintWithIdentityDepositoryTest(
           collateralAmount,
