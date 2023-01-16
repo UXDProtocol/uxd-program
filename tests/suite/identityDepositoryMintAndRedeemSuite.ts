@@ -134,6 +134,8 @@ export const identityDepositoryMintRedeemSuite = async function (
         ']'
       );
 
+      let failure = false;
+      let failure = false;
       try {
         await mintWithIdentityDepositoryTest(
           collateralAmount,
@@ -143,11 +145,11 @@ export const identityDepositoryMintRedeemSuite = async function (
           payer
         );
       } catch {
-        expect(true, 'Failing as planned');
+        failure = true;
       }
 
-      expect(
-        false,
+      expect(failure).eq(
+        true,
         `Should have failed - Do not own enough ${depository.collateralMintSymbol}`
       );
     });
@@ -162,6 +164,7 @@ export const identityDepositoryMintRedeemSuite = async function (
         ']'
       );
 
+      let failure = false;
       try {
         await redeemFromIdentityDepositoryTest(
           redeemableAmount,
@@ -171,11 +174,11 @@ export const identityDepositoryMintRedeemSuite = async function (
           payer
         );
       } catch {
-        expect(true, 'Failing as planned');
+        failure = true;
       }
 
-      expect(
-        false,
+      expect(failure).eq(
+        true,
         `Should have failed - Only owned ${initialRedeemableAccountBalance} ${controller.redeemableMintSymbol}`
       );
     });
@@ -190,6 +193,7 @@ export const identityDepositoryMintRedeemSuite = async function (
         ']'
       );
 
+      let failure = false;
       try {
         await mintWithIdentityDepositoryTest(
           collateralAmount,
@@ -199,11 +203,11 @@ export const identityDepositoryMintRedeemSuite = async function (
           payer
         );
       } catch {
-        expect(true, 'Failing as planned');
+        failure = true;
       }
 
-      expect(
-        false,
+      expect(failure).eq(
+        true,
         `Should have failed - Cannot mint for 0 ${depository.collateralMintSymbol}`
       );
     });
@@ -218,6 +222,7 @@ export const identityDepositoryMintRedeemSuite = async function (
         ']'
       );
 
+      let failure = false;
       try {
         await redeemFromIdentityDepositoryTest(
           redeemableAmount,
@@ -227,11 +232,11 @@ export const identityDepositoryMintRedeemSuite = async function (
           payer
         );
       } catch {
-        expect(true, 'Failing as planned');
+        failure = true;
       }
 
-      expect(
-        false,
+      expect(failure).eq(
+        true,
         `Should have failed - Cannot redeem for 0 ${controller.redeemableMintSymbol}`
       );
     });
@@ -270,6 +275,7 @@ export const identityDepositoryMintRedeemSuite = async function (
         ']'
       );
 
+      let failure = false;
       try {
         await mintWithIdentityDepositoryTest(
           collateralAmount,
@@ -279,11 +285,11 @@ export const identityDepositoryMintRedeemSuite = async function (
           payer
         );
       } catch {
-        expect(true, 'Failing as planned');
+        failure = true;
       }
 
-      expect(
-        false,
+      expect(failure).eq(
+        true,
         `Should have failed - User cannot mint for 0 ${controller.redeemableMintSymbol} (happens due to precision loss and fees)`
       );
     });
@@ -330,6 +336,7 @@ export const identityDepositoryMintRedeemSuite = async function (
         ']'
       );
 
+      let failure = false;
       try {
         await mintWithIdentityDepositoryTest(
           collateralAmount,
@@ -339,11 +346,11 @@ export const identityDepositoryMintRedeemSuite = async function (
           payer
         );
       } catch {
-        expect(true, 'Failing as planned');
+        failure = true;
       }
 
-      expect(
-        false,
+      expect(failure).eq(
+        true,
         `Should have failed - amount of redeemable overflow the global redeemable supply cap`
       );
     });
@@ -391,6 +398,7 @@ export const identityDepositoryMintRedeemSuite = async function (
         ']'
       );
 
+      let failure = false;
       try {
         await mintWithIdentityDepositoryTest(
           collateralAmount,
@@ -400,11 +408,11 @@ export const identityDepositoryMintRedeemSuite = async function (
           payer
         );
       } catch {
-        expect(true, 'Failing as planned');
+        failure = true;
       }
 
-      expect(
-        false,
+      expect(failure).eq(
+        true,
         `Should have failed - amount of redeemable overflow the redeemable depository supply cap`
       );
     });
@@ -448,6 +456,7 @@ export const identityDepositoryMintRedeemSuite = async function (
         ']'
       );
 
+      let failure = false;
       try {
         await mintWithIdentityDepositoryTest(
           collateralAmount,
@@ -457,10 +466,10 @@ export const identityDepositoryMintRedeemSuite = async function (
           payer
         );
       } catch {
-        expect(true, 'Failing as planned');
+        failure = true;
       }
 
-      expect(false, `Should have failed - minting is disabled`);
+      expect(failure).eq(true, `Should have failed - minting is disabled`);
     });
 
     it(`Re-enable minting for identity depository`, async function () {
