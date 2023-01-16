@@ -64,7 +64,6 @@ import {
       credixLpDepositorySetupSuite(
         authority,
         bank,
-        profitsBeneficiary,
         controllerUXD,
         credixLpDepository,
         0,
@@ -82,6 +81,7 @@ import {
         authority,
         user,
         bank,
+        profitsBeneficiary,
         controllerUXD,
         credixLpDepository
       );

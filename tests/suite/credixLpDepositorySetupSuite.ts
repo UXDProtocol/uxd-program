@@ -1,15 +1,11 @@
-import { PublicKey, Signer } from '@solana/web3.js';
-import { findATAAddrSync } from '@uxd-protocol/uxd-client';
+import { Signer } from '@solana/web3.js';
 import { Controller, CredixLpDepository } from '@uxd-protocol/uxd-client';
-import { expect } from 'chai';
-import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitOfCredixLpDepositoryTest';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
 import { registerCredixLpDepositoryTest } from '../cases/registerCredixLpDepositoryTest';
 
 export const credixLpDepositorySetupSuite = function (
   authority: Signer,
   payer: Signer,
-  profitsBeneficiary: Signer,
   controller: Controller,
   depository: CredixLpDepository,
   mintingFeeInBps: number,
@@ -29,41 +25,5 @@ export const credixLpDepositorySetupSuite = function (
     await editCredixLpDepositoryTest(authority, controller, depository, {
       redeemableAmountUnderManagementCap: 25_000_000,
     });
-  });
-
-  it(`Collecting profit of credixLpDepository should work`, async function () {
-    console.log('[🧾 collectProfit]');
-    const profitsBeneficiaryCollateral = findATAAddrSync(
-      profitsBeneficiary.publicKey,
-      depository.collateralMint
-    )[0];
-    await editCredixLpDepositoryTest(authority, controller, depository, {
-      profitsBeneficiaryCollateral: profitsBeneficiaryCollateral,
-    });
-    await collectProfitOfCredixLpDepositoryTest(
-      payer,
-      profitsBeneficiaryCollateral,
-      controller,
-      depository
-    );
-  });
-
-  it(`Collecting profit of credixLpDepository should not work for invalid collateral address`, async function () {
-    console.log('[🧾 collectProfit]');
-    await editCredixLpDepositoryTest(authority, controller, depository, {
-      profitsBeneficiaryCollateral: PublicKey.default,
-    });
-    let failure = false;
-    try {
-      await collectProfitOfCredixLpDepositoryTest(
-        payer,
-        PublicKey.default,
-        controller,
-        depository
-      );
-    } catch {
-      failure = true;
-    }
-    expect(failure).eq(true, `Should have failed - Invalid profit beneficiary`);
   });
 };
