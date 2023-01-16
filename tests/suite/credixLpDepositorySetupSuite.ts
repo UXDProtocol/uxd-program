@@ -2,7 +2,7 @@ import { PublicKey, Signer } from '@solana/web3.js';
 import { findATAAddrSync } from '@uxd-protocol/uxd-client';
 import { Controller, CredixLpDepository } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
-import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitOfCredixLpDepositoryTest';
+import { collectProfitsOfCredixLpDepositoryTest } from '../cases/collectProfitsOfCredixLpDepositoryTest';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
 import { registerCredixLpDepositoryTest } from '../cases/registerCredixLpDepositoryTest';
 
@@ -32,7 +32,7 @@ export const credixLpDepositorySetupSuite = function (
   });
 
   it(`Collecting profits of credixLpDepository should work`, async function () {
-    console.log('[🧾 collectProfit]');
+    console.log('[🧾 collectProfits]');
     const profitsBeneficiaryCollateral = findATAAddrSync(
       profitsBeneficiary.publicKey,
       depository.collateralMint
@@ -40,7 +40,7 @@ export const credixLpDepositorySetupSuite = function (
     await editCredixLpDepositoryTest(authority, controller, depository, {
       profitsBeneficiaryCollateral: profitsBeneficiaryCollateral,
     });
-    await collectProfitOfCredixLpDepositoryTest(
+    await collectProfitsOfCredixLpDepositoryTest(
       payer,
       profitsBeneficiaryCollateral,
       controller,
@@ -49,13 +49,13 @@ export const credixLpDepositorySetupSuite = function (
   });
 
   it(`Collecting profits of credixLpDepository should not work for invalid collateral address`, async function () {
-    console.log('[🧾 collectProfit]');
+    console.log('[🧾 collectProfits]');
     await editCredixLpDepositoryTest(authority, controller, depository, {
       profitsBeneficiaryCollateral: PublicKey.default,
     });
     let failure = false;
     try {
-      await collectProfitOfCredixLpDepositoryTest(
+      await collectProfitsOfCredixLpDepositoryTest(
         payer,
         PublicKey.default,
         controller,
