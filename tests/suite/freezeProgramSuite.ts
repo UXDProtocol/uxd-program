@@ -17,6 +17,7 @@ import { mintWithMercurialVaultDepositoryTest } from '../cases/mintWithMercurial
 import { redeemFromCredixLpDepositoryTest } from '../cases/redeemFromCredixLpDepositoryTest';
 import { redeemFromIdentityDepositoryTest } from '../cases/redeemFromIdentityDepositoryTest';
 import { redeemFromMercurialVaultDepositoryTest } from '../cases/redeemFromMercurialVaultDepositoryTest';
+import { registerMercurialVaultDepositoryTest } from '../cases/registerMercurialVaultDepositoryTest';
 
 export const freezeProgramSuite = async function (
   authority: Signer,
@@ -34,13 +35,13 @@ export const freezeProgramSuite = async function (
   it(`mintWithMercurialVaultDepositoryTest under frozen program`, async function () {
     let failure = false;
     try {
-      await mintWithMercurialVaultDepositoryTest(
-        1,
+      await mintWithMercurialVaultDepositoryTest({
+        collateralAmount: 1,
         user,
         controller,
-        mercurialVaultDepository,
-        payer
-      );
+        depository: mercurialVaultDepository,
+        payer,
+      });
     } catch {
       failure = true;
     }
@@ -50,13 +51,13 @@ export const freezeProgramSuite = async function (
   it(`redeemFromMercurialVaultDepositoryTest under frozen program`, async function () {
     let failure = false;
     try {
-      await redeemFromMercurialVaultDepositoryTest(
-        1,
+      await redeemFromMercurialVaultDepositoryTest({
+        redeemableAmount: 1,
         user,
         controller,
-        mercurialVaultDepository,
-        payer
-      );
+        depository: mercurialVaultDepository,
+        payer,
+      });
     } catch {
       failure = true;
     }
@@ -100,9 +101,9 @@ export const freezeProgramSuite = async function (
     try {
       await collectProfitOfCredixLpDepositoryTest(
         payer,
+        payer.publicKey,
         controller,
-        credixLpDepository,
-        payer
+        credixLpDepository
       );
     } catch {
       failure = true;
@@ -113,7 +114,7 @@ export const freezeProgramSuite = async function (
   it(`editControllerTest under frozen program`, async function () {
     let failure = false;
     try {
-      await editControllerTest(authority, controller, {});
+      await editControllerTest({ authority, controller, uiFields: {} });
     } catch {
       failure = true;
     }
@@ -123,12 +124,12 @@ export const freezeProgramSuite = async function (
   it(`editIdentityDepositoryTest under frozen program`, async function () {
     let failure = false;
     try {
-      await editIdentityDepositoryTest(
+      await editIdentityDepositoryTest({
         authority,
         controller,
-        identityDepository,
-        {}
-      );
+        depository: identityDepository,
+        uiFields: {},
+      });
     } catch {
       failure = true;
     }
@@ -138,12 +139,12 @@ export const freezeProgramSuite = async function (
   it(`editMercurialVaultDepositoryTest under frozen program`, async function () {
     let failure = false;
     try {
-      await editMercurialVaultDepositoryTest(
+      await editMercurialVaultDepositoryTest({
         authority,
         controller,
-        mercurialVaultDepository,
-        {}
-      );
+        depository: mercurialVaultDepository,
+        uiFields: {},
+      });
     } catch {
       failure = true;
     }
@@ -153,13 +154,13 @@ export const freezeProgramSuite = async function (
   it(`mintWithIdentityDepositoryTest under frozen program`, async function () {
     let failure = false;
     try {
-      await mintWithIdentityDepositoryTest(
-        1,
+      await mintWithIdentityDepositoryTest({
+        collateralAmount: 1,
         user,
         controller,
-        identityDepository,
-        payer
-      );
+        depository: identityDepository,
+        payer,
+      });
     } catch {
       failure = true;
     }
@@ -169,13 +170,31 @@ export const freezeProgramSuite = async function (
   it(`redeemFromIdentityDepositoryTest under frozen program`, async function () {
     let failure = false;
     try {
-      await redeemFromIdentityDepositoryTest(
-        1,
+      await redeemFromIdentityDepositoryTest({
+        redeemableAmount: 1,
         user,
         controller,
-        identityDepository,
-        payer
-      );
+        depository: identityDepository,
+        payer,
+      });
+    } catch {
+      failure = true;
+    }
+    expect(failure).eq(true, 'Should have failed - program is frozen');
+  });
+
+  it(`registerMercurialVaultDepositoryTest under frozen program`, async function () {
+    let failure = false;
+    try {
+      await registerMercurialVaultDepositoryTest({
+        authority,
+        controller,
+        depository: mercurialVaultDepository,
+        mintingFeeInBps: 1,
+        redeemingFeeInBps: 1,
+        redeemableAmountUnderManagementCap: 1,
+        payer,
+      });
     } catch {
       failure = true;
     }

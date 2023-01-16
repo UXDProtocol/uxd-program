@@ -1,4 +1,4 @@
-import { Signer } from '@solana/web3.js';
+import { Keypair, Signer } from '@solana/web3.js';
 import {
   Controller,
   MercurialVaultDepository,
@@ -7,56 +7,73 @@ import {
 } from '@uxd-protocol/uxd-client';
 import { getConnection, TXN_OPTS } from '../connection';
 import { editMercurialVaultDepositoryTest } from '../cases/editMercurialVaultDepositoryTest';
+import {
+  MERCURIAL_USDC_DEVNET,
+  MERCURIAL_USDC_DEVNET_DECIMALS,
+  uxdProgramId,
+} from '../constants';
 
-export const editMercurialVaultDepositorySuite = async function (
-  controllerAuthority: Signer,
-  user: Signer,
-  payer: Signer,
-  controller: Controller,
-  depository: MercurialVaultDepository
-) {
+export const editMercurialVaultDepositorySuite = async function ({
+  authority,
+  controller,
+}: {
+  authority: Signer;
+  controller: Controller;
+}) {
+  let depository: MercurialVaultDepository;
   let beforeDepository: MercurialVaultDepositoryAccount;
 
   describe('Edit mint/redeem', () => {
-    // Snapshot the initial depository values
     before(async () => {
+      depository = await MercurialVaultDepository.initialize({
+        connection: getConnection(),
+        collateralMint: {
+          mint: MERCURIAL_USDC_DEVNET,
+          name: 'USDC',
+          symbol: 'USDC',
+          decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
+        },
+        uxdProgramId,
+      });
+
+      // Snapshot the initial depository values
       beforeDepository = await depository.getOnchainAccount(
         getConnection(),
         TXN_OPTS
       );
     });
 
-    it(`Edit mintingFeeInBps alone should work`, async function () {
+    it('Edit mintingFeeInBps alone should work', async function () {
       const mintingFeeInBps = 50;
 
       console.log('[🧾 mintingFeeInBps', mintingFeeInBps, ']');
 
-      await editMercurialVaultDepositoryTest(
-        controllerAuthority,
+      await editMercurialVaultDepositoryTest({
+        authority,
         controller,
         depository,
-        {
+        uiFields: {
           mintingFeeInBps,
-        }
-      );
+        },
+      });
     });
 
-    it(`Edit redeemingFeeInBps alone should work`, async function () {
+    it('Edit redeemingFeeInBps alone should work', async function () {
       const redeemingFeeInBps = 50;
 
       console.log('[🧾 redeemingFeeInBps', redeemingFeeInBps, ']');
 
-      await editMercurialVaultDepositoryTest(
-        controllerAuthority,
+      await editMercurialVaultDepositoryTest({
+        authority,
         controller,
         depository,
-        {
+        uiFields: {
           redeemingFeeInBps,
-        }
-      );
+        },
+      });
     });
 
-    it(`Edit redeemableAmountUnderManagementCap alone should work`, async function () {
+    it('Edit redeemableAmountUnderManagementCap alone should work', async function () {
       const redeemableAmountUnderManagementCap = 50;
 
       console.log(
@@ -65,33 +82,43 @@ export const editMercurialVaultDepositorySuite = async function (
         ']'
       );
 
-      await editMercurialVaultDepositoryTest(
-        controllerAuthority,
+      await editMercurialVaultDepositoryTest({
+        authority,
         controller,
         depository,
-        {
+        uiFields: {
           redeemableAmountUnderManagementCap,
-        }
-      );
+        },
+      });
     });
 
-    it(`Edit mintingDisabled alone should work`, async function () {
+    it('Edit mintingDisabled alone should work', async function () {
       const mintingDisabled = true;
 
       console.log('[🧾 mintingDisabled', mintingDisabled, ']');
 
-      await editMercurialVaultDepositoryTest(
-        controllerAuthority,
+      await editMercurialVaultDepositoryTest({
+        authority,
         controller,
         depository,
-        {
+        uiFields: {
           mintingDisabled,
-        }
+        },
+      });
+    });
+
+    it(`Edit profitsBeneficiaryCollateral alone should work`, async function () {
+      const profitsBeneficiaryCollateral = new Keypair().publicKey;
+
+      console.log(
+        '[🧾 profitsBeneficiaryCollateral',
+        profitsBeneficiaryCollateral,
+        ']'
       );
     });
 
     // Restore initial depository values there
-    it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap should work`, async function () {
+    it('Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap should work', async function () {
       const {
         mintingFeeInBps,
         redeemingFeeInBps,
@@ -113,18 +140,18 @@ export const editMercurialVaultDepositorySuite = async function (
       );
       console.log('[🧾 mintingDisabled', mintingDisabled, ']');
 
-      await editMercurialVaultDepositoryTest(
-        controllerAuthority,
+      await editMercurialVaultDepositoryTest({
+        authority,
         controller,
         depository,
-        {
+        uiFields: {
           mintingFeeInBps,
           redeemingFeeInBps,
           mintingDisabled,
           redeemableAmountUnderManagementCap:
             uiRedeemableAmountUnderManagementCap,
-        }
-      );
+        },
+      });
     });
   });
 };

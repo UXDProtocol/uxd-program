@@ -15,18 +15,22 @@ import {
 } from './utils';
 
 (async () => {
-  const controllerUXD = new Controller('UXD', UXD_DECIMALS, uxdProgramId);
+  const controller = new Controller('UXD', UXD_DECIMALS, uxdProgramId);
 
   beforeEach('\n', function () {
     console.log('=============================================\n\n');
   });
 
   it('Initialize Controller', async function () {
-    await initializeControllerTest(authority, controllerUXD, bank);
+    await initializeControllerTest({ authority, controller, payer: bank });
   });
   it('Set controller global supply cap to 25mm', async function () {
-    await editControllerTest(authority, controllerUXD, {
-      redeemableGlobalSupplyCap: 25_000_000,
+    await editControllerTest({
+      authority,
+      controller,
+      uiFields: {
+        redeemableGlobalSupplyCap: 25_000_000,
+      },
     });
   });
 
@@ -64,7 +68,7 @@ import {
       credixLpDepositorySetupSuite(
         authority,
         bank,
-        controllerUXD,
+        controller,
         credixLpDepository,
         0,
         0,
@@ -73,7 +77,7 @@ import {
     });
 
     describe('credixLpDepositoryEditSuite', function () {
-      credixLpDepositoryEditSuite(authority, controllerUXD, credixLpDepository);
+      credixLpDepositoryEditSuite(authority, controller, credixLpDepository);
     });
 
     describe('credixLpDepositoryMintAndRedeemSuite', function () {
@@ -82,7 +86,7 @@ import {
         user,
         bank,
         profitsBeneficiary,
-        controllerUXD,
+        controller,
         credixLpDepository
       );
     });

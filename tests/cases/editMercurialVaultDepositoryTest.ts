@@ -1,4 +1,4 @@
-import { Signer } from '@solana/web3.js';
+import { PublicKey, Signer } from '@solana/web3.js';
 import {
   Controller,
   MercurialVaultDepository,
@@ -9,17 +9,23 @@ import { editMercurialVaultDepository } from '../api';
 import { getConnection, TXN_OPTS } from '../connection';
 import { CLUSTER } from '../constants';
 
-export const editMercurialVaultDepositoryTest = async function (
-  authority: Signer,
-  controller: Controller,
-  depository: MercurialVaultDepository,
+export const editMercurialVaultDepositoryTest = async function ({
+  authority,
+  controller,
+  depository,
+  uiFields,
+}: {
+  authority: Signer;
+  controller: Controller;
+  depository: MercurialVaultDepository;
   uiFields: {
     redeemableAmountUnderManagementCap?: number;
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
-  }
-) {
+    profitsBeneficiaryCollateral?: PublicKey;
+  };
+}) {
   const connection = getConnection();
   const options = TXN_OPTS;
 
@@ -39,12 +45,12 @@ export const editMercurialVaultDepositoryTest = async function (
     } = depositoryOnchainAccount;
 
     // WHEN
-    const txId = await editMercurialVaultDepository(
+    const txId = await editMercurialVaultDepository({
       authority,
       controller,
       depository,
-      uiFields
-    );
+      uiFields,
+    });
     console.log(
       `🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`
     );

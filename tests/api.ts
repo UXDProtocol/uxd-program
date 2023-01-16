@@ -11,11 +11,15 @@ import {
 } from '@uxd-protocol/uxd-client';
 import { web3 } from '@project-serum/anchor';
 
-export async function initializeController(
-  authority: Signer,
-  payer: Signer,
-  controller: Controller
-): Promise<string> {
+export async function initializeController({
+  authority,
+  payer,
+  controller,
+}: {
+  authority: Signer;
+  payer: Signer;
+  controller: Controller;
+}): Promise<string> {
   const initControllerIx = uxdClient.createInitializeControllerInstruction(
     controller,
     authority.publicKey,
@@ -35,13 +39,19 @@ export async function initializeController(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function mintWithMercurialVaultDepository(
-  authority: Signer,
-  payer: Signer,
-  controller: Controller,
-  depository: MercurialVaultDepository,
-  collateralAmount: number
-): Promise<string> {
+export async function mintWithMercurialVaultDepository({
+  authority,
+  payer,
+  controller,
+  depository,
+  collateralAmount,
+}: {
+  authority: Signer;
+  payer: Signer;
+  controller: Controller;
+  depository: MercurialVaultDepository;
+  collateralAmount: number;
+}): Promise<string> {
   const mintWithMercurialVaultDepositoryIx =
     uxdClient.createMintWithMercurialVaultDepositoryInstruction(
       controller,
@@ -76,13 +86,19 @@ export async function mintWithMercurialVaultDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function redeemFromMercurialVaultDepository(
-  authority: Signer,
-  payer: Signer,
-  controller: Controller,
-  depository: MercurialVaultDepository,
-  redeemableAmount: number
-): Promise<string> {
+export async function redeemFromMercurialVaultDepository({
+  authority,
+  payer,
+  controller,
+  depository,
+  redeemableAmount,
+}: {
+  authority: Signer;
+  payer: Signer;
+  controller: Controller;
+  depository: MercurialVaultDepository;
+  redeemableAmount: number;
+}): Promise<string> {
   const redeemFromMercurialVaultDepositoryIx =
     uxdClient.createRedeemFromMercurialVaultDepositoryInstruction(
       controller,
@@ -117,15 +133,23 @@ export async function redeemFromMercurialVaultDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function registerMercurialVaultDepository(
-  authority: Signer,
-  payer: Signer,
-  controller: Controller,
-  depository: MercurialVaultDepository,
-  mintingFeeInBps: number,
-  redeemingFeeInBps: number,
-  redeemableAmountUnderManagementCap: number
-): Promise<string> {
+export async function registerMercurialVaultDepository({
+  authority,
+  payer,
+  controller,
+  depository,
+  mintingFeeInBps,
+  redeemingFeeInBps,
+  redeemableAmountUnderManagementCap,
+}: {
+  authority: Signer;
+  payer: Signer;
+  controller: Controller;
+  depository: MercurialVaultDepository;
+  mintingFeeInBps: number;
+  redeemingFeeInBps: number;
+  redeemableAmountUnderManagementCap: number;
+}): Promise<string> {
   const registerMercurialVaultDepositoryIx =
     uxdClient.createRegisterMercurialVaultDepositoryInstruction(
       controller,
@@ -149,13 +173,17 @@ export async function registerMercurialVaultDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function editController(
-  authority: Signer,
-  controller: Controller,
+export async function editController({
+  authority,
+  controller,
+  uiFields,
+}: {
+  authority: Signer;
+  controller: Controller;
   uiFields: {
     redeemableGlobalSupplyCap?: number;
-  }
-): Promise<string> {
+  };
+}): Promise<string> {
   const editControllerIx = uxdClient.createEditControllerInstruction(
     controller,
     authority.publicKey,
@@ -171,17 +199,23 @@ export async function editController(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function editMercurialVaultDepository(
-  authority: Signer,
-  controller: Controller,
-  depository: MercurialVaultDepository,
+export async function editMercurialVaultDepository({
+  authority,
+  controller,
+  depository,
+  uiFields,
+}: {
+  authority: Signer;
+  controller: Controller;
+  depository: MercurialVaultDepository;
   uiFields: {
     redeemableAmountUnderManagementCap?: number;
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
-  }
-): Promise<string> {
+    profitsBeneficiaryCollateral?: PublicKey;
+  };
+}): Promise<string> {
   const editMercurialVaultDepositoryIx =
     uxdClient.createEditMercurialVaultDepositoryInstruction(
       controller,
@@ -199,15 +233,20 @@ export async function editMercurialVaultDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function editIdentityDepository(
-  authority: Signer,
-  controller: Controller,
-  depository: IdentityDepository,
+export async function editIdentityDepository({
+  authority,
+  controller,
+  depository,
+  uiFields,
+}: {
+  authority: Signer;
+  controller: Controller;
+  depository: IdentityDepository;
   uiFields: {
     redeemableAmountUnderManagementCap?: number;
     mintingDisabled?: boolean;
-  }
-): Promise<string> {
+  };
+}): Promise<string> {
   const editIdentityDepositoryIx =
     uxdClient.createEditIdentityDepositoryInstruction(
       controller,
@@ -225,12 +264,17 @@ export async function editIdentityDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function initializeIdentityDepository(
-  authority: Signer,
-  payer: Signer,
-  controller: Controller,
-  depository: IdentityDepository
-): Promise<string> {
+export async function initializeIdentityDepository({
+  authority,
+  payer,
+  controller,
+  depository,
+}: {
+  authority: Signer;
+  payer: Signer;
+  controller: Controller;
+  depository: IdentityDepository;
+}): Promise<string> {
   const initializeIdentityDepositoryIx =
     uxdClient.createInitializeIdentityDepositoryInstruction(
       controller,
@@ -251,13 +295,19 @@ export async function initializeIdentityDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function mintWithIdentityDepository(
-  authority: Signer,
-  payer: Signer,
-  controller: Controller,
-  depository: IdentityDepository,
-  collateralAmount: number
-): Promise<string> {
+export async function mintWithIdentityDepository({
+  authority,
+  payer,
+  controller,
+  depository,
+  collateralAmount,
+}: {
+  authority: Signer;
+  payer: Signer;
+  controller: Controller;
+  depository: IdentityDepository;
+  collateralAmount: number;
+}): Promise<string> {
   const mintWithIdentityDepositoryIx =
     uxdClient.createMintWithIdentityDepositoryInstruction(
       controller,
@@ -292,13 +342,19 @@ export async function mintWithIdentityDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function redeemFromIdentityDepository(
-  authority: Signer,
-  payer: Signer,
-  controller: Controller,
-  depository: IdentityDepository,
-  redeemableAmount: number
-): Promise<string> {
+export async function redeemFromIdentityDepository({
+  authority,
+  payer,
+  controller,
+  depository,
+  redeemableAmount,
+}: {
+  authority: Signer;
+  payer: Signer;
+  controller: Controller;
+  depository: IdentityDepository;
+  redeemableAmount: number;
+}): Promise<string> {
   const redeemFromIdentityDepositoryIx =
     uxdClient.createRedeemFromIdentityDepositoryInstruction(
       controller,

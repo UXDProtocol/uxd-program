@@ -24,7 +24,7 @@ export function ceilAtDecimals(number: number, decimals: number): number {
   );
 }
 
-export async function transferSol(
+export function transferSol(
   amountUi: number,
   from: Signer,
   to: PublicKey
@@ -36,7 +36,7 @@ export async function transferSol(
       lamports: anchor.web3.LAMPORTS_PER_SOL * amountUi,
     })
   );
-  return await anchor.web3.sendAndConfirmTransaction(
+  return anchor.web3.sendAndConfirmTransaction(
     getConnection(),
     transaction,
     [from],

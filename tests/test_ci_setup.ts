@@ -1,6 +1,5 @@
 import {
   IdentityDepository,
-  MercurialVaultDepository,
   USDC_DECIMALS,
   USDC_DEVNET,
 } from '@uxd-protocol/uxd-client';
@@ -23,26 +22,18 @@ import { mercurialVaultDepositorySetupSuite } from './suite/mercurialVaultDeposi
 import { createCredixLpDepositoryDevnetUSDC } from './utils';
 
 (async () => {
-  const controllerUXD = new Controller('UXD', UXD_DECIMALS, uxdProgramId);
+  const controller = new Controller('UXD', UXD_DECIMALS, uxdProgramId);
 
   beforeEach('\n', function () {
     console.log('=============================================\n\n');
   });
 
   describe('controllerIntegrationSuite', function () {
-    const params = new controllerIntegrationSuiteParameters(25_000_000);
-    controllerIntegrationSuite(authority, bank, controllerUXD, params);
-  });
-
-  const mercurialVaultDepository = await MercurialVaultDepository.initialize({
-    connection: getConnection(),
-    collateralMint: {
-      mint: SOLEND_USDC_DEVNET,
-      name: 'USDC',
-      symbol: 'USDC',
-      decimals: SOLEND_USDC_DEVNET_DECIMALS,
-    },
-    uxdProgramId,
+    controllerIntegrationSuite({
+      authority,
+      controller,
+      payer: bank,
+    });
   });
 
   const credixLpDepository = await createCredixLpDepositoryDevnetUSDC();
@@ -52,22 +43,21 @@ import { createCredixLpDepositoryDevnetUSDC } from './utils';
   const uiRedeemableDepositorySupplyCap = 1_000;
 
   describe('mercurialVaultDepositorySetupSuite', function () {
-    mercurialVaultDepositorySetupSuite(
+    mercurialVaultDepositorySetupSuite({
       authority,
-      bank,
-      controllerUXD,
-      mercurialVaultDepository,
-      mintingFeeInBps,
-      redeemingFeeInBps,
-      uiRedeemableDepositorySupplyCap
-    );
+      controller,
+      mintingFeeInBps: 0,
+      redeemingFeeInBps: 5,
+      redeemableAmountUnderManagementCap: 1_000,
+      payer: bank,
+    });
   });
 
   describe('credixLpDepositorySetupSuite', function () {
     credixLpDepositorySetupSuite(
       authority,
       bank,
-      controllerUXD,
+      controller,
       credixLpDepository,
       mintingFeeInBps,
       redeemingFeeInBps,
@@ -83,11 +73,11 @@ import { createCredixLpDepositoryDevnetUSDC } from './utils';
   );
 
   describe('identityDepositorySetupSuite', function () {
-    identityDepositorySetupSuite(
+    identityDepositorySetupSuite({
       authority,
-      bank,
-      controllerUXD,
-      identityDepository
-    );
+      controller,
+      payer: bank,
+      depository: identityDepository,
+    });
   });
 })();

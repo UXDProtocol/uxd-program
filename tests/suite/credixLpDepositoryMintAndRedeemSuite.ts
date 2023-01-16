@@ -281,8 +281,12 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
 
   describe('Global redeemable supply cap overflow', () => {
     it('Set global redeemable supply cap to 0', () =>
-      editControllerTest(authority, controller, {
-        redeemableGlobalSupplyCap: 0,
+      editControllerTest({
+        authority,
+        controller,
+        uiFields: {
+          redeemableGlobalSupplyCap: 0,
+        },
       }));
 
     it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol} (should fail)`, async function () {
@@ -320,8 +324,12 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
         controller.redeemableMintDecimals
       );
 
-      await editControllerTest(authority, controller, {
-        redeemableGlobalSupplyCap: globalRedeemableSupplyCap,
+      await editControllerTest({
+        authority,
+        controller,
+        uiFields: {
+          redeemableGlobalSupplyCap: globalRedeemableSupplyCap,
+        },
       });
     });
   });
@@ -420,47 +428,6 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
       await editCredixLpDepositoryTest(authority, controller, depository, {
         mintingDisabled: false,
       });
-    });
-  });
-
-  describe('Collecting profits', () => {
-    it(`Collecting profits of credixLpDepository should work`, async function () {
-      console.log('[🧾 collectProfits]');
-      const profitsBeneficiaryCollateral = findATAAddrSync(
-        profitsBeneficiary.publicKey,
-        depository.collateralMint
-      )[0];
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        profitsBeneficiaryCollateral: profitsBeneficiaryCollateral,
-      });
-      await collectProfitOfCredixLpDepositoryTest(
-        payer,
-        profitsBeneficiaryCollateral,
-        controller,
-        depository
-      );
-    });
-
-    it(`Collecting profits of credixLpDepository should not work for invalid collateral address`, async function () {
-      console.log('[🧾 collectProfits]');
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        profitsBeneficiaryCollateral: PublicKey.default,
-      });
-      let failure = false;
-      try {
-        await collectProfitOfCredixLpDepositoryTest(
-          payer,
-          PublicKey.default,
-          controller,
-          depository
-        );
-      } catch {
-        failure = true;
-      }
-      expect(failure).eq(
-        true,
-        `Should have failed - Invalid profit beneficiary`
-      );
     });
   });
 };

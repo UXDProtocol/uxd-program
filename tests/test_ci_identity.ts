@@ -33,23 +33,21 @@ import { transferSol, transferAllSol, transferAllTokens } from './utils';
     });
 
     describe('editIdentityDepositorySuite', function () {
-      editIdentityDepositorySuite(
+      editIdentityDepositorySuite({
         authority,
-        user,
-        bank,
         controller,
-        identityDepository
-      );
+        depository: identityDepository,
+      });
     });
 
     describe('identityDepositoryMintRedeemSuite', function () {
-      identityDepositoryMintRedeemSuite(
+      identityDepositoryMintRedeemSuite({
         authority,
         user,
-        bank,
         controller,
-        identityDepository
-      );
+        payer: bank,
+        depository: identityDepository,
+      });
     });
 
     this.afterAll('Transfer funds back to bank', async function () {

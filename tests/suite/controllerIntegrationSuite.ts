@@ -10,13 +10,19 @@ export class controllerIntegrationSuiteParameters {
   }
 }
 
-export const controllerIntegrationSuite = function (
-  authority: Signer,
-  payer: Signer,
-  controller: Controller,
-  params: controllerIntegrationSuiteParameters
-) {
-  it('Initialize Controller', async function () {
-    await initializeControllerTest(authority, controller, payer);
-  });
+export const controllerIntegrationSuite = function ({
+  authority,
+  payer,
+  controller,
+}: {
+  authority: Signer;
+  payer: Signer;
+  controller: Controller;
+}) {
+  it('Initialize Controller', () =>
+    initializeControllerTest({
+      authority,
+      controller,
+      payer,
+    }));
 };
