@@ -1,17 +1,21 @@
 import { Signer } from '@solana/web3.js';
 import {
+  CredixLpDepository,
   IdentityDepository,
   MercurialVaultDepository,
 } from '@uxd-protocol/uxd-client';
 import { Controller } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
+import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitOfCredixLpDepositoryTest';
 import { editControllerTest } from '../cases/editControllerTest';
 import { editIdentityDepositoryTest } from '../cases/editIdentityDepositoryTest';
 import { editMercurialVaultDepositoryTest } from '../cases/editMercurialVaultDepositoryTest';
 import { freezeProgramTest } from '../cases/freezeProgramTest';
 import { initializeIdentityDepositoryTest } from '../cases/InitializeIdentityDepositoryTest';
+import { mintWithCredixLpDepositoryTest } from '../cases/mintWithCredixLpDepositoryTest';
 import { mintWithIdentityDepositoryTest } from '../cases/mintWithIdentityDepositoryTest';
 import { mintWithMercurialVaultDepositoryTest } from '../cases/mintWithMercurialVaultDepositoryTest';
+import { redeemFromCredixLpDepositoryTest } from '../cases/redeemFromCredixLpDepositoryTest';
 import { redeemFromIdentityDepositoryTest } from '../cases/redeemFromIdentityDepositoryTest';
 import { redeemFromMercurialVaultDepositoryTest } from '../cases/redeemFromMercurialVaultDepositoryTest';
 import { registerMercurialVaultDepositoryTest } from '../cases/registerMercurialVaultDepositoryTest';
@@ -22,6 +26,7 @@ export const freezeProgramSuite = async function (
   payer: Signer,
   controller: Controller,
   mercurialVaultDepository: MercurialVaultDepository,
+  credixLpDepository: CredixLpDepository,
   identityDepository: IdentityDepository
 ) {
   before(`Freeze program`, async function () {
@@ -52,6 +57,53 @@ export const freezeProgramSuite = async function (
         user,
         controller,
         mercurialVaultDepository,
+        payer
+      );
+    } catch {
+      failure = true;
+    }
+    expect(failure).eq(true, 'Should have failed - program is frozen');
+  });
+
+  it(`mintWithCredixLpDepositoryTest under frozen program`, async function () {
+    let failure = false;
+    try {
+      await mintWithCredixLpDepositoryTest(
+        1,
+        user,
+        controller,
+        credixLpDepository,
+        payer
+      );
+    } catch {
+      failure = true;
+    }
+    expect(failure).eq(true, 'Should have failed - program is frozen');
+  });
+
+  it(`redeemFromCredixLpDepositoryTest under frozen program`, async function () {
+    let failure = false;
+    try {
+      await redeemFromCredixLpDepositoryTest(
+        1,
+        user,
+        controller,
+        credixLpDepository,
+        payer
+      );
+    } catch {
+      failure = true;
+    }
+    expect(failure).eq(true, 'Should have failed - program is frozen');
+  });
+
+  it(`collectProfitOfCredixLpDepositoryTest under frozen program`, async function () {
+    let failure = false;
+    try {
+      await collectProfitOfCredixLpDepositoryTest(
+        payer,
+        controller,
+        credixLpDepository,
         payer
       );
     } catch {
