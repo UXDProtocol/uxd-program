@@ -31,8 +31,9 @@ pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u128>() // redeeming_fee_total_accrued
 
  + size_of::<u128>() // profits_total_collected
+ + size_of::<Pubkey>() // profits_beneficiary_collateral
 
- + 800; // reserved space
+ + 768; // reserved space
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -71,8 +72,9 @@ pub struct CredixLpDepository {
     pub minting_fee_total_accrued: u128,
     pub redeeming_fee_total_accrued: u128,
 
-    // Collection of profit for the treasury
+    // Collection of the depository's profits
     pub profits_total_collected: u128,
+    pub profits_beneficiary_collateral: Pubkey,
 }
 
 impl CredixLpDepository {

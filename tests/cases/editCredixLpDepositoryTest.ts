@@ -1,4 +1,4 @@
-import { Signer } from '@solana/web3.js';
+import { PublicKey, Signer } from '@solana/web3.js';
 import {
   Controller,
   CredixLpDepository,
@@ -18,6 +18,7 @@ export const editCredixLpDepositoryTest = async function (
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
+    profitsBeneficiaryCollateral?: PublicKey;
   }
 ) {
   const connection = getConnection();
@@ -36,6 +37,7 @@ export const editCredixLpDepositoryTest = async function (
       mintingFeeInBps,
       redeemingFeeInBps,
       mintingDisabled,
+      profitsBeneficiaryCollateral,
     } = depositoryOnchainAccount;
 
     // WHEN
@@ -60,6 +62,7 @@ export const editCredixLpDepositoryTest = async function (
       mintingFeeInBps: mintingFeeInBps_post,
       redeemingFeeInBps: redeemingFeeInBps_post,
       mintingDisabled: mintingDisabled_post,
+      profitsBeneficiaryCollateral: profitsBeneficiaryCollateral_post,
     } = depositoryOnchainAccount_post;
 
     if (uiFields.redeemableAmountUnderManagementCap) {
@@ -118,6 +121,18 @@ export const editCredixLpDepositoryTest = async function (
         mintingDisabled,
         'now is',
         mintingDisabled_post
+      );
+    }
+    if (typeof uiFields.profitsBeneficiaryCollateral !== 'undefined') {
+      expect(profitsBeneficiaryCollateral_post.toBase58()).equals(
+        uiFields.profitsBeneficiaryCollateral.toBase58(),
+        'The profits beneficiary collateral state has not changed.'
+      );
+      console.log(
+        `🧾 Previous profits beneficiary collateral state was`,
+        profitsBeneficiaryCollateral.toBase58(),
+        'now is',
+        profitsBeneficiaryCollateral_post.toBase58()
       );
     }
 

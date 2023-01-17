@@ -8,9 +8,7 @@ import { getConnection, TXN_OPTS } from '../connection';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
 
 export const credixLpDepositoryEditSuite = async function (
-  controllerAuthority: Signer,
-  user: Signer,
-  payer: Signer,
+  authority: Signer,
   controller: Controller,
   depository: CredixLpDepository
 ) {
@@ -25,14 +23,9 @@ export const credixLpDepositoryEditSuite = async function (
 
       console.log('[🧾 mintingFeeInBps', mintingFeeInBps, ']');
 
-      await editCredixLpDepositoryTest(
-        controllerAuthority,
-        controller,
-        depository,
-        {
-          mintingFeeInBps,
-        }
-      );
+      await editCredixLpDepositoryTest(authority, controller, depository, {
+        mintingFeeInBps,
+      });
     });
 
     it(`Edit redeemingFeeInBps alone should work`, async function () {
@@ -40,14 +33,9 @@ export const credixLpDepositoryEditSuite = async function (
 
       console.log('[🧾 redeemingFeeInBps', redeemingFeeInBps, ']');
 
-      await editCredixLpDepositoryTest(
-        controllerAuthority,
-        controller,
-        depository,
-        {
-          redeemingFeeInBps,
-        }
-      );
+      await editCredixLpDepositoryTest(authority, controller, depository, {
+        redeemingFeeInBps,
+      });
     });
 
     it(`Edit redeemableAmountUnderManagementCap alone should work`, async function () {
@@ -59,14 +47,9 @@ export const credixLpDepositoryEditSuite = async function (
         ']'
       );
 
-      await editCredixLpDepositoryTest(
-        controllerAuthority,
-        controller,
-        depository,
-        {
-          redeemableAmountUnderManagementCap,
-        }
-      );
+      await editCredixLpDepositoryTest(authority, controller, depository, {
+        redeemableAmountUnderManagementCap,
+      });
     });
 
     it(`Edit mintingDisabled alone should work`, async function () {
@@ -74,14 +57,23 @@ export const credixLpDepositoryEditSuite = async function (
 
       console.log('[🧾 mintingDisabled', mintingDisabled, ']');
 
-      await editCredixLpDepositoryTest(
-        controllerAuthority,
-        controller,
-        depository,
-        {
-          mintingDisabled,
-        }
+      await editCredixLpDepositoryTest(authority, controller, depository, {
+        mintingDisabled,
+      });
+    });
+
+    it(`Edit profitsBeneficiaryCollateral alone should work`, async function () {
+      const profitsBeneficiaryCollateral = new PublicKey('42');
+
+      console.log(
+        '[🧾 profitsBeneficiaryCollateral',
+        profitsBeneficiaryCollateral,
+        ']'
       );
+
+      await editCredixLpDepositoryTest(authority, controller, depository, {
+        profitsBeneficiaryCollateral,
+      });
     });
 
     // Restore initial depository values there
@@ -91,6 +83,7 @@ export const credixLpDepositoryEditSuite = async function (
         redeemingFeeInBps,
         redeemableAmountUnderManagementCap,
         mintingDisabled,
+        profitsBeneficiaryCollateral,
       } = beforeDepository;
 
       const uiRedeemableAmountUnderManagementCap = nativeToUi(
@@ -106,19 +99,20 @@ export const credixLpDepositoryEditSuite = async function (
         ']'
       );
       console.log('[🧾 mintingDisabled', mintingDisabled, ']');
-
-      await editCredixLpDepositoryTest(
-        controllerAuthority,
-        controller,
-        depository,
-        {
-          mintingFeeInBps,
-          redeemingFeeInBps,
-          redeemableAmountUnderManagementCap:
-            uiRedeemableAmountUnderManagementCap,
-          mintingDisabled,
-        }
+      console.log(
+        '[🧾 profitsBeneficiaryCollateral',
+        profitsBeneficiaryCollateral,
+        ']'
       );
+
+      await editCredixLpDepositoryTest(authority, controller, depository, {
+        mintingFeeInBps,
+        redeemingFeeInBps,
+        redeemableAmountUnderManagementCap:
+          uiRedeemableAmountUnderManagementCap,
+        mintingDisabled,
+        profitsBeneficiaryCollateral,
+      });
     });
   });
 };

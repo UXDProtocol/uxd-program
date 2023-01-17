@@ -1,8 +1,7 @@
-import { Signer } from '@solana/web3.js';
+import { PublicKey, Signer } from '@solana/web3.js';
 import {
   Controller,
   CredixLpDepository,
-  findATAAddrSync,
   nativeToUi,
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
@@ -12,35 +11,30 @@ import { CLUSTER } from '../constants';
 import { getBalance } from '../utils';
 
 export const collectProfitOfCredixLpDepositoryTest = async function (
-  authority: Signer,
+  payer: Signer,
+  profitsBeneficiaryCollateral: PublicKey,
   controller: Controller,
-  depository: CredixLpDepository,
-  payer?: Signer
+  depository: CredixLpDepository
 ): Promise<number> {
   console.group('🧭 collectProfitOfCredixLpDepositoryTest');
-
-  const [authorityCollateralAta] = findATAAddrSync(
-    authority.publicKey,
-    depository.collateralMint
-  );
 
   try {
     // GIVEN
     const [
-      authorityCollateralBalance_pre,
+      profitsBeneficiaryCollateralBalance_pre,
       onchainController_pre,
       onChainDepository_pre,
     ] = await Promise.all([
-      getBalance(authorityCollateralAta),
+      getBalance(profitsBeneficiaryCollateral),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
 
     // WHEN
-    // Simulates authority experience from the front end
+    // Simulates user experience from the front end
     const txId = await collectProfitOfCredixLpDepository(
-      authority,
-      payer ?? authority,
+      payer,
+      profitsBeneficiaryCollateral,
       controller,
       depository
     );
@@ -50,18 +44,19 @@ export const collectProfitOfCredixLpDepositoryTest = async function (
 
     // THEN
     const [
-      authorityCollateralBalance_post,
+      profitsBeneficiaryCollateralBalance_post,
       onchainController_post,
       onChainDepository_post,
     ] = await Promise.all([
-      getBalance(authorityCollateralAta),
+      getBalance(profitsBeneficiaryCollateral),
       controller.getOnchainAccount(getConnection(), TXN_OPTS),
       depository.getOnchainAccount(getConnection(), TXN_OPTS),
     ]);
 
     const collateralDelta = Number(
       (
-        authorityCollateralBalance_post - authorityCollateralBalance_pre
+        profitsBeneficiaryCollateralBalance_post -
+        profitsBeneficiaryCollateralBalance_pre
       ).toFixed(depository.collateralDecimals)
     );
 

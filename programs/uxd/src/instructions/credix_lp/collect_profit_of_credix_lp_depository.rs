@@ -22,24 +22,20 @@ use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 
 #[derive(Accounts)]
 pub struct CollectProfitOfCredixLpDepository<'info> {
-    /// #1 Authored call accessible only to the signer matching Controller.authority
-    pub authority: Signer<'info>,
-
-    /// #2
+    /// #1
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// #3
+    /// #2
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
         constraint = controller.load()?.registered_credix_lp_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
-        has_one = authority @UxdError::InvalidAuthority,
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #4
+    /// #3
     #[account(
         mut,
         seeds = [
@@ -57,46 +53,47 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
         has_one = credix_signing_authority @UxdError::InvalidCredixSigningAuthority,
         has_one = credix_liquidity_collateral @UxdError::InvalidCredixLiquidityCollateral,
         has_one = credix_shares_mint @UxdError::InvalidCredixSharesMint,
+        has_one = profits_beneficiary_collateral @UxdError::InvalidProfitsBeneficiaryCollateral,
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 
-    /// #5
+    /// #4
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #6
+    /// #5
     #[account(mut)]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #7
+    /// #6
     #[account(mut)]
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
-    /// #8
+    /// #7
     #[account(
         has_one = credix_multisig_key @UxdError::InvalidCredixMultisigKey,
     )]
     pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
 
-    /// #9
+    /// #8
     #[account(
         mut,
         constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
     )]
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 
-    /// #10
+    /// #9
     /// CHECK: unused by us, checked by credix
     pub credix_signing_authority: AccountInfo<'info>,
 
-    /// #11
+    /// #10
     #[account(mut)]
     pub credix_liquidity_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #12
+    /// #11
     #[account(mut)]
     pub credix_shares_mint: Box<Account<'info, Mint>>,
 
-    /// #13
+    /// #12
     #[account(
         mut,
         owner = credix_client::ID,
@@ -112,18 +109,18 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     )]
     pub credix_pass: Account<'info, credix_client::CredixPass>,
 
-    /// #14
+    /// #13
     #[account(
         mut,
         token::mint = collateral_mint,
     )]
     pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #15
+    /// #14
     /// CHECK: not used by us, checked by credix program
     pub credix_multisig_key: AccountInfo<'info>,
 
-    /// #16
+    /// #15
     #[account(
         mut,
         token::authority = credix_multisig_key,
@@ -131,23 +128,22 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     )]
     pub credix_multisig_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #17
+    /// #16
     #[account(
         mut,
-        token::authority = authority,
         token::mint = collateral_mint,
     )]
-    pub authority_collateral: Box<Account<'info, TokenAccount>>,
+    pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #18
+    /// #17
     pub system_program: Program<'info, System>,
-    /// #19
+    /// #18
     pub token_program: Program<'info, Token>,
-    /// #20
+    /// #19
     pub associated_token_program: Program<'info, AssociatedToken>,
-    /// #21
+    /// #20
     pub credix_program: Program<'info, credix_client::program::Credix>,
-    /// #22
+    /// #21
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -160,7 +156,8 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
 
     // Read all states before collect
     let depository_collateral_amount_before: u64 = ctx.accounts.depository_collateral.amount;
-    let authority_collateral_amount_before: u64 = ctx.accounts.authority_collateral.amount;
+    let profits_beneficiary_collateral_amount_before: u64 =
+        ctx.accounts.profits_beneficiary_collateral.amount;
 
     let liquidity_collateral_amount_before: u64 = ctx.accounts.credix_liquidity_collateral.amount;
     let outstanding_collateral_amount_before: u64 = ctx
@@ -273,7 +270,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     msg!("[collect_profit_of_credix_lp_depository:collateral_transfer]",);
     token::transfer(
         ctx.accounts
-            .into_transfer_depository_collateral_to_authority_collateral_context()
+            .into_transfer_depository_collateral_to_profits_beneficiary_collateral_context()
             .with_signer(depository_pda_signer),
         collateral_amount_after_precision_loss,
     )?;
@@ -284,7 +281,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     ctx.accounts.credix_global_market_state.reload()?;
     ctx.accounts.credix_liquidity_collateral.reload()?;
     ctx.accounts.credix_shares_mint.reload()?;
-    ctx.accounts.authority_collateral.reload()?;
+    ctx.accounts.profits_beneficiary_collateral.reload()?;
 
     // ---------------------------------------------------------------------
     // -- Phase 3
@@ -294,7 +291,8 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
 
     // Read all states after withdrawal
     let depository_collateral_amount_after: u64 = ctx.accounts.depository_collateral.amount;
-    let authority_collateral_amount_after: u64 = ctx.accounts.authority_collateral.amount;
+    let profits_beneficiary_collateral_amount_after: u64 =
+        ctx.accounts.profits_beneficiary_collateral.amount;
 
     let liquidity_collateral_amount_after: u64 = ctx.accounts.credix_liquidity_collateral.amount;
     let outstanding_collateral_amount_after: u64 = ctx
@@ -315,9 +313,9 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     )?;
 
     // Compute changes in states
-    let authority_collateral_amount_increase: u64 = compute_increase(
-        authority_collateral_amount_before,
-        authority_collateral_amount_after,
+    let profits_beneficiary_collateral_amount_increase: u64 = compute_increase(
+        profits_beneficiary_collateral_amount_before,
+        profits_beneficiary_collateral_amount_after,
     )?;
 
     let total_shares_amount_decrease: u64 =
@@ -332,8 +330,8 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
 
     // Log deltas for debriefing the changes
     msg!(
-        "[collect_profit_of_credix_lp_depository:authority_collateral_amount_increase:{}]",
-        authority_collateral_amount_increase
+        "[collect_profit_of_credix_lp_depository:profits_beneficiary_collateral_amount_increase:{}]",
+        profits_beneficiary_collateral_amount_increase
     );
     msg!(
         "[collect_profit_of_credix_lp_depository:total_shares_amount_decrease:{}]",
@@ -360,7 +358,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
 
     // Validate that the locked value moved exactly to the correct place
     require!(
-        authority_collateral_amount_increase == collateral_amount_after_precision_loss,
+        profits_beneficiary_collateral_amount_increase == collateral_amount_after_precision_loss,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
@@ -450,12 +448,12 @@ impl<'info> CollectProfitOfCredixLpDepository<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_depository_collateral_to_authority_collateral_context(
+    pub fn into_transfer_depository_collateral_to_profits_beneficiary_collateral_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
             from: self.depository_collateral.to_account_info(),
-            to: self.authority_collateral.to_account_info(),
+            to: self.profits_beneficiary_collateral.to_account_info(),
             authority: self.depository.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();

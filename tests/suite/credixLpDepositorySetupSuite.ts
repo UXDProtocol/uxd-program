@@ -1,7 +1,5 @@
-import { PublicKey, Signer } from '@solana/web3.js';
-import { findATAAddrSync } from '@uxd-protocol/uxd-client';
+import { Signer } from '@solana/web3.js';
 import { Controller, CredixLpDepository } from '@uxd-protocol/uxd-client';
-import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitOfCredixLpDepositoryTest';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
 import { registerCredixLpDepositoryTest } from '../cases/registerCredixLpDepositoryTest';
 
