@@ -459,7 +459,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
       }
       expect(failure).eq(
         true,
-        `Should have failed - Invalid profit beneficiary`
+        `Should have failed - Invalid profits beneficiary`
       );
     });
   });
