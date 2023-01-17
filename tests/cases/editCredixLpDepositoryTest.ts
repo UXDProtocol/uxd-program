@@ -67,8 +67,14 @@ export const editCredixLpDepositoryTest = async function (
         redeemableAmountUnderManagementCap_post,
         controller.redeemableMintDecimals
       );
-      expect(redeemableAmountUnderManagementCapUi).equals(
-        uiFields.redeemableAmountUnderManagementCap,
+      expect(
+        redeemableAmountUnderManagementCapUi.toFixed(
+          controller.redeemableMintDecimals
+        )
+      ).equals(
+        uiFields.redeemableAmountUnderManagementCap.toFixed(
+          controller.redeemableMintDecimals
+        ),
         'The redeemable depository supply cap has not changed.'
       );
       console.log(
