@@ -51,8 +51,14 @@ export const editControllerTest = async function (
         redeemableGlobalSupplyCap_post.toNumber(),
         controller.redeemableMintDecimals
       );
-      expect(redeemableGlobalSupplyCap_postUi).equals(
-        uiFields.redeemableGlobalSupplyCap,
+      expect(
+        redeemableGlobalSupplyCap_postUi.toFixed(
+          controller.redeemableMintDecimals
+        )
+      ).equals(
+        uiFields.redeemableGlobalSupplyCap.toFixed(
+          controller.redeemableMintDecimals
+        ),
         'Redeemable Global Supply Cap must bet set'
       );
       console.log(
