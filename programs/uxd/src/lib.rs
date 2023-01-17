@@ -236,7 +236,7 @@ pub mod uxd {
         ctx.accounts.validate()
     )]
     pub fn collect_profits_of_credix_lp_depository(
-        ctx: Context<CollectProfitOfCredixLpDepository>,
+        ctx: Context<CollectProfitsOfCredixLpDepository>,
     ) -> Result<()> {
         msg!("[collect_profits_of_credix_lp_depository]");
         instructions::collect_profits_of_credix_lp_depository::handler(ctx)

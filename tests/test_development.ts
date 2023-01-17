@@ -6,6 +6,7 @@ import {
   IdentityDepository,
   USDC_DEVNET,
   USDC_DECIMALS,
+  CredixLpDepository,
 } from '@uxd-protocol/uxd-client';
 import {
   authority,
@@ -15,6 +16,7 @@ import {
   uxdProgramId,
 } from './constants';
 import {
+  createCredixLpDepositoryDevnetUSDC,
   transferAllSol,
   transferAllTokens,
   transferSol,
@@ -49,6 +51,8 @@ import { editControllerTest } from './cases/editControllerTest';
     },
     uxdProgramId,
   });
+
+  let credixLpDepository = await createCredixLpDepositoryDevnetUSDC();
 
   const identityDepository = new IdentityDepository(
     USDC_DEVNET,
@@ -88,6 +92,7 @@ import { editControllerTest } from './cases/editControllerTest';
         bank,
         controller,
         mercurialVaultDepository,
+        credixLpDepository,
         identityDepository
       );
     });

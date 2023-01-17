@@ -2128,81 +2128,76 @@ export type Uxd = {
     },
     {
       code: 6035
-      name: 'UninitializedProfitsBeneficiaryCollateral'
-      msg: 'The Profits beneficiary collateral provided is set to an invalid value.'
-    },
-    {
-      code: 6036
       name: 'InvalidMercurialVault'
       msg: "The provided mercurial vault does not match the Depository's one."
     },
     {
-      code: 6037
+      code: 6036
       name: 'InvalidMercurialVaultCollateralTokenSafe'
       msg: 'The provided mercurial vault collateral token safe does not match the mercurial vault one.'
     },
     {
-      code: 6038
+      code: 6037
       name: 'RedeemableIdentityDepositoryAmountUnderManagementCap'
       msg: 'Minting amount would go past the identity depository Redeemable Amount Under Management Cap.'
     },
     {
-      code: 6039
+      code: 6038
       name: 'ProgramAlreadyFrozenOrResumed'
       msg: 'Program is already frozen/resumed.'
     },
     {
-      code: 6040
+      code: 6039
       name: 'ProgramFrozen'
       msg: 'The program is currently in Frozen state.'
     },
     {
-      code: 6041
+      code: 6040
       name: 'InvalidCredixProgramState'
       msg: "The Credix ProgramState isn't the Depository one."
     },
     {
-      code: 6042
+      code: 6041
       name: 'InvalidCredixGlobalMarketState'
       msg: "The Credix GlobalMarketState isn't the Depository one."
     },
     {
-      code: 6043
+      code: 6042
       name: 'InvalidCredixSigningAuthority'
       msg: "The Credix SigningAuthority isn't the Depository one."
     },
     {
-      code: 6044
+      code: 6043
       name: 'InvalidCredixLiquidityCollateral'
       msg: "The Credix LiquidityCollateral isn't the Depository one."
     },
     {
-      code: 6045
+      code: 6044
       name: 'InvalidCredixSharesMint'
       msg: "The Credix SharesMint isn't the Depository one."
     },
     {
-      code: 6046
+      code: 6045
       name: 'InvalidCredixPass'
       msg: "The Credix Pass isn't the one owned by the correct depository."
     },
     {
-      code: 6047
+      code: 6046
       name: 'InvalidCredixPassNoFees'
       msg: "The Credix Pass doesn't have the fees exemption."
     },
     {
-      code: 6048
+      code: 6047
       name: 'InvalidCredixMultisigKey'
       msg: "The Credix Multisig Key isn't the ProgramState one."
     },
     {
-      code: 6049
+      code: 6048
       name: 'InvalidCredixTreasuryCollateral'
       msg: "The Credix TreasuryCollateral isn't the GlobalMarketState one."
     },
     {
-      code: 6050
+      code: 6049
       name: 'Default'
       msg: 'Default - Check the source code for more info.'
     }
@@ -4339,81 +4334,76 @@ export const IDL: Uxd = {
     },
     {
       code: 6035,
-      name: 'UninitializedProfitsBeneficiaryCollateral',
-      msg: 'The Profits beneficiary collateral provided is set to an invalid value.'
-    },
-    {
-      code: 6036,
       name: 'InvalidMercurialVault',
       msg: "The provided mercurial vault does not match the Depository's one."
     },
     {
-      code: 6037,
+      code: 6036,
       name: 'InvalidMercurialVaultCollateralTokenSafe',
       msg: 'The provided mercurial vault collateral token safe does not match the mercurial vault one.'
     },
     {
-      code: 6038,
+      code: 6037,
       name: 'RedeemableIdentityDepositoryAmountUnderManagementCap',
       msg: 'Minting amount would go past the identity depository Redeemable Amount Under Management Cap.'
     },
     {
-      code: 6039,
+      code: 6038,
       name: 'ProgramAlreadyFrozenOrResumed',
       msg: 'Program is already frozen/resumed.'
     },
     {
-      code: 6040,
+      code: 6039,
       name: 'ProgramFrozen',
       msg: 'The program is currently in Frozen state.'
     },
     {
-      code: 6041,
+      code: 6040,
       name: 'InvalidCredixProgramState',
       msg: "The Credix ProgramState isn't the Depository one."
     },
     {
-      code: 6042,
+      code: 6041,
       name: 'InvalidCredixGlobalMarketState',
       msg: "The Credix GlobalMarketState isn't the Depository one."
     },
     {
-      code: 6043,
+      code: 6042,
       name: 'InvalidCredixSigningAuthority',
       msg: "The Credix SigningAuthority isn't the Depository one."
     },
     {
-      code: 6044,
+      code: 6043,
       name: 'InvalidCredixLiquidityCollateral',
       msg: "The Credix LiquidityCollateral isn't the Depository one."
     },
     {
-      code: 6045,
+      code: 6044,
       name: 'InvalidCredixSharesMint',
       msg: "The Credix SharesMint isn't the Depository one."
     },
     {
-      code: 6046,
+      code: 6045,
       name: 'InvalidCredixPass',
       msg: "The Credix Pass isn't the one owned by the correct depository."
     },
     {
-      code: 6047,
+      code: 6046,
       name: 'InvalidCredixPassNoFees',
       msg: "The Credix Pass doesn't have the fees exemption."
     },
     {
-      code: 6048,
+      code: 6047,
       name: 'InvalidCredixMultisigKey',
       msg: "The Credix Multisig Key isn't the ProgramState one."
     },
     {
-      code: 6049,
+      code: 6048,
       name: 'InvalidCredixTreasuryCollateral',
       msg: "The Credix TreasuryCollateral isn't the GlobalMarketState one."
     },
     {
-      code: 6050,
+      code: 6049,
       name: 'Default',
       msg: 'Default - Check the source code for more info.'
     }

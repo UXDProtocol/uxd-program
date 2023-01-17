@@ -17,8 +17,10 @@ import {
   controllerIntegrationSuiteParameters,
   controllerIntegrationSuite,
 } from './suite/controllerIntegrationSuite';
+import { credixLpDepositorySetupSuite } from './suite/credixLpDepositorySetupSuite';
 import { identityDepositorySetupSuite } from './suite/identityDepositorySetup';
 import { mercurialVaultDepositorySetupSuite } from './suite/mercurialVaultDepositorySetup';
+import { createCredixLpDepositoryDevnetUSDC } from './utils';
 
 (async () => {
   const controllerUXD = new Controller('UXD', UXD_DECIMALS, uxdProgramId);
@@ -43,6 +45,8 @@ import { mercurialVaultDepositorySetupSuite } from './suite/mercurialVaultDeposi
     uxdProgramId,
   });
 
+  const credixLpDepository = await createCredixLpDepositoryDevnetUSDC();
+
   const mintingFeeInBps = 0;
   const redeemingFeeInBps = 5;
   const uiRedeemableDepositorySupplyCap = 1_000;
@@ -53,6 +57,18 @@ import { mercurialVaultDepositorySetupSuite } from './suite/mercurialVaultDeposi
       bank,
       controllerUXD,
       mercurialVaultDepository,
+      mintingFeeInBps,
+      redeemingFeeInBps,
+      uiRedeemableDepositorySupplyCap
+    );
+  });
+
+  describe('credixLpDepositorySetupSuite', function () {
+    credixLpDepositorySetupSuite(
+      authority,
+      bank,
+      controllerUXD,
+      credixLpDepository,
       mintingFeeInBps,
       redeemingFeeInBps,
       uiRedeemableDepositorySupplyCap

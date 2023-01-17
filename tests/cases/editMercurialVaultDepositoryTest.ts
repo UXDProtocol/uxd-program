@@ -67,15 +67,21 @@ export const editMercurialVaultDepositoryTest = async function (
         redeemableAmountUnderManagementCap_post,
         controller.redeemableMintDecimals
       );
-      expect(redeemableAmountUnderManagementCapUi).equals(
-        uiFields.redeemableAmountUnderManagementCap,
+      expect(
+        redeemableAmountUnderManagementCapUi.toFixed(
+          controller.redeemableMintDecimals
+        )
+      ).equals(
+        uiFields.redeemableAmountUnderManagementCap.toFixed(
+          controller.redeemableMintDecimals
+        ),
         'The redeemable depository supply cap has not changed.'
       );
       console.log(
         `🧾 Previous redeemable depository supply cap was`,
-        redeemableAmountUnderManagementCap.toString(),
+        redeemableAmountUnderManagementCap,
         'now is',
-        redeemableAmountUnderManagementCap_post.toString()
+        redeemableAmountUnderManagementCap_post
       );
     }
     if (typeof uiFields.mintingFeeInBps !== 'undefined') {

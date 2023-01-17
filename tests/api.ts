@@ -454,7 +454,7 @@ export async function collectProfitsOfCredixLpDepository(
   depository: CredixLpDepository
 ): Promise<string> {
   const collectProfitsOfCredixLpDepositoryIx =
-    uxdClient.createCollectProfitOfCredixLpDepositoryInstruction(
+    uxdClient.createCollectProfitsOfCredixLpDepositoryInstruction(
       controller,
       depository,
       payer.publicKey,
