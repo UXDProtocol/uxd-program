@@ -1,5 +1,8 @@
 use crate::error::UxdError;
+use crate::events::CollectProfitOfMercurialVaultDepositoryEvent;
 use crate::mercurial_utils;
+use crate::utils::compute_decrease;
+use crate::utils::compute_increase;
 use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::MercurialVaultDepository;
@@ -10,7 +13,6 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use fixed::types::I80F48;
 
 #[derive(Accounts)]
 pub struct CollectProfitOfMercurialVaultDepository<'info> {
@@ -89,6 +91,27 @@ pub struct CollectProfitOfMercurialVaultDepository<'info> {
 }
 
 pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<()> {
+    // 1 - Read all states before collect
+    let lp_token_vault_amount_before = ctx.accounts.depository_lp_token_vault.amount;
+    let profits_beneficiary_collateral_amount_before =
+        ctx.accounts.profits_beneficiary_collateral.amount;
+
+    // 2 - calculate the value of collectable interests and fees (in USDC unit)
+    let collectable_profits_value = ctx.accounts.calculate_collectable_profits_value()?;
+
+    // 3 - calculate the amount of LP token to withdraw to collect all interests and fees
+    // This LP amount is subjected to precision loss (we handle this precision loss later)
+    let lp_token_amount_to_match_collectable_profits_value = ctx
+        .accounts
+        .calculate_lp_token_amount_to_match_collectable_profits_value(collectable_profits_value)?;
+
+    let possible_lp_token_precision_loss_collateral_value =
+        mercurial_utils::calculate_possible_lp_token_precision_loss_collateral_value(
+            &ctx.accounts.mercurial_vault,
+            ctx.accounts.mercurial_vault_lp_mint.supply,
+        )?;
+
+    // 4 - depository signer
     let depository = ctx.accounts.depository.load()?;
     let mercurial_vault: Pubkey = depository.mercurial_vault;
     let collateral_mint = depository.collateral_mint;
@@ -102,25 +125,7 @@ pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<
         &[depository_bump],
     ]];
 
-    let before_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
-    let before_collateral_balance = ctx.accounts.profits_beneficiary_collateral.amount;
-
-    // 1 - calculate the value of collectable interests and fees (in USDC unit)
-    let collectable_profits_value = ctx.accounts.calculate_collectable_profits_value()?;
-
-    // 2 - calculate the amount of LP token to withdraw to collect all interests and fees
-    // This LP amount is subjected to precision loss (we handle this precision loss later)
-    let lp_token_amount_to_match_collectable_profits_value = ctx
-        .accounts
-        .calculate_lp_token_amount_to_match_collectable_profits_value(collectable_profits_value)?;
-
-    let possible_lp_token_precision_loss_collateral_value =
-        mercurial_utils::calculate_possible_lp_token_precision_loss_collateral_value(
-            &ctx.accounts.mercurial_vault,
-            ctx.accounts.mercurial_vault_lp_mint.supply,
-        )?;
-
-    // 3 - withdraw collateral from mercurial vault for LP tokens
+    // 5 - withdraw collateral from mercurial vault for LP tokens
     mercurial_vault::cpi::withdraw(
         ctx.accounts
             .into_withdraw_collateral_from_mercurial_vault_context()
@@ -130,45 +135,51 @@ pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<
         0,
     )?;
 
-    // 4 - Reload accounts impacted by the withdraw (We need updated numbers for further calculation)
+    // 6 - Reload accounts impacted by the withdraw (We need updated numbers for further calculation)
     ctx.accounts.depository_lp_token_vault.reload()?;
     ctx.accounts.profits_beneficiary_collateral.reload()?;
 
-    // 5 - Check that a positive amount of collateral have been redeemed
-    let after_collateral_balance = ctx.accounts.profits_beneficiary_collateral.amount;
+    // 7 - Check that a positive amount of collateral have been redeemed
+    let profits_beneficiary_collateral_amount_after =
+        ctx.accounts.profits_beneficiary_collateral.amount;
+    let profits_beneficiary_collateral_amount_increase = compute_increase(
+        profits_beneficiary_collateral_amount_before,
+        profits_beneficiary_collateral_amount_after,
+    )?;
 
-    let collateral_balance_change = after_collateral_balance
-        .checked_sub(before_collateral_balance)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+    // 8 - Check the amount of paid LP Token when calling mercurial_vault::cpi::withdraw
+    let lp_token_vault_amount_after = ctx.accounts.depository_lp_token_vault.amount;
+    let lp_token_vault_amount_before_decrease =
+        compute_decrease(lp_token_vault_amount_before, lp_token_vault_amount_after)?;
 
     require!(
-        collateral_balance_change > 0,
+        profits_beneficiary_collateral_amount_increase > 0,
         UxdError::MinimumRedeemedCollateralAmountError
     );
 
-    // 6 - Check the amount of paid LP Token when calling mercurial_vault::cpi::withdraw
-    let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
-
-    let lp_token_change = before_lp_token_vault_balance
-        .checked_sub(after_lp_token_vault_balance)
-        .ok_or_else(|| error!(UxdError::MathError))?;
-
     require!(
-        lp_token_change == lp_token_amount_to_match_collectable_profits_value,
+        lp_token_vault_amount_before_decrease == lp_token_amount_to_match_collectable_profits_value,
         UxdError::SlippageReached,
     );
 
-    // 7 - Check the collateral amount received from mercurial_vault::cpi::withdraw
-
-    // There can be precision loss when calculating how many LP token to withdraw and also when withdrawing the collateral
+    // 9 - There can be precision loss when calculating how many LP token to withdraw and also when withdrawing the collateral
     // We accept theses losses as the money is still in the vault. We collect a bit less profit.
     CollectProfitOfMercurialVaultDepository::check_redeemed_collateral_amount_to_match_target(
-        collateral_balance_change,
+        profits_beneficiary_collateral_amount_increase,
         collectable_profits_value,
         possible_lp_token_precision_loss_collateral_value,
     )?;
 
-    // 8 - update accounting
+    // 10 - Emit event
+    emit!(CollectProfitOfMercurialVaultDepositoryEvent {
+        controller_version: ctx.accounts.controller.load()?.version,
+        depository_version: ctx.accounts.depository.load()?.version,
+        controller: ctx.accounts.controller.key(),
+        depository: ctx.accounts.depository.key(),
+        collateral_amount: profits_beneficiary_collateral_amount_increase,
+    });
+
+    // 11 - update accounting
     let current_time_as_unix_timestamp = u64::try_from(Clock::get()?.unix_timestamp)
         .ok()
         .ok_or_else(|| error!(UxdError::MathError))?;
@@ -177,14 +188,16 @@ pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<
         .depository
         .load_mut()?
         .update_onchain_accounting_following_profits_collection(
-            collateral_balance_change,
+            profits_beneficiary_collateral_amount_increase,
             current_time_as_unix_timestamp,
         )?;
 
     ctx.accounts
         .controller
         .load_mut()?
-        .update_onchain_accounting_following_profit_collection(collateral_balance_change)?;
+        .update_onchain_accounting_following_profit_collection(
+            profits_beneficiary_collateral_amount_increase,
+        )?;
 
     Ok(())
 }
@@ -236,27 +249,25 @@ impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
     }
 
     pub fn calculate_collectable_profits_value(&self) -> Result<u64> {
-        let owned_lp_tokens_value = I80F48::checked_from_num(
+        let owned_lp_tokens_value: u128 =
             mercurial_utils::calculate_lp_tokens_value::calculate_lp_tokens_value(
                 &self.mercurial_vault,
                 self.mercurial_vault_lp_mint.supply,
                 self.depository_lp_token_vault.amount,
-            )?,
+            )
+            .ok()
+            .ok_or(UxdError::MathError)?
+            .into();
+
+        let collectable_profits_amount: u64 = u64::try_from(
+            owned_lp_tokens_value
+                .checked_sub(self.depository.load()?.redeemable_amount_under_management)
+                .ok_or(UxdError::MathError)?,
         )
+        .ok()
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-        let collectable_profits_amount = owned_lp_tokens_value
-            .checked_sub(
-                I80F48::checked_from_num(
-                    self.depository.load()?.redeemable_amount_under_management,
-                )
-                .ok_or_else(|| error!(UxdError::MathError))?,
-            )
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        collectable_profits_amount
-            .checked_to_num()
-            .ok_or_else(|| error!(UxdError::MathError))
+        Ok(collectable_profits_amount)
     }
 
     // Check that the collateral amount received by the user matches the collateral amount we wanted the user to receive:

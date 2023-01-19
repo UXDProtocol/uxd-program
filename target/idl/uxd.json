@@ -1147,10 +1147,7 @@
           {
             "name": "unused",
             "type": {
-              "array": [
-                "u8",
-                255
-              ]
+              "array": ["u8", 255]
             }
           },
           {
@@ -1168,10 +1165,7 @@
           {
             "name": "unused3",
             "type": {
-              "array": [
-                "u8",
-                8
-              ]
+              "array": ["u8", 8]
             }
           },
           {
@@ -1181,19 +1175,13 @@
           {
             "name": "unused4",
             "type": {
-              "array": [
-                "u8",
-                8
-              ]
+              "array": ["u8", 8]
             }
           },
           {
             "name": "registeredMercurialVaultDepositories",
             "type": {
-              "array": [
-                "publicKey",
-                4
-              ]
+              "array": ["publicKey", 4]
             }
           },
           {
@@ -1203,10 +1191,7 @@
           {
             "name": "registeredCredixLpDepositories",
             "type": {
-              "array": [
-                "publicKey",
-                4
-              ]
+              "array": ["publicKey", 4]
             }
           },
           {
@@ -2029,6 +2014,36 @@
       ]
     },
     {
+      "name": "CollectProfitOfMercurialVaultDepositoryEvent",
+      "fields": [
+        {
+          "name": "controllerVersion",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "depositoryVersion",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "collateralAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
       "name": "FreezeProgramEvent",
       "fields": [
         {
@@ -2300,5 +2315,8 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ]
+  ],
+  "metadata": {
+    "address": "EqMrasrCXsbE6mpXaopUH1qip7auwX4AF5UWWpXaLr6u"
+  }
 }

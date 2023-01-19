@@ -230,6 +230,21 @@ pub struct CollectProfitOfCredixLpDepositoryEvent {
     pub collateral_amount: u64,
 }
 
+/// Event called in [instructions::collect_profit_of_mercurial_vault_depository::handler].
+#[event]
+pub struct CollectProfitOfMercurialVaultDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    /// The collateral amount in native units. (output)
+    pub collateral_amount: u64,
+}
+
 /// Event called in [instructions::freeze_program::handler].
 #[event]
 pub struct FreezeProgramEvent {
