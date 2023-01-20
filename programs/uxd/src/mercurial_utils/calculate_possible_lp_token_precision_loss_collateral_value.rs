@@ -21,8 +21,5 @@ pub fn calculate_possible_lp_token_precision_loss_collateral_value(
         .get_unlocked_amount(current_time)
         .ok_or(UxdError::MathError)?;
 
-    Ok(compute_precision_loss(
-        total_amount,
-        mercurial_vault_lp_mint_supply,
-    )?)
+    compute_precision_loss(total_amount, mercurial_vault_lp_mint_supply)
 }

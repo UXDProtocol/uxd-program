@@ -409,7 +409,7 @@ pub(crate) fn handler(
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         user: ctx.accounts.user.key(),
-        collateral_amount: collateral_amount,
+        collateral_amount,
         redeemable_amount: redeemable_amount_after_fees,
         minting_fee_paid,
     });

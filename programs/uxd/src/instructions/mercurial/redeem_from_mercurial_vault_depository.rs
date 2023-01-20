@@ -1,5 +1,6 @@
 use crate::error::UxdError;
 use crate::mercurial_utils;
+use crate::mercurial_utils::check_collateral_value_changed_to_match_target;
 use crate::utils;
 use crate::validate_is_program_frozen;
 use crate::Controller;
@@ -197,7 +198,8 @@ pub fn handler(
 
     // There can be precision loss when calculating how many LP token to withdraw and also when withdrawing the collateral
     // We accept theses losses as they are paid by the user
-    RedeemFromMercurialVaultDepository::check_redeemed_collateral_amount_to_match_target(
+    //     redeemable amount - fees - lp token calculation precision loss - withdraw precision loss
+    check_collateral_value_changed_to_match_target(
         collateral_balance_change,
         collateral_amount_less_fees,
         possible_lp_token_precision_loss_collateral_value,
@@ -290,30 +292,6 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
                 self.mercurial_vault_lp_mint.supply,
             )
             .ok_or_else(|| error!(UxdError::MathError))
-    }
-
-    // Check that the collateral amount received by the user matches the collateral amount we wanted the user to receive:
-    //     redeemable amount - fees - lp token calculation precision loss - withdraw precision loss
-    fn check_redeemed_collateral_amount_to_match_target(
-        redeemed_collateral_amount: u64,
-        target: u64,
-        possible_lp_token_precision_loss_collateral_value: u64,
-    ) -> Result<()> {
-        // Lp token precision loss + withdraw collateral precision loss
-        let maximum_allowed_precision_loss = possible_lp_token_precision_loss_collateral_value
-            .checked_add(1)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        let target_minimal_allowed_value = target
-            .checked_sub(maximum_allowed_precision_loss)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        require!(
-            (target_minimal_allowed_value..(target + 1)).contains(&redeemed_collateral_amount),
-            UxdError::SlippageReached,
-        );
-
-        Ok(())
     }
 }
 

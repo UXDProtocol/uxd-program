@@ -1,6 +1,7 @@
 use crate::error::UxdError;
 use crate::events::CollectProfitsOfMercurialVaultDepositoryEvent;
 use crate::mercurial_utils;
+use crate::mercurial_utils::check_collateral_value_changed_to_match_target;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
 use crate::validate_is_program_frozen;
@@ -157,7 +158,7 @@ pub fn handler(ctx: Context<CollectProfitsOfMercurialVaultDepository>) -> Result
 
     // 9 - There can be precision loss when calculating how many LP token to withdraw and also when withdrawing the collateral
     // We accept theses losses as the money is still in the vault. We collect a bit less profit.
-    CollectProfitsOfMercurialVaultDepository::check_redeemed_collateral_amount_to_match_target(
+    check_collateral_value_changed_to_match_target(
         profits_beneficiary_collateral_amount_increase,
         collectable_profits_value,
         possible_lp_token_precision_loss_collateral_value,
@@ -260,30 +261,6 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
         Ok(u64::try_from(collectable_profits_amount)
             .ok()
             .ok_or(UxdError::MathError)?)
-    }
-
-    // Check that the collateral amount received by the user matches the collateral amount we wanted the user to receive:
-    //     redeemable amount - fees - lp token calculation precision loss - withdraw precision loss
-    fn check_redeemed_collateral_amount_to_match_target(
-        redeemed_collateral_amount: u64,
-        target: u64,
-        possible_lp_token_precision_loss_collateral_value: u64,
-    ) -> Result<()> {
-        // Lp token precision loss + withdraw collateral precision loss
-        let maximum_allowed_precision_loss = possible_lp_token_precision_loss_collateral_value
-            .checked_add(1)
-            .ok_or(UxdError::MathError)?;
-
-        let target_minimal_allowed_value = target
-            .checked_sub(maximum_allowed_precision_loss)
-            .ok_or(UxdError::MathError)?;
-
-        require!(
-            (target_minimal_allowed_value..(target + 1)).contains(&redeemed_collateral_amount),
-            UxdError::SlippageReached,
-        );
-
-        Ok(())
     }
 }
 

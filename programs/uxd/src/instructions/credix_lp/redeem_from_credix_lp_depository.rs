@@ -424,7 +424,7 @@ pub(crate) fn handler(
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         user: ctx.accounts.user.key(),
-        redeemable_amount: redeemable_amount,
+        redeemable_amount,
         collateral_amount: collateral_amount_after_precision_loss,
         redeeming_fee_paid,
     });
