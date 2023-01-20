@@ -61,14 +61,14 @@ mod test_compute_shares_amount_for_value {
 
     #[test]
     fn test_panic_cases() -> Result<()> {
-        proptest!(|(value: u64, total_shares_amount: u64, total_shares_value: u64)| {
+        proptest!(|(value: u64, total_shares_supply: u64, total_shares_value: u64)| {
             let result = compute_shares_amount_for_value(
                 value,
-                total_shares_amount,
+                total_shares_supply,
                 total_shares_value
             );
             // Some basic cases are supposed to fail
-            if total_shares_amount == 0 {
+            if total_shares_supply == 0 {
                 prop_assert!(result.is_err());
                 return Ok(());
             }
@@ -78,10 +78,10 @@ mod test_compute_shares_amount_for_value {
             }
             // u64 is the limit for token amount in solana, we fail if we overflow that
             let value: u128 = value.into();
-            let total_shares_amount: u128 = total_shares_amount.into();
+            let total_shares_supply: u128 = total_shares_supply.into();
             let total_shares_value: u128 = total_shares_value.into();
             let max_supply: u128 = u64::MAX.into();
-            if value * total_shares_amount / total_shares_value > max_supply {
+            if value * total_shares_supply / total_shares_value > max_supply {
                 prop_assert!(result.is_err());
                 return Ok(());
             }

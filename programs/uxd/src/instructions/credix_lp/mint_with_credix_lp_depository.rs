@@ -157,7 +157,7 @@ pub(crate) fn handler(
         .credix_global_market_state
         .pool_outstanding_credit;
 
-    let total_shares_amount_before: u64 = ctx.accounts.credix_shares_mint.supply;
+    let total_shares_supply_before: u64 = ctx.accounts.credix_shares_mint.supply;
     let total_shares_value_before: u64 = liquidity_collateral_amount_before
         .checked_add(outstanding_collateral_amount_before)
         .ok_or(UxdError::MathError)?;
@@ -165,7 +165,7 @@ pub(crate) fn handler(
     let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
     let owned_shares_value_before: u64 = compute_value_for_shares_amount(
         owned_shares_amount_before,
-        total_shares_amount_before,
+        total_shares_supply_before,
         total_shares_value_before,
     )?;
 
@@ -178,7 +178,7 @@ pub(crate) fn handler(
     // Compute the amount of shares that we will get for our collateral
     let shares_amount: u64 = compute_shares_amount_for_value(
         collateral_amount,
-        total_shares_amount_before,
+        total_shares_supply_before,
         total_shares_value_before,
     )?;
     msg!(
@@ -193,7 +193,7 @@ pub(crate) fn handler(
     // Compute the amount of collateral that the received shares are worth (after potential precision loss)
     let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount(
         shares_amount,
-        total_shares_amount_before,
+        total_shares_supply_before,
         total_shares_value_before,
     )?;
     msg!(
@@ -295,7 +295,7 @@ pub(crate) fn handler(
         .credix_global_market_state
         .pool_outstanding_credit;
 
-    let total_shares_amount_after: u64 = ctx.accounts.credix_shares_mint.supply;
+    let total_shares_supply_after: u64 = ctx.accounts.credix_shares_mint.supply;
     let total_shares_value_after: u64 = liquidity_collateral_amount_after
         .checked_add(outstanding_collateral_amount_after)
         .ok_or(UxdError::MathError)?;
@@ -303,7 +303,7 @@ pub(crate) fn handler(
     let owned_shares_amount_after: u64 = ctx.accounts.depository_shares.amount;
     let owned_shares_value_after: u64 = compute_value_for_shares_amount(
         owned_shares_amount_after,
-        total_shares_amount_after,
+        total_shares_supply_after,
         total_shares_value_after,
     )?;
 
@@ -313,8 +313,8 @@ pub(crate) fn handler(
     let user_redeemable_amount_increase: u64 =
         compute_increase(user_redeemable_amount_before, user_redeemable_amount_after)?;
 
-    let total_shares_amount_increase: u64 =
-        compute_increase(total_shares_amount_before, total_shares_amount_after)?;
+    let total_shares_supply_increase: u64 =
+        compute_increase(total_shares_supply_before, total_shares_supply_after)?;
     let total_shares_value_increase: u64 =
         compute_increase(total_shares_value_before, total_shares_value_after)?;
 
@@ -333,8 +333,8 @@ pub(crate) fn handler(
         user_redeemable_amount_increase
     );
     msg!(
-        "[mint_with_credix_lp_depository:total_shares_amount_increase:{}]",
-        total_shares_amount_increase
+        "[mint_with_credix_lp_depository:total_shares_supply_increase:{}]",
+        total_shares_supply_increase
     );
     msg!(
         "[mint_with_credix_lp_depository:total_shares_value_increase:{}]",
@@ -367,7 +367,7 @@ pub(crate) fn handler(
 
     // Check that we received the correct amount of shares
     require!(
-        total_shares_amount_increase == shares_amount,
+        total_shares_supply_increase == shares_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(

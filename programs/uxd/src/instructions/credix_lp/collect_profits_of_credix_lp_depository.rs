@@ -165,7 +165,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
         .credix_global_market_state
         .pool_outstanding_credit;
 
-    let total_shares_amount_before: u64 = ctx.accounts.credix_shares_mint.supply;
+    let total_shares_supply_before: u64 = ctx.accounts.credix_shares_mint.supply;
     let total_shares_value_before: u64 = liquidity_collateral_amount_before
         .checked_add(outstanding_collateral_amount_before)
         .ok_or(UxdError::MathError)?;
@@ -173,7 +173,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
     let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
     let owned_shares_value_before: u64 = compute_value_for_shares_amount(
         owned_shares_amount_before,
-        total_shares_amount_before,
+        total_shares_supply_before,
         total_shares_value_before,
     )?;
 
@@ -217,7 +217,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
     // Compute the amount of shares that we need to withdraw based on the amount of wanted collateral
     let shares_amount: u64 = compute_shares_amount_for_value(
         collateral_amount_before_precision_loss,
-        total_shares_amount_before,
+        total_shares_supply_before,
         total_shares_value_before,
     )?;
     msg!(
@@ -228,7 +228,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
     // Compute the amount of collateral that the withdrawn shares are worth (after potential precision loss)
     let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount(
         shares_amount,
-        total_shares_amount_before,
+        total_shares_supply_before,
         total_shares_value_before,
     )?;
     msg!(
@@ -300,7 +300,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
         .credix_global_market_state
         .pool_outstanding_credit;
 
-    let total_shares_amount_after: u64 = ctx.accounts.credix_shares_mint.supply;
+    let total_shares_supply_after: u64 = ctx.accounts.credix_shares_mint.supply;
     let total_shares_value_after: u64 = liquidity_collateral_amount_after
         .checked_add(outstanding_collateral_amount_after)
         .ok_or(UxdError::MathError)?;
@@ -308,7 +308,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
     let owned_shares_amount_after: u64 = ctx.accounts.depository_shares.amount;
     let owned_shares_value_after: u64 = compute_value_for_shares_amount(
         owned_shares_amount_after,
-        total_shares_amount_after,
+        total_shares_supply_after,
         total_shares_value_after,
     )?;
 
@@ -318,8 +318,8 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
         profits_beneficiary_collateral_amount_after,
     )?;
 
-    let total_shares_amount_decrease: u64 =
-        compute_decrease(total_shares_amount_before, total_shares_amount_after)?;
+    let total_shares_supply_decrease: u64 =
+        compute_decrease(total_shares_supply_before, total_shares_supply_after)?;
     let total_shares_value_decrease: u64 =
         compute_decrease(total_shares_value_before, total_shares_value_after)?;
 
@@ -334,8 +334,8 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
         profits_beneficiary_collateral_amount_increase
     );
     msg!(
-        "[collect_profits_of_credix_lp_depository:total_shares_amount_decrease:{}]",
-        total_shares_amount_decrease
+        "[collect_profits_of_credix_lp_depository:total_shares_supply_decrease:{}]",
+        total_shares_supply_decrease
     );
     msg!(
         "[collect_profits_of_credix_lp_depository:total_shares_value_decrease:{}]",
@@ -364,7 +364,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
 
     // Check that we withdrew the correct amount of shares
     require!(
-        total_shares_amount_decrease == shares_amount,
+        total_shares_supply_decrease == shares_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
