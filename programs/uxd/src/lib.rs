@@ -152,6 +152,16 @@ pub mod uxd {
         instructions::redeem_from_mercurial_vault_depository::handler(ctx, redeemable_amount)
     }
 
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn collect_profit_of_mercurial_vault_depository(
+        ctx: Context<CollectProfitsOfMercurialVaultDepository>,
+    ) -> Result<()> {
+        msg!("[collect_profit_of_mercurial_vault_depository]");
+        instructions::collect_profits_of_mercurial_vault_depository::handler(ctx)
+    }
+
     #[access_control(ctx.accounts.validate())]
     pub fn initialize_identity_depository(
         ctx: Context<InitializeIdentityDepository>,
@@ -257,16 +267,6 @@ pub mod uxd {
     pub fn freeze_program(ctx: Context<FreezeProgram>, freeze: bool) -> Result<()> {
         msg!("[freeze_program] {:?}", freeze);
         instructions::freeze_program::handler(ctx, freeze)
-    }
-
-    #[access_control(
-        ctx.accounts.validate()
-    )]
-    pub fn collect_profit_of_mercurial_vault_depository(
-        ctx: Context<CollectProfitOfMercurialVaultDepository>,
-    ) -> Result<()> {
-        msg!("[collect_profit_of_mercurial_vault_depository]");
-        instructions::collect_profit_of_mercurial_vault_depository::handler(ctx)
     }
 }
 

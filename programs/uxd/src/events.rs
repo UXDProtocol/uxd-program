@@ -232,7 +232,7 @@ pub struct CollectProfitOfCredixLpDepositoryEvent {
 
 /// Event called in [instructions::collect_profit_of_mercurial_vault_depository::handler].
 #[event]
-pub struct CollectProfitOfMercurialVaultDepositoryEvent {
+pub struct CollectProfitsOfMercurialVaultDepositoryEvent {
     #[index]
     pub controller_version: u8,
     #[index]

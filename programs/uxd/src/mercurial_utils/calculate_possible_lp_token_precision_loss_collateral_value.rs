@@ -1,9 +1,9 @@
-use crate::error::UxdError;
+use crate::{error::UxdError, utils::compute_precision_loss};
 use anchor_lang::{
     prelude::{Account, Clock, SolanaSysvar},
     Result,
 };
-use fixed::types::I80F48;
+
 use mercurial_vault::state::Vault;
 
 // Calculate how much collateral could be lost in possible LP token precision loss
@@ -21,17 +21,8 @@ pub fn calculate_possible_lp_token_precision_loss_collateral_value(
         .get_unlocked_amount(current_time)
         .ok_or(UxdError::MathError)?;
 
-    let one_lp_token_collateral_value = I80F48::from_num(1)
-        .checked_mul(I80F48::checked_from_num(total_amount).ok_or(UxdError::MathError)?)
-        .ok_or(UxdError::MathError)?
-        .checked_div(
-            I80F48::checked_from_num(mercurial_vault_lp_mint_supply).ok_or(UxdError::MathError)?,
-        )
-        .ok_or(UxdError::MathError)?
-        .checked_ceil()
-        .ok_or(UxdError::MathError)?;
-
-    Ok(one_lp_token_collateral_value
-        .checked_to_num()
-        .ok_or(UxdError::MathError)?)
+    Ok(compute_precision_loss(
+        total_amount,
+        mercurial_vault_lp_mint_supply,
+    )?)
 }

@@ -1,32 +1,33 @@
+use std::mem::size_of;
+
 use anchor_lang::prelude::*;
 use fixed::types::I80F48;
 
 use crate::error::UxdError;
 
-// Total should be 900 bytes
 pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 588;
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
-    + 1     // bump
-    + 1     // version
-    + 32    // collateral mint
-    + 1     // collateral mint decimals
-    + 32    // controller
-    + 16    // collateral amount deposited
-    + 16    // redeemable amount under management
-    + 32    // mercurial vault
-    + 32    // mercurial vault lp mint
-    + 1     // mercurial vault lp mint decimals
-    + 32    // lp token vault
-    + 1     // lp token vault bump
-    + 1     // minting fee in bps
-    + 1     // redeeming fee in bps
-    + 16    // minting fee total accrued
-    + 16    // redeeming fee total accrued
-    + 16    // redeemable amount under management cap
-    + 1     // minting disabled
-    + 16    // profits total collected
-    + 8     // last time profits got collected (unix timestamp)
-    + 32     // profits beneficiary
+    + size_of::<u8>()     // bump
+    + size_of::<u8>()     // version
+    + size_of::<Pubkey>() // collateral_mint
+    + size_of::<u8>()     // collateral_mint_decimals
+    + size_of::<Pubkey>() // controller
+    + size_of::<u128>()   // collateral_amount_deposited
+    + size_of::<u128>()   // redeemable_amount_under_management
+    + size_of::<Pubkey>() // mercurial_vault
+    + size_of::<Pubkey>() // mercurial_vault_lp_mint
+    + size_of::<u8>()     // mercurial_vault_lp_mint_decimals
+    + size_of::<Pubkey>() // lp_token_vault
+    + size_of::<u8>()     // lp_token_vault_bump
+    + size_of::<u8>()     // minting_fee_in_bps
+    + size_of::<u8>()     // redeeming_fee_in_bps
+    + size_of::<u128>()   // minting_fee_total_accrued
+    + size_of::<u128>()   // redeeming_fee_total_accrued
+    + size_of::<u128>()   // redeemable_amount_under_management_cap
+    + size_of::<bool>()   // minting_disabled
+    + size_of::<u128>()   // profits_total_collected
+    + size_of::<u64>()    // last_profits_collection_unix_timestamp
+    + size_of::<Pubkey>() // profits_beneficiary_collateral
     + MERCURIAL_VAULT_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -101,7 +102,7 @@ impl MercurialVaultDepository {
         &mut self,
         collected_profits: u64,
         current_time_as_unix_timestamp: u64,
-    ) -> std::result::Result<(), UxdError> {
+    ) -> Result<()> {
         self.profits_total_collected = self
             .profits_total_collected
             .checked_add(collected_profits.into())
@@ -119,7 +120,7 @@ impl MercurialVaultDepository {
         redeemable_amount_change: i128,
         paid_minting_fees_change: i128,
         paid_redeeming_fees_change: i128,
-    ) -> std::result::Result<(), UxdError> {
+    ) -> Result<()> {
         self.collateral_amount_deposited =
             I80F48::checked_from_num(self.collateral_amount_deposited)
                 .ok_or(UxdError::MathError)?

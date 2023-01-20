@@ -1,5 +1,5 @@
 use crate::error::UxdError;
-use crate::events::CollectProfitOfMercurialVaultDepositoryEvent;
+use crate::events::CollectProfitsOfMercurialVaultDepositoryEvent;
 use crate::mercurial_utils;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
@@ -7,7 +7,6 @@ use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::MercurialVaultDepository;
 use crate::CONTROLLER_NAMESPACE;
-use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 use anchor_lang::prelude::*;
 use anchor_spl::token::Mint;
@@ -15,7 +14,7 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
 #[derive(Accounts)]
-pub struct CollectProfitOfMercurialVaultDepository<'info> {
+pub struct CollectProfitsOfMercurialVaultDepository<'info> {
     /// #1
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -55,13 +54,7 @@ pub struct CollectProfitOfMercurialVaultDepository<'info> {
 
     /// #6
     /// Token account holding the LP tokens minted by depositing collateral on mercurial vault
-    #[account(
-        mut,
-        seeds = [MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE, mercurial_vault.key().as_ref(), collateral_mint.key().as_ref()],
-        token::authority = depository,
-        token::mint = mercurial_vault_lp_mint,
-        bump = depository.load()?.lp_token_vault_bump,
-    )]
+    #[account(mut)]
     pub depository_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
     /// #7
@@ -90,7 +83,7 @@ pub struct CollectProfitOfMercurialVaultDepository<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<()> {
+pub fn handler(ctx: Context<CollectProfitsOfMercurialVaultDepository>) -> Result<()> {
     // 1 - Read all states before collect
     let lp_token_vault_amount_before = ctx.accounts.depository_lp_token_vault.amount;
     let profits_beneficiary_collateral_amount_before =
@@ -164,14 +157,14 @@ pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<
 
     // 9 - There can be precision loss when calculating how many LP token to withdraw and also when withdrawing the collateral
     // We accept theses losses as the money is still in the vault. We collect a bit less profit.
-    CollectProfitOfMercurialVaultDepository::check_redeemed_collateral_amount_to_match_target(
+    CollectProfitsOfMercurialVaultDepository::check_redeemed_collateral_amount_to_match_target(
         profits_beneficiary_collateral_amount_increase,
         collectable_profits_value,
         possible_lp_token_precision_loss_collateral_value,
     )?;
 
     // 10 - Emit event
-    emit!(CollectProfitOfMercurialVaultDepositoryEvent {
+    emit!(CollectProfitsOfMercurialVaultDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.load()?.version,
         controller: ctx.accounts.controller.key(),
@@ -182,7 +175,7 @@ pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<
     // 11 - update accounting
     let current_time_as_unix_timestamp = u64::try_from(Clock::get()?.unix_timestamp)
         .ok()
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or(UxdError::MathError)?;
 
     ctx.accounts
         .depository
@@ -203,7 +196,7 @@ pub fn handler(ctx: Context<CollectProfitOfMercurialVaultDepository>) -> Result<
 }
 
 // Into functions
-impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
+impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
     pub fn into_withdraw_collateral_from_mercurial_vault_context(
         &self,
     ) -> CpiContext<
@@ -228,24 +221,25 @@ impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
 }
 
 // Calculation/Check functions
-impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
+impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
     fn calculate_lp_token_amount_to_match_collectable_profits_value(
         &self,
         target_value: u64,
     ) -> Result<u64> {
         let current_time = u64::try_from(Clock::get()?.unix_timestamp)
             .ok()
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or(UxdError::MathError)?;
 
         // Because it's u64 type, we will never withdraw too much due to precision loss, but withdraw less.
         // We withdraw less interests and fee due to precision loss and that's ok
-        self.mercurial_vault
+        Ok(self
+            .mercurial_vault
             .get_unmint_amount(
                 current_time,
                 target_value,
                 self.mercurial_vault_lp_mint.supply,
             )
-            .ok_or_else(|| error!(UxdError::MathError))
+            .ok_or(UxdError::MathError)?)
     }
 
     pub fn calculate_collectable_profits_value(&self) -> Result<u64> {
@@ -259,15 +253,13 @@ impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
             .ok_or(UxdError::MathError)?
             .into();
 
-        let collectable_profits_amount: u64 = u64::try_from(
-            owned_lp_tokens_value
-                .checked_sub(self.depository.load()?.redeemable_amount_under_management)
-                .ok_or(UxdError::MathError)?,
-        )
-        .ok()
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        let collectable_profits_amount = owned_lp_tokens_value
+            .checked_sub(self.depository.load()?.redeemable_amount_under_management)
+            .ok_or(UxdError::MathError)?;
 
-        Ok(collectable_profits_amount)
+        Ok(u64::try_from(collectable_profits_amount)
+            .ok()
+            .ok_or(UxdError::MathError)?)
     }
 
     // Check that the collateral amount received by the user matches the collateral amount we wanted the user to receive:
@@ -280,11 +272,11 @@ impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
         // Lp token precision loss + withdraw collateral precision loss
         let maximum_allowed_precision_loss = possible_lp_token_precision_loss_collateral_value
             .checked_add(1)
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or(UxdError::MathError)?;
 
         let target_minimal_allowed_value = target
             .checked_sub(maximum_allowed_precision_loss)
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or(UxdError::MathError)?;
 
         require!(
             (target_minimal_allowed_value..(target + 1)).contains(&redeemed_collateral_amount),
@@ -296,7 +288,7 @@ impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
 }
 
 // Validate
-impl<'info> CollectProfitOfMercurialVaultDepository<'info> {
+impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
     pub(crate) fn validate(&self) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
         Ok(())
