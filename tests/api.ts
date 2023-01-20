@@ -518,7 +518,7 @@ export async function freezeProgram(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function collectProfitOfMercurialVaultDepository({
+export async function collectProfitsOfMercurialVaultDepository({
   payer,
   controller,
   depository,
@@ -530,7 +530,7 @@ export async function collectProfitOfMercurialVaultDepository({
   profitsBeneficiaryCollateral: PublicKey;
 }): Promise<string> {
   const collectInterestsAndFeesFromMercurialVaultDepositoryIx =
-    uxdClient.createCollectProfitOfMercurialVaultDepositoryInstruction(
+    uxdClient.createCollectProfitsOfMercurialVaultDepositoryInstruction(
       controller,
       depository,
       profitsBeneficiaryCollateral,

@@ -402,6 +402,72 @@
       ]
     },
     {
+      "name": "collectProfitsOfMercurialVaultDepository",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "profitsBeneficiaryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryLpTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultLpMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultCollateralTokenSafe",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initializeIdentityDepository",
       "accounts": [
         {
@@ -1046,72 +1112,6 @@
           "type": "bool"
         }
       ]
-    },
-    {
-      "name": "collectProfitOfMercurialVaultDepository",
-      "accounts": [
-        {
-          "name": "payer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "controller",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depository",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "collateralMint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "profitsBeneficiaryCollateral",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "depositoryLpTokenVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultLpMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultCollateralTokenSafe",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mercurialVaultProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
     }
   ],
   "accounts": [
@@ -2014,7 +2014,7 @@
       ]
     },
     {
-      "name": "CollectProfitOfMercurialVaultDepositoryEvent",
+      "name": "CollectProfitsOfMercurialVaultDepositoryEvent",
       "fields": [
         {
           "name": "controllerVersion",

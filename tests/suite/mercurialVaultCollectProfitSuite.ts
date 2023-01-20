@@ -5,7 +5,7 @@ import {
   findATAAddrSync,
 } from '@uxd-protocol/uxd-client';
 import { getConnection } from '../connection';
-import { collectProfitOfMercurialVaultDepositoryTest } from '../cases/collectProfitOfMercurialVaultDepositoryTest';
+import { collectProfitsOfMercurialVaultDepositoryTest } from '../cases/collectProfitOfMercurialVaultDepositoryTest';
 import {
   MERCURIAL_USDC_DEVNET,
   MERCURIAL_USDC_DEVNET_DECIMALS,
@@ -16,7 +16,7 @@ import { editMercurialVaultDepositoryTest } from '../cases/editMercurialVaultDep
 import { expect } from 'chai';
 import { TOKEN_PROGRAM_ID, Token } from '@solana/spl-token';
 
-export const mercurialVaultDepositoryCollectProfitSuite = async function ({
+export const mercurialVaultDepositoryCollectProfitsSuite = async function ({
   authority,
   payer,
   profitsBeneficiary,
@@ -70,7 +70,7 @@ export const mercurialVaultDepositoryCollectProfitSuite = async function ({
 
     it(`Collect profits should fail before initializing profit beneficiary`, async function () {
       try {
-        await collectProfitOfMercurialVaultDepositoryTest({
+        await collectProfitsOfMercurialVaultDepositoryTest({
           controller,
           depository,
           payer,
@@ -107,7 +107,7 @@ export const mercurialVaultDepositoryCollectProfitSuite = async function ({
     });
 
     it(`Collect some ${collateralSymbol} should work`, async () =>
-      await collectProfitOfMercurialVaultDepositoryTest({
+      await collectProfitsOfMercurialVaultDepositoryTest({
         controller,
         depository,
         payer,

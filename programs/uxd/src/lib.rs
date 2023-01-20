@@ -155,10 +155,10 @@ pub mod uxd {
     #[access_control(
         ctx.accounts.validate()
     )]
-    pub fn collect_profit_of_mercurial_vault_depository(
+    pub fn collect_profits_of_mercurial_vault_depository(
         ctx: Context<CollectProfitsOfMercurialVaultDepository>,
     ) -> Result<()> {
-        msg!("[collect_profit_of_mercurial_vault_depository]");
+        msg!("[collect_profits_of_mercurial_vault_depository]");
         instructions::collect_profits_of_mercurial_vault_depository::handler(ctx)
     }
 

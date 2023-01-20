@@ -6,12 +6,12 @@ import {
   nativeToUi,
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
-import { collectProfitOfMercurialVaultDepository } from '../api';
+import { collectProfitsOfMercurialVaultDepository } from '../api';
 import { getConnection, TXN_OPTS } from '../connection';
 import { CLUSTER } from '../constants';
 import { getBalance } from '../utils';
 
-export const collectProfitOfMercurialVaultDepositoryTest = async function ({
+export const collectProfitsOfMercurialVaultDepositoryTest = async function ({
   controller,
   depository,
   payer,
@@ -49,7 +49,7 @@ export const collectProfitOfMercurialVaultDepositoryTest = async function ({
 
     // WHEN
     // Simulates user experience from the front end
-    const txId = await collectProfitOfMercurialVaultDepository({
+    const txId = await collectProfitsOfMercurialVaultDepository({
       payer: payer,
       controller,
       depository,
