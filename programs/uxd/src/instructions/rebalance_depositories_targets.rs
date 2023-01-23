@@ -1,6 +1,6 @@
 use crate::error::UxdError;
-use crate::state::mercurial_vault_depository_1::MercurialVaultDepository;
 use crate::state::CredixLpDepository;
+use crate::state::MercurialVaultDepository;
 use crate::utils::checked_u128_to_u64;
 use crate::utils::compute_amount_fraction;
 use crate::utils::compute_amount_less_fraction;
@@ -59,6 +59,7 @@ pub(crate) fn handler(ctx: Context<RebalanceDepositoriesTarget>) -> Result<()> {
     let mercurial_vault_depository_1 = &mut ctx.accounts.mercurial_vault_depository_1.load_mut()?;
     let credix_lp_depository_1 = &mut ctx.accounts.mercurial_vault_depository_1.load_mut()?;
 
+    /*
     let redeemable_circulating_supply =
         checked_u128_to_u64(controller.redeemable_circulating_supply)?;
 
@@ -83,6 +84,7 @@ pub(crate) fn handler(ctx: Context<RebalanceDepositoriesTarget>) -> Result<()> {
     mercurial_vault_depository_1.rebalancing_redeemable_target_amount =
         desired_mercurial_vault_target_amount;
     credix_lp_depository_1.rebalancing_redeemable_target_amount = desired_credix_lp_target_amount;
+    */
     Ok(())
 }
 
