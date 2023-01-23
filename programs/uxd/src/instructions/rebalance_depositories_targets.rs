@@ -3,7 +3,6 @@ use crate::state::CredixLpDepository;
 use crate::state::MercurialVaultDepository;
 use crate::utils::checked_u128_to_u64;
 use crate::utils::compute_amount_fraction;
-use crate::utils::compute_amount_less_fraction;
 use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
@@ -55,39 +54,77 @@ pub struct RebalanceDepositoriesTarget<'info> {
 }
 
 pub(crate) fn handler(ctx: Context<RebalanceDepositoriesTarget>) -> Result<()> {
-    let controller = &mut ctx.accounts.controller.load()?;
     let mercurial_vault_depository_1 = &mut ctx.accounts.mercurial_vault_depository_1.load_mut()?;
     let credix_lp_depository_1 = &mut ctx.accounts.mercurial_vault_depository_1.load_mut()?;
 
-    /*
-    let redeemable_circulating_supply =
-        checked_u128_to_u64(controller.redeemable_circulating_supply)?;
-
-    let mercurial_vault_fraction_numerator: u64 = 100; // those values could be dynamic depending on on-chain accounts
-    let mercurial_vault_fraction_denominator: u64 = 50;
-    let mercurial_vault_redeemable_amount_cap: u64 =
+    // Read the minting hard caps of each depository
+    let mercurial_vault_depository_1_cap =
         checked_u128_to_u64(mercurial_vault_depository_1.redeemable_amount_under_management_cap)?;
-    let mercurial_vault_target_amount = compute_amount_fraction(
-        redeemable_circulating_supply,
-        mercurial_vault_fraction_numerator,
-        mercurial_vault_fraction_denominator,
-    )?
+    let credix_lp_depository_1_cap =
+        checked_u128_to_u64(credix_lp_depository_1.redeemable_amount_under_management_cap)?;
 
-    let desired_credix_lp_fraction_numerator: u64 = 100; // those values could be dynamic depending on on-chain accounts
-    let desired_credix_lp_fraction_denominator: u64 = 50;
-    let desired_credix_lp_target_amount = compute_amount_fraction(
-        redeemable_circulating_supply,
-        desired_credix_lp_fraction_numerator,
-        desired_credix_lp_fraction_denominator,
+    // Compute raw target values based on percent of total circulating supply
+    let mercurial_vault_depository_1_raw_target = ctx.accounts.compute_raw_target(50)?;
+    let credix_lp_depository_1_raw_target = ctx.accounts.compute_raw_target(50)?;
+
+    // Compute the floating amount of raw target that doesn't fit within the cap of each depository
+    let mercurial_vault_depository_1_floating = ctx.accounts.compute_floating(
+        mercurial_vault_depository_1_raw_target,
+        mercurial_vault_depository_1_cap,
+    )?;
+    let credix_lp_depository_1_floating = ctx.accounts.compute_floating(
+        credix_lp_depository_1_raw_target,
+        credix_lp_depository_1_cap,
     )?;
 
-    mercurial_vault_depository_1.rebalancing_redeemable_target_amount =
-        desired_mercurial_vault_target_amount;
-    credix_lp_depository_1.rebalancing_redeemable_target_amount = desired_credix_lp_target_amount;
-    */
+    // Compute total amount
+    let total_floating = ctx.accounts.compute_total(
+        mercurial_vault_depository_1_floating,
+        credix_lp_depository_1_floating,
+    )?;
+
     Ok(())
 }
 
+// Into functions
+impl<'info> RebalanceDepositoriesTarget<'info> {
+    pub fn compute_raw_target(&self, percent_of_circulating_supply: u64) -> Result<u64> {
+        let controller = &self.controller.load()?;
+        let raw_target = compute_amount_fraction(
+            checked_u128_to_u64(controller.redeemable_circulating_supply)?,
+            percent_of_circulating_supply,
+            100,
+        )?;
+        Ok(raw_target)
+    }
+
+    pub fn compute_floating(
+        &self,
+        raw_target: u64,
+        redeemable_under_management_cap: u64,
+    ) -> Result<u64> {
+        if raw_target <= redeemable_under_management_cap {
+            return Ok(0);
+        }
+        Ok(raw_target
+            .checked_sub(redeemable_under_management_cap)
+            .ok_or(UxdError::MathError)?)
+    }
+
+    pub fn compute_total(
+        &self,
+        mercurial_vault_depository_1_value: u64,
+        credix_lp_depository_1_value: u64,
+    ) -> Result<u64> {
+        Ok(mercurial_vault_depository_1_value
+            .checked_add(credix_lp_depository_1_value)
+            .ok_or(UxdError::MathError)?)
+    }
+
+    pub fn compute_final_target(&self) -> Result<u64> {}
+}
+
+// Validate
 impl<'info> RebalanceDepositoriesTarget<'info> {
     pub(crate) fn validate(&self) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
