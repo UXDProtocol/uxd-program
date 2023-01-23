@@ -85,6 +85,11 @@ pub mod uxd {
     }
 
     #[access_control(ctx.accounts.validate())]
+    pub fn rebalance_depositories_targets(ctx: Context<RebalanceDepositoriesTarget>) -> Result<()> {
+        instructions::rebalance_depositories_targets::handler(ctx)
+    }
+
+    #[access_control(ctx.accounts.validate())]
     pub fn edit_mercurial_vault_depository(
         ctx: Context<EditMercurialVaultDepository>,
         fields: EditMercurialVaultDepositoryFields,

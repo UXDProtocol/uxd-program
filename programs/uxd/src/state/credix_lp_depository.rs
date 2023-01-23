@@ -75,6 +75,9 @@ pub struct CredixLpDepository {
     // Collection of the depository's profits
     pub profits_total_collected: u128,
     pub profits_beneficiary_collateral: Pubkey,
+
+    // Rebalancing info
+    pub rebalancing_redeemable_target_amount: u64,
 }
 
 impl CredixLpDepository {

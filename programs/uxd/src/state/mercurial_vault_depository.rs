@@ -81,6 +81,8 @@ pub struct MercurialVaultDepository {
     pub redeemable_amount_under_management_cap: u128,
 
     pub minting_disabled: bool,
+
+    pub rebalancing_redeemable_target_amount: u64,
 }
 
 impl MercurialVaultDepository {
