@@ -1,6 +1,8 @@
 use crate::error::UxdError;
 use anchor_lang::prelude::*;
 
+use super::checked_u128_to_u64;
+
 // Precision loss may lower the returned value amount.
 // Precision loss of 1 native unit may be expected.
 pub fn compute_amount_less_fraction(
@@ -20,7 +22,5 @@ pub fn compute_amount_less_fraction(
         .ok_or(UxdError::MathError)?
         .checked_div(fraction_denominator)
         .ok_or(UxdError::MathError)?;
-    Ok(u64::try_from(amount_less_fraction)
-        .ok()
-        .ok_or(UxdError::MathError)?)
+    Ok(checked_u128_to_u64(amount_less_fraction)?)
 }

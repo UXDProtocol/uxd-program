@@ -57,32 +57,79 @@ pub(crate) fn handler(ctx: Context<RebalanceDepositoriesTarget>) -> Result<()> {
     let mercurial_vault_depository_1 = &mut ctx.accounts.mercurial_vault_depository_1.load_mut()?;
     let credix_lp_depository_1 = &mut ctx.accounts.mercurial_vault_depository_1.load_mut()?;
 
+    // We want to balance the supply on percents of the circulating supply for now
+    // This could be based on dynamic on-chain account values and liquidity later
+    let mercurial_vault_depository_1_percent: u64 = 50;
+    let credix_lp_depository_1_percent: u64 = 50;
+
+    // Compute raw target values based on percent of total circulating supply
+    let mercurial_vault_depository_1_raw_target = ctx
+        .accounts
+        .compute_raw_target(mercurial_vault_depository_1_percent)?;
+    let credix_lp_depository_1_raw_target = ctx
+        .accounts
+        .compute_raw_target(credix_lp_depository_1_percent)?;
+
     // Read the minting hard caps of each depository
     let mercurial_vault_depository_1_cap =
         checked_u128_to_u64(mercurial_vault_depository_1.redeemable_amount_under_management_cap)?;
     let credix_lp_depository_1_cap =
         checked_u128_to_u64(credix_lp_depository_1.redeemable_amount_under_management_cap)?;
 
-    // Compute raw target values based on percent of total circulating supply
-    let mercurial_vault_depository_1_raw_target = ctx.accounts.compute_raw_target(50)?;
-    let credix_lp_depository_1_raw_target = ctx.accounts.compute_raw_target(50)?;
-
-    // Compute the floating amount of raw target that doesn't fit within the cap of each depository
-    let mercurial_vault_depository_1_floating = ctx.accounts.compute_floating(
+    // Compute the overflow amount of raw target that doesn't fit within the cap of each depository
+    let mercurial_vault_depository_1_overflow = ctx.accounts.compute_overflow(
         mercurial_vault_depository_1_raw_target,
         mercurial_vault_depository_1_cap,
     )?;
-    let credix_lp_depository_1_floating = ctx.accounts.compute_floating(
+    let credix_lp_depository_1_overflow = ctx.accounts.compute_overflow(
         credix_lp_depository_1_raw_target,
         credix_lp_depository_1_cap,
     )?;
 
-    // Compute total amount
-    let total_floating = ctx.accounts.compute_total(
-        mercurial_vault_depository_1_floating,
-        credix_lp_depository_1_floating,
+    // Compute the amount of space available under the hard cap in each depository
+    let mercurial_vault_depository_1_availability = ctx.accounts.compute_availability(
+        mercurial_vault_depository_1_raw_target,
+        mercurial_vault_depository_1_cap,
+    )?;
+    let credix_lp_depository_1_availability = ctx.accounts.compute_availability(
+        credix_lp_depository_1_raw_target,
+        credix_lp_depository_1_cap,
     )?;
 
+    // Compute total amount that doesn't fit within depositories cap
+    let total_overflow = ctx.accounts.compute_total(
+        mercurial_vault_depository_1_overflow,
+        credix_lp_depository_1_overflow,
+    )?;
+    // Compute total amount that doesn't fit within depositories cap
+    let total_availability = ctx.accounts.compute_total(
+        mercurial_vault_depository_1_availability,
+        credix_lp_depository_1_availability,
+    )?;
+
+    // Compute the final targets for each depository
+    let mercurial_vault_depository_1_final_target = ctx.accounts.compute_final_target(
+        mercurial_vault_depository_1_raw_target,
+        mercurial_vault_depository_1_overflow,
+        mercurial_vault_depository_1_availability,
+        total_overflow,
+        total_availability,
+    )?;
+    let credix_lp_depository_1_final_target = ctx.accounts.compute_final_target(
+        credix_lp_depository_1_raw_target,
+        credix_lp_depository_1_overflow,
+        credix_lp_depository_1_availability,
+        total_overflow,
+        total_availability,
+    )?;
+
+    // Update onchain accounts
+    mercurial_vault_depository_1.rebalancing_redeemable_target_amount =
+        mercurial_vault_depository_1_final_target;
+    credix_lp_depository_1.rebalancing_redeemable_target_amount =
+        credix_lp_depository_1_final_target;
+
+    // Success
     Ok(())
 }
 
@@ -98,7 +145,7 @@ impl<'info> RebalanceDepositoriesTarget<'info> {
         Ok(raw_target)
     }
 
-    pub fn compute_floating(
+    pub fn compute_overflow(
         &self,
         raw_target: u64,
         redeemable_under_management_cap: u64,
@@ -108,6 +155,19 @@ impl<'info> RebalanceDepositoriesTarget<'info> {
         }
         Ok(raw_target
             .checked_sub(redeemable_under_management_cap)
+            .ok_or(UxdError::MathError)?)
+    }
+
+    pub fn compute_availability(
+        &self,
+        raw_target: u64,
+        redeemable_under_management_cap: u64,
+    ) -> Result<u64> {
+        if raw_target >= redeemable_under_management_cap {
+            return Ok(0);
+        }
+        Ok(redeemable_under_management_cap
+            .checked_sub(raw_target)
             .ok_or(UxdError::MathError)?)
     }
 
@@ -121,7 +181,28 @@ impl<'info> RebalanceDepositoriesTarget<'info> {
             .ok_or(UxdError::MathError)?)
     }
 
-    pub fn compute_final_target(&self) -> Result<u64> {}
+    pub fn compute_final_target(
+        &self,
+        raw_target: u64,
+        overflow: u64,
+        availability: u64,
+        total_overflow: u64,
+        total_availability: u64,
+    ) -> Result<u64> {
+        let overflow_from_others: u128 = u128::from(availability)
+            .checked_mul(total_overflow.into())
+            .ok_or(UxdError::MathError)?
+            .checked_div(total_availability.into())
+            .ok_or(UxdError::MathError)?;
+
+        let final_target = raw_target
+            .checked_sub(overflow)
+            .ok_or(UxdError::MathError)?
+            .checked_add(checked_u128_to_u64(overflow_from_others)?)
+            .ok_or(UxdError::MathError)?;
+
+        Ok(final_target)
+    }
 }
 
 // Validate

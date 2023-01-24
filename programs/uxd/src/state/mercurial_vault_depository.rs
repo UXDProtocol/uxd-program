@@ -1,10 +1,12 @@
+use std::mem::size_of;
+
 use anchor_lang::prelude::*;
 use fixed::types::I80F48;
 
 use crate::error::UxdError;
 
 // Total should be 900 bytes
-pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 645;
+pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 637;
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 1
     + 1
@@ -23,6 +25,7 @@ pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 16
     + 16
     + 16
+    + size_of::<u64>() // rebalancing_redeemable_target_amount
     + MERCURIAL_VAULT_RESERVED_SPACE;
 
 #[account(zero_copy)]
