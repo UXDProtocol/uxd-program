@@ -249,9 +249,7 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
                 &self.mercurial_vault,
                 self.mercurial_vault_lp_mint.supply,
                 self.depository_lp_token_vault.amount,
-            )
-            .ok()
-            .ok_or(UxdError::MathError)?
+            )?
             .into();
 
         let collectable_profits_amount = owned_lp_tokens_value
