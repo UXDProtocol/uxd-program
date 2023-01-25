@@ -107,12 +107,6 @@ import { mercurialVaultDepositoryCollectProfitsSuite } from './suite/mercurialVa
         user,
         bank.publicKey
       );
-      await transferAllTokens(
-        MERCURIAL_USDC_DEVNET,
-        MERCURIAL_USDC_DEVNET_DECIMALS,
-        profitsBeneficiary,
-        bank.publicKey
-      );
       await transferAllSol(user, bank.publicKey);
     });
   });
