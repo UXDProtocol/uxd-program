@@ -20,7 +20,7 @@ import { mercurialVaultDepositorySetupSuite } from './suite/mercurialVaultDeposi
 import { mercurialVaultDepositoryMintRedeemSuite } from './suite/mercurialVaultMintAndRedeemSuite';
 import { getConnection } from './connection';
 import { editMercurialVaultDepositorySuite } from './suite/editMercurialVaultDepositorySuite';
-import { mercurialVaultDepositoryCollectProfitSuite } from './suite/mercurialVaultCollectProfitSuite';
+import { mercurialVaultDepositoryCollectProfitsSuite } from './suite/mercurialVaultCollectProfitSuite';
 
 (async () => {
   const controllerUXD = new Controller('UXD', UXD_DECIMALS, uxdProgramId);
@@ -92,7 +92,7 @@ import { mercurialVaultDepositoryCollectProfitSuite } from './suite/mercurialVau
     });
 
     describe('mercurialVaultDepositoryCollectProfitSuite', () => {
-      mercurialVaultDepositoryCollectProfitSuite({
+      mercurialVaultDepositoryCollectProfitsSuite({
         authority,
         controller: controllerUXD,
         profitsBeneficiary,
