@@ -5,6 +5,8 @@ import {
   findATAAddrSync,
   IdentityDepository,
   nativeToUi,
+  USDC_DECIMALS,
+  USDC_DEVNET,
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
 import { getBalance, transferTokens } from '../utils';
@@ -15,19 +17,18 @@ import { redeemFromIdentityDepositoryTest } from '../cases/redeemFromIdentityDep
 import { mintWithIdentityDepositoryTest } from '../cases/mintWithIdentityDepositoryTest';
 import { editControllerTest } from '../cases/editControllerTest';
 import { editIdentityDepositoryTest } from '../cases/editIdentityDepositoryTest';
+import { uxdProgramId } from '../constants';
 
 export const identityDepositoryMintRedeemSuite = async function ({
   authority,
   user,
   payer,
   controller,
-  depository,
 }: {
   authority: Signer;
   user: Signer;
   payer: Signer;
   controller: Controller;
-  depository: IdentityDepository;
 }) {
   let initialRedeemableAccountBalance: number;
   let initialControllerGlobalRedeemableSupplyCap: BN;
@@ -35,6 +36,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
   let userRedeemableATA: PublicKey;
   let onchainController: ControllerAccount;
   let onChainDepository: IdentityDepositoryAccount;
+  let depository: IdentityDepository;
 
   before('Setup: fund user', async function () {
     console.log(
@@ -46,6 +48,13 @@ export const identityDepositoryMintRedeemSuite = async function ({
       depository.collateralMintDecimals
     );
     console.log('user.publicKey', user.publicKey.toBase58());
+
+    depository = new IdentityDepository(
+      USDC_DEVNET,
+      'USDC',
+      USDC_DECIMALS,
+      uxdProgramId
+    );
 
     await transferTokens(
       0.002,

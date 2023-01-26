@@ -1,18 +1,32 @@
 import { Signer } from '@solana/web3.js';
-import { Controller, IdentityDepository } from '@uxd-protocol/uxd-client';
+import {
+  Controller,
+  IdentityDepository,
+  USDC_DECIMALS,
+  USDC_DEVNET,
+} from '@uxd-protocol/uxd-client';
 import { initializeIdentityDepositoryTest } from '../cases/InitializeIdentityDepositoryTest';
+import { uxdProgramId } from '../constants';
 
 export const identityDepositorySetupSuite = function ({
   authority,
   payer,
   controller,
-  depository,
 }: {
   authority: Signer;
   payer: Signer;
   controller: Controller;
-  depository: IdentityDepository;
 }) {
+  let depository: IdentityDepository;
+
+  before(async () => {
+    depository = new IdentityDepository(
+      USDC_DEVNET,
+      'USDC',
+      USDC_DECIMALS,
+      uxdProgramId
+    );
+  });
   it('Initialize IdentityDepository', () =>
     initializeIdentityDepositoryTest({
       authority,

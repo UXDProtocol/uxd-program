@@ -4,15 +4,23 @@ import { registerCredixLpDepository } from '../api';
 import { CLUSTER } from '../constants';
 import { getConnection } from '../connection';
 
-export const registerCredixLpDepositoryTest = async function (
-  authority: Signer,
-  controller: Controller,
-  depository: CredixLpDepository,
-  uiAccountingSupplyRedeemableSoftCap: number,
-  accountingBpsStampFeeMint: number,
-  accountingBpsStampFeeRedeem: number,
-  payer?: Signer
-) {
+export const registerCredixLpDepositoryTest = async function ({
+  authority,
+  controller,
+  depository,
+  uiAccountingSupplyRedeemableSoftCap,
+  accountingBpsStampFeeMint,
+  accountingBpsStampFeeRedeem,
+  payer,
+}: {
+  authority: Signer;
+  controller: Controller;
+  depository: CredixLpDepository;
+  uiAccountingSupplyRedeemableSoftCap: number;
+  accountingBpsStampFeeMint: number;
+  accountingBpsStampFeeRedeem: number;
+  payer?: Signer;
+}) {
   console.group('🧭 initializeCredixLpDepositoryTest');
   try {
     // WHEN

@@ -6,12 +6,21 @@ import {
 } from '@uxd-protocol/uxd-client';
 import { getConnection, TXN_OPTS } from '../connection';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
+import { createCredixLpDepositoryDevnetUSDC } from '../utils';
 
-export const credixLpDepositoryEditSuite = async function (
-  authority: Signer,
-  controller: Controller,
-  depository: CredixLpDepository
-) {
+export const credixLpDepositoryEditSuite = async function ({
+  authority,
+  controller,
+}: {
+  authority: Signer;
+  controller: Controller;
+}) {
+  let depository: CredixLpDepository;
+
+  before(async () => {
+    depository = await createCredixLpDepositoryDevnetUSDC();
+  });
+
   describe('Edit mint/redeem', async () => {
     let beforeDepository = await depository.getOnchainAccount(
       getConnection(),
@@ -23,8 +32,13 @@ export const credixLpDepositoryEditSuite = async function (
 
       console.log('[🧾 mintingFeeInBps', mintingFeeInBps, ']');
 
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        mintingFeeInBps,
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          mintingFeeInBps,
+        },
       });
     });
 
@@ -33,8 +47,13 @@ export const credixLpDepositoryEditSuite = async function (
 
       console.log('[🧾 redeemingFeeInBps', redeemingFeeInBps, ']');
 
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        redeemingFeeInBps,
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          redeemingFeeInBps,
+        },
       });
     });
 
@@ -47,8 +66,13 @@ export const credixLpDepositoryEditSuite = async function (
         ']'
       );
 
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        redeemableAmountUnderManagementCap,
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          redeemableAmountUnderManagementCap,
+        },
       });
     });
 
@@ -57,8 +81,13 @@ export const credixLpDepositoryEditSuite = async function (
 
       console.log('[🧾 mintingDisabled', mintingDisabled, ']');
 
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        mintingDisabled,
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          mintingDisabled,
+        },
       });
     });
 
@@ -71,8 +100,13 @@ export const credixLpDepositoryEditSuite = async function (
         ']'
       );
 
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        profitsBeneficiaryCollateral,
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          profitsBeneficiaryCollateral,
+        },
       });
     });
 
@@ -105,13 +139,18 @@ export const credixLpDepositoryEditSuite = async function (
         ']'
       );
 
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        mintingFeeInBps,
-        redeemingFeeInBps,
-        redeemableAmountUnderManagementCap:
-          uiRedeemableAmountUnderManagementCap,
-        mintingDisabled,
-        profitsBeneficiaryCollateral,
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          mintingFeeInBps,
+          redeemingFeeInBps,
+          redeemableAmountUnderManagementCap:
+            uiRedeemableAmountUnderManagementCap,
+          mintingDisabled,
+          profitsBeneficiaryCollateral,
+        },
       });
     });
   });

@@ -3,6 +3,8 @@ import {
   CredixLpDepository,
   IdentityDepository,
   MercurialVaultDepository,
+  USDC_DECIMALS,
+  USDC_DEVNET,
 } from '@uxd-protocol/uxd-client';
 import { Controller } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
@@ -18,18 +20,52 @@ import { redeemFromCredixLpDepositoryTest } from '../cases/redeemFromCredixLpDep
 import { redeemFromIdentityDepositoryTest } from '../cases/redeemFromIdentityDepositoryTest';
 import { redeemFromMercurialVaultDepositoryTest } from '../cases/redeemFromMercurialVaultDepositoryTest';
 import { registerMercurialVaultDepositoryTest } from '../cases/registerMercurialVaultDepositoryTest';
+import { getConnection } from '../connection';
+import {
+  MERCURIAL_USDC_DEVNET,
+  MERCURIAL_USDC_DEVNET_DECIMALS,
+  uxdProgramId,
+} from '../constants';
+import { createCredixLpDepositoryDevnetUSDC } from '../utils';
 
-export const freezeProgramSuite = async function (
-  authority: Signer,
-  user: Signer,
-  payer: Signer,
-  controller: Controller,
-  mercurialVaultDepository: MercurialVaultDepository,
-  credixLpDepository: CredixLpDepository,
-  identityDepository: IdentityDepository
-) {
-  before(`Freeze program`, async function () {
-    await freezeProgramTest(true, authority, controller);
+export const freezeProgramSuite = async function ({
+  authority,
+  user,
+  payer,
+  controller,
+}: {
+  authority: Signer;
+  user: Signer;
+  payer: Signer;
+  controller: Controller;
+}) {
+  let mercurialVaultDepository: MercurialVaultDepository;
+  let credixLpDepository: CredixLpDepository;
+  let identityDepository: IdentityDepository;
+  const collateralSymbol = 'USDC';
+
+  before(async () => {
+    mercurialVaultDepository = await MercurialVaultDepository.initialize({
+      connection: getConnection(),
+      collateralMint: {
+        mint: MERCURIAL_USDC_DEVNET,
+        name: 'USDC',
+        symbol: collateralSymbol,
+        decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
+      },
+      uxdProgramId,
+    });
+    credixLpDepository = await createCredixLpDepositoryDevnetUSDC();
+    identityDepository = new IdentityDepository(
+      USDC_DEVNET,
+      'USDC',
+      USDC_DECIMALS,
+      uxdProgramId
+    );
+  });
+
+  it(`Freeze program`, async function () {
+    await freezeProgramTest({ freeze: true, authority, controller });
   });
 
   it(`mintWithMercurialVaultDepositoryTest under frozen program`, async function () {
@@ -67,13 +103,13 @@ export const freezeProgramSuite = async function (
   it(`mintWithCredixLpDepositoryTest under frozen program`, async function () {
     let failure = false;
     try {
-      await mintWithCredixLpDepositoryTest(
-        1,
+      await mintWithCredixLpDepositoryTest({
+        uiAmountCollateralDeposited: 1,
         user,
         controller,
-        credixLpDepository,
-        payer
-      );
+        depository: credixLpDepository,
+        payer,
+      });
     } catch {
       failure = true;
     }
@@ -83,13 +119,13 @@ export const freezeProgramSuite = async function (
   it(`redeemFromCredixLpDepositoryTest under frozen program`, async function () {
     let failure = false;
     try {
-      await redeemFromCredixLpDepositoryTest(
-        1,
+      await redeemFromCredixLpDepositoryTest({
+        redeemableAmount: 1,
         user,
         controller,
-        credixLpDepository,
-        payer
-      );
+        depository: credixLpDepository,
+        payer,
+      });
     } catch {
       failure = true;
     }
@@ -99,12 +135,12 @@ export const freezeProgramSuite = async function (
   it(`collectProfitOfCredixLpDepositoryTest under frozen program`, async function () {
     let failure = false;
     try {
-      await collectProfitOfCredixLpDepositoryTest(
+      await collectProfitOfCredixLpDepositoryTest({
         payer,
-        payer.publicKey,
+        profitsBeneficiaryCollateral: payer.publicKey,
         controller,
-        credixLpDepository
-      );
+        depository: credixLpDepository,
+      });
     } catch {
       failure = true;
     }
@@ -202,6 +238,6 @@ export const freezeProgramSuite = async function (
   });
 
   after(`Resume program`, async function () {
-    await freezeProgramTest(false, authority, controller);
+    await freezeProgramTest({ freeze: false, authority, controller });
   });
 };

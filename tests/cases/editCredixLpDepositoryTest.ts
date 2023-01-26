@@ -9,18 +9,23 @@ import { editCredixLpDepository } from '../api';
 import { getConnection, TXN_OPTS } from '../connection';
 import { CLUSTER } from '../constants';
 
-export const editCredixLpDepositoryTest = async function (
-  authority: Signer,
-  controller: Controller,
-  depository: CredixLpDepository,
+export const editCredixLpDepositoryTest = async function ({
+  authority,
+  controller,
+  depository,
+  uiFields,
+}: {
+  authority: Signer;
+  controller: Controller;
+  depository: CredixLpDepository;
   uiFields: {
     redeemableAmountUnderManagementCap?: number;
     mintingFeeInBps?: number;
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
     profitsBeneficiaryCollateral?: PublicKey;
-  }
-) {
+  };
+}) {
   const connection = getConnection();
   const options = TXN_OPTS;
 

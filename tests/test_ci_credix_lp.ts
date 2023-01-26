@@ -65,30 +65,28 @@ import {
     );
 
     describe('credixLpDepositorySetupSuite', function () {
-      credixLpDepositorySetupSuite(
+      credixLpDepositorySetupSuite({
         authority,
-        bank,
+        payer: bank,
         controller,
-        credixLpDepository,
-        0,
-        0,
-        1_000_000
-      );
+        mintingFeeInBps: 0,
+        redeemingFeeInBps: 0,
+        uiRedeemableAmountUnderManagementCap: 1_000_000,
+      });
     });
 
     describe('credixLpDepositoryEditSuite', function () {
-      credixLpDepositoryEditSuite(authority, controller, credixLpDepository);
+      credixLpDepositoryEditSuite({ authority, controller });
     });
 
     describe('credixLpDepositoryMintAndRedeemSuite', function () {
-      credixLpDepositoryMintAndRedeemSuite(
+      credixLpDepositoryMintAndRedeemSuite({
         authority,
         user,
-        bank,
+        payer: bank,
         profitsBeneficiary,
         controller,
-        credixLpDepository
-      );
+      });
     });
 
     this.afterAll('Transfer funds back to bank', async function () {
