@@ -39,6 +39,13 @@ export const identityDepositoryMintRedeemSuite = async function ({
   let depository: IdentityDepository;
 
   before('Setup: fund user', async function () {
+    depository = new IdentityDepository(
+      USDC_DEVNET,
+      'USDC',
+      USDC_DECIMALS,
+      uxdProgramId
+    );
+
     console.log(
       'depository.collateralMint',
       depository.collateralMint.toBase58()
@@ -48,13 +55,6 @@ export const identityDepositoryMintRedeemSuite = async function ({
       depository.collateralMintDecimals
     );
     console.log('user.publicKey', user.publicKey.toBase58());
-
-    depository = new IdentityDepository(
-      USDC_DEVNET,
-      'USDC',
-      USDC_DECIMALS,
-      uxdProgramId
-    );
 
     await transferTokens(
       0.002,
