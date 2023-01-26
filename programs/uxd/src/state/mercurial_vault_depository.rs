@@ -25,7 +25,8 @@ pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 16
     + 16
     + 16
-    + size_of::<u64>() // rebalancing_redeemable_target_amount
+    + size_of::<u64>() // rebalancing_target_weight
+    + size_of::<u64>() // rebalancing_target_redeemable_amount
     + MERCURIAL_VAULT_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -85,7 +86,8 @@ pub struct MercurialVaultDepository {
 
     pub minting_disabled: bool,
 
-    pub rebalancing_redeemable_target_amount: u64,
+    pub rebalancing_target_weight: u64,
+    pub rebalancing_target_redeemable_amount: u64,
 }
 
 impl MercurialVaultDepository {

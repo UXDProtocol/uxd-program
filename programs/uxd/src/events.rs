@@ -109,6 +109,19 @@ pub struct SetDepositoryProfitsBeneficiaryCollateralEvent {
     pub profits_beneficiary_collateral: Pubkey,
 }
 
+/// Event called in [instructions::edit_*_depository::handler].
+#[event]
+pub struct SetDepositoryRebalancingTargetWeightEvent {
+    #[index]
+    pub version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    #[index]
+    pub rebalancing_target_weight: u64,
+}
+
 /// Event called in [instructions::initialize_identity_depository::handler].
 #[event]
 pub struct InitializeIdentityDepositoryEvent {

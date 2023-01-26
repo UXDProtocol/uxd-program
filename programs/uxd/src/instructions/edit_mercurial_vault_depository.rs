@@ -1,6 +1,7 @@
 use crate::error::UxdError;
 use crate::events::SetDepositoryMintingDisabledEvent;
 use crate::events::SetDepositoryMintingFeeInBpsEvent;
+use crate::events::SetDepositoryRebalancingTargetWeightEvent;
 use crate::events::SetDepositoryRedeemableAmountUnderManagementCapEvent;
 use crate::events::SetDepositoryRedeemingFeeInBpsEvent;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
@@ -42,6 +43,7 @@ pub struct EditMercurialVaultDepositoryFields {
     minting_fee_in_bps: Option<u8>,
     redeeming_fee_in_bps: Option<u8>,
     minting_disabled: Option<bool>,
+    rebalancing_target_weight: Option<u64>,
 }
 
 pub(crate) fn handler(
@@ -112,6 +114,20 @@ pub(crate) fn handler(
         });
     }
 
+    // optional: rebalancing_target_weight
+    if let Some(rebalancing_target_weight) = fields.rebalancing_target_weight {
+        msg!(
+            "[edit_mercurial_vault_depository] rebalancing_target_weight {}",
+            rebalancing_target_weight
+        );
+        depository.rebalancing_target_weight = rebalancing_target_weight;
+        emit!(SetDepositoryRebalancingTargetWeightEvent {
+            version: ctx.accounts.controller.load()?.version,
+            controller: ctx.accounts.controller.key(),
+            depository: ctx.accounts.depository.key(),
+            rebalancing_target_weight
+        });
+    }
     Ok(())
 }
 
