@@ -11,7 +11,7 @@ use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-pub struct RebalanceDepositoriesTarget<'info> {
+pub struct RebalanceDepositoriesTargets<'info> {
     /// #1 Permissionless IX that can be called by anyone
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -53,7 +53,7 @@ pub struct RebalanceDepositoriesTarget<'info> {
     pub credix_lp_depository_1: AccountLoader<'info, CredixLpDepository>,
 }
 
-pub(crate) fn handler(ctx: Context<RebalanceDepositoriesTarget>) -> Result<()> {
+pub(crate) fn handler(ctx: Context<RebalanceDepositoriesTargets>) -> Result<()> {
     let mercurial_vault_depository_1 = &mut ctx.accounts.mercurial_vault_depository_1.load_mut()?;
     let credix_lp_depository_1 = &mut ctx.accounts.mercurial_vault_depository_1.load_mut()?;
 
@@ -175,7 +175,7 @@ pub(crate) fn handler(ctx: Context<RebalanceDepositoriesTarget>) -> Result<()> {
 }
 
 // Into functions
-impl<'info> RebalanceDepositoriesTarget<'info> {
+impl<'info> RebalanceDepositoriesTargets<'info> {
     // Compute a simple raw target: raw_target = total_circulating_supply * (weight / total_weight)
     pub fn compute_raw_target(&self, depository_weight: u64, total_weight: u64) -> Result<u64> {
         let controller = &self.controller.load()?;
@@ -248,7 +248,7 @@ impl<'info> RebalanceDepositoriesTarget<'info> {
 }
 
 // Validate
-impl<'info> RebalanceDepositoriesTarget<'info> {
+impl<'info> RebalanceDepositoriesTargets<'info> {
     pub(crate) fn validate(&self) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
         Ok(())

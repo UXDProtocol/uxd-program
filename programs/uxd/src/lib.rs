@@ -85,7 +85,9 @@ pub mod uxd {
     }
 
     #[access_control(ctx.accounts.validate())]
-    pub fn rebalance_depositories_targets(ctx: Context<RebalanceDepositoriesTarget>) -> Result<()> {
+    pub fn rebalance_depositories_targets(
+        ctx: Context<RebalanceDepositoriesTargets>,
+    ) -> Result<()> {
         instructions::rebalance_depositories_targets::handler(ctx)
     }
 
