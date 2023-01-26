@@ -6,7 +6,7 @@ use fixed::types::I80F48;
 use crate::error::UxdError;
 
 // Total should be 900 bytes
-pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 637;
+pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 629;
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + 1
     + 1

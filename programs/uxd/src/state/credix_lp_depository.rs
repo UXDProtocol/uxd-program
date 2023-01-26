@@ -36,7 +36,7 @@ pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u64>() // rebalancing_target_weight
  + size_of::<u64>() // rebalancing_target_redeemable_amount
 
- + 760; // reserved space
+ + 752; // reserved space
 
 #[account(zero_copy)]
 #[repr(packed)]
