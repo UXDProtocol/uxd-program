@@ -982,7 +982,7 @@
       ]
     },
     {
-      "name": "collectProfitOfCredixLpDepository",
+      "name": "collectProfitsOfCredixLpDepository",
       "accounts": [
         {
           "name": "payer",
@@ -1984,7 +1984,7 @@
       ]
     },
     {
-      "name": "CollectProfitOfCredixLpDepositoryEvent",
+      "name": "CollectProfitsOfCredixLpDepositoryEvent",
       "fields": [
         {
           "name": "controllerVersion",

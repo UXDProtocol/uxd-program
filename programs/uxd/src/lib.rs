@@ -242,15 +242,15 @@ pub mod uxd {
         instructions::redeem_from_credix_lp_depository::handler(ctx, redeemable_amount)
     }
 
-    // Collect collateral tokens when locked value exceed liabilities (profit).
+    // Collect collateral tokens when locked value exceed liabilities (profits).
     #[access_control(
         ctx.accounts.validate()
     )]
-    pub fn collect_profit_of_credix_lp_depository(
-        ctx: Context<CollectProfitOfCredixLpDepository>,
+    pub fn collect_profits_of_credix_lp_depository(
+        ctx: Context<CollectProfitsOfCredixLpDepository>,
     ) -> Result<()> {
-        msg!("[collect_profit_of_credix_lp_depository]");
-        instructions::collect_profit_of_credix_lp_depository::handler(ctx)
+        msg!("[collect_profits_of_credix_lp_depository]");
+        instructions::collect_profits_of_credix_lp_depository::handler(ctx)
     }
 
     /// Freeze or resume all ixs associated with the controller (except this one).

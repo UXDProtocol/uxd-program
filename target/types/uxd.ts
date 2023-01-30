@@ -982,7 +982,7 @@ export type Uxd = {
       ]
     },
     {
-      name: 'collectProfitOfCredixLpDepository'
+      name: 'collectProfitsOfCredixLpDepository'
       accounts: [
         {
           name: 'payer'
@@ -1984,7 +1984,7 @@ export type Uxd = {
       ]
     },
     {
-      name: 'CollectProfitOfCredixLpDepositoryEvent'
+      name: 'CollectProfitsOfCredixLpDepositoryEvent'
       fields: [
         {
           name: 'controllerVersion'
@@ -3302,7 +3302,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      name: 'collectProfitOfCredixLpDepository',
+      name: 'collectProfitsOfCredixLpDepository',
       accounts: [
         {
           name: 'payer',
@@ -4304,7 +4304,7 @@ export const IDL: Uxd = {
       ]
     },
     {
-      name: 'CollectProfitOfCredixLpDepositoryEvent',
+      name: 'CollectProfitsOfCredixLpDepositoryEvent',
       fields: [
         {
           name: 'controllerVersion',

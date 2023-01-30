@@ -6,7 +6,7 @@ import {
 } from '@uxd-protocol/uxd-client';
 import { Controller } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
-import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitOfCredixLpDepositoryTest';
+import { collectProfitsOfCredixLpDepositoryTest } from '../cases/collectProfitsOfCredixLpDepositoryTest';
 import { editControllerTest } from '../cases/editControllerTest';
 import { editIdentityDepositoryTest } from '../cases/editIdentityDepositoryTest';
 import { editMercurialVaultDepositoryTest } from '../cases/editMercurialVaultDepositoryTest';
@@ -95,10 +95,10 @@ export const freezeProgramSuite = async function (
     expect(failure).eq(true, 'Should have failed - program is frozen');
   });
 
-  it(`collectProfitOfCredixLpDepositoryTest under frozen program`, async function () {
+  it(`collectProfitsOfCredixLpDepositoryTest under frozen program`, async function () {
     let failure = false;
     try {
-      await collectProfitOfCredixLpDepositoryTest(
+      await collectProfitsOfCredixLpDepositoryTest(
         payer,
         controller,
         credixLpDepository,
