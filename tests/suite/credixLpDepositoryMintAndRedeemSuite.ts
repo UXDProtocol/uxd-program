@@ -13,7 +13,7 @@ import { BN } from '@project-serum/anchor';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
 import { editControllerTest } from '../cases/editControllerTest';
 import { redeemFromCredixLpDepositoryTest } from '../cases/redeemFromCredixLpDepositoryTest';
-import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitOfCredixLpDepositoryTest';
+import { collectProfitsOfCredixLpDepositoryTest } from '../cases/collectProfitsOfCredixLpDepositoryTest';
 
 export const credixLpDepositoryMintAndRedeemSuite = async function (
   authority: Signer,
@@ -433,7 +433,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
       await editCredixLpDepositoryTest(authority, controller, depository, {
         profitsBeneficiaryCollateral: profitsBeneficiaryCollateral,
       });
-      await collectProfitOfCredixLpDepositoryTest(
+      await collectProfitsOfCredixLpDepositoryTest(
         payer,
         profitsBeneficiaryCollateral,
         controller,
@@ -448,7 +448,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
       });
       let failure = false;
       try {
-        await collectProfitOfCredixLpDepositoryTest(
+        await collectProfitsOfCredixLpDepositoryTest(
           payer,
           PublicKey.default,
           controller,
@@ -459,7 +459,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
       }
       expect(failure).eq(
         true,
-        `Should have failed - Invalid profit beneficiary`
+        `Should have failed - Invalid profits beneficiary`
       );
     });
   });

@@ -7,7 +7,7 @@ use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 
 use crate::error::UxdError;
-use crate::events::CollectProfitOfCredixLpDepositoryEvent;
+use crate::events::CollectProfitsOfCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::utils::compute_decrease;
@@ -21,7 +21,7 @@ use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 
 #[derive(Accounts)]
-pub struct CollectProfitOfCredixLpDepository<'info> {
+pub struct CollectProfitsOfCredixLpDepository<'info> {
     /// #1
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -147,7 +147,7 @@ pub struct CollectProfitOfCredixLpDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result<()> {
+pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Result<()> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Fetch all current onchain state
@@ -165,7 +165,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
         .credix_global_market_state
         .pool_outstanding_credit;
 
-    let total_shares_amount_before: u64 = ctx.accounts.credix_shares_mint.supply;
+    let total_shares_supply_before: u64 = ctx.accounts.credix_shares_mint.supply;
     let total_shares_value_before: u64 = liquidity_collateral_amount_before
         .checked_add(outstanding_collateral_amount_before)
         .ok_or(UxdError::MathError)?;
@@ -173,12 +173,12 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
     let owned_shares_value_before: u64 = compute_value_for_shares_amount(
         owned_shares_amount_before,
-        total_shares_amount_before,
+        total_shares_supply_before,
         total_shares_value_before,
     )?;
 
-    // How much collateral can we withdraw as profit
-    let profit_value: u128 = {
+    // How much collateral can we withdraw as profits
+    let profits_value: u128 = {
         // Compute the set of liabilities owed to the users
         let liabilities_value: u128 = ctx
             .accounts
@@ -186,59 +186,59 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
             .load()?
             .redeemable_amount_under_management;
         msg!(
-            "[collect_profit_of_credix_lp_depository:liabilities_value:{}]",
+            "[collect_profits_of_credix_lp_depository:liabilities_value:{}]",
             liabilities_value
         );
         // Compute the set of assets owned in the LP
         let assets_value: u128 = owned_shares_value_before.into();
         msg!(
-            "[collect_profit_of_credix_lp_depository:assets_value:{}]",
+            "[collect_profits_of_credix_lp_depository:assets_value:{}]",
             assets_value
         );
-        // Compute the amount of profit that we can safely withdraw
+        // Compute the amount of profits that we can safely withdraw
         assets_value
             .checked_sub(liabilities_value)
             .ok_or(UxdError::MathError)?
     };
     msg!(
-        "[collect_profit_of_credix_lp_depository:profit_value:{}]",
-        profit_value
+        "[collect_profits_of_credix_lp_depository:profits_value:{}]",
+        profits_value
     );
 
     // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
-    let collateral_amount_before_precision_loss: u64 = u64::try_from(profit_value)
+    let collateral_amount_before_precision_loss: u64 = u64::try_from(profits_value)
         .ok()
         .ok_or(UxdError::MathError)?;
     msg!(
-        "[collect_profit_of_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
+        "[collect_profits_of_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
         collateral_amount_before_precision_loss
     );
 
     // Compute the amount of shares that we need to withdraw based on the amount of wanted collateral
     let shares_amount: u64 = compute_shares_amount_for_value(
         collateral_amount_before_precision_loss,
-        total_shares_amount_before,
+        total_shares_supply_before,
         total_shares_value_before,
     )?;
     msg!(
-        "[collect_profit_of_credix_lp_depository:shares_amount:{}]",
+        "[collect_profits_of_credix_lp_depository:shares_amount:{}]",
         shares_amount
     );
 
     // Compute the amount of collateral that the withdrawn shares are worth (after potential precision loss)
     let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount(
         shares_amount,
-        total_shares_amount_before,
+        total_shares_supply_before,
         total_shares_value_before,
     )?;
     msg!(
-        "[collect_profit_of_credix_lp_depository:collateral_amount_after_precision_loss:{}]",
+        "[collect_profits_of_credix_lp_depository:collateral_amount_after_precision_loss:{}]",
         collateral_amount_after_precision_loss
     );
 
-    // If nothing to withdraw, no need to continue, all profit have already been successfully collected
+    // If nothing to withdraw, no need to continue, all profits have already been successfully collected
     if collateral_amount_after_precision_loss == 0 {
-        msg!("[collect_profit_of_credix_lp_depository:no_profit_to_collect]",);
+        msg!("[collect_profits_of_credix_lp_depository:no_profits_to_collect]",);
         return Ok(());
     }
 
@@ -258,7 +258,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     ]];
 
     // Run a withdraw CPI from credix into the depository
-    msg!("[collect_profit_of_credix_lp_depository:withdraw_funds]",);
+    msg!("[collect_profits_of_credix_lp_depository:withdraw_funds]",);
     credix_client::cpi::withdraw_funds(
         ctx.accounts
             .into_withdraw_funds_from_credix_lp_context()
@@ -267,7 +267,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     )?;
 
     // Transfer the received collateral from the depository to the end user
-    msg!("[collect_profit_of_credix_lp_depository:collateral_transfer]",);
+    msg!("[collect_profits_of_credix_lp_depository:collateral_transfer]",);
     token::transfer(
         ctx.accounts
             .into_transfer_depository_collateral_to_profits_beneficiary_collateral_context()
@@ -300,7 +300,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
         .credix_global_market_state
         .pool_outstanding_credit;
 
-    let total_shares_amount_after: u64 = ctx.accounts.credix_shares_mint.supply;
+    let total_shares_supply_after: u64 = ctx.accounts.credix_shares_mint.supply;
     let total_shares_value_after: u64 = liquidity_collateral_amount_after
         .checked_add(outstanding_collateral_amount_after)
         .ok_or(UxdError::MathError)?;
@@ -308,7 +308,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     let owned_shares_amount_after: u64 = ctx.accounts.depository_shares.amount;
     let owned_shares_value_after: u64 = compute_value_for_shares_amount(
         owned_shares_amount_after,
-        total_shares_amount_after,
+        total_shares_supply_after,
         total_shares_value_after,
     )?;
 
@@ -318,8 +318,8 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
         profits_beneficiary_collateral_amount_after,
     )?;
 
-    let total_shares_amount_decrease: u64 =
-        compute_decrease(total_shares_amount_before, total_shares_amount_after)?;
+    let total_shares_supply_decrease: u64 =
+        compute_decrease(total_shares_supply_before, total_shares_supply_after)?;
     let total_shares_value_decrease: u64 =
         compute_decrease(total_shares_value_before, total_shares_value_after)?;
 
@@ -330,23 +330,23 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
 
     // Log deltas for debriefing the changes
     msg!(
-        "[collect_profit_of_credix_lp_depository:profits_beneficiary_collateral_amount_increase:{}]",
+        "[collect_profits_of_credix_lp_depository:profits_beneficiary_collateral_amount_increase:{}]",
         profits_beneficiary_collateral_amount_increase
     );
     msg!(
-        "[collect_profit_of_credix_lp_depository:total_shares_amount_decrease:{}]",
-        total_shares_amount_decrease
+        "[collect_profits_of_credix_lp_depository:total_shares_supply_decrease:{}]",
+        total_shares_supply_decrease
     );
     msg!(
-        "[collect_profit_of_credix_lp_depository:total_shares_value_decrease:{}]",
+        "[collect_profits_of_credix_lp_depository:total_shares_value_decrease:{}]",
         total_shares_value_decrease
     );
     msg!(
-        "[collect_profit_of_credix_lp_depository:owned_shares_amount_decrease:{}]",
+        "[collect_profits_of_credix_lp_depository:owned_shares_amount_decrease:{}]",
         owned_shares_amount_decrease
     );
     msg!(
-        "[collect_profit_of_credix_lp_depository:owned_shares_value_decrease:{}]",
+        "[collect_profits_of_credix_lp_depository:owned_shares_value_decrease:{}]",
         owned_shares_value_decrease
     );
 
@@ -364,7 +364,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
 
     // Check that we withdrew the correct amount of shares
     require!(
-        total_shares_amount_decrease == shares_amount,
+        total_shares_supply_decrease == shares_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
@@ -396,7 +396,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
     // ---------------------------------------------------------------------
 
     // Emit event
-    emit!(CollectProfitOfCredixLpDepositoryEvent {
+    emit!(CollectProfitsOfCredixLpDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.load()?.version,
         controller: ctx.accounts.controller.key(),
@@ -406,13 +406,13 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
 
     // Accouting for depository
     let mut depository = ctx.accounts.depository.load_mut()?;
-    depository.update_onchain_accounting_following_profit_collection(
+    depository.update_onchain_accounting_following_profits_collection(
         collateral_amount_after_precision_loss,
     )?;
 
     // Accouting for controller
     let mut controller = ctx.accounts.controller.load_mut()?;
-    controller.update_onchain_accounting_following_profit_collection(
+    controller.update_onchain_accounting_following_profits_collection(
         collateral_amount_after_precision_loss,
     )?;
 
@@ -421,7 +421,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitOfCredixLpDepository>) -> Result
 }
 
 // Into functions
-impl<'info> CollectProfitOfCredixLpDepository<'info> {
+impl<'info> CollectProfitsOfCredixLpDepository<'info> {
     pub fn into_withdraw_funds_from_credix_lp_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::WithdrawFunds<'info>> {
@@ -462,7 +462,7 @@ impl<'info> CollectProfitOfCredixLpDepository<'info> {
 }
 
 // Validate
-impl<'info> CollectProfitOfCredixLpDepository<'info> {
+impl<'info> CollectProfitsOfCredixLpDepository<'info> {
     pub(crate) fn validate(&self) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
         Ok(())

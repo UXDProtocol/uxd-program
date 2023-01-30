@@ -215,9 +215,9 @@ pub struct RedeemFromCredixLpDepositoryEvent {
     pub redeeming_fee_paid: u64,
 }
 
-/// Event called in [instructions::collect_profit_of_credix_lp_depository::handler].
+/// Event called in [instructions::collect_profits_of_credix_lp_depository::handler].
 #[event]
-pub struct CollectProfitOfCredixLpDepositoryEvent {
+pub struct CollectProfitsOfCredixLpDepositoryEvent {
     #[index]
     pub controller_version: u8,
     #[index]
