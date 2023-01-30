@@ -124,6 +124,10 @@ pub(crate) fn handler(
             profits_beneficiary_collateral
         );
         depository.profits_beneficiary_collateral = profits_beneficiary_collateral;
+        require!(
+            profits_beneficiary_collateral == depository.collateral_mint,
+            UxdError::InvalidCollateralMint
+        );
         emit!(SetDepositoryProfitsBeneficiaryCollateralEvent {
             version: ctx.accounts.controller.load()?.version,
             controller: ctx.accounts.controller.key(),

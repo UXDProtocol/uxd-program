@@ -47,10 +47,7 @@ pub struct CollectProfitsOfMercurialVaultDepository<'info> {
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #5
-    #[account(
-        mut,
-        constraint = profits_beneficiary_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
-    )]
+    #[account(mut)]
     pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #6
@@ -59,10 +56,7 @@ pub struct CollectProfitsOfMercurialVaultDepository<'info> {
     pub depository_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
     /// #7
-    #[account(
-        mut,
-        constraint = mercurial_vault.token_vault == mercurial_vault_collateral_token_safe.key() @UxdError::InvalidMercurialVaultCollateralTokenSafe,
-    )]
+    #[account(mut)]
     pub mercurial_vault: Box<Account<'info, mercurial_vault::state::Vault>>,
 
     /// #8
