@@ -244,20 +244,21 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
     }
 
     pub fn calculate_collectable_profits_value(&self) -> Result<u64> {
-        let owned_lp_tokens_value: u128 =
+        let owned_lp_tokens_value =
             mercurial_utils::calculate_lp_tokens_value::calculate_lp_tokens_value(
                 &self.mercurial_vault,
                 self.mercurial_vault_lp_mint.supply,
                 self.depository_lp_token_vault.amount,
-            )?
-            .into();
+            )?;
 
-        let collectable_profits_amount = owned_lp_tokens_value
-            .checked_sub(self.depository.load()?.redeemable_amount_under_management)
-            .ok_or(UxdError::MathError)?;
+        // Mint max supply is cap at u64, so redeemable_amount_under_management <= u64::MAX, always safe to convert
+        let redeemable_amount_under_management: u64 =
+            u64::try_from(self.depository.load()?.redeemable_amount_under_management)
+                .ok()
+                .ok_or(UxdError::MathError)?;
 
-        Ok(u64::try_from(collectable_profits_amount)
-            .ok()
+        Ok(owned_lp_tokens_value
+            .checked_sub(redeemable_amount_under_management)
             .ok_or(UxdError::MathError)?)
     }
 }
