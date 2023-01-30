@@ -1,4 +1,4 @@
-use crate::{error::UxdError, utils::compute_precision_loss};
+use crate::{error::UxdError, utils::compute_value_for_single_share_ceil};
 use anchor_lang::{
     prelude::{Account, Clock, SolanaSysvar},
     Result,
@@ -17,9 +17,12 @@ pub fn calculate_possible_lp_token_precision_loss_collateral_value(
 
     // Calculate the price of 1 native LP token
     // Do not use mercurial_vault.get_amount_by_share because it does not handle precision loss
-    let total_amount = mercurial_vault
+    let total_unlocked_lp_token_value = mercurial_vault
         .get_unlocked_amount(current_time)
         .ok_or(UxdError::MathError)?;
 
-    compute_precision_loss(total_amount, mercurial_vault_lp_mint_supply)
+    compute_value_for_single_share_ceil(
+        total_unlocked_lp_token_value,
+        mercurial_vault_lp_mint_supply,
+    )
 }

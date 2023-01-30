@@ -1,49 +1,59 @@
 // Unit tests
 #[cfg(test)]
-mod test_compute_precision_loss {
-    use crate::utils::compute_precision_loss;
+mod test_compute_value_for_single_share_ceil {
+    use crate::utils::compute_value_for_single_share_ceil;
     use anchor_lang::Result;
     use proptest::prelude::*;
 
     #[test]
     fn test_correctness() -> Result<()> {
-        assert_eq!(compute_precision_loss(0, 0)?, 0);
-        assert_eq!(compute_precision_loss(99, 0)?, 0);
+        assert_eq!(compute_value_for_single_share_ceil(1, 10)?, 1);
+        assert_eq!(compute_value_for_single_share_ceil(10, 10)?, 1);
 
-        assert_eq!(compute_precision_loss(1, 10)?, 1);
-        assert_eq!(compute_precision_loss(10, 10)?, 1);
+        assert_eq!(compute_value_for_single_share_ceil(99, 100)?, 1);
+        assert_eq!(compute_value_for_single_share_ceil(100, 100)?, 1);
+        assert_eq!(compute_value_for_single_share_ceil(101, 100)?, 2);
 
-        assert_eq!(compute_precision_loss(99, 100)?, 1);
-        assert_eq!(compute_precision_loss(100, 100)?, 1);
-        assert_eq!(compute_precision_loss(101, 100)?, 2);
+        assert_eq!(compute_value_for_single_share_ceil(49, 10)?, 5);
+        assert_eq!(compute_value_for_single_share_ceil(50, 10)?, 5);
+        assert_eq!(compute_value_for_single_share_ceil(51, 10)?, 6);
 
-        assert_eq!(compute_precision_loss(49, 10)?, 5);
-        assert_eq!(compute_precision_loss(50, 10)?, 5);
-        assert_eq!(compute_precision_loss(51, 10)?, 6);
-
-        assert_eq!(compute_precision_loss(u64::MAX, 1)?, u64::MAX);
-        assert_eq!(compute_precision_loss(u64::MAX, u64::MAX)?, 1);
-        assert_eq!(compute_precision_loss(1, u64::MAX)?, 1);
+        assert_eq!(compute_value_for_single_share_ceil(u64::MAX, 1)?, u64::MAX);
+        assert_eq!(compute_value_for_single_share_ceil(u64::MAX, u64::MAX)?, 1);
+        assert_eq!(compute_value_for_single_share_ceil(1, u64::MAX)?, 1);
 
         Ok(())
     }
 
     #[test]
     fn test_incorrectness() -> Result<()> {
-        assert_eq!(compute_precision_loss(0, 1).is_err(), true);
-        assert_eq!(compute_precision_loss(0, u64::MAX).is_err(), true);
+        assert_eq!(compute_value_for_single_share_ceil(0, 0).is_err(), true);
+        assert_eq!(compute_value_for_single_share_ceil(0, 1).is_err(), true);
+        assert_eq!(
+            compute_value_for_single_share_ceil(0, u64::MAX).is_err(),
+            true
+        );
+        assert_eq!(compute_value_for_single_share_ceil(1, 0).is_err(), true);
+        assert_eq!(
+            compute_value_for_single_share_ceil(u64::MAX, 0).is_err(),
+            true
+        );
         Ok(())
     }
 
     #[test]
     fn test_panic_cases() -> Result<()> {
-        proptest!(|(total_shares_amount: u64, total_shares_value: u64)| {
-            let result = compute_precision_loss(
-                total_shares_amount,
-                total_shares_value
+        proptest!(|(total_shares_value: u64, total_shares_supply: u64)| {
+            let result = compute_value_for_single_share_ceil(
+                total_shares_value,
+                total_shares_supply
             );
             // would get MathError in this case
-            if total_shares_amount == 0 {
+            if total_shares_value == 0 {
+                prop_assert!(result.is_err());
+                return Ok(());
+            }
+            if total_shares_supply == 0 {
                 prop_assert!(result.is_err());
                 return Ok(());
             }
