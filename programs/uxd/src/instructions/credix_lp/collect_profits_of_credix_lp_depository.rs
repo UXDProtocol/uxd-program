@@ -129,7 +129,10 @@ pub struct CollectProfitsOfCredixLpDepository<'info> {
     pub credix_multisig_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #16
-    #[account(mut)]
+    #[account(
+        mut,
+        token::mint = collateral_mint,
+    )]
     pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #17

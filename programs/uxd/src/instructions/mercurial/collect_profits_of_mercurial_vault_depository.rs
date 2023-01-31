@@ -47,7 +47,10 @@ pub struct CollectProfitsOfMercurialVaultDepository<'info> {
     pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #5
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = profits_beneficiary_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
+    )]
     pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #6
@@ -183,7 +186,7 @@ pub fn handler(ctx: Context<CollectProfitsOfMercurialVaultDepository>) -> Result
     ctx.accounts
         .controller
         .load_mut()?
-        .update_onchain_accounting_following_profit_collection(
+        .update_onchain_accounting_following_profits_collection(
             profits_beneficiary_collateral_amount_increase,
         )?;
 
