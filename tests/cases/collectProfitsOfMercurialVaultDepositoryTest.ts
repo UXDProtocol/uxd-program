@@ -20,7 +20,7 @@ export const collectProfitsOfMercurialVaultDepositoryTest = async function ({
   depository: MercurialVaultDepository;
   payer: Signer;
 }): Promise<number> {
-  console.group('🧭 collectProfitOfMercurialVaultDepositoryTest');
+  console.group('🧭 collectProfitsOfMercurialVaultDepositoryTest');
 
   try {
     // GIVEN

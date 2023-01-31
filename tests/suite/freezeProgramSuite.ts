@@ -100,9 +100,9 @@ export const freezeProgramSuite = async function (
     try {
       await collectProfitsOfCredixLpDepositoryTest(
         payer,
+        payer.publicKey,
         controller,
-        credixLpDepository,
-        payer
+        credixLpDepository
       );
     } catch {
       failure = true;

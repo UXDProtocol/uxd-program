@@ -5,7 +5,7 @@ import {
   findATAAddrSync,
 } from '@uxd-protocol/uxd-client';
 import { getConnection } from '../connection';
-import { collectProfitsOfMercurialVaultDepositoryTest } from '../cases/collectProfitOfMercurialVaultDepositoryTest';
+import { collectProfitsOfMercurialVaultDepositoryTest } from '../cases/collectProfitsOfMercurialVaultDepositoryTest';
 import {
   MERCURIAL_USDC_DEVNET,
   MERCURIAL_USDC_DEVNET_DECIMALS,
