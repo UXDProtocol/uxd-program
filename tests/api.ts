@@ -517,3 +517,32 @@ export async function freezeProgram(
 
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
+
+export async function collectProfitsOfMercurialVaultDepository({
+  payer,
+  controller,
+  depository,
+  profitsBeneficiaryCollateral,
+}: {
+  payer: Signer;
+  controller: Controller;
+  depository: MercurialVaultDepository;
+  profitsBeneficiaryCollateral: PublicKey;
+}): Promise<string> {
+  const collectInterestsAndFeesFromMercurialVaultDepositoryIx =
+    uxdClient.createCollectProfitsOfMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      profitsBeneficiaryCollateral,
+      TXN_OPTS,
+      payer.publicKey
+    );
+
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.add(collectInterestsAndFeesFromMercurialVaultDepositoryIx);
+  signers.push(payer);
+  tx.feePayer = payer.publicKey;
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}

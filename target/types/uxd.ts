@@ -402,6 +402,72 @@ export type Uxd = {
       ]
     },
     {
+      name: 'collectProfitsOfMercurialVaultDepository'
+      accounts: [
+        {
+          name: 'payer'
+          isMut: true
+          isSigner: true
+        },
+        {
+          name: 'controller'
+          isMut: true
+          isSigner: false
+        },
+        {
+          name: 'depository'
+          isMut: true
+          isSigner: false
+        },
+        {
+          name: 'collateralMint'
+          isMut: false
+          isSigner: false
+        },
+        {
+          name: 'profitsBeneficiaryCollateral'
+          isMut: true
+          isSigner: false
+        },
+        {
+          name: 'depositoryLpTokenVault'
+          isMut: true
+          isSigner: false
+        },
+        {
+          name: 'mercurialVault'
+          isMut: true
+          isSigner: false
+        },
+        {
+          name: 'mercurialVaultLpMint'
+          isMut: true
+          isSigner: false
+        },
+        {
+          name: 'mercurialVaultCollateralTokenSafe'
+          isMut: true
+          isSigner: false
+        },
+        {
+          name: 'mercurialVaultProgram'
+          isMut: false
+          isSigner: false
+        },
+        {
+          name: 'systemProgram'
+          isMut: false
+          isSigner: false
+        },
+        {
+          name: 'tokenProgram'
+          isMut: false
+          isSigner: false
+        }
+      ]
+      args: []
+    },
+    {
       name: 'initializeIdentityDepository'
       accounts: [
         {
@@ -1367,6 +1433,18 @@ export type Uxd = {
           {
             name: 'mintingDisabled'
             type: 'bool'
+          },
+          {
+            name: 'profitsTotalCollected'
+            type: 'u128'
+          },
+          {
+            name: 'lastProfitsCollectionUnixTimestamp'
+            type: 'u64'
+          },
+          {
+            name: 'profitsBeneficiaryCollateral'
+            type: 'publicKey'
           }
         ]
       }
@@ -1472,6 +1550,12 @@ export type Uxd = {
             name: 'mintingDisabled'
             type: {
               option: 'bool'
+            }
+          },
+          {
+            name: 'profitsBeneficiaryCollateral'
+            type: {
+              option: 'publicKey'
             }
           }
         ]
@@ -1901,6 +1985,36 @@ export type Uxd = {
     },
     {
       name: 'CollectProfitsOfCredixLpDepositoryEvent'
+      fields: [
+        {
+          name: 'controllerVersion'
+          type: 'u8'
+          index: true
+        },
+        {
+          name: 'depositoryVersion'
+          type: 'u8'
+          index: true
+        },
+        {
+          name: 'controller'
+          type: 'publicKey'
+          index: true
+        },
+        {
+          name: 'depository'
+          type: 'publicKey'
+          index: true
+        },
+        {
+          name: 'collateralAmount'
+          type: 'u64'
+          index: false
+        }
+      ]
+    },
+    {
+      name: 'CollectProfitsOfMercurialVaultDepositoryEvent'
       fields: [
         {
           name: 'controllerVersion'
@@ -2606,6 +2720,72 @@ export const IDL: Uxd = {
           type: 'u64'
         }
       ]
+    },
+    {
+      name: 'collectProfitsOfMercurialVaultDepository',
+      accounts: [
+        {
+          name: 'payer',
+          isMut: true,
+          isSigner: true
+        },
+        {
+          name: 'controller',
+          isMut: true,
+          isSigner: false
+        },
+        {
+          name: 'depository',
+          isMut: true,
+          isSigner: false
+        },
+        {
+          name: 'collateralMint',
+          isMut: false,
+          isSigner: false
+        },
+        {
+          name: 'profitsBeneficiaryCollateral',
+          isMut: true,
+          isSigner: false
+        },
+        {
+          name: 'depositoryLpTokenVault',
+          isMut: true,
+          isSigner: false
+        },
+        {
+          name: 'mercurialVault',
+          isMut: true,
+          isSigner: false
+        },
+        {
+          name: 'mercurialVaultLpMint',
+          isMut: true,
+          isSigner: false
+        },
+        {
+          name: 'mercurialVaultCollateralTokenSafe',
+          isMut: true,
+          isSigner: false
+        },
+        {
+          name: 'mercurialVaultProgram',
+          isMut: false,
+          isSigner: false
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false
+        }
+      ],
+      args: []
     },
     {
       name: 'initializeIdentityDepository',
@@ -3573,6 +3753,18 @@ export const IDL: Uxd = {
           {
             name: 'mintingDisabled',
             type: 'bool'
+          },
+          {
+            name: 'profitsTotalCollected',
+            type: 'u128'
+          },
+          {
+            name: 'lastProfitsCollectionUnixTimestamp',
+            type: 'u64'
+          },
+          {
+            name: 'profitsBeneficiaryCollateral',
+            type: 'publicKey'
           }
         ]
       }
@@ -3678,6 +3870,12 @@ export const IDL: Uxd = {
             name: 'mintingDisabled',
             type: {
               option: 'bool'
+            }
+          },
+          {
+            name: 'profitsBeneficiaryCollateral',
+            type: {
+              option: 'publicKey'
             }
           }
         ]
@@ -4107,6 +4305,36 @@ export const IDL: Uxd = {
     },
     {
       name: 'CollectProfitsOfCredixLpDepositoryEvent',
+      fields: [
+        {
+          name: 'controllerVersion',
+          type: 'u8',
+          index: true
+        },
+        {
+          name: 'depositoryVersion',
+          type: 'u8',
+          index: true
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: true
+        },
+        {
+          name: 'depository',
+          type: 'publicKey',
+          index: true
+        },
+        {
+          name: 'collateralAmount',
+          type: 'u64',
+          index: false
+        }
+      ]
+    },
+    {
+      name: 'CollectProfitsOfMercurialVaultDepositoryEvent',
       fields: [
         {
           name: 'controllerVersion',

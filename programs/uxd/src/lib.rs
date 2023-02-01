@@ -8,6 +8,7 @@ use error::UxdError;
 pub mod error;
 pub mod events;
 pub mod instructions;
+pub mod mercurial_utils;
 pub mod state;
 pub mod test;
 pub mod utils;
@@ -15,7 +16,7 @@ pub mod utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("36N7GZDMv3xkabgWMc2fJqrxm15cgp6oykPs53qDn5Ju");
+solana_program::declare_id!("EqMrasrCXsbE6mpXaopUH1qip7auwX4AF5UWWpXaLr6u");
 #[cfg(feature = "production")]
 solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -149,6 +150,16 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[redeem_from_mercurial_vault]");
         instructions::redeem_from_mercurial_vault_depository::handler(ctx, redeemable_amount)
+    }
+
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn collect_profits_of_mercurial_vault_depository(
+        ctx: Context<CollectProfitsOfMercurialVaultDepository>,
+    ) -> Result<()> {
+        msg!("[collect_profits_of_mercurial_vault_depository]");
+        instructions::collect_profits_of_mercurial_vault_depository::handler(ctx)
     }
 
     #[access_control(ctx.accounts.validate())]
