@@ -111,7 +111,7 @@ pub struct SetDepositoryProfitsBeneficiaryCollateralEvent {
 
 /// Event called in [instructions::edit_*_depository::handler].
 #[event]
-pub struct SetDepositoryRebalancingTargetWeightEvent {
+pub struct SetDepositoryRedeemableAmountUnderManagementWeightEvent {
     #[index]
     pub version: u8,
     #[index]
@@ -119,7 +119,7 @@ pub struct SetDepositoryRebalancingTargetWeightEvent {
     #[index]
     pub depository: Pubkey,
     #[index]
-    pub redeemable_amount_under_management_target_weight: u64,
+    pub redeemable_amount_under_management_weight: u64,
 }
 
 /// Event called in [instructions::initialize_identity_depository::handler].

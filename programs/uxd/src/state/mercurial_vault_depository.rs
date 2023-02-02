@@ -28,6 +28,8 @@ pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + size_of::<u128>()   // profits_total_collected
     + size_of::<u64>()    // last_profits_collection_unix_timestamp
     + size_of::<Pubkey>() // profits_beneficiary_collateral
+    + size_of::<u64>()    // redeemable_amount_under_management_weight
+    + size_of::<u64>()    // redeemable_amount_under_management_target
     + MERCURIAL_VAULT_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -96,9 +98,9 @@ pub struct MercurialVaultDepository {
     // Receiver of the depository's profits
     pub profits_beneficiary_collateral: Pubkey,
 
-    // Target redeemable
-    pub redeemable_amount_under_management_target_weight: u64,
-    pub redeemable_amount_under_management_target_amount: u64,
+    // Redeemable amount targets used for rebalancing
+    pub redeemable_amount_under_management_weight: u64,
+    pub redeemable_amount_under_management_target: u64,
 }
 
 impl MercurialVaultDepository {

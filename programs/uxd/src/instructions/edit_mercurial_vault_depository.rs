@@ -1,12 +1,9 @@
 use crate::error::UxdError;
 use crate::events::SetDepositoryMintingDisabledEvent;
 use crate::events::SetDepositoryMintingFeeInBpsEvent;
-<<<<<<< HEAD
-use crate::events::SetDepositoryRebalancingTargetWeightEvent;
-=======
 use crate::events::SetDepositoryProfitsBeneficiaryCollateralEvent;
->>>>>>> main
 use crate::events::SetDepositoryRedeemableAmountUnderManagementCapEvent;
+use crate::events::SetDepositoryRedeemableAmountUnderManagementWeightEvent;
 use crate::events::SetDepositoryRedeemingFeeInBpsEvent;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
 use crate::validate_is_program_frozen;
@@ -47,11 +44,8 @@ pub struct EditMercurialVaultDepositoryFields {
     minting_fee_in_bps: Option<u8>,
     redeeming_fee_in_bps: Option<u8>,
     minting_disabled: Option<bool>,
-<<<<<<< HEAD
-    redeemable_amount_under_management_target_weight: Option<u64>,
-=======
     profits_beneficiary_collateral: Option<Pubkey>,
->>>>>>> main
+    redeemable_amount_under_management_weight: Option<u64>,
 }
 
 pub(crate) fn handler(
@@ -121,23 +115,6 @@ pub(crate) fn handler(
             minting_disabled
         });
     }
-
-<<<<<<< HEAD
-    // optional: redeemable_amount_under_management_target_weight
-    if let Some(redeemable_amount_under_management_target_weight) = fields.redeemable_amount_under_management_target_weight {
-        msg!(
-            "[edit_mercurial_vault_depository] redeemable_amount_under_management_target_weight {}",
-            redeemable_amount_under_management_target_weight
-        );
-        depository.redeemable_amount_under_management_target_weight = redeemable_amount_under_management_target_weight;
-        emit!(SetDepositoryRebalancingTargetWeightEvent {
-            version: ctx.accounts.controller.load()?.version,
-            controller: ctx.accounts.controller.key(),
-            depository: ctx.accounts.depository.key(),
-            redeemable_amount_under_management_target_weight
-        });
-    }
-=======
     // optional: profits_beneficiary_collateral
     if let Some(profits_beneficiary_collateral) = fields.profits_beneficiary_collateral {
         msg!(
@@ -153,7 +130,24 @@ pub(crate) fn handler(
         });
     }
 
->>>>>>> main
+    // optional: redeemable_amount_under_management_weight
+    if let Some(redeemable_amount_under_management_weight) =
+        fields.redeemable_amount_under_management_weight
+    {
+        msg!(
+            "[edit_mercurial_vault_depository] redeemable_amount_under_management_weight {}",
+            redeemable_amount_under_management_weight
+        );
+        depository.redeemable_amount_under_management_weight =
+            redeemable_amount_under_management_weight;
+        emit!(SetDepositoryRedeemableAmountUnderManagementWeightEvent {
+            version: ctx.accounts.controller.load()?.version,
+            controller: ctx.accounts.controller.key(),
+            depository: ctx.accounts.depository.key(),
+            redeemable_amount_under_management_weight
+        });
+    }
+
     Ok(())
 }
 

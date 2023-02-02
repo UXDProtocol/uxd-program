@@ -33,8 +33,8 @@ pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u128>() // profits_total_collected
  + size_of::<Pubkey>() // profits_beneficiary_collateral
 
- + size_of::<u64>() // redeemable_amount_under_management_target_weight
- + size_of::<u64>() // redeemable_amount_under_management_target_amount
+ + size_of::<u64>() // redeemable_amount_under_management_weight
+ + size_of::<u64>() // redeemable_amount_under_management_target
 
  + 752; // reserved space
 
@@ -80,8 +80,8 @@ pub struct CredixLpDepository {
     pub profits_beneficiary_collateral: Pubkey,
 
     // Rebalancing info
-    pub redeemable_amount_under_management_target_weight: u64,
-    pub redeemable_amount_under_management_target_amount: u64,
+    pub redeemable_amount_under_management_weight: u64,
+    pub redeemable_amount_under_management_target: u64,
 }
 
 impl CredixLpDepository {
