@@ -1,3 +1,4 @@
+pub mod compute_depositories_targets;
 pub mod credix_lp;
 pub mod edit_controller;
 pub mod edit_identity_depository;
@@ -7,10 +8,10 @@ pub mod initialize_controller;
 pub mod initialize_identity_depository;
 pub mod mercurial;
 pub mod mint_with_identity_depository;
-pub mod rebalance_depositories_targets;
 pub mod redeem_from_identity_depository;
 pub mod register_mercurial_vault_depository;
 
+pub use compute_depositories_targets::*;
 pub use credix_lp::*;
 pub use edit_controller::*;
 pub use edit_identity_depository::*;
@@ -20,6 +21,5 @@ pub use initialize_controller::*;
 pub use initialize_identity_depository::*;
 pub use mercurial::*;
 pub use mint_with_identity_depository::*;
-pub use rebalance_depositories_targets::*;
 pub use redeem_from_identity_depository::*;
 pub use register_mercurial_vault_depository::*;
