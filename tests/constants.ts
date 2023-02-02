@@ -44,9 +44,9 @@ console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
 export const uxdClient = new UXDClient(uxdProgramId);
 
 // Used in mercurial vault tests
-export const SOLEND_USDC_DEVNET = new PublicKey(
+export const MERCURIAL_USDC_DEVNET = new PublicKey(
   '6L9fgyYtbz34JvwvYyL6YzJDAywz9PKGttuZuWyuoqje'
 );
-export const SOLEND_USDC_DEVNET_DECIMALS = 6;
+export const MERCURIAL_USDC_DEVNET_DECIMALS = 6;
 
 export const slippageBase = 1000;

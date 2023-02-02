@@ -1,4 +1,4 @@
-import { Signer } from '@solana/web3.js';
+import { Keypair, Signer } from '@solana/web3.js';
 import {
   Controller,
   MercurialVaultDepository,
@@ -90,13 +90,33 @@ export const editMercurialVaultDepositorySuite = async function (
       );
     });
 
+    it(`Edit profitsBeneficiaryCollateral alone should work`, async function () {
+      const profitsBeneficiaryCollateral = new Keypair().publicKey;
+
+      console.log(
+        '[🧾 profitsBeneficiaryCollateral',
+        profitsBeneficiaryCollateral,
+        ']'
+      );
+
+      await editMercurialVaultDepositoryTest(
+        controllerAuthority,
+        controller,
+        depository,
+        {
+          profitsBeneficiaryCollateral,
+        }
+      );
+    });
+
     // Restore initial depository values there
-    it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap should work`, async function () {
+    it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap/profitsBeneficiaryCollateral should work`, async function () {
       const {
         mintingFeeInBps,
         redeemingFeeInBps,
         redeemableAmountUnderManagementCap,
         mintingDisabled,
+        profitsBeneficiaryCollateral,
       } = beforeDepository;
 
       const uiRedeemableAmountUnderManagementCap = nativeToUi(
@@ -112,6 +132,11 @@ export const editMercurialVaultDepositorySuite = async function (
         ']'
       );
       console.log('[🧾 mintingDisabled', mintingDisabled, ']');
+      console.log(
+        '[🧾 profitsBeneficiaryCollateral',
+        profitsBeneficiaryCollateral,
+        ']'
+      );
 
       await editMercurialVaultDepositoryTest(
         controllerAuthority,

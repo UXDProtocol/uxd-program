@@ -402,6 +402,72 @@
       ]
     },
     {
+      "name": "collectProfitsOfMercurialVaultDepository",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depository",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "collateralMint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "profitsBeneficiaryCollateral",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "depositoryLpTokenVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultLpMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultCollateralTokenSafe",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initializeIdentityDepository",
       "accounts": [
         {
@@ -916,7 +982,7 @@
       ]
     },
     {
-      "name": "collectProfitOfCredixLpDepository",
+      "name": "collectProfitsOfCredixLpDepository",
       "accounts": [
         {
           "name": "payer",
@@ -1367,6 +1433,18 @@
           {
             "name": "mintingDisabled",
             "type": "bool"
+          },
+          {
+            "name": "profitsTotalCollected",
+            "type": "u128"
+          },
+          {
+            "name": "lastProfitsCollectionUnixTimestamp",
+            "type": "u64"
+          },
+          {
+            "name": "profitsBeneficiaryCollateral",
+            "type": "publicKey"
           }
         ]
       }
@@ -1472,6 +1550,12 @@
             "name": "mintingDisabled",
             "type": {
               "option": "bool"
+            }
+          },
+          {
+            "name": "profitsBeneficiaryCollateral",
+            "type": {
+              "option": "publicKey"
             }
           }
         ]
@@ -1900,7 +1984,37 @@
       ]
     },
     {
-      "name": "CollectProfitOfCredixLpDepositoryEvent",
+      "name": "CollectProfitsOfCredixLpDepositoryEvent",
+      "fields": [
+        {
+          "name": "controllerVersion",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "depositoryVersion",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "collateralAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "CollectProfitsOfMercurialVaultDepositoryEvent",
       "fields": [
         {
           "name": "controllerVersion",
@@ -2203,6 +2317,6 @@
     }
   ],
   "metadata": {
-    "address": "36N7GZDMv3xkabgWMc2fJqrxm15cgp6oykPs53qDn5Ju"
+    "address": "EqMrasrCXsbE6mpXaopUH1qip7auwX4AF5UWWpXaLr6u"
   }
 }

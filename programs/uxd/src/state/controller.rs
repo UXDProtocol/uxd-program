@@ -73,7 +73,7 @@ pub struct Controller {
     pub registered_credix_lp_depositories: [Pubkey; MAX_REGISTERED_CREDIX_LP_DEPOSITORIES],
     pub registered_credix_lp_depositories_count: u8,
     //
-    // Total amount of profit collected into the treasury by any depository
+    // Total amount of profits collected into the treasury by any depository
     pub profits_total_collected: u128,
 }
 
@@ -138,8 +138,8 @@ impl Controller {
         Ok(())
     }
 
-    // When collecting profit, we need to add it to the total
-    pub fn update_onchain_accounting_following_profit_collection(
+    // When collecting profits, we need to add it to the total
+    pub fn update_onchain_accounting_following_profits_collection(
         &mut self,
         profits_collected: u64,
     ) -> Result<()> {

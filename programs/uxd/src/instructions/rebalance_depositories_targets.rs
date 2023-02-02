@@ -66,8 +66,9 @@ pub(crate) fn handler(ctx: Context<RebalanceDepositoriesTargets>) -> Result<()> 
     // We want to balance the supply on weighted portions of the circulating supply for now
     // This could be based on dynamic on-chain account values and liquidity later
     let mercurial_vault_depository_1_weight: u64 =
-        mercurial_vault_depository_1.rebalancing_target_weight;
-    let credix_lp_depository_1_weight: u64 = credix_lp_depository_1.rebalancing_target_weight;
+        mercurial_vault_depository_1.redeemable_amount_under_management_target_weight;
+    let credix_lp_depository_1_weight: u64 =
+        credix_lp_depository_1.redeemable_amount_under_management_target_weight;
 
     // Compute the total weights of all depositories combined
     let total_weight = ctx.accounts.compute_total(
@@ -165,9 +166,9 @@ pub(crate) fn handler(ctx: Context<RebalanceDepositoriesTargets>) -> Result<()> 
     // ---------------------------------------------------------------------
 
     // Update onchain accounts
-    mercurial_vault_depository_1.rebalancing_target_redeemable_amount =
+    mercurial_vault_depository_1.redeemable_amount_under_management_target_amount =
         mercurial_vault_depository_1_final_target;
-    credix_lp_depository_1.rebalancing_target_redeemable_amount =
+    credix_lp_depository_1.redeemable_amount_under_management_target_amount =
         credix_lp_depository_1_final_target;
 
     // Success

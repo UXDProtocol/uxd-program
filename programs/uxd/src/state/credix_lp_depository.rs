@@ -33,8 +33,8 @@ pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u128>() // profits_total_collected
  + size_of::<Pubkey>() // profits_beneficiary_collateral
 
- + size_of::<u64>() // rebalancing_target_weight
- + size_of::<u64>() // rebalancing_target_redeemable_amount
+ + size_of::<u64>() // redeemable_amount_under_management_target_weight
+ + size_of::<u64>() // redeemable_amount_under_management_target_amount
 
  + 752; // reserved space
 
@@ -80,8 +80,8 @@ pub struct CredixLpDepository {
     pub profits_beneficiary_collateral: Pubkey,
 
     // Rebalancing info
-    pub rebalancing_target_weight: u64,
-    pub rebalancing_target_redeemable_amount: u64,
+    pub redeemable_amount_under_management_target_weight: u64,
+    pub redeemable_amount_under_management_target_amount: u64,
 }
 
 impl CredixLpDepository {
@@ -157,8 +157,8 @@ impl CredixLpDepository {
         Ok(())
     }
 
-    // When collecting profit, we need to add it to the total
-    pub fn update_onchain_accounting_following_profit_collection(
+    // When collecting profits, we need to add it to the total
+    pub fn update_onchain_accounting_following_profits_collection(
         &mut self,
         profits_collected: u64,
     ) -> Result<()> {

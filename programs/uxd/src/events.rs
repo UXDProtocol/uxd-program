@@ -119,7 +119,7 @@ pub struct SetDepositoryRebalancingTargetWeightEvent {
     #[index]
     pub depository: Pubkey,
     #[index]
-    pub rebalancing_target_weight: u64,
+    pub redeemable_amount_under_management_target_weight: u64,
 }
 
 /// Event called in [instructions::initialize_identity_depository::handler].
@@ -228,9 +228,24 @@ pub struct RedeemFromCredixLpDepositoryEvent {
     pub redeeming_fee_paid: u64,
 }
 
-/// Event called in [instructions::collect_profit_of_credix_lp_depository::handler].
+/// Event called in [instructions::collect_profits_of_credix_lp_depository::handler].
 #[event]
-pub struct CollectProfitOfCredixLpDepositoryEvent {
+pub struct CollectProfitsOfCredixLpDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    /// The collateral amount in native units. (output)
+    pub collateral_amount: u64,
+}
+
+/// Event called in [instructions::collect_profit_of_mercurial_vault_depository::handler].
+#[event]
+pub struct CollectProfitsOfMercurialVaultDepositoryEvent {
     #[index]
     pub controller_version: u8,
     #[index]

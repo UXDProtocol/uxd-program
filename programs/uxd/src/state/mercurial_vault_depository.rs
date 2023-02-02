@@ -5,28 +5,29 @@ use fixed::types::I80F48;
 
 use crate::error::UxdError;
 
-// Total should be 900 bytes
-pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 629;
+pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 588;
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
-    + 1
-    + 1
-    + 32
-    + 1
-    + 32
-    + 16
-    + 16
-    + 32
-    + 32
-    + 1
-    + 32
-    + 1
-    + 1
-    + 1
-    + 16
-    + 16
-    + 16
-    + size_of::<u64>() // rebalancing_target_weight
-    + size_of::<u64>() // rebalancing_target_redeemable_amount
+    + size_of::<u8>()     // bump
+    + size_of::<u8>()     // version
+    + size_of::<Pubkey>() // collateral_mint
+    + size_of::<u8>()     // collateral_mint_decimals
+    + size_of::<Pubkey>() // controller
+    + size_of::<u128>()   // collateral_amount_deposited
+    + size_of::<u128>()   // redeemable_amount_under_management
+    + size_of::<Pubkey>() // mercurial_vault
+    + size_of::<Pubkey>() // mercurial_vault_lp_mint
+    + size_of::<u8>()     // mercurial_vault_lp_mint_decimals
+    + size_of::<Pubkey>() // lp_token_vault
+    + size_of::<u8>()     // lp_token_vault_bump
+    + size_of::<u8>()     // minting_fee_in_bps
+    + size_of::<u8>()     // redeeming_fee_in_bps
+    + size_of::<u128>()   // minting_fee_total_accrued
+    + size_of::<u128>()   // redeeming_fee_total_accrued
+    + size_of::<u128>()   // redeemable_amount_under_management_cap
+    + size_of::<bool>()   // minting_disabled
+    + size_of::<u128>()   // profits_total_collected
+    + size_of::<u64>()    // last_profits_collection_unix_timestamp
+    + size_of::<Pubkey>() // profits_beneficiary_collateral
     + MERCURIAL_VAULT_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -86,11 +87,36 @@ pub struct MercurialVaultDepository {
 
     pub minting_disabled: bool,
 
-    pub rebalancing_target_weight: u64,
-    pub rebalancing_target_redeemable_amount: u64,
+    // Total amount of interests collected by interests_and_fees_redeem_authority
+    pub profits_total_collected: u128,
+
+    // Worth 0 if interests and fees never got collected
+    pub last_profits_collection_unix_timestamp: u64,
+
+    // Receiver of the depository's profits
+    pub profits_beneficiary_collateral: Pubkey,
+
+    // Target redeemable
+    pub redeemable_amount_under_management_target_weight: u64,
+    pub redeemable_amount_under_management_target_amount: u64,
 }
 
 impl MercurialVaultDepository {
+    pub fn update_onchain_accounting_following_profits_collection(
+        &mut self,
+        collected_profits: u64,
+        current_time_as_unix_timestamp: u64,
+    ) -> Result<()> {
+        self.profits_total_collected = self
+            .profits_total_collected
+            .checked_add(collected_profits.into())
+            .ok_or(UxdError::MathError)?;
+
+        self.last_profits_collection_unix_timestamp = current_time_as_unix_timestamp;
+
+        Ok(())
+    }
+
     // provides numbers + or - depending on the change
     pub fn update_onchain_accounting_following_mint_or_redeem(
         &mut self,
@@ -98,7 +124,7 @@ impl MercurialVaultDepository {
         redeemable_amount_change: i128,
         paid_minting_fees_change: i128,
         paid_redeeming_fees_change: i128,
-    ) -> std::result::Result<(), UxdError> {
+    ) -> Result<()> {
         self.collateral_amount_deposited =
             I80F48::checked_from_num(self.collateral_amount_deposited)
                 .ok_or(UxdError::MathError)?
