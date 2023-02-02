@@ -18,5 +18,5 @@ pub fn compute_amount_fraction(
         .ok_or(UxdError::MathError)?
         .checked_div(fraction_denominator)
         .ok_or(UxdError::MathError)?;
-    Ok(checked_u128_to_u64(amount_fraction)?)
+    checked_u128_to_u64(amount_fraction)?
 }

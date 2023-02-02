@@ -5,7 +5,7 @@ use fixed::types::I80F48;
 
 use crate::error::UxdError;
 
-pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 588;
+pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 572;
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + size_of::<u8>()     // bump
     + size_of::<u8>()     // version

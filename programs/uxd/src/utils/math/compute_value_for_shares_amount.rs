@@ -21,5 +21,5 @@ pub fn compute_value_for_shares_amount(
         .ok_or(UxdError::MathError)?
         .checked_div(total_shares_supply)
         .ok_or(UxdError::MathError)?;
-    Ok(checked_u128_to_u64(value)?)
+    checked_u128_to_u64(value)
 }
