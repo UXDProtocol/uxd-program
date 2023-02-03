@@ -124,6 +124,9 @@ pub fn handler(
 
     depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
 
+    depository.profits_total_collected = u128::MIN;
+    depository.last_profits_collection_unix_timestamp = 0;
+
     // enable minting by default
     depository.minting_disabled = false;
 

@@ -503,14 +503,14 @@ export async function redeemFromCredixLpDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function collectProfitOfCredixLpDepository(
+export async function collectProfitsOfCredixLpDepository(
   payer: Signer,
   profitsBeneficiaryCollateral: PublicKey,
   controller: Controller,
   depository: CredixLpDepository
 ): Promise<string> {
-  const collectProfitOfCredixLpDepositoryIx =
-    uxdClient.createCollectProfitOfCredixLpDepositoryInstruction(
+  const collectProfitsOfCredixLpDepositoryIx =
+    uxdClient.createCollectProfitsOfCredixLpDepositoryInstruction(
       controller,
       depository,
       payer.publicKey,
@@ -519,7 +519,7 @@ export async function collectProfitOfCredixLpDepository(
     );
   let signers = [];
   let tx = new Transaction();
-  tx.add(collectProfitOfCredixLpDepositoryIx);
+  tx.add(collectProfitsOfCredixLpDepositoryIx);
   signers.push(payer);
   tx.feePayer = payer.publicKey;
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
@@ -571,5 +571,34 @@ export async function freezeProgram(
   tx.instructions.push(freezeProgramIx);
   signers.push(authority);
 
+  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+}
+
+export async function collectProfitsOfMercurialVaultDepository({
+  payer,
+  controller,
+  depository,
+  profitsBeneficiaryCollateral,
+}: {
+  payer: Signer;
+  controller: Controller;
+  depository: MercurialVaultDepository;
+  profitsBeneficiaryCollateral: PublicKey;
+}): Promise<string> {
+  const collectInterestsAndFeesFromMercurialVaultDepositoryIx =
+    uxdClient.createCollectProfitsOfMercurialVaultDepositoryInstruction(
+      controller,
+      depository,
+      profitsBeneficiaryCollateral,
+      TXN_OPTS,
+      payer.publicKey
+    );
+
+  let signers = [];
+  let tx = new Transaction();
+
+  tx.add(collectInterestsAndFeesFromMercurialVaultDepositoryIx);
+  signers.push(payer);
+  tx.feePayer = payer.publicKey;
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }

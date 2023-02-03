@@ -46,7 +46,6 @@ import { transferSol, transferAllSol, transferAllTokens } from './utils';
         user,
         controller,
         payer: bank,
-        depository: identityDepository,
       });
     });
 

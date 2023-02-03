@@ -42,6 +42,7 @@ export const editMercurialVaultDepositoryTest = async function ({
       mintingFeeInBps,
       redeemingFeeInBps,
       mintingDisabled,
+      profitsBeneficiaryCollateral,
     } = depositoryOnchainAccount;
 
     // WHEN
@@ -66,6 +67,7 @@ export const editMercurialVaultDepositoryTest = async function ({
       mintingFeeInBps: mintingFeeInBps_post,
       redeemingFeeInBps: redeemingFeeInBps_post,
       mintingDisabled: mintingDisabled_post,
+      profitsBeneficiaryCollateral: profitsBeneficiaryCollateral_post,
     } = depositoryOnchainAccount_post;
 
     if (uiFields.redeemableAmountUnderManagementCap) {
@@ -124,6 +126,18 @@ export const editMercurialVaultDepositoryTest = async function ({
         mintingDisabled,
         'now is',
         mintingDisabled_post
+      );
+    }
+    if (typeof uiFields.profitsBeneficiaryCollateral !== 'undefined') {
+      expect(profitsBeneficiaryCollateral_post.toBase58()).equals(
+        uiFields.profitsBeneficiaryCollateral.toBase58(),
+        'The profits beneficiary collateral state has not changed.'
+      );
+      console.log(
+        `🧾 Previous profits beneficiary collateral state was`,
+        profitsBeneficiaryCollateral.toBase58(),
+        'now is',
+        profitsBeneficiaryCollateral_post.toBase58()
       );
     }
 

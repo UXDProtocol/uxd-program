@@ -5,7 +5,7 @@ import {
   nativeToUi,
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
-import { collectProfitOfCredixLpDepository } from '../api';
+import { collectProfitsOfCredixLpDepository } from '../api';
 import { getConnection, TXN_OPTS } from '../connection';
 import { CLUSTER } from '../constants';
 import { getBalance } from '../utils';
@@ -37,7 +37,7 @@ export const collectProfitOfCredixLpDepositoryTest = async function ({
 
     // WHEN
     // Simulates user experience from the front end
-    const txId = await collectProfitOfCredixLpDepository(
+    const txId = await collectProfitsOfCredixLpDepository(
       payer,
       profitsBeneficiaryCollateral,
       controller,
@@ -66,7 +66,7 @@ export const collectProfitOfCredixLpDepositoryTest = async function ({
     );
 
     console.log(
-      `🧾 Collected profit:`,
+      `🧾 Collected profits:`,
       Number(collateralDelta.toFixed(depository.collateralDecimals)),
       depository.collateralSymbol
     );

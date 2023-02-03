@@ -13,7 +13,7 @@ import { BN } from '@project-serum/anchor';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
 import { editControllerTest } from '../cases/editControllerTest';
 import { redeemFromCredixLpDepositoryTest } from '../cases/redeemFromCredixLpDepositoryTest';
-import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitOfCredixLpDepositoryTest';
+import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitsOfCredixLpDepositoryTest';
 
 export const credixLpDepositoryMintAndRedeemSuite = async function ({
   authority,
@@ -507,7 +507,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
       }
       expect(failure).eq(
         true,
-        `Should have failed - Invalid profit beneficiary`
+        `Should have failed - Invalid profits beneficiary`
       );
     });
   });

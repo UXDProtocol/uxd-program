@@ -1,6 +1,7 @@
 use crate::error::UxdError;
+use crate::mercurial_utils;
+use crate::mercurial_utils::check_collateral_value_changed_to_match_target;
 use crate::utils;
-use crate::utils::calculate_possible_lp_token_precision_loss_collateral_value;
 use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::MercurialVaultDepository;
@@ -124,9 +125,9 @@ pub fn handler(
     // 1 - Deposit collateral to mercurial vault and get lp tokens
     // Precision loss may occur on transferred LP token amounts, calculate the possible loss and check it later
     let possible_lp_token_precision_loss_collateral_value =
-        calculate_possible_lp_token_precision_loss_collateral_value(
+        mercurial_utils::calculate_possible_lp_token_precision_loss_collateral_value(
             &ctx.accounts.mercurial_vault,
-            &ctx.accounts.mercurial_vault_lp_mint,
+            ctx.accounts.mercurial_vault_lp_mint.supply,
         )?;
 
     mercurial_vault::cpi::deposit(
@@ -152,17 +153,20 @@ pub fn handler(
     )
     .ok_or_else(|| error!(UxdError::MathError))?;
 
-    let minted_lp_token_value = ctx.accounts.calculate_lp_tokens_value(
-        lp_token_change
-            .checked_to_num()
-            .ok_or_else(|| error!(UxdError::MathError))?,
-    )?;
+    let minted_lp_token_value =
+        mercurial_utils::calculate_lp_tokens_value::calculate_lp_tokens_value(
+            &ctx.accounts.mercurial_vault,
+            ctx.accounts.mercurial_vault_lp_mint.supply,
+            lp_token_change
+                .checked_to_num()
+                .ok_or_else(|| error!(UxdError::MathError))?,
+        )?;
 
     // 4 - Check that the minted lp token value matches the collateral value.
     // When manipulating LP tokens/collateral numbers, precision loss may occur.
     // The maximum allowed precision loss is 1 (native unit).
     // Plus the possible LP token precision loss that may have occurred in deposit
-    MintWithMercurialVaultDepository::check_minted_lp_token_value_to_match_collateral_value(
+    check_collateral_value_changed_to_match_target(
         minted_lp_token_value,
         collateral_amount,
         possible_lp_token_precision_loss_collateral_value,
@@ -265,43 +269,6 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         require!(
             controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
             UxdError::RedeemableGlobalSupplyCapReached
-        );
-
-        Ok(())
-    }
-
-    fn calculate_lp_tokens_value(&self, lp_token_amount: u64) -> Result<u64> {
-        let current_time = u64::try_from(Clock::get()?.unix_timestamp)
-            .ok()
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        self.mercurial_vault
-            .get_amount_by_share(
-                current_time,
-                lp_token_amount,
-                self.mercurial_vault_lp_mint.supply,
-            )
-            .ok_or_else(|| error!(UxdError::MathError))
-    }
-
-    // Accept precision loss diff
-    fn check_minted_lp_token_value_to_match_collateral_value(
-        minted_lp_token_value: u64,
-        target: u64,
-        possible_lp_token_precision_loss_collateral_value: u64,
-    ) -> Result<()> {
-        // Lp token precision loss + withdraw collateral precision loss
-        let maximum_allowed_precision_loss = possible_lp_token_precision_loss_collateral_value
-            .checked_add(1)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        let target_minimal_allowed_value = target
-            .checked_sub(maximum_allowed_precision_loss)
-            .ok_or_else(|| error!(UxdError::MathError))?;
-
-        require!(
-            (target_minimal_allowed_value..(target + 1)).contains(&minted_lp_token_value),
-            UxdError::SlippageReached,
         );
 
         Ok(())
