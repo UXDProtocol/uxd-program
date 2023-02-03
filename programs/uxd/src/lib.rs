@@ -15,9 +15,9 @@ pub mod utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-solana_program::declare_id!("EqMrasrCXsbE6mpXaopUH1qip7auwX4AF5UWWpXaLr6u");
+declare_id!("EqMrasrCXsbE6mpXaopUH1qip7auwX4AF5UWWpXaLr6u");
 #[cfg(feature = "production")]
-solana_program::declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
+declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
 // Version used for accounts structure and future migrations
 pub const MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
