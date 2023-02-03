@@ -1,3 +1,4 @@
+mod compute_amount_after_change;
 mod compute_amount_less_fraction;
 mod compute_decrease;
 mod compute_increase;

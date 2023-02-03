@@ -2,6 +2,7 @@ use crate::error::UxdError;
 use crate::mercurial_utils;
 use crate::mercurial_utils::check_collateral_value_changed_to_match_target;
 use crate::utils;
+use crate::utils::compute_increase;
 use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::MercurialVaultDepository;
@@ -15,7 +16,6 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use fixed::types::I80F48;
 
 #[derive(Accounts)]
 pub struct MintWithMercurialVaultDepository<'info> {
@@ -146,20 +146,14 @@ pub fn handler(
     // 3 - Calculate the value of minted lp tokens
     let after_lp_token_vault_balance = ctx.accounts.depository_lp_token_vault.amount;
 
-    let lp_token_change = I80F48::checked_from_num(
-        after_lp_token_vault_balance
-            .checked_sub(before_lp_token_vault_balance)
-            .ok_or_else(|| error!(UxdError::MathError))?,
-    )
-    .ok_or_else(|| error!(UxdError::MathError))?;
+    let lp_token_increase =
+        compute_increase(before_lp_token_vault_balance, after_lp_token_vault_balance)?;
 
     let minted_lp_token_value =
         mercurial_utils::calculate_lp_tokens_value::calculate_lp_tokens_value(
             &ctx.accounts.mercurial_vault,
             ctx.accounts.mercurial_vault_lp_mint.supply,
-            lp_token_change
-                .checked_to_num()
-                .ok_or_else(|| error!(UxdError::MathError))?,
+            lp_token_increase,
         )?;
 
     // 4 - Check that the minted lp token value matches the collateral value.
