@@ -1,9 +1,9 @@
 // Unit tests
 #[cfg(test)]
 mod test_calculate_amount_less_fees {
-    use uxd::utils::calculate_amount_less_fees;
     use anchor_lang::Result;
     use proptest::prelude::*;
+    use uxd::utils::calculate_amount_less_fees;
 
     #[test]
     fn test_zero_fees() -> Result<()> {

@@ -1,9 +1,9 @@
 // Unit tests
 #[cfg(test)]
 mod test_compute_amount_fraction {
-    use uxd::utils::compute_amount_fraction;
     use anchor_lang::Result;
     use proptest::prelude::*;
+    use uxd::utils::compute_amount_fraction;
 
     #[test]
     fn test_correctness() -> Result<()> {

@@ -1,8 +1,8 @@
 // Unit tests
 #[cfg(test)]
 mod test_compute_increase {
-    use uxd::utils::compute_increase;
     use anchor_lang::Result;
+    use uxd::utils::compute_increase;
 
     #[test]
     fn test_decrease() -> Result<()> {
