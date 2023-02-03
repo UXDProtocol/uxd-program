@@ -85,7 +85,7 @@ mod test_compute_amount_after_change {
                     prop_assert!(result.is_err());
                     return Ok(());
                 }
-                // Otherwise we should be cool
+                // Otherwise we should never fail
                 prop_assert!(result.unwrap() == amount_before_change - decrease);
                 return Ok(());
             }

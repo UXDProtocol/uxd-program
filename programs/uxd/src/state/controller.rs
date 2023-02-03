@@ -1,4 +1,5 @@
-use crate::{error::UxdError, utils::compute_amount_after_change};
+use crate::error::UxdError;
+use crate::utils::compute_amount_after_change;
 use anchor_lang::prelude::*;
 
 pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;

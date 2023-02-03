@@ -2,7 +2,8 @@ use std::mem::size_of;
 
 use anchor_lang::prelude::*;
 
-use crate::{error::UxdError, utils::compute_amount_after_change};
+use crate::error::UxdError;
+use crate::utils::compute_amount_after_change;
 
 pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 588;
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
