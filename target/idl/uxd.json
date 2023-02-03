@@ -72,6 +72,32 @@
       ]
     },
     {
+      "name": "computeDepositoriesTargets",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mercurialVaultDepository1",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "credixLpDepository1",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "editMercurialVaultDepository",
       "accounts": [
         {
@@ -312,6 +338,10 @@
         {
           "name": "redeemableAmountUnderManagementCap",
           "type": "u128"
+        },
+        {
+          "name": "redeemableAmountUnderManagementWeight",
+          "type": "u64"
         }
       ]
     },
@@ -736,6 +766,10 @@
         {
           "name": "redeemableAmountUnderManagementCap",
           "type": "u128"
+        },
+        {
+          "name": "redeemableAmountUnderManagementWeight",
+          "type": "u64"
         }
       ]
     },
@@ -1293,6 +1327,14 @@
           {
             "name": "profitsBeneficiaryCollateral",
             "type": "publicKey"
+          },
+          {
+            "name": "redeemableAmountUnderManagementWeight",
+            "type": "u64"
+          },
+          {
+            "name": "redeemableAmountUnderManagementTarget",
+            "type": "u64"
           }
         ]
       }
@@ -1445,6 +1487,14 @@
           {
             "name": "profitsBeneficiaryCollateral",
             "type": "publicKey"
+          },
+          {
+            "name": "redeemableAmountUnderManagementWeight",
+            "type": "u64"
+          },
+          {
+            "name": "redeemableAmountUnderManagementTarget",
+            "type": "u64"
           }
         ]
       }
@@ -1484,6 +1534,12 @@
             "name": "profitsBeneficiaryCollateral",
             "type": {
               "option": "publicKey"
+            }
+          },
+          {
+            "name": "redeemableAmountUnderManagementWeight",
+            "type": {
+              "option": "u64"
             }
           }
         ]
@@ -1556,6 +1612,12 @@
             "name": "profitsBeneficiaryCollateral",
             "type": {
               "option": "publicKey"
+            }
+          },
+          {
+            "name": "redeemableAmountUnderManagementWeight",
+            "type": {
+              "option": "u64"
             }
           }
         ]
@@ -1764,6 +1826,31 @@
         {
           "name": "profitsBeneficiaryCollateral",
           "type": "publicKey",
+          "index": true
+        }
+      ]
+    },
+    {
+      "name": "SetDepositoryRedeemableAmountUnderManagementWeightEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "redeemableAmountUnderManagementWeight",
+          "type": "u64",
           "index": true
         }
       ]
@@ -2315,8 +2402,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "EqMrasrCXsbE6mpXaopUH1qip7auwX4AF5UWWpXaLr6u"
-  }
+  ]
 }

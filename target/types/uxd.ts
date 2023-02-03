@@ -72,6 +72,32 @@ export type Uxd = {
       ]
     },
     {
+      name: 'computeDepositoriesTargets'
+      accounts: [
+        {
+          name: 'payer'
+          isMut: true
+          isSigner: true
+        },
+        {
+          name: 'controller'
+          isMut: true
+          isSigner: false
+        },
+        {
+          name: 'mercurialVaultDepository1'
+          isMut: true
+          isSigner: false
+        },
+        {
+          name: 'credixLpDepository1'
+          isMut: true
+          isSigner: false
+        }
+      ]
+      args: []
+    },
+    {
       name: 'editMercurialVaultDepository'
       accounts: [
         {
@@ -312,6 +338,10 @@ export type Uxd = {
         {
           name: 'redeemableAmountUnderManagementCap'
           type: 'u128'
+        },
+        {
+          name: 'redeemableAmountUnderManagementWeight'
+          type: 'u64'
         }
       ]
     },
@@ -736,6 +766,10 @@ export type Uxd = {
         {
           name: 'redeemableAmountUnderManagementCap'
           type: 'u128'
+        },
+        {
+          name: 'redeemableAmountUnderManagementWeight'
+          type: 'u64'
         }
       ]
     },
@@ -1293,6 +1327,14 @@ export type Uxd = {
           {
             name: 'profitsBeneficiaryCollateral'
             type: 'publicKey'
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight'
+            type: 'u64'
+          },
+          {
+            name: 'redeemableAmountUnderManagementTarget'
+            type: 'u64'
           }
         ]
       }
@@ -1445,6 +1487,14 @@ export type Uxd = {
           {
             name: 'profitsBeneficiaryCollateral'
             type: 'publicKey'
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight'
+            type: 'u64'
+          },
+          {
+            name: 'redeemableAmountUnderManagementTarget'
+            type: 'u64'
           }
         ]
       }
@@ -1484,6 +1534,12 @@ export type Uxd = {
             name: 'profitsBeneficiaryCollateral'
             type: {
               option: 'publicKey'
+            }
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight'
+            type: {
+              option: 'u64'
             }
           }
         ]
@@ -1556,6 +1612,12 @@ export type Uxd = {
             name: 'profitsBeneficiaryCollateral'
             type: {
               option: 'publicKey'
+            }
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight'
+            type: {
+              option: 'u64'
             }
           }
         ]
@@ -1764,6 +1826,31 @@ export type Uxd = {
         {
           name: 'profitsBeneficiaryCollateral'
           type: 'publicKey'
+          index: true
+        }
+      ]
+    },
+    {
+      name: 'SetDepositoryRedeemableAmountUnderManagementWeightEvent'
+      fields: [
+        {
+          name: 'version'
+          type: 'u8'
+          index: true
+        },
+        {
+          name: 'controller'
+          type: 'publicKey'
+          index: true
+        },
+        {
+          name: 'depository'
+          type: 'publicKey'
+          index: true
+        },
+        {
+          name: 'redeemableAmountUnderManagementWeight'
+          type: 'u64'
           index: true
         }
       ]
@@ -2392,6 +2479,32 @@ export const IDL: Uxd = {
       ]
     },
     {
+      name: 'computeDepositoriesTargets',
+      accounts: [
+        {
+          name: 'payer',
+          isMut: true,
+          isSigner: true
+        },
+        {
+          name: 'controller',
+          isMut: true,
+          isSigner: false
+        },
+        {
+          name: 'mercurialVaultDepository1',
+          isMut: true,
+          isSigner: false
+        },
+        {
+          name: 'credixLpDepository1',
+          isMut: true,
+          isSigner: false
+        }
+      ],
+      args: []
+    },
+    {
       name: 'editMercurialVaultDepository',
       accounts: [
         {
@@ -2632,6 +2745,10 @@ export const IDL: Uxd = {
         {
           name: 'redeemableAmountUnderManagementCap',
           type: 'u128'
+        },
+        {
+          name: 'redeemableAmountUnderManagementWeight',
+          type: 'u64'
         }
       ]
     },
@@ -3056,6 +3173,10 @@ export const IDL: Uxd = {
         {
           name: 'redeemableAmountUnderManagementCap',
           type: 'u128'
+        },
+        {
+          name: 'redeemableAmountUnderManagementWeight',
+          type: 'u64'
         }
       ]
     },
@@ -3613,6 +3734,14 @@ export const IDL: Uxd = {
           {
             name: 'profitsBeneficiaryCollateral',
             type: 'publicKey'
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight',
+            type: 'u64'
+          },
+          {
+            name: 'redeemableAmountUnderManagementTarget',
+            type: 'u64'
           }
         ]
       }
@@ -3765,6 +3894,14 @@ export const IDL: Uxd = {
           {
             name: 'profitsBeneficiaryCollateral',
             type: 'publicKey'
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight',
+            type: 'u64'
+          },
+          {
+            name: 'redeemableAmountUnderManagementTarget',
+            type: 'u64'
           }
         ]
       }
@@ -3804,6 +3941,12 @@ export const IDL: Uxd = {
             name: 'profitsBeneficiaryCollateral',
             type: {
               option: 'publicKey'
+            }
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight',
+            type: {
+              option: 'u64'
             }
           }
         ]
@@ -3876,6 +4019,12 @@ export const IDL: Uxd = {
             name: 'profitsBeneficiaryCollateral',
             type: {
               option: 'publicKey'
+            }
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight',
+            type: {
+              option: 'u64'
             }
           }
         ]
@@ -4084,6 +4233,31 @@ export const IDL: Uxd = {
         {
           name: 'profitsBeneficiaryCollateral',
           type: 'publicKey',
+          index: true
+        }
+      ]
+    },
+    {
+      name: 'SetDepositoryRedeemableAmountUnderManagementWeightEvent',
+      fields: [
+        {
+          name: 'version',
+          type: 'u8',
+          index: true
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: true
+        },
+        {
+          name: 'depository',
+          type: 'publicKey',
+          index: true
+        },
+        {
+          name: 'redeemableAmountUnderManagementWeight',
+          type: 'u64',
           index: true
         }
       ]
