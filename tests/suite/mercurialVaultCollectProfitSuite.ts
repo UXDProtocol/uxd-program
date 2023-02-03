@@ -1,9 +1,5 @@
 import { PublicKey, Signer } from '@solana/web3.js';
-import {
-  Controller,
-  MercurialVaultDepository,
-  findATAAddrSync,
-} from '@uxd-protocol/uxd-client';
+import { Controller, MercurialVaultDepository } from '@uxd-protocol/uxd-client';
 import { getConnection } from '../connection';
 import { collectProfitsOfMercurialVaultDepositoryTest } from '../cases/collectProfitsOfMercurialVaultDepositoryTest';
 import {
@@ -15,6 +11,7 @@ import { transferLpTokenToDepositoryLpVault } from '../mercurial_vault_utils';
 import { editMercurialVaultDepositoryTest } from '../cases/editMercurialVaultDepositoryTest';
 import { expect } from 'chai';
 import { TOKEN_PROGRAM_ID, Token } from '@solana/spl-token';
+import { createMercurialVaultDepositoryDevnet } from '../utils';
 
 export const mercurialVaultDepositoryCollectProfitsSuite = async function ({
   authority,
@@ -33,16 +30,7 @@ export const mercurialVaultDepositoryCollectProfitsSuite = async function ({
   before(
     'Setup: add LP token to mercurial vault depository LP token safe to simulate interests',
     async function () {
-      depository = await MercurialVaultDepository.initialize({
-        connection: getConnection(),
-        collateralMint: {
-          mint: MERCURIAL_USDC_DEVNET,
-          name: 'USDC',
-          symbol: collateralSymbol,
-          decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
-        },
-        uxdProgramId,
-      });
+      depository = await createMercurialVaultDepositoryDevnet();
 
       console.log(
         'depository.collateralMint.mint',

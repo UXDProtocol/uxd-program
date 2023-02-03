@@ -4,6 +4,10 @@ import {
   nativeToUi,
   uiToNative,
   CredixLpDepository,
+  MercurialVaultDepository,
+  IdentityDepository,
+  USDC_DECIMALS,
+  USDC_DEVNET,
 } from '@uxd-protocol/uxd-client';
 import { PublicKey, Signer } from '@solana/web3.js';
 import * as anchor from '@project-serum/anchor';
@@ -14,7 +18,11 @@ import {
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 import { getConnection, TXN_COMMIT, TXN_OPTS } from './connection';
-import { uxdProgramId } from './constants';
+import {
+  MERCURIAL_USDC_DEVNET,
+  MERCURIAL_USDC_DEVNET_DECIMALS,
+  uxdProgramId,
+} from './constants';
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
@@ -251,4 +259,31 @@ export async function createCredixLpDepositoryDevnetUSDC(): Promise<CredixLpDepo
     console.error('Failed to initialize devnet credix depository');
     throw error;
   }
+}
+
+export async function createMercurialVaultDepositoryDevnet(): Promise<MercurialVaultDepository> {
+  try {
+    return await MercurialVaultDepository.initialize({
+      connection: getConnection(),
+      collateralMint: {
+        mint: MERCURIAL_USDC_DEVNET,
+        name: 'USDC',
+        symbol: 'USDC',
+        decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
+      },
+      uxdProgramId,
+    });
+  } catch (error) {
+    console.error('Failed to initialize devnet mercurial depository');
+    throw error;
+  }
+}
+
+export function createIdentityDepositoryDevnet(): IdentityDepository {
+  return new IdentityDepository(
+    USDC_DEVNET,
+    'USDC',
+    USDC_DECIMALS,
+    uxdProgramId
+  );
 }

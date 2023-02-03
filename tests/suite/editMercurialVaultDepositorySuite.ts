@@ -12,6 +12,7 @@ import {
   MERCURIAL_USDC_DEVNET_DECIMALS,
   uxdProgramId,
 } from '../constants';
+import { createMercurialVaultDepositoryDevnet } from '../utils';
 
 export const editMercurialVaultDepositorySuite = async function ({
   authority,
@@ -25,16 +26,7 @@ export const editMercurialVaultDepositorySuite = async function ({
 
   describe('Edit mint/redeem', () => {
     before(async () => {
-      depository = await MercurialVaultDepository.initialize({
-        connection: getConnection(),
-        collateralMint: {
-          mint: MERCURIAL_USDC_DEVNET,
-          name: 'USDC',
-          symbol: 'USDC',
-          decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
-        },
-        uxdProgramId,
-      });
+      depository = await createMercurialVaultDepositoryDevnet();
 
       // Snapshot the initial depository values
       beforeDepository = await depository.getOnchainAccount(

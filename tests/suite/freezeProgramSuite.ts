@@ -20,13 +20,11 @@ import { redeemFromCredixLpDepositoryTest } from '../cases/redeemFromCredixLpDep
 import { redeemFromIdentityDepositoryTest } from '../cases/redeemFromIdentityDepositoryTest';
 import { redeemFromMercurialVaultDepositoryTest } from '../cases/redeemFromMercurialVaultDepositoryTest';
 import { registerMercurialVaultDepositoryTest } from '../cases/registerMercurialVaultDepositoryTest';
-import { getConnection } from '../connection';
+import { uxdProgramId } from '../constants';
 import {
-  MERCURIAL_USDC_DEVNET,
-  MERCURIAL_USDC_DEVNET_DECIMALS,
-  uxdProgramId,
-} from '../constants';
-import { createCredixLpDepositoryDevnetUSDC } from '../utils';
+  createCredixLpDepositoryDevnetUSDC,
+  createMercurialVaultDepositoryDevnet,
+} from '../utils';
 
 export const freezeProgramSuite = async function ({
   authority,
@@ -45,16 +43,7 @@ export const freezeProgramSuite = async function ({
   const collateralSymbol = 'USDC';
 
   before(async () => {
-    mercurialVaultDepository = await MercurialVaultDepository.initialize({
-      connection: getConnection(),
-      collateralMint: {
-        mint: MERCURIAL_USDC_DEVNET,
-        name: 'USDC',
-        symbol: collateralSymbol,
-        decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
-      },
-      uxdProgramId,
-    });
+    mercurialVaultDepository = await createMercurialVaultDepositoryDevnet();
     credixLpDepository = await createCredixLpDepositoryDevnetUSDC();
     identityDepository = new IdentityDepository(
       USDC_DEVNET,

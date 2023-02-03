@@ -36,7 +36,6 @@ import { transferSol, transferAllSol, transferAllTokens } from './utils';
       editIdentityDepositorySuite({
         authority,
         controller,
-        depository: identityDepository,
       });
     });
 

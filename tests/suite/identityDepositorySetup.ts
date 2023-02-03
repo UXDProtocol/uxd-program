@@ -7,6 +7,7 @@ import {
 } from '@uxd-protocol/uxd-client';
 import { initializeIdentityDepositoryTest } from '../cases/InitializeIdentityDepositoryTest';
 import { uxdProgramId } from '../constants';
+import { createIdentityDepositoryDevnet } from '../utils';
 
 export const identityDepositorySetupSuite = function ({
   authority,
@@ -20,12 +21,7 @@ export const identityDepositorySetupSuite = function ({
   let depository: IdentityDepository;
 
   before(async () => {
-    depository = new IdentityDepository(
-      USDC_DEVNET,
-      'USDC',
-      USDC_DECIMALS,
-      uxdProgramId
-    );
+    depository = createIdentityDepositoryDevnet();
   });
   it('Initialize IdentityDepository', () =>
     initializeIdentityDepositoryTest({

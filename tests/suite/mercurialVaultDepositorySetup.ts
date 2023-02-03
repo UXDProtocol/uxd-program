@@ -1,12 +1,7 @@
-import { PublicKey, Signer } from '@solana/web3.js';
+import { Signer } from '@solana/web3.js';
 import { Controller, MercurialVaultDepository } from '@uxd-protocol/uxd-client';
 import { registerMercurialVaultDepositoryTest } from '../cases/registerMercurialVaultDepositoryTest';
-import { getConnection } from '../connection';
-import {
-  MERCURIAL_USDC_DEVNET,
-  MERCURIAL_USDC_DEVNET_DECIMALS,
-  uxdProgramId,
-} from '../constants';
+import { createMercurialVaultDepositoryDevnet } from '../utils';
 
 export const mercurialVaultDepositorySetupSuite = function ({
   authority,
@@ -26,16 +21,7 @@ export const mercurialVaultDepositorySetupSuite = function ({
   let depository: MercurialVaultDepository;
 
   before(async () => {
-    depository = await MercurialVaultDepository.initialize({
-      connection: getConnection(),
-      collateralMint: {
-        mint: MERCURIAL_USDC_DEVNET,
-        name: 'USDC',
-        symbol: 'USDC',
-        decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
-      },
-      uxdProgramId,
-    });
+    depository = await createMercurialVaultDepositoryDevnet();
   });
 
   it('Registers mercurialVaultDepository', () =>

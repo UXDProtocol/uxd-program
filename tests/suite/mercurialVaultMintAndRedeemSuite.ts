@@ -9,17 +9,16 @@ import {
 import { expect } from 'chai';
 import { redeemFromMercurialVaultDepositoryTest } from '../cases/redeemFromMercurialVaultDepositoryTest';
 import { mintWithMercurialVaultDepositoryTest } from '../cases/mintWithMercurialVaultDepositoryTest';
-import { getBalance, transferTokens } from '../utils';
+import {
+  createMercurialVaultDepositoryDevnet,
+  getBalance,
+  transferTokens,
+} from '../utils';
 import { getConnection, TXN_OPTS } from '../connection';
 import { BN } from '@project-serum/anchor';
 import { editMercurialVaultDepositoryTest } from '../cases/editMercurialVaultDepositoryTest';
 import { MercurialVaultDepositoryAccount } from '@uxd-protocol/uxd-client';
 import { editControllerTest } from '../cases/editControllerTest';
-import {
-  MERCURIAL_USDC_DEVNET,
-  MERCURIAL_USDC_DEVNET_DECIMALS,
-  uxdProgramId,
-} from '../constants';
 
 export const mercurialVaultDepositoryMintRedeemSuite = async function ({
   authority,
@@ -44,16 +43,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
   before('Setup: fund user', async function () {
     console.log(' user.publicKey', user.publicKey.toBase58());
 
-    depository = await MercurialVaultDepository.initialize({
-      connection: getConnection(),
-      collateralMint: {
-        mint: MERCURIAL_USDC_DEVNET,
-        name: 'USDC',
-        symbol: collateralSymbol,
-        decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
-      },
-      uxdProgramId,
-    });
+    depository = await createMercurialVaultDepositoryDevnet();
 
     console.log(
       'depository.collateralMint.mint',

@@ -7,21 +7,24 @@ import {
 } from '@uxd-protocol/uxd-client';
 import { getConnection, TXN_OPTS } from '../connection';
 import { editIdentityDepositoryTest } from '../cases/editIdentityDepositoryTest';
+import { createIdentityDepositoryDevnet } from '../utils';
 
 export const editIdentityDepositorySuite = async function ({
   authority,
   controller,
-  depository,
 }: {
   authority: Signer;
   controller: Controller;
-  depository: IdentityDepository;
 }) {
+  let depository: IdentityDepository;
+
   let beforeDepository: IdentityDepositoryAccount;
 
   describe('Edit mint/redeem', () => {
     // Snapshot the initial depository values
     before(async () => {
+      depository = createIdentityDepositoryDevnet();
+
       beforeDepository = await depository.getOnchainAccount(
         getConnection(),
         TXN_OPTS

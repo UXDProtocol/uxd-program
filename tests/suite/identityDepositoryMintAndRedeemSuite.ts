@@ -9,7 +9,11 @@ import {
   USDC_DEVNET,
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
-import { getBalance, transferTokens } from '../utils';
+import {
+  createIdentityDepositoryDevnet,
+  getBalance,
+  transferTokens,
+} from '../utils';
 import { getConnection, TXN_OPTS } from '../connection';
 import { BN } from '@project-serum/anchor';
 import { IdentityDepositoryAccount } from '@uxd-protocol/uxd-client/dist/types/interfaces';
@@ -39,12 +43,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
   let depository: IdentityDepository;
 
   before('Setup: fund user', async function () {
-    depository = new IdentityDepository(
-      USDC_DEVNET,
-      'USDC',
-      USDC_DECIMALS,
-      uxdProgramId
-    );
+    depository = createIdentityDepositoryDevnet();
 
     console.log(
       'depository.collateralMint',
