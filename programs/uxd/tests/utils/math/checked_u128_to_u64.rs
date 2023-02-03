@@ -1,7 +1,7 @@
 // Unit tests
 #[cfg(test)]
 mod test_checked_u128_to_u64 {
-    use crate::utils::checked_u128_to_u64;
+    use uxd::utils::checked_u128_to_u64;
     use anchor_lang::Result;
     use proptest::prelude::*;
 

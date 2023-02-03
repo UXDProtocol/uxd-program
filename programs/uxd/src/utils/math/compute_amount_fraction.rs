@@ -1,7 +1,6 @@
 use crate::error::UxdError;
+use crate::utils::checked_u128_to_u64;
 use anchor_lang::prelude::*;
-
-use super::checked_u128_to_u64;
 
 // Precision loss may lower the returned value amount.
 // Precision loss of 1 native unit may be expected.

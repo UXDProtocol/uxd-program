@@ -86,34 +86,34 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
 
     // ---------------------------------------------------------------------
     // -- Phase 2
-    // -- Using the raw_target and the depository hard_cap:
-    // -- * Compute the overflow (raw target amount above the hard cap)
-    // -- * Compute the availability (raw target amount until the hard cap)
+    // -- Using the raw_target and the depository cap:
+    // -- * Compute the overflow (raw target amount above the cap)
+    // -- * Compute the availability (raw target amount until the cap)
     // ---------------------------------------------------------------------
 
-    // Read the minting hard caps of each depository
-    let mercurial_vault_depository_1_hard_cap =
+    // Read the minting caps of each depository
+    let mercurial_vault_depository_1_cap =
         checked_u128_to_u64(mercurial_vault_depository_1.redeemable_amount_under_management_cap)?;
-    let credix_lp_depository_1_hard_cap =
+    let credix_lp_depository_1_cap =
         checked_u128_to_u64(credix_lp_depository_1.redeemable_amount_under_management_cap)?;
 
     // Compute the depository_overflow amount of raw target that doesn't fit within the cap of each depository
     let mercurial_vault_depository_1_overflow = ctx.accounts.compute_overflow(
         mercurial_vault_depository_1_raw_target,
-        mercurial_vault_depository_1_hard_cap,
+        mercurial_vault_depository_1_cap,
     )?;
     let credix_lp_depository_1_overflow = ctx.accounts.compute_overflow(
         credix_lp_depository_1_raw_target,
-        credix_lp_depository_1_hard_cap,
+        credix_lp_depository_1_cap,
     )?;
-    // Compute the amount of space available under the hard cap in each depository
+    // Compute the amount of space available under the cap in each depository
     let mercurial_vault_depository_1_availability = ctx.accounts.compute_availability(
         mercurial_vault_depository_1_raw_target,
-        mercurial_vault_depository_1_hard_cap,
+        mercurial_vault_depository_1_cap,
     )?;
     let credix_lp_depository_1_availability = ctx.accounts.compute_availability(
         credix_lp_depository_1_raw_target,
-        credix_lp_depository_1_hard_cap,
+        credix_lp_depository_1_cap,
     )?;
 
     // ---------------------------------------------------------------------
@@ -139,7 +139,7 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
     // -- * FinalTarget = raw_target - overflow + ExtraBonus
     // -- * ExtraBonus = total_overflow * (availability / total_availability)
     // -- In other words:
-    // -- * The final target is capped at the hard cap
+    // -- * The final target is capped at the cap
     // -- * Any amount overflowing that is transfered to others depositories
     // -- * Depositories with available space will receive overflows
     // ---------------------------------------------------------------------
@@ -188,30 +188,26 @@ impl<'info> ComputeDepositoriesTargets<'info> {
         Ok(depository_raw_target)
     }
 
-    // Compute the overflow value: overflow = max(0, raw_target - hard_cap)
-    pub fn compute_overflow(
-        &self,
-        depository_raw_target: u64,
-        depository_hard_cap: u64,
-    ) -> Result<u64> {
-        if depository_raw_target <= depository_hard_cap {
+    // Compute the overflow value: overflow = max(0, raw_target - cap)
+    pub fn compute_overflow(&self, depository_raw_target: u64, depository_cap: u64) -> Result<u64> {
+        if depository_raw_target <= depository_cap {
             return Ok(0);
         }
         Ok(depository_raw_target
-            .checked_sub(depository_hard_cap)
+            .checked_sub(depository_cap)
             .ok_or(UxdError::MathError)?)
     }
 
-    // Compute the availability value: availability = max(0, hard_cap - raw_target)
+    // Compute the availability value: availability = max(0, cap - raw_target)
     pub fn compute_availability(
         &self,
         depository_raw_target: u64,
-        depository_hard_cap: u64,
+        depository_cap: u64,
     ) -> Result<u64> {
-        if depository_raw_target >= depository_hard_cap {
+        if depository_raw_target >= depository_cap {
             return Ok(0);
         }
-        Ok(depository_hard_cap
+        Ok(depository_cap
             .checked_sub(depository_raw_target)
             .ok_or(UxdError::MathError)?)
     }

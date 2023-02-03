@@ -115,6 +115,7 @@ pub(crate) fn handler(
             minting_disabled
         });
     }
+
     // optional: profits_beneficiary_collateral
     if let Some(profits_beneficiary_collateral) = fields.profits_beneficiary_collateral {
         msg!(

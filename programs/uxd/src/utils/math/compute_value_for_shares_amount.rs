@@ -1,4 +1,5 @@
-use crate::{error::UxdError, utils::checked_u128_to_u64};
+use crate::error::UxdError;
+use crate::utils::checked_u128_to_u64;
 use anchor_lang::prelude::*;
 
 // Precision loss may lower the returned value amount.

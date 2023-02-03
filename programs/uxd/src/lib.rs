@@ -10,7 +10,6 @@ pub mod events;
 pub mod instructions;
 pub mod mercurial_utils;
 pub mod state;
-pub mod test;
 pub mod utils;
 
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
@@ -129,13 +128,14 @@ pub mod uxd {
     // Create and Register a new `MercurialVaultDepository` to the `Controller`.
     // Each `Depository` account manages a specific collateral mint.
     #[access_control(
-        ctx.accounts.validate(minting_fee_in_bps, redeeming_fee_in_bps, redeemable_amount_under_management_cap)
+        ctx.accounts.validate()
     )]
     pub fn register_mercurial_vault_depository(
         ctx: Context<RegisterMercurialVaultDepository>,
         minting_fee_in_bps: u8,
         redeeming_fee_in_bps: u8,
         redeemable_amount_under_management_cap: u128,
+        redeemable_amount_under_management_weight: u64,
     ) -> Result<()> {
         msg!("[register_mercurial_vault_depository]");
         instructions::register_mercurial_vault_depository::handler(
@@ -143,6 +143,7 @@ pub mod uxd {
             minting_fee_in_bps,
             redeeming_fee_in_bps,
             redeemable_amount_under_management_cap,
+            redeemable_amount_under_management_weight,
         )
     }
 
@@ -213,6 +214,7 @@ pub mod uxd {
         minting_fee_in_bps: u8,
         redeeming_fee_in_bps: u8,
         redeemable_amount_under_management_cap: u128,
+        redeemable_amount_under_management_weight: u64,
     ) -> Result<()> {
         msg!("[register_credix_lp_depository]");
         instructions::register_credix_lp_depository::handler(
@@ -220,6 +222,7 @@ pub mod uxd {
             minting_fee_in_bps,
             redeeming_fee_in_bps,
             redeemable_amount_under_management_cap,
+            redeemable_amount_under_management_weight,
         )
     }
 

@@ -1,7 +1,7 @@
 // Unit tests
 #[cfg(test)]
 mod test_calculate_amount_less_fees {
-    use crate::utils::calculate_amount_less_fees;
+    use uxd::utils::calculate_amount_less_fees;
     use anchor_lang::Result;
     use proptest::prelude::*;
 
