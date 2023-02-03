@@ -5,13 +5,17 @@ import { editController } from '../api';
 import { getConnection, TXN_OPTS } from '../connection';
 import { CLUSTER } from '../constants';
 
-export const editControllerTest = async function (
-  authority: Signer,
-  controller: Controller,
+export const editControllerTest = async function ({
+  authority,
+  controller,
+  uiFields,
+}: {
+  authority: Signer;
+  controller: Controller;
   uiFields: {
     redeemableGlobalSupplyCap?: number;
-  }
-) {
+  };
+}) {
   const connection = getConnection();
   const options = TXN_OPTS;
 
@@ -27,7 +31,11 @@ export const editControllerTest = async function (
       controllerOnChainAccount.redeemableGlobalSupplyCap;
 
     // WHEN
-    const txId = await editController(authority, controller, uiFields);
+    const txId = await editController({
+      authority,
+      controller,
+      uiFields,
+    });
     console.log(
       `🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`
     );

@@ -11,13 +11,19 @@ import { getConnection, TXN_OPTS } from '../connection';
 import { CLUSTER } from '../constants';
 import { getBalance, ceilAtDecimals } from '../utils';
 
-export const redeemFromCredixLpDepositoryTest = async function (
-  redeemableAmount: number,
-  user: Signer,
-  controller: Controller,
-  depository: CredixLpDepository,
-  payer?: Signer
-): Promise<number> {
+export const redeemFromCredixLpDepositoryTest = async function ({
+  redeemableAmount,
+  user,
+  controller,
+  depository,
+  payer,
+}: {
+  redeemableAmount: number;
+  user: Signer;
+  controller: Controller;
+  depository: CredixLpDepository;
+  payer?: Signer;
+}): Promise<number> {
   console.group('🧭 redeemFromCredixLpDepositoryTest');
 
   try {

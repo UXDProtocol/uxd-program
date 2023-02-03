@@ -7,26 +7,33 @@ import {
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
 import { mintWithCredixLpDepositoryTest } from '../cases/mintWithCredixLpDepositoryTest';
-import { transferTokens } from '../utils';
+import { createCredixLpDepositoryDevnetUSDC, transferTokens } from '../utils';
 import { getConnection, TXN_OPTS } from '../connection';
 import { BN } from '@project-serum/anchor';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
 import { editControllerTest } from '../cases/editControllerTest';
 import { redeemFromCredixLpDepositoryTest } from '../cases/redeemFromCredixLpDepositoryTest';
-import { collectProfitsOfCredixLpDepositoryTest } from '../cases/collectProfitsOfCredixLpDepositoryTest';
+import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitsOfCredixLpDepositoryTest';
 
-export const credixLpDepositoryMintAndRedeemSuite = async function (
-  authority: Signer,
-  user: Signer,
-  payer: Signer,
-  profitsBeneficiary: Signer,
-  controller: Controller,
-  depository: CredixLpDepository
-) {
+export const credixLpDepositoryMintAndRedeemSuite = async function ({
+  authority,
+  user,
+  payer,
+  profitsBeneficiary,
+  controller,
+}: {
+  authority: Signer;
+  user: Signer;
+  payer: Signer;
+  profitsBeneficiary: Signer;
+  controller: Controller;
+}) {
   let initialControllerGlobalRedeemableSupplyCap: BN;
   let initialRedeemableDepositorySupplyCap: BN;
+  let depository: CredixLpDepository;
 
   before('Setup: fund user', async function () {
+    depository = await createCredixLpDepositoryDevnetUSDC();
     await transferTokens(
       0.002,
       depository.collateralMint,
@@ -48,22 +55,22 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
 
   describe('Regular mint/redeem', () => {
     it(`Mint then redeem ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol}`, async function () {
-      const collateralAmount = 0.001;
+      const uiAmountCollateralDeposited = 0.001;
 
       console.log(
-        '[🧾 collateralAmount',
-        collateralAmount,
+        '[🧾 uiAmountCollateralDeposited',
+        uiAmountCollateralDeposited,
         depository.collateralSymbol,
         ']'
       );
 
-      const redeemableAmount = await mintWithCredixLpDepositoryTest(
-        collateralAmount,
+      const redeemableAmount = await mintWithCredixLpDepositoryTest({
+        uiAmountCollateralDeposited,
         user,
         controller,
         depository,
-        payer
-      );
+        payer,
+      });
 
       console.log(
         '[🧾 redeemableAmount',
@@ -72,36 +79,36 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
         ']'
       );
 
-      await redeemFromCredixLpDepositoryTest(
+      await redeemFromCredixLpDepositoryTest({
         redeemableAmount,
         user,
         controller,
         depository,
-        payer
-      );
+        payer,
+      });
     });
   });
 
   describe('Over limits', () => {
     it(`Mint for more ${depository.collateralSymbol} than owned (should fail)`, async function () {
-      const collateralAmount = 1_000_000;
+      const uiAmountCollateralDeposited = 1_000_000;
 
       console.log(
-        '[🧾 collateralAmount',
-        collateralAmount,
+        '[🧾 uiAmountCollateralDeposited',
+        uiAmountCollateralDeposited,
         depository.collateralSymbol,
         ']'
       );
 
       let failure = false;
       try {
-        await mintWithCredixLpDepositoryTest(
-          collateralAmount,
+        await mintWithCredixLpDepositoryTest({
+          uiAmountCollateralDeposited,
           user,
           controller,
           depository,
-          payer
-        );
+          payer,
+        });
       } catch {
         failure = true;
       }
@@ -123,13 +130,13 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
 
       let failure = false;
       try {
-        await redeemFromCredixLpDepositoryTest(
+        await redeemFromCredixLpDepositoryTest({
           redeemableAmount,
           user,
           controller,
           depository,
-          payer
-        );
+          payer,
+        });
       } catch {
         failure = true;
       }
@@ -140,24 +147,24 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
     });
 
     it(`Mint for 0 ${depository.collateralSymbol} (should fail)`, async function () {
-      const collateralAmount = 0;
+      const uiAmountCollateralDeposited = 0;
 
       console.log(
-        '[🧾 collateralAmount',
-        collateralAmount,
+        '[🧾 uiAmountCollateralDeposited',
+        uiAmountCollateralDeposited,
         depository.collateralSymbol,
         ']'
       );
 
       let failure = false;
       try {
-        await mintWithCredixLpDepositoryTest(
-          collateralAmount,
+        await mintWithCredixLpDepositoryTest({
+          uiAmountCollateralDeposited,
           user,
           controller,
           depository,
-          payer
-        );
+          payer,
+        });
       } catch {
         failure = true;
       }
@@ -180,13 +187,13 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
 
       let failure = false;
       try {
-        await redeemFromCredixLpDepositoryTest(
+        await redeemFromCredixLpDepositoryTest({
           redeemableAmount,
           user,
           controller,
           depository,
-          payer
-        );
+          payer,
+        });
       } catch {
         failure = true;
       }
@@ -201,44 +208,47 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
     before(
       `Setup: Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol}`,
       async function () {
-        const collateralAmount = 0.001;
+        const uiAmountCollateralDeposited = 0.001;
 
         console.log(
-          '[🧾 collateralAmount',
-          collateralAmount,
+          '[🧾 uiAmountCollateralDeposited',
+          uiAmountCollateralDeposited,
           depository.collateralSymbol,
           ']'
         );
 
-        await mintWithCredixLpDepositoryTest(
-          collateralAmount,
+        await mintWithCredixLpDepositoryTest({
+          uiAmountCollateralDeposited,
           user,
           controller,
           depository,
-          payer
-        );
+          payer,
+        });
       }
     );
 
     it(`Mint for 1 native unit ${depository.collateralSymbol} (should fail)`, async function () {
-      const collateralAmount = Math.pow(10, -depository.collateralDecimals);
+      const uiAmountCollateralDeposited = Math.pow(
+        10,
+        -depository.collateralDecimals
+      );
 
       console.log(
-        '[🧾 collateralAmount',
-        collateralAmount,
+        '[🧾 uiAmountCollateralDeposited',
+        uiAmountCollateralDeposited,
         depository.collateralSymbol,
         ']'
       );
 
       let failure = false;
       try {
-        await mintWithCredixLpDepositoryTest(
-          collateralAmount,
+        await mintWithCredixLpDepositoryTest({
+          uiAmountCollateralDeposited,
           user,
           controller,
           depository,
-          payer
-        );
+          payer,
+        });
       } catch {
         failure = true;
       }
@@ -261,13 +271,13 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
 
       let failure = false;
       try {
-        await redeemFromCredixLpDepositoryTest(
+        await redeemFromCredixLpDepositoryTest({
           redeemableAmount,
           user,
           controller,
           depository,
-          payer
-        );
+          payer,
+        });
       } catch {
         failure = true;
       }
@@ -281,29 +291,33 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
 
   describe('Global redeemable supply cap overflow', () => {
     it('Set global redeemable supply cap to 0', () =>
-      editControllerTest(authority, controller, {
-        redeemableGlobalSupplyCap: 0,
+      editControllerTest({
+        authority,
+        controller,
+        uiFields: {
+          redeemableGlobalSupplyCap: 0,
+        },
       }));
 
     it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol} (should fail)`, async function () {
-      const collateralAmount = 0.001;
+      const uiAmountCollateralDeposited = 0.001;
 
       console.log(
-        '[🧾 collateralAmount',
-        collateralAmount,
+        '[🧾 uiAmountCollateralDeposited',
+        uiAmountCollateralDeposited,
         depository.collateralSymbol,
         ']'
       );
 
       let failure = false;
       try {
-        await mintWithCredixLpDepositoryTest(
-          collateralAmount,
+        await mintWithCredixLpDepositoryTest({
+          uiAmountCollateralDeposited,
           user,
           controller,
           depository,
-          payer
-        );
+          payer,
+        });
       } catch {
         failure = true;
       }
@@ -320,8 +334,12 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
         controller.redeemableMintDecimals
       );
 
-      await editControllerTest(authority, controller, {
-        redeemableGlobalSupplyCap: globalRedeemableSupplyCap,
+      await editControllerTest({
+        authority,
+        controller,
+        uiFields: {
+          redeemableGlobalSupplyCap: globalRedeemableSupplyCap,
+        },
       });
     });
   });
@@ -333,34 +351,39 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
         TXN_OPTS
       );
 
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        redeemableAmountUnderManagementCap:
-          nativeToUi(
-            onChainDepository.redeemableAmountUnderManagement,
-            controller.redeemableMintDecimals
-          ) + 0.0005,
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          redeemableAmountUnderManagementCap:
+            nativeToUi(
+              onChainDepository.redeemableAmountUnderManagement,
+              controller.redeemableMintDecimals
+            ) + 0.0005,
+        },
       });
     });
 
     it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol} (should fail)`, async function () {
-      const collateralAmount = 0.001;
+      const uiAmountCollateralDeposited = 0.001;
 
       console.log(
         '[🧾 collateralAmount',
-        collateralAmount,
+        uiAmountCollateralDeposited,
         depository.collateralSymbol,
         ']'
       );
 
       let failure = false;
       try {
-        await mintWithCredixLpDepositoryTest(
-          collateralAmount,
+        await mintWithCredixLpDepositoryTest({
+          uiAmountCollateralDeposited,
           user,
           controller,
           depository,
-          payer
-        );
+          payer,
+        });
       } catch {
         failure = true;
       }
@@ -377,38 +400,48 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
         controller.redeemableMintDecimals
       );
 
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        redeemableAmountUnderManagementCap,
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          redeemableAmountUnderManagementCap,
+        },
       });
     });
   });
 
   describe('Disabled minting', () => {
     it('Disable minting on credix lp depository', async function () {
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        mintingDisabled: true,
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          mintingDisabled: true,
+        },
       });
     });
 
     it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol} (should fail)`, async function () {
-      const collateralAmount = 0.001;
+      const uiAmountCollateralDeposited = 0.001;
 
       console.log(
-        '[🧾 collateralAmount',
-        collateralAmount,
+        '[🧾 uiAmountCollateralDeposited',
+        uiAmountCollateralDeposited,
         depository.collateralSymbol,
         ']'
       );
 
       let failure = false;
       try {
-        await mintWithCredixLpDepositoryTest(
-          collateralAmount,
+        await mintWithCredixLpDepositoryTest({
+          uiAmountCollateralDeposited,
           user,
           controller,
           depository,
-          payer
-        );
+          payer,
+        });
       } catch {
         failure = true;
       }
@@ -417,8 +450,13 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
     });
 
     it(`Re-enable minting for credix lp depository`, async function () {
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        mintingDisabled: false,
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          mintingDisabled: false,
+        },
       });
     });
   });
@@ -430,30 +468,40 @@ export const credixLpDepositoryMintAndRedeemSuite = async function (
         profitsBeneficiary.publicKey,
         depository.collateralMint
       )[0];
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        profitsBeneficiaryCollateral: profitsBeneficiaryCollateral,
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          profitsBeneficiaryCollateral,
+        },
       });
-      await collectProfitsOfCredixLpDepositoryTest(
+      await collectProfitOfCredixLpDepositoryTest({
         payer,
         profitsBeneficiaryCollateral,
         controller,
-        depository
-      );
+        depository,
+      });
     });
 
     it(`Collecting profits of credixLpDepository should not work for invalid collateral address`, async function () {
       console.log('[🧾 collectProfits]');
-      await editCredixLpDepositoryTest(authority, controller, depository, {
-        profitsBeneficiaryCollateral: PublicKey.default,
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          profitsBeneficiaryCollateral: PublicKey.default,
+        },
       });
       let failure = false;
       try {
-        await collectProfitsOfCredixLpDepositoryTest(
+        await collectProfitOfCredixLpDepositoryTest({
           payer,
-          PublicKey.default,
+          profitsBeneficiaryCollateral: PublicKey.default,
           controller,
-          depository
-        );
+          depository,
+        });
       } catch {
         failure = true;
       }

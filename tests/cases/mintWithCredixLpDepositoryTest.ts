@@ -11,13 +11,19 @@ import { getConnection, TXN_OPTS } from '../connection';
 import { CLUSTER } from '../constants';
 import { getBalance, ceilAtDecimals } from '../utils';
 
-export const mintWithCredixLpDepositoryTest = async function (
-  uiAmmountCollateralDeposited: number,
-  user: Signer,
-  controller: Controller,
-  depository: CredixLpDepository,
-  payer?: Signer
-): Promise<number> {
+export const mintWithCredixLpDepositoryTest = async function ({
+  uiAmountCollateralDeposited,
+  user,
+  controller,
+  depository,
+  payer,
+}: {
+  uiAmountCollateralDeposited: number;
+  user: Signer;
+  controller: Controller;
+  depository: CredixLpDepository;
+  payer?: Signer;
+}): Promise<number> {
   console.group('🧭 mintWithCredixLpDepositoryTest');
 
   try {
@@ -50,7 +56,7 @@ export const mintWithCredixLpDepositoryTest = async function (
       payer ?? user,
       controller,
       depository,
-      uiAmmountCollateralDeposited
+      uiAmountCollateralDeposited
     );
     console.log(
       `🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`
@@ -87,9 +93,9 @@ export const mintWithCredixLpDepositoryTest = async function (
     );
 
     const estimatedFeesPaid = ceilAtDecimals(
-      uiAmmountCollateralDeposited -
+      uiAmountCollateralDeposited -
         ((10_000 - onchainDepository_pre.mintingFeeInBps) *
-          uiAmmountCollateralDeposited) /
+          uiAmountCollateralDeposited) /
           10_000,
       controller.redeemableMintDecimals
     );
@@ -108,14 +114,14 @@ export const mintWithCredixLpDepositoryTest = async function (
 
     // Check used collateral
     expect(-userCollateralDelta).equal(
-      uiAmmountCollateralDeposited,
+      uiAmountCollateralDeposited,
       'The amount of collateral used for the mint should be exactly the one specified by the user'
     );
 
     // Check minted redeemable amount
     // handle precision loss
     const estimatedRedeemableAmount = Number(
-      (uiAmmountCollateralDeposited - estimatedFeesPaid).toFixed(
+      (uiAmountCollateralDeposited - estimatedFeesPaid).toFixed(
         controller.redeemableMintDecimals
       )
     );
@@ -141,7 +147,7 @@ export const mintWithCredixLpDepositoryTest = async function (
         nativeToUi(
           onchainDepository_pre.collateralAmountDeposited,
           depository.collateralDecimals
-        ) + uiAmmountCollateralDeposited
+        ) + uiAmountCollateralDeposited
       ).toFixed(depository.collateralDecimals)
     );
 

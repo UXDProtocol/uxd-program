@@ -2,28 +2,45 @@ import { Signer } from '@solana/web3.js';
 import { Controller, CredixLpDepository } from '@uxd-protocol/uxd-client';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
 import { registerCredixLpDepositoryTest } from '../cases/registerCredixLpDepositoryTest';
+import { createCredixLpDepositoryDevnetUSDC } from '../utils';
 
-export const credixLpDepositorySetupSuite = function (
-  authority: Signer,
-  payer: Signer,
-  controller: Controller,
-  depository: CredixLpDepository,
-  mintingFeeInBps: number,
-  redeemingFeeInBps: number,
-  uiRedeemableAmountUnderManagementCap: number
-) {
+export const credixLpDepositorySetupSuite = async function ({
+  authority,
+  payer,
+  controller,
+  mintingFeeInBps,
+  redeemingFeeInBps,
+  uiRedeemableAmountUnderManagementCap,
+}: {
+  authority: Signer;
+  payer: Signer;
+  controller: Controller;
+  mintingFeeInBps: number;
+  redeemingFeeInBps: number;
+  uiRedeemableAmountUnderManagementCap: number;
+}) {
+  let depository: CredixLpDepository;
+  before(async () => {
+    depository = await createCredixLpDepositoryDevnetUSDC();
+  });
+
   it(`Initialize credixLpDepository`, async function () {
-    await registerCredixLpDepositoryTest(
+    await registerCredixLpDepositoryTest({
       authority,
       controller,
       depository,
-      mintingFeeInBps,
-      redeemingFeeInBps,
-      uiRedeemableAmountUnderManagementCap,
-      payer
-    );
-    await editCredixLpDepositoryTest(authority, controller, depository, {
-      redeemableAmountUnderManagementCap: 25_000_000,
+      accountingBpsStampFeeMint: mintingFeeInBps,
+      accountingBpsStampFeeRedeem: redeemingFeeInBps,
+      uiAccountingSupplyRedeemableSoftCap: uiRedeemableAmountUnderManagementCap,
+      payer,
+    });
+    await editCredixLpDepositoryTest({
+      authority,
+      controller,
+      depository,
+      uiFields: {
+        redeemableAmountUnderManagementCap: 25_000_000,
+      },
     });
   });
 };

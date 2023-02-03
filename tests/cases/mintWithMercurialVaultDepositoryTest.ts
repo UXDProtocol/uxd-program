@@ -11,13 +11,19 @@ import { getConnection, TXN_OPTS } from '../connection';
 import { CLUSTER } from '../constants';
 import { getBalance } from '../utils';
 
-export const mintWithMercurialVaultDepositoryTest = async function (
-  collateralAmount: number,
-  user: Signer,
-  controller: Controller,
-  depository: MercurialVaultDepository,
-  payer?: Signer
-): Promise<number> {
+export const mintWithMercurialVaultDepositoryTest = async function ({
+  collateralAmount,
+  user,
+  controller,
+  depository,
+  payer,
+}: {
+  collateralAmount: number;
+  user: Signer;
+  controller: Controller;
+  depository: MercurialVaultDepository;
+  payer?: Signer;
+}): Promise<number> {
   console.group('🧭 mintWithMercurialVaultDepositoryTest');
 
   try {
@@ -41,13 +47,13 @@ export const mintWithMercurialVaultDepositoryTest = async function (
 
     // WHEN
     // Simulates user experience from the front end
-    const txId = await mintWithMercurialVaultDepository(
-      user,
-      payer ?? user,
+    const txId = await mintWithMercurialVaultDepository({
+      authority: user,
+      payer: payer ?? user,
       controller,
       depository,
-      collateralAmount
-    );
+      collateralAmount,
+    });
     console.log(
       `🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`
     );

@@ -11,13 +11,19 @@ import { getConnection, TXN_OPTS } from '../connection';
 import { CLUSTER } from '../constants';
 import { getBalance } from '../utils';
 
-export const redeemFromIdentityDepositoryTest = async function (
-  redeemableAmount: number,
-  user: Signer,
-  controller: Controller,
-  depository: IdentityDepository,
-  payer?: Signer
-): Promise<number> {
+export const redeemFromIdentityDepositoryTest = async function ({
+  redeemableAmount,
+  user,
+  controller,
+  depository,
+  payer,
+}: {
+  redeemableAmount: number;
+  user: Signer;
+  controller: Controller;
+  depository: IdentityDepository;
+  payer?: Signer;
+}): Promise<number> {
   console.group('🧭 redeemFromIdentitytDepositoryTest');
 
   try {
@@ -41,13 +47,13 @@ export const redeemFromIdentityDepositoryTest = async function (
 
     // WHEN
     // Simulates user experience from the front end
-    const txId = await redeemFromIdentityDepository(
-      user,
-      payer ?? user,
+    const txId = await redeemFromIdentityDepository({
+      authority: user,
+      payer: payer ?? user,
       controller,
       depository,
-      redeemableAmount
-    );
+      redeemableAmount,
+    });
     console.log(
       `🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`
     );

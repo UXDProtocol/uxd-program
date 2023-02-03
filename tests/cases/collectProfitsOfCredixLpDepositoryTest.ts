@@ -10,13 +10,18 @@ import { getConnection, TXN_OPTS } from '../connection';
 import { CLUSTER } from '../constants';
 import { getBalance } from '../utils';
 
-export const collectProfitsOfCredixLpDepositoryTest = async function (
-  payer: Signer,
-  profitsBeneficiaryCollateral: PublicKey,
-  controller: Controller,
-  depository: CredixLpDepository
-): Promise<number> {
-  console.group('🧭 collectProfitsOfCredixLpDepositoryTest');
+export const collectProfitOfCredixLpDepositoryTest = async function ({
+  payer,
+  profitsBeneficiaryCollateral,
+  controller,
+  depository,
+}: {
+  payer: Signer;
+  profitsBeneficiaryCollateral: PublicKey;
+  controller: Controller;
+  depository: CredixLpDepository;
+}): Promise<number> {
+  console.group('🧭 collectProfitOfCredixLpDepositoryTest');
 
   try {
     // GIVEN
