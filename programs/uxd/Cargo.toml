@@ -31,4 +31,3 @@ credix_client = { version="0.5.0", features = ["pre-mainnet"] } # devnet and CI
 
 [dev-dependencies]
 proptest = "1.0.0"
-solana-program = "1.9.*"
