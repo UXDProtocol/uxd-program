@@ -27,12 +27,6 @@ async fn test_integration() {
 
     let (collateral_mint_key, collateral_mint) =
         program_test_add_mint(&mut program_test, None, 6, &master_key.pubkey());
-    let (redeemable_mint_key, redeemable_mint) = program_test_add_mint(
-        &mut program_test,
-        None,
-        redeemable_mint_decimals,
-        &master_key.pubkey(),
-    );
 
     let (uxp_mint_key, uxp_mint) =
         program_test_add_mint(&mut program_test, None, 9, &master_key.pubkey());
@@ -43,16 +37,18 @@ async fn test_integration() {
     let instruction_initialize_controller = create_instruction_initialize_controller(
         &uxd_authority,
         &uxd_authority,
-        &redeemable_mint_key,
         redeemable_mint_decimals,
     );
 
-    program_test_context_execute_instruction_with_signer(
+    let success = program_test_context_execute_instruction_with_signer(
         &mut program_test_ctx,
         instruction_initialize_controller,
         &uxd_authority,
+        &uxd_authority,
     )
     .await;
+
+    assert_eq!(success, true);
 
     assert_eq!("this should fail all the time", "nice");
 }

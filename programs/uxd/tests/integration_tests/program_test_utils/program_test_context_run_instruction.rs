@@ -4,10 +4,9 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_sdk::transaction::Transaction;
 
-pub async fn program_test_context_execute_instruction_with_signer(
+pub async fn program_test_context_execute_instruction(
     program_test_context: &mut ProgramTestContext,
     instruction: Instruction,
-    signer: &Keypair,
     payer: &Keypair,
 ) -> bool {
     let transaction = Transaction::new_signed_with_payer(
