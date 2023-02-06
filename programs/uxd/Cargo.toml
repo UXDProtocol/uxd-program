@@ -8,20 +8,13 @@ rust-version = "1.56"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "uxd"
+test-bpf = []
 
 [features]
-no-entrypoint = []
-no-idl = []
-no-log-ix-name = []
-cpi = ["no-entrypoint"]
 test-bpf = []
-default = ["development"] # `anchor build -- --no-default-features --features production` to override
-production = []
-development = []
+default = []
 
 [dependencies]
-spl-token = { version = "3.2.0", features = ["no-entrypoint"] }
 anchor-lang = "0.24.2"
 anchor-spl = "0.24.2"
 
@@ -31,13 +24,11 @@ credix_client = { version="0.5.0", features = ["pre-mainnet"] } # devnet and CI
 mercurial-vault = { git="https://github.com/mercurial-finance/vault-sdk", features= ["cpi"], rev = "6daf57a877c36694c8f5b8267ca1e096a1e619d2" }
 
 fixed = "^1.9.0"
-num-traits = "0.2.14"
-spl-math = { version = "0.1.0", features = ["no-entrypoint"] }
 
 [dev-dependencies]
 proptest = "1.0.0"
 anchor-client = "0.24.2"
-solana-program = "1.9.29"
-solana-program-test = "1.9.29"
-solana-sdk = "1.9.29"
-tokio = { version = "1.0.0", features = ["macros"]}
+solana-validator = "1.9.15"
+solana-program = "1.9.15"
+solana-program-test = "1.9.15"
+solana-sdk = "1.9.15"
