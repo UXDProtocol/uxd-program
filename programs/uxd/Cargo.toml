@@ -6,8 +6,8 @@ description = "UXDProtocol Program, managing a redeemable mint backed by a delta
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib", "lib"]
 name = "uxd"
+crate-type = ["cdylib", "lib"]
 
 [features]
 no-entrypoint = []
