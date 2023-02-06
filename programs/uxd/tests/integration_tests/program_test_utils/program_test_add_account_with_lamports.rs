@@ -11,7 +11,7 @@ pub fn program_test_add_account_with_lamports(
         key,
         Account {
             lamports,
-            ..Default::default()
+            ..Account::default()
         },
     );
 }

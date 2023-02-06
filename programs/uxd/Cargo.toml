@@ -1,6 +1,6 @@
 [package]
 name = "uxd"
-version = "5.1.0"
+version = "6.2.0"
 authors = ["acammm <alexcamill@gmail.com>, cnek <ctk2012ac@gmail.com>, G. Neut <gregory.neut@gmail.com>, V. Brunet <vincent.brunet.us@gmail.com>"]
 description = "UXDProtocol Program, managing a redeemable mint backed by a delta neutral position."
 edition = "2021"
@@ -29,7 +29,7 @@ fixed = "^1.9.0"
 
 [dev-dependencies]
 proptest = "1.0.0"
-solana-program = "1.9.15"
-solana-program-test = "1.9.15"
-solana-sdk = "1.9.15"
+solana-program = "1.9.29"
+solana-program-test = "1.9.29"
+solana-sdk = "1.9.29"
 spl-token = "3.2.0"

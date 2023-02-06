@@ -8,7 +8,7 @@ pub async fn program_test_context_execute_instruction_with_signer(
     program_test_ctx: &mut ProgramTestContext,
     instruction: Instruction,
     signer: &Keypair,
-) {
+) -> Option<()> {
     let transaction = Transaction::new_signed_with_payer(
         &[instruction],
         Some(&signer.pubkey()),
@@ -19,5 +19,5 @@ pub async fn program_test_context_execute_instruction_with_signer(
         .banks_client
         .process_transaction(transaction)
         .await
-        .unwrap();
+        .ok()
 }
