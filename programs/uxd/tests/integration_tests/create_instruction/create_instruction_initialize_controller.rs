@@ -15,11 +15,22 @@ pub fn create_instruction_initialize_controller(
     let (redeemable_mint, _) =
         Pubkey::find_program_address(&[uxd::REDEEMABLE_MINT_NAMESPACE.as_ref()], &uxd::id());
 
+    assert_eq!(
+        "3tbJcXAWQkFVN26rZPtwkFNvC24sPT35fDxG4M7irLQW",
+        controller.to_string()
+    );
+    assert_eq!(
+        "7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT",
+        redeemable_mint.to_string()
+    );
+
     let accounts = uxd::accounts::InitializeController {
         authority: authority.pubkey(),
         payer: payer.pubkey(),
+        /*
         controller,
         redeemable_mint,
+         */
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,

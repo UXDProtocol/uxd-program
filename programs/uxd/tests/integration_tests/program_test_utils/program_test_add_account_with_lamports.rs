@@ -4,11 +4,11 @@ use solana_sdk::account::Account;
 
 pub fn program_test_add_account_with_lamports(
     program_test: &mut ProgramTest,
-    key: Pubkey,
+    address: &Pubkey,
     lamports: u64,
 ) {
     program_test.add_account(
-        key,
+        *address,
         Account {
             lamports,
             ..Account::default()
