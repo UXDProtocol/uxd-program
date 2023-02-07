@@ -8,7 +8,7 @@ pub async fn program_test_context_transfer_lamports(
     from: &Keypair,
     to: &Pubkey,
     lamports: u64,
-) -> bool {
+) -> Result<(), String> {
     let instruction = solana_sdk::system_instruction::transfer(&from.pubkey(), &to, lamports);
     let transaction = solana_sdk::transaction::Transaction::new_signed_with_payer(
         &[instruction],
@@ -20,5 +20,5 @@ pub async fn program_test_context_transfer_lamports(
         .banks_client
         .process_transaction(transaction)
         .await
-        .is_ok()
+        .map_err(|e| e.to_string())
 }

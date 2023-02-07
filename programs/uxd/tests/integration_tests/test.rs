@@ -1,8 +1,8 @@
-use crate::integration_tests::create_instruction::create_instruction_initialize_controller;
-use crate::integration_tests::program_test_utils::program_test_add_account_with_lamports;
+use crate::integration_tests::execute_instruction::execute_instruction_initialize_controller;
 use crate::integration_tests::program_test_utils::program_test_add_mint;
 use crate::integration_tests::program_test_utils::program_test_context_execute_instruction_with_signer;
-use crate::integration_tests::program_test_utils::program_test_context_transfer_lamports;
+use crate::integration_tests::program_test_utils::program_test_context_lamports_airdrop;
+use crate::integration_tests::program_test_utils::program_test_context_lamports_transfer;
 use solana_program_test::processor;
 use solana_program_test::tokio;
 use solana_program_test::ProgramTest;
@@ -16,10 +16,12 @@ const PAYER: usize = 1;
 const AUTHORITY: usize = 2;
 
 #[tokio::test]
-async fn test_integration() {
+async fn test_integration() -> Result<(), String> {
     let redeemable_mint_decimals = 6;
 
-    let mut program_test = ProgramTest::new("uxd", uxd::ID, processor!(uxd::entry));
+    let program_test = ProgramTest::new("uxd", uxd::ID, processor!(uxd::entry));
+
+    let mut program_test_context: ProgramTestContext = program_test.start_with_context().await;
 
     let keypairs = [
         Keypair::new(),
@@ -30,13 +32,14 @@ async fn test_integration() {
         Keypair::new(),
     ];
 
-    keypairs.iter().for_each(|keypair| {
-        program_test_add_account_with_lamports(
-            &mut program_test,
+    for keypair in &keypairs {
+        program_test_context_lamports_airdrop(
+            &mut program_test_context,
             &keypair.pubkey(),
             1_000_000_000_000,
-        );
-    });
+        )
+        .await?;
+    }
 
     /*
     let (collateral_mint_key, collateral_mint) =
@@ -46,21 +49,15 @@ async fn test_integration() {
         program_test_add_mint(&mut program_test, None, 9, &master_key.pubkey());
      */
 
-    // Start and process transactions on the test network
-    let mut program_test_context: ProgramTestContext = program_test.start_with_context().await;
-
-    let instruction_initialize_controller = create_instruction_initialize_controller(
+    let success2 = execute_instruction_initialize_controller(
+        &mut program_test_context,
         &keypairs[AUTHORITY],
         &keypairs[AUTHORITY],
         redeemable_mint_decimals,
-    );
-    let success2 = program_test_context_execute_instruction_with_signer(
-        &mut program_test_context,
-        instruction_initialize_controller,
-        &keypairs[AUTHORITY],
-        &keypairs[AUTHORITY],
     )
     .await;
 
-    assert_eq!(success2, true, "inited controller");
+    assert_eq!(success2.is_ok(), true, "inited controller");
+
+    Ok(())
 }

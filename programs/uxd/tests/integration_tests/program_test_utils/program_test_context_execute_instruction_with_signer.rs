@@ -9,7 +9,7 @@ pub async fn program_test_context_execute_instruction_with_signer(
     instruction: Instruction,
     signer: &Keypair,
     payer: &Keypair,
-) -> bool {
+) -> Result<(), String> {
     let transaction = Transaction::new_signed_with_payer(
         &[instruction],
         Some(&payer.pubkey()),
@@ -20,5 +20,5 @@ pub async fn program_test_context_execute_instruction_with_signer(
         .banks_client
         .process_transaction(transaction)
         .await
-        .is_ok()
+        .map_err(|e| e.to_string())
 }
