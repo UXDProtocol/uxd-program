@@ -3,7 +3,7 @@ use std::mem::size_of;
 use anchor_lang::prelude::*;
 
 use crate::error::UxdError;
-use crate::utils::compute_amount_after_change;
+use crate::utils::checked_add_u128_and_i128;
 
 pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 588;
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
@@ -121,20 +121,20 @@ impl MercurialVaultDepository {
         paid_minting_fees_change: i128,
         paid_redeeming_fees_change: i128,
     ) -> Result<()> {
-        self.collateral_amount_deposited = compute_amount_after_change(
+        self.collateral_amount_deposited = checked_add_u128_and_i128(
             self.collateral_amount_deposited,
             collateral_amount_deposited_change,
         )?;
 
-        self.redeemable_amount_under_management = compute_amount_after_change(
+        self.redeemable_amount_under_management = checked_add_u128_and_i128(
             self.redeemable_amount_under_management,
             redeemable_amount_change,
         )?;
 
         self.minting_fee_total_accrued =
-            compute_amount_after_change(self.minting_fee_total_accrued, paid_minting_fees_change)?;
+            checked_add_u128_and_i128(self.minting_fee_total_accrued, paid_minting_fees_change)?;
 
-        self.redeeming_fee_total_accrued = compute_amount_after_change(
+        self.redeeming_fee_total_accrued = checked_add_u128_and_i128(
             self.redeeming_fee_total_accrued,
             paid_redeeming_fees_change,
         )?;

@@ -1,8 +1,7 @@
 use crate::error::UxdError;
-use crate::utils::compute_amount_after_change;
+use crate::utils::checked_add_u128_and_i128;
 use anchor_lang::prelude::*;
 
-pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
 pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
@@ -124,7 +123,7 @@ impl Controller {
         &mut self,
         redeemable_amount_change: i128,
     ) -> Result<()> {
-        self.redeemable_circulating_supply = compute_amount_after_change(
+        self.redeemable_circulating_supply = checked_add_u128_and_i128(
             self.redeemable_circulating_supply,
             redeemable_amount_change,
         )?;
