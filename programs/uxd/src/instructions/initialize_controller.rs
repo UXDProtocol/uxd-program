@@ -19,11 +19,9 @@ use anchor_spl::token::Token;
 pub struct InitializeController<'info> {
     /// #1 Authored call accessible only to the signer matching Controller.authority
     pub authority: Signer<'info>,
-
     /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
-    /*
     /// #3 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         init,
@@ -33,7 +31,6 @@ pub struct InitializeController<'info> {
         space = CONTROLLER_SPACE
     )]
     pub controller: AccountLoader<'info, Controller>,
-     */
     /*
     /// #4 The redeemable mint managed by the `controller` instance
     #[account(
@@ -46,7 +43,7 @@ pub struct InitializeController<'info> {
         constraint = redeemable_mint_decimals <= SOLANA_MAX_MINT_DECIMALS
     )]
     pub redeemable_mint: Account<'info, Mint>,
-         */
+    */
     /// #5 System Program
     pub system_program: Program<'info, System>,
     /// #6 Token Program

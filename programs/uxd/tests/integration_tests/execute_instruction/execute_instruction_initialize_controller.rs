@@ -31,8 +31,8 @@ pub async fn execute_instruction_initialize_controller(
     let accounts = uxd::accounts::InitializeController {
         authority: authority.pubkey(),
         payer: payer.pubkey(),
-        /*
         controller,
+        /*
         redeemable_mint,
          */
         system_program: anchor_lang::system_program::ID,
