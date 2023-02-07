@@ -7,7 +7,7 @@ use solana_sdk::signer::Signer;
 
 use crate::integration_tests::program_test_context::program_test_context_execute_instruction_with_signer;
 
-pub async fn execute_instruction_initialize_controller(
+pub async fn execute_initialize_controller(
     program_test_context: &mut ProgramTestContext,
     authority: &Keypair,
     payer: &Keypair,
@@ -31,8 +31,8 @@ pub async fn execute_instruction_initialize_controller(
     let accounts = uxd::accounts::InitializeController {
         authority: authority.pubkey(),
         payer: payer.pubkey(),
-        controller,
         /*
+        controller,
         redeemable_mint,
          */
         system_program: anchor_lang::system_program::ID,

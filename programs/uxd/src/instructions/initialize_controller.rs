@@ -22,6 +22,7 @@ pub struct InitializeController<'info> {
     /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
+    /*
     /// #3 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         init,
@@ -31,7 +32,6 @@ pub struct InitializeController<'info> {
         space = CONTROLLER_SPACE
     )]
     pub controller: AccountLoader<'info, Controller>,
-    /*
     /// #4 The redeemable mint managed by the `controller` instance
     #[account(
         init,
