@@ -1,8 +1,7 @@
 use crate::integration_tests::execute_instruction::execute_instruction_initialize_controller;
-use crate::integration_tests::program_test_utils::program_test_add_mint;
-use crate::integration_tests::program_test_utils::program_test_context_execute_instruction_with_signer;
-use crate::integration_tests::program_test_utils::program_test_context_lamports_airdrop;
-use crate::integration_tests::program_test_utils::program_test_context_lamports_transfer;
+use crate::integration_tests::program_test_context::program_test_context_execute_instruction_with_signer;
+use crate::integration_tests::program_test_context::program_test_context_lamports_airdrop;
+use crate::integration_tests::program_test_context::program_test_context_lamports_transfer;
 use solana_program_test::processor;
 use solana_program_test::tokio;
 use solana_program_test::ProgramTest;

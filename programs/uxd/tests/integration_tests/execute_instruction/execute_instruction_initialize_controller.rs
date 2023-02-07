@@ -5,7 +5,7 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::integration_tests::program_test_utils::program_test_context_execute_instruction_with_signer;
+use crate::integration_tests::program_test_context::program_test_context_execute_instruction_with_signer;
 
 pub async fn execute_instruction_initialize_controller(
     program_test_context: &mut ProgramTestContext,
