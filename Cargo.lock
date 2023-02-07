@@ -1517,7 +1517,6 @@ dependencies = [
  "credix_client",
  "mercurial-vault",
  "proptest",
- "solana-program",
 ]
 
 [[package]]
