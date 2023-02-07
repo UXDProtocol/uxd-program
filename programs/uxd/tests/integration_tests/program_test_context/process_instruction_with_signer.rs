@@ -1,19 +1,19 @@
-use anchor_lang::prelude::Pubkey;
 use solana_program_test::ProgramTestContext;
+use solana_sdk::instruction::Instruction;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
+use solana_sdk::transaction::Transaction;
 
-pub async fn program_spl_transfer_lamports(
+pub async fn process_instruction_with_signer(
     program_test_context: &mut ProgramTestContext,
-    from: &Keypair,
-    to: &Pubkey,
-    lamports: u64,
+    instruction: Instruction,
+    signer: &Keypair,
+    payer: &Keypair,
 ) -> Result<(), String> {
-    let instruction = solana_sdk::system_instruction::transfer(&from.pubkey(), &to, lamports);
-    let transaction = solana_sdk::transaction::Transaction::new_signed_with_payer(
+    let transaction = Transaction::new_signed_with_payer(
         &[instruction],
-        Some(&from.pubkey()),
-        &[from],
+        Some(&payer.pubkey()),
+        &[signer, payer],
         program_test_context.last_blockhash,
     );
     program_test_context

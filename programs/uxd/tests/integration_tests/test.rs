@@ -1,5 +1,3 @@
-use crate::integration_tests::instructions::execute_initialize_controller;
-use crate::integration_tests::program_spl_lamports_airdrop;
 use solana_program_test::processor;
 use solana_program_test::tokio;
 use solana_program_test::ProgramTest;
@@ -31,7 +29,7 @@ async fn test_integration() -> Result<(), String> {
     ];
 
     for keypair in &keypairs {
-        program_spl_lamports_airdrop(
+        crate::integration_tests::program_spl::instructions::process_lamports_airdrop(
             &mut program_test_context,
             &keypair.pubkey(),
             1_000_000_000_000,
@@ -47,15 +45,13 @@ async fn test_integration() -> Result<(), String> {
         program_test_add_mint(&mut program_test, None, 9, &master_key.pubkey());
      */
 
-    let success2 = execute_initialize_controller(
+    crate::integration_tests::program_uxd::instructions::process_initialize_controller(
         &mut program_test_context,
         &keypairs[AUTHORITY],
         &keypairs[AUTHORITY],
         redeemable_mint_decimals,
     )
-    .await;
-
-    assert_eq!(success2.is_ok(), true, "inited controller");
+    .await?;
 
     Ok(())
 }
