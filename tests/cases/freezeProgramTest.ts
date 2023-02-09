@@ -5,11 +5,15 @@ import { freezeProgram } from '../api';
 import { getConnection, TXN_OPTS } from '../connection';
 import { CLUSTER } from '../constants';
 
-export const freezeProgramTest = async function (
-  freeze: boolean,
-  authority: Signer,
-  controller: Controller
-) {
+export const freezeProgramTest = async function ({
+  freeze,
+  authority,
+  controller,
+}: {
+  freeze: boolean;
+  authority: Signer;
+  controller: Controller;
+}) {
   const connection = getConnection();
   const options = TXN_OPTS;
 

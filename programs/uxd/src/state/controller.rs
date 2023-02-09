@@ -1,8 +1,7 @@
 use crate::error::UxdError;
+use crate::utils::checked_add_u128_and_i128;
 use anchor_lang::prelude::*;
-use fixed::types::I80F48;
 
-pub const MAX_REGISTERED_MANGO_DEPOSITORIES: usize = 8;
 pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
 pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
@@ -124,17 +123,10 @@ impl Controller {
         &mut self,
         redeemable_amount_change: i128,
     ) -> Result<()> {
-        self.redeemable_circulating_supply =
-            I80F48::checked_from_num(self.redeemable_circulating_supply)
-                .ok_or(UxdError::MathError)?
-                .checked_add(
-                    I80F48::checked_from_num(redeemable_amount_change)
-                        .ok_or(UxdError::MathError)?,
-                )
-                .ok_or(UxdError::MathError)?
-                .checked_to_num()
-                .ok_or(UxdError::MathError)?;
-
+        self.redeemable_circulating_supply = checked_add_u128_and_i128(
+            self.redeemable_circulating_supply,
+            redeemable_amount_change,
+        )?;
         Ok(())
     }
 

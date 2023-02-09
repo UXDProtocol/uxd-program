@@ -4,24 +4,29 @@ import { initializeIdentityDepository } from '../api';
 import { CLUSTER } from '../constants';
 import { getConnection } from '../connection';
 
-export const initializeIdentityDepositoryTest = async function (
-  authority: Signer,
-  controller: Controller,
-  depository: IdentityDepository,
-  payer?: Signer
-) {
+export const initializeIdentityDepositoryTest = async function ({
+  authority,
+  controller,
+  depository,
+  payer,
+}: {
+  authority: Signer;
+  controller: Controller;
+  depository: IdentityDepository;
+  payer?: Signer;
+}) {
   console.group('🧭 initializeIdentityDepositoryTest');
   try {
     // WHEN
     if (await getConnection().getAccountInfo(depository.pda)) {
       console.log('🚧 Already initialized.');
     } else {
-      const txId = await initializeIdentityDepository(
+      const txId = await initializeIdentityDepository({
         authority,
-        payer ?? authority,
+        payer: payer ?? authority,
         controller,
-        depository
-      );
+        depository,
+      });
       console.log(
         `🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`
       );

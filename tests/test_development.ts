@@ -6,7 +6,6 @@ import {
   IdentityDepository,
   USDC_DEVNET,
   USDC_DECIMALS,
-  CredixLpDepository,
 } from '@uxd-protocol/uxd-client';
 import {
   authority,
@@ -34,8 +33,12 @@ import { editControllerTest } from './cases/editControllerTest';
   });
 
   it('Set controller global supply cap to 25mm', async function () {
-    await editControllerTest(authority, controller, {
-      redeemableGlobalSupplyCap: 25_000_000,
+    await editControllerTest({
+      authority,
+      controller,
+      uiFields: {
+        redeemableGlobalSupplyCap: 25_000_000,
+      },
     });
   });
 
@@ -86,15 +89,12 @@ import { editControllerTest } from './cases/editControllerTest';
     );
 
     describe('freezeProgramSuite', async function () {
-      await freezeProgramSuite(
+      await freezeProgramSuite({
         authority,
         user,
-        bank,
+        payer: bank,
         controller,
-        mercurialVaultDepository,
-        credixLpDepository,
-        identityDepository
-      );
+      });
     });
 
     this.afterAll('Transfer funds back to bank', async function () {
