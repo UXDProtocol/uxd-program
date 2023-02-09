@@ -30,16 +30,20 @@ async fn test_integration() -> Result<(), String> {
     let mut program_test = ProgramTest::default();
 
     program_test.add_program("uxd", uxd::id(), processor!(uxd::entry));
-    program_test.add_program("credix_client", credix_client::id(), None);
 
     /*
     program_test.add_account_with_file_data(
         Pubkey::from_str("GMiQHsRQpdbgaRA3Y2SJUxC7wBvBoCFpKFHCnMHM4f8a").unwrap(),
         1_000_000_000_000,
         keypairs[CREDIX_OWNER].pubkey(),
-        "tests/integration_tests/program_credix/binaries/credix_client.so",
+        "tests/fixtures/credix_client.so",
     );
-    */
+    program_test.add_program(
+        "credix_client",
+        credix_client::id(),
+        processor!(credix_client::entry),
+    );
+     */
 
     let mut program_test_context: ProgramTestContext = program_test.start_with_context().await;
 
@@ -58,7 +62,6 @@ async fn test_integration() -> Result<(), String> {
 
     let (uxp_mint_key, uxp_mint) =
         program_test_add_mint(&mut program_test, None, 9, &master_key.pubkey());
-     */
 
     crate::integration_tests::program_credix::instructions::process_initialize_program_state(
         &mut program_test_context,
@@ -66,6 +69,7 @@ async fn test_integration() -> Result<(), String> {
         &keypairs[CREDIX_MULTISIG].pubkey(),
     )
     .await?;
+     */
 
     crate::integration_tests::program_uxd::instructions::process_initialize_controller(
         &mut program_test_context,
