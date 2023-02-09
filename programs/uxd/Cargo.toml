@@ -22,8 +22,7 @@ anchor-spl = "0.24.2"
 
 mercurial-vault = { git="https://github.com/mercurial-finance/vault-sdk", features= ["cpi"], rev = "6daf57a877c36694c8f5b8267ca1e096a1e619d2" }
 
-# credix_client = { version="0.5.0" } # mainnet
-credix_client = { version="0.5.0", features = ["pre-mainnet"] } # devnet and CI
+credix_client = { version="0.5.0" }
 
 [dev-dependencies]
 proptest = "1.0.0"

@@ -1,9 +1,9 @@
 // Unit tests
 #[cfg(test)]
 mod test_compute_amount_after_change {
-    use crate::utils::checked_add_u128_and_i128;
     use anchor_lang::Result;
     use proptest::prelude::*;
+    use uxd::utils::checked_add_u128_and_i128;
 
     #[test]
     fn test_correctness() -> Result<()> {

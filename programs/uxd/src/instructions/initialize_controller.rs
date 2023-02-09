@@ -22,8 +22,8 @@ pub struct InitializeController<'info> {
     /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
-    /*
     /// #3 The top level UXDProgram on chain account managing the redeemable mint
+    /*
     #[account(
         init,
         seeds = [CONTROLLER_NAMESPACE],
@@ -32,6 +32,8 @@ pub struct InitializeController<'info> {
         space = CONTROLLER_SPACE
     )]
     pub controller: AccountLoader<'info, Controller>,
+     */
+    /*
     /// #4 The redeemable mint managed by the `controller` instance
     #[account(
         init,
@@ -81,7 +83,6 @@ pub(crate) fn handler(
     controller.redeemable_circulating_supply = u128::MIN;
     controller.is_frozen = false;
     controller.profits_total_collected = u128::MIN;
-
     emit!(InitializeControllerEvent {
         version: controller.version,
         controller: ctx.accounts.controller.key(),
