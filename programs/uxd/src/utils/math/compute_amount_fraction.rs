@@ -1,5 +1,5 @@
 use crate::error::UxdError;
-use crate::utils::checked_u128_to_u64;
+use crate::utils::checked_convert_u128_to_u64;
 use anchor_lang::prelude::*;
 
 // Precision loss may lower the returned value amount.
@@ -17,5 +17,5 @@ pub fn compute_amount_fraction(
         .ok_or(UxdError::MathError)?
         .checked_div(fraction_denominator)
         .ok_or(UxdError::MathError)?;
-    checked_u128_to_u64(amount_fraction)
+    checked_convert_u128_to_u64(amount_fraction)
 }

@@ -10,7 +10,7 @@ use crate::error::UxdError;
 use crate::events::CollectProfitsOfCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
-use crate::utils::checked_u128_to_u64;
+use crate::utils::checked_convert_u128_to_u64;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value;
@@ -207,7 +207,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
     );
 
     // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
-    let collateral_amount_before_precision_loss: u64 = checked_u128_to_u64(profits_value)?;
+    let collateral_amount_before_precision_loss: u64 = checked_convert_u128_to_u64(profits_value)?;
     msg!(
         "[collect_profits_of_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
         collateral_amount_before_precision_loss

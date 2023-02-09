@@ -1,7 +1,7 @@
 use crate::error::UxdError;
 use crate::state::CredixLpDepository;
 use crate::state::MercurialVaultDepository;
-use crate::utils::checked_u128_to_u64;
+use crate::utils::checked_convert_u128_to_u64;
 use crate::utils::compute_amount_fraction;
 use crate::validate_is_program_frozen;
 use crate::Controller;
@@ -92,10 +92,11 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
     // ---------------------------------------------------------------------
 
     // Read the minting caps of each depository
-    let mercurial_vault_depository_1_cap =
-        checked_u128_to_u64(mercurial_vault_depository_1.redeemable_amount_under_management_cap)?;
+    let mercurial_vault_depository_1_cap = checked_convert_u128_to_u64(
+        mercurial_vault_depository_1.redeemable_amount_under_management_cap,
+    )?;
     let credix_lp_depository_1_cap =
-        checked_u128_to_u64(credix_lp_depository_1.redeemable_amount_under_management_cap)?;
+        checked_convert_u128_to_u64(credix_lp_depository_1.redeemable_amount_under_management_cap)?;
 
     // Compute the depository_overflow amount of raw target that doesn't fit within the cap of each depository
     let mercurial_vault_depository_1_overflow = ctx.accounts.compute_overflow(
@@ -181,7 +182,7 @@ impl<'info> ComputeDepositoriesTargets<'info> {
     pub fn compute_raw_target(&self, depository_weight: u64, total_weight: u64) -> Result<u64> {
         let controller = &self.controller.load()?;
         let depository_raw_target = compute_amount_fraction(
-            checked_u128_to_u64(controller.redeemable_circulating_supply)?,
+            checked_convert_u128_to_u64(controller.redeemable_circulating_supply)?,
             depository_weight,
             total_weight,
         )?;

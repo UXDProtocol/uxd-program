@@ -1,5 +1,5 @@
 use crate::error::UxdError;
-use crate::utils::checked_u128_to_u64;
+use crate::utils::checked_convert_u128_to_u64;
 use anchor_lang::prelude::*;
 
 // Precision loss may lower the returned shares amount.
@@ -22,5 +22,5 @@ pub fn compute_shares_amount_for_value(
         .ok_or(UxdError::MathError)?
         .checked_div(total_shares_value)
         .ok_or(UxdError::MathError)?;
-    checked_u128_to_u64(shares_amount)
+    checked_convert_u128_to_u64(shares_amount)
 }

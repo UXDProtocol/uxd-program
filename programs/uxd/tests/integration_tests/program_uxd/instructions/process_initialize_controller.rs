@@ -5,8 +5,6 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::integration_tests::program_test_context::process_instruction_with_signer;
-
 pub async fn process_initialize_controller(
     program_test_context: &mut ProgramTestContext,
     authority: &Keypair,
@@ -36,5 +34,11 @@ pub async fn process_initialize_controller(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    process_instruction_with_signer(program_test_context, instruction, authority, payer).await
+    crate::integration_tests::program_test_context::process_instruction_with_signer(
+        program_test_context,
+        instruction,
+        authority,
+        payer,
+    )
+    .await
 }
