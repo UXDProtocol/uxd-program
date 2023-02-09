@@ -1,10 +1,8 @@
-use std::str::FromStr;
-
-use anchor_lang::prelude::Pubkey;
 use solana_program_test::processor;
 use solana_program_test::tokio;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -13,6 +11,7 @@ const PAYER: usize = 1;
 const AUTHORITY: usize = 2;
 const CREDIX_OWNER: usize = 3;
 const CREDIX_MULTISIG: usize = 4;
+const USDC: usize = 5;
 
 #[tokio::test]
 async fn test_integration() -> Result<(), String> {
@@ -30,6 +29,13 @@ async fn test_integration() -> Result<(), String> {
     let mut program_test = ProgramTest::default();
 
     program_test.add_program("uxd", uxd::id(), processor!(uxd::entry));
+    /*
+    program_test.add_program(
+        "spl_token",
+        spl_token::id(),
+        processor!(spl_token::),
+    );
+     */
 
     /*
     program_test.add_account_with_file_data(
@@ -56,6 +62,17 @@ async fn test_integration() -> Result<(), String> {
         .await?;
     }
 
+    let mint = Keypair::new();
+
+    crate::integration_tests::program_spl::instructions::process_token_mint_init(
+        &mut program_test_context,
+        &mint,
+        6,
+        &keypairs[ROOT],
+        &keypairs[ROOT],
+    )
+    .await?;
+
     /*
     let (collateral_mint_key, collateral_mint) =
         program_test_add_mint(&mut program_test, None, 6, &master_key.pubkey());
@@ -69,7 +86,6 @@ async fn test_integration() -> Result<(), String> {
         &keypairs[CREDIX_MULTISIG].pubkey(),
     )
     .await?;
-     */
 
     crate::integration_tests::program_uxd::instructions::process_initialize_controller(
         &mut program_test_context,
@@ -78,6 +94,7 @@ async fn test_integration() -> Result<(), String> {
         redeemable_mint_decimals,
     )
     .await?;
+     */
 
     Ok(())
 }
