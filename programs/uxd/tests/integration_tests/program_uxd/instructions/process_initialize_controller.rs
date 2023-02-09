@@ -1,4 +1,3 @@
-use anchor_lang::prelude::Pubkey;
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program_test::ProgramTestContext;
@@ -7,8 +6,8 @@ use solana_sdk::signer::Signer;
 
 pub async fn process_initialize_controller(
     program_test_context: &mut ProgramTestContext,
-    authority: &Keypair,
     payer: &Keypair,
+    authority: &Keypair,
     redeemable_mint_decimals: u8,
 ) -> Result<(), String> {
     let controller = crate::integration_tests::program_uxd::accounts::find_controller_address();

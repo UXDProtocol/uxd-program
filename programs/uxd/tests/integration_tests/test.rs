@@ -6,16 +6,17 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
-const ROOT: usize = 0;
-const PAYER: usize = 1;
-const AUTHORITY: usize = 2;
+const PAYER: usize = 0;
+const UXD_AUTHORITY: usize = 1;
 const CREDIX_OWNER: usize = 3;
 const CREDIX_MULTISIG: usize = 4;
 const USDC: usize = 5;
+const DUMMY: usize = 6;
 
 #[tokio::test]
 async fn test_integration() -> Result<(), String> {
     let keypairs = [
+        Keypair::new(),
         Keypair::new(),
         Keypair::new(),
         Keypair::new(),
@@ -66,19 +67,23 @@ async fn test_integration() -> Result<(), String> {
 
     crate::integration_tests::program_spl::instructions::process_token_mint_init(
         &mut program_test_context,
+        &keypairs[PAYER],
         &mint,
         6,
-        &keypairs[ROOT],
-        &keypairs[ROOT],
+        &keypairs[UXD_AUTHORITY].pubkey(),
     )
     .await?;
 
-    /*
-    let (collateral_mint_key, collateral_mint) =
-        program_test_add_mint(&mut program_test, None, 6, &master_key.pubkey());
+    let account = Keypair::new();
 
-    let (uxp_mint_key, uxp_mint) =
-        program_test_add_mint(&mut program_test, None, 9, &master_key.pubkey());
+    crate::integration_tests::program_spl::instructions::process_token_account_init(
+        &mut program_test_context,
+        &keypairs[PAYER],
+        &account,
+        &mint.pubkey(),
+        &keypairs[UXD_AUTHORITY].pubkey(),
+    )
+    .await?;
 
     crate::integration_tests::program_credix::instructions::process_initialize_program_state(
         &mut program_test_context,
@@ -87,10 +92,11 @@ async fn test_integration() -> Result<(), String> {
     )
     .await?;
 
+    /*
     crate::integration_tests::program_uxd::instructions::process_initialize_controller(
         &mut program_test_context,
+        &keypairs[PAYER],
         &keypairs[AUTHORITY],
-        &keypairs[ROOT],
         redeemable_mint_decimals,
     )
     .await?;

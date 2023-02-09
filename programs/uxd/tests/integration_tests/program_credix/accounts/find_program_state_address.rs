@@ -1,4 +1,4 @@
-use anchor_lang::prelude::Pubkey;
+use solana_sdk::pubkey::Pubkey;
 
 pub fn find_program_state_address() -> Pubkey {
     let (program_state, _) = credix_client::ProgramState::generate_pda();

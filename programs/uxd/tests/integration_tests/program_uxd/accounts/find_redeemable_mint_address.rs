@@ -1,4 +1,4 @@
-use anchor_lang::prelude::Pubkey;
+use solana_sdk::pubkey::Pubkey;
 
 pub fn find_redeemable_mint_address() -> Pubkey {
     let (redeemable_mint, _) =
