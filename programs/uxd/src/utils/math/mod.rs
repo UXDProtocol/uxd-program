@@ -1,3 +1,4 @@
+pub mod checked_add_u128_and_i128;
 pub mod compute_amount_less_fraction;
 pub mod compute_decrease;
 pub mod compute_increase;
@@ -6,6 +7,7 @@ pub mod compute_value_for_shares_amount;
 pub mod compute_value_for_single_share_ceil;
 pub mod is_within_range_inclusive;
 
+pub use checked_add_u128_and_i128::*;
 pub use compute_amount_less_fraction::*;
 pub use compute_decrease::*;
 pub use compute_increase::*;
