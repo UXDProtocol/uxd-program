@@ -12,16 +12,16 @@ pub async fn process_initialize_market(
 ) -> Result<(), String> {
     let global_market_state =
         crate::integration_tests::program_credix::accounts::find_global_market_state_address();
-    let program_state =
-        crate::integration_tests::program_credix::accounts::find_program_state_address();
-    let lp_token_mint =
-        crate::integration_tests::program_credix::accounts::find_lp_token_mint_address();
-    let signing_authority =
-        crate::integration_tests::program_credix::accounts::find_signing_authority_address();
     let market_admins =
         crate::integration_tests::program_credix::accounts::find_market_admins_address(
             global_market_state,
         );
+    let program_state =
+        crate::integration_tests::program_credix::accounts::find_program_state_address();
+    let signing_authority =
+        crate::integration_tests::program_credix::accounts::find_signing_authority_address();
+    let lp_token_mint =
+        crate::integration_tests::program_credix::accounts::find_lp_token_mint_address();
 
     let liquidity_pool_token_account = anchor_spl::associated_token::get_associated_token_address(
         &signing_authority,
@@ -32,39 +32,40 @@ pub async fn process_initialize_market(
     let treasury_pool_token_account =
         anchor_spl::associated_token::get_associated_token_address(&treasury, collateral_mint);
 
+    /*
+    crate::integration_tests::program_spl::instructions::process_token_account_init(
+        program_test_context,
+        admin,
+        liquidity_pool_token_account,
+        collateral_mint,
+        &signing_authority,
+    )
+    .await;
+         */
+
     let accounts = credix_client::accounts::InitializeMarket {
         owner: admin.pubkey(),
         global_market_state,
-        program_state,
-        lp_token_mint,
-        signing_authority,
         market_admins,
+        program_state,
+        signing_authority,
+        lp_token_mint,
         liquidity_pool_token_account,
         treasury,
         treasury_pool_token_account,
         base_token_mint: *collateral_mint,
         system_program: anchor_lang::system_program::ID,
-        associated_token_program: anchor_spl::associated_token::ID,
         token_program: anchor_spl::token::ID,
+        associated_token_program: anchor_spl::associated_token::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
 
-    let market_seeds = crate::integration_tests::program_credix::accounts::get_market_seeds();
-
     let payload = credix_client::instruction::InitializeMarket {
-        _multisig: Some(admin.pubkey()),
-        _managers: Some(vec![admin.pubkey()]),
-        _pass_issuers: Some(vec![admin.pubkey()]),
-        _grace_period: 10,
         _global_market_seed: crate::integration_tests::program_credix::accounts::get_market_seeds(),
-        _credix_performance_fee_percentage: credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        },
-        _credix_service_fee_percentage: credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        },
+        _multisig: Some(admin.pubkey()),
+        _managers: None,
+        _pass_issuers: None,
+        _grace_period: 10,
         _performance_fee: credix_client::Fraction {
             numerator: 1,
             denominator: 100,
@@ -73,15 +74,23 @@ pub async fn process_initialize_market(
             numerator: 1,
             denominator: 100,
         },
-        _variable_late_fee_percentage: credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        },
         _fixed_late_fee_percentage: credix_client::Fraction {
             numerator: 1,
             denominator: 100,
         },
+        _variable_late_fee_percentage: credix_client::Fraction {
+            numerator: 1,
+            denominator: 100,
+        },
         _service_fee_percentage: credix_client::Fraction {
+            numerator: 1,
+            denominator: 100,
+        },
+        _credix_performance_fee_percentage: credix_client::Fraction {
+            numerator: 1,
+            denominator: 100,
+        },
+        _credix_service_fee_percentage: credix_client::Fraction {
             numerator: 1,
             denominator: 100,
         },
