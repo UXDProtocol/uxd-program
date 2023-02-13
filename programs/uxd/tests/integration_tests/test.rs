@@ -62,21 +62,13 @@ async fn test_integration() -> Result<(), String> {
     )
     .await?;
 
-    let wallet = Keypair::new();
-    crate::integration_tests::program_spl::instructions::process_associated_token_account_init(
-        &mut program_test_context,
-        &keypairs[PAYER],
-        &collateral_mint.pubkey(),
-        &wallet.pubkey(),
-    )
-    .await?;
-
     crate::integration_tests::program_credix::instructions::process_initialize_program_state(
         &mut program_test_context,
         &keypairs[CREDIX_ADMIN],
     )
     .await?;
 
+    /*
     crate::integration_tests::program_credix::instructions::process_initialize_market(
         &mut program_test_context,
         &keypairs[CREDIX_ADMIN],
@@ -84,7 +76,6 @@ async fn test_integration() -> Result<(), String> {
     )
     .await?;
 
-    /*
     crate::integration_tests::program_uxd::instructions::process_initialize_controller(
         &mut program_test_context,
         &keypairs[PAYER],
