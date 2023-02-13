@@ -6,7 +6,6 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::program_test_context;
-use crate::program_uxd;
 
 pub async fn process_initialize_controller(
     program_test_context: &mut ProgramTestContext,
