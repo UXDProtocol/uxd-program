@@ -9,9 +9,10 @@ pub async fn process_associated_token_account_init(
     wallet: &Pubkey,
     mint: &Pubkey,
 ) -> Result<(), String> {
-    let instruction = spl_associated_token_account::instruction::create_associated_token_account(
+    // note: after upgrading to anchor 0.26.0, we can use the non-deprecated ::instruction
+    let instruction = spl_associated_token_account::create_associated_token_account(
         &payer.pubkey(),
-        wallet,
+        &wallet,
         mint,
     );
     crate::integration_tests::program_test_context::process_instruction(

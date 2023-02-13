@@ -36,8 +36,8 @@ pub async fn process_initialize_controller(
     crate::integration_tests::program_test_context::process_instruction_with_signer(
         program_test_context,
         instruction,
-        authority,
         payer,
+        authority,
     )
     .await
 }

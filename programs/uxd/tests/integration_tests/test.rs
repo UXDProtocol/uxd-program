@@ -53,9 +53,6 @@ async fn test_integration() -> Result<(), String> {
     }
 
     let collateral_mint = Keypair::new();
-
-    let wallet = Keypair::new();
-
     crate::integration_tests::program_spl::instructions::process_token_mint_init(
         &mut program_test_context,
         &keypairs[PAYER],
@@ -65,15 +62,6 @@ async fn test_integration() -> Result<(), String> {
     )
     .await?;
 
-    crate::integration_tests::program_spl::instructions::process_associated_token_account_init(
-        &mut program_test_context,
-        &keypairs[PAYER],
-        &wallet.pubkey(),
-        &collateral_mint.pubkey(),
-    )
-    .await?;
-
-    /*
     crate::integration_tests::program_credix::instructions::process_initialize_program_state(
         &mut program_test_context,
         &keypairs[CREDIX_ADMIN],
@@ -87,6 +75,7 @@ async fn test_integration() -> Result<(), String> {
     )
     .await?;
 
+    /*
     crate::integration_tests::program_uxd::instructions::process_initialize_controller(
         &mut program_test_context,
         &keypairs[PAYER],

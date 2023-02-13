@@ -25,8 +25,8 @@ pub async fn process_token_mint_init(
     crate::integration_tests::program_test_context::process_instruction_with_signer(
         program_test_context,
         instruction_create,
-        mint,
         payer,
+        mint,
     )
     .await?;
 

@@ -11,10 +11,9 @@ pub async fn process_lamports_airdrop(
     let from =
         Keypair::from_bytes(&program_test_context.payer.to_bytes()).map_err(|e| e.to_string())?;
     let instruction = solana_sdk::system_instruction::transfer(&from.pubkey(), &to, lamports);
-    crate::integration_tests::program_test_context::process_instruction_with_signer(
+    crate::integration_tests::program_test_context::process_instruction(
         program_test_context,
         instruction,
-        &from,
         &from,
     )
     .await

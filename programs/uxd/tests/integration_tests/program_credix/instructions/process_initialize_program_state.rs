@@ -6,31 +6,31 @@ use solana_sdk::signer::Signer;
 
 pub async fn process_initialize_program_state(
     program_test_context: &mut ProgramTestContext,
-    admin: &Keypair,
+    authority: &Keypair,
 ) -> Result<(), String> {
     let program_state =
         crate::integration_tests::program_credix::accounts::find_program_state_address();
 
     let accounts = credix_client::accounts::InitializeProgramState {
-        owner: admin.pubkey(),
+        owner: authority.pubkey(),
         program_state,
         system_program: anchor_lang::system_program::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
     let payload = credix_client::instruction::InitializeProgramState {
         _credix_managers: [
-            admin.pubkey(),
-            admin.pubkey(),
-            admin.pubkey(),
-            admin.pubkey(),
-            admin.pubkey(),
-            admin.pubkey(),
-            admin.pubkey(),
-            admin.pubkey(),
-            admin.pubkey(),
-            admin.pubkey(),
+            authority.pubkey(),
+            authority.pubkey(),
+            authority.pubkey(),
+            authority.pubkey(),
+            authority.pubkey(),
+            authority.pubkey(),
+            authority.pubkey(),
+            authority.pubkey(),
+            authority.pubkey(),
+            authority.pubkey(),
         ],
-        _credix_multisig_key: admin.pubkey(),
+        _credix_multisig_key: authority.pubkey(),
         _credix_service_fee_percentage: credix_client::Fraction {
             numerator: 1,
             denominator: 100,
@@ -45,11 +45,10 @@ pub async fn process_initialize_program_state(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    crate::integration_tests::program_test_context::process_instruction_with_signer(
+    crate::integration_tests::program_test_context::process_instruction(
         program_test_context,
         instruction,
-        admin,
-        admin,
+        authority,
     )
     .await
 }
