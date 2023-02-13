@@ -12,17 +12,19 @@ pub async fn process_instruction_with_signer(
 ) -> Result<(), String> {
     println!(" -------- PROCESSING INSTRUCTION (with signer) --------");
     println!(
-        " instruction.program_id: {:?}",
+        " - instruction.program_id: {:?}",
         instruction.program_id.to_string()
     );
-    println!(" instruction.accounts: {:?}", instruction.accounts);
-    println!(" instruction.data: {:?}", instruction.data);
+    println!(" - instruction.accounts: {:?}", instruction.accounts);
+    println!(" - instruction.data: {:?}", instruction.data);
     let mut transaction: Transaction =
         Transaction::new_with_payer(&[instruction], Some(&payer.pubkey()));
     transaction.partial_sign(&[payer, signer], program_test_context.last_blockhash);
-    program_test_context
+    let result = program_test_context
         .banks_client
         .process_transaction(transaction)
         .await
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string());
+    println!(" >>>> RESULT: {:?}", result);
+    result
 }

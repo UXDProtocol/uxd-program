@@ -23,28 +23,24 @@ pub async fn process_initialize_market(
     let lp_token_mint =
         crate::integration_tests::program_credix::accounts::find_lp_token_mint_address();
 
-    let liquidity_pool_token_account = anchor_spl::associated_token::get_associated_token_address(
-        &signing_authority,
-        collateral_mint,
-    );
-    crate::integration_tests::program_spl::instructions::process_associated_token_account_init(
-        program_test_context,
-        admin,
-        &signing_authority,
-        collateral_mint,
-    )
-    .await?;
+    let liquidity_pool_token_account =
+        crate::integration_tests::program_spl::instructions::process_associated_token_account_init(
+            program_test_context,
+            admin,
+            collateral_mint,
+            &signing_authority,
+        )
+        .await?;
 
     let treasury = admin.pubkey();
     let treasury_pool_token_account =
-        anchor_spl::associated_token::get_associated_token_address(&treasury, collateral_mint);
-    crate::integration_tests::program_spl::instructions::process_associated_token_account_init(
-        program_test_context,
-        admin,
-        &treasury,
-        collateral_mint,
-    )
-    .await?;
+        crate::integration_tests::program_spl::instructions::process_associated_token_account_init(
+            program_test_context,
+            admin,
+            collateral_mint,
+            &treasury,
+        )
+        .await?;
 
     let accounts = credix_client::accounts::InitializeMarket {
         owner: admin.pubkey(),
@@ -103,13 +99,13 @@ pub async fn process_initialize_market(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    /*
     crate::integration_tests::program_test_context::process_instruction(
         program_test_context,
         instruction,
         admin,
     )
-    .await
+    .await?;
+    /*
      */
     Ok(())
 }
