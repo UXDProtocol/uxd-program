@@ -75,15 +75,23 @@ async fn test_integration() -> Result<(), String> {
         &collateral_mint.pubkey(),
     )
     .await?;
+     */
 
     crate::integration_tests::program_uxd::instructions::process_initialize_controller(
         &mut program_test_context,
         &keypairs[PAYER],
-        &keypairs[AUTHORITY],
+        &keypairs[UXD_AUTHORITY],
         redeemable_collateral_mint_decimals,
     )
     .await?;
-     */
+
+    crate::integration_tests::program_uxd::instructions::process_initialize_identity_depository(
+        &mut program_test_context,
+        &keypairs[PAYER],
+        &keypairs[UXD_AUTHORITY],
+        &collateral_mint.pubkey(),
+    )
+    .await?;
 
     Ok(())
 }

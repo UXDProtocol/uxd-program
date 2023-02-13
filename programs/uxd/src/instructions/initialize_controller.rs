@@ -23,7 +23,6 @@ pub struct InitializeController<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     /// #3 The top level UXDProgram on chain account managing the redeemable mint
-    /*
     #[account(
         init,
         seeds = [CONTROLLER_NAMESPACE],
@@ -32,8 +31,6 @@ pub struct InitializeController<'info> {
         space = CONTROLLER_SPACE
     )]
     pub controller: AccountLoader<'info, Controller>,
-     */
-    /*
     /// #4 The redeemable mint managed by the `controller` instance
     #[account(
         init,
@@ -45,7 +42,6 @@ pub struct InitializeController<'info> {
         constraint = redeemable_mint_decimals <= SOLANA_MAX_MINT_DECIMALS
     )]
     pub redeemable_mint: Account<'info, Mint>,
-    */
     /// #5 System Program
     pub system_program: Program<'info, System>,
     /// #6 Token Program
@@ -58,7 +54,6 @@ pub(crate) fn handler(
     ctx: Context<InitializeController>,
     redeemable_mint_decimals: u8,
 ) -> Result<()> {
-    /*
     let controller = &mut ctx.accounts.controller.load_init()?;
     let redeemable_mint_unit = 10_u64
         .checked_pow(redeemable_mint_decimals.into())
@@ -88,7 +83,6 @@ pub(crate) fn handler(
         controller: ctx.accounts.controller.key(),
         authority: ctx.accounts.authority.key(),
     });
-     */
     Ok(())
 }
 

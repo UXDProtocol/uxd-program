@@ -1,31 +1,35 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program_test::ProgramTestContext;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-pub async fn process_initialize_controller(
+pub async fn process_initialize_identity_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     authority: &Keypair,
-    redeemable_mint_decimals: u8,
+    collateral_mint: &Pubkey,
 ) -> Result<(), String> {
     let controller = crate::integration_tests::program_uxd::accounts::find_controller_address();
-    let redeemable_mint =
-        crate::integration_tests::program_uxd::accounts::find_redeemable_mint_address();
 
-    let accounts = uxd::accounts::InitializeController {
+    let identity_depository =
+        crate::integration_tests::program_uxd::accounts::find_identity_depository_address();
+    let identity_collateral_vault =
+        crate::integration_tests::program_uxd::accounts::find_identity_collateral_vault_address();
+
+    let accounts = uxd::accounts::InitializeIdentityDepository {
         authority: authority.pubkey(),
         payer: payer.pubkey(),
         controller,
-        redeemable_mint,
+        depository: identity_depository,
+        collateral_vault: identity_collateral_vault,
+        collateral_mint: *collateral_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
-    let payload = uxd::instruction::InitializeController {
-        redeemable_mint_decimals,
-    };
+    let payload = uxd::instruction::InitializeIdentityDepository {};
     let instruction = solana_sdk::instruction::Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),
