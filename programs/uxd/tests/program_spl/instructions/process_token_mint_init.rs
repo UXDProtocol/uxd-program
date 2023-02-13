@@ -14,7 +14,11 @@ pub async fn process_token_mint_init(
     decimals: u8,
     authority: &Pubkey,
 ) -> Result<(), String> {
-    let rent = program_test_context::get_rent(program_test_context).await?;
+    let rent = program_test_context
+        .banks_client
+        .get_rent()
+        .await
+        .map_err(|e| e.to_string())?;
 
     let instruction_create = solana_program::system_instruction::create_account(
         &payer.pubkey(),

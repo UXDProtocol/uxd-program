@@ -16,10 +16,16 @@ pub async fn process_redeem_from_identity_depository(
     user_redeemable: &Pubkey,
     redeemable_amount: u64,
 ) -> Result<(), String> {
-    let controller = program_uxd::accounts::find_controller_address();
+    let controller =
+        Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE.as_ref()], &uxd::id()).0;
 
-    let identity_depository = program_uxd::accounts::find_identity_depository_address();
-    let identity_collateral_vault = program_uxd::accounts::find_identity_collateral_vault_address();
+    let identity_depository =
+        Pubkey::find_program_address(&[uxd::IDENTITY_DEPOSITORY_NAMESPACE.as_ref()], &uxd::id()).0;
+    let identity_collateral_vault = Pubkey::find_program_address(
+        &[uxd::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE.as_ref()],
+        &uxd::id(),
+    )
+    .0;
 
     let redeemable_mint = program_uxd::accounts::find_redeemable_mint_address();
 

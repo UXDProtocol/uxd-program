@@ -14,11 +14,14 @@ pub async fn process_initialize_market(
     admin: &Keypair,
     collateral_mint: &Pubkey,
 ) -> Result<(), String> {
-    let global_market_state = program_credix::accounts::find_global_market_state_address();
-    let market_admins = program_credix::accounts::find_market_admins_address(global_market_state);
-    let program_state = program_credix::accounts::find_program_state_address();
-    let signing_authority = program_credix::accounts::find_signing_authority_address();
-    let lp_token_mint = program_credix::accounts::find_lp_token_mint_address();
+    let market_seeds = program_credix::accounts::get_market_seeds();
+    let global_market_state = credix_client::GlobalMarketState::generate_pda(&market_seeds).0;
+    let market_admins = credix_client::MarketAdmins::generate_pda(global_market_state).0;
+    let program_state = credix_client::ProgramState::generate_pda().0;
+    let signing_authority =
+        credix_client::GlobalMarketState::generate_signing_authority_pda(&market_seeds).0;
+    let lp_token_mint =
+        credix_client::GlobalMarketState::generate_lp_token_mint_pda(&market_seeds).0;
 
     let liquidity_pool_token_account =
         program_spl::instructions::process_associated_token_account_init(

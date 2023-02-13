@@ -4,14 +4,13 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::program_credix;
 use crate::program_test_context;
 
 pub async fn process_initialize_program_state(
     program_test_context: &mut ProgramTestContext,
     authority: &Keypair,
 ) -> Result<(), String> {
-    let program_state = program_credix::accounts::find_program_state_address();
+    let program_state = credix_client::ProgramState::generate_pda().0;
 
     let accounts = credix_client::accounts::InitializeProgramState {
         owner: authority.pubkey(),

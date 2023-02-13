@@ -3,7 +3,6 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::program_spl;
 use crate::program_test_context;
 
 pub async fn process_associated_token_account_init(
@@ -19,5 +18,7 @@ pub async fn process_associated_token_account_init(
         mint,
     );
     program_test_context::process_instruction(program_test_context, instruction, payer).await?;
-    Ok(program_spl::accounts::find_associated_token_account_address(mint, wallet))
+    Ok(spl_associated_token_account::get_associated_token_address(
+        wallet, mint,
+    ))
 }

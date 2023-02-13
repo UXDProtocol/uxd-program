@@ -6,7 +6,6 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::program_test_context;
-use crate::program_uxd;
 
 pub async fn process_initialize_identity_depository(
     program_test_context: &mut ProgramTestContext,
@@ -14,10 +13,16 @@ pub async fn process_initialize_identity_depository(
     authority: &Keypair,
     collateral_mint: &Pubkey,
 ) -> Result<(), String> {
-    let controller = program_uxd::accounts::find_controller_address();
+    let controller =
+        Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE.as_ref()], &uxd::id()).0;
 
-    let identity_depository = program_uxd::accounts::find_identity_depository_address();
-    let identity_collateral_vault = program_uxd::accounts::find_identity_collateral_vault_address();
+    let identity_depository =
+        Pubkey::find_program_address(&[uxd::IDENTITY_DEPOSITORY_NAMESPACE.as_ref()], &uxd::id()).0;
+    let identity_collateral_vault = Pubkey::find_program_address(
+        &[uxd::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE.as_ref()],
+        &uxd::id(),
+    )
+    .0;
 
     let accounts = uxd::accounts::InitializeIdentityDepository {
         authority: authority.pubkey(),

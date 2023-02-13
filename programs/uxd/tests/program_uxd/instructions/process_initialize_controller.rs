@@ -1,6 +1,7 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program_test::ProgramTestContext;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -13,7 +14,9 @@ pub async fn process_initialize_controller(
     authority: &Keypair,
     redeemable_mint_decimals: u8,
 ) -> Result<(), String> {
-    let controller = program_uxd::accounts::find_controller_address();
+    let controller =
+        Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE.as_ref()], &uxd::id()).0;
+
     let redeemable_mint = program_uxd::accounts::find_redeemable_mint_address();
 
     let accounts = uxd::accounts::InitializeController {
