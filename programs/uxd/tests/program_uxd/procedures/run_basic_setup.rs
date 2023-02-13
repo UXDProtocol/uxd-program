@@ -4,6 +4,10 @@ use solana_sdk::signature::Keypair;
 
 use crate::program_uxd;
 
+/**
+ * Setup a simple UXP program with depositories and no deposited money
+ * Returns the redeemable mint address that was created
+ */
 pub async fn run_basic_setup(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
@@ -13,7 +17,10 @@ pub async fn run_basic_setup(
     redeemable_global_supply_cap: u128,
     identity_depository_redeemable_amount_under_management_cap: u128,
     identity_depository_minting_disabled: bool,
-) -> Result<(), String> {
+) -> Result<Pubkey, String> {
+    let redeemable_mint =
+        Pubkey::find_program_address(&[uxd::REDEEMABLE_MINT_NAMESPACE.as_ref()], &uxd::id()).0;
+
     // Controller setup
     program_uxd::instructions::process_initialize_controller(
         program_test_context,
@@ -47,6 +54,6 @@ pub async fn run_basic_setup(
     )
     .await?;
 
-    // Ready to use
-    Ok(())
+    // Redeemable tokens ready to be minted/redeemed
+    Ok(redeemable_mint)
 }

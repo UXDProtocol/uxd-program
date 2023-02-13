@@ -27,7 +27,7 @@ pub async fn process_redeem_from_identity_depository(
     )
     .0;
 
-    let redeemable_mint = program_uxd::accounts::find_redeemable_mint_address();
+    let redeemable_mint = Pubkey::find_program_address(&[uxd::REDEEMABLE_MINT_NAMESPACE.as_ref()], &uxd::id()).0;
 
     let accounts = uxd::accounts::RedeemFromIdentityDepository {
         user: user.pubkey(),

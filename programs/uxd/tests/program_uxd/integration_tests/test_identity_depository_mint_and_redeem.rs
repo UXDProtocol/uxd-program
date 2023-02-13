@@ -60,7 +60,7 @@ async fn test_identity_depository() -> Result<(), String> {
     .await?;
 
     // Initialize basic UXD program state
-    program_uxd::procedures::run_basic_setup(
+    let redeemable_mint = program_uxd::procedures::run_basic_setup(
         &mut program_test_context,
         &payer,
         &uxd_authority,
@@ -73,7 +73,6 @@ async fn test_identity_depository() -> Result<(), String> {
     .await?;
 
     // Create a redeemable account for our user
-    let redeemable_mint = program_uxd::accounts::find_redeemable_mint_address();
     let user_redeemable = program_spl::instructions::process_associated_token_account_init(
         &mut program_test_context,
         &payer,
