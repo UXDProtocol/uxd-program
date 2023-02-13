@@ -5,13 +5,13 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-pub async fn process_mint_with_identity_depository(
+pub async fn process_redeem_from_identity_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     user: &Keypair,
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
-    collateral_amount: u64,
+    redeemable_amount: u64,
 ) -> Result<(), String> {
     let controller = crate::integration_tests::program_uxd::accounts::find_controller_address();
 
@@ -23,7 +23,7 @@ pub async fn process_mint_with_identity_depository(
     let redeemable_mint =
         crate::integration_tests::program_uxd::accounts::find_redeemable_mint_address();
 
-    let accounts = uxd::accounts::MintWithIdentityDepository {
+    let accounts = uxd::accounts::RedeemFromIdentityDepository {
         user: user.pubkey(),
         payer: payer.pubkey(),
         controller,
@@ -35,7 +35,7 @@ pub async fn process_mint_with_identity_depository(
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
     };
-    let payload = uxd::instruction::MintWithIdentityDepository { collateral_amount };
+    let payload = uxd::instruction::RedeemFromIdentityDepository { redeemable_amount };
     let instruction = solana_sdk::instruction::Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),

@@ -2,9 +2,10 @@ use solana_program_test::processor;
 use solana_program_test::tokio;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
-use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
+
+use crate::integration_tests::program_spl::accounts::get_token_account;
 
 #[tokio::test]
 async fn test_identity_depository() -> Result<(), String> {
@@ -22,6 +23,7 @@ async fn test_identity_depository() -> Result<(), String> {
     )
     .await?;
 
+    // Main actors
     let uxd_authority = Keypair::new();
     let user = Keypair::new();
 
@@ -71,18 +73,93 @@ async fn test_identity_depository() -> Result<(), String> {
         &collateral_mint.pubkey(),
     )
     .await?;
+    crate::integration_tests::program_uxd::instructions::process_edit_identity_depository(
+        &mut program_test_context,
+        &payer,
+        &uxd_authority,
+        Some(1_000_000),
+        Some(false),
+    )
+    .await?;
+
+    // Create a redeemable account for our user
+    let redeemable_mint =
+        crate::integration_tests::program_uxd::accounts::find_redeemable_mint_address();
+    let user_redeemable =
+        crate::integration_tests::program_spl::instructions::process_associated_token_account_init(
+            &mut program_test_context,
+            &payer,
+            &redeemable_mint,
+            &user.pubkey(),
+        )
+        .await?;
+
+    // Check user collateral original amount
+    assert_eq!(
+        1_000_000,
+        get_token_account(&mut program_test_context, &user_collateral)
+            .await?
+            .amount
+    );
+    // Check user redeemable original amount
+    assert_eq!(
+        0,
+        get_token_account(&mut program_test_context, &user_redeemable,)
+            .await?
+            .amount
+    );
 
     // Mint
     crate::integration_tests::program_uxd::instructions::process_mint_with_identity_depository(
         &mut program_test_context,
         &payer,
         &user,
-        &collateral_mint.pubkey(),
+        &user_collateral,
+        &user_redeemable,
         500_000,
     )
     .await?;
-    /*
-     */
+
+    // Check user collateral decreased
+    assert_eq!(
+        1_000_000 - 500_000,
+        get_token_account(&mut program_test_context, &user_collateral)
+            .await?
+            .amount
+    );
+    // Check user redeemable increased
+    assert_eq!(
+        0 + 500_000,
+        get_token_account(&mut program_test_context, &user_redeemable,)
+            .await?
+            .amount
+    );
+
+    // Redeem
+    crate::integration_tests::program_uxd::instructions::process_redeem_from_identity_depository(
+        &mut program_test_context,
+        &payer,
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        250_000,
+    )
+    .await?;
+
+    // Check user collateral increased
+    assert_eq!(
+        1_000_000 - 500_000 + 250_000,
+        get_token_account(&mut program_test_context, &user_collateral)
+            .await?
+            .amount
+    );
+    // Check user redeemable decreased
+    assert_eq!(
+        0 + 500_000 - 250_000,
+        get_token_account(&mut program_test_context, &user_redeemable,)
+            .await?
+            .amount
+    );
 
     Ok(())
 }
