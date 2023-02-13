@@ -10,6 +10,7 @@ pub async fn run_basic_setup(
     authority: &Keypair,
     collateral_mint: &Pubkey,
     redeemable_mint_decimals: u8,
+    redeemable_global_supply_cap: u128,
     identity_depository_redeemable_amount_under_management_cap: u128,
     identity_depository_minting_disabled: bool,
 ) -> Result<(), String> {
@@ -19,6 +20,13 @@ pub async fn run_basic_setup(
         payer,
         authority,
         redeemable_mint_decimals,
+    )
+    .await?;
+    program_uxd::instructions::process_edit_controller(
+        program_test_context,
+        payer,
+        authority,
+        Some(redeemable_global_supply_cap),
     )
     .await?;
 

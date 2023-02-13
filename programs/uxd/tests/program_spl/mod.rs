@@ -1,3 +1,3 @@
 pub mod accounts;
 pub mod instructions;
-pub mod tests;
+pub mod integration_tests;

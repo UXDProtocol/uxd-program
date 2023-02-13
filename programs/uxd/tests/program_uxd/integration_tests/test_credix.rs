@@ -14,7 +14,7 @@ const UXD_AUTHORITY: usize = 1;
 const CREDIX_AUTHORITY: usize = 3;
 
 #[tokio::test]
-async fn test_integration() -> Result<(), String> {
+async fn test_credix() -> Result<(), String> {
     let keypairs = [
         Keypair::new(),
         Keypair::new(),
@@ -74,6 +74,7 @@ async fn test_integration() -> Result<(), String> {
         &keypairs[UXD_AUTHORITY],
         &collateral_mint.pubkey(),
         6,
+        1_000_000,
         1_000_000,
         false,
     )

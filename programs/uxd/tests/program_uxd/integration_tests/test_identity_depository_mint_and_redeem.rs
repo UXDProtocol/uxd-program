@@ -67,6 +67,7 @@ async fn test_identity_depository() -> Result<(), String> {
         &collateral_mint.pubkey(),
         6,
         1_000_000,
+        1_000_000,
         false,
     )
     .await?;
