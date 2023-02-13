@@ -104,12 +104,12 @@ async fn test_identity_depository() -> Result<(), String> {
     // Check user redeemable original amount
     assert_eq!(
         0,
-        get_token_account(&mut program_test_context, &user_redeemable,)
+        get_token_account(&mut program_test_context, &user_redeemable)
             .await?
             .amount
     );
 
-    // Mint
+    // Mint using identity depository
     crate::integration_tests::program_uxd::instructions::process_mint_with_identity_depository(
         &mut program_test_context,
         &payer,
@@ -130,12 +130,12 @@ async fn test_identity_depository() -> Result<(), String> {
     // Check user redeemable increased
     assert_eq!(
         0 + 500_000,
-        get_token_account(&mut program_test_context, &user_redeemable,)
+        get_token_account(&mut program_test_context, &user_redeemable)
             .await?
             .amount
     );
 
-    // Redeem
+    // Redeem using identity depository
     crate::integration_tests::program_uxd::instructions::process_redeem_from_identity_depository(
         &mut program_test_context,
         &payer,
@@ -156,7 +156,7 @@ async fn test_identity_depository() -> Result<(), String> {
     // Check user redeemable decreased
     assert_eq!(
         0 + 500_000 - 250_000,
-        get_token_account(&mut program_test_context, &user_redeemable,)
+        get_token_account(&mut program_test_context, &user_redeemable)
             .await?
             .amount
     );
