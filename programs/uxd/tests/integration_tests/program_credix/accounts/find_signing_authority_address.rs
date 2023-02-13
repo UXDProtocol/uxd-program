@@ -1,8 +1,10 @@
 use solana_sdk::pubkey::Pubkey;
 
+use crate::integration_tests::program_credix;
+
 pub fn find_signing_authority_address() -> Pubkey {
     let (signing_authority, _) = credix_client::GlobalMarketState::generate_signing_authority_pda(
-        &crate::integration_tests::program_credix::accounts::get_market_seeds(),
+        &program_credix::accounts::get_market_seeds(),
     );
     assert_eq!(
         "HzukpMez1Cuz7emNW7XS6PK2ydnq85yDCapt8rrYKyGy",

@@ -1,9 +1,10 @@
 use solana_program_test::tokio;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
-use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
+
+use crate::integration_tests::program_spl;
 
 #[tokio::test]
 async fn test_token_utils() -> Result<(), String> {
@@ -16,7 +17,7 @@ async fn test_token_utils() -> Result<(), String> {
     let authority = Keypair::new();
 
     // Fund payer
-    crate::integration_tests::program_spl::instructions::process_lamports_airdrop(
+    program_spl::instructions::process_lamports_airdrop(
         &mut program_test_context,
         &payer.pubkey(),
         1_000_000_000_000,
@@ -24,7 +25,7 @@ async fn test_token_utils() -> Result<(), String> {
     .await?;
 
     // create mint
-    crate::integration_tests::program_spl::instructions::process_token_mint_init(
+    program_spl::instructions::process_token_mint_init(
         &mut program_test_context,
         &payer,
         &mint,
@@ -35,17 +36,16 @@ async fn test_token_utils() -> Result<(), String> {
 
     // create account
     let wallet = Keypair::new();
-    let token_account =
-        crate::integration_tests::program_spl::instructions::process_associated_token_account_init(
-            &mut program_test_context,
-            &payer,
-            &mint.pubkey(),
-            &wallet.pubkey(),
-        )
-        .await?;
+    let token_account = program_spl::instructions::process_associated_token_account_init(
+        &mut program_test_context,
+        &payer,
+        &mint.pubkey(),
+        &wallet.pubkey(),
+    )
+    .await?;
 
     // mint some
-    crate::integration_tests::program_spl::instructions::process_token_mint_to(
+    program_spl::instructions::process_token_mint_to(
         &mut program_test_context,
         &payer,
         &mint.pubkey(),
@@ -56,7 +56,7 @@ async fn test_token_utils() -> Result<(), String> {
     .await?;
 
     // mint more
-    crate::integration_tests::program_spl::instructions::process_token_mint_to(
+    program_spl::instructions::process_token_mint_to(
         &mut program_test_context,
         &payer,
         &mint.pubkey(),
@@ -67,11 +67,8 @@ async fn test_token_utils() -> Result<(), String> {
     .await?;
 
     // check total minted amount
-    let token_account = crate::integration_tests::program_spl::accounts::get_token_account(
-        &mut program_test_context,
-        &token_account,
-    )
-    .await?;
+    let token_account =
+        program_spl::accounts::get_token_account(&mut program_test_context, &token_account).await?;
     assert_eq!(token_account.amount, 83);
 
     Ok(())

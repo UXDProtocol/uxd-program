@@ -5,26 +5,23 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::program_credix;
+use crate::integration_tests::program_spl;
+use crate::integration_tests::program_test_context;
+
 pub async fn process_initialize_market(
     program_test_context: &mut ProgramTestContext,
     admin: &Keypair,
     collateral_mint: &Pubkey,
 ) -> Result<(), String> {
-    let global_market_state =
-        crate::integration_tests::program_credix::accounts::find_global_market_state_address();
-    let market_admins =
-        crate::integration_tests::program_credix::accounts::find_market_admins_address(
-            global_market_state,
-        );
-    let program_state =
-        crate::integration_tests::program_credix::accounts::find_program_state_address();
-    let signing_authority =
-        crate::integration_tests::program_credix::accounts::find_signing_authority_address();
-    let lp_token_mint =
-        crate::integration_tests::program_credix::accounts::find_lp_token_mint_address();
+    let global_market_state = program_credix::accounts::find_global_market_state_address();
+    let market_admins = program_credix::accounts::find_market_admins_address(global_market_state);
+    let program_state = program_credix::accounts::find_program_state_address();
+    let signing_authority = program_credix::accounts::find_signing_authority_address();
+    let lp_token_mint = program_credix::accounts::find_lp_token_mint_address();
 
     let liquidity_pool_token_account =
-        crate::integration_tests::program_spl::instructions::process_associated_token_account_init(
+        program_spl::instructions::process_associated_token_account_init(
             program_test_context,
             admin,
             collateral_mint,
@@ -34,7 +31,7 @@ pub async fn process_initialize_market(
 
     let treasury = admin.pubkey();
     let treasury_pool_token_account =
-        crate::integration_tests::program_spl::instructions::process_associated_token_account_init(
+        program_spl::instructions::process_associated_token_account_init(
             program_test_context,
             admin,
             collateral_mint,
@@ -60,7 +57,7 @@ pub async fn process_initialize_market(
     };
 
     let payload = credix_client::instruction::InitializeMarket {
-        _global_market_seed: crate::integration_tests::program_credix::accounts::get_market_seeds(),
+        _global_market_seed: program_credix::accounts::get_market_seeds(),
         _multisig: Some(admin.pubkey()),
         _managers: None,
         _pass_issuers: None,
@@ -99,13 +96,7 @@ pub async fn process_initialize_market(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    crate::integration_tests::program_test_context::process_instruction(
-        program_test_context,
-        instruction,
-        admin,
-    )
-    .await?;
-    /*
-     */
+    program_test_context::process_instruction(program_test_context, instruction, admin).await?;
+
     Ok(())
 }

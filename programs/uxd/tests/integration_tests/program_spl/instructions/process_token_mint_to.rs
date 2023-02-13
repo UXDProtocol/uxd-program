@@ -1,8 +1,9 @@
-use solana_program::program_pack::Pack;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
+
+use crate::integration_tests::program_test_context;
 
 pub async fn process_token_mint_to(
     program_test_context: &mut ProgramTestContext,
@@ -22,7 +23,7 @@ pub async fn process_token_mint_to(
     )
     .map_err(|e| e.to_string())?;
 
-    crate::integration_tests::program_test_context::process_instruction_with_signer(
+    program_test_context::process_instruction_with_signer(
         program_test_context,
         instruction,
         payer,

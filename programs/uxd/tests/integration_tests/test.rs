@@ -2,9 +2,12 @@ use solana_program_test::processor;
 use solana_program_test::tokio;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
-use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
+
+use crate::integration_tests::program_credix;
+use crate::integration_tests::program_spl;
+use crate::integration_tests::program_uxd;
 
 const PAYER: usize = 0;
 const UXD_AUTHORITY: usize = 1;
@@ -44,7 +47,7 @@ async fn test_integration() -> Result<(), String> {
     let mut program_test_context: ProgramTestContext = program_test.start_with_context().await;
 
     for keypair in &keypairs {
-        crate::integration_tests::program_spl::instructions::process_lamports_airdrop(
+        program_spl::instructions::process_lamports_airdrop(
             &mut program_test_context,
             &keypair.pubkey(),
             1_000_000_000_000,
@@ -53,7 +56,7 @@ async fn test_integration() -> Result<(), String> {
     }
 
     let collateral_mint = Keypair::new();
-    crate::integration_tests::program_spl::instructions::process_token_mint_init(
+    program_spl::instructions::process_token_mint_init(
         &mut program_test_context,
         &keypairs[PAYER],
         &collateral_mint,
@@ -62,22 +65,22 @@ async fn test_integration() -> Result<(), String> {
     )
     .await?;
 
-    crate::integration_tests::program_credix::instructions::process_initialize_program_state(
+    program_credix::instructions::process_initialize_program_state(
         &mut program_test_context,
         &keypairs[CREDIX_ADMIN],
     )
     .await?;
 
-    /*
-    crate::integration_tests::program_credix::instructions::process_initialize_market(
+    program_credix::instructions::process_initialize_market(
         &mut program_test_context,
         &keypairs[CREDIX_ADMIN],
         &collateral_mint.pubkey(),
     )
     .await?;
+    /*
      */
 
-    crate::integration_tests::program_uxd::instructions::process_initialize_controller(
+    program_uxd::instructions::process_initialize_controller(
         &mut program_test_context,
         &keypairs[PAYER],
         &keypairs[UXD_AUTHORITY],
@@ -85,7 +88,7 @@ async fn test_integration() -> Result<(), String> {
     )
     .await?;
 
-    crate::integration_tests::program_uxd::instructions::process_initialize_identity_depository(
+    program_uxd::instructions::process_initialize_identity_depository(
         &mut program_test_context,
         &keypairs[PAYER],
         &keypairs[UXD_AUTHORITY],

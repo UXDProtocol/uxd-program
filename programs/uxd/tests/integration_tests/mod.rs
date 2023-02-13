@@ -5,4 +5,4 @@ pub mod program_uxd;
 
 pub mod test;
 pub mod test_identity_depository;
-pub mod test_utils;
+pub mod test_spl_utils;
