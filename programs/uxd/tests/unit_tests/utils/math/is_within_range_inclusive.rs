@@ -1,8 +1,8 @@
 // Unit tests
 #[cfg(test)]
 mod test_is_within_range_inclusive {
-    use crate::utils::is_within_range_inclusive;
     use anchor_lang::Result;
+    use uxd::utils::is_within_range_inclusive;
 
     #[test]
     fn test_equality() -> Result<()> {
