@@ -5,9 +5,9 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::program_credix;
-use crate::program_spl;
-use crate::program_test_context;
+use crate::integration_tests::api::program_credix;
+use crate::integration_tests::api::program_spl;
+use crate::integration_tests::api::program_test_context;
 
 pub async fn process_initialize_market(
     program_test_context: &mut ProgramTestContext,

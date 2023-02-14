@@ -5,21 +5,16 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::program_test_context;
+use crate::integration_tests::api::program_test_context;
 
-pub async fn process_mint_with_identity_depository(
+pub async fn process_initialize_identity_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
-    user: &Keypair,
-    user_collateral: &Pubkey,
-    user_redeemable: &Pubkey,
-    collateral_amount: u64,
+    authority: &Keypair,
+    collateral_mint: &Pubkey,
 ) -> Result<(), String> {
     let controller =
         Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE.as_ref()], &uxd::id()).0;
-
-    let redeemable_mint =
-        Pubkey::find_program_address(&[uxd::REDEEMABLE_MINT_NAMESPACE.as_ref()], &uxd::id()).0;
 
     let identity_depository =
         Pubkey::find_program_address(&[uxd::IDENTITY_DEPOSITORY_NAMESPACE.as_ref()], &uxd::id()).0;
@@ -29,19 +24,18 @@ pub async fn process_mint_with_identity_depository(
     )
     .0;
 
-    let accounts = uxd::accounts::MintWithIdentityDepository {
-        user: user.pubkey(),
+    let accounts = uxd::accounts::InitializeIdentityDepository {
+        authority: authority.pubkey(),
         payer: payer.pubkey(),
         controller,
         depository: identity_depository,
         collateral_vault: identity_collateral_vault,
-        redeemable_mint,
-        user_collateral: *user_collateral,
-        user_redeemable: *user_redeemable,
+        collateral_mint: *collateral_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
+        rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
-    let payload = uxd::instruction::MintWithIdentityDepository { collateral_amount };
+    let payload = uxd::instruction::InitializeIdentityDepository {};
     let instruction = solana_sdk::instruction::Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),
@@ -51,7 +45,7 @@ pub async fn process_mint_with_identity_depository(
         program_test_context,
         instruction,
         payer,
-        user,
+        authority,
     )
     .await
 }

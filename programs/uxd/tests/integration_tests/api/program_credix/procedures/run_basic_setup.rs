@@ -2,7 +2,7 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 
-use crate::program_credix;
+use crate::integration_tests::api::program_credix;
 
 pub async fn run_basic_setup(
     program_test_context: &mut ProgramTestContext,

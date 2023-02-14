@@ -5,9 +5,9 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::program_credix;
-use crate::program_spl;
-use crate::program_uxd;
+use crate::integration_tests::api::program_credix;
+use crate::integration_tests::api::program_spl;
+use crate::integration_tests::api::program_uxd;
 
 const PAYER: usize = 0;
 const UXD_AUTHORITY: usize = 1;
@@ -37,8 +37,13 @@ async fn test_credix() -> Result<(), String> {
         "tests/fixtures/credix_client.so",
     );
      */
+
     program_test.prefer_bpf(true);
-    program_test.add_program("credix_client", credix_client::id(), None);
+    program_test.add_program(
+        "tests/integration_tests/api/program_credix/executable",
+        credix_client::id(),
+        None,
+    );
 
     let mut program_test_context: ProgramTestContext = program_test.start_with_context().await;
 

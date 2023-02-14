@@ -4,7 +4,7 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::program_spl;
+use crate::integration_tests::api::program_spl;
 
 #[tokio::test]
 async fn test_mint_and_token() -> Result<(), String> {

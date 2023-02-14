@@ -3,7 +3,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::program_test_context;
+use crate::integration_tests::api::program_test_context;
 
 pub async fn process_lamports_airdrop(
     program_test_context: &mut ProgramTestContext,

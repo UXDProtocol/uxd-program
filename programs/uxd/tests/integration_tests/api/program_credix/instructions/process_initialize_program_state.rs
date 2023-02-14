@@ -4,7 +4,7 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::program_test_context;
+use crate::integration_tests::api::program_test_context;
 
 pub async fn process_initialize_program_state(
     program_test_context: &mut ProgramTestContext,

@@ -5,7 +5,7 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use spl_token::state::Mint;
 
-use crate::program_test_context;
+use crate::integration_tests::api::program_test_context;
 
 pub async fn process_token_mint_init(
     program_test_context: &mut ProgramTestContext,

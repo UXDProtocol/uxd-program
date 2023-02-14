@@ -5,32 +5,22 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::program_test_context;
+use crate::integration_tests::api::program_test_context;
 
-pub async fn process_edit_identity_depository(
+pub async fn process_freeze_program(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     authority: &Keypair,
-    redeemable_amount_under_management_cap: Option<u128>,
-    minting_disabled: Option<bool>,
+    freeze: bool,
 ) -> Result<(), String> {
     let controller =
         Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE.as_ref()], &uxd::id()).0;
 
-    let identity_depository =
-        Pubkey::find_program_address(&[uxd::IDENTITY_DEPOSITORY_NAMESPACE.as_ref()], &uxd::id()).0;
-
-    let accounts = uxd::accounts::EditIdentityDepository {
+    let accounts = uxd::accounts::FreezeProgram {
         authority: authority.pubkey(),
         controller,
-        depository: identity_depository,
     };
-    let payload = uxd::instruction::EditIdentityDepository {
-        fields: uxd::instructions::EditIdentityDepositoryFields {
-            redeemable_amount_under_management_cap,
-            minting_disabled,
-        },
-    };
+    let payload = uxd::instruction::FreezeProgram { freeze };
     let instruction = solana_sdk::instruction::Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),
