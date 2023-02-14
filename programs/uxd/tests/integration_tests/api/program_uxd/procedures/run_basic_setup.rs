@@ -54,6 +54,8 @@ pub async fn run_basic_setup(
     )
     .await?;
 
+    // TODO - initialize credix/mercurial too here
+
     // Redeemable tokens ready to be minted/redeemed
     Ok(redeemable_mint)
 }

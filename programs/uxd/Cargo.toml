@@ -1,4 +1,5 @@
-[sdke = "uxd"
+[package]
+name = "uxd"
 version = "5.1.0"
 authors = ["acammm <alexcamill@gmail.com>, cnek <ctk2012ac@gmail.com>, G. Neut <gregory.neut@gmail.com>, V. Brunet <vincent.brunet.us@gmail.com>"]
 description = "UXDProtocol Program, managing a redeemable mint backed by a delta neutral position."

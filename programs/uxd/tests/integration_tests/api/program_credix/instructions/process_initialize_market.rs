@@ -99,6 +99,9 @@ pub async fn process_initialize_market(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
+
+    // TODO - make it work
+
     //program_test_context::process_instruction(program_test_context, instruction, admin).await?;
 
     Ok(())

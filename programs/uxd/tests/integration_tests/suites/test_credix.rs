@@ -29,15 +29,6 @@ async fn test_credix() -> Result<(), String> {
 
     program_test.add_program("uxd", uxd::id(), processor!(uxd::entry));
 
-    /*
-    program_test.add_account_with_file_data(
-        Pubkey::from_str("GMiQHsRQpdbgaRA3Y2SJUxC7wBvBoCFpKFHCnMHM4f8a").unwrap(),
-        1_000_000_000_000,
-        keypairs[CREDIX_AUTHORITY].pubkey(),
-        "tests/fixtures/credix_client.so",
-    );
-     */
-
     program_test.prefer_bpf(true);
     program_test.add_program(
         "tests/integration_tests/api/program_credix/executable",

@@ -19,6 +19,8 @@ pub async fn run_basic_setup(
     )
     .await?;
 
+    // TODO - make it work for the rest of the credix setup
+
     // Ready to use
     Ok(())
 }
