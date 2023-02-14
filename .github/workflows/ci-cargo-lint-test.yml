@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: 1.9.29 # should be updated when upgrading anchor to 0.26.0
+  SOLANA_VERSION: 1.9.29
   RUST_TOOLCHAIN: nightly-2022-02-01
 
 defaults:
@@ -103,8 +103,6 @@ jobs:
           echo "Generating keypair..."
           solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
       # Run tests
-      - name: Run unit tests
-        run: cargo test --lib
       - name: Build program
         run: cargo build-bpf
       - name: Run tests
