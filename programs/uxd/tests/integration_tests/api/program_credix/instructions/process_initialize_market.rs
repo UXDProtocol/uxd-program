@@ -9,12 +9,15 @@ use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 
+const CREDIX_MARKETPLACE_SEED: &str = "credix-marketplace";
+
 pub async fn process_initialize_market(
     program_test_context: &mut ProgramTestContext,
     admin: &Keypair,
     collateral_mint: &Pubkey,
 ) -> Result<(), String> {
-    let market_seeds = program_credix::accounts::get_market_seeds();
+    let market_seeds = String::from(CREDIX_MARKETPLACE_SEED);
+
     let global_market_state = credix_client::GlobalMarketState::generate_pda(&market_seeds).0;
     let market_admins = credix_client::MarketAdmins::generate_pda(global_market_state).0;
     let program_state = credix_client::ProgramState::generate_pda().0;
@@ -60,7 +63,7 @@ pub async fn process_initialize_market(
     };
 
     let payload = credix_client::instruction::InitializeMarket {
-        _global_market_seed: program_credix::accounts::get_market_seeds(),
+        _global_market_seed: market_seeds,
         _multisig: Some(admin.pubkey()),
         _managers: None,
         _pass_issuers: None,
