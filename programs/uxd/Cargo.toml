@@ -1,5 +1,4 @@
-[package]
-name = "uxd"
+[sdke = "uxd"
 version = "5.1.0"
 authors = ["acammm <alexcamill@gmail.com>, cnek <ctk2012ac@gmail.com>, G. Neut <gregory.neut@gmail.com>, V. Brunet <vincent.brunet.us@gmail.com>"]
 description = "UXDProtocol Program, managing a redeemable mint backed by a delta neutral position."
@@ -31,3 +30,8 @@ credix_client = { version="0.5.0", features = ["pre-mainnet"] } # devnet and CI
 
 [dev-dependencies]
 proptest = "1.0.0"
+solana-program = "1.9.29"
+solana-program-test = "1.9.29"
+solana-sdk = "1.9.29"
+spl-token = "3.2.0"
+spl-associated-token-account = "1.0.5"
