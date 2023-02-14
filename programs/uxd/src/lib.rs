@@ -10,7 +10,6 @@ pub mod events;
 pub mod instructions;
 pub mod mercurial_utils;
 pub mod state;
-pub mod test;
 pub mod utils;
 
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
