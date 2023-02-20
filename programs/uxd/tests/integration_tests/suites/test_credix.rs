@@ -31,7 +31,7 @@ async fn test_credix() -> Result<(), String> {
 
     program_test.prefer_bpf(true);
     program_test.add_program(
-        "tests/integration_tests/api/program_credix/binaries/devnet",
+        "tests/integration_tests/api/program_credix/binaries/executable-devnet",
         credix_client::id(),
         None,
     );
