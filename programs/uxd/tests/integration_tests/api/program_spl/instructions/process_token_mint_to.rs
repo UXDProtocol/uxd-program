@@ -29,7 +29,5 @@ pub async fn process_token_mint_to(
         payer,
         authority,
     )
-    .await?;
-
-    Ok(())
+    .await
 }
