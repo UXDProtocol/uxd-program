@@ -1,0 +1,15 @@
+{
+  "name": "@credix/rust-client",
+  "packageManager": "yarn@3.1.1",
+  "scripts": {
+    "idl": "yarn nx build @credix/credix-program && cp ../program/target/idl/credix.json ./src/credix.json"
+  },
+  "devDependencies": {
+    "nx": "^14.4.3"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "@credix/credix-program"
+    ]
+  }
+}

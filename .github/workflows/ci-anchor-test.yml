@@ -12,8 +12,8 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: 1.14.7
-  ANCHOR_VERSION: 0.24.2
+  SOLANA_VERSION: 1.15.2
+  ANCHOR_VERSION: 0.26.0
   CLUSTER: 'devnet'
   DEVNET_RPC: https://api.devnet.solana.com
   # Default wallet
