@@ -21,18 +21,18 @@ production = []
 development = []
 
 [dependencies]
-anchor-lang = "0.24.2"
-anchor-spl = "0.24.2"
+anchor-lang = "0.26.0"
+anchor-spl = "0.26.0"
 
-mercurial-vault = { git="https://github.com/mercurial-finance/vault-sdk", features= ["cpi"], rev = "6daf57a877c36694c8f5b8267ca1e096a1e619d2" }
+mercurial-vault = { git="https://github.com/mercurial-finance/vault-sdk", features= ["cpi"], rev = "3849d617362968d874b2d32db6da4768d1a4c90c" }
 
 # credix_client = { version="0.5.0" } # mainnet
-credix_client = { version="0.5.0", features = ["pre-mainnet"] } # devnet and CI
+credix_client = { path = "../../../credix_client-0.5.0", features = ["pre-mainnet"] } # devnet and CI
 
 [dev-dependencies]
 proptest = "1.0.0"
-solana-program = "1.9.29"
-solana-program-test = "1.9.29"
-solana-sdk = "1.9.29"
-spl-token = "3.2.0"
-spl-associated-token-account = "1.0.5"
+solana-program = "1.15.2"
+solana-program-test = "1.15.2"
+solana-sdk = "1.15.2"
+spl-token = "3.5.0"
+spl-associated-token-account = "1.1.2"
