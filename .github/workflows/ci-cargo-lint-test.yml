@@ -8,8 +8,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  RUST_TOOLCHAIN: 1.66
   SOLANA_VERSION: 1.15.2
-  RUST_TOOLCHAIN: 1.66.1
 
 defaults:
   run:
@@ -26,8 +26,9 @@ jobs:
     steps:
       # Checkout Repo
       - uses: actions/checkout@v2
+
       # Installs Rust
-      - name: Cache dependencies
+      - name: Cache rust
         uses: Swatinem/rust-cache@v1
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
@@ -36,6 +37,8 @@ jobs:
           override: true
           profile: minimal
           components: rustfmt, clippy
+
+      # Run cargo fmt
       - name: Run fmt
         run: cargo fmt -- --check
 
@@ -45,8 +48,9 @@ jobs:
     steps:
       # Checkout Repo
       - uses: actions/checkout@v2
+
       # Installs Rust
-      - name: Cache dependencies
+      - name: Cache rust
         uses: Swatinem/rust-cache@v1
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
@@ -55,9 +59,10 @@ jobs:
           override: true
           profile: minimal
           components: rustfmt, clippy
-      # The style and complexity lints have not been processed yet.
+
+      # Run cargo clippy
       - name: Run clippy
-        run: cargo clippy -- --deny=warnings --allow=clippy::style --allow=clippy::complexity
+        run: cargo clippy -- --deny=warnings
 
   tests:
     runs-on: ubuntu-latest
@@ -65,8 +70,9 @@ jobs:
     steps:
       # Checkout Repo
       - uses: actions/checkout@v2
+
       # Installs Rust
-      - name: Cache Rust
+      - name: Cache rust
         uses: Swatinem/rust-cache@v1
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
@@ -75,14 +81,6 @@ jobs:
           override: true
           profile: minimal
           components: rustfmt, clippy
-      - name: Rust toolchain update
-        run: |
-          rustup update
-      - name: Rust override set nightly
-        run: |
-          rustup override set nightly
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
 
       # Install Solana
       - name: Install Linux dependencies
@@ -102,6 +100,7 @@ jobs:
           solana --version
           echo "Generating keypair..."
           solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
+
       # Run tests
       - name: Build program
         run: cargo build-bpf

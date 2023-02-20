@@ -1,10 +1,9 @@
 [package]
 name = "uxd"
-version = "7.0.1"
+version = "7.0.4"
 authors = ["acammm <alexcamill@gmail.com>, cnek <ctk2012ac@gmail.com>, G. Neut <gregory.neut@gmail.com>, V. Brunet <vincent.brunet.us@gmail.com>"]
 description = "UXDProtocol Program, managing a redeemable mint backed by a delta neutral position."
 edition = "2021"
-rust-version = "1.60"
 
 [lib]
 crate-type = ["cdylib", "lib"]

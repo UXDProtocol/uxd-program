@@ -12,6 +12,7 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  RUST_TOOLCHAIN: 1.66
   SOLANA_VERSION: 1.15.2
   ANCHOR_VERSION: 0.26.0
   CLUSTER: 'devnet'
@@ -51,7 +52,7 @@ jobs:
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
           profile: minimal
       # Install solana
@@ -134,7 +135,7 @@ jobs:
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
           profile: minimal
       # Install solana
@@ -217,7 +218,7 @@ jobs:
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
           profile: minimal
       # Install solana
@@ -300,7 +301,7 @@ jobs:
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
           profile: minimal
       # Install solana
@@ -383,7 +384,7 @@ jobs:
       - name: Rust toolchain installation
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           override: true
           profile: minimal
       # Install solana
