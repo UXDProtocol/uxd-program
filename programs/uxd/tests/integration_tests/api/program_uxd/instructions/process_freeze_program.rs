@@ -1,7 +1,8 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
+use solana_program::instruction::Instruction;
+use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
-use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -21,7 +22,7 @@ pub async fn process_freeze_program(
         controller,
     };
     let payload = uxd::instruction::FreezeProgram { freeze };
-    let instruction = solana_sdk::instruction::Instruction {
+    let instruction = Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),
         data: payload.data(),

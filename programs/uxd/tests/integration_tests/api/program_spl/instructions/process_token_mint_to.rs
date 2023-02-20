@@ -1,5 +1,5 @@
+use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
-use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -14,7 +14,7 @@ pub async fn process_token_mint_to(
     amount: u64,
 ) -> Result<(), String> {
     let instruction = spl_token::instruction::mint_to(
-        &spl_token::ID,
+        &spl_token::id(),
         mint,
         token_account,
         &authority.pubkey(),

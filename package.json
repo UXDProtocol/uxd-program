@@ -1,8 +1,6 @@
 {
   "license": "SEE LICENSE IN LICENSE.MD",
   "dependencies": {
-    "@mercurial-finance/dynamic-amm-sdk": "0.0.1-769fc61d.0",
-    "@mercurial-finance/vault-sdk": "0.2.25",
     "@project-serum/anchor": "0.26.0",
     "@solana/spl-token": "^0.1.8",
     "@solana/web3.js": "1.39.1",

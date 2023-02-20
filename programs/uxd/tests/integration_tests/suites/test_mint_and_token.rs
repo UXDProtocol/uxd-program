@@ -1,7 +1,7 @@
 use solana_program_test::tokio;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
-use solana_sdk::signer::keypair::Keypair;
+use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_spl;

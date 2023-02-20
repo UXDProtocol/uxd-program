@@ -1,6 +1,6 @@
 use solana_program::program_pack::Pack;
+use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
-use solana_sdk::pubkey::Pubkey;
 
 pub async fn read_token_account(
     program_test_context: &mut ProgramTestContext,
@@ -12,7 +12,7 @@ pub async fn read_token_account(
         .await
         .map_err(|e| e.to_string())?
         .ok_or("AccountDoesNotExist")?;
-    if raw_account.owner != spl_token::ID {
+    if raw_account.owner != spl_token::id() {
         return Err(String::from("InvalidTokenAccount"));
     }
     Ok(spl_token::state::Account::unpack(&raw_account.data).map_err(|e| e.to_string())?)
