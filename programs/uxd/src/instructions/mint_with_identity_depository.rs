@@ -185,7 +185,7 @@ impl<'info> MintWithIdentityDepository<'info> {
         let depository = self.depository.load()?;
         require!(
             depository.redeemable_amount_under_management
-               Context<= depository.redeemable_amount_under_management_cap,
+                <= depository.redeemable_amount_under_management_cap,
             UxdError::RedeemableIdentityDepositoryAmountUnderManagementCap
         );
         Ok(())

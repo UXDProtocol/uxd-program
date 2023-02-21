@@ -248,7 +248,7 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
                 self.depository_lp_token_vault.amount,
             )?;
 
-        // Mint max supply is cap at u64, so redeemable_amount_under_managementContext<= u64::MAX, always safe to convert
+        // Mint max supply is cap at u64, so redeemable_amount_under_management <= u64::MAX, always safe to convert
         let redeemable_amount_under_management: u64 =
             u64::try_from(self.depository.load()?.redeemable_amount_under_management)
                 .ok()

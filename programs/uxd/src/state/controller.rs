@@ -83,7 +83,7 @@ impl Controller {
     ) -> Result<()> {
         let current_size = usize::from(self.registered_mercurial_vault_depositories_count);
         require!(
-            current_sizeContext < MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES,
+            current_size < MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES,
             UxdError::MaxNumberOfMercurialVaultDepositoriesRegisteredReached
         );
         // Increment registered Mercurial Pool Depositories count
@@ -104,7 +104,7 @@ impl Controller {
     ) -> Result<()> {
         let current_size = usize::from(self.registered_credix_lp_depositories_count);
         require!(
-            current_sizeContext < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
+            current_size < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
             UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached
         );
         // Increment registered Credix Lp Depositories count

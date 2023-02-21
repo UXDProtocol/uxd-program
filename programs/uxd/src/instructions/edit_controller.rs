@@ -47,7 +47,7 @@ impl<'info> EditController<'info> {
 
         if let Some(redeemable_global_supply_cap) = fields.redeemable_global_supply_cap {
             require!(
-                redeemable_global_supply_capContext <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP,
+                redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP,
                 UxdError::InvalidRedeemableGlobalSupplyCap
             );
         }

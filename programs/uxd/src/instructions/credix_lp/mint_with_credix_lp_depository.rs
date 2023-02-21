@@ -423,7 +423,7 @@ pub(crate) fn handler(
     )?;
     require!(
         depository.redeemable_amount_under_management
-           Context<= depository.redeemable_amount_under_management_cap,
+           <= depository.redeemable_amount_under_management_cap,
         UxdError::RedeemableCredixLpAmountUnderManagementCap
     );
 
@@ -432,7 +432,7 @@ pub(crate) fn handler(
     let mut controller = ctx.accounts.controller.load_mut()?;
     controller.update_onchain_accounting_following_mint_or_redeem(redeemable_amount_change)?;
     require!(
-        controller.redeemable_circulating_supplyContext <= controller.redeemable_global_supply_cap,
+        controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
         UxdError::RedeemableGlobalSupplyCapReached
     );
 

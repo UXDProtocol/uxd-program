@@ -261,8 +261,7 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         let controller = self.controller.load()?;
 
         require!(
-            controller.redeemable_circulating_supplyContext
-                <= controller.redeemable_global_supply_cap,
+            controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
             UxdError::RedeemableGlobalSupplyCapReached
         );
 
@@ -273,7 +272,7 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         let depository = self.depository.load()?;
         require!(
             depository.redeemable_amount_under_management
-               Context<= depository.redeemable_amount_under_management_cap,
+                <= depository.redeemable_amount_under_management_cap,
             UxdError::RedeemableMercurialVaultAmountUnderManagementCap
         );
         Ok(())
