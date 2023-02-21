@@ -57,7 +57,7 @@ pub struct InitializeController<'info> {
 }
 
 pub(crate) fn handler(
-    ctx: Context<InitializeController>,
+    ctx: <InitializeController>,
     redeemable_mint_decimals: u8,
 ) -> Result<()> {
     let controller = &mut ctx.accounts.controller.load_init()?;

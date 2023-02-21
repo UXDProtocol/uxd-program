@@ -167,7 +167,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
 }
 
 pub(crate) fn handler(
-    ctx: Context<RedeemFromCredixLpDepository>,
+    ctx: <RedeemFromCredixLpDepository>,
     redeemable_amount: u64,
 ) -> Result<()> {
     // ---------------------------------------------------------------------
@@ -262,7 +262,7 @@ pub(crate) fn handler(
     // Burn the user's redeemable
     msg!("[redeem_from_credix_lp_depository:redeemable_burn]",);
     token::burn(
-        ctx.accounts.into_burn_redeemable_context(),
+        ctx.accounts.into_burn_redeemable_(),
         redeemable_amount,
     )?;
 
@@ -270,7 +270,7 @@ pub(crate) fn handler(
     msg!("[redeem_from_credix_lp_depository:withdraw_funds]",);
     credix_client::cpi::withdraw_funds(
         ctx.accounts
-            .into_withdraw_funds_from_credix_lp_context()
+            .into_withdraw_funds_from_credix_lp_()
             .with_signer(depository_pda_signer),
         collateral_amount_before_precision_loss,
     )?;
@@ -279,7 +279,7 @@ pub(crate) fn handler(
     msg!("[redeem_from_credix_lp_depository:collateral_transfer]",);
     token::transfer(
         ctx.accounts
-            .into_transfer_depository_collateral_to_user_collateral_context()
+            .into_transfer_depository_collateral_to_user_collateral_()
             .with_signer(depository_pda_signer),
         collateral_amount_after_precision_loss,
     )?;
@@ -448,9 +448,9 @@ pub(crate) fn handler(
 
 // Into functions
 impl<'info> RedeemFromCredixLpDepository<'info> {
-    pub fn into_withdraw_funds_from_credix_lp_context(
+    pub fn into_withdraw_funds_from_credix_lp_(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::WithdrawFunds<'info>> {
+    ) -> Cpi<'_, '_, '_, 'info, credix_client::cpi::accounts::WithdrawFunds<'info>> {
         let cpi_accounts = credix_client::cpi::accounts::WithdrawFunds {
             base_token_mint: self.collateral_mint.to_account_info(),
             investor: self.depository.to_account_info(),
@@ -471,29 +471,29 @@ impl<'info> RedeemFromCredixLpDepository<'info> {
             rent: self.rent.to_account_info(),
         };
         let cpi_program = self.credix_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
+        Cpi::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_depository_collateral_to_user_collateral_context(
+    pub fn into_transfer_depository_collateral_to_user_collateral_(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
+    ) -> Cpi<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
             from: self.depository_collateral.to_account_info(),
             to: self.user_collateral.to_account_info(),
             authority: self.depository.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
+        Cpi::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+    pub fn into_burn_redeemable_(&self) -> Cpi<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
             from: self.user_redeemable.to_account_info(),
             authority: self.user.to_account_info(),
         };
-        CpiContext::new(cpi_program, cpi_accounts)
+        Cpi::new(cpi_program, cpi_accounts)
     }
 }
 

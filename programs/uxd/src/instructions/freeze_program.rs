@@ -18,7 +18,7 @@ pub struct FreezeProgram<'info> {
     pub controller: AccountLoader<'info, Controller>,
 }
 
-pub(crate) fn handler(ctx: Context<FreezeProgram>, freeze: bool) -> Result<()> {
+pub(crate) fn handler(ctx: <FreezeProgram>, freeze: bool) -> Result<()> {
     let controller = &mut ctx.accounts.controller.load_mut()?;
     controller.is_frozen = freeze;
     emit!(FreezeProgramEvent {

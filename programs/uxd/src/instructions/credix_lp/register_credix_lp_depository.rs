@@ -106,7 +106,7 @@ pub struct RegisterCredixLpDepository<'info> {
 }
 
 pub(crate) fn handler(
-    ctx: Context<RegisterCredixLpDepository>,
+    ctx: <RegisterCredixLpDepository>,
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
     redeemable_amount_under_management_cap: u128,

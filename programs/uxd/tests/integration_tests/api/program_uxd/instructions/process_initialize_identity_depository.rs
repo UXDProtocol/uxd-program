@@ -17,9 +17,10 @@ pub async fn process_initialize_identity_depository(
     let controller =
         Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE.as_ref()], &uxd::id()).0;
 
-    let identity_depository =
+    let depository =
         Pubkey::find_program_address(&[uxd::IDENTITY_DEPOSITORY_NAMESPACE.as_ref()], &uxd::id()).0;
-    let identity_collateral_vault = Pubkey::find_program_address(
+
+    let collateral_vault = Pubkey::find_program_address(
         &[uxd::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE.as_ref()],
         &uxd::id(),
     )
@@ -29,8 +30,8 @@ pub async fn process_initialize_identity_depository(
         authority: authority.pubkey(),
         payer: payer.pubkey(),
         controller,
-        depository: identity_depository,
-        collateral_vault: identity_collateral_vault,
+        depository,
+        collateral_vault,
         collateral_mint: *collateral_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,

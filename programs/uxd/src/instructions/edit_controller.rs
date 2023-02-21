@@ -25,7 +25,7 @@ pub struct EditControllerFields {
     pub redeemable_global_supply_cap: Option<u128>,
 }
 
-pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
+pub(crate) fn handler(ctx: <EditController>, fields: &EditControllerFields) -> Result<()> {
     let controller = &mut ctx.accounts.controller.load_mut()?;
     // Optionally edit "redeemable_global_supply_cap"
     if let Some(redeemable_global_supply_cap) = fields.redeemable_global_supply_cap {

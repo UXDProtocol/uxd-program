@@ -18,13 +18,13 @@ pub async fn process_edit_identity_depository(
     let controller =
         Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE.as_ref()], &uxd::id()).0;
 
-    let identity_depository =
+    let depository =
         Pubkey::find_program_address(&[uxd::IDENTITY_DEPOSITORY_NAMESPACE.as_ref()], &uxd::id()).0;
 
     let accounts = uxd::accounts::EditIdentityDepository {
         authority: authority.pubkey(),
         controller,
-        depository: identity_depository,
+        depository,
     };
     let payload = uxd::instruction::EditIdentityDepository {
         fields: uxd::instructions::EditIdentityDepositoryFields {

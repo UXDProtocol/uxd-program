@@ -22,9 +22,10 @@ pub async fn process_redeem_from_identity_depository(
     let redeemable_mint =
         Pubkey::find_program_address(&[uxd::REDEEMABLE_MINT_NAMESPACE.as_ref()], &uxd::id()).0;
 
-    let identity_depository =
+    let depository =
         Pubkey::find_program_address(&[uxd::IDENTITY_DEPOSITORY_NAMESPACE.as_ref()], &uxd::id()).0;
-    let identity_collateral_vault = Pubkey::find_program_address(
+
+    let collateral_vault = Pubkey::find_program_address(
         &[uxd::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE.as_ref()],
         &uxd::id(),
     )
@@ -34,8 +35,8 @@ pub async fn process_redeem_from_identity_depository(
         user: user.pubkey(),
         payer: payer.pubkey(),
         controller,
-        depository: identity_depository,
-        collateral_vault: identity_collateral_vault,
+        depository,
+        collateral_vault,
         redeemable_mint,
         user_collateral: *user_collateral,
         user_redeemable: *user_redeemable,

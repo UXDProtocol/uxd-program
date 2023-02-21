@@ -114,7 +114,7 @@ pub struct MintWithMercurialVaultDepository<'info> {
 }
 
 pub fn handler(
-    ctx: Context<MintWithMercurialVaultDepository>,
+    ctx: <MintWithMercurialVaultDepository>,
     collateral_amount: u64,
 ) -> Result<()> {
     let controller_bump = ctx.accounts.controller.load()?.bump;
@@ -132,7 +132,7 @@ pub fn handler(
 
     mercurial_vault::cpi::deposit(
         ctx.accounts
-            .into_deposit_collateral_to_mercurial_vault_context(),
+            .into_deposit_collateral_to_mercurial_vault_(),
         collateral_amount,
         // Do not handle slippage here
         0,
@@ -188,7 +188,7 @@ pub fn handler(
     // 7 - Mint redeemable
     token::mint_to(
         ctx.accounts
-            .into_mint_redeemable_context()
+            .into_mint_redeemable_()
             .with_signer(controller_pda_signer),
         redeemable_amount_less_fees,
     )?;
@@ -220,9 +220,9 @@ pub fn handler(
 
 // Into functions
 impl<'info> MintWithMercurialVaultDepository<'info> {
-    pub fn into_deposit_collateral_to_mercurial_vault_context(
+    pub fn into_deposit_collateral_to_mercurial_vault_(
         &self,
-    ) -> CpiContext<
+    ) -> Cpi<
         '_,
         '_,
         '_,
@@ -240,17 +240,17 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         };
 
         let cpi_program = self.mercurial_vault_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
+        Cpi::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+    pub fn into_mint_redeemable_(&self) -> Cpi<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = MintTo {
             mint: self.redeemable_mint.to_account_info(),
             to: self.user_redeemable.to_account_info(),
             authority: self.controller.to_account_info(),
         };
-        CpiContext::new(cpi_program, cpi_accounts)
+        Cpi::new(cpi_program, cpi_accounts)
     }
 }
 

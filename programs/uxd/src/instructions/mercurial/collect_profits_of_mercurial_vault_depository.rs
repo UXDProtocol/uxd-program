@@ -81,7 +81,7 @@ pub struct CollectProfitsOfMercurialVaultDepository<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: Context<CollectProfitsOfMercurialVaultDepository>) -> Result<()> {
+pub fn handler(ctx: <CollectProfitsOfMercurialVaultDepository>) -> Result<()> {
     // 1 - Read all states before collect
     let lp_token_vault_amount_before = ctx.accounts.depository_lp_token_vault.amount;
     let profits_beneficiary_collateral_amount_before =
@@ -119,7 +119,7 @@ pub fn handler(ctx: Context<CollectProfitsOfMercurialVaultDepository>) -> Result
     // 5 - withdraw collateral from mercurial vault for LP tokens
     mercurial_vault::cpi::withdraw(
         ctx.accounts
-            .into_withdraw_collateral_from_mercurial_vault_context()
+            .into_withdraw_collateral_from_mercurial_vault_()
             .with_signer(depository_signer_seed),
         lp_token_amount_to_match_collectable_profits_value,
         // Do not check slippage here
@@ -195,9 +195,9 @@ pub fn handler(ctx: Context<CollectProfitsOfMercurialVaultDepository>) -> Result
 
 // Into functions
 impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
-    pub fn into_withdraw_collateral_from_mercurial_vault_context(
+    pub fn into_withdraw_collateral_from_mercurial_vault_(
         &self,
-    ) -> CpiContext<
+    ) -> Cpi<
         '_,
         '_,
         '_,
@@ -214,7 +214,7 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
             token_program: self.token_program.to_account_info(),
         };
         let cpi_program = self.mercurial_vault_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
+        Cpi::new(cpi_program, cpi_accounts)
     }
 }
 

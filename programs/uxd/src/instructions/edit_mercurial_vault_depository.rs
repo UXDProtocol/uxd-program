@@ -47,7 +47,7 @@ pub struct EditMercurialVaultDepositoryFields {
 }
 
 pub(crate) fn handler(
-    ctx: Context<EditMercurialVaultDepository>,
+    ctx: <EditMercurialVaultDepository>,
     fields: &EditMercurialVaultDepositoryFields,
 ) -> Result<()> {
     let depository = &mut ctx.accounts.depository.load_mut()?;

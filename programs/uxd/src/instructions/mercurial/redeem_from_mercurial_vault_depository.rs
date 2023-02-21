@@ -113,7 +113,7 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
 }
 
 pub fn handler(
-    ctx: Context<RedeemFromMercurialVaultDepository>,
+    ctx: <RedeemFromMercurialVaultDepository>,
     redeemable_amount: u64,
 ) -> Result<()> {
     let depository = ctx.accounts.depository.load()?;
@@ -159,7 +159,7 @@ pub fn handler(
     // 3 - Redeem collateral from mercurial vault for lp tokens
     mercurial_vault::cpi::withdraw(
         ctx.accounts
-            .into_withdraw_collateral_from_mercurial_vault_context()
+            .into_withdraw_collateral_from_mercurial_vault_()
             .with_signer(depository_signer_seed),
         lp_token_amount_to_match_collateral_amount_less_fees,
         // Do not check slippage here
@@ -207,7 +207,7 @@ pub fn handler(
 
     // 8 - Burn redeemable
     token::burn(
-        ctx.accounts.into_burn_redeemable_context(),
+        ctx.accounts.into_burn_redeemable_(),
         redeemable_amount,
     )?;
 
@@ -240,9 +240,9 @@ pub fn handler(
 
 // Into functions
 impl<'info> RedeemFromMercurialVaultDepository<'info> {
-    pub fn into_withdraw_collateral_from_mercurial_vault_context(
+    pub fn into_withdraw_collateral_from_mercurial_vault_(
         &self,
-    ) -> CpiContext<
+    ) -> Cpi<
         '_,
         '_,
         '_,
@@ -259,17 +259,17 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
             token_program: self.token_program.to_account_info(),
         };
         let cpi_program = self.mercurial_vault_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
+        Cpi::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
+    pub fn into_burn_redeemable_(&self) -> Cpi<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
             from: self.user_redeemable.to_account_info(),
             authority: self.user.to_account_info(),
         };
-        CpiContext::new(cpi_program, cpi_accounts)
+        Cpi::new(cpi_program, cpi_accounts)
     }
 }
 

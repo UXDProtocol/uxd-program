@@ -87,13 +87,13 @@ pub struct MintWithIdentityDepository<'info> {
 }
 
 pub(crate) fn handler(
-    ctx: Context<MintWithIdentityDepository>,
+    ctx: <MintWithIdentityDepository>,
     collateral_amount: u64,
 ) -> Result<()> {
     // - 1 [TRANSFER USER'S COLLATERAL TO DEPOSITORY'S VAULT] -----------------
     token::transfer(
         ctx.accounts
-            .to_transfer_collateral_from_user_to_depository_vault_context(),
+            .to_transfer_collateral_from_user_to_depository_vault_(),
         collateral_amount,
     )?;
 
@@ -104,7 +104,7 @@ pub(crate) fn handler(
         let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller_bump]]];
         token::mint_to(
             ctx.accounts
-                .to_mint_redeemable_context()
+                .to_mint_redeemable_()
                 .with_signer(controller_pda_signer),
             redeemable_amount,
         )?;
@@ -156,26 +156,26 @@ pub(crate) fn handler(
 }
 
 impl<'info> MintWithIdentityDepository<'info> {
-    fn to_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+    fn to_mint_redeemable_(&self) -> Cpi<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = MintTo {
             mint: self.redeemable_mint.to_account_info(),
             to: self.user_redeemable.to_account_info(),
             authority: self.controller.to_account_info(),
         };
-        CpiContext::new(cpi_program, cpi_accounts)
+        Cpi::new(cpi_program, cpi_accounts)
     }
 
-    fn to_transfer_collateral_from_user_to_depository_vault_context(
+    fn to_transfer_collateral_from_user_to_depository_vault_(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+    ) -> Cpi<'_, '_, '_, 'info, Transfer<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Transfer {
             from: self.user_collateral.to_account_info(),
             to: self.collateral_vault.to_account_info(),
             authority: self.user.to_account_info(),
         };
-        CpiContext::new(cpi_program, cpi_accounts)
+        Cpi::new(cpi_program, cpi_accounts)
     }
 }
 

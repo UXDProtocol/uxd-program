@@ -1,6 +1,6 @@
 use solana_program_test::processor;
 use solana_program_test::tokio;
-use solana_program_test::ProgramTest;
+use solana_program_test::ProgramTestContext;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
@@ -14,7 +14,7 @@ async fn test_identity_depository() -> Result<(), String> {
 
     program_test.add_program("uxd", uxd::id(), processor!(uxd::entry));
 
-    let mut program_test_context: ProgramTestContext = program_test.start_with_context().await;
+    let mut program_test_context: ProgramTest = program_test.start_with_().await;
 
     // Fund payer
     let payer = Keypair::new();
@@ -26,7 +26,7 @@ async fn test_identity_depository() -> Result<(), String> {
     .await?;
 
     // Main actors
-    let uxd_authority = Keypair::new();
+    let authority = Keypair::new();
     let user = Keypair::new();
 
     // Create the collateral mint
@@ -63,12 +63,15 @@ async fn test_identity_depository() -> Result<(), String> {
     let redeemable_mint = program_uxd::procedures::run_basic_setup(
         &mut program_test_context,
         &payer,
-        &uxd_authority,
+        &authority,
         &collateral_mint.pubkey(),
         6,
         1_000_000,
         1_000_000,
         false,
+        1,
+        1,
+        1_000_000,
     )
     .await?;
 

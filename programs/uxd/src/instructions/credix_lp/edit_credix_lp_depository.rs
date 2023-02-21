@@ -50,7 +50,7 @@ pub struct EditCredixLpDepositoryFields {
 }
 
 pub(crate) fn handler(
-    ctx: Context<EditCredixLpDepository>,
+    ctx: <EditCredixLpDepository>,
     fields: &EditCredixLpDepositoryFields,
 ) -> Result<()> {
     let depository = &mut ctx.accounts.depository.load_mut()?;
