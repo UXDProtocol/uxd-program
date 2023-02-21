@@ -38,7 +38,7 @@ pub struct EditIdentityDepositoryFields {
 }
 
 pub(crate) fn handler(
-    ctx: <EditIdentityDepository>,
+    ctx: Context<EditIdentityDepository>,
     fields: &EditIdentityDepositoryFields,
 ) -> Result<()> {
     let depository = &mut ctx.accounts.depository.load_mut()?;

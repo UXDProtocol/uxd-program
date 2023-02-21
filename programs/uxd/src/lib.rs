@@ -69,7 +69,7 @@ pub mod uxd {
     ///
     #[access_control(ctx.accounts.validate(redeemable_mint_decimals))]
     pub fn initialize_controller(
-        ctx: <InitializeController>,
+        ctx: Context<InitializeController>,
         redeemable_mint_decimals: u8,
     ) -> Result<()> {
         msg!("[initialize_controller]");
@@ -78,7 +78,7 @@ pub mod uxd {
 
     #[access_control(ctx.accounts.validate(&fields))]
     pub fn edit_controller(
-        ctx: <EditController>,
+        ctx: Context<EditController>,
         fields: EditControllerFields,
     ) -> Result<()> {
         instructions::edit_controller::handler(ctx, &fields)
@@ -86,7 +86,7 @@ pub mod uxd {
 
     #[access_control(ctx.accounts.validate())]
     pub fn edit_mercurial_vault_depository(
-        ctx: <EditMercurialVaultDepository>,
+        ctx: Context<EditMercurialVaultDepository>,
         fields: EditMercurialVaultDepositoryFields,
     ) -> Result<()> {
         instructions::edit_mercurial_vault_depository::handler(ctx, &fields)
@@ -94,7 +94,7 @@ pub mod uxd {
 
     #[access_control(ctx.accounts.validate())]
     pub fn edit_identity_depository(
-        ctx: <EditIdentityDepository>,
+        ctx: Context<EditIdentityDepository>,
         fields: EditIdentityDepositoryFields,
     ) -> Result<()> {
         instructions::edit_identity_depository::handler(ctx, &fields)
@@ -102,7 +102,7 @@ pub mod uxd {
 
     #[access_control(ctx.accounts.validate())]
     pub fn edit_credix_lp_depository(
-        ctx: <EditCredixLpDepository>,
+        ctx: Context<EditCredixLpDepository>,
         fields: EditCredixLpDepositoryFields,
     ) -> Result<()> {
         instructions::edit_credix_lp_depository::handler(ctx, &fields)
@@ -113,7 +113,7 @@ pub mod uxd {
         ctx.accounts.validate(collateral_amount)
     )]
     pub fn mint_with_mercurial_vault_depository(
-        ctx: <MintWithMercurialVaultDepository>,
+        ctx: Context<MintWithMercurialVaultDepository>,
         collateral_amount: u64,
     ) -> Result<()> {
         msg!("[mint_with_mercurial_vault_depository]");
@@ -126,7 +126,7 @@ pub mod uxd {
         ctx.accounts.validate(minting_fee_in_bps, redeeming_fee_in_bps, redeemable_amount_under_management_cap)
     )]
     pub fn register_mercurial_vault_depository(
-        ctx: <RegisterMercurialVaultDepository>,
+        ctx: Context<RegisterMercurialVaultDepository>,
         minting_fee_in_bps: u8,
         redeeming_fee_in_bps: u8,
         redeemable_amount_under_management_cap: u128,
@@ -144,7 +144,7 @@ pub mod uxd {
         ctx.accounts.validate(redeemable_amount)
     )]
     pub fn redeem_from_mercurial_vault_depository(
-        ctx: <RedeemFromMercurialVaultDepository>,
+        ctx: Context<RedeemFromMercurialVaultDepository>,
         redeemable_amount: u64,
     ) -> Result<()> {
         msg!("[redeem_from_mercurial_vault]");
@@ -155,7 +155,7 @@ pub mod uxd {
         ctx.accounts.validate()
     )]
     pub fn collect_profits_of_mercurial_vault_depository(
-        ctx: <CollectProfitsOfMercurialVaultDepository>,
+        ctx: Context<CollectProfitsOfMercurialVaultDepository>,
     ) -> Result<()> {
         msg!("[collect_profits_of_mercurial_vault_depository]");
         instructions::collect_profits_of_mercurial_vault_depository::handler(ctx)
@@ -163,7 +163,7 @@ pub mod uxd {
 
     #[access_control(ctx.accounts.validate())]
     pub fn initialize_identity_depository(
-        ctx: <InitializeIdentityDepository>,
+        ctx: Context<InitializeIdentityDepository>,
     ) -> Result<()> {
         msg!("[initialize_identity_depository]");
         instructions::initialize_identity_depository::handler(ctx)
@@ -173,7 +173,7 @@ pub mod uxd {
         ctx.accounts.validate(collateral_amount)
     )]
     pub fn mint_with_identity_depository(
-        ctx: <MintWithIdentityDepository>,
+        ctx: Context<MintWithIdentityDepository>,
         collateral_amount: u64,
     ) -> Result<()> {
         msg!(
@@ -187,7 +187,7 @@ pub mod uxd {
         ctx.accounts.validate(redeemable_amount)
     )]
     pub fn redeem_from_identity_depository(
-        ctx: <RedeemFromIdentityDepository>,
+        ctx: Context<RedeemFromIdentityDepository>,
         redeemable_amount: u64,
     ) -> Result<()> {
         msg!(
@@ -203,7 +203,7 @@ pub mod uxd {
         ctx.accounts.validate()
     )]
     pub fn register_credix_lp_depository(
-        ctx: <RegisterCredixLpDepository>,
+        ctx: Context<RegisterCredixLpDepository>,
         minting_fee_in_bps: u8,
         redeeming_fee_in_bps: u8,
         redeemable_amount_under_management_cap: u128,
@@ -222,7 +222,7 @@ pub mod uxd {
         ctx.accounts.validate(collateral_amount)
     )]
     pub fn mint_with_credix_lp_depository(
-        ctx: <MintWithCredixLpDepository>,
+        ctx: Context<MintWithCredixLpDepository>,
         collateral_amount: u64,
     ) -> Result<()> {
         msg!("[mint_with_credix_lp_depository]");
@@ -234,7 +234,7 @@ pub mod uxd {
         ctx.accounts.validate(redeemable_amount)
     )]
     pub fn redeem_from_credix_lp_depository(
-        ctx: <RedeemFromCredixLpDepository>,
+        ctx: Context<RedeemFromCredixLpDepository>,
         redeemable_amount: u64,
     ) -> Result<()> {
         msg!("[redeem_from_credix_lp_depository]");
@@ -246,7 +246,7 @@ pub mod uxd {
         ctx.accounts.validate()
     )]
     pub fn collect_profits_of_credix_lp_depository(
-        ctx: <CollectProfitsOfCredixLpDepository>,
+        ctx: Context<CollectProfitsOfCredixLpDepository>,
     ) -> Result<()> {
         msg!("[collect_profits_of_credix_lp_depository]");
         instructions::collect_profits_of_credix_lp_depository::handler(ctx)
@@ -263,7 +263,7 @@ pub mod uxd {
     #[access_control(
         ctx.accounts.validate(freeze)
     )]
-    pub fn freeze_program(ctx: <FreezeProgram>, freeze: bool) -> Result<()> {
+    pub fn freeze_program(ctx: Context<FreezeProgram>, freeze: bool) -> Result<()> {
         msg!("[freeze_program] {:?}", freeze);
         instructions::freeze_program::handler(ctx, freeze)
     }

@@ -78,8 +78,8 @@ use credix_client::cpi::withdraw_funds;
 pub mod example {
     use super::*;
 
-    pub fn deposit_cpi(ctx: <DepositFundsCpi>, amount: u64) -> Result<()> {
-        let cpi_ = Cpi::new(
+    pub fn deposit_cpi(ctx:Context<DepositFundsCpi>, amount: u64) -> Result<()> {
+        let cpi_ = CpiContext::new(
             ctx.accounts.credix_program.to_account_info(),
             DepositFunds {
                 investor: ctx.accounts.investor.to_account_info(),
@@ -106,8 +106,8 @@ pub mod example {
         Ok(())
     }
 
-    pub fn withdraw_cpi(ctx: <WithdrawFundsCpi>, amount: u64) -> Result<()> {
-        let cpi_ = Cpi::new(
+    pub fn withdraw_cpi(ctx:Context<WithdrawFundsCpi>, amount: u64) -> Result<()> {
+        let cpi_ = CpiContext::new(
             ctx.accounts.credix_program.to_account_info(),
             WithdrawFunds {
                 investor: ctx.accounts.investor.to_account_info(),

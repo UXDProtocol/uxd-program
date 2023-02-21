@@ -70,7 +70,7 @@ pub struct InitializeIdentityDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub(crate) fn handler(ctx: <InitializeIdentityDepository>) -> Result<()> {
+pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> {
     let depository_bump = *ctx
         .bumps
         .get("depository")

@@ -14,7 +14,7 @@ async fn test_identity_depository() -> Result<(), String> {
 
     program_test.add_program("uxd", uxd::id(), processor!(uxd::entry));
 
-    let mut program_test_context: ProgramTest = program_test.start_with_().await;
+    let mut program_test_context: ProgramTest = program_test.start_with_context().await;
 
     // Fund payer
     let payer = Keypair::new();

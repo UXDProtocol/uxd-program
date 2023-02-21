@@ -114,7 +114,7 @@ pub struct MintWithMercurialVaultDepository<'info> {
 }
 
 pub fn handler(
-    ctx: <MintWithMercurialVaultDepository>,
+    ctx: Context<MintWithMercurialVaultDepository>,
     collateral_amount: u64,
 ) -> Result<()> {
     let controller_bump = ctx.accounts.controller.load()?.bump;
@@ -132,7 +132,7 @@ pub fn handler(
 
     mercurial_vault::cpi::deposit(
         ctx.accounts
-            .into_deposit_collateral_to_mercurial_vault_(),
+            .into_deposit_collateral_to_mercurial_vault_context(),
         collateral_amount,
         // Do not handle slippage here
         0,
@@ -188,7 +188,7 @@ pub fn handler(
     // 7 - Mint redeemable
     token::mint_to(
         ctx.accounts
-            .into_mint_redeemable_()
+            .into_mint_redeemable_context()
             .with_signer(controller_pda_signer),
         redeemable_amount_less_fees,
     )?;
@@ -220,9 +220,9 @@ pub fn handler(
 
 // Into functions
 impl<'info> MintWithMercurialVaultDepository<'info> {
-    pub fn into_deposit_collateral_to_mercurial_vault_(
+    pub fn into_deposit_collateral_to_mercurial_vault_context(
         &self,
-    ) -> Cpi<
+    ) -> CpiContext<
         '_,
         '_,
         '_,
@@ -240,17 +240,17 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         };
 
         let cpi_program = self.mercurial_vault_program.to_account_info();
-        Cpi::new(cpi_program, cpi_accounts)
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_mint_redeemable_(&self) -> Cpi<'_, '_, '_, 'info, MintTo<'info>> {
+    pub fn into_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = MintTo {
             mint: self.redeemable_mint.to_account_info(),
             to: self.user_redeemable.to_account_info(),
             authority: self.controller.to_account_info(),
         };
-        Cpi::new(cpi_program, cpi_accounts)
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 }
 
@@ -261,7 +261,8 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         let controller = self.controller.load()?;
 
         require!(
-            controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
+            controller.redeemable_circulating_supplyContext
+                <= controller.redeemable_global_supply_cap,
             UxdError::RedeemableGlobalSupplyCapReached
         );
 
@@ -272,7 +273,7 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         let depository = self.depository.load()?;
         require!(
             depository.redeemable_amount_under_management
-                <= depository.redeemable_amount_under_management_cap,
+               Context<= depository.redeemable_amount_under_management_cap,
             UxdError::RedeemableMercurialVaultAmountUnderManagementCap
         );
         Ok(())

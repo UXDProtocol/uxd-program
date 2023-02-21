@@ -87,7 +87,7 @@ pub struct RedeemFromIdentityDepository<'info> {
 }
 
 pub(crate) fn handler(
-    ctx: <RedeemFromIdentityDepository>,
+    ctx: Context<RedeemFromIdentityDepository>,
     redeemable_amount: u64,
 ) -> Result<()> {
     // - 1 [TRANSFER COLLATERAL FROM DEPOSITORY'S VAULT TO USER]
@@ -100,13 +100,13 @@ pub(crate) fn handler(
 
     token::transfer(
         ctx.accounts
-            .to_transfer_collateral_from_depository_vault_to_user_()
+            .to_transfer_collateral_from_depository_vault_to_user_context()
             .with_signer(depository_signer_seed),
         collateral_amount,
     )?;
 
     // - 2 [BURN EQUIVALENT UXD] ----------------------------------------------
-    token::burn(ctx.accounts.to_burn_redeemable_(), redeemable_amount)?;
+    token::burn(ctx.accounts.to_burn_redeemable_context(), redeemable_amount)?;
 
     // - 3 [UPDATE ACCOUNTING] ------------------------------------------------
     {
@@ -141,26 +141,26 @@ pub(crate) fn handler(
 }
 
 impl<'info> RedeemFromIdentityDepository<'info> {
-    fn to_burn_redeemable_(&self) -> Cpi<'_, '_, '_, 'info, Burn<'info>> {
+    fn to_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
             from: self.user_redeemable.to_account_info(),
             authority: self.user.to_account_info(),
         };
-        Cpi::new(cpi_program, cpi_accounts)
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    fn to_transfer_collateral_from_depository_vault_to_user_(
+    fn to_transfer_collateral_from_depository_vault_to_user_context(
         &self,
-    ) -> Cpi<'_, '_, '_, 'info, Transfer<'info>> {
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Transfer {
             from: self.collateral_vault.to_account_info(),
             to: self.user_collateral.to_account_info(),
             authority: self.depository.to_account_info(),
         };
-        Cpi::new(cpi_program, cpi_accounts)
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 }
 

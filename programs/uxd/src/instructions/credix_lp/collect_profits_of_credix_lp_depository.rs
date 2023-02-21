@@ -147,7 +147,7 @@ pub struct CollectProfitsOfCredixLpDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub(crate) fn handler(ctx: <CollectProfitsOfCredixLpDepository>) -> Result<()> {
+pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Result<()> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Fetch all current onchain state
@@ -261,7 +261,7 @@ pub(crate) fn handler(ctx: <CollectProfitsOfCredixLpDepository>) -> Result<()> {
     msg!("[collect_profits_of_credix_lp_depository:withdraw_funds]",);
     credix_client::cpi::withdraw_funds(
         ctx.accounts
-            .into_withdraw_funds_from_credix_lp_()
+            .into_withdraw_funds_from_credix_lp_context()
             .with_signer(depository_pda_signer),
         collateral_amount_before_precision_loss,
     )?;
@@ -270,7 +270,7 @@ pub(crate) fn handler(ctx: <CollectProfitsOfCredixLpDepository>) -> Result<()> {
     msg!("[collect_profits_of_credix_lp_depository:collateral_transfer]",);
     token::transfer(
         ctx.accounts
-            .into_transfer_depository_collateral_to_profits_beneficiary_collateral_()
+            .into_transfer_depository_collateral_to_profits_beneficiary_collateral_context()
             .with_signer(depository_pda_signer),
         collateral_amount_after_precision_loss,
     )?;
@@ -422,9 +422,9 @@ pub(crate) fn handler(ctx: <CollectProfitsOfCredixLpDepository>) -> Result<()> {
 
 // Into functions
 impl<'info> CollectProfitsOfCredixLpDepository<'info> {
-    pub fn into_withdraw_funds_from_credix_lp_(
+    pub fn into_withdraw_funds_from_credix_lp_context(
         &self,
-    ) -> Cpi<'_, '_, '_, 'info, credix_client::cpi::accounts::WithdrawFunds<'info>> {
+    ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::WithdrawFunds<'info>> {
         let cpi_accounts = credix_client::cpi::accounts::WithdrawFunds {
             base_token_mint: self.collateral_mint.to_account_info(),
             investor: self.depository.to_account_info(),
@@ -445,19 +445,19 @@ impl<'info> CollectProfitsOfCredixLpDepository<'info> {
             rent: self.rent.to_account_info(),
         };
         let cpi_program = self.credix_program.to_account_info();
-        Cpi::new(cpi_program, cpi_accounts)
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_depository_collateral_to_profits_beneficiary_collateral_(
+    pub fn into_transfer_depository_collateral_to_profits_beneficiary_collateral_context(
         &self,
-    ) -> Cpi<'_, '_, '_, 'info, token::Transfer<'info>> {
+    ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
             from: self.depository_collateral.to_account_info(),
             to: self.profits_beneficiary_collateral.to_account_info(),
             authority: self.depository.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
-        Cpi::new(cpi_program, cpi_accounts)
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 }
 

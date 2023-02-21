@@ -137,7 +137,7 @@ pub struct MintWithCredixLpDepository<'info> {
 }
 
 pub(crate) fn handler(
-    ctx: <MintWithCredixLpDepository>,
+    ctx: Context<MintWithCredixLpDepository>,
     collateral_amount: u64,
 ) -> Result<()> {
     // ---------------------------------------------------------------------
@@ -247,7 +247,7 @@ pub(crate) fn handler(
     msg!("[mint_with_credix_lp_depository:collateral_transfer]",);
     token::transfer(
         ctx.accounts
-            .into_transfer_user_collateral_to_depository_collateral_(),
+            .into_transfer_user_collateral_to_depository_collateral_context(),
         collateral_amount,
     )?;
 
@@ -255,7 +255,7 @@ pub(crate) fn handler(
     msg!("[mint_with_credix_lp_depository:deposit_funds]",);
     credix_client::cpi::deposit_funds(
         ctx.accounts
-            .into_deposit_collateral_to_credix_lp_()
+            .into_deposit_collateral_to_credix_lp_context()
             .with_signer(depository_pda_signer),
         collateral_amount,
     )?;
@@ -264,7 +264,7 @@ pub(crate) fn handler(
     msg!("[mint_with_credix_lp_depository:mint_redeemable]",);
     token::mint_to(
         ctx.accounts
-            .into_mint_redeemable_()
+            .into_mint_redeemable_context()
             .with_signer(controller_pda_signer),
         redeemable_amount_after_fees,
     )?;
@@ -423,7 +423,7 @@ pub(crate) fn handler(
     )?;
     require!(
         depository.redeemable_amount_under_management
-            <= depository.redeemable_amount_under_management_cap,
+           Context<= depository.redeemable_amount_under_management_cap,
         UxdError::RedeemableCredixLpAmountUnderManagementCap
     );
 
@@ -432,7 +432,7 @@ pub(crate) fn handler(
     let mut controller = ctx.accounts.controller.load_mut()?;
     controller.update_onchain_accounting_following_mint_or_redeem(redeemable_amount_change)?;
     require!(
-        controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
+        controller.redeemable_circulating_supplyContext <= controller.redeemable_global_supply_cap,
         UxdError::RedeemableGlobalSupplyCapReached
     );
 
@@ -442,9 +442,9 @@ pub(crate) fn handler(
 
 // Into functions
 impl<'info> MintWithCredixLpDepository<'info> {
-    pub fn into_deposit_collateral_to_credix_lp_(
+    pub fn into_deposit_collateral_to_credix_lp_context(
         &self,
-    ) -> Cpi<'_, '_, '_, 'info, credix_client::cpi::accounts::DepositFunds<'info>> {
+    ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::DepositFunds<'info>> {
         let cpi_accounts = credix_client::cpi::accounts::DepositFunds {
             base_token_mint: self.collateral_mint.to_account_info(),
             investor: self.depository.to_account_info(),
@@ -461,29 +461,29 @@ impl<'info> MintWithCredixLpDepository<'info> {
             rent: self.rent.to_account_info(),
         };
         let cpi_program = self.credix_program.to_account_info();
-        Cpi::new(cpi_program, cpi_accounts)
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_user_collateral_to_depository_collateral_(
+    pub fn into_transfer_user_collateral_to_depository_collateral_context(
         &self,
-    ) -> Cpi<'_, '_, '_, 'info, token::Transfer<'info>> {
+    ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
             from: self.user_collateral.to_account_info(),
             to: self.depository_collateral.to_account_info(),
             authority: self.user.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
-        Cpi::new(cpi_program, cpi_accounts)
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_mint_redeemable_(&self) -> Cpi<'_, '_, '_, 'info, MintTo<'info>> {
+    pub fn into_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = MintTo {
             mint: self.redeemable_mint.to_account_info(),
             to: self.user_redeemable.to_account_info(),
             authority: self.controller.to_account_info(),
         };
-        Cpi::new(cpi_program, cpi_accounts)
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 }
 

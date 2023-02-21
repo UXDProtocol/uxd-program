@@ -78,7 +78,7 @@ pub struct RegisterMercurialVaultDepository<'info> {
 }
 
 pub fn handler(
-    ctx: <RegisterMercurialVaultDepository>,
+    ctx: Context<RegisterMercurialVaultDepository>,
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
     redeemable_amount_under_management_cap: u128,

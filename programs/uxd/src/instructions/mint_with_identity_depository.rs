@@ -87,13 +87,13 @@ pub struct MintWithIdentityDepository<'info> {
 }
 
 pub(crate) fn handler(
-    ctx: <MintWithIdentityDepository>,
+    ctx: Context<MintWithIdentityDepository>,
     collateral_amount: u64,
 ) -> Result<()> {
     // - 1 [TRANSFER USER'S COLLATERAL TO DEPOSITORY'S VAULT] -----------------
     token::transfer(
         ctx.accounts
-            .to_transfer_collateral_from_user_to_depository_vault_(),
+            .to_transfer_collateral_from_user_to_depository_vault_context(),
         collateral_amount,
     )?;
 
@@ -104,7 +104,7 @@ pub(crate) fn handler(
         let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller_bump]]];
         token::mint_to(
             ctx.accounts
-                .to_mint_redeemable_()
+                .to_mint_redeemable_context()
                 .with_signer(controller_pda_signer),
             redeemable_amount,
         )?;
@@ -135,7 +135,8 @@ pub(crate) fn handler(
     {
         // Check for Global supply cap limitation
         require!(
-            controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
+            controller.redeemable_circulating_supplyContext
+                <= controller.redeemable_global_supply_cap,
             UxdError::RedeemableGlobalSupplyCapReached
         );
     }
@@ -156,26 +157,26 @@ pub(crate) fn handler(
 }
 
 impl<'info> MintWithIdentityDepository<'info> {
-    fn to_mint_redeemable_(&self) -> Cpi<'_, '_, '_, 'info, MintTo<'info>> {
+    fn to_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = MintTo {
             mint: self.redeemable_mint.to_account_info(),
             to: self.user_redeemable.to_account_info(),
             authority: self.controller.to_account_info(),
         };
-        Cpi::new(cpi_program, cpi_accounts)
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    fn to_transfer_collateral_from_user_to_depository_vault_(
+    fn to_transfer_collateral_from_user_to_depository_vault_context(
         &self,
-    ) -> Cpi<'_, '_, '_, 'info, Transfer<'info>> {
+    ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Transfer {
             from: self.user_collateral.to_account_info(),
             to: self.collateral_vault.to_account_info(),
             authority: self.user.to_account_info(),
         };
-        Cpi::new(cpi_program, cpi_accounts)
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 }
 
@@ -184,7 +185,7 @@ impl<'info> MintWithIdentityDepository<'info> {
         let depository = self.depository.load()?;
         require!(
             depository.redeemable_amount_under_management
-                <= depository.redeemable_amount_under_management_cap,
+               Context<= depository.redeemable_amount_under_management_cap,
             UxdError::RedeemableIdentityDepositoryAmountUnderManagementCap
         );
         Ok(())

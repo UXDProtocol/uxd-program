@@ -81,7 +81,7 @@ pub struct CollectProfitsOfMercurialVaultDepository<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: <CollectProfitsOfMercurialVaultDepository>) -> Result<()> {
+pub fn handler(ctx: Context<CollectProfitsOfMercurialVaultDepository>) -> Result<()> {
     // 1 - Read all states before collect
     let lp_token_vault_amount_before = ctx.accounts.depository_lp_token_vault.amount;
     let profits_beneficiary_collateral_amount_before =
@@ -119,7 +119,7 @@ pub fn handler(ctx: <CollectProfitsOfMercurialVaultDepository>) -> Result<()> {
     // 5 - withdraw collateral from mercurial vault for LP tokens
     mercurial_vault::cpi::withdraw(
         ctx.accounts
-            .into_withdraw_collateral_from_mercurial_vault_()
+            .into_withdraw_collateral_from_mercurial_vault_context()
             .with_signer(depository_signer_seed),
         lp_token_amount_to_match_collectable_profits_value,
         // Do not check slippage here
@@ -195,9 +195,9 @@ pub fn handler(ctx: <CollectProfitsOfMercurialVaultDepository>) -> Result<()> {
 
 // Into functions
 impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
-    pub fn into_withdraw_collateral_from_mercurial_vault_(
+    pub fn into_withdraw_collateral_from_mercurial_vault_context(
         &self,
-    ) -> Cpi<
+    ) -> CpiContext<
         '_,
         '_,
         '_,
@@ -214,7 +214,7 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
             token_program: self.token_program.to_account_info(),
         };
         let cpi_program = self.mercurial_vault_program.to_account_info();
-        Cpi::new(cpi_program, cpi_accounts)
+        CpiContext::new(cpi_program, cpi_accounts)
     }
 }
 
@@ -248,7 +248,7 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
                 self.depository_lp_token_vault.amount,
             )?;
 
-        // Mint max supply is cap at u64, so redeemable_amount_under_management <= u64::MAX, always safe to convert
+        // Mint max supply is cap at u64, so redeemable_amount_under_managementContext<= u64::MAX, always safe to convert
         let redeemable_amount_under_management: u64 =
             u64::try_from(self.depository.load()?.redeemable_amount_under_management)
                 .ok()
