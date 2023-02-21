@@ -33,8 +33,8 @@ pub struct EditIdentityDepository<'info> {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct EditIdentityDepositoryFields {
-    redeemable_amount_under_management_cap: Option<u128>,
-    minting_disabled: Option<bool>,
+    pub redeemable_amount_under_management_cap: Option<u128>,
+    pub minting_disabled: Option<bool>,
 }
 
 pub(crate) fn handler(
