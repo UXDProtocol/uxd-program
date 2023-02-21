@@ -135,8 +135,7 @@ pub(crate) fn handler(
     {
         // Check for Global supply cap limitation
         require!(
-            controller.redeemable_circulating_supplyContext
-                <= controller.redeemable_global_supply_cap,
+            controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
             UxdError::RedeemableGlobalSupplyCapReached
         );
     }

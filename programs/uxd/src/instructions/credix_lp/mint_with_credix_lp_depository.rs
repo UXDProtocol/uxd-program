@@ -423,7 +423,7 @@ pub(crate) fn handler(
     )?;
     require!(
         depository.redeemable_amount_under_management
-           <= depository.redeemable_amount_under_management_cap,
+            <= depository.redeemable_amount_under_management_cap,
         UxdError::RedeemableCredixLpAmountUnderManagementCap
     );
 
