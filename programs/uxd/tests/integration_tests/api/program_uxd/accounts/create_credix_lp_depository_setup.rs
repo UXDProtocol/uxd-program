@@ -2,8 +2,7 @@ use solana_program::pubkey::Pubkey;
 
 use crate::integration_tests::api::program_credix;
 
-pub struct CredixLpDepository {
-    pub collateral_mint: Pubkey,
+pub struct CredixLpDepositorySetup {
     pub depository: Pubkey,
     pub depository_collateral: Pubkey,
     pub depository_shares: Pubkey,
@@ -13,19 +12,18 @@ pub struct CredixLpDepository {
     pub credix_liquidity_collateral: Pubkey,
     pub credix_shares_mint: Pubkey,
     pub credix_treasury_collateral: Pubkey,
+    pub credix_program_setup: program_credix::accounts::ProgramSetup,
 }
 
-pub fn find_credix_lp_depository(
-    context: &program_credix::accounts::Context,
-) -> CredixLpDepository {
-    let collateral_mint = context.base_token_mint;
+pub fn create_credix_lp_depository_setup(collateral_mint: &Pubkey) -> CredixLpDepositorySetup {
+    let credix_program_setup = program_credix::accounts::create_program_setup(collateral_mint);
 
-    let credix_program_state = context.program_state;
-    let credix_global_market_state = context.global_market_state;
-    let credix_signing_authority = context.signing_authority;
-    let credix_liquidity_collateral = context.liquidity_pool_token_account;
-    let credix_shares_mint = context.lp_token_mint;
-    let credix_treasury_collateral = context.treasury_pool_token_account;
+    let credix_program_state = credix_program_setup.program_state;
+    let credix_global_market_state = credix_program_setup.global_market_state;
+    let credix_signing_authority = credix_program_setup.signing_authority;
+    let credix_liquidity_collateral = credix_program_setup.liquidity_pool_token_account;
+    let credix_shares_mint = credix_program_setup.lp_token_mint;
+    let credix_treasury_collateral = credix_program_setup.treasury_pool_token_account;
 
     let depository = Pubkey::find_program_address(
         &[
@@ -44,8 +42,7 @@ pub fn find_credix_lp_depository(
         &credix_shares_mint,
     );
 
-    CredixLpDepository {
-        collateral_mint,
+    CredixLpDepositorySetup {
         depository,
         depository_collateral,
         depository_shares,
@@ -55,5 +52,6 @@ pub fn find_credix_lp_depository(
         credix_liquidity_collateral,
         credix_shares_mint,
         credix_treasury_collateral,
+        credix_program_setup,
     }
 }

@@ -1,6 +1,5 @@
 use solana_program_test::tokio;
-use solana_program_test::ProgramTestContext;
-use solana_program_test::ProgramTestContext;
+use solana_program_test::ProgramTest;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -9,7 +8,8 @@ use crate::integration_tests::api::program_spl;
 #[tokio::test]
 async fn test_mint_and_token() -> Result<(), String> {
     let program_test = ProgramTest::default();
-    let mut program_test_context: ProgramTest = program_test.start_with_context().await;
+
+    let mut program_test_context = program_test.start_with_context().await;
 
     let payer = Keypair::new();
 

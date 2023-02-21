@@ -1,7 +1,6 @@
 use solana_program_test::processor;
 use solana_program_test::tokio;
-use solana_program_test::ProgramTestContext;
-use solana_program_test::ProgramTestContext;
+use solana_program_test::ProgramTest;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -14,7 +13,7 @@ async fn test_identity_depository() -> Result<(), String> {
 
     program_test.add_program("uxd", uxd::id(), processor!(uxd::entry));
 
-    let mut program_test_context: ProgramTest = program_test.start_with_context().await;
+    let mut program_test_context = program_test.start_with_context().await;
 
     // Fund payer
     let payer = Keypair::new();
@@ -25,8 +24,7 @@ async fn test_identity_depository() -> Result<(), String> {
     )
     .await?;
 
-    // Main actors
-    let authority = Keypair::new();
+    // Main actor
     let user = Keypair::new();
 
     // Create the collateral mint
@@ -59,12 +57,14 @@ async fn test_identity_depository() -> Result<(), String> {
     )
     .await?;
 
+    // Create the program setup structure (find/create all important keys)
+    let program_setup = program_uxd::accounts::create_program_setup(&collateral_mint.pubkey());
+
     // Initialize basic UXD program state
-    let redeemable_mint = program_uxd::procedures::run_basic_setup(
+    program_uxd::procedures::process_program_setup_init(
         &mut program_test_context,
         &payer,
-        &authority,
-        &collateral_mint.pubkey(),
+        &program_setup,
         6,
         1_000_000,
         1_000_000,
@@ -79,7 +79,7 @@ async fn test_identity_depository() -> Result<(), String> {
     let user_redeemable = program_spl::instructions::process_associated_token_account_init(
         &mut program_test_context,
         &payer,
-        &redeemable_mint,
+        &program_setup.redeemable_mint,
         &user.pubkey(),
     )
     .await?;
@@ -103,6 +103,7 @@ async fn test_identity_depository() -> Result<(), String> {
     program_uxd::instructions::process_mint_with_identity_depository(
         &mut program_test_context,
         &payer,
+        &program_setup,
         &user,
         &user_collateral,
         &user_redeemable,
@@ -129,6 +130,7 @@ async fn test_identity_depository() -> Result<(), String> {
     program_uxd::instructions::process_redeem_from_identity_depository(
         &mut program_test_context,
         &payer,
+        &program_setup,
         &user,
         &user_collateral,
         &user_redeemable,

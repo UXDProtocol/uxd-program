@@ -69,7 +69,7 @@ mod test_compute_amount_after_change {
                 return Ok(());
             }
             // Otherwise When its a decrease
-            if change_deltaContext< 0 {
+            if change_delta < 0 {
                 let decrease: u128;
                 if change_delta == i128::MIN {
                     decrease = u128::try_from(u128::MAX).unwrap() + 1;

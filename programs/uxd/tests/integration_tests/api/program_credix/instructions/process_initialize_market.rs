@@ -1,7 +1,6 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
-use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
@@ -13,35 +12,35 @@ use crate::integration_tests::api::program_test_context;
 pub async fn process_initialize_market(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
-    context: &program_credix::accounts::Context,
+    program_setup: &program_credix::accounts::ProgramSetup,
 ) -> Result<(), String> {
     program_spl::instructions::process_associated_token_account_init(
         program_test_context,
         payer,
-        &context.base_token_mint,
-        &context.signing_authority,
+        &program_setup.base_token_mint,
+        &program_setup.signing_authority,
     )
     .await?;
 
     program_spl::instructions::process_associated_token_account_init(
         program_test_context,
         payer,
-        &context.base_token_mint,
-        &context.treasury,
+        &program_setup.base_token_mint,
+        &program_setup.treasury,
     )
     .await?;
 
     let accounts = credix_client::accounts::InitializeMarket {
-        owner: context.owner.pubkey(),
-        global_market_state: context.global_market_state,
-        market_admins: context.market_admins,
-        program_state: context.program_state,
-        signing_authority: context.signing_authority,
-        lp_token_mint: context.lp_token_mint,
-        base_token_mint: context.base_token_mint,
-        liquidity_pool_token_account: context.liquidity_pool_token_account,
-        treasury: context.treasury,
-        treasury_pool_token_account: context.treasury_pool_token_account,
+        owner: program_setup.owner.pubkey(),
+        global_market_state: program_setup.global_market_state,
+        market_admins: program_setup.market_admins,
+        program_state: program_setup.program_state,
+        signing_authority: program_setup.signing_authority,
+        lp_token_mint: program_setup.lp_token_mint,
+        base_token_mint: program_setup.base_token_mint,
+        liquidity_pool_token_account: program_setup.liquidity_pool_token_account,
+        treasury: program_setup.treasury,
+        treasury_pool_token_account: program_setup.treasury_pool_token_account,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
@@ -49,8 +48,8 @@ pub async fn process_initialize_market(
     };
 
     let payload = credix_client::instruction::InitializeMarket {
-        _global_market_seed: context.market_seeds.clone(),
-        _multisig: Some(context.owner.pubkey()),
+        _global_market_seed: program_setup.market_seeds.clone(),
+        _multisig: Some(program_setup.owner.pubkey()),
         _managers: None,
         _pass_issuers: None,
         _grace_period: 10,
@@ -93,7 +92,7 @@ pub async fn process_initialize_market(
         program_test_context,
         instruction,
         payer,
-        &context.owner,
+        &program_setup.owner,
     )
     .await?;
 
