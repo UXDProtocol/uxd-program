@@ -1,8 +1,8 @@
 // Unit tests
 #[cfg(test)]
 mod test_compute_decrease {
-    use crate::utils::compute_decrease;
     use anchor_lang::Result;
+    use uxd::utils::compute_decrease;
 
     #[test]
     fn test_decrease() -> Result<()> {

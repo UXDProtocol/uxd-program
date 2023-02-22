@@ -1,9 +1,9 @@
 // Unit tests
 #[cfg(test)]
 mod test_compute_value_for_shares_amount {
-    use crate::utils::compute_value_for_shares_amount;
     use anchor_lang::Result;
     use proptest::prelude::*;
+    use uxd::utils::compute_value_for_shares_amount;
 
     #[test]
     fn test_correctness() -> Result<()> {

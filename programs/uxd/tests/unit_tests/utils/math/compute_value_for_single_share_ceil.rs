@@ -1,9 +1,9 @@
 // Unit tests
 #[cfg(test)]
 mod test_compute_value_for_single_share_ceil {
-    use crate::utils::compute_value_for_single_share_ceil;
     use anchor_lang::Result;
     use proptest::prelude::*;
+    use uxd::utils::compute_value_for_single_share_ceil;
 
     #[test]
     fn test_correctness() -> Result<()> {

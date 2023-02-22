@@ -22,7 +22,7 @@ pub struct EditController<'info> {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct EditControllerFields {
-    redeemable_global_supply_cap: Option<u128>,
+    pub redeemable_global_supply_cap: Option<u128>,
 }
 
 pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
