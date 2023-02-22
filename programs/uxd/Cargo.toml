@@ -1,10 +1,14 @@
 [package]
 name = "uxd"
-version = "5.1.0"
-authors = ["acammm <alexcamill@gmail.com>, cnek <ctk2012ac@gmail.com>, G. Neut <gregory.neut@gmail.com>, V. Brunet <vincent.brunet.us@gmail.com>"]
+version = "7.0.0"
+authors = [
+  "acammm <alexcamill@gmail.com>",
+  "cnek <ctk2012ac@gmail.com>",
+  "G. Neut <gregory.neut@gmail.com>",
+  "V. Brunet <vincent.brunet.us@gmail.com>",
+]
 description = "UXDProtocol Program, managing a redeemable mint backed by a delta neutral position."
 edition = "2021"
-rust-version = "1.56"
 
 [lib]
 crate-type = ["cdylib", "lib"]
@@ -16,18 +20,24 @@ no-idl = []
 no-log-ix-name = []
 cpi = ["no-entrypoint"]
 test-bpf = []
-default = ["development"] # `anchor build -- --no-default-features --features production` to override
+default = [
+  "development",
+] # `anchor build -- --no-default-features --features production` to override
 production = []
 development = []
 
 [dependencies]
-anchor-lang = "0.24.2"
-anchor-spl = "0.24.2"
+anchor-lang = "0.26.0"
+anchor-spl = "0.26.0"
 
-mercurial-vault = { git="https://github.com/mercurial-finance/vault-sdk", features= ["cpi"], rev = "6daf57a877c36694c8f5b8267ca1e096a1e619d2" }
+mercurial-vault = { git = "https://github.com/mercurial-finance/vault-sdk", features = [
+  "cpi",
+], rev = "3849d617362968d874b2d32db6da4768d1a4c90c" }
 
 # credix_client = { version="0.5.0" } # mainnet
-credix_client = { version="0.5.0", features = ["pre-mainnet"] } # devnet and CI
+credix_client = { path = "../credix_client-0.5.0-upgraded", features = [
+  "pre-mainnet",
+] } # devnet and CI
 
 [dev-dependencies]
 proptest = "1.0.0"
