@@ -22,7 +22,7 @@ pub async fn process_register_credix_lp_depository(
         authority: program_setup.authority.pubkey(),
         payer: payer.pubkey(),
         controller: program_setup.controller,
-        collateral_mint: program_setup.collateral_mint,
+        collateral_mint: program_setup.collateral_mint.pubkey(),
         depository: credix_lp_depository_setup.depository,
         depository_collateral: credix_lp_depository_setup.depository_collateral,
         depository_shares: credix_lp_depository_setup.depository_shares,

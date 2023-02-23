@@ -1,7 +1,9 @@
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
+use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_credix;
+use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_program_setup_init(
@@ -16,6 +18,16 @@ pub async fn process_program_setup_init(
     credix_lp_depository_redeeming_fee_in_bps: u8,
     credix_lp_depository_redeemable_amount_under_management_cap: u128,
 ) -> Result<(), String> {
+    // Create the collateral mint
+    program_spl::instructions::process_token_mint_init(
+        program_test_context,
+        &payer,
+        &program_setup.collateral_mint,
+        6,
+        &program_setup.collateral_authority.pubkey(),
+    )
+    .await?;
+
     // Controller setup
     program_uxd::instructions::process_initialize_controller(
         program_test_context,
@@ -48,12 +60,20 @@ pub async fn process_program_setup_init(
     )
     .await?;
 
-    // Credix dependency program setup
+    // Credix onchain dependency program setup
     program_credix::procedures::process_program_setup_init(
         program_test_context,
         &program_setup
             .credix_lp_depository_setup
             .credix_program_setup,
+    )
+    .await?;
+    program_credix::procedures::process_dummy_actors_behaviors(
+        program_test_context,
+        &program_setup
+            .credix_lp_depository_setup
+            .credix_program_setup,
+        &program_setup.collateral_authority,
     )
     .await?;
 
@@ -68,7 +88,7 @@ pub async fn process_program_setup_init(
     )
     .await?;
 
-    // Credix pass creation
+    // Credix pass creation for the credix lp depository
     program_credix::instructions::process_create_credix_pass(
         program_test_context,
         &program_setup

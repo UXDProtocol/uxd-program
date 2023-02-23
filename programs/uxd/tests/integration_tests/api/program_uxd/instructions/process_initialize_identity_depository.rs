@@ -19,7 +19,7 @@ pub async fn process_initialize_identity_depository(
         controller: program_setup.controller,
         depository: program_setup.identity_depository_setup.depository,
         collateral_vault: program_setup.identity_depository_setup.collateral_vault,
-        collateral_mint: program_setup.collateral_mint,
+        collateral_mint: program_setup.collateral_mint.pubkey(),
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,

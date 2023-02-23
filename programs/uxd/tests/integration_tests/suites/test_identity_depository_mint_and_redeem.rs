@@ -31,41 +31,8 @@ async fn test_identity_depository() -> Result<(), String> {
     )
     .await?;
 
-    // Main actor
-    let user = Keypair::new();
-
-    // Create the collateral mint
-    let collateral_authority = Keypair::new();
-    let collateral_mint = Keypair::new();
-    program_spl::instructions::process_token_mint_init(
-        &mut program_test_context,
-        &payer,
-        &collateral_mint,
-        6,
-        &collateral_authority.pubkey(),
-    )
-    .await?;
-
-    // Give some collateral to our user and create its account
-    let user_collateral = program_spl::instructions::process_associated_token_account_init(
-        &mut program_test_context,
-        &payer,
-        &collateral_mint.pubkey(),
-        &user.pubkey(),
-    )
-    .await?;
-    program_spl::instructions::process_token_mint_to(
-        &mut program_test_context,
-        &payer,
-        &collateral_mint.pubkey(),
-        &collateral_authority,
-        &user_collateral,
-        1_000_000,
-    )
-    .await?;
-
     // Create the program setup structure (find/create all important keys)
-    let program_setup = program_uxd::accounts::create_program_setup(&collateral_mint.pubkey());
+    let program_setup = program_uxd::accounts::create_program_setup();
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_program_setup_init(
@@ -78,6 +45,27 @@ async fn test_identity_depository() -> Result<(), String> {
         false,
         1,
         1,
+        1_000_000,
+    )
+    .await?;
+
+    // Main actor
+    let user = Keypair::new();
+
+    // Give some collateral to our user and create its account
+    let user_collateral = program_spl::instructions::process_associated_token_account_init(
+        &mut program_test_context,
+        &payer,
+        &program_setup.collateral_mint.pubkey(),
+        &user.pubkey(),
+    )
+    .await?;
+    program_spl::instructions::process_token_mint_to(
+        &mut program_test_context,
+        &payer,
+        &program_setup.collateral_mint.pubkey(),
+        &program_setup.collateral_authority,
+        &user_collateral,
         1_000_000,
     )
     .await?;

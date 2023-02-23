@@ -24,7 +24,7 @@ pub async fn process_mint_with_credix_lp_depository(
         payer: payer.pubkey(),
         user: user.pubkey(),
         controller: program_setup.controller,
-        collateral_mint: program_setup.collateral_mint,
+        collateral_mint: program_setup.collateral_mint.pubkey(),
         redeemable_mint: program_setup.redeemable_mint,
         user_collateral: *user_collateral,
         user_redeemable: *user_redeemable,
