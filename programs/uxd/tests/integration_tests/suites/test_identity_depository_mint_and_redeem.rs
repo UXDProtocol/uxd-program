@@ -13,6 +13,13 @@ async fn test_identity_depository() -> Result<(), String> {
 
     program_test.add_program("uxd", uxd::id(), processor!(uxd::entry));
 
+    program_test.prefer_bpf(true);
+    program_test.add_program(
+        "tests/integration_tests/api/program_credix/binaries/executable-devnet",
+        credix_client::id(),
+        None,
+    );
+
     let mut program_test_context = program_test.start_with_context().await;
 
     // Fund payer
@@ -152,6 +159,18 @@ async fn test_identity_depository() -> Result<(), String> {
             .await?
             .amount
     );
+
+    // Mint using credix depository
+    program_uxd::instructions::process_mint_with_credix_lp_depository(
+        &mut program_test_context,
+        &payer,
+        &program_setup,
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        500_000,
+    )
+    .await?;
 
     Ok(())
 }

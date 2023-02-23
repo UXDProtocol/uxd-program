@@ -12,6 +12,7 @@ pub struct CredixLpDepositorySetup {
     pub credix_liquidity_collateral: Pubkey,
     pub credix_shares_mint: Pubkey,
     pub credix_treasury_collateral: Pubkey,
+    pub credix_pass: Pubkey,
     pub credix_program_setup: program_credix::accounts::ProgramSetup,
 }
 
@@ -42,6 +43,12 @@ pub fn create_credix_lp_depository_setup(collateral_mint: &Pubkey) -> CredixLpDe
         &credix_shares_mint,
     );
 
+    let credix_pass = credix_client::CredixPass::generate_pda(
+        credix_program_setup.global_market_state,
+        depository,
+    )
+    .0;
+
     CredixLpDepositorySetup {
         depository,
         depository_collateral,
@@ -51,6 +58,7 @@ pub fn create_credix_lp_depository_setup(collateral_mint: &Pubkey) -> CredixLpDe
         credix_signing_authority,
         credix_liquidity_collateral,
         credix_shares_mint,
+        credix_pass,
         credix_treasury_collateral,
         credix_program_setup,
     }

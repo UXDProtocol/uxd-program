@@ -49,7 +49,6 @@ pub async fn process_program_setup_init(
     .await?;
 
     // Credix dependency program setup
-    /*
     program_credix::procedures::process_program_setup_init(
         program_test_context,
         &program_setup
@@ -68,7 +67,21 @@ pub async fn process_program_setup_init(
         credix_lp_depository_redeemable_amount_under_management_cap,
     )
     .await?;
-     */
+
+    // Credix pass creation
+    program_credix::instructions::process_create_credix_pass(
+        program_test_context,
+        &program_setup
+            .credix_lp_depository_setup
+            .credix_program_setup,
+        &program_setup.credix_lp_depository_setup.depository,
+        &program_setup.credix_lp_depository_setup.credix_pass,
+        true,
+        false,
+        0,
+        true,
+    )
+    .await?;
 
     // TODO - initialize credix/mercurial too here
 
