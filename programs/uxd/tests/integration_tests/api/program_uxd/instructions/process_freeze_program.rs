@@ -15,9 +15,6 @@ pub async fn process_freeze_program(
     program_setup: &program_uxd::accounts::ProgramSetup,
     freeze: bool,
 ) -> Result<(), String> {
-    let controller =
-        Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE.as_ref()], &uxd::id()).0;
-
     let accounts = uxd::accounts::FreezeProgram {
         authority: program_setup.authority.pubkey(),
         controller: program_setup.controller,

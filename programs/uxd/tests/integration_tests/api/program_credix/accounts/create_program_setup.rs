@@ -5,7 +5,7 @@ use solana_sdk::signer::Signer;
 const CREDIX_MARKETPLACE_SEED: &str = "credix-marketplace";
 
 pub struct ProgramSetup {
-    pub owner: Keypair,
+    pub authority: Keypair,
     pub program_state: Pubkey,
     pub market_seeds: String,
     pub global_market_state: Pubkey,
@@ -19,7 +19,7 @@ pub struct ProgramSetup {
 }
 
 pub fn create_program_setup(collateral_mint: &Pubkey) -> ProgramSetup {
-    let owner = Keypair::new();
+    let authority = Keypair::new();
 
     let program_state = credix_client::ProgramState::generate_pda().0;
 
@@ -42,12 +42,12 @@ pub fn create_program_setup(collateral_mint: &Pubkey) -> ProgramSetup {
         &base_token_mint,
     );
 
-    let treasury = owner.pubkey();
+    let treasury = authority.pubkey();
     let treasury_pool_token_account =
         spl_associated_token_account::get_associated_token_address(&treasury, &base_token_mint);
 
     ProgramSetup {
-        owner,
+        authority,
         program_state,
         market_seeds,
         global_market_state,

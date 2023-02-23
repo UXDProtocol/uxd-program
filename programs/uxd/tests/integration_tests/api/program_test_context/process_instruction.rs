@@ -19,6 +19,7 @@ pub async fn process_instruction(
     let mut transaction: Transaction =
         Transaction::new_with_payer(&[instruction], Some(&payer.pubkey()));
     transaction.partial_sign(&[payer], program_test_context.last_blockhash);
+    println!(" - transaction.signatures: {:?}", transaction.signatures);
     let result = program_test_context
         .banks_client
         .process_transaction(transaction)

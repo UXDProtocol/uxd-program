@@ -2,7 +2,6 @@ use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
 use solana_program_test::ProgramTestContext;
-use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_credix;
@@ -11,12 +10,11 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_initialize_market(
     program_test_context: &mut ProgramTestContext,
-    payer: &Keypair,
     program_setup: &program_credix::accounts::ProgramSetup,
 ) -> Result<(), String> {
     program_spl::instructions::process_associated_token_account_init(
         program_test_context,
-        payer,
+        &program_setup.authority,
         &program_setup.base_token_mint,
         &program_setup.signing_authority,
     )
@@ -24,14 +22,14 @@ pub async fn process_initialize_market(
 
     program_spl::instructions::process_associated_token_account_init(
         program_test_context,
-        payer,
+        &program_setup.authority,
         &program_setup.base_token_mint,
         &program_setup.treasury,
     )
     .await?;
 
     let accounts = credix_client::accounts::InitializeMarket {
-        owner: program_setup.owner.pubkey(),
+        owner: program_setup.authority.pubkey(),
         global_market_state: program_setup.global_market_state,
         market_admins: program_setup.market_admins,
         program_state: program_setup.program_state,
@@ -49,7 +47,7 @@ pub async fn process_initialize_market(
 
     let payload = credix_client::instruction::InitializeMarket {
         _global_market_seed: program_setup.market_seeds.clone(),
-        _multisig: Some(program_setup.owner.pubkey()),
+        _multisig: Some(program_setup.authority.pubkey()),
         _managers: None,
         _pass_issuers: None,
         _grace_period: 10,
@@ -87,14 +85,10 @@ pub async fn process_initialize_market(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-
-    program_test_context::process_instruction_with_signer(
+    program_test_context::process_instruction(
         program_test_context,
         instruction,
-        payer,
-        &program_setup.owner,
+        &program_setup.authority,
     )
-    .await?;
-
-    Ok(())
+    .await
 }

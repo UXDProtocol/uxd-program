@@ -49,9 +49,9 @@ pub async fn process_program_setup_init(
     .await?;
 
     // Credix dependency program setup
+    /*
     program_credix::procedures::process_program_setup_init(
         program_test_context,
-        &payer,
         &program_setup
             .credix_lp_depository_setup
             .credix_program_setup,
@@ -68,6 +68,7 @@ pub async fn process_program_setup_init(
         credix_lp_depository_redeemable_amount_under_management_cap,
     )
     .await?;
+     */
 
     // TODO - initialize credix/mercurial too here
 

@@ -15,6 +15,8 @@ async fn test_mint_and_token() -> Result<(), String> {
 
     let mint = Keypair::new();
     let authority = Keypair::new();
+    let user1 = Keypair::new();
+    let user2 = Keypair::new();
 
     // Fund payer
     program_spl::instructions::process_lamports_airdrop(
@@ -34,13 +36,19 @@ async fn test_mint_and_token() -> Result<(), String> {
     )
     .await?;
 
-    // create account
-    let wallet = Keypair::new();
-    let token_account = program_spl::instructions::process_associated_token_account_init(
+    // create user token accounts
+    let user1_token_account = program_spl::instructions::process_associated_token_account_init(
         &mut program_test_context,
         &payer,
         &mint.pubkey(),
-        &wallet.pubkey(),
+        &user1.pubkey(),
+    )
+    .await?;
+    let user2_token_account = program_spl::instructions::process_associated_token_account_init(
+        &mut program_test_context,
+        &payer,
+        &mint.pubkey(),
+        &user2.pubkey(),
     )
     .await?;
 
@@ -50,7 +58,7 @@ async fn test_mint_and_token() -> Result<(), String> {
         &payer,
         &mint.pubkey(),
         &authority,
-        &token_account,
+        &user1_token_account,
         41,
     )
     .await?;
@@ -61,16 +69,35 @@ async fn test_mint_and_token() -> Result<(), String> {
         &payer,
         &mint.pubkey(),
         &authority,
-        &token_account,
+        &user1_token_account,
         42,
     )
     .await?;
 
-    // check total minted amount
-    let token_account =
-        program_spl::accounts::read_token_account(&mut program_test_context, &token_account)
-            .await?;
-    assert_eq!(token_account.amount, 83);
+    // transfer to other user
+    program_spl::instructions::process_token_transfer(
+        &mut program_test_context,
+        &payer,
+        &user1,
+        &user1_token_account,
+        &user2_token_account,
+        13,
+    )
+    .await?;
+
+    // Check user 1 should have 41+42-13 = 70
+    let user1_token_amount =
+        program_spl::accounts::read_token_account(&mut program_test_context, &user1_token_account)
+            .await?
+            .amount;
+    assert_eq!(user1_token_amount, 70);
+
+    // Check user 2 should have 13
+    let user2_token_amount =
+        program_spl::accounts::read_token_account(&mut program_test_context, &user2_token_account)
+            .await?
+            .amount;
+    assert_eq!(user2_token_amount, 13);
 
     Ok(())
 }
