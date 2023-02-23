@@ -6,15 +6,17 @@ use solana_sdk::signer::Signer;
 use crate::integration_tests::api::program_spl;
 
 #[tokio::test]
-async fn test_mint_and_token() -> Result<(), String> {
+async fn test_mints_and_tokens() -> Result<(), String> {
     let program_test = ProgramTest::default();
 
     let mut program_test_context = program_test.start_with_context().await;
 
+    // Important accounts
     let payer = Keypair::new();
 
-    let mint = Keypair::new();
-    let authority = Keypair::new();
+    let token_authority = Keypair::new();
+    let token_mint = Keypair::new();
+
     let user1 = Keypair::new();
     let user2 = Keypair::new();
 
@@ -30,9 +32,9 @@ async fn test_mint_and_token() -> Result<(), String> {
     program_spl::instructions::process_token_mint_init(
         &mut program_test_context,
         &payer,
-        &mint,
+        &token_mint,
         6,
-        &authority.pubkey(),
+        &token_authority.pubkey(),
     )
     .await?;
 
@@ -40,14 +42,14 @@ async fn test_mint_and_token() -> Result<(), String> {
     let user1_token_account = program_spl::instructions::process_associated_token_account_init(
         &mut program_test_context,
         &payer,
-        &mint.pubkey(),
+        &token_mint.pubkey(),
         &user1.pubkey(),
     )
     .await?;
     let user2_token_account = program_spl::instructions::process_associated_token_account_init(
         &mut program_test_context,
         &payer,
-        &mint.pubkey(),
+        &token_mint.pubkey(),
         &user2.pubkey(),
     )
     .await?;
@@ -56,8 +58,8 @@ async fn test_mint_and_token() -> Result<(), String> {
     program_spl::instructions::process_token_mint_to(
         &mut program_test_context,
         &payer,
-        &mint.pubkey(),
-        &authority,
+        &token_mint.pubkey(),
+        &token_authority,
         &user1_token_account,
         41,
     )
@@ -67,8 +69,8 @@ async fn test_mint_and_token() -> Result<(), String> {
     program_spl::instructions::process_token_mint_to(
         &mut program_test_context,
         &payer,
-        &mint.pubkey(),
-        &authority,
+        &token_mint.pubkey(),
+        &token_authority,
         &user1_token_account,
         42,
     )
@@ -85,14 +87,14 @@ async fn test_mint_and_token() -> Result<(), String> {
     )
     .await?;
 
-    // Check user 1 should have 41+42-13 = 70
+    // Check user1 should have 41 + 42 - 13 = 70
     let user1_token_amount =
         program_spl::accounts::read_token_account(&mut program_test_context, &user1_token_account)
             .await?
             .amount;
     assert_eq!(user1_token_amount, 70);
 
-    // Check user 2 should have 13
+    // Check user2 should have 13 (transfered from user1)
     let user2_token_amount =
         program_spl::accounts::read_token_account(&mut program_test_context, &user2_token_account)
             .await?

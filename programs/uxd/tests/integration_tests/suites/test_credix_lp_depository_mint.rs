@@ -8,7 +8,7 @@ use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_uxd;
 
 #[tokio::test]
-async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
+async fn test_credix_lp_depository_mint() -> Result<(), String> {
     let mut program_test = ProgramTest::default();
 
     program_test.add_program("uxd", uxd::id(), processor!(uxd::entry));
@@ -43,8 +43,8 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
         1_000_000,
         1_000_000,
         false,
-        1,
-        1,
+        0,
+        50,
         1_000_000,
     )
     .await?;
@@ -94,8 +94,8 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
             .amount
     );
 
-    // Mint using identity depository
-    program_uxd::instructions::process_mint_with_identity_depository(
+    // Mint using credix depository
+    program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_test_context,
         &payer,
         &program_setup,
@@ -116,33 +116,6 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     // Check user redeemable increased
     assert_eq!(
         0 + 500_000,
-        program_spl::accounts::read_token_account(&mut program_test_context, &user_redeemable)
-            .await?
-            .amount
-    );
-
-    // Redeem using identity depository
-    program_uxd::instructions::process_redeem_from_identity_depository(
-        &mut program_test_context,
-        &payer,
-        &program_setup,
-        &user,
-        &user_collateral,
-        &user_redeemable,
-        250_000,
-    )
-    .await?;
-
-    // Check user collateral increased
-    assert_eq!(
-        1_000_000 - 500_000 + 250_000,
-        program_spl::accounts::read_token_account(&mut program_test_context, &user_collateral)
-            .await?
-            .amount
-    );
-    // Check user redeemable decreased
-    assert_eq!(
-        0 + 500_000 - 250_000,
         program_spl::accounts::read_token_account(&mut program_test_context, &user_redeemable)
             .await?
             .amount
