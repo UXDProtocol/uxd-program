@@ -10,13 +10,13 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_edit_controller(
     program_test_context: &mut ProgramTestContext,
+    program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
-    program_setup: &program_uxd::accounts::ProgramSetup,
     redeemable_global_supply_cap: Option<u128>,
 ) -> Result<(), String> {
     let accounts = uxd::accounts::EditController {
-        authority: program_setup.authority.pubkey(),
-        controller: program_setup.controller,
+        authority: program_keys.authority.pubkey(),
+        controller: program_keys.controller,
     };
     let payload = uxd::instruction::EditController {
         fields: uxd::instructions::EditControllerFields {
@@ -32,7 +32,7 @@ pub async fn process_edit_controller(
         program_test_context,
         instruction,
         payer,
-        &program_setup.authority,
+        &program_keys.authority,
     )
     .await
 }

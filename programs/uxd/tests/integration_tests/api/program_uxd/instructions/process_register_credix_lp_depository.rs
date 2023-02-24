@@ -10,27 +10,27 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_register_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
+    program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
-    program_setup: &program_uxd::accounts::ProgramSetup,
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
     redeemable_amount_under_management_cap: u128,
 ) -> Result<(), String> {
-    let credix_lp_depository_setup = &program_setup.credix_lp_depository_setup;
+    let credix_lp_depository_keys = &program_keys.credix_lp_depository_keys;
 
     let accounts = uxd::accounts::RegisterCredixLpDepository {
-        authority: program_setup.authority.pubkey(),
+        authority: program_keys.authority.pubkey(),
         payer: payer.pubkey(),
-        controller: program_setup.controller,
-        collateral_mint: program_setup.collateral_mint.pubkey(),
-        depository: credix_lp_depository_setup.depository,
-        depository_collateral: credix_lp_depository_setup.depository_collateral,
-        depository_shares: credix_lp_depository_setup.depository_shares,
-        credix_program_state: credix_lp_depository_setup.credix_program_state,
-        credix_global_market_state: credix_lp_depository_setup.credix_global_market_state,
-        credix_signing_authority: credix_lp_depository_setup.credix_signing_authority,
-        credix_liquidity_collateral: credix_lp_depository_setup.credix_liquidity_collateral,
-        credix_shares_mint: credix_lp_depository_setup.credix_shares_mint,
+        controller: program_keys.controller,
+        collateral_mint: program_keys.collateral_mint.pubkey(),
+        depository: credix_lp_depository_keys.depository,
+        depository_collateral: credix_lp_depository_keys.depository_collateral,
+        depository_shares: credix_lp_depository_keys.depository_shares,
+        credix_program_state: credix_lp_depository_keys.credix_program_state,
+        credix_global_market_state: credix_lp_depository_keys.credix_global_market_state,
+        credix_signing_authority: credix_lp_depository_keys.credix_signing_authority,
+        credix_liquidity_collateral: credix_lp_depository_keys.credix_liquidity_collateral,
+        credix_shares_mint: credix_lp_depository_keys.credix_shares_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
@@ -50,7 +50,7 @@ pub async fn process_register_credix_lp_depository(
         program_test_context,
         instruction,
         payer,
-        &program_setup.authority,
+        &program_keys.authority,
     )
     .await
 }

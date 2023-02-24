@@ -1,3 +1,3 @@
-pub mod process_program_setup_init;
+pub mod process_deploy_program;
 
-pub use process_program_setup_init::*;
+pub use process_deploy_program::*;

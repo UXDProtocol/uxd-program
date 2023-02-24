@@ -10,15 +10,15 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_initialize_controller(
     program_test_context: &mut ProgramTestContext,
+    program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
-    program_setup: &program_uxd::accounts::ProgramSetup,
     redeemable_mint_decimals: u8,
 ) -> Result<(), String> {
     let accounts = uxd::accounts::InitializeController {
-        authority: program_setup.authority.pubkey(),
+        authority: program_keys.authority.pubkey(),
         payer: payer.pubkey(),
-        controller: program_setup.controller,
-        redeemable_mint: program_setup.redeemable_mint,
+        controller: program_keys.controller,
+        redeemable_mint: program_keys.redeemable_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
@@ -35,7 +35,7 @@ pub async fn process_initialize_controller(
         program_test_context,
         instruction,
         payer,
-        &program_setup.authority,
+        &program_keys.authority,
     )
     .await
 }

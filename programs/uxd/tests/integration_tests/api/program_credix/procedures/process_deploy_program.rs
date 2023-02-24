@@ -4,14 +4,14 @@ use solana_sdk::signer::Signer;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
 
-pub async fn process_program_setup_init(
+pub async fn process_deploy_program(
     program_test_context: &mut ProgramTestContext,
-    program_setup: &program_credix::accounts::ProgramSetup,
+    program_keys: &program_credix::accounts::ProgramKeys,
 ) -> Result<(), String> {
     // Airdrop funds to the credix authority wallet (acting as payer)
     program_spl::instructions::process_lamports_airdrop(
         program_test_context,
-        &program_setup.authority.pubkey(),
+        &program_keys.authority.pubkey(),
         1_000_000_000_000,
     )
     .await?;
@@ -19,13 +19,13 @@ pub async fn process_program_setup_init(
     // Global init
     program_credix::instructions::process_initialize_program_state(
         program_test_context,
-        &program_setup,
+        &program_keys,
     )
     .await?;
-    program_credix::instructions::process_initialize_market(program_test_context, &program_setup)
+    program_credix::instructions::process_initialize_market(program_test_context, &program_keys)
         .await?;
 
-    // TODO - make it work for the rest of the credix setup
+    // TODO - make it work for the rest of the credix keys
 
     // Ready to use
     Ok(())

@@ -1,26 +1,15 @@
-use solana_program_test::processor;
+use solana_program::pubkey::Pubkey;
 use solana_program_test::tokio;
-use solana_program_test::ProgramTest;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_spl;
+use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[tokio::test]
 async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
-    let mut program_test = ProgramTest::default();
-
-    program_test.add_program("uxd", uxd::id(), processor!(uxd::entry));
-
-    program_test.prefer_bpf(true);
-    program_test.add_program(
-        "tests/integration_tests/api/program_credix/binaries/executable-devnet",
-        credix_client::id(),
-        None,
-    );
-
-    let mut program_test_context = program_test.start_with_context().await;
+    let mut program_test_context = program_test_context::create_program_test_context().await;
 
     // Fund payer
     let payer = Keypair::new();
@@ -31,21 +20,26 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     )
     .await?;
 
-    // Create the program setup structure (find/create all important keys)
-    let program_setup = program_uxd::accounts::create_program_setup();
+    // Create the program keys structure (find/create all important keys)
+    let program_keys = program_uxd::accounts::create_program_keys();
 
     // Initialize basic UXD program state
-    program_uxd::procedures::process_program_setup_init(
+    program_uxd::procedures::process_deploy_program(
         &mut program_test_context,
+        &program_keys,
         &payer,
-        &program_setup,
         6,
         1_000_000,
-        1_000_000,
-        false,
-        1,
-        1,
-        1_000_000,
+    )
+    .await?;
+
+    // Enable minting by editing identity depository configuration
+    program_uxd::instructions::process_edit_identity_depository(
+        &mut program_test_context,
+        &program_keys,
+        &payer,
+        Some(1_000_000),
+        Some(false),
     )
     .await?;
 
@@ -56,15 +50,15 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     let user_collateral = program_spl::instructions::process_associated_token_account_init(
         &mut program_test_context,
         &payer,
-        &program_setup.collateral_mint.pubkey(),
+        &program_keys.collateral_mint.pubkey(),
         &user.pubkey(),
     )
     .await?;
     program_spl::instructions::process_token_mint_to(
         &mut program_test_context,
         &payer,
-        &program_setup.collateral_mint.pubkey(),
-        &program_setup.collateral_authority,
+        &program_keys.collateral_mint.pubkey(),
+        &program_keys.collateral_authority,
         &user_collateral,
         1_000_000,
     )
@@ -74,7 +68,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     let user_redeemable = program_spl::instructions::process_associated_token_account_init(
         &mut program_test_context,
         &payer,
-        &program_setup.redeemable_mint,
+        &program_keys.redeemable_mint,
         &user.pubkey(),
     )
     .await?;
@@ -97,8 +91,8 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     // Mint using identity depository
     program_uxd::instructions::process_mint_with_identity_depository(
         &mut program_test_context,
+        &program_keys,
         &payer,
-        &program_setup,
         &user,
         &user_collateral,
         &user_redeemable,
@@ -124,8 +118,8 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     // Redeem using identity depository
     program_uxd::instructions::process_redeem_from_identity_depository(
         &mut program_test_context,
+        &program_keys,
         &payer,
-        &program_setup,
         &user,
         &user_collateral,
         &user_redeemable,

@@ -10,15 +10,15 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_edit_identity_depository(
     program_test_context: &mut ProgramTestContext,
+    program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
-    program_setup: &program_uxd::accounts::ProgramSetup,
     redeemable_amount_under_management_cap: Option<u128>,
     minting_disabled: Option<bool>,
 ) -> Result<(), String> {
     let accounts = uxd::accounts::EditIdentityDepository {
-        authority: program_setup.authority.pubkey(),
-        controller: program_setup.controller,
-        depository: program_setup.identity_depository_setup.depository,
+        authority: program_keys.authority.pubkey(),
+        controller: program_keys.controller,
+        depository: program_keys.identity_depository_keys.depository,
     };
     let payload = uxd::instruction::EditIdentityDepository {
         fields: uxd::instructions::EditIdentityDepositoryFields {
@@ -35,7 +35,7 @@ pub async fn process_edit_identity_depository(
         program_test_context,
         instruction,
         payer,
-        &program_setup.authority,
+        &program_keys.authority,
     )
     .await
 }

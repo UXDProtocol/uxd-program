@@ -2,7 +2,7 @@ use solana_program::pubkey::Pubkey;
 
 use crate::integration_tests::api::program_credix;
 
-pub struct CredixLpDepositorySetup {
+pub struct CredixLpDepositoryKeys {
     pub depository: Pubkey,
     pub depository_collateral: Pubkey,
     pub depository_shares: Pubkey,
@@ -13,18 +13,18 @@ pub struct CredixLpDepositorySetup {
     pub credix_shares_mint: Pubkey,
     pub credix_treasury_collateral: Pubkey,
     pub credix_pass: Pubkey,
-    pub credix_program_setup: program_credix::accounts::ProgramSetup,
+    pub credix_program_keys: program_credix::accounts::ProgramKeys,
 }
 
-pub fn create_credix_lp_depository_setup(collateral_mint: &Pubkey) -> CredixLpDepositorySetup {
-    let credix_program_setup = program_credix::accounts::create_program_setup(collateral_mint);
+pub fn create_credix_lp_depository_keys(collateral_mint: &Pubkey) -> CredixLpDepositoryKeys {
+    let credix_program_keys = program_credix::accounts::create_program_keys(collateral_mint);
 
-    let credix_program_state = credix_program_setup.program_state;
-    let credix_global_market_state = credix_program_setup.global_market_state;
-    let credix_signing_authority = credix_program_setup.signing_authority;
-    let credix_liquidity_collateral = credix_program_setup.liquidity_pool_token_account;
-    let credix_shares_mint = credix_program_setup.lp_token_mint;
-    let credix_treasury_collateral = credix_program_setup.treasury_pool_token_account;
+    let credix_program_state = credix_program_keys.program_state;
+    let credix_global_market_state = credix_program_keys.global_market_state;
+    let credix_signing_authority = credix_program_keys.signing_authority;
+    let credix_liquidity_collateral = credix_program_keys.liquidity_pool_token_account;
+    let credix_shares_mint = credix_program_keys.lp_token_mint;
+    let credix_treasury_collateral = credix_program_keys.treasury_pool_token_account;
 
     let depository = Pubkey::find_program_address(
         &[
@@ -44,12 +44,12 @@ pub fn create_credix_lp_depository_setup(collateral_mint: &Pubkey) -> CredixLpDe
     );
 
     let credix_pass = credix_client::CredixPass::generate_pda(
-        credix_program_setup.global_market_state,
+        credix_program_keys.global_market_state,
         depository,
     )
     .0;
 
-    CredixLpDepositorySetup {
+    CredixLpDepositoryKeys {
         depository,
         depository_collateral,
         depository_shares,
@@ -60,6 +60,6 @@ pub fn create_credix_lp_depository_setup(collateral_mint: &Pubkey) -> CredixLpDe
         credix_shares_mint,
         credix_pass,
         credix_treasury_collateral,
-        credix_program_setup,
+        credix_program_keys,
     }
 }

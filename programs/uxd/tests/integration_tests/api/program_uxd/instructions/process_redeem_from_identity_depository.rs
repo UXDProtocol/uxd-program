@@ -11,8 +11,8 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_redeem_from_identity_depository(
     program_test_context: &mut ProgramTestContext,
+    program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
-    program_setup: &program_uxd::accounts::ProgramSetup,
     user: &Keypair,
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
@@ -21,10 +21,10 @@ pub async fn process_redeem_from_identity_depository(
     let accounts = uxd::accounts::RedeemFromIdentityDepository {
         user: user.pubkey(),
         payer: payer.pubkey(),
-        controller: program_setup.controller,
-        depository: program_setup.identity_depository_setup.depository,
-        collateral_vault: program_setup.identity_depository_setup.collateral_vault,
-        redeemable_mint: program_setup.redeemable_mint,
+        controller: program_keys.controller,
+        depository: program_keys.identity_depository_keys.depository,
+        collateral_vault: program_keys.identity_depository_keys.collateral_vault,
+        redeemable_mint: program_keys.redeemable_mint,
         user_collateral: *user_collateral,
         user_redeemable: *user_redeemable,
         system_program: anchor_lang::system_program::ID,
