@@ -4,6 +4,7 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_credix;
+use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_uxd;
 
@@ -17,6 +18,13 @@ pub async fn process_deploy_program(
     // Use restictive default values for all tests, can be modified in individual test cases through edits
     let identity_depository_redeemable_amount_under_management_cap = 0;
     let identity_depository_minting_disabled = true;
+
+    let mercurial_vault_depository_redeemable_amount_under_management_cap = 0;
+    let mercurial_vault_depository_minting_fee_in_bps = 100;
+    let mercurial_vault_depository_redeeming_fee_in_bps = 100;
+    let mercurial_vault_depository_minting_disabled = true;
+    let mercurial_vault_depository_profits_beneficiary_collateral = Pubkey::default();
+
     let credix_lp_depository_redeemable_amount_under_management_cap = 0;
     let credix_lp_depository_minting_fee_in_bps = 100;
     let credix_lp_depository_redeeming_fee_in_bps = 100;
@@ -62,6 +70,37 @@ pub async fn process_deploy_program(
         payer,
         Some(identity_depository_redeemable_amount_under_management_cap),
         Some(identity_depository_minting_disabled),
+    )
+    .await?;
+
+    // Mercurial onchain dependency program deployment
+    program_mercurial::procedures::process_deploy_program(
+        program_test_context,
+        &program_keys
+            .mercurial_vault_depository_keys
+            .mercurial_program_keys,
+    )
+    .await?;
+
+    // Credix lp depository setup
+    program_uxd::instructions::process_register_mercurial_vault_depository(
+        program_test_context,
+        program_keys,
+        &payer,
+        0,
+        0,
+        0,
+    )
+    .await?;
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
+        program_test_context,
+        program_keys,
+        &payer,
+        Some(mercurial_vault_depository_redeemable_amount_under_management_cap),
+        Some(mercurial_vault_depository_minting_fee_in_bps),
+        Some(mercurial_vault_depository_redeeming_fee_in_bps),
+        Some(mercurial_vault_depository_minting_disabled),
+        Some(mercurial_vault_depository_profits_beneficiary_collateral),
     )
     .await?;
 

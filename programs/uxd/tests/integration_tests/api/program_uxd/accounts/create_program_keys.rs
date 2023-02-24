@@ -11,6 +11,7 @@ pub struct ProgramKeys {
     pub controller: Pubkey,
     pub redeemable_mint: Pubkey,
     pub identity_depository_keys: program_uxd::accounts::IdentityDepositoryKeys,
+    pub mercurial_vault_depository_keys: program_uxd::accounts::MercurialVaultDepositoryKeys,
     pub credix_lp_depository_keys: program_uxd::accounts::CredixLpDepositoryKeys,
 }
 
@@ -28,6 +29,9 @@ pub fn create_program_keys() -> ProgramKeys {
 
     let identity_depository_keys = program_uxd::accounts::create_identity_depository_keys();
 
+    let mercurial_vault_depository_keys =
+        program_uxd::accounts::create_mercurial_vault_depository_keys(&collateral_mint.pubkey());
+
     let credix_lp_depository_keys =
         program_uxd::accounts::create_credix_lp_depository_keys(&collateral_mint.pubkey());
 
@@ -38,6 +42,7 @@ pub fn create_program_keys() -> ProgramKeys {
         collateral_mint,
         redeemable_mint,
         identity_depository_keys,
+        mercurial_vault_depository_keys,
         credix_lp_depository_keys,
     }
 }
