@@ -1,8 +1,6 @@
 import { Signer } from '@solana/web3.js';
 import {
-  CredixLpDepository,
   IdentityDepository,
-  MercurialVaultDepository,
   USDC_DECIMALS,
   USDC_DEVNET,
 } from '@uxd-protocol/uxd-client';
@@ -37,20 +35,14 @@ export const freezeProgramSuite = async function ({
   payer: Signer;
   controller: Controller;
 }) {
-  let mercurialVaultDepository: MercurialVaultDepository;
-  let credixLpDepository: CredixLpDepository;
-  let identityDepository: IdentityDepository;
-
-  before(async () => {
-    mercurialVaultDepository = await createMercurialVaultDepositoryDevnet();
-    credixLpDepository = await createCredixLpDepositoryDevnetUSDC();
-    identityDepository = new IdentityDepository(
-      USDC_DEVNET,
-      'USDC',
-      USDC_DECIMALS,
-      uxdProgramId
-    );
-  });
+  let mercurialVaultDepository = await createMercurialVaultDepositoryDevnet();
+  let credixLpDepository = await createCredixLpDepositoryDevnetUSDC();
+  let identityDepository = new IdentityDepository(
+    USDC_DEVNET,
+    'USDC',
+    USDC_DECIMALS,
+    uxdProgramId
+  );
 
   it(`Freeze program`, async function () {
     await freezeProgramTest({ freeze: true, authority, controller });

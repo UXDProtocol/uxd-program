@@ -33,7 +33,6 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
   let initialRedeemableDepositorySupplyCap: BN;
 
   before('Setup: fund user', async function () {
-    depository = await createCredixLpDepositoryDevnetUSDC();
     await transferTokens(
       0.002,
       depository.collateralMint,
