@@ -39,6 +39,8 @@ export const identityDepositoryMintRedeemSuite = async function ({
   let onChainDepository: IdentityDepositoryAccount;
   let depository: IdentityDepository;
 
+  let collateralMintSymbol = 'USDC';
+
   before('Setup: fund user', async function () {
     depository = createIdentityDepositoryDevnet();
 
@@ -92,7 +94,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
   });
 
   describe('Regular mint/redeem', () => {
-    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMintSymbol}`, async function () {
+    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralMintSymbol}`, async function () {
       const collateralAmount = 0.001;
 
       console.log(
@@ -111,7 +113,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
       });
     });
 
-    it(`Redeem all ${controller.redeemableMintSymbol} minted previously for ${depository.collateralMintSymbol}`, async function () {
+    it(`Redeem all ${controller.redeemableMintSymbol} minted previously for ${collateralMintSymbol}`, async function () {
       const redeemableAccountBalance = await getBalance(userRedeemableATA);
 
       const previouslyMintedRedeemableAmount =
@@ -135,7 +137,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
   });
 
   describe('Over limits', () => {
-    it(`Mint for more ${depository.collateralMintSymbol} than owned (should fail)`, async function () {
+    it(`Mint for more ${collateralMintSymbol} than owned (should fail)`, async function () {
       const collateralAmount = 1_000_000;
 
       console.log(
@@ -160,7 +162,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
 
       expect(failure).eq(
         true,
-        `Should have failed - Do not own enough ${depository.collateralMintSymbol}`
+        `Should have failed - Do not own enough ${collateralMintSymbol}`
       );
     });
 
@@ -193,7 +195,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
       );
     });
 
-    it(`Mint for 0 ${depository.collateralMintSymbol} (should fail)`, async function () {
+    it(`Mint for 0 ${collateralMintSymbol} (should fail)`, async function () {
       const collateralAmount = 0;
 
       console.log(
@@ -218,7 +220,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
 
       expect(failure).eq(
         true,
-        `Should have failed - Cannot mint for 0 ${depository.collateralMintSymbol}`
+        `Should have failed - Cannot mint for 0 ${collateralMintSymbol}`
       );
     });
 
@@ -254,7 +256,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
 
   describe('1 native unit mint/redeem', async () => {
     before(
-      `Setup: Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMintSymbol}`,
+      `Setup: Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralMintSymbol}`,
       async function () {
         const collateralAmount = 0.001;
 
@@ -275,7 +277,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
       }
     );
 
-    it(`Mint for 1 native unit ${depository.collateralMintSymbol} (should succeed, because no precision loss on identity)`, async function () {
+    it(`Mint for 1 native unit ${collateralMintSymbol} (should succeed, because no precision loss on identity)`, async function () {
       const collateralAmount = Math.pow(10, -depository.collateralMintDecimals);
       console.log(
         '[🧾 collateralAmount',
@@ -284,26 +286,17 @@ export const identityDepositoryMintRedeemSuite = async function ({
         ']'
       );
 
-      try {
-        await mintWithIdentityDepositoryTest({
-          collateralAmount,
-          user,
-          controller,
-          depository,
-          payer,
-        });
-      } catch {
-        expect(true, 'Failing as planned');
-      }
-
-      expect(
-        false,
-        `Should have failed - User cannot mint for 0 ${controller.redeemableMintSymbol} (happens due to precision loss and fees)`
-      );
+      await mintWithIdentityDepositoryTest({
+        collateralAmount,
+        user,
+        controller,
+        depository,
+        payer,
+      });
     });
 
     after(
-      `Cleanup: Redeem all ${controller.redeemableMintSymbol} minted previously for ${depository.collateralMintSymbol}`,
+      `Cleanup: Redeem all ${controller.redeemableMintSymbol} minted previously for ${collateralMintSymbol}`,
       async function () {
         const redeemableAccountBalance = await getBalance(userRedeemableATA);
 
@@ -338,7 +331,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
         },
       }));
 
-    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMintSymbol} (should fail)`, async function () {
+    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralMintSymbol} (should fail)`, async function () {
       const collateralAmount = 0.001;
 
       console.log(
@@ -404,7 +397,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
       });
     });
 
-    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMintSymbol} (should fail)`, async function () {
+    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralMintSymbol} (should fail)`, async function () {
       const collateralAmount = 0.001;
 
       console.log(
@@ -462,7 +455,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
       });
     });
 
-    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralMintSymbol} (should fail)`, async function () {
+    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralMintSymbol} (should fail)`, async function () {
       const collateralAmount = 0.001;
 
       console.log(
