@@ -75,10 +75,6 @@ import {
       });
     });
 
-    describe('credixLpDepositoryEditSuite', function () {
-      credixLpDepositoryEditSuite({ authority, controller });
-    });
-
     describe('credixLpDepositoryMintAndRedeemSuite', function () {
       credixLpDepositoryMintAndRedeemSuite({
         authority,
@@ -87,6 +83,10 @@ import {
         profitsBeneficiary,
         controller,
       });
+    });
+
+    describe('credixLpDepositoryEditSuite', function () {
+      credixLpDepositoryEditSuite({ authority, controller });
     });
 
     this.afterAll('Transfer funds back to bank', async function () {
