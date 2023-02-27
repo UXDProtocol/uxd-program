@@ -147,8 +147,8 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
         failure = true;
       }
 
-      expect(
-        false,
+      expect(failure).eq(
+        true,
         `Should have failed - Do not own enough ${collateralSymbol}`
       );
     });
@@ -205,8 +205,8 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
         failure = true;
       }
 
-      expect(
-        false,
+      expect(failure).eq(
+        true,
         `Should have failed - Cannot mint for 0 ${collateralSymbol}`
       );
     });

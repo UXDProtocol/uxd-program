@@ -1,6 +1,5 @@
-import { PublicKey, Signer } from '@solana/web3.js';
+import { Signer } from '@solana/web3.js';
 import {
-  findATAAddrSync,
   Controller,
   MercurialVaultDepository,
   nativeToUi,

@@ -5,10 +5,7 @@ import { collectProfitsOfMercurialVaultDepositoryTest } from '../cases/collectPr
 import { transferLpTokenToDepositoryLpVault } from '../mercurial_vault_utils';
 import { editMercurialVaultDepositoryTest } from '../cases/editMercurialVaultDepositoryTest';
 import { expect } from 'chai';
-import {
-  getOrCreateAssociatedTokenAccount,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
+import { getOrCreateAssociatedTokenAccount } from '@solana/spl-token';
 import { createMercurialVaultDepositoryDevnet } from '../utils';
 
 export const mercurialVaultDepositoryCollectProfitsSuite = async function ({

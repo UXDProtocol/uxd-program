@@ -1,4 +1,3 @@
-import { AnchorProvider } from '@project-serum/anchor';
 import { Commitment, Connection } from '@solana/web3.js';
 
 // TXN preflight checks options

@@ -5,8 +5,6 @@ import {
   findATAAddrSync,
   IdentityDepository,
   nativeToUi,
-  USDC_DECIMALS,
-  USDC_DEVNET,
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
 import {
@@ -21,7 +19,6 @@ import { redeemFromIdentityDepositoryTest } from '../cases/redeemFromIdentityDep
 import { mintWithIdentityDepositoryTest } from '../cases/mintWithIdentityDepositoryTest';
 import { editControllerTest } from '../cases/editControllerTest';
 import { editIdentityDepositoryTest } from '../cases/editIdentityDepositoryTest';
-import { uxdProgramId } from '../constants';
 
 export const identityDepositoryMintRedeemSuite = async function ({
   authority,
