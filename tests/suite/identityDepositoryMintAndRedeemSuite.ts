@@ -78,6 +78,15 @@ export const identityDepositoryMintRedeemSuite = async function ({
       onchainController.redeemableGlobalSupplyCap;
     initialRedeemableDepositorySupplyCap =
       onChainDepository.redeemableAmountUnderManagementCap;
+
+    console.log(
+      'initialControllerGlobalRedeemableSupplyCap',
+      initialControllerGlobalRedeemableSupplyCap
+    );
+    console.log(
+      'initialRedeemableDepositorySupplyCap',
+      initialRedeemableDepositorySupplyCap
+    );
   });
 
   describe('Enable minting', () => {

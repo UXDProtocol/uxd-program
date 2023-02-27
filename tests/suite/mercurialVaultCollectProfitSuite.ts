@@ -20,6 +20,7 @@ export const mercurialVaultDepositoryCollectProfitsSuite = async function ({
   controller: Controller;
 }) {
   const collateralSymbol = 'USDC';
+
   let depository: MercurialVaultDepository;
 
   before(

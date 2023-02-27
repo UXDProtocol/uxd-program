@@ -28,11 +28,11 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
   profitsBeneficiary: Signer;
   controller: Controller;
 }) {
+  const collateralSymbol = 'USDC';
+
   let initialControllerGlobalRedeemableSupplyCap: BN;
   let initialRedeemableDepositorySupplyCap: BN;
   let depository: CredixLpDepository;
-
-  let collateralSymbol = 'USDC';
 
   before('Setup: fund user', async function () {
     depository = await createCredixLpDepositoryDevnetUSDC();
@@ -53,6 +53,15 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
       onChainController.redeemableGlobalSupplyCap;
     initialRedeemableDepositorySupplyCap =
       onChainDepository.redeemableAmountUnderManagementCap;
+
+    console.log(
+      'initialControllerGlobalRedeemableSupplyCap',
+      initialControllerGlobalRedeemableSupplyCap
+    );
+    console.log(
+      'initialRedeemableDepositorySupplyCap',
+      initialRedeemableDepositorySupplyCap
+    );
   });
 
   describe('Regular mint/redeem', () => {
