@@ -88,6 +88,15 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
       'initialRedeemableDepositorySupplyCap',
       initialRedeemableDepositorySupplyCap
     );
+
+    await editMercurialVaultDepositoryTest({
+      authority,
+      controller,
+      depository,
+      uiFields: {
+        redeemableAmountUnderManagementCap: 25_000_000,
+      },
+    });
   });
 
   describe('Regular mint/redeem', () => {

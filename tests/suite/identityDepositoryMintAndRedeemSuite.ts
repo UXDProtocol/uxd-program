@@ -87,6 +87,15 @@ export const identityDepositoryMintRedeemSuite = async function ({
       'initialRedeemableDepositorySupplyCap',
       initialRedeemableDepositorySupplyCap
     );
+
+    await editIdentityDepositoryTest({
+      authority,
+      controller,
+      depository,
+      uiFields: {
+        redeemableAmountUnderManagementCap: 25_000_000,
+      },
+    });
   });
 
   describe('Enable minting', () => {
