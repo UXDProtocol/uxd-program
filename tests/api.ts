@@ -32,7 +32,7 @@ export async function initializeController({
 
   tx.instructions.push(initControllerIx);
   signers.push(authority);
-  if (payer) {
+  if (payer != authority) {
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
@@ -40,13 +40,13 @@ export async function initializeController({
 }
 
 export async function mintWithMercurialVaultDepository({
-  authority,
+  user,
   payer,
   controller,
   depository,
   collateralAmount,
 }: {
-  authority: Signer;
+  user: Signer;
   payer: Signer;
   controller: Controller;
   depository: MercurialVaultDepository;
@@ -56,7 +56,7 @@ export async function mintWithMercurialVaultDepository({
     uxdClient.createMintWithMercurialVaultDepositoryInstruction(
       controller,
       depository,
-      authority.publicKey,
+      user.publicKey,
       collateralAmount,
       TXN_OPTS,
       payer.publicKey
@@ -64,22 +64,22 @@ export async function mintWithMercurialVaultDepository({
   let signers: Signer[] = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(
-    authority.publicKey,
+  const [userRedeemableAta] = findATAAddrSync(
+    user.publicKey,
     controller.redeemableMintPda
   );
-  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+  if (!(await getConnection().getAccountInfo(userRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
-      authority.publicKey,
-      authorityRedeemableAta,
+      user.publicKey,
+      userRedeemableAta,
       controller.redeemableMintPda
     );
     tx.add(createUserRedeemableAtaIx);
   }
 
   tx.add(mintWithMercurialVaultDepositoryIx);
-  signers.push(authority);
-  if (payer) {
+  signers.push(user);
+  if (payer != user) {
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
@@ -87,13 +87,13 @@ export async function mintWithMercurialVaultDepository({
 }
 
 export async function redeemFromMercurialVaultDepository({
-  authority,
+  user,
   payer,
   controller,
   depository,
   redeemableAmount,
 }: {
-  authority: Signer;
+  user: Signer;
   payer: Signer;
   controller: Controller;
   depository: MercurialVaultDepository;
@@ -103,7 +103,7 @@ export async function redeemFromMercurialVaultDepository({
     uxdClient.createRedeemFromMercurialVaultDepositoryInstruction(
       controller,
       depository,
-      authority.publicKey,
+      user.publicKey,
       redeemableAmount,
       TXN_OPTS,
       payer.publicKey
@@ -111,22 +111,22 @@ export async function redeemFromMercurialVaultDepository({
   let signers: Signer[] = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(
-    authority.publicKey,
+  const [userRedeemableAta] = findATAAddrSync(
+    user.publicKey,
     controller.redeemableMintPda
   );
-  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+  if (!(await getConnection().getAccountInfo(userRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
-      authority.publicKey,
-      authorityRedeemableAta,
+      user.publicKey,
+      userRedeemableAta,
       controller.redeemableMintPda
     );
     tx.add(createUserRedeemableAtaIx);
   }
 
   tx.add(redeemFromMercurialVaultDepositoryIx);
-  signers.push(authority);
-  if (payer) {
+  signers.push(user);
+  if (payer != user) {
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
@@ -166,7 +166,7 @@ export async function registerMercurialVaultDepository({
 
   tx.instructions.push(registerMercurialVaultDepositoryIx);
   signers.push(authority);
-  if (payer) {
+  if (payer != authority) {
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
@@ -288,7 +288,7 @@ export async function initializeIdentityDepository({
 
   tx.instructions.push(initializeIdentityDepositoryIx);
   signers.push(authority);
-  if (payer) {
+  if (payer != authority) {
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
@@ -296,13 +296,13 @@ export async function initializeIdentityDepository({
 }
 
 export async function mintWithIdentityDepository({
-  authority,
+  user,
   payer,
   controller,
   depository,
   collateralAmount,
 }: {
-  authority: Signer;
+  user: Signer;
   payer: Signer;
   controller: Controller;
   depository: IdentityDepository;
@@ -312,7 +312,7 @@ export async function mintWithIdentityDepository({
     uxdClient.createMintWithIdentityDepositoryInstruction(
       controller,
       depository,
-      authority.publicKey,
+      user.publicKey,
       collateralAmount,
       TXN_OPTS,
       payer.publicKey
@@ -320,22 +320,22 @@ export async function mintWithIdentityDepository({
   let signers: Signer[] = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(
-    authority.publicKey,
+  const [userRedeemableAta] = findATAAddrSync(
+    user.publicKey,
     controller.redeemableMintPda
   );
-  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+  if (!(await getConnection().getAccountInfo(userRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
-      authority.publicKey,
-      authorityRedeemableAta,
+      user.publicKey,
+      userRedeemableAta,
       controller.redeemableMintPda
     );
     tx.add(createUserRedeemableAtaIx);
   }
 
   tx.add(mintWithIdentityDepositoryIx);
-  signers.push(authority);
-  if (payer) {
+  signers.push(user);
+  if (payer != user) {
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
@@ -343,13 +343,13 @@ export async function mintWithIdentityDepository({
 }
 
 export async function redeemFromIdentityDepository({
-  authority,
+  user,
   payer,
   controller,
   depository,
   redeemableAmount,
 }: {
-  authority: Signer;
+  user: Signer;
   payer: Signer;
   controller: Controller;
   depository: IdentityDepository;
@@ -359,7 +359,7 @@ export async function redeemFromIdentityDepository({
     uxdClient.createRedeemFromIdentityDepositoryInstruction(
       controller,
       depository,
-      authority.publicKey,
+      user.publicKey,
       redeemableAmount,
       TXN_OPTS,
       payer.publicKey
@@ -367,22 +367,22 @@ export async function redeemFromIdentityDepository({
   let signers: Signer[] = [];
   let tx = new Transaction();
 
-  const [authorityRedeemableAta] = findATAAddrSync(
-    authority.publicKey,
+  const [userRedeemableAta] = findATAAddrSync(
+    user.publicKey,
     controller.redeemableMintPda
   );
-  if (!(await getConnection().getAccountInfo(authorityRedeemableAta))) {
+  if (!(await getConnection().getAccountInfo(userRedeemableAta))) {
     const createUserRedeemableAtaIx = createAssocTokenIx(
-      authority.publicKey,
-      authorityRedeemableAta,
+      user.publicKey,
+      userRedeemableAta,
       controller.redeemableMintPda
     );
     tx.add(createUserRedeemableAtaIx);
   }
 
   tx.add(redeemFromIdentityDepositoryIx);
-  signers.push(authority);
-  if (payer) {
+  signers.push(user);
+  if (payer != user) {
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
@@ -414,7 +414,7 @@ export async function registerCredixLpDepository(
 
   tx.instructions.push(registerCredixLpDepositoryIx);
   signers.push(authority);
-  if (payer) {
+  if (payer != authority) {
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
@@ -455,7 +455,7 @@ export async function mintWithCredixLpDepository(
 
   tx.add(mintWithCredixLpDepositoryIx);
   signers.push(user);
-  if (payer) {
+  if (payer != user) {
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
@@ -496,7 +496,7 @@ export async function redeemFromCredixLpDepository(
 
   tx.add(redeemFromCredixLpDepositoryIx);
   signers.push(user);
-  if (payer) {
+  if (payer != user) {
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
