@@ -3,6 +3,7 @@ import {
   Controller,
   ControllerAccount,
   findATAAddrSync,
+  IdentityDepository,
   nativeToUi,
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
@@ -30,16 +31,17 @@ export const identityDepositoryMintRedeemSuite = async function ({
   payer: Signer;
   controller: Controller;
 }) {
-  let depository = createIdentityDepositoryDevnet();
-
   let initialRedeemableAccountBalance: number;
   let initialControllerGlobalRedeemableSupplyCap: BN;
   let initialRedeemableDepositorySupplyCap: BN;
   let userRedeemableATA: PublicKey;
   let onchainController: ControllerAccount;
   let onChainDepository: IdentityDepositoryAccount;
+  let depository: IdentityDepository;
 
   before('Setup: fund user', async function () {
+    depository = createIdentityDepositoryDevnet();
+
     console.log(
       'depository.collateralMint',
       depository.collateralMint.toBase58()
@@ -282,13 +284,22 @@ export const identityDepositoryMintRedeemSuite = async function ({
         ']'
       );
 
-      await mintWithIdentityDepositoryTest({
-        collateralAmount,
-        user,
-        controller,
-        depository,
-        payer,
-      });
+      try {
+        await mintWithIdentityDepositoryTest({
+          collateralAmount,
+          user,
+          controller,
+          depository,
+          payer,
+        });
+      } catch {
+        expect(true, 'Failing as planned');
+      }
+
+      expect(
+        false,
+        `Should have failed - User cannot mint for 0 ${controller.redeemableMintSymbol} (happens due to precision loss and fees)`
+      );
     });
 
     after(

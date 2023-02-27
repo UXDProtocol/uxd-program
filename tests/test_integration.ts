@@ -35,15 +35,13 @@ describe('Mercurial vault integration tests: USDC', async function () {
     await transferSol(1, bank, user.publicKey);
   });
 
-  describe('mercurialVaultDepositorySetupSuite', function () {
-    mercurialVaultDepositorySetupSuite({
-      authority,
-      controller,
-      mintingFeeInBps: 0,
-      redeemingFeeInBps: 5,
-      redeemableAmountUnderManagementCap: 1_000,
-      payer: bank,
-    });
+  mercurialVaultDepositorySetupSuite({
+    authority,
+    controller,
+    mintingFeeInBps: 0,
+    redeemingFeeInBps: 5,
+    redeemableAmountUnderManagementCap: 1_000,
+    payer: bank,
   });
 
   describe('mercurialVaultDepositoryMintRedeemSuite', () => {

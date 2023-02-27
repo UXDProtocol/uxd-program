@@ -1,5 +1,9 @@
 import { PublicKey, Signer } from '@solana/web3.js';
-import { Controller, nativeToUi } from '@uxd-protocol/uxd-client';
+import {
+  Controller,
+  CredixLpDepository,
+  nativeToUi,
+} from '@uxd-protocol/uxd-client';
 import { getConnection, TXN_OPTS } from '../connection';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
 import { createCredixLpDepositoryDevnetUSDC } from '../utils';
@@ -11,7 +15,11 @@ export const credixLpDepositoryEditSuite = async function ({
   authority: Signer;
   controller: Controller;
 }) {
-  let depository = await createCredixLpDepositoryDevnetUSDC();
+  let depository: CredixLpDepository;
+
+  before(async () => {
+    depository = await createCredixLpDepositoryDevnetUSDC();
+  });
 
   describe('Edit mint/redeem', async () => {
     let beforeDepository = await depository.getOnchainAccount(
