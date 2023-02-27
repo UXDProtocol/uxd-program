@@ -97,8 +97,8 @@ export async function transferTokens(
   const receiver = await getOrCreateAssociatedTokenAccount(
     getConnection(),
     from,
-    to,
-    mint
+    mint,
+    to
   );
   const transferTokensIx = createTransferInstruction(
     sender.address,
