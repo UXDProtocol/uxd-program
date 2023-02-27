@@ -1,7 +1,6 @@
 import { Keypair, Signer } from '@solana/web3.js';
 import {
   Controller,
-  MercurialVaultDepository,
   MercurialVaultDepositoryAccount,
   nativeToUi,
 } from '@uxd-protocol/uxd-client';
@@ -16,13 +15,12 @@ export const editMercurialVaultDepositorySuite = async function ({
   authority: Signer;
   controller: Controller;
 }) {
-  let depository: MercurialVaultDepository;
+  let depository = await createMercurialVaultDepositoryDevnet();
+
   let beforeDepository: MercurialVaultDepositoryAccount;
 
   describe('Edit mint/redeem', () => {
     before(async () => {
-      depository = await createMercurialVaultDepositoryDevnet();
-
       // Snapshot the initial depository values
       beforeDepository = await depository.getOnchainAccount(
         getConnection(),

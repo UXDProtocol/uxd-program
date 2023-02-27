@@ -1,9 +1,9 @@
 import { Signer } from '@solana/web3.js';
-import { Controller, MercurialVaultDepository } from '@uxd-protocol/uxd-client';
+import { Controller } from '@uxd-protocol/uxd-client';
 import { registerMercurialVaultDepositoryTest } from '../cases/registerMercurialVaultDepositoryTest';
 import { createMercurialVaultDepositoryDevnet } from '../utils';
 
-export const mercurialVaultDepositorySetupSuite = function ({
+export const mercurialVaultDepositorySetupSuite = async function ({
   authority,
   payer,
   controller,
@@ -18,11 +18,7 @@ export const mercurialVaultDepositorySetupSuite = function ({
   redeemingFeeInBps: number;
   redeemableAmountUnderManagementCap: number;
 }) {
-  let depository: MercurialVaultDepository;
-
-  before(async () => {
-    depository = await createMercurialVaultDepositoryDevnet();
-  });
+  let depository = await createMercurialVaultDepositoryDevnet();
 
   it('Registers mercurialVaultDepository', () =>
     registerMercurialVaultDepositoryTest({

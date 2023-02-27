@@ -1,7 +1,6 @@
 import { PublicKey, Signer } from '@solana/web3.js';
 import {
   Controller,
-  CredixLpDepository,
   findATAAddrSync,
   nativeToUi,
 } from '@uxd-protocol/uxd-client';
@@ -28,9 +27,10 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
   profitsBeneficiary: Signer;
   controller: Controller;
 }) {
+  let depository = await createCredixLpDepositoryDevnetUSDC();
+
   let initialControllerGlobalRedeemableSupplyCap: BN;
   let initialRedeemableDepositorySupplyCap: BN;
-  let depository: CredixLpDepository;
 
   before('Setup: fund user', async function () {
     depository = await createCredixLpDepositoryDevnetUSDC();

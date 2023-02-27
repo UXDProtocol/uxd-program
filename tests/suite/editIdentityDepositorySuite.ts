@@ -1,7 +1,6 @@
 import { Signer } from '@solana/web3.js';
 import {
   Controller,
-  IdentityDepository,
   IdentityDepositoryAccount,
   nativeToUi,
 } from '@uxd-protocol/uxd-client';
@@ -16,15 +15,13 @@ export const editIdentityDepositorySuite = async function ({
   authority: Signer;
   controller: Controller;
 }) {
-  let depository: IdentityDepository;
+  let depository = createIdentityDepositoryDevnet();
 
   let beforeDepository: IdentityDepositoryAccount;
 
   describe('Edit mint/redeem', () => {
     // Snapshot the initial depository values
     before(async () => {
-      depository = createIdentityDepositoryDevnet();
-
       beforeDepository = await depository.getOnchainAccount(
         getConnection(),
         TXN_OPTS
