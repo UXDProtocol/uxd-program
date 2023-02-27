@@ -42,7 +42,7 @@ export const collectProfitsOfMercurialVaultDepositoryTest = async function ({
     );
 
     const uiEstimatedProfitsValue = nativeToUi(
-      estimatedProfitsValue.toNumber(),
+      estimatedProfitsValue,
       depository.collateralMint.decimals
     );
 

@@ -27,7 +27,7 @@ export async function initializeController({
     payer.publicKey
   );
 
-  const signers = [];
+  const signers: Signer[] = [];
   const tx = new Transaction();
 
   tx.instructions.push(initControllerIx);
@@ -61,7 +61,7 @@ export async function mintWithMercurialVaultDepository({
       TXN_OPTS,
       payer.publicKey
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   const [authorityRedeemableAta] = findATAAddrSync(
@@ -108,7 +108,7 @@ export async function redeemFromMercurialVaultDepository({
       TXN_OPTS,
       payer.publicKey
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   const [authorityRedeemableAta] = findATAAddrSync(
@@ -161,7 +161,7 @@ export async function registerMercurialVaultDepository({
       TXN_OPTS,
       payer.publicKey
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   tx.instructions.push(registerMercurialVaultDepositoryIx);
@@ -190,7 +190,7 @@ export async function editController({
     uiFields,
     TXN_OPTS
   );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   tx.instructions.push(editControllerIx);
@@ -224,7 +224,7 @@ export async function editMercurialVaultDepository({
       uiFields,
       TXN_OPTS
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   tx.instructions.push(editMercurialVaultDepositoryIx);
@@ -255,7 +255,7 @@ export async function editIdentityDepository({
       uiFields,
       TXN_OPTS
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   tx.instructions.push(editIdentityDepositoryIx);
@@ -283,7 +283,7 @@ export async function initializeIdentityDepository({
       TXN_OPTS,
       payer.publicKey
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   tx.instructions.push(initializeIdentityDepositoryIx);
@@ -317,7 +317,7 @@ export async function mintWithIdentityDepository({
       TXN_OPTS,
       payer.publicKey
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   const [authorityRedeemableAta] = findATAAddrSync(
@@ -364,7 +364,7 @@ export async function redeemFromIdentityDepository({
       TXN_OPTS,
       payer.publicKey
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   const [authorityRedeemableAta] = findATAAddrSync(
@@ -409,7 +409,7 @@ export async function registerCredixLpDepository(
       TXN_OPTS,
       payer.publicKey
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   tx.instructions.push(registerCredixLpDepositoryIx);
@@ -437,7 +437,7 @@ export async function mintWithCredixLpDepository(
       TXN_OPTS,
       payer.publicKey
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   const [userRedeemableAta] = findATAAddrSync(
@@ -478,7 +478,7 @@ export async function redeemFromCredixLpDepository(
       TXN_OPTS,
       payer.publicKey
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   const [userCollateralAta] = findATAAddrSync(
@@ -517,7 +517,7 @@ export async function collectProfitsOfCredixLpDepository(
       profitsBeneficiaryCollateral,
       TXN_OPTS
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
   tx.add(collectProfitsOfCredixLpDepositoryIx);
   signers.push(payer);
@@ -545,7 +545,7 @@ export async function editCredixLpDepository(
       uiFields,
       TXN_OPTS
     );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   tx.instructions.push(editCredixLpDepositoryIx);
@@ -565,7 +565,7 @@ export async function freezeProgram(
     authority.publicKey,
     TXN_OPTS
   );
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   tx.instructions.push(freezeProgramIx);
@@ -594,7 +594,7 @@ export async function collectProfitsOfMercurialVaultDepository({
       payer.publicKey
     );
 
-  let signers = [];
+  let signers: Signer[] = [];
   let tx = new Transaction();
 
   tx.add(collectInterestsAndFeesFromMercurialVaultDepositoryIx);

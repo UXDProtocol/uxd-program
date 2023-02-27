@@ -9,7 +9,12 @@ import {
   USDC_DECIMALS,
   USDC_DEVNET,
 } from '@uxd-protocol/uxd-client';
-import { PublicKey, Signer } from '@solana/web3.js';
+import {
+  Connection,
+  ParsedAccountData,
+  PublicKey,
+  Signer,
+} from '@solana/web3.js';
 import * as anchor from '@project-serum/anchor';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -25,6 +30,7 @@ import {
   MERCURIAL_USDC_DEVNET_DECIMALS,
   uxdProgramId,
 } from './constants';
+import { BN } from 'bn.js';
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
@@ -125,7 +131,7 @@ export async function transferAllTokens(
 
 export async function getSolBalance(wallet: PublicKey): Promise<number> {
   const lamports = await getConnection().getBalance(wallet, TXN_COMMIT);
-  return nativeToUi(lamports, SOL_DECIMALS);
+  return nativeToUi(new BN(lamports), SOL_DECIMALS);
 }
 
 export async function getBalance(tokenAccount: PublicKey): Promise<number> {
@@ -134,23 +140,24 @@ export async function getBalance(tokenAccount: PublicKey): Promise<number> {
       tokenAccount,
       TXN_COMMIT
     );
-    return o['value']['uiAmount'];
+    return o.value.uiAmount ?? 0;
   } catch {
     return 0;
   }
 }
 
 export const prepareWrappedSolTokenAccount = async (
-  connection,
-  payerKey,
-  userKey,
-  amountNative
+  connection: Connection,
+  payerKey: PublicKey,
+  userKey: PublicKey,
+  amountNative: number
 ) => {
   const wsolTokenKey = findAssociatedTokenAddress(userKey, NATIVE_MINT);
   const tokenAccount = await connection.getParsedAccountInfo(wsolTokenKey);
   if (tokenAccount.value) {
     const balanceNative = Number(
-      tokenAccount.value.data.parsed.info.tokenAmount.amount
+      (tokenAccount.value.data as ParsedAccountData).parsed.info.tokenAmount
+        .amount
     );
     if (balanceNative < amountNative) {
       return [
@@ -173,8 +180,10 @@ export const prepareWrappedSolTokenAccount = async (
 };
 
 // derives the canonical token account address for a given wallet and mint
-function findAssociatedTokenAddress(walletKey, mintKey) {
-  if (!walletKey || !mintKey) return;
+function findAssociatedTokenAddress(
+  walletKey: PublicKey,
+  mintKey: PublicKey
+): PublicKey {
   return findAddr(
     [walletKey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintKey.toBuffer()],
     ASSOCIATED_TOKEN_PROGRAM_ID
@@ -182,7 +191,7 @@ function findAssociatedTokenAddress(walletKey, mintKey) {
 }
 
 // simple shorthand
-function findAddr(seeds, programId) {
+function findAddr(seeds: Buffer[], programId: PublicKey) {
   return anchor.utils.publicKey.findProgramAddressSync(seeds, programId)[0];
 }
 
@@ -193,7 +202,11 @@ function findAddr(seeds, programId) {
  * @param {number} amountNative
  * @returns {anchor.web3.TransactionInstruction}
  */
-const transferSolItx = (fromKey, toKey, amountNative) =>
+const transferSolItx = (
+  fromKey: PublicKey,
+  toKey: PublicKey,
+  amountNative: number
+) =>
   anchor.web3.SystemProgram.transfer({
     fromPubkey: fromKey,
     toPubkey: toKey,
@@ -201,10 +214,10 @@ const transferSolItx = (fromKey, toKey, amountNative) =>
   });
 
 const createWrappedSolTokenAccount = async (
-  connection,
-  payerKey,
-  userKey,
-  amountNative = 0
+  connection: Connection,
+  payerKey: PublicKey,
+  userKey: PublicKey,
+  amountNative: number = 0
 ) => {
   const assocTokenKey = findAssociatedTokenAddress(userKey, NATIVE_MINT);
   const balanceNeeded = await getMinimumBalanceForRentExemptAccount(connection);
@@ -223,7 +236,11 @@ const createWrappedSolTokenAccount = async (
   return [transferItx, createItx];
 };
 
-export function createAssociatedTokenAccountItx(payerKey, walletKey, mintKey) {
+export function createAssociatedTokenAccountItx(
+  payerKey: PublicKey,
+  walletKey: PublicKey,
+  mintKey: PublicKey
+) {
   const assocKey = findAssociatedTokenAddress(walletKey, mintKey);
 
   return new anchor.web3.TransactionInstruction({
