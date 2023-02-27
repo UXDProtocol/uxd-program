@@ -31,6 +31,11 @@ import {
   uxdProgramId,
 } from './constants';
 import { BN } from 'bn.js';
+import process from 'process';
+
+process.on('uncaughtException', (error, source) => {
+  console.error(error, source);
+});
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
