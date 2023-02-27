@@ -14,7 +14,9 @@ import * as anchor from '@project-serum/anchor';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   NATIVE_MINT,
-  Token,
+  getMinimumBalanceForRentExemptAccount,
+  getOrCreateAssociatedTokenAccount,
+  createTransferInstruction,
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 import { getConnection, TXN_COMMIT, TXN_OPTS } from './connection';
@@ -80,15 +82,22 @@ export async function transferTokens(
   from: Signer,
   to: PublicKey
 ): Promise<string> {
-  const token = new Token(getConnection(), mint, TOKEN_PROGRAM_ID, from);
-  const sender = await token.getOrCreateAssociatedAccountInfo(from.publicKey);
-  const receiver = await token.getOrCreateAssociatedAccountInfo(to);
-  const transferTokensIx = Token.createTransferInstruction(
-    TOKEN_PROGRAM_ID,
+  const sender = await getOrCreateAssociatedTokenAccount(
+    getConnection(),
+    from,
+    mint,
+    from.publicKey
+  );
+  const receiver = await getOrCreateAssociatedTokenAccount(
+    getConnection(),
+    from,
+    to,
+    mint
+  );
+  const transferTokensIx = createTransferInstruction(
     sender.address,
     receiver.address,
     from.publicKey,
-    [],
     uiToNative(amountUi, decimals).toNumber()
   );
   const transaction = new anchor.web3.Transaction().add(transferTokensIx);
@@ -147,7 +156,7 @@ export const prepareWrappedSolTokenAccount = async (
       return [
         transferSolItx(userKey, wsolTokenKey, amountNative - balanceNative),
         // @ts-expect-error not sure why but it's not in their interface
-        Token.createSyncNativeInstruction(TOKEN_PROGRAM_ID, wsolTokenKey),
+        createSyncNativeInstruction(TOKEN_PROGRAM_ID, wsolTokenKey),
       ];
     } else {
       // no-op we have everything we need
@@ -198,9 +207,7 @@ const createWrappedSolTokenAccount = async (
   amountNative = 0
 ) => {
   const assocTokenKey = findAssociatedTokenAddress(userKey, NATIVE_MINT);
-  const balanceNeeded = await Token.getMinBalanceRentForExemptAccount(
-    connection
-  );
+  const balanceNeeded = await getMinimumBalanceForRentExemptAccount(connection);
 
   const transferItx = transferSolItx(
     userKey,

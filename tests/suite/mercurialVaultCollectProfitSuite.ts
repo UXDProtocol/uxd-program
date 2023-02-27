@@ -2,15 +2,13 @@ import { PublicKey, Signer } from '@solana/web3.js';
 import { Controller, MercurialVaultDepository } from '@uxd-protocol/uxd-client';
 import { getConnection } from '../connection';
 import { collectProfitsOfMercurialVaultDepositoryTest } from '../cases/collectProfitsOfMercurialVaultDepositoryTest';
-import {
-  MERCURIAL_USDC_DEVNET,
-  MERCURIAL_USDC_DEVNET_DECIMALS,
-  uxdProgramId,
-} from '../constants';
 import { transferLpTokenToDepositoryLpVault } from '../mercurial_vault_utils';
 import { editMercurialVaultDepositoryTest } from '../cases/editMercurialVaultDepositoryTest';
 import { expect } from 'chai';
-import { TOKEN_PROGRAM_ID, Token } from '@solana/spl-token';
+import {
+  getOrCreateAssociatedTokenAccount,
+  TOKEN_PROGRAM_ID,
+} from '@solana/spl-token';
 import { createMercurialVaultDepositoryDevnet } from '../utils';
 
 export const mercurialVaultDepositoryCollectProfitsSuite = async function ({
@@ -79,14 +77,11 @@ export const mercurialVaultDepositoryCollectProfitsSuite = async function ({
     });
 
     it(`Set profit beneficiary before collecting profits`, async function () {
-      const token = new Token(
-        getConnection(),
-        depository.collateralMint.mint,
-        TOKEN_PROGRAM_ID,
-        payer
-      );
       const profitsBeneficiaryAccountInfo =
-        await token.getOrCreateAssociatedAccountInfo(
+        await getOrCreateAssociatedTokenAccount(
+          getConnection(),
+          payer,
+          depository.collateralMint.mint,
           profitsBeneficiary.publicKey
         );
       await editMercurialVaultDepositoryTest({
