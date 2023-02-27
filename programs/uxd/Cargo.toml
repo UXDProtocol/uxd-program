@@ -34,8 +34,8 @@ mercurial-vault = { git = "https://github.com/mercurial-finance/vault-sdk", feat
   "cpi",
 ], rev = "3849d617362968d874b2d32db6da4768d1a4c90c" }
 
-# credix_client = { version="0.5.0" } # mainnet
-credix_client = { path = "../credix_client-0.5.0-upgraded", features = [
+# credix_client = { version="0.6.0" } # mainnet
+credix_client = { version = "0.6.0", features = [
   "pre-mainnet",
 ] } # devnet and CI
 
