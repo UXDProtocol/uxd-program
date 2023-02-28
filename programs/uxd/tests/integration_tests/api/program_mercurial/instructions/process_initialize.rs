@@ -11,10 +11,8 @@ pub async fn process_initialize_program_state(
     program_test_context: &mut ProgramTestContext,
     program_keys: &program_mercurial::accounts::ProgramKeys,
 ) -> Result<(), String> {
-    let accounts = mercurial_vault::accounts::Initialize {
-    };
-    let payload = mercurial_vault::instruction::Initialize {
-    };
+    let accounts = mercurial_vault::accounts::Initialize {};
+    let payload = mercurial_vault::instruction::Initialize {};
     let instruction = Instruction {
         program_id: mercurial_vault::id(),
         accounts: accounts.to_account_metas(None),
