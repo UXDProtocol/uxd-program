@@ -2,8 +2,6 @@ import { Keypair, Signer } from '@solana/web3.js';
 import {
   Controller,
   UXD_DECIMALS,
-  MercurialVaultDepository,
-  IdentityDepository,
   USDC_DEVNET,
   USDC_DECIMALS,
 } from '@uxd-protocol/uxd-client';
@@ -15,13 +13,11 @@ import {
   uxdProgramId,
 } from './constants';
 import {
-  createCredixLpDepositoryDevnetUSDC,
   transferAllSol,
   transferAllTokens,
   transferSol,
   transferTokens,
 } from './utils';
-import { getConnection } from './connection';
 import { freezeProgramSuite } from './suite/freezeProgramSuite';
 import { editControllerTest } from './cases/editControllerTest';
 
@@ -43,26 +39,6 @@ import { editControllerTest } from './cases/editControllerTest';
   });
 
   let user: Signer = new Keypair();
-
-  let mercurialVaultDepository = await MercurialVaultDepository.initialize({
-    connection: getConnection(),
-    collateralMint: {
-      mint: MERCURIAL_USDC_DEVNET,
-      name: 'USDC',
-      symbol: 'USDC',
-      decimals: MERCURIAL_USDC_DEVNET_DECIMALS,
-    },
-    uxdProgramId,
-  });
-
-  let credixLpDepository = await createCredixLpDepositoryDevnetUSDC();
-
-  const identityDepository = new IdentityDepository(
-    USDC_DEVNET,
-    'USDC',
-    USDC_DECIMALS,
-    uxdProgramId
-  );
 
   describe('Integration tests', function () {
     this.beforeAll(

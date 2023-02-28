@@ -47,7 +47,7 @@ export const editControllerTest = async function ({
     );
 
     const redeemableCirculatingSupply = nativeToUi(
-      controllerOnChainAccount_post.redeemableCirculatingSupply.toNumber(),
+      controllerOnChainAccount_post.redeemableCirculatingSupply,
       controller.redeemableMintDecimals
     );
 
@@ -56,7 +56,7 @@ export const editControllerTest = async function ({
 
     if (typeof uiFields.redeemableGlobalSupplyCap !== 'undefined') {
       const redeemableGlobalSupplyCap_postUi = nativeToUi(
-        redeemableGlobalSupplyCap_post.toNumber(),
+        redeemableGlobalSupplyCap_post,
         controller.redeemableMintDecimals
       );
       expect(

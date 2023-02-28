@@ -25,15 +25,11 @@ export const collectProfitOfCredixLpDepositoryTest = async function ({
 
   try {
     // GIVEN
-    const [
-      profitsBeneficiaryCollateralBalance_pre,
-      onchainController_pre,
-      onChainDepository_pre,
-    ] = await Promise.all([
-      getBalance(profitsBeneficiaryCollateral),
-      controller.getOnchainAccount(getConnection(), TXN_OPTS),
-      depository.getOnchainAccount(getConnection(), TXN_OPTS),
-    ]);
+    const [profitsBeneficiaryCollateralBalance_pre, onChainDepository_pre] =
+      await Promise.all([
+        getBalance(profitsBeneficiaryCollateral),
+        depository.getOnchainAccount(getConnection(), TXN_OPTS),
+      ]);
 
     // WHEN
     // Simulates user experience from the front end
@@ -48,15 +44,11 @@ export const collectProfitOfCredixLpDepositoryTest = async function ({
     );
 
     // THEN
-    const [
-      profitsBeneficiaryCollateralBalance_post,
-      onchainController_post,
-      onChainDepository_post,
-    ] = await Promise.all([
-      getBalance(profitsBeneficiaryCollateral),
-      controller.getOnchainAccount(getConnection(), TXN_OPTS),
-      depository.getOnchainAccount(getConnection(), TXN_OPTS),
-    ]);
+    const [profitsBeneficiaryCollateralBalance_post, onChainDepository_post] =
+      await Promise.all([
+        getBalance(profitsBeneficiaryCollateral),
+        depository.getOnchainAccount(getConnection(), TXN_OPTS),
+      ]);
 
     const collateralDelta = Number(
       (

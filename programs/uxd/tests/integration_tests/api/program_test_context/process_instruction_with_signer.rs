@@ -28,6 +28,6 @@ pub async fn process_instruction_with_signer(
         .process_transaction(transaction)
         .await
         .map_err(|e| e.to_string());
-    println!(" >>>> RESULT: {:?}", result);
+    println!(" >> RESULT: {:?}", result);
     result
 }
