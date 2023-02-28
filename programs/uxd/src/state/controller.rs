@@ -18,11 +18,11 @@ pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u8>() // redeemable_mint_decimals
     + 255 // _unused, Shh. Free real estate
     + size_of::<bool>() // is_frozen
-    + size_of::<u8>() // _unused2
+    + 1 // _unused2
     + size_of::<u128>() // redeemable_global_supply_cap
     + 8 // _unused3
     + size_of::<u128>() // redeemable_circulating_supply
-    +  8 // _unused4
+    + 8 // _unused4
     + size_of::<Pubkey>() * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES // registered_mercurial_vault_depositories
     + size_of::<u8>() // registered_mercurial_vault_depositories_count
     + size_of::<Pubkey>() * MAX_REGISTERED_CREDIX_LP_DEPOSITORIES // registered_credix_lp_depositories
