@@ -44,4 +44,6 @@ pub struct IdentityDepository {
     pub mango_collateral_reinjected_wsol: bool,
     pub mango_collateral_reinjected_btc: bool,
     pub mango_collateral_reinjected_eth: bool,
+    // For future usage
+    pub _reserved: [u8; IDENTITY_DEPOSITORY_RESERVED_SPACE],
 }

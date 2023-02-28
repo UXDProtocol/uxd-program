@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 
 use crate::error::UxdError;
 
+pub const CREDIX_LP_DEPOSITORY_RESERVED_SPACE: usize = 768;
 pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u8>() // bump
  + size_of::<u8>() // version
@@ -33,7 +34,7 @@ pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u128>() // profits_total_collected
  + size_of::<Pubkey>() // profits_beneficiary_collateral
 
- + 768; // reserved space
+ + CREDIX_LP_DEPOSITORY_RESERVED_SPACE; // reserved space
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -75,6 +76,9 @@ pub struct CredixLpDepository {
     // Collection of the depository's profits
     pub profits_total_collected: u128,
     pub profits_beneficiary_collateral: Pubkey,
+
+    // For future usage
+    pub _reserved: [u8; CREDIX_LP_DEPOSITORY_RESERVED_SPACE],
 }
 
 impl CredixLpDepository {
