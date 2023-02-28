@@ -1,4 +1,8 @@
-import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import {
+  createTransferInstruction,
+  getOrCreateAssociatedTokenAccount,
+  TOKEN_PROGRAM_ID,
+} from '@solana/spl-token';
 import {
   Connection,
   sendAndConfirmTransaction,
@@ -84,20 +88,17 @@ export async function transferLpTokenToDepositoryLpVault({
   depository: MercurialVaultDepository;
   payer: Signer;
 }) {
-  const token = new Token(
+  const sender = await getOrCreateAssociatedTokenAccount(
     getConnection(),
+    payer,
     depository.mercurialVaultLpMint.mint,
-    TOKEN_PROGRAM_ID,
-    payer
+    payer.publicKey
   );
-  const sender = await token.getOrCreateAssociatedAccountInfo(payer.publicKey);
 
-  const transferTokensIx = Token.createTransferInstruction(
-    TOKEN_PROGRAM_ID,
+  const transferTokensIx = createTransferInstruction(
     sender.address,
     depository.depositoryLpTokenVault,
     payer.publicKey,
-    [],
     uiToNative(amount, depository.mercurialVaultLpMint.decimals).toNumber()
   );
 

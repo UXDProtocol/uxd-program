@@ -7,11 +7,6 @@ import {
 } from '@uxd-protocol/uxd-client';
 import { getConnection, TXN_OPTS } from '../connection';
 import { editMercurialVaultDepositoryTest } from '../cases/editMercurialVaultDepositoryTest';
-import {
-  MERCURIAL_USDC_DEVNET,
-  MERCURIAL_USDC_DEVNET_DECIMALS,
-  uxdProgramId,
-} from '../constants';
 import { createMercurialVaultDepositoryDevnet } from '../utils';
 
 export const editMercurialVaultDepositorySuite = async function ({

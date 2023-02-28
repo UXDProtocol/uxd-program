@@ -48,7 +48,7 @@ export const mintWithMercurialVaultDepositoryTest = async function ({
     // WHEN
     // Simulates user experience from the front end
     const txId = await mintWithMercurialVaultDepository({
-      authority: user,
+      user,
       payer: payer ?? user,
       controller,
       depository,

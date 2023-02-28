@@ -1,12 +1,6 @@
 import { Signer } from '@solana/web3.js';
-import {
-  Controller,
-  IdentityDepository,
-  USDC_DECIMALS,
-  USDC_DEVNET,
-} from '@uxd-protocol/uxd-client';
+import { Controller, IdentityDepository } from '@uxd-protocol/uxd-client';
 import { initializeIdentityDepositoryTest } from '../cases/InitializeIdentityDepositoryTest';
-import { uxdProgramId } from '../constants';
 import { createIdentityDepositoryDevnet } from '../utils';
 
 export const identityDepositorySetupSuite = function ({

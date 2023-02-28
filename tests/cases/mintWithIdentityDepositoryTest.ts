@@ -48,7 +48,7 @@ export const mintWithIdentityDepositoryTest = async function ({
     // WHEN
     // Simulates user experience from the front end
     const txId = await mintWithIdentityDepository({
-      authority: user,
+      user,
       payer: payer ?? user,
       controller,
       depository,

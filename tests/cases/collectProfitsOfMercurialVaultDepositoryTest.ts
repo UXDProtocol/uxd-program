@@ -1,6 +1,5 @@
-import { PublicKey, Signer } from '@solana/web3.js';
+import { Signer } from '@solana/web3.js';
 import {
-  findATAAddrSync,
   Controller,
   MercurialVaultDepository,
   nativeToUi,
@@ -43,7 +42,7 @@ export const collectProfitsOfMercurialVaultDepositoryTest = async function ({
     );
 
     const uiEstimatedProfitsValue = nativeToUi(
-      estimatedProfitsValue.toNumber(),
+      estimatedProfitsValue,
       depository.collateralMint.decimals
     );
 
