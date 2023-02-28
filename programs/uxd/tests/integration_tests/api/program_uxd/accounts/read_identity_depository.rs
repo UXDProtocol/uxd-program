@@ -8,9 +8,10 @@ pub async fn read_identity_depository(
     program_test_context: &mut ProgramTestContext,
     identity_depository: &Pubkey,
 ) -> Result<uxd::state::IdentityDepository, String> {
-    let data =
+    let raw_account_data =
         program_test_context::read_account(program_test_context, identity_depository, &uxd::id())
             .await?;
-    let mut slice: &[u8] = &data;
-    Ok(uxd::state::IdentityDepository::try_deserialize(&mut slice).map_err(|e| e.to_string())?)
+    let mut raw_account_slice: &[u8] = &raw_account_data;
+    uxd::state::IdentityDepository::try_deserialize(&mut raw_account_slice)
+        .map_err(|e| e.to_string())
 }

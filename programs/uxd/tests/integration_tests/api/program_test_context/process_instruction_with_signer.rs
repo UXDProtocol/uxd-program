@@ -15,14 +15,10 @@ pub async fn process_instruction_with_signer(
         " - instruction.program_id: {:?}",
         instruction.program_id.to_string()
     );
-    println!(" - instruction.accounts: {:?}", instruction.accounts);
     println!(" - instruction.data: {:?}", instruction.data);
     let mut transaction: Transaction =
         Transaction::new_with_payer(&[instruction], Some(&payer.pubkey()));
     transaction.partial_sign(&[payer, signer], program_test_context.last_blockhash);
-    println!(" - transaction.signatures: {:?}", transaction.signatures);
-    println!(" - transaction.is_signed(): {:?}", transaction.is_signed());
-    println!(" - transaction.verify(): {:?}", transaction.verify());
     let result = program_test_context
         .banks_client
         .process_transaction(transaction)

@@ -8,8 +8,8 @@ pub async fn read_token_account(
     program_test_context: &mut ProgramTestContext,
     token_account: &Pubkey,
 ) -> Result<spl_token::state::Account, String> {
-    let data =
+    let raw_account_data =
         program_test_context::read_account(program_test_context, token_account, &spl_token::id())
             .await?;
-    Ok(spl_token::state::Account::unpack(&data).map_err(|e| e.to_string())?)
+    spl_token::state::Account::unpack(&raw_account_data).map_err(|e| e.to_string())
 }

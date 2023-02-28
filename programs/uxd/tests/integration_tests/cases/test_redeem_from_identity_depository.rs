@@ -32,6 +32,8 @@ pub async fn test_redeem_from_identity_depository(
         u64::try_from(controller_before.redeemable_circulating_supply).unwrap();
     let redeemable_amount_under_management_before =
         u64::try_from(identity_depository_before.redeemable_amount_under_management).unwrap();
+    let collateral_amount_deposited_before =
+        u64::try_from(identity_depository_before.collateral_amount_deposited).unwrap();
 
     let user_collateral_amount_before =
         program_spl::accounts::read_token_account(program_test_context, user_collateral)
@@ -72,6 +74,8 @@ pub async fn test_redeem_from_identity_depository(
         u64::try_from(controller_after.redeemable_circulating_supply).unwrap();
     let redeemable_amount_under_management_after =
         u64::try_from(identity_depository_after.redeemable_amount_under_management).unwrap();
+    let collateral_amount_deposited_after =
+        u64::try_from(identity_depository_after.collateral_amount_deposited).unwrap();
 
     let user_collateral_amount_after =
         program_spl::accounts::read_token_account(program_test_context, user_collateral)
@@ -94,6 +98,10 @@ pub async fn test_redeem_from_identity_depository(
     assert_eq!(
         redeemable_amount_under_management_before - redeemable_amount,
         redeemable_amount_under_management_after,
+    );
+    assert_eq!(
+        collateral_amount_deposited_before - redeemable_amount,
+        collateral_amount_deposited_after,
     );
 
     assert_eq!(
