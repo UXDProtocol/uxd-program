@@ -1,4 +1,3 @@
-use solana_program::pubkey::Pubkey;
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
@@ -28,25 +27,30 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
         &mut program_test_context,
         &program_keys,
         &payer,
-        6,
-        1_000_000,
     )
     .await?;
 
-    // Enable minting by editing identity depository configuration
-    program_uxd::instructions::process_edit_identity_depository(
+    // Enable minting by editing controller and identity depository configuration
+    crate::integration_tests::cases::test_edit_identity_depository(
         &mut program_test_context,
         &program_keys,
         &payer,
-        Some(1_000_000),
+        Some(500_000),
         Some(false),
+    )
+    .await?;
+    crate::integration_tests::cases::test_edit_controller(
+        &mut program_test_context,
+        &program_keys,
+        &payer,
+        Some(500_000),
     )
     .await?;
 
     // Main actor
     let user = Keypair::new();
 
-    // Give some collateral to our user and create its account
+    // Create a collateral account for our user
     let user_collateral = program_spl::instructions::process_associated_token_account_init(
         &mut program_test_context,
         &payer,
@@ -54,6 +58,16 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
         &user.pubkey(),
     )
     .await?;
+    // Create a redeemable account for our user
+    let user_redeemable = program_spl::instructions::process_associated_token_account_init(
+        &mut program_test_context,
+        &payer,
+        &program_keys.redeemable_mint,
+        &user.pubkey(),
+    )
+    .await?;
+
+    // Airdrop collateral to our user
     program_spl::instructions::process_token_mint_to(
         &mut program_test_context,
         &payer,
@@ -64,32 +78,8 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     )
     .await?;
 
-    // Create a redeemable account for our user
-    let user_redeemable = program_spl::instructions::process_associated_token_account_init(
-        &mut program_test_context,
-        &payer,
-        &program_keys.redeemable_mint,
-        &user.pubkey(),
-    )
-    .await?;
-
-    // Check user collateral original amount
-    assert_eq!(
-        1_000_000,
-        program_spl::accounts::read_token_account(&mut program_test_context, &user_collateral)
-            .await?
-            .amount
-    );
-    // Check user redeemable original amount
-    assert_eq!(
-        0,
-        program_spl::accounts::read_token_account(&mut program_test_context, &user_redeemable)
-            .await?
-            .amount
-    );
-
     // Mint using identity depository
-    program_uxd::instructions::process_mint_with_identity_depository(
+    crate::integration_tests::cases::test_mint_with_identity_depository(
         &mut program_test_context,
         &program_keys,
         &payer,
@@ -100,23 +90,8 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     )
     .await?;
 
-    // Check user collateral decreased
-    assert_eq!(
-        1_000_000 - 500_000,
-        program_spl::accounts::read_token_account(&mut program_test_context, &user_collateral)
-            .await?
-            .amount
-    );
-    // Check user redeemable increased
-    assert_eq!(
-        0 + 500_000,
-        program_spl::accounts::read_token_account(&mut program_test_context, &user_redeemable)
-            .await?
-            .amount
-    );
-
     // Redeem using identity depository
-    program_uxd::instructions::process_redeem_from_identity_depository(
+    crate::integration_tests::cases::test_redeem_from_identity_depository(
         &mut program_test_context,
         &program_keys,
         &payer,
@@ -126,21 +101,6 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
         250_000,
     )
     .await?;
-
-    // Check user collateral increased
-    assert_eq!(
-        1_000_000 - 500_000 + 250_000,
-        program_spl::accounts::read_token_account(&mut program_test_context, &user_collateral)
-            .await?
-            .amount
-    );
-    // Check user redeemable decreased
-    assert_eq!(
-        0 + 500_000 - 250_000,
-        program_spl::accounts::read_token_account(&mut program_test_context, &user_redeemable)
-            .await?
-            .amount
-    );
 
     Ok(())
 }
