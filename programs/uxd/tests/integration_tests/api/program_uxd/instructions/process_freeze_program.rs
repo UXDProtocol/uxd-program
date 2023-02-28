@@ -1,25 +1,22 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
-use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_test_context;
+use crate::integration_tests::api::program_uxd;
 
 pub async fn process_freeze_program(
     program_test_context: &mut ProgramTestContext,
+    program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
-    authority: &Keypair,
     freeze: bool,
 ) -> Result<(), String> {
-    let controller =
-        Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE.as_ref()], &uxd::id()).0;
-
     let accounts = uxd::accounts::FreezeProgram {
-        authority: authority.pubkey(),
-        controller,
+        authority: program_keys.authority.pubkey(),
+        controller: program_keys.controller,
     };
     let payload = uxd::instruction::FreezeProgram { freeze };
     let instruction = Instruction {
@@ -31,7 +28,7 @@ pub async fn process_freeze_program(
         program_test_context,
         instruction,
         payer,
-        authority,
+        &program_keys.authority,
     )
     .await
 }

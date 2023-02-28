@@ -42,11 +42,11 @@ pub struct EditCredixLpDepository<'info> {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct EditCredixLpDepositoryFields {
-    redeemable_amount_under_management_cap: Option<u128>,
-    minting_fee_in_bps: Option<u8>,
-    redeeming_fee_in_bps: Option<u8>,
-    minting_disabled: Option<bool>,
-    profits_beneficiary_collateral: Option<Pubkey>,
+    pub redeemable_amount_under_management_cap: Option<u128>,
+    pub minting_fee_in_bps: Option<u8>,
+    pub redeeming_fee_in_bps: Option<u8>,
+    pub minting_disabled: Option<bool>,
+    pub profits_beneficiary_collateral: Option<Pubkey>,
 }
 
 pub(crate) fn handler(

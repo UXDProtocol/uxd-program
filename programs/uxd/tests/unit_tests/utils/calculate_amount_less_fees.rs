@@ -49,7 +49,7 @@ mod test_calculate_amount_less_fees {
     #[test]
     fn test_no_increase() -> Result<()> {
         proptest!(|(amount: u64, bps: u8)| {
-            prop_assert!(calculate_amount_less_fees(amount, bps)?<= amount);
+            prop_assert!(calculate_amount_less_fees(amount, bps)? <= amount);
         });
         Ok(())
     }

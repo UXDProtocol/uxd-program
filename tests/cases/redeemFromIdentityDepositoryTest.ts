@@ -48,7 +48,7 @@ export const redeemFromIdentityDepositoryTest = async function ({
     // WHEN
     // Simulates user experience from the front end
     const txId = await redeemFromIdentityDepository({
-      authority: user,
+      user,
       payer: payer ?? user,
       controller,
       depository,

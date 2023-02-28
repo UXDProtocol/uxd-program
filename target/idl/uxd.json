@@ -1,5 +1,5 @@
 {
-  "version": "7.0.1",
+  "version": "7.0.0",
   "name": "uxd",
   "instructions": [
     {
@@ -26,7 +26,9 @@
           "name": "authority",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1 Authored call accessible only to the signer matching Controller.authority"]
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "payer",
@@ -38,13 +40,17 @@
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3 The top level UXDProgram on chain account managing the redeemable mint"]
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#4 The redeemable mint managed by the `controller` instance"]
+          "docs": [
+            "#4 The redeemable mint managed by the `controller` instance"
+          ]
         },
         {
           "name": "systemProgram",
@@ -79,13 +85,17 @@
           "name": "authority",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1 Authored call accessible only to the signer matching Controller.authority"]
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#2 The top level UXDProgram on chain account managing the redeemable mint"]
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         }
       ],
       "args": [
@@ -104,13 +114,17 @@
           "name": "authority",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1 Authored call accessible only to the signer matching Controller.authority"]
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#2 The top level UXDProgram on chain account managing the redeemable mint"]
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
@@ -138,19 +152,25 @@
           "name": "authority",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1 Authored call accessible only to the signer matching Controller.authority"]
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#2 The top level UXDProgram on chain account managing the redeemable mint"]
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3 UXDProgram on chain account bound to a Controller instance."]
+          "docs": [
+            "#3 UXDProgram on chain account bound to a Controller instance."
+          ]
         }
       ],
       "args": [
@@ -169,13 +189,17 @@
           "name": "authority",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1 Authored call accessible only to the signer matching Controller.authority"]
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#2 The top level UXDProgram on chain account managing the redeemable mint"]
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
@@ -586,7 +610,9 @@
           "name": "authority",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1 Authored call accessible only to the signer matching Controller.authority"]
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "payer",
@@ -598,13 +624,17 @@
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3 The top level UXDProgram on chain account managing the redeemable mint"]
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#4 UXDProgram on chain account bound to a Controller instance"]
+          "docs": [
+            "#4 UXDProgram on chain account bound to a Controller instance"
+          ]
         },
         {
           "name": "collateralVault",
@@ -658,7 +688,9 @@
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3 The top level UXDProgram on chain account managing the redeemable mint"]
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
@@ -740,7 +772,9 @@
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3 The top level UXDProgram on chain account managing the redeemable mint"]
+          "docs": [
+            "#3 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         },
         {
           "name": "depository",
@@ -1353,13 +1387,17 @@
           "name": "authority",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1 Authored call accessible only to the signer matching Controller.authority"]
+          "docs": [
+            "#1 Authored call accessible only to the signer matching Controller.authority"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#2 The top level UXDProgram on chain account managing the redeemable mint"]
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
         }
       ],
       "args": [

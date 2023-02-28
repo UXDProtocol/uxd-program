@@ -1,3 +1,5 @@
-pub mod run_basic_setup;
+pub mod process_deploy_program;
+pub mod process_dummy_actors_behaviors;
 
-pub use run_basic_setup::*;
+pub use process_deploy_program::*;
+pub use process_dummy_actors_behaviors::*;

@@ -1,30 +1,24 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
-use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_test_context;
+use crate::integration_tests::api::program_uxd;
 
 pub async fn process_initialize_controller(
     program_test_context: &mut ProgramTestContext,
+    program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
-    authority: &Keypair,
     redeemable_mint_decimals: u8,
 ) -> Result<(), String> {
-    let controller =
-        Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE.as_ref()], &uxd::id()).0;
-
-    let redeemable_mint =
-        Pubkey::find_program_address(&[uxd::REDEEMABLE_MINT_NAMESPACE.as_ref()], &uxd::id()).0;
-
     let accounts = uxd::accounts::InitializeController {
-        authority: authority.pubkey(),
+        authority: program_keys.authority.pubkey(),
         payer: payer.pubkey(),
-        controller,
-        redeemable_mint,
+        controller: program_keys.controller,
+        redeemable_mint: program_keys.redeemable_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
@@ -41,7 +35,7 @@ pub async fn process_initialize_controller(
         program_test_context,
         instruction,
         payer,
-        authority,
+        &program_keys.authority,
     )
     .await
 }

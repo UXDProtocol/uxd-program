@@ -7,36 +7,24 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_test_context;
+use crate::integration_tests::api::program_uxd;
 
 pub async fn process_redeem_from_identity_depository(
     program_test_context: &mut ProgramTestContext,
+    program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
     user: &Keypair,
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
     redeemable_amount: u64,
 ) -> Result<(), String> {
-    let controller =
-        Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE.as_ref()], &uxd::id()).0;
-
-    let redeemable_mint =
-        Pubkey::find_program_address(&[uxd::REDEEMABLE_MINT_NAMESPACE.as_ref()], &uxd::id()).0;
-
-    let identity_depository =
-        Pubkey::find_program_address(&[uxd::IDENTITY_DEPOSITORY_NAMESPACE.as_ref()], &uxd::id()).0;
-    let identity_collateral_vault = Pubkey::find_program_address(
-        &[uxd::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE.as_ref()],
-        &uxd::id(),
-    )
-    .0;
-
     let accounts = uxd::accounts::RedeemFromIdentityDepository {
         user: user.pubkey(),
         payer: payer.pubkey(),
-        controller,
-        depository: identity_depository,
-        collateral_vault: identity_collateral_vault,
-        redeemable_mint,
+        controller: program_keys.controller,
+        depository: program_keys.identity_depository_keys.depository,
+        collateral_vault: program_keys.identity_depository_keys.collateral_vault,
+        redeemable_mint: program_keys.redeemable_mint,
         user_collateral: *user_collateral,
         user_redeemable: *user_redeemable,
         system_program: anchor_lang::system_program::ID,

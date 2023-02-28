@@ -48,7 +48,7 @@ export const redeemFromMercurialVaultDepositoryTest = async function ({
     // WHEN
     // Simulates user experience from the front end
     const txId = await redeemFromMercurialVaultDepository({
-      authority: user,
+      user,
       payer: payer ?? user,
       controller,
       depository,
