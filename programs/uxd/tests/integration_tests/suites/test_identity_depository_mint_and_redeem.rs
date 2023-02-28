@@ -31,19 +31,19 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     .await?;
 
     // Enable minting by editing controller and identity depository configuration
+    crate::integration_tests::cases::test_edit_controller(
+        &mut program_test_context,
+        &program_keys,
+        &payer,
+        Some(500_000),
+    )
+    .await?;
     crate::integration_tests::cases::test_edit_identity_depository(
         &mut program_test_context,
         &program_keys,
         &payer,
         Some(500_000),
         Some(false),
-    )
-    .await?;
-    crate::integration_tests::cases::test_edit_controller(
-        &mut program_test_context,
-        &program_keys,
-        &payer,
-        Some(500_000),
     )
     .await?;
 

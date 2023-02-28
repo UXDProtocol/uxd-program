@@ -6,6 +6,7 @@ pub async fn read_account(
     address: &Pubkey,
     owner: &Pubkey,
 ) -> Result<Vec<u8>, String> {
+    println!(" [[[[ READING ACCOUNT {:?} ]]]]", address);
     let raw_account = program_test_context
         .banks_client
         .get_account(*address)
@@ -15,5 +16,7 @@ pub async fn read_account(
     if raw_account.owner != *owner {
         return Err(String::from("InvalidAccountOwner"));
     }
+    println!(" --- len: {:?}", raw_account.data.len());
+    println!(" --- data: {:?}", raw_account.data);
     Ok(raw_account.data)
 }

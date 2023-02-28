@@ -18,6 +18,7 @@ pub async fn test_mint_with_identity_depository(
     let redeemable_mint_before =
         program_spl::accounts::read_token_mint(program_test_context, &program_keys.redeemable_mint)
             .await?;
+
     let controller_before =
         program_uxd::accounts::read_controller(program_test_context, &program_keys.controller)
             .await?;

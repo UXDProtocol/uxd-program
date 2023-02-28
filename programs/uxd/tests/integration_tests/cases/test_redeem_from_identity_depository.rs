@@ -1,9 +1,9 @@
+use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
-use solana_program::pubkey::Pubkey;
 
-use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::api::program_spl;
+use crate::integration_tests::api::program_uxd;
 
 pub async fn test_redeem_from_identity_depository(
     program_test_context: &mut ProgramTestContext,
