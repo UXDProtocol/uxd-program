@@ -1,18 +1,18 @@
-use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
+use solana_program::pubkey::Pubkey;
 
-use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_uxd;
+use crate::integration_tests::api::program_spl;
 
-pub async fn test_mint_with_identity_depository(
+pub async fn test_redeem_from_identity_depository(
     program_test_context: &mut ProgramTestContext,
     program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
     user: &Keypair,
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
-    collateral_amount: u64,
+    redeemable_amount: u64,
 ) -> Result<(), String> {
     // Read state before
     let redeemable_mint_before =
@@ -43,14 +43,14 @@ pub async fn test_mint_with_identity_depository(
             .amount;
 
     // Execute
-    program_uxd::instructions::process_mint_with_identity_depository(
+    program_uxd::instructions::process_redeem_from_identity_depository(
         program_test_context,
         program_keys,
         payer,
         user,
         user_collateral,
         user_redeemable,
-        collateral_amount,
+        redeemable_amount,
     )
     .await?;
 
@@ -84,24 +84,24 @@ pub async fn test_mint_with_identity_depository(
 
     // Check result
     assert_eq!(
-        redeemable_mint_supply_before + collateral_amount,
+        redeemable_mint_supply_before - redeemable_amount,
         redeemable_mint_supply_after,
     );
     assert_eq!(
-        redeemable_circulating_supply_before + collateral_amount,
+        redeemable_circulating_supply_before - redeemable_amount,
         redeemable_circulating_supply_after,
     );
     assert_eq!(
-        redeemable_amount_under_management_before + collateral_amount,
+        redeemable_amount_under_management_before - redeemable_amount,
         redeemable_amount_under_management_after,
     );
 
     assert_eq!(
-        user_collateral_amount_before - collateral_amount,
+        user_collateral_amount_before + redeemable_amount,
         user_collateral_amount_after,
     );
     assert_eq!(
-        user_redeemable_amount_before + collateral_amount,
+        user_redeemable_amount_before - redeemable_amount,
         user_redeemable_amount_after,
     );
 

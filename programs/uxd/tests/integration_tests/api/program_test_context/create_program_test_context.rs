@@ -5,12 +5,12 @@ use solana_program_test::ProgramTestContext;
 pub async fn create_program_test_context() -> ProgramTestContext {
     let mut program_test = ProgramTest::default();
 
-    program_test.prefer_bpf(true);
-
     // Deploy the uxd program from compiled artifact
     program_test.add_program("uxd", uxd::id(), processor!(uxd::entry));
 
     /* // Coming soon in next iterative PR
+
+    program_test.prefer_bpf(true);
 
     // Deploy the mercurial program using a downloaded mercurial compiled binary
     program_test.add_program(

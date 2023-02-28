@@ -5,7 +5,7 @@ use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_test_context;
 
-pub async fn process_associated_token_account_init(
+pub async fn process_associated_token_account_get_or_init(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     mint: &Pubkey,

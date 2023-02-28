@@ -9,6 +9,13 @@ pub async fn test_edit_controller(
     payer: &Keypair,
     redeemable_global_supply_cap: Option<u128>,
 ) -> Result<(), String> {
+    // Read state before
+    let controller_before =
+        program_uxd::accounts::read_controller(program_test_context, &program_keys.controller)
+            .await?;
+
+    let redeemable_global_supply_cap_before = controller_before.redeemable_global_supply_cap;
+
     // Execute
     program_uxd::instructions::process_edit_controller(
         program_test_context,
@@ -23,12 +30,18 @@ pub async fn test_edit_controller(
         program_uxd::accounts::read_controller(program_test_context, &program_keys.controller)
             .await?;
 
+    let redeemable_global_supply_cap_after = controller_after.redeemable_global_supply_cap;
+
     // Check result
     if redeemable_global_supply_cap.is_some() {
-        let redeemable_global_supply_cap_after = controller_after.redeemable_global_supply_cap;
         assert_eq!(
             redeemable_global_supply_cap_after,
             redeemable_global_supply_cap.unwrap()
+        );
+    } else {
+        assert_eq!(
+            redeemable_global_supply_cap_after,
+            redeemable_global_supply_cap_before,
         );
     }
 

@@ -10,6 +10,17 @@ pub async fn test_edit_identity_depository(
     redeemable_amount_under_management_cap: Option<u128>,
     minting_disabled: Option<bool>,
 ) -> Result<(), String> {
+    // Read state before
+    let identity_depository_before = program_uxd::accounts::read_identity_depository(
+        program_test_context,
+        &program_keys.identity_depository_keys.depository,
+    )
+    .await?;
+
+    let redeemable_amount_under_management_cap_before =
+        identity_depository_before.redeemable_amount_under_management_cap;
+    let minting_disabled_before = identity_depository_before.minting_disabled;
+
     // Execute
     program_uxd::instructions::process_edit_identity_depository(
         program_test_context,
@@ -27,22 +38,26 @@ pub async fn test_edit_identity_depository(
     )
     .await?;
 
+    let redeemable_amount_under_management_cap_after =
+        identity_depository_after.redeemable_amount_under_management_cap;
+    let minting_disabled_after = identity_depository_after.minting_disabled;
+
     // Check result
     if redeemable_amount_under_management_cap.is_some() {
-        let redeemable_amount_under_management_cap_after =
-            identity_depository_after.redeemable_amount_under_management_cap;
         assert_eq!(
             redeemable_amount_under_management_cap_after,
             redeemable_amount_under_management_cap.unwrap()
         );
+    } else {
+        assert_eq!(
+            redeemable_amount_under_management_cap_after,
+            redeemable_amount_under_management_cap_before
+        );
     }
     if minting_disabled.is_some() {
-        let minting_disabled_after =
-            identity_depository_after.minting_disabled;
-        assert_eq!(
-            minting_disabled_after,
-            minting_disabled.unwrap()
-        );
+        assert_eq!(minting_disabled_after, minting_disabled.unwrap());
+    } else {
+        assert_eq!(minting_disabled_after, minting_disabled_before);
     }
 
     // Done

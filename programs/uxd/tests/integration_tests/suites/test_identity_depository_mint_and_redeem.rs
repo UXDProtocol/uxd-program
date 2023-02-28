@@ -51,7 +51,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     let user = Keypair::new();
 
     // Create a collateral account for our user
-    let user_collateral = program_spl::instructions::process_associated_token_account_init(
+    let user_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
         &mut program_test_context,
         &payer,
         &program_keys.collateral_mint.pubkey(),
@@ -59,7 +59,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     )
     .await?;
     // Create a redeemable account for our user
-    let user_redeemable = program_spl::instructions::process_associated_token_account_init(
+    let user_redeemable = program_spl::instructions::process_associated_token_account_get_or_init(
         &mut program_test_context,
         &payer,
         &program_keys.redeemable_mint,
