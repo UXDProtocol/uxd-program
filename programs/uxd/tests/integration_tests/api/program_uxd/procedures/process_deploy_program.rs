@@ -3,8 +3,8 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_spl;
-use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::api::program_test_context;
+use crate::integration_tests::api::program_uxd;
 
 pub async fn process_deploy_program(
     program_test_context: &mut ProgramTestContext,
