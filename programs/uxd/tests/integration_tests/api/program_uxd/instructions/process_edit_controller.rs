@@ -15,7 +15,7 @@ pub async fn process_edit_controller(
     redeemable_global_supply_cap: Option<u128>,
 ) -> Result<(), String> {
     // Read state before
-    let controller_before = program_test_context::read_anchor_account::<uxd::state::Controller>(
+    let controller_before = program_test_context::read_account_anchor::<uxd::state::Controller>(
         program_test_context,
         &program_keys.controller,
     )
@@ -47,7 +47,7 @@ pub async fn process_edit_controller(
     .await?;
 
     // Read state after
-    let controller_after = program_test_context::read_anchor_account::<uxd::state::Controller>(
+    let controller_after = program_test_context::read_account_anchor::<uxd::state::Controller>(
         program_test_context,
         &program_keys.controller,
     )

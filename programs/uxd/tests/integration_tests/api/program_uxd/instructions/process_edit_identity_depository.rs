@@ -17,7 +17,7 @@ pub async fn process_edit_identity_depository(
 ) -> Result<(), String> {
     // Read state before
     let identity_depository_before =
-        program_test_context::read_anchor_account::<uxd::state::IdentityDepository>(
+        program_test_context::read_account_anchor::<uxd::state::IdentityDepository>(
             program_test_context,
             &program_keys.identity_depository_keys.depository,
         )
@@ -54,7 +54,7 @@ pub async fn process_edit_identity_depository(
 
     // Read state after
     let identity_depository_after =
-        program_test_context::read_anchor_account::<uxd::state::IdentityDepository>(
+        program_test_context::read_account_anchor::<uxd::state::IdentityDepository>(
             program_test_context,
             &program_keys.identity_depository_keys.depository,
         )
