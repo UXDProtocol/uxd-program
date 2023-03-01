@@ -12,7 +12,7 @@ env:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
-  
+
 # Run the job
 jobs:
   cargo-audit:
@@ -21,14 +21,15 @@ jobs:
     steps:
       # Check out GitHub repo
       - uses: actions/checkout@v2
-      
+
       # Install cargo audit
       - name: Install Cargo Audit
         uses: actions-rs/install@v0.1
         with:
           crate: cargo-audit
           version: latest
-          
+
       # Run cargo audit using args from .cargo/audit.toml (ignores, etc.)
       - name: Run Cargo Audit
-        run: cargo audit -c always
+        # Ignoring warnings from solana_program_test dependencies which are only in dev dependencies
+        run: cargo audit -c always --ignore RUSTSEC-2021-0139 --ignore RUSTSEC-2023-0001 --ignore RUSTSEC-2020-0071
