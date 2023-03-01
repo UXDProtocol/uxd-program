@@ -4,11 +4,13 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_sdk::transaction::Transaction;
 
+use crate::integration_tests::api::program_test_context;
+
 pub async fn process_instruction(
     program_test_context: &mut ProgramTestContext,
     instruction: Instruction,
     payer: &Keypair,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     println!(" -------- PROCESSING INSTRUCTION (no signers) --------");
     println!(
         " - instruction.program_id: {:?}",
@@ -22,7 +24,7 @@ pub async fn process_instruction(
         .banks_client
         .process_transaction(transaction)
         .await
-        .map_err(|e| e.to_string());
+        .map_err(|e| program_test_context::ProgramTestError::BanksClientError(e));
     println!(" >> RESULT: {:?}", result);
     result
 }
@@ -32,7 +34,7 @@ pub async fn process_instruction_with_signer(
     instruction: Instruction,
     payer: &Keypair,
     signer: &Keypair,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     println!(" -------- PROCESSING INSTRUCTION (with signer) --------");
     println!(
         " - instruction.program_id: {:?}",
@@ -46,7 +48,7 @@ pub async fn process_instruction_with_signer(
         .banks_client
         .process_transaction(transaction)
         .await
-        .map_err(|e| e.to_string());
+        .map_err(|e| program_test_context::ProgramTestError::BanksClientError(e));
     println!(" >> RESULT: {:?}", result);
     result
 }

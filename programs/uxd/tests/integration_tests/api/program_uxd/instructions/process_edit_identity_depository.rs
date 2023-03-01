@@ -14,7 +14,7 @@ pub async fn process_edit_identity_depository(
     payer: &Keypair,
     redeemable_amount_under_management_cap: Option<u128>,
     minting_disabled: Option<bool>,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     // Read state before
     let identity_depository_before =
         program_test_context::read_account_anchor::<uxd::state::IdentityDepository>(

@@ -13,7 +13,7 @@ pub async fn process_initialize_controller(
     program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
     redeemable_mint_decimals: u8,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     let accounts = uxd::accounts::InitializeController {
         authority: program_keys.authority.pubkey(),
         payer: payer.pubkey(),

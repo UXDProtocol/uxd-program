@@ -7,7 +7,8 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[tokio::test]
-async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
+async fn test_identity_depository_mint_and_redeem(
+) -> Result<(), program_test_context::ProgramTestError> {
     let mut program_test_context = program_test_context::create_program_test_context().await;
 
     // Fund payer

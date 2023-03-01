@@ -10,7 +10,7 @@ pub async fn process_associated_token_account_get_or_init(
     payer: &Keypair,
     mint: &Pubkey,
     wallet: &Pubkey,
-) -> Result<Pubkey, String> {
+) -> Result<Pubkey, program_test_context::ProgramTestError> {
     let instruction =
         spl_associated_token_account::instruction::create_associated_token_account_idempotent(
             &payer.pubkey(),

@@ -13,12 +13,12 @@ pub async fn process_token_mint_init(
     mint: &Keypair,
     decimals: u8,
     authority: &Pubkey,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     let rent = program_test_context
         .banks_client
         .get_rent()
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| program_test_context::ProgramTestError::BanksClientError(e))?;
 
     let instruction_create = solana_program::system_instruction::create_account(
         &payer.pubkey(),
@@ -42,7 +42,7 @@ pub async fn process_token_mint_init(
         Some(authority),
         decimals,
     )
-    .map_err(|e| e.to_string())?;
+    .map_err(|e| program_test_context::ProgramTestError::ProgramError(e))?;
 
     program_test_context::process_instruction(program_test_context, instruction_init, payer)
         .await?;

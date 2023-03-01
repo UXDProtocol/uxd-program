@@ -4,12 +4,13 @@ use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_uxd;
+use crate::integration_tests::api::program_test_context;
 
 pub async fn process_deploy_program(
     program_test_context: &mut ProgramTestContext,
     program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     // Use restictive default values for all tests
     // Can be modified in individual test cases through edits
     // This forces all tests be explicit about their requirements

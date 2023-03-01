@@ -13,7 +13,7 @@ pub async fn process_edit_controller(
     program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
     redeemable_global_supply_cap: Option<u128>,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     // Read state before
     let controller_before = program_test_context::read_account_anchor::<uxd::state::Controller>(
         program_test_context,

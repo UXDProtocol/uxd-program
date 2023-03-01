@@ -17,7 +17,7 @@ pub async fn process_mint_with_identity_depository(
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
     collateral_amount: u64,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     // Read state before
     let redeemable_mint_before =
         program_test_context::read_account_packed::<spl_token::state::Mint>(
