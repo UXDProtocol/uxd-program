@@ -5,7 +5,7 @@ use solana_program_test::ProgramTestContext;
 
 use crate::integration_tests::api::program_test_context;
 
-pub async fn read_spl_account<T: Pack + IsInitialized>(
+pub async fn read_packed_account<T: Pack + IsInitialized>(
     program_test_context: &mut ProgramTestContext,
     address: &Pubkey,
 ) -> Result<T, String> {
