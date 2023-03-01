@@ -6,27 +6,42 @@ use solana_sdk::transaction::Transaction;
 
 use crate::integration_tests::api::program_test_context;
 
-pub async fn process_instruction(
+async fn process_instruction_result(
     program_test_context: &mut ProgramTestContext,
     instruction: Instruction,
-    payer: &Keypair,
+    result: Result<(), program_test_context::ProgramTestError>,
 ) -> Result<(), program_test_context::ProgramTestError> {
-    println!(" -------- PROCESSING INSTRUCTION (no signers) --------");
+    // Increment the blockhash, so that the next transaction can run sequentially
+    program_test_context.last_blockhash = program_test_context
+        .get_new_latest_blockhash()
+        .await
+        .map_err(|e| program_test_context::ProgramTestError::IoError(e))?;
+    // Log the result, useful for debugging as STDOUT is displayed when a test fails
+    println!(" -------- PROCESSING INSTRUCTION --------");
     println!(
         " - instruction.program_id: {:?}",
         instruction.program_id.to_string()
     );
     println!(" - instruction.data: {:?}", instruction.data);
+    println!(" - instruction.result: {:?}", result);
+    // Done
+    result
+}
+
+pub async fn process_instruction(
+    program_test_context: &mut ProgramTestContext,
+    instruction: Instruction,
+    payer: &Keypair,
+) -> Result<(), program_test_context::ProgramTestError> {
     let mut transaction: Transaction =
-        Transaction::new_with_payer(&[instruction], Some(&payer.pubkey()));
+        Transaction::new_with_payer(&[instruction.clone()], Some(&payer.pubkey()));
     transaction.partial_sign(&[payer], program_test_context.last_blockhash);
     let result = program_test_context
         .banks_client
         .process_transaction(transaction)
         .await
         .map_err(|e| program_test_context::ProgramTestError::BanksClientError(e));
-    println!(" >> RESULT: {:?}", result);
-    result
+    process_instruction_result(program_test_context, instruction.clone(), result).await
 }
 
 pub async fn process_instruction_with_signer(
@@ -35,20 +50,13 @@ pub async fn process_instruction_with_signer(
     payer: &Keypair,
     signer: &Keypair,
 ) -> Result<(), program_test_context::ProgramTestError> {
-    println!(" -------- PROCESSING INSTRUCTION (with signer) --------");
-    println!(
-        " - instruction.program_id: {:?}",
-        instruction.program_id.to_string()
-    );
-    println!(" - instruction.data: {:?}", instruction.data);
     let mut transaction: Transaction =
-        Transaction::new_with_payer(&[instruction], Some(&payer.pubkey()));
+        Transaction::new_with_payer(&[instruction.clone()], Some(&payer.pubkey()));
     transaction.partial_sign(&[payer, signer], program_test_context.last_blockhash);
     let result = program_test_context
         .banks_client
         .process_transaction(transaction)
         .await
         .map_err(|e| program_test_context::ProgramTestError::BanksClientError(e));
-    println!(" >> RESULT: {:?}", result);
-    result
+    process_instruction_result(program_test_context, instruction.clone(), result).await
 }

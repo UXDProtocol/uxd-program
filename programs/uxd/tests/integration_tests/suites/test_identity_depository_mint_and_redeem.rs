@@ -9,6 +9,11 @@ use crate::integration_tests::api::program_uxd;
 #[tokio::test]
 async fn test_identity_depository_mint_and_redeem(
 ) -> Result<(), program_test_context::ProgramTestError> {
+    // ---------------------------------------------------------------------
+    // -- Phase 1
+    // -- Setup basic context and accounts needed for this test suite
+    // ---------------------------------------------------------------------
+
     let mut program_test_context = program_test_context::create_program_test_context().await;
 
     // Fund payer
@@ -51,6 +56,24 @@ async fn test_identity_depository_mint_and_redeem(
     )
     .await?;
 
+    // Useful amounts used during testing scenario
+    let amount_we_use_as_supply_cap = 50_000_000;
+    let amount_bigger_than_the_supply_cap = 300_000_000;
+
+    let amount_of_collateral_airdropped_to_user = 1_000_000_000;
+    let amount_the_user_should_be_able_to_mint = 50_000_000;
+    let amount_the_user_should_be_able_to_redeem = 50_000_000;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 2
+    // -- We try to mint (and it should fail)
+    // -- and progressively set all things needed to mint one by one:
+    // --  - airdrop collateral to our user
+    // --  - set the supply cap in the controller
+    // --  - set the redeemable cap and enable minting in the identity depository
+    // -- when everything is ready, try to mint incorrect amounts (it should fail)
+    // ---------------------------------------------------------------------
+
     // Minting should fail because the user doesnt have collateral yet
     assert!(
         program_uxd::instructions::process_mint_with_identity_depository(
@@ -60,7 +83,7 @@ async fn test_identity_depository_mint_and_redeem(
             &user,
             &user_collateral,
             &user_redeemable,
-            500_000,
+            amount_the_user_should_be_able_to_mint,
         )
         .await
         .is_err()
@@ -73,7 +96,7 @@ async fn test_identity_depository_mint_and_redeem(
         &program_keys.collateral_mint.pubkey(),
         &program_keys.collateral_authority,
         &user_collateral,
-        500_000,
+        amount_of_collateral_airdropped_to_user,
     )
     .await?;
 
@@ -86,7 +109,7 @@ async fn test_identity_depository_mint_and_redeem(
             &user,
             &user_collateral,
             &user_redeemable,
-            500_000,
+            amount_the_user_should_be_able_to_mint,
         )
         .await
         .is_err()
@@ -97,7 +120,7 @@ async fn test_identity_depository_mint_and_redeem(
         &mut program_test_context,
         &program_keys,
         &payer,
-        Some(500_000),
+        Some(amount_we_use_as_supply_cap),
     )
     .await?;
 
@@ -110,7 +133,7 @@ async fn test_identity_depository_mint_and_redeem(
             &user,
             &user_collateral,
             &user_redeemable,
-            500_000,
+            amount_the_user_should_be_able_to_mint,
         )
         .await
         .is_err()
@@ -121,12 +144,12 @@ async fn test_identity_depository_mint_and_redeem(
         &mut program_test_context,
         &program_keys,
         &payer,
-        Some(500_000),
+        Some(amount_we_use_as_supply_cap),
         Some(false),
     )
     .await?;
 
-    // Minting too much should fail (above cap)
+    // Minting too much should fail (above cap, but enough collateral)
     assert!(
         program_uxd::instructions::process_mint_with_identity_depository(
             &mut program_test_context,
@@ -135,7 +158,7 @@ async fn test_identity_depository_mint_and_redeem(
             &user,
             &user_collateral,
             &user_redeemable,
-            1_000_000,
+            amount_bigger_than_the_supply_cap,
         )
         .await
         .is_err()
@@ -156,6 +179,14 @@ async fn test_identity_depository_mint_and_redeem(
         .is_err()
     );
 
+    // ---------------------------------------------------------------------
+    // -- Phase 3
+    // -- Everything is ready for minting
+    // -- We should now successfully be able to mint
+    // -- After minting, we redeem (and it should succeed)
+    // -- We also test invalid redeem amounts (and it should fail)
+    // ---------------------------------------------------------------------
+
     // Minting should work now that everything is set
     program_uxd::instructions::process_mint_with_identity_depository(
         &mut program_test_context,
@@ -164,7 +195,19 @@ async fn test_identity_depository_mint_and_redeem(
         &user,
         &user_collateral,
         &user_redeemable,
-        100_000,
+        amount_the_user_should_be_able_to_mint,
+    )
+    .await?;
+
+    // Redeeming the correct amount should succeed
+    program_uxd::instructions::process_redeem_from_identity_depository(
+        &mut program_test_context,
+        &program_keys,
+        &payer,
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_the_user_should_be_able_to_redeem,
     )
     .await?;
 
@@ -177,7 +220,7 @@ async fn test_identity_depository_mint_and_redeem(
             &user,
             &user_collateral,
             &user_redeemable,
-            1_000_000,
+            amount_bigger_than_the_supply_cap,
         )
         .await
         .is_err()
@@ -197,18 +240,6 @@ async fn test_identity_depository_mint_and_redeem(
         .await
         .is_err()
     );
-
-    // Redeeming the correct amount should succeed
-    program_uxd::instructions::process_redeem_from_identity_depository(
-        &mut program_test_context,
-        &program_keys,
-        &payer,
-        &user,
-        &user_collateral,
-        &user_redeemable,
-        100_000,
-    )
-    .await?;
 
     Ok(())
 }

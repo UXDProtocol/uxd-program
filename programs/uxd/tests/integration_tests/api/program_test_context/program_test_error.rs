@@ -7,5 +7,6 @@ pub enum ProgramTestError {
     SignatureError(String),
     ProgramError(ProgramError),
     AnchorError(anchor_lang::error::Error),
+    IoError(std::io::Error),
     CustomError(&'static str),
 }
