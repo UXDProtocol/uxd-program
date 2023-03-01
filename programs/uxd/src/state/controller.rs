@@ -1,3 +1,5 @@
+use std::mem::size_of;
+
 use crate::error::UxdError;
 use crate::utils::checked_add_u128_and_i128;
 use anchor_lang::prelude::*;
@@ -6,26 +8,27 @@ pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
 pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
+pub const CONTROLLER_RESERVED_SPACE: usize = 230;
 pub const CONTROLLER_SPACE: usize = 8
-    + 1
-    + 1
-    + 1
-    + 32
-    + 32
-    + 1
-    + 255 // Shh. Free real estate
-    + 1
-    + 1
-    + 16
-    + 8 // unused
-    + 16
-    + 8 // unused
-    + (32 * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES)
-    + 1
-    + (32 * MAX_REGISTERED_CREDIX_LP_DEPOSITORIES)
-    + 1
-    + 16
-    + 230;
+    + size_of::<u8>() // bump
+    + size_of::<u8>() // redeemable_mint_bump
+    + size_of::<u8>() // version
+    + size_of::<Pubkey>() // authority
+    + size_of::<Pubkey>() // redeemable_mint
+    + size_of::<u8>() // redeemable_mint_decimals
+    + 255 // _unused, Shh. Free real estate
+    + size_of::<bool>() // is_frozen
+    + 1 // _unused2
+    + size_of::<u128>() // redeemable_global_supply_cap
+    + 8 // _unused3
+    + size_of::<u128>() // redeemable_circulating_supply
+    + 8 // _unused4
+    + size_of::<Pubkey>() * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES // registered_mercurial_vault_depositories
+    + size_of::<u8>() // registered_mercurial_vault_depositories_count
+    + size_of::<Pubkey>() * MAX_REGISTERED_CREDIX_LP_DEPOSITORIES // registered_credix_lp_depositories
+    + size_of::<u8>() // registered_credix_lp_depositories_count
+    + size_of::<u128>() // profits_total_collected
+    + CONTROLLER_RESERVED_SPACE;
 
 #[account(zero_copy)]
 #[repr(packed)]
@@ -74,6 +77,8 @@ pub struct Controller {
     //
     // Total amount of profits collected into the treasury by any depository
     pub profits_total_collected: u128,
+    // For future usage
+    pub _reserved: [u8; CONTROLLER_RESERVED_SPACE],
 }
 
 impl Controller {
