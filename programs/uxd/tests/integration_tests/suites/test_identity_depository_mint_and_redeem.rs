@@ -52,7 +52,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
 
     // Minting should fail because the user doesnt have collateral yet
     assert!(
-        crate::integration_tests::cases::test_mint_with_identity_depository(
+        program_uxd::instructions::process_mint_with_identity_depository(
             &mut program_test_context,
             &program_keys,
             &payer,
@@ -78,7 +78,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
 
     // Minting should fail because the controller cap is too low
     assert!(
-        crate::integration_tests::cases::test_mint_with_identity_depository(
+        program_uxd::instructions::process_mint_with_identity_depository(
             &mut program_test_context,
             &program_keys,
             &payer,
@@ -92,7 +92,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     );
 
     // Set the controller cap
-    crate::integration_tests::cases::test_edit_controller(
+    program_uxd::instructions::process_edit_controller(
         &mut program_test_context,
         &program_keys,
         &payer,
@@ -102,7 +102,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
 
     // Minting should fail because the depository cap is too low
     assert!(
-        crate::integration_tests::cases::test_mint_with_identity_depository(
+        program_uxd::instructions::process_mint_with_identity_depository(
             &mut program_test_context,
             &program_keys,
             &payer,
@@ -116,7 +116,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     );
 
     // Set the depository cap and make sure minting is not disabled
-    crate::integration_tests::cases::test_edit_identity_depository(
+    program_uxd::instructions::process_edit_identity_depository(
         &mut program_test_context,
         &program_keys,
         &payer,
@@ -127,7 +127,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
 
     // Minting too much should fail (above cap)
     assert!(
-        crate::integration_tests::cases::test_mint_with_identity_depository(
+        program_uxd::instructions::process_mint_with_identity_depository(
             &mut program_test_context,
             &program_keys,
             &payer,
@@ -142,7 +142,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
 
     // Minting zero should fail
     assert!(
-        crate::integration_tests::cases::test_mint_with_identity_depository(
+        program_uxd::instructions::process_mint_with_identity_depository(
             &mut program_test_context,
             &program_keys,
             &payer,
@@ -156,7 +156,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     );
 
     // Minting should work now that everything is set
-    crate::integration_tests::cases::test_mint_with_identity_depository(
+    program_uxd::instructions::process_mint_with_identity_depository(
         &mut program_test_context,
         &program_keys,
         &payer,
@@ -169,7 +169,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
 
     // Redeeming too much should fail
     assert!(
-        crate::integration_tests::cases::test_redeem_from_identity_depository(
+        program_uxd::instructions::process_redeem_from_identity_depository(
             &mut program_test_context,
             &program_keys,
             &payer,
@@ -184,7 +184,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
 
     // Redeeming zero should fail
     assert!(
-        crate::integration_tests::cases::test_redeem_from_identity_depository(
+        program_uxd::instructions::process_redeem_from_identity_depository(
             &mut program_test_context,
             &program_keys,
             &payer,
@@ -198,7 +198,7 @@ async fn test_identity_depository_mint_and_redeem() -> Result<(), String> {
     );
 
     // Redeeming the correct amount should succeed
-    crate::integration_tests::cases::test_redeem_from_identity_depository(
+    program_uxd::instructions::process_redeem_from_identity_depository(
         &mut program_test_context,
         &program_keys,
         &payer,

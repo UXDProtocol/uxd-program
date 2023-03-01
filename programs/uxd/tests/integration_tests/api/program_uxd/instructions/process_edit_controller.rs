@@ -14,6 +14,16 @@ pub async fn process_edit_controller(
     payer: &Keypair,
     redeemable_global_supply_cap: Option<u128>,
 ) -> Result<(), String> {
+    // Read state before
+    let controller_before = program_test_context::read_anchor_account::<uxd::state::Controller>(
+        program_test_context,
+        &program_keys.controller,
+    )
+    .await?;
+
+    let redeemable_global_supply_cap_before = controller_before.redeemable_global_supply_cap;
+
+    // Execute IX
     let accounts = uxd::accounts::EditController {
         authority: program_keys.authority.pubkey(),
         controller: program_keys.controller,
@@ -34,5 +44,30 @@ pub async fn process_edit_controller(
         payer,
         &program_keys.authority,
     )
-    .await
+    .await?;
+
+    // Read state after
+    let controller_after = program_test_context::read_anchor_account::<uxd::state::Controller>(
+        program_test_context,
+        &program_keys.controller,
+    )
+    .await?;
+
+    let redeemable_global_supply_cap_after = controller_after.redeemable_global_supply_cap;
+
+    // Check result
+    if redeemable_global_supply_cap.is_some() {
+        assert_eq!(
+            redeemable_global_supply_cap_after,
+            redeemable_global_supply_cap.unwrap()
+        );
+    } else {
+        assert_eq!(
+            redeemable_global_supply_cap_after,
+            redeemable_global_supply_cap_before,
+        );
+    }
+
+    // Done
+    Ok(())
 }

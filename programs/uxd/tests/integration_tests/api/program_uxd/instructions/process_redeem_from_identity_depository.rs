@@ -18,6 +18,44 @@ pub async fn process_redeem_from_identity_depository(
     user_redeemable: &Pubkey,
     redeemable_amount: u64,
 ) -> Result<(), String> {
+    // Read state before
+    let redeemable_mint_before = program_test_context::read_spl_account::<spl_token::state::Mint>(
+        program_test_context,
+        &program_keys.redeemable_mint,
+    )
+    .await?;
+    let controller_before = program_test_context::read_anchor_account::<uxd::state::Controller>(
+        program_test_context,
+        &program_keys.controller,
+    )
+    .await?;
+    let identity_depository_before =
+        program_test_context::read_anchor_account::<uxd::state::IdentityDepository>(
+            program_test_context,
+            &program_keys.identity_depository_keys.depository,
+        )
+        .await?;
+
+    let redeemable_mint_supply_before = redeemable_mint_before.supply;
+    let redeemable_circulating_supply_before =
+        u64::try_from(controller_before.redeemable_circulating_supply).unwrap();
+    let redeemable_amount_under_management_before =
+        u64::try_from(identity_depository_before.redeemable_amount_under_management).unwrap();
+    let collateral_amount_deposited_before =
+        u64::try_from(identity_depository_before.collateral_amount_deposited).unwrap();
+
+    let user_collateral_amount_before = program_test_context::read_spl_account::<
+        spl_token::state::Account,
+    >(program_test_context, user_collateral)
+    .await?
+    .amount;
+    let user_redeemable_amount_before = program_test_context::read_spl_account::<
+        spl_token::state::Account,
+    >(program_test_context, user_redeemable)
+    .await?
+    .amount;
+
+    // Execute IX
     let accounts = uxd::accounts::RedeemFromIdentityDepository {
         user: user.pubkey(),
         payer: payer.pubkey(),
@@ -42,5 +80,72 @@ pub async fn process_redeem_from_identity_depository(
         payer,
         user,
     )
-    .await
+    .await?;
+
+    // Read state after
+    let redeemable_mint_after = program_test_context::read_spl_account::<spl_token::state::Mint>(
+        program_test_context,
+        &program_keys.redeemable_mint,
+    )
+    .await?;
+    let controller_after = program_test_context::read_anchor_account::<uxd::state::Controller>(
+        program_test_context,
+        &program_keys.controller,
+    )
+    .await?;
+    let identity_depository_after =
+        program_test_context::read_anchor_account::<uxd::state::IdentityDepository>(
+            program_test_context,
+            &program_keys.identity_depository_keys.depository,
+        )
+        .await?;
+
+    let redeemable_mint_supply_after = redeemable_mint_after.supply;
+    let redeemable_circulating_supply_after =
+        u64::try_from(controller_after.redeemable_circulating_supply).unwrap();
+    let redeemable_amount_under_management_after =
+        u64::try_from(identity_depository_after.redeemable_amount_under_management).unwrap();
+    let collateral_amount_deposited_after =
+        u64::try_from(identity_depository_after.collateral_amount_deposited).unwrap();
+
+    let user_collateral_amount_after = program_test_context::read_spl_account::<
+        spl_token::state::Account,
+    >(program_test_context, user_collateral)
+    .await?
+    .amount;
+    let user_redeemable_amount_after = program_test_context::read_spl_account::<
+        spl_token::state::Account,
+    >(program_test_context, user_redeemable)
+    .await?
+    .amount;
+
+    // Check result
+    assert_eq!(
+        redeemable_mint_supply_before - redeemable_amount,
+        redeemable_mint_supply_after,
+    );
+    assert_eq!(
+        redeemable_circulating_supply_before - redeemable_amount,
+        redeemable_circulating_supply_after,
+    );
+    assert_eq!(
+        redeemable_amount_under_management_before - redeemable_amount,
+        redeemable_amount_under_management_after,
+    );
+    assert_eq!(
+        collateral_amount_deposited_before - redeemable_amount,
+        collateral_amount_deposited_after,
+    );
+
+    assert_eq!(
+        user_collateral_amount_before + redeemable_amount,
+        user_collateral_amount_after,
+    );
+    assert_eq!(
+        user_redeemable_amount_before - redeemable_amount,
+        user_redeemable_amount_after,
+    );
+
+    // Done
+    Ok(())
 }
