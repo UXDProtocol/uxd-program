@@ -57,12 +57,13 @@ async fn test_identity_depository_mint_and_redeem(
     .await?;
 
     // Useful amounts used during testing scenario
-    let amount_we_use_as_supply_cap = 50_000_000;
-    let amount_bigger_than_the_supply_cap = 300_000_000;
+    let amount_we_use_as_supply_cap = program_keys.redeemable_amount_ui_to_native(50);
+    let amount_bigger_than_the_supply_cap = program_keys.redeemable_amount_ui_to_native(300);
 
-    let amount_of_collateral_airdropped_to_user = 1_000_000_000;
-    let amount_the_user_should_be_able_to_mint = 50_000_000;
-    let amount_the_user_should_be_able_to_redeem = 50_000_000;
+    let amount_of_collateral_airdropped_to_user = program_keys.collateral_amount_ui_to_native(1000);
+    let amount_the_user_should_be_able_to_mint = program_keys.collateral_amount_ui_to_native(50);
+
+    let amount_the_user_should_be_able_to_redeem = program_keys.redeemable_amount_ui_to_native(50);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -94,7 +95,7 @@ async fn test_identity_depository_mint_and_redeem(
         &mut program_test_context,
         &payer,
         &program_keys.collateral_mint.pubkey(),
-        &program_keys.collateral_authority,
+        &program_keys.collateral_mint_authority,
         &user_collateral,
         amount_of_collateral_airdropped_to_user,
     )
@@ -120,7 +121,7 @@ async fn test_identity_depository_mint_and_redeem(
         &mut program_test_context,
         &program_keys,
         &payer,
-        Some(amount_we_use_as_supply_cap),
+        Some(amount_we_use_as_supply_cap.into()),
     )
     .await?;
 
@@ -144,7 +145,7 @@ async fn test_identity_depository_mint_and_redeem(
         &mut program_test_context,
         &program_keys,
         &payer,
-        Some(amount_we_use_as_supply_cap),
+        Some(amount_we_use_as_supply_cap.into()),
         Some(false),
     )
     .await?;

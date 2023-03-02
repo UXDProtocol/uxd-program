@@ -16,7 +16,6 @@ pub async fn process_deploy_program(
     // Use restictive default values for all tests
     // Can be modified in individual test cases through edits
     // This forces all tests be explicit about their requirements
-    let redeemable_mint_decimals = 6;
     let redeemable_global_supply_cap = 0;
     let identity_depository_redeemable_amount_under_management_cap = 0;
     let identity_depository_minting_disabled = true;
@@ -31,8 +30,8 @@ pub async fn process_deploy_program(
         program_test_context,
         &payer,
         &program_keys.collateral_mint,
-        redeemable_mint_decimals,
-        &program_keys.collateral_authority.pubkey(),
+        program_keys.collateral_mint_decimals,
+        &program_keys.collateral_mint_authority.pubkey(),
     )
     .await?;
 
@@ -41,7 +40,7 @@ pub async fn process_deploy_program(
         program_test_context,
         program_keys,
         payer,
-        redeemable_mint_decimals,
+        program_keys.redeemable_mint_decimals,
     )
     .await?;
     program_uxd::instructions::process_edit_controller(
@@ -77,7 +76,7 @@ pub async fn process_deploy_program(
     program_credix::procedures::process_dummy_actors_behaviors(
         program_test_context,
         &program_keys.credix_lp_depository_keys.credix_program_keys,
-        &program_keys.collateral_authority,
+        &program_keys.collateral_mint_authority,
     )
     .await?;
 
