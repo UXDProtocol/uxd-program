@@ -20,8 +20,8 @@ pub async fn process_deploy_program(
     let identity_depository_redeemable_amount_under_management_cap = 0;
     let identity_depository_minting_disabled = true;
     let credix_lp_depository_redeemable_amount_under_management_cap = 0;
-    let credix_lp_depository_minting_fee_in_bps = 100;
-    let credix_lp_depository_redeeming_fee_in_bps = 100;
+    let credix_lp_depository_minting_fee_in_bps = 255;
+    let credix_lp_depository_redeeming_fee_in_bps = 255;
     let credix_lp_depository_minting_disabled = true;
     let credix_lp_depository_profits_beneficiary_collateral = Pubkey::default();
 
