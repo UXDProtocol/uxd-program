@@ -10,7 +10,7 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_create_credix_pass(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_credix::accounts::ProgramKeys,
+    program_info: &program_credix::accounts::ProgramInfo,
     pass_holder: &Pubkey,
     credix_pass: &Pubkey,
     is_investor: bool,
@@ -19,12 +19,12 @@ pub async fn process_create_credix_pass(
     disable_withdrawal_fee: bool,
 ) -> Result<(), program_test_context::ProgramTestError> {
     let accounts = credix_client::accounts::CreateCredixPass {
-        owner: program_keys.authority.pubkey(),
+        owner: program_info.authority.pubkey(),
         pass_holder: *pass_holder,
-        program_state: program_keys.program_state,
-        global_market_state: program_keys.global_market_state,
+        program_state: program_info.program_state,
+        global_market_state: program_info.global_market_state,
         credix_pass: *credix_pass,
-        market_admins: program_keys.market_admins,
+        market_admins: program_info.market_admins,
         system_program: anchor_lang::system_program::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
@@ -42,7 +42,7 @@ pub async fn process_create_credix_pass(
     program_test_context::process_instruction(
         program_test_context,
         instruction,
-        &program_keys.authority,
+        &program_info.authority,
     )
     .await
 }

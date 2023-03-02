@@ -17,7 +17,7 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_mint_with_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_uxd::accounts::ProgramKeys,
+    program_info: &program_uxd::accounts::ProgramInfo,
     payer: &Keypair,
     user: &Keypair,
     user_collateral: &Pubkey,
@@ -27,18 +27,18 @@ pub async fn process_mint_with_credix_lp_depository(
     // Read state before
     let redeemable_mint_before = program_test_context::read_account_packed::<Mint>(
         program_test_context,
-        &program_keys.redeemable_mint,
+        &program_info.redeemable_mint,
     )
     .await?;
     let controller_before = program_test_context::read_account_anchor::<Controller>(
         program_test_context,
-        &program_keys.controller,
+        &program_info.controller,
     )
     .await?;
     let credix_lp_depository_before =
         program_test_context::read_account_anchor::<CredixLpDepository>(
             program_test_context,
-            &program_keys.credix_lp_depository_keys.depository,
+            &program_info.credix_lp_depository_info.depository,
         )
         .await?;
 
@@ -60,23 +60,23 @@ pub async fn process_mint_with_credix_lp_depository(
             .amount;
 
     // Execute IX
-    let credix_lp_depository_keys = &program_keys.credix_lp_depository_keys;
+    let credix_lp_depository_info = &program_info.credix_lp_depository_info;
     let accounts = uxd::accounts::MintWithCredixLpDepository {
         payer: payer.pubkey(),
         user: user.pubkey(),
-        controller: program_keys.controller,
-        collateral_mint: program_keys.collateral_mint.pubkey(),
-        redeemable_mint: program_keys.redeemable_mint,
+        controller: program_info.controller,
+        collateral_mint: program_info.collateral_mint.pubkey(),
+        redeemable_mint: program_info.redeemable_mint,
         user_collateral: *user_collateral,
         user_redeemable: *user_redeemable,
-        depository: credix_lp_depository_keys.depository,
-        depository_collateral: credix_lp_depository_keys.depository_collateral,
-        depository_shares: credix_lp_depository_keys.depository_shares,
-        credix_global_market_state: credix_lp_depository_keys.credix_global_market_state,
-        credix_signing_authority: credix_lp_depository_keys.credix_signing_authority,
-        credix_liquidity_collateral: credix_lp_depository_keys.credix_liquidity_collateral,
-        credix_shares_mint: credix_lp_depository_keys.credix_shares_mint,
-        credix_pass: credix_lp_depository_keys.credix_pass,
+        depository: credix_lp_depository_info.depository,
+        depository_collateral: credix_lp_depository_info.depository_collateral,
+        depository_shares: credix_lp_depository_info.depository_shares,
+        credix_global_market_state: credix_lp_depository_info.credix_global_market_state,
+        credix_signing_authority: credix_lp_depository_info.credix_signing_authority,
+        credix_liquidity_collateral: credix_lp_depository_info.credix_liquidity_collateral,
+        credix_shares_mint: credix_lp_depository_info.credix_shares_mint,
+        credix_pass: credix_lp_depository_info.credix_pass,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
@@ -100,18 +100,18 @@ pub async fn process_mint_with_credix_lp_depository(
     // Read state after
     let redeemable_mint_after = program_test_context::read_account_packed::<Mint>(
         program_test_context,
-        &program_keys.redeemable_mint,
+        &program_info.redeemable_mint,
     )
     .await?;
     let controller_after = program_test_context::read_account_anchor::<Controller>(
         program_test_context,
-        &program_keys.controller,
+        &program_info.controller,
     )
     .await?;
     let credix_lp_depository_after =
         program_test_context::read_account_anchor::<CredixLpDepository>(
             program_test_context,
-            &program_keys.credix_lp_depository_keys.depository,
+            &program_info.credix_lp_depository_info.depository,
         )
         .await?;
 

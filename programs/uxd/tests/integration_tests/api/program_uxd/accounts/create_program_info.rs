@@ -4,7 +4,7 @@ use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_uxd;
 
-pub struct ProgramKeys {
+pub struct ProgramInfo {
     pub collateral_mint: Keypair,
     pub collateral_mint_decimals: u8,
     pub collateral_mint_authority: Keypair,
@@ -12,11 +12,11 @@ pub struct ProgramKeys {
     pub controller: Pubkey,
     pub redeemable_mint: Pubkey,
     pub redeemable_mint_decimals: u8,
-    pub identity_depository_keys: program_uxd::accounts::IdentityDepositoryKeys,
-    pub credix_lp_depository_keys: program_uxd::accounts::CredixLpDepositoryKeys,
+    pub identity_depository_info: program_uxd::accounts::IdentityDepositoryInfo,
+    pub credix_lp_depository_info: program_uxd::accounts::CredixLpDepositoryInfo,
 }
 
-impl ProgramKeys {
+impl ProgramInfo {
     pub fn collateral_amount_ui_to_native(&self, ui_amount: u64) -> u64 {
         ui_amount * 10u64.pow(self.collateral_mint_decimals.into())
     }
@@ -25,7 +25,7 @@ impl ProgramKeys {
     }
 }
 
-pub fn create_program_keys() -> ProgramKeys {
+pub fn create_program_info() -> ProgramInfo {
     let authority = Keypair::new();
 
     let collateral_mint = Keypair::new();
@@ -39,12 +39,12 @@ pub fn create_program_keys() -> ProgramKeys {
         Pubkey::find_program_address(&[uxd::REDEEMABLE_MINT_NAMESPACE.as_ref()], &uxd::id()).0;
     let redeemable_mint_decimals = 6;
 
-    let identity_depository_keys = program_uxd::accounts::create_identity_depository_keys();
+    let identity_depository_info = program_uxd::accounts::create_identity_depository_info();
 
-    let credix_lp_depository_keys =
-        program_uxd::accounts::create_credix_lp_depository_keys(&collateral_mint.pubkey());
+    let credix_lp_depository_info =
+        program_uxd::accounts::create_credix_lp_depository_info(&collateral_mint.pubkey());
 
-    ProgramKeys {
+    ProgramInfo {
         collateral_mint,
         collateral_mint_decimals,
         collateral_mint_authority,
@@ -52,7 +52,7 @@ pub fn create_program_keys() -> ProgramKeys {
         controller,
         redeemable_mint,
         redeemable_mint_decimals,
-        identity_depository_keys,
-        credix_lp_depository_keys,
+        identity_depository_info,
+        credix_lp_depository_info,
     }
 }

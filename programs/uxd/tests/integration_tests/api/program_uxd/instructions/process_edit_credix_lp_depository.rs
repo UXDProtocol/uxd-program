@@ -13,7 +13,7 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_edit_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_uxd::accounts::ProgramKeys,
+    program_info: &program_uxd::accounts::ProgramInfo,
     payer: &Keypair,
     redeemable_amount_under_management_cap: Option<u128>,
     minting_fee_in_bps: Option<u8>,
@@ -25,7 +25,7 @@ pub async fn process_edit_credix_lp_depository(
     let credix_lp_depository_before =
         program_test_context::read_account_anchor::<CredixLpDepository>(
             program_test_context,
-            &program_keys.credix_lp_depository_keys.depository,
+            &program_info.credix_lp_depository_info.depository,
         )
         .await?;
 
@@ -39,9 +39,9 @@ pub async fn process_edit_credix_lp_depository(
 
     // Execute IX
     let accounts = uxd::accounts::EditCredixLpDepository {
-        authority: program_keys.authority.pubkey(),
-        controller: program_keys.controller,
-        depository: program_keys.credix_lp_depository_keys.depository,
+        authority: program_info.authority.pubkey(),
+        controller: program_info.controller,
+        depository: program_info.credix_lp_depository_info.depository,
     };
     let payload = uxd::instruction::EditCredixLpDepository {
         fields: uxd::instructions::EditCredixLpDepositoryFields {
@@ -61,7 +61,7 @@ pub async fn process_edit_credix_lp_depository(
         program_test_context,
         instruction,
         payer,
-        &program_keys.authority,
+        &program_info.authority,
     )
     .await?;
 
@@ -69,7 +69,7 @@ pub async fn process_edit_credix_lp_depository(
     let credix_lp_depository_after =
         program_test_context::read_account_anchor::<CredixLpDepository>(
             program_test_context,
-            &program_keys.credix_lp_depository_keys.depository,
+            &program_info.credix_lp_depository_info.depository,
         )
         .await?;
 

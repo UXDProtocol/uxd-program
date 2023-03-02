@@ -12,7 +12,7 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_edit_identity_depository(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_uxd::accounts::ProgramKeys,
+    program_info: &program_uxd::accounts::ProgramInfo,
     payer: &Keypair,
     redeemable_amount_under_management_cap: Option<u128>,
     minting_disabled: Option<bool>,
@@ -21,7 +21,7 @@ pub async fn process_edit_identity_depository(
     let identity_depository_before =
         program_test_context::read_account_anchor::<IdentityDepository>(
             program_test_context,
-            &program_keys.identity_depository_keys.depository,
+            &program_info.identity_depository_info.depository,
         )
         .await?;
 
@@ -31,9 +31,9 @@ pub async fn process_edit_identity_depository(
 
     // Execute IX
     let accounts = uxd::accounts::EditIdentityDepository {
-        authority: program_keys.authority.pubkey(),
-        controller: program_keys.controller,
-        depository: program_keys.identity_depository_keys.depository,
+        authority: program_info.authority.pubkey(),
+        controller: program_info.controller,
+        depository: program_info.identity_depository_info.depository,
     };
     let payload = uxd::instruction::EditIdentityDepository {
         fields: uxd::instructions::EditIdentityDepositoryFields {
@@ -50,7 +50,7 @@ pub async fn process_edit_identity_depository(
         program_test_context,
         instruction,
         payer,
-        &program_keys.authority,
+        &program_info.authority,
     )
     .await?;
 
@@ -58,7 +58,7 @@ pub async fn process_edit_identity_depository(
     let identity_depository_after =
         program_test_context::read_account_anchor::<IdentityDepository>(
             program_test_context,
-            &program_keys.identity_depository_keys.depository,
+            &program_info.identity_depository_info.depository,
         )
         .await?;
 

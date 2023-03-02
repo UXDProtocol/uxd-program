@@ -12,14 +12,14 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_edit_controller(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_uxd::accounts::ProgramKeys,
+    program_info: &program_uxd::accounts::ProgramInfo,
     payer: &Keypair,
     redeemable_global_supply_cap: Option<u128>,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Read state before
     let controller_before = program_test_context::read_account_anchor::<Controller>(
         program_test_context,
-        &program_keys.controller,
+        &program_info.controller,
     )
     .await?;
 
@@ -27,8 +27,8 @@ pub async fn process_edit_controller(
 
     // Execute IX
     let accounts = uxd::accounts::EditController {
-        authority: program_keys.authority.pubkey(),
-        controller: program_keys.controller,
+        authority: program_info.authority.pubkey(),
+        controller: program_info.controller,
     };
     let payload = uxd::instruction::EditController {
         fields: uxd::instructions::EditControllerFields {
@@ -44,14 +44,14 @@ pub async fn process_edit_controller(
         program_test_context,
         instruction,
         payer,
-        &program_keys.authority,
+        &program_info.authority,
     )
     .await?;
 
     // Read state after
     let controller_after = program_test_context::read_account_anchor::<Controller>(
         program_test_context,
-        &program_keys.controller,
+        &program_info.controller,
     )
     .await?;
 

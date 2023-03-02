@@ -16,7 +16,7 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_redeem_from_identity_depository(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_uxd::accounts::ProgramKeys,
+    program_info: &program_uxd::accounts::ProgramInfo,
     payer: &Keypair,
     user: &Keypair,
     user_collateral: &Pubkey,
@@ -27,18 +27,18 @@ pub async fn process_redeem_from_identity_depository(
     let redeemable_mint_before =
         program_test_context::read_account_packed::<spl_token::state::Mint>(
             program_test_context,
-            &program_keys.redeemable_mint,
+            &program_info.redeemable_mint,
         )
         .await?;
     let controller_before = program_test_context::read_account_anchor::<Controller>(
         program_test_context,
-        &program_keys.controller,
+        &program_info.controller,
     )
     .await?;
     let identity_depository_before =
         program_test_context::read_account_anchor::<IdentityDepository>(
             program_test_context,
-            &program_keys.identity_depository_keys.depository,
+            &program_info.identity_depository_info.depository,
         )
         .await?;
 
@@ -63,10 +63,10 @@ pub async fn process_redeem_from_identity_depository(
     let accounts = uxd::accounts::RedeemFromIdentityDepository {
         user: user.pubkey(),
         payer: payer.pubkey(),
-        controller: program_keys.controller,
-        depository: program_keys.identity_depository_keys.depository,
-        collateral_vault: program_keys.identity_depository_keys.collateral_vault,
-        redeemable_mint: program_keys.redeemable_mint,
+        controller: program_info.controller,
+        depository: program_info.identity_depository_info.depository,
+        collateral_vault: program_info.identity_depository_info.collateral_vault,
+        redeemable_mint: program_info.redeemable_mint,
         user_collateral: *user_collateral,
         user_redeemable: *user_redeemable,
         system_program: anchor_lang::system_program::ID,
@@ -89,18 +89,18 @@ pub async fn process_redeem_from_identity_depository(
     // Read state after
     let redeemable_mint_after = program_test_context::read_account_packed::<Mint>(
         program_test_context,
-        &program_keys.redeemable_mint,
+        &program_info.redeemable_mint,
     )
     .await?;
     let controller_after = program_test_context::read_account_anchor::<Controller>(
         program_test_context,
-        &program_keys.controller,
+        &program_info.controller,
     )
     .await?;
     let identity_depository_after =
         program_test_context::read_account_anchor::<IdentityDepository>(
             program_test_context,
-            &program_keys.identity_depository_keys.depository,
+            &program_info.identity_depository_info.depository,
         )
         .await?;
 

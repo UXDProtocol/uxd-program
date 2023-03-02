@@ -25,12 +25,12 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     .await?;
 
     // Create the program keys structure (find/create all important keys)
-    let program_keys = program_uxd::accounts::create_program_keys();
+    let program_info = program_uxd::accounts::create_program_info();
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
         &mut program_test_context,
-        &program_keys,
+        &program_info,
         &payer,
     )
     .await?;
@@ -42,7 +42,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     let user_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
         &mut program_test_context,
         &payer,
-        &program_keys.collateral_mint.pubkey(),
+        &program_info.collateral_mint.pubkey(),
         &user.pubkey(),
     )
     .await?;
@@ -50,17 +50,17 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     let user_redeemable = program_spl::instructions::process_associated_token_account_get_or_init(
         &mut program_test_context,
         &payer,
-        &program_keys.redeemable_mint,
+        &program_info.redeemable_mint,
         &user.pubkey(),
     )
     .await?;
 
     // Useful amounts used during testing scenario
-    let amount_we_use_as_supply_cap = program_keys.redeemable_amount_ui_to_native(50);
-    let amount_bigger_than_the_supply_cap = program_keys.redeemable_amount_ui_to_native(300);
+    let amount_we_use_as_supply_cap = program_info.redeemable_amount_ui_to_native(50);
+    let amount_bigger_than_the_supply_cap = program_info.redeemable_amount_ui_to_native(300);
 
-    let amount_of_collateral_airdropped_to_user = program_keys.collateral_amount_ui_to_native(1000);
-    let amount_the_user_should_be_able_to_mint = program_keys.collateral_amount_ui_to_native(50);
+    let amount_of_collateral_airdropped_to_user = program_info.collateral_amount_ui_to_native(1000);
+    let amount_the_user_should_be_able_to_mint = program_info.collateral_amount_ui_to_native(50);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -76,7 +76,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
-            &program_keys,
+            &program_info,
             &payer,
             &user,
             &user_collateral,
@@ -91,8 +91,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     program_spl::instructions::process_token_mint_to(
         &mut program_test_context,
         &payer,
-        &program_keys.collateral_mint.pubkey(),
-        &program_keys.collateral_mint_authority,
+        &program_info.collateral_mint.pubkey(),
+        &program_info.collateral_mint_authority,
         &user_collateral,
         amount_of_collateral_airdropped_to_user,
     )
@@ -102,7 +102,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
-            &program_keys,
+            &program_info,
             &payer,
             &user,
             &user_collateral,
@@ -116,7 +116,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     // Set the controller cap
     program_uxd::instructions::process_edit_controller(
         &mut program_test_context,
-        &program_keys,
+        &program_info,
         &payer,
         Some(amount_we_use_as_supply_cap.into()),
     )
@@ -126,7 +126,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
-            &program_keys,
+            &program_info,
             &payer,
             &user,
             &user_collateral,
@@ -140,7 +140,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     // Set the depository cap and make sure minting is not disabled
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
-        &program_keys,
+        &program_info,
         &payer,
         Some(amount_we_use_as_supply_cap.into()),
         Some(100),
@@ -154,7 +154,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
-            &program_keys,
+            &program_info,
             &payer,
             &user,
             &user_collateral,
@@ -169,7 +169,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
-            &program_keys,
+            &program_info,
             &payer,
             &user,
             &user_collateral,
@@ -189,7 +189,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     // Minting should work now that everything is set
     program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_test_context,
-        &program_keys,
+        &program_info,
         &payer,
         &user,
         &user_collateral,

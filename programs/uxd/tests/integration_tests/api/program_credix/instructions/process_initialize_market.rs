@@ -9,19 +9,19 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_initialize_market(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_credix::accounts::ProgramKeys,
+    program_info: &program_credix::accounts::ProgramInfo,
 ) -> Result<(), program_test_context::ProgramTestError> {
     let accounts = credix_client::accounts::InitializeMarket {
-        owner: program_keys.authority.pubkey(),
-        global_market_state: program_keys.global_market_state,
-        market_admins: program_keys.market_admins,
-        program_state: program_keys.program_state,
-        signing_authority: program_keys.signing_authority,
-        lp_token_mint: program_keys.lp_token_mint,
-        base_token_mint: program_keys.base_token_mint,
-        liquidity_pool_token_account: program_keys.liquidity_pool_token_account,
-        treasury: program_keys.treasury,
-        treasury_pool_token_account: program_keys.treasury_pool_token_account,
+        owner: program_info.authority.pubkey(),
+        global_market_state: program_info.global_market_state,
+        market_admins: program_info.market_admins,
+        program_state: program_info.program_state,
+        signing_authority: program_info.signing_authority,
+        lp_token_mint: program_info.lp_token_mint,
+        base_token_mint: program_info.base_token_mint,
+        liquidity_pool_token_account: program_info.liquidity_pool_token_account,
+        treasury: program_info.treasury,
+        treasury_pool_token_account: program_info.treasury_pool_token_account,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
@@ -29,8 +29,8 @@ pub async fn process_initialize_market(
     };
 
     let payload = credix_client::instruction::InitializeMarket {
-        _global_market_seed: program_keys.market_seeds.clone(),
-        _multisig: Some(program_keys.authority.pubkey()),
+        _global_market_seed: program_info.market_seeds.clone(),
+        _multisig: Some(program_info.authority.pubkey()),
         _managers: None,
         _pass_issuers: None,
         _grace_period: 10,
@@ -71,7 +71,7 @@ pub async fn process_initialize_market(
     program_test_context::process_instruction(
         program_test_context,
         instruction,
-        &program_keys.authority,
+        &program_info.authority,
     )
     .await
 }

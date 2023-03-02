@@ -4,7 +4,7 @@ use solana_sdk::signer::Signer;
 
 const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";
 
-pub struct ProgramKeys {
+pub struct ProgramInfo {
     pub authority: Keypair,
     pub program_state: Pubkey,
     pub market_seeds: String,
@@ -18,7 +18,7 @@ pub struct ProgramKeys {
     pub treasury_pool_token_account: Pubkey,
 }
 
-pub fn create_program_keys(collateral_mint: &Pubkey) -> ProgramKeys {
+pub fn create_program_info(collateral_mint: &Pubkey) -> ProgramInfo {
     let authority = Keypair::new();
 
     let program_state = credix_client::ProgramState::generate_pda().0;
@@ -46,7 +46,7 @@ pub fn create_program_keys(collateral_mint: &Pubkey) -> ProgramKeys {
     let treasury_pool_token_account =
         spl_associated_token_account::get_associated_token_address(&treasury, &base_token_mint);
 
-    ProgramKeys {
+    ProgramInfo {
         authority,
         program_state,
         market_seeds,

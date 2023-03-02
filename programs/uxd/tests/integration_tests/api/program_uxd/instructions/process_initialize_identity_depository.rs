@@ -10,16 +10,16 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_initialize_identity_depository(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_uxd::accounts::ProgramKeys,
+    program_info: &program_uxd::accounts::ProgramInfo,
     payer: &Keypair,
 ) -> Result<(), program_test_context::ProgramTestError> {
     let accounts = uxd::accounts::InitializeIdentityDepository {
-        authority: program_keys.authority.pubkey(),
+        authority: program_info.authority.pubkey(),
         payer: payer.pubkey(),
-        controller: program_keys.controller,
-        depository: program_keys.identity_depository_keys.depository,
-        collateral_vault: program_keys.identity_depository_keys.collateral_vault,
-        collateral_mint: program_keys.collateral_mint.pubkey(),
+        controller: program_info.controller,
+        depository: program_info.identity_depository_info.depository,
+        collateral_vault: program_info.identity_depository_info.collateral_vault,
+        collateral_mint: program_info.collateral_mint.pubkey(),
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
@@ -34,7 +34,7 @@ pub async fn process_initialize_identity_depository(
         program_test_context,
         instruction,
         payer,
-        &program_keys.authority,
+        &program_info.authority,
     )
     .await
 }
