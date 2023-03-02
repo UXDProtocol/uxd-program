@@ -5,29 +5,12 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_credix;
-use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 
 pub async fn process_initialize_market(
     program_test_context: &mut ProgramTestContext,
     program_keys: &program_credix::accounts::ProgramKeys,
-) -> Result<(), String> {
-    program_spl::instructions::process_associated_token_account_init(
-        program_test_context,
-        &program_keys.authority,
-        &program_keys.base_token_mint,
-        &program_keys.signing_authority,
-    )
-    .await?;
-
-    program_spl::instructions::process_associated_token_account_init(
-        program_test_context,
-        &program_keys.authority,
-        &program_keys.base_token_mint,
-        &program_keys.treasury,
-    )
-    .await?;
-
+) -> Result<(), program_test_context::ProgramTestError> {
     let accounts = credix_client::accounts::InitializeMarket {
         owner: program_keys.authority.pubkey(),
         global_market_state: program_keys.global_market_state,

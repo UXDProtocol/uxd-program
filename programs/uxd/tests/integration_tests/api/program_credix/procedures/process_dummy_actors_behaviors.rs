@@ -4,12 +4,13 @@ use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
+use crate::integration_tests::api::program_test_context;
 
 pub async fn process_dummy_actors_behaviors(
     program_test_context: &mut ProgramTestContext,
     program_keys: &program_credix::accounts::ProgramKeys,
     base_token_authority: &Keypair,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     // Create a dummy investor
     let dummy_investor = Keypair::new();
     let dummy_investor_pass = credix_client::CredixPass::generate_pda(
@@ -36,7 +37,7 @@ pub async fn process_dummy_actors_behaviors(
     .await?;
 
     // Give some collateral (base token) to our dummy investor and create its token account
-    program_spl::instructions::process_associated_token_account_init(
+    program_spl::instructions::process_associated_token_account_get_or_init(
         program_test_context,
         &dummy_investor,
         &program_keys.base_token_mint,

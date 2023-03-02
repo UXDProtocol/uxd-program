@@ -2,7 +2,8 @@ use solana_program::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-const CREDIX_MARKETPLACE_SEED: &str = "credix-marketplace";
+const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";
+
 pub struct ProgramKeys {
     pub authority: Keypair,
     pub program_state: Pubkey,

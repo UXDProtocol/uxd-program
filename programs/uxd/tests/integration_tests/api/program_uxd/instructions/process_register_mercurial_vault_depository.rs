@@ -15,7 +15,7 @@ pub async fn process_register_mercurial_vault_depository(
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
     redeemable_amount_under_management_cap: u128,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     let mercurial_vault_depository_keys = &program_keys.mercurial_vault_depository_keys;
 
     let accounts = uxd::accounts::RegisterMercurialVaultDepository {

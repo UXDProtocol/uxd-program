@@ -10,7 +10,7 @@ use crate::integration_tests::api::program_test_context;
 pub async fn process_initialize_program_state(
     program_test_context: &mut ProgramTestContext,
     program_keys: &program_credix::accounts::ProgramKeys,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     let accounts = credix_client::accounts::InitializeProgramState {
         owner: program_keys.authority.pubkey(),
         program_state: program_keys.program_state,

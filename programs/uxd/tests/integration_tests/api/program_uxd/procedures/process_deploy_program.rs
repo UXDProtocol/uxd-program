@@ -6,16 +6,18 @@ use solana_sdk::signer::Signer;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_spl;
+use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_deploy_program(
     program_test_context: &mut ProgramTestContext,
     program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
-    redeemable_mint_decimals: u8,
-    redeemable_global_supply_cap: u128,
-) -> Result<(), String> {
-    // Use restictive default values for all tests, can be modified in individual test cases through edits
+) -> Result<(), program_test_context::ProgramTestError> {
+    // Use restictive default values for all tests
+    // Can be modified in individual test cases through edits
+    // This forces all tests be explicit about their requirements
+    let redeemable_global_supply_cap = 0;
     let identity_depository_redeemable_amount_under_management_cap = 0;
     let identity_depository_minting_disabled = true;
 
@@ -26,8 +28,8 @@ pub async fn process_deploy_program(
     let mercurial_vault_depository_profits_beneficiary_collateral = Pubkey::default();
 
     let credix_lp_depository_redeemable_amount_under_management_cap = 0;
-    let credix_lp_depository_minting_fee_in_bps = 100;
-    let credix_lp_depository_redeeming_fee_in_bps = 100;
+    let credix_lp_depository_minting_fee_in_bps = 255;
+    let credix_lp_depository_redeeming_fee_in_bps = 255;
     let credix_lp_depository_minting_disabled = true;
     let credix_lp_depository_profits_beneficiary_collateral = Pubkey::default();
 
@@ -36,8 +38,8 @@ pub async fn process_deploy_program(
         program_test_context,
         &payer,
         &program_keys.collateral_mint,
-        redeemable_mint_decimals,
-        &program_keys.collateral_authority.pubkey(),
+        program_keys.collateral_mint_decimals,
+        &program_keys.collateral_mint_authority.pubkey(),
     )
     .await?;
 
@@ -46,7 +48,7 @@ pub async fn process_deploy_program(
         program_test_context,
         program_keys,
         payer,
-        redeemable_mint_decimals,
+        program_keys.redeemable_mint_decimals,
     )
     .await?;
     program_uxd::instructions::process_edit_controller(
@@ -113,7 +115,7 @@ pub async fn process_deploy_program(
     program_credix::procedures::process_dummy_actors_behaviors(
         program_test_context,
         &program_keys.credix_lp_depository_keys.credix_program_keys,
-        &program_keys.collateral_authority,
+        &program_keys.collateral_mint_authority,
     )
     .await?;
 

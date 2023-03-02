@@ -17,7 +17,7 @@ pub async fn process_create_credix_pass(
     is_borrower: bool,
     release_timestamp: i64,
     disable_withdrawal_fee: bool,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     let accounts = credix_client::accounts::CreateCredixPass {
         owner: program_keys.authority.pubkey(),
         pass_holder: *pass_holder,

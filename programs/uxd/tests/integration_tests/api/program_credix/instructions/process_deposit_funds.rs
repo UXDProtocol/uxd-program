@@ -17,7 +17,7 @@ pub async fn process_deposit_funds(
     investor_token_account: &Pubkey,
     investor_lp_token_account: &Pubkey,
     amount: u64,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     let accounts = credix_client::accounts::DepositFunds {
         investor: investor.pubkey(),
         investor_token_account: *investor_token_account,

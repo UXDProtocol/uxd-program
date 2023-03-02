@@ -7,7 +7,8 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[tokio::test]
-async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_mercurial_vault_depository_mint_and_redeem(
+) -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -62,6 +63,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     let amount_of_collateral_airdropped_to_user = program_keys.collateral_amount_ui_to_native(1000);
     let amount_the_user_should_be_able_to_mint = program_keys.collateral_amount_ui_to_native(50);
 
+    let amount_the_user_should_be_able_to_redeem = program_keys.redeemable_amount_ui_to_native(50);
+
     // ---------------------------------------------------------------------
     // -- Phase 2
     // -- We try to mint (and it should fail)
@@ -74,7 +77,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Minting should fail because the user doesnt have collateral yet
     assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
+        program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &program_keys,
             &payer,
@@ -100,7 +103,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Minting should fail because the controller cap is too low
     assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
+        program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &program_keys,
             &payer,
@@ -124,7 +127,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Minting should fail because the depository cap is too low
     assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
+        program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &program_keys,
             &payer,
@@ -138,7 +141,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     );
 
     // Set the depository cap and make sure minting is not disabled
-    program_uxd::instructions::process_edit_credix_lp_depository(
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_test_context,
         &program_keys,
         &payer,
@@ -152,7 +155,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Minting too much should fail (above cap, but enough collateral)
     assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
+        program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &program_keys,
             &payer,
@@ -167,7 +170,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Minting zero should fail
     assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
+        program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &program_keys,
             &payer,
@@ -184,10 +187,12 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     // -- Phase 3
     // -- Everything is ready for minting
     // -- We should now successfully be able to mint
+    // -- After minting, we redeem (and it should succeed)
+    // -- We also test invalid redeem amounts (and it should fail)
     // ---------------------------------------------------------------------
 
     // Minting should work now that everything is set
-    program_uxd::instructions::process_mint_with_credix_lp_depository(
+    program_uxd::instructions::process_mint_with_mercurial_vault_depository(
         &mut program_test_context,
         &program_keys,
         &payer,
@@ -197,6 +202,48 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
         amount_the_user_should_be_able_to_mint,
     )
     .await?;
+
+    // Redeeming the correct amount should succeed
+    program_uxd::instructions::process_redeem_from_mercurial_vault_depository(
+        &mut program_test_context,
+        &program_keys,
+        &payer,
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_the_user_should_be_able_to_redeem,
+    )
+    .await?;
+
+    // Redeeming too much should fail
+    assert!(
+        program_uxd::instructions::process_redeem_from_mercurial_vault_depository(
+            &mut program_test_context,
+            &program_keys,
+            &payer,
+            &user,
+            &user_collateral,
+            &user_redeemable,
+            amount_bigger_than_the_supply_cap,
+        )
+        .await
+        .is_err()
+    );
+
+    // Redeeming zero should fail
+    assert!(
+        program_uxd::instructions::process_redeem_from_mercurial_vault_depository(
+            &mut program_test_context,
+            &program_keys,
+            &payer,
+            &user,
+            &user_collateral,
+            &user_redeemable,
+            0,
+        )
+        .await
+        .is_err()
+    );
 
     Ok(())
 }

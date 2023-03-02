@@ -7,10 +7,11 @@ use solana_sdk::signer::Signer;
 use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_test_context;
 
-pub async fn process_initialize_program_state(
+pub async fn process_initialize(
     program_test_context: &mut ProgramTestContext,
     program_keys: &program_mercurial::accounts::ProgramKeys,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
+    /*
     let accounts = mercurial_vault::accounts::Initialize {};
     let payload = mercurial_vault::instruction::Initialize {};
     let instruction = Instruction {
@@ -24,4 +25,6 @@ pub async fn process_initialize_program_state(
         &program_keys.authority,
     )
     .await
+     */
+    Ok(())
 }

@@ -227,9 +227,9 @@ impl<'info> MintWithMercurialVaultDepository<'info> {
         '_,
         '_,
         'info,
-        mercurial_vault::cpi::accounts::DepositWithdrawLiquidity<'info>,
+        mercurial_vault::cpi::accounts::Deposit<'info>,
     > {
-        let cpi_accounts = mercurial_vault::cpi::accounts::DepositWithdrawLiquidity {
+        let cpi_accounts = mercurial_vault::cpi::accounts::Deposit {
             vault: self.mercurial_vault.to_account_info(),
             token_vault: self.mercurial_vault_collateral_token_safe.to_account_info(),
             lp_mint: self.mercurial_vault_lp_mint.to_account_info(),

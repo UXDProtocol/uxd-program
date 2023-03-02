@@ -15,7 +15,7 @@ use uxd::utils::calculate_amount_less_fees;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
-pub async fn process_mint_with_credix_lp_depository(
+pub async fn process_mint_with_mercurial_vault_depository(
     program_test_context: &mut ProgramTestContext,
     program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
@@ -35,10 +35,10 @@ pub async fn process_mint_with_credix_lp_depository(
         &program_keys.controller,
     )
     .await?;
-    let credix_lp_depository_before =
+    let mercurial_vault_depository_before =
         program_test_context::read_account_anchor::<CredixLpDepository>(
             program_test_context,
-            &program_keys.credix_lp_depository_keys.depository,
+            &program_keys.mercurial_vault_depository_keys.depository,
         )
         .await?;
 
@@ -46,9 +46,10 @@ pub async fn process_mint_with_credix_lp_depository(
     let redeemable_circulating_supply_before =
         u64::try_from(controller_before.redeemable_circulating_supply).unwrap();
     let redeemable_amount_under_management_before =
-        u64::try_from(credix_lp_depository_before.redeemable_amount_under_management).unwrap();
+        u64::try_from(mercurial_vault_depository_before.redeemable_amount_under_management)
+            .unwrap();
     let collateral_amount_deposited_before =
-        u64::try_from(credix_lp_depository_before.collateral_amount_deposited).unwrap();
+        u64::try_from(mercurial_vault_depository_before.collateral_amount_deposited).unwrap();
 
     let user_collateral_amount_before =
         program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
@@ -60,7 +61,8 @@ pub async fn process_mint_with_credix_lp_depository(
             .amount;
 
     // Execute IX
-    let credix_lp_depository_keys = &program_keys.credix_lp_depository_keys;
+    /*
+    let mercurial_vault_depository_keys = &program_keys.mercurial_vault_depository_keys;
     let accounts = uxd::accounts::MintWithCredixLpDepository {
         payer: payer.pubkey(),
         user: user.pubkey(),
@@ -69,14 +71,14 @@ pub async fn process_mint_with_credix_lp_depository(
         redeemable_mint: program_keys.redeemable_mint,
         user_collateral: *user_collateral,
         user_redeemable: *user_redeemable,
-        depository: credix_lp_depository_keys.depository,
-        depository_collateral: credix_lp_depository_keys.depository_collateral,
-        depository_shares: credix_lp_depository_keys.depository_shares,
-        credix_global_market_state: credix_lp_depository_keys.credix_global_market_state,
-        credix_signing_authority: credix_lp_depository_keys.credix_signing_authority,
-        credix_liquidity_collateral: credix_lp_depository_keys.credix_liquidity_collateral,
-        credix_shares_mint: credix_lp_depository_keys.credix_shares_mint,
-        credix_pass: credix_lp_depository_keys.credix_pass,
+        depository: mercurial_vault_depository_keys.depository,
+        depository_collateral: mercurial_vault_depository_keys.depository_collateral,
+        depository_shares: mercurial_vault_depository_keys.depository_shares,
+        credix_global_market_state: mercurial_vault_depository_keys.credix_global_market_state,
+        credix_signing_authority: mercurial_vault_depository_keys.credix_signing_authority,
+        credix_liquidity_collateral: mercurial_vault_depository_keys.credix_liquidity_collateral,
+        credix_shares_mint: mercurial_vault_depository_keys.credix_shares_mint,
+        credix_pass: mercurial_vault_depository_keys.credix_pass,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
@@ -96,6 +98,7 @@ pub async fn process_mint_with_credix_lp_depository(
         &user,
     )
     .await?;
+     */
 
     // Read state after
     let redeemable_mint_after = program_test_context::read_account_packed::<Mint>(
@@ -108,10 +111,10 @@ pub async fn process_mint_with_credix_lp_depository(
         &program_keys.controller,
     )
     .await?;
-    let credix_lp_depository_after =
+    let mercurial_vault_depository_after =
         program_test_context::read_account_anchor::<CredixLpDepository>(
             program_test_context,
-            &program_keys.credix_lp_depository_keys.depository,
+            &program_keys.mercurial_vault_depository_keys.depository,
         )
         .await?;
 
@@ -119,9 +122,9 @@ pub async fn process_mint_with_credix_lp_depository(
     let redeemable_circulating_supply_after =
         u64::try_from(controller_after.redeemable_circulating_supply).unwrap();
     let redeemable_amount_under_management_after =
-        u64::try_from(credix_lp_depository_after.redeemable_amount_under_management).unwrap();
+        u64::try_from(mercurial_vault_depository_after.redeemable_amount_under_management).unwrap();
     let collateral_amount_deposited_after =
-        u64::try_from(credix_lp_depository_after.collateral_amount_deposited).unwrap();
+        u64::try_from(mercurial_vault_depository_after.collateral_amount_deposited).unwrap();
 
     let user_collateral_amount_after =
         program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
@@ -135,7 +138,7 @@ pub async fn process_mint_with_credix_lp_depository(
     // Compute expected redeemable amount after minting fees
     let redeemable_amount = calculate_amount_less_fees(
         collateral_amount,
-        credix_lp_depository_before.minting_fee_in_bps,
+        mercurial_vault_depository_before.minting_fee_in_bps,
     )
     .map_err(|e| program_test_context::ProgramTestError::AnchorError(e))?;
 
