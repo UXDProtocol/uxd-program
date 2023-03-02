@@ -5,6 +5,11 @@ use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
+use spl_token::state::Account;
+use spl_token::state::Mint;
+
+use uxd::state::Controller;
+use uxd::state::IdentityDepository;
 
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
@@ -19,19 +24,18 @@ pub async fn process_mint_with_identity_depository(
     collateral_amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Read state before
-    let redeemable_mint_before =
-        program_test_context::read_account_packed::<spl_token::state::Mint>(
-            program_test_context,
-            &program_keys.redeemable_mint,
-        )
-        .await?;
-    let controller_before = program_test_context::read_account_anchor::<uxd::state::Controller>(
+    let redeemable_mint_before = program_test_context::read_account_packed::<Mint>(
+        program_test_context,
+        &program_keys.redeemable_mint,
+    )
+    .await?;
+    let controller_before = program_test_context::read_account_anchor::<Controller>(
         program_test_context,
         &program_keys.controller,
     )
     .await?;
     let identity_depository_before =
-        program_test_context::read_account_anchor::<uxd::state::IdentityDepository>(
+        program_test_context::read_account_anchor::<IdentityDepository>(
             program_test_context,
             &program_keys.identity_depository_keys.depository,
         )
@@ -45,16 +49,14 @@ pub async fn process_mint_with_identity_depository(
     let collateral_amount_deposited_before =
         u64::try_from(identity_depository_before.collateral_amount_deposited).unwrap();
 
-    let user_collateral_amount_before = program_test_context::read_account_packed::<
-        spl_token::state::Account,
-    >(program_test_context, user_collateral)
-    .await?
-    .amount;
-    let user_redeemable_amount_before = program_test_context::read_account_packed::<
-        spl_token::state::Account,
-    >(program_test_context, user_redeemable)
-    .await?
-    .amount;
+    let user_collateral_amount_before =
+        program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
+            .await?
+            .amount;
+    let user_redeemable_amount_before =
+        program_test_context::read_account_packed::<Account>(program_test_context, user_redeemable)
+            .await?
+            .amount;
 
     // Execute IX
     let accounts = uxd::accounts::MintWithIdentityDepository {
@@ -84,19 +86,18 @@ pub async fn process_mint_with_identity_depository(
     .await?;
 
     // Read state after
-    let redeemable_mint_after =
-        program_test_context::read_account_packed::<spl_token::state::Mint>(
-            program_test_context,
-            &program_keys.redeemable_mint,
-        )
-        .await?;
-    let controller_after = program_test_context::read_account_anchor::<uxd::state::Controller>(
+    let redeemable_mint_after = program_test_context::read_account_packed::<Mint>(
+        program_test_context,
+        &program_keys.redeemable_mint,
+    )
+    .await?;
+    let controller_after = program_test_context::read_account_anchor::<Controller>(
         program_test_context,
         &program_keys.controller,
     )
     .await?;
     let identity_depository_after =
-        program_test_context::read_account_anchor::<uxd::state::IdentityDepository>(
+        program_test_context::read_account_anchor::<IdentityDepository>(
             program_test_context,
             &program_keys.identity_depository_keys.depository,
         )
@@ -110,16 +111,14 @@ pub async fn process_mint_with_identity_depository(
     let collateral_amount_deposited_after =
         u64::try_from(identity_depository_after.collateral_amount_deposited).unwrap();
 
-    let user_collateral_amount_after = program_test_context::read_account_packed::<
-        spl_token::state::Account,
-    >(program_test_context, user_collateral)
-    .await?
-    .amount;
-    let user_redeemable_amount_after = program_test_context::read_account_packed::<
-        spl_token::state::Account,
-    >(program_test_context, user_redeemable)
-    .await?
-    .amount;
+    let user_collateral_amount_after =
+        program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
+            .await?
+            .amount;
+    let user_redeemable_amount_after =
+        program_test_context::read_account_packed::<Account>(program_test_context, user_redeemable)
+            .await?
+            .amount;
 
     // Check result
     assert_eq!(

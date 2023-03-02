@@ -5,6 +5,8 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::state::Controller;
+
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
@@ -15,7 +17,7 @@ pub async fn process_edit_controller(
     redeemable_global_supply_cap: Option<u128>,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Read state before
-    let controller_before = program_test_context::read_account_anchor::<uxd::state::Controller>(
+    let controller_before = program_test_context::read_account_anchor::<Controller>(
         program_test_context,
         &program_keys.controller,
     )
@@ -47,7 +49,7 @@ pub async fn process_edit_controller(
     .await?;
 
     // Read state after
-    let controller_after = program_test_context::read_account_anchor::<uxd::state::Controller>(
+    let controller_after = program_test_context::read_account_anchor::<Controller>(
         program_test_context,
         &program_keys.controller,
     )

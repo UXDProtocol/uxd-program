@@ -61,7 +61,6 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     let amount_of_collateral_airdropped_to_user = 1_000_000_000;
     let amount_the_user_should_be_able_to_mint = 50_000_000;
-    let amount_the_user_should_be_able_to_redeem = 50_000_000;
 
     // ---------------------------------------------------------------------
     // -- Phase 2

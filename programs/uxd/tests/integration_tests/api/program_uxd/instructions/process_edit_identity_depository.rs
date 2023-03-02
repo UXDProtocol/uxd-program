@@ -5,6 +5,8 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::state::IdentityDepository;
+
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
@@ -17,7 +19,7 @@ pub async fn process_edit_identity_depository(
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Read state before
     let identity_depository_before =
-        program_test_context::read_account_anchor::<uxd::state::IdentityDepository>(
+        program_test_context::read_account_anchor::<IdentityDepository>(
             program_test_context,
             &program_keys.identity_depository_keys.depository,
         )
@@ -54,7 +56,7 @@ pub async fn process_edit_identity_depository(
 
     // Read state after
     let identity_depository_after =
-        program_test_context::read_account_anchor::<uxd::state::IdentityDepository>(
+        program_test_context::read_account_anchor::<IdentityDepository>(
             program_test_context,
             &program_keys.identity_depository_keys.depository,
         )

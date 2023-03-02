@@ -6,6 +6,8 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::state::CredixLpDepository;
+
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
@@ -21,7 +23,7 @@ pub async fn process_edit_credix_lp_depository(
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Read state before
     let credix_lp_depository_before =
-        program_test_context::read_account_anchor::<uxd::state::CredixLpDepository>(
+        program_test_context::read_account_anchor::<CredixLpDepository>(
             program_test_context,
             &program_keys.credix_lp_depository_keys.depository,
         )
@@ -65,7 +67,7 @@ pub async fn process_edit_credix_lp_depository(
 
     // Read state after
     let credix_lp_depository_after =
-        program_test_context::read_account_anchor::<uxd::state::CredixLpDepository>(
+        program_test_context::read_account_anchor::<CredixLpDepository>(
             program_test_context,
             &program_keys.credix_lp_depository_keys.depository,
         )
