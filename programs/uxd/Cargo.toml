@@ -1,6 +1,6 @@
 [package]
 name = "uxd"
-version = "7.0.0"
+version = "7.0.3"
 authors = [
   "acammm <alexcamill@gmail.com>",
   "cnek <ctk2012ac@gmail.com>",
@@ -41,3 +41,8 @@ credix_client = { version = "0.6.0", features = [
 
 [dev-dependencies]
 proptest = "1.0.0"
+solana-program = "1.15.2"
+solana-program-test = "1.15.2"
+solana-sdk = "1.15.2"
+spl-token = "3.5.0"
+spl-associated-token-account = "1.1.2"
