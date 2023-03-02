@@ -1,37 +1,17 @@
-<<<<<<< HEAD
 use solana_program::pubkey::Pubkey;
-=======
->>>>>>> main
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-<<<<<<< HEAD
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
-=======
-use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
->>>>>>> main
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_deploy_program(
     program_test_context: &mut ProgramTestContext,
     program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
-<<<<<<< HEAD
-    redeemable_mint_decimals: u8,
-    redeemable_global_supply_cap: u128,
-) -> Result<(), String> {
-    // Use restictive default values for all tests, can be modified in individual test cases through edits
-    let identity_depository_redeemable_amount_under_management_cap = 0;
-    let identity_depository_minting_disabled = true;
-    let credix_lp_depository_redeemable_amount_under_management_cap = 0;
-    let credix_lp_depository_minting_fee_in_bps = 100;
-    let credix_lp_depository_redeeming_fee_in_bps = 100;
-    let credix_lp_depository_minting_disabled = true;
-    let credix_lp_depository_profits_beneficiary_collateral = Pubkey::default();
-=======
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Use restictive default values for all tests
     // Can be modified in individual test cases through edits
@@ -40,7 +20,11 @@ pub async fn process_deploy_program(
     let redeemable_global_supply_cap = 0;
     let identity_depository_redeemable_amount_under_management_cap = 0;
     let identity_depository_minting_disabled = true;
->>>>>>> main
+    let credix_lp_depository_redeemable_amount_under_management_cap = 0;
+    let credix_lp_depository_minting_fee_in_bps = 100;
+    let credix_lp_depository_redeeming_fee_in_bps = 100;
+    let credix_lp_depository_minting_disabled = true;
+    let credix_lp_depository_profits_beneficiary_collateral = Pubkey::default();
 
     // Create the collateral mint
     program_spl::instructions::process_token_mint_init(
@@ -84,7 +68,6 @@ pub async fn process_deploy_program(
     )
     .await?;
 
-<<<<<<< HEAD
     // Credix onchain dependency program deployment
     program_credix::procedures::process_deploy_program(
         program_test_context,
@@ -136,8 +119,5 @@ pub async fn process_deploy_program(
     // TODO - initialize mercurial too here
 
     // Redeemable tokens ready to be minted/redeemed
-=======
-    // Done
->>>>>>> main
     Ok(())
 }

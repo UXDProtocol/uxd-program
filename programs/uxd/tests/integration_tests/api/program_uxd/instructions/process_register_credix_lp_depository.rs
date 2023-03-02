@@ -15,7 +15,7 @@ pub async fn process_register_credix_lp_depository(
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
     redeemable_amount_under_management_cap: u128,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     let credix_lp_depository_keys = &program_keys.credix_lp_depository_keys;
 
     let accounts = uxd::accounts::RegisterCredixLpDepository {

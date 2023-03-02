@@ -1,4 +1,3 @@
-use solana_program::pubkey::Pubkey;
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
@@ -8,7 +7,12 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[tokio::test]
-async fn test_credix_lp_depository_mint() -> Result<(), String> {
+async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::ProgramTestError> {
+    // ---------------------------------------------------------------------
+    // -- Phase 1
+    // -- Setup basic context and accounts needed for this test suite
+    // ---------------------------------------------------------------------
+
     let mut program_test_context = program_test_context::create_program_test_context().await;
 
     // Fund payer
@@ -28,47 +32,22 @@ async fn test_credix_lp_depository_mint() -> Result<(), String> {
         &mut program_test_context,
         &program_keys,
         &payer,
-        6,
-        1_000_000,
-    )
-    .await?;
-
-    // Enable minting by editing credix depository configuration
-    program_uxd::instructions::process_edit_credix_lp_depository(
-        &mut program_test_context,
-        &program_keys,
-        &payer,
-        Some(1_000_000),
-        Some(0),
-        Some(0),
-        Some(false),
-        Some(Pubkey::default()),
     )
     .await?;
 
     // Main actor
     let user = Keypair::new();
 
-    // Give some collateral to our user and create its account
-    let user_collateral = program_spl::instructions::process_associated_token_account_init(
+    // Create a collateral account for our user
+    let user_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
         &mut program_test_context,
         &payer,
         &program_keys.collateral_mint.pubkey(),
         &user.pubkey(),
     )
     .await?;
-    program_spl::instructions::process_token_mint_to(
-        &mut program_test_context,
-        &payer,
-        &program_keys.collateral_mint.pubkey(),
-        &program_keys.collateral_authority,
-        &user_collateral,
-        1_000_000,
-    )
-    .await?;
-
     // Create a redeemable account for our user
-    let user_redeemable = program_spl::instructions::process_associated_token_account_init(
+    let user_redeemable = program_spl::instructions::process_associated_token_account_get_or_init(
         &mut program_test_context,
         &payer,
         &program_keys.redeemable_mint,
@@ -76,22 +55,139 @@ async fn test_credix_lp_depository_mint() -> Result<(), String> {
     )
     .await?;
 
-    // Check user collateral original amount
-    assert_eq!(
-        1_000_000,
-        program_spl::accounts::read_token_account(&mut program_test_context, &user_collateral)
-            .await?
-            .amount
-    );
-    // Check user redeemable original amount
-    assert_eq!(
-        0,
-        program_spl::accounts::read_token_account(&mut program_test_context, &user_redeemable)
-            .await?
-            .amount
+    // Useful amounts used during testing scenario
+    let amount_we_use_as_supply_cap = 50_000_000;
+    let amount_bigger_than_the_supply_cap = 300_000_000;
+
+    let amount_of_collateral_airdropped_to_user = 1_000_000_000;
+    let amount_the_user_should_be_able_to_mint = 50_000_000;
+    let amount_the_user_should_be_able_to_redeem = 50_000_000;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 2
+    // -- We try to mint (and it should fail)
+    // -- and progressively set all things needed to mint one by one:
+    // --  - airdrop collateral to our user
+    // --  - set the supply cap in the controller
+    // --  - set the redeemable cap and enable minting in the identity depository
+    // -- when everything is ready, try to mint incorrect amounts (it should fail)
+    // ---------------------------------------------------------------------
+
+    // Minting should fail because the user doesnt have collateral yet
+    assert!(
+        program_uxd::instructions::process_mint_with_credix_lp_depository(
+            &mut program_test_context,
+            &program_keys,
+            &payer,
+            &user,
+            &user_collateral,
+            &user_redeemable,
+            amount_the_user_should_be_able_to_mint,
+        )
+        .await
+        .is_err()
     );
 
-    // Mint using credix depository
+    // Airdrop collateral to our user
+    program_spl::instructions::process_token_mint_to(
+        &mut program_test_context,
+        &payer,
+        &program_keys.collateral_mint.pubkey(),
+        &program_keys.collateral_authority,
+        &user_collateral,
+        amount_of_collateral_airdropped_to_user,
+    )
+    .await?;
+
+    // Minting should fail because the controller cap is too low
+    assert!(
+        program_uxd::instructions::process_mint_with_credix_lp_depository(
+            &mut program_test_context,
+            &program_keys,
+            &payer,
+            &user,
+            &user_collateral,
+            &user_redeemable,
+            amount_the_user_should_be_able_to_mint,
+        )
+        .await
+        .is_err()
+    );
+
+    // Set the controller cap
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &program_keys,
+        &payer,
+        Some(amount_we_use_as_supply_cap),
+    )
+    .await?;
+
+    // Minting should fail because the depository cap is too low
+    assert!(
+        program_uxd::instructions::process_mint_with_credix_lp_depository(
+            &mut program_test_context,
+            &program_keys,
+            &payer,
+            &user,
+            &user_collateral,
+            &user_redeemable,
+            amount_the_user_should_be_able_to_mint,
+        )
+        .await
+        .is_err()
+    );
+
+    // Set the depository cap and make sure minting is not disabled
+    program_uxd::instructions::process_edit_credix_lp_depository(
+        &mut program_test_context,
+        &program_keys,
+        &payer,
+        Some(amount_we_use_as_supply_cap),
+        Some(0),
+        Some(0),
+        Some(false),
+        None,
+    )
+    .await?;
+
+    // Minting too much should fail (above cap, but enough collateral)
+    assert!(
+        program_uxd::instructions::process_mint_with_credix_lp_depository(
+            &mut program_test_context,
+            &program_keys,
+            &payer,
+            &user,
+            &user_collateral,
+            &user_redeemable,
+            amount_bigger_than_the_supply_cap,
+        )
+        .await
+        .is_err()
+    );
+
+    // Minting zero should fail
+    assert!(
+        program_uxd::instructions::process_mint_with_credix_lp_depository(
+            &mut program_test_context,
+            &program_keys,
+            &payer,
+            &user,
+            &user_collateral,
+            &user_redeemable,
+            0,
+        )
+        .await
+        .is_err()
+    );
+
+    // ---------------------------------------------------------------------
+    // -- Phase 3
+    // -- Everything is ready for minting
+    // -- We should now successfully be able to mint
+    // ---------------------------------------------------------------------
+
+    // Minting should work now that everything is set
     program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_test_context,
         &program_keys,
@@ -99,24 +195,9 @@ async fn test_credix_lp_depository_mint() -> Result<(), String> {
         &user,
         &user_collateral,
         &user_redeemable,
-        500_000,
+        amount_the_user_should_be_able_to_mint,
     )
     .await?;
-
-    // Check user collateral decreased
-    assert_eq!(
-        1_000_000 - 500_000,
-        program_spl::accounts::read_token_account(&mut program_test_context, &user_collateral)
-            .await?
-            .amount
-    );
-    // Check user redeemable increased
-    assert_eq!(
-        0 + 500_000,
-        program_spl::accounts::read_token_account(&mut program_test_context, &user_redeemable)
-            .await?
-            .amount
-    );
 
     Ok(())
 }

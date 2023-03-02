@@ -12,7 +12,7 @@ pub async fn process_token_transfer(
     from_token_account: &Pubkey,
     to_token_account: &Pubkey,
     amount: u64,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     let instruction = spl_token::instruction::transfer(
         &spl_token::id(),
         from_token_account,
@@ -21,7 +21,7 @@ pub async fn process_token_transfer(
         &[],
         amount,
     )
-    .map_err(|e| e.to_string())?;
+    .map_err(|e| program_test_context::ProgramTestError::ProgramError(e))?;
 
     program_test_context::process_instruction_with_signer(
         program_test_context,

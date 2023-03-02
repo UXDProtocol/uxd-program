@@ -3,6 +3,8 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 const CREDIX_MARKETPLACE_SEED: &str = "credix-marketplace";
+const CREDIX_LP_TOKEN_MINT_SEED: &str = "lp-token-mint";
+
 pub struct ProgramKeys {
     pub authority: Keypair,
     pub program_state: Pubkey,
@@ -31,8 +33,19 @@ pub fn create_program_keys(collateral_mint: &Pubkey) -> ProgramKeys {
     let signing_authority =
         credix_client::GlobalMarketState::generate_signing_authority_pda(&market_seeds).0;
 
+    /*
     let lp_token_mint =
         credix_client::GlobalMarketState::generate_lp_token_mint_pda(&market_seeds).0;
+     */
+
+    let lp_token_mint = Pubkey::find_program_address(
+        &[
+            &global_market_state.to_bytes(),
+            CREDIX_LP_TOKEN_MINT_SEED.as_bytes(),
+        ],
+        &credix_client::ID,
+    )
+    .0;
 
     let base_token_mint = *collateral_mint;
 
