@@ -28,6 +28,8 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
   profitsBeneficiary: Signer;
   controller: Controller;
 }) {
+  const collateralSymbol = 'USDC';
+
   let initialControllerGlobalRedeemableSupplyCap: BN;
   let initialRedeemableDepositorySupplyCap: BN;
   let depository: CredixLpDepository;
@@ -51,10 +53,28 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
       onChainController.redeemableGlobalSupplyCap;
     initialRedeemableDepositorySupplyCap =
       onChainDepository.redeemableAmountUnderManagementCap;
+
+    console.log(
+      'initialControllerGlobalRedeemableSupplyCap',
+      initialControllerGlobalRedeemableSupplyCap
+    );
+    console.log(
+      'initialRedeemableDepositorySupplyCap',
+      initialRedeemableDepositorySupplyCap
+    );
+
+    await editCredixLpDepositoryTest({
+      authority,
+      controller,
+      depository,
+      uiFields: {
+        redeemableAmountUnderManagementCap: 25_000_000,
+      },
+    });
   });
 
   describe('Regular mint/redeem', () => {
-    it(`Mint then redeem ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol}`, async function () {
+    it(`Mint then redeem ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol}`, async function () {
       const uiAmountCollateralDeposited = 0.001;
 
       console.log(
@@ -90,7 +110,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
   });
 
   describe('Over limits', () => {
-    it(`Mint for more ${depository.collateralSymbol} than owned (should fail)`, async function () {
+    it(`Mint for more ${collateralSymbol} than owned (should fail)`, async function () {
       const uiAmountCollateralDeposited = 1_000_000;
 
       console.log(
@@ -114,7 +134,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
       }
       expect(failure).eq(
         true,
-        `Should have failed - Do not own enough ${depository.collateralSymbol}`
+        `Should have failed - Do not own enough ${collateralSymbol}`
       );
     });
 
@@ -146,7 +166,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
       );
     });
 
-    it(`Mint for 0 ${depository.collateralSymbol} (should fail)`, async function () {
+    it(`Mint for 0 ${collateralSymbol} (should fail)`, async function () {
       const uiAmountCollateralDeposited = 0;
 
       console.log(
@@ -171,7 +191,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
 
       expect(failure).eq(
         true,
-        `Should have failed - Cannot mint for 0 ${depository.collateralSymbol}`
+        `Should have failed - Cannot mint for 0 ${collateralSymbol}`
       );
     });
 
@@ -206,7 +226,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
 
   describe('1 native unit mint/redeem', async () => {
     before(
-      `Setup: Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol}`,
+      `Setup: Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol}`,
       async function () {
         const uiAmountCollateralDeposited = 0.001;
 
@@ -227,7 +247,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
       }
     );
 
-    it(`Mint for 1 native unit ${depository.collateralSymbol} (should fail)`, async function () {
+    it(`Mint for 1 native unit ${collateralSymbol} (should fail)`, async function () {
       const uiAmountCollateralDeposited = Math.pow(
         10,
         -depository.collateralDecimals
@@ -299,7 +319,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
         },
       }));
 
-    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol} (should fail)`, async function () {
+    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol} (should fail)`, async function () {
       const uiAmountCollateralDeposited = 0.001;
 
       console.log(
@@ -365,7 +385,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
       });
     });
 
-    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol} (should fail)`, async function () {
+    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol} (should fail)`, async function () {
       const uiAmountCollateralDeposited = 0.001;
 
       console.log(
@@ -423,7 +443,7 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
       });
     });
 
-    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${depository.collateralSymbol} (should fail)`, async function () {
+    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol} (should fail)`, async function () {
       const uiAmountCollateralDeposited = 0.001;
 
       console.log(

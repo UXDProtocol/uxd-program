@@ -12,7 +12,7 @@ pub async fn process_initialize_identity_depository(
     program_test_context: &mut ProgramTestContext,
     program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     let accounts = uxd::accounts::InitializeIdentityDepository {
         authority: program_keys.authority.pubkey(),
         payer: payer.pubkey(),

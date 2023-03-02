@@ -9,9 +9,9 @@ pub async fn process_lamports_airdrop(
     program_test_context: &mut ProgramTestContext,
     to: &Pubkey,
     lamports: u64,
-) -> Result<(), String> {
-    let from =
-        Keypair::from_bytes(&program_test_context.payer.to_bytes()).map_err(|e| e.to_string())?;
+) -> Result<(), program_test_context::ProgramTestError> {
+    let from = Keypair::from_bytes(&program_test_context.payer.to_bytes())
+        .map_err(|e| program_test_context::ProgramTestError::SignatureError(e.to_string()))?;
     let instruction = solana_program::system_instruction::transfer(&from.pubkey(), &to, lamports);
     program_test_context::process_instruction(program_test_context, instruction, &from).await
 }

@@ -12,7 +12,7 @@ pub async fn process_token_mint_to(
     authority: &Keypair,
     token_account: &Pubkey,
     amount: u64,
-) -> Result<(), String> {
+) -> Result<(), program_test_context::ProgramTestError> {
     let instruction = spl_token::instruction::mint_to(
         &spl_token::id(),
         mint,
@@ -21,7 +21,7 @@ pub async fn process_token_mint_to(
         &[],
         amount,
     )
-    .map_err(|e| e.to_string())?;
+    .map_err(|e| program_test_context::ProgramTestError::ProgramError(e))?;
 
     program_test_context::process_instruction_with_signer(
         program_test_context,

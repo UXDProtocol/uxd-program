@@ -31,6 +31,8 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
   payer: Signer;
   controller: Controller;
 }) {
+  const collateralSymbol = 'USDC';
+
   let initialRedeemableAccountBalance: number;
   let initialControllerGlobalRedeemableSupplyCap: BN;
   let initialRedeemableDepositorySupplyCap: BN;
@@ -38,7 +40,6 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
   let onchainController: ControllerAccount;
   let onChainDepository: MercurialVaultDepositoryAccount;
   let depository: MercurialVaultDepository;
-  const collateralSymbol = 'USDC';
 
   before('Setup: fund user', async function () {
     console.log(' user.publicKey', user.publicKey.toBase58());
@@ -78,6 +79,24 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
       onchainController.redeemableGlobalSupplyCap;
     initialRedeemableDepositorySupplyCap =
       onChainDepository.redeemableAmountUnderManagementCap;
+
+    console.log(
+      'initialControllerGlobalRedeemableSupplyCap',
+      initialControllerGlobalRedeemableSupplyCap
+    );
+    console.log(
+      'initialRedeemableDepositorySupplyCap',
+      initialRedeemableDepositorySupplyCap
+    );
+
+    await editMercurialVaultDepositoryTest({
+      authority,
+      controller,
+      depository,
+      uiFields: {
+        redeemableAmountUnderManagementCap: 25_000_000,
+      },
+    });
   });
 
   describe('Regular mint/redeem', () => {
@@ -147,8 +166,8 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
         failure = true;
       }
 
-      expect(
-        false,
+      expect(failure).eq(
+        true,
         `Should have failed - Do not own enough ${collateralSymbol}`
       );
     });
@@ -205,8 +224,8 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
         failure = true;
       }
 
-      expect(
-        false,
+      expect(failure).eq(
+        true,
         `Should have failed - Cannot mint for 0 ${collateralSymbol}`
       );
     });

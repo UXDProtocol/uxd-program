@@ -95,6 +95,9 @@ pub struct MercurialVaultDepository {
 
     // Receiver of the depository's profits
     pub profits_beneficiary_collateral: Pubkey,
+
+    // For future usage
+    pub _reserved: [u8; MERCURIAL_VAULT_RESERVED_SPACE],
 }
 
 impl MercurialVaultDepository {

@@ -40,7 +40,6 @@ export const freezeProgramSuite = async function ({
   let mercurialVaultDepository: MercurialVaultDepository;
   let credixLpDepository: CredixLpDepository;
   let identityDepository: IdentityDepository;
-  const collateralSymbol = 'USDC';
 
   before(async () => {
     mercurialVaultDepository = await createMercurialVaultDepositoryDevnet();
