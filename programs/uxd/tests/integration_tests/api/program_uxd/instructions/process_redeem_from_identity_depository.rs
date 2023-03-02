@@ -121,6 +121,9 @@ pub async fn process_redeem_from_identity_depository(
             .await?
             .amount;
 
+    // For the identity depository, we always get 1:1 collateral/redeemable
+    let collateral_amount = redeemable_amount;
+
     // Check result
     assert_eq!(
         redeemable_mint_supply_before - redeemable_amount,
@@ -135,12 +138,12 @@ pub async fn process_redeem_from_identity_depository(
         redeemable_amount_under_management_after,
     );
     assert_eq!(
-        collateral_amount_deposited_before - redeemable_amount,
+        collateral_amount_deposited_before - collateral_amount,
         collateral_amount_deposited_after,
     );
 
     assert_eq!(
-        user_collateral_amount_before + redeemable_amount,
+        user_collateral_amount_before + collateral_amount,
         user_collateral_amount_after,
     );
     assert_eq!(

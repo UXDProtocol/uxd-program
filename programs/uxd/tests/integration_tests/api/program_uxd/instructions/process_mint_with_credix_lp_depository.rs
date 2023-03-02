@@ -10,6 +10,7 @@ use spl_token::state::Mint;
 
 use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
+use uxd::utils::calculate_amount_less_fees;
 
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
@@ -131,17 +132,24 @@ pub async fn process_mint_with_credix_lp_depository(
             .await?
             .amount;
 
+    // Compute expected redeemable amount after minting fees
+    let redeemable_amount = calculate_amount_less_fees(
+        collateral_amount,
+        credix_lp_depository_before.minting_fee_in_bps,
+    )
+    .map_err(|e| program_test_context::ProgramTestError::AnchorError(e))?;
+
     // Check result
     assert_eq!(
-        redeemable_mint_supply_before + collateral_amount,
+        redeemable_mint_supply_before + redeemable_amount,
         redeemable_mint_supply_after,
     );
     assert_eq!(
-        redeemable_circulating_supply_before + collateral_amount,
+        redeemable_circulating_supply_before + redeemable_amount,
         redeemable_circulating_supply_after,
     );
     assert_eq!(
-        redeemable_amount_under_management_before + collateral_amount,
+        redeemable_amount_under_management_before + redeemable_amount,
         redeemable_amount_under_management_after,
     );
     assert_eq!(
@@ -154,7 +162,7 @@ pub async fn process_mint_with_credix_lp_depository(
         user_collateral_amount_after,
     );
     assert_eq!(
-        user_redeemable_amount_before + collateral_amount,
+        user_redeemable_amount_before + redeemable_amount,
         user_redeemable_amount_after,
     );
 

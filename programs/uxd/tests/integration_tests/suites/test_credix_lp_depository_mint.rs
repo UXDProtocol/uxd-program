@@ -143,8 +143,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
         &program_keys,
         &payer,
         Some(amount_we_use_as_supply_cap.into()),
-        Some(0),
-        Some(0),
+        Some(100),
+        Some(100),
         Some(false),
         None,
     )
