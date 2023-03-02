@@ -222,13 +222,7 @@ pub fn handler(
 impl<'info> MintWithMercurialVaultDepository<'info> {
     pub fn into_deposit_collateral_to_mercurial_vault_context(
         &self,
-    ) -> CpiContext<
-        '_,
-        '_,
-        '_,
-        'info,
-        mercurial_vault::cpi::accounts::Deposit<'info>,
-    > {
+    ) -> CpiContext<'_, '_, '_, 'info, mercurial_vault::cpi::accounts::Deposit<'info>> {
         let cpi_accounts = mercurial_vault::cpi::accounts::Deposit {
             vault: self.mercurial_vault.to_account_info(),
             token_vault: self.mercurial_vault_collateral_token_safe.to_account_info(),

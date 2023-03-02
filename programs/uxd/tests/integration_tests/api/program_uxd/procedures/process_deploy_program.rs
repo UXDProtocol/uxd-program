@@ -154,8 +154,6 @@ pub async fn process_deploy_program(
     )
     .await?;
 
-    // TODO - initialize mercurial too here
-
-    // Redeemable tokens ready to be minted/redeemed
+    // Done
     Ok(())
 }

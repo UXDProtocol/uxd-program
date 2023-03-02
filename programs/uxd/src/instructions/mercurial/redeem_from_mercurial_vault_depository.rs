@@ -242,13 +242,7 @@ pub fn handler(
 impl<'info> RedeemFromMercurialVaultDepository<'info> {
     pub fn into_withdraw_collateral_from_mercurial_vault_context(
         &self,
-    ) -> CpiContext<
-        '_,
-        '_,
-        '_,
-        'info,
-        mercurial_vault::cpi::accounts::Withdraw<'info>,
-    > {
+    ) -> CpiContext<'_, '_, '_, 'info, mercurial_vault::cpi::accounts::Withdraw<'info>> {
         let cpi_accounts = mercurial_vault::cpi::accounts::Withdraw {
             vault: self.mercurial_vault.to_account_info(),
             token_vault: self.mercurial_vault_collateral_token_safe.to_account_info(),

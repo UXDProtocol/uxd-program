@@ -31,13 +31,13 @@ pub async fn process_deploy_program(
         &program_keys.authority.pubkey(),
     )
     .await?;
-program_spl::instructions::process_associated_token_account_get_or_init(
-    program_test_context,
-    &program_keys.admin,
-    &program_keys.token_mint,
-    &program_keys.admin.pubkey(),
-)
-.await?;
+    program_spl::instructions::process_associated_token_account_get_or_init(
+        program_test_context,
+        &program_keys.admin,
+        &program_keys.token_mint,
+        &program_keys.admin.pubkey(),
+    )
+    .await?;
 
     // Create the lp mint
     program_spl::instructions::process_token_mint_init(
@@ -51,8 +51,6 @@ program_spl::instructions::process_associated_token_account_get_or_init(
 
     // Vault init
     program_mercurial::instructions::process_initialize(program_test_context, program_keys).await?;
-
-    // TODO - make it work for the rest of the mercurial keys
 
     // Ready to use
     Ok(())
