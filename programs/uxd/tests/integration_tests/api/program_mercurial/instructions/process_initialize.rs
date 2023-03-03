@@ -12,7 +12,7 @@ pub async fn process_initialize(
     program_keys: &program_mercurial::accounts::ProgramKeys,
 ) -> Result<(), program_test_context::ProgramTestError> {
     let accounts = mercurial_vault::accounts::Initialize {
-        base: program_keys.authority.pubkey(),
+        base: program_keys.base.pubkey(),
         vault: program_keys.vault,
         admin: program_keys.admin.pubkey(),
         token_vault: program_keys.token_vault,
@@ -32,7 +32,7 @@ pub async fn process_initialize(
     program_test_context::process_instruction_with_signer(
         program_test_context,
         instruction,
-        &program_keys.authority,
+        &program_keys.base,
         &program_keys.admin,
     )
     .await

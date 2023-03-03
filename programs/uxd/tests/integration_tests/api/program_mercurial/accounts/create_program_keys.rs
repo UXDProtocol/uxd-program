@@ -3,8 +3,9 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 pub struct ProgramKeys {
-    pub authority: Keypair,
     pub admin: Keypair,
+    pub base: Keypair,
+    pub treasury: Pubkey,
     pub token_mint: Pubkey,
     pub vault: Pubkey,
     pub token_vault: Pubkey,
@@ -14,12 +15,14 @@ pub struct ProgramKeys {
 }
 
 pub fn create_program_keys(collateral_mint: &Pubkey) -> ProgramKeys {
-    let authority = Keypair::new();
     let admin = Keypair::new();
+
+    let base = Keypair::new();
+    let treasury = mercurial_vault::get_treasury_address();
 
     let token_mint = *collateral_mint;
 
-    let vault = mercurial_vault::utils::derive_vault_address(token_mint, authority.pubkey()).0;
+    let vault = mercurial_vault::utils::derive_vault_address(token_mint, base.pubkey()).0;
 
     let token_vault = Pubkey::find_program_address(
         &[
@@ -30,13 +33,13 @@ pub fn create_program_keys(collateral_mint: &Pubkey) -> ProgramKeys {
     )
     .0;
 
-    let fee_vault =
-        spl_associated_token_account::get_associated_token_address(&admin.pubkey(), &token_mint);
-
     let lp_mint = Keypair::new();
     let lp_mint_decimals = 6;
 
-    /*
+    let fee_vault =
+        spl_associated_token_account::get_associated_token_address(&treasury, &lp_mint.pubkey());
+
+    /*lp_mint
     let fee_vault = Pubkey::find_program_address(
         &[
             mercurial_vault::seed::FEE_VAULT_PREFIX.as_ref(),
@@ -50,8 +53,9 @@ pub fn create_program_keys(collateral_mint: &Pubkey) -> ProgramKeys {
     // TODO - implement correct account finding
 
     ProgramKeys {
-        authority,
         admin,
+        base,
+        treasury,
         token_mint,
         vault,
         token_vault,

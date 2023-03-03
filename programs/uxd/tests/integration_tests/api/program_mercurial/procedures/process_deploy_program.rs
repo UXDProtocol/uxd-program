@@ -9,28 +9,21 @@ pub async fn process_deploy_program(
     program_test_context: &mut ProgramTestContext,
     program_keys: &program_mercurial::accounts::ProgramKeys,
 ) -> Result<(), program_test_context::ProgramTestError> {
-    // Airdrop funds to the mercurial authority and admin wallet (acting as payer)
-    program_spl::instructions::process_lamports_airdrop(
-        program_test_context,
-        &program_keys.authority.pubkey(),
-        1_000_000_000_000,
-    )
-    .await?;
+    // Airdrop funds to the mercurial admin wallet (acting as payer)
     program_spl::instructions::process_lamports_airdrop(
         program_test_context,
         &program_keys.admin.pubkey(),
         1_000_000_000_000,
     )
     .await?;
-
-    // Create associated token accounts for the authority and admin wallets
-    program_spl::instructions::process_associated_token_account_get_or_init(
+    program_spl::instructions::process_lamports_airdrop(
         program_test_context,
-        &program_keys.authority,
-        &program_keys.token_mint,
-        &program_keys.authority.pubkey(),
+        &program_keys.base.pubkey(),
+        1_000_000_000_000,
     )
     .await?;
+
+    // Create associated token accounts for the admin wallet
     program_spl::instructions::process_associated_token_account_get_or_init(
         program_test_context,
         &program_keys.admin,
@@ -42,10 +35,18 @@ pub async fn process_deploy_program(
     // Create the lp mint
     program_spl::instructions::process_token_mint_init(
         program_test_context,
-        &program_keys.authority,
+        &program_keys.admin,
         &program_keys.lp_mint,
         program_keys.lp_mint_decimals,
-        &program_keys.authority.pubkey(),
+        &program_keys.vault,
+    )
+    .await?;
+
+    program_spl::instructions::process_associated_token_account_get_or_init(
+        program_test_context,
+        &program_keys.admin,
+        &program_keys.lp_mint.pubkey(),
+        &program_keys.treasury,
     )
     .await?;
 
