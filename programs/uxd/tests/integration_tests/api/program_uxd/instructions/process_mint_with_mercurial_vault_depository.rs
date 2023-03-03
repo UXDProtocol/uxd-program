@@ -9,7 +9,7 @@ use spl_token::state::Account;
 use spl_token::state::Mint;
 
 use uxd::state::Controller;
-use uxd::state::CredixLpDepository;
+use uxd::state::MercurialVaultDepository;
 use uxd::utils::calculate_amount_less_fees;
 
 use crate::integration_tests::api::program_test_context;
@@ -36,7 +36,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
     )
     .await?;
     let mercurial_vault_depository_before =
-        program_test_context::read_account_anchor::<CredixLpDepository>(
+        program_test_context::read_account_anchor::<MercurialVaultDepository>(
             program_test_context,
             &program_keys.mercurial_vault_depository_keys.depository,
         )
@@ -61,9 +61,8 @@ pub async fn process_mint_with_mercurial_vault_depository(
             .amount;
 
     // Execute IX
-    /*
     let mercurial_vault_depository_keys = &program_keys.mercurial_vault_depository_keys;
-    let accounts = uxd::accounts::MintWithCredixLpDepository {
+    let accounts = uxd::accounts::MintWithMercurialVaultDepository {
         payer: payer.pubkey(),
         user: user.pubkey(),
         controller: program_keys.controller,
@@ -72,20 +71,16 @@ pub async fn process_mint_with_mercurial_vault_depository(
         user_collateral: *user_collateral,
         user_redeemable: *user_redeemable,
         depository: mercurial_vault_depository_keys.depository,
-        depository_collateral: mercurial_vault_depository_keys.depository_collateral,
-        depository_shares: mercurial_vault_depository_keys.depository_shares,
-        credix_global_market_state: mercurial_vault_depository_keys.credix_global_market_state,
-        credix_signing_authority: mercurial_vault_depository_keys.credix_signing_authority,
-        credix_liquidity_collateral: mercurial_vault_depository_keys.credix_liquidity_collateral,
-        credix_shares_mint: mercurial_vault_depository_keys.credix_shares_mint,
-        credix_pass: mercurial_vault_depository_keys.credix_pass,
+        depository_lp_token_vault: mercurial_vault_depository_keys.depository_lp_token_vault,
+        mercurial_vault: mercurial_vault_depository_keys.mercurial_vault,
+        mercurial_vault_lp_mint: mercurial_vault_depository_keys.mercurial_vault_lp_mint,
+        mercurial_vault_collateral_token_safe: mercurial_vault_depository_keys
+            .mercurial_vault_collateral_token_safe,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
-        associated_token_program: anchor_spl::associated_token::ID,
-        credix_program: credix_client::ID,
-        rent: anchor_lang::solana_program::sysvar::rent::ID,
+        mercurial_vault_program: mercurial_vault::ID,
     };
-    let payload = uxd::instruction::MintWithCredixLpDepository { collateral_amount };
+    let payload = uxd::instruction::MintWithMercurialVaultDepository { collateral_amount };
     let instruction = Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),
@@ -98,7 +93,6 @@ pub async fn process_mint_with_mercurial_vault_depository(
         &user,
     )
     .await?;
-     */
 
     // Read state after
     let redeemable_mint_after = program_test_context::read_account_packed::<Mint>(
@@ -112,7 +106,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
     )
     .await?;
     let mercurial_vault_depository_after =
-        program_test_context::read_account_anchor::<CredixLpDepository>(
+        program_test_context::read_account_anchor::<MercurialVaultDepository>(
             program_test_context,
             &program_keys.mercurial_vault_depository_keys.depository,
         )

@@ -16,21 +16,6 @@ pub async fn process_deploy_program(
         1_000_000_000_000,
     )
     .await?;
-    program_spl::instructions::process_lamports_airdrop(
-        program_test_context,
-        &program_keys.base.pubkey(),
-        1_000_000_000_000,
-    )
-    .await?;
-
-    // Create associated token accounts for the admin wallet
-    program_spl::instructions::process_associated_token_account_get_or_init(
-        program_test_context,
-        &program_keys.admin,
-        &program_keys.token_mint,
-        &program_keys.admin.pubkey(),
-    )
-    .await?;
 
     // Create the lp mint
     program_spl::instructions::process_token_mint_init(
@@ -42,6 +27,7 @@ pub async fn process_deploy_program(
     )
     .await?;
 
+    // Create the fee_vault, which is the treasury ATA
     program_spl::instructions::process_associated_token_account_get_or_init(
         program_test_context,
         &program_keys.admin,

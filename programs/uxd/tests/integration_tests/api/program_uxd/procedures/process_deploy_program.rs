@@ -83,6 +83,14 @@ pub async fn process_deploy_program(
             .mercurial_program_keys,
     )
     .await?;
+    program_mercurial::procedures::process_dummy_actors_behaviors(
+        program_test_context,
+        &program_keys
+            .mercurial_vault_depository_keys
+            .mercurial_program_keys,
+        &program_keys.collateral_mint_authority,
+    )
+    .await?;
 
     // Credix lp depository setup
     program_uxd::instructions::process_register_mercurial_vault_depository(

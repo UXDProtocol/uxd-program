@@ -63,9 +63,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem(
     let amount_of_collateral_airdropped_to_user = program_keys.collateral_amount_ui_to_native(1000);
     let amount_the_user_should_be_able_to_mint = program_keys.collateral_amount_ui_to_native(50);
 
-    let amount_the_user_should_be_able_to_redeem = program_keys.redeemable_amount_ui_to_native(50);
-
-    return Ok(());
+    let amount_the_user_should_be_able_to_redeem = program_keys.redeemable_amount_ui_to_native(40);
 
     // ---------------------------------------------------------------------
     // -- Phase 2

@@ -10,6 +10,7 @@ use spl_token::state::Mint;
 
 use uxd::state::Controller;
 use uxd::state::MercurialVaultDepository;
+use uxd::utils::calculate_amount_less_fees;
 
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
@@ -61,20 +62,24 @@ pub async fn process_redeem_from_mercurial_vault_depository(
             .amount;
 
     // Execute IX
-    /*
+    let mercurial_vault_depository_keys = &program_keys.mercurial_vault_depository_keys;
     let accounts = uxd::accounts::RedeemFromMercurialVaultDepository {
-        user: user.pubkey(),
         payer: payer.pubkey(),
+        user: user.pubkey(),
         controller: program_keys.controller,
-        depository: program_keys.mercurial_vault_depository_keys.depository,
-        collateral_vault: program_keys
-            .mercurial_vault_depository_keys
-            .collateral_vault,
+        collateral_mint: program_keys.collateral_mint.pubkey(),
         redeemable_mint: program_keys.redeemable_mint,
         user_collateral: *user_collateral,
         user_redeemable: *user_redeemable,
+        depository: mercurial_vault_depository_keys.depository,
+        depository_lp_token_vault: mercurial_vault_depository_keys.depository_lp_token_vault,
+        mercurial_vault: mercurial_vault_depository_keys.mercurial_vault,
+        mercurial_vault_lp_mint: mercurial_vault_depository_keys.mercurial_vault_lp_mint,
+        mercurial_vault_collateral_token_safe: mercurial_vault_depository_keys
+            .mercurial_vault_collateral_token_safe,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
+        mercurial_vault_program: mercurial_vault::ID,
     };
     let payload = uxd::instruction::RedeemFromMercurialVaultDepository { redeemable_amount };
     let instruction = Instruction {
@@ -89,7 +94,6 @@ pub async fn process_redeem_from_mercurial_vault_depository(
         user,
     )
     .await?;
-     */
 
     // Read state after
     let redeemable_mint_after = program_test_context::read_account_packed::<Mint>(
@@ -126,8 +130,12 @@ pub async fn process_redeem_from_mercurial_vault_depository(
             .await?
             .amount;
 
-    // For the identity depository, we always get 1:1 collateral/redeemable
-    let collateral_amount = redeemable_amount;
+    // Compute expected collateral amount after minting fees
+    let collateral_amount = calculate_amount_less_fees(
+        redeemable_amount,
+        mercurial_vault_depository_before.minting_fee_in_bps,
+    )
+    .map_err(|e| program_test_context::ProgramTestError::AnchorError(e))?;
 
     // Check result
     assert_eq!(

@@ -39,19 +39,6 @@ pub fn create_program_keys(collateral_mint: &Pubkey) -> ProgramKeys {
     let fee_vault =
         spl_associated_token_account::get_associated_token_address(&treasury, &lp_mint.pubkey());
 
-    /*lp_mint
-    let fee_vault = Pubkey::find_program_address(
-        &[
-            mercurial_vault::seed::FEE_VAULT_PREFIX.as_ref(),
-            vault.as_ref(),
-        ],
-        &mercurial_vault::ID,
-    )
-    .0;
-     */
-
-    // TODO - implement correct account finding
-
     ProgramKeys {
         admin,
         base,
