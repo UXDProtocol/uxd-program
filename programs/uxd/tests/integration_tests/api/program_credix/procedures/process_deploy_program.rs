@@ -33,12 +33,14 @@ pub async fn process_deploy_program(
     )
     .await?;
 
-    // Global init
+    // Initialize the program state
     program_credix::instructions::process_initialize_program_state(
         program_test_context,
         &program_keys,
     )
     .await?;
+
+    // Initialize the global market state
     program_credix::instructions::process_initialize_market(program_test_context, &program_keys)
         .await?;
 

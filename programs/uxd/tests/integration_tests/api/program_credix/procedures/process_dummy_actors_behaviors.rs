@@ -13,20 +13,6 @@ pub async fn process_dummy_actors_behaviors(
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Create a dummy investor
     let dummy_investor = Keypair::new();
-    let dummy_investor_pass = credix_client::CredixPass::generate_pda(
-        program_keys.global_market_state,
-        dummy_investor.pubkey(),
-    )
-    .0;
-    let dummy_investor_token_account = spl_associated_token_account::get_associated_token_address(
-        &dummy_investor.pubkey(),
-        &program_keys.base_token_mint,
-    );
-    let dummy_investor_lp_token_account =
-        spl_associated_token_account::get_associated_token_address(
-            &dummy_investor.pubkey(),
-            &program_keys.lp_token_mint,
-        );
 
     // Airdrop lamports to the dummy investor wallet
     program_spl::instructions::process_lamports_airdrop(
@@ -36,14 +22,25 @@ pub async fn process_dummy_actors_behaviors(
     )
     .await?;
 
+    // Create the investor ATAs
+    let dummy_investor_token_account =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            program_test_context,
+            &dummy_investor,
+            &program_keys.base_token_mint,
+            &dummy_investor.pubkey(),
+        )
+        .await?;
+    let dummy_investor_lp_token_account =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            program_test_context,
+            &dummy_investor,
+            &program_keys.lp_token_mint,
+            &dummy_investor.pubkey(),
+        )
+        .await?;
+
     // Give some collateral (base token) to our dummy investor and create its token account
-    program_spl::instructions::process_associated_token_account_get_or_init(
-        program_test_context,
-        &dummy_investor,
-        &program_keys.base_token_mint,
-        &dummy_investor.pubkey(),
-    )
-    .await?;
     program_spl::instructions::process_token_mint_to(
         program_test_context,
         &dummy_investor,
@@ -53,6 +50,13 @@ pub async fn process_dummy_actors_behaviors(
         1_000_000_000,
     )
     .await?;
+
+    // Find the investor credix pass
+    let dummy_investor_pass = credix_client::CredixPass::generate_pda(
+        program_keys.global_market_state,
+        dummy_investor.pubkey(),
+    )
+    .0;
 
     // Create the credix-pass for the dummy investor
     program_credix::instructions::process_create_credix_pass(
@@ -66,6 +70,7 @@ pub async fn process_dummy_actors_behaviors(
         false,
     )
     .await?;
+
     // The dummy investor will do a dummy deposit to initialize the lp-pool
     program_credix::instructions::process_deposit_funds(
         program_test_context,
@@ -78,5 +83,6 @@ pub async fn process_dummy_actors_behaviors(
     )
     .await?;
 
-    return Ok(());
+    // Done
+    Ok(())
 }
