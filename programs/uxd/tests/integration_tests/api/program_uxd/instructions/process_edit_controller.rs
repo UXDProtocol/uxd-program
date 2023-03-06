@@ -1,6 +1,7 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
+use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
@@ -12,23 +13,24 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_edit_controller(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
+    authority: &Keypair,
     redeemable_global_supply_cap: Option<u128>,
 ) -> Result<(), program_test_context::ProgramTestError> {
+    // Find needed accounts
+    let controller = program_uxd::accounts::find_controller();
+
     // Read state before
-    let controller_before = program_test_context::read_account_anchor::<Controller>(
-        program_test_context,
-        &program_keys.controller,
-    )
-    .await?;
+    let controller_before =
+        program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
+            .await?;
 
     let redeemable_global_supply_cap_before = controller_before.redeemable_global_supply_cap;
 
     // Execute IX
     let accounts = uxd::accounts::EditController {
-        authority: program_keys.authority.pubkey(),
-        controller: program_keys.controller,
+        authority: authority.pubkey(),
+        controller: controller,
     };
     let payload = uxd::instruction::EditController {
         fields: uxd::instructions::EditControllerFields {
@@ -44,31 +46,22 @@ pub async fn process_edit_controller(
         program_test_context,
         instruction,
         payer,
-        &program_keys.authority,
+        &authority,
     )
     .await?;
 
     // Read state after
-    let controller_after = program_test_context::read_account_anchor::<Controller>(
-        program_test_context,
-        &program_keys.controller,
-    )
-    .await?;
+    let controller_after =
+        program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
+            .await?;
 
     let redeemable_global_supply_cap_after = controller_after.redeemable_global_supply_cap;
 
     // Check result
-    if redeemable_global_supply_cap.is_some() {
-        assert_eq!(
-            redeemable_global_supply_cap_after,
-            redeemable_global_supply_cap.unwrap()
-        );
-    } else {
-        assert_eq!(
-            redeemable_global_supply_cap_after,
-            redeemable_global_supply_cap_before,
-        );
-    }
+    assert_eq!(
+        redeemable_global_supply_cap_after,
+        redeemable_global_supply_cap.unwrap_or(redeemable_global_supply_cap_before)
+    );
 
     // Done
     Ok(())

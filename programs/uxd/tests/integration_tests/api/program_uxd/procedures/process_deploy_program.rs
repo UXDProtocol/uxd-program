@@ -1,3 +1,4 @@
+use credix_client::credix;
 use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
@@ -10,9 +11,14 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_deploy_program(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
+    authority: &Keypair,
+    collateral_mint: &Keypair,
+    credix_authority: &Keypair,
 ) -> Result<(), program_test_context::ProgramTestError> {
+    let collateral_mint_decimals = 6;
+    let redeemable_mint_decimals = 6;
+
     // Use restictive default values for all tests
     // Can be modified in individual test cases through edits
     // This forces all tests be explicit about their requirements
@@ -29,24 +35,24 @@ pub async fn process_deploy_program(
     program_spl::instructions::process_token_mint_init(
         program_test_context,
         &payer,
-        &program_keys.collateral_mint,
-        program_keys.collateral_mint_decimals,
-        &program_keys.collateral_mint_authority.pubkey(),
+        collateral_mint,
+        collateral_mint_decimals,
+        &collateral_mint.pubkey(),
     )
     .await?;
 
     // Controller setup
     program_uxd::instructions::process_initialize_controller(
         program_test_context,
-        program_keys,
         payer,
-        program_keys.redeemable_mint_decimals,
+        authority,
+        redeemable_mint_decimals,
     )
     .await?;
     program_uxd::instructions::process_edit_controller(
         program_test_context,
-        program_keys,
         payer,
+        authority,
         Some(redeemable_global_supply_cap),
     )
     .await?;
@@ -54,14 +60,15 @@ pub async fn process_deploy_program(
     // Identity depository setup
     program_uxd::instructions::process_initialize_identity_depository(
         program_test_context,
-        program_keys,
         payer,
+        authority,
+        &collateral_mint.pubkey(),
     )
     .await?;
     program_uxd::instructions::process_edit_identity_depository(
         program_test_context,
-        program_keys,
         payer,
+        authority,
         Some(identity_depository_redeemable_amount_under_management_cap),
         Some(identity_depository_minting_disabled),
     )
@@ -70,21 +77,24 @@ pub async fn process_deploy_program(
     // Credix onchain dependency program deployment
     program_credix::procedures::process_deploy_program(
         program_test_context,
-        &program_keys.credix_lp_depository_keys.credix_program_keys,
+        &credix_authority,
+        &collateral_mint.pubkey(),
     )
     .await?;
     program_credix::procedures::process_dummy_actors_behaviors(
         program_test_context,
-        &program_keys.credix_lp_depository_keys.credix_program_keys,
-        &program_keys.collateral_mint_authority,
+        &credix_authority,
+        &collateral_mint.pubkey(),
+        collateral_mint,
     )
     .await?;
 
     // Credix lp depository setup
     program_uxd::instructions::process_register_credix_lp_depository(
         program_test_context,
-        program_keys,
-        &payer,
+        payer,
+        authority,
+        &collateral_mint.pubkey(),
         0,
         0,
         0,
@@ -92,8 +102,9 @@ pub async fn process_deploy_program(
     .await?;
     program_uxd::instructions::process_edit_credix_lp_depository(
         program_test_context,
-        program_keys,
-        &payer,
+        payer,
+        authority,
+        &collateral_mint.pubkey(),
         Some(credix_lp_depository_redeemable_amount_under_management_cap),
         Some(credix_lp_depository_minting_fee_in_bps),
         Some(credix_lp_depository_redeeming_fee_in_bps),
@@ -103,11 +114,17 @@ pub async fn process_deploy_program(
     .await?;
 
     // Credix pass creation
+    let credix_market_seeds = program_credix::accounts::find_market_seeds();
+    let credix_global_market_state =
+        &program_credix::accounts::find_global_market_state(&credix_market_seeds);
+    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository(
+        &collateral_mint.pubkey(),
+        &credix_global_market_state,
+    );
     program_credix::instructions::process_create_credix_pass(
         program_test_context,
-        &program_keys.credix_lp_depository_keys.credix_program_keys,
-        &program_keys.credix_lp_depository_keys.depository,
-        &program_keys.credix_lp_depository_keys.credix_pass,
+        authority,
+        &credix_lp_depository,
         true,
         false,
         0,
@@ -117,6 +134,6 @@ pub async fn process_deploy_program(
 
     // TODO - initialize mercurial too here
 
-    // Redeemable tokens ready to be minted/redeemed
+    // Done
     Ok(())
 }
