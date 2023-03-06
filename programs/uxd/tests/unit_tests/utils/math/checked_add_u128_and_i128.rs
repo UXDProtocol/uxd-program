@@ -42,8 +42,8 @@ mod test_compute_amount_after_change {
 
     #[test]
     fn test_incorrectness() -> Result<()> {
-        assert_eq!(checked_add_u128_and_i128(0, -1).is_err(), true);
-        assert_eq!(checked_add_u128_and_i128(u128::MAX, 1).is_err(), true);
+        assert!(checked_add_u128_and_i128(0, -1).is_err());
+        assert!(checked_add_u128_and_i128(u128::MAX, 1).is_err());
         Ok(())
     }
 
@@ -70,12 +70,11 @@ mod test_compute_amount_after_change {
             }
             // Otherwise When its a decrease
             if change_delta < 0 {
-                let decrease: u128;
-                if change_delta == i128::MIN {
-                    decrease = u128::try_from(u128::MAX).unwrap() + 1;
+                let decrease: u128 = if change_delta == i128::MIN {
+                    u128::try_from(i128::MAX).unwrap() + 1
                 } else {
-                    decrease = u128::try_from(-change_delta).unwrap();
-                }
+                    u128::try_from(-change_delta).unwrap()
+                };
                 // If the decrease is bigger than the amount, expect failure
                 if decrease > value_before {
                     prop_assert!(result.is_err());

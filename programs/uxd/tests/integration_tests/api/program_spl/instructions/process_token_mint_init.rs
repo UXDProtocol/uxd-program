@@ -18,7 +18,7 @@ pub async fn process_token_mint_init(
         .banks_client
         .get_rent()
         .await
-        .map_err(|e| program_test_context::ProgramTestError::BanksClientError(e))?;
+        .map_err(program_test_context::ProgramTestError::BanksClient)?;
 
     let instruction_create = solana_program::system_instruction::create_account(
         &payer.pubkey(),
@@ -42,7 +42,7 @@ pub async fn process_token_mint_init(
         Some(authority),
         decimals,
     )
-    .map_err(|e| program_test_context::ProgramTestError::ProgramError(e))?;
+    .map_err(program_test_context::ProgramTestError::Program)?;
 
     program_test_context::process_instruction(program_test_context, instruction_init, payer)
         .await?;

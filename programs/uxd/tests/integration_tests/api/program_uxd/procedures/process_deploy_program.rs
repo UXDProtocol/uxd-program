@@ -22,7 +22,7 @@ pub async fn process_deploy_program(
     // Create the collateral mint
     program_spl::instructions::process_token_mint_init(
         program_test_context,
-        &payer,
+        payer,
         &program_keys.collateral_mint,
         redeemable_mint_decimals,
         &program_keys.collateral_authority.pubkey(),

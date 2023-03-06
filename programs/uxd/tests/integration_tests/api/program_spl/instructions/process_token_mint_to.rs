@@ -21,7 +21,7 @@ pub async fn process_token_mint_to(
         &[],
         amount,
     )
-    .map_err(|e| program_test_context::ProgramTestError::ProgramError(e))?;
+    .map_err(program_test_context::ProgramTestError::Program)?;
 
     program_test_context::process_instruction_with_signer(
         program_test_context,
