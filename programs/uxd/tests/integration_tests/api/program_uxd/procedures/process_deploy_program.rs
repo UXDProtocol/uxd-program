@@ -97,6 +97,25 @@ pub async fn process_deploy_program(
     )
     .await?;
 
+    // Credix pass creation
+    let credix_market_seeds = program_credix::accounts::find_market_seeds();
+    let credix_global_market_state =
+        program_credix::accounts::find_global_market_state(&credix_market_seeds);
+    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository(
+        &collateral_mint.pubkey(),
+        &credix_global_market_state,
+    );
+    program_credix::instructions::process_create_credix_pass(
+        program_test_context,
+        &credix_authority,
+        &credix_lp_depository,
+        true,
+        false,
+        0,
+        true,
+    )
+    .await?;
+
     // Credix lp depository setup
     program_uxd::instructions::process_register_credix_lp_depository(
         program_test_context,
@@ -108,6 +127,7 @@ pub async fn process_deploy_program(
         0,
     )
     .await?;
+
     program_uxd::instructions::process_edit_credix_lp_depository(
         program_test_context,
         payer,
@@ -124,25 +144,6 @@ pub async fn process_deploy_program(
                 credix_lp_depository_profits_beneficiary_collateral,
             ),
         },
-    )
-    .await?;
-
-    // Credix pass creation
-    let credix_market_seeds = program_credix::accounts::find_market_seeds();
-    let credix_global_market_state =
-        program_credix::accounts::find_global_market_state(&credix_market_seeds);
-    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository(
-        &collateral_mint.pubkey(),
-        &credix_global_market_state,
-    );
-    program_credix::instructions::process_create_credix_pass(
-        program_test_context,
-        authority,
-        &credix_lp_depository,
-        true,
-        false,
-        0,
-        true,
     )
     .await?;
 
