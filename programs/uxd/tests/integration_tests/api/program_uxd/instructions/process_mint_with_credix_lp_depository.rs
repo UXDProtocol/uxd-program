@@ -160,7 +160,7 @@ pub async fn process_mint_with_credix_lp_depository(
         collateral_amount,
         credix_lp_depository_before.minting_fee_in_bps,
     )
-    .map_err(|e| program_test_context::ProgramTestError::AnchorError(e))?;
+    .map_err(program_test_context::ProgramTestError::Anchor)?;
 
     // Check result
     assert_eq!(

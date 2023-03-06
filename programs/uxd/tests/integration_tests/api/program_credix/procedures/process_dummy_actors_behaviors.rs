@@ -30,7 +30,7 @@ pub async fn process_dummy_actors_behaviors(
         program_spl::instructions::process_associated_token_account_get_or_init(
             program_test_context,
             &dummy_investor,
-            &base_token_mint,
+            base_token_mint,
             &dummy_investor.pubkey(),
         )
         .await?;
@@ -47,7 +47,7 @@ pub async fn process_dummy_actors_behaviors(
     program_spl::instructions::process_token_mint_to(
         program_test_context,
         &dummy_investor,
-        &base_token_mint,
+        base_token_mint,
         base_token_authority,
         &dummy_investor_token_account,
         1_000_000_000,

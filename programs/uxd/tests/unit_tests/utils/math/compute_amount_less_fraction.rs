@@ -57,12 +57,12 @@ mod test_compute_amount_less_fraction {
 
     #[test]
     fn test_incorrectness() -> Result<()> {
-        assert_eq!(compute_amount_less_fraction(0, 0, 0).is_err(), true);
-        assert_eq!(compute_amount_less_fraction(0, 10, 0).is_err(), true);
-        assert_eq!(compute_amount_less_fraction(10, 0, 0).is_err(), true);
-        assert_eq!(compute_amount_less_fraction(10, 10, 0).is_err(), true);
+        assert!(compute_amount_less_fraction(0, 0, 0).is_err());
+        assert!(compute_amount_less_fraction(0, 10, 0).is_err());
+        assert!(compute_amount_less_fraction(10, 0, 0).is_err());
+        assert!(compute_amount_less_fraction(10, 10, 0).is_err());
 
-        assert_eq!(compute_amount_less_fraction(0, 101, 100).is_err(), true);
+        assert!(compute_amount_less_fraction(0, 101, 100).is_err());
         Ok(())
     }
 

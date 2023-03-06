@@ -62,7 +62,7 @@ jobs:
 
       # Run cargo clippy
       - name: Run clippy
-        run: cargo clippy -- --deny=warnings
+        run: cargo clippy --all-targets -- --deny=warnings
 
   tests:
     runs-on: ubuntu-latest

@@ -15,7 +15,7 @@ async fn process_instruction_result(
     program_test_context.last_blockhash = program_test_context
         .get_new_latest_blockhash()
         .await
-        .map_err(|e| program_test_context::ProgramTestError::IoError(e))?;
+        .map_err(program_test_context::ProgramTestError::Io)?;
     // Log the result, useful for debugging as STDOUT is displayed when a test fails
     println!(" -------- PROCESSING INSTRUCTION --------");
     println!(
@@ -40,7 +40,7 @@ pub async fn process_instruction(
         .banks_client
         .process_transaction(transaction)
         .await
-        .map_err(|e| program_test_context::ProgramTestError::BanksClientError(e));
+        .map_err(program_test_context::ProgramTestError::BanksClient);
     process_instruction_result(program_test_context, instruction.clone(), result).await
 }
 
@@ -57,6 +57,6 @@ pub async fn process_instruction_with_signer(
         .banks_client
         .process_transaction(transaction)
         .await
-        .map_err(|e| program_test_context::ProgramTestError::BanksClientError(e));
+        .map_err(program_test_context::ProgramTestError::BanksClient);
     process_instruction_result(program_test_context, instruction.clone(), result).await
 }

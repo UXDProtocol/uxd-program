@@ -22,7 +22,7 @@
     "typescript": "^4.5.5"
   },
   "scripts": {
-    "source-lint": "cargo clippy",
+    "source-lint": "cargo clippy --all-targets",
     "source-format": "cargo fmt",
     "source-format-check": "cargo fmt --check",
     "tests-lint": "tsc --noEmit --pretty",
