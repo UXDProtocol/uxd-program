@@ -40,7 +40,7 @@ pub struct EditCredixLpDepository<'info> {
     pub depository: AccountLoader<'info, CredixLpDepository>,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
 pub struct EditCredixLpDepositoryFields {
     pub redeemable_amount_under_management_cap: Option<u128>,
     pub minting_fee_in_bps: Option<u8>,

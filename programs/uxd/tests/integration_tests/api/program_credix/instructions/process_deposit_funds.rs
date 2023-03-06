@@ -11,23 +11,32 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_deposit_funds(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_credix::accounts::ProgramKeys,
+    base_token_mint: &Pubkey,
     investor: &Keypair,
-    investor_pass: &Pubkey,
     investor_token_account: &Pubkey,
     investor_lp_token_account: &Pubkey,
     amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
+    let market_seeds = program_credix::accounts::find_market_seeds();
+    let global_market_state = program_credix::accounts::find_global_market_state(&market_seeds);
+    let lp_token_mint = program_credix::accounts::find_lp_token_mint(&market_seeds);
+    let signing_authority = program_credix::accounts::find_signing_authority(&market_seeds);
+    let liquidity_pool_token_account = program_credix::accounts::find_liquidity_pool_token_account(
+        &signing_authority,
+        base_token_mint,
+    );
+    let credix_pass =
+        program_credix::accounts::find_credix_pass(&global_market_state, &investor.pubkey());
     let accounts = credix_client::accounts::DepositFunds {
         investor: investor.pubkey(),
         investor_token_account: *investor_token_account,
         investor_lp_token_account: *investor_lp_token_account,
-        credix_pass: *investor_pass,
-        global_market_state: program_keys.global_market_state,
-        signing_authority: program_keys.signing_authority,
-        liquidity_pool_token_account: program_keys.liquidity_pool_token_account,
-        base_token_mint: program_keys.base_token_mint,
-        lp_token_mint: program_keys.lp_token_mint,
+        credix_pass,
+        global_market_state,
+        signing_authority,
+        liquidity_pool_token_account,
+        base_token_mint: *base_token_mint,
+        lp_token_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
@@ -39,5 +48,5 @@ pub async fn process_deposit_funds(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, &investor).await
+    program_test_context::process_instruction(program_test_context, instruction, investor).await
 }
