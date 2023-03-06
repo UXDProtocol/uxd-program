@@ -26,7 +26,8 @@ pub async fn process_redeem_from_identity_depository(
     let controller = program_uxd::accounts::find_controller();
     let redeemable_mint = program_uxd::accounts::find_redeemable_mint();
     let identity_depository = program_uxd::accounts::find_identity_depository();
-    let identity_depository_collateral_vault = program_uxd::accounts::find_identity_depository_collateral_vault();
+    let identity_depository_collateral_vault =
+        program_uxd::accounts::find_identity_depository_collateral_vault();
 
     // Read state before
     let redeemable_mint_before =
