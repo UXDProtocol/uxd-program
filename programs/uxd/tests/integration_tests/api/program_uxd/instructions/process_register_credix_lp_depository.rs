@@ -21,7 +21,6 @@ pub async fn process_register_credix_lp_depository(
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller();
-    let redeemable_mint = program_uxd::accounts::find_redeemable_mint();
     let credix_program_state = program_credix::accounts::find_program_state();
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
@@ -37,10 +36,6 @@ pub async fn process_register_credix_lp_depository(
         &credix_signing_authority,
         collateral_mint,
     );
-    let credix_pass = program_credix::accounts::find_credix_pass(
-        &credix_global_market_state,
-        &credix_lp_depository,
-    );
     let credix_lp_depository_collateral =
         program_uxd::accounts::find_credix_lp_depository_collateral(
             &credix_lp_depository,
@@ -55,16 +50,16 @@ pub async fn process_register_credix_lp_depository(
     let accounts = uxd::accounts::RegisterCredixLpDepository {
         authority: authority.pubkey(),
         payer: payer.pubkey(),
-        controller: controller,
+        controller,
         collateral_mint: *collateral_mint,
         depository: credix_lp_depository,
         depository_collateral: credix_lp_depository_collateral,
         depository_shares: credix_lp_depository_shares,
-        credix_program_state: credix_program_state,
-        credix_global_market_state: credix_global_market_state,
-        credix_signing_authority: credix_signing_authority,
-        credix_liquidity_collateral: credix_liquidity_collateral,
-        credix_shares_mint: credix_shares_mint,
+        credix_program_state,
+        credix_global_market_state,
+        credix_signing_authority,
+        credix_liquidity_collateral,
+        credix_shares_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
@@ -84,7 +79,7 @@ pub async fn process_register_credix_lp_depository(
         program_test_context,
         instruction,
         payer,
-        &authority,
+        authority,
     )
     .await
 }

@@ -21,11 +21,11 @@ pub fn find_market_admins(global_market_state: &Pubkey) -> Pubkey {
 }
 
 pub fn find_lp_token_mint(market_seeds: &String) -> Pubkey {
-    credix_client::GlobalMarketState::generate_lp_token_mint_pda(&market_seeds).0
+    credix_client::GlobalMarketState::generate_lp_token_mint_pda(market_seeds).0
 }
 
 pub fn find_signing_authority(market_seeds: &String) -> Pubkey {
-    credix_client::GlobalMarketState::generate_signing_authority_pda(&market_seeds).0
+    credix_client::GlobalMarketState::generate_signing_authority_pda(market_seeds).0
 }
 
 pub fn find_liquidity_pool_token_account(
@@ -40,7 +40,7 @@ pub fn find_treasury(authority: &Keypair) -> Pubkey {
 }
 
 pub fn find_treasury_pool_token_account(treasury: &Pubkey, base_token_mint: &Pubkey) -> Pubkey {
-    spl_associated_token_account::get_associated_token_address(&treasury, &base_token_mint)
+    spl_associated_token_account::get_associated_token_address(treasury, base_token_mint)
 }
 
 pub fn find_credix_pass(global_market_state: &Pubkey, pass_holder: &Pubkey) -> Pubkey {

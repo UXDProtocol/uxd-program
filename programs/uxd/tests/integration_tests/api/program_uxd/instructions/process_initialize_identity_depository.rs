@@ -25,7 +25,7 @@ pub async fn process_initialize_identity_depository(
     let accounts = uxd::accounts::InitializeIdentityDepository {
         authority: authority.pubkey(),
         payer: payer.pubkey(),
-        controller: controller,
+        controller,
         depository: identity_depository,
         collateral_vault: identity_depository_collateral_vault,
         collateral_mint: *collateral_mint,
@@ -43,7 +43,7 @@ pub async fn process_initialize_identity_depository(
         program_test_context,
         instruction,
         payer,
-        &authority,
+        authority,
     )
     .await
 }

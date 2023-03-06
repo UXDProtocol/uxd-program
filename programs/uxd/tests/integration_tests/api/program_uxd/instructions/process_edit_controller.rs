@@ -1,7 +1,6 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
-use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
@@ -30,7 +29,7 @@ pub async fn process_edit_controller(
     // Execute IX
     let accounts = uxd::accounts::EditController {
         authority: authority.pubkey(),
-        controller: controller,
+        controller,
     };
     let payload = uxd::instruction::EditController {
         fields: uxd::instructions::EditControllerFields {
@@ -46,7 +45,7 @@ pub async fn process_edit_controller(
         program_test_context,
         instruction,
         payer,
-        &authority,
+        authority,
     )
     .await?;
 

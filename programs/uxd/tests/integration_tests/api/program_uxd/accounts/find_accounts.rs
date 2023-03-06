@@ -1,27 +1,19 @@
 use solana_program::pubkey::Pubkey;
-use solana_sdk::signature::Keypair;
-use solana_sdk::signer::Signer;
-
-use crate::integration_tests::api::program_uxd;
 
 pub fn find_controller() -> Pubkey {
-    Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE.as_ref()], &uxd::id()).0
+    Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE], &uxd::id()).0
 }
 
 pub fn find_redeemable_mint() -> Pubkey {
-    Pubkey::find_program_address(&[uxd::REDEEMABLE_MINT_NAMESPACE.as_ref()], &uxd::id()).0
+    Pubkey::find_program_address(&[uxd::REDEEMABLE_MINT_NAMESPACE], &uxd::id()).0
 }
 
 pub fn find_identity_depository() -> Pubkey {
-    Pubkey::find_program_address(&[uxd::IDENTITY_DEPOSITORY_NAMESPACE.as_ref()], &uxd::id()).0
+    Pubkey::find_program_address(&[uxd::IDENTITY_DEPOSITORY_NAMESPACE], &uxd::id()).0
 }
 
 pub fn find_identity_depository_collateral_vault() -> Pubkey {
-    Pubkey::find_program_address(
-        &[uxd::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE.as_ref()],
-        &uxd::id(),
-    )
-    .0
+    Pubkey::find_program_address(&[uxd::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE], &uxd::id()).0
 }
 
 pub fn find_credix_lp_depository(
@@ -30,7 +22,7 @@ pub fn find_credix_lp_depository(
 ) -> Pubkey {
     Pubkey::find_program_address(
         &[
-            uxd::CREDIX_LP_DEPOSITORY_NAMESPACE.as_ref(),
+            uxd::CREDIX_LP_DEPOSITORY_NAMESPACE,
             credix_global_market_state.as_ref(),
             collateral_mint.as_ref(),
         ],

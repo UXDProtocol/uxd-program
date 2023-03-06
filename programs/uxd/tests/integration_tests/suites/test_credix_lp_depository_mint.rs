@@ -5,17 +5,10 @@ use solana_sdk::signer::Signer;
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
+use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
 async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::ProgramTestError> {
-    // TODO - to remove
-    fn collateral_amount_ui_to_native(ui_amount: u64) -> u64 {
-        ui_amount * 10u64.pow(6)
-    }
-    fn redeemable_amount_ui_to_native(ui_amount: u64) -> u64 {
-        ui_amount * 10u64.pow(6)
-    }
-
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -32,11 +25,13 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     )
     .await?;
 
+    // Hardcode mints decimals
+    let collateral_mint_decimals = 6;
+    let redeemable_mint_decimals = 6;
+
     // Important account keys
-    let collateral_mint = Keypair::new();
     let authority = Keypair::new();
-    let credix_authority = Keypair::new();
-    let redeemable_mint = program_uxd::accounts::find_redeemable_mint();
+    let collateral_mint = Keypair::new();
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
@@ -44,7 +39,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
         &payer,
         &authority,
         &collateral_mint,
-        &credix_authority,
+        collateral_mint_decimals,
+        redeemable_mint_decimals,
     )
     .await?;
 
@@ -63,17 +59,20 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     let user_redeemable = program_spl::instructions::process_associated_token_account_get_or_init(
         &mut program_test_context,
         &payer,
-        &redeemable_mint,
+        &program_uxd::accounts::find_redeemable_mint(),
         &user.pubkey(),
     )
     .await?;
 
     // Useful amounts used during testing scenario
-    let amount_we_use_as_supply_cap = redeemable_amount_ui_to_native(50);
-    let amount_bigger_than_the_supply_cap = redeemable_amount_ui_to_native(300);
+    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(50, redeemable_mint_decimals);
+    let amount_bigger_than_the_supply_cap =
+        ui_amount_to_native_amount(300, redeemable_mint_decimals);
 
-    let amount_of_collateral_airdropped_to_user = collateral_amount_ui_to_native(1000);
-    let amount_the_user_should_be_able_to_mint = collateral_amount_ui_to_native(50);
+    let amount_of_collateral_airdropped_to_user =
+        ui_amount_to_native_amount(1000, collateral_mint_decimals);
+    let amount_the_user_should_be_able_to_mint =
+        ui_amount_to_native_amount(50, collateral_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2

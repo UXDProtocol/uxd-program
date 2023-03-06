@@ -29,15 +29,15 @@ pub async fn process_initialize_market(
         program_credix::accounts::find_treasury_pool_token_account(&treasury, base_token_mint);
     let accounts = credix_client::accounts::InitializeMarket {
         owner: authority.pubkey(),
-        global_market_state: global_market_state,
-        market_admins: market_admins,
-        program_state: program_state,
-        lp_token_mint: lp_token_mint,
+        global_market_state,
+        market_admins,
+        program_state,
+        lp_token_mint,
         base_token_mint: *base_token_mint,
-        signing_authority: signing_authority,
-        liquidity_pool_token_account: liquidity_pool_token_account,
-        treasury: treasury,
-        treasury_pool_token_account: treasury_pool_token_account,
+        signing_authority,
+        liquidity_pool_token_account,
+        treasury,
+        treasury_pool_token_account,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
@@ -83,5 +83,5 @@ pub async fn process_initialize_market(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, &authority).await
+    program_test_context::process_instruction(program_test_context, instruction, authority).await
 }

@@ -27,15 +27,15 @@ pub async fn process_deploy_program(
     // Create associated token accounts for the authorities wallets
     program_spl::instructions::process_associated_token_account_get_or_init(
         program_test_context,
-        &authority,
-        &base_token_mint,
+        authority,
+        base_token_mint,
         &signing_authority,
     )
     .await?;
     program_spl::instructions::process_associated_token_account_get_or_init(
         program_test_context,
-        &authority,
-        &base_token_mint,
+        authority,
+        base_token_mint,
         &treasury,
     )
     .await?;

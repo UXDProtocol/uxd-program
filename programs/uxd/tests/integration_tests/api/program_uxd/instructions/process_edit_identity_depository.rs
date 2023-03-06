@@ -36,7 +36,7 @@ pub async fn process_edit_identity_depository(
     // Execute IX
     let accounts = uxd::accounts::EditIdentityDepository {
         authority: authority.pubkey(),
-        controller: controller,
+        controller,
         depository: identity_depository,
     };
     let payload = uxd::instruction::EditIdentityDepository {
@@ -54,7 +54,7 @@ pub async fn process_edit_identity_depository(
         program_test_context,
         instruction,
         payer,
-        &authority,
+        authority,
     )
     .await?;
 

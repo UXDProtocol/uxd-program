@@ -26,10 +26,10 @@ pub async fn process_create_credix_pass(
     let accounts = credix_client::accounts::CreateCredixPass {
         owner: authority.pubkey(),
         pass_holder: *pass_holder,
-        program_state: program_state,
-        global_market_state: global_market_state,
-        credix_pass: credix_pass,
-        market_admins: market_admins,
+        program_state,
+        global_market_state,
+        credix_pass,
+        market_admins,
         system_program: anchor_lang::system_program::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
     };

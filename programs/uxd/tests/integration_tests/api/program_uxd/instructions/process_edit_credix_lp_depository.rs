@@ -52,7 +52,7 @@ pub async fn process_edit_credix_lp_depository(
     // Execute IX
     let accounts = uxd::accounts::EditCredixLpDepository {
         authority: authority.pubkey(),
-        controller: controller,
+        controller,
         depository: credix_lp_depository,
     };
     let payload = uxd::instruction::EditCredixLpDepository {
@@ -73,7 +73,7 @@ pub async fn process_edit_credix_lp_depository(
         program_test_context,
         instruction,
         payer,
-        &authority,
+        authority,
     )
     .await?;
 

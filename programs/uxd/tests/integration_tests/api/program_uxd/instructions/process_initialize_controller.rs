@@ -22,8 +22,8 @@ pub async fn process_initialize_controller(
     let accounts = uxd::accounts::InitializeController {
         authority: authority.pubkey(),
         payer: payer.pubkey(),
-        controller: controller,
-        redeemable_mint: redeemable_mint,
+        controller,
+        redeemable_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
@@ -40,7 +40,7 @@ pub async fn process_initialize_controller(
         program_test_context,
         instruction,
         payer,
-        &authority,
+        authority,
     )
     .await
 }

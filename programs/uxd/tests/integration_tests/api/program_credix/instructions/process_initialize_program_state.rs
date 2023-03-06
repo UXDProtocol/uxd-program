@@ -16,7 +16,7 @@ pub async fn process_initialize_program_state(
     let treasury = program_credix::accounts::find_treasury(authority);
     let accounts = credix_client::accounts::InitializeProgramState {
         owner: authority.pubkey(),
-        program_state: program_state,
+        program_state,
         system_program: anchor_lang::system_program::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
@@ -40,5 +40,5 @@ pub async fn process_initialize_program_state(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, &authority).await
+    program_test_context::process_instruction(program_test_context, instruction, authority).await
 }

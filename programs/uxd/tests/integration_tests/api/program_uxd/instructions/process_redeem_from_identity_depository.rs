@@ -67,10 +67,10 @@ pub async fn process_redeem_from_identity_depository(
     let accounts = uxd::accounts::RedeemFromIdentityDepository {
         user: user.pubkey(),
         payer: payer.pubkey(),
-        controller: controller,
+        controller,
         depository: identity_depository,
         collateral_vault: identity_depository_collateral_vault,
-        redeemable_mint: redeemable_mint,
+        redeemable_mint,
         user_collateral: *user_collateral,
         user_redeemable: *user_redeemable,
         system_program: anchor_lang::system_program::ID,

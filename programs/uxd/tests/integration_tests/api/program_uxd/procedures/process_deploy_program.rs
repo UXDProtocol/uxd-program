@@ -1,4 +1,3 @@
-use credix_client::credix;
 use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
@@ -14,11 +13,9 @@ pub async fn process_deploy_program(
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Keypair,
-    credix_authority: &Keypair,
+    collateral_mint_decimals: u8,
+    redeemable_mint_decimals: u8,
 ) -> Result<(), program_test_context::ProgramTestError> {
-    let collateral_mint_decimals = 6;
-    let redeemable_mint_decimals = 6;
-
     // Use restictive default values for all tests
     // Can be modified in individual test cases through edits
     // This forces all tests be explicit about their requirements
@@ -34,7 +31,7 @@ pub async fn process_deploy_program(
     // Create the collateral mint
     program_spl::instructions::process_token_mint_init(
         program_test_context,
-        &payer,
+        payer,
         collateral_mint,
         collateral_mint_decimals,
         &collateral_mint.pubkey(),
@@ -75,6 +72,7 @@ pub async fn process_deploy_program(
     .await?;
 
     // Credix onchain dependency program deployment
+    let credix_authority = Keypair::new();
     program_credix::procedures::process_deploy_program(
         program_test_context,
         &credix_authority,
@@ -116,7 +114,7 @@ pub async fn process_deploy_program(
     // Credix pass creation
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
-        &program_credix::accounts::find_global_market_state(&credix_market_seeds);
+        program_credix::accounts::find_global_market_state(&credix_market_seeds);
     let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository(
         &collateral_mint.pubkey(),
         &credix_global_market_state,
