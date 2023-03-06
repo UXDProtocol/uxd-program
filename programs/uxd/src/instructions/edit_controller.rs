@@ -20,7 +20,7 @@ pub struct EditController<'info> {
     pub controller: AccountLoader<'info, Controller>,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
 pub struct EditControllerFields {
     pub redeemable_global_supply_cap: Option<u128>,
 }

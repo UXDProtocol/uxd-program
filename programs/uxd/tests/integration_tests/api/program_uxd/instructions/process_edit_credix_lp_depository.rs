@@ -6,6 +6,7 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::state::CredixLpDepository;
 
 use crate::integration_tests::api::program_credix;
@@ -17,11 +18,7 @@ pub async fn process_edit_credix_lp_depository(
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Pubkey,
-    redeemable_amount_under_management_cap: Option<u128>,
-    minting_fee_in_bps: Option<u8>,
-    redeeming_fee_in_bps: Option<u8>,
-    minting_disabled: Option<bool>,
-    profits_beneficiary_collateral: Option<Pubkey>,
+    fields: &EditCredixLpDepositoryFields,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller();
@@ -55,15 +52,7 @@ pub async fn process_edit_credix_lp_depository(
         controller,
         depository: credix_lp_depository,
     };
-    let payload = uxd::instruction::EditCredixLpDepository {
-        fields: uxd::instructions::EditCredixLpDepositoryFields {
-            redeemable_amount_under_management_cap,
-            minting_fee_in_bps,
-            redeeming_fee_in_bps,
-            minting_disabled,
-            profits_beneficiary_collateral,
-        },
-    };
+    let payload = uxd::instruction::EditCredixLpDepository { fields: *fields };
     let instruction = Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),
@@ -96,24 +85,31 @@ pub async fn process_edit_credix_lp_depository(
     // Check result
     assert_eq!(
         redeemable_amount_under_management_cap_after,
-        redeemable_amount_under_management_cap
+        fields
+            .redeemable_amount_under_management_cap
             .unwrap_or(redeemable_amount_under_management_cap_before)
     );
     assert_eq!(
         minting_fee_in_bps_after,
-        minting_fee_in_bps.unwrap_or(minting_fee_in_bps_before)
+        fields
+            .minting_fee_in_bps
+            .unwrap_or(minting_fee_in_bps_before)
     );
     assert_eq!(
         redeeming_fee_in_bps_after,
-        redeeming_fee_in_bps.unwrap_or(redeeming_fee_in_bps_before)
+        fields
+            .redeeming_fee_in_bps
+            .unwrap_or(redeeming_fee_in_bps_before)
     );
     assert_eq!(
         minting_disabled_after,
-        minting_disabled.unwrap_or(minting_disabled_before)
+        fields.minting_disabled.unwrap_or(minting_disabled_before)
     );
     assert_eq!(
         profits_beneficiary_collateral_after,
-        profits_beneficiary_collateral.unwrap_or(profits_beneficiary_collateral_before)
+        fields
+            .profits_beneficiary_collateral
+            .unwrap_or(profits_beneficiary_collateral_before)
     );
 
     // Done

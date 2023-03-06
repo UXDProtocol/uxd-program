@@ -2,6 +2,9 @@ use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::instructions::EditControllerFields;
+use uxd::instructions::EditCredixLpDepositoryFields;
+
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
@@ -130,7 +133,9 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
         &mut program_test_context,
         &payer,
         &authority,
-        Some(amount_we_use_as_supply_cap.into()),
+        &EditControllerFields {
+            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+        },
     )
     .await?;
 
@@ -155,11 +160,13 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        Some(amount_we_use_as_supply_cap.into()),
-        Some(100),
-        Some(100),
-        Some(false),
-        None,
+        &EditCredixLpDepositoryFields {
+            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
+            minting_fee_in_bps: Some(100),
+            redeeming_fee_in_bps: Some(100),
+            minting_disabled: Some(false),
+            profits_beneficiary_collateral: None,
+        },
     )
     .await?;
 

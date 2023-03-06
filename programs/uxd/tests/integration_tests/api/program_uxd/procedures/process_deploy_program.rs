@@ -3,6 +3,10 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::instructions::EditControllerFields;
+use uxd::instructions::EditCredixLpDepositoryFields;
+use uxd::instructions::EditIdentityDepositoryFields;
+
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
@@ -50,7 +54,9 @@ pub async fn process_deploy_program(
         program_test_context,
         payer,
         authority,
-        Some(redeemable_global_supply_cap),
+        &EditControllerFields {
+            redeemable_global_supply_cap: Some(redeemable_global_supply_cap),
+        },
     )
     .await?;
 
@@ -66,8 +72,12 @@ pub async fn process_deploy_program(
         program_test_context,
         payer,
         authority,
-        Some(identity_depository_redeemable_amount_under_management_cap),
-        Some(identity_depository_minting_disabled),
+        &EditIdentityDepositoryFields {
+            redeemable_amount_under_management_cap: Some(
+                identity_depository_redeemable_amount_under_management_cap,
+            ),
+            minting_disabled: Some(identity_depository_minting_disabled),
+        },
     )
     .await?;
 
@@ -103,11 +113,17 @@ pub async fn process_deploy_program(
         payer,
         authority,
         &collateral_mint.pubkey(),
-        Some(credix_lp_depository_redeemable_amount_under_management_cap),
-        Some(credix_lp_depository_minting_fee_in_bps),
-        Some(credix_lp_depository_redeeming_fee_in_bps),
-        Some(credix_lp_depository_minting_disabled),
-        Some(credix_lp_depository_profits_beneficiary_collateral),
+        &EditCredixLpDepositoryFields {
+            redeemable_amount_under_management_cap: Some(
+                credix_lp_depository_redeemable_amount_under_management_cap,
+            ),
+            minting_fee_in_bps: Some(credix_lp_depository_minting_fee_in_bps),
+            redeeming_fee_in_bps: Some(credix_lp_depository_redeeming_fee_in_bps),
+            minting_disabled: Some(credix_lp_depository_minting_disabled),
+            profits_beneficiary_collateral: Some(
+                credix_lp_depository_profits_beneficiary_collateral,
+            ),
+        },
     )
     .await?;
 

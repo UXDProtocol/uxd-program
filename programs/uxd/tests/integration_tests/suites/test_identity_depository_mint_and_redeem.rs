@@ -2,6 +2,9 @@ use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::instructions::EditControllerFields;
+use uxd::instructions::EditIdentityDepositoryFields;
+
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
@@ -132,7 +135,9 @@ async fn test_identity_depository_mint_and_redeem(
         &mut program_test_context,
         &payer,
         &authority,
-        Some(amount_we_use_as_supply_cap.into()),
+        &EditControllerFields {
+            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+        },
     )
     .await?;
 
@@ -155,8 +160,10 @@ async fn test_identity_depository_mint_and_redeem(
         &mut program_test_context,
         &payer,
         &authority,
-        Some(amount_we_use_as_supply_cap.into()),
-        Some(false),
+        &EditIdentityDepositoryFields {
+            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
+            minting_disabled: Some(false),
+        },
     )
     .await?;
 

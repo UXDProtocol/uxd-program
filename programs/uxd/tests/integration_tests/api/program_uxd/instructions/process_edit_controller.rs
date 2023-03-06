@@ -5,6 +5,7 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::instructions::EditControllerFields;
 use uxd::state::Controller;
 
 use crate::integration_tests::api::program_test_context;
@@ -14,7 +15,7 @@ pub async fn process_edit_controller(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     authority: &Keypair,
-    redeemable_global_supply_cap: Option<u128>,
+    fields: &EditControllerFields,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller();
@@ -31,11 +32,7 @@ pub async fn process_edit_controller(
         authority: authority.pubkey(),
         controller,
     };
-    let payload = uxd::instruction::EditController {
-        fields: uxd::instructions::EditControllerFields {
-            redeemable_global_supply_cap,
-        },
-    };
+    let payload = uxd::instruction::EditController { fields: *fields };
     let instruction = Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),
@@ -59,7 +56,9 @@ pub async fn process_edit_controller(
     // Check result
     assert_eq!(
         redeemable_global_supply_cap_after,
-        redeemable_global_supply_cap.unwrap_or(redeemable_global_supply_cap_before)
+        fields
+            .redeemable_global_supply_cap
+            .unwrap_or(redeemable_global_supply_cap_before)
     );
 
     // Done
