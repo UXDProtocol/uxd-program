@@ -27,17 +27,11 @@ mod test_compute_value_for_single_share_ceil {
 
     #[test]
     fn test_incorrectness() -> Result<()> {
-        assert_eq!(compute_value_for_single_share_ceil(0, 0).is_err(), true);
-        assert_eq!(compute_value_for_single_share_ceil(0, 1).is_err(), true);
-        assert_eq!(
-            compute_value_for_single_share_ceil(0, u64::MAX).is_err(),
-            true
-        );
-        assert_eq!(compute_value_for_single_share_ceil(1, 0).is_err(), true);
-        assert_eq!(
-            compute_value_for_single_share_ceil(u64::MAX, 0).is_err(),
-            true
-        );
+        assert!(compute_value_for_single_share_ceil(0, 0).is_err());
+        assert!(compute_value_for_single_share_ceil(0, 1).is_err());
+        assert!(compute_value_for_single_share_ceil(0, u64::MAX).is_err());
+        assert!(compute_value_for_single_share_ceil(1, 0).is_err());
+        assert!(compute_value_for_single_share_ceil(u64::MAX, 0).is_err());
         Ok(())
     }
 

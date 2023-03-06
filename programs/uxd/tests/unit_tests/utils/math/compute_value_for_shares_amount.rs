@@ -57,9 +57,9 @@ mod test_compute_value_for_shares_amount {
 
     #[test]
     fn test_incorrectness() -> Result<()> {
-        assert_eq!(compute_value_for_shares_amount(1, 0, 0).is_err(), true);
-        assert_eq!(compute_value_for_shares_amount(1, 0, 10).is_err(), true);
-        assert_eq!(compute_value_for_shares_amount(1, 10, 0).is_err(), true);
+        assert!(compute_value_for_shares_amount(1, 0, 0).is_err());
+        assert!(compute_value_for_shares_amount(1, 0, 10).is_err());
+        assert!(compute_value_for_shares_amount(1, 10, 0).is_err());
         Ok(())
     }
 

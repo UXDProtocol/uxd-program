@@ -6,10 +6,10 @@ mod test_compute_increase {
 
     #[test]
     fn test_decrease() -> Result<()> {
-        assert_eq!(compute_increase(1, 0).is_err(), true);
-        assert_eq!(compute_increase(1_000_000, 0).is_err(), true);
-        assert_eq!(compute_increase(2_000_000, 5).is_err(), true);
-        assert_eq!(compute_increase(5_000_000, 4_000_000).is_err(), true);
+        assert!(compute_increase(1, 0).is_err());
+        assert!(compute_increase(1_000_000, 0).is_err());
+        assert!(compute_increase(2_000_000, 5).is_err());
+        assert!(compute_increase(5_000_000, 4_000_000).is_err());
         Ok(())
     }
 
