@@ -96,7 +96,7 @@ pub async fn process_deploy_program(
         program_test_context,
         &mercurial_admin,
         &collateral_mint.pubkey(),
-        &mercurial_vault_lp_mint,
+        mercurial_vault_lp_mint,
         mercurial_vault_lp_mint_decimals,
     )
     .await?;

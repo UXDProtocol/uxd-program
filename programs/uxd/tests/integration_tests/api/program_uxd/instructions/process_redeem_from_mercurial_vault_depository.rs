@@ -74,7 +74,7 @@ pub async fn process_redeem_from_mercurial_vault_depository(
     let accounts = uxd::accounts::RedeemFromMercurialVaultDepository {
         payer: payer.pubkey(),
         user: user.pubkey(),
-        controller: controller,
+        controller,
         collateral_mint: *collateral_mint,
         redeemable_mint,
         user_collateral: *user_collateral,

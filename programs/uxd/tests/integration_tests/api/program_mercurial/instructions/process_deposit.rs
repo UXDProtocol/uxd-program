@@ -42,5 +42,5 @@ pub async fn process_deposit(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, &user).await
+    program_test_context::process_instruction(program_test_context, instruction, user).await
 }

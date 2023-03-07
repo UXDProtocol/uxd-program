@@ -71,7 +71,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
     let accounts = uxd::accounts::MintWithMercurialVaultDepository {
         payer: payer.pubkey(),
         user: user.pubkey(),
-        controller: controller,
+        controller,
         collateral_mint: *collateral_mint,
         redeemable_mint,
         user_collateral: *user_collateral,
@@ -95,7 +95,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
         program_test_context,
         instruction,
         payer,
-        &user,
+        user,
     )
     .await?;
 

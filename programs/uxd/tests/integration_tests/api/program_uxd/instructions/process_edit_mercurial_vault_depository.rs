@@ -53,7 +53,7 @@ pub async fn process_edit_mercurial_vault_depository(
         program_test_context,
         instruction,
         payer,
-        &authority,
+        authority,
     )
     .await?;
 
