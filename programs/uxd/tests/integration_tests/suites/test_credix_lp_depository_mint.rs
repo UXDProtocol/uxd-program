@@ -62,7 +62,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     let user_redeemable = program_spl::instructions::process_associated_token_account_get_or_init(
         &mut program_test_context,
         &payer,
-        &program_uxd::accounts::find_redeemable_mint(),
+        &program_uxd::accounts::find_redeemable_mint_pda().0,
         &user.pubkey(),
     )
     .await?;

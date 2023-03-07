@@ -16,10 +16,10 @@ pub async fn process_initialize_identity_depository(
     collateral_mint: &Pubkey,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
-    let controller = program_uxd::accounts::find_controller();
-    let identity_depository = program_uxd::accounts::find_identity_depository();
+    let controller = program_uxd::accounts::find_controller_pda().0;
+    let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
     let identity_depository_collateral_vault =
-        program_uxd::accounts::find_identity_depository_collateral_vault();
+        program_uxd::accounts::find_identity_depository_collateral_vault_pda().0;
 
     // Execute IX
     let accounts = uxd::accounts::InitializeIdentityDepository {

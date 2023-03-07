@@ -18,8 +18,8 @@ pub async fn process_edit_identity_depository(
     fields: &EditIdentityDepositoryFields,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
-    let controller = program_uxd::accounts::find_controller();
-    let identity_depository = program_uxd::accounts::find_identity_depository();
+    let controller = program_uxd::accounts::find_controller_pda().0;
+    let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
 
     // Read state before
     let identity_depository_before =
@@ -28,10 +28,6 @@ pub async fn process_edit_identity_depository(
             &identity_depository,
         )
         .await?;
-
-    let redeemable_amount_under_management_cap_before =
-        identity_depository_before.redeemable_amount_under_management_cap;
-    let minting_disabled_before = identity_depository_before.minting_disabled;
 
     // Execute IX
     let accounts = uxd::accounts::EditIdentityDepository {
@@ -61,17 +57,19 @@ pub async fn process_edit_identity_depository(
         )
         .await?;
 
+    // Check result
+    let redeemable_amount_under_management_cap_before =
+        identity_depository_before.redeemable_amount_under_management_cap;
     let redeemable_amount_under_management_cap_after =
         identity_depository_after.redeemable_amount_under_management_cap;
-    let minting_disabled_after = identity_depository_after.minting_disabled;
-
-    // Check result
     assert_eq!(
         redeemable_amount_under_management_cap_after,
         fields
             .redeemable_amount_under_management_cap
             .unwrap_or(redeemable_amount_under_management_cap_before)
     );
+    let minting_disabled_before = identity_depository_before.minting_disabled;
+    let minting_disabled_after = identity_depository_after.minting_disabled;
     assert_eq!(
         minting_disabled_after,
         fields.minting_disabled.unwrap_or(minting_disabled_before)

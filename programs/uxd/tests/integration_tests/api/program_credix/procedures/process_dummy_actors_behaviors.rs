@@ -14,7 +14,7 @@ pub async fn process_dummy_actors_behaviors(
     base_token_authority: &Keypair,
 ) -> Result<(), program_test_context::ProgramTestError> {
     let market_seeds = program_credix::accounts::find_market_seeds();
-    let lp_token_mint = program_credix::accounts::find_lp_token_mint(&market_seeds);
+    let lp_token_mint = program_credix::accounts::find_lp_token_mint_pda(&market_seeds).0;
     let dummy_investor = Keypair::new();
 
     // Airdrop lamports to the dummy investor wallet

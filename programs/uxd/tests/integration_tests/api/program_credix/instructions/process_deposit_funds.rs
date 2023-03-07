@@ -18,15 +18,16 @@ pub async fn process_deposit_funds(
     amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     let market_seeds = program_credix::accounts::find_market_seeds();
-    let global_market_state = program_credix::accounts::find_global_market_state(&market_seeds);
-    let lp_token_mint = program_credix::accounts::find_lp_token_mint(&market_seeds);
-    let signing_authority = program_credix::accounts::find_signing_authority(&market_seeds);
+    let global_market_state =
+        program_credix::accounts::find_global_market_state_pda(&market_seeds).0;
+    let lp_token_mint = program_credix::accounts::find_lp_token_mint_pda(&market_seeds).0;
+    let signing_authority = program_credix::accounts::find_signing_authority_pda(&market_seeds).0;
     let liquidity_pool_token_account = program_credix::accounts::find_liquidity_pool_token_account(
         &signing_authority,
         base_token_mint,
     );
     let credix_pass =
-        program_credix::accounts::find_credix_pass(&global_market_state, &investor.pubkey());
+        program_credix::accounts::find_credix_pass_pda(&global_market_state, &investor.pubkey()).0;
     let accounts = credix_client::accounts::DepositFunds {
         investor: investor.pubkey(),
         investor_token_account: *investor_token_account,

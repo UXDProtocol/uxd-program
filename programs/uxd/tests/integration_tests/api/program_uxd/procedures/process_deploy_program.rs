@@ -97,14 +97,15 @@ pub async fn process_deploy_program(
     )
     .await?;
 
-    // Credix pass creation
+    // Credix pass creation for our credix_lp depository (done by credix team on mainnet)
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
-        program_credix::accounts::find_global_market_state(&credix_market_seeds);
-    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository(
+        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
+    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository_pda(
         &collateral_mint.pubkey(),
         &credix_global_market_state,
-    );
+    )
+    .0;
     program_credix::instructions::process_create_credix_pass(
         program_test_context,
         &credix_authority,

@@ -18,14 +18,12 @@ pub async fn process_edit_controller(
     fields: &EditControllerFields,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
-    let controller = program_uxd::accounts::find_controller();
+    let controller = program_uxd::accounts::find_controller_pda().0;
 
     // Read state before
     let controller_before =
         program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
             .await?;
-
-    let redeemable_global_supply_cap_before = controller_before.redeemable_global_supply_cap;
 
     // Execute IX
     let accounts = uxd::accounts::EditController {
@@ -51,9 +49,9 @@ pub async fn process_edit_controller(
         program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
             .await?;
 
+    // Check results
+    let redeemable_global_supply_cap_before = controller_before.redeemable_global_supply_cap;
     let redeemable_global_supply_cap_after = controller_after.redeemable_global_supply_cap;
-
-    // Check result
     assert_eq!(
         redeemable_global_supply_cap_after,
         fields

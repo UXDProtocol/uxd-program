@@ -21,14 +21,15 @@ pub async fn process_edit_credix_lp_depository(
     fields: &EditCredixLpDepositoryFields,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
-    let controller = program_uxd::accounts::find_controller();
+    let controller = program_uxd::accounts::find_controller_pda().0;
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
-        program_credix::accounts::find_global_market_state(&credix_market_seeds);
-    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository(
+        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
+    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository_pda(
         collateral_mint,
         &credix_global_market_state,
-    );
+    )
+    .0;
 
     // Read state before
     let credix_lp_depository_before =
@@ -37,14 +38,6 @@ pub async fn process_edit_credix_lp_depository(
             &credix_lp_depository,
         )
         .await?;
-
-    let redeemable_amount_under_management_cap_before =
-        credix_lp_depository_before.redeemable_amount_under_management_cap;
-    let minting_fee_in_bps_before = credix_lp_depository_before.minting_fee_in_bps;
-    let redeeming_fee_in_bps_before = credix_lp_depository_before.redeeming_fee_in_bps;
-    let minting_disabled_before = credix_lp_depository_before.minting_disabled;
-    let profits_beneficiary_collateral_before =
-        credix_lp_depository_before.profits_beneficiary_collateral;
 
     // Execute IX
     let accounts = uxd::accounts::EditCredixLpDepository {
@@ -74,37 +67,43 @@ pub async fn process_edit_credix_lp_depository(
         )
         .await?;
 
+    // Check results
+    let redeemable_amount_under_management_cap_before =
+        credix_lp_depository_before.redeemable_amount_under_management_cap;
     let redeemable_amount_under_management_cap_after =
         credix_lp_depository_after.redeemable_amount_under_management_cap;
-    let minting_fee_in_bps_after = credix_lp_depository_after.minting_fee_in_bps;
-    let redeeming_fee_in_bps_after = credix_lp_depository_after.redeeming_fee_in_bps;
-    let minting_disabled_after = credix_lp_depository_after.minting_disabled;
-    let profits_beneficiary_collateral_after =
-        credix_lp_depository_after.profits_beneficiary_collateral;
-
-    // Check result
     assert_eq!(
         redeemable_amount_under_management_cap_after,
         fields
             .redeemable_amount_under_management_cap
             .unwrap_or(redeemable_amount_under_management_cap_before)
     );
+    let minting_fee_in_bps_before = credix_lp_depository_before.minting_fee_in_bps;
+    let minting_fee_in_bps_after = credix_lp_depository_after.minting_fee_in_bps;
     assert_eq!(
         minting_fee_in_bps_after,
         fields
             .minting_fee_in_bps
             .unwrap_or(minting_fee_in_bps_before)
     );
+    let redeeming_fee_in_bps_before = credix_lp_depository_before.redeeming_fee_in_bps;
+    let redeeming_fee_in_bps_after = credix_lp_depository_after.redeeming_fee_in_bps;
     assert_eq!(
         redeeming_fee_in_bps_after,
         fields
             .redeeming_fee_in_bps
             .unwrap_or(redeeming_fee_in_bps_before)
     );
+    let minting_disabled_before = credix_lp_depository_before.minting_disabled;
+    let minting_disabled_after = credix_lp_depository_after.minting_disabled;
     assert_eq!(
         minting_disabled_after,
         fields.minting_disabled.unwrap_or(minting_disabled_before)
     );
+    let profits_beneficiary_collateral_before =
+        credix_lp_depository_before.profits_beneficiary_collateral;
+    let profits_beneficiary_collateral_after =
+        credix_lp_depository_after.profits_beneficiary_collateral;
     assert_eq!(
         profits_beneficiary_collateral_after,
         fields

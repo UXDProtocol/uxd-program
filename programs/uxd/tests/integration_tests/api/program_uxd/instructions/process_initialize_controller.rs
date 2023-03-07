@@ -15,8 +15,8 @@ pub async fn process_initialize_controller(
     redeemable_mint_decimals: u8,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
-    let controller = program_uxd::accounts::find_controller();
-    let redeemable_mint = program_uxd::accounts::find_redeemable_mint();
+    let controller = program_uxd::accounts::find_controller_pda().0;
+    let redeemable_mint = program_uxd::accounts::find_redeemable_mint_pda().0;
 
     // Execute IX
     let accounts = uxd::accounts::InitializeController {
