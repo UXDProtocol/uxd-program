@@ -148,6 +148,7 @@ pub async fn process_mint_with_credix_lp_depository(
         credix_lp_depository_before.minting_fee_in_bps,
     )
     .map_err(program_test_context::ProgramTestError::Anchor)?;
+    let fees_amount = collateral_amount - redeemable_amount;
 
     // Check result
     let redeemable_mint_supply_before = redeemable_mint_before.supply;
@@ -171,6 +172,12 @@ pub async fn process_mint_with_credix_lp_depository(
     assert_eq!(
         redeemable_amount_under_management_before + redeemable_amount,
         redeemable_amount_under_management_after,
+    );
+    let minting_fee_total_accrued_before = credix_lp_depository_before.minting_fee_total_accrued;
+    let minting_fee_total_accrued_after = credix_lp_depository_after.minting_fee_total_accrued;
+    assert_eq!(
+        minting_fee_total_accrued_before + u128::from(fees_amount),
+        minting_fee_total_accrued_after,
     );
     let collateral_amount_deposited_before =
         u64::try_from(credix_lp_depository_before.collateral_amount_deposited).unwrap();

@@ -10,7 +10,7 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_mercurial_vault_depository_mint_and_redeem(
+async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
 ) -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
@@ -51,6 +51,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem(
 
     // Main actor
     let user = Keypair::new();
+    let profits_beneficiary = Keypair::new();
 
     // Create a collateral account for our user
     let user_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
@@ -68,6 +69,16 @@ async fn test_mercurial_vault_depository_mint_and_redeem(
         &user.pubkey(),
     )
     .await?;
+
+    // Create a collateral account for our profits_beneficiary
+    let profits_beneficiary_collateral =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            &mut program_test_context,
+            &payer,
+            &collateral_mint.pubkey(),
+            &profits_beneficiary.pubkey(),
+        )
+        .await?;
 
     // Useful amounts used during testing scenario
     let amount_we_use_as_supply_cap = ui_amount_to_native_amount(50, redeemable_mint_decimals);
@@ -276,5 +287,52 @@ async fn test_mercurial_vault_depository_mint_and_redeem(
         .is_err()
     );
 
+    // ---------------------------------------------------------------------
+    // -- Phase 4
+    // -- After mint/redeem cycle, we should have a small amount of profits
+    // -- We should now successfully be able to collect profits
+    // -- Before that we make sure to test and set the depository flag profits beneficiary
+    // ---------------------------------------------------------------------
+
+    // Collecting profits first should fail because we havent set a profits beneficiary
+    assert!(
+        program_uxd::instructions::process_collect_profits_of_mercurial_vault_depository(
+            &mut program_test_context,
+            &payer,
+            &collateral_mint.pubkey(),
+            &mercurial_vault_lp_mint.pubkey(),
+            &profits_beneficiary_collateral,
+        )
+        .await
+        .is_err()
+    );
+
+    // Setting the profits beneficiary
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditMercurialVaultDepositoryFields {
+            redeemable_amount_under_management_cap: None,
+            minting_fee_in_bps: None,
+            redeeming_fee_in_bps: None,
+            minting_disabled: None,
+            profits_beneficiary_collateral: Some(profits_beneficiary_collateral),
+        },
+    )
+    .await?;
+
+    // Now that profits beneficiary is set, collecting profits should suceed
+    program_uxd::instructions::process_collect_profits_of_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &profits_beneficiary_collateral,
+    )
+    .await?;
+
+    // Done
     Ok(())
 }

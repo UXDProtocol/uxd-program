@@ -10,6 +10,7 @@ use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn process_register_mercurial_vault_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,

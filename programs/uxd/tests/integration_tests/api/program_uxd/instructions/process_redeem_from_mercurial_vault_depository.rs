@@ -16,6 +16,7 @@ use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn process_redeem_from_mercurial_vault_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
@@ -129,6 +130,7 @@ pub async fn process_redeem_from_mercurial_vault_depository(
         mercurial_vault_depository_before.minting_fee_in_bps,
     )
     .map_err(program_test_context::ProgramTestError::Anchor)?;
+    let fees_amount = redeemable_amount - collateral_amount;
 
     // Check result
     let redeemable_mint_supply_before = redeemable_mint_before.supply;
@@ -153,6 +155,14 @@ pub async fn process_redeem_from_mercurial_vault_depository(
     assert_eq!(
         redeemable_amount_under_management_before - redeemable_amount,
         redeemable_amount_under_management_after,
+    );
+    let redeeming_fee_total_accrued_before =
+        mercurial_vault_depository_before.redeeming_fee_total_accrued;
+    let redeeming_fee_total_accrued_after =
+        mercurial_vault_depository_after.redeeming_fee_total_accrued;
+    assert_eq!(
+        redeeming_fee_total_accrued_before + u128::from(fees_amount),
+        redeeming_fee_total_accrued_after,
     );
     let collateral_amount_deposited_before =
         u64::try_from(mercurial_vault_depository_before.collateral_amount_deposited).unwrap();

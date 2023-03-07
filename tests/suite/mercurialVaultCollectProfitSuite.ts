@@ -46,8 +46,8 @@ export const mercurialVaultDepositoryCollectProfitsSuite = async function ({
     }
   );
 
-  describe('Collect profit of mercurial vault depository', () => {
-    it(`Set profit beneficiary as empty Public key (All zeroes)`, async () =>
+  describe('Collect profits of mercurial vault depository', () => {
+    it(`Set profits beneficiary as empty Public key (All zeroes)`, async () =>
       editMercurialVaultDepositoryTest({
         authority,
         controller,
@@ -57,7 +57,7 @@ export const mercurialVaultDepositoryCollectProfitsSuite = async function ({
         },
       }));
 
-    it(`Collect profits should fail before initializing profit beneficiary`, async function () {
+    it(`Collect profits should fail before initializing profits beneficiary`, async function () {
       try {
         await collectProfitsOfMercurialVaultDepositoryTest({
           controller,
@@ -74,7 +74,7 @@ export const mercurialVaultDepositoryCollectProfitsSuite = async function ({
       );
     });
 
-    it(`Set profit beneficiary before collecting profits`, async function () {
+    it(`Set profits beneficiary before collecting profits`, async function () {
       const profitsBeneficiaryAccountInfo =
         await getOrCreateAssociatedTokenAccount(
           getConnection(),
