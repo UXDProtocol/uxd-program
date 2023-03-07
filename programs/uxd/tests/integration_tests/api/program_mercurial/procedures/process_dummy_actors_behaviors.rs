@@ -1,3 +1,4 @@
+use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
@@ -8,10 +9,9 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_dummy_actors_behaviors(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_mercurial::accounts::ProgramKeys,
-    token_mint_authority: &Keypair,
+    token_mint: &Keypair,
+    lp_mint: &Pubkey,
 ) -> Result<(), program_test_context::ProgramTestError> {
-    // Create a dummy investor
     let dummy_investor = Keypair::new();
 
     // Airdrop lamports to the dummy investor wallet
@@ -27,7 +27,7 @@ pub async fn process_dummy_actors_behaviors(
         program_spl::instructions::process_associated_token_account_get_or_init(
             program_test_context,
             &dummy_investor,
-            &program_keys.token_mint,
+            &token_mint.pubkey(),
             &dummy_investor.pubkey(),
         )
         .await?;
@@ -35,7 +35,7 @@ pub async fn process_dummy_actors_behaviors(
         program_spl::instructions::process_associated_token_account_get_or_init(
             program_test_context,
             &dummy_investor,
-            &program_keys.lp_mint.pubkey(),
+            lp_mint,
             &dummy_investor.pubkey(),
         )
         .await?;
@@ -44,8 +44,8 @@ pub async fn process_dummy_actors_behaviors(
     program_spl::instructions::process_token_mint_to(
         program_test_context,
         &dummy_investor,
-        &program_keys.token_mint,
-        token_mint_authority,
+        &token_mint.pubkey(),
+        token_mint,
         &dummy_investor_token,
         1_000_000_000,
     )
@@ -54,7 +54,8 @@ pub async fn process_dummy_actors_behaviors(
     // The dummy investor will do a dummy deposit to initialize the lp-pool
     program_mercurial::instructions::process_deposit(
         program_test_context,
-        &program_keys,
+        &token_mint.pubkey(),
+        lp_mint,
         &dummy_investor,
         &dummy_investor_token,
         &dummy_investor_lp,

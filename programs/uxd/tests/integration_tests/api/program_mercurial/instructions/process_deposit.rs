@@ -11,16 +11,23 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_deposit(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_mercurial::accounts::ProgramKeys,
+    token_mint: &Pubkey,
+    lp_mint: &Pubkey,
     user: &Keypair,
     user_token: &Pubkey,
     user_lp: &Pubkey,
     token_amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
+    // Find needed accounts
+    let base = program_mercurial::accounts::find_base();
+    let vault = program_mercurial::accounts::find_vault_pda(token_mint, &base.pubkey()).0;
+    let token_vault = program_mercurial::accounts::find_token_vault_pda(&vault).0;
+
+    // Execute IX
     let accounts = mercurial_vault::accounts::Deposit {
-        vault: program_keys.vault,
-        token_vault: program_keys.token_vault,
-        lp_mint: program_keys.lp_mint.pubkey(),
+        vault,
+        token_vault,
+        lp_mint: *lp_mint,
         user: user.pubkey(),
         user_token: *user_token,
         user_lp: *user_lp,

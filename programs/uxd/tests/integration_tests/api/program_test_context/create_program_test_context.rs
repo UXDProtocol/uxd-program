@@ -3,6 +3,7 @@ use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
 
 pub async fn create_program_test_context() -> ProgramTestContext {
+    // Program test struct will need to be aware of all its programs it will use
     let mut program_test = ProgramTest::default();
 
     // Deploy the uxd program from compiled artifact
@@ -25,5 +26,6 @@ pub async fn create_program_test_context() -> ProgramTestContext {
         None,
     );
 
-    return program_test.start_with_context().await;
+    // Done, generate the ProgramTestContext
+    program_test.start_with_context().await
 }

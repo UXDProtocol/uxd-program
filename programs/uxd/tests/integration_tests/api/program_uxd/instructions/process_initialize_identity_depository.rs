@@ -1,6 +1,7 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
+use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
@@ -10,16 +11,24 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_initialize_identity_depository(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
+    authority: &Keypair,
+    collateral_mint: &Pubkey,
 ) -> Result<(), program_test_context::ProgramTestError> {
+    // Find needed accounts
+    let controller = program_uxd::accounts::find_controller_pda().0;
+    let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
+    let identity_depository_collateral_vault =
+        program_uxd::accounts::find_identity_depository_collateral_vault_pda().0;
+
+    // Execute IX
     let accounts = uxd::accounts::InitializeIdentityDepository {
-        authority: program_keys.authority.pubkey(),
+        authority: authority.pubkey(),
         payer: payer.pubkey(),
-        controller: program_keys.controller,
-        depository: program_keys.identity_depository_keys.depository,
-        collateral_vault: program_keys.identity_depository_keys.collateral_vault,
-        collateral_mint: program_keys.collateral_mint.pubkey(),
+        controller,
+        depository: identity_depository,
+        collateral_vault: identity_depository_collateral_vault,
+        collateral_mint: *collateral_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
@@ -34,7 +43,7 @@ pub async fn process_initialize_identity_depository(
         program_test_context,
         instruction,
         payer,
-        &program_keys.authority,
+        authority,
     )
     .await
 }

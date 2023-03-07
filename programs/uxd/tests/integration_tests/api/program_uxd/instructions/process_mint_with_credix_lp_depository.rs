@@ -12,43 +12,66 @@ use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
 use uxd::utils::calculate_amount_less_fees;
 
+use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_mint_with_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
-    program_keys: &program_uxd::accounts::ProgramKeys,
     payer: &Keypair,
+    collateral_mint: &Pubkey,
     user: &Keypair,
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
     collateral_amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
+    // Find needed accounts
+    let controller = program_uxd::accounts::find_controller_pda().0;
+    let redeemable_mint = program_uxd::accounts::find_redeemable_mint_pda().0;
+    let credix_market_seeds = program_credix::accounts::find_market_seeds();
+    let credix_global_market_state =
+        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
+    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository_pda(
+        collateral_mint,
+        &credix_global_market_state,
+    )
+    .0;
+    let credix_shares_mint =
+        program_credix::accounts::find_lp_token_mint_pda(&credix_market_seeds).0;
+    let credix_signing_authority =
+        program_credix::accounts::find_signing_authority_pda(&credix_market_seeds).0;
+    let credix_liquidity_collateral = program_credix::accounts::find_liquidity_pool_token_account(
+        &credix_signing_authority,
+        collateral_mint,
+    );
+    let credix_pass = program_credix::accounts::find_credix_pass_pda(
+        &credix_global_market_state,
+        &credix_lp_depository,
+    )
+    .0;
+    let credix_lp_depository_collateral =
+        program_uxd::accounts::find_credix_lp_depository_collateral(
+            &credix_lp_depository,
+            collateral_mint,
+        );
+    let credix_lp_depository_shares = program_uxd::accounts::find_credix_lp_depository_shares(
+        &credix_lp_depository,
+        &credix_shares_mint,
+    );
+
     // Read state before
-    let redeemable_mint_before = program_test_context::read_account_packed::<Mint>(
-        program_test_context,
-        &program_keys.redeemable_mint,
-    )
-    .await?;
-    let controller_before = program_test_context::read_account_anchor::<Controller>(
-        program_test_context,
-        &program_keys.controller,
-    )
-    .await?;
+    let redeemable_mint_before =
+        program_test_context::read_account_packed::<Mint>(program_test_context, &redeemable_mint)
+            .await?;
+    let controller_before =
+        program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
+            .await?;
     let credix_lp_depository_before =
         program_test_context::read_account_anchor::<CredixLpDepository>(
             program_test_context,
-            &program_keys.credix_lp_depository_keys.depository,
+            &credix_lp_depository,
         )
         .await?;
-
-    let redeemable_mint_supply_before = redeemable_mint_before.supply;
-    let redeemable_circulating_supply_before =
-        u64::try_from(controller_before.redeemable_circulating_supply).unwrap();
-    let redeemable_amount_under_management_before =
-        u64::try_from(credix_lp_depository_before.redeemable_amount_under_management).unwrap();
-    let collateral_amount_deposited_before =
-        u64::try_from(credix_lp_depository_before.collateral_amount_deposited).unwrap();
 
     let user_collateral_amount_before =
         program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
@@ -60,23 +83,22 @@ pub async fn process_mint_with_credix_lp_depository(
             .amount;
 
     // Execute IX
-    let credix_lp_depository_keys = &program_keys.credix_lp_depository_keys;
     let accounts = uxd::accounts::MintWithCredixLpDepository {
         payer: payer.pubkey(),
         user: user.pubkey(),
-        controller: program_keys.controller,
-        collateral_mint: program_keys.collateral_mint.pubkey(),
-        redeemable_mint: program_keys.redeemable_mint,
+        controller,
+        collateral_mint: *collateral_mint,
+        redeemable_mint,
         user_collateral: *user_collateral,
         user_redeemable: *user_redeemable,
-        depository: credix_lp_depository_keys.depository,
-        depository_collateral: credix_lp_depository_keys.depository_collateral,
-        depository_shares: credix_lp_depository_keys.depository_shares,
-        credix_global_market_state: credix_lp_depository_keys.credix_global_market_state,
-        credix_signing_authority: credix_lp_depository_keys.credix_signing_authority,
-        credix_liquidity_collateral: credix_lp_depository_keys.credix_liquidity_collateral,
-        credix_shares_mint: credix_lp_depository_keys.credix_shares_mint,
-        credix_pass: credix_lp_depository_keys.credix_pass,
+        depository: credix_lp_depository,
+        depository_collateral: credix_lp_depository_collateral,
+        depository_shares: credix_lp_depository_shares,
+        credix_global_market_state,
+        credix_signing_authority,
+        credix_liquidity_collateral,
+        credix_shares_mint,
+        credix_pass,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
@@ -93,35 +115,23 @@ pub async fn process_mint_with_credix_lp_depository(
         program_test_context,
         instruction,
         payer,
-        &user,
+        user,
     )
     .await?;
 
     // Read state after
-    let redeemable_mint_after = program_test_context::read_account_packed::<Mint>(
-        program_test_context,
-        &program_keys.redeemable_mint,
-    )
-    .await?;
-    let controller_after = program_test_context::read_account_anchor::<Controller>(
-        program_test_context,
-        &program_keys.controller,
-    )
-    .await?;
+    let redeemable_mint_after =
+        program_test_context::read_account_packed::<Mint>(program_test_context, &redeemable_mint)
+            .await?;
+    let controller_after =
+        program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
+            .await?;
     let credix_lp_depository_after =
         program_test_context::read_account_anchor::<CredixLpDepository>(
             program_test_context,
-            &program_keys.credix_lp_depository_keys.depository,
+            &credix_lp_depository,
         )
         .await?;
-
-    let redeemable_mint_supply_after = redeemable_mint_after.supply;
-    let redeemable_circulating_supply_after =
-        u64::try_from(controller_after.redeemable_circulating_supply).unwrap();
-    let redeemable_amount_under_management_after =
-        u64::try_from(credix_lp_depository_after.redeemable_amount_under_management).unwrap();
-    let collateral_amount_deposited_after =
-        u64::try_from(credix_lp_depository_after.collateral_amount_deposited).unwrap();
 
     let user_collateral_amount_after =
         program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
@@ -137,21 +147,35 @@ pub async fn process_mint_with_credix_lp_depository(
         collateral_amount,
         credix_lp_depository_before.minting_fee_in_bps,
     )
-    .map_err(|e| program_test_context::ProgramTestError::AnchorError(e))?;
+    .map_err(program_test_context::ProgramTestError::Anchor)?;
 
     // Check result
+    let redeemable_mint_supply_before = redeemable_mint_before.supply;
+    let redeemable_mint_supply_after = redeemable_mint_after.supply;
     assert_eq!(
         redeemable_mint_supply_before + redeemable_amount,
         redeemable_mint_supply_after,
     );
+    let redeemable_circulating_supply_before =
+        u64::try_from(controller_before.redeemable_circulating_supply).unwrap();
+    let redeemable_circulating_supply_after =
+        u64::try_from(controller_after.redeemable_circulating_supply).unwrap();
     assert_eq!(
         redeemable_circulating_supply_before + redeemable_amount,
         redeemable_circulating_supply_after,
     );
+    let redeemable_amount_under_management_before =
+        u64::try_from(credix_lp_depository_before.redeemable_amount_under_management).unwrap();
+    let redeemable_amount_under_management_after =
+        u64::try_from(credix_lp_depository_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
         redeemable_amount_under_management_before + redeemable_amount,
         redeemable_amount_under_management_after,
     );
+    let collateral_amount_deposited_before =
+        u64::try_from(credix_lp_depository_before.collateral_amount_deposited).unwrap();
+    let collateral_amount_deposited_after =
+        u64::try_from(credix_lp_depository_after.collateral_amount_deposited).unwrap();
     assert_eq!(
         collateral_amount_deposited_before + collateral_amount,
         collateral_amount_deposited_after,

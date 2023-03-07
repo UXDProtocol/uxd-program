@@ -2,9 +2,13 @@ use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::instructions::EditControllerFields;
+use uxd::instructions::EditCredixLpDepositoryFields;
+
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
+use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
 async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::ProgramTestError> {
@@ -24,14 +28,24 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     )
     .await?;
 
-    // Create the program keys structure (find/create all important keys)
-    let program_keys = program_uxd::accounts::create_program_keys();
+    // Hardcode mints decimals
+    let collateral_mint_decimals = 6;
+    let redeemable_mint_decimals = 6;
+
+    // Important account keys
+    let authority = Keypair::new();
+    let collateral_mint = Keypair::new();
+    let mercurial_vault_lp_mint = Keypair::new();
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
         &mut program_test_context,
-        &program_keys,
         &payer,
+        &authority,
+        &collateral_mint,
+        &mercurial_vault_lp_mint,
+        collateral_mint_decimals,
+        redeemable_mint_decimals,
     )
     .await?;
 
@@ -42,7 +56,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     let user_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
         &mut program_test_context,
         &payer,
-        &program_keys.collateral_mint.pubkey(),
+        &collateral_mint.pubkey(),
         &user.pubkey(),
     )
     .await?;
@@ -50,17 +64,20 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     let user_redeemable = program_spl::instructions::process_associated_token_account_get_or_init(
         &mut program_test_context,
         &payer,
-        &program_keys.redeemable_mint,
+        &program_uxd::accounts::find_redeemable_mint_pda().0,
         &user.pubkey(),
     )
     .await?;
 
     // Useful amounts used during testing scenario
-    let amount_we_use_as_supply_cap = program_keys.redeemable_amount_ui_to_native(50);
-    let amount_bigger_than_the_supply_cap = program_keys.redeemable_amount_ui_to_native(300);
+    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(50, redeemable_mint_decimals);
+    let amount_bigger_than_the_supply_cap =
+        ui_amount_to_native_amount(300, redeemable_mint_decimals);
 
-    let amount_of_collateral_airdropped_to_user = program_keys.collateral_amount_ui_to_native(1000);
-    let amount_the_user_should_be_able_to_mint = program_keys.collateral_amount_ui_to_native(50);
+    let amount_of_collateral_airdropped_to_user =
+        ui_amount_to_native_amount(1000, collateral_mint_decimals);
+    let amount_the_user_should_be_able_to_mint =
+        ui_amount_to_native_amount(50, collateral_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -76,8 +93,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
-            &program_keys,
             &payer,
+            &collateral_mint.pubkey(),
             &user,
             &user_collateral,
             &user_redeemable,
@@ -91,8 +108,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     program_spl::instructions::process_token_mint_to(
         &mut program_test_context,
         &payer,
-        &program_keys.collateral_mint.pubkey(),
-        &program_keys.collateral_mint_authority,
+        &collateral_mint.pubkey(),
+        &collateral_mint,
         &user_collateral,
         amount_of_collateral_airdropped_to_user,
     )
@@ -102,8 +119,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
-            &program_keys,
             &payer,
+            &collateral_mint.pubkey(),
             &user,
             &user_collateral,
             &user_redeemable,
@@ -116,9 +133,11 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     // Set the controller cap
     program_uxd::instructions::process_edit_controller(
         &mut program_test_context,
-        &program_keys,
         &payer,
-        Some(amount_we_use_as_supply_cap.into()),
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+        },
     )
     .await?;
 
@@ -126,8 +145,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
-            &program_keys,
             &payer,
+            &collateral_mint.pubkey(),
             &user,
             &user_collateral,
             &user_redeemable,
@@ -140,13 +159,16 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     // Set the depository cap and make sure minting is not disabled
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
-        &program_keys,
         &payer,
-        Some(amount_we_use_as_supply_cap.into()),
-        Some(100),
-        Some(100),
-        Some(false),
-        None,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditCredixLpDepositoryFields {
+            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
+            minting_fee_in_bps: Some(100),
+            redeeming_fee_in_bps: Some(100),
+            minting_disabled: Some(false),
+            profits_beneficiary_collateral: None,
+        },
     )
     .await?;
 
@@ -154,8 +176,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
-            &program_keys,
             &payer,
+            &collateral_mint.pubkey(),
             &user,
             &user_collateral,
             &user_redeemable,
@@ -169,8 +191,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
-            &program_keys,
             &payer,
+            &collateral_mint.pubkey(),
             &user,
             &user_collateral,
             &user_redeemable,
@@ -189,8 +211,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     // Minting should work now that everything is set
     program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_test_context,
-        &program_keys,
         &payer,
+        &collateral_mint.pubkey(),
         &user,
         &user_collateral,
         &user_redeemable,
@@ -198,5 +220,6 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     )
     .await?;
 
+    // Done
     Ok(())
 }
