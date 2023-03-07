@@ -31,7 +31,7 @@ pub struct EditIdentityDepository<'info> {
     pub depository: AccountLoader<'info, IdentityDepository>,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
 pub struct EditIdentityDepositoryFields {
     pub redeemable_amount_under_management_cap: Option<u128>,
     pub minting_disabled: Option<bool>,

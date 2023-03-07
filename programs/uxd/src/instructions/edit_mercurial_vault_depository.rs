@@ -37,7 +37,7 @@ pub struct EditMercurialVaultDepository<'info> {
     pub depository: AccountLoader<'info, MercurialVaultDepository>,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
 pub struct EditMercurialVaultDepositoryFields {
     pub redeemable_amount_under_management_cap: Option<u128>,
     pub minting_fee_in_bps: Option<u8>,
