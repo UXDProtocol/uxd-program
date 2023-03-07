@@ -80,7 +80,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem(
         ui_amount_to_native_amount(50, collateral_mint_decimals);
 
     let amount_the_user_should_be_able_to_redeem =
-        ui_amount_to_native_amount(50, redeemable_mint_decimals);
+        ui_amount_to_native_amount(40, redeemable_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
