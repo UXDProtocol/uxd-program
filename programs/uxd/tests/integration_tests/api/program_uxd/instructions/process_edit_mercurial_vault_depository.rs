@@ -63,7 +63,7 @@ pub async fn process_edit_mercurial_vault_depository(
     >(program_test_context, &mercurial_vault_depository)
     .await?;
 
-    // Check result
+    // redeemable_amount_under_management_cap must have been updated if specified in fields
     let redeemable_amount_under_management_cap_before =
         mercurial_vault_depository_before.redeemable_amount_under_management_cap;
     let redeemable_amount_under_management_cap_after =
@@ -74,6 +74,8 @@ pub async fn process_edit_mercurial_vault_depository(
             .redeemable_amount_under_management_cap
             .unwrap_or(redeemable_amount_under_management_cap_before)
     );
+
+    // minting_fee_in_bps must have been updated if specified in fields
     let minting_fee_in_bps_before = mercurial_vault_depository_before.minting_fee_in_bps;
     let minting_fee_in_bps_after = mercurial_vault_depository_after.minting_fee_in_bps;
     assert_eq!(
@@ -82,6 +84,8 @@ pub async fn process_edit_mercurial_vault_depository(
             .minting_fee_in_bps
             .unwrap_or(minting_fee_in_bps_before)
     );
+
+    // redeeming_fee_in_bps must have been updated if specified in fields
     let redeeming_fee_in_bps_before = mercurial_vault_depository_before.redeeming_fee_in_bps;
     let redeeming_fee_in_bps_after = mercurial_vault_depository_after.redeeming_fee_in_bps;
     assert_eq!(
@@ -90,12 +94,16 @@ pub async fn process_edit_mercurial_vault_depository(
             .redeeming_fee_in_bps
             .unwrap_or(redeeming_fee_in_bps_before)
     );
+
+    // minting_disabled must have been updated if specified in fields
     let minting_disabled_before = mercurial_vault_depository_before.minting_disabled;
     let minting_disabled_after = mercurial_vault_depository_after.minting_disabled;
     assert_eq!(
         minting_disabled_after,
         fields.minting_disabled.unwrap_or(minting_disabled_before)
     );
+
+    // profits_beneficiary_collateral must have been updated if specified in fields
     let profits_beneficiary_collateral_before =
         mercurial_vault_depository_before.profits_beneficiary_collateral;
     let profits_beneficiary_collateral_after =

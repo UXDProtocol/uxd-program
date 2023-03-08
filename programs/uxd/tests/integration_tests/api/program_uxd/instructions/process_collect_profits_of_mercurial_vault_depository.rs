@@ -23,6 +23,7 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
     collateral_mint: &Pubkey,
     mercurial_vault_lp_mint: &Pubkey,
     profits_beneficiary_collateral: &Pubkey,
+    minimum_profits_collateral_amount_expected: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
@@ -190,19 +191,23 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
         )
         .unwrap();
 
-    // Check result
+    // vault_lp_mint.supply must have decreased by the withdrawn profit amount
     let mercurial_vault_lp_mint_supply_before = mercurial_vault_lp_mint_before.supply;
     let mercurial_vault_lp_mint_supply_after = mercurial_vault_lp_mint_after.supply;
     assert_eq!(
         mercurial_vault_lp_mint_supply_before - profits_lp_amount,
         mercurial_vault_lp_mint_supply_after,
     );
+
+    // controller.profits_total_collected must have increased by profit amount
     let controller_profits_total_collected_before = controller_before.profits_total_collected;
     let controller_profits_total_collected_after = controller_after.profits_total_collected;
     assert_eq!(
         controller_profits_total_collected_before + u128::from(profits_collateral_amount),
         controller_profits_total_collected_after,
     );
+
+    // depository.profits_total_collected must have increased by profit amount
     let mercurial_vault_depository_profits_total_collected_before =
         mercurial_vault_depository_before.profits_total_collected;
     let mercurial_vault_depository_profits_total_collected_after =
@@ -213,20 +218,27 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
         mercurial_vault_depository_profits_total_collected_after,
     );
 
+    // Depository LP token amount must have decreased by correct amount
     assert_eq!(
         mercurial_vault_depository_lp_token_vault_amount_before - profits_lp_amount,
         mercurial_vault_depository_lp_token_vault_amount_after,
     );
+    // Profits beneficiary collateral token amount must have increased by correct amount
     assert_eq!(
         profits_beneficiary_collateral_amount_before + profits_collateral_amount,
         profits_beneficiary_collateral_amount_after,
     );
 
+    // Depository owned asset estimation must have decreased by correct amount
     assert_eq!(
         assets_value_before - profits_collateral_amount,
         assets_value_after,
     );
+    // Liabilities must have not changed
     assert_eq!(liabilities_value_before, liabilities_value_after);
+
+    // In the test suite, we can specify the minimum profit value we are expecting to withdraw
+    assert(minimum_profits_collateral_amount_expected <= profits_collateral_amount);
 
     // Done
     Ok(())

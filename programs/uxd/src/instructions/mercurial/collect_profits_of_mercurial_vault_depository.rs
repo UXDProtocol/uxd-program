@@ -2,6 +2,7 @@ use crate::error::UxdError;
 use crate::events::CollectProfitsOfMercurialVaultDepositoryEvent;
 use crate::mercurial_utils;
 use crate::mercurial_utils::check_collateral_value_changed_to_match_target;
+use crate::utils::checked_convert_u128_to_u64;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
 use crate::validate_is_program_frozen;
@@ -243,10 +244,9 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
             )?;
 
         // Mint max supply is cap at u64, so redeemable_amount_under_management <= u64::MAX, always safe to convert
-        let redeemable_amount_under_management: u64 =
-            u64::try_from(self.depository.load()?.redeemable_amount_under_management)
-                .ok()
-                .ok_or(UxdError::MathError)?;
+        let redeemable_amount_under_management: u64 = checked_convert_u128_to_u64(
+            self.depository.load()?.redeemable_amount_under_management,
+        )?;
 
         Ok(owned_lp_tokens_value
             .checked_sub(redeemable_amount_under_management)

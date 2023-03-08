@@ -57,7 +57,7 @@ pub async fn process_edit_identity_depository(
         )
         .await?;
 
-    // Check result
+    // redeemable_amount_under_management_cap must have been updated if specified in fields
     let redeemable_amount_under_management_cap_before =
         identity_depository_before.redeemable_amount_under_management_cap;
     let redeemable_amount_under_management_cap_after =
@@ -68,6 +68,8 @@ pub async fn process_edit_identity_depository(
             .redeemable_amount_under_management_cap
             .unwrap_or(redeemable_amount_under_management_cap_before)
     );
+
+    // minting_disabled must have been updated if specified in fields
     let minting_disabled_before = identity_depository_before.minting_disabled;
     let minting_disabled_after = identity_depository_after.minting_disabled;
     assert_eq!(

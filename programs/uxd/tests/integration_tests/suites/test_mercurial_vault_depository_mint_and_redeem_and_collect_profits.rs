@@ -93,6 +93,9 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
     let amount_the_user_should_be_able_to_redeem =
         ui_amount_to_native_amount(40, redeemable_mint_decimals);
 
+    let amount_of_profits_that_should_be_generated =
+        ui_amount_to_native_amount(1, collateral_mint_decimals);
+
     // ---------------------------------------------------------------------
     // -- Phase 2
     // -- We try to mint (and it should fail)
@@ -303,6 +306,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
             &collateral_mint.pubkey(),
             &mercurial_vault_lp_mint.pubkey(),
             &profits_beneficiary_collateral,
+            amount_of_profits_that_should_be_generated,
         )
         .await
         .is_err()
@@ -332,6 +336,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
         &collateral_mint.pubkey(),
         &mercurial_vault_lp_mint.pubkey(),
         &profits_beneficiary_collateral,
+        amount_of_profits_that_should_be_generated,
     )
     .await?;
 
