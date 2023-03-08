@@ -16,6 +16,34 @@ pub fn find_identity_depository_collateral_vault_pda() -> (Pubkey, u8) {
     Pubkey::find_program_address(&[uxd::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE], &uxd::id())
 }
 
+pub fn find_mercurial_vault_depository_pda(
+    collateral_mint: &Pubkey,
+    mercurial_vault: &Pubkey,
+) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[
+            uxd::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE,
+            mercurial_vault.as_ref(),
+            collateral_mint.as_ref(),
+        ],
+        &uxd::id(),
+    )
+}
+
+pub fn find_mercurial_vault_depository_lp_token_vault_pda(
+    collateral_mint: &Pubkey,
+    mercurial_vault: &Pubkey,
+) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[
+            uxd::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE,
+            mercurial_vault.as_ref(),
+            collateral_mint.as_ref(),
+        ],
+        &uxd::id(),
+    )
+}
+
 pub fn find_credix_lp_depository_pda(
     collateral_mint: &Pubkey,
     credix_global_market_state: &Pubkey,

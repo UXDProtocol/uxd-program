@@ -36,6 +36,7 @@ async fn test_identity_depository_mint_and_redeem(
     // Important account keys
     let authority = Keypair::new();
     let collateral_mint = Keypair::new();
+    let mercurial_vault_lp_mint = Keypair::new();
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
@@ -43,6 +44,7 @@ async fn test_identity_depository_mint_and_redeem(
         &payer,
         &authority,
         &collateral_mint,
+        &mercurial_vault_lp_mint,
         collateral_mint_decimals,
         redeemable_mint_decimals,
     )

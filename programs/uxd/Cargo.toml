@@ -1,6 +1,6 @@
 [package]
 name = "uxd"
-version = "7.0.3"
+version = "7.0.4"
 authors = [
   "acammm <alexcamill@gmail.com>",
   "cnek <ctk2012ac@gmail.com>",
@@ -32,7 +32,7 @@ anchor-spl = "0.26.0"
 
 mercurial-vault = { git = "https://github.com/mercurial-finance/vault-sdk", features = [
   "cpi",
-], rev = "3849d617362968d874b2d32db6da4768d1a4c90c" }
+], rev = "3724175d8435f7acb7a33077a5a9f1eb58ab3399" }
 
 # credix_client = { version="0.6.0" } # mainnet
 credix_client = { version = "0.6.0", features = [

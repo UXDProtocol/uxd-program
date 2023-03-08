@@ -17,6 +17,7 @@ pub async fn process_deposit_funds(
     investor_lp_token_account: &Pubkey,
     amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
+    // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
     let global_market_state =
         program_credix::accounts::find_global_market_state_pda(&market_seeds).0;
@@ -28,6 +29,8 @@ pub async fn process_deposit_funds(
     );
     let credix_pass =
         program_credix::accounts::find_credix_pass_pda(&global_market_state, &investor.pubkey()).0;
+
+    // Execute IX
     let accounts = credix_client::accounts::DepositFunds {
         investor: investor.pubkey(),
         investor_token_account: *investor_token_account,

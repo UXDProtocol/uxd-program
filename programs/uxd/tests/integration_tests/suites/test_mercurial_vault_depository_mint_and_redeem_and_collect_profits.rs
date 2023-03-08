@@ -1,9 +1,8 @@
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
-
 use uxd::instructions::EditControllerFields;
-use uxd::instructions::EditCredixLpDepositoryFields;
+use uxd::instructions::EditMercurialVaultDepositoryFields;
 
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
@@ -11,7 +10,8 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
+) -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -51,6 +51,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Main actor
     let user = Keypair::new();
+    let profits_beneficiary = Keypair::new();
 
     // Create a collateral account for our user
     let user_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
@@ -69,6 +70,16 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     )
     .await?;
 
+    // Create a collateral account for our profits_beneficiary
+    let profits_beneficiary_collateral =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            &mut program_test_context,
+            &payer,
+            &collateral_mint.pubkey(),
+            &profits_beneficiary.pubkey(),
+        )
+        .await?;
+
     // Useful amounts used during testing scenario
     let amount_we_use_as_supply_cap = ui_amount_to_native_amount(50, redeemable_mint_decimals);
     let amount_bigger_than_the_supply_cap =
@@ -78,6 +89,9 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
         ui_amount_to_native_amount(1000, collateral_mint_decimals);
     let amount_the_user_should_be_able_to_mint =
         ui_amount_to_native_amount(50, collateral_mint_decimals);
+
+    let amount_the_user_should_be_able_to_redeem =
+        ui_amount_to_native_amount(40, redeemable_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -91,10 +105,11 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Minting should fail because the user doesnt have collateral yet
     assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
+        program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
             &collateral_mint.pubkey(),
+            &mercurial_vault_lp_mint.pubkey(),
             &user,
             &user_collateral,
             &user_redeemable,
@@ -117,10 +132,11 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Minting should fail because the controller cap is too low
     assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
+        program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
             &collateral_mint.pubkey(),
+            &mercurial_vault_lp_mint.pubkey(),
             &user,
             &user_collateral,
             &user_redeemable,
@@ -143,10 +159,11 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Minting should fail because the depository cap is too low
     assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
+        program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
             &collateral_mint.pubkey(),
+            &mercurial_vault_lp_mint.pubkey(),
             &user,
             &user_collateral,
             &user_redeemable,
@@ -157,12 +174,12 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     );
 
     // Set the depository cap and make sure minting is not disabled
-    program_uxd::instructions::process_edit_credix_lp_depository(
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditCredixLpDepositoryFields {
+        &EditMercurialVaultDepositoryFields {
             redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
             minting_fee_in_bps: Some(100),
             redeeming_fee_in_bps: Some(100),
@@ -174,10 +191,11 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Minting too much should fail (above cap, but enough collateral)
     assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
+        program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
             &collateral_mint.pubkey(),
+            &mercurial_vault_lp_mint.pubkey(),
             &user,
             &user_collateral,
             &user_redeemable,
@@ -189,10 +207,11 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Minting zero should fail
     assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
+        program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
             &collateral_mint.pubkey(),
+            &mercurial_vault_lp_mint.pubkey(),
             &user,
             &user_collateral,
             &user_redeemable,
@@ -206,17 +225,111 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     // -- Phase 3
     // -- Everything is ready for minting
     // -- We should now successfully be able to mint
+    // -- After minting, we redeem (and it should succeed)
+    // -- We also test invalid redeem amounts (and it should fail)
     // ---------------------------------------------------------------------
 
     // Minting should work now that everything is set
-    program_uxd::instructions::process_mint_with_credix_lp_depository(
+    program_uxd::instructions::process_mint_with_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
         &user,
         &user_collateral,
         &user_redeemable,
         amount_the_user_should_be_able_to_mint,
+    )
+    .await?;
+
+    // Redeeming the correct amount should succeed
+    program_uxd::instructions::process_redeem_from_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_the_user_should_be_able_to_redeem,
+    )
+    .await?;
+
+    // Redeeming too much should fail
+    assert!(
+        program_uxd::instructions::process_redeem_from_mercurial_vault_depository(
+            &mut program_test_context,
+            &payer,
+            &collateral_mint.pubkey(),
+            &mercurial_vault_lp_mint.pubkey(),
+            &user,
+            &user_collateral,
+            &user_redeemable,
+            amount_bigger_than_the_supply_cap,
+        )
+        .await
+        .is_err()
+    );
+
+    // Redeeming zero should fail
+    assert!(
+        program_uxd::instructions::process_redeem_from_mercurial_vault_depository(
+            &mut program_test_context,
+            &payer,
+            &collateral_mint.pubkey(),
+            &mercurial_vault_lp_mint.pubkey(),
+            &user,
+            &user_collateral,
+            &user_redeemable,
+            0,
+        )
+        .await
+        .is_err()
+    );
+
+    // ---------------------------------------------------------------------
+    // -- Phase 4
+    // -- After mint/redeem cycle, we should have a small amount of profits
+    // -- We should now successfully be able to collect profits
+    // -- Before that we make sure to test and set the depository flag profits beneficiary
+    // ---------------------------------------------------------------------
+
+    // Collecting profits first should fail because we havent set a profits beneficiary
+    assert!(
+        program_uxd::instructions::process_collect_profits_of_mercurial_vault_depository(
+            &mut program_test_context,
+            &payer,
+            &collateral_mint.pubkey(),
+            &mercurial_vault_lp_mint.pubkey(),
+            &profits_beneficiary_collateral,
+        )
+        .await
+        .is_err()
+    );
+
+    // Setting the profits beneficiary
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditMercurialVaultDepositoryFields {
+            redeemable_amount_under_management_cap: None,
+            minting_fee_in_bps: None,
+            redeeming_fee_in_bps: None,
+            minting_disabled: None,
+            profits_beneficiary_collateral: Some(profits_beneficiary_collateral),
+        },
+    )
+    .await?;
+
+    // Now that profits beneficiary is set, collecting profits should suceed
+    program_uxd::instructions::process_collect_profits_of_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &profits_beneficiary_collateral,
     )
     .await?;
 
