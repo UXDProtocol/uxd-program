@@ -168,6 +168,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
             redeeming_fee_in_bps: Some(100),
             minting_disabled: Some(false),
             profits_beneficiary_collateral: None,
+            redeemable_amount_under_management_weight: None,
         },
     )
     .await?;

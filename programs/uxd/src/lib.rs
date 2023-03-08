@@ -108,6 +108,11 @@ pub mod uxd {
         instructions::edit_credix_lp_depository::handler(ctx, &fields)
     }
 
+    #[access_control(ctx.accounts.validate())]
+    pub fn compute_depositories_targets(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
+        instructions::compute_depositories_targets::handler(ctx)
+    }
+
     // Mint Redeemable tokens by depositing Collateral to mercurial vault.
     #[access_control(
         ctx.accounts.validate(collateral_amount)

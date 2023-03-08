@@ -82,7 +82,6 @@ pub fn handler(
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
     redeemable_amount_under_management_cap: u128,
-    redeemable_amount_under_management_weight: u64,
 ) -> Result<()> {
     let depository_bump = *ctx
         .bumps
@@ -128,9 +127,6 @@ pub fn handler(
     depository.profits_total_collected = u128::MIN;
     depository.last_profits_collection_unix_timestamp = 0;
 
-    depository.redeemable_amount_under_management_weight =
-        redeemable_amount_under_management_weight;
-
     // enable minting by default
     depository.minting_disabled = false;
 
@@ -171,7 +167,12 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
         Ok(())
     }
 
-    pub fn validate(&self) -> Result<()> {
+    pub fn validate(
+        &self,
+        _minting_fee_in_bps: u8,
+        _redeeming_fee_in_bps: u8,
+        _redeemable_amount_under_management_cap: u128,
+    ) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
 
         require!(

@@ -110,7 +110,6 @@ pub(crate) fn handler(
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
     redeemable_amount_under_management_cap: u128,
-    redeemable_amount_under_management_weight: u64,
 ) -> Result<()> {
     // Read some of the depositories required informations
     let depository_bump = *ctx.bumps.get("depository").ok_or(UxdError::BumpError)?;
@@ -150,10 +149,6 @@ pub(crate) fn handler(
 
     // Profits collection
     depository.profits_total_collected = u128::MIN;
-
-    // Rebalanding configuration
-    depository.redeemable_amount_under_management_weight =
-        redeemable_amount_under_management_weight;
 
     // Add the depository to the controller
     ctx.accounts
