@@ -1,3 +1,4 @@
+pub mod compute_depositories_targets;
 pub mod credix_lp;
 pub mod edit_controller;
 pub mod edit_identity_depository;
@@ -10,6 +11,7 @@ pub mod mint_with_identity_depository;
 pub mod redeem_from_identity_depository;
 pub mod register_mercurial_vault_depository;
 
+pub use compute_depositories_targets::*;
 pub use credix_lp::*;
 pub use edit_controller::*;
 pub use edit_identity_depository::*;
