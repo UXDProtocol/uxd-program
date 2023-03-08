@@ -221,17 +221,16 @@ async fn test_compute_depositories_targets() -> Result<(), program_test_context:
 
     // ---------------------------------------------------------------------
     // -- Phase 4
-    // -- We then increase the total supply by minting even more into mercurial
+    // -- We then increase the total supply by minting more into credix
     // -- Recomputing the targets should give us different value based on the new supply
     // -- Should still be balanced 50/50
     // ---------------------------------------------------------------------
 
-    // Mint some more in mercurial
-    program_uxd::instructions::process_mint_with_mercurial_vault_depository(
+    // Mint some more in credix
+    program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
-        &mercurial_vault_lp_mint.pubkey(),
         &user,
         &user_collateral,
         &user_redeemable,
@@ -314,7 +313,7 @@ async fn test_compute_depositories_targets() -> Result<(), program_test_context:
     )
     .await?;
 
-    // Set the weight of mercurial to 90
+    // Set the weight of credix to 90
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
         &payer,
