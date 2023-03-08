@@ -54,8 +54,9 @@ pub struct ComputeDepositoriesTargets<'info> {
 }
 
 pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
+    let controller = &ctx.accounts.controller.load()?;
     let mercurial_vault_depository_1 = &mut ctx.accounts.mercurial_vault_depository_1.load_mut()?;
-    let credix_lp_depository_1 = &mut ctx.accounts.mercurial_vault_depository_1.load_mut()?;
+    let credix_lp_depository_1 = &mut ctx.accounts.credix_lp_depository_1.load_mut()?;
 
     // ---------------------------------------------------------------------
     // -- Phase 1
@@ -77,12 +78,19 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
     )?;
 
     // Compute raw target values based on weighted portions of circulating supply
-    let mercurial_vault_depository_1_raw_target = ctx
-        .accounts
-        .compute_raw_target(mercurial_vault_depository_1_weight, total_weight)?;
-    let credix_lp_depository_1_raw_target = ctx
-        .accounts
-        .compute_raw_target(credix_lp_depository_1_weight, total_weight)?;
+    let redeemable_circulating_supply =
+        checked_convert_u128_to_u64(controller.redeemable_circulating_supply)?;
+
+    let mercurial_vault_depository_1_raw_target = ctx.accounts.compute_raw_target(
+        redeemable_circulating_supply,
+        mercurial_vault_depository_1_weight,
+        total_weight,
+    )?;
+    let credix_lp_depository_1_raw_target = ctx.accounts.compute_raw_target(
+        redeemable_circulating_supply,
+        credix_lp_depository_1_weight,
+        total_weight,
+    )?;
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -179,10 +187,14 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
 // Into functions
 impl<'info> ComputeDepositoriesTargets<'info> {
     // Compute a simple raw target: raw_target = total_circulating_supply * (weight / total_weight)
-    pub fn compute_raw_target(&self, depository_weight: u64, total_weight: u64) -> Result<u64> {
-        let controller = &self.controller.load()?;
+    pub fn compute_raw_target(
+        &self,
+        redeemable_circulating_supply: u64,
+        depository_weight: u64,
+        total_weight: u64,
+    ) -> Result<u64> {
         let depository_raw_target = compute_amount_fraction(
-            checked_convert_u128_to_u64(controller.redeemable_circulating_supply)?,
+            redeemable_circulating_supply,
             depository_weight,
             total_weight,
         )?;

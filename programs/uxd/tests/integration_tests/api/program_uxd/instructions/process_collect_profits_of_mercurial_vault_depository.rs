@@ -23,7 +23,7 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
     collateral_mint: &Pubkey,
     mercurial_vault_lp_mint: &Pubkey,
     profits_beneficiary_collateral: &Pubkey,
-    minimum_profits_collateral_amount_expected: u64,
+    profits_collateral_amount_expected: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
@@ -234,11 +234,14 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
         assets_value_before - profits_collateral_amount,
         assets_value_after,
     );
-    // Liabilities must have not changed
+    // Depository owned liabilities must have not changed
     assert_eq!(liabilities_value_before, liabilities_value_after);
 
-    // In the test suite, we can specify the minimum profit value we are expecting to withdraw
-    assert(minimum_profits_collateral_amount_expected <= profits_collateral_amount);
+    // In the test suite, we can specify the profit value we are expecting to withdraw
+    assert_eq!(
+        profits_collateral_amount,
+        profits_collateral_amount_expected
+    );
 
     // Done
     Ok(())

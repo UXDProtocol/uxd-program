@@ -3,6 +3,7 @@ use crate::events::SetDepositoryMintingDisabledEvent;
 use crate::events::SetDepositoryMintingFeeInBpsEvent;
 use crate::events::SetDepositoryProfitsBeneficiaryCollateralEvent;
 use crate::events::SetDepositoryRedeemableAmountUnderManagementCapEvent;
+use crate::events::SetDepositoryRedeemableAmountUnderManagementWeightEvent;
 use crate::events::SetDepositoryRedeemingFeeInBpsEvent;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
 use crate::validate_is_program_frozen;
@@ -44,6 +45,7 @@ pub struct EditMercurialVaultDepositoryFields {
     pub redeeming_fee_in_bps: Option<u8>,
     pub minting_disabled: Option<bool>,
     pub profits_beneficiary_collateral: Option<Pubkey>,
+    pub redeemable_amount_under_management_weight: Option<u64>,
 }
 
 pub(crate) fn handler(
@@ -126,6 +128,24 @@ pub(crate) fn handler(
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
             profits_beneficiary_collateral
+        });
+    }
+
+    // optional: redeemable_amount_under_management_weight
+    if let Some(redeemable_amount_under_management_weight) =
+        fields.redeemable_amount_under_management_weight
+    {
+        msg!(
+            "[edit_mercurial_vault_depository] redeemable_amount_under_management_weight {}",
+            redeemable_amount_under_management_weight
+        );
+        depository.redeemable_amount_under_management_weight =
+            redeemable_amount_under_management_weight;
+        emit!(SetDepositoryRedeemableAmountUnderManagementWeightEvent {
+            version: ctx.accounts.controller.load()?.version,
+            controller: ctx.accounts.controller.key(),
+            depository: ctx.accounts.depository.key(),
+            redeemable_amount_under_management_weight
         });
     }
 

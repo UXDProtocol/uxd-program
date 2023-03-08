@@ -4,6 +4,7 @@ use solana_sdk::signer::Signer;
 
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
+use uxd::instructions::EditMercurialVaultDepositoryFields;
 
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
@@ -69,23 +70,55 @@ async fn test_compute_depositories_targets() -> Result<(), program_test_context:
     )
     .await?;
 
+    // Useful amounts used during testing scenario
+    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(300, redeemable_mint_decimals);
+
+    let amount_of_collateral_airdropped_to_user =
+        ui_amount_to_native_amount(1000, collateral_mint_decimals);
+
+    let amount_of_collateral_supply_after_the_first_mint =
+        ui_amount_to_native_amount(50, collateral_mint_decimals);
+    let amount_of_collateral_supply_after_the_second_mint =
+        ui_amount_to_native_amount(150, collateral_mint_decimals);
+
     // ---------------------------------------------------------------------
     // -- Phase 2
+    // -- Initialize the supply of mercurial and mint into mercurial
+    // -- Also set the weights of mercurial and credix
+    // -- Then compute the weights while credix is empty and capped to zero
+    // -- Since the supply cap of credix should be zero, no matter the weights, mercurial will get all
     // ---------------------------------------------------------------------
 
-    // Minting should fail because the user doesnt have collateral yet
-    assert!(
-        program_uxd::instructions::process_mint_with_compute_depositories(targets         &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            amount_the_user_should_be_able_to_mint,
-        )
-        .await
-        .is_err()
-    );
+    // Set the controller cap to allow for some minting
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+        },
+    )
+    .await?;
+
+    // Edit the mercurial vault depository:
+    // - set the depository supply cap
+    // - make sure minting is not disabled (and no fees)
+    // - set the depository weight
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditMercurialVaultDepositoryFields {
+            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
+            minting_fee_in_bps: Some(0),
+            redeeming_fee_in_bps: Some(0),
+            minting_disabled: Some(false),
+            profits_beneficiary_collateral: None,
+            redeemable_amount_under_management_weight: Some(50),
+        },
+    )
+    .await?;
 
     // Airdrop collateral to our user
     program_spl::instructions::process_token_mint_to(
@@ -98,54 +131,75 @@ async fn test_compute_depositories_targets() -> Result<(), program_test_context:
     )
     .await?;
 
-    // Minting should fail because the controller cap is too low
-    assert!(
-        program_uxd::instructions::process_mint_with_compute_depositories(targets         &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            amount_the_user_should_be_able_to_mint,
-        )
-        .await
-        .is_err()
-    );
+    // Mint some in the mercurial first
+    program_uxd::instructions::process_mint_with_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_of_collateral_supply_after_the_first_mint,
+    )
+    .await?;
 
-    // Set the controller cap
-    program_uxd::instructions::process_edit_controller(
+    // Compute the targets, mercurial should get everything,
+    // since credix is capped to zero, no weight and has nothing in
+    program_uxd::instructions::process_compute_depositories_targets(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        amount_of_collateral_supply_after_the_first_mint, // 100%
+        0,                                                // 0%
+    )
+    .await?;
+
+    // Set the credix weight but not the supply cap
+    program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
         &payer,
         &authority,
-        &EditControllerFields {
-            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+        &collateral_mint.pubkey(),
+        &EditCredixLpDepositoryFields {
+            redeemable_amount_under_management_cap: None,
+            minting_fee_in_bps: None,
+            redeeming_fee_in_bps: None,
+            minting_disabled: None,
+            profits_beneficiary_collateral: None,
+            redeemable_amount_under_management_weight: Some(50),
         },
     )
     .await?;
 
-    // Minting should fail because the depository cap is too low
-    assert!(
-        program_uxd::instructions::process_mint_with_compute_depositories(targets         &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            amount_the_user_should_be_able_to_mint,
-        )
-        .await
-        .is_err()
-    );
+    // Recompute the targets, mercurial should STILL get everything
+    // since credix is capped to zero, EVEN if its weight is set
+    program_uxd::instructions::process_compute_depositories_targets(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        amount_of_collateral_supply_after_the_first_mint, // 100%
+        0,                                                // 0%
+    )
+    .await?;
 
-    // Set the depository cap and make sure minting is not disabled
-    program_uxd::instructions::process_edit_compute_depositories(targets     &mut program_test_context,
+    // ---------------------------------------------------------------------
+    // -- Phase 3
+    // -- Now that all liquidity is in mercurial, opening the supply cap of credix
+    // -- Should allow us to recompute the targets taking credix into account,
+    // -- and half of the supply should then be allocated to credix (since it now has space)
+    // ---------------------------------------------------------------------
+
+    // Set just the credix cap and make sure minting is not disabled (no fees for simple math)
+    program_uxd::instructions::process_edit_credix_lp_depository(
+        &mut program_test_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
         &EditCredixLpDepositoryFields {
             redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
-            minting_fee_in_bps: Some(100),
-            redeeming_fee_in_bps: Some(100),
+            minting_fee_in_bps: Some(0),
+            redeeming_fee_in_bps: Some(0),
             minting_disabled: Some(false),
             profits_beneficiary_collateral: None,
             redeemable_amount_under_management_weight: None,
@@ -153,48 +207,138 @@ async fn test_compute_depositories_targets() -> Result<(), program_test_context:
     )
     .await?;
 
-    // Minting too much should fail (above cap, but enough collateral)
-    assert!(
-        program_uxd::instructions::process_mint_with_compute_depositories(targets         &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            amount_bigger_than_the_supply_cap,
-        )
-        .await
-        .is_err()
-    );
-
-    // Minting zero should fail
-    assert!(
-        program_uxd::instructions::process_mint_with_compute_depositories(targets         &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            0,
-        )
-        .await
-        .is_err()
-    );
-
-    // ---------------------------------------------------------------------
-    // -- Phase 3
-    // -- Everything is ready for minting
-    // -- We should now successfully be able to mint
-    // ---------------------------------------------------------------------
-
-    // Minting should work now that everything is set
-    program_uxd::instructions::process_mint_with_compute_depositories(targets     &mut program_test_context,
+    // Recompute the targets, mercurial should now only get HALF of everything
+    // Since credix weight is 50, and mercurial weight is 50
+    // And since both depository has available space within their caps
+    program_uxd::instructions::process_compute_depositories_targets(
+        &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
+        amount_of_collateral_supply_after_the_first_mint * 50 / 100, // 50%
+        amount_of_collateral_supply_after_the_first_mint * 50 / 100, // 50%
+    )
+    .await?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 4
+    // -- We then increase the total supply by minting even more into mercurial
+    // -- Recomputing the targets should give us different value based on the new supply
+    // -- Should still be balanced 50/50
+    // ---------------------------------------------------------------------
+
+    // Mint some more in mercurial
+    program_uxd::instructions::process_mint_with_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
         &user,
         &user_collateral,
         &user_redeemable,
-        amount_the_user_should_be_able_to_mint,
+        amount_of_collateral_supply_after_the_second_mint
+            - amount_of_collateral_supply_after_the_first_mint,
+    )
+    .await?;
+
+    // Recompute the targets, new supply should be reflected in the targets
+    // Since credix weight is 50, and mercurial weight is 50
+    // And since both depository has available space within their caps
+    program_uxd::instructions::process_compute_depositories_targets(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        amount_of_collateral_supply_after_the_second_mint * 50 / 100, // 50%
+        amount_of_collateral_supply_after_the_second_mint * 50 / 100, // 50%
+    )
+    .await?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 5
+    // -- We change the cap of mercurial to 25% of total supply (even if its weight is 50)
+    // -- Recomputing the targets should now reallocate all extra to credix
+    // -- Should now be balanced 25/75 even if the weights are 50/50
+    // ---------------------------------------------------------------------
+
+    // Edit the mercurial vault depository and make its cap smaller than its content
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditMercurialVaultDepositoryFields {
+            redeemable_amount_under_management_cap: Some(
+                (amount_of_collateral_supply_after_the_second_mint * 25 / 100).into(),
+            ),
+            minting_fee_in_bps: None,
+            redeeming_fee_in_bps: None,
+            minting_disabled: None,
+            profits_beneficiary_collateral: None,
+            redeemable_amount_under_management_weight: None,
+        },
+    )
+    .await?;
+
+    // Recompute the targets, mercurial is now capped
+    // Even if weights are 50/50, mercurial target should be equal to cap
+    // All remaining amount should be allocated to credix (25/75)
+    program_uxd::instructions::process_compute_depositories_targets(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        amount_of_collateral_supply_after_the_second_mint * 25 / 100, // 25%
+        amount_of_collateral_supply_after_the_second_mint * 75 / 100, // 75%
+    )
+    .await?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 6
+    // -- We set the weights to 10/90, then we recompute the targets
+    // -- After recomputing the targets, we should now see the targets at 10/90
+    // -- Since both depositories can fit those amounts in their caps it should work
+    // ---------------------------------------------------------------------
+
+    // Set the weight of mercurial to 10
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditMercurialVaultDepositoryFields {
+            redeemable_amount_under_management_cap: None,
+            minting_fee_in_bps: None,
+            redeeming_fee_in_bps: None,
+            minting_disabled: None,
+            profits_beneficiary_collateral: None,
+            redeemable_amount_under_management_weight: Some(10),
+        },
+    )
+    .await?;
+
+    // Set the weight of mercurial to 90
+    program_uxd::instructions::process_edit_credix_lp_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditCredixLpDepositoryFields {
+            redeemable_amount_under_management_cap: None,
+            minting_fee_in_bps: None,
+            redeeming_fee_in_bps: None,
+            minting_disabled: None,
+            profits_beneficiary_collateral: None,
+            redeemable_amount_under_management_weight: Some(90),
+        },
+    )
+    .await?;
+
+    // Recompute the targets, we should now get 10/90 split for targets too
+    // Since both targets will comfortably fit in each depository, weights should be respected
+    program_uxd::instructions::process_compute_depositories_targets(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        amount_of_collateral_supply_after_the_second_mint * 10 / 100, // 10%
+        amount_of_collateral_supply_after_the_second_mint * 90 / 100, // 90%
     )
     .await?;
 

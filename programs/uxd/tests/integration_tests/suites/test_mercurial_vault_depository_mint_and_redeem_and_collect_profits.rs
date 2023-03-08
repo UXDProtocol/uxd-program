@@ -81,19 +81,19 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
         .await?;
 
     // Useful amounts used during testing scenario
-    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(50, redeemable_mint_decimals);
+    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(60, redeemable_mint_decimals);
     let amount_bigger_than_the_supply_cap =
         ui_amount_to_native_amount(300, redeemable_mint_decimals);
 
     let amount_of_collateral_airdropped_to_user =
         ui_amount_to_native_amount(1000, collateral_mint_decimals);
     let amount_the_user_should_be_able_to_mint =
-        ui_amount_to_native_amount(50, collateral_mint_decimals);
+        ui_amount_to_native_amount(60, collateral_mint_decimals);
 
     let amount_the_user_should_be_able_to_redeem =
         ui_amount_to_native_amount(40, redeemable_mint_decimals);
 
-    let amount_of_profits_that_should_be_generated =
+    let amount_of_profits_that_should_be_generated_by_fees =
         ui_amount_to_native_amount(1, collateral_mint_decimals);
 
     // ---------------------------------------------------------------------
@@ -306,7 +306,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
             &collateral_mint.pubkey(),
             &mercurial_vault_lp_mint.pubkey(),
             &profits_beneficiary_collateral,
-            amount_of_profits_that_should_be_generated,
+            amount_of_profits_that_should_be_generated_by_fees,
         )
         .await
         .is_err()
@@ -336,7 +336,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
         &collateral_mint.pubkey(),
         &mercurial_vault_lp_mint.pubkey(),
         &profits_beneficiary_collateral,
-        amount_of_profits_that_should_be_generated,
+        amount_of_profits_that_should_be_generated_by_fees,
     )
     .await?;
 

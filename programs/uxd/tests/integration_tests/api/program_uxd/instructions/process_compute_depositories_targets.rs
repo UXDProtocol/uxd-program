@@ -1,15 +1,16 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
+use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-use uxd::instructions::EditControllerFields;
-use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
 use uxd::state::MercurialVaultDepository;
 
+use crate::integration_tests::api::program_credix;
+use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
@@ -39,18 +40,6 @@ pub async fn process_compute_depositories_targets(
     )
     .0;
 
-    // Read state before
-    let credix_lp_depository_before =
-        program_test_context::read_account_anchor::<CredixLpDepository>(
-            program_test_context,
-            &credix_lp_depository,
-        )
-        .await?;
-    let mercurial_vault_depository_before = program_test_context::read_account_anchor::<
-        MercurialVaultDepository,
-    >(program_test_context, &mercurial_vault_depository)
-    .await?;
-
     // Execute IX
     let accounts = uxd::accounts::ComputeDepositoriesTargets {
         payer: payer.pubkey(),
@@ -64,13 +53,7 @@ pub async fn process_compute_depositories_targets(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signer(
-        program_test_context,
-        instruction,
-        payer,
-        authority,
-    )
-    .await?;
+    program_test_context::process_instruction(program_test_context, instruction, payer).await?;
 
     // Read state after
     let credix_lp_depository_after =
@@ -84,13 +67,19 @@ pub async fn process_compute_depositories_targets(
     >(program_test_context, &mercurial_vault_depository)
     .await?;
 
-    // Check that the computed depositories targets match expectations
+    // mercurial_vault_depository.redeemable_amount_under_management_target should have changed to its expected value
+    let mercurial_vault_depository_redeemable_amount_under_management_target_after =
+        mercurial_vault_depository_after.redeemable_amount_under_management_target;
     assert_eq!(
-        mercurial_vault_depository_after.redeemable_amount_under_management_target,
+        mercurial_vault_depository_redeemable_amount_under_management_target_after,
         mercurial_vault_depository_redeemable_amount_under_management_target_expected
     );
+
+    // credix_lp_depository.redeemable_amount_under_management_target should have changed to its expected value
+    let credix_lp_depository_redeemable_amount_under_management_target_after =
+        credix_lp_depository_after.redeemable_amount_under_management_target;
     assert_eq!(
-        credix_lp_depository_after.redeemable_amount_under_management_target,
+        credix_lp_depository_redeemable_amount_under_management_target_after,
         credix_lp_depository_redeemable_amount_under_management_target_expected
     );
 
