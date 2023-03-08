@@ -150,7 +150,7 @@ pub async fn process_mint_with_credix_lp_depository(
     .map_err(program_test_context::ProgramTestError::Anchor)?;
     let fees_amount = collateral_amount - redeemable_amount;
 
-    // Redeemable mint supply must have increased by the minted amount
+    // redeemable_mint.supply must have increased by the minted amount
     let redeemable_mint_supply_before = redeemable_mint_before.supply;
     let redeemable_mint_supply_after = redeemable_mint_after.supply;
     assert_eq!(
