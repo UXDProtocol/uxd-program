@@ -206,7 +206,9 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
     );
 
     // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
-    let collateral_amount_before_precision_loss: u64 = checked_convert_u128_to_u64(profits_value)?;
+    let collateral_amount_before_precision_loss: u64 = u64::try_from(profits_value)
+        .ok()
+        .ok_or(UxdError::MathError)?;
     msg!(
         "[collect_profits_of_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
         collateral_amount_before_precision_loss

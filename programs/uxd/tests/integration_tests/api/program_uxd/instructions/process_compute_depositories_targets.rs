@@ -84,28 +84,7 @@ pub async fn process_compute_depositories_targets(
     >(program_test_context, &mercurial_vault_depository)
     .await?;
 
-    // Comnpute expected target results
-    let 
-
-    // Check results
-    let mercurial_vault_depository_redeemable_amount_under_management_weight_before =
-        mercurial_vault_depository_before.redeemable_amount_under_management_weight;
-    let mercurial_vault_depository_redeemable_amount_under_management_weight_after =
-        mercurial_vault_depository_after.redeemable_amount_under_management_weight;
-    assert_eq(
-        mercurial_vault_depository_redeemable_amount_under_management_weight_before,
-        mercurial_vault_depository_redeemable_amount_under_management_weight_after,
-    );
-    let credix_lp_depository_redeemable_amount_under_management_weight_before =
-        credix_lp_depository_before.redeemable_amount_under_management_weight;
-    let credix_lp_depository_redeemable_amount_under_management_weight_after =
-        credix_lp_depository_after.redeemable_amount_under_management_weight;
-    assert_eq(
-        credix_lp_depository_redeemable_amount_under_management_weight_before,
-        credix_lp_depository_redeemable_amount_under_management_weight_after,
-    );
-
-    // Extra triple check
+    // Check that the computed depositories targets match expectations
     assert_eq!(
         mercurial_vault_depository_after.redeemable_amount_under_management_target,
         mercurial_vault_depository_redeemable_amount_under_management_target_expected
