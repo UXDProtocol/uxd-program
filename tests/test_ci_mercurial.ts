@@ -8,6 +8,7 @@ import {
   MERCURIAL_USDC_DEVNET_DECIMALS,
   uxdProgramId,
 } from './constants';
+import { editMercurialVaultDepositorySuite } from './suite/editMercurialVaultDepositorySuite';
 import { mercurialVaultDepositoryMintRedeemSuite } from './suite/mercurialVaultMintAndRedeemSuite';
 import { transferSol, transferAllSol, transferAllTokens } from './utils';
 
@@ -42,6 +43,13 @@ import { transferSol, transferAllSol, transferAllTokens } from './utils';
         user,
         controller,
         payer: bank,
+      });
+    });
+
+    describe('editMercurialVaultDepositorySuite', function () {
+      editMercurialVaultDepositorySuite({
+        authority,
+        controller,
       });
     });
 

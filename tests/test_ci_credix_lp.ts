@@ -3,6 +3,7 @@ import { Controller, UXD_DECIMALS } from '@uxd-protocol/uxd-client';
 import { editControllerTest } from './cases/editControllerTest';
 import { initializeControllerTest } from './cases/initializeControllerTest';
 import { authority, bank, uxdProgramId } from './constants';
+import { credixLpDepositoryEditSuite } from './suite/credixLpDepositoryEditSuite';
 import { credixLpDepositoryMintAndRedeemSuite } from './suite/credixLpDepositoryMintAndRedeemSuite';
 import { credixLpDepositorySetupSuite } from './suite/credixLpDepositorySetupSuite';
 import {
@@ -72,6 +73,10 @@ import {
         redeemingFeeInBps: 0,
         uiRedeemableAmountUnderManagementCap: 1_000_000,
       });
+    });
+
+    describe('credixLpDepositoryEditSuite', function () {
+      credixLpDepositoryEditSuite({ authority, controller });
     });
 
     describe('credixLpDepositoryMintAndRedeemSuite', function () {
