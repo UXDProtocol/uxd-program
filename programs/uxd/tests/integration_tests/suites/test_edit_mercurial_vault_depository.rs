@@ -82,6 +82,7 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
             redeeming_fee_in_bps: None,
             minting_disabled: None,
             profits_beneficiary_collateral: None,
+            redeemable_amount_under_management_weight: None,
         },
     )
     .await?;
@@ -98,6 +99,7 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
             redeeming_fee_in_bps: None,
             minting_disabled: None,
             profits_beneficiary_collateral: None,
+            redeemable_amount_under_management_weight: None,
         },
     )
     .await?;
@@ -114,6 +116,7 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
             redeeming_fee_in_bps: Some(100),
             minting_disabled: None,
             profits_beneficiary_collateral: None,
+            redeemable_amount_under_management_weight: None,
         },
     )
     .await?;
@@ -130,6 +133,7 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
             redeeming_fee_in_bps: None,
             minting_disabled: Some(false),
             profits_beneficiary_collateral: None,
+            redeemable_amount_under_management_weight: None,
         },
     )
     .await?;
@@ -144,8 +148,26 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
             redeemable_amount_under_management_cap: None,
             minting_fee_in_bps: None,
             redeeming_fee_in_bps: None,
-            minting_disabled: Some(false),
+            minting_disabled: None,
             profits_beneficiary_collateral: Some(payer_collateral),
+            redeemable_amount_under_management_weight: None,
+        },
+    )
+    .await?;
+
+    // Change redeemable_amount_under_management_weight
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditMercurialVaultDepositoryFields {
+            redeemable_amount_under_management_cap: None,
+            minting_fee_in_bps: None,
+            redeeming_fee_in_bps: None,
+            minting_disabled: None,
+            profits_beneficiary_collateral: None,
+            redeemable_amount_under_management_weight: Some(66),
         },
     )
     .await?;
@@ -168,6 +190,7 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
                 redeeming_fee_in_bps: Some(42),
                 minting_disabled: Some(true),
                 profits_beneficiary_collateral: Some(authority_collateral),
+                redeemable_amount_under_management_weight: Some(66),
             },
         )
         .await
@@ -186,6 +209,7 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
             redeeming_fee_in_bps: Some(42),
             minting_disabled: Some(true),
             profits_beneficiary_collateral: Some(authority_collateral),
+            redeemable_amount_under_management_weight: Some(66),
         },
     )
     .await?;
@@ -202,6 +226,7 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
             redeeming_fee_in_bps: None,
             minting_disabled: None,
             profits_beneficiary_collateral: None,
+            redeemable_amount_under_management_weight: None,
         },
     )
     .await?;
