@@ -14,7 +14,7 @@ use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::utils::calculate_amount_less_fees;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
-use crate::utils::compute_shares_amount_for_value;
+use crate::utils::compute_shares_amount_for_value_floor;
 use crate::utils::compute_value_for_shares_amount;
 use crate::utils::is_within_range_inclusive;
 use crate::utils::validate_redeemable_amount;
@@ -219,7 +219,7 @@ pub(crate) fn handler(
     let collateral_amount_before_precision_loss: u64 = redeemable_amount_after_fees;
 
     // Compute the amount of shares that we need to withdraw based on the amount of wanted collateral
-    let shares_amount: u64 = compute_shares_amount_for_value(
+    let shares_amount: u64 = compute_shares_amount_for_value_floor(
         collateral_amount_before_precision_loss,
         total_shares_supply_before,
         total_shares_value_before,

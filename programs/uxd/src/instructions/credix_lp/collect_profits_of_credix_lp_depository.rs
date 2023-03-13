@@ -12,7 +12,7 @@ use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
-use crate::utils::compute_shares_amount_for_value;
+use crate::utils::compute_shares_amount_for_value_floor;
 use crate::utils::compute_value_for_shares_amount;
 use crate::utils::is_within_range_inclusive;
 use crate::validate_is_program_frozen;
@@ -215,7 +215,7 @@ pub(crate) fn handler(ctx: Context<CollectProfitsOfCredixLpDepository>) -> Resul
     );
 
     // Compute the amount of shares that we need to withdraw based on the amount of wanted collateral
-    let shares_amount: u64 = compute_shares_amount_for_value(
+    let shares_amount: u64 = compute_shares_amount_for_value_floor(
         collateral_amount_before_precision_loss,
         total_shares_supply_before,
         total_shares_value_before,
