@@ -214,7 +214,7 @@ export async function editMercurialVaultDepository({
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
     profitsBeneficiaryCollateral?: PublicKey;
-    redeemableAmountUnderManagementWeight?: number;
+    redeemableAmountUnderManagementWeightBps?: number;
   };
 }): Promise<string> {
   const editMercurialVaultDepositoryIx =
@@ -536,7 +536,7 @@ export async function editCredixLpDepository(
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
     profitsBeneficiaryCollateral?: PublicKey;
-    redeemableAmountUnderManagementWeight?: number;
+    redeemableAmountUnderManagementWeightBps?: number;
   }
 ): Promise<string> {
   const editCredixLpDepositoryIx =

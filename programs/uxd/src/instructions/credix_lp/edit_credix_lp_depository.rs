@@ -3,7 +3,7 @@ use crate::events::SetDepositoryMintingDisabledEvent;
 use crate::events::SetDepositoryMintingFeeInBpsEvent;
 use crate::events::SetDepositoryProfitsBeneficiaryCollateralEvent;
 use crate::events::SetDepositoryRedeemableAmountUnderManagementCapEvent;
-use crate::events::SetDepositoryRedeemableAmountUnderManagementWeightEvent;
+use crate::events::SetDepositoryRedeemableAmountUnderManagementWeightBpsEvent;
 use crate::events::SetDepositoryRedeemingFeeInBpsEvent;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::validate_is_program_frozen;
@@ -48,7 +48,7 @@ pub struct EditCredixLpDepositoryFields {
     pub redeeming_fee_in_bps: Option<u8>,
     pub minting_disabled: Option<bool>,
     pub profits_beneficiary_collateral: Option<Pubkey>,
-    pub redeemable_amount_under_management_weight: Option<u32>,
+    pub redeemable_amount_under_management_weight_bps: Option<u16>,
 }
 
 pub(crate) fn handler(
@@ -134,21 +134,21 @@ pub(crate) fn handler(
         });
     }
 
-    // optional: redeemable_amount_under_management_weight
-    if let Some(redeemable_amount_under_management_weight) =
-        fields.redeemable_amount_under_management_weight
+    // optional: redeemable_amount_under_management_weight_bps
+    if let Some(redeemable_amount_under_management_weight_bps) =
+        fields.redeemable_amount_under_management_weight_bps
     {
         msg!(
-            "[edit_credix_lp_depository] redeemable_amount_under_management_weight {}",
-            redeemable_amount_under_management_weight
+            "[edit_credix_lp_depository] redeemable_amount_under_management_weight_bps {}",
+            redeemable_amount_under_management_weight_bps
         );
-        depository.redeemable_amount_under_management_weight =
-            redeemable_amount_under_management_weight;
-        emit!(SetDepositoryRedeemableAmountUnderManagementWeightEvent {
+        depository.redeemable_amount_under_management_weight_bps =
+            redeemable_amount_under_management_weight_bps;
+        emit!(SetDepositoryRedeemableAmountUnderManagementWeightBpsEvent {
             version: ctx.accounts.controller.load()?.version,
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
-            redeemable_amount_under_management_weight
+            redeemable_amount_under_management_weight_bps
         });
     }
 

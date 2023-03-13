@@ -18,8 +18,8 @@ pub async fn process_compute_depositories_targets(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     collateral_mint: &Pubkey,
-    mercurial_vault_depository_redeemable_amount_under_management_target_expected: u64,
-    credix_lp_depository_redeemable_amount_under_management_target_expected: u64,
+    mercurial_vault_depository_redeemable_amount_under_management_target_amount_expected: u64,
+    credix_lp_depository_redeemable_amount_under_management_target_amount_expected: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
@@ -67,20 +67,20 @@ pub async fn process_compute_depositories_targets(
     >(program_test_context, &mercurial_vault_depository)
     .await?;
 
-    // mercurial_vault_depository.redeemable_amount_under_management_target should have changed to its expected value
-    let mercurial_vault_depository_redeemable_amount_under_management_target_after =
-        mercurial_vault_depository_after.redeemable_amount_under_management_target;
+    // mercurial_vault_depository.redeemable_amount_under_management_target_amount should have changed to its expected value
+    let mercurial_vault_depository_redeemable_amount_under_management_target_amount_after =
+        mercurial_vault_depository_after.redeemable_amount_under_management_target_amount;
     assert_eq!(
-        mercurial_vault_depository_redeemable_amount_under_management_target_after,
-        mercurial_vault_depository_redeemable_amount_under_management_target_expected
+        mercurial_vault_depository_redeemable_amount_under_management_target_amount_after,
+        mercurial_vault_depository_redeemable_amount_under_management_target_amount_expected
     );
 
-    // credix_lp_depository.redeemable_amount_under_management_target should have changed to its expected value
-    let credix_lp_depository_redeemable_amount_under_management_target_after =
-        credix_lp_depository_after.redeemable_amount_under_management_target;
+    // credix_lp_depository.redeemable_amount_under_management_target_amount should have changed to its expected value
+    let credix_lp_depository_redeemable_amount_under_management_target_amount_after =
+        credix_lp_depository_after.redeemable_amount_under_management_target_amount;
     assert_eq!(
-        credix_lp_depository_redeemable_amount_under_management_target_after,
-        credix_lp_depository_redeemable_amount_under_management_target_expected
+        credix_lp_depository_redeemable_amount_under_management_target_amount_after,
+        credix_lp_depository_redeemable_amount_under_management_target_amount_expected
     );
 
     // Done

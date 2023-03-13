@@ -113,12 +113,12 @@ export const editMercurialVaultDepositorySuite = async function ({
       });
     });
 
-    it(`Edit redeemableAmountUnderManagementWeight alone should work`, async function () {
-      const redeemableAmountUnderManagementWeight = 42;
+    it(`Edit redeemableAmountUnderManagementWeightBps alone should work`, async function () {
+      const redeemableAmountUnderManagementWeightBps = 42;
 
       console.log(
-        '[🧾 redeemableAmountUnderManagementWeight',
-        redeemableAmountUnderManagementWeight,
+        '[🧾 redeemableAmountUnderManagementWeightBps',
+        redeemableAmountUnderManagementWeightBps,
         ']'
       );
 
@@ -127,7 +127,7 @@ export const editMercurialVaultDepositorySuite = async function ({
         controller,
         depository,
         uiFields: {
-          redeemableAmountUnderManagementWeight,
+          redeemableAmountUnderManagementWeightBps,
         },
       });
     });
@@ -140,7 +140,7 @@ export const editMercurialVaultDepositorySuite = async function ({
         redeemingFeeInBps,
         mintingDisabled,
         profitsBeneficiaryCollateral,
-        redeemableAmountUnderManagementWeight,
+        redeemableAmountUnderManagementWeightBps,
       } = beforeDepository;
 
       const uiRedeemableAmountUnderManagementCap = nativeToUi(
@@ -162,8 +162,8 @@ export const editMercurialVaultDepositorySuite = async function ({
         ']'
       );
       console.log(
-        '[🧾 redeemableAmountUnderManagementWeight',
-        redeemableAmountUnderManagementWeight,
+        '[🧾 redeemableAmountUnderManagementWeightBps',
+        redeemableAmountUnderManagementWeightBps,
         ']'
       );
 
@@ -177,7 +177,7 @@ export const editMercurialVaultDepositorySuite = async function ({
           mintingFeeInBps,
           redeemingFeeInBps,
           mintingDisabled,
-          redeemableAmountUnderManagementWeight,
+          redeemableAmountUnderManagementWeightBps,
         },
       });
     });

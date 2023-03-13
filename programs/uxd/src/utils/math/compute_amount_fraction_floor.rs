@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 
 // Precision loss may lower the returned value amount.
 // Precision loss of 1 native unit may be expected.
-pub fn compute_amount_fraction(
+pub fn compute_amount_fraction_floor(
     amount: u64,
     fraction_numerator: u64,
     fraction_denominator: u64,

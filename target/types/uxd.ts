@@ -1625,7 +1625,7 @@ export type Uxd = {
             type: 'publicKey';
           },
           {
-            name: 'redeemableAmountUnderManagementWeight';
+            name: 'redeemableAmountUnderManagementWeightBps';
             type: 'u32';
           },
           {
@@ -1797,7 +1797,7 @@ export type Uxd = {
             type: 'publicKey';
           },
           {
-            name: 'redeemableAmountUnderManagementWeight';
+            name: 'redeemableAmountUnderManagementWeightBps';
             type: 'u32';
           },
           {
@@ -1851,7 +1851,7 @@ export type Uxd = {
             };
           },
           {
-            name: 'redeemableAmountUnderManagementWeight';
+            name: 'redeemableAmountUnderManagementWeightBps';
             type: {
               option: 'u32';
             };
@@ -1929,7 +1929,7 @@ export type Uxd = {
             };
           },
           {
-            name: 'redeemableAmountUnderManagementWeight';
+            name: 'redeemableAmountUnderManagementWeightBps';
             type: {
               option: 'u32';
             };
@@ -2145,7 +2145,7 @@ export type Uxd = {
       ];
     },
     {
-      name: 'SetDepositoryRedeemableAmountUnderManagementWeightEvent';
+      name: 'SetDepositoryRedeemableAmountUnderManagementWeightBpsEvent';
       fields: [
         {
           name: 'version';
@@ -2163,7 +2163,7 @@ export type Uxd = {
           index: true;
         },
         {
-          name: 'redeemableAmountUnderManagementWeight';
+          name: 'redeemableAmountUnderManagementWeightBps';
           type: 'u32';
           index: true;
         }
@@ -4346,7 +4346,7 @@ export const IDL: Uxd = {
             type: 'publicKey',
           },
           {
-            name: 'redeemableAmountUnderManagementWeight',
+            name: 'redeemableAmountUnderManagementWeightBps',
             type: 'u32',
           },
           {
@@ -4518,7 +4518,7 @@ export const IDL: Uxd = {
             type: 'publicKey',
           },
           {
-            name: 'redeemableAmountUnderManagementWeight',
+            name: 'redeemableAmountUnderManagementWeightBps',
             type: 'u32',
           },
           {
@@ -4572,7 +4572,7 @@ export const IDL: Uxd = {
             },
           },
           {
-            name: 'redeemableAmountUnderManagementWeight',
+            name: 'redeemableAmountUnderManagementWeightBps',
             type: {
               option: 'u32',
             },
@@ -4650,7 +4650,7 @@ export const IDL: Uxd = {
             },
           },
           {
-            name: 'redeemableAmountUnderManagementWeight',
+            name: 'redeemableAmountUnderManagementWeightBps',
             type: {
               option: 'u32',
             },
@@ -4866,7 +4866,7 @@ export const IDL: Uxd = {
       ],
     },
     {
-      name: 'SetDepositoryRedeemableAmountUnderManagementWeightEvent',
+      name: 'SetDepositoryRedeemableAmountUnderManagementWeightBpsEvent',
       fields: [
         {
           name: 'version',
@@ -4884,7 +4884,7 @@ export const IDL: Uxd = {
           index: true,
         },
         {
-          name: 'redeemableAmountUnderManagementWeight',
+          name: 'redeemableAmountUnderManagementWeightBps',
           type: 'u32',
           index: true,
         },

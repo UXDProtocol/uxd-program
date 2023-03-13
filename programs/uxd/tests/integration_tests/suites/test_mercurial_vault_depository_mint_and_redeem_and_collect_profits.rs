@@ -188,7 +188,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
             redeeming_fee_in_bps: Some(100),
             minting_disabled: Some(false),
             profits_beneficiary_collateral: None,
-            redeemable_amount_under_management_weight: None,
+            redeemable_amount_under_management_weight_bps: None,
         },
     )
     .await?;
@@ -324,7 +324,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
             redeeming_fee_in_bps: None,
             minting_disabled: None,
             profits_beneficiary_collateral: Some(profits_beneficiary_collateral),
-            redeemable_amount_under_management_weight: None,
+            redeemable_amount_under_management_weight_bps: None,
         },
     )
     .await?;

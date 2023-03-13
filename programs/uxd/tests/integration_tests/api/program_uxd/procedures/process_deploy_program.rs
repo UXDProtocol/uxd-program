@@ -34,13 +34,13 @@ pub async fn process_deploy_program(
     let mercurial_vault_depository_redeeming_fee_in_bps = 100;
     let mercurial_vault_depository_minting_disabled = true;
     let mercurial_vault_depository_profits_beneficiary_collateral = Pubkey::default();
-    let mercurial_vault_depository_redeemable_amount_under_management_weight = 50;
+    let mercurial_vault_depository_redeemable_amount_under_management_weight_bps = 0;
     let credix_lp_depository_redeemable_amount_under_management_cap = 0;
     let credix_lp_depository_minting_fee_in_bps = 255;
     let credix_lp_depository_redeeming_fee_in_bps = 255;
     let credix_lp_depository_minting_disabled = true;
     let credix_lp_depository_profits_beneficiary_collateral = Pubkey::default();
-    let credix_lp_depository_redeemable_amount_under_management_weight = 50;
+    let credix_lp_depository_redeemable_amount_under_management_weight_bps = 0;
 
     // Create the collateral mint
     program_spl::instructions::process_token_mint_init(
@@ -136,8 +136,8 @@ pub async fn process_deploy_program(
             profits_beneficiary_collateral: Some(
                 mercurial_vault_depository_profits_beneficiary_collateral,
             ),
-            redeemable_amount_under_management_weight: Some(
-                mercurial_vault_depository_redeemable_amount_under_management_weight,
+            redeemable_amount_under_management_weight_bps: Some(
+                mercurial_vault_depository_redeemable_amount_under_management_weight_bps,
             ),
         },
     )
@@ -205,8 +205,8 @@ pub async fn process_deploy_program(
             profits_beneficiary_collateral: Some(
                 credix_lp_depository_profits_beneficiary_collateral,
             ),
-            redeemable_amount_under_management_weight: Some(
-                credix_lp_depository_redeemable_amount_under_management_weight,
+            redeemable_amount_under_management_weight_bps: Some(
+                credix_lp_depository_redeemable_amount_under_management_weight_bps,
             ),
         },
     )

@@ -2,9 +2,10 @@ use crate::error::UxdError;
 use crate::state::CredixLpDepository;
 use crate::state::MercurialVaultDepository;
 use crate::utils::checked_convert_u128_to_u64;
-use crate::utils::compute_amount_fraction;
+use crate::utils::compute_amount_fraction_floor;
 use crate::validate_is_program_frozen;
 use crate::Controller;
+use crate::BPS_UNIT_CONVERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
@@ -66,16 +67,10 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
 
     // We want to balance the supply on weighted portions of the circulating supply for now
     // This could be based on dynamic on-chain account values and liquidity later
-    let mercurial_vault_depository_weight =
-        mercurial_vault_depository.redeemable_amount_under_management_weight;
-    let credix_lp_depository_weight =
-        credix_lp_depository.redeemable_amount_under_management_weight;
-
-    // Compute the total weights of all depositories combined
-    let total_weight = ctx.accounts.compute_total(
-        mercurial_vault_depository_weight.into(),
-        credix_lp_depository_weight.into(),
-    )?;
+    let mercurial_vault_depository_weight_bps =
+        mercurial_vault_depository.redeemable_amount_under_management_weight_bps;
+    let credix_lp_depository_weight_bps =
+        credix_lp_depository.redeemable_amount_under_management_weight_bps;
 
     // Compute raw target values based on weighted portions of circulating supply
     let redeemable_circulating_supply =
@@ -83,13 +78,11 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
 
     let mercurial_vault_depository_raw_target = ctx.accounts.compute_raw_target(
         redeemable_circulating_supply,
-        mercurial_vault_depository_weight,
-        total_weight,
+        mercurial_vault_depository_weight_bps,
     )?;
     let credix_lp_depository_raw_target = ctx.accounts.compute_raw_target(
         redeemable_circulating_supply,
-        credix_lp_depository_weight,
-        total_weight,
+        credix_lp_depository_weight_bps,
     )?;
 
     // ---------------------------------------------------------------------
@@ -173,9 +166,9 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
     // ---------------------------------------------------------------------
 
     // Update onchain accounts
-    mercurial_vault_depository.redeemable_amount_under_management_target =
+    mercurial_vault_depository.redeemable_amount_under_management_target_amount =
         mercurial_vault_depository_final_target;
-    credix_lp_depository.redeemable_amount_under_management_target =
+    credix_lp_depository.redeemable_amount_under_management_target_amount =
         credix_lp_depository_final_target;
 
     // Success
@@ -184,17 +177,16 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
 
 // Into functions
 impl<'info> ComputeDepositoriesTargets<'info> {
-    // Compute a simple raw target: raw_target = total_circulating_supply * (weight / total_weight)
+    // Compute a simple raw target: raw_target = total_circulating_supply * weight
     pub fn compute_raw_target(
         &self,
         redeemable_circulating_supply: u64,
-        depository_weight: u32,
-        total_weight: u64,
+        depository_weight_bps: u16,
     ) -> Result<u64> {
-        let depository_raw_target = compute_amount_fraction(
+        let depository_raw_target = compute_amount_fraction_floor(
             redeemable_circulating_supply,
-            depository_weight.into(),
-            total_weight,
+            depository_weight_bps.into(),
+            BPS_UNIT_CONVERSION.into(),
         )?;
         Ok(depository_raw_target)
     }
@@ -244,7 +236,11 @@ impl<'info> ComputeDepositoriesTargets<'info> {
         total_availability: u64,
     ) -> Result<u64> {
         let overflow_amount_recuperated_from_other_depositories: u64 =
-            compute_amount_fraction(total_overflow, depository_availability, total_availability)?;
+            compute_amount_fraction_floor(
+                total_overflow,
+                depository_availability,
+                total_availability,
+            )?;
 
         let final_target = depository_raw_target
             .checked_sub(depository_overflow)

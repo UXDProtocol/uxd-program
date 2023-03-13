@@ -5,7 +5,7 @@ use anchor_lang::prelude::*;
 use crate::error::UxdError;
 use crate::utils::checked_add_u128_and_i128;
 
-pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 576;
+pub const MERCURIAL_VAULT_RESERVED_SPACE: usize = 578;
 pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + size_of::<u8>()     // bump
     + size_of::<u8>()     // version
@@ -28,8 +28,8 @@ pub const MERCURIAL_VAULT_DEPOSITORY_SPACE: usize = 8
     + size_of::<u128>()   // profits_total_collected
     + size_of::<u64>()    // last_profits_collection_unix_timestamp
     + size_of::<Pubkey>() // profits_beneficiary_collateral
-    + size_of::<u32>() // redeemable_amount_under_management_weight
-    + size_of::<u64>() // redeemable_amount_under_management_target
+    + size_of::<u16>() // redeemable_amount_under_management_weight_bps
+    + size_of::<u64>() // redeemable_amount_under_management_target_amount
     + MERCURIAL_VAULT_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -99,8 +99,8 @@ pub struct MercurialVaultDepository {
     pub profits_beneficiary_collateral: Pubkey,
 
     // Redeemable amount targets used for rebalancing
-    pub redeemable_amount_under_management_weight: u32,
-    pub redeemable_amount_under_management_target: u64,
+    pub redeemable_amount_under_management_weight_bps: u16,
+    pub redeemable_amount_under_management_target_amount: u64,
 
     // For future usage
     pub _reserved: [u8; MERCURIAL_VAULT_RESERVED_SPACE],

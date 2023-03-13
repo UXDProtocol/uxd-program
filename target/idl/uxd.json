@@ -1627,7 +1627,7 @@
             "type": "publicKey"
           },
           {
-            "name": "redeemableAmountUnderManagementWeight",
+            "name": "redeemableAmountUnderManagementWeightBps",
             "type": "u32"
           },
           {
@@ -1799,7 +1799,7 @@
             "type": "publicKey"
           },
           {
-            "name": "redeemableAmountUnderManagementWeight",
+            "name": "redeemableAmountUnderManagementWeightBps",
             "type": "u32"
           },
           {
@@ -1853,7 +1853,7 @@
             }
           },
           {
-            "name": "redeemableAmountUnderManagementWeight",
+            "name": "redeemableAmountUnderManagementWeightBps",
             "type": {
               "option": "u32"
             }
@@ -1931,7 +1931,7 @@
             }
           },
           {
-            "name": "redeemableAmountUnderManagementWeight",
+            "name": "redeemableAmountUnderManagementWeightBps",
             "type": {
               "option": "u32"
             }
@@ -2147,7 +2147,7 @@
       ]
     },
     {
-      "name": "SetDepositoryRedeemableAmountUnderManagementWeightEvent",
+      "name": "SetDepositoryRedeemableAmountUnderManagementWeightBpsEvent",
       "fields": [
         {
           "name": "version",
@@ -2165,7 +2165,7 @@
           "index": true
         },
         {
-          "name": "redeemableAmountUnderManagementWeight",
+          "name": "redeemableAmountUnderManagementWeightBps",
           "type": "u32",
           "index": true
         }
