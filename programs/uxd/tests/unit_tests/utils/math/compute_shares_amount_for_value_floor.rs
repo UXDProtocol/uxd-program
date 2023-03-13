@@ -1,6 +1,6 @@
 // Unit tests
 #[cfg(test)]
-mod test_compute_shares_amount_for_value {
+mod test_compute_shares_amount_for_value_floor {
     use anchor_lang::Result;
     use proptest::prelude::*;
     use uxd::utils::compute_shares_amount_for_value_floor;

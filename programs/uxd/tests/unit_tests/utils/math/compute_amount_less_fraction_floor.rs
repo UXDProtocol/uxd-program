@@ -1,6 +1,6 @@
 // Unit tests
 #[cfg(test)]
-mod test_compute_amount_less_fraction {
+mod test_compute_amount_less_fraction_floor {
     use anchor_lang::Result;
     use proptest::prelude::*;
     use uxd::utils::compute_amount_less_fraction_floor;
