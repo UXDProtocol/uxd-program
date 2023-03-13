@@ -119,7 +119,7 @@ pub struct SetDepositoryRedeemableAmountUnderManagementWeightEvent {
     #[index]
     pub depository: Pubkey,
     #[index]
-    pub redeemable_amount_under_management_weight: u64,
+    pub redeemable_amount_under_management_weight: u32,
 }
 
 /// Event called in [instructions::initialize_identity_depository::handler].

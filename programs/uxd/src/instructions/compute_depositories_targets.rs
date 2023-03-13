@@ -21,8 +21,8 @@ pub struct ComputeDepositoriesTargets<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
-        constraint = controller.load()?.registered_mercurial_vault_depositories.contains(&mercurial_vault_depository_1.key()) @UxdError::InvalidDepository,
-        constraint = controller.load()?.registered_credix_lp_depositories.contains(&credix_lp_depository_1.key()) @UxdError::InvalidDepository,
+        constraint = controller.load()?.registered_mercurial_vault_depositories.contains(&mercurial_vault_depository.key()) @UxdError::InvalidDepository,
+        constraint = controller.load()?.registered_credix_lp_depositories.contains(&credix_lp_depository.key()) @UxdError::InvalidDepository,
     )]
     pub controller: AccountLoader<'info, Controller>,
 
@@ -31,32 +31,32 @@ pub struct ComputeDepositoriesTargets<'info> {
         mut,
         seeds = [
             MERCURIAL_VAULT_DEPOSITORY_NAMESPACE,
-            mercurial_vault_depository_1.load()?.mercurial_vault.key().as_ref(),
-            mercurial_vault_depository_1.load()?.collateral_mint.as_ref()
+            mercurial_vault_depository.load()?.mercurial_vault.key().as_ref(),
+            mercurial_vault_depository.load()?.collateral_mint.as_ref()
         ],
-        bump = mercurial_vault_depository_1.load()?.bump,
+        bump = mercurial_vault_depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
     )]
-    pub mercurial_vault_depository_1: AccountLoader<'info, MercurialVaultDepository>,
+    pub mercurial_vault_depository: AccountLoader<'info, MercurialVaultDepository>,
 
     /// #4 The first known active credix lp depository
     #[account(
         mut,
         seeds = [
             CREDIX_LP_DEPOSITORY_NAMESPACE,
-            credix_lp_depository_1.load()?.credix_global_market_state.key().as_ref(),
-            credix_lp_depository_1.load()?.collateral_mint.as_ref()
+            credix_lp_depository.load()?.credix_global_market_state.key().as_ref(),
+            credix_lp_depository.load()?.collateral_mint.as_ref()
         ],
-        bump = credix_lp_depository_1.load()?.bump,
+        bump = credix_lp_depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
     )]
-    pub credix_lp_depository_1: AccountLoader<'info, CredixLpDepository>,
+    pub credix_lp_depository: AccountLoader<'info, CredixLpDepository>,
 }
 
 pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
     let controller = &ctx.accounts.controller.load()?;
-    let mercurial_vault_depository_1 = &mut ctx.accounts.mercurial_vault_depository_1.load_mut()?;
-    let credix_lp_depository_1 = &mut ctx.accounts.credix_lp_depository_1.load_mut()?;
+    let mercurial_vault_depository = &mut ctx.accounts.mercurial_vault_depository.load_mut()?;
+    let credix_lp_depository = &mut ctx.accounts.credix_lp_depository.load_mut()?;
 
     // ---------------------------------------------------------------------
     // -- Phase 1
@@ -66,29 +66,29 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
 
     // We want to balance the supply on weighted portions of the circulating supply for now
     // This could be based on dynamic on-chain account values and liquidity later
-    let mercurial_vault_depository_1_weight: u64 =
-        mercurial_vault_depository_1.redeemable_amount_under_management_weight;
-    let credix_lp_depository_1_weight: u64 =
-        credix_lp_depository_1.redeemable_amount_under_management_weight;
+    let mercurial_vault_depository_weight =
+        mercurial_vault_depository.redeemable_amount_under_management_weight;
+    let credix_lp_depository_weight =
+        credix_lp_depository.redeemable_amount_under_management_weight;
 
     // Compute the total weights of all depositories combined
     let total_weight = ctx.accounts.compute_total(
-        mercurial_vault_depository_1_weight,
-        credix_lp_depository_1_weight,
+        mercurial_vault_depository_weight.into(),
+        credix_lp_depository_weight.into(),
     )?;
 
     // Compute raw target values based on weighted portions of circulating supply
     let redeemable_circulating_supply =
         checked_convert_u128_to_u64(controller.redeemable_circulating_supply)?;
 
-    let mercurial_vault_depository_1_raw_target = ctx.accounts.compute_raw_target(
+    let mercurial_vault_depository_raw_target = ctx.accounts.compute_raw_target(
         redeemable_circulating_supply,
-        mercurial_vault_depository_1_weight,
+        mercurial_vault_depository_weight,
         total_weight,
     )?;
-    let credix_lp_depository_1_raw_target = ctx.accounts.compute_raw_target(
+    let credix_lp_depository_raw_target = ctx.accounts.compute_raw_target(
         redeemable_circulating_supply,
-        credix_lp_depository_1_weight,
+        credix_lp_depository_weight,
         total_weight,
     )?;
 
@@ -100,30 +100,28 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
     // ---------------------------------------------------------------------
 
     // Read the minting caps of each depository
-    let mercurial_vault_depository_1_cap = checked_convert_u128_to_u64(
-        mercurial_vault_depository_1.redeemable_amount_under_management_cap,
+    let mercurial_vault_depository_cap = checked_convert_u128_to_u64(
+        mercurial_vault_depository.redeemable_amount_under_management_cap,
     )?;
-    let credix_lp_depository_1_cap =
-        checked_convert_u128_to_u64(credix_lp_depository_1.redeemable_amount_under_management_cap)?;
+    let credix_lp_depository_cap =
+        checked_convert_u128_to_u64(credix_lp_depository.redeemable_amount_under_management_cap)?;
 
     // Compute the depository_overflow amount of raw target that doesn't fit within the cap of each depository
-    let mercurial_vault_depository_1_overflow = ctx.accounts.compute_overflow(
-        mercurial_vault_depository_1_raw_target,
-        mercurial_vault_depository_1_cap,
+    let mercurial_vault_depository_overflow = ctx.accounts.compute_overflow(
+        mercurial_vault_depository_raw_target,
+        mercurial_vault_depository_cap,
     )?;
-    let credix_lp_depository_1_overflow = ctx.accounts.compute_overflow(
-        credix_lp_depository_1_raw_target,
-        credix_lp_depository_1_cap,
-    )?;
+    let credix_lp_depository_overflow = ctx
+        .accounts
+        .compute_overflow(credix_lp_depository_raw_target, credix_lp_depository_cap)?;
     // Compute the amount of space available under the cap in each depository
-    let mercurial_vault_depository_1_availability = ctx.accounts.compute_availability(
-        mercurial_vault_depository_1_raw_target,
-        mercurial_vault_depository_1_cap,
+    let mercurial_vault_depository_availability = ctx.accounts.compute_availability(
+        mercurial_vault_depository_raw_target,
+        mercurial_vault_depository_cap,
     )?;
-    let credix_lp_depository_1_availability = ctx.accounts.compute_availability(
-        credix_lp_depository_1_raw_target,
-        credix_lp_depository_1_cap,
-    )?;
+    let credix_lp_depository_availability = ctx
+        .accounts
+        .compute_availability(credix_lp_depository_raw_target, credix_lp_depository_cap)?;
 
     // ---------------------------------------------------------------------
     // -- Phase 3
@@ -133,13 +131,13 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
 
     // Compute total amount that doesn't fit within depositories cap
     let total_overflow = ctx.accounts.compute_total(
-        mercurial_vault_depository_1_overflow,
-        credix_lp_depository_1_overflow,
+        mercurial_vault_depository_overflow,
+        credix_lp_depository_overflow,
     )?;
     // Compute total amount that doesn't fit within depositories cap
     let total_availability = ctx.accounts.compute_total(
-        mercurial_vault_depository_1_availability,
-        credix_lp_depository_1_availability,
+        mercurial_vault_depository_availability,
+        credix_lp_depository_availability,
     )?;
 
     // ---------------------------------------------------------------------
@@ -154,17 +152,17 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
     // ---------------------------------------------------------------------
 
     // Compute the final targets for each depository
-    let mercurial_vault_depository_1_final_target = ctx.accounts.compute_final_target(
-        mercurial_vault_depository_1_raw_target,
-        mercurial_vault_depository_1_overflow,
-        mercurial_vault_depository_1_availability,
+    let mercurial_vault_depository_final_target = ctx.accounts.compute_final_target(
+        mercurial_vault_depository_raw_target,
+        mercurial_vault_depository_overflow,
+        mercurial_vault_depository_availability,
         total_overflow,
         total_availability,
     )?;
-    let credix_lp_depository_1_final_target = ctx.accounts.compute_final_target(
-        credix_lp_depository_1_raw_target,
-        credix_lp_depository_1_overflow,
-        credix_lp_depository_1_availability,
+    let credix_lp_depository_final_target = ctx.accounts.compute_final_target(
+        credix_lp_depository_raw_target,
+        credix_lp_depository_overflow,
+        credix_lp_depository_availability,
         total_overflow,
         total_availability,
     )?;
@@ -175,10 +173,10 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
     // ---------------------------------------------------------------------
 
     // Update onchain accounts
-    mercurial_vault_depository_1.redeemable_amount_under_management_target =
-        mercurial_vault_depository_1_final_target;
-    credix_lp_depository_1.redeemable_amount_under_management_target =
-        credix_lp_depository_1_final_target;
+    mercurial_vault_depository.redeemable_amount_under_management_target =
+        mercurial_vault_depository_final_target;
+    credix_lp_depository.redeemable_amount_under_management_target =
+        credix_lp_depository_final_target;
 
     // Success
     Ok(())
@@ -190,12 +188,12 @@ impl<'info> ComputeDepositoriesTargets<'info> {
     pub fn compute_raw_target(
         &self,
         redeemable_circulating_supply: u64,
-        depository_weight: u64,
+        depository_weight: u32,
         total_weight: u64,
     ) -> Result<u64> {
         let depository_raw_target = compute_amount_fraction(
             redeemable_circulating_supply,
-            depository_weight,
+            depository_weight.into(),
             total_weight,
         )?;
         Ok(depository_raw_target)
@@ -228,11 +226,11 @@ impl<'info> ComputeDepositoriesTargets<'info> {
     // Compute the total of a value when adding all depositories
     pub fn compute_total(
         &self,
-        mercurial_vault_depository_1_value: u64,
-        credix_lp_depository_1_value: u64,
+        mercurial_vault_depository_value: u64,
+        credix_lp_depository_value: u64,
     ) -> Result<u64> {
-        Ok(mercurial_vault_depository_1_value
-            .checked_add(credix_lp_depository_1_value)
+        Ok(mercurial_vault_depository_value
+            .checked_add(credix_lp_depository_value)
             .ok_or(UxdError::MathError)?)
     }
 

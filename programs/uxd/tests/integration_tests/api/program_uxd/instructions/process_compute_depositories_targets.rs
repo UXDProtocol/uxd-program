@@ -44,8 +44,8 @@ pub async fn process_compute_depositories_targets(
     let accounts = uxd::accounts::ComputeDepositoriesTargets {
         payer: payer.pubkey(),
         controller,
-        mercurial_vault_depository_1: mercurial_vault_depository,
-        credix_lp_depository_1: credix_lp_depository,
+        mercurial_vault_depository,
+        credix_lp_depository,
     };
     let payload = uxd::instruction::ComputeDepositoriesTargets {};
     let instruction = Instruction {

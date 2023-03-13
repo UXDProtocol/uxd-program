@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 
 use crate::error::UxdError;
 
-pub const CREDIX_LP_DEPOSITORY_RESERVED_SPACE: usize = 752;
+pub const CREDIX_LP_DEPOSITORY_RESERVED_SPACE: usize = 756;
 pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u8>() // bump
  + size_of::<u8>() // version
@@ -34,7 +34,7 @@ pub const CREDIX_LP_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u128>() // profits_total_collected
  + size_of::<Pubkey>() // profits_beneficiary_collateral
 
- + size_of::<u64>() // redeemable_amount_under_management_weight
+ + size_of::<u32>() // redeemable_amount_under_management_weight
  + size_of::<u64>() // redeemable_amount_under_management_target
 
  + CREDIX_LP_DEPOSITORY_RESERVED_SPACE;
@@ -81,7 +81,7 @@ pub struct CredixLpDepository {
     pub profits_beneficiary_collateral: Pubkey,
 
     // Redeemable amount targets used for rebalancing
-    pub redeemable_amount_under_management_weight: u64,
+    pub redeemable_amount_under_management_weight: u32,
     pub redeemable_amount_under_management_target: u64,
 
     // For future usage

@@ -45,7 +45,7 @@ pub struct EditMercurialVaultDepositoryFields {
     pub redeeming_fee_in_bps: Option<u8>,
     pub minting_disabled: Option<bool>,
     pub profits_beneficiary_collateral: Option<Pubkey>,
-    pub redeemable_amount_under_management_weight: Option<u64>,
+    pub redeemable_amount_under_management_weight: Option<u32>,
 }
 
 pub(crate) fn handler(
