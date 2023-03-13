@@ -186,7 +186,7 @@ impl<'info> ComputeDepositoriesTargets<'info> {
         let depository_raw_target = compute_amount_fraction_floor(
             redeemable_circulating_supply,
             depository_weight_bps.into(),
-            BPS_UNIT_CONVERSION.into(),
+            BPS_UNIT_CONVERSION,
         )?;
         Ok(depository_raw_target)
     }

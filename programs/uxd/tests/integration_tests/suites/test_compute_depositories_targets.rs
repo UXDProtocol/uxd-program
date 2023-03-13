@@ -176,14 +176,15 @@ async fn test_compute_depositories_targets() -> Result<(), program_test_context:
     )
     .await?;
 
-    // Recompute the targets, mercurial should STILL get everything
-    // since credix is capped to zero, EVEN if its weight is set
+    // Recompute the targets, mercurial should now get everything
+    // since credix is capped to zero, and if its weight is set to 50%
+    // all of the credix 50% weight should be re-allocated to mercurial
     program_uxd::instructions::process_compute_depositories_targets(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
-        amount_of_collateral_supply_after_the_first_mint * 50 / 100, // 50%
-        0,                                                           // 0%
+        amount_of_collateral_supply_after_the_first_mint, // 100%
+        0,                                                // 0%
     )
     .await?;
 

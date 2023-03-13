@@ -1626,16 +1626,16 @@ export type Uxd = {
           },
           {
             name: 'redeemableAmountUnderManagementWeightBps';
-            type: 'u32';
+            type: 'u16';
           },
           {
-            name: 'redeemableAmountUnderManagementTarget';
+            name: 'redeemableAmountUnderManagementTargetAmount';
             type: 'u64';
           },
           {
             name: 'reserved';
             type: {
-              array: ['u8', 756];
+              array: ['u8', 758];
             };
           }
         ];
@@ -1798,16 +1798,16 @@ export type Uxd = {
           },
           {
             name: 'redeemableAmountUnderManagementWeightBps';
-            type: 'u32';
+            type: 'u16';
           },
           {
-            name: 'redeemableAmountUnderManagementTarget';
+            name: 'redeemableAmountUnderManagementTargetAmount';
             type: 'u64';
           },
           {
             name: 'reserved';
             type: {
-              array: ['u8', 576];
+              array: ['u8', 578];
             };
           }
         ];
@@ -1853,7 +1853,7 @@ export type Uxd = {
           {
             name: 'redeemableAmountUnderManagementWeightBps';
             type: {
-              option: 'u32';
+              option: 'u16';
             };
           }
         ];
@@ -1931,7 +1931,7 @@ export type Uxd = {
           {
             name: 'redeemableAmountUnderManagementWeightBps';
             type: {
-              option: 'u32';
+              option: 'u16';
             };
           }
         ];
@@ -2164,7 +2164,7 @@ export type Uxd = {
         },
         {
           name: 'redeemableAmountUnderManagementWeightBps';
-          type: 'u32';
+          type: 'u16';
           index: true;
         }
       ];
@@ -4347,16 +4347,16 @@ export const IDL: Uxd = {
           },
           {
             name: 'redeemableAmountUnderManagementWeightBps',
-            type: 'u32',
+            type: 'u16',
           },
           {
-            name: 'redeemableAmountUnderManagementTarget',
+            name: 'redeemableAmountUnderManagementTargetAmount',
             type: 'u64',
           },
           {
             name: 'reserved',
             type: {
-              array: ['u8', 756],
+              array: ['u8', 758],
             },
           },
         ],
@@ -4519,16 +4519,16 @@ export const IDL: Uxd = {
           },
           {
             name: 'redeemableAmountUnderManagementWeightBps',
-            type: 'u32',
+            type: 'u16',
           },
           {
-            name: 'redeemableAmountUnderManagementTarget',
+            name: 'redeemableAmountUnderManagementTargetAmount',
             type: 'u64',
           },
           {
             name: 'reserved',
             type: {
-              array: ['u8', 576],
+              array: ['u8', 578],
             },
           },
         ],
@@ -4574,7 +4574,7 @@ export const IDL: Uxd = {
           {
             name: 'redeemableAmountUnderManagementWeightBps',
             type: {
-              option: 'u32',
+              option: 'u16',
             },
           },
         ],
@@ -4652,7 +4652,7 @@ export const IDL: Uxd = {
           {
             name: 'redeemableAmountUnderManagementWeightBps',
             type: {
-              option: 'u32',
+              option: 'u16',
             },
           },
         ],
@@ -4885,7 +4885,7 @@ export const IDL: Uxd = {
         },
         {
           name: 'redeemableAmountUnderManagementWeightBps',
-          type: 'u32',
+          type: 'u16',
           index: true,
         },
       ],
