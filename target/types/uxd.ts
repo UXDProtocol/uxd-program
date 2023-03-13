@@ -1,5 +1,5 @@
 export type Uxd = {
-  version: '7.0.0';
+  version: '7.1.0';
   name: 'uxd';
   instructions: [
     {
@@ -214,6 +214,38 @@ export type Uxd = {
           };
         }
       ];
+    },
+    {
+      name: 'computeDepositoriesTargets';
+      accounts: [
+        {
+          name: 'payer';
+          isMut: true;
+          isSigner: true;
+          docs: ['#1 Permissionless IX that can be called by anyone'];
+        },
+        {
+          name: 'controller';
+          isMut: true;
+          isSigner: false;
+          docs: [
+            '#2 The top level UXDProgram on chain account managing the redeemable mint'
+          ];
+        },
+        {
+          name: 'mercurialVaultDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#3 The first known active mercurial vault depository'];
+        },
+        {
+          name: 'credixLpDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#4 The first known active credix lp depository'];
+        }
+      ];
+      args: [];
     },
     {
       name: 'mintWithMercurialVaultDepository';
@@ -1493,6 +1525,12 @@ export type Uxd = {
           {
             name: 'profitsTotalCollected';
             type: 'u128';
+          },
+          {
+            name: 'reserved';
+            type: {
+              array: ['u8', 230];
+            };
           }
         ];
       };
@@ -1585,6 +1623,20 @@ export type Uxd = {
           {
             name: 'profitsBeneficiaryCollateral';
             type: 'publicKey';
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight';
+            type: 'u32';
+          },
+          {
+            name: 'redeemableAmountUnderManagementTarget';
+            type: 'u64';
+          },
+          {
+            name: 'reserved';
+            type: {
+              array: ['u8', 756];
+            };
           }
         ];
       };
@@ -1645,6 +1697,12 @@ export type Uxd = {
           {
             name: 'mangoCollateralReinjectedEth';
             type: 'bool';
+          },
+          {
+            name: 'reserved';
+            type: {
+              array: ['u8', 512];
+            };
           }
         ];
       };
@@ -1737,6 +1795,20 @@ export type Uxd = {
           {
             name: 'profitsBeneficiaryCollateral';
             type: 'publicKey';
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight';
+            type: 'u32';
+          },
+          {
+            name: 'redeemableAmountUnderManagementTarget';
+            type: 'u64';
+          },
+          {
+            name: 'reserved';
+            type: {
+              array: ['u8', 576];
+            };
           }
         ];
       };
@@ -1776,6 +1848,12 @@ export type Uxd = {
             name: 'profitsBeneficiaryCollateral';
             type: {
               option: 'publicKey';
+            };
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight';
+            type: {
+              option: 'u32';
             };
           }
         ];
@@ -1848,6 +1926,12 @@ export type Uxd = {
             name: 'profitsBeneficiaryCollateral';
             type: {
               option: 'publicKey';
+            };
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight';
+            type: {
+              option: 'u32';
             };
           }
         ];
@@ -2056,6 +2140,31 @@ export type Uxd = {
         {
           name: 'profitsBeneficiaryCollateral';
           type: 'publicKey';
+          index: true;
+        }
+      ];
+    },
+    {
+      name: 'SetDepositoryRedeemableAmountUnderManagementWeightEvent';
+      fields: [
+        {
+          name: 'version';
+          type: 'u8';
+          index: true;
+        },
+        {
+          name: 'controller';
+          type: 'publicKey';
+          index: true;
+        },
+        {
+          name: 'depository';
+          type: 'publicKey';
+          index: true;
+        },
+        {
+          name: 'redeemableAmountUnderManagementWeight';
+          type: 'u32';
           index: true;
         }
       ];
@@ -2611,7 +2720,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  version: '7.0.0',
+  version: '7.1.0',
   name: 'uxd',
   instructions: [
     {
@@ -2826,6 +2935,38 @@ export const IDL: Uxd = {
           },
         },
       ],
+    },
+    {
+      name: 'computeDepositoriesTargets',
+      accounts: [
+        {
+          name: 'payer',
+          isMut: true,
+          isSigner: true,
+          docs: ['#1 Permissionless IX that can be called by anyone'],
+        },
+        {
+          name: 'controller',
+          isMut: true,
+          isSigner: false,
+          docs: [
+            '#2 The top level UXDProgram on chain account managing the redeemable mint',
+          ],
+        },
+        {
+          name: 'mercurialVaultDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#3 The first known active mercurial vault depository'],
+        },
+        {
+          name: 'credixLpDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#4 The first known active credix lp depository'],
+        },
+      ],
+      args: [],
     },
     {
       name: 'mintWithMercurialVaultDepository',
@@ -4106,6 +4247,12 @@ export const IDL: Uxd = {
             name: 'profitsTotalCollected',
             type: 'u128',
           },
+          {
+            name: 'reserved',
+            type: {
+              array: ['u8', 230],
+            },
+          },
         ],
       },
     },
@@ -4198,6 +4345,20 @@ export const IDL: Uxd = {
             name: 'profitsBeneficiaryCollateral',
             type: 'publicKey',
           },
+          {
+            name: 'redeemableAmountUnderManagementWeight',
+            type: 'u32',
+          },
+          {
+            name: 'redeemableAmountUnderManagementTarget',
+            type: 'u64',
+          },
+          {
+            name: 'reserved',
+            type: {
+              array: ['u8', 756],
+            },
+          },
         ],
       },
     },
@@ -4257,6 +4418,12 @@ export const IDL: Uxd = {
           {
             name: 'mangoCollateralReinjectedEth',
             type: 'bool',
+          },
+          {
+            name: 'reserved',
+            type: {
+              array: ['u8', 512],
+            },
           },
         ],
       },
@@ -4350,6 +4517,20 @@ export const IDL: Uxd = {
             name: 'profitsBeneficiaryCollateral',
             type: 'publicKey',
           },
+          {
+            name: 'redeemableAmountUnderManagementWeight',
+            type: 'u32',
+          },
+          {
+            name: 'redeemableAmountUnderManagementTarget',
+            type: 'u64',
+          },
+          {
+            name: 'reserved',
+            type: {
+              array: ['u8', 576],
+            },
+          },
         ],
       },
     },
@@ -4388,6 +4569,12 @@ export const IDL: Uxd = {
             name: 'profitsBeneficiaryCollateral',
             type: {
               option: 'publicKey',
+            },
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight',
+            type: {
+              option: 'u32',
             },
           },
         ],
@@ -4460,6 +4647,12 @@ export const IDL: Uxd = {
             name: 'profitsBeneficiaryCollateral',
             type: {
               option: 'publicKey',
+            },
+          },
+          {
+            name: 'redeemableAmountUnderManagementWeight',
+            type: {
+              option: 'u32',
             },
           },
         ],
@@ -4668,6 +4861,31 @@ export const IDL: Uxd = {
         {
           name: 'profitsBeneficiaryCollateral',
           type: 'publicKey',
+          index: true,
+        },
+      ],
+    },
+    {
+      name: 'SetDepositoryRedeemableAmountUnderManagementWeightEvent',
+      fields: [
+        {
+          name: 'version',
+          type: 'u8',
+          index: true,
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'depository',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'redeemableAmountUnderManagementWeight',
+          type: 'u32',
           index: true,
         },
       ],

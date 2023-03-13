@@ -1,5 +1,5 @@
 {
-  "version": "7.0.0",
+  "version": "7.1.0",
   "name": "uxd",
   "instructions": [
     {
@@ -216,6 +216,38 @@
           }
         }
       ]
+    },
+    {
+      "name": "computeDepositoriesTargets",
+      "accounts": [
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true,
+          "docs": ["#1 Permissionless IX that can be called by anyone"]
+        },
+        {
+          "name": "controller",
+          "isMut": true,
+          "isSigner": false,
+          "docs": [
+            "#2 The top level UXDProgram on chain account managing the redeemable mint"
+          ]
+        },
+        {
+          "name": "mercurialVaultDepository",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["#3 The first known active mercurial vault depository"]
+        },
+        {
+          "name": "credixLpDepository",
+          "isMut": true,
+          "isSigner": false,
+          "docs": ["#4 The first known active credix lp depository"]
+        }
+      ],
+      "args": []
     },
     {
       "name": "mintWithMercurialVaultDepository",
@@ -1495,6 +1527,12 @@
           {
             "name": "profitsTotalCollected",
             "type": "u128"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": ["u8", 230]
+            }
           }
         ]
       }
@@ -1587,6 +1625,20 @@
           {
             "name": "profitsBeneficiaryCollateral",
             "type": "publicKey"
+          },
+          {
+            "name": "redeemableAmountUnderManagementWeight",
+            "type": "u32"
+          },
+          {
+            "name": "redeemableAmountUnderManagementTarget",
+            "type": "u64"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": ["u8", 756]
+            }
           }
         ]
       }
@@ -1647,6 +1699,12 @@
           {
             "name": "mangoCollateralReinjectedEth",
             "type": "bool"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": ["u8", 512]
+            }
           }
         ]
       }
@@ -1739,6 +1797,20 @@
           {
             "name": "profitsBeneficiaryCollateral",
             "type": "publicKey"
+          },
+          {
+            "name": "redeemableAmountUnderManagementWeight",
+            "type": "u32"
+          },
+          {
+            "name": "redeemableAmountUnderManagementTarget",
+            "type": "u64"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": ["u8", 576]
+            }
           }
         ]
       }
@@ -1778,6 +1850,12 @@
             "name": "profitsBeneficiaryCollateral",
             "type": {
               "option": "publicKey"
+            }
+          },
+          {
+            "name": "redeemableAmountUnderManagementWeight",
+            "type": {
+              "option": "u32"
             }
           }
         ]
@@ -1850,6 +1928,12 @@
             "name": "profitsBeneficiaryCollateral",
             "type": {
               "option": "publicKey"
+            }
+          },
+          {
+            "name": "redeemableAmountUnderManagementWeight",
+            "type": {
+              "option": "u32"
             }
           }
         ]
@@ -2058,6 +2142,31 @@
         {
           "name": "profitsBeneficiaryCollateral",
           "type": "publicKey",
+          "index": true
+        }
+      ]
+    },
+    {
+      "name": "SetDepositoryRedeemableAmountUnderManagementWeightEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": true
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "depository",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "redeemableAmountUnderManagementWeight",
+          "type": "u32",
           "index": true
         }
       ]
