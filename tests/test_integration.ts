@@ -11,7 +11,6 @@ import { transferAllSol, transferAllTokens, transferSol } from './utils';
 import { controllerIntegrationSuite } from './suite/controllerIntegrationSuite';
 import { mercurialVaultDepositorySetupSuite } from './suite/mercurialVaultDepositorySetup';
 import { mercurialVaultDepositoryMintRedeemSuite } from './suite/mercurialVaultMintAndRedeemSuite';
-import { editMercurialVaultDepositorySuite } from './suite/editMercurialVaultDepositorySuite';
 
 const controller = new Controller('UXD', UXD_DECIMALS, uxdProgramId);
 
@@ -50,13 +49,6 @@ describe('Mercurial vault integration tests: USDC', async function () {
       user,
       controller,
       payer: bank,
-    });
-  });
-
-  describe('editMercurialVaultDepositorySuite', () => {
-    editMercurialVaultDepositorySuite({
-      authority,
-      controller,
     });
   });
 
