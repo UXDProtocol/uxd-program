@@ -129,7 +129,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
     .map_err(program_test_context::ProgramTestError::Anchor)?;
     let fees_amount = collateral_amount - redeemable_amount;
 
-    // redeemable_mint.supply must have increased by the minted amount
+    // redeemable_mint.supply must have increased by the minted amount (equivalent to redeemable_amount)
     let redeemable_mint_supply_before = redeemable_mint_before.supply;
     let redeemable_mint_supply_after = redeemable_mint_after.supply;
     assert_eq!(
@@ -137,7 +137,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
         redeemable_mint_supply_after,
     );
 
-    // controller.redeemable_circulating_supply must have increased by the minted amount
+    // controller.redeemable_circulating_supply must have increased by the minted amount (equivalent to redeemable_amount)
     let redeemable_circulating_supply_before =
         u64::try_from(controller_before.redeemable_circulating_supply).unwrap();
     let redeemable_circulating_supply_after =
@@ -147,7 +147,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
         redeemable_circulating_supply_after,
     );
 
-    // depository.redeemable_amount_under_management must have increased by the minted amount
+    // depository.redeemable_amount_under_management must have increased by the minted amount (equivalent to redeemable_amount)
     let redeemable_amount_under_management_before =
         u64::try_from(mercurial_vault_depository_before.redeemable_amount_under_management)
             .unwrap();
@@ -168,7 +168,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
         minting_fee_total_accrued_after,
     );
 
-    // depository.collateral_amount_deposited must have increased by the deposited amount
+    // depository.collateral_amount_deposited must have increased by the deposited amount (equivalent to collateral_amount)
     let collateral_amount_deposited_before =
         u64::try_from(mercurial_vault_depository_before.collateral_amount_deposited).unwrap();
     let collateral_amount_deposited_after =
@@ -178,12 +178,12 @@ pub async fn process_mint_with_mercurial_vault_depository(
         collateral_amount_deposited_after,
     );
 
-    // user_collateral.amount must have decreased by the deposited amount
+    // user_collateral.amount must have decreased by the deposited amount (equivalent to collateral_amount)
     assert_eq!(
         user_collateral_amount_before - collateral_amount,
         user_collateral_amount_after,
     );
-    // user_redeemable.amount must have increased by the minted amount
+    // user_redeemable.amount must have increased by the minted amount (equivalent to redeemable_amount)
     assert_eq!(
         user_redeemable_amount_before + redeemable_amount,
         user_redeemable_amount_after,
