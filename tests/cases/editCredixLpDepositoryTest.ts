@@ -24,6 +24,7 @@ export const editCredixLpDepositoryTest = async function ({
     redeemingFeeInBps?: number;
     mintingDisabled?: boolean;
     profitsBeneficiaryCollateral?: PublicKey;
+    redeemableAmountUnderManagementWeight?: number;
   };
 }) {
   const connection = getConnection();
@@ -43,6 +44,7 @@ export const editCredixLpDepositoryTest = async function ({
       redeemingFeeInBps,
       mintingDisabled,
       profitsBeneficiaryCollateral,
+      redeemableAmountUnderManagementWeight,
     } = depositoryOnchainAccount;
 
     // WHEN
@@ -68,6 +70,8 @@ export const editCredixLpDepositoryTest = async function ({
       redeemingFeeInBps: redeemingFeeInBps_post,
       mintingDisabled: mintingDisabled_post,
       profitsBeneficiaryCollateral: profitsBeneficiaryCollateral_post,
+      redeemableAmountUnderManagementWeight:
+        redeemableAmountUnderManagementWeight_post,
     } = depositoryOnchainAccount_post;
 
     if (uiFields.redeemableAmountUnderManagementCap) {
@@ -138,6 +142,18 @@ export const editCredixLpDepositoryTest = async function ({
         profitsBeneficiaryCollateral.toBase58(),
         'now is',
         profitsBeneficiaryCollateral_post.toBase58()
+      );
+    }
+    if (typeof uiFields.redeemableAmountUnderManagementWeight !== 'undefined') {
+      expect(redeemableAmountUnderManagementWeight_post).equals(
+        uiFields.redeemableAmountUnderManagementWeight,
+        'The redeemable depository weight has not changed.'
+      );
+      console.log(
+        `🧾 Previous redeemable depository weight was`,
+        redeemableAmountUnderManagementWeight,
+        'now is',
+        redeemableAmountUnderManagementWeight_post
       );
     }
 

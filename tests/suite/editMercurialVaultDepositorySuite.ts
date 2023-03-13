@@ -102,16 +102,6 @@ export const editMercurialVaultDepositorySuite = async function ({
         profitsBeneficiaryCollateral,
         ']'
       );
-    });
-
-    it(`Edit profitsBeneficiaryCollateral alone should work`, async function () {
-      const profitsBeneficiaryCollateral = new Keypair().publicKey;
-
-      console.log(
-        '[🧾 profitsBeneficiaryCollateral',
-        profitsBeneficiaryCollateral,
-        ']'
-      );
 
       await editMercurialVaultDepositoryTest({
         authority,
@@ -123,14 +113,34 @@ export const editMercurialVaultDepositorySuite = async function ({
       });
     });
 
+    it(`Edit redeemableAmountUnderManagementWeight alone should work`, async function () {
+      const redeemableAmountUnderManagementWeight = 42;
+
+      console.log(
+        '[🧾 redeemableAmountUnderManagementWeight',
+        redeemableAmountUnderManagementWeight,
+        ']'
+      );
+
+      await editMercurialVaultDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          redeemableAmountUnderManagementWeight,
+        },
+      });
+    });
+
     // Restore initial depository values there
     it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap/profitsBeneficiaryCollateral should work`, async function () {
       const {
+        redeemableAmountUnderManagementCap,
         mintingFeeInBps,
         redeemingFeeInBps,
-        redeemableAmountUnderManagementCap,
         mintingDisabled,
         profitsBeneficiaryCollateral,
+        redeemableAmountUnderManagementWeight,
       } = beforeDepository;
 
       const uiRedeemableAmountUnderManagementCap = nativeToUi(
@@ -151,17 +161,23 @@ export const editMercurialVaultDepositorySuite = async function ({
         profitsBeneficiaryCollateral,
         ']'
       );
+      console.log(
+        '[🧾 redeemableAmountUnderManagementWeight',
+        redeemableAmountUnderManagementWeight,
+        ']'
+      );
 
       await editMercurialVaultDepositoryTest({
         authority,
         controller,
         depository,
         uiFields: {
+          redeemableAmountUnderManagementCap:
+            uiRedeemableAmountUnderManagementCap,
           mintingFeeInBps,
           redeemingFeeInBps,
           mintingDisabled,
-          redeemableAmountUnderManagementCap:
-            uiRedeemableAmountUnderManagementCap,
+          redeemableAmountUnderManagementWeight,
         },
       });
     });

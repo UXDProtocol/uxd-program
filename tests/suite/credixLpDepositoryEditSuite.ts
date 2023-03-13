@@ -110,6 +110,25 @@ export const credixLpDepositoryEditSuite = async function ({
       });
     });
 
+    it(`Edit redeemableAmountUnderManagementWeight alone should work`, async function () {
+      const redeemableAmountUnderManagementWeight = 42;
+
+      console.log(
+        '[🧾 redeemableAmountUnderManagementWeight',
+        redeemableAmountUnderManagementWeight,
+        ']'
+      );
+
+      await editCredixLpDepositoryTest({
+        authority,
+        controller,
+        depository,
+        uiFields: {
+          redeemableAmountUnderManagementWeight,
+        },
+      });
+    });
+
     // Restore initial depository values there
     it(`Edit mintingFeeInBps/redeemingFeeInBps/redeemableAmountUnderManagementCap should work`, async function () {
       const {
@@ -118,6 +137,7 @@ export const credixLpDepositoryEditSuite = async function ({
         redeemableAmountUnderManagementCap,
         mintingDisabled,
         profitsBeneficiaryCollateral,
+        redeemableAmountUnderManagementWeight,
       } = beforeDepository;
 
       const uiRedeemableAmountUnderManagementCap = nativeToUi(
@@ -138,6 +158,11 @@ export const credixLpDepositoryEditSuite = async function ({
         profitsBeneficiaryCollateral,
         ']'
       );
+      console.log(
+        '[🧾 redeemableAmountUnderManagementWeight',
+        redeemableAmountUnderManagementWeight,
+        ']'
+      );
 
       await editCredixLpDepositoryTest({
         authority,
@@ -150,6 +175,7 @@ export const credixLpDepositoryEditSuite = async function ({
             uiRedeemableAmountUnderManagementCap,
           mintingDisabled,
           profitsBeneficiaryCollateral,
+          redeemableAmountUnderManagementWeight,
         },
       });
     });
