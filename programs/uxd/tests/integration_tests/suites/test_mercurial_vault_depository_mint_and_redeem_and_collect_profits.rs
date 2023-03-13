@@ -329,7 +329,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
     )
     .await?;
 
-    // Now that profits beneficiary is set, collecting profits should suceed
+    // Now that profits beneficiary is set, collecting profits should succeed
     program_uxd::instructions::process_collect_profits_of_mercurial_vault_depository(
         &mut program_test_context,
         &payer,

@@ -1,4 +1,8 @@
 pub mod test_compute_depositories_targets;
 pub mod test_credix_lp_depository_mint;
+pub mod test_edit_controller;
+pub mod test_edit_credix_lp_depository;
+pub mod test_edit_identity_depository;
+pub mod test_edit_mercurial_vault_depository;
 pub mod test_identity_depository_mint_and_redeem;
 pub mod test_mercurial_vault_depository_mint_and_redeem_and_collect_profits;
