@@ -155,7 +155,7 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
     // -- Change the depository fields all at once
     // ---------------------------------------------------------------------
 
-    // Change everything using the wrong authority (should fail)
+    // Change everything, using the wrong authority (should fail)
     assert!(
         program_uxd::instructions::process_edit_mercurial_vault_depository(
             &mut program_test_context,
@@ -174,7 +174,7 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
         .is_err()
     );
 
-    // Change everything using the correct authority (should suceed)
+    // Change everything, using the correct authority (should succeed)
     program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
@@ -190,7 +190,7 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
     )
     .await?;
 
-    // Change nothing using the correct authority (should suceed)
+    // Change nothing, using the correct authority (should succeed)
     program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_test_context,
         &payer,

@@ -81,7 +81,7 @@ async fn test_edit_identity_depository() -> Result<(), program_test_context::Pro
     // -- Change the depository fields all at once
     // ---------------------------------------------------------------------
 
-    // Change everything using the wrong authority (should fail)
+    // Change everything, using the wrong authority (should fail)
     assert!(program_uxd::instructions::process_edit_identity_depository(
         &mut program_test_context,
         &payer,
@@ -94,7 +94,7 @@ async fn test_edit_identity_depository() -> Result<(), program_test_context::Pro
     .await
     .is_err());
 
-    // Change everything using the correct authority (should suceed)
+    // Change everything, using the correct authority (should succeed)
     program_uxd::instructions::process_edit_identity_depository(
         &mut program_test_context,
         &payer,
@@ -106,7 +106,7 @@ async fn test_edit_identity_depository() -> Result<(), program_test_context::Pro
     )
     .await?;
 
-    // Change nothing using the correct authority (should suceed)
+    // Change nothing, using the correct authority (should succeed)
     program_uxd::instructions::process_edit_identity_depository(
         &mut program_test_context,
         &payer,

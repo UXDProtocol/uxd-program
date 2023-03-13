@@ -154,7 +154,7 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
     // -- Change the depository fields all at once
     // ---------------------------------------------------------------------
 
-    // Change everything using the wrong authority (should fail)
+    // Change everything, using the wrong authority (should fail)
     assert!(
         program_uxd::instructions::process_edit_credix_lp_depository(
             &mut program_test_context,
@@ -173,7 +173,7 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
         .is_err()
     );
 
-    // Change everything using the correct authority (should suceed)
+    // Change everything, using the correct authority (should succeed)
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
         &payer,
@@ -189,7 +189,7 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
     )
     .await?;
 
-    // Change nothing using the correct authority (should suceed)
+    // Change nothing, using the correct authority (should succeed)
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
         &payer,
