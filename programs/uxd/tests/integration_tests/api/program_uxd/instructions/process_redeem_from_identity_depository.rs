@@ -123,7 +123,7 @@ pub async fn process_redeem_from_identity_depository(
         redeemable_circulating_supply_after,
     );
 
-    // depository.redeemable_amount_under_management must have decreased by the redeemed amount
+    // depository.redeemable_amount_under_management must have decreased by the redeemed amount (equivalent to redeemable_amount)
     let redeemable_amount_under_management_before =
         u64::try_from(identity_depository_before.redeemable_amount_under_management).unwrap();
     let redeemable_amount_under_management_after =

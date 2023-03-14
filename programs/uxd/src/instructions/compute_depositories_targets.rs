@@ -107,6 +107,7 @@ pub(crate) fn handler(ctx: Context<ComputeDepositoriesTargets>) -> Result<()> {
     let credix_lp_depository_overflow = ctx
         .accounts
         .compute_overflow(credix_lp_depository_raw_target, credix_lp_depository_cap)?;
+
     // Compute the amount of space available under the cap in each depository
     let mercurial_vault_depository_availability = ctx.accounts.compute_availability(
         mercurial_vault_depository_raw_target,
