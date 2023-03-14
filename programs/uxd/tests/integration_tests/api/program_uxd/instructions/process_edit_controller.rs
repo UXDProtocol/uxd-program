@@ -49,7 +49,7 @@ pub async fn process_edit_controller(
         program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
             .await?;
 
-    // Check results
+    // redeemable_global_supply_cap must have been updated if specified in fields
     let redeemable_global_supply_cap_before = controller_before.redeemable_global_supply_cap;
     let redeemable_global_supply_cap_after = controller_after.redeemable_global_supply_cap;
     assert_eq!(

@@ -105,13 +105,15 @@ pub async fn process_mint_with_identity_depository(
     // For the identity depository, we always get 1:1 collateral/redeemable
     let redeemable_amount = collateral_amount;
 
-    // Check result
+    // redeemable_mint.supply must have increased by the minted amount (equivalent to collateral_amount)
     let redeemable_mint_supply_before = redeemable_mint_before.supply;
     let redeemable_mint_supply_after = redeemable_mint_after.supply;
     assert_eq!(
         redeemable_mint_supply_before + redeemable_amount,
         redeemable_mint_supply_after,
     );
+
+    // controller.redeemable_circulating_supply must have increased by the minted amount (equivalent to redeemable_amount)
     let redeemable_circulating_supply_before =
         u64::try_from(controller_before.redeemable_circulating_supply).unwrap();
     let redeemable_circulating_supply_after =
@@ -120,6 +122,8 @@ pub async fn process_mint_with_identity_depository(
         redeemable_circulating_supply_before + redeemable_amount,
         redeemable_circulating_supply_after,
     );
+
+    // depository.redeemable_amount_under_management must have increased by the minted amount (equivalent to redeemable_amount)
     let redeemable_amount_under_management_before =
         u64::try_from(identity_depository_before.redeemable_amount_under_management).unwrap();
     let redeemable_amount_under_management_after =
@@ -128,6 +132,8 @@ pub async fn process_mint_with_identity_depository(
         redeemable_amount_under_management_before + redeemable_amount,
         redeemable_amount_under_management_after,
     );
+
+    // depository.collateral_amount_deposited must have increased by the deposited amount (equivalent to collateral_amount)
     let collateral_amount_deposited_before =
         u64::try_from(identity_depository_before.collateral_amount_deposited).unwrap();
     let collateral_amount_deposited_after =
@@ -137,10 +143,12 @@ pub async fn process_mint_with_identity_depository(
         collateral_amount_deposited_after,
     );
 
+    // user_collateral.amount must have decreased by the deposited amount (equivalent to collateral_amount)
     assert_eq!(
         user_collateral_amount_before - collateral_amount,
         user_collateral_amount_after,
     );
+    // user_redeemable.amount must have increased by the minted amount (equivalent to redeemable_amount)
     assert_eq!(
         user_redeemable_amount_before + redeemable_amount,
         user_redeemable_amount_after,
