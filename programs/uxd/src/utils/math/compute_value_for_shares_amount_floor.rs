@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 
 // Precision loss may lower the returned value amount.
 // Precision loss of 1 native unit may be expected.
-pub fn compute_value_for_shares_amount(
+pub fn compute_value_for_shares_amount_floor(
     shares_amount: u64,
     total_shares_supply: u64,
     total_shares_value: u64,

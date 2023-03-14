@@ -14,8 +14,8 @@ use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::utils::calculate_amount_less_fees;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
-use crate::utils::compute_shares_amount_for_value;
-use crate::utils::compute_value_for_shares_amount;
+use crate::utils::compute_shares_amount_for_value_floor;
+use crate::utils::compute_value_for_shares_amount_floor;
 use crate::utils::is_within_range_inclusive;
 use crate::utils::validate_redeemable_amount;
 use crate::validate_is_program_frozen;
@@ -193,7 +193,7 @@ pub(crate) fn handler(
         .ok_or(UxdError::MathError)?;
 
     let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
-    let owned_shares_value_before: u64 = compute_value_for_shares_amount(
+    let owned_shares_value_before: u64 = compute_value_for_shares_amount_floor(
         owned_shares_amount_before,
         total_shares_supply_before,
         total_shares_value_before,
@@ -219,7 +219,7 @@ pub(crate) fn handler(
     let collateral_amount_before_precision_loss: u64 = redeemable_amount_after_fees;
 
     // Compute the amount of shares that we need to withdraw based on the amount of wanted collateral
-    let shares_amount: u64 = compute_shares_amount_for_value(
+    let shares_amount: u64 = compute_shares_amount_for_value_floor(
         collateral_amount_before_precision_loss,
         total_shares_supply_before,
         total_shares_value_before,
@@ -230,7 +230,7 @@ pub(crate) fn handler(
     );
 
     // Compute the amount of collateral that the withdrawn shares are worth (after potential precision loss)
-    let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount(
+    let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount_floor(
         shares_amount,
         total_shares_supply_before,
         total_shares_value_before,
@@ -316,7 +316,7 @@ pub(crate) fn handler(
         .ok_or(UxdError::MathError)?;
 
     let owned_shares_amount_after: u64 = ctx.accounts.depository_shares.amount;
-    let owned_shares_value_after: u64 = compute_value_for_shares_amount(
+    let owned_shares_value_after: u64 = compute_value_for_shares_amount_floor(
         owned_shares_amount_after,
         total_shares_supply_after,
         total_shares_value_after,
