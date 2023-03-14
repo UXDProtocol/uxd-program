@@ -20,6 +20,7 @@ pub async fn process_deploy_program(
     authority: &Keypair,
     collateral_mint: &Keypair,
     mercurial_vault_lp_mint: &Keypair,
+    credix_authority: &Keypair,
     collateral_mint_decimals: u8,
     redeemable_mint_decimals: u8,
 ) -> Result<(), program_test_context::ProgramTestError> {
@@ -139,16 +140,15 @@ pub async fn process_deploy_program(
     .await?;
 
     // Credix onchain dependency program deployment
-    let credix_authority = Keypair::new();
     program_credix::procedures::process_deploy_program(
         program_test_context,
-        &credix_authority,
+        credix_authority,
         &collateral_mint.pubkey(),
     )
     .await?;
     program_credix::procedures::process_dummy_actors_behaviors(
         program_test_context,
-        &credix_authority,
+        credix_authority,
         &collateral_mint.pubkey(),
         collateral_mint,
     )
@@ -165,12 +165,13 @@ pub async fn process_deploy_program(
     .0;
     program_credix::instructions::process_create_credix_pass(
         program_test_context,
-        &credix_authority,
+        credix_authority,
         &credix_lp_depository,
         true,
         false,
         0,
         true,
+        false,
     )
     .await?;
 

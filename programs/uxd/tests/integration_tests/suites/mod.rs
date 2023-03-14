@@ -1,4 +1,5 @@
 pub mod test_credix_lp_depository_mint;
+pub mod test_credix_lp_depository_rebalance;
 pub mod test_edit_controller;
 pub mod test_edit_credix_lp_depository;
 pub mod test_edit_identity_depository;

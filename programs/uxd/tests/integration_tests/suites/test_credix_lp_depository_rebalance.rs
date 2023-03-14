@@ -3,13 +3,17 @@ use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
 use uxd::instructions::EditControllerFields;
+use uxd::instructions::EditCredixLpDepositoryFields;
 
+use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
+use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_edit_controller() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_context::ProgramTestError>
+{
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -49,42 +53,36 @@ async fn test_edit_controller() -> Result<(), program_test_context::ProgramTestE
     )
     .await?;
 
-    // ---------------------------------------------------------------------
-    // -- Phase 2
-    // -- Change the controller fields
-    // ---------------------------------------------------------------------
+    // Main actor
+    let user = Keypair::new();
 
-    // Using the wrong authority should fail
-    assert!(program_uxd::instructions::process_edit_controller(
+    // Create a collateral account for our user
+    let user_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
         &mut program_test_context,
         &payer,
-        &payer,
-        &EditControllerFields {
-            redeemable_global_supply_cap: Some(42),
-        },
+        &collateral_mint.pubkey(),
+        &user.pubkey(),
     )
-    .await
-    .is_err());
-
-    // Using the correct authority should succeed
-    program_uxd::instructions::process_edit_controller(
+    .await?;
+    // Create a redeemable account for our user
+    let user_redeemable = program_spl::instructions::process_associated_token_account_get_or_init(
         &mut program_test_context,
         &payer,
-        &authority,
-        &EditControllerFields {
-            redeemable_global_supply_cap: Some(100),
-        },
+        &program_uxd::accounts::find_redeemable_mint_pda().0,
+        &user.pubkey(),
     )
     .await?;
 
-    // Using None should succeed
-    program_uxd::instructions::process_edit_controller(
+    // ---------------------------------------------------------------------
+    // -- Phase 2
+    // ---------------------------------------------------------------------
+
+    // TEST
+    program_test_context::move_clock_forward(&mut program_test_context, 1_000).await?;
+
+    program_credix::instructions::process_create_withdraw_epoch(
         &mut program_test_context,
-        &payer,
-        &authority,
-        &EditControllerFields {
-            redeemable_global_supply_cap: None,
-        },
+        &credix_authority,
     )
     .await?;
 

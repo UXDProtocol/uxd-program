@@ -63,6 +63,7 @@ pub async fn process_dummy_actors_behaviors(
         false,
         0,
         false,
+        false,
     )
     .await?;
 
