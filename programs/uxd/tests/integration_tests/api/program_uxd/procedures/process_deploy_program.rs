@@ -14,6 +14,7 @@ use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn process_deploy_program(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
@@ -31,8 +32,8 @@ pub async fn process_deploy_program(
     let identity_depository_redeemable_amount_under_management_cap = 0;
     let identity_depository_minting_disabled = true;
     let mercurial_vault_depository_redeemable_amount_under_management_cap = 0;
-    let mercurial_vault_depository_minting_fee_in_bps = 100;
-    let mercurial_vault_depository_redeeming_fee_in_bps = 100;
+    let mercurial_vault_depository_minting_fee_in_bps = 255;
+    let mercurial_vault_depository_redeeming_fee_in_bps = 255;
     let mercurial_vault_depository_minting_disabled = true;
     let mercurial_vault_depository_profits_beneficiary_collateral = Pubkey::default();
     let credix_lp_depository_redeemable_amount_under_management_cap = 0;

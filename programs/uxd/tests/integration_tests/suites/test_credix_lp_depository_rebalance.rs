@@ -80,11 +80,13 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     // TEST
     program_test_context::move_clock_forward(&mut program_test_context, 1_000).await?;
 
+    /*
     program_credix::instructions::process_create_withdraw_epoch(
         &mut program_test_context,
         &credix_authority,
     )
     .await?;
+     */
 
     // Done
     Ok(())

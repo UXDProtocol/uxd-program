@@ -26,9 +26,10 @@ pub async fn process_initialize_market(
         &signing_authority,
         base_token_mint,
     );
-    let treasury = program_credix::accounts::find_treasury(authority);
+    let treasury = program_credix::accounts::find_treasury();
     let treasury_pool_token_account =
         program_credix::accounts::find_treasury_pool_token_account(&treasury, base_token_mint);
+    let multisig = program_credix::accounts::find_multisig();
 
     // Execute IX
     let accounts = credix_client::accounts::InitializeMarket {
@@ -49,7 +50,7 @@ pub async fn process_initialize_market(
     };
     let payload = credix_client::instruction::InitializeMarket {
         _global_market_seed: market_seeds.clone(),
-        _multisig: Some(authority.pubkey()),
+        _multisig: Some(multisig),
         _managers: None,
         _pass_issuers: None,
         _grace_period: 10,

@@ -19,13 +19,14 @@ pub async fn process_create_withdraw_epoch(
     let market_admins = program_credix::accounts::find_market_admins_pda(&global_market_state).0;
 
     // Find the current withdraw request account
-    let global_market_state_data = program_test_context::read_account_anchor::<
+    let latest_withdraw_epoch_idx = program_test_context::read_account_anchor::<
         credix_client::GlobalMarketState,
     >(program_test_context, &global_market_state)
-    .await?;
+    .await?
+    .latest_withdraw_epoch_idx;
     let withdraw_epoch = program_credix::accounts::find_withdraw_epoch_pda(
         &global_market_state,
-        global_market_state_data.latest_withdraw_epoch_idx + 1,
+        latest_withdraw_epoch_idx + 1,
     )
     .0;
 

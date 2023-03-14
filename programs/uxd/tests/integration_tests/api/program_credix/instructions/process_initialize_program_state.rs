@@ -14,7 +14,8 @@ pub async fn process_initialize_program_state(
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let program_state = program_credix::accounts::find_program_state_pda().0;
-    let treasury = program_credix::accounts::find_treasury(authority);
+    let treasury = program_credix::accounts::find_treasury();
+    let multisig = program_credix::accounts::find_multisig();
 
     // Execute IX
     let accounts = credix_client::accounts::InitializeProgramState {
@@ -28,7 +29,7 @@ pub async fn process_initialize_program_state(
             treasury, treasury, treasury, treasury, treasury, treasury, treasury, treasury,
             treasury, treasury,
         ],
-        _credix_multisig_key: treasury,
+        _credix_multisig_key: multisig,
         _credix_service_fee_percentage: credix_client::Fraction {
             numerator: 1,
             denominator: 100,
