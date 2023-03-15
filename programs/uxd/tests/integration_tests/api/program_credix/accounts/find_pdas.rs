@@ -41,21 +41,12 @@ pub fn find_liquidity_pool_token_account(
 }
 
 pub fn find_treasury() -> Pubkey {
-    // The treasury used by credix, we're not supposed to have access to it.
+    // The treasury address used by credix, we're not supposed to have access to it.
     Pubkey::from_str("4u825MpPxsRSxnvAJ8jJRsvAtbXByLhZZTWjEg1Kcjkd").unwrap()
 }
 
 pub fn find_treasury_pool_token_account(treasury: &Pubkey, base_token_mint: &Pubkey) -> Pubkey {
     spl_associated_token_account::get_associated_token_address(treasury, base_token_mint)
-}
-
-pub fn find_multisig() -> Pubkey {
-    // Credix use the same address for treasury and multisig on mainnet and devnet
-    find_treasury()
-}
-
-pub fn find_multisig_token_account(multisig: &Pubkey, base_token_mint: &Pubkey) -> Pubkey {
-    spl_associated_token_account::get_associated_token_address(multisig, base_token_mint)
 }
 
 pub fn find_credix_pass_pda(global_market_state: &Pubkey, pass_holder: &Pubkey) -> (Pubkey, u8) {

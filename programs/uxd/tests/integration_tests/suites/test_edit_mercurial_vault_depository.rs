@@ -35,7 +35,7 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
     let authority = Keypair::new();
     let collateral_mint = Keypair::new();
     let mercurial_vault_lp_mint = Keypair::new();
-    let credix_authority = Keypair::new();
+    let credix_multisig = Keypair::new();
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
@@ -44,7 +44,7 @@ async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_conte
         &authority,
         &collateral_mint,
         &mercurial_vault_lp_mint,
-        &credix_authority,
+        &credix_multisig,
         collateral_mint_decimals,
         redeemable_mint_decimals,
     )

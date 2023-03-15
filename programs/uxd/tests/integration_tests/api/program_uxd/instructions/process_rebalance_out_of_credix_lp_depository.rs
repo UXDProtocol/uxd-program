@@ -20,6 +20,7 @@ pub async fn process_rebalance_out_of_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     collateral_mint: &Pubkey,
+    credix_multisig_key: &Pubkey,
     profits_beneficiary_collateral: &Pubkey,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
@@ -51,9 +52,8 @@ pub async fn process_rebalance_out_of_credix_lp_depository(
         &credix_lp_depository,
     )
     .0;
-    let credix_multisig_key = program_credix::accounts::find_multisig();
-    let credix_multisig_collateral = program_credix::accounts::find_multisig_token_account(
-        &credix_multisig_key,
+    let credix_multisig_collateral = spl_associated_token_account::get_associated_token_address(
+        credix_multisig_key,
         collateral_mint,
     );
     let credix_lp_depository_collateral =
@@ -112,7 +112,7 @@ pub async fn process_rebalance_out_of_credix_lp_depository(
         credix_withdraw_epoch,
         credix_withdraw_request,
         credix_treasury_collateral,
-        credix_multisig_key,
+        credix_multisig_key: *credix_multisig_key,
         credix_multisig_collateral,
         profits_beneficiary_collateral: *profits_beneficiary_collateral,
         system_program: anchor_lang::system_program::ID,

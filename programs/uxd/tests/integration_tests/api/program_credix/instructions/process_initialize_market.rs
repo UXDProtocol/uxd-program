@@ -11,7 +11,7 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_initialize_market(
     program_test_context: &mut ProgramTestContext,
-    authority: &Keypair,
+    multisig: &Keypair,
     base_token_mint: &Pubkey,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
@@ -29,11 +29,10 @@ pub async fn process_initialize_market(
     let treasury = program_credix::accounts::find_treasury();
     let treasury_pool_token_account =
         program_credix::accounts::find_treasury_pool_token_account(&treasury, base_token_mint);
-    let multisig = program_credix::accounts::find_multisig();
 
     // Execute IX
     let accounts = credix_client::accounts::InitializeMarket {
-        owner: authority.pubkey(),
+        owner: multisig.pubkey(),
         global_market_state,
         market_admins,
         program_state,
@@ -50,7 +49,7 @@ pub async fn process_initialize_market(
     };
     let payload = credix_client::instruction::InitializeMarket {
         _global_market_seed: market_seeds.clone(),
-        _multisig: Some(multisig),
+        _multisig: Some(multisig.pubkey()),
         _managers: None,
         _pass_issuers: None,
         _grace_period: 10,
@@ -91,5 +90,5 @@ pub async fn process_initialize_market(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, authority).await
+    program_test_context::process_instruction(program_test_context, instruction, multisig).await
 }
