@@ -1,8 +1,6 @@
 use std::str::FromStr;
 
 use solana_program::pubkey::Pubkey;
-use solana_sdk::signature::Keypair;
-use solana_sdk::signer::Signer;
 
 const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";
 

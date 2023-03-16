@@ -8,6 +8,7 @@ use anchor_spl::token::Transfer;
 
 use crate::error::UxdError;
 use crate::events::RebalanceOutOfCredixLpDepositoryEvent;
+use crate::state::controller;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::utils::compute_decrease;
@@ -236,6 +237,34 @@ pub(crate) fn handler(ctx: Context<RebalanceOutOfCredixLpDepository>) -> Result<
         profits_value
     );
 
+    let redeemable_overflow_amount = {
+        // TODO - use weights
+        let redeemable_amount_under_management_target_amount = ctx
+            .accounts
+            .controller
+            .load()?
+            .redeemable_circulating_supply
+            / 2;
+        msg!(
+            "[rebalance_out_of_credix_lp_depository:redeemable_amount_under_management_target_amount:{}]",
+            redeemable_amount_under_management_target_amount
+        );
+        let redeemable_amount_under_management = ctx
+            .accounts
+            .depository
+            .load()?
+            .redeemable_amount_under_management;
+        msg!(
+            "[rebalance_out_of_credix_lp_depository:redeemable_amount_under_management:{}]",
+            redeemable_amount_under_management
+        );
+        redeemable_amount_under_management_target_amount
+            .checked_add(profits_value)
+            .ok_or(UxdError::MathError)?
+            .checked_sub(redeemable_amount_under_management)
+            .ok_or(UxdError::MathError)?
+    };
+
     // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
     let collateral_amount_before_precision_loss: u64 = u64::try_from(profits_value)
         .ok()
@@ -437,12 +466,14 @@ pub(crate) fn handler(ctx: Context<RebalanceOutOfCredixLpDepository>) -> Result<
 
     // Accounting for depository
     let mut depository = ctx.accounts.depository.load_mut()?;
+    // TODO
     depository.update_onchain_accounting_following_profits_collection(
         collateral_amount_after_precision_loss,
     )?;
 
     // Accounting for controller
     let mut controller = ctx.accounts.controller.load_mut()?;
+    // TODO
     controller.update_onchain_accounting_following_profits_collection(
         collateral_amount_after_precision_loss,
     )?;
@@ -468,6 +499,35 @@ impl<'info> RebalanceOutOfCredixLpDepository<'info> {
             withdraw_epoch: self.credix_withdraw_epoch.to_account_info(),
             withdraw_request: self.credix_withdraw_request.to_account_info(),
             system_program: self.system_program.to_account_info(),
+        };
+        let cpi_program = self.credix_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_redeem_withdraw_request_from_credix_lp_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::RedeemWithdrawRequest<'info>>
+    {
+        let cpi_accounts = credix_client::cpi::accounts::RedeemWithdrawRequest {
+            base_token_mint: self.collateral_mint.to_account_info(),
+            investor: self.depository.to_account_info(),
+            investor_token_account: self.depository_collateral.to_account_info(),
+            investor_lp_token_account: self.depository_shares.to_account_info(),
+            program_state: self.credix_program_state.to_account_info(),
+            global_market_state: self.credix_global_market_state.to_account_info(),
+            signing_authority: self.credix_signing_authority.to_account_info(),
+            liquidity_pool_token_account: self.credix_liquidity_collateral.to_account_info(),
+            lp_token_mint: self.credix_shares_mint.to_account_info(),
+            credix_pass: self.credix_pass.to_account_info(),
+            treasury_pool_token_account: self.credix_treasury_collateral.to_account_info(),
+            credix_multisig_key: self.credix_multisig_key.to_account_info(),
+            credix_multisig_token_account: self.credix_multisig_collateral.to_account_info(),
+            withdraw_epoch: self.credix_withdraw_epoch.to_account_info(),
+            withdraw_request: self.credix_withdraw_request.to_account_info(),
+            system_program: self.system_program.to_account_info(),
+            token_program: self.token_program.to_account_info(),
+            associated_token_program: self.associated_token_program.to_account_info(),
+            rent: self.rent.to_account_info(),
         };
         let cpi_program = self.credix_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)

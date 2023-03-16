@@ -59,11 +59,13 @@ pub async fn process_dummy_actors_behaviors(
         program_test_context,
         authority,
         &dummy_investor.pubkey(),
-        true,
-        false,
-        0,
-        false,
-        false,
+        &credix_client::instruction::CreateCredixPass {
+            _is_investor: true,
+            _is_borrower: false,
+            _release_timestamp: 0,
+            _disable_withdrawal_fee: false,
+            _bypass_withdraw_epochs: false,
+        },
     )
     .await?;
 

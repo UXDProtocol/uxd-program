@@ -6,7 +6,6 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use spl_token::state::Account;
-use spl_token::state::Mint;
 
 use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
@@ -95,6 +94,14 @@ pub async fn process_rebalance_out_of_credix_lp_depository(
         )
         .await?;
 
+    let profits_beneficiary_collateral_amount_before =
+        program_test_context::read_account_packed::<Account>(
+            program_test_context,
+            profits_beneficiary_collateral,
+        )
+        .await?
+        .amount;
+
     // Execute IX
     let accounts = uxd::accounts::RebalanceOutOfCredixLpDepository {
         payer: payer.pubkey(),
@@ -139,6 +146,14 @@ pub async fn process_rebalance_out_of_credix_lp_depository(
             &credix_lp_depository,
         )
         .await?;
+
+    let profits_beneficiary_collateral_amount_after =
+        program_test_context::read_account_packed::<Account>(
+            program_test_context,
+            profits_beneficiary_collateral,
+        )
+        .await?
+        .amount;
 
     // TODO - check after state
 

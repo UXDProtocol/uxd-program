@@ -26,8 +26,8 @@ async fn process_instruction_result(
     println!(" - instruction.result: {:?}", result);
     // Log the callers for quickly glace over the flow of IXs using minified backtrace
     let backtrace_data = std::backtrace::Backtrace::force_capture();
-    let backtrace_str = std::format!("{}", backtrace_data);
-    let backtrace_lines = backtrace_str.split("\n");
+    let backtrace_formatted = std::format!("{}", backtrace_data);
+    let backtrace_lines = backtrace_formatted.lines();
     for backtrace_line in backtrace_lines {
         if backtrace_line.contains("at ./tests/integration_tests")
             && !backtrace_line.contains("process_instruction")

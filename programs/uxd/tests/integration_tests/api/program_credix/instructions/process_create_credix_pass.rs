@@ -11,13 +11,9 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_create_credix_pass(
     program_test_context: &mut ProgramTestContext,
-    authority: &Keypair,
+    multisig: &Keypair,
     pass_holder: &Pubkey,
-    is_investor: bool,
-    is_borrower: bool,
-    release_timestamp: i64,
-    disable_withdrawal_fee: bool,
-    bypass_withdraw_epochs: bool,
+    fields: &credix_client::instruction::CreateCredixPass,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
@@ -30,7 +26,7 @@ pub async fn process_create_credix_pass(
 
     // Execute IX
     let accounts = credix_client::accounts::CreateCredixPass {
-        owner: authority.pubkey(),
+        owner: multisig.pubkey(),
         pass_holder: *pass_holder,
         program_state,
         global_market_state,
@@ -39,17 +35,10 @@ pub async fn process_create_credix_pass(
         system_program: anchor_lang::system_program::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
-    let payload = credix_client::instruction::CreateCredixPass {
-        _is_investor: is_investor,
-        _is_borrower: is_borrower,
-        _release_timestamp: release_timestamp,
-        _disable_withdrawal_fee: disable_withdrawal_fee,
-        _bypass_withdraw_epochs: bypass_withdraw_epochs,
-    };
     let instruction = Instruction {
         program_id: credix_client::id(),
         accounts: accounts.to_account_metas(None),
-        data: payload.data(),
+        data: fields.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, authority).await
+    program_test_context::process_instruction(program_test_context, instruction, multisig).await
 }
