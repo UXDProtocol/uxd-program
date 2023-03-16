@@ -8,7 +8,6 @@ use anchor_spl::token::Transfer;
 
 use crate::error::UxdError;
 use crate::events::RebalanceOutOfCredixLpDepositoryEvent;
-use crate::state::controller;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::utils::compute_decrease;

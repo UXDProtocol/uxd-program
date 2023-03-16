@@ -55,6 +55,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
 
     // Main actor
     let user = Keypair::new();
+    let profits_beneficiary = Keypair::new();
 
     // Create a collateral account for our user
     let user_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
@@ -72,6 +73,16 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &user.pubkey(),
     )
     .await?;
+
+    // Create a collateral account for our profits_beneficiary
+    let profits_beneficiary_collateral =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            &mut program_test_context,
+            &payer,
+            &collateral_mint.pubkey(),
+            &profits_beneficiary.pubkey(),
+        )
+        .await?;
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -91,6 +102,16 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &mut program_test_context,
         &credix_multisig,
         &collateral_mint.pubkey(),
+    )
+    .await?;
+
+    // TEST 3
+    program_uxd::instructions::process_rebalance_out_of_credix_lp_depository(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &credix_multisig.pubkey(),
+        &profits_beneficiary_collateral,
     )
     .await?;
 

@@ -9,7 +9,6 @@ use spl_token::state::Account;
 
 use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
-use uxd::utils::calculate_amount_less_fees;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
