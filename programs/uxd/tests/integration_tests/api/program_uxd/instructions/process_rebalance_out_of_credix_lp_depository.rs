@@ -14,7 +14,7 @@ use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
-pub async fn process_rebalance_out_of_credix_lp_depository(
+pub async fn process_rebalance_request_from_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     collateral_mint: &Pubkey,
@@ -102,7 +102,7 @@ pub async fn process_rebalance_out_of_credix_lp_depository(
         .amount;
 
     // Execute IX
-    let accounts = uxd::accounts::RebalanceOutOfCredixLpDepository {
+    let accounts = uxd::accounts::RebalanceRequestFromCredixLpDepository {
         payer: payer.pubkey(),
         controller,
         collateral_mint: *collateral_mint,
@@ -127,7 +127,7 @@ pub async fn process_rebalance_out_of_credix_lp_depository(
         credix_program: credix_client::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
-    let payload = uxd::instruction::RebalanceOutOfCredixLpDepository {};
+    let payload = uxd::instruction::RebalanceRequestFromCredixLpDepository {};
     let instruction = Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),

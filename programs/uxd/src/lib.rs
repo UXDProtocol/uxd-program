@@ -258,11 +258,11 @@ pub mod uxd {
     #[access_control(
         ctx.accounts.validate()
     )]
-    pub fn rebalance_out_of_credix_lp_depository(
-        ctx: Context<RebalanceOutOfCredixLpDepository>,
+    pub fn rebalance_request_from_credix_lp_depository(
+        ctx: Context<RebalanceRequestFromCredixLpDepository>,
     ) -> Result<()> {
-        msg!("[rebalance_out_of_credix_lp_depository]");
-        instructions::rebalance_out_of_credix_lp_depository::handler(ctx)
+        msg!("[rebalance_request_from_credix_lp_depository]");
+        instructions::rebalance_request_from_credix_lp_depository::handler(ctx)
     }
 
     /// Freeze or resume all ixs associated with the controller (except this one).

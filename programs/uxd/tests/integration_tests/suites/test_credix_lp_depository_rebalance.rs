@@ -106,7 +106,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     .await?;
 
     // TEST 3
-    program_uxd::instructions::process_rebalance_out_of_credix_lp_depository(
+    program_uxd::instructions::process_rebalance_request_from_credix_lp_depository(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
