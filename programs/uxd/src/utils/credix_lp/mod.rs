@@ -1,5 +1,5 @@
-pub mod calculate_overflow_redeemable_amount;
-pub mod calculate_profits_collateral_amount;
+pub mod calculate_profits_value;
+pub mod calculate_target_overflow_value;
 
-pub use calculate_overflow_redeemable_amount::*;
-pub use calculate_profits_collateral_amount::*;
+pub use calculate_profits_value::*;
+pub use calculate_target_overflow_value::*;

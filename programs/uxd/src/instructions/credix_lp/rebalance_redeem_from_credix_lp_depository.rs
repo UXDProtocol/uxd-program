@@ -7,9 +7,10 @@ use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 
 use crate::error::UxdError;
-use crate::events::RebalanceRedeemFromCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
+use crate::utils::calculate_profits_value;
+use crate::utils::calculate_target_overflow_value;
 use crate::utils::checked_convert_u128_to_u64;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
@@ -205,122 +206,51 @@ pub(crate) fn handler(ctx: Context<RebalanceRedeemFromCredixLpDepository>) -> Re
         total_shares_value_before,
     )?;
 
-    // How much collateral can we withdraw as profits
-    let ideal_profits_collateral_amount = {
-        // Compute the set of liabilities owed to the users
-        let liabilities_redeemable_amount = checked_convert_u128_to_u64(
-            ctx.accounts
-                .depository
-                .load()?
-                .redeemable_amount_under_management,
-        )?;
-        msg!(
-            "[rebalance_request_from_credix_lp_depository:liabilities_redeemable_amount:{}]",
-            liabilities_redeemable_amount
-        );
-        // We assume that liabilities in redeemable are equivalent 1:1 to the same amount in collateral
-        let liabilities_collateral_amount = liabilities_redeemable_amount;
-        // Compute the set of assets owned in the LP in collateral amount
-        let assets_collateral_amount = owned_shares_value_before;
-        msg!(
-            "[rebalance_request_from_credix_lp_depository:assets_collateral_amount:{}]",
-            assets_collateral_amount
-        );
-        // Compute the amount of profits that we can safely withdraw
-        assets_collateral_amount
-            .checked_sub(liabilities_collateral_amount)
-            .ok_or(UxdError::MathError)?
-    };
+    let profits_value =
+        calculate_profits_value(&ctx.accounts.depository, owned_shares_value_before)?;
     msg!(
-        "[rebalance_request_from_credix_lp_depository:ideal_profits_collateral_amount:{}]",
-        ideal_profits_collateral_amount
+        "[rebalance_request_from_credix_lp_depository:profits_value:{}]",
+        profits_value
     );
 
-    let ideal_rebalanced_redeemable_amount = {
-        // TODO - use weights
-        let redeemable_amount_under_management_target_amount = checked_convert_u128_to_u64(
-            ctx.accounts
-                .controller
-                .load()?
-                .redeemable_circulating_supply
-                / 2,
-        )?;
-        msg!(
-            "[rebalance_request_from_credix_lp_depository:redeemable_amount_under_management_target_amount:{}]",
-            redeemable_amount_under_management_target_amount
-        );
-        let redeemable_amount_under_management = checked_convert_u128_to_u64(
-            ctx.accounts
-                .depository
-                .load()?
-                .redeemable_amount_under_management,
-        )?;
-        msg!(
-            "[rebalance_request_from_credix_lp_depository:redeemable_amount_under_management:{}]",
-            redeemable_amount_under_management
-        );
-        redeemable_amount_under_management_target_amount
-            .checked_sub(redeemable_amount_under_management)
-            .ok_or(UxdError::MathError)?
-    };
+    let overflow_collateral_amount = calculate_target_overflow_value(
+        &ctx.accounts.controller,
+        &ctx.accounts.depository,
+        profits_value,
+    )?;
     msg!(
-        "[rebalance_request_from_credix_lp_depository:ideal_rebalanced_redeemable_amount:{}]",
-        ideal_rebalanced_redeemable_amount
+        "[rebalance_request_from_credix_lp_depository:overflow_collateral_amount:{}]",
+        overflow_collateral_amount
     );
 
-    // We assume that the redeemable amount we need to rebalance is the same amount in collateral token
-    let ideal_rebalanced_collateral_amount = ideal_rebalanced_redeemable_amount;
-
-    let ideal_withdraw_collateral_amount = ideal_rebalanced_collateral_amount
-        .checked_add(ideal_profits_collateral_amount)
+    // We want to withdraw profits and rebalance at the same time
+    let withdraw_collateral_amount = overflow_collateral_amount
+        .checked_add(profits_value)
         .ok_or(UxdError::MathError)?;
     msg!(
-        "[rebalance_request_from_credix_lp_depository:ideal_withdraw_collateral_amount:{}]",
-        ideal_withdraw_collateral_amount
+        "[rebalance_request_from_credix_lp_depository:withdraw_collateral_amount:{}]",
+        withdraw_collateral_amount
     );
 
-    // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
-    let collateral_amount_before_precision_loss: u64 = ideal_withdraw_collateral_amount
-    msg!(
-        "[rebalance_request_from_credix_lp_depository:collateral_amount_before_precision_loss:{}]",
-        collateral_amount_before_precision_loss
-    );
+    let locked_liquidity = ctx.accounts.credix_global_market_state.locked_liquidity;
+    let investor_total_lp_amount = ctx
+        .accounts
+        .credix_withdraw_request
+        .investor_total_lp_amount;
+    let participating_investors_total_lp_amount = ctx
+        .accounts
+        .credix_withdraw_epoch
+        .participating_investors_total_lp_amount;
+    let base_amount_withdrawn = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
 
-    // Compute the amount of shares that we need to withdraw based on the amount of wanted collateral
-    let shares_amount: u64 = compute_shares_amount_for_value_floor(
-        collateral_amount_before_precision_loss,
-        total_shares_supply_before,
-        total_shares_value_before,
-    )?;
-    msg!(
-        "[rebalance_request_from_credix_lp_depository:shares_amount:{}]",
-        shares_amount
-    );
-
-    // Compute the amount of collateral that the withdrawn shares are worth (after potential precision loss)
-    let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount_floor(
-        shares_amount,
-        total_shares_supply_before,
-        total_shares_value_before,
-    )?;
-    msg!(
-        "[rebalance_request_from_credix_lp_depository:collateral_amount_after_precision_loss:{}]",
-        collateral_amount_after_precision_loss
-    );
-
-    // If nothing to withdraw, no need to continue, all profits have already been successfully collected
-    if collateral_amount_after_precision_loss == 0 {
-        msg!("[rebalance_request_from_credix_lp_depository:no_profits_to_collect]",);
-        return Ok(());
-    }
-
-    let test0 = ctx.accounts.credix_global_market_state.locked_liquidity;
-
-    let test = ctx.accounts.credix_withdraw_epoch.participating_investors_total_lp_amount;
-    let test2 = ctx.accounts.credix_withdraw_epoch.total_requested_base_amount;
-
-    let test3 = ctx.accounts.credix_withdraw_request.base_amount;
-    let test4 = ctx.accounts.credix_withdraw_request.investor_total_lp_amount;
+    // All investors gets an equivalent part of the locked liquidity, based on their position size in the pool
+    let withdrawable_collateral_amount = locked_liquidity
+        .checked_mul(investor_total_lp_amount)
+        .ok_or(UxdError::MathError)?
+        .checked_div(participating_investors_total_lp_amount)
+        .ok_or(UxdError::MathError)?
+        .checked_sub(base_amount_withdrawn)
+        .ok_or(UxdError::MathError)?;
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -337,21 +267,12 @@ pub(crate) fn handler(ctx: Context<RebalanceRedeemFromCredixLpDepository>) -> Re
         &[ctx.accounts.depository.load()?.bump],
     ]];
 
-    msg!("[rebalance_request_from_credix_lp_depository:create_withdraw_request]",);
-    credix_client::cpi::create_withdraw_request(
-        ctx.accounts
-            .into_create_withdraw_request_from_credix_lp_context()
-            .with_signer(depository_pda_signer),
-        collateral_amount_before_precision_loss,
-    )?;
-    
-
     msg!("[rebalance_request_from_credix_lp_depository:redeem_withdraw_request]",);
     credix_client::cpi::redeem_withdraw_request(
         ctx.accounts
             .into_redeem_withdraw_request_from_credix_lp_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_before_precision_loss,
+        withdrawable_collateral_amount,
     )?;
 
     // Transfer the received collateral from the depository to the end user
@@ -360,7 +281,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRedeemFromCredixLpDepository>) -> Re
         ctx.accounts
             .into_transfer_depository_collateral_to_profits_beneficiary_collateral_context()
             .with_signer(depository_pda_signer),
-        collateral_amount_after_precision_loss,
+        withdrawable_collateral_amount,
     )?;
 
     // Refresh account states after withdrawal
@@ -370,34 +291,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRedeemFromCredixLpDepository>) -> Re
     ctx.accounts.credix_liquidity_collateral.reload()?;
     ctx.accounts.credix_shares_mint.reload()?;
     ctx.accounts.profits_beneficiary_collateral.reload()?;
-
-    // ---------------------------------------------------------------------
-    // -- Phase 4
-    // -- Emit resulting event, and update onchain accounting
-    // ---------------------------------------------------------------------
-
-    // Emit event
-    emit!(RebalanceRedeemFromCredixLpDepositoryEvent {
-        controller_version: ctx.accounts.controller.load()?.version,
-        depository_version: ctx.accounts.depository.load()?.version,
-        controller: ctx.accounts.controller.key(),
-        depository: ctx.accounts.depository.key(),
-        collateral_amount: collateral_amount_after_precision_loss,
-    });
-
-    // Accounting for depository
-    let mut depository = ctx.accounts.depository.load_mut()?;
-    // TODO
-    depository.update_onchain_accounting_following_profits_collection(
-        collateral_amount_after_precision_loss,
-    )?;
-
-    // Accounting for controller
-    let mut controller = ctx.accounts.controller.load_mut()?;
-    // TODO
-    controller.update_onchain_accounting_following_profits_collection(
-        collateral_amount_after_precision_loss,
-    )?;
 
     // Done
     Ok(())
