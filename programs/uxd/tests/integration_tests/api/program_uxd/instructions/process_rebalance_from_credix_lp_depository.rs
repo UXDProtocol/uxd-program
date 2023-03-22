@@ -14,7 +14,7 @@ use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
-pub async fn process_rebalance_request_from_credix_lp_depository(
+pub async fn process_rebalance_from_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     collateral_mint: &Pubkey,
@@ -23,6 +23,9 @@ pub async fn process_rebalance_request_from_credix_lp_depository(
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
+    let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
+    let identity_depository_collateral =
+        program_uxd::accounts::find_identity_depository_collateral_vault_pda().0;
     let credix_program_state = program_credix::accounts::find_program_state_pda().0;
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
@@ -102,7 +105,7 @@ pub async fn process_rebalance_request_from_credix_lp_depository(
         .amount;
 
     // Execute IX
-    let accounts = uxd::accounts::RebalanceRequestFromCredixLpDepository {
+    let accounts = uxd::accounts::RebalanceFromCredixLpDepository {
         payer: payer.pubkey(),
         controller,
         collateral_mint: *collateral_mint,
@@ -121,13 +124,15 @@ pub async fn process_rebalance_request_from_credix_lp_depository(
         credix_multisig_key: *credix_multisig_key,
         credix_multisig_collateral,
         profits_beneficiary_collateral: *profits_beneficiary_collateral,
+        identity_depository,
+        identity_depository_collateral,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
         credix_program: credix_client::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
-    let payload = uxd::instruction::RebalanceRequestFromCredixLpDepository {};
+    let payload = uxd::instruction::RebalanceFromCredixLpDepository {};
     let instruction = Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),

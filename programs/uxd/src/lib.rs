@@ -46,6 +46,8 @@ pub const DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP: u128 = 1_000_000; // 1 Millio
 const BPS_POW: u8 = 4; // Raise a number to BPS_POW to get order of magnitude of
 pub const BPS_UNIT_CONVERSION: u64 = (10u64).pow(BPS_POW as u32);
 
+pub const SECONDS_IN_A_DAY: i64 = 24 * 60 * 60;
+
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 
 #[program]
@@ -258,11 +260,11 @@ pub mod uxd {
     #[access_control(
         ctx.accounts.validate()
     )]
-    pub fn rebalance_request_from_credix_lp_depository(
-        ctx: Context<RebalanceRequestFromCredixLpDepository>,
+    pub fn rebalance_from_credix_lp_depository(
+        ctx: Context<RebalanceFromCredixLpDepository>,
     ) -> Result<()> {
-        msg!("[rebalance_request_from_credix_lp_depository]");
-        instructions::rebalance_request_from_credix_lp_depository::handler(ctx)
+        msg!("[rebalance_from_credix_lp_depository]");
+        instructions::rebalance_from_credix_lp_depository::handler(ctx)
     }
 
     /// Freeze or resume all ixs associated with the controller (except this one).

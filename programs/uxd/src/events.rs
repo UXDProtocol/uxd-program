@@ -230,9 +230,9 @@ pub struct CollectProfitsOfCredixLpDepositoryEvent {
     pub collateral_amount: u64,
 }
 
-/// Event called in [instructions::rebalance_request_from_credix_lp_depository::handler].
+/// Event called in [instructions::rebalance_from_credix_lp_depository::handler].
 #[event]
-pub struct RebalanceRequestFromCredixLpDepositoryEvent {
+pub struct RebalanceFromCredixLpDepositoryEvent {
     #[index]
     pub controller_version: u8,
     #[index]
