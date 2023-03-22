@@ -6,9 +6,11 @@ use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use spl_token::state::Account;
+use spl_token::state::Mint;
 
 use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
+use uxd::state::IdentityDepository;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
@@ -20,9 +22,12 @@ pub async fn process_rebalance_from_credix_lp_depository(
     collateral_mint: &Pubkey,
     credix_multisig_key: &Pubkey,
     profits_beneficiary_collateral: &Pubkey,
+    expected_withdraw_overflow_amount: u64,
+    expected_withdraw_profits_amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
+    let redeemable_mint = program_uxd::accounts::find_redeemable_mint_pda().0;
     let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
     let identity_depository_collateral =
         program_uxd::accounts::find_identity_depository_collateral_vault_pda().0;
@@ -86,6 +91,9 @@ pub async fn process_rebalance_from_credix_lp_depository(
     .0;
 
     // Read state before
+    let redeemable_mint_before =
+        program_test_context::read_account_packed::<Mint>(program_test_context, &redeemable_mint)
+            .await?;
     let controller_before =
         program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
             .await?;
@@ -95,7 +103,19 @@ pub async fn process_rebalance_from_credix_lp_depository(
             &credix_lp_depository,
         )
         .await?;
-
+    let identity_depository_before =
+        program_test_context::read_account_anchor::<IdentityDepository>(
+            program_test_context,
+            &identity_depository,
+        )
+        .await?;
+    let identity_depository_collateral_amount_before =
+        program_test_context::read_account_packed::<Account>(
+            program_test_context,
+            &identity_depository_collateral,
+        )
+        .await?
+        .amount;
     let profits_beneficiary_collateral_amount_before =
         program_test_context::read_account_packed::<Account>(
             program_test_context,
@@ -141,6 +161,9 @@ pub async fn process_rebalance_from_credix_lp_depository(
     program_test_context::process_instruction(program_test_context, instruction, payer).await?;
 
     // Read state after
+    let redeemable_mint_after =
+        program_test_context::read_account_packed::<Mint>(program_test_context, &redeemable_mint)
+            .await?;
     let controller_after =
         program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
             .await?;
@@ -150,7 +173,19 @@ pub async fn process_rebalance_from_credix_lp_depository(
             &credix_lp_depository,
         )
         .await?;
-
+    let identity_depository_after =
+        program_test_context::read_account_anchor::<IdentityDepository>(
+            program_test_context,
+            &identity_depository,
+        )
+        .await?;
+    let identity_depository_collateral_amount_after =
+        program_test_context::read_account_packed::<Account>(
+            program_test_context,
+            &identity_depository_collateral,
+        )
+        .await?
+        .amount;
     let profits_beneficiary_collateral_amount_after =
         program_test_context::read_account_packed::<Account>(
             program_test_context,
@@ -159,7 +194,64 @@ pub async fn process_rebalance_from_credix_lp_depository(
         .await?
         .amount;
 
-    // TODO - check after state
+    // redeemable_mint.supply must stay unchanged
+    let redeemable_mint_supply_before = redeemable_mint_before.supply;
+    let redeemable_mint_supply_after = redeemable_mint_after.supply;
+    assert_eq!(redeemable_mint_supply_before, redeemable_mint_supply_after,);
+
+    // controller.redeemable_circulating_supply must stay unchanged
+    let redeemable_circulating_supply_before =
+        u64::try_from(controller_before.redeemable_circulating_supply).unwrap();
+    let redeemable_circulating_supply_after =
+        u64::try_from(controller_after.redeemable_circulating_supply).unwrap();
+    assert_eq!(
+        redeemable_circulating_supply_before,
+        redeemable_circulating_supply_after,
+    );
+
+    // credix_lp_depository.redeemable_amount_under_management must have decreased by the withdraw overflow
+    let credix_lp_depository_redeemable_amount_under_management_before =
+        u64::try_from(credix_lp_depository_before.redeemable_amount_under_management).unwrap();
+    let credix_lp_depository_redeemable_amount_under_management_after =
+        u64::try_from(credix_lp_depository_after.redeemable_amount_under_management).unwrap();
+    assert_eq!(
+        credix_lp_depository_redeemable_amount_under_management_before
+            - expected_withdraw_overflow_amount,
+        credix_lp_depository_redeemable_amount_under_management_after,
+    );
+
+    // identity_depository.redeemable_amount_under_management must have increased by the withdraw overflow
+    let identity_depository_redeemable_amount_under_management_before =
+        u64::try_from(identity_depository_before.redeemable_amount_under_management).unwrap();
+    let identity_depository_redeemable_amount_under_management_after =
+        u64::try_from(identity_depository_after.redeemable_amount_under_management).unwrap();
+    assert_eq!(
+        identity_depository_redeemable_amount_under_management_before
+            + expected_withdraw_overflow_amount,
+        identity_depository_redeemable_amount_under_management_after,
+    );
+
+    // creidx_lp_depository.profits_amount_collected must have increased by the profits amount
+    let profits_total_collected_before =
+        u64::try_from(credix_lp_depository_before.profits_total_collected).unwrap();
+    let profits_total_collected_after =
+        u64::try_from(credix_lp_depository_after.profits_total_collected).unwrap();
+    assert_eq!(
+        profits_total_collected_before + expected_withdraw_profits_amount,
+        profits_total_collected_after,
+    );
+
+    // identity_depository_collateral.amount must have increased by the overflow amount
+    assert_eq!(
+        identity_depository_collateral_amount_before + expected_withdraw_overflow_amount,
+        identity_depository_collateral_amount_after,
+    );
+
+    // profits_beneficiary_collateral.amount must have increased by the profits amount
+    assert_eq!(
+        profits_beneficiary_collateral_amount_before + expected_withdraw_profits_amount,
+        profits_beneficiary_collateral_amount_after,
+    );
 
     // Done
     Ok(())

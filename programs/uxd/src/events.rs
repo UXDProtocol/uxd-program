@@ -241,8 +241,10 @@ pub struct RebalanceFromCredixLpDepositoryEvent {
     pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
-    /// The collateral amount in native units. (output)
-    pub collateral_amount: u64,
+    /// The collateral amount rebalanced in native units. (output)
+    pub overflow_collateral_amount: u64,
+    /// The collateral amount of profits collected in native units. (output)
+    pub profits_collateral_amount: u64,
 }
 
 /// Event called in [instructions::collect_profit_of_mercurial_vault_depository::handler].

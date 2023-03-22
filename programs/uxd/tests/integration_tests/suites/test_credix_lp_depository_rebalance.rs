@@ -4,6 +4,7 @@ use solana_sdk::signer::Signer;
 
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
+use uxd::instructions::EditIdentityDepositoryFields;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
@@ -84,11 +85,87 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         )
         .await?;
 
+    // Useful amounts used during testing scenario
+    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(50, redeemable_mint_decimals);
+
+    let amount_of_collateral_airdropped_to_user =
+        ui_amount_to_native_amount(1000, collateral_mint_decimals);
+    let amount_the_user_should_be_able_to_mint =
+        ui_amount_to_native_amount(50, collateral_mint_decimals);
+
     // ---------------------------------------------------------------------
     // -- Phase 2
+    // -- Prepare the program state to be ready
+    // -- So that we can mint a bunch on identity and credix depositories
     // ---------------------------------------------------------------------
 
-    // TEST
+    // Airdrop collateral to our user
+    program_spl::instructions::process_token_mint_to(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &collateral_mint,
+        &user_collateral,
+        amount_of_collateral_airdropped_to_user,
+    )
+    .await?;
+
+    // Set the controller cap
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+        },
+    )
+    .await?;
+
+    // Set the credix_lp_depository cap and make sure minting is not disabled
+    program_uxd::instructions::process_edit_credix_lp_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditCredixLpDepositoryFields {
+            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
+            minting_fee_in_bps: Some(100),
+            redeeming_fee_in_bps: Some(100),
+            minting_disabled: Some(false),
+            profits_beneficiary_collateral: Some(profits_beneficiary_collateral),
+        },
+    )
+    .await?;
+
+    // Set the identity_depository cap and make sure minting is not disabled
+    program_uxd::instructions::process_edit_identity_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditIdentityDepositoryFields {
+            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
+            minting_disabled: Some(false),
+        },
+    )
+    .await?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 3
+    // -- Mint and rebalance
+    // ---------------------------------------------------------------------
+
+    // Minting should work now that everything is set
+    program_uxd::instructions::process_mint_with_credix_lp_depository(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_the_user_should_be_able_to_mint,
+    )
+    .await?;
+
     program_test_context::move_clock_forward(&mut program_test_context, 1_000).await?;
 
     program_credix::instructions::process_create_withdraw_epoch(
@@ -112,6 +189,8 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &collateral_mint.pubkey(),
         &credix_multisig.pubkey(),
         &profits_beneficiary_collateral,
+        0,
+        0,
     )
     .await?;
 
