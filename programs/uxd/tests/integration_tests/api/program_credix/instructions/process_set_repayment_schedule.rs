@@ -14,6 +14,8 @@ pub async fn process_set_repayment_schedule(
     multisig: &Keypair,
     borrower: &Pubkey,
     deal_number: u16,
+    principal: u64,
+    interest: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
@@ -38,8 +40,8 @@ pub async fn process_set_repayment_schedule(
         _total_repayments: 1,
         _offset: 0,
         _repayment_period_inputs: vec![credix_client::RepaymentPeriodInput {
-            principal: 10_000_000,
-            interest: 10_000_000,
+            principal,
+            interest,
         }],
         _period_duration: 30,
         _days_in_year: 360,

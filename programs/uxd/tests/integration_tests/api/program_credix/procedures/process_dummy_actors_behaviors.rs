@@ -20,8 +20,8 @@ pub async fn process_dummy_actors_behaviors(
 
     // ---------------------------------------------------------------------
     // -- Phase 1
-    // -- Prepare our important actors by:
-    // -- Creating their token accounts
+    // -- Prepare our dummy investor
+    // -- Creating all their accounts
     // -- And airdroping the stuff they will need to act
     // ---------------------------------------------------------------------
 
@@ -29,14 +29,6 @@ pub async fn process_dummy_actors_behaviors(
     program_spl::instructions::process_lamports_airdrop(
         program_test_context,
         &dummy_investor.pubkey(),
-        1_000_000_000_000,
-    )
-    .await?;
-
-    // Airdrop lamports to the dummy borrower wallet
-    program_spl::instructions::process_lamports_airdrop(
-        program_test_context,
-        &dummy_borrower.pubkey(),
         1_000_000_000_000,
     )
     .await?;
@@ -59,25 +51,7 @@ pub async fn process_dummy_actors_behaviors(
         )
         .await?;
 
-    // Create the borrower ATAs
-    let dummy_borrower_token_account =
-        program_spl::instructions::process_associated_token_account_get_or_init(
-            program_test_context,
-            &dummy_borrower,
-            base_token_mint,
-            &dummy_borrower.pubkey(),
-        )
-        .await?;
-    let dummy_borrower_lp_token_account =
-        program_spl::instructions::process_associated_token_account_get_or_init(
-            program_test_context,
-            &dummy_borrower,
-            &lp_token_mint,
-            &dummy_borrower.pubkey(),
-        )
-        .await?;
-
-    // Give some collateral (base token) to our dummy investor and create its token account
+    // Give some collateral (base token) to our dummy investor
     program_spl::instructions::process_token_mint_to(
         program_test_context,
         &dummy_investor,
@@ -122,6 +96,50 @@ pub async fn process_dummy_actors_behaviors(
 
     // ---------------------------------------------------------------------
     // -- Phase 3
+    // -- Prepare our dummy borrower
+    // -- Creating all their accounts
+    // -- And airdroping the stuff they will need to act
+    // ---------------------------------------------------------------------
+
+    // Airdrop lamports to the dummy borrower wallet
+    program_spl::instructions::process_lamports_airdrop(
+        program_test_context,
+        &dummy_borrower.pubkey(),
+        1_000_000_000_000,
+    )
+    .await?;
+
+    // Create the borrower ATAs
+    let dummy_borrower_token_account =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            program_test_context,
+            &dummy_borrower,
+            base_token_mint,
+            &dummy_borrower.pubkey(),
+        )
+        .await?;
+    let dummy_borrower_lp_token_account =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            program_test_context,
+            &dummy_borrower,
+            &lp_token_mint,
+            &dummy_borrower.pubkey(),
+        )
+        .await?;
+
+    // Give some collateral (base token) to our dummy borrower
+    program_spl::instructions::process_token_mint_to(
+        program_test_context,
+        &dummy_borrower,
+        base_token_mint,
+        base_token_authority,
+        &dummy_borrower_token_account,
+        1_000_000_000,
+    )
+    .await?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 4
     // -- Have our dummy borrower borrow some money and pay some interest
     // -- This will create some profits that will increase LP value
     // ---------------------------------------------------------------------
@@ -141,7 +159,7 @@ pub async fn process_dummy_actors_behaviors(
     )
     .await?;
 
-    // Create a deal with the borrower
+    // Create a simplified deal with our borrower
     program_credix::instructions::process_create_deal(
         program_test_context,
         multisig,
@@ -149,16 +167,15 @@ pub async fn process_dummy_actors_behaviors(
         0,
     )
     .await?;
-
-    // Set deal payment details
     program_credix::instructions::process_set_repayment_schedule(
         program_test_context,
         multisig,
         &dummy_borrower.pubkey(),
         0,
+        42,
+        42,
     )
     .await?;
-
     program_credix::instructions::process_set_tranches(
         program_test_context,
         multisig,
@@ -166,13 +183,31 @@ pub async fn process_dummy_actors_behaviors(
         0,
     )
     .await?;
-
-    // Open deal?
     program_credix::instructions::process_open_deal(
         program_test_context,
         multisig,
         &dummy_borrower.pubkey(),
         0,
+    )
+    .await?;
+    program_credix::instructions::process_activate_deal(
+        program_test_context,
+        multisig,
+        &dummy_borrower.pubkey(),
+        0,
+        base_token_mint,
+    )
+    .await?;
+
+    // Have our dummy borrower repay the deal to increase the LP value
+    program_credix::instructions::process_repay_deal(
+        program_test_context,
+        &dummy_borrower,
+        &dummy_borrower_token_account,
+        &multisig.pubkey(),
+        0,
+        base_token_mint,
+        84,
     )
     .await?;
 

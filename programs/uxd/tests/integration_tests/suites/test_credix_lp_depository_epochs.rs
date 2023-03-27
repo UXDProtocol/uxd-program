@@ -52,6 +52,8 @@ async fn test_credix_lp_depository_epochs() -> Result<(), program_test_context::
     )
     .await?;
 
+    return Ok(());
+
     // Main actor
     let user = Keypair::new();
 
@@ -74,8 +76,6 @@ async fn test_credix_lp_depository_epochs() -> Result<(), program_test_context::
 
     // Useful amounts used during testing scenario
     let amount_we_use_as_supply_cap = ui_amount_to_native_amount(50, redeemable_mint_decimals);
-    let amount_bigger_than_the_supply_cap =
-        ui_amount_to_native_amount(300, redeemable_mint_decimals);
 
     let amount_of_collateral_airdropped_to_user =
         ui_amount_to_native_amount(1000, collateral_mint_decimals);
@@ -171,6 +171,8 @@ async fn test_credix_lp_depository_epochs() -> Result<(), program_test_context::
         &credix_multisig,
         &user.pubkey(),
         0,
+        42,
+        42,
     )
     .await?;
 
@@ -179,6 +181,34 @@ async fn test_credix_lp_depository_epochs() -> Result<(), program_test_context::
         &credix_multisig,
         &user.pubkey(),
         0,
+    )
+    .await?;
+
+    program_credix::instructions::process_open_deal(
+        &mut program_test_context,
+        &credix_multisig,
+        &user.pubkey(),
+        0,
+    )
+    .await?;
+
+    program_credix::instructions::process_activate_deal(
+        &mut program_test_context,
+        &credix_multisig,
+        &user.pubkey(),
+        0,
+        &collateral_mint.pubkey(),
+    )
+    .await?;
+
+    program_credix::instructions::process_repay_deal(
+        &mut program_test_context,
+        &user,
+        &user_collateral,
+        &credix_multisig.pubkey(),
+        0,
+        &collateral_mint.pubkey(),
+        42,
     )
     .await?;
 

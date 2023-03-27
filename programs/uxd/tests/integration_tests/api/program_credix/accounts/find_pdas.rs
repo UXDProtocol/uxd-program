@@ -70,6 +70,10 @@ pub fn find_deal_pda(
     credix_client::Deal::generate_pda(*global_market_state, *borrower, deal_number)
 }
 
+pub fn find_deal_token_account_pda(global_market_state: &Pubkey, deal: &Pubkey) -> (Pubkey, u8) {
+    credix_client::Deal::generate_deal_token_account_pda(*global_market_state, *deal)
+}
+
 pub fn find_deal_tranches_pda(global_market_state: &Pubkey, deal: &Pubkey) -> (Pubkey, u8) {
     credix_client::DealTranches::generate_pda(*global_market_state, *deal)
 }

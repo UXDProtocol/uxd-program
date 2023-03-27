@@ -27,19 +27,37 @@ pub async fn process_set_tranches(
     let repayment_schedule =
         program_credix::accounts::find_repayment_schedule_pda(&global_market_state, &deal).0;
 
-    // We have to specify 10 tranches, so we just make all of them equal
-    let dummy_tranche = credix_client::TrancheConfig {
+    // We have to specify 10 tranches, but most tranches we dont need
+    let ignored_tranche = credix_client::TrancheConfig {
+        size: credix_client::Fraction {
+            numerator: 0,
+            denominator: 1,
+        },
+        return_percentage: credix_client::Fraction {
+            numerator: 0,
+            denominator: 1,
+        },
+        max_deposit_percentage: credix_client::Fraction {
+            numerator: 0,
+            denominator: 1,
+        },
+        early_withdrawal_interest: false,
+        early_withdrawal_principal: false,
+    };
+
+    // The LP tranche should take all
+    let lp_tranche = credix_client::TrancheConfig {
         size: credix_client::Fraction {
             numerator: 1,
-            denominator: 10,
+            denominator: 1,
         },
         return_percentage: credix_client::Fraction {
             numerator: 1,
-            denominator: 10,
+            denominator: 1,
         },
         max_deposit_percentage: credix_client::Fraction {
             numerator: 1,
-            denominator: 10,
+            denominator: 1,
         },
         early_withdrawal_interest: false,
         early_withdrawal_principal: false,
@@ -57,16 +75,16 @@ pub async fn process_set_tranches(
     };
     let payload = credix_client::instruction::SetTranches {
         _tranche_configs: vec![
-            dummy_tranche,
-            dummy_tranche,
-            dummy_tranche,
-            dummy_tranche,
-            dummy_tranche,
-            dummy_tranche,
-            dummy_tranche,
-            dummy_tranche,
-            dummy_tranche,
-            dummy_tranche,
+            ignored_tranche,
+            lp_tranche, // tranche at index 1 is the LP tranche
+            ignored_tranche,
+            ignored_tranche,
+            ignored_tranche,
+            ignored_tranche,
+            ignored_tranche,
+            ignored_tranche,
+            ignored_tranche,
+            ignored_tranche,
         ],
     };
     let instruction = Instruction {
