@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use solana_program::pubkey::Pubkey;
 
 const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";
@@ -38,9 +36,8 @@ pub fn find_liquidity_pool_token_account(
     spl_associated_token_account::get_associated_token_address(signing_authority, base_token_mint)
 }
 
-pub fn find_treasury() -> Pubkey {
-    // The treasury address used by credix, we're not supposed to have access to it.
-    Pubkey::from_str("4u825MpPxsRSxnvAJ8jJRsvAtbXByLhZZTWjEg1Kcjkd").unwrap()
+pub fn find_treasury(multisig: &Pubkey) -> Pubkey {
+    *multisig // The treasury is the same key as the multisig in main net
 }
 
 pub fn find_treasury_pool_token_account(treasury: &Pubkey, base_token_mint: &Pubkey) -> Pubkey {

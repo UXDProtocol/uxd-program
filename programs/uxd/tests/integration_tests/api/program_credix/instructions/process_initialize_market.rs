@@ -26,7 +26,7 @@ pub async fn process_initialize_market(
         &signing_authority,
         base_token_mint,
     );
-    let treasury = program_credix::accounts::find_treasury();
+    let treasury = program_credix::accounts::find_treasury(&multisig.pubkey());
     let treasury_pool_token_account =
         program_credix::accounts::find_treasury_pool_token_account(&treasury, base_token_mint);
 
