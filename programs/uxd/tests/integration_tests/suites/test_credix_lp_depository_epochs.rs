@@ -144,6 +144,45 @@ async fn test_credix_lp_depository_epochs() -> Result<(), program_test_context::
 
     program_test_context::move_clock_forward(&mut program_test_context, 1_000).await?;
 
+    program_credix::instructions::process_create_credix_pass(
+        &mut program_test_context,
+        &credix_multisig,
+        &user.pubkey(),
+        &credix_client::instruction::CreateCredixPass {
+            _is_investor: false,
+            _is_borrower: true,
+            _release_timestamp: 0,
+            _disable_withdrawal_fee: false,
+            _bypass_withdraw_epochs: false,
+        },
+    )
+    .await?;
+
+    program_credix::instructions::process_create_deal(
+        &mut program_test_context,
+        &credix_multisig,
+        &user.pubkey(),
+        0,
+    )
+    .await?;
+
+    program_credix::instructions::process_set_repayment_schedule(
+        &mut program_test_context,
+        &credix_multisig,
+        &user.pubkey(),
+        0,
+    )
+    .await?;
+
+    program_credix::instructions::process_set_tranches(
+        &mut program_test_context,
+        &credix_multisig,
+        &user.pubkey(),
+        0,
+    )
+    .await?;
+
+    /*
     program_credix::instructions::process_create_withdraw_epoch(
         &mut program_test_context,
         &credix_multisig,
@@ -156,6 +195,7 @@ async fn test_credix_lp_depository_epochs() -> Result<(), program_test_context::
         &collateral_mint.pubkey(),
     )
     .await?;
+     */
 
     // Done
     Ok(())

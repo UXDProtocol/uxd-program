@@ -5,6 +5,8 @@ const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";
 const CREDIX_WITHDRAW_EPOCH_SEED: &str = "withdraw-epoch";
 const CREDIX_WITHDRAW_REQUEST_SEED: &str = "withdraw-request";
 
+const CREDIX_BORROWER_INFO_SEED: &str = "borrower-info";
+
 pub fn find_market_seeds() -> String {
     String::from(CREDIX_MARKETPLACE_SEED)
 }
@@ -37,7 +39,7 @@ pub fn find_liquidity_pool_token_account(
 }
 
 pub fn find_treasury(multisig: &Pubkey) -> Pubkey {
-    *multisig // The treasury is the same key as the multisig in main net
+    *multisig // The treasury is the same key as the multisig on mainnet
 }
 
 pub fn find_treasury_pool_token_account(treasury: &Pubkey, base_token_mint: &Pubkey) -> Pubkey {
@@ -48,6 +50,34 @@ pub fn find_credix_pass_pda(global_market_state: &Pubkey, pass_holder: &Pubkey) 
     credix_client::CredixPass::generate_pda(*global_market_state, *pass_holder)
 }
 
+pub fn find_borrower_info_pda(global_market_state: &Pubkey, borrower: &Pubkey) -> (Pubkey, u8) {
+    // credix_client::BorrowerInfo::generate_pda(market_seeds, *borrower) // doesnt work
+    Pubkey::find_program_address(
+        &[
+            global_market_state.as_ref(),
+            borrower.as_ref(),
+            CREDIX_BORROWER_INFO_SEED.as_bytes(),
+        ],
+        &credix_client::id(),
+    )
+}
+
+pub fn find_deal_pda(
+    global_market_state: &Pubkey,
+    borrower: &Pubkey,
+    deal_number: u16,
+) -> (Pubkey, u8) {
+    credix_client::Deal::generate_pda(*global_market_state, *borrower, deal_number)
+}
+
+pub fn find_deal_tranches_pda(global_market_state: &Pubkey, deal: &Pubkey) -> (Pubkey, u8) {
+    credix_client::DealTranches::generate_pda(*global_market_state, *deal)
+}
+
+pub fn find_repayment_schedule_pda(global_market_state: &Pubkey, deal: &Pubkey) -> (Pubkey, u8) {
+    credix_client::RepaymentSchedule::generate_pda(*global_market_state, *deal)
+}
+
 pub fn find_withdraw_epoch_pda(global_market_state: &Pubkey, epoch_idx: u32) -> (Pubkey, u8) {
     Pubkey::find_program_address(
         &[
@@ -55,7 +85,7 @@ pub fn find_withdraw_epoch_pda(global_market_state: &Pubkey, epoch_idx: u32) -> 
             &epoch_idx.to_be_bytes(),
             CREDIX_WITHDRAW_EPOCH_SEED.as_ref(),
         ],
-        &mercurial_vault::ID,
+        &credix_client::id(),
     )
 }
 
@@ -71,6 +101,6 @@ pub fn find_withdraw_request_pda(
             &epoch_idx.to_be_bytes(),
             CREDIX_WITHDRAW_REQUEST_SEED.as_ref(),
         ],
-        &mercurial_vault::ID,
+        &credix_client::id(),
     )
 }

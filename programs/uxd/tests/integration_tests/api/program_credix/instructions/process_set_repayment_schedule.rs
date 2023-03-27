@@ -9,7 +9,7 @@ use solana_sdk::signer::Signer;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
 
-pub async fn process_create_deal(
+pub async fn process_set_repayment_schedule(
     program_test_context: &mut ProgramTestContext,
     multisig: &Keypair,
     borrower: &Pubkey,
@@ -20,49 +20,29 @@ pub async fn process_create_deal(
     let global_market_state =
         program_credix::accounts::find_global_market_state_pda(&market_seeds).0;
     let market_admins = program_credix::accounts::find_market_admins_pda(&global_market_state).0;
-    let credix_pass =
-        program_credix::accounts::find_credix_pass_pda(&global_market_state, borrower).0;
-    let borrower_info =
-        program_credix::accounts::find_borrower_info_pda(&global_market_state, borrower).0;
     let deal =
         program_credix::accounts::find_deal_pda(&global_market_state, borrower, deal_number).0;
+    let repayment_schedule =
+        program_credix::accounts::find_repayment_schedule_pda(&global_market_state, &deal).0;
 
     // Execute IX
-    let accounts = credix_client::accounts::CreateDeal {
+    let accounts = credix_client::accounts::SetRepaymentSchedule {
         owner: multisig.pubkey(),
-        borrower: *borrower,
-        borrower_info,
-        credix_pass,
-        global_market_state,
         deal,
         market_admins,
+        repayment_schedule,
+        global_market_state,
         system_program: anchor_lang::system_program::ID,
     };
-    let payload = credix_client::instruction::CreateDeal {
-        _max_funding_duration: 128,
-        _deal_name: std::format!("Hello I am deal: {}", deal_number),
-        _true_waterfall: true,
-        _slash_principal_to_interest: true,
-        _slash_interest_to_principal: false,
-        _service_fees: 1,
-        _fixed_late_fee_percentage: Some(credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        }),
-        _performance_fee_percentage: Some(credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        }),
-        _grace_period: Some(100),
-        _variable_late_fee_percentage: Some(credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        }),
-        _service_fee_percentage: Some(credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        }),
-        _migrated: false,
+    let payload = credix_client::instruction::SetRepaymentSchedule {
+        _total_repayments: 1,
+        _offset: 0,
+        _repayment_period_inputs: vec![credix_client::RepaymentPeriodInput {
+            principal: 10_000_000,
+            interest: 10_000_000,
+        }],
+        _period_duration: 30,
+        _days_in_year: 360,
     };
     let instruction = Instruction {
         program_id: credix_client::id(),
