@@ -152,6 +152,7 @@ pub async fn process_deploy_program(
         credix_multisig,
         &collateral_mint.pubkey(),
         collateral_mint,
+        collateral_mint_decimals,
     )
     .await?;
 
