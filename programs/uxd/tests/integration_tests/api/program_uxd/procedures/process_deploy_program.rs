@@ -14,12 +14,14 @@ use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn process_deploy_program(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Keypair,
     mercurial_vault_lp_mint: &Keypair,
+    credix_multisig: &Keypair,
     collateral_mint_decimals: u8,
     redeemable_mint_decimals: u8,
 ) -> Result<(), program_test_context::ProgramTestError> {
@@ -30,8 +32,8 @@ pub async fn process_deploy_program(
     let identity_depository_redeemable_amount_under_management_cap = 0;
     let identity_depository_minting_disabled = true;
     let mercurial_vault_depository_redeemable_amount_under_management_cap = 0;
-    let mercurial_vault_depository_minting_fee_in_bps = 100;
-    let mercurial_vault_depository_redeeming_fee_in_bps = 100;
+    let mercurial_vault_depository_minting_fee_in_bps = 255;
+    let mercurial_vault_depository_redeeming_fee_in_bps = 255;
     let mercurial_vault_depository_minting_disabled = true;
     let mercurial_vault_depository_profits_beneficiary_collateral = Pubkey::default();
     let credix_lp_depository_redeemable_amount_under_management_cap = 0;
@@ -139,16 +141,15 @@ pub async fn process_deploy_program(
     .await?;
 
     // Credix onchain dependency program deployment
-    let credix_authority = Keypair::new();
     program_credix::procedures::process_deploy_program(
         program_test_context,
-        &credix_authority,
+        credix_multisig,
         &collateral_mint.pubkey(),
     )
     .await?;
     program_credix::procedures::process_dummy_actors_behaviors(
         program_test_context,
-        &credix_authority,
+        credix_multisig,
         &collateral_mint.pubkey(),
         collateral_mint,
     )
@@ -165,12 +166,15 @@ pub async fn process_deploy_program(
     .0;
     program_credix::instructions::process_create_credix_pass(
         program_test_context,
-        &credix_authority,
+        credix_multisig,
         &credix_lp_depository,
-        true,
-        false,
-        0,
-        true,
+        &credix_client::instruction::CreateCredixPass {
+            _is_investor: true,
+            _is_borrower: false,
+            _release_timestamp: 0,
+            _disable_withdrawal_fee: true,
+            _bypass_withdraw_epochs: false,
+        },
     )
     .await?;
 
