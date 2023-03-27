@@ -2,9 +2,6 @@ use solana_program::pubkey::Pubkey;
 
 const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";
 
-const CREDIX_WITHDRAW_EPOCH_SEED: &str = "withdraw-epoch";
-const CREDIX_WITHDRAW_REQUEST_SEED: &str = "withdraw-request";
-
 const CREDIX_BORROWER_INFO_SEED: &str = "borrower-info";
 
 pub fn find_market_seeds() -> String {
@@ -80,31 +77,4 @@ pub fn find_deal_tranches_pda(global_market_state: &Pubkey, deal: &Pubkey) -> (P
 
 pub fn find_repayment_schedule_pda(global_market_state: &Pubkey, deal: &Pubkey) -> (Pubkey, u8) {
     credix_client::RepaymentSchedule::generate_pda(*global_market_state, *deal)
-}
-
-pub fn find_withdraw_epoch_pda(global_market_state: &Pubkey, epoch_idx: u32) -> (Pubkey, u8) {
-    Pubkey::find_program_address(
-        &[
-            global_market_state.as_ref(),
-            &epoch_idx.to_be_bytes(),
-            CREDIX_WITHDRAW_EPOCH_SEED.as_ref(),
-        ],
-        &credix_client::id(),
-    )
-}
-
-pub fn find_withdraw_request_pda(
-    global_market_state: &Pubkey,
-    epoch_idx: u32,
-    investor: &Pubkey,
-) -> (Pubkey, u8) {
-    Pubkey::find_program_address(
-        &[
-            global_market_state.as_ref(),
-            investor.as_ref(),
-            &epoch_idx.to_be_bytes(),
-            CREDIX_WITHDRAW_REQUEST_SEED.as_ref(),
-        ],
-        &credix_client::id(),
-    )
 }
