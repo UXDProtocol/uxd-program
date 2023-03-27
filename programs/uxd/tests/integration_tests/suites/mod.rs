@@ -1,5 +1,6 @@
 pub mod test_controller_edit;
 pub mod test_credix_lp_depository_edit;
+pub mod test_credix_lp_depository_epochs;
 pub mod test_credix_lp_depository_mint;
 pub mod test_identity_depository_edit;
 pub mod test_identity_depository_mint_and_redeem;
