@@ -1,6 +1,6 @@
-use anchor_lang::prelude::Clock;
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
+use solana_program::clock::Clock;
 use solana_program::instruction::Instruction;
 use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
@@ -84,7 +84,7 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
             .banks_client
             .get_sysvar::<Clock>()
             .await
-            .unwrap()
+            .map_err(program_test_context::ProgramTestError::BanksClient)?
             .unix_timestamp,
     )
     .unwrap();
@@ -153,7 +153,7 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
             .banks_client
             .get_sysvar::<Clock>()
             .await
-            .unwrap()
+            .map_err(program_test_context::ProgramTestError::BanksClient)?
             .unix_timestamp,
     )
     .unwrap();

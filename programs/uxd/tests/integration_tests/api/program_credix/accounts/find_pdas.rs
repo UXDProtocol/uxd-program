@@ -1,8 +1,11 @@
+use std::str::FromStr;
+
 use solana_program::pubkey::Pubkey;
-use solana_sdk::signature::Keypair;
-use solana_sdk::signer::Signer;
 
 const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";
+
+const CREDIX_WITHDRAW_EPOCH_SEED: &str = "withdraw-epoch";
+const CREDIX_WITHDRAW_REQUEST_SEED: &str = "withdraw-request";
 
 pub fn find_market_seeds() -> String {
     String::from(CREDIX_MARKETPLACE_SEED)
@@ -35,8 +38,9 @@ pub fn find_liquidity_pool_token_account(
     spl_associated_token_account::get_associated_token_address(signing_authority, base_token_mint)
 }
 
-pub fn find_treasury(authority: &Keypair) -> Pubkey {
-    authority.pubkey()
+pub fn find_treasury() -> Pubkey {
+    // The treasury address used by credix, we're not supposed to have access to it.
+    Pubkey::from_str("4u825MpPxsRSxnvAJ8jJRsvAtbXByLhZZTWjEg1Kcjkd").unwrap()
 }
 
 pub fn find_treasury_pool_token_account(treasury: &Pubkey, base_token_mint: &Pubkey) -> Pubkey {
@@ -45,4 +49,31 @@ pub fn find_treasury_pool_token_account(treasury: &Pubkey, base_token_mint: &Pub
 
 pub fn find_credix_pass_pda(global_market_state: &Pubkey, pass_holder: &Pubkey) -> (Pubkey, u8) {
     credix_client::CredixPass::generate_pda(*global_market_state, *pass_holder)
+}
+
+pub fn find_withdraw_epoch_pda(global_market_state: &Pubkey, epoch_idx: u32) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[
+            global_market_state.as_ref(),
+            &epoch_idx.to_be_bytes(),
+            CREDIX_WITHDRAW_EPOCH_SEED.as_ref(),
+        ],
+        &mercurial_vault::ID,
+    )
+}
+
+pub fn find_withdraw_request_pda(
+    global_market_state: &Pubkey,
+    epoch_idx: u32,
+    investor: &Pubkey,
+) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[
+            global_market_state.as_ref(),
+            investor.as_ref(),
+            &epoch_idx.to_be_bytes(),
+            CREDIX_WITHDRAW_REQUEST_SEED.as_ref(),
+        ],
+        &mercurial_vault::ID,
+    )
 }

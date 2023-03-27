@@ -9,7 +9,7 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[tokio::test]
-async fn test_edit_controller() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -34,6 +34,7 @@ async fn test_edit_controller() -> Result<(), program_test_context::ProgramTestE
     let authority = Keypair::new();
     let collateral_mint = Keypair::new();
     let mercurial_vault_lp_mint = Keypair::new();
+    let credix_multisig = Keypair::new();
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
@@ -42,6 +43,7 @@ async fn test_edit_controller() -> Result<(), program_test_context::ProgramTestE
         &authority,
         &collateral_mint,
         &mercurial_vault_lp_mint,
+        &credix_multisig,
         collateral_mint_decimals,
         redeemable_mint_decimals,
     )

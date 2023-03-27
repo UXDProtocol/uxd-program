@@ -10,15 +10,15 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_initialize_program_state(
     program_test_context: &mut ProgramTestContext,
-    authority: &Keypair,
+    multisig: &Keypair,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let program_state = program_credix::accounts::find_program_state_pda().0;
-    let treasury = program_credix::accounts::find_treasury(authority);
+    let treasury = program_credix::accounts::find_treasury();
 
     // Execute IX
     let accounts = credix_client::accounts::InitializeProgramState {
-        owner: authority.pubkey(),
+        owner: multisig.pubkey(),
         program_state,
         system_program: anchor_lang::system_program::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
@@ -28,7 +28,7 @@ pub async fn process_initialize_program_state(
             treasury, treasury, treasury, treasury, treasury, treasury, treasury, treasury,
             treasury, treasury,
         ],
-        _credix_multisig_key: treasury,
+        _credix_multisig_key: multisig.pubkey(),
         _credix_service_fee_percentage: credix_client::Fraction {
             numerator: 1,
             denominator: 100,
@@ -43,5 +43,5 @@ pub async fn process_initialize_program_state(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, authority).await
+    program_test_context::process_instruction(program_test_context, instruction, multisig).await
 }

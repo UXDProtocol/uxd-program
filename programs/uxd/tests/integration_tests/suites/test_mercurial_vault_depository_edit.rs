@@ -2,14 +2,15 @@ use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
-use uxd::instructions::EditCredixLpDepositoryFields;
+use uxd::instructions::EditMercurialVaultDepositoryFields;
 
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[tokio::test]
-async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_mercurial_vault_depository_edit() -> Result<(), program_test_context::ProgramTestError>
+{
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -34,6 +35,7 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
     let authority = Keypair::new();
     let collateral_mint = Keypair::new();
     let mercurial_vault_lp_mint = Keypair::new();
+    let credix_multisig = Keypair::new();
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
@@ -42,6 +44,7 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
         &authority,
         &collateral_mint,
         &mercurial_vault_lp_mint,
+        &credix_multisig,
         collateral_mint_decimals,
         redeemable_mint_decimals,
     )
@@ -70,12 +73,12 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
     // ---------------------------------------------------------------------
 
     // Change redeemable_amount_under_management_cap
-    program_uxd::instructions::process_edit_credix_lp_depository(
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditCredixLpDepositoryFields {
+        &EditMercurialVaultDepositoryFields {
             redeemable_amount_under_management_cap: Some(100),
             minting_fee_in_bps: None,
             redeeming_fee_in_bps: None,
@@ -86,12 +89,12 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
     .await?;
 
     // Change minting_fee_in_bps
-    program_uxd::instructions::process_edit_credix_lp_depository(
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditCredixLpDepositoryFields {
+        &EditMercurialVaultDepositoryFields {
             redeemable_amount_under_management_cap: None,
             minting_fee_in_bps: Some(100),
             redeeming_fee_in_bps: None,
@@ -102,12 +105,12 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
     .await?;
 
     // Change redeeming_fee_in_bps
-    program_uxd::instructions::process_edit_credix_lp_depository(
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditCredixLpDepositoryFields {
+        &EditMercurialVaultDepositoryFields {
             redeemable_amount_under_management_cap: None,
             minting_fee_in_bps: None,
             redeeming_fee_in_bps: Some(100),
@@ -118,12 +121,12 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
     .await?;
 
     // Change minting_disabled
-    program_uxd::instructions::process_edit_credix_lp_depository(
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditCredixLpDepositoryFields {
+        &EditMercurialVaultDepositoryFields {
             redeemable_amount_under_management_cap: None,
             minting_fee_in_bps: None,
             redeeming_fee_in_bps: None,
@@ -134,12 +137,12 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
     .await?;
 
     // Change profits_beneficiary_collateral
-    program_uxd::instructions::process_edit_credix_lp_depository(
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditCredixLpDepositoryFields {
+        &EditMercurialVaultDepositoryFields {
             redeemable_amount_under_management_cap: None,
             minting_fee_in_bps: None,
             redeeming_fee_in_bps: None,
@@ -156,12 +159,12 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
 
     // Change everything, using the wrong authority (should fail)
     assert!(
-        program_uxd::instructions::process_edit_credix_lp_depository(
+        program_uxd::instructions::process_edit_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
             &payer,
             &collateral_mint.pubkey(),
-            &EditCredixLpDepositoryFields {
+            &EditMercurialVaultDepositoryFields {
                 redeemable_amount_under_management_cap: Some(9999),
                 minting_fee_in_bps: Some(41),
                 redeeming_fee_in_bps: Some(42),
@@ -174,12 +177,12 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
     );
 
     // Change everything, using the correct authority (should succeed)
-    program_uxd::instructions::process_edit_credix_lp_depository(
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditCredixLpDepositoryFields {
+        &EditMercurialVaultDepositoryFields {
             redeemable_amount_under_management_cap: Some(9999),
             minting_fee_in_bps: Some(41),
             redeeming_fee_in_bps: Some(42),
@@ -190,12 +193,12 @@ async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::Pr
     .await?;
 
     // Change nothing, using the correct authority (should succeed)
-    program_uxd::instructions::process_edit_credix_lp_depository(
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditCredixLpDepositoryFields {
+        &EditMercurialVaultDepositoryFields {
             redeemable_amount_under_management_cap: None,
             minting_fee_in_bps: None,
             redeeming_fee_in_bps: None,
