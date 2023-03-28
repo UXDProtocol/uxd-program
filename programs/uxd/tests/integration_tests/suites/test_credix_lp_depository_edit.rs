@@ -9,7 +9,7 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[tokio::test]
-async fn test_edit_credix_lp_depository() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite

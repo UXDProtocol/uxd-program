@@ -11,6 +11,8 @@ use spl_token::state::Mint;
 use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
 use uxd::utils::calculate_amount_less_fees;
+use uxd::utils::compute_shares_amount_for_value_floor;
+use uxd::utils::compute_value_for_shares_amount_floor;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
@@ -142,13 +144,48 @@ pub async fn process_mint_with_credix_lp_depository(
             .await?
             .amount;
 
-    // Compute expected redeemable amount after minting fees
-    let redeemable_amount = calculate_amount_less_fees(
+    // Fetch information from onchain credix lp pool, to be able to predict precision loss
+    let credix_shares_mint_supply = program_test_context::read_account_packed::<Mint>(
+        program_test_context,
+        &credix_shares_mint,
+    )
+    .await?
+    .supply;
+    let credix_pool_outstanding_credit = program_test_context::read_account_anchor::<
+        credix_client::GlobalMarketState,
+    >(program_test_context, &credix_global_market_state)
+    .await?
+    .pool_outstanding_credit;
+    let credix_liquidity_collateral_amount = program_test_context::read_account_packed::<Account>(
+        program_test_context,
+        &credix_liquidity_collateral,
+    )
+    .await?
+    .amount;
+    let total_shares_supply = credix_shares_mint_supply;
+    let total_shares_value = credix_liquidity_collateral_amount + credix_pool_outstanding_credit;
+
+    // Compute expected redeemable amount after minting fees and precision loss
+    let shares_amount = compute_shares_amount_for_value_floor(
         collateral_amount,
+        total_shares_supply,
+        total_shares_value,
+    )
+    .map_err(program_test_context::ProgramTestError::Anchor)?;
+    let collateral_amount_after_precision_loss = compute_value_for_shares_amount_floor(
+        shares_amount,
+        total_shares_supply,
+        total_shares_value,
+    )
+    .map_err(program_test_context::ProgramTestError::Anchor)?;
+
+    let redeemable_amount = calculate_amount_less_fees(
+        collateral_amount_after_precision_loss,
         credix_lp_depository_before.minting_fee_in_bps,
     )
     .map_err(program_test_context::ProgramTestError::Anchor)?;
-    let fees_amount = collateral_amount - redeemable_amount;
+
+    let fees_amount = collateral_amount_after_precision_loss - redeemable_amount;
 
     // redeemable_mint.supply must have increased by the minted amount (equivalent to redeemable_amount)
     let redeemable_mint_supply_before = redeemable_mint_before.supply;

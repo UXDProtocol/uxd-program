@@ -14,7 +14,7 @@ pub async fn process_deploy_program(
 ) -> Result<(), program_test_context::ProgramTestError> {
     let market_seeds = program_credix::accounts::find_market_seeds();
     let signing_authority = program_credix::accounts::find_signing_authority_pda(&market_seeds).0;
-    let treasury = program_credix::accounts::find_treasury();
+    let treasury = program_credix::accounts::find_treasury(&multisig.pubkey());
 
     // Airdrop funds to the credix authority wallet, the multisig (acting as payer)
     program_spl::instructions::process_lamports_airdrop(

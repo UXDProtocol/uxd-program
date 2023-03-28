@@ -9,7 +9,7 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[tokio::test]
-async fn test_edit_mercurial_vault_depository() -> Result<(), program_test_context::ProgramTestError>
+async fn test_mercurial_vault_depository_edit() -> Result<(), program_test_context::ProgramTestError>
 {
     // ---------------------------------------------------------------------
     // -- Phase 1
