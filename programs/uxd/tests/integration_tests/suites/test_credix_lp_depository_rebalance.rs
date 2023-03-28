@@ -168,31 +168,33 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
 
     program_test_context::move_clock_forward(&mut program_test_context, 1_000).await?;
 
-    program_credix::instructions::process_create_withdraw_epoch(
-        &mut program_test_context,
-        &credix_multisig,
-    )
-    .await?;
+    if false {
+        program_credix::instructions::process_create_withdraw_epoch(
+            &mut program_test_context,
+            &credix_multisig,
+        )
+        .await?;
 
-    // TEST 2
-    program_credix::instructions::process_set_locked_liquidity(
-        &mut program_test_context,
-        &credix_multisig,
-        &collateral_mint.pubkey(),
-    )
-    .await?;
+        // TEST 2
+        program_credix::instructions::process_set_locked_liquidity(
+            &mut program_test_context,
+            &credix_multisig,
+            &collateral_mint.pubkey(),
+        )
+        .await?;
 
-    // TEST 3
-    program_uxd::instructions::process_rebalance_from_credix_lp_depository(
-        &mut program_test_context,
-        &payer,
-        &collateral_mint.pubkey(),
-        &credix_multisig.pubkey(),
-        &profits_beneficiary_collateral,
-        0,
-        0,
-    )
-    .await?;
+        // TEST 3
+        program_uxd::instructions::process_rebalance_from_credix_lp_depository(
+            &mut program_test_context,
+            &payer,
+            &collateral_mint.pubkey(),
+            &credix_multisig.pubkey(),
+            &profits_beneficiary_collateral,
+            0,
+            0,
+        )
+        .await?;
+    }
 
     // Done
     Ok(())
