@@ -1,7 +1,7 @@
-pub mod test_balanced_mint_and_redeem;
 pub mod test_controller_edit;
 pub mod test_credix_lp_depository_edit;
 pub mod test_credix_lp_depository_mint;
+pub mod test_generic_mint;
 pub mod test_identity_depository_edit;
 pub mod test_identity_depository_mint_and_redeem;
 pub mod test_mercurial_vault_depository_edit;
