@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use solana_program::pubkey::Pubkey;
 
 const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";

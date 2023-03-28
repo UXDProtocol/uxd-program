@@ -48,7 +48,7 @@ pub async fn process_rebalance_from_credix_lp_depository(
         &credix_signing_authority,
         collateral_mint,
     );
-    let credix_treasury = program_credix::accounts::find_treasury();
+    let credix_treasury = program_credix::accounts::find_treasury(credix_multisig_key);
     let credix_treasury_collateral = program_credix::accounts::find_treasury_pool_token_account(
         &credix_treasury,
         collateral_mint,
