@@ -36,9 +36,9 @@ pub async fn process_mint_generic(
         program_uxd::accounts::find_identity_depository_collateral_vault_pda().0;
 
     // Find mercurial related accounts
-    let mercurial_base = program_mercurial::accounts::find_base();
+    let mercurial_base_0 = program_mercurial::accounts::find_base();
     let mercurial_vault_depository_0_vault =
-        program_mercurial::accounts::find_vault_pda(collateral_mint, &mercurial_base.pubkey()).0;
+        program_mercurial::accounts::find_vault_pda(collateral_mint, &mercurial_base_0.pubkey()).0;
     let mercurial_vault_depository_0 = program_uxd::accounts::find_mercurial_vault_depository_pda(
         collateral_mint,
         &mercurial_vault_depository_0_vault,
@@ -54,18 +54,18 @@ pub async fn process_mint_generic(
         program_mercurial::accounts::find_token_vault_pda(&mercurial_vault_depository_0_vault).0;
 
     // Find credix related accounts
-    let credix_market_seeds = program_credix::accounts::find_market_seeds();
+    let credix_market_seeds_0 = program_credix::accounts::find_market_seeds();
     let credix_lp_depository_0_global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
+        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds_0).0;
     let credix_lp_depository_0 = program_uxd::accounts::find_credix_lp_depository_pda(
         collateral_mint,
         &credix_lp_depository_0_global_market_state,
     )
     .0;
     let credix_lp_depository_0_shares_mint =
-        program_credix::accounts::find_lp_token_mint_pda(&credix_market_seeds).0;
+        program_credix::accounts::find_lp_token_mint_pda(&credix_market_seeds_0).0;
     let credix_lp_depository_0_signing_authority =
-        program_credix::accounts::find_signing_authority_pda(&credix_market_seeds).0;
+        program_credix::accounts::find_signing_authority_pda(&credix_market_seeds_0).0;
     let credix_lp_depository_0_liquidity_collateral =
         program_credix::accounts::find_liquidity_pool_token_account(
             &credix_lp_depository_0_signing_authority,
