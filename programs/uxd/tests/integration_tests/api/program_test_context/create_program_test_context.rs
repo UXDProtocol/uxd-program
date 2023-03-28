@@ -21,7 +21,7 @@ pub async fn create_program_test_context() -> ProgramTestContext {
 
     // Deploy the credix program using a downloaded credix compiled binary
     program_test.add_program(
-        "tests/integration_tests/api/program_credix/binaries/executable-devnet",
+        "tests/integration_tests/api/program_credix/binaries/executable-devnet-public",
         credix_client::id(),
         None,
     );

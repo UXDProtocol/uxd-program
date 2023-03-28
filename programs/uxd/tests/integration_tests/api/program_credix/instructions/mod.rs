@@ -1,9 +1,23 @@
+pub mod process_activate_deal;
 pub mod process_create_credix_pass;
+pub mod process_create_deal;
 pub mod process_deposit_funds;
 pub mod process_initialize_market;
 pub mod process_initialize_program_state;
+pub mod process_open_deal;
+pub mod process_repay_deal;
+pub mod process_set_repayment_schedule;
+pub mod process_set_tranches;
+pub mod process_withdraw_from_deal;
 
+pub use process_activate_deal::*;
 pub use process_create_credix_pass::*;
+pub use process_create_deal::*;
 pub use process_deposit_funds::*;
 pub use process_initialize_market::*;
 pub use process_initialize_program_state::*;
+pub use process_open_deal::*;
+pub use process_repay_deal::*;
+pub use process_set_repayment_schedule::*;
+pub use process_set_tranches::*;
+pub use process_withdraw_from_deal::*;
