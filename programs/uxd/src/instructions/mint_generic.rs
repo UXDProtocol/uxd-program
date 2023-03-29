@@ -1,8 +1,10 @@
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
+use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
+use anchor_spl::token::Transfer;
 
 use crate::error::UxdError;
 use crate::state::controller::Controller;
@@ -43,6 +45,7 @@ pub struct MintGeneric<'info> {
     /// #4
     #[account(mut)]
     pub redeemable_mint: Box<Account<'info, Mint>>,
+
     /// #5
     pub collateral_mint: Box<Account<'info, Mint>>,
 
@@ -53,6 +56,7 @@ pub struct MintGeneric<'info> {
         constraint = user_redeemable.mint == redeemable_mint.key() @UxdError::InvalidRedeemableMint,
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
+
     /// #7
     #[account(
         mut,
@@ -68,6 +72,7 @@ pub struct MintGeneric<'info> {
         bump = identity_depository.load()?.bump,
     )]
     pub identity_depository: AccountLoader<'info, IdentityDepository>,
+
     /// #9 - Token account holding the collateral from minting
     #[account(
         mut,
@@ -90,6 +95,7 @@ pub struct MintGeneric<'info> {
         constraint = mercurial_vault_depository_0.load()?.lp_token_vault == mercurial_vault_depository_0_lp_token_vault.key() @UxdError::InvalidDepositoryLpTokenVault,
     )]
     pub mercurial_vault_depository_0: AccountLoader<'info, MercurialVaultDepository>,
+
     /// #11 - Token account holding the LP tokens minted by depositing collateral on mercurial vault
     #[account(
         mut,
@@ -99,15 +105,18 @@ pub struct MintGeneric<'info> {
         bump = mercurial_vault_depository_0.load()?.lp_token_vault_bump,
     )]
     pub mercurial_vault_depository_0_lp_token_vault: Box<Account<'info, TokenAccount>>,
+
     /// #12
     #[account(
         mut,
         constraint = mercurial_vault_depository_0_vault.token_vault == mercurial_vault_depository_0_collateral_token_safe.key() @UxdError::InvalidMercurialVaultCollateralTokenSafe,
     )]
     pub mercurial_vault_depository_0_vault: Box<Account<'info, mercurial_vault::state::Vault>>,
+
     /// #13
     #[account(mut)]
     pub mercurial_vault_depository_0_vault_lp_mint: Box<Account<'info, Mint>>,
+
     /// #14 - Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.
     #[account(mut)]
     pub mercurial_vault_depository_0_collateral_token_safe: Box<Account<'info, TokenAccount>>,
@@ -127,12 +136,15 @@ pub struct MintGeneric<'info> {
         constraint = credix_lp_depository_0.load()?.credix_shares_mint == credix_lp_depository_0_shares_mint.key() @UxdError::InvalidCredixSharesMint,
     )]
     pub credix_lp_depository_0: AccountLoader<'info, CredixLpDepository>,
+
     /// #16
     #[account(mut)]
     pub credix_lp_depository_0_collateral: Box<Account<'info, TokenAccount>>,
+
     /// #17
     #[account(mut)]
     pub credix_lp_depository_0_shares: Box<Account<'info, TokenAccount>>,
+
     /// #18
     #[account(
         owner = credix_client::ID,
@@ -143,38 +155,60 @@ pub struct MintGeneric<'info> {
         constraint = credix_lp_depository_0_pass.disable_withdrawal_fee @UxdError::InvalidCredixPassNoFees,
     )]
     pub credix_lp_depository_0_pass: Account<'info, credix_client::CredixPass>,
+
     /// #19
     pub credix_lp_depository_0_global_market_state:
         Box<Account<'info, credix_client::GlobalMarketState>>,
+
     /// #20 - CHECK: unused by us, checked by credix
     pub credix_lp_depository_0_signing_authority: AccountInfo<'info>,
+
     /// #21
     #[account(mut)]
     pub credix_lp_depository_0_liquidity_collateral: Box<Account<'info, TokenAccount>>,
+
     /// #22
     #[account(mut)]
     pub credix_lp_depository_0_shares_mint: Box<Account<'info, Mint>>,
 
     /// #23
     pub system_program: Program<'info, System>,
+
     /// #24
     pub token_program: Program<'info, Token>,
+
     /// #25
     pub associated_token_program: Program<'info, AssociatedToken>,
+
     /// #26
     pub mercurial_vault_program: Program<'info, mercurial_vault::program::Vault>,
+
     /// #27
     pub credix_program: Program<'info, credix_client::program::Credix>,
+
     /// #28
     pub rent: Sysvar<'info, Rent>,
 }
 
 pub(crate) fn handler(ctx: Context<MintGeneric>, collateral_amount: u64) -> Result<()> {
-    crate::cpi::mint_with_mercurial_vault_depository(
-        ctx.accounts
-            .into_mint_with_mercurial_vault_depository_0_context(),
+    crate::cpi::mint_with_identity_depository(
+        ctx.accounts.into_mint_with_identity_depository_context(),
         collateral_amount,
     )?;
+
+    /*
+    crate::cpi::mint_with_mercurial_vault_depository(
+        ctx.accounts
+            .into_mint_with_mercurial_vault_depository_0_context()
+        collateral_amount / 2,
+    )?;
+
+    crate::cpi::mint_with_credix_lp_depository(
+        ctx.accounts
+            .into_mint_with_credix_lp_depository_0_context()
+        collateral_amount / 2,
+    )?;
+     */
 
     // Done
     Ok(())
@@ -182,37 +216,21 @@ pub(crate) fn handler(ctx: Context<MintGeneric>, collateral_amount: u64) -> Resu
 
 // Into functions
 impl<'info> MintGeneric<'info> {
-    pub fn into_mint_with_credix_lp_depository_0_context(
+    pub fn into_mint_with_identity_depository_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, crate::cpi::accounts::MintWithCredixLpDepository<'info>>
+    ) -> CpiContext<'_, '_, '_, 'info, crate::cpi::accounts::MintWithIdentityDepository<'info>>
     {
-        let cpi_accounts = crate::cpi::accounts::MintWithCredixLpDepository {
+        let cpi_accounts = crate::cpi::accounts::MintWithIdentityDepository {
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
             redeemable_mint: self.redeemable_mint.to_account_info(),
-            collateral_mint: self.collateral_mint.to_account_info(),
             user_redeemable: self.user_redeemable.to_account_info(),
             user_collateral: self.user_collateral.to_account_info(),
-            depository: self.credix_lp_depository_0.to_account_info(),
-            depository_collateral: self.credix_lp_depository_0_collateral.to_account_info(),
-            depository_shares: self.credix_lp_depository_0_shares.to_account_info(),
-            credix_pass: self.credix_lp_depository_0_pass.to_account_info(),
-            credix_global_market_state: self
-                .credix_lp_depository_0_global_market_state
-                .to_account_info(),
-            credix_signing_authority: self
-                .credix_lp_depository_0_signing_authority
-                .to_account_info(),
-            credix_liquidity_collateral: self
-                .credix_lp_depository_0_liquidity_collateral
-                .to_account_info(),
-            credix_shares_mint: self.credix_lp_depository_0_shares_mint.to_account_info(),
+            depository: self.identity_depository.to_account_info(),
+            collateral_vault: self.identity_depository_collateral_vault.to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
-            associated_token_program: self.associated_token_program.to_account_info(),
-            credix_program: self.credix_program.to_account_info(),
-            rent: self.rent.to_account_info(),
         };
         let cpi_program = self.credix_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -244,6 +262,42 @@ impl<'info> MintGeneric<'info> {
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
             mercurial_vault_program: self.mercurial_vault_program.to_account_info(),
+        };
+        let cpi_program = self.credix_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_mint_with_credix_lp_depository_0_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, crate::cpi::accounts::MintWithCredixLpDepository<'info>>
+    {
+        let cpi_accounts = crate::cpi::accounts::MintWithCredixLpDepository {
+            user: self.controller.to_account_info(),
+            payer: self.payer.to_account_info(),
+            controller: self.controller.to_account_info(),
+            redeemable_mint: self.redeemable_mint.to_account_info(),
+            collateral_mint: self.collateral_mint.to_account_info(),
+            user_redeemable: self.user_redeemable.to_account_info(),
+            user_collateral: self.user_collateral.to_account_info(),
+            depository: self.credix_lp_depository_0.to_account_info(),
+            depository_collateral: self.credix_lp_depository_0_collateral.to_account_info(),
+            depository_shares: self.credix_lp_depository_0_shares.to_account_info(),
+            credix_pass: self.credix_lp_depository_0_pass.to_account_info(),
+            credix_global_market_state: self
+                .credix_lp_depository_0_global_market_state
+                .to_account_info(),
+            credix_signing_authority: self
+                .credix_lp_depository_0_signing_authority
+                .to_account_info(),
+            credix_liquidity_collateral: self
+                .credix_lp_depository_0_liquidity_collateral
+                .to_account_info(),
+            credix_shares_mint: self.credix_lp_depository_0_shares_mint.to_account_info(),
+            system_program: self.system_program.to_account_info(),
+            token_program: self.token_program.to_account_info(),
+            associated_token_program: self.associated_token_program.to_account_info(),
+            credix_program: self.credix_program.to_account_info(),
+            rent: self.rent.to_account_info(),
         };
         let cpi_program = self.credix_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
