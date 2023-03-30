@@ -1,5 +1,5 @@
 use crate::error::UxdError;
-use crate::events::SetEveryDepositoryWeightBps;
+use crate::events::SetDepositoriesWeightBps;
 use crate::events::SetRedeemableGlobalSupplyCapEvent;
 use crate::validate_is_program_frozen;
 use crate::Controller;
@@ -23,7 +23,7 @@ pub struct EditController<'info> {
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
-pub struct EditControllerEveryDepositoryWeightBps {
+pub struct EditControllerDepositoriesWeightBps {
     pub identity_depository_weight_bps: u16,
     pub mercurial_vault_depository_0_weight_bps: u16,
     pub credix_lp_depository_0_weight_bps: u16,
@@ -32,20 +32,19 @@ pub struct EditControllerEveryDepositoryWeightBps {
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
 pub struct EditControllerFields {
     pub redeemable_global_supply_cap: Option<u128>,
-    pub every_depository_weight_bps: Option<EditControllerEveryDepositoryWeightBps>,
+    pub depositories_weight_bps: Option<EditControllerDepositoriesWeightBps>,
 }
 
 pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
     let controller = &mut ctx.accounts.controller.load_mut()?;
 
-    // Optionally edit all every_depository weights
-    if let Some(every_depository_weight_bps) = fields.every_depository_weight_bps {
-        let identity_depository_weight_bps =
-            every_depository_weight_bps.identity_depository_weight_bps;
+    // Optionally edit all depositories weights
+    if let Some(depositories_weight_bps) = fields.depositories_weight_bps {
+        let identity_depository_weight_bps = depositories_weight_bps.identity_depository_weight_bps;
         let mercurial_vault_depository_0_weight_bps =
-            every_depository_weight_bps.mercurial_vault_depository_0_weight_bps;
+            depositories_weight_bps.mercurial_vault_depository_0_weight_bps;
         let credix_lp_depository_0_weight_bps =
-            every_depository_weight_bps.credix_lp_depository_0_weight_bps;
+            depositories_weight_bps.credix_lp_depository_0_weight_bps;
 
         let total_weight_bps = identity_depository_weight_bps
             .checked_add(mercurial_vault_depository_0_weight_bps)
@@ -55,7 +54,7 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
 
         require!(
             u64::from(total_weight_bps) == BPS_UNIT_CONVERSION,
-            UxdError::InvalidEveryDepositoryWeightBps
+            UxdError::InvalidDepositoriesWeightBps
         );
 
         msg!(
@@ -74,7 +73,7 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
         controller.mercurial_vault_depository_0_weight_bps =
             mercurial_vault_depository_0_weight_bps;
         controller.credix_lp_depository_0_weight_bps = credix_lp_depository_0_weight_bps;
-        emit!(SetEveryDepositoryWeightBps {
+        emit!(SetDepositoriesWeightBps {
             version: controller.version,
             controller: ctx.accounts.controller.key(),
             identity_depository_weight_bps,

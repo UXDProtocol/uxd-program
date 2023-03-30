@@ -66,7 +66,7 @@ pub async fn process_deploy_program(
         authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(redeemable_global_supply_cap),
-            every_depository_weight_bps: None,
+            depositories_weight_bps: None,
         },
     )
     .await?;

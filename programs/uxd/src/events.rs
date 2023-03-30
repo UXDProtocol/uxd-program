@@ -30,7 +30,7 @@ pub struct SetRedeemableGlobalSupplyCapEvent {
 
 /// Event called in [instructions::edit_controller::handler].
 #[event]
-pub struct SetEveryDepositoryWeightBps {
+pub struct SetDepositoriesWeightBps {
     /// The controller version.
     #[index]
     pub version: u8,

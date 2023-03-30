@@ -9,7 +9,7 @@ pub enum UxdError {
     #[msg("Redeemable global supply above.")]
     InvalidRedeemableGlobalSupplyCap,
     #[msg("Depository weights are invalid or do not add up to exactly 100%.")]
-    InvalidEveryDepositoryWeightBps,
+    InvalidDepositoriesWeightBps,
     #[msg("Collateral amount cannot be 0")]
     InvalidCollateralAmount,
     #[msg("Redeemable amount must be > 0 in order to redeem.")]
@@ -40,10 +40,10 @@ pub enum UxdError {
     CollateralDepositDoesntMatchTokenValue,
     #[msg("The mercurial vault lp mint does not match the Depository's one.")]
     InvalidMercurialVaultLpMint,
-    #[msg("Cannot register more mercurial vault every_depository, the limit has been reached.")]
-    MaxNumberOfMercurialVaultEveryDepositoryRegisteredReached,
-    #[msg("Cannot register more credix lp every_depository, the limit has been reached.")]
-    MaxNumberOfCredixLpEveryDepositoryRegisteredReached,
+    #[msg("Cannot register more mercurial vault depositories, the limit has been reached.")]
+    MaxNumberOfMercurialVaultDepositoriesRegisteredReached,
+    #[msg("Cannot register more credix lp depositories, the limit has been reached.")]
+    MaxNumberOfCredixLpDepositoriesRegisteredReached,
     #[msg("The provided collateral do not match the provided mercurial vault token.")]
     MercurialVaultDoNotMatchCollateral,
     #[msg("The provided collateral do not match the provided credix lp token.")]
