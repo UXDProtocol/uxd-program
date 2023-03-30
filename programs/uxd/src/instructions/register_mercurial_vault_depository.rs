@@ -153,7 +153,7 @@ pub fn handler(
 // Validate
 impl<'info> RegisterMercurialVaultDepository<'info> {
     // Only few stablecoin collateral mint are whitelisted
-    // This check exists to avoid the creation of an imgeneric mercurial vault depository
+    // This check exists to avoid the creation of an imbalanced mercurial vault depository
     // Redeemable and collateral should always be 1:1
     pub fn validate_collateral_mint(&self) -> Result<()> {
         let usdc_mint: Pubkey =

@@ -15,7 +15,6 @@ use uxd::state::MercurialVaultDepository;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
-use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
@@ -155,6 +154,7 @@ pub async fn process_mint_generic(
         associated_token_program: anchor_spl::associated_token::ID,
         mercurial_vault_program: mercurial_vault::ID,
         credix_program: credix_client::ID,
+        uxd_program: uxd::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
     let payload = uxd::instruction::MintGeneric { collateral_amount };

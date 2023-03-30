@@ -1,10 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
-use anchor_spl::token;
 use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
-use anchor_spl::token::Transfer;
 
 use crate::error::UxdError;
 use crate::state::controller::Controller;
@@ -187,27 +185,29 @@ pub struct MintGeneric<'info> {
     pub credix_program: Program<'info, credix_client::program::Credix>,
 
     /// #28
+    pub uxd_program: Program<'info, crate::program::Uxd>,
+
+    /// #29
     pub rent: Sysvar<'info, Rent>,
 }
 
 pub(crate) fn handler(ctx: Context<MintGeneric>, collateral_amount: u64) -> Result<()> {
     crate::cpi::mint_with_identity_depository(
         ctx.accounts.into_mint_with_identity_depository_context(),
-        collateral_amount,
+        collateral_amount / 3,
     )?;
 
-    /*
     crate::cpi::mint_with_mercurial_vault_depository(
         ctx.accounts
-            .into_mint_with_mercurial_vault_depository_0_context()
-        collateral_amount / 2,
+            .into_mint_with_mercurial_vault_depository_0_context(),
+        collateral_amount / 3,
     )?;
 
     crate::cpi::mint_with_credix_lp_depository(
-        ctx.accounts
-            .into_mint_with_credix_lp_depository_0_context()
-        collateral_amount / 2,
+        ctx.accounts.into_mint_with_credix_lp_depository_0_context(),
+        collateral_amount / 3,
     )?;
+    /*
      */
 
     // Done
@@ -232,7 +232,7 @@ impl<'info> MintGeneric<'info> {
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
         };
-        let cpi_program = self.credix_program.to_account_info();
+        let cpi_program = self.uxd_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
@@ -263,7 +263,7 @@ impl<'info> MintGeneric<'info> {
             token_program: self.token_program.to_account_info(),
             mercurial_vault_program: self.mercurial_vault_program.to_account_info(),
         };
-        let cpi_program = self.credix_program.to_account_info();
+        let cpi_program = self.mercurial_vault_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
@@ -272,7 +272,7 @@ impl<'info> MintGeneric<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, crate::cpi::accounts::MintWithCredixLpDepository<'info>>
     {
         let cpi_accounts = crate::cpi::accounts::MintWithCredixLpDepository {
-            user: self.controller.to_account_info(),
+            user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
             redeemable_mint: self.redeemable_mint.to_account_info(),

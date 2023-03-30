@@ -3,6 +3,7 @@ use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
+use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
 
 use crate::integration_tests::api::program_spl;
@@ -106,6 +107,18 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
     .await?;
 
     // Set the depository cap and make sure minting is not disabled
+    program_uxd::instructions::process_edit_identity_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditIdentityDepositoryFields {
+            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
+            minting_disabled: Some(false),
+        },
+    )
+    .await?;
+
+    // Set the depository cap and make sure minting is not disabled
     program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
@@ -151,9 +164,9 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
         &user_collateral,
         &user_redeemable,
         amount_the_user_should_be_able_to_mint,
-        10,
-        11,
-        12,
+        amount_the_user_should_be_able_to_mint / 3,
+        amount_the_user_should_be_able_to_mint / 3 * 99 / 100,
+        amount_the_user_should_be_able_to_mint / 3 * 99 / 100 - 1,
     )
     .await?;
 
