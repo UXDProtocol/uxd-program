@@ -163,6 +163,7 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
         &user,
         &user_collateral,
         &user_redeemable,
+        amount_the_user_should_be_able_to_mint,
         amount_the_user_should_be_able_to_mint / 3,
         amount_the_user_should_be_able_to_mint / 3,
         amount_the_user_should_be_able_to_mint / 3,
