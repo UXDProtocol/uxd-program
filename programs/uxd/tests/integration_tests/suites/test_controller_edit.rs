@@ -61,6 +61,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &payer,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(42),
+            depositories_weight_bps: None,
         },
     )
     .await
@@ -73,6 +74,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(100),
+            depositories_weight_bps: None,
         },
     )
     .await?;
@@ -84,6 +86,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: None,
+            depositories_weight_bps: None,
         },
     )
     .await?;

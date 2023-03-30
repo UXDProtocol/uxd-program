@@ -1,7 +1,9 @@
 use crate::error::UxdError;
+use crate::events::SetDepositoriesWeightBps;
 use crate::events::SetRedeemableGlobalSupplyCapEvent;
 use crate::validate_is_program_frozen;
 use crate::Controller;
+use crate::BPS_UNIT_CONVERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP;
 use anchor_lang::prelude::*;
@@ -21,15 +23,71 @@ pub struct EditController<'info> {
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
+pub struct EditControllerDepositoriesWeightBps {
+    pub identity_depository_weight_bps: u16,
+    pub mercurial_vault_depository_0_weight_bps: u16,
+    pub credix_lp_depository_0_weight_bps: u16,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
 pub struct EditControllerFields {
     pub redeemable_global_supply_cap: Option<u128>,
+    pub depositories_weight_bps: Option<EditControllerDepositoriesWeightBps>,
 }
 
 pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
     let controller = &mut ctx.accounts.controller.load_mut()?;
+
+    // Optionally edit all depositories weights
+    if let Some(depositories_weight_bps) = fields.depositories_weight_bps {
+        let identity_depository_weight_bps = depositories_weight_bps.identity_depository_weight_bps;
+        let mercurial_vault_depository_0_weight_bps =
+            depositories_weight_bps.mercurial_vault_depository_0_weight_bps;
+        let credix_lp_depository_0_weight_bps =
+            depositories_weight_bps.credix_lp_depository_0_weight_bps;
+
+        let total_weight_bps = identity_depository_weight_bps
+            .checked_add(mercurial_vault_depository_0_weight_bps)
+            .ok_or(UxdError::MathError)?
+            .checked_add(credix_lp_depository_0_weight_bps)
+            .ok_or(UxdError::MathError)?;
+
+        require!(
+            u64::from(total_weight_bps) == BPS_UNIT_CONVERSION,
+            UxdError::InvalidDepositoriesWeightBps
+        );
+
+        msg!(
+            "[edit_controller] identity_depository_weight_bps {}",
+            identity_depository_weight_bps
+        );
+        msg!(
+            "[edit_controller] mercurial_vault_depository_0_weight_bps {}",
+            mercurial_vault_depository_0_weight_bps
+        );
+        msg!(
+            "[edit_controller] credix_lp_depository_0_weight_bps {}",
+            credix_lp_depository_0_weight_bps
+        );
+        controller.identity_depository_weight_bps = identity_depository_weight_bps;
+        controller.mercurial_vault_depository_0_weight_bps =
+            mercurial_vault_depository_0_weight_bps;
+        controller.credix_lp_depository_0_weight_bps = credix_lp_depository_0_weight_bps;
+        emit!(SetDepositoriesWeightBps {
+            version: controller.version,
+            controller: ctx.accounts.controller.key(),
+            identity_depository_weight_bps,
+            mercurial_vault_depository_0_weight_bps,
+            credix_lp_depository_0_weight_bps,
+        });
+    }
+
     // Optionally edit "redeemable_global_supply_cap"
     if let Some(redeemable_global_supply_cap) = fields.redeemable_global_supply_cap {
-        msg!("[set_redeemable_global_supply_cap]");
+        msg!(
+            "[edit_controller] redeemable_global_supply_cap {}",
+            redeemable_global_supply_cap
+        );
         controller.redeemable_global_supply_cap = redeemable_global_supply_cap;
         emit!(SetRedeemableGlobalSupplyCapEvent {
             version: controller.version,

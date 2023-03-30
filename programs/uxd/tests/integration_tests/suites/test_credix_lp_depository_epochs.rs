@@ -5,13 +5,14 @@ use solana_sdk::signer::Signer;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
 
+use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_credix_lp_depository_epochs() -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -83,28 +84,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // ---------------------------------------------------------------------
     // -- Phase 2
-    // -- We try to mint (and it should fail)
-    // -- and progressively set all things needed to mint one by one:
-    // --  - airdrop collateral to our user
-    // --  - set the supply cap in the controller
-    // --  - set the redeemable cap and enable minting in the identity depository
-    // -- when everything is ready, try to mint incorrect amounts (it should fail)
+    // -- Prepare the credix lp depository to be ready for use
     // ---------------------------------------------------------------------
-
-    // Minting should fail because the user doesnt have collateral yet
-    assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
-            &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            amount_the_user_should_be_able_to_mint,
-        )
-        .await
-        .is_err()
-    );
 
     // Airdrop collateral to our user
     program_spl::instructions::process_token_mint_to(
@@ -117,21 +98,6 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     )
     .await?;
 
-    // Minting should fail because the controller cap is too low
-    assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
-            &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            amount_the_user_should_be_able_to_mint,
-        )
-        .await
-        .is_err()
-    );
-
     // Set the controller cap
     program_uxd::instructions::process_edit_controller(
         &mut program_test_context,
@@ -143,21 +109,6 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
         },
     )
     .await?;
-
-    // Minting should fail because the depository cap is too low
-    assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
-            &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            amount_the_user_should_be_able_to_mint,
-        )
-        .await
-        .is_err()
-    );
 
     // Set the depository cap and make sure minting is not disabled
     program_uxd::instructions::process_edit_credix_lp_depository(
@@ -175,40 +126,9 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     )
     .await?;
 
-    // Minting too much should fail (above cap, but enough collateral)
-    assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
-            &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            amount_bigger_than_the_supply_cap,
-        )
-        .await
-        .is_err()
-    );
-
-    // Minting zero should fail
-    assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
-            &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            0,
-        )
-        .await
-        .is_err()
-    );
-
     // ---------------------------------------------------------------------
     // -- Phase 3
-    // -- Everything is ready for minting
-    // -- We should now successfully be able to mint
+    // -- Test creating an epoch on the credix contract
     // ---------------------------------------------------------------------
 
     // Minting should work now that everything is set
@@ -222,6 +142,61 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
         amount_the_user_should_be_able_to_mint,
     )
     .await?;
+
+    program_test_context::move_clock_forward(&mut program_test_context, 1_000).await?;
+
+    program_credix::instructions::process_create_credix_pass(
+        &mut program_test_context,
+        &credix_multisig,
+        &user.pubkey(),
+        &credix_client::instruction::CreateCredixPass {
+            _is_investor: false,
+            _is_borrower: true,
+            _release_timestamp: 0,
+            _disable_withdrawal_fee: false,
+            _bypass_withdraw_epochs: false,
+        },
+    )
+    .await?;
+
+    program_credix::instructions::process_create_deal(
+        &mut program_test_context,
+        &credix_multisig,
+        &user.pubkey(),
+        0,
+    )
+    .await?;
+
+    program_credix::instructions::process_set_repayment_schedule(
+        &mut program_test_context,
+        &credix_multisig,
+        &user.pubkey(),
+        0,
+    )
+    .await?;
+
+    program_credix::instructions::process_set_tranches(
+        &mut program_test_context,
+        &credix_multisig,
+        &user.pubkey(),
+        0,
+    )
+    .await?;
+
+    /*
+    program_credix::instructions::process_create_withdraw_epoch(
+        &mut program_test_context,
+        &credix_multisig,
+    )
+    .await?;
+
+    program_credix::instructions::process_set_locked_liquidity(
+        &mut program_test_context,
+        &credix_multisig,
+        &collateral_mint.pubkey(),
+    )
+    .await?;
+     */
 
     // Done
     Ok(())
