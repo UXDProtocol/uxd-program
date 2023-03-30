@@ -192,23 +192,41 @@ pub struct MintGeneric<'info> {
 }
 
 pub(crate) fn handler(ctx: Context<MintGeneric>, collateral_amount: u64) -> Result<()> {
+    // TODO - compute weights
+    let identity_depository_collateral_amount = collateral_amount / 3;
+    let mercurial_vault_depository_0_collateral_amount = collateral_amount / 3;
+    let credix_lp_depository_0_collateral_amount = collateral_amount / 3;
+
+    // Mint the desired amount at identity_depository
+    msg!(
+        "[mint_generic:mint_with_identity_depository:{}]",
+        identity_depository_collateral_amount
+    );
     crate::cpi::mint_with_identity_depository(
         ctx.accounts.into_mint_with_identity_depository_context(),
-        collateral_amount / 3,
+        identity_depository_collateral_amount,
     )?;
 
+    // Mint the desired amount at mercurial_vault_depository_0
+    msg!(
+        "[mint_generic:mint_with_mercurial_vault_depository:{}]",
+        mercurial_vault_depository_0_collateral_amount
+    );
     crate::cpi::mint_with_mercurial_vault_depository(
         ctx.accounts
             .into_mint_with_mercurial_vault_depository_0_context(),
-        collateral_amount / 3,
+        mercurial_vault_depository_0_collateral_amount,
     )?;
 
+    // Mint the desired amount at credix_lp_depository_0
+    msg!(
+        "[mint_generic:mint_with_credix_lp_depository:{}]",
+        credix_lp_depository_0_collateral_amount
+    );
     crate::cpi::mint_with_credix_lp_depository(
         ctx.accounts.into_mint_with_credix_lp_depository_0_context(),
-        collateral_amount / 3,
+        credix_lp_depository_0_collateral_amount,
     )?;
-    /*
-     */
 
     // Done
     Ok(())

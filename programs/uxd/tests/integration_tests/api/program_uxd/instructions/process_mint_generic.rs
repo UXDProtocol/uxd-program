@@ -12,11 +12,13 @@ use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
 use uxd::state::IdentityDepository;
 use uxd::state::MercurialVaultDepository;
+use uxd::utils::calculate_amount_less_fees;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
+use crate::integration_tests::api::program_uxd::instructions::process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss;
 
 pub async fn process_mint_generic(
     program_test_context: &mut ProgramTestContext,
@@ -26,10 +28,9 @@ pub async fn process_mint_generic(
     user: &Keypair,
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
-    collateral_amount: u64,
-    expected_identity_depository_redeemable_amount: u64,
-    expected_mercurial_vault_depository_0_redeemable_amount: u64,
-    expected_credix_lp_depository_0_redeemable_amount: u64,
+    expected_identity_depository_collateral_amount: u64,
+    expected_mercurial_vault_depository_0_collateral_amount: u64,
+    expected_credix_lp_depository_0_collateral_amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
@@ -125,6 +126,44 @@ pub async fn process_mint_generic(
             .await?
             .amount;
 
+    // Compute identity_depository amounts
+    let identity_depository_redeemable_amount = expected_identity_depository_collateral_amount;
+
+    // Compute mercurial_vault_depository_0 amounts
+    let mercurial_vault_depository_0_redeemable_amount = calculate_amount_less_fees(
+        expected_mercurial_vault_depository_0_collateral_amount,
+        mercurial_vault_depository_0_before.minting_fee_in_bps,
+    )
+    .map_err(program_test_context::ProgramTestError::Anchor)?;
+    let mercurial_vault_depository_0_fees_amount =
+        expected_mercurial_vault_depository_0_collateral_amount
+            - mercurial_vault_depository_0_redeemable_amount;
+
+    // Compute credix_lp_depository_0 amounts
+    let credix_lp_depository_0_collateral_amount_after_precision_loss =
+        process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
+            program_test_context,
+            collateral_mint,
+            expected_credix_lp_depository_0_collateral_amount,
+        )
+        .await?;
+    let credix_lp_depository_0_redeemable_amount = calculate_amount_less_fees(
+        credix_lp_depository_0_collateral_amount_after_precision_loss,
+        credix_lp_depository_0_before.minting_fee_in_bps,
+    )
+    .map_err(program_test_context::ProgramTestError::Anchor)?;
+    let credix_lp_depository_0_fees_amount =
+        credix_lp_depository_0_collateral_amount_after_precision_loss
+            - credix_lp_depository_0_redeemable_amount;
+
+    // Compute total amounts
+    let collateral_amount = expected_identity_depository_collateral_amount
+        + expected_mercurial_vault_depository_0_collateral_amount
+        + expected_credix_lp_depository_0_collateral_amount;
+    let redeemable_amount = identity_depository_redeemable_amount
+        + mercurial_vault_depository_0_redeemable_amount
+        + credix_lp_depository_0_redeemable_amount;
+
     // Execute IX
     let accounts = uxd::accounts::MintGeneric {
         payer: payer.pubkey(),
@@ -205,11 +244,6 @@ pub async fn process_mint_generic(
             .await?
             .amount;
 
-    // Compute the expected redeemable amount
-    let redeemable_amount = expected_identity_depository_redeemable_amount
-        + expected_mercurial_vault_depository_0_redeemable_amount
-        + expected_credix_lp_depository_0_redeemable_amount;
-
     // redeemable_mint.supply must have increased by the minted amount (equivalent to redeemable_amount)
     let redeemable_mint_supply_before = redeemable_mint_before.supply;
     let redeemable_mint_supply_after = redeemable_mint_after.supply;
@@ -235,8 +269,19 @@ pub async fn process_mint_generic(
         u64::try_from(identity_depository_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
         identity_depository_redeemable_amount_under_management_before
-            + expected_identity_depository_redeemable_amount,
+            + identity_depository_redeemable_amount,
         identity_depository_redeemable_amount_under_management_after,
+    );
+
+    // identity_depository.collateral_amount_deposited must have increased by the deposited amount (equivalent to collateral_amount)
+    let identity_depository_collateral_amount_deposited_before =
+        u64::try_from(identity_depository_before.collateral_amount_deposited).unwrap();
+    let identity_depository_collateral_amount_deposited_after =
+        u64::try_from(identity_depository_after.collateral_amount_deposited).unwrap();
+    assert_eq!(
+        identity_depository_collateral_amount_deposited_before
+            + expected_identity_depository_collateral_amount,
+        identity_depository_collateral_amount_deposited_after,
     );
 
     // mercurial_vault_depository_0.redeemable_amount_under_management must have increased by the minted amount (equivalent to redeemable_amount)
@@ -248,8 +293,30 @@ pub async fn process_mint_generic(
             .unwrap();
     assert_eq!(
         mercurial_vault_depository_0_redeemable_amount_under_management_before
-            + expected_mercurial_vault_depository_0_redeemable_amount,
+            + mercurial_vault_depository_0_redeemable_amount,
         mercurial_vault_depository_0_redeemable_amount_under_management_after,
+    );
+
+    // mercurial_vault_depository_0.minting_fee_total_accrued must have increased by the fees amount
+    let mercurial_vault_depository_0_minting_fee_total_accrued_before =
+        mercurial_vault_depository_0_before.minting_fee_total_accrued;
+    let mercurial_vault_depository_0_minting_fee_total_accrued_after =
+        mercurial_vault_depository_0_after.minting_fee_total_accrued;
+    assert_eq!(
+        mercurial_vault_depository_0_minting_fee_total_accrued_before
+            + u128::from(mercurial_vault_depository_0_fees_amount),
+        mercurial_vault_depository_0_minting_fee_total_accrued_after,
+    );
+
+    // mercurial_vault_depository_0.collateral_amount_deposited must have increased by the deposited amount (equivalent to collateral_amount)
+    let mercurial_vault_depository_0_collateral_amount_deposited_before =
+        u64::try_from(mercurial_vault_depository_0_before.collateral_amount_deposited).unwrap();
+    let mercurial_vault_depository_0_collateral_amount_deposited_after =
+        u64::try_from(mercurial_vault_depository_0_after.collateral_amount_deposited).unwrap();
+    assert_eq!(
+        mercurial_vault_depository_0_collateral_amount_deposited_before
+            + expected_mercurial_vault_depository_0_collateral_amount,
+        mercurial_vault_depository_0_collateral_amount_deposited_after,
     );
 
     // credix_lp_depository_0.redeemable_amount_under_management must have increased by the minted amount (equivalent to redeemable_amount)
@@ -259,8 +326,30 @@ pub async fn process_mint_generic(
         u64::try_from(credix_lp_depository_0_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
         credix_lp_depository_0_redeemable_amount_under_management_before
-            + expected_credix_lp_depository_0_redeemable_amount,
+            + credix_lp_depository_0_redeemable_amount,
         credix_lp_depository_0_redeemable_amount_under_management_after,
+    );
+
+    // credix_lp_depository_0.collateral_amount_deposited must have increased by the deposited amount (equivalent to collateral_amount)
+    let credix_lp_depository_0_collateral_amount_deposited_before =
+        u64::try_from(credix_lp_depository_0_before.collateral_amount_deposited).unwrap();
+    let credix_lp_depository_0_collateral_amount_deposited_after =
+        u64::try_from(credix_lp_depository_0_after.collateral_amount_deposited).unwrap();
+    assert_eq!(
+        credix_lp_depository_0_collateral_amount_deposited_before
+            + expected_credix_lp_depository_0_collateral_amount,
+        credix_lp_depository_0_collateral_amount_deposited_after,
+    );
+
+    // credix_lp_depository_0.minting_fee_total_accrued must have increased by the fees amount
+    let credix_lp_depository_0_minting_fee_total_accrued_before =
+        credix_lp_depository_0_before.minting_fee_total_accrued;
+    let credix_lp_depository_0_minting_fee_total_accrued_after =
+        credix_lp_depository_0_after.minting_fee_total_accrued;
+    assert_eq!(
+        credix_lp_depository_0_minting_fee_total_accrued_before
+            + u128::from(credix_lp_depository_0_fees_amount),
+        credix_lp_depository_0_minting_fee_total_accrued_after,
     );
 
     // user_collateral.amount must have decreased by the deposited amount (equivalent to collateral_amount)
