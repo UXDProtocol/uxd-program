@@ -144,47 +144,23 @@ pub async fn process_mint_with_credix_lp_depository(
             .await?
             .amount;
 
-    // Fetch information from onchain credix lp pool, to be able to predict precision loss
-    let credix_shares_mint_supply = program_test_context::read_account_packed::<Mint>(
-        program_test_context,
-        &credix_shares_mint,
-    )
-    .await?
-    .supply;
-    let credix_pool_outstanding_credit = program_test_context::read_account_anchor::<
-        credix_client::GlobalMarketState,
-    >(program_test_context, &credix_global_market_state)
-    .await?
-    .pool_outstanding_credit;
-    let credix_liquidity_collateral_amount = program_test_context::read_account_packed::<Account>(
-        program_test_context,
-        &credix_liquidity_collateral,
-    )
-    .await?
-    .amount;
-    let total_shares_supply = credix_shares_mint_supply;
-    let total_shares_value = credix_liquidity_collateral_amount + credix_pool_outstanding_credit;
+    // Compute collateral amount deposited after precision loss
+    let collateral_amount_after_precision_loss =
+        process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
+            program_test_context,
+            collateral_mint,
+            collateral_amount,
+        )
+        .await?;
 
     // Compute expected redeemable amount after minting fees and precision loss
-    let shares_amount = compute_shares_amount_for_value_floor(
-        collateral_amount,
-        total_shares_supply,
-        total_shares_value,
-    )
-    .map_err(program_test_context::ProgramTestError::Anchor)?;
-    let collateral_amount_after_precision_loss = compute_value_for_shares_amount_floor(
-        shares_amount,
-        total_shares_supply,
-        total_shares_value,
-    )
-    .map_err(program_test_context::ProgramTestError::Anchor)?;
-
     let redeemable_amount = calculate_amount_less_fees(
         collateral_amount_after_precision_loss,
         credix_lp_depository_before.minting_fee_in_bps,
     )
     .map_err(program_test_context::ProgramTestError::Anchor)?;
 
+    // Compute fees amount
     let fees_amount = collateral_amount_after_precision_loss - redeemable_amount;
 
     // redeemable_mint.supply must have increased by the minted amount (equivalent to redeemable_amount)
@@ -246,4 +222,61 @@ pub async fn process_mint_with_credix_lp_depository(
 
     // Done
     Ok(())
+}
+
+pub async fn process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
+    program_test_context: &mut ProgramTestContext,
+    collateral_mint: &Pubkey,
+    collateral_amount: u64,
+) -> Result<u64, program_test_context::ProgramTestError> {
+    // Read on chain accounts that contains the credix useful states
+    let credix_market_seeds = program_credix::accounts::find_market_seeds();
+    let credix_global_market_state =
+        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
+    let credix_shares_mint =
+        program_credix::accounts::find_lp_token_mint_pda(&credix_market_seeds).0;
+    let credix_signing_authority =
+        program_credix::accounts::find_signing_authority_pda(&credix_market_seeds).0;
+    let credix_liquidity_collateral = program_credix::accounts::find_liquidity_pool_token_account(
+        &credix_signing_authority,
+        collateral_mint,
+    );
+
+    // Fetch information from onchain credix lp pool, to be able to predict precision loss
+    let credix_shares_mint_supply = program_test_context::read_account_packed::<Mint>(
+        program_test_context,
+        &credix_shares_mint,
+    )
+    .await?
+    .supply;
+    let credix_pool_outstanding_credit = program_test_context::read_account_anchor::<
+        credix_client::GlobalMarketState,
+    >(program_test_context, &credix_global_market_state)
+    .await?
+    .pool_outstanding_credit;
+    let credix_liquidity_collateral_amount = program_test_context::read_account_packed::<Account>(
+        program_test_context,
+        &credix_liquidity_collateral,
+    )
+    .await?
+    .amount;
+    let total_shares_supply = credix_shares_mint_supply;
+    let total_shares_value = credix_liquidity_collateral_amount + credix_pool_outstanding_credit;
+
+    // Compute expected redeemable amount after minting fees and precision loss
+    let shares_amount = compute_shares_amount_for_value_floor(
+        collateral_amount,
+        total_shares_supply,
+        total_shares_value,
+    )
+    .map_err(program_test_context::ProgramTestError::Anchor)?;
+    let collateral_amount_after_precision_loss = compute_value_for_shares_amount_floor(
+        shares_amount,
+        total_shares_supply,
+        total_shares_value,
+    )
+    .map_err(program_test_context::ProgramTestError::Anchor)?;
+
+    // Done
+    Ok(collateral_amount_after_precision_loss)
 }
