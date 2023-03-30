@@ -111,7 +111,7 @@ pub(crate) fn handler(
     redeeming_fee_in_bps: u8,
     redeemable_amount_under_management_cap: u128,
 ) -> Result<()> {
-    // Read some of the depositories required informations
+    // Read some of the every_depository required informations
     let depository_bump = *ctx.bumps.get("depository").ok_or(UxdError::BumpError)?;
 
     // Initialize the depository account

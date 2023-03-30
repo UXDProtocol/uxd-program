@@ -8,7 +8,7 @@ pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
 pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
-pub const CONTROLLER_RESERVED_SPACE: usize = 230;
+pub const CONTROLLER_RESERVED_SPACE: usize = 224;
 pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u8>() // bump
     + size_of::<u8>() // redeemable_mint_bump
@@ -28,6 +28,9 @@ pub const CONTROLLER_SPACE: usize = 8
     + size_of::<Pubkey>() * MAX_REGISTERED_CREDIX_LP_DEPOSITORIES // registered_credix_lp_depositories
     + size_of::<u8>() // registered_credix_lp_depositories_count
     + size_of::<u128>() // profits_total_collected
+    + size_of::<u16>() // identity_depository_weight_bps
+    + size_of::<u16>() // mercurial_vault_depository_0_weight_bps
+    + size_of::<u16>() // credix_lp_depository_0_weight_bps
     + CONTROLLER_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -61,22 +64,28 @@ pub struct Controller {
     // Accounting -------------------------------
     //
     // The actual circulating supply of Redeemable
-    // This should always be equal to the sum of all Depositories' `redeemable_amount_under_management`
+    // This should always be equal to the sum of all EveryDepository' `redeemable_amount_under_management`
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
     pub _unused4: [u8; 8],
     //
-    // The Mercurial Vault Depositories registered with this Controller
+    // The Mercurial Vault EveryDepository registered with this Controller
     pub registered_mercurial_vault_depositories:
         [Pubkey; MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES],
     pub registered_mercurial_vault_depositories_count: u8,
     //
-    // The Credix Lp Depositories registered with this Controller
+    // The Credix Lp EveryDepository registered with this Controller
     pub registered_credix_lp_depositories: [Pubkey; MAX_REGISTERED_CREDIX_LP_DEPOSITORIES],
     pub registered_credix_lp_depositories_count: u8,
     //
     // Total amount of profits collected into the treasury by any depository
     pub profits_total_collected: u128,
+
+    // The configured depository balancing weights
+    pub identity_depository_weight_bps: u16,
+    pub mercurial_vault_depository_0_weight_bps: u16,
+    pub credix_lp_depository_0_weight_bps: u16,
+
     // For future usage
     pub _reserved: [u8; CONTROLLER_RESERVED_SPACE],
 }
@@ -89,14 +98,14 @@ impl Controller {
         let current_size = usize::from(self.registered_mercurial_vault_depositories_count);
         require!(
             current_size < MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES,
-            UxdError::MaxNumberOfMercurialVaultDepositoriesRegisteredReached
+            UxdError::MaxNumberOfMercurialVaultEveryDepositoryRegisteredReached
         );
-        // Increment registered Mercurial Pool Depositories count
+        // Increment registered Mercurial Pool EveryDepository count
         self.registered_mercurial_vault_depositories_count = self
             .registered_mercurial_vault_depositories_count
             .checked_add(1)
             .ok_or_else(|| error!(UxdError::MathError))?;
-        // Add the new Mercurial Vault Depository ID to the array of registered Depositories
+        // Add the new Mercurial Vault Depository ID to the array of registered EveryDepository
         let new_entry_index = current_size;
         self.registered_mercurial_vault_depositories[new_entry_index] =
             mercurial_vault_depository_id;
@@ -110,14 +119,14 @@ impl Controller {
         let current_size = usize::from(self.registered_credix_lp_depositories_count);
         require!(
             current_size < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
-            UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached
+            UxdError::MaxNumberOfCredixLpEveryDepositoryRegisteredReached
         );
-        // Increment registered Credix Lp Depositories count
+        // Increment registered Credix Lp EveryDepository count
         self.registered_credix_lp_depositories_count = self
             .registered_credix_lp_depositories_count
             .checked_add(1)
             .ok_or_else(|| error!(UxdError::MathError))?;
-        // Add the new Credix Lp Depository ID to the array of registered Depositories
+        // Add the new Credix Lp Depository ID to the array of registered EveryDepository
         let new_entry_index = current_size;
         self.registered_credix_lp_depositories[new_entry_index] = credix_lp_depository_id;
         Ok(())

@@ -1,9 +1,10 @@
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
-
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
+use uxd::instructions::EditIdentityDepositoryFields;
+use uxd::instructions::EditMercurialVaultDepositoryFields;
 
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
@@ -11,7 +12,7 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -73,8 +74,6 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Useful amounts used during testing scenario
     let amount_we_use_as_supply_cap = ui_amount_to_native_amount(50, redeemable_mint_decimals);
-    let amount_bigger_than_the_supply_cap =
-        ui_amount_to_native_amount(300, redeemable_mint_decimals);
 
     let amount_of_collateral_airdropped_to_user =
         ui_amount_to_native_amount(1000, collateral_mint_decimals);
@@ -83,28 +82,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // ---------------------------------------------------------------------
     // -- Phase 2
-    // -- We try to mint (and it should fail)
-    // -- and progressively set all things needed to mint one by one:
-    // --  - airdrop collateral to our user
-    // --  - set the supply cap in the controller
-    // --  - set the redeemable cap and enable minting in the identity depository
-    // -- when everything is ready, try to mint incorrect amounts (it should fail)
     // ---------------------------------------------------------------------
-
-    // Minting should fail because the user doesnt have collateral yet
-    assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
-            &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            amount_the_user_should_be_able_to_mint,
-        )
-        .await
-        .is_err()
-    );
 
     // Airdrop collateral to our user
     program_spl::instructions::process_token_mint_to(
@@ -116,21 +94,6 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
         amount_of_collateral_airdropped_to_user,
     )
     .await?;
-
-    // Minting should fail because the controller cap is too low
-    assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
-            &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            amount_the_user_should_be_able_to_mint,
-        )
-        .await
-        .is_err()
-    );
 
     // Set the controller cap
     program_uxd::instructions::process_edit_controller(
@@ -144,20 +107,33 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     )
     .await?;
 
-    // Minting should fail because the depository cap is too low
-    assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
-            &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            amount_the_user_should_be_able_to_mint,
-        )
-        .await
-        .is_err()
-    );
+    // Set the depository cap and make sure minting is not disabled
+    program_uxd::instructions::process_edit_identity_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditIdentityDepositoryFields {
+            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
+            minting_disabled: Some(false),
+        },
+    )
+    .await?;
+
+    // Set the depository cap and make sure minting is not disabled
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditMercurialVaultDepositoryFields {
+            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
+            minting_fee_in_bps: Some(100),
+            redeeming_fee_in_bps: Some(100),
+            minting_disabled: Some(false),
+            profits_beneficiary_collateral: None,
+        },
+    )
+    .await?;
 
     // Set the depository cap and make sure minting is not disabled
     program_uxd::instructions::process_edit_credix_lp_depository(
@@ -175,51 +151,22 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     )
     .await?;
 
-    // Minting too much should fail (above cap, but enough collateral)
-    assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
-            &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            amount_bigger_than_the_supply_cap,
-        )
-        .await
-        .is_err()
-    );
-
-    // Minting zero should fail
-    assert!(
-        program_uxd::instructions::process_mint_with_credix_lp_depository(
-            &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &user,
-            &user_collateral,
-            &user_redeemable,
-            0,
-        )
-        .await
-        .is_err()
-    );
-
     // ---------------------------------------------------------------------
     // -- Phase 3
-    // -- Everything is ready for minting
-    // -- We should now successfully be able to mint
     // ---------------------------------------------------------------------
 
     // Minting should work now that everything is set
-    program_uxd::instructions::process_mint_with_credix_lp_depository(
+    program_uxd::instructions::process_mint_generic(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
         &user,
         &user_collateral,
         &user_redeemable,
-        amount_the_user_should_be_able_to_mint,
+        amount_the_user_should_be_able_to_mint / 3,
+        amount_the_user_should_be_able_to_mint / 3,
+        amount_the_user_should_be_able_to_mint / 3,
     )
     .await?;
 
