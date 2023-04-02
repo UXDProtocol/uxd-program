@@ -45,18 +45,6 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
             depositories_weight_bps.mercurial_vault_depository_0_weight_bps;
         let credix_lp_depository_0_weight_bps =
             depositories_weight_bps.credix_lp_depository_0_weight_bps;
-
-        let total_weight_bps = identity_depository_weight_bps
-            .checked_add(mercurial_vault_depository_0_weight_bps)
-            .ok_or(UxdError::MathError)?
-            .checked_add(credix_lp_depository_0_weight_bps)
-            .ok_or(UxdError::MathError)?;
-
-        require!(
-            u64::from(total_weight_bps) == BPS_UNIT_CONVERSION,
-            UxdError::InvalidDepositoriesWeightBps
-        );
-
         msg!(
             "[edit_controller] identity_depository_weight_bps {}",
             identity_depository_weight_bps
@@ -103,12 +91,29 @@ impl<'info> EditController<'info> {
     pub(crate) fn validate(&self, fields: &EditControllerFields) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
 
+        // Validate the redeemable_global_supply_cap if specified
         if let Some(redeemable_global_supply_cap) = fields.redeemable_global_supply_cap {
             require!(
                 redeemable_global_supply_cap <= MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP,
                 UxdError::InvalidRedeemableGlobalSupplyCap
             );
         }
+
+        // Validate the depositories_weight_bps if specified
+        if let Some(depositories_weight_bps) = fields.depositories_weight_bps {
+            let total_weight_bps = depositories_weight_bps
+                .identity_depository_weight_bps
+                .checked_add(depositories_weight_bps.mercurial_vault_depository_0_weight_bps)
+                .ok_or(UxdError::MathError)?
+                .checked_add(depositories_weight_bps.credix_lp_depository_0_weight_bps)
+                .ok_or(UxdError::MathError)?;
+
+            require!(
+                u64::from(total_weight_bps) == BPS_UNIT_CONVERSION,
+                UxdError::InvalidDepositoriesWeightBps
+            );
+        }
+
         Ok(())
     }
 }
