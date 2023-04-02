@@ -56,7 +56,7 @@ mod test_calculate_depositories_targets {
     }
 
     #[test]
-    fn test_with_overflow() -> Result<()> {
+    fn test_with_overflow_reallocation() -> Result<()> {
         let circulating_supply = 10000;
 
         // Weights adds up to 100% and the identity depository receives everything
@@ -65,7 +65,7 @@ mod test_calculate_depositories_targets {
         let credix_lp_depository_0_weight_bps = percent_to_weight_bps(0);
 
         // The identity depository is fully overflowing, but the other are nots
-        let identity_depository_hard_cap = percent_of_supply(100, circulating_supply);
+        let identity_depository_hard_cap = percent_of_supply(0, circulating_supply);
         let mercurial_vault_depository_0_hard_cap = percent_of_supply(100, circulating_supply);
         let credix_lp_depository_0_hard_cap = percent_of_supply(100, circulating_supply);
 
@@ -98,6 +98,48 @@ mod test_calculate_depositories_targets {
     }
 
     #[test]
+    fn test_with_too_big_supply() -> Result<()> {
+        let circulating_supply = 10000;
+
+        // Weights adds up to 100%, somewhat fair split
+        let identity_depository_weight_bps = percent_to_weight_bps(34);
+        let mercurial_vault_depository_0_weight_bps = percent_to_weight_bps(33);
+        let credix_lp_depository_0_weight_bps = percent_to_weight_bps(33);
+
+        // All depositories are oveflowing
+        let identity_depository_hard_cap = percent_of_supply(10, circulating_supply);
+        let mercurial_vault_depository_0_hard_cap = percent_of_supply(10, circulating_supply);
+        let credix_lp_depository_0_hard_cap = percent_of_supply(10, circulating_supply);
+
+        // Compute
+        let depositories_targets = calculate_depositories_targets(
+            circulating_supply.into(),
+            identity_depository_weight_bps,
+            mercurial_vault_depository_0_weight_bps,
+            credix_lp_depository_0_weight_bps,
+            identity_depository_hard_cap.into(),
+            mercurial_vault_depository_0_hard_cap.into(),
+            credix_lp_depository_0_hard_cap.into(),
+        )?;
+
+        // We expect all depositories to become filled up to their caps
+        assert_eq!(
+            depositories_targets.identity_depository_target_amount,
+            identity_depository_hard_cap
+        );
+        assert_eq!(
+            depositories_targets.mercurial_vault_depository_0_target_amount,
+            mercurial_vault_depository_0_hard_cap
+        );
+        assert_eq!(
+            depositories_targets.credix_lp_depository_0_target_amount,
+            credix_lp_depository_0_hard_cap
+        );
+
+        Ok(())
+    }
+
+    #[test]
     fn test_no_panic() -> Result<()> {
         proptest!(|(
             circulating_supply: u64,
@@ -119,12 +161,12 @@ mod test_calculate_depositories_targets {
                 credix_lp_depository_0_hard_cap.into(),
             );
 
-            // We dont support the case where the total weights exceed 100%
+            // We dont check the case where the total weights exceed 100%
             // As this could lead to overflows if we specify insane values
-            let total_weight_bps = identity_depository_weight_bps
-                + mercurial_vault_depository_0_weight_bps
-                + credix_lp_depository_0_weight_bps;
-            if u64::from(total_weight_bps) >= BPS_UNIT_CONVERSION {
+            let total_weight_bps = u64::from(identity_depository_weight_bps)
+                + u64::from(mercurial_vault_depository_0_weight_bps)
+                + u64::from(credix_lp_depository_0_weight_bps);
+            if total_weight_bps > BPS_UNIT_CONVERSION {
                 return Ok(());
             }
 
@@ -142,7 +184,11 @@ mod test_calculate_depositories_targets {
                 + depositories_targets.mercurial_vault_depository_0_target_amount
                 + depositories_targets.credix_lp_depository_0_target_amount;
 
-            prop_assert!(total_target_amount == std::cmp::min(total_hard_caps, circulating_supply));
+            if total_hard_caps < circulating_supply {
+                prop_assert!(total_target_amount == total_hard_caps);
+            } else {
+                prop_assert!(total_target_amount == circulating_supply);
+            }
         });
         Ok(())
     }
