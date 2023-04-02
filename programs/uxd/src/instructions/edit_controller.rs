@@ -107,7 +107,6 @@ impl<'info> EditController<'info> {
                 .ok_or(UxdError::MathError)?
                 .checked_add(depositories_weight_bps.credix_lp_depository_0_weight_bps)
                 .ok_or(UxdError::MathError)?;
-
             require!(
                 u64::from(total_weight_bps) == BPS_UNIT_CONVERSION,
                 UxdError::InvalidDepositoriesWeightBps
