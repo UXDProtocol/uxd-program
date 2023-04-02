@@ -202,16 +202,19 @@ fn calculate_depository_target_amount(
     total_overflow_amount: u64,
     total_available_amount: u64,
 ) -> Result<u64> {
-    let overflow_amount_recuperated_from_other_depositories: u64 = compute_amount_fraction_floor(
-        total_overflow_amount,
-        depository_available_amount,
-        total_available_amount,
-    )?;
-
+    let overflow_amount_reallocated_from_other_depositories: u64 = if total_available_amount > 0 {
+        compute_amount_fraction_floor(
+            total_overflow_amount,
+            depository_available_amount,
+            total_available_amount,
+        )?
+    } else {
+        0
+    };
     let final_target = depository_raw_target_amount
         .checked_sub(depository_overflow_amount)
         .ok_or(UxdError::MathError)?
-        .checked_add(overflow_amount_recuperated_from_other_depositories)
+        .checked_add(overflow_amount_reallocated_from_other_depositories)
         .ok_or(UxdError::MathError)?;
     Ok(final_target)
 }

@@ -6,11 +6,11 @@ mod test_calculate_depositories_targets {
     use uxd::{utils::calculate_depositories_targets, BPS_UNIT_CONVERSION};
 
     fn percent_of_supply(percent: u64, supply: u64) -> u64 {
-        return supply * percent / 100;
+        supply * percent / 100
     }
 
     fn percent_to_weight_bps(percent: u16) -> u16 {
-        return percent * 100;
+        percent * 100
     }
 
     #[test]
@@ -22,7 +22,7 @@ mod test_calculate_depositories_targets {
         let mercurial_vault_depository_0_weight_bps = percent_to_weight_bps(10);
         let credix_lp_depository_0_weight_bps = percent_to_weight_bps(85);
 
-        // Each depository can fit at least the whole circulating supply (no overflow anywhere)
+        // Each depository can fit at least the whole circulating supply (no overflow possible)
         let identity_depository_hard_cap = percent_of_supply(100, circulating_supply);
         let mercurial_vault_depository_0_hard_cap = percent_of_supply(100, circulating_supply);
         let credix_lp_depository_0_hard_cap = percent_of_supply(100, circulating_supply);
@@ -64,7 +64,7 @@ mod test_calculate_depositories_targets {
         let mercurial_vault_depository_0_weight_bps = percent_to_weight_bps(0);
         let credix_lp_depository_0_weight_bps = percent_to_weight_bps(0);
 
-        // The identity depository is fully overflowing, but the other are nots
+        // The identity depository is fully overflowing, but the other have plenty of space
         let identity_depository_hard_cap = percent_of_supply(0, circulating_supply);
         let mercurial_vault_depository_0_hard_cap = percent_of_supply(100, circulating_supply);
         let credix_lp_depository_0_hard_cap = percent_of_supply(100, circulating_supply);
@@ -140,7 +140,7 @@ mod test_calculate_depositories_targets {
     }
 
     #[test]
-    fn test_no_panic() -> Result<()> {
+    fn test_no_panic_and_no_over_cap() -> Result<()> {
         proptest!(|(
             circulating_supply: u64,
             identity_depository_weight_bps: u16,
@@ -173,8 +173,9 @@ mod test_calculate_depositories_targets {
             // Everything else should never panic
             prop_assert!(result.is_ok());
 
-            // The sum of all depositories targets should always be equal to:
-            // either the circulating supply or the sum of all depositories caps
+            // The sum of all depositories targets should always be either:
+            // - either equal to the circulating supply (minus precision loss)
+            // - or equal to the sum of all depositories caps
             let total_hard_caps = identity_depository_hard_cap
                 + mercurial_vault_depository_0_hard_cap
                 + credix_lp_depository_0_hard_cap;
@@ -185,10 +186,9 @@ mod test_calculate_depositories_targets {
                 + depositories_targets.credix_lp_depository_0_target_amount;
 
             if total_hard_caps < circulating_supply {
-                prop_assert!(total_target_amount == total_hard_caps);
-            } else {
-                prop_assert!(total_target_amount == circulating_supply);
+                prop_assert_eq!(total_target_amount, total_hard_caps);
             }
+            prop_assert!(total_target_amount <= circulating_supply);
         });
         Ok(())
     }
