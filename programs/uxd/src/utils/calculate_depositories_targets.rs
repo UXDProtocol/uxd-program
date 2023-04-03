@@ -4,7 +4,7 @@ use crate::error::UxdError;
 use crate::BPS_UNIT_CONVERSION;
 
 use super::checked_convert_u128_to_u64;
-use super::compute_amount_fraction_floor;
+use super::compute_amount_less_fraction_floor;
 
 pub struct DepositoriesTargets {
     pub identity_depository_target_amount: u64,
@@ -154,9 +154,12 @@ fn calculate_depository_raw_target_amount(
     redeemable_circulating_supply: u64,
     depository_weight_bps: u16,
 ) -> Result<u64> {
-    let depository_raw_target_amount = compute_amount_fraction_floor(
+    let other_depositories_weight_bps = BPS_UNIT_CONVERSION
+        .checked_sub(depository_weight_bps.into())
+        .ok_or(UxdError::MathError)?;
+    let depository_raw_target_amount = compute_amount_less_fraction_floor(
         redeemable_circulating_supply,
-        depository_weight_bps.into(),
+        other_depositories_weight_bps,
         BPS_UNIT_CONVERSION,
     )?;
     Ok(depository_raw_target_amount)
@@ -203,18 +206,21 @@ fn calculate_depository_target_amount(
     total_available_amount: u64,
 ) -> Result<u64> {
     let overflow_amount_reallocated_from_other_depositories: u64 = if total_available_amount > 0 {
-        compute_amount_fraction_floor(
+        let other_depositories_available_amount = total_available_amount
+            .checked_sub(depository_available_amount)
+            .ok_or(UxdError::MathError)?;
+        compute_amount_less_fraction_floor(
             total_overflow_amount,
-            depository_available_amount,
+            other_depositories_available_amount,
             total_available_amount,
         )?
     } else {
         0
     };
     let final_target = depository_raw_target_amount
-        .checked_sub(depository_overflow_amount)
-        .ok_or(UxdError::MathError)?
         .checked_add(overflow_amount_reallocated_from_other_depositories)
+        .ok_or(UxdError::MathError)?
+        .checked_sub(depository_overflow_amount)
         .ok_or(UxdError::MathError)?;
     Ok(final_target)
 }
