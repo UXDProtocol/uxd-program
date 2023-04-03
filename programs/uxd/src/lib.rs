@@ -116,6 +116,14 @@ pub mod uxd {
         instructions::mint_generic::handler(ctx, collateral_amount)
     }
 
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn redeem_generic(ctx: Context<RedeemGeneric>, redeemable_amount: u64) -> Result<()> {
+        msg!("[redeem_generic]");
+        instructions::redeem_generic::handler(ctx, redeemable_amount)
+    }
+
     // Mint Redeemable tokens by depositing Collateral to mercurial vault.
     #[access_control(
         ctx.accounts.validate(collateral_amount)

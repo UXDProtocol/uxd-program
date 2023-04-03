@@ -12,7 +12,7 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_generic_mint_and_redeem() -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -79,6 +79,9 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
         ui_amount_to_native_amount(1000, collateral_mint_decimals);
     let amount_the_user_should_be_able_to_mint =
         ui_amount_to_native_amount(50, collateral_mint_decimals);
+
+    let amount_the_user_should_be_able_to_redeem =
+        ui_amount_to_native_amount(30, redeemable_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -167,6 +170,21 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
         amount_the_user_should_be_able_to_mint / 3,
         amount_the_user_should_be_able_to_mint / 3,
         amount_the_user_should_be_able_to_mint / 3,
+    )
+    .await?;
+
+    // Minting should work now that everything is set
+    program_uxd::instructions::process_redeem_generic(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_the_user_should_be_able_to_redeem,
+        amount_the_user_should_be_able_to_redeem / 2,
+        amount_the_user_should_be_able_to_redeem / 2,
     )
     .await?;
 
