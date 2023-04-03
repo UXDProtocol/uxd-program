@@ -1,4 +1,5 @@
 use anchor_lang::prelude::Result;
+use anchor_lang::require;
 
 use crate::error::UxdError;
 use crate::BPS_UNIT_CONVERSION;
@@ -22,6 +23,19 @@ pub fn calculate_depositories_targets(
     credix_lp_depository_0_redeemable_amount_under_management_cap: u128,
 ) -> Result<DepositoriesTargets> {
     let redeemable_circulating_supply = checked_convert_u128_to_u64(redeemable_circulating_supply)?;
+
+    // Double check that the weights adds up to 100%
+    require!(
+        BPS_UNIT_CONVERSION
+            == u64::from(
+                identity_depository_weight_bps
+                    .checked_add(mercurial_vault_depository_0_weight_bps)
+                    .ok_or(UxdError::MathError)?
+                    .checked_add(credix_lp_depository_0_weight_bps)
+                    .ok_or(UxdError::MathError)?
+            ),
+        UxdError::InvalidDepositoriesWeightBps,
+    );
 
     // ---------------------------------------------------------------------
     // -- Phase 1
