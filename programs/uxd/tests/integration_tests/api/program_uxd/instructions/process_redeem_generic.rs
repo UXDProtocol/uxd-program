@@ -9,7 +9,6 @@ use spl_token::state::Account;
 use spl_token::state::Mint;
 
 use uxd::state::Controller;
-use uxd::state::CredixLpDepository;
 use uxd::state::IdentityDepository;
 use uxd::state::MercurialVaultDepository;
 use uxd::utils::calculate_amount_less_fees;
@@ -19,6 +18,7 @@ use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn process_redeem_generic(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
@@ -88,10 +88,6 @@ pub async fn process_redeem_generic(
         program_test_context, &mercurial_vault_depository_0
     )
     .await?;
-    let credix_lp_depository_0_before = program_test_context::read_account_anchor::<
-        CredixLpDepository,
-    >(program_test_context, &credix_lp_depository_0)
-    .await?;
 
     let user_collateral_amount_before =
         program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
@@ -159,10 +155,6 @@ pub async fn process_redeem_generic(
     >(
         program_test_context, &mercurial_vault_depository_0
     )
-    .await?;
-    let credix_lp_depository_0_after = program_test_context::read_account_anchor::<
-        CredixLpDepository,
-    >(program_test_context, &credix_lp_depository_0)
     .await?;
 
     let user_collateral_amount_after =
