@@ -1,9 +1,10 @@
 // Unit tests
 #[cfg(test)]
-mod test_calculate_depositories_targets {
+mod test_calculate_depositories_target_amount {
     use anchor_lang::Result;
     use proptest::prelude::*;
-    use uxd::{utils::calculate_depositories_targets, BPS_UNIT_CONVERSION};
+    use uxd::utils::calculate_depositories_target_amount;
+    use uxd::BPS_UNIT_CONVERSION;
 
     fn percent_of_supply(percent: u64, supply: u64) -> u64 {
         supply * percent / 100
@@ -28,7 +29,7 @@ mod test_calculate_depositories_targets {
         let credix_lp_depository_0_hard_cap = percent_of_supply(100, circulating_supply);
 
         // Compute
-        let depositories_targets = calculate_depositories_targets(
+        let depositories_targets = calculate_depositories_target_amount(
             circulating_supply.into(),
             identity_depository_weight_bps,
             mercurial_vault_depository_0_weight_bps,
@@ -70,7 +71,7 @@ mod test_calculate_depositories_targets {
         let credix_lp_depository_0_hard_cap = percent_of_supply(100, circulating_supply);
 
         // Compute
-        let depositories_targets = calculate_depositories_targets(
+        let depositories_targets = calculate_depositories_target_amount(
             circulating_supply.into(),
             identity_depository_weight_bps,
             mercurial_vault_depository_0_weight_bps,
@@ -112,7 +113,7 @@ mod test_calculate_depositories_targets {
         let credix_lp_depository_0_hard_cap = percent_of_supply(20, circulating_supply);
 
         // Compute
-        let depositories_targets = calculate_depositories_targets(
+        let depositories_targets = calculate_depositories_target_amount(
             circulating_supply.into(),
             identity_depository_weight_bps,
             mercurial_vault_depository_0_weight_bps,
@@ -156,7 +157,7 @@ mod test_calculate_depositories_targets {
         let credix_lp_depository_0_hard_cap = percent_of_supply(15, circulating_supply);
 
         // Compute
-        let depositories_targets = calculate_depositories_targets(
+        let depositories_targets = calculate_depositories_target_amount(
             circulating_supply.into(),
             identity_depository_weight_bps,
             mercurial_vault_depository_0_weight_bps,
@@ -187,33 +188,40 @@ mod test_calculate_depositories_targets {
     fn test_no_panic_and_no_over_cap() -> Result<()> {
         proptest!(|(
             circulating_supply: u64,
-            identity_depository_weight_bps: u16,
-            mercurial_vault_depository_0_weight_bps: u16,
-            credix_lp_depository_0_weight_bps: u16,
+            identity_depository_weight_random: u16,
+            mercurial_vault_depository_0_weight_random: u16,
+            credix_lp_depository_0_weight_random: u16,
             identity_depository_hard_cap: u64,
             mercurial_vault_depository_0_hard_cap: u64,
             credix_lp_depository_0_hard_cap: u64,
         )| {
+            // Enforce for our testing that the weights are always equivalent to 100%
+            // To do this, we just generate a bunch of weights based on relative values of the random parameters
+            // This is because otherwise, proptest will never generate weights that add up exacly to 100%
+            let identity_depository_weight_arbitrary = u64::from(identity_depository_weight_random) + 1;
+            let mercurial_vault_depository_0_weight_arbitrary = u64::from(mercurial_vault_depository_0_weight_random) + 1;
+            let credix_lp_depository_0_weight_arbitrary = u64::from(credix_lp_depository_0_weight_random) + 1;
+
+            let total_weight_arbitrary = identity_depository_weight_arbitrary + mercurial_vault_depository_0_weight_arbitrary + credix_lp_depository_0_weight_arbitrary;
+
+            let identity_depository_weight_bps = identity_depository_weight_arbitrary * BPS_UNIT_CONVERSION / total_weight_arbitrary;
+            let mercurial_vault_depository_0_weight_bps = mercurial_vault_depository_0_weight_arbitrary * BPS_UNIT_CONVERSION / total_weight_arbitrary;
+            let credix_lp_depository_0_weight_bps = credix_lp_depository_0_weight_arbitrary * BPS_UNIT_CONVERSION / total_weight_arbitrary;
+
+            // In case of rounding error, we add the rounding errors to identity depository to keep the sum EXACTLY to 100%
+            let total_weight_bps = identity_depository_weight_bps + mercurial_vault_depository_0_weight_bps + credix_lp_depository_0_weight_bps;
+            let identity_depository_weight_bps = identity_depository_weight_bps + BPS_UNIT_CONVERSION - total_weight_bps;
+
             // Compute
-            let result = calculate_depositories_targets(
+            let result = calculate_depositories_target_amount(
                 circulating_supply.into(),
-                identity_depository_weight_bps,
-                mercurial_vault_depository_0_weight_bps,
-                credix_lp_depository_0_weight_bps,
+                u16::try_from(identity_depository_weight_bps).unwrap(),
+                u16::try_from(mercurial_vault_depository_0_weight_bps).unwrap(),
+                u16::try_from(credix_lp_depository_0_weight_bps).unwrap(),
                 identity_depository_hard_cap.into(),
                 mercurial_vault_depository_0_hard_cap.into(),
                 credix_lp_depository_0_hard_cap.into(),
             );
-
-            // We dont support the case where the total weights is not 100%
-            // As this could lead to overflows if we specify insane values
-            let total_weight_bps = u64::from(identity_depository_weight_bps)
-                + u64::from(mercurial_vault_depository_0_weight_bps)
-                + u64::from(credix_lp_depository_0_weight_bps);
-            if total_weight_bps != BPS_UNIT_CONVERSION {
-                prop_assert!(result.is_err());
-                return Ok(());
-            }
 
             // Check if the hard caps will fit inside of a u64
             // If not, this function will not be expected to work
@@ -221,7 +229,6 @@ mod test_calculate_depositories_targets {
                 + u128::from(mercurial_vault_depository_0_hard_cap)
                 + u128::from(credix_lp_depository_0_hard_cap);
             if total_hard_caps > u128::from(u64::MAX) {
-                prop_assert!(result.is_err());
                 return Ok(());
             }
 

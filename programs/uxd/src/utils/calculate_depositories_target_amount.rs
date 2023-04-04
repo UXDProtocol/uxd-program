@@ -2,18 +2,19 @@ use anchor_lang::prelude::Result;
 use anchor_lang::require;
 
 use crate::error::UxdError;
+use crate::utils::calculate_depositories_sum_value;
 use crate::BPS_UNIT_CONVERSION;
 
 use super::checked_convert_u128_to_u64;
 use super::compute_amount_less_fraction_floor;
 
-pub struct DepositoriesTargets {
+pub struct DepositoriesTargetAmount {
     pub identity_depository_target_amount: u64,
     pub mercurial_vault_depository_0_target_amount: u64,
     pub credix_lp_depository_0_target_amount: u64,
 }
 
-pub fn calculate_depositories_targets(
+pub fn calculate_depositories_target_amount(
     redeemable_circulating_supply: u128,
     identity_depository_weight_bps: u16,
     mercurial_vault_depository_0_weight_bps: u16,
@@ -21,19 +22,17 @@ pub fn calculate_depositories_targets(
     identity_depository_redeemable_amount_under_management_cap: u128,
     mercurial_vault_depository_0_redeemable_amount_under_management_cap: u128,
     credix_lp_depository_0_redeemable_amount_under_management_cap: u128,
-) -> Result<DepositoriesTargets> {
+) -> Result<DepositoriesTargetAmount> {
     let redeemable_circulating_supply = checked_convert_u128_to_u64(redeemable_circulating_supply)?;
 
     // Double check that the weights adds up to 100%
     require!(
         BPS_UNIT_CONVERSION
-            == u64::from(
-                identity_depository_weight_bps
-                    .checked_add(mercurial_vault_depository_0_weight_bps)
-                    .ok_or(UxdError::MathError)?
-                    .checked_add(credix_lp_depository_0_weight_bps)
-                    .ok_or(UxdError::MathError)?
-            ),
+            == calculate_depositories_sum_value(
+                identity_depository_weight_bps.into(),
+                mercurial_vault_depository_0_weight_bps.into(),
+                credix_lp_depository_0_weight_bps.into(),
+            )?,
         UxdError::InvalidDepositoriesWeightBps,
     );
 
@@ -107,13 +106,13 @@ pub fn calculate_depositories_targets(
     // ---------------------------------------------------------------------
 
     // Compute total amount that doesn't fit within depositories hard cap
-    let total_overflow_amount = calculate_depositories_total_amount(
+    let total_overflow_amount = calculate_depositories_sum_value(
         identity_depository_overflow_amount,
         mercurial_vault_depository_0_overflow_amount,
         credix_lp_depository_0_overflow_amount,
     )?;
     // Compute total amount that doesn't fit within depositories hard cap
-    let total_available_amount = calculate_depositories_total_amount(
+    let total_available_amount = calculate_depositories_sum_value(
         identity_depository_available_amount,
         mercurial_vault_depository_0_available_amount,
         credix_lp_depository_0_available_amount,
@@ -154,7 +153,7 @@ pub fn calculate_depositories_targets(
     )?;
 
     // Done
-    Ok(DepositoriesTargets {
+    Ok(DepositoriesTargetAmount {
         identity_depository_target_amount,
         mercurial_vault_depository_0_target_amount,
         credix_lp_depository_0_target_amount,
@@ -237,19 +236,4 @@ fn calculate_depository_target_amount(
         .checked_sub(depository_overflow_amount)
         .ok_or(UxdError::MathError)?;
     Ok(final_target)
-}
-
-/**
- * Compute the sum of an amount for all known depositories
- */
-fn calculate_depositories_total_amount(
-    identity_depository_amount: u64,
-    mercurial_vault_depository_0_amount: u64,
-    credix_lp_depository_0_amount: u64,
-) -> Result<u64> {
-    Ok(identity_depository_amount
-        .checked_add(mercurial_vault_depository_0_amount)
-        .ok_or(UxdError::MathError)?
-        .checked_add(credix_lp_depository_0_amount)
-        .ok_or(UxdError::MathError)?)
 }

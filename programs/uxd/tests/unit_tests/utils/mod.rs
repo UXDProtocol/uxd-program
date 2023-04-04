@@ -1,3 +1,4 @@
 mod calculate_amount_less_fees;
-mod calculate_depositories_targets;
+mod calculate_depositories_sum_value;
+mod calculate_depositories_target_amount;
 mod math;
