@@ -1,6 +1,7 @@
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
+use uxd::instructions::EditControllerDepositoriesWeightBps;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditIdentityDepositoryFields;
@@ -73,15 +74,18 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
     .await?;
 
     // Useful amounts used during testing scenario
-    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(50, redeemable_mint_decimals);
+    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(300, redeemable_mint_decimals);
 
     let amount_of_collateral_airdropped_to_user =
         ui_amount_to_native_amount(1000, collateral_mint_decimals);
-    let amount_the_user_should_be_able_to_mint =
+
+    let amount_the_user_can_mint_repeatedly =
         ui_amount_to_native_amount(50, collateral_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
+    // -- Airdrop collateral to our user, so we will be able to mint
+    // -- Also configure and enable controller and all depositories
     // ---------------------------------------------------------------------
 
     // Airdrop collateral to our user
@@ -95,13 +99,18 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
     )
     .await?;
 
-    // Set the controller cap
+    // Set the controller cap and weights
     program_uxd::instructions::process_edit_controller(
         &mut program_test_context,
         &payer,
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 10 * 100,
+                mercurial_vault_depository_0_weight_bps: 50 * 100,
+                credix_lp_depository_0_weight_bps: 40 * 100,
+            }),
         },
     )
     .await?;
@@ -126,8 +135,8 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
         &collateral_mint.pubkey(),
         &EditMercurialVaultDepositoryFields {
             redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
-            minting_fee_in_bps: Some(100),
-            redeeming_fee_in_bps: Some(100),
+            minting_fee_in_bps: Some(0),
+            redeeming_fee_in_bps: Some(0),
             minting_disabled: Some(false),
             profits_beneficiary_collateral: None,
         },
@@ -142,8 +151,8 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
         &collateral_mint.pubkey(),
         &EditCredixLpDepositoryFields {
             redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
-            minting_fee_in_bps: Some(100),
-            redeeming_fee_in_bps: Some(100),
+            minting_fee_in_bps: Some(0),
+            redeeming_fee_in_bps: Some(0),
             minting_disabled: Some(false),
             profits_beneficiary_collateral: None,
         },
@@ -152,9 +161,17 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
 
     // ---------------------------------------------------------------------
     // -- Phase 3
+    // -- Minting should now work and respect the weights
     // ---------------------------------------------------------------------
 
-    // Minting should work now that everything is set
+    // Post mint supply should match the configured weights
+    let total_supply_after_first_mint = amount_the_user_can_mint_repeatedly;
+    let identity_depository_supply_after_first_mint = total_supply_after_first_mint * 10 / 100;
+    let mercurial_vault_depository_0_supply_after_first_mint =
+        total_supply_after_first_mint * 50 / 100;
+    let credix_lp_depository_0_supply_after_first_mint = total_supply_after_first_mint * 40 / 100;
+
+    // Minting should work now that everything is set, weights should be respected
     program_uxd::instructions::process_mint_generic(
         &mut program_test_context,
         &payer,
@@ -163,10 +180,53 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
         &user,
         &user_collateral,
         &user_redeemable,
-        amount_the_user_should_be_able_to_mint,
-        amount_the_user_should_be_able_to_mint / 3,
-        amount_the_user_should_be_able_to_mint / 3,
-        amount_the_user_should_be_able_to_mint / 3,
+        amount_the_user_can_mint_repeatedly,
+        identity_depository_supply_after_first_mint,
+        mercurial_vault_depository_0_supply_after_first_mint,
+        credix_lp_depository_0_supply_after_first_mint,
+    )
+    .await?;
+
+    // Set the controller weights to new values
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 10 * 100,
+                mercurial_vault_depository_0_weight_bps: 40 * 100,
+                credix_lp_depository_0_weight_bps: 50 * 100,
+            }),
+        },
+    )
+    .await?;
+
+    // Post mint supply should match the configured weights
+    let total_supply_after_second_mint = amount_the_user_can_mint_repeatedly * 2;
+    let identity_depository_supply_after_second_mint = total_supply_after_second_mint * 10 / 100;
+    let mercurial_vault_depository_0_supply_after_second_mint =
+        total_supply_after_second_mint * 10 / 100;
+    let credix_lp_depository_0_supply_after_second_mint = total_supply_after_second_mint * 80 / 100;
+
+    // Minting should now respect the new weights
+    program_uxd::instructions::process_mint_generic(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_the_user_can_mint_repeatedly,
+        identity_depository_supply_after_second_mint
+            - identity_depository_supply_after_first_mint
+            - 1, // precision loss
+        mercurial_vault_depository_0_supply_after_second_mint
+            - mercurial_vault_depository_0_supply_after_first_mint,
+        credix_lp_depository_0_supply_after_second_mint
+            - credix_lp_depository_0_supply_after_first_mint,
     )
     .await?;
 

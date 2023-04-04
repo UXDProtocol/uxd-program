@@ -9,6 +9,9 @@ use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
+use crate::utils::calculate_depositories_targets;
+use crate::utils::checked_convert_u128_to_u64;
+use crate::utils::compute_amount_less_fraction_floor;
 use crate::utils::validate_collateral_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -192,41 +195,130 @@ pub struct MintGeneric<'info> {
 }
 
 pub(crate) fn handler(ctx: Context<MintGeneric>, collateral_amount: u64) -> Result<()> {
-    // TODO - compute weights
-    let identity_depository_collateral_amount = collateral_amount / 3;
-    let mercurial_vault_depository_0_collateral_amount = collateral_amount / 3;
-    let credix_lp_depository_0_collateral_amount = collateral_amount / 3;
+    let controller = ctx.accounts.controller.load()?;
+
+    let redeemable_circulating_supply_before = controller.redeemable_circulating_supply;
+    let redeemable_circulating_supply_after = redeemable_circulating_supply_before
+        .checked_add(collateral_amount.into())
+        .ok_or(UxdError::MathError)?;
+
+    let identity_depository_weight_bps = controller.identity_depository_weight_bps;
+    let mercurial_vault_depository_0_weight_bps =
+        controller.mercurial_vault_depository_0_weight_bps;
+    let credix_lp_depository_0_weight_bps = controller.credix_lp_depository_0_weight_bps;
+
+    let identity_depository = ctx.accounts.identity_depository.load()?;
+    let identity_depository_redeemable_amount_under_management =
+        identity_depository.redeemable_amount_under_management;
+    let identity_depository_redeemable_amount_under_management_cap =
+        identity_depository.redeemable_amount_under_management_cap;
+
+    let mercurial_vault_depository_0 = ctx.accounts.mercurial_vault_depository_0.load()?;
+    let mercurial_vault_depository_0_redeemable_amount_under_management =
+        mercurial_vault_depository_0.redeemable_amount_under_management;
+    let mercurial_vault_depository_0_redeemable_amount_under_management_cap =
+        mercurial_vault_depository_0.redeemable_amount_under_management_cap;
+
+    let credix_lp_depository_0 = ctx.accounts.credix_lp_depository_0.load()?;
+    let credix_lp_depository_0_redeemable_amount_under_management =
+        credix_lp_depository_0.redeemable_amount_under_management;
+    let credix_lp_depository_0_redeemable_amount_under_management_cap =
+        credix_lp_depository_0.redeemable_amount_under_management_cap;
+
+    drop(controller);
+    drop(identity_depository);
+    drop(mercurial_vault_depository_0);
+    drop(credix_lp_depository_0);
+
+    let depositories_targets = calculate_depositories_targets(
+        redeemable_circulating_supply_after,
+        identity_depository_weight_bps,
+        mercurial_vault_depository_0_weight_bps,
+        credix_lp_depository_0_weight_bps,
+        identity_depository_redeemable_amount_under_management_cap,
+        mercurial_vault_depository_0_redeemable_amount_under_management_cap,
+        credix_lp_depository_0_redeemable_amount_under_management_cap,
+    )?;
+
+    let identity_depository_mintable_amount = ctx.accounts.compute_depository_mintable_amount(
+        depositories_targets.identity_depository_target_amount,
+        checked_convert_u128_to_u64(identity_depository_redeemable_amount_under_management)?,
+    )?;
+    let mercurial_vault_depository_0_mintable_amount =
+        ctx.accounts.compute_depository_mintable_amount(
+            depositories_targets.mercurial_vault_depository_0_target_amount,
+            checked_convert_u128_to_u64(
+                mercurial_vault_depository_0_redeemable_amount_under_management,
+            )?,
+        )?;
+    let credix_lp_depository_0_mintable_amount = ctx.accounts.compute_depository_mintable_amount(
+        depositories_targets.credix_lp_depository_0_target_amount,
+        checked_convert_u128_to_u64(credix_lp_depository_0_redeemable_amount_under_management)?,
+    )?;
+
+    let total_mintable_amount = identity_depository_mintable_amount
+        .checked_add(mercurial_vault_depository_0_mintable_amount)
+        .ok_or(UxdError::MathError)?
+        .checked_add(credix_lp_depository_0_mintable_amount)
+        .ok_or(UxdError::MathError)?;
+
+    let identity_depository_collateral_amount =
+        ctx.accounts.compute_collateral_amount_for_depository(
+            collateral_amount,
+            identity_depository_mintable_amount,
+            total_mintable_amount,
+        )?;
+
+    let mercurial_vault_depository_0_collateral_amount =
+        ctx.accounts.compute_collateral_amount_for_depository(
+            collateral_amount,
+            mercurial_vault_depository_0_mintable_amount,
+            total_mintable_amount,
+        )?;
+
+    let credix_lp_depository_0_collateral_amount =
+        ctx.accounts.compute_collateral_amount_for_depository(
+            collateral_amount,
+            credix_lp_depository_0_mintable_amount,
+            total_mintable_amount,
+        )?;
 
     // Mint the desired amount at identity_depository
     msg!(
         "[mint_generic:mint_with_identity_depository:{}]",
         identity_depository_collateral_amount
     );
-    crate::cpi::mint_with_identity_depository(
-        ctx.accounts.into_mint_with_identity_depository_context(),
-        identity_depository_collateral_amount,
-    )?;
+    if identity_depository_collateral_amount > 0 {
+        crate::cpi::mint_with_identity_depository(
+            ctx.accounts.into_mint_with_identity_depository_context(),
+            identity_depository_collateral_amount,
+        )?;
+    }
 
     // Mint the desired amount at mercurial_vault_depository_0
     msg!(
         "[mint_generic:mint_with_mercurial_vault_depository:{}]",
         mercurial_vault_depository_0_collateral_amount
     );
-    crate::cpi::mint_with_mercurial_vault_depository(
-        ctx.accounts
-            .into_mint_with_mercurial_vault_depository_0_context(),
-        mercurial_vault_depository_0_collateral_amount,
-    )?;
+    if mercurial_vault_depository_0_collateral_amount > 0 {
+        crate::cpi::mint_with_mercurial_vault_depository(
+            ctx.accounts
+                .into_mint_with_mercurial_vault_depository_0_context(),
+            mercurial_vault_depository_0_collateral_amount,
+        )?;
+    }
 
     // Mint the desired amount at credix_lp_depository_0
     msg!(
         "[mint_generic:mint_with_credix_lp_depository:{}]",
         credix_lp_depository_0_collateral_amount
     );
-    crate::cpi::mint_with_credix_lp_depository(
-        ctx.accounts.into_mint_with_credix_lp_depository_0_context(),
-        credix_lp_depository_0_collateral_amount,
-    )?;
+    if credix_lp_depository_0_collateral_amount > 0 {
+        crate::cpi::mint_with_credix_lp_depository(
+            ctx.accounts.into_mint_with_credix_lp_depository_0_context(),
+            credix_lp_depository_0_collateral_amount,
+        )?;
+    }
 
     // Done
     Ok(())
@@ -319,6 +411,37 @@ impl<'info> MintGeneric<'info> {
         };
         let cpi_program = self.credix_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
+    }
+}
+
+// Additional convenience methods
+impl<'info> MintGeneric<'info> {
+    fn compute_depository_mintable_amount(
+        &self,
+        depository_target_amount: u64,
+        depository_redeemable_amount_under_management: u64,
+    ) -> Result<u64> {
+        if depository_redeemable_amount_under_management > depository_target_amount {
+            return Ok(0);
+        }
+        Ok(depository_target_amount
+            .checked_sub(depository_redeemable_amount_under_management)
+            .ok_or(UxdError::MathError)?)
+    }
+
+    fn compute_collateral_amount_for_depository(
+        &self,
+        collateral_amount: u64,
+        depository_mintable_amount: u64,
+        total_mintable_amount: u64,
+    ) -> Result<u64> {
+        Ok(compute_amount_less_fraction_floor(
+            collateral_amount,
+            total_mintable_amount
+                .checked_sub(depository_mintable_amount)
+                .ok_or(UxdError::MathError)?,
+            total_mintable_amount,
+        )?)
     }
 }
 
