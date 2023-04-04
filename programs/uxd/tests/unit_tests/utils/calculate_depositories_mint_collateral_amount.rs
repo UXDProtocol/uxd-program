@@ -1,9 +1,9 @@
 // Unit tests
 #[cfg(test)]
-mod test_calculate_depositories_target_amount {
+mod test_calculate_depositories_mint_collateral_amount {
     use anchor_lang::Result;
     use proptest::prelude::*;
-    use uxd::utils::calculate_depositories_target_amount;
+    use uxd::utils::calculate_depositories_mint_collateral_amount;
     use uxd::BPS_UNIT_CONVERSION;
 
     fn percent_of_supply(percent: u64, supply: u64) -> u64 {
@@ -29,7 +29,7 @@ mod test_calculate_depositories_target_amount {
         let credix_lp_depository_0_hard_cap = percent_of_supply(100, circulating_supply);
 
         // Compute
-        let depositories_targets = calculate_depositories_target_amount(
+        let depositories_targets = calculate_depositories_mint_collateral_amount(
             circulating_supply.into(),
             identity_depository_weight_bps,
             mercurial_vault_depository_0_weight_bps,
@@ -41,15 +41,15 @@ mod test_calculate_depositories_target_amount {
 
         // The targets should match the raw weights since we dont have any overflow
         assert_eq!(
-            depositories_targets.identity_depository_target_amount,
+            depositories_targets.identity_depository_target_redeemable_amount,
             percent_of_supply(5, circulating_supply)
         );
         assert_eq!(
-            depositories_targets.mercurial_vault_depository_0_target_amount,
+            depositories_targets.mercurial_vault_depository_0_target_redeemable_amount,
             percent_of_supply(10, circulating_supply)
         );
         assert_eq!(
-            depositories_targets.credix_lp_depository_0_target_amount,
+            depositories_targets.credix_lp_depository_0_target_redeemable_amount,
             percent_of_supply(85, circulating_supply)
         );
 
@@ -71,7 +71,7 @@ mod test_calculate_depositories_target_amount {
         let credix_lp_depository_0_hard_cap = percent_of_supply(100, circulating_supply);
 
         // Compute
-        let depositories_targets = calculate_depositories_target_amount(
+        let depositories_targets = calculate_depositories_mint_collateral_amount(
             circulating_supply.into(),
             identity_depository_weight_bps,
             mercurial_vault_depository_0_weight_bps,
@@ -83,15 +83,15 @@ mod test_calculate_depositories_target_amount {
 
         // We expect the identity depository to be at the cap, and the overflow to be in other depositories
         assert_eq!(
-            depositories_targets.identity_depository_target_amount,
+            depositories_targets.identity_depository_target_redeemable_amount,
             identity_depository_hard_cap
         );
         assert_eq!(
-            depositories_targets.mercurial_vault_depository_0_target_amount,
+            depositories_targets.mercurial_vault_depository_0_target_redeemable_amount,
             percent_of_supply(50, circulating_supply)
         );
         assert_eq!(
-            depositories_targets.credix_lp_depository_0_target_amount,
+            depositories_targets.credix_lp_depository_0_target_redeemable_amount,
             percent_of_supply(50, circulating_supply)
         );
 
@@ -113,7 +113,7 @@ mod test_calculate_depositories_target_amount {
         let credix_lp_depository_0_hard_cap = percent_of_supply(20, circulating_supply);
 
         // Compute
-        let depositories_targets = calculate_depositories_target_amount(
+        let depositories_targets = calculate_depositories_mint_collateral_amount(
             circulating_supply.into(),
             identity_depository_weight_bps,
             mercurial_vault_depository_0_weight_bps,
@@ -127,15 +127,15 @@ mod test_calculate_depositories_target_amount {
         // And the overflow to be in other depositories
         // the amounts of overflow should be in the same proportion as the available space
         assert_eq!(
-            depositories_targets.identity_depository_target_amount,
+            depositories_targets.identity_depository_target_redeemable_amount,
             identity_depository_hard_cap
         );
         assert_eq!(
-            depositories_targets.mercurial_vault_depository_0_target_amount,
+            depositories_targets.mercurial_vault_depository_0_target_redeemable_amount,
             percent_of_supply(80, circulating_supply) // half full
         );
         assert_eq!(
-            depositories_targets.credix_lp_depository_0_target_amount,
+            depositories_targets.credix_lp_depository_0_target_redeemable_amount,
             percent_of_supply(10, circulating_supply) // half full
         );
 
@@ -157,7 +157,7 @@ mod test_calculate_depositories_target_amount {
         let credix_lp_depository_0_hard_cap = percent_of_supply(15, circulating_supply);
 
         // Compute
-        let depositories_targets = calculate_depositories_target_amount(
+        let depositories_targets = calculate_depositories_mint_collateral_amount(
             circulating_supply.into(),
             identity_depository_weight_bps,
             mercurial_vault_depository_0_weight_bps,
@@ -169,15 +169,15 @@ mod test_calculate_depositories_target_amount {
 
         // We expect all depositories to become filled up to their caps
         assert_eq!(
-            depositories_targets.identity_depository_target_amount,
+            depositories_targets.identity_depository_target_redeemable_amount,
             identity_depository_hard_cap
         );
         assert_eq!(
-            depositories_targets.mercurial_vault_depository_0_target_amount,
+            depositories_targets.mercurial_vault_depository_0_target_redeemable_amount,
             mercurial_vault_depository_0_hard_cap
         );
         assert_eq!(
-            depositories_targets.credix_lp_depository_0_target_amount,
+            depositories_targets.credix_lp_depository_0_target_redeemable_amount,
             credix_lp_depository_0_hard_cap
         );
 
@@ -213,7 +213,7 @@ mod test_calculate_depositories_target_amount {
             let identity_depository_weight_bps = identity_depository_weight_bps + BPS_UNIT_CONVERSION - total_weight_bps;
 
             // Compute
-            let result = calculate_depositories_target_amount(
+            let result = calculate_depositories_mint_collateral_amount(
                 circulating_supply.into(),
                 u16::try_from(identity_depository_weight_bps).unwrap(),
                 u16::try_from(mercurial_vault_depository_0_weight_bps).unwrap(),
@@ -239,14 +239,14 @@ mod test_calculate_depositories_target_amount {
             // - either equal to the circulating supply (minus precision loss)
             // - or equal to the sum of all depositories caps
 
-            let total_target_amount = depositories_targets.identity_depository_target_amount
-                + depositories_targets.mercurial_vault_depository_0_target_amount
-                + depositories_targets.credix_lp_depository_0_target_amount;
+            let total_target_redeemable_amount = depositories_targets.identity_depository_target_redeemable_amount
+                + depositories_targets.mercurial_vault_depository_0_target_redeemable_amount
+                + depositories_targets.credix_lp_depository_0_target_redeemable_amount;
 
-            prop_assert!(total_target_amount <= circulating_supply);
+            prop_assert!(total_target_redeemable_amount <= circulating_supply);
 
             if total_hard_caps < u128::from(circulating_supply) {
-                prop_assert_eq!(total_hard_caps, u128::from(total_target_amount));
+                prop_assert_eq!(total_hard_caps, u128::from(total_target_redeemable_amount));
             }
         });
         Ok(())

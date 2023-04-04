@@ -8,13 +8,13 @@ use crate::BPS_UNIT_CONVERSION;
 use super::checked_convert_u128_to_u64;
 use super::compute_amount_less_fraction_floor;
 
-pub struct DepositoriesTargetAmount {
-    pub identity_depository_target_amount: u64,
-    pub mercurial_vault_depository_0_target_amount: u64,
-    pub credix_lp_depository_0_target_amount: u64,
+pub struct DepositoriesTargetRedeemableAmount {
+    pub identity_depository_target_redeemable_amount: u64,
+    pub mercurial_vault_depository_0_target_redeemable_amount: u64,
+    pub credix_lp_depository_0_target_redeemable_amount: u64,
 }
 
-pub fn calculate_depositories_target_amount(
+pub fn calculate_depositories_target_redeemable_amount(
     redeemable_circulating_supply: u128,
     identity_depository_weight_bps: u16,
     mercurial_vault_depository_0_weight_bps: u16,
@@ -22,7 +22,7 @@ pub fn calculate_depositories_target_amount(
     identity_depository_redeemable_amount_under_management_cap: u128,
     mercurial_vault_depository_0_redeemable_amount_under_management_cap: u128,
     credix_lp_depository_0_redeemable_amount_under_management_cap: u128,
-) -> Result<DepositoriesTargetAmount> {
+) -> Result<DepositoriesTargetRedeemableAmount> {
     let redeemable_circulating_supply = checked_convert_u128_to_u64(redeemable_circulating_supply)?;
 
     // Double check that the weights adds up to 100%
@@ -42,18 +42,21 @@ pub fn calculate_depositories_target_amount(
     // -- And generate a raw_target estimations that we can refine later
     // ---------------------------------------------------------------------
 
-    let identity_depository_raw_target_amount = calculate_depository_raw_target_amount(
-        redeemable_circulating_supply,
-        identity_depository_weight_bps,
-    )?;
-    let mercurial_vault_depository_0_raw_target_amount = calculate_depository_raw_target_amount(
-        redeemable_circulating_supply,
-        mercurial_vault_depository_0_weight_bps,
-    )?;
-    let credix_lp_depository_0_raw_target_amount = calculate_depository_raw_target_amount(
-        redeemable_circulating_supply,
-        credix_lp_depository_0_weight_bps,
-    )?;
+    let identity_depository_raw_target_redeemable_amount =
+        calculate_depository_raw_target_redeemable_amount(
+            redeemable_circulating_supply,
+            identity_depository_weight_bps,
+        )?;
+    let mercurial_vault_depository_0_raw_target_redeemable_amount =
+        calculate_depository_raw_target_redeemable_amount(
+            redeemable_circulating_supply,
+            mercurial_vault_depository_0_weight_bps,
+        )?;
+    let credix_lp_depository_0_raw_target_redeemable_amount =
+        calculate_depository_raw_target_redeemable_amount(
+            redeemable_circulating_supply,
+            credix_lp_depository_0_weight_bps,
+        )?;
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -73,29 +76,29 @@ pub fn calculate_depositories_target_amount(
 
     // Compute the depository_overflow amount of raw target that doesn't fit within the cap of each depository
     let identity_depository_overflow_amount = calculate_depository_overflow_amount(
-        identity_depository_raw_target_amount,
+        identity_depository_raw_target_redeemable_amount,
         identity_depository_hard_cap_amount,
     )?;
     let mercurial_vault_depository_0_overflow_amount = calculate_depository_overflow_amount(
-        mercurial_vault_depository_0_raw_target_amount,
+        mercurial_vault_depository_0_raw_target_redeemable_amount,
         mercurial_vault_depository_0_hard_cap_amount,
     )?;
     let credix_lp_depository_0_overflow_amount = calculate_depository_overflow_amount(
-        credix_lp_depository_0_raw_target_amount,
+        credix_lp_depository_0_raw_target_redeemable_amount,
         credix_lp_depository_0_hard_cap_amount,
     )?;
 
     // Compute the amount of space available under the cap in each depository
     let identity_depository_available_amount = calculate_depository_available_amount(
-        identity_depository_raw_target_amount,
+        identity_depository_raw_target_redeemable_amount,
         identity_depository_hard_cap_amount,
     )?;
     let mercurial_vault_depository_0_available_amount = calculate_depository_available_amount(
-        mercurial_vault_depository_0_raw_target_amount,
+        mercurial_vault_depository_0_raw_target_redeemable_amount,
         mercurial_vault_depository_0_hard_cap_amount,
     )?;
     let credix_lp_depository_0_available_amount = calculate_depository_available_amount(
-        credix_lp_depository_0_raw_target_amount,
+        credix_lp_depository_0_raw_target_redeemable_amount,
         credix_lp_depository_0_hard_cap_amount,
     )?;
 
@@ -130,65 +133,68 @@ pub fn calculate_depositories_target_amount(
     // ---------------------------------------------------------------------
 
     // Compute the final targets for each depository
-    let identity_depository_target_amount = calculate_depository_target_amount(
-        identity_depository_raw_target_amount,
-        identity_depository_overflow_amount,
-        identity_depository_available_amount,
-        total_overflow_amount,
-        total_available_amount,
-    )?;
-    let mercurial_vault_depository_0_target_amount = calculate_depository_target_amount(
-        mercurial_vault_depository_0_raw_target_amount,
-        mercurial_vault_depository_0_overflow_amount,
-        mercurial_vault_depository_0_available_amount,
-        total_overflow_amount,
-        total_available_amount,
-    )?;
-    let credix_lp_depository_0_target_amount = calculate_depository_target_amount(
-        credix_lp_depository_0_raw_target_amount,
-        credix_lp_depository_0_overflow_amount,
-        credix_lp_depository_0_available_amount,
-        total_overflow_amount,
-        total_available_amount,
-    )?;
+    let identity_depository_target_redeemable_amount =
+        calculate_depository_target_redeemable_amount(
+            identity_depository_raw_target_redeemable_amount,
+            identity_depository_overflow_amount,
+            identity_depository_available_amount,
+            total_overflow_amount,
+            total_available_amount,
+        )?;
+    let mercurial_vault_depository_0_target_redeemable_amount =
+        calculate_depository_target_redeemable_amount(
+            mercurial_vault_depository_0_raw_target_redeemable_amount,
+            mercurial_vault_depository_0_overflow_amount,
+            mercurial_vault_depository_0_available_amount,
+            total_overflow_amount,
+            total_available_amount,
+        )?;
+    let credix_lp_depository_0_target_redeemable_amount =
+        calculate_depository_target_redeemable_amount(
+            credix_lp_depository_0_raw_target_redeemable_amount,
+            credix_lp_depository_0_overflow_amount,
+            credix_lp_depository_0_available_amount,
+            total_overflow_amount,
+            total_available_amount,
+        )?;
 
     // Done
-    Ok(DepositoriesTargetAmount {
-        identity_depository_target_amount,
-        mercurial_vault_depository_0_target_amount,
-        credix_lp_depository_0_target_amount,
+    Ok(DepositoriesTargetRedeemableAmount {
+        identity_depository_target_redeemable_amount,
+        mercurial_vault_depository_0_target_redeemable_amount,
+        credix_lp_depository_0_target_redeemable_amount,
     })
 }
 
 /**
  * Initial depository target that doesnt take into account any hard caps
  */
-fn calculate_depository_raw_target_amount(
+fn calculate_depository_raw_target_redeemable_amount(
     redeemable_circulating_supply: u64,
     depository_weight_bps: u16,
 ) -> Result<u64> {
     let other_depositories_weight_bps = BPS_UNIT_CONVERSION
         .checked_sub(depository_weight_bps.into())
         .ok_or(UxdError::MathError)?;
-    let depository_raw_target_amount = compute_amount_less_fraction_floor(
+    let depository_raw_target_redeemable_amount = compute_amount_less_fraction_floor(
         redeemable_circulating_supply,
         other_depositories_weight_bps,
         BPS_UNIT_CONVERSION,
     )?;
-    Ok(depository_raw_target_amount)
+    Ok(depository_raw_target_redeemable_amount)
 }
 
 /**
  * Compute how much is the current depository overflowing compared to its hard cap
  */
 fn calculate_depository_overflow_amount(
-    depository_raw_target_amount: u64,
+    depository_raw_target_redeemable_amount: u64,
     depository_hard_cap_amount: u64,
 ) -> Result<u64> {
-    if depository_raw_target_amount <= depository_hard_cap_amount {
+    if depository_raw_target_redeemable_amount <= depository_hard_cap_amount {
         return Ok(0);
     }
-    Ok(depository_raw_target_amount
+    Ok(depository_raw_target_redeemable_amount
         .checked_sub(depository_hard_cap_amount)
         .ok_or(UxdError::MathError)?)
 }
@@ -197,22 +203,22 @@ fn calculate_depository_overflow_amount(
  * Compute how much extra space the depository has within its hard cap
  */
 fn calculate_depository_available_amount(
-    depository_raw_target_amount: u64,
+    depository_raw_target_redeemable_amount: u64,
     depository_hard_cap_amount: u64,
 ) -> Result<u64> {
-    if depository_raw_target_amount >= depository_hard_cap_amount {
+    if depository_raw_target_redeemable_amount >= depository_hard_cap_amount {
         return Ok(0);
     }
     Ok(depository_hard_cap_amount
-        .checked_sub(depository_raw_target_amount)
+        .checked_sub(depository_raw_target_redeemable_amount)
         .ok_or(UxdError::MathError)?)
 }
 
 /**
  * Compute the final target amount based on circulating supply and all depository caps
  */
-fn calculate_depository_target_amount(
-    depository_raw_target_amount: u64,
+fn calculate_depository_target_redeemable_amount(
+    depository_raw_target_redeemable_amount: u64,
     depository_overflow_amount: u64,
     depository_available_amount: u64,
     total_overflow_amount: u64,
@@ -223,14 +229,14 @@ fn calculate_depository_target_amount(
             .checked_sub(depository_available_amount)
             .ok_or(UxdError::MathError)?;
         compute_amount_less_fraction_floor(
-            total_overflow_amount,
+            std::cmp::min(total_overflow_amount, total_available_amount),
             other_depositories_available_amount,
             total_available_amount,
         )?
     } else {
         0
     };
-    let final_target = depository_raw_target_amount
+    let final_target = depository_raw_target_redeemable_amount
         .checked_add(overflow_amount_reallocated_from_other_depositories)
         .ok_or(UxdError::MathError)?
         .checked_sub(depository_overflow_amount)
