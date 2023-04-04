@@ -8,6 +8,8 @@ pub enum UxdError {
     InvalidRedeemableMintDecimals,
     #[msg("Redeemable global supply above.")]
     InvalidRedeemableGlobalSupplyCap,
+    #[msg("Depository weights are invalid or do not add up to exactly 100%.")]
+    InvalidDepositoriesWeightBps,
     #[msg("Collateral amount cannot be 0")]
     InvalidCollateralAmount,
     #[msg("Redeemable amount must be > 0 in order to redeem.")]

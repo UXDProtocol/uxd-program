@@ -15,7 +15,7 @@ pub struct InitializeControllerEvent {
     pub authority: Pubkey,
 }
 
-/// Event called in [instructions::set_redeemable_global_supply_cap::handler].
+/// Event called in [instructions::edit_controller::handler].
 #[event]
 pub struct SetRedeemableGlobalSupplyCapEvent {
     /// The controller version.
@@ -26,6 +26,21 @@ pub struct SetRedeemableGlobalSupplyCapEvent {
     pub controller: Pubkey,
     /// The new cap.
     pub redeemable_global_supply_cap: u128,
+}
+
+/// Event called in [instructions::edit_controller::handler].
+#[event]
+pub struct SetDepositoriesWeightBps {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The new weights
+    pub identity_depository_weight_bps: u16,
+    pub mercurial_vault_depository_0_weight_bps: u16,
+    pub credix_lp_depository_0_weight_bps: u16,
 }
 
 /// Event called in [instructions::register_mercurial_vault_depository::handler].
