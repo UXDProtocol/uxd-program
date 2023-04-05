@@ -112,7 +112,7 @@ fn calculate_depository_mintable_collateral_amount(
  * Compute the fraction of the total_mint_collateral_amount that can be mint in this depository
  */
 fn calculate_depository_mint_collateral_amount(
-    total_mint_collateral_amount: u64,
+    input_mint_collateral_amount: u64,
     depository_mintable_collateral_amount: u64,
     total_mintable_collateral_amount: u64,
 ) -> Result<u64> {
@@ -120,7 +120,7 @@ fn calculate_depository_mint_collateral_amount(
         .checked_sub(depository_mintable_collateral_amount)
         .ok_or(UxdError::MathError)?;
     compute_amount_less_fraction_floor(
-        total_mint_collateral_amount,
+        input_mint_collateral_amount,
         other_depositories_mintable_collateral_amount,
         total_mintable_collateral_amount,
     )
