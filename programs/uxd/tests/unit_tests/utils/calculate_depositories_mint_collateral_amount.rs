@@ -101,7 +101,7 @@ mod test_calculate_depositories_mint_collateral_amount {
         );
         assert_eq!(
             depositories_mint_collateral_amount.credix_lp_depository_0_mint_collateral_amount,
-            ui_to_native_amount(1_000_000) * 1 / 3,
+            ui_to_native_amount(1_000_000) / 3,
         );
 
         Ok(())
@@ -292,6 +292,6 @@ mod test_calculate_depositories_mint_collateral_amount {
         if depository_target_redeemable_amount <= depository_redeemable_amount_under_management {
             return 0;
         }
-        return depository_target_redeemable_amount - depository_redeemable_amount_under_management;
+        depository_target_redeemable_amount - depository_redeemable_amount_under_management
     }
 }
