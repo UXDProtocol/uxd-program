@@ -119,9 +119,9 @@ fn calculate_depository_mint_collateral_amount(
     let other_depositories_mintable_collateral_amount = total_mintable_collateral_amount
         .checked_sub(depository_mintable_collateral_amount)
         .ok_or(UxdError::MathError)?;
-    Ok(compute_amount_less_fraction_floor(
+    compute_amount_less_fraction_floor(
         total_mint_collateral_amount,
         other_depositories_mintable_collateral_amount,
         total_mintable_collateral_amount,
-    )?)
+    )
 }
