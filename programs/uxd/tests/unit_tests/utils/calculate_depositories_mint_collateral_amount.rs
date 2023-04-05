@@ -7,21 +7,27 @@ mod test_calculate_depositories_mint_collateral_amount {
     use uxd::utils::is_within_range_inclusive;
     use uxd::utils::DepositoriesTargetRedeemableAmount;
 
+    fn ui_to_native_amount(ui_amount: u64) -> u64 {
+        ui_amount * 100_000
+    }
+
     #[test]
     fn test_with_simplest_case() -> Result<()> {
-        let input_mint_collateral_amount = 1_000_000_000;
+        let input_mint_collateral_amount = ui_to_native_amount(1_000_000);
 
         // identity_depository has available space to mint
-        let identity_depository_target_redeemable_amount = 1_000_000_000;
-        let identity_depository_redeemable_amount_under_management = 500_000_000;
+        let identity_depository_target_redeemable_amount = ui_to_native_amount(1_000_000);
+        let identity_depository_redeemable_amount_under_management = ui_to_native_amount(500_000);
 
         // mercurial_vault_depository_0 has available space to mint
-        let mercurial_vault_depository_0_target_redeemable_amount = 1_000_000_000;
-        let mercurial_vault_depository_0_redeemable_amount_under_management = 800_000_000;
+        let mercurial_vault_depository_0_target_redeemable_amount = ui_to_native_amount(1_000_000);
+        let mercurial_vault_depository_0_redeemable_amount_under_management =
+            ui_to_native_amount(800_000);
 
         // credix_lp_depository_0 has available space to mint
-        let credix_lp_depository_0_target_redeemable_amount = 1_000_000_000;
-        let credix_lp_depository_0_redeemable_amount_under_management = 700_000_000;
+        let credix_lp_depository_0_target_redeemable_amount = ui_to_native_amount(1_000_000);
+        let credix_lp_depository_0_redeemable_amount_under_management =
+            ui_to_native_amount(700_000);
 
         // Compute
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
@@ -31,23 +37,23 @@ mod test_calculate_depositories_mint_collateral_amount {
                 mercurial_vault_depository_0_target_redeemable_amount,
                 credix_lp_depository_0_target_redeemable_amount,
             },
-            identity_depository_redeemable_amount_under_management,
-            mercurial_vault_depository_0_redeemable_amount_under_management,
-            credix_lp_depository_0_redeemable_amount_under_management,
+            identity_depository_redeemable_amount_under_management.into(),
+            mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            credix_lp_depository_0_redeemable_amount_under_management.into(),
         )?;
 
         // All depositories should mint since they all have space
         assert_eq!(
             depositories_mint_collateral_amount.identity_depository_mint_collateral_amount,
-            500_000_000
+            ui_to_native_amount(500_000),
         );
         assert_eq!(
             depositories_mint_collateral_amount.mercurial_vault_depository_0_mint_collateral_amount,
-            200_000_000
+            ui_to_native_amount(200_000),
         );
         assert_eq!(
             depositories_mint_collateral_amount.credix_lp_depository_0_mint_collateral_amount,
-            300_000_000
+            ui_to_native_amount(300_000),
         );
 
         Ok(())
@@ -55,19 +61,21 @@ mod test_calculate_depositories_mint_collateral_amount {
 
     #[test]
     fn test_with_unbalanced() -> Result<()> {
-        let input_mint_collateral_amount = 1_000_000_000;
+        let input_mint_collateral_amount = ui_to_native_amount(1_000_000);
 
         // identity_depository is overflowing
-        let identity_depository_target_redeemable_amount = 1_000_000_000;
-        let identity_depository_redeemable_amount_under_management = 1_500_000_000;
+        let identity_depository_target_redeemable_amount = ui_to_native_amount(1_000_000);
+        let identity_depository_redeemable_amount_under_management = ui_to_native_amount(1_500_000);
 
         // mercurial_vault_depository_0 has available space to mint (a lot of it)
-        let mercurial_vault_depository_0_target_redeemable_amount = 1_000_000_000;
-        let mercurial_vault_depository_0_redeemable_amount_under_management = 0;
+        let mercurial_vault_depository_0_target_redeemable_amount = ui_to_native_amount(1_000_000);
+        let mercurial_vault_depository_0_redeemable_amount_under_management =
+            ui_to_native_amount(0);
 
         // credix_lp_depository_0 has available space to mint (a little of it)
-        let credix_lp_depository_0_target_redeemable_amount = 1_000_000_000;
-        let credix_lp_depository_0_redeemable_amount_under_management = 500_000_000;
+        let credix_lp_depository_0_target_redeemable_amount = ui_to_native_amount(1_000_000);
+        let credix_lp_depository_0_redeemable_amount_under_management =
+            ui_to_native_amount(500_000);
 
         // Compute
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
@@ -77,23 +85,71 @@ mod test_calculate_depositories_mint_collateral_amount {
                 mercurial_vault_depository_0_target_redeemable_amount,
                 credix_lp_depository_0_target_redeemable_amount,
             },
-            identity_depository_redeemable_amount_under_management,
-            mercurial_vault_depository_0_redeemable_amount_under_management,
-            credix_lp_depository_0_redeemable_amount_under_management,
+            identity_depository_redeemable_amount_under_management.into(),
+            mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            credix_lp_depository_0_redeemable_amount_under_management.into(),
         )?;
 
         // Identity should not mint, others should mint in proportion of their available space
         assert_eq!(
             depositories_mint_collateral_amount.identity_depository_mint_collateral_amount,
-            0,
+            ui_to_native_amount(0),
         );
         assert_eq!(
             depositories_mint_collateral_amount.mercurial_vault_depository_0_mint_collateral_amount,
-            666_666_666
+            ui_to_native_amount(1_000_000) * 2 / 3,
         );
         assert_eq!(
             depositories_mint_collateral_amount.credix_lp_depository_0_mint_collateral_amount,
-            333_333_333
+            ui_to_native_amount(1_000_000) * 1 / 3,
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_with_underflow_and_overflow() -> Result<()> {
+        let input_mint_collateral_amount = ui_to_native_amount(1_000_000);
+
+        // identity_depository is overflowing
+        let identity_depository_target_redeemable_amount = ui_to_native_amount(1_000_000);
+        let identity_depository_redeemable_amount_under_management = ui_to_native_amount(1_500_000);
+
+        // mercurial_vault_depository_0 has available space to mint (a lot of it)
+        let mercurial_vault_depository_0_target_redeemable_amount = ui_to_native_amount(1_000_000);
+        let mercurial_vault_depository_0_redeemable_amount_under_management =
+            ui_to_native_amount(0);
+
+        // credix_lp_depository_0 has no space
+        let credix_lp_depository_0_target_redeemable_amount = ui_to_native_amount(1_000_000);
+        let credix_lp_depository_0_redeemable_amount_under_management =
+            ui_to_native_amount(1_000_000);
+
+        // Compute
+        let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
+            input_mint_collateral_amount,
+            &DepositoriesTargetRedeemableAmount {
+                identity_depository_target_redeemable_amount,
+                mercurial_vault_depository_0_target_redeemable_amount,
+                credix_lp_depository_0_target_redeemable_amount,
+            },
+            identity_depository_redeemable_amount_under_management.into(),
+            mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            credix_lp_depository_0_redeemable_amount_under_management.into(),
+        )?;
+
+        // Identity should not mint, others should mint in proportion of their available space
+        assert_eq!(
+            depositories_mint_collateral_amount.identity_depository_mint_collateral_amount,
+            ui_to_native_amount(0),
+        );
+        assert_eq!(
+            depositories_mint_collateral_amount.mercurial_vault_depository_0_mint_collateral_amount,
+            ui_to_native_amount(1_000_000),
+        );
+        assert_eq!(
+            depositories_mint_collateral_amount.credix_lp_depository_0_mint_collateral_amount,
+            ui_to_native_amount(0),
         );
 
         Ok(())
@@ -101,19 +157,21 @@ mod test_calculate_depositories_mint_collateral_amount {
 
     #[test]
     fn test_with_not_enough_space() -> Result<()> {
-        let input_mint_collateral_amount = 1_000_000_000;
+        let input_mint_collateral_amount = ui_to_native_amount(1_000_000);
 
         // identity_depository is overflowing
-        let identity_depository_target_redeemable_amount = 1_000_000_000;
-        let identity_depository_redeemable_amount_under_management = 1_500_000_000;
+        let identity_depository_target_redeemable_amount = ui_to_native_amount(1_000_000);
+        let identity_depository_redeemable_amount_under_management = ui_to_native_amount(1_500_000);
 
-        // mercurial_vault_depository_0 is almost overflowing
-        let mercurial_vault_depository_0_target_redeemable_amount = 1_000_000_000;
-        let mercurial_vault_depository_0_redeemable_amount_under_management = 900_000_000;
+        // mercurial_vault_depository_0 is almost overflowing (but has a tiny space)
+        let mercurial_vault_depository_0_target_redeemable_amount = ui_to_native_amount(1_000_000);
+        let mercurial_vault_depository_0_redeemable_amount_under_management =
+            ui_to_native_amount(900_000);
 
         // credix_lp_depository_0 has available space to mint (not enough of it)
-        let credix_lp_depository_0_target_redeemable_amount = 1_000_000_000;
-        let credix_lp_depository_0_redeemable_amount_under_management = 500_000_000;
+        let credix_lp_depository_0_target_redeemable_amount = ui_to_native_amount(1_000_000);
+        let credix_lp_depository_0_redeemable_amount_under_management =
+            ui_to_native_amount(500_000);
 
         // Compute
         let result = calculate_depositories_mint_collateral_amount(
@@ -123,9 +181,9 @@ mod test_calculate_depositories_mint_collateral_amount {
                 mercurial_vault_depository_0_target_redeemable_amount,
                 credix_lp_depository_0_target_redeemable_amount,
             },
-            identity_depository_redeemable_amount_under_management,
-            mercurial_vault_depository_0_redeemable_amount_under_management,
-            credix_lp_depository_0_redeemable_amount_under_management,
+            identity_depository_redeemable_amount_under_management.into(),
+            mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            credix_lp_depository_0_redeemable_amount_under_management.into(),
         );
 
         // It should fail because there is not enough space
