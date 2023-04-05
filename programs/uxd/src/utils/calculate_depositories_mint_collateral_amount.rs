@@ -6,7 +6,6 @@ use crate::utils::calculate_depositories_sum_value;
 
 use super::checked_convert_u128_to_u64;
 use super::compute_amount_less_fraction_floor;
-use super::DepositoriesTargetRedeemableAmount;
 
 pub struct DepositoriesMintCollateralAmount {
     pub identity_depository_mint_collateral_amount: u64,
@@ -16,7 +15,9 @@ pub struct DepositoriesMintCollateralAmount {
 
 pub fn calculate_depositories_mint_collateral_amount(
     input_mint_collateral_amount: u64,
-    depositories_target_redeemable_amount: &DepositoriesTargetRedeemableAmount,
+    identity_depository_target_redeemable_amount: u64,
+    mercurial_vault_depository_0_target_redeemable_amount: u64,
+    credix_lp_depository_0_target_redeemable_amount: u64,
     identity_depository_redeemable_amount_under_management: u128,
     mercurial_vault_depository_0_redeemable_amount_under_management: u128,
     credix_lp_depository_0_redeemable_amount_under_management: u128,
@@ -29,18 +30,17 @@ pub fn calculate_depositories_mint_collateral_amount(
     let identity_depository_mintable_collateral_amount =
         calculate_depository_mintable_collateral_amount(
             identity_depository_redeemable_amount_under_management,
-            depositories_target_redeemable_amount.identity_depository_target_redeemable_amount,
+            identity_depository_target_redeemable_amount,
         )?;
     let mercurial_vault_depository_0_mintable_collateral_amount =
         calculate_depository_mintable_collateral_amount(
             mercurial_vault_depository_0_redeemable_amount_under_management,
-            depositories_target_redeemable_amount
-                .mercurial_vault_depository_0_target_redeemable_amount,
+            mercurial_vault_depository_0_target_redeemable_amount,
         )?;
     let credix_lp_depository_0_mintable_collateral_amount =
         calculate_depository_mintable_collateral_amount(
             credix_lp_depository_0_redeemable_amount_under_management,
-            depositories_target_redeemable_amount.credix_lp_depository_0_target_redeemable_amount,
+            credix_lp_depository_0_target_redeemable_amount,
         )?;
 
     // ---------------------------------------------------------------------

@@ -5,7 +5,6 @@ mod test_calculate_depositories_mint_collateral_amount {
     use proptest::prelude::*;
     use uxd::utils::calculate_depositories_mint_collateral_amount;
     use uxd::utils::is_within_range_inclusive;
-    use uxd::utils::DepositoriesTargetRedeemableAmount;
 
     fn ui_to_native_amount(ui_amount: u64) -> u64 {
         ui_amount * 100_000
@@ -32,11 +31,9 @@ mod test_calculate_depositories_mint_collateral_amount {
         // Compute
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
             input_mint_collateral_amount,
-            &DepositoriesTargetRedeemableAmount {
-                identity_depository_target_redeemable_amount,
-                mercurial_vault_depository_0_target_redeemable_amount,
-                credix_lp_depository_0_target_redeemable_amount,
-            },
+            identity_depository_target_redeemable_amount,
+            mercurial_vault_depository_0_target_redeemable_amount,
+            credix_lp_depository_0_target_redeemable_amount,
             identity_depository_redeemable_amount_under_management.into(),
             mercurial_vault_depository_0_redeemable_amount_under_management.into(),
             credix_lp_depository_0_redeemable_amount_under_management.into(),
@@ -80,11 +77,9 @@ mod test_calculate_depositories_mint_collateral_amount {
         // Compute
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
             input_mint_collateral_amount,
-            &DepositoriesTargetRedeemableAmount {
-                identity_depository_target_redeemable_amount,
-                mercurial_vault_depository_0_target_redeemable_amount,
-                credix_lp_depository_0_target_redeemable_amount,
-            },
+            identity_depository_target_redeemable_amount,
+            mercurial_vault_depository_0_target_redeemable_amount,
+            credix_lp_depository_0_target_redeemable_amount,
             identity_depository_redeemable_amount_under_management.into(),
             mercurial_vault_depository_0_redeemable_amount_under_management.into(),
             credix_lp_depository_0_redeemable_amount_under_management.into(),
@@ -128,11 +123,9 @@ mod test_calculate_depositories_mint_collateral_amount {
         // Compute
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
             input_mint_collateral_amount,
-            &DepositoriesTargetRedeemableAmount {
-                identity_depository_target_redeemable_amount,
-                mercurial_vault_depository_0_target_redeemable_amount,
-                credix_lp_depository_0_target_redeemable_amount,
-            },
+            identity_depository_target_redeemable_amount,
+            mercurial_vault_depository_0_target_redeemable_amount,
+            credix_lp_depository_0_target_redeemable_amount,
             identity_depository_redeemable_amount_under_management.into(),
             mercurial_vault_depository_0_redeemable_amount_under_management.into(),
             credix_lp_depository_0_redeemable_amount_under_management.into(),
@@ -176,11 +169,9 @@ mod test_calculate_depositories_mint_collateral_amount {
         // Compute
         let result = calculate_depositories_mint_collateral_amount(
             input_mint_collateral_amount,
-            &DepositoriesTargetRedeemableAmount {
-                identity_depository_target_redeemable_amount,
-                mercurial_vault_depository_0_target_redeemable_amount,
-                credix_lp_depository_0_target_redeemable_amount,
-            },
+            identity_depository_target_redeemable_amount,
+            mercurial_vault_depository_0_target_redeemable_amount,
+            credix_lp_depository_0_target_redeemable_amount,
             identity_depository_redeemable_amount_under_management.into(),
             mercurial_vault_depository_0_redeemable_amount_under_management.into(),
             credix_lp_depository_0_redeemable_amount_under_management.into(),
@@ -223,11 +214,9 @@ mod test_calculate_depositories_mint_collateral_amount {
             // Compute
             let result = calculate_depositories_mint_collateral_amount(
                 input_mint_collateral_amount,
-                &DepositoriesTargetRedeemableAmount {
-                    identity_depository_target_redeemable_amount,
-                    mercurial_vault_depository_0_target_redeemable_amount,
-                    credix_lp_depository_0_target_redeemable_amount,
-                },
+                identity_depository_target_redeemable_amount,
+                mercurial_vault_depository_0_target_redeemable_amount,
+                credix_lp_depository_0_target_redeemable_amount,
                 identity_depository_redeemable_amount_under_management.into(),
                 mercurial_vault_depository_0_redeemable_amount_under_management.into(),
                 credix_lp_depository_0_redeemable_amount_under_management.into(),
