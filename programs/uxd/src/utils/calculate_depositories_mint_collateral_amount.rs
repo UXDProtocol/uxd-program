@@ -15,7 +15,7 @@ pub struct DepositoriesMintCollateralAmount {
 }
 
 pub fn calculate_depositories_mint_collateral_amount(
-    total_mint_collateral_amount: u64,
+    input_mint_collateral_amount: u64,
     depositories_target_redeemable_amount: &DepositoriesTargetRedeemableAmount,
     identity_depository_redeemable_amount_under_management: u128,
     mercurial_vault_depository_0_redeemable_amount_under_management: u128,
@@ -55,7 +55,7 @@ pub fn calculate_depositories_mint_collateral_amount(
         credix_lp_depository_0_mintable_collateral_amount,
     )?;
     require!(
-        total_mintable_collateral_amount >= total_mint_collateral_amount,
+        total_mintable_collateral_amount >= input_mint_collateral_amount,
         UxdError::RedeemableGlobalSupplyCapReached
     );
 
@@ -66,19 +66,19 @@ pub fn calculate_depositories_mint_collateral_amount(
     // ---------------------------------------------------------------------
 
     let identity_depository_mint_collateral_amount = calculate_depository_mint_collateral_amount(
-        total_mint_collateral_amount,
+        input_mint_collateral_amount,
         identity_depository_mintable_collateral_amount,
         total_mintable_collateral_amount,
     )?;
     let mercurial_vault_depository_0_mint_collateral_amount =
         calculate_depository_mint_collateral_amount(
-            total_mint_collateral_amount,
+            input_mint_collateral_amount,
             mercurial_vault_depository_0_mintable_collateral_amount,
             total_mintable_collateral_amount,
         )?;
     let credix_lp_depository_0_mint_collateral_amount =
         calculate_depository_mint_collateral_amount(
-            total_mint_collateral_amount,
+            input_mint_collateral_amount,
             credix_lp_depository_0_mintable_collateral_amount,
             total_mintable_collateral_amount,
         )?;
