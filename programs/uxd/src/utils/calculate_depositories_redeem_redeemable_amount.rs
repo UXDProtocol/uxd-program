@@ -13,7 +13,7 @@ pub struct DepositoriesRedeemRedeemableAmount {
 }
 
 pub fn calculate_depositories_redeem_redeemable_amount(
-    input_redeem_redeemable_amount: u64,
+    requested_redeem_redeemable_amount: u64,
     identity_depository_target_redeemable_amount: u64,
     mercurial_vault_depository_0_target_redeemable_amount: u64,
     identity_depository_redeemable_amount_under_management: u128,
@@ -44,49 +44,68 @@ pub fn calculate_depositories_redeem_redeemable_amount(
 
     // ---------------------------------------------------------------------
     // -- Phase 2
-    // -- Calculate the maximum possible redeemable amount for each depository
+    // -- Calculate the remaining possible redeemable amount for each depository
+    // -- This amount is what remains redeemable after we redeemed the ideal amount
     // -- We wont be able to redeem past this amount as the depositories would be empty
     // ---------------------------------------------------------------------
 
-    let identity_depository_maximum_redeemable_amount =
-        checked_convert_u128_to_u64(identity_depository_redeemable_amount_under_management)?;
-    let mercurial_vault_depository_0_maximum_redeemable_amount = checked_convert_u128_to_u64(
-        mercurial_vault_depository_0_redeemable_amount_under_management,
-    )?;
-    let credix_lp_depository_0_maximum_redeemable_amount = 0; // credix is not liquid
+    let identity_depository_remaining_redeemable_amount =
+        calculate_depository_remaining_redeemable_amount(
+            identity_depository_redeemable_amount_under_management,
+            identity_depository_ideal_redeemable_amount,
+        )?;
+    let mercurial_vault_depository_0_remaining_redeemable_amount =
+        calculate_depository_remaining_redeemable_amount(
+            mercurial_vault_depository_0_redeemable_amount_under_management,
+            mercurial_vault_depository_0_ideal_redeemable_amount,
+        )?;
+    let credix_lp_depository_0_remaining_redeemable_amount = 0; // credix is not liquid
 
-    let total_maximum_redeemable_amount = calculate_depositories_sum_value(
-        identity_depository_maximum_redeemable_amount,
-        mercurial_vault_depository_0_maximum_redeemable_amount,
-        credix_lp_depository_0_maximum_redeemable_amount,
+    let total_remaining_redeemable_amount = calculate_depositories_sum_value(
+        identity_depository_remaining_redeemable_amount,
+        mercurial_vault_depository_0_remaining_redeemable_amount,
+        credix_lp_depository_0_remaining_redeemable_amount,
     )?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 3
+    // -- Check that we have enough accross all our available redeemable
+    // -- to be able to fullfill the user's redeemable requested amount
+    // ---------------------------------------------------------------------
+
+    let total_maximum_redeemable_amount = total_ideal_redeemable_amount
+        .checked_add(total_remaining_redeemable_amount)
+        .ok_or(UxdError::BumpError)?;
 
     require!(
-        total_maximum_redeemable_amount >= input_redeem_redeemable_amount,
+        total_maximum_redeemable_amount >= requested_redeem_redeemable_amount,
         UxdError::InvalidRedeemableAmount
     );
 
     // ---------------------------------------------------------------------
-    // -- Phase 3
-    // -- Compute the final amounts by trying as a best-effort to keep the balance
-    // -- And when keeping the balance is not possible, try to consume the remaining
+    // -- Phase 4
+    // -- Compute the final amounts by:
+    // -- trying as a best-effort to keep the balance (step1)
+    // -- And when keeping the perfect balance is not possible,
+    // -- try to consume the remaining redeemable amount fairly (step2)
     // ---------------------------------------------------------------------
 
     let identity_depository_redeem_redeemable_amount =
         calculate_depository_redeem_redeemable_amount(
-            input_redeem_redeemable_amount,
+            requested_redeem_redeemable_amount,
             identity_depository_ideal_redeemable_amount,
-            identity_depository_maximum_redeemable_amount,
+            identity_depository_remaining_redeemable_amount,
             total_ideal_redeemable_amount,
-            total_maximum_redeemable_amount,
+            total_remaining_redeemable_amount,
         )?;
+
     let mercurial_vault_depository_0_redeem_redeemable_amount =
         calculate_depository_redeem_redeemable_amount(
-            input_redeem_redeemable_amount,
+            requested_redeem_redeemable_amount,
             mercurial_vault_depository_0_ideal_redeemable_amount,
-            mercurial_vault_depository_0_maximum_redeemable_amount,
+            mercurial_vault_depository_0_remaining_redeemable_amount,
             total_ideal_redeemable_amount,
-            total_maximum_redeemable_amount,
+            total_remaining_redeemable_amount,
         )?;
 
     // Done
@@ -110,7 +129,21 @@ fn calculate_depository_ideal_redeemable_amount(
     }
     Ok(depository_redeemable_amount_under_management
         .checked_sub(depository_target_redeemable_amount)
-        .ok_or(UxdError::MathError)?)
+        .ok_or(UxdError::BumpError)?)
+}
+
+/**
+ * Compute how much we can redeem after we exhausted the ideal amount
+ */
+fn calculate_depository_remaining_redeemable_amount(
+    depository_redeemable_amount_under_management: u128,
+    depository_ideal_redeemable_amount: u64,
+) -> Result<u64> {
+    let depository_redeemable_amount_under_management =
+        checked_convert_u128_to_u64(depository_redeemable_amount_under_management)?;
+    Ok(depository_redeemable_amount_under_management
+        .checked_sub(depository_ideal_redeemable_amount)
+        .ok_or(UxdError::BumpError)?)
 }
 
 /**
@@ -120,38 +153,48 @@ fn calculate_depository_ideal_redeemable_amount(
  * - 2) if the ideal amount is not enough, we have to tap into the rest and create an imbalance
  */
 fn calculate_depository_redeem_redeemable_amount(
-    input_redeem_redeemable_amount: u64,
+    requested_redeem_redeemable_amount: u64,
     depository_ideal_redeemable_amount: u64,
-    depository_maximum_redeemable_amount: u64,
+    depository_remaining_redeemable_amount: u64,
     total_ideal_redeemable_amount: u64,
-    total_maximum_redeemable_amount: u64,
+    total_remaining_redeemable_amount: u64,
 ) -> Result<u64> {
-    // First phase, try to use the ideal amounts, weighted for each depository
-    let total_first_redeem_redeemable_amount = std::cmp::min(
-        input_redeem_redeemable_amount,
+    // Total possible redeemable amounts for both steps
+    let requested_first_redeem_redeemable_amount = std::cmp::min(
+        requested_redeem_redeemable_amount,
         total_ideal_redeemable_amount,
     );
-    let other_depositories_ideal_redeemable_amount = total_ideal_redeemable_amount
-        .checked_sub(depository_ideal_redeemable_amount)
+    let requested_second_redeem_redeemable_amount = requested_redeem_redeemable_amount
+        .checked_sub(requested_first_redeem_redeemable_amount)
         .ok_or(UxdError::MathError)?;
-    let depository_first_redeem_redeemable_amount = compute_amount_less_fraction_floor(
-        total_first_redeem_redeemable_amount,
-        other_depositories_ideal_redeemable_amount,
-        total_ideal_redeemable_amount,
-    )?;
+
+    // First step, try to use the ideal amounts, weighted for each depository
+    let depository_first_redeem_redeemable_amount = if total_ideal_redeemable_amount > 0 {
+        let other_depositories_ideal_redeemable_amount = total_ideal_redeemable_amount
+            .checked_sub(depository_ideal_redeemable_amount)
+            .ok_or(UxdError::MathError)?;
+        compute_amount_less_fraction_floor(
+            requested_first_redeem_redeemable_amount,
+            other_depositories_ideal_redeemable_amount,
+            total_ideal_redeemable_amount,
+        )?
+    } else {
+        0
+    };
 
     // Second step, anything remaining must be taken from the rest to create an unbalance
-    let total_second_redeem_redeemable_amount = input_redeem_redeemable_amount
-        .checked_sub(total_first_redeem_redeemable_amount)
-        .ok_or(UxdError::MathError)?;
-    let other_depositories_maximum_redeemable_amount = total_maximum_redeemable_amount
-        .checked_sub(depository_maximum_redeemable_amount)
-        .ok_or(UxdError::MathError)?;
-    let depository_second_redeem_redeemable_amount = compute_amount_less_fraction_floor(
-        total_second_redeem_redeemable_amount,
-        other_depositories_maximum_redeemable_amount,
-        total_maximum_redeemable_amount,
-    )?;
+    let depository_second_redeem_redeemable_amount = if total_remaining_redeemable_amount > 0 {
+        let other_depositories_remaining_redeemable_amount = total_remaining_redeemable_amount
+            .checked_sub(depository_remaining_redeemable_amount)
+            .ok_or(UxdError::MathError)?;
+        compute_amount_less_fraction_floor(
+            requested_second_redeem_redeemable_amount,
+            other_depositories_remaining_redeemable_amount,
+            total_remaining_redeemable_amount,
+        )?
+    } else {
+        0
+    };
 
     // The combo of the two gives our depository amount
     Ok(depository_first_redeem_redeemable_amount

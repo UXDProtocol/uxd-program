@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc c997b190340b66464c5c9470e2009c7dfcc871fe531f1a821b1d77185df336f2 # shrinks to requested_redeem_redeemable_amount = 0, identity_depository_target_redeemable_amount = 0, mercurial_vault_depository_0_target_redeemable_amount = 4999145751374195642, identity_depository_redeemable_amount_under_management = 13447598322335355974, mercurial_vault_depository_0_redeemable_amount_under_management = 0

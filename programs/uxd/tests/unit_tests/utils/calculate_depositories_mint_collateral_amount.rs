@@ -12,7 +12,7 @@ mod test_calculate_depositories_mint_collateral_amount {
 
     #[test]
     fn test_with_simplest_case() -> Result<()> {
-        let input_mint_collateral_amount = ui_to_native_amount(1_000_000);
+        let requested_mint_collateral_amount = ui_to_native_amount(1_000_000);
 
         // identity_depository has available space to mint
         let identity_depository_target_redeemable_amount = ui_to_native_amount(1_000_000);
@@ -30,7 +30,7 @@ mod test_calculate_depositories_mint_collateral_amount {
 
         // Compute
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
-            input_mint_collateral_amount,
+            requested_mint_collateral_amount,
             identity_depository_target_redeemable_amount,
             mercurial_vault_depository_0_target_redeemable_amount,
             credix_lp_depository_0_target_redeemable_amount,
@@ -58,7 +58,7 @@ mod test_calculate_depositories_mint_collateral_amount {
 
     #[test]
     fn test_with_unbalanced() -> Result<()> {
-        let input_mint_collateral_amount = ui_to_native_amount(1_000_000);
+        let requested_mint_collateral_amount = ui_to_native_amount(1_000_000);
 
         // identity_depository is overflowing
         let identity_depository_target_redeemable_amount = ui_to_native_amount(1_000_000);
@@ -76,7 +76,7 @@ mod test_calculate_depositories_mint_collateral_amount {
 
         // Compute
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
-            input_mint_collateral_amount,
+            requested_mint_collateral_amount,
             identity_depository_target_redeemable_amount,
             mercurial_vault_depository_0_target_redeemable_amount,
             credix_lp_depository_0_target_redeemable_amount,
@@ -104,7 +104,7 @@ mod test_calculate_depositories_mint_collateral_amount {
 
     #[test]
     fn test_with_underflow_and_overflow() -> Result<()> {
-        let input_mint_collateral_amount = ui_to_native_amount(1_000_000);
+        let requested_mint_collateral_amount = ui_to_native_amount(1_000_000);
 
         // identity_depository is overflowing
         let identity_depository_target_redeemable_amount = ui_to_native_amount(1_000_000);
@@ -122,7 +122,7 @@ mod test_calculate_depositories_mint_collateral_amount {
 
         // Compute
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
-            input_mint_collateral_amount,
+            requested_mint_collateral_amount,
             identity_depository_target_redeemable_amount,
             mercurial_vault_depository_0_target_redeemable_amount,
             credix_lp_depository_0_target_redeemable_amount,
@@ -150,7 +150,7 @@ mod test_calculate_depositories_mint_collateral_amount {
 
     #[test]
     fn test_with_not_enough_space() -> Result<()> {
-        let input_mint_collateral_amount = ui_to_native_amount(1_000_000);
+        let requested_mint_collateral_amount = ui_to_native_amount(1_000_000);
 
         // identity_depository is overflowing
         let identity_depository_target_redeemable_amount = ui_to_native_amount(1_000_000);
@@ -168,7 +168,7 @@ mod test_calculate_depositories_mint_collateral_amount {
 
         // Compute
         let result = calculate_depositories_mint_collateral_amount(
-            input_mint_collateral_amount,
+            requested_mint_collateral_amount,
             identity_depository_target_redeemable_amount,
             mercurial_vault_depository_0_target_redeemable_amount,
             credix_lp_depository_0_target_redeemable_amount,
@@ -185,7 +185,7 @@ mod test_calculate_depositories_mint_collateral_amount {
     #[test]
     fn test_no_panic_and_match_input() -> Result<()> {
         proptest!(|(
-            input_mint_collateral_amount: u64,
+            requested_mint_collateral_amount: u64,
             identity_depository_target_redeemable_amount: u64,
             mercurial_vault_depository_0_target_redeemable_amount: u64,
             credix_lp_depository_0_target_redeemable_amount: u64,
@@ -213,7 +213,7 @@ mod test_calculate_depositories_mint_collateral_amount {
 
             // Compute
             let result = calculate_depositories_mint_collateral_amount(
-                input_mint_collateral_amount,
+                requested_mint_collateral_amount,
                 identity_depository_target_redeemable_amount,
                 mercurial_vault_depository_0_target_redeemable_amount,
                 credix_lp_depository_0_target_redeemable_amount,
@@ -242,27 +242,25 @@ mod test_calculate_depositories_mint_collateral_amount {
                 + mercurial_vault_depository_0_mintable_collateral_amount
                 + credix_lp_depository_0_mintable_collateral_amount;
 
-            if input_mint_collateral_amount > total_mintable_collateral_amount {
+            if requested_mint_collateral_amount > total_mintable_collateral_amount {
                 prop_assert!(result.is_err());
                 return Ok(());
             }
 
             // Everything else should never panic
-            let depositories_mint_collatteral_amount = result?;
+            let depositories_mint_collateral_amount = result?;
 
             // The sum of all mint collateral amount should always exactly match the input collateral amount (minus precision loss)
-            let total_mint_collateral_amount = depositories_mint_collatteral_amount.identity_depository_mint_collateral_amount
-                + depositories_mint_collatteral_amount.mercurial_vault_depository_0_mint_collateral_amount
-                + depositories_mint_collatteral_amount.credix_lp_depository_0_mint_collateral_amount;
-
-            prop_assert!(total_mint_collateral_amount <= input_mint_collateral_amount);
+            let total_mint_collateral_amount = depositories_mint_collateral_amount.identity_depository_mint_collateral_amount
+                + depositories_mint_collateral_amount.mercurial_vault_depository_0_mint_collateral_amount
+                + depositories_mint_collateral_amount.credix_lp_depository_0_mint_collateral_amount;
 
             // Check for equality while allowing 1 of precision loss per depository (rounding errors)
             let allowed_precision_loss = 3;
 
-            let value_max = input_mint_collateral_amount;
-            let value_min = if input_mint_collateral_amount > allowed_precision_loss {
-                input_mint_collateral_amount - allowed_precision_loss
+            let value_max = requested_mint_collateral_amount;
+            let value_min = if requested_mint_collateral_amount > allowed_precision_loss {
+                requested_mint_collateral_amount - allowed_precision_loss
             } else {
                 0
             };
