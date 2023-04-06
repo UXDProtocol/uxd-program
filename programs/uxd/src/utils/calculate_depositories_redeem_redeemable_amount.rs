@@ -75,7 +75,7 @@ pub fn calculate_depositories_redeem_redeemable_amount(
 
     let total_maximum_redeemable_amount = total_ideal_redeemable_amount
         .checked_add(total_remaining_redeemable_amount)
-        .ok_or(UxdError::BumpError)?;
+        .ok_or(UxdError::MathError)?;
 
     require!(
         total_maximum_redeemable_amount >= requested_redeem_redeemable_amount,
@@ -129,7 +129,7 @@ fn calculate_depository_ideal_redeemable_amount(
     }
     Ok(depository_redeemable_amount_under_management
         .checked_sub(depository_target_redeemable_amount)
-        .ok_or(UxdError::BumpError)?)
+        .ok_or(UxdError::MathError)?)
 }
 
 /**
@@ -143,7 +143,7 @@ fn calculate_depository_remaining_redeemable_amount(
         checked_convert_u128_to_u64(depository_redeemable_amount_under_management)?;
     Ok(depository_redeemable_amount_under_management
         .checked_sub(depository_ideal_redeemable_amount)
-        .ok_or(UxdError::BumpError)?)
+        .ok_or(UxdError::MathError)?)
 }
 
 /**
