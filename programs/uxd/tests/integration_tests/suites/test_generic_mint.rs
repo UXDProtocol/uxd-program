@@ -74,13 +74,13 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
     .await?;
 
     // Useful amounts used during testing scenario
-    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(300, redeemable_mint_decimals);
+    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(1000, redeemable_mint_decimals);
 
     let amount_of_collateral_airdropped_to_user =
         ui_amount_to_native_amount(1000, collateral_mint_decimals);
 
-    let amount_the_user_can_mint_repeatedly =
-        ui_amount_to_native_amount(50, collateral_mint_decimals);
+    let amount_for_first_mint = ui_amount_to_native_amount(100, collateral_mint_decimals);
+    let amount_for_second_mint = ui_amount_to_native_amount(200, collateral_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -165,11 +165,9 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
     // ---------------------------------------------------------------------
 
     // Post mint supply should match the configured weights
-    let total_supply_after_first_mint = amount_the_user_can_mint_repeatedly;
-    let identity_depository_supply_after_first_mint = total_supply_after_first_mint * 10 / 100;
-    let mercurial_vault_depository_0_supply_after_first_mint =
-        total_supply_after_first_mint * 50 / 100;
-    let credix_lp_depository_0_supply_after_first_mint = total_supply_after_first_mint * 40 / 100;
+    let identity_depository_supply_after_first_mint = amount_for_first_mint * 10 / 100;
+    let mercurial_vault_depository_0_supply_after_first_mint = amount_for_first_mint * 50 / 100;
+    let credix_lp_depository_0_supply_after_first_mint = amount_for_first_mint * 40 / 100;
 
     // Minting should work now that everything is set, weights should be respected
     program_uxd::instructions::process_mint_generic(
@@ -180,7 +178,7 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
         &user,
         &user_collateral,
         &user_redeemable,
-        amount_the_user_can_mint_repeatedly,
+        amount_for_first_mint,
         identity_depository_supply_after_first_mint,
         mercurial_vault_depository_0_supply_after_first_mint,
         credix_lp_depository_0_supply_after_first_mint,
@@ -204,13 +202,14 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
     .await?;
 
     // Post mint supply should match the configured weights
-    let total_supply_after_second_mint = amount_the_user_can_mint_repeatedly * 2;
+    let total_supply_after_second_mint = amount_for_first_mint + amount_for_second_mint;
     let identity_depository_supply_after_second_mint = total_supply_after_second_mint * 10 / 100;
     let mercurial_vault_depository_0_supply_after_second_mint =
-        total_supply_after_second_mint * 10 / 100;
-    let credix_lp_depository_0_supply_after_second_mint = total_supply_after_second_mint * 80 / 100;
+        total_supply_after_second_mint * 40 / 100;
+    let credix_lp_depository_0_supply_after_second_mint = total_supply_after_second_mint * 50 / 100;
 
     // Minting should now respect the new weights
+    // Note: due to the precision loss from the first mint, we need to adjust by 1 in some places
     program_uxd::instructions::process_mint_generic(
         &mut program_test_context,
         &payer,
@@ -219,10 +218,8 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
         &user,
         &user_collateral,
         &user_redeemable,
-        amount_the_user_can_mint_repeatedly,
-        identity_depository_supply_after_second_mint
-            - identity_depository_supply_after_first_mint
-            - 1, // precision loss
+        amount_for_second_mint,
+        identity_depository_supply_after_second_mint - identity_depository_supply_after_first_mint,
         mercurial_vault_depository_0_supply_after_second_mint
             - mercurial_vault_depository_0_supply_after_first_mint,
         credix_lp_depository_0_supply_after_second_mint
