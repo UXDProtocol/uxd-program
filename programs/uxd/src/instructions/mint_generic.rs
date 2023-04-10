@@ -229,16 +229,6 @@ pub(crate) fn handler(ctx: Context<MintGeneric>, collateral_amount: u64) -> Resu
     drop(mercurial_vault_depository_0);
     drop(credix_lp_depository_0);
 
-    let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
-        redeemable_circulating_supply_after,
-        identity_depository_weight_bps,
-        mercurial_vault_depository_0_weight_bps,
-        credix_lp_depository_0_weight_bps,
-        identity_depository_redeemable_amount_under_management_cap,
-        mercurial_vault_depository_0_redeemable_amount_under_management_cap,
-        credix_lp_depository_0_redeemable_amount_under_management_cap,
-    )?;
-
     msg!("[mint_generic:collateral_amount:{}]", collateral_amount);
     msg!(
         "[mint_generic:identity_depository_redeemable_amount_under_management:{}]",
@@ -252,6 +242,17 @@ pub(crate) fn handler(ctx: Context<MintGeneric>, collateral_amount: u64) -> Resu
         "[mint_generic:credix_lp_depository_0_redeemable_amount_under_management:{}]",
         credix_lp_depository_0_redeemable_amount_under_management
     );
+
+    let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
+        redeemable_circulating_supply_after,
+        identity_depository_weight_bps,
+        mercurial_vault_depository_0_weight_bps,
+        credix_lp_depository_0_weight_bps,
+        identity_depository_redeemable_amount_under_management_cap,
+        mercurial_vault_depository_0_redeemable_amount_under_management_cap,
+        credix_lp_depository_0_redeemable_amount_under_management_cap,
+    )?;
+
     msg!(
         "[mint_generic:depositories_target_redeemable_amount.identity_depository_target_redeemable_amount:{}]",
         depositories_target_redeemable_amount.identity_depository_target_redeemable_amount
@@ -275,7 +276,20 @@ pub(crate) fn handler(ctx: Context<MintGeneric>, collateral_amount: u64) -> Resu
         credix_lp_depository_0_redeemable_amount_under_management,
     )?;
 
-    // Total minted
+    msg!(
+        "[mint_generic:depositories_mint_collateral_amount.identity_depository_mint_collateral_amount:{}]",
+        depositories_mint_collateral_amount.identity_depository_mint_collateral_amount
+    );
+    msg!(
+        "[mint_generic:depositories_mint_collateral_amount.mercurial_vault_depository_0_mint_collateral_amount:{}]",
+        depositories_mint_collateral_amount.mercurial_vault_depository_0_mint_collateral_amount
+    );
+    msg!(
+        "[mint_generic:depositories_mint_collateral_amount.credix_lp_depository_0_mint_collateral_amount:{}]",
+        depositories_mint_collateral_amount.credix_lp_depository_0_mint_collateral_amount
+    );
+
+    // Final mint amounts that we pass to depository-specific mint IXs
     let identity_depository_mint_collateral_amount =
         depositories_mint_collateral_amount.identity_depository_mint_collateral_amount;
     let mercurial_vault_depository_0_mint_collateral_amount =

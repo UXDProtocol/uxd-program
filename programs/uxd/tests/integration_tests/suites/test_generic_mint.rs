@@ -219,9 +219,12 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
         &user_collateral,
         &user_redeemable,
         amount_for_second_mint,
-        identity_depository_supply_after_second_mint - identity_depository_supply_after_first_mint,
+        identity_depository_supply_after_second_mint
+            - identity_depository_supply_after_first_mint
+            - 1, // Precision loss as a consequence of the first mint rounding
         mercurial_vault_depository_0_supply_after_second_mint
-            - mercurial_vault_depository_0_supply_after_first_mint,
+            - mercurial_vault_depository_0_supply_after_first_mint
+            - 1, // Precision loss as a consequence of the first mint rounding
         credix_lp_depository_0_supply_after_second_mint
             - credix_lp_depository_0_supply_after_first_mint,
     )
