@@ -7,7 +7,6 @@ use crate::BPS_UNIT_CONVERSION;
 
 use super::checked_convert_u128_to_u64;
 use super::compute_amount_fraction_ceil;
-use super::compute_amount_less_fraction_floor;
 
 pub struct DepositoriesTargetRedeemableAmount {
     pub identity_depository_target_redeemable_amount: u64,
