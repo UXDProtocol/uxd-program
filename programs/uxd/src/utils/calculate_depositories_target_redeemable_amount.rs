@@ -6,6 +6,7 @@ use crate::utils::calculate_depositories_sum_value;
 use crate::BPS_UNIT_CONVERSION;
 
 use super::checked_convert_u128_to_u64;
+use super::compute_amount_fraction_ceil;
 use super::compute_amount_less_fraction_floor;
 
 pub struct DepositoriesTargetRedeemableAmount {
@@ -173,12 +174,9 @@ fn calculate_depository_raw_target_redeemable_amount(
     redeemable_circulating_supply: u64,
     depository_weight_bps: u16,
 ) -> Result<u64> {
-    let other_depositories_weight_bps = BPS_UNIT_CONVERSION
-        .checked_sub(depository_weight_bps.into())
-        .ok_or(UxdError::MathError)?;
-    let depository_raw_target_redeemable_amount = compute_amount_less_fraction_floor(
+    let depository_raw_target_redeemable_amount = compute_amount_fraction_ceil(
         redeemable_circulating_supply,
-        other_depositories_weight_bps,
+        depository_weight_bps.into(),
         BPS_UNIT_CONVERSION,
     )?;
     Ok(depository_raw_target_redeemable_amount)
@@ -225,12 +223,9 @@ fn calculate_depository_target_redeemable_amount(
     total_available_amount: u64,
 ) -> Result<u64> {
     let overflow_amount_reallocated_from_other_depositories: u64 = if total_available_amount > 0 {
-        let other_depositories_available_amount = total_available_amount
-            .checked_sub(depository_available_amount)
-            .ok_or(UxdError::MathError)?;
-        compute_amount_less_fraction_floor(
+        compute_amount_fraction_ceil(
             std::cmp::min(total_overflow_amount, total_available_amount),
-            other_depositories_available_amount,
+            depository_available_amount,
             total_available_amount,
         )?
     } else {

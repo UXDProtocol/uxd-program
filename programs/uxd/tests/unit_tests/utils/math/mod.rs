@@ -1,5 +1,6 @@
 mod checked_add_u128_and_i128;
 mod checked_convert_u128_to_u64;
+mod compute_amount_fraction_ceil;
 mod compute_amount_less_fraction_floor;
 mod compute_decrease;
 mod compute_increase;
