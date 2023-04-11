@@ -3,45 +3,42 @@ use anchor_lang::require;
 
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
+use crate::ROUTER_DEPOSITORIES_COUNT;
 
 use super::checked_convert_u128_to_u64;
 use super::compute_amount_less_fraction_floor;
 
-pub struct DepositoriesMintCollateralAmount {
-    pub identity_depository_mint_collateral_amount: u64,
-    pub mercurial_vault_depository_0_mint_collateral_amount: u64,
-    pub credix_lp_depository_0_mint_collateral_amount: u64,
+pub struct DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+    pub target_redeemable_amount: u64,
+    pub redeemable_amount_under_management: u128,
 }
 
 pub fn calculate_depositories_mint_collateral_amount(
     requested_mint_collateral_amount: u64,
-    identity_depository_target_redeemable_amount: u64,
-    mercurial_vault_depository_0_target_redeemable_amount: u64,
-    credix_lp_depository_0_target_redeemable_amount: u64,
-    identity_depository_redeemable_amount_under_management: u128,
-    mercurial_vault_depository_0_redeemable_amount_under_management: u128,
-    credix_lp_depository_0_redeemable_amount_under_management: u128,
-) -> Result<DepositoriesMintCollateralAmount> {
+    depositories_target_and_redeemable_under_management: &Vec<
+        DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement,
+    >,
+) -> Result<Vec<u64>> {
+    require!(
+        depositories_target_and_redeemable_under_management.len() == ROUTER_DEPOSITORIES_COUNT,
+        UxdError::InvalidDepositoriesVector
+    );
+
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Calculate the maximum mintable collateral amount for each depository
     // ---------------------------------------------------------------------
 
-    let identity_depository_mintable_collateral_amount =
-        calculate_depository_mintable_collateral_amount(
-            identity_depository_redeemable_amount_under_management,
-            identity_depository_target_redeemable_amount,
-        )?;
-    let mercurial_vault_depository_0_mintable_collateral_amount =
-        calculate_depository_mintable_collateral_amount(
-            mercurial_vault_depository_0_redeemable_amount_under_management,
-            mercurial_vault_depository_0_target_redeemable_amount,
-        )?;
-    let credix_lp_depository_0_mintable_collateral_amount =
-        calculate_depository_mintable_collateral_amount(
-            credix_lp_depository_0_redeemable_amount_under_management,
-            credix_lp_depository_0_target_redeemable_amount,
-        )?;
+    let depositories_mintable_collateral_amount =
+        depositories_target_and_redeemable_under_management
+            .iter()
+            .map(|depository| {
+                calculate_depository_mintable_collateral_amount(
+                    depository.redeemable_amount_under_management,
+                    depository.target_redeemable_amount,
+                )
+            })
+            .collect::<Result<Vec<u64>>>()?;
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -49,14 +46,11 @@ pub fn calculate_depositories_mint_collateral_amount(
     // -- If this total is not enough, we abort
     // ---------------------------------------------------------------------
 
-    let total_mintable_collateral_amount = calculate_depositories_sum_value(
-        identity_depository_mintable_collateral_amount,
-        mercurial_vault_depository_0_mintable_collateral_amount,
-        credix_lp_depository_0_mintable_collateral_amount,
-    )?;
+    let total_mintable_collateral_amount =
+        calculate_depositories_sum_value(&depositories_mintable_collateral_amount)?;
     require!(
         total_mintable_collateral_amount >= requested_mint_collateral_amount,
-        UxdError::RedeemableGlobalSupplyCapReached
+        UxdError::InsufficientAvailableAmount
     );
 
     // ---------------------------------------------------------------------
@@ -65,30 +59,19 @@ pub fn calculate_depositories_mint_collateral_amount(
     // -- it is a weighted slice of the total mintable amount
     // ---------------------------------------------------------------------
 
-    let identity_depository_mint_collateral_amount = calculate_depository_mint_collateral_amount(
-        requested_mint_collateral_amount,
-        identity_depository_mintable_collateral_amount,
-        total_mintable_collateral_amount,
-    )?;
-    let mercurial_vault_depository_0_mint_collateral_amount =
-        calculate_depository_mint_collateral_amount(
-            requested_mint_collateral_amount,
-            mercurial_vault_depository_0_mintable_collateral_amount,
-            total_mintable_collateral_amount,
-        )?;
-    let credix_lp_depository_0_mint_collateral_amount =
-        calculate_depository_mint_collateral_amount(
-            requested_mint_collateral_amount,
-            credix_lp_depository_0_mintable_collateral_amount,
-            total_mintable_collateral_amount,
-        )?;
+    let depositories_mint_collateral_amount = depositories_mintable_collateral_amount
+        .iter()
+        .map(|depository_mintable_collateral_amount| {
+            calculate_depository_mint_collateral_amount(
+                requested_mint_collateral_amount,
+                *depository_mintable_collateral_amount,
+                total_mintable_collateral_amount,
+            )
+        })
+        .collect::<Result<Vec<u64>>>()?;
 
     // Done
-    Ok(DepositoriesMintCollateralAmount {
-        identity_depository_mint_collateral_amount,
-        mercurial_vault_depository_0_mint_collateral_amount,
-        credix_lp_depository_0_mint_collateral_amount,
-    })
+    Ok(depositories_mint_collateral_amount)
 }
 
 /**
