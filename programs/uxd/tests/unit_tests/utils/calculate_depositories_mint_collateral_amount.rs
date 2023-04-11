@@ -5,6 +5,10 @@ mod test_calculate_depositories_mint_collateral_amount {
     use proptest::prelude::*;
     use uxd::utils::calculate_depositories_mint_collateral_amount;
     use uxd::utils::is_within_range_inclusive;
+    use uxd::utils::DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement;
+    use uxd::ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX;
+    use uxd::ROUTER_IDENTITY_DEPOSITORY_INDEX;
+    use uxd::ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX;
 
     fn ui_to_native_amount(ui_amount: u64) -> u64 {
         ui_amount * 100_000
@@ -29,27 +33,39 @@ mod test_calculate_depositories_mint_collateral_amount {
             ui_to_native_amount(700_000);
 
         // Compute
+        let depositories_target_and_redeemable_under_management = vec![
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                target_redeemable_amount: identity_depository_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    identity_depository_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                target_redeemable_amount: credix_lp_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    credix_lp_depository_0_redeemable_amount_under_management.into(),
+            },
+        ];
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
             requested_mint_collateral_amount,
-            identity_depository_target_redeemable_amount,
-            mercurial_vault_depository_0_target_redeemable_amount,
-            credix_lp_depository_0_target_redeemable_amount,
-            identity_depository_redeemable_amount_under_management.into(),
-            mercurial_vault_depository_0_redeemable_amount_under_management.into(),
-            credix_lp_depository_0_redeemable_amount_under_management.into(),
+            &depositories_target_and_redeemable_under_management,
         )?;
 
         // All depositories should mint since they all have space
         assert_eq!(
-            depositories_mint_collateral_amount.identity_depository_mint_collateral_amount,
+            depositories_mint_collateral_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
             ui_to_native_amount(500_000),
         );
         assert_eq!(
-            depositories_mint_collateral_amount.mercurial_vault_depository_0_mint_collateral_amount,
+            depositories_mint_collateral_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
             ui_to_native_amount(200_000),
         );
         assert_eq!(
-            depositories_mint_collateral_amount.credix_lp_depository_0_mint_collateral_amount,
+            depositories_mint_collateral_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
             ui_to_native_amount(300_000),
         );
 
@@ -75,27 +91,39 @@ mod test_calculate_depositories_mint_collateral_amount {
             ui_to_native_amount(500_000);
 
         // Compute
+        let depositories_target_and_redeemable_under_management = vec![
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                target_redeemable_amount: identity_depository_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    identity_depository_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                target_redeemable_amount: credix_lp_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    credix_lp_depository_0_redeemable_amount_under_management.into(),
+            },
+        ];
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
             requested_mint_collateral_amount,
-            identity_depository_target_redeemable_amount,
-            mercurial_vault_depository_0_target_redeemable_amount,
-            credix_lp_depository_0_target_redeemable_amount,
-            identity_depository_redeemable_amount_under_management.into(),
-            mercurial_vault_depository_0_redeemable_amount_under_management.into(),
-            credix_lp_depository_0_redeemable_amount_under_management.into(),
+            &depositories_target_and_redeemable_under_management,
         )?;
 
         // Identity should not mint, others should mint in proportion of their available space
         assert_eq!(
-            depositories_mint_collateral_amount.identity_depository_mint_collateral_amount,
+            depositories_mint_collateral_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
             ui_to_native_amount(0),
         );
         assert_eq!(
-            depositories_mint_collateral_amount.mercurial_vault_depository_0_mint_collateral_amount,
+            depositories_mint_collateral_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
             ui_to_native_amount(1_000_000) * 2 / 3,
         );
         assert_eq!(
-            depositories_mint_collateral_amount.credix_lp_depository_0_mint_collateral_amount,
+            depositories_mint_collateral_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
             ui_to_native_amount(1_000_000) / 3,
         );
 
@@ -121,27 +149,39 @@ mod test_calculate_depositories_mint_collateral_amount {
             ui_to_native_amount(1_000_000);
 
         // Compute
+        let depositories_target_and_redeemable_under_management = vec![
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                target_redeemable_amount: identity_depository_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    identity_depository_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                target_redeemable_amount: credix_lp_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    credix_lp_depository_0_redeemable_amount_under_management.into(),
+            },
+        ];
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
             requested_mint_collateral_amount,
-            identity_depository_target_redeemable_amount,
-            mercurial_vault_depository_0_target_redeemable_amount,
-            credix_lp_depository_0_target_redeemable_amount,
-            identity_depository_redeemable_amount_under_management.into(),
-            mercurial_vault_depository_0_redeemable_amount_under_management.into(),
-            credix_lp_depository_0_redeemable_amount_under_management.into(),
+            &depositories_target_and_redeemable_under_management,
         )?;
 
         // Identity should not mint, others should mint in proportion of their available space
         assert_eq!(
-            depositories_mint_collateral_amount.identity_depository_mint_collateral_amount,
+            depositories_mint_collateral_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
             ui_to_native_amount(0),
         );
         assert_eq!(
-            depositories_mint_collateral_amount.mercurial_vault_depository_0_mint_collateral_amount,
+            depositories_mint_collateral_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
             ui_to_native_amount(1_000_000),
         );
         assert_eq!(
-            depositories_mint_collateral_amount.credix_lp_depository_0_mint_collateral_amount,
+            depositories_mint_collateral_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
             ui_to_native_amount(0),
         );
 
@@ -167,14 +207,26 @@ mod test_calculate_depositories_mint_collateral_amount {
             ui_to_native_amount(500_000);
 
         // Compute
+        let depositories_target_and_redeemable_under_management = vec![
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                target_redeemable_amount: identity_depository_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    identity_depository_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                target_redeemable_amount: credix_lp_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    credix_lp_depository_0_redeemable_amount_under_management.into(),
+            },
+        ];
         let result = calculate_depositories_mint_collateral_amount(
             requested_mint_collateral_amount,
-            identity_depository_target_redeemable_amount,
-            mercurial_vault_depository_0_target_redeemable_amount,
-            credix_lp_depository_0_target_redeemable_amount,
-            identity_depository_redeemable_amount_under_management.into(),
-            mercurial_vault_depository_0_redeemable_amount_under_management.into(),
-            credix_lp_depository_0_redeemable_amount_under_management.into(),
+            &depositories_target_and_redeemable_under_management,
         );
 
         // It should fail because there is not enough space
@@ -212,14 +264,23 @@ mod test_calculate_depositories_mint_collateral_amount {
             }
 
             // Compute
+            let depositories_target_and_redeemable_under_management = vec![
+                DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                    target_redeemable_amount: identity_depository_target_redeemable_amount,
+                    redeemable_amount_under_management: identity_depository_redeemable_amount_under_management.into(),
+                },
+                DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                    target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
+                    redeemable_amount_under_management: mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+                },
+                DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+                    target_redeemable_amount: credix_lp_depository_0_target_redeemable_amount,
+                    redeemable_amount_under_management: credix_lp_depository_0_redeemable_amount_under_management.into(),
+                }
+            ];
             let result = calculate_depositories_mint_collateral_amount(
                 requested_mint_collateral_amount,
-                identity_depository_target_redeemable_amount,
-                mercurial_vault_depository_0_target_redeemable_amount,
-                credix_lp_depository_0_target_redeemable_amount,
-                identity_depository_redeemable_amount_under_management.into(),
-                mercurial_vault_depository_0_redeemable_amount_under_management.into(),
-                credix_lp_depository_0_redeemable_amount_under_management.into(),
+                &depositories_target_and_redeemable_under_management,
             );
 
             // If there is not enough space within all depositories, we must fail
@@ -251,9 +312,9 @@ mod test_calculate_depositories_mint_collateral_amount {
             let depositories_mint_collateral_amount = result?;
 
             // The sum of all mint collateral amount should always exactly match the input collateral amount (minus precision loss)
-            let total_mint_collateral_amount = depositories_mint_collateral_amount.identity_depository_mint_collateral_amount
-                + depositories_mint_collateral_amount.mercurial_vault_depository_0_mint_collateral_amount
-                + depositories_mint_collateral_amount.credix_lp_depository_0_mint_collateral_amount;
+            let total_mint_collateral_amount = depositories_mint_collateral_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX]
+                + depositories_mint_collateral_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX]
+                + depositories_mint_collateral_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX];
 
             // Check for equality while allowing 1 of precision loss per depository (rounding errors)
             let allowed_precision_loss = 3;

@@ -41,6 +41,11 @@ pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
 pub const DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
 
+pub const ROUTER_DEPOSITORIES_COUNT: usize = 3;
+pub const ROUTER_IDENTITY_DEPOSITORY_INDEX: usize = 0;
+pub const ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX: usize = 1;
+pub const ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX: usize = 2;
+
 const BPS_POW: u8 = 4; // Raise a number to BPS_POW to get order of magnitude of
 pub const BPS_UNIT_CONVERSION: u64 = (10u64).pow(BPS_POW as u32);
 

@@ -230,6 +230,8 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
     )
     .await?;
 
+    assert!(false);
+
     // Done
     Ok(())
 }

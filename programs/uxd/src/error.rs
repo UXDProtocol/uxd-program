@@ -8,8 +8,10 @@ pub enum UxdError {
     InvalidRedeemableMintDecimals,
     #[msg("Redeemable global supply above.")]
     InvalidRedeemableGlobalSupplyCap,
-    #[msg("Depository weights are invalid or do not add up to exactly 100%.")]
+    #[msg("Depositories weights are invalid or do not add up to exactly 100%.")]
     InvalidDepositoriesWeightBps,
+    #[msg("Depositories vector passed as parameter is not of the expected length")]
+    InvalidDepositoriesVector,
     #[msg("Collateral amount cannot be 0")]
     InvalidCollateralAmount,
     #[msg("Redeemable amount must be > 0 in order to redeem.")]
@@ -18,6 +20,8 @@ pub enum UxdError {
     InsufficientCollateralAmount,
     #[msg("The balance of the redeemable ATA is not enough to fulfill the redeem operation.")]
     InsufficientRedeemableAmount,
+    #[msg("The total available amount in the depositories is not enough to absorb the mint.")]
+    InsufficientAvailableAmount,
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
     RedeemableGlobalSupplyCapReached,
     #[msg("Minting amount would go past the mercurial vault depository Redeemable Amount Under Management Cap.")]
