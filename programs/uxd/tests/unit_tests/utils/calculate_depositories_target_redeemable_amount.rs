@@ -194,7 +194,7 @@ mod test_calculate_depositories_target_redeemable_amount {
     }
 
     #[test]
-    fn test_no_panic_and_no_over_cap() -> Result<()> {
+    fn test_no_panic_and_always_over_supply() -> Result<()> {
         proptest!(|(
             circulating_supply: u64,
             identity_depository_weight_random: u16,
@@ -251,19 +251,17 @@ mod test_calculate_depositories_target_redeemable_amount {
                 + depositories_target_redeemable_amount.mercurial_vault_depository_0_target_redeemable_amount
                 + depositories_target_redeemable_amount.credix_lp_depository_0_target_redeemable_amount;
 
-            // Check for equality while allowing 1 of precision loss per depository (rounding errors)
+            // Check for equality while allowing 1 of rounding error per depository
             let allowed_precision_loss = 3;
 
-            let value_max = maximum_redeemable_amount;
-            let value_min = if maximum_redeemable_amount > allowed_precision_loss {
-                maximum_redeemable_amount - allowed_precision_loss
-            } else {
-                0
-            };
+            let value_min = maximum_redeemable_amount;
+            let value_max = maximum_redeemable_amount + allowed_precision_loss;
 
-            prop_assert!(
-                is_within_range_inclusive(total_target_redeemable_amount, value_min, value_max)
-            );
+            prop_assert!(is_within_range_inclusive(
+                total_target_redeemable_amount,
+                value_min,
+                value_max
+            ));
         });
         Ok(())
     }
