@@ -4,35 +4,39 @@ use anchor_lang::require;
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
 use crate::BPS_UNIT_CONVERSION;
+use crate::ROUTER_DEPOSITORIES_COUNT;
 
 use super::checked_convert_u128_to_u64;
 use super::compute_amount_fraction_ceil;
 
-pub struct DepositoriesTargetRedeemableAmount {
-    pub identity_depository_target_redeemable_amount: u64,
-    pub mercurial_vault_depository_0_target_redeemable_amount: u64,
-    pub credix_lp_depository_0_target_redeemable_amount: u64,
+pub struct DepositoryWeightBpsAndRedeemableAmountUnderManagementCap {
+    pub weight_bps: u16,
+    pub redeemable_amount_under_management_cap: u128,
 }
 
 pub fn calculate_depositories_target_redeemable_amount(
     redeemable_circulating_supply: u128,
-    identity_depository_weight_bps: u16,
-    mercurial_vault_depository_0_weight_bps: u16,
-    credix_lp_depository_0_weight_bps: u16,
-    identity_depository_redeemable_amount_under_management_cap: u128,
-    mercurial_vault_depository_0_redeemable_amount_under_management_cap: u128,
-    credix_lp_depository_0_redeemable_amount_under_management_cap: u128,
-) -> Result<DepositoriesTargetRedeemableAmount> {
+    depositories_weight_bps_and_redeemable_amount_under_management_cap: &Vec<
+        DepositoryWeightBpsAndRedeemableAmountUnderManagementCap,
+    >,
+) -> Result<Vec<u64>> {
+    require!(
+        depositories_weight_bps_and_redeemable_amount_under_management_cap.len()
+            == ROUTER_DEPOSITORIES_COUNT,
+        UxdError::InvalidDepositoriesVector
+    );
+
     let redeemable_circulating_supply = checked_convert_u128_to_u64(redeemable_circulating_supply)?;
 
     // Double check that the weights adds up to 100%
+    let depositories_weights_bps =
+        depositories_weight_bps_and_redeemable_amount_under_management_cap
+            .iter()
+            .map(|depository| u64::from(depository.weight_bps))
+            .collect::<Vec<u64>>();
+    let total_weight_bps = calculate_depositories_sum_value(&depositories_weights_bps)?;
     require!(
-        BPS_UNIT_CONVERSION
-            == calculate_depositories_sum_value(
-                identity_depository_weight_bps.into(),
-                mercurial_vault_depository_0_weight_bps.into(),
-                credix_lp_depository_0_weight_bps.into(),
-            )?,
+        total_weight_bps == BPS_UNIT_CONVERSION,
         UxdError::InvalidDepositoriesWeightBps,
     );
 
@@ -42,21 +46,17 @@ pub fn calculate_depositories_target_redeemable_amount(
     // -- And generate a raw_target estimations that we can refine later
     // ---------------------------------------------------------------------
 
-    let identity_depository_raw_target_redeemable_amount =
-        calculate_depository_raw_target_redeemable_amount(
-            redeemable_circulating_supply,
-            identity_depository_weight_bps,
-        )?;
-    let mercurial_vault_depository_0_raw_target_redeemable_amount =
-        calculate_depository_raw_target_redeemable_amount(
-            redeemable_circulating_supply,
-            mercurial_vault_depository_0_weight_bps,
-        )?;
-    let credix_lp_depository_0_raw_target_redeemable_amount =
-        calculate_depository_raw_target_redeemable_amount(
-            redeemable_circulating_supply,
-            credix_lp_depository_0_weight_bps,
-        )?;
+    let depositories_raw_target_redeemable_amount =
+        depositories_weight_bps_and_redeemable_amount_under_management_cap
+            .iter()
+            .map(|depository| {
+                compute_amount_fraction_ceil(
+                    redeemable_circulating_supply,
+                    depository.weight_bps.into(),
+                    BPS_UNIT_CONVERSION,
+                )
+            })
+            .collect::<Result<Vec<u64>>>()?;
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -66,41 +66,47 @@ pub fn calculate_depositories_target_redeemable_amount(
     // ---------------------------------------------------------------------
 
     // Read the minting caps of each depository
-    let identity_depository_hard_cap_amount =
-        checked_convert_u128_to_u64(identity_depository_redeemable_amount_under_management_cap)?;
-    let mercurial_vault_depository_0_hard_cap_amount = checked_convert_u128_to_u64(
-        mercurial_vault_depository_0_redeemable_amount_under_management_cap,
-    )?;
-    let credix_lp_depository_0_hard_cap_amount =
-        checked_convert_u128_to_u64(credix_lp_depository_0_redeemable_amount_under_management_cap)?;
+    let depositories_hard_cap_amount =
+        depositories_weight_bps_and_redeemable_amount_under_management_cap
+            .iter()
+            .map(|depository| {
+                checked_convert_u128_to_u64(depository.redeemable_amount_under_management_cap)
+            })
+            .collect::<Result<Vec<u64>>>()?;
 
     // Compute the depository_overflow amount of raw target that doesn't fit within the cap of each depository
-    let identity_depository_overflow_amount = calculate_depository_overflow_amount(
-        identity_depository_raw_target_redeemable_amount,
-        identity_depository_hard_cap_amount,
-    )?;
-    let mercurial_vault_depository_0_overflow_amount = calculate_depository_overflow_amount(
-        mercurial_vault_depository_0_raw_target_redeemable_amount,
-        mercurial_vault_depository_0_hard_cap_amount,
-    )?;
-    let credix_lp_depository_0_overflow_amount = calculate_depository_overflow_amount(
-        credix_lp_depository_0_raw_target_redeemable_amount,
-        credix_lp_depository_0_hard_cap_amount,
-    )?;
+    let depositories_overflow_amount = std::iter::zip(
+        depositories_raw_target_redeemable_amount.iter(),
+        depositories_hard_cap_amount.iter(),
+    )
+    .map(
+        |(depository_raw_target_redeemable_amount, depository_hard_cap_amount)| {
+            if depository_raw_target_redeemable_amount <= depository_hard_cap_amount {
+                return Ok(0);
+            }
+            Ok(depository_raw_target_redeemable_amount
+                .checked_sub(*depository_hard_cap_amount)
+                .ok_or(UxdError::MathError)?)
+        },
+    )
+    .collect::<Result<Vec<u64>>>()?;
 
     // Compute the amount of space available under the cap in each depository
-    let identity_depository_available_amount = calculate_depository_available_amount(
-        identity_depository_raw_target_redeemable_amount,
-        identity_depository_hard_cap_amount,
-    )?;
-    let mercurial_vault_depository_0_available_amount = calculate_depository_available_amount(
-        mercurial_vault_depository_0_raw_target_redeemable_amount,
-        mercurial_vault_depository_0_hard_cap_amount,
-    )?;
-    let credix_lp_depository_0_available_amount = calculate_depository_available_amount(
-        credix_lp_depository_0_raw_target_redeemable_amount,
-        credix_lp_depository_0_hard_cap_amount,
-    )?;
+    let depositories_available_amount = std::iter::zip(
+        depositories_raw_target_redeemable_amount.iter(),
+        depositories_hard_cap_amount.iter(),
+    )
+    .map(
+        |(depository_raw_target_redeemable_amount, depository_hard_cap_amount)| {
+            if depository_raw_target_redeemable_amount >= depository_hard_cap_amount {
+                return Ok(0);
+            }
+            Ok(depository_hard_cap_amount
+                .checked_sub(*depository_raw_target_redeemable_amount)
+                .ok_or(UxdError::MathError)?)
+        },
+    )
+    .collect::<Result<Vec<u64>>>()?;
 
     // ---------------------------------------------------------------------
     // -- Phase 3
@@ -109,17 +115,9 @@ pub fn calculate_depositories_target_redeemable_amount(
     // ---------------------------------------------------------------------
 
     // Compute total amount that doesn't fit within depositories hard cap
-    let total_overflow_amount = calculate_depositories_sum_value(
-        identity_depository_overflow_amount,
-        mercurial_vault_depository_0_overflow_amount,
-        credix_lp_depository_0_overflow_amount,
-    )?;
+    let total_overflow_amount = calculate_depositories_sum_value(&depositories_overflow_amount)?;
     // Compute total amount that doesn't fit within depositories hard cap
-    let total_available_amount = calculate_depositories_sum_value(
-        identity_depository_available_amount,
-        mercurial_vault_depository_0_available_amount,
-        credix_lp_depository_0_available_amount,
-    )?;
+    let total_available_amount = calculate_depositories_sum_value(&depositories_available_amount)?;
 
     // ---------------------------------------------------------------------
     // -- Phase 4
@@ -133,107 +131,43 @@ pub fn calculate_depositories_target_redeemable_amount(
     // ---------------------------------------------------------------------
 
     // Compute the final targets for each depository
-    let identity_depository_target_redeemable_amount =
-        calculate_depository_target_redeemable_amount(
-            identity_depository_raw_target_redeemable_amount,
-            identity_depository_overflow_amount,
-            identity_depository_available_amount,
-            total_overflow_amount,
-            total_available_amount,
-        )?;
-    let mercurial_vault_depository_0_target_redeemable_amount =
-        calculate_depository_target_redeemable_amount(
-            mercurial_vault_depository_0_raw_target_redeemable_amount,
-            mercurial_vault_depository_0_overflow_amount,
-            mercurial_vault_depository_0_available_amount,
-            total_overflow_amount,
-            total_available_amount,
-        )?;
-    let credix_lp_depository_0_target_redeemable_amount =
-        calculate_depository_target_redeemable_amount(
-            credix_lp_depository_0_raw_target_redeemable_amount,
-            credix_lp_depository_0_overflow_amount,
-            credix_lp_depository_0_available_amount,
-            total_overflow_amount,
-            total_available_amount,
-        )?;
+    let depositories_target_redeemable_amount = std::iter::zip(
+        depositories_raw_target_redeemable_amount.iter(),
+        std::iter::zip(
+            depositories_overflow_amount.iter(),
+            depositories_available_amount.iter(),
+        ),
+    )
+    .map(
+        |(
+            depository_raw_target_redeemable_amount,
+            (depository_overflow_amount, depository_available_amount),
+        )| {
+            // Compute the amount of overflow from other depositories that this depository can take
+            let overflow_amount_reallocated_from_other_depositories: u64 =
+                if total_available_amount > 0 {
+                    // We try to rellocate up to the maximum available total amount.
+                    // If the overflow amount is more than the available amount, there is nothing we can do
+                    let total_amount_reallocatable =
+                        std::cmp::min(total_overflow_amount, total_available_amount);
+                    compute_amount_fraction_ceil(
+                        total_amount_reallocatable,
+                        *depository_available_amount,
+                        total_available_amount,
+                    )?
+                } else {
+                    0
+                };
+            let final_target = depository_raw_target_redeemable_amount
+                .checked_add(overflow_amount_reallocated_from_other_depositories)
+                .ok_or(UxdError::MathError)?
+                .checked_sub(*depository_overflow_amount)
+                .ok_or(UxdError::MathError)?;
+            Ok(final_target)
+        },
+    )
+    .collect::<Result<Vec<u64>>>()?;
 
     // Done
-    Ok(DepositoriesTargetRedeemableAmount {
-        identity_depository_target_redeemable_amount,
-        mercurial_vault_depository_0_target_redeemable_amount,
-        credix_lp_depository_0_target_redeemable_amount,
-    })
-}
-
-/**
- * Initial depository target that doesnt take into account any hard caps
- */
-fn calculate_depository_raw_target_redeemable_amount(
-    redeemable_circulating_supply: u64,
-    depository_weight_bps: u16,
-) -> Result<u64> {
-    let depository_raw_target_redeemable_amount = compute_amount_fraction_ceil(
-        redeemable_circulating_supply,
-        depository_weight_bps.into(),
-        BPS_UNIT_CONVERSION,
-    )?;
-    Ok(depository_raw_target_redeemable_amount)
-}
-
-/**
- * Compute how much is the current depository overflowing compared to its hard cap
- */
-fn calculate_depository_overflow_amount(
-    depository_raw_target_redeemable_amount: u64,
-    depository_hard_cap_amount: u64,
-) -> Result<u64> {
-    if depository_raw_target_redeemable_amount <= depository_hard_cap_amount {
-        return Ok(0);
-    }
-    Ok(depository_raw_target_redeemable_amount
-        .checked_sub(depository_hard_cap_amount)
-        .ok_or(UxdError::MathError)?)
-}
-
-/**
- * Compute how much extra space the depository has within its hard cap
- */
-fn calculate_depository_available_amount(
-    depository_raw_target_redeemable_amount: u64,
-    depository_hard_cap_amount: u64,
-) -> Result<u64> {
-    if depository_raw_target_redeemable_amount >= depository_hard_cap_amount {
-        return Ok(0);
-    }
-    Ok(depository_hard_cap_amount
-        .checked_sub(depository_raw_target_redeemable_amount)
-        .ok_or(UxdError::MathError)?)
-}
-
-/**
- * Compute the final target amount based on circulating supply and all depository caps
- */
-fn calculate_depository_target_redeemable_amount(
-    depository_raw_target_redeemable_amount: u64,
-    depository_overflow_amount: u64,
-    depository_available_amount: u64,
-    total_overflow_amount: u64,
-    total_available_amount: u64,
-) -> Result<u64> {
-    let overflow_amount_reallocated_from_other_depositories: u64 = if total_available_amount > 0 {
-        compute_amount_fraction_ceil(
-            std::cmp::min(total_overflow_amount, total_available_amount),
-            depository_available_amount,
-            total_available_amount,
-        )?
-    } else {
-        0
-    };
-    let final_target = depository_raw_target_redeemable_amount
-        .checked_add(overflow_amount_reallocated_from_other_depositories)
-        .ok_or(UxdError::MathError)?
-        .checked_sub(depository_overflow_amount)
-        .ok_or(UxdError::MathError)?;
-    Ok(final_target)
+    Ok(depositories_target_redeemable_amount)
 }
