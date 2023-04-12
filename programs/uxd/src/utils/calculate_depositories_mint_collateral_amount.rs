@@ -33,10 +33,17 @@ pub fn calculate_depositories_mint_collateral_amount(
         depositories_target_and_redeemable_under_management
             .iter()
             .map(|depository| {
-                calculate_depository_mintable_collateral_amount(
-                    depository.redeemable_amount_under_management,
-                    depository.target_redeemable_amount,
-                )
+                let depository_redeemable_amount_under_management =
+                    checked_convert_u128_to_u64(depository.redeemable_amount_under_management)?;
+                if depository.target_redeemable_amount
+                    <= depository_redeemable_amount_under_management
+                {
+                    return Ok(0);
+                }
+                Ok(depository
+                    .target_redeemable_amount
+                    .checked_sub(depository_redeemable_amount_under_management)
+                    .ok_or(UxdError::MathError)?)
             })
             .collect::<Result<Vec<u64>>>()?;
 
@@ -55,16 +62,19 @@ pub fn calculate_depositories_mint_collateral_amount(
 
     // ---------------------------------------------------------------------
     // -- Phase 3
-    // -- Calculate the actual minted amount,
-    // -- it is a weighted slice of the total mintable amount
+    // -- Calculate the actual minted amount per depository for the requested mint amount,
+    // -- it is a weighted slice of the total mintable amount, scaled by the requested mint amount
     // ---------------------------------------------------------------------
 
     let depositories_mint_collateral_amount = depositories_mintable_collateral_amount
         .iter()
         .map(|depository_mintable_collateral_amount| {
-            calculate_depository_mint_collateral_amount(
+            let other_depositories_mintable_collateral_amount = total_mintable_collateral_amount
+                .checked_sub(*depository_mintable_collateral_amount)
+                .ok_or(UxdError::MathError)?;
+            compute_amount_less_fraction_floor(
                 requested_mint_collateral_amount,
-                *depository_mintable_collateral_amount,
+                other_depositories_mintable_collateral_amount,
                 total_mintable_collateral_amount,
             )
         })
@@ -72,39 +82,4 @@ pub fn calculate_depositories_mint_collateral_amount(
 
     // Done
     Ok(depositories_mint_collateral_amount)
-}
-
-/**
- * Compute how much we can mint before we go over the depository's target
- */
-fn calculate_depository_mintable_collateral_amount(
-    depository_redeemable_amount_under_management: u128,
-    depository_target_redeemable_amount: u64,
-) -> Result<u64> {
-    let depository_redeemable_amount_under_management =
-        checked_convert_u128_to_u64(depository_redeemable_amount_under_management)?;
-    if depository_target_redeemable_amount <= depository_redeemable_amount_under_management {
-        return Ok(0);
-    }
-    Ok(depository_target_redeemable_amount
-        .checked_sub(depository_redeemable_amount_under_management)
-        .ok_or(UxdError::MathError)?)
-}
-
-/**
- * Compute the fraction of the total_mint_collateral_amount that can be mint in this depository
- */
-fn calculate_depository_mint_collateral_amount(
-    requested_mint_collateral_amount: u64,
-    depository_mintable_collateral_amount: u64,
-    total_mintable_collateral_amount: u64,
-) -> Result<u64> {
-    let other_depositories_mintable_collateral_amount = total_mintable_collateral_amount
-        .checked_sub(depository_mintable_collateral_amount)
-        .ok_or(UxdError::MathError)?;
-    compute_amount_less_fraction_floor(
-        requested_mint_collateral_amount,
-        other_depositories_mintable_collateral_amount,
-        total_mintable_collateral_amount,
-    )
 }
