@@ -58,9 +58,9 @@ pub fn calculate_depositories_redeem_redeemable_amount(
 
     // ---------------------------------------------------------------------
     // -- Phase 2
-    // -- Calculate the under_target possible redeemable amount for each depository
+    // -- Calculate the under_target redeemable amount for each depository
     // -- This amount is what remains redeemable after we redeemed the over_target amount
-    // -- We wont be able to redeem past this amount as the depositories would be empty
+    // -- This amount will be used as a last-ditch effort to fullfull the redeem when needed
     // ---------------------------------------------------------------------
 
     let depositories_under_target_redeemable_amount =
@@ -105,11 +105,11 @@ pub fn calculate_depositories_redeem_redeemable_amount(
     // ---------------------------------------------------------------------
 
     let depositories_redeem_redeemable_amount = std::iter::zip(
-        depositories_under_target_redeemable_amount.iter(),
         depositories_over_target_redeemable_amount.iter(),
+        depositories_under_target_redeemable_amount.iter(),
     )
     .map(
-        |(depository_under_target_redeemable_amount, depository_over_target_redeemable_amount)| {
+        |(depository_over_target_redeemable_amount, depository_under_target_redeemable_amount)| {
             // Total possible redeemable amounts for both steps
             let requested_first_redeem_redeemable_amount = std::cmp::min(
                 requested_redeem_redeemable_amount,
