@@ -5,6 +5,11 @@ mod test_calculate_depositories_redeem_redeemable_amount {
     use proptest::prelude::*;
     use uxd::utils::calculate_depositories_redeem_redeemable_amount;
     use uxd::utils::is_within_range_inclusive;
+    use uxd::utils::DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid;
+    use uxd::ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX;
+    use uxd::ROUTER_DEPOSITORIES_COUNT;
+    use uxd::ROUTER_IDENTITY_DEPOSITORY_INDEX;
+    use uxd::ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX;
 
     fn ui_to_native_amount(ui_amount: u64) -> u64 {
         ui_amount * 100_000
@@ -24,24 +29,44 @@ mod test_calculate_depositories_redeem_redeemable_amount {
             ui_to_native_amount(2_500_000);
 
         // Compute
+        let depositories_target_and_redeemable_under_management_and_liquid = vec![
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: true,
+                target_redeemable_amount: identity_depository_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    identity_depository_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: true,
+                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: false,
+                target_redeemable_amount: 99, // this should not matter on illiquid dppository
+                redeemable_amount_under_management: 42, // this should not matter on illiquid depository
+            },
+        ];
         let depositories_redeem_redeemable_amount =
             calculate_depositories_redeem_redeemable_amount(
                 requested_redeem_redeemable_amount,
-                identity_depository_target_redeemable_amount,
-                mercurial_vault_depository_0_target_redeemable_amount,
-                identity_depository_redeemable_amount_under_management.into(),
-                mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+                depositories_target_and_redeemable_under_management_and_liquid,
             )?;
 
         // All depositories should be withdrawn from, weighted by the amount of overflow
         assert_eq!(
-            depositories_redeem_redeemable_amount.identity_depository_redeem_redeemable_amount,
+            depositories_redeem_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
             ui_to_native_amount(250_000),
         );
         assert_eq!(
-            depositories_redeem_redeemable_amount
-                .mercurial_vault_depository_0_redeem_redeemable_amount,
+            depositories_redeem_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
             ui_to_native_amount(750_000),
+        );
+        assert_eq!(
+            // except illiquid ones
+            depositories_redeem_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
+            0,
         );
 
         Ok(())
@@ -61,24 +86,44 @@ mod test_calculate_depositories_redeem_redeemable_amount {
             ui_to_native_amount(2_500_000);
 
         // Compute
+        let depositories_target_and_redeemable_under_management_and_liquid = vec![
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: true,
+                target_redeemable_amount: identity_depository_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    identity_depository_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: true,
+                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: false,
+                target_redeemable_amount: 99, // this should not matter on illiquid dppository
+                redeemable_amount_under_management: 42, // this should not matter on illiquid depository
+            },
+        ];
         let depositories_redeem_redeemable_amount =
             calculate_depositories_redeem_redeemable_amount(
                 requested_redeem_redeemable_amount,
-                identity_depository_target_redeemable_amount,
-                mercurial_vault_depository_0_target_redeemable_amount,
-                identity_depository_redeemable_amount_under_management.into(),
-                mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+                depositories_target_and_redeemable_under_management_and_liquid,
             )?;
 
         // Only mercurial should be withdrawn from since ideally there is no need to further unbalance identity
         assert_eq!(
-            depositories_redeem_redeemable_amount.identity_depository_redeem_redeemable_amount,
+            depositories_redeem_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
             0,
         );
         assert_eq!(
-            depositories_redeem_redeemable_amount
-                .mercurial_vault_depository_0_redeem_redeemable_amount,
+            depositories_redeem_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
             requested_redeem_redeemable_amount,
+        );
+        assert_eq!(
+            // except illiquid ones
+            depositories_redeem_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
+            0,
         );
 
         Ok(())
@@ -98,25 +143,45 @@ mod test_calculate_depositories_redeem_redeemable_amount {
             ui_to_native_amount(500_000);
 
         // Compute
+        let depositories_target_and_redeemable_under_management_and_liquid = vec![
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: true,
+                target_redeemable_amount: identity_depository_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    identity_depository_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: true,
+                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: false,
+                target_redeemable_amount: 99, // this should not matter on illiquid dppository
+                redeemable_amount_under_management: 42, // this should not matter on illiquid depository
+            },
+        ];
         let depositories_redeem_redeemable_amount =
             calculate_depositories_redeem_redeemable_amount(
                 requested_redeem_redeemable_amount,
-                identity_depository_target_redeemable_amount,
-                mercurial_vault_depository_0_target_redeemable_amount,
-                identity_depository_redeemable_amount_under_management.into(),
-                mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+                depositories_target_and_redeemable_under_management_and_liquid,
             )?;
 
         // Both depositories should be withdrawn from, because the redeem amount is too big to keep things balanced
         // More should be withdrawn from identity since it was bigger before the redeem
         assert_eq!(
-            depositories_redeem_redeemable_amount.identity_depository_redeem_redeemable_amount,
+            depositories_redeem_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
             requested_redeem_redeemable_amount * 2 / 3,
         );
         assert_eq!(
-            depositories_redeem_redeemable_amount
-                .mercurial_vault_depository_0_redeem_redeemable_amount,
+            depositories_redeem_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
             requested_redeem_redeemable_amount / 3,
+        );
+        assert_eq!(
+            // except illiquid ones
+            depositories_redeem_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
+            0,
         );
 
         Ok(())
@@ -136,25 +201,45 @@ mod test_calculate_depositories_redeem_redeemable_amount {
             ui_to_native_amount(700_000);
 
         // Compute
+        let depositories_target_and_redeemable_under_management_and_liquid = vec![
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: true,
+                target_redeemable_amount: identity_depository_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    identity_depository_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: true,
+                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: false,
+                target_redeemable_amount: 99, // this should not matter on illiquid dppository
+                redeemable_amount_under_management: 42, // this should not matter on illiquid depository
+            },
+        ];
         let depositories_redeem_redeemable_amount =
             calculate_depositories_redeem_redeemable_amount(
                 requested_redeem_redeemable_amount,
-                identity_depository_target_redeemable_amount,
-                mercurial_vault_depository_0_target_redeemable_amount,
-                identity_depository_redeemable_amount_under_management.into(),
-                mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+                depositories_target_and_redeemable_under_management_and_liquid,
             )?;
 
         // Both depositories should be withdrawn from, because the redeem amount is too big to keep things balanced
         // More should be withdrawn from identity since it was bigger and overweight before the redeem
         assert_eq!(
-            depositories_redeem_redeemable_amount.identity_depository_redeem_redeemable_amount,
+            depositories_redeem_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
             ui_to_native_amount(600_000),
         );
         assert_eq!(
-            depositories_redeem_redeemable_amount
-                .mercurial_vault_depository_0_redeem_redeemable_amount,
+            depositories_redeem_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
             ui_to_native_amount(400_000),
+        );
+        assert_eq!(
+            // except illiquid ones
+            depositories_redeem_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
+            0,
         );
 
         Ok(())
@@ -174,25 +259,45 @@ mod test_calculate_depositories_redeem_redeemable_amount {
             ui_to_native_amount(400_000);
 
         // Compute
+        let depositories_target_and_redeemable_under_management_and_liquid = vec![
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: true,
+                target_redeemable_amount: identity_depository_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    identity_depository_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: true,
+                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
+                redeemable_amount_under_management:
+                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+            },
+            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                is_liquid: false,
+                target_redeemable_amount: 99, // this should not matter on illiquid dppository
+                redeemable_amount_under_management: 42, // this should not matter on illiquid depository
+            },
+        ];
         let depositories_redeem_redeemable_amount =
             calculate_depositories_redeem_redeemable_amount(
                 requested_redeem_redeemable_amount,
-                identity_depository_target_redeemable_amount,
-                mercurial_vault_depository_0_target_redeemable_amount,
-                identity_depository_redeemable_amount_under_management.into(),
-                mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+                depositories_target_and_redeemable_under_management_and_liquid,
             )?;
 
         // Both depositories should be withdrawn from,
         // More should be withdrawn from identity since it was bigger before the redeem
         assert_eq!(
-            depositories_redeem_redeemable_amount.identity_depository_redeem_redeemable_amount,
+            depositories_redeem_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
             requested_redeem_redeemable_amount * 2 / 3,
         );
         assert_eq!(
-            depositories_redeem_redeemable_amount
-                .mercurial_vault_depository_0_redeem_redeemable_amount,
+            depositories_redeem_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
             requested_redeem_redeemable_amount / 3,
+        );
+        assert_eq!(
+            // except illiquid ones
+            depositories_redeem_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
+            0,
         );
 
         Ok(())
@@ -224,13 +329,30 @@ mod test_calculate_depositories_redeem_redeemable_amount {
             }
 
             // Compute
-            let result = calculate_depositories_redeem_redeemable_amount(
-                requested_redeem_redeemable_amount,
-                identity_depository_target_redeemable_amount,
-                mercurial_vault_depository_0_target_redeemable_amount,
-                identity_depository_redeemable_amount_under_management.into(),
-                mercurial_vault_depository_0_redeemable_amount_under_management.into(),
-            );
+            let depositories_target_and_redeemable_under_management_and_liquid = vec![
+                DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                    is_liquid: true,
+                    target_redeemable_amount: identity_depository_target_redeemable_amount,
+                    redeemable_amount_under_management:
+                        identity_depository_redeemable_amount_under_management.into(),
+                },
+                DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                    is_liquid: true,
+                    target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
+                    redeemable_amount_under_management:
+                        mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+                },
+                DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+                    is_liquid: false,
+                    target_redeemable_amount: 99, // this should not matter on illiquid dppository
+                    redeemable_amount_under_management: 42, // this should not matter on illiquid depository
+                },
+            ];
+            let result =
+                calculate_depositories_redeem_redeemable_amount(
+                    requested_redeem_redeemable_amount,
+                    depositories_target_and_redeemable_under_management_and_liquid,
+                );
 
             // If there is not enough space within all depositories, we must fail
             if requested_redeem_redeemable_amount > u64::try_from(total_redeemable_amount_under_management).unwrap() {
@@ -242,11 +364,11 @@ mod test_calculate_depositories_redeem_redeemable_amount {
             let depositories_redeem_redeemable_amount = result?;
 
             // The sum of all mint collateral amount should always exactly match the input collateral amount (minus precision loss)
-            let total_redeem_redeemable_amount = depositories_redeem_redeemable_amount.identity_depository_redeem_redeemable_amount
-                + depositories_redeem_redeemable_amount.mercurial_vault_depository_0_redeem_redeemable_amount;
+            let total_redeem_redeemable_amount = depositories_redeem_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX]
+                + depositories_redeem_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX];
 
             // Check for equality while allowing 1 of precision loss per depository (rounding errors)
-            let allowed_precision_loss = 2;
+            let allowed_precision_loss = ROUTER_DEPOSITORIES_COUNT;
 
             let value_max = requested_redeem_redeemable_amount;
             let value_min = if requested_redeem_redeemable_amount > allowed_precision_loss {
