@@ -368,7 +368,7 @@ mod test_calculate_depositories_redeem_redeemable_amount {
                 + depositories_redeem_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX];
 
             // Check for equality while allowing 1 of precision loss per depository (rounding errors)
-            let allowed_precision_loss = ROUTER_DEPOSITORIES_COUNT;
+            let allowed_precision_loss = u64::try_from(ROUTER_DEPOSITORIES_COUNT).unwrap();
 
             let value_max = requested_redeem_redeemable_amount;
             let value_min = if requested_redeem_redeemable_amount > allowed_precision_loss {

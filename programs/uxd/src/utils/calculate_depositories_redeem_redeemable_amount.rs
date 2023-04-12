@@ -63,21 +63,21 @@ pub fn calculate_depositories_redeem_redeemable_amount(
     // -- We wont be able to redeem past this amount as the depositories would be empty
     // ---------------------------------------------------------------------
 
-    let depositories_under_target_redeemable_amount = std::iter::zip(
-        depositories_target_and_redeemable_under_management_and_liquid.iter(),
-        depositories_over_target_redeemable_amount.iter(),
-    )
-    .map(|(depository, depository_over_target_redeemable_amount)| {
-        if !depository.is_liquid {
-            return Ok(0);
-        }
-        let depository_redeemable_amount_under_management =
-            checked_convert_u128_to_u64(depository.redeemable_amount_under_management)?;
-        Ok(depository_redeemable_amount_under_management
-            .checked_sub(*depository_over_target_redeemable_amount)
-            .ok_or(UxdError::MathError)?)
-    })
-    .collect::<Result<Vec<u64>>>()?;
+    let depositories_under_target_redeemable_amount =
+        depositories_target_and_redeemable_under_management_and_liquid
+            .iter()
+            .map(|depository| {
+                if !depository.is_liquid {
+                    return Ok(0);
+                }
+                let depository_redeemable_amount_under_management =
+                    checked_convert_u128_to_u64(depository.redeemable_amount_under_management)?;
+                Ok(std::cmp::min(
+                    depository_redeemable_amount_under_management,
+                    depository.target_redeemable_amount,
+                ))
+            })
+            .collect::<Result<Vec<u64>>>()?;
 
     let total_under_target_redeemable_amount =
         calculate_depositories_sum_value(&depositories_under_target_redeemable_amount)?;
