@@ -27,7 +27,7 @@ pub fn calculate_depositories_mint_collateral_amount(
     // -- Calculate the maximum mintable collateral amount for each depository
     // ---------------------------------------------------------------------
 
-    let depositories_mintable_collateral_amount = depositories_info
+    let depositories_maximum_mintable_collateral_amount = depositories_info
         .iter()
         .map(|depository| {
             let depository_redeemable_amount_under_management =
@@ -49,10 +49,10 @@ pub fn calculate_depositories_mint_collateral_amount(
     // -- If this total is not enough, we abort
     // ---------------------------------------------------------------------
 
-    let total_mintable_collateral_amount =
-        calculate_depositories_sum_value(&depositories_mintable_collateral_amount)?;
+    let total_maximum_mintable_collateral_amount =
+        calculate_depositories_sum_value(&depositories_maximum_mintable_collateral_amount)?;
     require!(
-        total_mintable_collateral_amount >= requested_mint_collateral_amount,
+        total_maximum_mintable_collateral_amount >= requested_mint_collateral_amount,
         UxdError::DepositoriesTargerRedeemableAmountReached
     );
 
@@ -62,16 +62,17 @@ pub fn calculate_depositories_mint_collateral_amount(
     // -- it is a weighted slice of the total mintable amount, scaled by the requested mint amount
     // ---------------------------------------------------------------------
 
-    let depositories_mint_collateral_amount = depositories_mintable_collateral_amount
+    let depositories_mint_collateral_amount = depositories_maximum_mintable_collateral_amount
         .iter()
         .map(|depository_mintable_collateral_amount| {
-            let other_depositories_mintable_collateral_amount = total_mintable_collateral_amount
-                .checked_sub(*depository_mintable_collateral_amount)
-                .ok_or(UxdError::MathError)?;
+            let other_depositories_maximum_mintable_collateral_amount =
+                total_maximum_mintable_collateral_amount
+                    .checked_sub(*depository_mintable_collateral_amount)
+                    .ok_or(UxdError::MathError)?;
             compute_amount_less_fraction_floor(
                 requested_mint_collateral_amount,
-                other_depositories_mintable_collateral_amount,
-                total_mintable_collateral_amount,
+                other_depositories_maximum_mintable_collateral_amount,
+                total_maximum_mintable_collateral_amount,
             )
         })
         .collect::<Result<Vec<u64>>>()?;
