@@ -2,6 +2,7 @@ use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::instructions::EditControllerDepositoriesWeightBps;
 use uxd::instructions::EditControllerFields;
 
 use crate::integration_tests::api::program_spl;
@@ -61,6 +62,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &payer,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(42),
+            depositories_weight_bps: None,
         },
     )
     .await
@@ -73,6 +75,40 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(100),
+            depositories_weight_bps: None,
+        },
+    )
+    .await?;
+
+    // Setting weights that dont add up to 100% should fail
+    assert!(program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: None,
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 1,
+                mercurial_vault_depository_0_weight_bps: 1,
+                credix_lp_depository_0_weight_bps: 1,
+            }),
+        },
+    )
+    .await
+    .is_err());
+
+    // Setting weights that add up to 100% should succeed
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: None,
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 25 * 100,          // 25%
+                mercurial_vault_depository_0_weight_bps: 35 * 100, // 35%
+                credix_lp_depository_0_weight_bps: 40 * 100,       // 40%
+            }),
         },
     )
     .await?;
@@ -84,6 +120,23 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: None,
+            depositories_weight_bps: None,
+        },
+    )
+    .await?;
+
+    // Setting everything at once should succeed
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: Some(100),
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 20 * 100,          // 20%
+                mercurial_vault_depository_0_weight_bps: 30 * 100, // 30%
+                credix_lp_depository_0_weight_bps: 50 * 100,       // 50%
+            }),
         },
     )
     .await?;

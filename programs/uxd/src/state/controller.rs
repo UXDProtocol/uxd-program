@@ -8,7 +8,7 @@ pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
 pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
-pub const CONTROLLER_RESERVED_SPACE: usize = 230;
+pub const CONTROLLER_RESERVED_SPACE: usize = 224;
 pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u8>() // bump
     + size_of::<u8>() // redeemable_mint_bump
@@ -28,6 +28,9 @@ pub const CONTROLLER_SPACE: usize = 8
     + size_of::<Pubkey>() * MAX_REGISTERED_CREDIX_LP_DEPOSITORIES // registered_credix_lp_depositories
     + size_of::<u8>() // registered_credix_lp_depositories_count
     + size_of::<u128>() // profits_total_collected
+    + size_of::<u16>() // identity_depository_weight_bps
+    + size_of::<u16>() // mercurial_vault_depository_0_weight_bps
+    + size_of::<u16>() // credix_lp_depository_0_weight_bps
     + CONTROLLER_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -77,6 +80,12 @@ pub struct Controller {
     //
     // Total amount of profits collected into the treasury by any depository
     pub profits_total_collected: u128,
+
+    // The configured depository balancing weights
+    pub identity_depository_weight_bps: u16,
+    pub mercurial_vault_depository_0_weight_bps: u16,
+    pub credix_lp_depository_0_weight_bps: u16,
+
     // For future usage
     pub _reserved: [u8; CONTROLLER_RESERVED_SPACE],
 }
