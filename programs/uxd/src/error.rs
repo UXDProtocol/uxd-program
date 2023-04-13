@@ -20,8 +20,8 @@ pub enum UxdError {
     InsufficientCollateralAmount,
     #[msg("The balance of the redeemable ATA is not enough to fulfill the redeem operation.")]
     InsufficientRedeemableAmount,
-    #[msg("The total available amount in the depositories is not enough to absorb the mint.")]
-    InsufficientAvailableAmount,
+    #[msg("Minting amount would go past the depositories target redeemable amount.")]
+    DepositoriesTargerRedeemableAmountReached,
     #[msg("Minting amount would go past the Redeemable Global Supply Cap.")]
     RedeemableGlobalSupplyCapReached,
     #[msg("Minting amount would go past the mercurial vault depository Redeemable Amount Under Management Cap.")]

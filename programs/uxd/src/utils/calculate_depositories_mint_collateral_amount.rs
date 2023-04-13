@@ -8,19 +8,17 @@ use crate::ROUTER_DEPOSITORIES_COUNT;
 use super::checked_convert_u128_to_u64;
 use super::compute_amount_less_fraction_floor;
 
-pub struct DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
+pub struct DepositoryInfoForMintCollateralAmount {
     pub target_redeemable_amount: u64,
     pub redeemable_amount_under_management: u128,
 }
 
 pub fn calculate_depositories_mint_collateral_amount(
     requested_mint_collateral_amount: u64,
-    depositories_target_and_redeemable_under_management: &Vec<
-        DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement,
-    >,
+    depositories_info: &Vec<DepositoryInfoForMintCollateralAmount>,
 ) -> Result<Vec<u64>> {
     require!(
-        depositories_target_and_redeemable_under_management.len() == ROUTER_DEPOSITORIES_COUNT,
+        depositories_info.len() == ROUTER_DEPOSITORIES_COUNT,
         UxdError::InvalidDepositoriesVector
     );
 
@@ -29,23 +27,21 @@ pub fn calculate_depositories_mint_collateral_amount(
     // -- Calculate the maximum mintable collateral amount for each depository
     // ---------------------------------------------------------------------
 
-    let depositories_mintable_collateral_amount =
-        depositories_target_and_redeemable_under_management
-            .iter()
-            .map(|depository| {
-                let depository_redeemable_amount_under_management =
-                    checked_convert_u128_to_u64(depository.redeemable_amount_under_management)?;
-                if depository.target_redeemable_amount
-                    <= depository_redeemable_amount_under_management
-                {
-                    return Ok(0);
-                }
-                Ok(depository
-                    .target_redeemable_amount
-                    .checked_sub(depository_redeemable_amount_under_management)
-                    .ok_or(UxdError::MathError)?)
-            })
-            .collect::<Result<Vec<u64>>>()?;
+    let depositories_mintable_collateral_amount = depositories_info
+        .iter()
+        .map(|depository| {
+            let depository_redeemable_amount_under_management =
+                checked_convert_u128_to_u64(depository.redeemable_amount_under_management)?;
+            if depository.target_redeemable_amount <= depository_redeemable_amount_under_management
+            {
+                return Ok(0);
+            }
+            Ok(depository
+                .target_redeemable_amount
+                .checked_sub(depository_redeemable_amount_under_management)
+                .ok_or(UxdError::MathError)?)
+        })
+        .collect::<Result<Vec<u64>>>()?;
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -57,7 +53,7 @@ pub fn calculate_depositories_mint_collateral_amount(
         calculate_depositories_sum_value(&depositories_mintable_collateral_amount)?;
     require!(
         total_mintable_collateral_amount >= requested_mint_collateral_amount,
-        UxdError::InsufficientAvailableAmount
+        UxdError::DepositoriesTargerRedeemableAmountReached
     );
 
     // ---------------------------------------------------------------------

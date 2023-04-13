@@ -9,31 +9,27 @@ use crate::ROUTER_DEPOSITORIES_COUNT;
 use super::checked_convert_u128_to_u64;
 use super::compute_amount_fraction_ceil;
 
-pub struct DepositoryWeightBpsAndRedeemableAmountUnderManagementCap {
+pub struct DepositoryInfoForTargetRedeemableAmount {
     pub weight_bps: u16,
     pub redeemable_amount_under_management_cap: u128,
 }
 
 pub fn calculate_depositories_target_redeemable_amount(
     redeemable_circulating_supply: u128,
-    depositories_weight_bps_and_redeemable_amount_under_management_cap: &Vec<
-        DepositoryWeightBpsAndRedeemableAmountUnderManagementCap,
-    >,
+    depositories_info: &Vec<DepositoryInfoForTargetRedeemableAmount>,
 ) -> Result<Vec<u64>> {
     require!(
-        depositories_weight_bps_and_redeemable_amount_under_management_cap.len()
-            == ROUTER_DEPOSITORIES_COUNT,
+        depositories_info.len() == ROUTER_DEPOSITORIES_COUNT,
         UxdError::InvalidDepositoriesVector
     );
 
     let redeemable_circulating_supply = checked_convert_u128_to_u64(redeemable_circulating_supply)?;
 
     // Double check that the weights adds up to 100%
-    let depositories_weights_bps =
-        depositories_weight_bps_and_redeemable_amount_under_management_cap
-            .iter()
-            .map(|depository| u64::from(depository.weight_bps))
-            .collect::<Vec<u64>>();
+    let depositories_weights_bps = depositories_info
+        .iter()
+        .map(|depository| u64::from(depository.weight_bps))
+        .collect::<Vec<u64>>();
     let total_weight_bps = calculate_depositories_sum_value(&depositories_weights_bps)?;
     require!(
         total_weight_bps == BPS_UNIT_CONVERSION,
@@ -46,17 +42,16 @@ pub fn calculate_depositories_target_redeemable_amount(
     // -- And generate a raw_target estimations that we can refine later
     // ---------------------------------------------------------------------
 
-    let depositories_raw_target_redeemable_amount =
-        depositories_weight_bps_and_redeemable_amount_under_management_cap
-            .iter()
-            .map(|depository| {
-                compute_amount_fraction_ceil(
-                    redeemable_circulating_supply,
-                    depository.weight_bps.into(),
-                    BPS_UNIT_CONVERSION,
-                )
-            })
-            .collect::<Result<Vec<u64>>>()?;
+    let depositories_raw_target_redeemable_amount = depositories_info
+        .iter()
+        .map(|depository| {
+            compute_amount_fraction_ceil(
+                redeemable_circulating_supply,
+                depository.weight_bps.into(),
+                BPS_UNIT_CONVERSION,
+            )
+        })
+        .collect::<Result<Vec<u64>>>()?;
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -66,13 +61,12 @@ pub fn calculate_depositories_target_redeemable_amount(
     // ---------------------------------------------------------------------
 
     // Read the minting caps of each depository
-    let depositories_hard_cap_amount =
-        depositories_weight_bps_and_redeemable_amount_under_management_cap
-            .iter()
-            .map(|depository| {
-                checked_convert_u128_to_u64(depository.redeemable_amount_under_management_cap)
-            })
-            .collect::<Result<Vec<u64>>>()?;
+    let depositories_hard_cap_amount = depositories_info
+        .iter()
+        .map(|depository| {
+            checked_convert_u128_to_u64(depository.redeemable_amount_under_management_cap)
+        })
+        .collect::<Result<Vec<u64>>>()?;
 
     // Compute the depository_overflow amount of raw target that doesn't fit within the cap of each depository
     let depositories_overflow_amount = std::iter::zip(
