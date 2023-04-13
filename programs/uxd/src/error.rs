@@ -8,7 +8,7 @@ pub enum UxdError {
     InvalidRedeemableMintDecimals,
     #[msg("Redeemable global supply above.")]
     InvalidRedeemableGlobalSupplyCap,
-    #[msg("Depositories weights are invalid or do not add up to exactly 100%.")]
+    #[msg("Depositories weights do not add up to 100%.")]
     InvalidDepositoriesWeightBps,
     #[msg("Depositories vector passed as parameter is not of the expected length")]
     InvalidDepositoriesVector,
