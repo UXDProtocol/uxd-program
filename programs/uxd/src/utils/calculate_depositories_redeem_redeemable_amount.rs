@@ -8,7 +8,7 @@ use crate::ROUTER_DEPOSITORIES_COUNT;
 use super::checked_convert_u128_to_u64;
 use super::compute_amount_less_fraction_floor;
 
-pub struct DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid {
+pub struct DepositoryInfoForRedeemRedeemableAmount {
     pub is_liquid: bool,
     pub target_redeemable_amount: u64,
     pub redeemable_amount_under_management: u128,
@@ -17,7 +17,7 @@ pub struct DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAnd
 pub fn calculate_depositories_redeem_redeemable_amount(
     requested_redeem_redeemable_amount: u64,
     depositories_target_and_redeemable_under_management_and_liquid: Vec<
-        DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagementAndIsLiquid,
+        DepositoryInfoForRedeemRedeemableAmount,
     >,
 ) -> Result<Vec<u64>> {
     require!(

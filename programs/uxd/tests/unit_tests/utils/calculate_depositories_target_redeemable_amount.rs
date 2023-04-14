@@ -8,6 +8,7 @@ mod test_calculate_depositories_target_redeemable_amount {
     use uxd::utils::DepositoryInfoForTargetRedeemableAmount;
     use uxd::BPS_UNIT_CONVERSION;
     use uxd::ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX;
+    use uxd::ROUTER_DEPOSITORIES_COUNT;
     use uxd::ROUTER_IDENTITY_DEPOSITORY_INDEX;
     use uxd::ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX;
 
@@ -285,8 +286,8 @@ mod test_calculate_depositories_target_redeemable_amount {
                 + depositories_target_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX]
                 + depositories_target_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX];
 
-            // Check for equality while allowing 1 of rounding error per depository
-            let allowed_precision_loss = 3;
+            // Check for equality while allowing 1 of rounding errors per depository
+            let allowed_precision_loss = u64::try_from(ROUTER_DEPOSITORIES_COUNT).unwrap();
 
             let value_min = maximum_redeemable_amount;
             let value_max = maximum_redeemable_amount + allowed_precision_loss;
