@@ -275,9 +275,6 @@ export async function createCredixLpDepositoryDevnetUSDC(): Promise<CredixLpDepo
         'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr'
       ),
       collateralSymbol: 'USDC(CredixDevnet)',
-      credixProgramId: new PublicKey(
-        'CRDx2YkdtYtGZXGHZ59wNv1EwKHQndnRc1gT4p8i2vPX'
-      ),
     });
   } catch (error) {
     console.error('Failed to initialize devnet credix depository');
