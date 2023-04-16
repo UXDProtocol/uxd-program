@@ -12,7 +12,7 @@ mod test_calculate_depositories_redeem_redeemable_amount {
     use uxd::ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX;
 
     fn ui_to_native_amount(ui_amount: u64) -> u64 {
-        ui_amount * 100_000
+        ui_amount * 1_000_000
     }
 
     #[test]
