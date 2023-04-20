@@ -18,23 +18,6 @@ mod test_calculate_depositories_mint_collateral_amount {
     #[test]
     fn test_with_simplest_case() -> Result<()> {
         // Compute
-        let depositories_target_and_redeemable_under_management = vec![
-            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                target_redeemable_amount: identity_depository_target_redeemable_amount,
-                redeemable_amount_under_management:
-                    identity_depository_redeemable_amount_under_management.into(),
-            },
-            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
-                redeemable_amount_under_management:
-                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
-            },
-            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                target_redeemable_amount: credix_lp_depository_0_target_redeemable_amount,
-                redeemable_amount_under_management:
-                    credix_lp_depository_0_redeemable_amount_under_management.into(),
-            },
-        ];
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
             ui_to_native_amount(1_000_000),
             &vec![
@@ -75,23 +58,6 @@ mod test_calculate_depositories_mint_collateral_amount {
     #[test]
     fn test_with_unbalanced() -> Result<()> {
         // Compute
-        let depositories_target_and_redeemable_under_management = vec![
-            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                target_redeemable_amount: identity_depository_target_redeemable_amount,
-                redeemable_amount_under_management:
-                    identity_depository_redeemable_amount_under_management.into(),
-            },
-            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
-                redeemable_amount_under_management:
-                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
-            },
-            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                target_redeemable_amount: credix_lp_depository_0_target_redeemable_amount,
-                redeemable_amount_under_management:
-                    credix_lp_depository_0_redeemable_amount_under_management.into(),
-            },
-        ];
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
             ui_to_native_amount(1_000_000),
             &vec![
@@ -132,23 +98,6 @@ mod test_calculate_depositories_mint_collateral_amount {
     #[test]
     fn test_with_underflow_and_overflow() -> Result<()> {
         // Compute
-        let depositories_target_and_redeemable_under_management = vec![
-            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                target_redeemable_amount: identity_depository_target_redeemable_amount,
-                redeemable_amount_under_management:
-                    identity_depository_redeemable_amount_under_management.into(),
-            },
-            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
-                redeemable_amount_under_management:
-                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
-            },
-            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                target_redeemable_amount: credix_lp_depository_0_target_redeemable_amount,
-                redeemable_amount_under_management:
-                    credix_lp_depository_0_redeemable_amount_under_management.into(),
-            },
-        ];
         let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
             ui_to_native_amount(1_000_000),
             &vec![
@@ -189,23 +138,6 @@ mod test_calculate_depositories_mint_collateral_amount {
     #[test]
     fn test_with_not_enough_space() -> Result<()> {
         // Compute
-        let depositories_target_and_redeemable_under_management = vec![
-            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                target_redeemable_amount: identity_depository_target_redeemable_amount,
-                redeemable_amount_under_management:
-                    identity_depository_redeemable_amount_under_management.into(),
-            },
-            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
-                redeemable_amount_under_management:
-                    mercurial_vault_depository_0_redeemable_amount_under_management.into(),
-            },
-            DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                target_redeemable_amount: credix_lp_depository_0_target_redeemable_amount,
-                redeemable_amount_under_management:
-                    credix_lp_depository_0_redeemable_amount_under_management.into(),
-            },
-        ];
         let result = calculate_depositories_mint_collateral_amount(
             ui_to_native_amount(1_000_000),
             &vec![
@@ -261,20 +193,6 @@ mod test_calculate_depositories_mint_collateral_amount {
             }
 
             // Compute
-            let depositories_target_and_redeemable_under_management = vec![
-                DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                    target_redeemable_amount: identity_depository_target_redeemable_amount,
-                    redeemable_amount_under_management: identity_depository_redeemable_amount_under_management.into(),
-                },
-                DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                    target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
-                    redeemable_amount_under_management: mercurial_vault_depository_0_redeemable_amount_under_management.into(),
-                },
-                DepositoryTargetRedeemableAmountAndRedeemableAmountUnderManagement {
-                    target_redeemable_amount: credix_lp_depository_0_target_redeemable_amount,
-                    redeemable_amount_under_management: credix_lp_depository_0_redeemable_amount_under_management.into(),
-                }
-            ];
             let result = calculate_depositories_mint_collateral_amount(
                 requested_mint_collateral_amount,
                 &vec![

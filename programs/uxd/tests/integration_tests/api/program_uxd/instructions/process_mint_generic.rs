@@ -20,6 +20,7 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::api::program_uxd::instructions::process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn process_mint_generic(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
