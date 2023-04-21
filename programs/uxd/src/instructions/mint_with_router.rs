@@ -205,6 +205,7 @@ struct DepositoryInfoForMintWithRouter {
 }
 
 pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> Result<()> {
+    // Gather all the onchain states we need (caps, weights and supplies)
     let controller = ctx.accounts.controller.load()?;
     let identity_depository = ctx.accounts.identity_depository.load()?;
     let mercurial_vault_depository_0 = ctx.accounts.mercurial_vault_depository_0.load()?;
@@ -247,8 +248,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
     drop(mercurial_vault_depository_0);
     drop(credix_lp_depository_0);
 
-    msg!("[mint_with_router:collateral_amount:{}]", collateral_amount);
-
+    // Compute the desired target amounts for each depository
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
         redeemable_circulating_supply_after,
         &depository_info
@@ -261,6 +261,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
             .collect::<Vec<DepositoryInfoForTargetRedeemableAmount>>(),
     )?;
 
+    // Compute the desired mint amounts for each depository
     let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
         collateral_amount,
         &std::iter::zip(
@@ -277,15 +278,9 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
         .collect::<Vec<DepositoryInfoForMintCollateralAmount>>(),
     )?;
 
-    // Final mint amounts that we pass to depository-specific mint IXs
+    // Mint the desired amount at identity_depository
     let identity_depository_mint_collateral_amount =
         depositories_mint_collateral_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX];
-    let mercurial_vault_depository_0_mint_collateral_amount =
-        depositories_mint_collateral_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX];
-    let credix_lp_depository_0_mint_collateral_amount =
-        depositories_mint_collateral_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX];
-
-    // Mint the desired amount at identity_depository
     msg!(
         "[mint_with_router:mint_with_identity_depository:{}]",
         identity_depository_mint_collateral_amount
@@ -298,6 +293,8 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
     }
 
     // Mint the desired amount at mercurial_vault_depository_0
+    let mercurial_vault_depository_0_mint_collateral_amount =
+        depositories_mint_collateral_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX];
     msg!(
         "[mint_with_router:mint_with_mercurial_vault_depository:{}]",
         mercurial_vault_depository_0_mint_collateral_amount
@@ -311,6 +308,8 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
     }
 
     // Mint the desired amount at credix_lp_depository_0
+    let credix_lp_depository_0_mint_collateral_amount =
+        depositories_mint_collateral_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX];
     msg!(
         "[mint_with_router:mint_with_credix_lp_depository:{}]",
         credix_lp_depository_0_mint_collateral_amount
