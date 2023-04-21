@@ -8,15 +8,15 @@ use crate::ROUTER_DEPOSITORIES_COUNT;
 use super::checked_convert_u128_to_u64;
 use super::compute_amount_less_fraction_floor;
 
-pub struct DepositoryInfoForRedeemRedeemableAmount {
+pub struct DepositoryInfoForRedeemableAmount {
     pub is_liquid: bool,
     pub target_redeemable_amount: u64,
     pub redeemable_amount_under_management: u128,
 }
 
-pub fn calculate_depositories_redeem_redeemable_amount(
-    requested_redeem_redeemable_amount: u64,
-    depositories_info: Vec<DepositoryInfoForRedeemRedeemableAmount>,
+pub fn calculate_depositories_redeemable_amount(
+    requested_redeemable_amount: u64,
+    depositories_info: Vec<DepositoryInfoForRedeemableAmount>,
 ) -> Result<Vec<u64>> {
     require!(
         depositories_info.len() == ROUTER_DEPOSITORIES_COUNT,
@@ -86,7 +86,7 @@ pub fn calculate_depositories_redeem_redeemable_amount(
         .checked_add(total_under_target_redeemable_amount)
         .ok_or(UxdError::MathError)?;
     require!(
-        total_overall_redeemable_amount >= requested_redeem_redeemable_amount,
+        total_overall_redeemable_amount >= requested_redeemable_amount,
         UxdError::InvalidRedeemableAmount
     );
 
@@ -98,58 +98,56 @@ pub fn calculate_depositories_redeem_redeemable_amount(
     // -- try to consume the under_target redeemable amount fairly (step2)
     // ---------------------------------------------------------------------
 
-    let depositories_redeem_redeemable_amount = std::iter::zip(
+    let depositories_redeemable_amount = std::iter::zip(
         depositories_over_target_redeemable_amount.iter(),
         depositories_under_target_redeemable_amount.iter(),
     )
     .map(
         |(depository_over_target_redeemable_amount, depository_under_target_redeemable_amount)| {
             // Total possible redeemable amounts for both steps
-            let requested_first_redeem_redeemable_amount = std::cmp::min(
-                requested_redeem_redeemable_amount,
+            let requested_first_redeemable_amount = std::cmp::min(
+                requested_redeemable_amount,
                 total_over_target_redeemable_amount,
             );
-            let requested_second_redeem_redeemable_amount = requested_redeem_redeemable_amount
-                .checked_sub(requested_first_redeem_redeemable_amount)
+            let requested_second_redeemable_amount = requested_redeemable_amount
+                .checked_sub(requested_first_redeemable_amount)
                 .ok_or(UxdError::MathError)?;
             // First step, try to use the over_target amounts, weighted for each depository
-            let depository_first_redeem_redeemable_amount =
-                if total_over_target_redeemable_amount > 0 {
-                    let other_depositories_over_target_redeemable_amount =
-                        total_over_target_redeemable_amount
-                            .checked_sub(*depository_over_target_redeemable_amount)
-                            .ok_or(UxdError::MathError)?;
-                    compute_amount_less_fraction_floor(
-                        requested_first_redeem_redeemable_amount,
-                        other_depositories_over_target_redeemable_amount,
-                        total_over_target_redeemable_amount,
-                    )?
-                } else {
-                    0
-                };
+            let depository_first_redeemable_amount = if total_over_target_redeemable_amount > 0 {
+                let other_depositories_over_target_redeemable_amount =
+                    total_over_target_redeemable_amount
+                        .checked_sub(*depository_over_target_redeemable_amount)
+                        .ok_or(UxdError::MathError)?;
+                compute_amount_less_fraction_floor(
+                    requested_first_redeemable_amount,
+                    other_depositories_over_target_redeemable_amount,
+                    total_over_target_redeemable_amount,
+                )?
+            } else {
+                0
+            };
             // Second step, anything under_target must be taken as backup
-            let depository_second_redeem_redeemable_amount =
-                if total_under_target_redeemable_amount > 0 {
-                    let other_depositories_under_target_redeemable_amount =
-                        total_under_target_redeemable_amount
-                            .checked_sub(*depository_under_target_redeemable_amount)
-                            .ok_or(UxdError::MathError)?;
-                    compute_amount_less_fraction_floor(
-                        requested_second_redeem_redeemable_amount,
-                        other_depositories_under_target_redeemable_amount,
-                        total_under_target_redeemable_amount,
-                    )?
-                } else {
-                    0
-                };
+            let depository_second_redeemable_amount = if total_under_target_redeemable_amount > 0 {
+                let other_depositories_under_target_redeemable_amount =
+                    total_under_target_redeemable_amount
+                        .checked_sub(*depository_under_target_redeemable_amount)
+                        .ok_or(UxdError::MathError)?;
+                compute_amount_less_fraction_floor(
+                    requested_second_redeemable_amount,
+                    other_depositories_under_target_redeemable_amount,
+                    total_under_target_redeemable_amount,
+                )?
+            } else {
+                0
+            };
             // The combo of the two gives our depository amount
-            Ok(depository_first_redeem_redeemable_amount
-                .checked_add(depository_second_redeem_redeemable_amount)
+            Ok(depository_first_redeemable_amount
+                .checked_add(depository_second_redeemable_amount)
                 .ok_or(UxdError::MathError)?)
         },
     )
     .collect::<Result<Vec<u64>>>()?;
 
     // Done
-    Ok(depositories_redeem_redeemable_amount)
+    Ok(depositories_redeemable_amount)
 }
