@@ -21,7 +21,7 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::api::program_uxd::instructions::process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss;
 
 #[allow(clippy::too_many_arguments)]
-pub async fn process_mint_generic(
+pub async fn process_mint_with_router(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     collateral_mint: &Pubkey,
@@ -129,7 +129,7 @@ pub async fn process_mint_generic(
             .amount;
 
     // Execute IX
-    let accounts = uxd::accounts::MintGeneric {
+    let accounts = uxd::accounts::MintWithRouter {
         payer: payer.pubkey(),
         user: user.pubkey(),
         controller,
@@ -160,7 +160,7 @@ pub async fn process_mint_generic(
         uxd_program: uxd::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
-    let payload = uxd::instruction::MintGeneric { collateral_amount };
+    let payload = uxd::instruction::MintWithRouter { collateral_amount };
     let instruction = Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),

@@ -21,7 +21,7 @@ no-log-ix-name = []
 cpi = ["no-entrypoint"]
 test-bpf = []
 default = [
-  "cpi",
+  "cpi",         # used for recursive program calls
   "development",
 ] # `anchor build -- --no-default-features --features production` to override
 production = []
