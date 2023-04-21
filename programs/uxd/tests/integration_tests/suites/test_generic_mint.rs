@@ -13,7 +13,7 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_router_mint() -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -170,7 +170,7 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
     let credix_lp_depository_0_supply_after_first_mint = amount_for_first_mint * 40 / 100;
 
     // Minting should work now that everything is set, weights should be respected
-    program_uxd::instructions::process_mint_generic(
+    program_uxd::instructions::process_mint_with_router(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
@@ -210,7 +210,7 @@ async fn test_generic_mint() -> Result<(), program_test_context::ProgramTestErro
 
     // Minting should now respect the new weights
     // Note: due to the precision loss from the first mint, we need to adjust by 1 in some places
-    program_uxd::instructions::process_mint_generic(
+    program_uxd::instructions::process_mint_with_router(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
