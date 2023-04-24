@@ -1507,6 +1507,12 @@
           {
             "name": "credixLpDepository0WeightBps",
             "type": "u16"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": ["u8", 224]
+            }
           }
         ]
       }
@@ -1599,6 +1605,12 @@
           {
             "name": "profitsBeneficiaryCollateral",
             "type": "publicKey"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": ["u8", 768]
+            }
           }
         ]
       }
@@ -1659,6 +1671,12 @@
           {
             "name": "mangoCollateralReinjectedEth",
             "type": "bool"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": ["u8", 512]
+            }
           }
         ]
       }
@@ -1751,6 +1769,12 @@
           {
             "name": "profitsBeneficiaryCollateral",
             "type": "publicKey"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": ["u8", 588]
+            }
           }
         ]
       }
