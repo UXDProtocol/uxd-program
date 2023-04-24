@@ -105,4 +105,4 @@ jobs:
       - name: Build program
         run: cargo build-bpf
       - name: Run tests
-        run: cargo test-bpf router
+        run: cargo test-bpf
