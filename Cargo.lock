@@ -5264,6 +5264,16 @@ dependencies = [
  "solana-sdk",
  "spl-associated-token-account",
  "spl-token",
+ "uxd-cpi",
+]
+
+[[package]]
+name = "uxd-cpi"
+version = "7.0.5"
+dependencies = [
+ "anchor-gen",
+ "anchor-lang",
+ "borsh",
 ]
 
 [[package]]

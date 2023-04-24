@@ -21,13 +21,14 @@ no-log-ix-name = []
 cpi = ["no-entrypoint"]
 test-bpf = []
 default = [
-  "cpi",         # used for recursive program calls
   "development",
 ] # `anchor build -- --no-default-features --features production` to override
 production = []
 development = []
 
 [dependencies]
+uxd-cpi = { path = "../uxd_abi" }
+
 anchor-lang = "0.26.0"
 anchor-spl = "0.26.0"
 
