@@ -117,6 +117,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+            depositories_weight_bps: None,
         },
     )
     .await?;
