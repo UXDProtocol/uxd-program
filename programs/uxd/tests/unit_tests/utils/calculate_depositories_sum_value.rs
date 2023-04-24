@@ -12,12 +12,14 @@ mod test_calculate_depositories_sum_value {
             mercurial_vault_depository_0_value: u64,
             credix_lp_depository_0_value: u64,
         )| {
-            // Compute
-            let result = calculate_depositories_sum_value(
+            let depositories_value = vec![
                 identity_depository_value,
                 mercurial_vault_depository_0_value,
                 credix_lp_depository_0_value,
-            );
+            ];
+
+            // Compute
+            let result = calculate_depositories_sum_value(&depositories_value);
 
             // If the sum does not fit in a u64, we expect failure
             let total_value = u128::from(identity_depository_value)
