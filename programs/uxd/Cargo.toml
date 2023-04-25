@@ -27,7 +27,7 @@ production = []
 development = []
 
 [dependencies]
-uxd-cpi = { version = "7.0.6", features = [
+uxd-cpi = { version = "7.0.6-devnet", features = [
   "development",
 ] }
 
