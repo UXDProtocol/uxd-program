@@ -9,7 +9,7 @@ pub mod mercurial;
 pub mod mint_with_identity_depository;
 pub mod mint_with_router;
 pub mod redeem_from_identity_depository;
-pub mod redeem_generic;
+pub mod redeem_from_router;
 pub mod register_mercurial_vault_depository;
 
 pub use credix_lp::*;
@@ -23,5 +23,5 @@ pub use mercurial::*;
 pub use mint_with_identity_depository::*;
 pub use mint_with_router::*;
 pub use redeem_from_identity_depository::*;
-pub use redeem_generic::*;
+pub use redeem_from_router::*;
 pub use register_mercurial_vault_depository::*;
