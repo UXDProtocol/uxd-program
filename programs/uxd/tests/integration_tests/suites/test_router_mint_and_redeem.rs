@@ -234,7 +234,7 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
     .await?;
 
     // Minting should work now that everything is set
-    program_uxd::instructions::process_redeem_generic(
+    program_uxd::instructions::process_redeem_from_router(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),

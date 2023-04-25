@@ -11,7 +11,7 @@ pub mod process_mint_with_mercurial_vault_depository;
 pub mod process_mint_with_router;
 pub mod process_redeem_from_identity_depository;
 pub mod process_redeem_from_mercurial_vault_depository;
-pub mod process_redeem_generic;
+pub mod process_redeem_from_router;
 pub mod process_register_credix_lp_depository;
 pub mod process_register_mercurial_vault_depository;
 
@@ -28,6 +28,6 @@ pub use process_mint_with_mercurial_vault_depository::*;
 pub use process_mint_with_router::*;
 pub use process_redeem_from_identity_depository::*;
 pub use process_redeem_from_mercurial_vault_depository::*;
-pub use process_redeem_generic::*;
+pub use process_redeem_from_router::*;
 pub use process_register_credix_lp_depository::*;
 pub use process_register_mercurial_vault_depository::*;

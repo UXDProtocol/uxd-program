@@ -19,7 +19,7 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[allow(clippy::too_many_arguments)]
-pub async fn process_redeem_generic(
+pub async fn process_redeem_from_router(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     collateral_mint: &Pubkey,
@@ -99,7 +99,7 @@ pub async fn process_redeem_generic(
             .amount;
 
     // Execute IX
-    let accounts = uxd::accounts::RedeemGeneric {
+    let accounts = uxd::accounts::RedeemFromRouter {
         payer: payer.pubkey(),
         user: user.pubkey(),
         controller,
@@ -122,7 +122,7 @@ pub async fn process_redeem_generic(
         uxd_program: uxd::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
-    let payload = uxd::instruction::RedeemGeneric { redeemable_amount };
+    let payload = uxd::instruction::RedeemFromRouter { redeemable_amount };
     let instruction = Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),

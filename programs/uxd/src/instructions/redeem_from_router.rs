@@ -20,7 +20,7 @@ use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
 #[instruction(redeemable_amount: u64)]
-pub struct RedeemGeneric<'info> {
+pub struct RedeemFromRouter<'info> {
     /// #1
     pub user: Signer<'info>,
 
@@ -147,7 +147,7 @@ pub struct RedeemGeneric<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub(crate) fn handler(ctx: Context<RedeemGeneric>, redeemable_amount: u64) -> Result<()> {
+pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) -> Result<()> {
     // TODO - compute weights
     let identity_depository_redeemable_amount = redeemable_amount / 2;
     let mercurial_vault_depository_0_redeemable_amount = redeemable_amount / 2;
@@ -157,7 +157,7 @@ pub(crate) fn handler(ctx: Context<RedeemGeneric>, redeemable_amount: u64) -> Re
 
     // Mint the desired amount at identity_depository
     msg!(
-        "[redeem_generic:redeem_from_identity_depository:{}]",
+        "[redeem_from_router:redeem_from_identity_depository:{}]",
         identity_depository_redeemable_amount
     );
     if identity_depository_redeemable_amount > 0 {
@@ -169,7 +169,7 @@ pub(crate) fn handler(ctx: Context<RedeemGeneric>, redeemable_amount: u64) -> Re
 
     // Mint the desired amount at mercurial_vault_depository_0
     msg!(
-        "[redeem_generic:redeem_from_mercurial_vault_depository_0:{}]",
+        "[redeem_from_router:redeem_from_mercurial_vault_depository_0:{}]",
         mercurial_vault_depository_0_redeemable_amount
     );
     if mercurial_vault_depository_0_redeemable_amount > 0 {
@@ -185,7 +185,7 @@ pub(crate) fn handler(ctx: Context<RedeemGeneric>, redeemable_amount: u64) -> Re
 }
 
 // Into functions
-impl<'info> RedeemGeneric<'info> {
+impl<'info> RedeemFromRouter<'info> {
     pub fn into_redeem_from_identity_depository_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, crate::cpi::accounts::RedeemFromIdentityDepository<'info>>
@@ -244,7 +244,7 @@ impl<'info> RedeemGeneric<'info> {
 }
 
 // Validate
-impl<'info> RedeemGeneric<'info> {
+impl<'info> RedeemFromRouter<'info> {
     pub(crate) fn validate(&self, redeemable_amount: u64) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
         validate_redeemable_amount(&self.user_collateral, redeemable_amount)?;
