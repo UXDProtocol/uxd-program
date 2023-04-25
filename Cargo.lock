@@ -5264,12 +5264,23 @@ dependencies = [
  "solana-sdk",
  "spl-associated-token-account",
  "spl-token",
- "uxd-cpi",
+ "uxd-cpi 7.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "uxd-cpi"
 version = "7.0.5"
+dependencies = [
+ "anchor-gen",
+ "anchor-lang",
+ "borsh",
+]
+
+[[package]]
+name = "uxd-cpi"
+version = "7.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "40f871d60acb78fdb89bc7fc17e2727f5a4a9c02c4f02c6bc891978fbd012d60"
 dependencies = [
  "anchor-gen",
  "anchor-lang",

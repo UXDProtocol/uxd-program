@@ -27,7 +27,9 @@ production = []
 development = []
 
 [dependencies]
-uxd-cpi = { path = "../uxd_abi" }
+uxd-cpi = { version = "7.0.5", features = [
+  "development",
+] }
 
 anchor-lang = "0.26.0"
 anchor-spl = "0.26.0"
