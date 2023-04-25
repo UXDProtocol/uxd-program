@@ -66,6 +66,7 @@ pub async fn process_deploy_program(
         authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(redeemable_global_supply_cap),
+            depositories_weight_bps: None,
         },
     )
     .await?;
@@ -174,7 +175,6 @@ pub async fn process_deploy_program(
             _is_borrower: false,
             _release_timestamp: 0,
             _disable_withdrawal_fee: true,
-            _bypass_withdraw_epochs: false,
         },
     )
     .await?;

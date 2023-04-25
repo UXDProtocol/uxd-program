@@ -1,6 +1,7 @@
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
+use uxd::instructions::EditControllerDepositoriesWeightBps;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditIdentityDepositoryFields;
@@ -12,7 +13,7 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_generic_mint_and_redeem() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_router_mint_and_redeem() -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -73,18 +74,21 @@ async fn test_generic_mint_and_redeem() -> Result<(), program_test_context::Prog
     .await?;
 
     // Useful amounts used during testing scenario
-    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(50, redeemable_mint_decimals);
+    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(1000, redeemable_mint_decimals);
 
     let amount_of_collateral_airdropped_to_user =
         ui_amount_to_native_amount(1000, collateral_mint_decimals);
-    let amount_the_user_should_be_able_to_mint =
-        ui_amount_to_native_amount(50, collateral_mint_decimals);
+
+    let amount_for_first_mint = ui_amount_to_native_amount(100, collateral_mint_decimals);
+    let amount_for_second_mint = ui_amount_to_native_amount(200, collateral_mint_decimals);
 
     let amount_the_user_should_be_able_to_redeem =
         ui_amount_to_native_amount(30, redeemable_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
+    // -- Airdrop collateral to our user, so we will be able to mint
+    // -- Also configure and enable controller and all depositories
     // ---------------------------------------------------------------------
 
     // Airdrop collateral to our user
@@ -98,13 +102,18 @@ async fn test_generic_mint_and_redeem() -> Result<(), program_test_context::Prog
     )
     .await?;
 
-    // Set the controller cap
+    // Set the controller cap and weights
     program_uxd::instructions::process_edit_controller(
         &mut program_test_context,
         &payer,
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 10 * 100,
+                mercurial_vault_depository_0_weight_bps: 50 * 100,
+                credix_lp_depository_0_weight_bps: 40 * 100,
+            }),
         },
     )
     .await?;
@@ -129,8 +138,8 @@ async fn test_generic_mint_and_redeem() -> Result<(), program_test_context::Prog
         &collateral_mint.pubkey(),
         &EditMercurialVaultDepositoryFields {
             redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
-            minting_fee_in_bps: Some(100),
-            redeeming_fee_in_bps: Some(100),
+            minting_fee_in_bps: Some(0),
+            redeeming_fee_in_bps: Some(0),
             minting_disabled: Some(false),
             profits_beneficiary_collateral: None,
         },
@@ -145,8 +154,8 @@ async fn test_generic_mint_and_redeem() -> Result<(), program_test_context::Prog
         &collateral_mint.pubkey(),
         &EditCredixLpDepositoryFields {
             redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
-            minting_fee_in_bps: Some(100),
-            redeeming_fee_in_bps: Some(100),
+            minting_fee_in_bps: Some(0),
+            redeeming_fee_in_bps: Some(0),
             minting_disabled: Some(false),
             profits_beneficiary_collateral: None,
         },
@@ -155,10 +164,16 @@ async fn test_generic_mint_and_redeem() -> Result<(), program_test_context::Prog
 
     // ---------------------------------------------------------------------
     // -- Phase 3
+    // -- Minting should now work and respect the weights
     // ---------------------------------------------------------------------
 
-    // Minting should work now that everything is set
-    program_uxd::instructions::process_mint_generic(
+    // Post mint supply should match the configured weights
+    let identity_depository_supply_after_first_mint = amount_for_first_mint * 10 / 100;
+    let mercurial_vault_depository_0_supply_after_first_mint = amount_for_first_mint * 50 / 100;
+    let credix_lp_depository_0_supply_after_first_mint = amount_for_first_mint * 40 / 100;
+
+    // Minting should work now that everything is set, weights should be respected
+    program_uxd::instructions::process_mint_with_router(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
@@ -166,10 +181,55 @@ async fn test_generic_mint_and_redeem() -> Result<(), program_test_context::Prog
         &user,
         &user_collateral,
         &user_redeemable,
-        amount_the_user_should_be_able_to_mint,
-        amount_the_user_should_be_able_to_mint / 3,
-        amount_the_user_should_be_able_to_mint / 3,
-        amount_the_user_should_be_able_to_mint / 3,
+        amount_for_first_mint,
+        identity_depository_supply_after_first_mint,
+        mercurial_vault_depository_0_supply_after_first_mint,
+        credix_lp_depository_0_supply_after_first_mint,
+    )
+    .await?;
+
+    // Set the controller weights to new values
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 10 * 100,
+                mercurial_vault_depository_0_weight_bps: 40 * 100,
+                credix_lp_depository_0_weight_bps: 50 * 100,
+            }),
+        },
+    )
+    .await?;
+
+    // Post mint supply should match the configured weights
+    let total_supply_after_second_mint = amount_for_first_mint + amount_for_second_mint;
+    let identity_depository_supply_after_second_mint = total_supply_after_second_mint * 10 / 100;
+    let mercurial_vault_depository_0_supply_after_second_mint =
+        total_supply_after_second_mint * 40 / 100;
+    let credix_lp_depository_0_supply_after_second_mint = total_supply_after_second_mint * 50 / 100;
+
+    // Minting should now respect the new weights
+    // Note: due to the precision loss from the first mint, we need to adjust by 1 in some places
+    program_uxd::instructions::process_mint_with_router(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_for_second_mint,
+        identity_depository_supply_after_second_mint
+            - identity_depository_supply_after_first_mint
+            - 1, // Precision loss as a consequence of the first mint rounding
+        mercurial_vault_depository_0_supply_after_second_mint
+            - mercurial_vault_depository_0_supply_after_first_mint
+            - 1, // Precision loss as a consequence of the first mint rounding
+        credix_lp_depository_0_supply_after_second_mint
+            - credix_lp_depository_0_supply_after_first_mint,
     )
     .await?;
 

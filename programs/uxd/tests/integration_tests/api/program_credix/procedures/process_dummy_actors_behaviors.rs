@@ -87,7 +87,6 @@ pub async fn process_dummy_actors_behaviors(
             _is_borrower: false,
             _release_timestamp: 0,
             _disable_withdrawal_fee: false,
-            _bypass_withdraw_epochs: false,
         },
     )
     .await?;
@@ -155,7 +154,6 @@ pub async fn process_dummy_actors_behaviors(
             _is_borrower: true,
             _release_timestamp: 0,
             _disable_withdrawal_fee: false,
-            _bypass_withdraw_epochs: false,
         },
     )
     .await?;

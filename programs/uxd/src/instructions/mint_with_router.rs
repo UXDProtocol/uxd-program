@@ -9,6 +9,10 @@ use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
+use crate::utils::calculate_depositories_mint_collateral_amount;
+use crate::utils::calculate_depositories_mint_collateral_amount::DepositoryInfoForMintCollateralAmount;
+use crate::utils::calculate_depositories_target_redeemable_amount;
+use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
 use crate::utils::validate_collateral_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -18,10 +22,13 @@ use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
+use crate::ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX;
+use crate::ROUTER_IDENTITY_DEPOSITORY_INDEX;
+use crate::ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX;
 
 #[derive(Accounts)]
 #[instruction(collateral_amount: u64)]
-pub struct MintGeneric<'info> {
+pub struct MintWithRouter<'info> {
     /// #1
     pub user: Signer<'info>,
 
@@ -191,46 +198,126 @@ pub struct MintGeneric<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub(crate) fn handler(ctx: Context<MintGeneric>, collateral_amount: u64) -> Result<()> {
-    // TODO - compute weights
-    let identity_depository_collateral_amount = collateral_amount / 3;
-    let mercurial_vault_depository_0_collateral_amount = collateral_amount / 3;
-    let credix_lp_depository_0_collateral_amount = collateral_amount / 3;
+struct DepositoryInfoForMintWithRouter {
+    pub weight_bps: u16,
+    pub redeemable_amount_under_management: u128,
+    pub redeemable_amount_under_management_cap: u128,
+}
+
+pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> Result<()> {
+    // Gather all the onchain states we need (caps, weights and supplies)
+    let controller = ctx.accounts.controller.load()?;
+    let identity_depository = ctx.accounts.identity_depository.load()?;
+    let mercurial_vault_depository_0 = ctx.accounts.mercurial_vault_depository_0.load()?;
+    let credix_lp_depository_0 = ctx.accounts.credix_lp_depository_0.load()?;
+
+    let redeemable_circulating_supply_before = controller.redeemable_circulating_supply;
+    let redeemable_circulating_supply_after = redeemable_circulating_supply_before
+        .checked_add(collateral_amount.into())
+        .ok_or(UxdError::MathError)?;
+
+    let depository_info = vec![
+        // Identity depository details
+        DepositoryInfoForMintWithRouter {
+            weight_bps: controller.identity_depository_weight_bps,
+            redeemable_amount_under_management: identity_depository
+                .redeemable_amount_under_management,
+            redeemable_amount_under_management_cap: identity_depository
+                .redeemable_amount_under_management_cap,
+        },
+        // Mercurial Vault Depository 0 details
+        DepositoryInfoForMintWithRouter {
+            weight_bps: controller.mercurial_vault_depository_0_weight_bps,
+            redeemable_amount_under_management: mercurial_vault_depository_0
+                .redeemable_amount_under_management,
+            redeemable_amount_under_management_cap: mercurial_vault_depository_0
+                .redeemable_amount_under_management_cap,
+        },
+        // Credix Lp Depository 0 details
+        DepositoryInfoForMintWithRouter {
+            weight_bps: controller.credix_lp_depository_0_weight_bps,
+            redeemable_amount_under_management: credix_lp_depository_0
+                .redeemable_amount_under_management,
+            redeemable_amount_under_management_cap: credix_lp_depository_0
+                .redeemable_amount_under_management_cap,
+        },
+    ];
+
+    drop(controller);
+    drop(identity_depository);
+    drop(mercurial_vault_depository_0);
+    drop(credix_lp_depository_0);
+
+    // Compute the desired target amounts for each depository
+    let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
+        redeemable_circulating_supply_after,
+        &depository_info
+            .iter()
+            .map(|depository_info| DepositoryInfoForTargetRedeemableAmount {
+                weight_bps: depository_info.weight_bps,
+                redeemable_amount_under_management_cap: depository_info
+                    .redeemable_amount_under_management_cap,
+            })
+            .collect::<Vec<DepositoryInfoForTargetRedeemableAmount>>(),
+    )?;
+
+    // Compute the desired mint amounts for each depository
+    let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
+        collateral_amount,
+        &std::iter::zip(
+            depository_info.iter(),
+            depositories_target_redeemable_amount.iter(),
+        )
+        .map(|(depository_info, depository_target_redeemable_amount)| {
+            DepositoryInfoForMintCollateralAmount {
+                target_redeemable_amount: *depository_target_redeemable_amount,
+                redeemable_amount_under_management: depository_info
+                    .redeemable_amount_under_management,
+            }
+        })
+        .collect::<Vec<DepositoryInfoForMintCollateralAmount>>(),
+    )?;
 
     // Mint the desired amount at identity_depository
+    let identity_depository_mint_collateral_amount =
+        depositories_mint_collateral_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX];
     msg!(
-        "[mint_generic:mint_with_identity_depository:{}]",
-        identity_depository_collateral_amount
+        "[mint_with_router:mint_with_identity_depository:{}]",
+        identity_depository_mint_collateral_amount
     );
-    if identity_depository_collateral_amount > 0 {
-        crate::cpi::mint_with_identity_depository(
+    if identity_depository_mint_collateral_amount > 0 {
+        uxd_cpi::cpi::mint_with_identity_depository(
             ctx.accounts.into_mint_with_identity_depository_context(),
-            identity_depository_collateral_amount,
+            identity_depository_mint_collateral_amount,
         )?;
     }
 
     // Mint the desired amount at mercurial_vault_depository_0
+    let mercurial_vault_depository_0_mint_collateral_amount =
+        depositories_mint_collateral_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX];
     msg!(
-        "[mint_generic:mint_with_mercurial_vault_depository_0:{}]",
-        mercurial_vault_depository_0_collateral_amount
+        "[mint_with_router:mint_with_mercurial_vault_depository:{}]",
+        mercurial_vault_depository_0_mint_collateral_amount
     );
-    if mercurial_vault_depository_0_collateral_amount > 0 {
-        crate::cpi::mint_with_mercurial_vault_depository(
+    if mercurial_vault_depository_0_mint_collateral_amount > 0 {
+        uxd_cpi::cpi::mint_with_mercurial_vault_depository(
             ctx.accounts
                 .into_mint_with_mercurial_vault_depository_0_context(),
-            mercurial_vault_depository_0_collateral_amount,
+            mercurial_vault_depository_0_mint_collateral_amount,
         )?;
     }
 
     // Mint the desired amount at credix_lp_depository_0
+    let credix_lp_depository_0_mint_collateral_amount =
+        depositories_mint_collateral_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX];
     msg!(
-        "[mint_generic:mint_with_credix_lp_depository_0:{}]",
-        credix_lp_depository_0_collateral_amount
+        "[mint_with_router:mint_with_credix_lp_depository:{}]",
+        credix_lp_depository_0_mint_collateral_amount
     );
-    if credix_lp_depository_0_collateral_amount > 0 {
-        crate::cpi::mint_with_credix_lp_depository(
+    if credix_lp_depository_0_mint_collateral_amount > 0 {
+        uxd_cpi::cpi::mint_with_credix_lp_depository(
             ctx.accounts.into_mint_with_credix_lp_depository_0_context(),
-            credix_lp_depository_0_collateral_amount,
+            credix_lp_depository_0_mint_collateral_amount,
         )?;
     }
 
@@ -239,12 +326,12 @@ pub(crate) fn handler(ctx: Context<MintGeneric>, collateral_amount: u64) -> Resu
 }
 
 // Into functions
-impl<'info> MintGeneric<'info> {
+impl<'info> MintWithRouter<'info> {
     pub fn into_mint_with_identity_depository_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, crate::cpi::accounts::MintWithIdentityDepository<'info>>
+    ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::MintWithIdentityDepository<'info>>
     {
-        let cpi_accounts = crate::cpi::accounts::MintWithIdentityDepository {
+        let cpi_accounts = uxd_cpi::cpi::accounts::MintWithIdentityDepository {
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
@@ -262,9 +349,14 @@ impl<'info> MintGeneric<'info> {
 
     pub fn into_mint_with_mercurial_vault_depository_0_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, crate::cpi::accounts::MintWithMercurialVaultDepository<'info>>
-    {
-        let cpi_accounts = crate::cpi::accounts::MintWithMercurialVaultDepository {
+    ) -> CpiContext<
+        '_,
+        '_,
+        '_,
+        'info,
+        uxd_cpi::cpi::accounts::MintWithMercurialVaultDepository<'info>,
+    > {
+        let cpi_accounts = uxd_cpi::cpi::accounts::MintWithMercurialVaultDepository {
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
@@ -293,9 +385,9 @@ impl<'info> MintGeneric<'info> {
 
     pub fn into_mint_with_credix_lp_depository_0_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, crate::cpi::accounts::MintWithCredixLpDepository<'info>>
+    ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::MintWithCredixLpDepository<'info>>
     {
-        let cpi_accounts = crate::cpi::accounts::MintWithCredixLpDepository {
+        let cpi_accounts = uxd_cpi::cpi::accounts::MintWithCredixLpDepository {
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
@@ -329,7 +421,7 @@ impl<'info> MintGeneric<'info> {
 }
 
 // Validate
-impl<'info> MintGeneric<'info> {
+impl<'info> MintWithRouter<'info> {
     pub(crate) fn validate(&self, collateral_amount: u64) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
         validate_collateral_amount(&self.user_collateral, collateral_amount)?;
