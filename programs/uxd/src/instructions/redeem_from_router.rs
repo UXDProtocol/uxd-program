@@ -9,6 +9,10 @@ use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
+use crate::utils::calculate_depositories_redeemable_amount;
+use crate::utils::calculate_depositories_redeemable_amount::DepositoryInfoForRedeemableAmount;
+use crate::utils::calculate_depositories_target_redeemable_amount;
+use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
 use crate::utils::validate_redeemable_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -17,6 +21,9 @@ use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
+use crate::ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX;
+use crate::ROUTER_IDENTITY_DEPOSITORY_INDEX;
+use crate::ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX;
 
 #[derive(Accounts)]
 #[instruction(redeemable_amount: u64)]
@@ -147,33 +154,114 @@ pub struct RedeemFromRouter<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
+struct DepositoryInfoForRedeemFromRouter {
+    pub is_liquid: bool,
+    pub weight_bps: u16,
+    pub redeemable_amount_under_management: u128,
+    pub redeemable_amount_under_management_cap: u128,
+}
+
 pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) -> Result<()> {
-    // TODO - compute weights
-    let identity_depository_redeemable_amount = redeemable_amount / 2;
-    let mercurial_vault_depository_0_redeemable_amount = redeemable_amount / 2;
+    // Gather all the onchain states we need (caps, weights and supplies)
+    let controller = ctx.accounts.controller.load()?;
+    let identity_depository = ctx.accounts.identity_depository.load()?;
+    let mercurial_vault_depository_0 = ctx.accounts.mercurial_vault_depository_0.load()?;
+    let credix_lp_depository_0 = ctx.accounts.credix_lp_depository_0.load()?;
 
-    // TODO - write the expected weight on the credix depository
-    // let credix_lp_depository_0_redeemable_amount = redeemable_amount / 3;
+    let redeemable_circulating_supply_before = controller.redeemable_circulating_supply;
+    let redeemable_circulating_supply_after = redeemable_circulating_supply_before
+        .checked_sub(redeemable_amount.into())
+        .ok_or(UxdError::MathError)?;
 
-    // Mint the desired amount at identity_depository
+    let depository_info = vec![
+        // Identity depository details
+        DepositoryInfoForRedeemFromRouter {
+            is_liquid: true,
+            weight_bps: controller.identity_depository_weight_bps,
+            redeemable_amount_under_management: identity_depository
+                .redeemable_amount_under_management,
+            redeemable_amount_under_management_cap: identity_depository
+                .redeemable_amount_under_management_cap,
+        },
+        // Mercurial Vault Depository 0 details
+        DepositoryInfoForRedeemFromRouter {
+            is_liquid: true,
+            weight_bps: controller.mercurial_vault_depository_0_weight_bps,
+            redeemable_amount_under_management: mercurial_vault_depository_0
+                .redeemable_amount_under_management,
+            redeemable_amount_under_management_cap: mercurial_vault_depository_0
+                .redeemable_amount_under_management_cap,
+        },
+        // Credix Lp Depository 0 details
+        DepositoryInfoForRedeemFromRouter {
+            is_liquid: false,
+            weight_bps: controller.credix_lp_depository_0_weight_bps,
+            redeemable_amount_under_management: credix_lp_depository_0
+                .redeemable_amount_under_management,
+            redeemable_amount_under_management_cap: credix_lp_depository_0
+                .redeemable_amount_under_management_cap,
+        },
+    ];
+
+    drop(controller);
+    drop(identity_depository);
+    drop(mercurial_vault_depository_0);
+    drop(credix_lp_depository_0);
+
+    // Compute the desired target amounts for each depository
+    let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
+        redeemable_circulating_supply_after,
+        &depository_info
+            .iter()
+            .map(|depository_info| DepositoryInfoForTargetRedeemableAmount {
+                weight_bps: depository_info.weight_bps,
+                redeemable_amount_under_management_cap: depository_info
+                    .redeemable_amount_under_management_cap,
+            })
+            .collect::<Vec<DepositoryInfoForTargetRedeemableAmount>>(),
+    )?;
+
+    // Compute the desired mint amounts for each depository
+    let depositories_redeemable_amount = calculate_depositories_redeemable_amount(
+        redeemable_amount,
+        &std::iter::zip(
+            depository_info.iter(),
+            depositories_target_redeemable_amount.iter(),
+        )
+        .map(|(depository_info, depository_target_redeemable_amount)| {
+            DepositoryInfoForRedeemableAmount {
+                is_liquid: depository_info.is_liquid,
+                target_redeemable_amount: *depository_target_redeemable_amount,
+                redeemable_amount_under_management: depository_info
+                    .redeemable_amount_under_management,
+            }
+        })
+        .collect::<Vec<DepositoryInfoForRedeemableAmount>>(),
+    )?;
+
+    // Redeem the desired amount from identity_depository
+    let identity_depository_redeemable_amount =
+        depositories_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX];
     msg!(
         "[redeem_from_router:redeem_from_identity_depository:{}]",
         identity_depository_redeemable_amount
     );
     if identity_depository_redeemable_amount > 0 {
-        crate::cpi::redeem_from_identity_depository(
+        uxd_cpi::cpi::redeem_from_identity_depository(
             ctx.accounts.into_redeem_from_identity_depository_context(),
             identity_depository_redeemable_amount,
         )?;
     }
 
-    // Mint the desired amount at mercurial_vault_depository_0
+    // Redeem the desired amount from mercurial_vault_depository_0
+    let mercurial_vault_depository_0_redeemable_amount =
+        depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX];
     msg!(
         "[redeem_from_router:redeem_from_mercurial_vault_depository_0:{}]",
         mercurial_vault_depository_0_redeemable_amount
     );
     if mercurial_vault_depository_0_redeemable_amount > 0 {
-        crate::cpi::redeem_from_mercurial_vault_depository(
+        uxd_cpi::cpi::redeem_from_mercurial_vault_depository(
             ctx.accounts
                 .into_redeem_from_mercurial_vault_depository_0_context(),
             mercurial_vault_depository_0_redeemable_amount,
@@ -188,9 +276,9 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
 impl<'info> RedeemFromRouter<'info> {
     pub fn into_redeem_from_identity_depository_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, crate::cpi::accounts::RedeemFromIdentityDepository<'info>>
+    ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::RedeemFromIdentityDepository<'info>>
     {
-        let cpi_accounts = crate::cpi::accounts::RedeemFromIdentityDepository {
+        let cpi_accounts = uxd_cpi::cpi::accounts::RedeemFromIdentityDepository {
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
@@ -213,9 +301,9 @@ impl<'info> RedeemFromRouter<'info> {
         '_,
         '_,
         'info,
-        crate::cpi::accounts::RedeemFromMercurialVaultDepository<'info>,
+        uxd_cpi::cpi::accounts::RedeemFromMercurialVaultDepository<'info>,
     > {
-        let cpi_accounts = crate::cpi::accounts::RedeemFromMercurialVaultDepository {
+        let cpi_accounts = uxd_cpi::cpi::accounts::RedeemFromMercurialVaultDepository {
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),

@@ -20,7 +20,7 @@ mod test_calculate_depositories_redeemable_amount {
         // Compute
         let depositories_redeemable_amount = calculate_depositories_redeemable_amount(
             ui_to_native_amount(1_000_000),
-            vec![
+            &vec![
                 // identity_depository is overflowing by a little bit
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
@@ -63,7 +63,7 @@ mod test_calculate_depositories_redeemable_amount {
         // Compute
         let depositories_redeemable_amount = calculate_depositories_redeemable_amount(
             ui_to_native_amount(1_000_000),
-            vec![
+            &vec![
                 // identity_depository is not filled up (underflow)
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
@@ -106,7 +106,7 @@ mod test_calculate_depositories_redeemable_amount {
         // Compute
         let depositories_redeemable_amount = calculate_depositories_redeemable_amount(
             ui_to_native_amount(1_000_000),
-            vec![
+            &vec![
                 // identity_depository is perfectly balanced
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
@@ -150,7 +150,7 @@ mod test_calculate_depositories_redeemable_amount {
         // Compute
         let depositories_redeemable_amount = calculate_depositories_redeemable_amount(
             ui_to_native_amount(1_000_000),
-            vec![
+            &vec![
                 // identity_depository is overflowing by a little bit
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
@@ -195,7 +195,7 @@ mod test_calculate_depositories_redeemable_amount {
         // Compute
         let depositories_redeemable_amount = calculate_depositories_redeemable_amount(
             ui_to_native_amount(1_000_000),
-            vec![
+            &vec![
                 // identity_depository is underweight
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
@@ -263,7 +263,7 @@ mod test_calculate_depositories_redeemable_amount {
             let result =
                 calculate_depositories_redeemable_amount(
                     requested_redeemable_amount,
-                    vec![
+                    &vec![
                         DepositoryInfoForRedeemableAmount {
                             is_liquid: true,
                             target_redeemable_amount: identity_depository_target_redeemable_amount,
