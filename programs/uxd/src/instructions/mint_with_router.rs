@@ -286,7 +286,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
         identity_depository_mint_collateral_amount
     );
     if identity_depository_mint_collateral_amount > 0 {
-        crate::cpi::mint_with_identity_depository(
+        uxd_cpi::cpi::mint_with_identity_depository(
             ctx.accounts.into_mint_with_identity_depository_context(),
             identity_depository_mint_collateral_amount,
         )?;
@@ -300,7 +300,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
         mercurial_vault_depository_0_mint_collateral_amount
     );
     if mercurial_vault_depository_0_mint_collateral_amount > 0 {
-        crate::cpi::mint_with_mercurial_vault_depository(
+        uxd_cpi::cpi::mint_with_mercurial_vault_depository(
             ctx.accounts
                 .into_mint_with_mercurial_vault_depository_0_context(),
             mercurial_vault_depository_0_mint_collateral_amount,
@@ -315,7 +315,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
         credix_lp_depository_0_mint_collateral_amount
     );
     if credix_lp_depository_0_mint_collateral_amount > 0 {
-        crate::cpi::mint_with_credix_lp_depository(
+        uxd_cpi::cpi::mint_with_credix_lp_depository(
             ctx.accounts.into_mint_with_credix_lp_depository_0_context(),
             credix_lp_depository_0_mint_collateral_amount,
         )?;
@@ -329,9 +329,9 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
 impl<'info> MintWithRouter<'info> {
     pub fn into_mint_with_identity_depository_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, crate::cpi::accounts::MintWithIdentityDepository<'info>>
+    ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::MintWithIdentityDepository<'info>>
     {
-        let cpi_accounts = crate::cpi::accounts::MintWithIdentityDepository {
+        let cpi_accounts = uxd_cpi::cpi::accounts::MintWithIdentityDepository {
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
@@ -349,9 +349,14 @@ impl<'info> MintWithRouter<'info> {
 
     pub fn into_mint_with_mercurial_vault_depository_0_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, crate::cpi::accounts::MintWithMercurialVaultDepository<'info>>
-    {
-        let cpi_accounts = crate::cpi::accounts::MintWithMercurialVaultDepository {
+    ) -> CpiContext<
+        '_,
+        '_,
+        '_,
+        'info,
+        uxd_cpi::cpi::accounts::MintWithMercurialVaultDepository<'info>,
+    > {
+        let cpi_accounts = uxd_cpi::cpi::accounts::MintWithMercurialVaultDepository {
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
@@ -380,9 +385,9 @@ impl<'info> MintWithRouter<'info> {
 
     pub fn into_mint_with_credix_lp_depository_0_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, crate::cpi::accounts::MintWithCredixLpDepository<'info>>
+    ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::MintWithCredixLpDepository<'info>>
     {
-        let cpi_accounts = crate::cpi::accounts::MintWithCredixLpDepository {
+        let cpi_accounts = uxd_cpi::cpi::accounts::MintWithCredixLpDepository {
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
