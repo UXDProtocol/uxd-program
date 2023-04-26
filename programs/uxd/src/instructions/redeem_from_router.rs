@@ -21,9 +21,6 @@ use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
-use crate::ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX;
-use crate::ROUTER_IDENTITY_DEPOSITORY_INDEX;
-use crate::ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX;
 
 #[derive(Accounts)]
 #[instruction(redeemable_amount: u64)]
@@ -154,11 +151,11 @@ pub struct RedeemFromRouter<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-struct DepositoryInfoForRedeemFromRouter {
-    pub is_liquid: bool,
+struct DepositoryInfoForRedeemFromRouter<'info> {
     pub weight_bps: u16,
     pub redeemable_amount_under_management: u128,
     pub redeemable_amount_under_management_cap: u128,
+    pub redeem_cpi: Option<Box<dyn Fn(u64) -> Result<()> + 'info>>,
 }
 
 pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) -> Result<()> {
@@ -176,30 +173,55 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
     let depository_info = vec![
         // Identity depository details
         DepositoryInfoForRedeemFromRouter {
-            is_liquid: true,
             weight_bps: controller.identity_depository_weight_bps,
             redeemable_amount_under_management: identity_depository
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: identity_depository
                 .redeemable_amount_under_management_cap,
+            redeem_cpi: Some(Box::new(|redeemable_amount| {
+                msg!(
+                    "[redeem_from_router:redeem_from_identity_depository:{}]",
+                    redeemable_amount
+                );
+                if redeemable_amount > 0 {
+                    uxd_cpi::cpi::redeem_from_identity_depository(
+                        ctx.accounts.into_redeem_from_identity_depository_context(),
+                        redeemable_amount,
+                    )?;
+                }
+                Ok(())
+            })),
         },
         // Mercurial Vault Depository 0 details
         DepositoryInfoForRedeemFromRouter {
-            is_liquid: true,
             weight_bps: controller.mercurial_vault_depository_0_weight_bps,
             redeemable_amount_under_management: mercurial_vault_depository_0
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: mercurial_vault_depository_0
                 .redeemable_amount_under_management_cap,
+            redeem_cpi: Some(Box::new(|redeemable_amount| {
+                msg!(
+                    "[redeem_from_router:redeem_from_mercurial_vault_depository_0:{}]",
+                    redeemable_amount
+                );
+                if redeemable_amount > 0 {
+                    uxd_cpi::cpi::redeem_from_mercurial_vault_depository(
+                        ctx.accounts
+                            .into_redeem_from_mercurial_vault_depository_0_context(),
+                        redeemable_amount,
+                    )?;
+                }
+                Ok(())
+            })),
         },
         // Credix Lp Depository 0 details
         DepositoryInfoForRedeemFromRouter {
-            is_liquid: false,
             weight_bps: controller.credix_lp_depository_0_weight_bps,
             redeemable_amount_under_management: credix_lp_depository_0
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: credix_lp_depository_0
                 .redeemable_amount_under_management_cap,
+            redeem_cpi: None, // credix is illiquid
         },
     ];
 
@@ -230,7 +252,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
         )
         .map(|(depository_info, depository_target_redeemable_amount)| {
             DepositoryInfoForRedeemableAmount {
-                is_liquid: depository_info.is_liquid,
+                is_liquid: depository_info.redeem_cpi.is_some(), // we are liquid if we can redeem
                 target_redeemable_amount: *depository_target_redeemable_amount,
                 redeemable_amount_under_management: depository_info
                     .redeemable_amount_under_management,
@@ -239,34 +261,17 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
         .collect::<Vec<DepositoryInfoForRedeemableAmount>>(),
     )?;
 
-    // Redeem the desired amount from identity_depository
-    let identity_depository_redeemable_amount =
-        depositories_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX];
-    msg!(
-        "[redeem_from_router:redeem_from_identity_depository:{}]",
-        identity_depository_redeemable_amount
-    );
-    if identity_depository_redeemable_amount > 0 {
-        uxd_cpi::cpi::redeem_from_identity_depository(
-            ctx.accounts.into_redeem_from_identity_depository_context(),
-            identity_depository_redeemable_amount,
-        )?;
-    }
-
-    // Redeem the desired amount from mercurial_vault_depository_0
-    let mercurial_vault_depository_0_redeemable_amount =
-        depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX];
-    msg!(
-        "[redeem_from_router:redeem_from_mercurial_vault_depository_0:{}]",
-        mercurial_vault_depository_0_redeemable_amount
-    );
-    if mercurial_vault_depository_0_redeemable_amount > 0 {
-        uxd_cpi::cpi::redeem_from_mercurial_vault_depository(
-            ctx.accounts
-                .into_redeem_from_mercurial_vault_depository_0_context(),
-            mercurial_vault_depository_0_redeemable_amount,
-        )?;
-    }
+    // Run all the redeem cpi functions with the redeemable amount if liquid
+    std::iter::zip(
+        depository_info.iter(),
+        depositories_redeemable_amount.iter(),
+    )
+    .try_for_each(
+        |(depository_info, depository_redeemable_amount)| match &depository_info.redeem_cpi {
+            Some(redeem_cpi) => redeem_cpi(*depository_redeemable_amount),
+            None => Ok(()),
+        },
+    )?;
 
     // Done
     Ok(())
