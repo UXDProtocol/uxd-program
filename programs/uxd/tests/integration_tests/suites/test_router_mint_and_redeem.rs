@@ -249,7 +249,7 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
     .await?;
 
     // Redeeming now should not touch mercurial at all since it is underflowing
-    // As it is now 100% weight even if it was minted up to 50% weight
+    // Meaning that other depositories are overflowing and should be prioritized
     program_uxd::instructions::process_redeem_from_router(
         &mut program_test_context,
         &payer,
@@ -264,8 +264,8 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
     )
     .await?;
 
-    // Redeeming after we exhaused the mercurial vault should fallback to the identity depository
-    // Even if its under-weight. All depository will now be empty, except credix.
+    // Redeeming after we exhaused the identity depository should fallback to mercurial depository
+    // Even if mercurial is underflowing, it is the last liquid redeemable available, so we use it.
     let identity_depository_supply_after_first_redeem =
         identity_depository_supply_after_second_mint - amount_for_first_redeem;
     program_uxd::instructions::process_redeem_from_router(
