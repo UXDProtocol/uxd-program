@@ -165,8 +165,8 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
     let mercurial_vault_depository_0 = ctx.accounts.mercurial_vault_depository_0.load()?;
     let credix_lp_depository_0 = ctx.accounts.credix_lp_depository_0.load()?;
 
-    let redeemable_circulating_supply_before = controller.redeemable_circulating_supply;
-    let redeemable_circulating_supply_after = redeemable_circulating_supply_before
+    let estimated_circulating_supply = controller
+        .redeemable_circulating_supply
         .checked_sub(redeemable_amount.into())
         .ok_or(UxdError::MathError)?;
 
@@ -232,7 +232,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
 
     // Compute the desired target amounts for each depository
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
-        redeemable_circulating_supply_after,
+        estimated_circulating_supply,
         &depository_info
             .iter()
             .map(|depository_info| DepositoryInfoForTargetRedeemableAmount {
