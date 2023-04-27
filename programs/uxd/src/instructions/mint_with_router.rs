@@ -198,7 +198,7 @@ struct DepositoryInfoForMintWithRouter<'info> {
     pub weight_bps: u16,
     pub redeemable_amount_under_management: u128,
     pub redeemable_amount_under_management_cap: u128,
-    pub mint_call: Box<dyn Fn(u64) -> Result<()> + 'info>,
+    pub mint_fn: Box<dyn Fn(u64) -> Result<()> + 'info>,
 }
 
 pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> Result<()> {
@@ -225,7 +225,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: identity_depository
                 .redeemable_amount_under_management_cap,
-            mint_call: Box::new(|collateral_amount| {
+            mint_fn: Box::new(|collateral_amount| {
                 msg!(
                     "[mint_with_router:mint_with_identity_depository:{}]",
                     collateral_amount
@@ -246,7 +246,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: mercurial_vault_depository_0
                 .redeemable_amount_under_management_cap,
-            mint_call: Box::new(|collateral_amount| {
+            mint_fn: Box::new(|collateral_amount| {
                 msg!(
                     "[mint_with_router:mint_with_mercurial_vault_depository:{}]",
                     collateral_amount
@@ -268,7 +268,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: credix_lp_depository_0
                 .redeemable_amount_under_management_cap,
-            mint_call: Box::new(|collateral_amount| {
+            mint_fn: Box::new(|collateral_amount| {
                 msg!(
                     "[mint_with_router:mint_with_credix_lp_depository:{}]",
                     collateral_amount
@@ -325,7 +325,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
         depositories_mint_collateral_amount.iter(),
     )
     .try_for_each(|(depository_info, depository_mint_collateral_amount)| {
-        (depository_info.mint_call)(*depository_mint_collateral_amount)
+        (depository_info.mint_fn)(*depository_mint_collateral_amount)
     })?;
 
     // Done
