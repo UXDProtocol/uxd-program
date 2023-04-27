@@ -165,11 +165,15 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
     let mercurial_vault_depository_0 = ctx.accounts.mercurial_vault_depository_0.load()?;
     let credix_lp_depository_0 = ctx.accounts.credix_lp_depository_0.load()?;
 
-    let estimated_circulating_supply = controller
+    // The actual post-redeem circulating supply may be slightly higher
+    // Due to redeem fees and precision loss. But the difference should be negligible and
+    // Any future mint/redeem will recompute the targets based on the exact future circulating supply anyway
+    let mimimum_after_redeem_circulating_supply = controller
         .redeemable_circulating_supply
         .checked_sub(redeemable_amount.into())
         .ok_or(UxdError::MathError)?;
 
+    // Build the vector of all known depository participating in the routing system
     let depository_info = vec![
         // Identity depository details
         DepositoryInfoForRedeemFromRouter {
@@ -232,7 +236,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
 
     // Compute the desired target amounts for each depository
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
-        estimated_circulating_supply,
+        mimimum_after_redeem_circulating_supply,
         &depository_info
             .iter()
             .map(|depository_info| DepositoryInfoForTargetRedeemableAmount {
