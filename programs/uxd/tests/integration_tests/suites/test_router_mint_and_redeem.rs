@@ -240,9 +240,9 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
             depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
-                identity_depository_weight_bps: 0 * 100,
+                identity_depository_weight_bps: 0,
                 mercurial_vault_depository_0_weight_bps: 100 * 100,
-                credix_lp_depository_0_weight_bps: 0 * 100,
+                credix_lp_depository_0_weight_bps: 0,
             }),
         },
     )
