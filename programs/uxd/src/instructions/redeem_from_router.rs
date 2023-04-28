@@ -132,22 +132,22 @@ pub struct RedeemFromRouter<'info> {
     )]
     pub credix_lp_depository_0: AccountLoader<'info, CredixLpDepository>,
 
-    /// #23
+    /// #16
     pub system_program: Program<'info, System>,
 
-    /// #24
+    /// #17
     pub token_program: Program<'info, Token>,
 
-    /// #25
+    /// #18
     pub associated_token_program: Program<'info, AssociatedToken>,
 
-    /// #26
+    /// #19
     pub mercurial_vault_program: Program<'info, mercurial_vault::program::Vault>,
 
-    /// #28
+    /// #20
     pub uxd_program: Program<'info, crate::program::Uxd>,
 
-    /// #29
+    /// #21
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -155,7 +155,7 @@ struct DepositoryInfoForRedeemFromRouter<'info> {
     pub weight_bps: u16,
     pub redeemable_amount_under_management: u128,
     pub redeemable_amount_under_management_cap: u128,
-    pub redeem_cpi: Option<Box<dyn Fn(u64) -> Result<()> + 'info>>,
+    pub redeem_fn: Option<Box<dyn Fn(u64) -> Result<()> + 'info>>,
 }
 
 pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) -> Result<()> {
@@ -182,7 +182,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: identity_depository
                 .redeemable_amount_under_management_cap,
-            redeem_cpi: Some(Box::new(|redeemable_amount| {
+            redeem_fn: Some(Box::new(|redeemable_amount| {
                 msg!(
                     "[redeem_from_router:redeem_from_identity_depository:{}]",
                     redeemable_amount
@@ -203,7 +203,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: mercurial_vault_depository_0
                 .redeemable_amount_under_management_cap,
-            redeem_cpi: Some(Box::new(|redeemable_amount| {
+            redeem_fn: Some(Box::new(|redeemable_amount| {
                 msg!(
                     "[redeem_from_router:redeem_from_mercurial_vault_depository_0:{}]",
                     redeemable_amount
@@ -225,7 +225,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: credix_lp_depository_0
                 .redeemable_amount_under_management_cap,
-            redeem_cpi: None, // credix is illiquid
+            redeem_fn: None, // credix is illiquid
         },
     ];
 
@@ -256,7 +256,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
         )
         .map(|(depository_info, depository_target_redeemable_amount)| {
             DepositoryInfoForRedeemableAmount {
-                is_liquid: depository_info.redeem_cpi.is_some(), // we are liquid if we can redeem
+                is_liquid: depository_info.redeem_fn.is_some(), // we are liquid if we can redeem
                 target_redeemable_amount: *depository_target_redeemable_amount,
                 redeemable_amount_under_management: depository_info
                     .redeemable_amount_under_management,
@@ -271,8 +271,8 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
         depositories_redeemable_amount.iter(),
     )
     .try_for_each(
-        |(depository_info, depository_redeemable_amount)| match &depository_info.redeem_cpi {
-            Some(redeem_cpi) => redeem_cpi(*depository_redeemable_amount),
+        |(depository_info, depository_redeemable_amount)| match &depository_info.redeem_fn {
+            Some(redeem_fn) => redeem_fn(*depository_redeemable_amount),
             None => Ok(()),
         },
     )?;
