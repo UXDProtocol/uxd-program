@@ -23,7 +23,6 @@ use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
-#[instruction(redeemable_amount: u64)]
 pub struct Redeem<'info> {
     /// #1
     pub user: Signer<'info>,
