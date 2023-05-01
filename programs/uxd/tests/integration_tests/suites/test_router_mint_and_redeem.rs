@@ -174,7 +174,7 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
     let credix_lp_depository_0_supply_after_first_mint = amount_for_first_mint * 40 / 100;
 
     // Minting should work now that everything is set, weights should be respected
-    program_uxd::instructions::process_mint_with_router(
+    program_uxd::instructions::process_mint(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
@@ -215,7 +215,7 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
 
     // Minting should now respect the new weights
     // Note: due to the precision loss from the first mint, we need to adjust by 1 in some places
-    program_uxd::instructions::process_mint_with_router(
+    program_uxd::instructions::process_mint(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
@@ -250,7 +250,7 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
 
     // Redeeming now should not touch mercurial at all since it is underflowing
     // Meaning that other depositories are overflowing and should be prioritized
-    program_uxd::instructions::process_redeem_from_router(
+    program_uxd::instructions::process_redeem(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
@@ -268,7 +268,7 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
     // Even if mercurial is underflowing, it is the last liquid redeemable available, so we use it.
     let identity_depository_supply_after_first_redeem =
         identity_depository_supply_after_second_mint - amount_for_first_redeem;
-    program_uxd::instructions::process_redeem_from_router(
+    program_uxd::instructions::process_redeem(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
@@ -283,7 +283,7 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
     .await?;
 
     // Any more redeeming will fail as all the liquid redeem source have been exhausted now
-    assert!(program_uxd::instructions::process_redeem_from_router(
+    assert!(program_uxd::instructions::process_redeem(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),

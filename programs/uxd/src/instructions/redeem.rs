@@ -24,7 +24,7 @@ use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
 #[instruction(redeemable_amount: u64)]
-pub struct RedeemFromRouter<'info> {
+pub struct Redeem<'info> {
     /// #1
     pub user: Signer<'info>,
 
@@ -151,14 +151,14 @@ pub struct RedeemFromRouter<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-struct DepositoryInfoForRedeemFromRouter<'info> {
+struct DepositoryInfoForRedeem<'info> {
     pub weight_bps: u16,
     pub redeemable_amount_under_management: u128,
     pub redeemable_amount_under_management_cap: u128,
     pub redeem_fn: Option<Box<dyn Fn(u64) -> Result<()> + 'info>>,
 }
 
-pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) -> Result<()> {
+pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()> {
     // Gather all the onchain states we need (caps, weights and supplies)
     let controller = ctx.accounts.controller.load()?;
     let identity_depository = ctx.accounts.identity_depository.load()?;
@@ -176,7 +176,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![
         // Identity depository details
-        DepositoryInfoForRedeemFromRouter {
+        DepositoryInfoForRedeem {
             weight_bps: controller.identity_depository_weight_bps,
             redeemable_amount_under_management: identity_depository
                 .redeemable_amount_under_management,
@@ -184,7 +184,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
                 .redeemable_amount_under_management_cap,
             redeem_fn: Some(Box::new(|redeemable_amount| {
                 msg!(
-                    "[redeem_from_router:redeem_from_identity_depository:{}]",
+                    "[redeem:redeem_from_identity_depository:{}]",
                     redeemable_amount
                 );
                 if redeemable_amount > 0 {
@@ -197,7 +197,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
             })),
         },
         // Mercurial Vault Depository 0 details
-        DepositoryInfoForRedeemFromRouter {
+        DepositoryInfoForRedeem {
             weight_bps: controller.mercurial_vault_depository_0_weight_bps,
             redeemable_amount_under_management: mercurial_vault_depository_0
                 .redeemable_amount_under_management,
@@ -205,7 +205,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
                 .redeemable_amount_under_management_cap,
             redeem_fn: Some(Box::new(|redeemable_amount| {
                 msg!(
-                    "[redeem_from_router:redeem_from_mercurial_vault_depository_0:{}]",
+                    "[redeem:redeem_from_mercurial_vault_depository_0:{}]",
                     redeemable_amount
                 );
                 if redeemable_amount > 0 {
@@ -219,7 +219,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
             })),
         },
         // Credix Lp Depository 0 details
-        DepositoryInfoForRedeemFromRouter {
+        DepositoryInfoForRedeem {
             weight_bps: controller.credix_lp_depository_0_weight_bps,
             redeemable_amount_under_management: credix_lp_depository_0
                 .redeemable_amount_under_management,
@@ -282,7 +282,7 @@ pub(crate) fn handler(ctx: Context<RedeemFromRouter>, redeemable_amount: u64) ->
 }
 
 // Into functions
-impl<'info> RedeemFromRouter<'info> {
+impl<'info> Redeem<'info> {
     pub fn into_redeem_from_identity_depository_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::RedeemFromIdentityDepository<'info>>
@@ -341,7 +341,7 @@ impl<'info> RedeemFromRouter<'info> {
 }
 
 // Validate
-impl<'info> RedeemFromRouter<'info> {
+impl<'info> Redeem<'info> {
     pub(crate) fn validate(&self, redeemable_amount: u64) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
         validate_redeemable_amount(&self.user_collateral, redeemable_amount)?;

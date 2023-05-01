@@ -24,7 +24,7 @@ use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
-pub struct MintWithRouter<'info> {
+pub struct Mint<'info> {
     /// #1
     pub user: Signer<'info>,
 
@@ -194,14 +194,14 @@ pub struct MintWithRouter<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-struct DepositoryInfoForMintWithRouter<'info> {
+struct DepositoryInfoForMint<'info> {
     pub weight_bps: u16,
     pub redeemable_amount_under_management: u128,
     pub redeemable_amount_under_management_cap: u128,
     pub mint_fn: Box<dyn Fn(u64) -> Result<()> + 'info>,
 }
 
-pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> Result<()> {
+pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> {
     // Gather all the onchain states we need (caps, weights and supplies)
     let controller = ctx.accounts.controller.load()?;
     let identity_depository = ctx.accounts.identity_depository.load()?;
@@ -219,17 +219,14 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![
         // Identity depository details
-        DepositoryInfoForMintWithRouter {
+        DepositoryInfoForMint {
             weight_bps: controller.identity_depository_weight_bps,
             redeemable_amount_under_management: identity_depository
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: identity_depository
                 .redeemable_amount_under_management_cap,
             mint_fn: Box::new(|collateral_amount| {
-                msg!(
-                    "[mint_with_router:mint_with_identity_depository:{}]",
-                    collateral_amount
-                );
+                msg!("[mint:mint_with_identity_depository:{}]", collateral_amount);
                 if collateral_amount > 0 {
                     uxd_cpi::cpi::mint_with_identity_depository(
                         ctx.accounts.into_mint_with_identity_depository_context(),
@@ -240,7 +237,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
             }),
         },
         // Mercurial Vault Depository 0 details
-        DepositoryInfoForMintWithRouter {
+        DepositoryInfoForMint {
             weight_bps: controller.mercurial_vault_depository_0_weight_bps,
             redeemable_amount_under_management: mercurial_vault_depository_0
                 .redeemable_amount_under_management,
@@ -248,7 +245,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
                 .redeemable_amount_under_management_cap,
             mint_fn: Box::new(|collateral_amount| {
                 msg!(
-                    "[mint_with_router:mint_with_mercurial_vault_depository:{}]",
+                    "[mint:mint_with_mercurial_vault_depository:{}]",
                     collateral_amount
                 );
                 if collateral_amount > 0 {
@@ -262,7 +259,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
             }),
         },
         // Credix Lp Depository 0 details
-        DepositoryInfoForMintWithRouter {
+        DepositoryInfoForMint {
             weight_bps: controller.credix_lp_depository_0_weight_bps,
             redeemable_amount_under_management: credix_lp_depository_0
                 .redeemable_amount_under_management,
@@ -270,7 +267,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
                 .redeemable_amount_under_management_cap,
             mint_fn: Box::new(|collateral_amount| {
                 msg!(
-                    "[mint_with_router:mint_with_credix_lp_depository:{}]",
+                    "[mint:mint_with_credix_lp_depository:{}]",
                     collateral_amount
                 );
                 if collateral_amount > 0 {
@@ -333,7 +330,7 @@ pub(crate) fn handler(ctx: Context<MintWithRouter>, collateral_amount: u64) -> R
 }
 
 // Into functions
-impl<'info> MintWithRouter<'info> {
+impl<'info> Mint<'info> {
     pub fn into_mint_with_identity_depository_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::MintWithIdentityDepository<'info>>
@@ -428,7 +425,7 @@ impl<'info> MintWithRouter<'info> {
 }
 
 // Validate
-impl<'info> MintWithRouter<'info> {
+impl<'info> Mint<'info> {
     pub(crate) fn validate(&self, collateral_amount: u64) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
         validate_collateral_amount(&self.user_collateral, collateral_amount)?;
