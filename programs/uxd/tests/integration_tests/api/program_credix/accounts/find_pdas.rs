@@ -85,10 +85,10 @@ pub fn find_withdraw_epoch_pda(global_market_state: &Pubkey, epoch_idx: u32) -> 
     Pubkey::find_program_address(
         &[
             global_market_state.as_ref(),
-            &epoch_idx.to_be_bytes(),
+            &epoch_idx.to_le_bytes(),
             CREDIX_WITHDRAW_EPOCH_SEED.as_ref(),
         ],
-        &mercurial_vault::ID,
+        &credix_client::ID,
     )
 }
 
@@ -101,9 +101,9 @@ pub fn find_withdraw_request_pda(
         &[
             global_market_state.as_ref(),
             investor.as_ref(),
-            &epoch_idx.to_be_bytes(),
+            &epoch_idx.to_le_bytes(),
             CREDIX_WITHDRAW_REQUEST_SEED.as_ref(),
         ],
-        &mercurial_vault::ID,
+        &credix_client::ID,
     )
 }

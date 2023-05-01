@@ -8,10 +8,10 @@ use solana_sdk::signer::Signer;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
 
-pub async fn process_create_withdraw_epoch(
+pub async fn process_update_global_market_state(
     program_test_context: &mut ProgramTestContext,
     multisig: &Keypair,
-    epoch_idx: u32,
+    has_withdrawal_epochs: bool,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
@@ -19,22 +19,26 @@ pub async fn process_create_withdraw_epoch(
         program_credix::accounts::find_global_market_state_pda(&market_seeds).0;
     let market_admins = program_credix::accounts::find_market_admins_pda(&global_market_state).0;
 
-    // Find the next withdraw epoch account
-    let withdraw_epoch = program_credix::accounts::find_withdraw_epoch_pda(
-        &global_market_state,
-        epoch_idx,
-    )
-    .0;
-
     // Execute IX
-    let accounts = credix_client::accounts::CreateWithdrawEpoch {
+    let accounts = credix_client::accounts::UpdateGlobalMarketState {
         owner: multisig.pubkey(),
         global_market_state,
-        withdraw_epoch,
         market_admins,
-        system_program: anchor_lang::system_program::ID,
     };
-    let payload = credix_client::instruction::CreateWithdrawEpoch {};
+    let payload = credix_client::instruction::UpdateGlobalMarketState {
+        _treasury_pool_token_account: None,
+        _performance_fee: None,
+        _withdrawal_fee: None,
+        _service_fee_percentage: None,
+        _grace_period: None,
+        _fixed_late_fee_percentage: None,
+        _variable_late_fee_percentage: None,
+        _pool_size_limit_percentage: None,
+        _withdraw_epoch_request_seconds: None,
+        _withdraw_epoch_redeem_seconds: None,
+        _withdraw_epoch_available_liquidity_seconds: None,
+        _has_withdraw_epochs: Some(has_withdrawal_epochs),
+    };
     let instruction = Instruction {
         program_id: credix_client::id(),
         accounts: accounts.to_account_metas(None),
