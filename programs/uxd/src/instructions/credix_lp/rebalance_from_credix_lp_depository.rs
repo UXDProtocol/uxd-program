@@ -134,7 +134,7 @@ pub struct RebalanceFromCredixLpDepository<'info> {
     )]
     pub credix_multisig_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #15
+    /// #16
     #[account(
         mut,
         owner = credix_client::ID,
@@ -148,6 +148,7 @@ pub struct RebalanceFromCredixLpDepository<'info> {
     )]
     pub credix_withdraw_epoch: Account<'info, credix_client::WithdrawEpoch>,
 
+    /// #17
     #[account(
         mut,
         owner = credix_client::ID,
@@ -162,14 +163,14 @@ pub struct RebalanceFromCredixLpDepository<'info> {
     )]
     pub credix_withdraw_request: Account<'info, credix_client::WithdrawRequest>,
 
-    /// #16
+    /// #18
     #[account(
         mut,
         token::mint = collateral_mint,
     )]
     pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #17
+    /// #19
     #[account(
         mut,
         seeds = [IDENTITY_DEPOSITORY_NAMESPACE],
@@ -177,7 +178,7 @@ pub struct RebalanceFromCredixLpDepository<'info> {
     )]
     pub identity_depository: AccountLoader<'info, IdentityDepository>,
 
-    /// #18
+    /// #20
     #[account(
         mut,
         seeds = [IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE],
@@ -187,15 +188,15 @@ pub struct RebalanceFromCredixLpDepository<'info> {
     )]
     pub identity_depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #17
-    pub system_program: Program<'info, System>,
-    /// #18
-    pub token_program: Program<'info, Token>,
-    /// #19
-    pub associated_token_program: Program<'info, AssociatedToken>,
-    /// #20
-    pub credix_program: Program<'info, credix_client::program::Credix>,
     /// #21
+    pub system_program: Program<'info, System>,
+    /// #22
+    pub token_program: Program<'info, Token>,
+    /// #23
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    /// #24
+    pub credix_program: Program<'info, credix_client::program::Credix>,
+    /// #25
     pub rent: Sysvar<'info, Rent>,
 }
 

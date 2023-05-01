@@ -20,11 +20,8 @@ pub async fn process_create_withdraw_epoch(
     let market_admins = program_credix::accounts::find_market_admins_pda(&global_market_state).0;
 
     // Find the next withdraw epoch account
-    let withdraw_epoch = program_credix::accounts::find_withdraw_epoch_pda(
-        &global_market_state,
-        epoch_idx,
-    )
-    .0;
+    let withdraw_epoch =
+        program_credix::accounts::find_withdraw_epoch_pda(&global_market_state, epoch_idx).0;
 
     // Execute IX
     let accounts = credix_client::accounts::CreateWithdrawEpoch {

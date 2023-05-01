@@ -32,7 +32,7 @@ pub async fn process_set_locked_liquidity(
     .latest_withdraw_epoch_idx;
     let withdraw_epoch = program_credix::accounts::find_withdraw_epoch_pda(
         &global_market_state,
-        latest_withdraw_epoch_idx + 1,
+        latest_withdraw_epoch_idx,
     )
     .0;
 
