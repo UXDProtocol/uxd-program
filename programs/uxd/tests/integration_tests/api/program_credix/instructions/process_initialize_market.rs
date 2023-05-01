@@ -81,9 +81,9 @@ pub async fn process_initialize_market(
             numerator: 1,
             denominator: 100,
         },
-        _withdraw_epoch_redeem_days: 3,
-        _withdraw_epoch_available_liquidity_days: 3,
-        _withdraw_epoch_request_days: 3,
+        _withdraw_epoch_redeem_seconds: 3 * 24 * 60 * 60,
+        _withdraw_epoch_available_liquidity_seconds: 3 * 24 * 60 * 60,
+        _withdraw_epoch_request_seconds: 3 * 24 * 60 * 60,
     };
     let instruction = Instruction {
         program_id: credix_client::id(),

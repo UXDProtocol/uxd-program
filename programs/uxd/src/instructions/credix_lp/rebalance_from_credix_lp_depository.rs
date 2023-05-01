@@ -25,7 +25,6 @@ use crate::CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
-use crate::SECONDS_IN_A_DAY;
 
 #[derive(Accounts)]
 pub struct RebalanceFromCredixLpDepository<'info> {
@@ -556,10 +555,7 @@ impl<'info> RebalanceFromCredixLpDepository<'info> {
         let current_unix_timestamp = Clock::get()?.unix_timestamp;
         let go_live_unix_timestamp = self.credix_withdraw_epoch.go_live;
 
-        let request_phase_days = self.credix_withdraw_epoch.request_days;
-        let request_phase_seconds = i64::from(request_phase_days)
-            .checked_mul(SECONDS_IN_A_DAY)
-            .ok_or(UxdError::MathError)?;
+        let request_phase_seconds = i64::from(self.credix_withdraw_epoch.request_seconds);
 
         let end_of_request_phase_timestamp = go_live_unix_timestamp
             .checked_add(request_phase_seconds)

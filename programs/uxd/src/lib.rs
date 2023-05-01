@@ -51,8 +51,6 @@ pub const ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX: usize = 2;
 const BPS_POW: u8 = 4; // Raise a number to BPS_POW to get order of magnitude of
 pub const BPS_UNIT_CONVERSION: u64 = (10u64).pow(BPS_POW as u32);
 
-pub const SECONDS_IN_A_DAY: i64 = 24 * 60 * 60;
-
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 
 #[program]

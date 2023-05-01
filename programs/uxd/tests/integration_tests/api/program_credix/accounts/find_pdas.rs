@@ -2,6 +2,7 @@ use solana_program::pubkey::Pubkey;
 
 const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";
 const CREDIX_BORROWER_INFO_SEED: &str = "borrower-info";
+
 const CREDIX_WITHDRAW_EPOCH_SEED: &str = "withdraw-epoch";
 const CREDIX_WITHDRAW_REQUEST_SEED: &str = "withdraw-request";
 
