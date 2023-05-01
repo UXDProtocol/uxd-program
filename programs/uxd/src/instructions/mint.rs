@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
-use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
@@ -45,10 +44,10 @@ pub struct Mint<'info> {
 
     /// #4
     #[account(mut)]
-    pub redeemable_mint: Box<Account<'info, Mint>>,
+    pub redeemable_mint: Box<Account<'info, anchor_spl::token::Mint>>,
 
     /// #5
-    pub collateral_mint: Box<Account<'info, Mint>>,
+    pub collateral_mint: Box<Account<'info, anchor_spl::token::Mint>>,
 
     /// #6
     #[account(
@@ -116,7 +115,7 @@ pub struct Mint<'info> {
 
     /// #13
     #[account(mut)]
-    pub mercurial_vault_depository_0_vault_lp_mint: Box<Account<'info, Mint>>,
+    pub mercurial_vault_depository_0_vault_lp_mint: Box<Account<'info, anchor_spl::token::Mint>>,
 
     /// #14 - Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.
     #[account(mut)]
@@ -170,7 +169,7 @@ pub struct Mint<'info> {
 
     /// #22
     #[account(mut)]
-    pub credix_lp_depository_0_shares_mint: Box<Account<'info, Mint>>,
+    pub credix_lp_depository_0_shares_mint: Box<Account<'info, anchor_spl::token::Mint>>,
 
     /// #23
     pub system_program: Program<'info, System>,
