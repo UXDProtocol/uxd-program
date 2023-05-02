@@ -162,7 +162,7 @@ pub fn calculate_depositories_redeemable_amount(
         .checked_sub(total_redeemable_amount)
         .ok_or(UxdError::MathError)?;
 
-    for i in 0..ROUTER_DEPOSITORIES_COUNT {
+    for i in 0..depositories_info.len() {
         let depository = &depositories_info[i];
         if !depository.is_liquid {
             continue;
