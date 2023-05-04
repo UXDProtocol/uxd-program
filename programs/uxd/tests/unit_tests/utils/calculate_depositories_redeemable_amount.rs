@@ -4,10 +4,8 @@ mod test_calculate_depositories_redeemable_amount {
     use anchor_lang::Result;
     use proptest::prelude::*;
     use uxd::utils::calculate_depositories_redeemable_amount;
-    use uxd::utils::is_within_range_inclusive;
     use uxd::utils::DepositoryInfoForRedeemableAmount;
     use uxd::ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX;
-    use uxd::ROUTER_DEPOSITORIES_COUNT;
     use uxd::ROUTER_IDENTITY_DEPOSITORY_INDEX;
     use uxd::ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX;
 
@@ -20,7 +18,7 @@ mod test_calculate_depositories_redeemable_amount {
         // Compute
         let depositories_redeemable_amount = calculate_depositories_redeemable_amount(
             ui_to_native_amount(1_000_000),
-            vec![
+            &vec![
                 // identity_depository is overflowing by a little bit
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
@@ -63,7 +61,7 @@ mod test_calculate_depositories_redeemable_amount {
         // Compute
         let depositories_redeemable_amount = calculate_depositories_redeemable_amount(
             ui_to_native_amount(1_000_000),
-            vec![
+            &vec![
                 // identity_depository is not filled up (underflow)
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
@@ -106,7 +104,7 @@ mod test_calculate_depositories_redeemable_amount {
         // Compute
         let depositories_redeemable_amount = calculate_depositories_redeemable_amount(
             ui_to_native_amount(1_000_000),
-            vec![
+            &vec![
                 // identity_depository is perfectly balanced
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
@@ -131,7 +129,7 @@ mod test_calculate_depositories_redeemable_amount {
         // More should be withdrawn from identity since it was bigger before the redeem
         assert_eq!(
             depositories_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
-            ui_to_native_amount(1_000_000) * 2 / 3,
+            ui_to_native_amount(1_000_000) * 2 / 3 + 1,
         );
         assert_eq!(
             depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
@@ -150,7 +148,7 @@ mod test_calculate_depositories_redeemable_amount {
         // Compute
         let depositories_redeemable_amount = calculate_depositories_redeemable_amount(
             ui_to_native_amount(1_000_000),
-            vec![
+            &vec![
                 // identity_depository is overflowing by a little bit
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
@@ -195,7 +193,7 @@ mod test_calculate_depositories_redeemable_amount {
         // Compute
         let depositories_redeemable_amount = calculate_depositories_redeemable_amount(
             ui_to_native_amount(1_000_000),
-            vec![
+            &vec![
                 // identity_depository is underweight
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
@@ -220,7 +218,7 @@ mod test_calculate_depositories_redeemable_amount {
         // More should be withdrawn from identity since it was bigger before the redeem
         assert_eq!(
             depositories_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
-            ui_to_native_amount(1_000_000) * 2 / 3,
+            ui_to_native_amount(1_000_000) * 2 / 3 + 1,
         );
         assert_eq!(
             depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
@@ -263,7 +261,7 @@ mod test_calculate_depositories_redeemable_amount {
             let result =
                 calculate_depositories_redeemable_amount(
                     requested_redeemable_amount,
-                    vec![
+                    &vec![
                         DepositoryInfoForRedeemableAmount {
                             is_liquid: true,
                             target_redeemable_amount: identity_depository_target_redeemable_amount,
@@ -297,18 +295,7 @@ mod test_calculate_depositories_redeemable_amount {
             let total_redeemable_amount = depositories_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX]
                 + depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX];
 
-            // Check for equality while allowing 1 of precision loss per depository (rounding errors)
-            let allowed_precision_loss = u64::try_from(ROUTER_DEPOSITORIES_COUNT).unwrap();
-
-            let value_max = requested_redeemable_amount;
-            let value_min = if requested_redeemable_amount > allowed_precision_loss {
-                requested_redeemable_amount - allowed_precision_loss
-            } else {
-                0
-            };
-            prop_assert!(
-                is_within_range_inclusive(total_redeemable_amount, value_min, value_max)
-            );
+            prop_assert_eq!(total_redeemable_amount, requested_redeemable_amount);
         });
         Ok(())
     }
