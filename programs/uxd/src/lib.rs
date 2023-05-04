@@ -116,9 +116,17 @@ pub mod uxd {
     #[access_control(
         ctx.accounts.validate(collateral_amount)
     )]
-    pub fn mint_with_router(ctx: Context<MintWithRouter>, collateral_amount: u64) -> Result<()> {
-        msg!("[mint_with_router]");
-        instructions::mint_with_router::handler(ctx, collateral_amount)
+    pub fn mint(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> {
+        msg!("[mint]");
+        instructions::mint::handler(ctx, collateral_amount)
+    }
+
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn redeem(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()> {
+        msg!("[redeem]");
+        instructions::redeem::handler(ctx, redeemable_amount)
     }
 
     // Mint Redeemable tokens by depositing Collateral to mercurial vault.

@@ -13,7 +13,7 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_router_mint() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_router_mint_and_redeem() -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -81,6 +81,10 @@ async fn test_router_mint() -> Result<(), program_test_context::ProgramTestError
 
     let amount_for_first_mint = ui_amount_to_native_amount(100, collateral_mint_decimals);
     let amount_for_second_mint = ui_amount_to_native_amount(200, collateral_mint_decimals);
+
+    let amount_for_first_redeem = ui_amount_to_native_amount(20, redeemable_mint_decimals);
+    let amount_for_second_redeem = ui_amount_to_native_amount(120, redeemable_mint_decimals);
+    let amount_for_third_redeem = ui_amount_to_native_amount(10, redeemable_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -170,7 +174,7 @@ async fn test_router_mint() -> Result<(), program_test_context::ProgramTestError
     let credix_lp_depository_0_supply_after_first_mint = amount_for_first_mint * 40 / 100;
 
     // Minting should work now that everything is set, weights should be respected
-    program_uxd::instructions::process_mint_with_router(
+    program_uxd::instructions::process_mint(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
@@ -203,14 +207,15 @@ async fn test_router_mint() -> Result<(), program_test_context::ProgramTestError
 
     // Post mint supply should match the configured weights
     let total_supply_after_second_mint = amount_for_first_mint + amount_for_second_mint;
-    let identity_depository_supply_after_second_mint = total_supply_after_second_mint * 10 / 100;
+    let identity_depository_supply_after_second_mint =
+        total_supply_after_second_mint * 10 / 100 - 1; // Precision loss as a consequence of the first mint rounding
     let mercurial_vault_depository_0_supply_after_second_mint =
-        total_supply_after_second_mint * 40 / 100;
+        total_supply_after_second_mint * 40 / 100 - 1; // Precision loss as a consequence of the first mint rounding
     let credix_lp_depository_0_supply_after_second_mint = total_supply_after_second_mint * 50 / 100;
 
     // Minting should now respect the new weights
     // Note: due to the precision loss from the first mint, we need to adjust by 1 in some places
-    program_uxd::instructions::process_mint_with_router(
+    program_uxd::instructions::process_mint(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
@@ -219,16 +224,79 @@ async fn test_router_mint() -> Result<(), program_test_context::ProgramTestError
         &user_collateral,
         &user_redeemable,
         amount_for_second_mint,
-        identity_depository_supply_after_second_mint
-            - identity_depository_supply_after_first_mint
-            - 1, // Precision loss as a consequence of the first mint rounding
+        identity_depository_supply_after_second_mint - identity_depository_supply_after_first_mint,
         mercurial_vault_depository_0_supply_after_second_mint
-            - mercurial_vault_depository_0_supply_after_first_mint
-            - 1, // Precision loss as a consequence of the first mint rounding
+            - mercurial_vault_depository_0_supply_after_first_mint,
         credix_lp_depository_0_supply_after_second_mint
             - credix_lp_depository_0_supply_after_first_mint,
     )
     .await?;
+
+    // Set the controller weights to 100% to mercurial_vault_depository_0
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 0,
+                mercurial_vault_depository_0_weight_bps: 100 * 100,
+                credix_lp_depository_0_weight_bps: 0,
+            }),
+        },
+    )
+    .await?;
+
+    // Redeeming now should not touch mercurial at all since it is underflowing
+    // Meaning that other depositories are overflowing and should be prioritized
+    program_uxd::instructions::process_redeem(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_for_first_redeem,
+        amount_for_first_redeem,
+        0,
+    )
+    .await?;
+
+    // Redeeming after we exhaused the identity depository should fallback to mercurial depository
+    // Even if mercurial is underflowing, it is the last liquid redeemable available, so we use it.
+    let identity_depository_supply_after_first_redeem =
+        identity_depository_supply_after_second_mint - amount_for_first_redeem;
+    program_uxd::instructions::process_redeem(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_for_second_redeem,
+        identity_depository_supply_after_first_redeem, // It should completely empty the identity depository
+        amount_for_second_redeem - identity_depository_supply_after_first_redeem, // Then the rest should be taken from mercurial
+    )
+    .await?;
+
+    // Any more redeeming will fail as all the liquid redeem source have been exhausted now
+    assert!(program_uxd::instructions::process_redeem(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_for_third_redeem,
+        0,
+        0,
+    )
+    .await
+    .is_err());
 
     // Done
     Ok(())
