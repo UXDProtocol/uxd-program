@@ -256,8 +256,8 @@ pub struct RebalanceRequestCreateFromCredixLpDepositoryEvent {
     pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
-    /// The collateral amount rebalanced in native units. (output)
-    pub overflow_collateral_amount: u64,
+    /// The redeemable amount rebalanced in native units. (output)
+    pub overflow_redeemable_amount: u64,
     /// The collateral amount of profits collected in native units. (output)
     pub profits_collateral_amount: u64,
 }
@@ -273,8 +273,8 @@ pub struct RebalanceRequestExecuteFromCredixLpDepositoryEvent {
     pub controller: Pubkey,
     #[index]
     pub depository: Pubkey,
-    /// The collateral amount rebalanced in native units. (output)
-    pub overflow_collateral_amount: u64,
+    /// The redeemable amount rebalanced in native units. (output)
+    pub overflow_redeemable_amount: u64,
     /// The collateral amount of profits collected in native units. (output)
     pub profits_collateral_amount: u64,
 }

@@ -168,12 +168,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
     // -- Check if the withdraw request period is active at the moment
     // ---------------------------------------------------------------------
 
-    let current_unix_timestamp = Clock::get()?.unix_timestamp;
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:current_unix_timestamp:{}]",
-        current_unix_timestamp
-    );
-
     let start_of_request_phase_timestamp = ctx.accounts.credix_withdraw_epoch.go_live;
     msg!(
         "[rebalance_request_create_from_credix_lp_depository:start_of_request_phase_timestamp:{}]",
@@ -186,6 +180,12 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
     msg!(
         "[rebalance_request_create_from_credix_lp_depository:end_of_request_phase_timestamp:{}]",
         end_of_request_phase_timestamp
+    );
+
+    let current_unix_timestamp = Clock::get()?.unix_timestamp;
+    msg!(
+        "[rebalance_request_create_from_credix_lp_depository:current_unix_timestamp:{}]",
+        current_unix_timestamp
     );
 
     if current_unix_timestamp < start_of_request_phase_timestamp
@@ -236,7 +236,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
         profits_collateral_amount
     );
 
-    let overflow_collateral_amount = {
+    let overflow_redeemable_amount = {
         // We fetch the target amount of redeemable that we wish the depository have
         let redeemable_amount_under_management_target_amount = checked_convert_u128_to_u64(
             ctx.accounts
@@ -259,10 +259,10 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
     };
 
     msg!(
-        "[rebalance_request_create_from_credix_lp_depository:overflow_collateral_amount:{}]",
-        overflow_collateral_amount
+        "[rebalance_request_create_from_credix_lp_depository:overflow_redeemable_amount:{}]",
+        overflow_redeemable_amount
     );
-    let requested_collateral_amount = overflow_collateral_amount
+    let requested_collateral_amount = overflow_redeemable_amount
         .checked_add(profits_collateral_amount)
         .ok_or(UxdError::MathError)?;
 
@@ -293,7 +293,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
         depository_version: ctx.accounts.depository.load()?.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
-        overflow_collateral_amount,
+        overflow_redeemable_amount,
         profits_collateral_amount,
     });
 
