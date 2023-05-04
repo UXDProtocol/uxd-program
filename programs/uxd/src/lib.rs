@@ -267,15 +267,26 @@ pub mod uxd {
         instructions::collect_profits_of_credix_lp_depository::handler(ctx)
     }
 
-    // Rebalance // TODO
+    // Create a rebalance request to collect profits and overflow from credix depository
     #[access_control(
         ctx.accounts.validate()
     )]
-    pub fn rebalance_from_credix_lp_depository(
-        ctx: Context<RebalanceFromCredixLpDepository>,
+    pub fn rebalance_request_create_from_credix_lp_depository(
+        ctx: Context<RebalanceRequestCreateFromCredixLpDepository>,
     ) -> Result<()> {
-        msg!("[rebalance_from_credix_lp_depository]");
-        instructions::rebalance_from_credix_lp_depository::handler(ctx)
+        msg!("[rebalance_request_create_from_credix_lp_depository]");
+        instructions::rebalance_request_create_from_credix_lp_depository::handler(ctx)
+    }
+
+    // Execute a previously created rebalance request from credix depository
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn rebalance_request_execute_from_credix_lp_depository(
+        ctx: Context<RebalanceRequestExecuteFromCredixLpDepository>,
+    ) -> Result<()> {
+        msg!("[rebalance_request_execute_from_credix_lp_depository]");
+        instructions::rebalance_request_execute_from_credix_lp_depository::handler(ctx)
     }
 
     /// Freeze or resume all ixs associated with the controller (except this one).

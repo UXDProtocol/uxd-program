@@ -245,9 +245,26 @@ pub struct CollectProfitsOfCredixLpDepositoryEvent {
     pub collateral_amount: u64,
 }
 
-/// Event called in [instructions::rebalance_from_credix_lp_depository::handler].
+/// Event called in [instructions::rebalance_request_create_from_credix_lp_depository::handler].
 #[event]
-pub struct RebalanceFromCredixLpDepositoryEvent {
+pub struct RebalanceRequestCreateFromCredixLpDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    /// The collateral amount rebalanced in native units. (output)
+    pub overflow_collateral_amount: u64,
+    /// The collateral amount of profits collected in native units. (output)
+    pub profits_collateral_amount: u64,
+}
+
+/// Event called in [instructions::rebalance_request_execute_from_credix_lp_depository::handler].
+#[event]
+pub struct RebalanceRequestExecuteFromCredixLpDepositoryEvent {
     #[index]
     pub controller_version: u8,
     #[index]

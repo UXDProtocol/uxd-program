@@ -111,6 +111,10 @@ pub enum UxdError {
     InvalidCredixMultisigKey,
     #[msg("The Credix TreasuryCollateral isn't the GlobalMarketState one.")]
     InvalidCredixTreasuryCollateral,
+    #[msg("The Credix WithdrawEpoch isn't in its request period.")]
+    InvalidCredixWithdrawEpochRequestPeriod,
+    #[msg("The Credix WithdrawEpoch isn't in its execute period.")]
+    InvalidCredixWithdrawEpochExecutePeriod,
 
     #[msg("Default - Check the source code for more info.")]
     Default,

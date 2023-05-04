@@ -7,7 +7,7 @@ use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 
 use crate::error::UxdError;
-use crate::events::RebalanceFromCredixLpDepositoryEvent;
+use crate::events::RebalanceRequestExecuteFromCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
@@ -27,7 +27,7 @@ use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
-pub struct RebalanceFromCredixLpDepository<'info> {
+pub struct RebalanceRequestExecuteFromCredixLpDepository<'info> {
     /// #1 // Permissionless IX that can be called by anyone at any time
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -140,7 +140,7 @@ pub struct RebalanceFromCredixLpDepository<'info> {
         owner = credix_client::ID,
         seeds = [
             credix_global_market_state.key().as_ref(),
-            &credix_global_market_state.latest_withdraw_epoch_idx.to_be_bytes(),
+            &credix_global_market_state.latest_withdraw_epoch_idx.to_le_bytes(),
             CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE
         ],
         bump,
@@ -155,7 +155,7 @@ pub struct RebalanceFromCredixLpDepository<'info> {
         seeds = [
             credix_global_market_state.key().as_ref(),
             depository.key().as_ref(),
-            &credix_global_market_state.latest_withdraw_epoch_idx.to_be_bytes(),
+            &credix_global_market_state.latest_withdraw_epoch_idx.to_le_bytes(),
             CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE
         ],
         bump,
@@ -200,7 +200,7 @@ pub struct RebalanceFromCredixLpDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub(crate) fn handler(ctx: Context<RebalanceFromCredixLpDepository>) -> Result<()> {
+pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository>) -> Result<()> {
     let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
     let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
     let depository_pda_signer: &[&[&[u8]]] = &[&[
@@ -253,11 +253,11 @@ pub(crate) fn handler(ctx: Context<RebalanceFromCredixLpDepository>) -> Result<(
     let overflow_collateral_amount = ctx.accounts.calculate_overflow_collateral_amount()?;
 
     msg!(
-        "[rebalance_from_credix_lp_depository:profits_collateral_amount:{}]",
+        "[rebalance_request_create_from_credix_lp_depository:profits_collateral_amount:{}]",
         profits_collateral_amount
     );
     msg!(
-        "[rebalance_from_credix_lp_depository:overflow_collateral_amount:{}]",
+        "[rebalance_request_create_from_credix_lp_depository:overflow_collateral_amount:{}]",
         overflow_collateral_amount
     );
 
@@ -269,20 +269,7 @@ pub(crate) fn handler(ctx: Context<RebalanceFromCredixLpDepository>) -> Result<(
     // ---------------------------------------------------------------------
 
     if ctx.accounts.check_if_request_phase_is_active()? {
-        let requested_collateral_amount = overflow_collateral_amount
-            .checked_add(profits_collateral_amount)
-            .ok_or(UxdError::MathError)?;
-        msg!(
-            "[rebalance_from_credix_lp_depository:requested_collateral_amount:{}]",
-            requested_collateral_amount
-        );
-        credix_client::cpi::create_withdraw_request(
-            ctx.accounts
-                .into_create_withdraw_request_from_credix_lp_context()
-                .with_signer(depository_pda_signer),
-            requested_collateral_amount,
-        )?;
-        return Ok(());
+        return Err(UxdError::InvalidCredixWithdrawEpochExecutePeriod.into());
     }
 
     // ---------------------------------------------------------------------
@@ -367,7 +354,7 @@ pub(crate) fn handler(ctx: Context<RebalanceFromCredixLpDepository>) -> Result<(
     // ---------------------------------------------------------------------
 
     msg!(
-        "[rebalance_from_credix_lp_depository:redeem_withdraw_request:{}]",
+        "[rebalance_request_create_from_credix_lp_depository:redeem_withdraw_request:{}]",
         withdraw_total_collateral_amount
     );
     credix_client::cpi::redeem_withdraw_request(
@@ -378,7 +365,7 @@ pub(crate) fn handler(ctx: Context<RebalanceFromCredixLpDepository>) -> Result<(
     )?;
 
     msg!(
-        "[rebalance_from_credix_lp_depository:identity_depository_collateral_transfer:{}]",
+        "[rebalance_request_create_from_credix_lp_depository:identity_depository_collateral_transfer:{}]",
         withdraw_overflow_collateral_amount_after_precision_loss
     );
     token::transfer(
@@ -389,7 +376,7 @@ pub(crate) fn handler(ctx: Context<RebalanceFromCredixLpDepository>) -> Result<(
     )?;
 
     msg!(
-        "[rebalance_from_credix_lp_depository:profits_beneficiary_collateral_transfer:{}]",
+        "[rebalance_request_create_from_credix_lp_depository:profits_beneficiary_collateral_transfer:{}]",
         withdraw_profits_collateral_amount_after_precision_loss
     );
     token::transfer(
@@ -514,7 +501,7 @@ pub(crate) fn handler(ctx: Context<RebalanceFromCredixLpDepository>) -> Result<(
     // ---------------------------------------------------------------------
 
     // Emit event
-    emit!(RebalanceFromCredixLpDepositoryEvent {
+    emit!(RebalanceRequestExecuteFromCredixLpDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.load()?.version,
         controller: ctx.accounts.controller.key(),
@@ -551,7 +538,7 @@ pub(crate) fn handler(ctx: Context<RebalanceFromCredixLpDepository>) -> Result<(
 }
 
 // Utility functions
-impl<'info> RebalanceFromCredixLpDepository<'info> {
+impl<'info> RebalanceRequestExecuteFromCredixLpDepository<'info> {
     pub fn check_if_request_phase_is_active(&self) -> Result<bool> {
         let current_unix_timestamp = Clock::get()?.unix_timestamp;
         let go_live_unix_timestamp = self.credix_withdraw_epoch.go_live;
@@ -600,27 +587,7 @@ impl<'info> RebalanceFromCredixLpDepository<'info> {
 }
 
 // Into functions
-impl<'info> RebalanceFromCredixLpDepository<'info> {
-    pub fn into_create_withdraw_request_from_credix_lp_context(
-        &self,
-    ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::CreateWithdrawRequest<'info>>
-    {
-        let cpi_accounts = credix_client::cpi::accounts::CreateWithdrawRequest {
-            investor: self.depository.to_account_info(),
-            investor_lp_token_account: self.depository_shares.to_account_info(),
-            global_market_state: self.credix_global_market_state.to_account_info(),
-            signing_authority: self.credix_signing_authority.to_account_info(),
-            liquidity_pool_token_account: self.credix_liquidity_collateral.to_account_info(),
-            lp_token_mint: self.credix_shares_mint.to_account_info(),
-            credix_pass: self.credix_pass.to_account_info(),
-            withdraw_epoch: self.credix_withdraw_epoch.to_account_info(),
-            withdraw_request: self.credix_withdraw_request.to_account_info(),
-            system_program: self.system_program.to_account_info(),
-        };
-        let cpi_program = self.credix_program.to_account_info();
-        CpiContext::new(cpi_program, cpi_accounts)
-    }
-
+impl<'info> RebalanceRequestExecuteFromCredixLpDepository<'info> {
     pub fn into_redeem_withdraw_request_from_credix_lp_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::RedeemWithdrawRequest<'info>>
@@ -676,7 +643,7 @@ impl<'info> RebalanceFromCredixLpDepository<'info> {
 }
 
 // Validate
-impl<'info> RebalanceFromCredixLpDepository<'info> {
+impl<'info> RebalanceRequestExecuteFromCredixLpDepository<'info> {
     pub(crate) fn validate(&self) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
         Ok(())
