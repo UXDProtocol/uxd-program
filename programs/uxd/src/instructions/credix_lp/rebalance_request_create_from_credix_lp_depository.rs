@@ -285,11 +285,24 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
         "[rebalance_request_create_from_credix_lp_depository:requested_collateral_amount:{}]",
         requested_collateral_amount
     );
+    let cpi_accounts = credix_client::cpi::accounts::CreateWithdrawRequest {
+        investor: ctx.accounts.depository.to_account_info(),
+        investor_lp_token_account: ctx.accounts.depository_shares.to_account_info(),
+        global_market_state: ctx.accounts.credix_global_market_state.to_account_info(),
+        signing_authority: ctx.accounts.credix_signing_authority.to_account_info(),
+        liquidity_pool_token_account: ctx.accounts.credix_liquidity_collateral.to_account_info(),
+        lp_token_mint: ctx.accounts.credix_shares_mint.to_account_info(),
+        credix_pass: ctx.accounts.credix_pass.to_account_info(),
+        withdraw_epoch: ctx.accounts.credix_withdraw_epoch.to_account_info(),
+        withdraw_request: ctx.accounts.credix_withdraw_request.to_account_info(),
+        system_program: ctx.accounts.system_program.to_account_info(),
+    };
+    let cpi_program = ctx.accounts.credix_program.to_account_info();
+    let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
+
     credix_client::cpi::create_withdraw_request(
-        ctx.accounts
-            .into_create_withdraw_request_from_credix_lp_context()
-            .with_signer(depository_pda_signer),
-        requested_collateral_amount,
+        cpi_context.with_signer(depository_pda_signer),
+        42,
     )?;
 
     // ---------------------------------------------------------------------
