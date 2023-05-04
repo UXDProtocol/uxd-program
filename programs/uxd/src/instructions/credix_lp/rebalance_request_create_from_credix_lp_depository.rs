@@ -165,62 +165,112 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
 
     // ---------------------------------------------------------------------
     // -- Phase 1
-    // -- Fetch all current onchain state
+    // -- Check if the withdraw request period is active at the moment
     // ---------------------------------------------------------------------
 
-    let liquidity_collateral_amount_before: u64 = ctx.accounts.credix_liquidity_collateral.amount;
-    let outstanding_collateral_amount_before: u64 = ctx
-        .accounts
-        .credix_global_market_state
-        .pool_outstanding_credit;
+    let current_unix_timestamp = Clock::get()?.unix_timestamp;
+    msg!(
+        "[rebalance_request_create_from_credix_lp_depository:current_unix_timestamp:{}]",
+        current_unix_timestamp
+    );
 
-    let total_shares_supply_before: u64 = ctx.accounts.credix_shares_mint.supply;
-    let total_shares_value_before: u64 = liquidity_collateral_amount_before
-        .checked_add(outstanding_collateral_amount_before)
+    let start_of_request_phase_timestamp = ctx.accounts.credix_withdraw_epoch.go_live;
+    msg!(
+        "[rebalance_request_create_from_credix_lp_depository:start_of_request_phase_timestamp:{}]",
+        start_of_request_phase_timestamp
+    );
+
+    let end_of_request_phase_timestamp = start_of_request_phase_timestamp
+        .checked_add(ctx.accounts.credix_withdraw_epoch.request_seconds.into())
         .ok_or(UxdError::MathError)?;
+    msg!(
+        "[rebalance_request_create_from_credix_lp_depository:end_of_request_phase_timestamp:{}]",
+        end_of_request_phase_timestamp
+    );
 
-    let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
-    let owned_shares_value_before: u64 = compute_value_for_shares_amount_floor(
-        owned_shares_amount_before,
-        total_shares_supply_before,
-        total_shares_value_before,
-    )?;
-    msg!("[rebalance_request_create_from_credix_lp_depository:2]",);
+    if current_unix_timestamp < start_of_request_phase_timestamp
+        || current_unix_timestamp >= end_of_request_phase_timestamp
+    {
+        return Err(UxdError::InvalidCredixWithdrawEpochRequestPeriod.into());
+    }
 
     // ---------------------------------------------------------------------
     // -- Phase 2
-    // -- Compute the desired amounts for profits collection and rebalancing
-    // -- Both of those will be used to determine the actual withdrawn amount
+    // -- Compute the withdrawal amount by adding the profits and depository overflow
     // ---------------------------------------------------------------------
 
-    let profits_collateral_amount = ctx
-        .accounts
-        .calculate_profits_collateral_amount(owned_shares_value_before)?;
+    let redeemable_amount_under_management = checked_convert_u128_to_u64(
+        ctx.accounts
+            .depository
+            .load()?
+            .redeemable_amount_under_management,
+    )?;
+
+    let profits_collateral_amount = {
+        let liquidity_collateral_amount_before: u64 =
+            ctx.accounts.credix_liquidity_collateral.amount;
+        let outstanding_collateral_amount_before: u64 = ctx
+            .accounts
+            .credix_global_market_state
+            .pool_outstanding_credit;
+
+        let total_shares_supply_before: u64 = ctx.accounts.credix_shares_mint.supply;
+        let total_shares_value_before: u64 = liquidity_collateral_amount_before
+            .checked_add(outstanding_collateral_amount_before)
+            .ok_or(UxdError::MathError)?;
+
+        let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
+        let owned_shares_value_before: u64 = compute_value_for_shares_amount_floor(
+            owned_shares_amount_before,
+            total_shares_supply_before,
+            total_shares_value_before,
+        )?;
+
+        owned_shares_value_before
+            .checked_sub(redeemable_amount_under_management)
+            .ok_or(UxdError::MathError)?
+    };
+
     msg!(
         "[rebalance_request_create_from_credix_lp_depository:profits_collateral_amount:{}]",
         profits_collateral_amount
     );
 
-    let overflow_collateral_amount = ctx.accounts.calculate_overflow_collateral_amount()?;
+    let overflow_collateral_amount = {
+        // We fetch the target amount of redeemable that we wish the depository have
+        let redeemable_amount_under_management_target_amount = checked_convert_u128_to_u64(
+            ctx.accounts
+                .controller
+                .load()?
+                .redeemable_circulating_supply
+                / 2, // TODO
+        )?;
+        // If the depository is currently underweight, there is no overflow
+        if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
+            0
+        }
+        // We substract the current redeemable amount from the target redeemable amount
+        // to find how much needs to be withdrawn from the depository
+        else {
+            redeemable_amount_under_management
+                .checked_sub(redeemable_amount_under_management_target_amount)
+                .ok_or(UxdError::MathError)?
+        }
+    };
 
     msg!(
         "[rebalance_request_create_from_credix_lp_depository:overflow_collateral_amount:{}]",
         overflow_collateral_amount
     );
-
-    // ---------------------------------------------------------------------
-    // -- Phase 3
-    // -- If we are currently in the withdrawal request creation phase
-    // -- Just create the withdrawal request and end the transaction
-    // -- We will have to wait for continuing further later
-    // ---------------------------------------------------------------------
-
-    if !ctx.accounts.check_if_request_phase_is_active()? {
-        return Err(UxdError::InvalidCredixWithdrawEpochRequestPeriod.into());
-    }
     let requested_collateral_amount = overflow_collateral_amount
         .checked_add(profits_collateral_amount)
         .ok_or(UxdError::MathError)?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 3
+    // -- Then we just create the credix withdraw request with the desired amount
+    // ---------------------------------------------------------------------
+
     msg!(
         "[rebalance_request_create_from_credix_lp_depository:requested_collateral_amount:{}]",
         requested_collateral_amount
@@ -233,7 +283,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
     )?;
 
     // ---------------------------------------------------------------------
-    // -- Phase 9
+    // -- Phase 4
     // -- Emit resulting event
     // ---------------------------------------------------------------------
 
@@ -249,56 +299,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
 
     // Done
     Ok(())
-}
-
-// Utility functions
-impl<'info> RebalanceRequestCreateFromCredixLpDepository<'info> {
-    pub fn check_if_request_phase_is_active(&self) -> Result<bool> {
-        let current_unix_timestamp = Clock::get()?.unix_timestamp;
-
-        let request_phase_seconds = i64::from(self.credix_withdraw_epoch.request_seconds);
-
-        let end_of_request_phase_timestamp = self
-            .credix_withdraw_epoch
-            .go_live
-            .checked_add(request_phase_seconds)
-            .ok_or(UxdError::MathError)?;
-
-        Ok(current_unix_timestamp < end_of_request_phase_timestamp)
-    }
-
-    pub fn calculate_profits_collateral_amount(&self, owned_shares_value: u64) -> Result<u64> {
-        let redeemable_amount_under_management = checked_convert_u128_to_u64(
-            self.depository.load()?.redeemable_amount_under_management,
-        )?;
-        // To find the profits we can safely withdraw
-        // we find the current value of asset (the lp tokens)
-        // minus the minimum liabilities (the outstanding redeemable tokens)
-        Ok(owned_shares_value
-            .checked_sub(redeemable_amount_under_management)
-            .ok_or(UxdError::MathError)?)
-    }
-
-    pub fn calculate_overflow_collateral_amount(&self) -> Result<u64> {
-        // TODO - use weights properly from step 1
-        // We fetch the target amount of redeemable that we wish the depository have
-        let redeemable_amount_under_management_target_amount =
-            checked_convert_u128_to_u64(self.controller.load()?.redeemable_circulating_supply / 2)?;
-
-        let redeemable_amount_under_management = checked_convert_u128_to_u64(
-            self.depository.load()?.redeemable_amount_under_management,
-        )?;
-
-        // If the depository is currently underweight, there is no overflow
-        if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
-            return Ok(0);
-        }
-        // We substract the current redeemable amount from the target redeemable amount
-        // to find how much needs to be withdrawn from the depository
-        Ok(redeemable_amount_under_management
-            .checked_sub(redeemable_amount_under_management_target_amount)
-            .ok_or(UxdError::MathError)?)
-    }
 }
 
 // Into functions
