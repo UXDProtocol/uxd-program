@@ -17,7 +17,6 @@ pub async fn process_rebalance_request_create_from_credix_lp_depository(
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
-    program_uxd::accounts::find_identity_depository_collateral_vault_pda().0;
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
         program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
