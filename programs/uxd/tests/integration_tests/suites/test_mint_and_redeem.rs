@@ -13,7 +13,7 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_router_mint_and_redeem() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -110,11 +110,12 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
-            router_depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
-                router_identity_depository_weight_bps: 10 * 100,
-                router_mercurial_vault_depository_weight_bps: 50 * 100,
-                router_credix_lp_depository_weight_bps: 40 * 100,
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 10 * 100,
+                mercurial_vault_depository_weight_bps: 50 * 100,
+                credix_lp_depository_weight_bps: 40 * 100,
             }),
+            depositories: None,
         },
     )
     .await?;
@@ -196,11 +197,12 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
-            router_depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
-                router_identity_depository_weight_bps: 10 * 100,
-                router_mercurial_vault_depository_weight_bps: 40 * 100,
-                router_credix_lp_depository_weight_bps: 50 * 100,
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 10 * 100,
+                mercurial_vault_depository_weight_bps: 40 * 100,
+                credix_lp_depository_weight_bps: 50 * 100,
             }),
+            depositories: None,
         },
     )
     .await?;
@@ -239,11 +241,12 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
-            router_depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
-                router_identity_depository_weight_bps: 0,
-                router_mercurial_vault_depository_weight_bps: 100 * 100,
-                router_credix_lp_depository_weight_bps: 0,
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 0,
+                mercurial_vault_depository_weight_bps: 100 * 100,
+                credix_lp_depository_weight_bps: 0,
             }),
+            depositories: None,
         },
     )
     .await?;

@@ -1,7 +1,11 @@
+use std::str::FromStr;
+
+use anchor_lang::prelude::Pubkey;
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::instructions::EditControllerDepositories;
 use uxd::instructions::EditControllerDepositoriesWeightBps;
 use uxd::instructions::EditControllerFields;
 
@@ -62,7 +66,8 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &payer,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(42),
-            router_depositories_weight_bps: None,
+            depositories_weight_bps: None,
+            depositories: None,
         },
     )
     .await
@@ -75,7 +80,8 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(100),
-            router_depositories_weight_bps: None,
+            depositories_weight_bps: None,
+            depositories: None,
         },
     )
     .await?;
@@ -87,11 +93,12 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: None,
-            router_depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
-                router_identity_depository_weight_bps: 1,
-                router_mercurial_vault_depository_weight_bps: 1,
-                router_credix_lp_depository_weight_bps: 1,
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 1,
+                mercurial_vault_depository_weight_bps: 1,
+                credix_lp_depository_weight_bps: 1,
             }),
+            depositories: None,
         },
     )
     .await
@@ -104,10 +111,28 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: None,
-            router_depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
-                router_identity_depository_weight_bps: 25 * 100, // 25%
-                router_mercurial_vault_depository_weight_bps: 35 * 100, // 35%
-                router_credix_lp_depository_weight_bps: 40 * 100, // 40%
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 25 * 100,        // 25%
+                mercurial_vault_depository_weight_bps: 35 * 100, // 35%
+                credix_lp_depository_weight_bps: 40 * 100,       // 40%
+            }),
+            depositories: None,
+        },
+    )
+    .await?;
+
+    // Using the correct authority should allow to edit depositories addresses
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: Some(100),
+            depositories_weight_bps: None,
+            depositories: Some(EditControllerDepositories {
+                identity_depository: Pubkey::from_str("1").unwrap(),
+                mercurial_vault_depository: Pubkey::from_str("2").unwrap(),
+                credix_lp_depository: Pubkey::from_str("3").unwrap(),
             }),
         },
     )
@@ -120,7 +145,8 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: None,
-            router_depositories_weight_bps: None,
+            depositories_weight_bps: None,
+            depositories: None,
         },
     )
     .await?;
@@ -132,10 +158,15 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(100),
-            router_depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
-                router_identity_depository_weight_bps: 20 * 100, // 20%
-                router_mercurial_vault_depository_weight_bps: 30 * 100, // 30%
-                router_credix_lp_depository_weight_bps: 50 * 100, // 50%
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 20 * 100,        // 20%
+                mercurial_vault_depository_weight_bps: 30 * 100, // 30%
+                credix_lp_depository_weight_bps: 50 * 100,       // 50%
+            }),
+            depositories: Some(EditControllerDepositories {
+                identity_depository: Pubkey::from_str("1").unwrap(),
+                mercurial_vault_depository: Pubkey::from_str("2").unwrap(),
+                credix_lp_depository: Pubkey::from_str("3").unwrap(),
             }),
         },
     )

@@ -263,13 +263,13 @@ mod test_calculate_depositories_target_redeemable_amount {
 
             let total_weight_arbitrary = identity_depository_weight_arbitrary + mercurial_vault_depository_weight_arbitrary + credix_lp_depository_weight_arbitrary;
 
-            let router_identity_depository_weight_bps = identity_depository_weight_arbitrary * BPS_UNIT_CONVERSION / total_weight_arbitrary;
-            let router_mercurial_vault_depository_weight_bps = mercurial_vault_depository_weight_arbitrary * BPS_UNIT_CONVERSION / total_weight_arbitrary;
-            let router_credix_lp_depository_weight_bps = credix_lp_depository_weight_arbitrary * BPS_UNIT_CONVERSION / total_weight_arbitrary;
+            let identity_depository_weight_bps = identity_depository_weight_arbitrary * BPS_UNIT_CONVERSION / total_weight_arbitrary;
+            let mercurial_vault_depository_weight_bps = mercurial_vault_depository_weight_arbitrary * BPS_UNIT_CONVERSION / total_weight_arbitrary;
+            let credix_lp_depository_weight_bps = credix_lp_depository_weight_arbitrary * BPS_UNIT_CONVERSION / total_weight_arbitrary;
 
             // In case of rounding error, we add the rounding errors to identity depository to keep the sum EXACTLY to 100%
-            let total_weight_bps = router_identity_depository_weight_bps + router_mercurial_vault_depository_weight_bps + router_credix_lp_depository_weight_bps;
-            let router_identity_depository_weight_bps = router_identity_depository_weight_bps + BPS_UNIT_CONVERSION - total_weight_bps;
+            let total_weight_bps = identity_depository_weight_bps + mercurial_vault_depository_weight_bps + credix_lp_depository_weight_bps;
+            let identity_depository_weight_bps = identity_depository_weight_bps + BPS_UNIT_CONVERSION - total_weight_bps;
 
             // Everything else should never panic
             let depositories_target_redeemable_amount =
@@ -277,15 +277,15 @@ mod test_calculate_depositories_target_redeemable_amount {
                     circulating_supply.into(),
                     &vec![
                         DepositoryInfoForTargetRedeemableAmount {
-                            weight_bps: u16::try_from(router_identity_depository_weight_bps).unwrap(),
+                            weight_bps: u16::try_from(identity_depository_weight_bps).unwrap(),
                             redeemable_amount_under_management_cap: identity_depository_hard_cap.into(),
                         },
                         DepositoryInfoForTargetRedeemableAmount {
-                            weight_bps: u16::try_from(router_mercurial_vault_depository_weight_bps).unwrap(),
+                            weight_bps: u16::try_from(mercurial_vault_depository_weight_bps).unwrap(),
                             redeemable_amount_under_management_cap: mercurial_vault_depository_hard_cap.into(),
                         },
                         DepositoryInfoForTargetRedeemableAmount {
-                            weight_bps: u16::try_from(router_credix_lp_depository_weight_bps).unwrap(),
+                            weight_bps: u16::try_from(credix_lp_depository_weight_bps).unwrap(),
                             redeemable_amount_under_management_cap: credix_lp_depository_hard_cap.into(),
                         }
                     ],
