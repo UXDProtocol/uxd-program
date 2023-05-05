@@ -130,7 +130,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
         collateral_mint.as_ref(),
         &[ctx.accounts.depository.load()?.bump],
     ]];
-    msg!("[rebalance_request_create_from_credix_lp_depository:1]",);
 
     msg!(
         "[rebalance_request_create_from_credix_lp_depository:payer:{}]",
@@ -206,7 +205,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
 
     // ---------------------------------------------------------------------
     // -- Phase 2
-    // -- Compute the withdrawal amount by adding the profits and depository overflow
+    // -- Compute the profits and overflow amounts of the depository
     // ---------------------------------------------------------------------
 
     let redeemable_amount_under_management = checked_convert_u128_to_u64(
@@ -216,38 +215,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
             .redeemable_amount_under_management,
     )?;
 
-    let profits_collateral_amount = {
-        let liquidity_collateral_amount_before: u64 =
-            ctx.accounts.credix_liquidity_collateral.amount;
-        let outstanding_collateral_amount_before: u64 = ctx
-            .accounts
-            .credix_global_market_state
-            .pool_outstanding_credit;
-
-        let total_shares_supply_before: u64 = ctx.accounts.credix_shares_mint.supply;
-        let total_shares_value_before: u64 = liquidity_collateral_amount_before
-            .checked_add(outstanding_collateral_amount_before)
-            .ok_or(UxdError::MathError)?;
-
-        let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
-        let owned_shares_value_before: u64 = compute_value_for_shares_amount_floor(
-            owned_shares_amount_before,
-            total_shares_supply_before,
-            total_shares_value_before,
-        )?;
-
-        owned_shares_value_before
-            .checked_sub(redeemable_amount_under_management)
-            .ok_or(UxdError::MathError)?
-    };
-
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:profits_collateral_amount:{}]",
-        profits_collateral_amount
-    );
-
-    let overflow_redeemable_amount = {
-        // We fetch the target amount of redeemable that we wish the depository have
+    let overflow_value = {
         let redeemable_amount_under_management_target_amount = checked_convert_u128_to_u64(
             ctx.accounts
                 .controller
@@ -255,54 +223,63 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
                 .redeemable_circulating_supply
                 / 2, // TODO
         )?;
-        // If the depository is currently underweight, there is no overflow
         if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
             0
-        }
-        // We substract the current redeemable amount from the target redeemable amount
-        // to find how much needs to be withdrawn from the depository
-        else {
+        } else {
             redeemable_amount_under_management
                 .checked_sub(redeemable_amount_under_management_target_amount)
                 .ok_or(UxdError::MathError)?
         }
     };
-
     msg!(
-        "[rebalance_request_create_from_credix_lp_depository:overflow_redeemable_amount:{}]",
-        overflow_redeemable_amount
+        "[rebalance_request_create_from_credix_lp_depository:overflow_value:{}]",
+        overflow_value
     );
-    let requested_collateral_amount = overflow_redeemable_amount
-        .checked_add(profits_collateral_amount)
-        .ok_or(UxdError::MathError)?;
+
+    let profits_collateral_amount = {
+        let liquidity_collateral_amount_before: u64 =
+            ctx.accounts.credix_liquidity_collateral.amount;
+        let outstanding_collateral_amount_before: u64 = ctx
+            .accounts
+            .credix_global_market_state
+            .pool_outstanding_credit;
+        let total_shares_supply_before: u64 = ctx.accounts.credix_shares_mint.supply;
+        let total_shares_value_before: u64 = liquidity_collateral_amount_before
+            .checked_add(outstanding_collateral_amount_before)
+            .ok_or(UxdError::MathError)?;
+        let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
+        let owned_shares_value_before: u64 = compute_value_for_shares_amount_floor(
+            owned_shares_amount_before,
+            total_shares_supply_before,
+            total_shares_value_before,
+        )?;
+        owned_shares_value_before
+            .checked_sub(redeemable_amount_under_management)
+            .ok_or(UxdError::MathError)?
+    };
+    msg!(
+        "[rebalance_request_create_from_credix_lp_depository:profits_collateral_amount:{}]",
+        profits_collateral_amount
+    );
 
     // ---------------------------------------------------------------------
     // -- Phase 3
-    // -- Then we just create the credix withdraw request with the desired amount
+    // -- We want to withdraw the sum of the profits and collateral at the same time
+    // -- We just create the credix withdraw request with the computed withdrawal amount
     // ---------------------------------------------------------------------
 
+    let requested_collateral_amount = overflow_value
+        .checked_add(profits_collateral_amount)
+        .ok_or(UxdError::MathError)?;
     msg!(
         "[rebalance_request_create_from_credix_lp_depository:requested_collateral_amount:{}]",
         requested_collateral_amount
     );
-    let cpi_accounts = credix_client::cpi::accounts::CreateWithdrawRequest {
-        investor: ctx.accounts.depository.to_account_info(),
-        investor_lp_token_account: ctx.accounts.depository_shares.to_account_info(),
-        global_market_state: ctx.accounts.credix_global_market_state.to_account_info(),
-        signing_authority: ctx.accounts.credix_signing_authority.to_account_info(),
-        liquidity_pool_token_account: ctx.accounts.credix_liquidity_collateral.to_account_info(),
-        lp_token_mint: ctx.accounts.credix_shares_mint.to_account_info(),
-        credix_pass: ctx.accounts.credix_pass.to_account_info(),
-        withdraw_epoch: ctx.accounts.credix_withdraw_epoch.to_account_info(),
-        withdraw_request: ctx.accounts.credix_withdraw_request.to_account_info(),
-        system_program: ctx.accounts.system_program.to_account_info(),
-    };
-    let cpi_program = ctx.accounts.credix_program.to_account_info();
-    let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-
     credix_client::cpi::create_withdraw_request(
-        cpi_context.with_signer(depository_pda_signer),
-        42,
+        ctx.accounts
+            .into_create_withdraw_request_from_credix_lp_context()
+            .with_signer(depository_pda_signer),
+        requested_collateral_amount,
     )?;
 
     // ---------------------------------------------------------------------
@@ -310,13 +287,12 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
     // -- Emit resulting event
     // ---------------------------------------------------------------------
 
-    // Emit event
     emit!(RebalanceRequestCreateFromCredixLpDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.load()?.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
-        overflow_redeemable_amount,
+        overflow_value,
         profits_collateral_amount,
     });
 

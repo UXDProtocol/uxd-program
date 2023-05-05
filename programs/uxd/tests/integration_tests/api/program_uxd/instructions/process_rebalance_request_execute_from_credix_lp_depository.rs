@@ -22,8 +22,8 @@ pub async fn process_rebalance_request_execute_from_credix_lp_depository(
     collateral_mint: &Pubkey,
     credix_multisig_key: &Pubkey,
     profits_beneficiary_collateral: &Pubkey,
-    expected_withdraw_overflow_amount: u64,
-    expected_withdraw_profits_amount: u64,
+    expected_withdrawal_overflow_value: u64,
+    expected_withdrawal_profits_amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
@@ -216,7 +216,7 @@ pub async fn process_rebalance_request_execute_from_credix_lp_depository(
         u64::try_from(credix_lp_depository_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
         credix_lp_depository_redeemable_amount_under_management_before
-            - expected_withdraw_overflow_amount,
+            - expected_withdrawal_overflow_value,
         credix_lp_depository_redeemable_amount_under_management_after,
     );
 
@@ -227,29 +227,50 @@ pub async fn process_rebalance_request_execute_from_credix_lp_depository(
         u64::try_from(identity_depository_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
         identity_depository_redeemable_amount_under_management_before
-            + expected_withdraw_overflow_amount,
+            + expected_withdrawal_overflow_value,
         identity_depository_redeemable_amount_under_management_after,
     );
 
-    // creidx_lp_depository.profits_amount_collected must have increased by the profits amount
-    let profits_total_collected_before =
+    // credix_lp_depository.collateral_amount_deposited must have decreased by the withdraw overflow
+    let credix_lp_depository_collateral_amount_deposited_before =
+        u64::try_from(credix_lp_depository_before.collateral_amount_deposited).unwrap();
+    let credix_lp_depository_collateral_amount_deposited_after =
+        u64::try_from(credix_lp_depository_after.collateral_amount_deposited).unwrap();
+    assert_eq!(
+        credix_lp_depository_collateral_amount_deposited_before
+            - expected_withdrawal_overflow_value,
+        credix_lp_depository_collateral_amount_deposited_after,
+    );
+
+    // identity_depository.collateral_amount_deposited must have increased by the withdraw overflow
+    let identity_depository_collateral_amount_deposited_before =
+        u64::try_from(identity_depository_before.collateral_amount_deposited).unwrap();
+    let identity_depository_collateral_amount_deposited_after =
+        u64::try_from(identity_depository_after.collateral_amount_deposited).unwrap();
+    assert_eq!(
+        identity_depository_collateral_amount_deposited_before + expected_withdrawal_overflow_value,
+        identity_depository_collateral_amount_deposited_after,
+    );
+
+    // credix_lp_depository.profits_amount_collected must have increased by the profits amount
+    let profits_total_collected_before: u64 =
         u64::try_from(credix_lp_depository_before.profits_total_collected).unwrap();
     let profits_total_collected_after =
         u64::try_from(credix_lp_depository_after.profits_total_collected).unwrap();
     assert_eq!(
-        profits_total_collected_before + expected_withdraw_profits_amount,
+        profits_total_collected_before + expected_withdrawal_profits_amount,
         profits_total_collected_after,
     );
 
     // identity_depository_collateral.amount must have increased by the overflow amount
     assert_eq!(
-        identity_depository_collateral_amount_before + expected_withdraw_overflow_amount,
+        identity_depository_collateral_amount_before + expected_withdrawal_overflow_value,
         identity_depository_collateral_amount_after,
     );
 
     // profits_beneficiary_collateral.amount must have increased by the profits amount
     assert_eq!(
-        profits_beneficiary_collateral_amount_before + expected_withdraw_profits_amount,
+        profits_beneficiary_collateral_amount_before + expected_withdrawal_profits_amount,
         profits_beneficiary_collateral_amount_after,
     );
 
