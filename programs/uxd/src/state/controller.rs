@@ -8,7 +8,7 @@ pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
 pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
-pub const CONTROLLER_RESERVED_SPACE: usize = 224;
+pub const CONTROLLER_RESERVED_SPACE: usize = 128;
 pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u8>() // bump
     + size_of::<u8>() // redeemable_mint_bump

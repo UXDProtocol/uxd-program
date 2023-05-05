@@ -1,12 +1,15 @@
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
+use uxd::instructions::EditControllerDepositories;
 use uxd::instructions::EditControllerDepositoriesWeightBps;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
 
+use crate::integration_tests::api::program_credix;
+use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
@@ -85,6 +88,19 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     let amount_for_first_redeem = ui_amount_to_native_amount(20, redeemable_mint_decimals);
     let amount_for_second_redeem = ui_amount_to_native_amount(120, redeemable_mint_decimals);
     let amount_for_third_redeem = ui_amount_to_native_amount(10, redeemable_mint_decimals);
+
+    // Post mint supply should match the configured weights
+    let identity_depository_supply_after_first_mint = amount_for_first_mint * 10 / 100;
+    let mercurial_vault_depository_supply_after_first_mint = amount_for_first_mint * 50 / 100;
+    let credix_lp_depository_supply_after_first_mint = amount_for_first_mint * 40 / 100;
+
+    // Post mint supply should match the configured weights
+    let total_supply_after_second_mint = amount_for_first_mint + amount_for_second_mint;
+    let identity_depository_supply_after_second_mint =
+        total_supply_after_second_mint * 10 / 100 - 1; // Precision loss as a consequence of the first mint rounding
+    let mercurial_vault_depository_supply_after_second_mint =
+        total_supply_after_second_mint * 40 / 100 - 1; // Precision loss as a consequence of the first mint rounding
+    let credix_lp_depository_supply_after_second_mint = total_supply_after_second_mint * 50 / 100;
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -166,13 +182,71 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
 
     // ---------------------------------------------------------------------
     // -- Phase 3
-    // -- Minting should now work and respect the weights
+    // -- Verify that mint is not possible until we set the depositories address on controller
     // ---------------------------------------------------------------------
 
-    // Post mint supply should match the configured weights
-    let identity_depository_supply_after_first_mint = amount_for_first_mint * 10 / 100;
-    let mercurial_vault_depository_supply_after_first_mint = amount_for_first_mint * 50 / 100;
-    let credix_lp_depository_supply_after_first_mint = amount_for_first_mint * 40 / 100;
+    // Minting should fail now, as the depositories are not set yet
+    assert!(program_uxd::instructions::process_mint(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_for_first_mint,
+        identity_depository_supply_after_first_mint,
+        mercurial_vault_depository_supply_after_first_mint,
+        credix_lp_depository_supply_after_first_mint,
+    )
+    .await
+    .is_err());
+
+    // Find the important PDAs to resolve the depositories address to be whitelisted
+    let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
+
+    let mercurial_base = program_mercurial::accounts::find_base();
+    let mercurial_vault = program_mercurial::accounts::find_vault_pda(
+        &collateral_mint.pubkey(),
+        &mercurial_base.pubkey(),
+    )
+    .0;
+    let mercurial_vault_depository = program_uxd::accounts::find_mercurial_vault_depository_pda(
+        &collateral_mint.pubkey(),
+        &mercurial_vault,
+    )
+    .0;
+
+    let credix_market_seeds = program_credix::accounts::find_market_seeds();
+    let credix_global_market_state =
+        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
+    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository_pda(
+        &collateral_mint.pubkey(),
+        &credix_global_market_state,
+    )
+    .0;
+
+    // Set the controller's depositories addresses
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: None,
+            depositories_weight_bps: None,
+            depositories: Some(EditControllerDepositories {
+                identity_depository,
+                mercurial_vault_depository,
+                credix_lp_depository,
+            }),
+        },
+    )
+    .await?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 4
+    // -- Minting should now work and respect the weights
+    // ---------------------------------------------------------------------
 
     // Minting should work now that everything is set, weights should be respected
     program_uxd::instructions::process_mint(
@@ -206,14 +280,6 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         },
     )
     .await?;
-
-    // Post mint supply should match the configured weights
-    let total_supply_after_second_mint = amount_for_first_mint + amount_for_second_mint;
-    let identity_depository_supply_after_second_mint =
-        total_supply_after_second_mint * 10 / 100 - 1; // Precision loss as a consequence of the first mint rounding
-    let mercurial_vault_depository_supply_after_second_mint =
-        total_supply_after_second_mint * 40 / 100 - 1; // Precision loss as a consequence of the first mint rounding
-    let credix_lp_depository_supply_after_second_mint = total_supply_after_second_mint * 50 / 100;
 
     // Minting should now respect the new weights
     // Note: due to the precision loss from the first mint, we need to adjust by 1 in some places

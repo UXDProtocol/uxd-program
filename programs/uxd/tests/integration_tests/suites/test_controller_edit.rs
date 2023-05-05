@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use anchor_lang::prelude::Pubkey;
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
@@ -130,9 +128,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             redeemable_global_supply_cap: Some(100),
             depositories_weight_bps: None,
             depositories: Some(EditControllerDepositories {
-                identity_depository: Pubkey::from_str("1").unwrap(),
-                mercurial_vault_depository: Pubkey::from_str("2").unwrap(),
-                credix_lp_depository: Pubkey::from_str("3").unwrap(),
+                identity_depository: Pubkey::default(),
+                mercurial_vault_depository: Pubkey::default(),
+                credix_lp_depository: Pubkey::default(),
             }),
         },
     )
@@ -164,9 +162,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
                 credix_lp_depository_weight_bps: 50 * 100,       // 50%
             }),
             depositories: Some(EditControllerDepositories {
-                identity_depository: Pubkey::from_str("1").unwrap(),
-                mercurial_vault_depository: Pubkey::from_str("2").unwrap(),
-                credix_lp_depository: Pubkey::from_str("3").unwrap(),
+                identity_depository: Pubkey::default(),
+                mercurial_vault_depository: Pubkey::default(),
+                credix_lp_depository: Pubkey::default(),
             }),
         },
     )
