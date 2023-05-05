@@ -110,10 +110,10 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
-            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
-                identity_depository_weight_bps: 10 * 100,
-                mercurial_vault_depository_0_weight_bps: 50 * 100,
-                credix_lp_depository_0_weight_bps: 40 * 100,
+            router_depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                router_identity_depository_weight_bps: 10 * 100,
+                router_mercurial_vault_depository_weight_bps: 50 * 100,
+                router_credix_lp_depository_weight_bps: 40 * 100,
             }),
         },
     )
@@ -170,8 +170,8 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
 
     // Post mint supply should match the configured weights
     let identity_depository_supply_after_first_mint = amount_for_first_mint * 10 / 100;
-    let mercurial_vault_depository_0_supply_after_first_mint = amount_for_first_mint * 50 / 100;
-    let credix_lp_depository_0_supply_after_first_mint = amount_for_first_mint * 40 / 100;
+    let mercurial_vault_depository_supply_after_first_mint = amount_for_first_mint * 50 / 100;
+    let credix_lp_depository_supply_after_first_mint = amount_for_first_mint * 40 / 100;
 
     // Minting should work now that everything is set, weights should be respected
     program_uxd::instructions::process_mint(
@@ -184,8 +184,8 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
         &user_redeemable,
         amount_for_first_mint,
         identity_depository_supply_after_first_mint,
-        mercurial_vault_depository_0_supply_after_first_mint,
-        credix_lp_depository_0_supply_after_first_mint,
+        mercurial_vault_depository_supply_after_first_mint,
+        credix_lp_depository_supply_after_first_mint,
     )
     .await?;
 
@@ -196,10 +196,10 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
-            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
-                identity_depository_weight_bps: 10 * 100,
-                mercurial_vault_depository_0_weight_bps: 40 * 100,
-                credix_lp_depository_0_weight_bps: 50 * 100,
+            router_depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                router_identity_depository_weight_bps: 10 * 100,
+                router_mercurial_vault_depository_weight_bps: 40 * 100,
+                router_credix_lp_depository_weight_bps: 50 * 100,
             }),
         },
     )
@@ -209,9 +209,9 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
     let total_supply_after_second_mint = amount_for_first_mint + amount_for_second_mint;
     let identity_depository_supply_after_second_mint =
         total_supply_after_second_mint * 10 / 100 - 1; // Precision loss as a consequence of the first mint rounding
-    let mercurial_vault_depository_0_supply_after_second_mint =
+    let mercurial_vault_depository_supply_after_second_mint =
         total_supply_after_second_mint * 40 / 100 - 1; // Precision loss as a consequence of the first mint rounding
-    let credix_lp_depository_0_supply_after_second_mint = total_supply_after_second_mint * 50 / 100;
+    let credix_lp_depository_supply_after_second_mint = total_supply_after_second_mint * 50 / 100;
 
     // Minting should now respect the new weights
     // Note: due to the precision loss from the first mint, we need to adjust by 1 in some places
@@ -225,24 +225,24 @@ async fn test_router_mint_and_redeem() -> Result<(), program_test_context::Progr
         &user_redeemable,
         amount_for_second_mint,
         identity_depository_supply_after_second_mint - identity_depository_supply_after_first_mint,
-        mercurial_vault_depository_0_supply_after_second_mint
-            - mercurial_vault_depository_0_supply_after_first_mint,
-        credix_lp_depository_0_supply_after_second_mint
-            - credix_lp_depository_0_supply_after_first_mint,
+        mercurial_vault_depository_supply_after_second_mint
+            - mercurial_vault_depository_supply_after_first_mint,
+        credix_lp_depository_supply_after_second_mint
+            - credix_lp_depository_supply_after_first_mint,
     )
     .await?;
 
-    // Set the controller weights to 100% to mercurial_vault_depository_0
+    // Set the controller weights to 100% to mercurial_vault_depository
     program_uxd::instructions::process_edit_controller(
         &mut program_test_context,
         &payer,
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
-            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
-                identity_depository_weight_bps: 0,
-                mercurial_vault_depository_0_weight_bps: 100 * 100,
-                credix_lp_depository_0_weight_bps: 0,
+            router_depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                router_identity_depository_weight_bps: 0,
+                router_mercurial_vault_depository_weight_bps: 100 * 100,
+                router_credix_lp_depository_weight_bps: 0,
             }),
         },
     )

@@ -36,8 +36,8 @@ pub struct Redeem<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
-        constraint = controller.load()?.registered_mercurial_vault_depositories[0] == mercurial_vault_depository_0.key() @UxdError::InvalidDepository,
-        constraint = controller.load()?.registered_credix_lp_depositories[0] == credix_lp_depository_0.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.registered_mercurial_vault_depositories[0] == mercurial_vault_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.registered_credix_lp_depositories[0] == credix_lp_depository.key() @UxdError::InvalidDepository,
         has_one = redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub controller: AccountLoader<'info, Controller>,
@@ -86,50 +86,50 @@ pub struct Redeem<'info> {
     /// #10
     #[account(
         mut,
-        seeds = [MERCURIAL_VAULT_DEPOSITORY_NAMESPACE, mercurial_vault_depository_0.load()?.mercurial_vault.key().as_ref(), mercurial_vault_depository_0.load()?.collateral_mint.as_ref()],
-        bump = mercurial_vault_depository_0.load()?.bump,
+        seeds = [MERCURIAL_VAULT_DEPOSITORY_NAMESPACE, mercurial_vault_depository.load()?.mercurial_vault.key().as_ref(), mercurial_vault_depository.load()?.collateral_mint.as_ref()],
+        bump = mercurial_vault_depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
-        constraint = mercurial_vault_depository_0.load()?.mercurial_vault == mercurial_vault_depository_0_vault.key() @UxdError::InvalidMercurialVault,
-        constraint = mercurial_vault_depository_0.load()?.mercurial_vault_lp_mint == mercurial_vault_depository_0_vault_lp_mint.key() @UxdError::InvalidMercurialVaultLpMint,
-        constraint = mercurial_vault_depository_0.load()?.lp_token_vault == mercurial_vault_depository_0_lp_token_vault.key() @UxdError::InvalidDepositoryLpTokenVault,
+        constraint = mercurial_vault_depository.load()?.mercurial_vault == mercurial_vault_depository_vault.key() @UxdError::InvalidMercurialVault,
+        constraint = mercurial_vault_depository.load()?.mercurial_vault_lp_mint == mercurial_vault_depository_vault_lp_mint.key() @UxdError::InvalidMercurialVaultLpMint,
+        constraint = mercurial_vault_depository.load()?.lp_token_vault == mercurial_vault_depository_lp_token_vault.key() @UxdError::InvalidDepositoryLpTokenVault,
     )]
-    pub mercurial_vault_depository_0: AccountLoader<'info, MercurialVaultDepository>,
+    pub mercurial_vault_depository: AccountLoader<'info, MercurialVaultDepository>,
 
     /// #11 - Token account holding the LP tokens minted by depositing collateral on mercurial vault
     #[account(
         mut,
-        seeds = [MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE, mercurial_vault_depository_0_vault.key().as_ref(), collateral_mint.key().as_ref()],
-        token::authority = mercurial_vault_depository_0,
-        token::mint = mercurial_vault_depository_0_vault_lp_mint,
-        bump = mercurial_vault_depository_0.load()?.lp_token_vault_bump,
+        seeds = [MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE, mercurial_vault_depository_vault.key().as_ref(), collateral_mint.key().as_ref()],
+        token::authority = mercurial_vault_depository,
+        token::mint = mercurial_vault_depository_vault_lp_mint,
+        bump = mercurial_vault_depository.load()?.lp_token_vault_bump,
     )]
-    pub mercurial_vault_depository_0_lp_token_vault: Box<Account<'info, TokenAccount>>,
+    pub mercurial_vault_depository_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
     /// #12
     #[account(
         mut,
-        constraint = mercurial_vault_depository_0_vault.token_vault == mercurial_vault_depository_0_collateral_token_safe.key() @UxdError::InvalidMercurialVaultCollateralTokenSafe,
+        constraint = mercurial_vault_depository_vault.token_vault == mercurial_vault_depository_collateral_token_safe.key() @UxdError::InvalidMercurialVaultCollateralTokenSafe,
     )]
-    pub mercurial_vault_depository_0_vault: Box<Account<'info, mercurial_vault::state::Vault>>,
+    pub mercurial_vault_depository_vault: Box<Account<'info, mercurial_vault::state::Vault>>,
 
     /// #13
     #[account(mut)]
-    pub mercurial_vault_depository_0_vault_lp_mint: Box<Account<'info, Mint>>,
+    pub mercurial_vault_depository_vault_lp_mint: Box<Account<'info, Mint>>,
 
     /// #14 - Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.
     #[account(mut)]
-    pub mercurial_vault_depository_0_collateral_token_safe: Box<Account<'info, TokenAccount>>,
+    pub mercurial_vault_depository_collateral_token_safe: Box<Account<'info, TokenAccount>>,
 
     /// #15
     #[account(
         mut,
-        seeds = [CREDIX_LP_DEPOSITORY_NAMESPACE, credix_lp_depository_0.load()?.credix_global_market_state.key().as_ref(), credix_lp_depository_0.load()?.collateral_mint.as_ref()],
-        bump = credix_lp_depository_0.load()?.bump,
+        seeds = [CREDIX_LP_DEPOSITORY_NAMESPACE, credix_lp_depository.load()?.credix_global_market_state.key().as_ref(), credix_lp_depository.load()?.collateral_mint.as_ref()],
+        bump = credix_lp_depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
-    pub credix_lp_depository_0: AccountLoader<'info, CredixLpDepository>,
+    pub credix_lp_depository: AccountLoader<'info, CredixLpDepository>,
 
     /// #16
     pub system_program: Program<'info, System>,
@@ -161,8 +161,8 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     // Gather all the onchain states we need (caps, weights and supplies)
     let controller = ctx.accounts.controller.load()?;
     let identity_depository = ctx.accounts.identity_depository.load()?;
-    let mercurial_vault_depository_0 = ctx.accounts.mercurial_vault_depository_0.load()?;
-    let credix_lp_depository_0 = ctx.accounts.credix_lp_depository_0.load()?;
+    let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
+    let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
 
     // The actual post-redeem circulating supply may be slightly higher
     // Due to redeem fees and precision loss. But the difference should be negligible and
@@ -176,7 +176,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let depository_info = vec![
         // Identity depository details
         DepositoryInfoForRedeem {
-            weight_bps: controller.identity_depository_weight_bps,
+            weight_bps: controller.router_identity_depository_weight_bps,
             redeemable_amount_under_management: identity_depository
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: identity_depository
@@ -197,20 +197,20 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         },
         // Mercurial Vault Depository 0 details
         DepositoryInfoForRedeem {
-            weight_bps: controller.mercurial_vault_depository_0_weight_bps,
-            redeemable_amount_under_management: mercurial_vault_depository_0
+            weight_bps: controller.router_mercurial_vault_depository_weight_bps,
+            redeemable_amount_under_management: mercurial_vault_depository
                 .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: mercurial_vault_depository_0
+            redeemable_amount_under_management_cap: mercurial_vault_depository
                 .redeemable_amount_under_management_cap,
             redeem_fn: Some(Box::new(|redeemable_amount| {
                 msg!(
-                    "[redeem:redeem_from_mercurial_vault_depository_0:{}]",
+                    "[redeem:redeem_from_mercurial_vault_depository:{}]",
                     redeemable_amount
                 );
                 if redeemable_amount > 0 {
                     uxd_cpi::cpi::redeem_from_mercurial_vault_depository(
                         ctx.accounts
-                            .into_redeem_from_mercurial_vault_depository_0_context(),
+                            .into_redeem_from_mercurial_vault_depository_context(),
                         redeemable_amount,
                     )?;
                 }
@@ -219,10 +219,10 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         },
         // Credix Lp Depository 0 details
         DepositoryInfoForRedeem {
-            weight_bps: controller.credix_lp_depository_0_weight_bps,
-            redeemable_amount_under_management: credix_lp_depository_0
+            weight_bps: controller.router_credix_lp_depository_weight_bps,
+            redeemable_amount_under_management: credix_lp_depository
                 .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: credix_lp_depository_0
+            redeemable_amount_under_management_cap: credix_lp_depository
                 .redeemable_amount_under_management_cap,
             redeem_fn: None, // credix is illiquid
         },
@@ -230,8 +230,8 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
 
     drop(controller);
     drop(identity_depository);
-    drop(mercurial_vault_depository_0);
-    drop(credix_lp_depository_0);
+    drop(mercurial_vault_depository);
+    drop(credix_lp_depository);
 
     // Compute the desired target amounts for each depository
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
@@ -302,7 +302,7 @@ impl<'info> Redeem<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_redeem_from_mercurial_vault_depository_0_context(
+    pub fn into_redeem_from_mercurial_vault_depository_context(
         &self,
     ) -> CpiContext<
         '_,
@@ -319,16 +319,16 @@ impl<'info> Redeem<'info> {
             collateral_mint: self.collateral_mint.to_account_info(),
             user_redeemable: self.user_redeemable.to_account_info(),
             user_collateral: self.user_collateral.to_account_info(),
-            depository: self.mercurial_vault_depository_0.to_account_info(),
+            depository: self.mercurial_vault_depository.to_account_info(),
             depository_lp_token_vault: self
-                .mercurial_vault_depository_0_lp_token_vault
+                .mercurial_vault_depository_lp_token_vault
                 .to_account_info(),
-            mercurial_vault: self.mercurial_vault_depository_0_vault.to_account_info(),
+            mercurial_vault: self.mercurial_vault_depository_vault.to_account_info(),
             mercurial_vault_lp_mint: self
-                .mercurial_vault_depository_0_vault_lp_mint
+                .mercurial_vault_depository_vault_lp_mint
                 .to_account_info(),
             mercurial_vault_collateral_token_safe: self
-                .mercurial_vault_depository_0_collateral_token_safe
+                .mercurial_vault_depository_collateral_token_safe
                 .to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),

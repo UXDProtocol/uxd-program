@@ -141,7 +141,7 @@ async fn test_identity_depository_mint_and_redeem(
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
-            depositories_weight_bps: None,
+            router_depositories_weight_bps: None,
         },
     )
     .await?;
