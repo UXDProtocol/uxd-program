@@ -1,5 +1,5 @@
 export type Uxd = {
-  version: '7.0.4';
+  version: '7.0.7';
   name: 'uxd';
   instructions: [
     {
@@ -212,6 +212,340 @@ export type Uxd = {
           type: {
             defined: 'EditCredixLpDepositoryFields';
           };
+        }
+      ];
+    },
+    {
+      name: 'mint';
+      accounts: [
+        {
+          name: 'user';
+          isMut: false;
+          isSigner: true;
+          docs: ['#1'];
+        },
+        {
+          name: 'payer';
+          isMut: true;
+          isSigner: true;
+          docs: ['#2'];
+        },
+        {
+          name: 'controller';
+          isMut: true;
+          isSigner: false;
+          docs: ['#3'];
+        },
+        {
+          name: 'redeemableMint';
+          isMut: true;
+          isSigner: false;
+          docs: ['#4'];
+        },
+        {
+          name: 'collateralMint';
+          isMut: false;
+          isSigner: false;
+          docs: ['#5'];
+        },
+        {
+          name: 'userRedeemable';
+          isMut: true;
+          isSigner: false;
+          docs: ['#6'];
+        },
+        {
+          name: 'userCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#7'];
+        },
+        {
+          name: 'identityDepository';
+          isMut: true;
+          isSigner: false;
+          docs: [
+            '#8 - UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming'
+          ];
+        },
+        {
+          name: 'identityDepositoryCollateralVault';
+          isMut: true;
+          isSigner: false;
+          docs: ['#9 - Token account holding the collateral from minting'];
+        },
+        {
+          name: 'mercurialVaultDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#10'];
+        },
+        {
+          name: 'mercurialVaultDepositoryLpTokenVault';
+          isMut: true;
+          isSigner: false;
+          docs: [
+            '#11 - Token account holding the LP tokens minted by depositing collateral on mercurial vault'
+          ];
+        },
+        {
+          name: 'mercurialVaultDepositoryVault';
+          isMut: true;
+          isSigner: false;
+          docs: ['#12'];
+        },
+        {
+          name: 'mercurialVaultDepositoryVaultLpMint';
+          isMut: true;
+          isSigner: false;
+          docs: ['#13'];
+        },
+        {
+          name: 'mercurialVaultDepositoryCollateralTokenSafe';
+          isMut: true;
+          isSigner: false;
+          docs: [
+            '#14 - Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.'
+          ];
+        },
+        {
+          name: 'credixLpDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#15'];
+        },
+        {
+          name: 'credixLpDepositoryCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#16'];
+        },
+        {
+          name: 'credixLpDepositoryShares';
+          isMut: true;
+          isSigner: false;
+          docs: ['#17'];
+        },
+        {
+          name: 'credixLpDepositoryPass';
+          isMut: false;
+          isSigner: false;
+          docs: ['#18'];
+        },
+        {
+          name: 'credixLpDepositoryGlobalMarketState';
+          isMut: false;
+          isSigner: false;
+          docs: ['#19'];
+        },
+        {
+          name: 'credixLpDepositorySigningAuthority';
+          isMut: false;
+          isSigner: false;
+          docs: ['#20 - CHECK: unused by us, checked by credix'];
+        },
+        {
+          name: 'credixLpDepositoryLiquidityCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#21'];
+        },
+        {
+          name: 'credixLpDepositorySharesMint';
+          isMut: true;
+          isSigner: false;
+          docs: ['#22'];
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#23'];
+        },
+        {
+          name: 'tokenProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#24'];
+        },
+        {
+          name: 'associatedTokenProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#25'];
+        },
+        {
+          name: 'mercurialVaultProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#26'];
+        },
+        {
+          name: 'credixProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#27'];
+        },
+        {
+          name: 'uxdProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#28'];
+        },
+        {
+          name: 'rent';
+          isMut: false;
+          isSigner: false;
+          docs: ['#29'];
+        }
+      ];
+      args: [
+        {
+          name: 'collateralAmount';
+          type: 'u64';
+        }
+      ];
+    },
+    {
+      name: 'redeem';
+      accounts: [
+        {
+          name: 'user';
+          isMut: false;
+          isSigner: true;
+          docs: ['#1'];
+        },
+        {
+          name: 'payer';
+          isMut: true;
+          isSigner: true;
+          docs: ['#2'];
+        },
+        {
+          name: 'controller';
+          isMut: true;
+          isSigner: false;
+          docs: ['#3'];
+        },
+        {
+          name: 'redeemableMint';
+          isMut: true;
+          isSigner: false;
+          docs: ['#4'];
+        },
+        {
+          name: 'collateralMint';
+          isMut: false;
+          isSigner: false;
+          docs: ['#5'];
+        },
+        {
+          name: 'userRedeemable';
+          isMut: true;
+          isSigner: false;
+          docs: ['#6'];
+        },
+        {
+          name: 'userCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#7'];
+        },
+        {
+          name: 'identityDepository';
+          isMut: true;
+          isSigner: false;
+          docs: [
+            '#8 - UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming'
+          ];
+        },
+        {
+          name: 'identityDepositoryCollateralVault';
+          isMut: true;
+          isSigner: false;
+          docs: ['#9 - Token account holding the collateral from minting'];
+        },
+        {
+          name: 'mercurialVaultDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#10'];
+        },
+        {
+          name: 'mercurialVaultDepositoryLpTokenVault';
+          isMut: true;
+          isSigner: false;
+          docs: [
+            '#11 - Token account holding the LP tokens minted by depositing collateral on mercurial vault'
+          ];
+        },
+        {
+          name: 'mercurialVaultDepositoryVault';
+          isMut: true;
+          isSigner: false;
+          docs: ['#12'];
+        },
+        {
+          name: 'mercurialVaultDepositoryVaultLpMint';
+          isMut: true;
+          isSigner: false;
+          docs: ['#13'];
+        },
+        {
+          name: 'mercurialVaultDepositoryCollateralTokenSafe';
+          isMut: true;
+          isSigner: false;
+          docs: [
+            '#14 - Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.'
+          ];
+        },
+        {
+          name: 'credixLpDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#15'];
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#16'];
+        },
+        {
+          name: 'tokenProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#17'];
+        },
+        {
+          name: 'associatedTokenProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#18'];
+        },
+        {
+          name: 'mercurialVaultProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#19'];
+        },
+        {
+          name: 'uxdProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#20'];
+        },
+        {
+          name: 'rent';
+          isMut: false;
+          isSigner: false;
+          docs: ['#21'];
+        }
+      ];
+      args: [
+        {
+          name: 'redeemableAmount';
+          type: 'u64';
         }
       ];
     },
@@ -1499,17 +1833,29 @@ export type Uxd = {
             type: 'u16';
           },
           {
-            name: 'mercurialVaultDepository0WeightBps';
+            name: 'mercurialVaultDepositoryWeightBps';
             type: 'u16';
           },
           {
-            name: 'credixLpDepository0WeightBps';
+            name: 'credixLpDepositoryWeightBps';
             type: 'u16';
+          },
+          {
+            name: 'identityDepository';
+            type: 'publicKey';
+          },
+          {
+            name: 'mercurialVaultDepository';
+            type: 'publicKey';
+          },
+          {
+            name: 'credixLpDepository';
+            type: 'publicKey';
           },
           {
             name: 'reserved';
             type: {
-              array: ['u8', 224];
+              array: ['u8', 128];
             };
           }
         ];
@@ -1827,12 +2173,32 @@ export type Uxd = {
             type: 'u16';
           },
           {
-            name: 'mercurialVaultDepository0WeightBps';
+            name: 'mercurialVaultDepositoryWeightBps';
             type: 'u16';
           },
           {
-            name: 'credixLpDepository0WeightBps';
+            name: 'credixLpDepositoryWeightBps';
             type: 'u16';
+          }
+        ];
+      };
+    },
+    {
+      name: 'EditControllerDepositories';
+      type: {
+        kind: 'struct';
+        fields: [
+          {
+            name: 'identityDepository';
+            type: 'publicKey';
+          },
+          {
+            name: 'mercurialVaultDepository';
+            type: 'publicKey';
+          },
+          {
+            name: 'credixLpDepository';
+            type: 'publicKey';
           }
         ];
       };
@@ -1853,6 +2219,14 @@ export type Uxd = {
             type: {
               option: {
                 defined: 'EditControllerDepositoriesWeightBps';
+              };
+            };
+          },
+          {
+            name: 'depositories';
+            type: {
+              option: {
+                defined: 'EditControllerDepositories';
               };
             };
           }
@@ -1978,13 +2352,43 @@ export type Uxd = {
           index: false;
         },
         {
-          name: 'mercurialVaultDepository0WeightBps';
+          name: 'mercurialVaultDepositoryWeightBps';
           type: 'u16';
           index: false;
         },
         {
-          name: 'credixLpDepository0WeightBps';
+          name: 'credixLpDepositoryWeightBps';
           type: 'u16';
+          index: false;
+        }
+      ];
+    },
+    {
+      name: 'SetDepositories';
+      fields: [
+        {
+          name: 'version';
+          type: 'u8';
+          index: false;
+        },
+        {
+          name: 'controller';
+          type: 'publicKey';
+          index: false;
+        },
+        {
+          name: 'identityDepository';
+          type: 'publicKey';
+          index: false;
+        },
+        {
+          name: 'mercurialVaultDepository';
+          type: 'publicKey';
+          index: false;
+        },
+        {
+          name: 'credixLpDepository';
+          type: 'publicKey';
           index: false;
         }
       ];
@@ -2464,245 +2868,255 @@ export type Uxd = {
     {
       code: 6002;
       name: 'InvalidDepositoriesWeightBps';
-      msg: 'Depository weights are invalid or do not add up to exactly 100%.';
+      msg: 'Depositories weights do not add up to 100%.';
     },
     {
       code: 6003;
+      name: 'InvalidDepositoriesVector';
+      msg: 'Depositories vector passed as parameter is not of the expected length';
+    },
+    {
+      code: 6004;
       name: 'InvalidCollateralAmount';
       msg: 'Collateral amount cannot be 0';
     },
     {
-      code: 6004;
+      code: 6005;
       name: 'InvalidRedeemableAmount';
       msg: 'Redeemable amount must be > 0 in order to redeem.';
     },
     {
-      code: 6005;
+      code: 6006;
       name: 'InsufficientCollateralAmount';
       msg: 'The balance of the collateral ATA is not enough to fulfill the mint operation.';
     },
     {
-      code: 6006;
+      code: 6007;
       name: 'InsufficientRedeemableAmount';
       msg: 'The balance of the redeemable ATA is not enough to fulfill the redeem operation.';
     },
     {
-      code: 6007;
+      code: 6008;
+      name: 'DepositoriesTargerRedeemableAmountReached';
+      msg: 'Minting amount would go past the depositories target redeemable amount.';
+    },
+    {
+      code: 6009;
       name: 'RedeemableGlobalSupplyCapReached';
       msg: 'Minting amount would go past the Redeemable Global Supply Cap.';
     },
     {
-      code: 6008;
+      code: 6010;
       name: 'RedeemableMercurialVaultAmountUnderManagementCap';
       msg: 'Minting amount would go past the mercurial vault depository Redeemable Amount Under Management Cap.';
     },
     {
-      code: 6009;
+      code: 6011;
       name: 'RedeemableCredixLpAmountUnderManagementCap';
       msg: 'Minting amount would go past the credix lp depository Redeemable Amount Under Management Cap.';
     },
     {
-      code: 6010;
+      code: 6012;
       name: 'MathError';
       msg: 'Math error.';
     },
     {
-      code: 6011;
+      code: 6013;
       name: 'SlippageReached';
       msg: "The order couldn't be executed with the provided slippage.";
     },
     {
-      code: 6012;
+      code: 6014;
       name: 'BumpError';
       msg: 'A bump was expected but is missing.';
     },
     {
-      code: 6013;
+      code: 6015;
       name: 'MintingDisabled';
       msg: 'Minting is disabled for the current depository.';
     },
     {
-      code: 6014;
+      code: 6016;
       name: 'CollateralDepositHasRemainingDust';
       msg: 'Collateral deposit left some value unaccounted for.';
     },
     {
-      code: 6015;
+      code: 6017;
       name: 'CollateralDepositAmountsDoesntMatch';
       msg: "Collateral deposit didn't result in the correct amounts being moved.";
     },
     {
-      code: 6016;
+      code: 6018;
       name: 'CollateralDepositDoesntMatchTokenValue';
       msg: "Received token of which the value doesn't match the deposited collateral.";
     },
     {
-      code: 6017;
+      code: 6019;
       name: 'InvalidMercurialVaultLpMint';
       msg: "The mercurial vault lp mint does not match the Depository's one.";
     },
     {
-      code: 6018;
+      code: 6020;
       name: 'MaxNumberOfMercurialVaultDepositoriesRegisteredReached';
       msg: 'Cannot register more mercurial vault depositories, the limit has been reached.';
     },
     {
-      code: 6019;
+      code: 6021;
       name: 'MaxNumberOfCredixLpDepositoriesRegisteredReached';
       msg: 'Cannot register more credix lp depositories, the limit has been reached.';
     },
     {
-      code: 6020;
+      code: 6022;
       name: 'MercurialVaultDoNotMatchCollateral';
       msg: 'The provided collateral do not match the provided mercurial vault token.';
     },
     {
-      code: 6021;
+      code: 6023;
       name: 'CredixLpDoNotMatchCollateral';
       msg: 'The provided collateral do not match the provided credix lp token.';
     },
     {
-      code: 6022;
+      code: 6024;
       name: 'CollateralMintEqualToRedeemableMint';
       msg: 'Collateral mint should be different than redeemable mint.';
     },
     {
-      code: 6023;
+      code: 6025;
       name: 'CollateralMintNotAllowed';
       msg: 'Provided collateral mint is not allowed.';
     },
     {
-      code: 6024;
+      code: 6026;
       name: 'MinimumMintedRedeemableAmountError';
       msg: 'Mint resulted to 0 redeemable token being minted.';
     },
     {
-      code: 6025;
+      code: 6027;
       name: 'MinimumRedeemedCollateralAmountError';
       msg: 'Redeem resulted to 0 collateral token being redeemed.';
     },
     {
-      code: 6026;
+      code: 6028;
       name: 'InvalidDepositoryLpTokenVault';
       msg: "The depository lp token vault does not match the Depository's one.";
     },
     {
-      code: 6027;
+      code: 6029;
       name: 'InvalidAuthority';
       msg: 'Only the Program initializer authority can access this instructions.';
     },
     {
-      code: 6028;
+      code: 6030;
       name: 'InvalidController';
       msg: "The Depository's controller doesn't match the provided Controller.";
     },
     {
-      code: 6029;
+      code: 6031;
       name: 'InvalidDepository';
       msg: 'The Depository provided is not registered with the Controller.';
     },
     {
-      code: 6030;
+      code: 6032;
       name: 'InvalidCollateralMint';
       msg: "The provided collateral mint does not match the depository's collateral mint.";
     },
     {
-      code: 6031;
+      code: 6033;
       name: 'InvalidRedeemableMint';
       msg: "The Redeemable Mint provided does not match the Controller's one.";
     },
     {
-      code: 6032;
+      code: 6034;
       name: 'InvalidOwner';
       msg: 'The provided token account is not owner by the expected party.';
     },
     {
-      code: 6033;
+      code: 6035;
       name: 'InvalidDepositoryCollateral';
       msg: "The provided depository collateral does not match the depository's one.";
     },
     {
-      code: 6034;
+      code: 6036;
       name: 'InvalidDepositoryShares';
       msg: "The provided depository shares does not match the depository's one.";
     },
     {
-      code: 6035;
+      code: 6037;
       name: 'InvalidProfitsBeneficiaryCollateral';
       msg: "The Profits beneficiary collateral provided does not match the depository's one.";
     },
     {
-      code: 6036;
+      code: 6038;
       name: 'InvalidMercurialVault';
       msg: "The provided mercurial vault does not match the Depository's one.";
     },
     {
-      code: 6037;
+      code: 6039;
       name: 'InvalidMercurialVaultCollateralTokenSafe';
       msg: 'The provided mercurial vault collateral token safe does not match the mercurial vault one.';
     },
     {
-      code: 6038;
+      code: 6040;
       name: 'RedeemableIdentityDepositoryAmountUnderManagementCap';
       msg: 'Minting amount would go past the identity depository Redeemable Amount Under Management Cap.';
     },
     {
-      code: 6039;
+      code: 6041;
       name: 'ProgramAlreadyFrozenOrResumed';
       msg: 'Program is already frozen/resumed.';
     },
     {
-      code: 6040;
+      code: 6042;
       name: 'ProgramFrozen';
       msg: 'The program is currently in Frozen state.';
     },
     {
-      code: 6041;
+      code: 6043;
       name: 'InvalidCredixProgramState';
       msg: "The Credix ProgramState isn't the Depository one.";
     },
     {
-      code: 6042;
+      code: 6044;
       name: 'InvalidCredixGlobalMarketState';
       msg: "The Credix GlobalMarketState isn't the Depository one.";
     },
     {
-      code: 6043;
+      code: 6045;
       name: 'InvalidCredixSigningAuthority';
       msg: "The Credix SigningAuthority isn't the Depository one.";
     },
     {
-      code: 6044;
+      code: 6046;
       name: 'InvalidCredixLiquidityCollateral';
       msg: "The Credix LiquidityCollateral isn't the Depository one.";
     },
     {
-      code: 6045;
+      code: 6047;
       name: 'InvalidCredixSharesMint';
       msg: "The Credix SharesMint isn't the Depository one.";
     },
     {
-      code: 6046;
+      code: 6048;
       name: 'InvalidCredixPass';
       msg: "The Credix Pass isn't the one owned by the correct depository.";
     },
     {
-      code: 6047;
+      code: 6049;
       name: 'InvalidCredixPassNoFees';
       msg: "The Credix Pass doesn't have the fees exemption.";
     },
     {
-      code: 6048;
+      code: 6050;
       name: 'InvalidCredixMultisigKey';
       msg: "The Credix Multisig Key isn't the ProgramState one.";
     },
     {
-      code: 6049;
+      code: 6051;
       name: 'InvalidCredixTreasuryCollateral';
       msg: "The Credix TreasuryCollateral isn't the GlobalMarketState one.";
     },
     {
-      code: 6050;
+      code: 6052;
       name: 'Default';
       msg: 'Default - Check the source code for more info.';
     }
@@ -2710,7 +3124,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  version: '7.0.4',
+  version: '7.0.7',
   name: 'uxd',
   instructions: [
     {
@@ -2923,6 +3337,340 @@ export const IDL: Uxd = {
           type: {
             defined: 'EditCredixLpDepositoryFields',
           },
+        },
+      ],
+    },
+    {
+      name: 'mint',
+      accounts: [
+        {
+          name: 'user',
+          isMut: false,
+          isSigner: true,
+          docs: ['#1'],
+        },
+        {
+          name: 'payer',
+          isMut: true,
+          isSigner: true,
+          docs: ['#2'],
+        },
+        {
+          name: 'controller',
+          isMut: true,
+          isSigner: false,
+          docs: ['#3'],
+        },
+        {
+          name: 'redeemableMint',
+          isMut: true,
+          isSigner: false,
+          docs: ['#4'],
+        },
+        {
+          name: 'collateralMint',
+          isMut: false,
+          isSigner: false,
+          docs: ['#5'],
+        },
+        {
+          name: 'userRedeemable',
+          isMut: true,
+          isSigner: false,
+          docs: ['#6'],
+        },
+        {
+          name: 'userCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#7'],
+        },
+        {
+          name: 'identityDepository',
+          isMut: true,
+          isSigner: false,
+          docs: [
+            '#8 - UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming',
+          ],
+        },
+        {
+          name: 'identityDepositoryCollateralVault',
+          isMut: true,
+          isSigner: false,
+          docs: ['#9 - Token account holding the collateral from minting'],
+        },
+        {
+          name: 'mercurialVaultDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#10'],
+        },
+        {
+          name: 'mercurialVaultDepositoryLpTokenVault',
+          isMut: true,
+          isSigner: false,
+          docs: [
+            '#11 - Token account holding the LP tokens minted by depositing collateral on mercurial vault',
+          ],
+        },
+        {
+          name: 'mercurialVaultDepositoryVault',
+          isMut: true,
+          isSigner: false,
+          docs: ['#12'],
+        },
+        {
+          name: 'mercurialVaultDepositoryVaultLpMint',
+          isMut: true,
+          isSigner: false,
+          docs: ['#13'],
+        },
+        {
+          name: 'mercurialVaultDepositoryCollateralTokenSafe',
+          isMut: true,
+          isSigner: false,
+          docs: [
+            '#14 - Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.',
+          ],
+        },
+        {
+          name: 'credixLpDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#15'],
+        },
+        {
+          name: 'credixLpDepositoryCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#16'],
+        },
+        {
+          name: 'credixLpDepositoryShares',
+          isMut: true,
+          isSigner: false,
+          docs: ['#17'],
+        },
+        {
+          name: 'credixLpDepositoryPass',
+          isMut: false,
+          isSigner: false,
+          docs: ['#18'],
+        },
+        {
+          name: 'credixLpDepositoryGlobalMarketState',
+          isMut: false,
+          isSigner: false,
+          docs: ['#19'],
+        },
+        {
+          name: 'credixLpDepositorySigningAuthority',
+          isMut: false,
+          isSigner: false,
+          docs: ['#20 - CHECK: unused by us, checked by credix'],
+        },
+        {
+          name: 'credixLpDepositoryLiquidityCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#21'],
+        },
+        {
+          name: 'credixLpDepositorySharesMint',
+          isMut: true,
+          isSigner: false,
+          docs: ['#22'],
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#23'],
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#24'],
+        },
+        {
+          name: 'associatedTokenProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#25'],
+        },
+        {
+          name: 'mercurialVaultProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#26'],
+        },
+        {
+          name: 'credixProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#27'],
+        },
+        {
+          name: 'uxdProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#28'],
+        },
+        {
+          name: 'rent',
+          isMut: false,
+          isSigner: false,
+          docs: ['#29'],
+        },
+      ],
+      args: [
+        {
+          name: 'collateralAmount',
+          type: 'u64',
+        },
+      ],
+    },
+    {
+      name: 'redeem',
+      accounts: [
+        {
+          name: 'user',
+          isMut: false,
+          isSigner: true,
+          docs: ['#1'],
+        },
+        {
+          name: 'payer',
+          isMut: true,
+          isSigner: true,
+          docs: ['#2'],
+        },
+        {
+          name: 'controller',
+          isMut: true,
+          isSigner: false,
+          docs: ['#3'],
+        },
+        {
+          name: 'redeemableMint',
+          isMut: true,
+          isSigner: false,
+          docs: ['#4'],
+        },
+        {
+          name: 'collateralMint',
+          isMut: false,
+          isSigner: false,
+          docs: ['#5'],
+        },
+        {
+          name: 'userRedeemable',
+          isMut: true,
+          isSigner: false,
+          docs: ['#6'],
+        },
+        {
+          name: 'userCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#7'],
+        },
+        {
+          name: 'identityDepository',
+          isMut: true,
+          isSigner: false,
+          docs: [
+            '#8 - UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming',
+          ],
+        },
+        {
+          name: 'identityDepositoryCollateralVault',
+          isMut: true,
+          isSigner: false,
+          docs: ['#9 - Token account holding the collateral from minting'],
+        },
+        {
+          name: 'mercurialVaultDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#10'],
+        },
+        {
+          name: 'mercurialVaultDepositoryLpTokenVault',
+          isMut: true,
+          isSigner: false,
+          docs: [
+            '#11 - Token account holding the LP tokens minted by depositing collateral on mercurial vault',
+          ],
+        },
+        {
+          name: 'mercurialVaultDepositoryVault',
+          isMut: true,
+          isSigner: false,
+          docs: ['#12'],
+        },
+        {
+          name: 'mercurialVaultDepositoryVaultLpMint',
+          isMut: true,
+          isSigner: false,
+          docs: ['#13'],
+        },
+        {
+          name: 'mercurialVaultDepositoryCollateralTokenSafe',
+          isMut: true,
+          isSigner: false,
+          docs: [
+            '#14 - Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.',
+          ],
+        },
+        {
+          name: 'credixLpDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#15'],
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#16'],
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#17'],
+        },
+        {
+          name: 'associatedTokenProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#18'],
+        },
+        {
+          name: 'mercurialVaultProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#19'],
+        },
+        {
+          name: 'uxdProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#20'],
+        },
+        {
+          name: 'rent',
+          isMut: false,
+          isSigner: false,
+          docs: ['#21'],
+        },
+      ],
+      args: [
+        {
+          name: 'redeemableAmount',
+          type: 'u64',
         },
       ],
     },
@@ -4210,17 +4958,29 @@ export const IDL: Uxd = {
             type: 'u16',
           },
           {
-            name: 'mercurialVaultDepository0WeightBps',
+            name: 'mercurialVaultDepositoryWeightBps',
             type: 'u16',
           },
           {
-            name: 'credixLpDepository0WeightBps',
+            name: 'credixLpDepositoryWeightBps',
             type: 'u16',
+          },
+          {
+            name: 'identityDepository',
+            type: 'publicKey',
+          },
+          {
+            name: 'mercurialVaultDepository',
+            type: 'publicKey',
+          },
+          {
+            name: 'credixLpDepository',
+            type: 'publicKey',
           },
           {
             name: 'reserved',
             type: {
-              array: ['u8', 224],
+              array: ['u8', 128],
             },
           },
         ],
@@ -4538,12 +5298,32 @@ export const IDL: Uxd = {
             type: 'u16',
           },
           {
-            name: 'mercurialVaultDepository0WeightBps',
+            name: 'mercurialVaultDepositoryWeightBps',
             type: 'u16',
           },
           {
-            name: 'credixLpDepository0WeightBps',
+            name: 'credixLpDepositoryWeightBps',
             type: 'u16',
+          },
+        ],
+      },
+    },
+    {
+      name: 'EditControllerDepositories',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'identityDepository',
+            type: 'publicKey',
+          },
+          {
+            name: 'mercurialVaultDepository',
+            type: 'publicKey',
+          },
+          {
+            name: 'credixLpDepository',
+            type: 'publicKey',
           },
         ],
       },
@@ -4564,6 +5344,14 @@ export const IDL: Uxd = {
             type: {
               option: {
                 defined: 'EditControllerDepositoriesWeightBps',
+              },
+            },
+          },
+          {
+            name: 'depositories',
+            type: {
+              option: {
+                defined: 'EditControllerDepositories',
               },
             },
           },
@@ -4689,13 +5477,43 @@ export const IDL: Uxd = {
           index: false,
         },
         {
-          name: 'mercurialVaultDepository0WeightBps',
+          name: 'mercurialVaultDepositoryWeightBps',
           type: 'u16',
           index: false,
         },
         {
-          name: 'credixLpDepository0WeightBps',
+          name: 'credixLpDepositoryWeightBps',
           type: 'u16',
+          index: false,
+        },
+      ],
+    },
+    {
+      name: 'SetDepositories',
+      fields: [
+        {
+          name: 'version',
+          type: 'u8',
+          index: false,
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: false,
+        },
+        {
+          name: 'identityDepository',
+          type: 'publicKey',
+          index: false,
+        },
+        {
+          name: 'mercurialVaultDepository',
+          type: 'publicKey',
+          index: false,
+        },
+        {
+          name: 'credixLpDepository',
+          type: 'publicKey',
           index: false,
         },
       ],
@@ -5175,245 +5993,255 @@ export const IDL: Uxd = {
     {
       code: 6002,
       name: 'InvalidDepositoriesWeightBps',
-      msg: 'Depository weights are invalid or do not add up to exactly 100%.',
+      msg: 'Depositories weights do not add up to 100%.',
     },
     {
       code: 6003,
+      name: 'InvalidDepositoriesVector',
+      msg: 'Depositories vector passed as parameter is not of the expected length',
+    },
+    {
+      code: 6004,
       name: 'InvalidCollateralAmount',
       msg: 'Collateral amount cannot be 0',
     },
     {
-      code: 6004,
+      code: 6005,
       name: 'InvalidRedeemableAmount',
       msg: 'Redeemable amount must be > 0 in order to redeem.',
     },
     {
-      code: 6005,
+      code: 6006,
       name: 'InsufficientCollateralAmount',
       msg: 'The balance of the collateral ATA is not enough to fulfill the mint operation.',
     },
     {
-      code: 6006,
+      code: 6007,
       name: 'InsufficientRedeemableAmount',
       msg: 'The balance of the redeemable ATA is not enough to fulfill the redeem operation.',
     },
     {
-      code: 6007,
+      code: 6008,
+      name: 'DepositoriesTargerRedeemableAmountReached',
+      msg: 'Minting amount would go past the depositories target redeemable amount.',
+    },
+    {
+      code: 6009,
       name: 'RedeemableGlobalSupplyCapReached',
       msg: 'Minting amount would go past the Redeemable Global Supply Cap.',
     },
     {
-      code: 6008,
+      code: 6010,
       name: 'RedeemableMercurialVaultAmountUnderManagementCap',
       msg: 'Minting amount would go past the mercurial vault depository Redeemable Amount Under Management Cap.',
     },
     {
-      code: 6009,
+      code: 6011,
       name: 'RedeemableCredixLpAmountUnderManagementCap',
       msg: 'Minting amount would go past the credix lp depository Redeemable Amount Under Management Cap.',
     },
     {
-      code: 6010,
+      code: 6012,
       name: 'MathError',
       msg: 'Math error.',
     },
     {
-      code: 6011,
+      code: 6013,
       name: 'SlippageReached',
       msg: "The order couldn't be executed with the provided slippage.",
     },
     {
-      code: 6012,
+      code: 6014,
       name: 'BumpError',
       msg: 'A bump was expected but is missing.',
     },
     {
-      code: 6013,
+      code: 6015,
       name: 'MintingDisabled',
       msg: 'Minting is disabled for the current depository.',
     },
     {
-      code: 6014,
+      code: 6016,
       name: 'CollateralDepositHasRemainingDust',
       msg: 'Collateral deposit left some value unaccounted for.',
     },
     {
-      code: 6015,
+      code: 6017,
       name: 'CollateralDepositAmountsDoesntMatch',
       msg: "Collateral deposit didn't result in the correct amounts being moved.",
     },
     {
-      code: 6016,
+      code: 6018,
       name: 'CollateralDepositDoesntMatchTokenValue',
       msg: "Received token of which the value doesn't match the deposited collateral.",
     },
     {
-      code: 6017,
+      code: 6019,
       name: 'InvalidMercurialVaultLpMint',
       msg: "The mercurial vault lp mint does not match the Depository's one.",
     },
     {
-      code: 6018,
+      code: 6020,
       name: 'MaxNumberOfMercurialVaultDepositoriesRegisteredReached',
       msg: 'Cannot register more mercurial vault depositories, the limit has been reached.',
     },
     {
-      code: 6019,
+      code: 6021,
       name: 'MaxNumberOfCredixLpDepositoriesRegisteredReached',
       msg: 'Cannot register more credix lp depositories, the limit has been reached.',
     },
     {
-      code: 6020,
+      code: 6022,
       name: 'MercurialVaultDoNotMatchCollateral',
       msg: 'The provided collateral do not match the provided mercurial vault token.',
     },
     {
-      code: 6021,
+      code: 6023,
       name: 'CredixLpDoNotMatchCollateral',
       msg: 'The provided collateral do not match the provided credix lp token.',
     },
     {
-      code: 6022,
+      code: 6024,
       name: 'CollateralMintEqualToRedeemableMint',
       msg: 'Collateral mint should be different than redeemable mint.',
     },
     {
-      code: 6023,
+      code: 6025,
       name: 'CollateralMintNotAllowed',
       msg: 'Provided collateral mint is not allowed.',
     },
     {
-      code: 6024,
+      code: 6026,
       name: 'MinimumMintedRedeemableAmountError',
       msg: 'Mint resulted to 0 redeemable token being minted.',
     },
     {
-      code: 6025,
+      code: 6027,
       name: 'MinimumRedeemedCollateralAmountError',
       msg: 'Redeem resulted to 0 collateral token being redeemed.',
     },
     {
-      code: 6026,
+      code: 6028,
       name: 'InvalidDepositoryLpTokenVault',
       msg: "The depository lp token vault does not match the Depository's one.",
     },
     {
-      code: 6027,
+      code: 6029,
       name: 'InvalidAuthority',
       msg: 'Only the Program initializer authority can access this instructions.',
     },
     {
-      code: 6028,
+      code: 6030,
       name: 'InvalidController',
       msg: "The Depository's controller doesn't match the provided Controller.",
     },
     {
-      code: 6029,
+      code: 6031,
       name: 'InvalidDepository',
       msg: 'The Depository provided is not registered with the Controller.',
     },
     {
-      code: 6030,
+      code: 6032,
       name: 'InvalidCollateralMint',
       msg: "The provided collateral mint does not match the depository's collateral mint.",
     },
     {
-      code: 6031,
+      code: 6033,
       name: 'InvalidRedeemableMint',
       msg: "The Redeemable Mint provided does not match the Controller's one.",
     },
     {
-      code: 6032,
+      code: 6034,
       name: 'InvalidOwner',
       msg: 'The provided token account is not owner by the expected party.',
     },
     {
-      code: 6033,
+      code: 6035,
       name: 'InvalidDepositoryCollateral',
       msg: "The provided depository collateral does not match the depository's one.",
     },
     {
-      code: 6034,
+      code: 6036,
       name: 'InvalidDepositoryShares',
       msg: "The provided depository shares does not match the depository's one.",
     },
     {
-      code: 6035,
+      code: 6037,
       name: 'InvalidProfitsBeneficiaryCollateral',
       msg: "The Profits beneficiary collateral provided does not match the depository's one.",
     },
     {
-      code: 6036,
+      code: 6038,
       name: 'InvalidMercurialVault',
       msg: "The provided mercurial vault does not match the Depository's one.",
     },
     {
-      code: 6037,
+      code: 6039,
       name: 'InvalidMercurialVaultCollateralTokenSafe',
       msg: 'The provided mercurial vault collateral token safe does not match the mercurial vault one.',
     },
     {
-      code: 6038,
+      code: 6040,
       name: 'RedeemableIdentityDepositoryAmountUnderManagementCap',
       msg: 'Minting amount would go past the identity depository Redeemable Amount Under Management Cap.',
     },
     {
-      code: 6039,
+      code: 6041,
       name: 'ProgramAlreadyFrozenOrResumed',
       msg: 'Program is already frozen/resumed.',
     },
     {
-      code: 6040,
+      code: 6042,
       name: 'ProgramFrozen',
       msg: 'The program is currently in Frozen state.',
     },
     {
-      code: 6041,
+      code: 6043,
       name: 'InvalidCredixProgramState',
       msg: "The Credix ProgramState isn't the Depository one.",
     },
     {
-      code: 6042,
+      code: 6044,
       name: 'InvalidCredixGlobalMarketState',
       msg: "The Credix GlobalMarketState isn't the Depository one.",
     },
     {
-      code: 6043,
+      code: 6045,
       name: 'InvalidCredixSigningAuthority',
       msg: "The Credix SigningAuthority isn't the Depository one.",
     },
     {
-      code: 6044,
+      code: 6046,
       name: 'InvalidCredixLiquidityCollateral',
       msg: "The Credix LiquidityCollateral isn't the Depository one.",
     },
     {
-      code: 6045,
+      code: 6047,
       name: 'InvalidCredixSharesMint',
       msg: "The Credix SharesMint isn't the Depository one.",
     },
     {
-      code: 6046,
+      code: 6048,
       name: 'InvalidCredixPass',
       msg: "The Credix Pass isn't the one owned by the correct depository.",
     },
     {
-      code: 6047,
+      code: 6049,
       name: 'InvalidCredixPassNoFees',
       msg: "The Credix Pass doesn't have the fees exemption.",
     },
     {
-      code: 6048,
+      code: 6050,
       name: 'InvalidCredixMultisigKey',
       msg: "The Credix Multisig Key isn't the ProgramState one.",
     },
     {
-      code: 6049,
+      code: 6051,
       name: 'InvalidCredixTreasuryCollateral',
       msg: "The Credix TreasuryCollateral isn't the GlobalMarketState one.",
     },
     {
-      code: 6050,
+      code: 6052,
       name: 'Default',
       msg: 'Default - Check the source code for more info.',
     },
