@@ -30,11 +30,9 @@ pub struct SetRedeemableGlobalSupplyCapEvent {
 
 /// Event called in [instructions::edit_controller::handler].
 #[event]
-pub struct SetDepositoriesWeightBps {
-    /// The controller version.
+pub struct SetRouterDepositoriesWeightBps {
     #[index]
-    pub version: u8,
-    /// The controller.
+    pub controller_version: u8,
     #[index]
     pub controller: Pubkey,
     /// The new weights
@@ -45,11 +43,9 @@ pub struct SetDepositoriesWeightBps {
 
 /// Event called in [instructions::edit_controller::handler].
 #[event]
-pub struct SetDepositories {
-    /// The controller version.
+pub struct SetRouterDepositories {
     #[index]
-    pub version: u8,
-    /// The controller.
+    pub controller_version: u8,
     #[index]
     pub controller: Pubkey,
     /// The new addresses

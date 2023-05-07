@@ -36,8 +36,9 @@ pub struct Redeem<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
-        constraint = controller.load()?.registered_mercurial_vault_depositories[0] == mercurial_vault_depository.key() @UxdError::InvalidDepository,
-        constraint = controller.load()?.registered_credix_lp_depositories[0] == credix_lp_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.router_identity_depository == identity_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.router_mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.router_credix_lp_depository == credix_lp_depository.key() @UxdError::InvalidDepository,
         has_one = redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub controller: AccountLoader<'info, Controller>,

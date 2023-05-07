@@ -36,9 +36,9 @@ pub struct Mint<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
-        constraint = controller.load()?.identity_depository == identity_depository.key() @UxdError::InvalidDepository,
-        constraint = controller.load()?.mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
-        constraint = controller.load()?.credix_lp_depository == credix_lp_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.router_identity_depository == identity_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.router_mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.router_credix_lp_depository == credix_lp_depository.key() @UxdError::InvalidDepository,
         has_one = redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub controller: AccountLoader<'info, Controller>,
