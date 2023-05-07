@@ -1,5 +1,5 @@
 {
-  "version": "7.0.8",
+  "version": "7.0.9",
   "name": "uxd",
   "instructions": [
     {
@@ -1831,27 +1831,27 @@
             "type": "u128"
           },
           {
-            "name": "identityDepositoryWeightBps",
+            "name": "routerIdentityDepositoryWeightBps",
             "type": "u16"
           },
           {
-            "name": "mercurialVaultDepositoryWeightBps",
+            "name": "routerMercurialVaultDepositoryWeightBps",
             "type": "u16"
           },
           {
-            "name": "credixLpDepositoryWeightBps",
+            "name": "routerCredixLpDepositoryWeightBps",
             "type": "u16"
           },
           {
-            "name": "identityDepository",
+            "name": "routerIdentityDepository",
             "type": "publicKey"
           },
           {
-            "name": "mercurialVaultDepository",
+            "name": "routerMercurialVaultDepository",
             "type": "publicKey"
           },
           {
-            "name": "credixLpDepository",
+            "name": "routerCredixLpDepository",
             "type": "publicKey"
           },
           {
@@ -2166,7 +2166,7 @@
       }
     },
     {
-      "name": "EditControllerDepositoriesWeightBps",
+      "name": "EditControllerRouterDepositoriesWeightBps",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2186,7 +2186,7 @@
       }
     },
     {
-      "name": "EditControllerDepositories",
+      "name": "EditControllerRouterDepositories",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2217,18 +2217,18 @@
             }
           },
           {
-            "name": "depositoriesWeightBps",
+            "name": "routerDepositoriesWeightBps",
             "type": {
               "option": {
-                "defined": "EditControllerDepositoriesWeightBps"
+                "defined": "EditControllerRouterDepositoriesWeightBps"
               }
             }
           },
           {
-            "name": "depositories",
+            "name": "routerDepositories",
             "type": {
               "option": {
-                "defined": "EditControllerDepositories"
+                "defined": "EditControllerRouterDepositories"
               }
             }
           }
@@ -2336,17 +2336,17 @@
       ]
     },
     {
-      "name": "SetDepositoriesWeightBps",
+      "name": "SetRouterDepositoriesWeightBps",
       "fields": [
         {
-          "name": "version",
+          "name": "controllerVersion",
           "type": "u8",
-          "index": false
+          "index": true
         },
         {
           "name": "controller",
           "type": "publicKey",
-          "index": false
+          "index": true
         },
         {
           "name": "identityDepositoryWeightBps",
@@ -2366,17 +2366,17 @@
       ]
     },
     {
-      "name": "SetDepositories",
+      "name": "SetRouterDepositories",
       "fields": [
         {
-          "name": "version",
+          "name": "controllerVersion",
           "type": "u8",
-          "index": false
+          "index": true
         },
         {
           "name": "controller",
           "type": "publicKey",
-          "index": false
+          "index": true
         },
         {
           "name": "identityDepository",

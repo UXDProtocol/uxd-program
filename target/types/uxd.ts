@@ -1,5 +1,5 @@
 export type Uxd = {
-  version: '7.0.7';
+  version: '7.0.9';
   name: 'uxd';
   instructions: [
     {
@@ -1829,27 +1829,27 @@ export type Uxd = {
             type: 'u128';
           },
           {
-            name: 'identityDepositoryWeightBps';
+            name: 'routerIdentityDepositoryWeightBps';
             type: 'u16';
           },
           {
-            name: 'mercurialVaultDepositoryWeightBps';
+            name: 'routerMercurialVaultDepositoryWeightBps';
             type: 'u16';
           },
           {
-            name: 'credixLpDepositoryWeightBps';
+            name: 'routerCredixLpDepositoryWeightBps';
             type: 'u16';
           },
           {
-            name: 'identityDepository';
+            name: 'routerIdentityDepository';
             type: 'publicKey';
           },
           {
-            name: 'mercurialVaultDepository';
+            name: 'routerMercurialVaultDepository';
             type: 'publicKey';
           },
           {
-            name: 'credixLpDepository';
+            name: 'routerCredixLpDepository';
             type: 'publicKey';
           },
           {
@@ -2164,7 +2164,7 @@ export type Uxd = {
       };
     },
     {
-      name: 'EditControllerDepositoriesWeightBps';
+      name: 'EditControllerRouterDepositoriesWeightBps';
       type: {
         kind: 'struct';
         fields: [
@@ -2184,7 +2184,7 @@ export type Uxd = {
       };
     },
     {
-      name: 'EditControllerDepositories';
+      name: 'EditControllerRouterDepositories';
       type: {
         kind: 'struct';
         fields: [
@@ -2215,18 +2215,18 @@ export type Uxd = {
             };
           },
           {
-            name: 'depositoriesWeightBps';
+            name: 'routerDepositoriesWeightBps';
             type: {
               option: {
-                defined: 'EditControllerDepositoriesWeightBps';
+                defined: 'EditControllerRouterDepositoriesWeightBps';
               };
             };
           },
           {
-            name: 'depositories';
+            name: 'routerDepositories';
             type: {
               option: {
-                defined: 'EditControllerDepositories';
+                defined: 'EditControllerRouterDepositories';
               };
             };
           }
@@ -2334,17 +2334,17 @@ export type Uxd = {
       ];
     },
     {
-      name: 'SetDepositoriesWeightBps';
+      name: 'SetRouterDepositoriesWeightBps';
       fields: [
         {
-          name: 'version';
+          name: 'controllerVersion';
           type: 'u8';
-          index: false;
+          index: true;
         },
         {
           name: 'controller';
           type: 'publicKey';
-          index: false;
+          index: true;
         },
         {
           name: 'identityDepositoryWeightBps';
@@ -2364,17 +2364,17 @@ export type Uxd = {
       ];
     },
     {
-      name: 'SetDepositories';
+      name: 'SetRouterDepositories';
       fields: [
         {
-          name: 'version';
+          name: 'controllerVersion';
           type: 'u8';
-          index: false;
+          index: true;
         },
         {
           name: 'controller';
           type: 'publicKey';
-          index: false;
+          index: true;
         },
         {
           name: 'identityDepository';
@@ -3124,7 +3124,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  version: '7.0.7',
+  version: '7.0.9',
   name: 'uxd',
   instructions: [
     {
@@ -4954,27 +4954,27 @@ export const IDL: Uxd = {
             type: 'u128',
           },
           {
-            name: 'identityDepositoryWeightBps',
+            name: 'routerIdentityDepositoryWeightBps',
             type: 'u16',
           },
           {
-            name: 'mercurialVaultDepositoryWeightBps',
+            name: 'routerMercurialVaultDepositoryWeightBps',
             type: 'u16',
           },
           {
-            name: 'credixLpDepositoryWeightBps',
+            name: 'routerCredixLpDepositoryWeightBps',
             type: 'u16',
           },
           {
-            name: 'identityDepository',
+            name: 'routerIdentityDepository',
             type: 'publicKey',
           },
           {
-            name: 'mercurialVaultDepository',
+            name: 'routerMercurialVaultDepository',
             type: 'publicKey',
           },
           {
-            name: 'credixLpDepository',
+            name: 'routerCredixLpDepository',
             type: 'publicKey',
           },
           {
@@ -5289,7 +5289,7 @@ export const IDL: Uxd = {
       },
     },
     {
-      name: 'EditControllerDepositoriesWeightBps',
+      name: 'EditControllerRouterDepositoriesWeightBps',
       type: {
         kind: 'struct',
         fields: [
@@ -5309,7 +5309,7 @@ export const IDL: Uxd = {
       },
     },
     {
-      name: 'EditControllerDepositories',
+      name: 'EditControllerRouterDepositories',
       type: {
         kind: 'struct',
         fields: [
@@ -5340,18 +5340,18 @@ export const IDL: Uxd = {
             },
           },
           {
-            name: 'depositoriesWeightBps',
+            name: 'routerDepositoriesWeightBps',
             type: {
               option: {
-                defined: 'EditControllerDepositoriesWeightBps',
+                defined: 'EditControllerRouterDepositoriesWeightBps',
               },
             },
           },
           {
-            name: 'depositories',
+            name: 'routerDepositories',
             type: {
               option: {
-                defined: 'EditControllerDepositories',
+                defined: 'EditControllerRouterDepositories',
               },
             },
           },
@@ -5459,17 +5459,17 @@ export const IDL: Uxd = {
       ],
     },
     {
-      name: 'SetDepositoriesWeightBps',
+      name: 'SetRouterDepositoriesWeightBps',
       fields: [
         {
-          name: 'version',
+          name: 'controllerVersion',
           type: 'u8',
-          index: false,
+          index: true,
         },
         {
           name: 'controller',
           type: 'publicKey',
-          index: false,
+          index: true,
         },
         {
           name: 'identityDepositoryWeightBps',
@@ -5489,17 +5489,17 @@ export const IDL: Uxd = {
       ],
     },
     {
-      name: 'SetDepositories',
+      name: 'SetRouterDepositories',
       fields: [
         {
-          name: 'version',
+          name: 'controllerVersion',
           type: 'u8',
-          index: false,
+          index: true,
         },
         {
           name: 'controller',
           type: 'publicKey',
-          index: false,
+          index: true,
         },
         {
           name: 'identityDepository',
