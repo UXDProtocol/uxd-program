@@ -16,7 +16,7 @@ export function getConnection(): Connection {
     confirmTransactionInitialTimeout: 60000,
   };
   const connection = new Connection(
-    'https://mango.devnet.rpcpool.com',
+    'https://api.devnet.solana.com',
     connectionConfig
   );
   return connection;
