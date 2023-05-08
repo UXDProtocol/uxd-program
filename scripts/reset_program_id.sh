@@ -14,4 +14,4 @@ echo $NEW_PUBKEY
 # Replace
 sed -i.bak "s/$OLD_PUBKEY/$NEW_PUBKEY/g" ./Anchor.toml
 sed -i.bak "s/$OLD_PUBKEY/$NEW_PUBKEY/g" ./programs/uxd/src/lib.rs
-sed -i.bak "s/$OLD_PUBKEY/$NEW_PUBKEY/g" ./target/idl/uxd.json
+sed -i.bak "s/$OLD_PUBKEY/$NEW_PUBKEY/g" ./tests/constants.ts

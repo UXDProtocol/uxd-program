@@ -1,6 +1,5 @@
 import { Keypair, PublicKey, Signer } from '@solana/web3.js';
 import { UXDClient } from '@uxd-protocol/uxd-client';
-import jsonIdl from '../target/idl/uxd.json';
 
 // TESTING wallets for convenience (The user and admin). To remove when going open source
 
@@ -38,7 +37,7 @@ export const CLUSTER = 'devnet';
 
 // ----------------------------------------------------------------------------
 export const uxdProgramId: PublicKey = new PublicKey(
-  jsonIdl['metadata']['address']
+  'EqMrasrCXsbE6mpXaopUH1qip7auwX4AF5UWWpXaLr6u'
 );
 console.debug(`UXD PROGRAM ID == ${uxdProgramId}`);
 export const uxdClient = new UXDClient(uxdProgramId);
