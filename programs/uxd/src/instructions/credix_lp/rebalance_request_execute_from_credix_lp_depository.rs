@@ -277,18 +277,13 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
         .checked_sub(redeemable_amount_under_management)
         .ok_or(UxdError::MathError)?;
 
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:profits_collateral_amount:{}]",
-        profits_collateral_amount
-    );
-
     let overflow_value = {
         let redeemable_amount_under_management_target_amount = checked_convert_u128_to_u64(
             ctx.accounts
                 .controller
                 .load()?
                 .redeemable_circulating_supply
-                / 2, // TODO
+                / 4, // TODO
         )?;
         if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
             0
@@ -298,11 +293,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
                 .ok_or(UxdError::MathError)?
         }
     };
-
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:overflow_value:{}]",
-        overflow_value
-    );
 
     // ---------------------------------------------------------------------
     // -- Phase 4
@@ -543,7 +533,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     // Edit onchain accounts
     let mut controller = ctx.accounts.controller.load_mut()?;
     let mut depository = ctx.accounts.depository.load_mut()?;
-    let mut identity_depository = ctx.accounts.depository.load_mut()?;
+    let mut identity_depository = ctx.accounts.identity_depository.load_mut()?;
 
     // Collateral amount deposited accounting updates
     depository.collateral_amount_deposited = depository

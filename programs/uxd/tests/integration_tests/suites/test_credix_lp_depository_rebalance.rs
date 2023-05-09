@@ -5,8 +5,6 @@ use solana_sdk::signer::Signer;
 use uxd::instructions::EditControllerDepositoriesWeightBps;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
-use uxd::instructions::EditIdentityDepositoryFields;
-use uxd::state::identity_depository;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
@@ -214,6 +212,21 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     // Pretend 3 days have passed (the time for the request period)
     program_test_context::move_clock_forward(&mut program_test_context, 3 * 24 * 60 * 60).await?;
 
+    // Set the epoch's locked liquidity (done by credix team usually)
+    program_credix::instructions::process_set_locked_liquidity(
+        &mut program_test_context,
+        &credix_multisig,
+        &collateral_mint.pubkey(),
+    )
+    .await?;
+
+    // Compute the expected rebalancing amounts
+    let expected_credix_profits = amount_the_user_should_be_able_to_mint / 100; // minting fees 1%
+    let expected_credix_redeemable_supply_before_rebalance =
+        amount_the_user_should_be_able_to_mint - expected_credix_profits;
+    let expected_credix_redeemable_supply_after_rebalance =
+        expected_credix_redeemable_supply_before_rebalance * 25 / 100; // 25% weight on credix
+
     // Executing the rebalance request should now work as intended because we are in the execute period
     program_uxd::instructions::process_rebalance_request_execute_from_credix_lp_depository(
         &mut program_test_context,
@@ -221,8 +234,9 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &collateral_mint.pubkey(),
         &credix_multisig.pubkey(),
         &profits_beneficiary_collateral,
-        0,
-        0,
+        expected_credix_redeemable_supply_before_rebalance
+            - expected_credix_redeemable_supply_after_rebalance,
+        expected_credix_profits - 2, // withdrawal precision loss is taken from the profits
     )
     .await?;
 

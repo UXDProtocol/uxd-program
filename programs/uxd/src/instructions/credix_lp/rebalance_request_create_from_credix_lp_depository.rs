@@ -131,72 +131,16 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
         &[ctx.accounts.depository.load()?.bump],
     ]];
 
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:payer:{}]",
-        ctx.accounts.payer.key().to_string()
-    );
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:controller:{}]",
-        ctx.accounts.controller.key().to_string()
-    );
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:collateral_mint:{}]",
-        ctx.accounts.collateral_mint.key().to_string()
-    );
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:credix_global_market_state:{}]",
-        ctx.accounts.credix_global_market_state.key().to_string()
-    );
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:credix_signing_authority:{}]",
-        ctx.accounts.credix_signing_authority.key().to_string()
-    );
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:credix_liquidity_collateral:{}]",
-        ctx.accounts.credix_liquidity_collateral.key().to_string()
-    );
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:credix_shares_mint:{}]",
-        ctx.accounts.credix_shares_mint.key().to_string()
-    );
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:credix_pass:{}]",
-        ctx.accounts.credix_pass.key().to_string()
-    );
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:credix_withdraw_epoch:{}]",
-        ctx.accounts.credix_withdraw_epoch.key().to_string()
-    );
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:credix_withdraw_request:{}]",
-        ctx.accounts.credix_withdraw_request.key().to_string()
-    );
-
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Check if the withdraw request period is active at the moment
     // ---------------------------------------------------------------------
 
     let start_of_request_phase_timestamp = ctx.accounts.credix_withdraw_epoch.go_live;
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:start_of_request_phase_timestamp:{}]",
-        start_of_request_phase_timestamp
-    );
-
     let end_of_request_phase_timestamp = start_of_request_phase_timestamp
         .checked_add(ctx.accounts.credix_withdraw_epoch.request_seconds.into())
         .ok_or(UxdError::MathError)?;
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:end_of_request_phase_timestamp:{}]",
-        end_of_request_phase_timestamp
-    );
-
     let current_unix_timestamp = Clock::get()?.unix_timestamp;
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:current_unix_timestamp:{}]",
-        current_unix_timestamp
-    );
-
     if current_unix_timestamp < start_of_request_phase_timestamp
         || current_unix_timestamp >= end_of_request_phase_timestamp
     {
@@ -221,7 +165,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
                 .controller
                 .load()?
                 .redeemable_circulating_supply
-                / 2, // TODO
+                / 4, // TODO
         )?;
         if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
             0
@@ -231,10 +175,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
                 .ok_or(UxdError::MathError)?
         }
     };
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:overflow_value:{}]",
-        overflow_value
-    );
 
     let profits_collateral_amount = {
         let liquidity_collateral_amount_before: u64 =
@@ -257,10 +197,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
             .checked_sub(redeemable_amount_under_management)
             .ok_or(UxdError::MathError)?
     };
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:profits_collateral_amount:{}]",
-        profits_collateral_amount
-    );
 
     // ---------------------------------------------------------------------
     // -- Phase 3
