@@ -2,9 +2,11 @@ use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::instructions::EditControllerDepositoriesWeightBps;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditIdentityDepositoryFields;
+use uxd::state::identity_depository;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
@@ -95,8 +97,8 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
 
     // ---------------------------------------------------------------------
     // -- Phase 2
-    // -- Prepare the program state to be ready
-    // -- So that we can mint a bunch on identity and credix depositories
+    // -- Prepare the program state to be ready,
+    // -- Mint a bunch using credix to fill it up above its target
     // ---------------------------------------------------------------------
 
     // Airdrop collateral to our user
@@ -110,14 +112,18 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     )
     .await?;
 
-    // Set the controller cap
+    // Set the controller cap and the weights
     program_uxd::instructions::process_edit_controller(
         &mut program_test_context,
         &payer,
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
-            depositories_weight_bps: None,
+            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+                identity_depository_weight_bps: 50 * 100,
+                mercurial_vault_depository_0_weight_bps: 25 * 100,
+                credix_lp_depository_0_weight_bps: 25 * 100,
+            }),
         },
     )
     .await?;
@@ -138,23 +144,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     )
     .await?;
 
-    // Set the identity_depository cap and make sure minting is not disabled
-    program_uxd::instructions::process_edit_identity_depository(
-        &mut program_test_context,
-        &payer,
-        &authority,
-        &EditIdentityDepositoryFields {
-            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
-            minting_disabled: Some(false),
-        },
-    )
-    .await?;
-
-    // ---------------------------------------------------------------------
-    // -- Phase 3
-    // ---------------------------------------------------------------------
-
-    // Minting should work now that everything is set
+    // Minting on credix should work now that everything is set
     program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_test_context,
         &payer,
@@ -166,9 +156,20 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     )
     .await?;
 
-    // Pretend time has passed
-    program_test_context::move_clock_forward(&mut program_test_context, 1_000).await?;
+    // ---------------------------------------------------------------------
+    // -- Phase 3
+    // -- Now that credix is overweight, go through the rebalancing process
+    // ---------------------------------------------------------------------
 
+    // Create an epoch (done by credix team usually)
+    program_credix::instructions::process_create_withdraw_epoch(
+        &mut program_test_context,
+        &credix_multisig,
+        1,
+    )
+    .await?;
+
+    // Set the epoch's locked liquidity (done by credix team usually)
     program_credix::instructions::process_set_locked_liquidity(
         &mut program_test_context,
         &credix_multisig,
@@ -176,6 +177,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     )
     .await?;
 
+    // Since the epoch was just created it should be available to create a WithdrawRequest
     program_uxd::instructions::process_rebalance_request_create_from_credix_lp_depository(
         &mut program_test_context,
         &payer,
@@ -183,6 +185,36 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     )
     .await?;
 
+    // Any subsequent creation of the WithdrawRequest should fail
+    assert!(
+        program_uxd::instructions::process_rebalance_request_create_from_credix_lp_depository(
+            &mut program_test_context,
+            &payer,
+            &collateral_mint.pubkey(),
+        )
+        .await
+        .is_err()
+    );
+
+    // Executing the WithdrawRequest should fail because we are still in the request period
+    assert!(
+        program_uxd::instructions::process_rebalance_request_execute_from_credix_lp_depository(
+            &mut program_test_context,
+            &payer,
+            &collateral_mint.pubkey(),
+            &credix_multisig.pubkey(),
+            &profits_beneficiary_collateral,
+            0,
+            0,
+        )
+        .await
+        .is_err()
+    );
+
+    // Pretend 3 days have passed (the time for the request period)
+    program_test_context::move_clock_forward(&mut program_test_context, 3 * 24 * 60 * 60).await?;
+
+    // Executing the rebalance request should now work as intended because we are in the execute period
     program_uxd::instructions::process_rebalance_request_execute_from_credix_lp_depository(
         &mut program_test_context,
         &payer,

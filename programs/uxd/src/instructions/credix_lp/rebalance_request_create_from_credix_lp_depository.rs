@@ -307,6 +307,7 @@ impl<'info> RebalanceRequestCreateFromCredixLpDepository<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::CreateWithdrawRequest<'info>>
     {
         let cpi_accounts = credix_client::cpi::accounts::CreateWithdrawRequest {
+            payer: self.payer.to_account_info(),
             investor: self.depository.to_account_info(),
             investor_lp_token_account: self.depository_shares.to_account_info(),
             global_market_state: self.credix_global_market_state.to_account_info(),

@@ -60,10 +60,6 @@ pub async fn process_deploy_program(
     )
     .await?;
 
-    // Create an epoch
-    program_credix::instructions::process_create_withdraw_epoch(program_test_context, multisig, 1)
-        .await?;
-
     // Ready to use
     Ok(())
 }
