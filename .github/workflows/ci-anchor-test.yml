@@ -13,7 +13,7 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   RUST_TOOLCHAIN: 1.66
-  SOLANA_VERSION: 1.15.2
+  SOLANA_VERSION: 1.14.17
   ANCHOR_VERSION: 0.26.0
   CLUSTER: 'devnet'
   DEVNET_RPC: https://api.devnet.solana.com
