@@ -9,7 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_TOOLCHAIN: 1.66
-  SOLANA_VERSION: 1.15.2
+  SOLANA_VERSION: 1.14.17
 
 defaults:
   run:
