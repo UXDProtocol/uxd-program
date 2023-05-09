@@ -52,6 +52,14 @@ pub async fn process_deploy_program(
     )
     .await?;
 
+    // Turn on the withdrawal epochs
+    program_credix::instructions::process_update_global_market_state(
+        program_test_context,
+        multisig,
+        true,
+    )
+    .await?;
+
     // Ready to use
     Ok(())
 }
