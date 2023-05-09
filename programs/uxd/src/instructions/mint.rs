@@ -36,9 +36,9 @@ pub struct Mint<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
-        constraint = controller.load()?.router_identity_depository == identity_depository.key() @UxdError::InvalidDepository,
-        constraint = controller.load()?.router_mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
-        constraint = controller.load()?.router_credix_lp_depository == credix_lp_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.identity_depository == identity_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.credix_lp_depository == credix_lp_depository.key() @UxdError::InvalidDepository,
         has_one = redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub controller: AccountLoader<'info, Controller>,
@@ -220,7 +220,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     let depository_info = vec![
         // Identity depository details
         DepositoryInfoForMint {
-            weight_bps: controller.router_identity_depository_weight_bps,
+            weight_bps: controller.identity_depository_weight_bps,
             redeemable_amount_under_management: identity_depository
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: identity_depository
@@ -238,7 +238,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
         },
         // Mercurial Vault Depository 0 details
         DepositoryInfoForMint {
-            weight_bps: controller.router_mercurial_vault_depository_weight_bps,
+            weight_bps: controller.mercurial_vault_depository_weight_bps,
             redeemable_amount_under_management: mercurial_vault_depository
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: mercurial_vault_depository
@@ -260,7 +260,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
         },
         // Credix Lp Depository 0 details
         DepositoryInfoForMint {
-            weight_bps: controller.router_credix_lp_depository_weight_bps,
+            weight_bps: controller.credix_lp_depository_weight_bps,
             redeemable_amount_under_management: credix_lp_depository
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: credix_lp_depository

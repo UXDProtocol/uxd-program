@@ -2164,7 +2164,7 @@ export type Uxd = {
       };
     },
     {
-      name: 'EditControllerRouterDepositoriesWeightBps';
+      name: 'EditRouterDepositoriesWeightBps';
       type: {
         kind: 'struct';
         fields: [
@@ -2184,7 +2184,7 @@ export type Uxd = {
       };
     },
     {
-      name: 'EditControllerRouterDepositories';
+      name: 'EditRouterDepositories';
       type: {
         kind: 'struct';
         fields: [
@@ -2218,7 +2218,7 @@ export type Uxd = {
             name: 'routerDepositoriesWeightBps';
             type: {
               option: {
-                defined: 'EditControllerRouterDepositoriesWeightBps';
+                defined: 'EditRouterDepositoriesWeightBps';
               };
             };
           },
@@ -2226,7 +2226,7 @@ export type Uxd = {
             name: 'routerDepositories';
             type: {
               option: {
-                defined: 'EditControllerRouterDepositories';
+                defined: 'EditRouterDepositories';
               };
             };
           }
@@ -5289,7 +5289,7 @@ export const IDL: Uxd = {
       },
     },
     {
-      name: 'EditControllerRouterDepositoriesWeightBps',
+      name: 'EditRouterDepositoriesWeightBps',
       type: {
         kind: 'struct',
         fields: [
@@ -5309,7 +5309,7 @@ export const IDL: Uxd = {
       },
     },
     {
-      name: 'EditControllerRouterDepositories',
+      name: 'EditRouterDepositories',
       type: {
         kind: 'struct',
         fields: [
@@ -5343,7 +5343,7 @@ export const IDL: Uxd = {
             name: 'routerDepositoriesWeightBps',
             type: {
               option: {
-                defined: 'EditControllerRouterDepositoriesWeightBps',
+                defined: 'EditRouterDepositoriesWeightBps',
               },
             },
           },
@@ -5351,7 +5351,7 @@ export const IDL: Uxd = {
             name: 'routerDepositories',
             type: {
               option: {
-                defined: 'EditControllerRouterDepositories',
+                defined: 'EditRouterDepositories',
               },
             },
           },

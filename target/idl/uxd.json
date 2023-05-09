@@ -2166,7 +2166,7 @@
       }
     },
     {
-      "name": "EditControllerRouterDepositoriesWeightBps",
+      "name": "EditRouterDepositoriesWeightBps",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2186,7 +2186,7 @@
       }
     },
     {
-      "name": "EditControllerRouterDepositories",
+      "name": "EditRouterDepositories",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2220,7 +2220,7 @@
             "name": "routerDepositoriesWeightBps",
             "type": {
               "option": {
-                "defined": "EditControllerRouterDepositoriesWeightBps"
+                "defined": "EditRouterDepositoriesWeightBps"
               }
             }
           },
@@ -2228,7 +2228,7 @@
             "name": "routerDepositories",
             "type": {
               "option": {
-                "defined": "EditControllerRouterDepositories"
+                "defined": "EditRouterDepositories"
               }
             }
           }

@@ -24,14 +24,14 @@ pub struct EditController<'info> {
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
-pub struct EditControllerRouterDepositoriesWeightBps {
+pub struct EditRouterDepositoriesWeightBps {
     pub identity_depository_weight_bps: u16,
     pub mercurial_vault_depository_weight_bps: u16,
     pub credix_lp_depository_weight_bps: u16,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
-pub struct EditControllerRouterDepositories {
+pub struct EditRouterDepositories {
     pub identity_depository: Pubkey,
     pub mercurial_vault_depository: Pubkey,
     pub credix_lp_depository: Pubkey,
@@ -40,8 +40,8 @@ pub struct EditControllerRouterDepositories {
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
 pub struct EditControllerFields {
     pub redeemable_global_supply_cap: Option<u128>,
-    pub router_depositories_weight_bps: Option<EditControllerRouterDepositoriesWeightBps>,
-    pub router_depositories: Option<EditControllerRouterDepositories>,
+    pub router_depositories_weight_bps: Option<EditRouterDepositoriesWeightBps>,
+    pub router_depositories: Option<EditRouterDepositories>,
 }
 
 pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
@@ -67,10 +67,9 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
             "[edit_controller] credix_lp_depository_weight_bps {}",
             credix_lp_depository_weight_bps
         );
-        controller.router_identity_depository_weight_bps = identity_depository_weight_bps;
-        controller.router_mercurial_vault_depository_weight_bps =
-            mercurial_vault_depository_weight_bps;
-        controller.router_credix_lp_depository_weight_bps = credix_lp_depository_weight_bps;
+        controller.identity_depository_weight_bps = identity_depository_weight_bps;
+        controller.mercurial_vault_depository_weight_bps = mercurial_vault_depository_weight_bps;
+        controller.credix_lp_depository_weight_bps = credix_lp_depository_weight_bps;
         emit!(SetRouterDepositoriesWeightBps {
             controller_version: controller.version,
             controller: ctx.accounts.controller.key(),
@@ -97,9 +96,9 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
             "[edit_controller] credix_lp_depository {}",
             credix_lp_depository
         );
-        controller.router_identity_depository = identity_depository;
-        controller.router_mercurial_vault_depository = mercurial_vault_depository;
-        controller.router_credix_lp_depository = credix_lp_depository;
+        controller.identity_depository = identity_depository;
+        controller.mercurial_vault_depository = mercurial_vault_depository;
+        controller.credix_lp_depository = credix_lp_depository;
         emit!(SetRouterDepositories {
             controller_version: controller.version,
             controller: ctx.accounts.controller.key(),
