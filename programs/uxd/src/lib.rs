@@ -113,6 +113,22 @@ pub mod uxd {
         instructions::edit_credix_lp_depository::handler(ctx, &fields)
     }
 
+    #[access_control(
+        ctx.accounts.validate(collateral_amount)
+    )]
+    pub fn mint(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> {
+        msg!("[mint]");
+        instructions::mint::handler(ctx, collateral_amount)
+    }
+
+    #[access_control(
+        ctx.accounts.validate(redeemable_amount)
+    )]
+    pub fn redeem(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()> {
+        msg!("[redeem]");
+        instructions::redeem::handler(ctx, redeemable_amount)
+    }
+
     // Mint Redeemable tokens by depositing Collateral to mercurial vault.
     #[access_control(
         ctx.accounts.validate(collateral_amount)

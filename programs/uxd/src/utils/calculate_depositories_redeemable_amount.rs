@@ -16,7 +16,7 @@ pub struct DepositoryInfoForRedeemableAmount {
 
 pub fn calculate_depositories_redeemable_amount(
     requested_redeemable_amount: u64,
-    depositories_info: Vec<DepositoryInfoForRedeemableAmount>,
+    depositories_info: &Vec<DepositoryInfoForRedeemableAmount>,
 ) -> Result<Vec<u64>> {
     require!(
         depositories_info.len() == ROUTER_DEPOSITORIES_COUNT,
@@ -98,7 +98,7 @@ pub fn calculate_depositories_redeemable_amount(
     // -- try to consume the under_target redeemable amount fairly (step2)
     // ---------------------------------------------------------------------
 
-    let depositories_redeemable_amount = std::iter::zip(
+    let mut depositories_redeemable_amount = std::iter::zip(
         depositories_over_target_redeemable_amount.iter(),
         depositories_under_target_redeemable_amount.iter(),
     )
@@ -147,6 +147,39 @@ pub fn calculate_depositories_redeemable_amount(
         },
     )
     .collect::<Result<Vec<u64>>>()?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 5
+    // -- Correct for precision loss rounding errors
+    // -- We compute the difference between the requested amount and the total computed amount
+    // -- And add any difference back to the first depository with remaining redeemable
+    // ---------------------------------------------------------------------
+
+    let total_redeemable_amount =
+        calculate_depositories_sum_value(&depositories_redeemable_amount)?;
+
+    let mut rounding_errors = requested_redeemable_amount
+        .checked_sub(total_redeemable_amount)
+        .ok_or(UxdError::MathError)?;
+
+    for i in 0..depositories_info.len() {
+        let depository = &depositories_info[i];
+        if !depository.is_liquid {
+            continue;
+        }
+        let depository_remaining_after_redeem =
+            checked_convert_u128_to_u64(depository.redeemable_amount_under_management)?
+                .checked_sub(depositories_redeemable_amount[i])
+                .ok_or(UxdError::MathError)?;
+        let depository_rounding_correction =
+            std::cmp::min(depository_remaining_after_redeem, rounding_errors);
+        depositories_redeemable_amount[i] = depositories_redeemable_amount[i]
+            .checked_add(depository_rounding_correction)
+            .ok_or(UxdError::MathError)?;
+        rounding_errors = rounding_errors
+            .checked_sub(depository_rounding_correction)
+            .ok_or(UxdError::MathError)?;
+    }
 
     // Done
     Ok(depositories_redeemable_amount)
