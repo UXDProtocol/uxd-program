@@ -2166,7 +2166,7 @@
       }
     },
     {
-      "name": "EditRouterDepositoriesWeightBps",
+      "name": "EditDepositoriesRoutingWeightBps",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2220,7 +2220,7 @@
             "name": "routerDepositoriesWeightBps",
             "type": {
               "option": {
-                "defined": "EditRouterDepositoriesWeightBps"
+                "defined": "EditDepositoriesRoutingWeightBps"
               }
             }
           },

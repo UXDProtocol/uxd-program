@@ -2164,7 +2164,7 @@ export type Uxd = {
       };
     },
     {
-      name: 'EditRouterDepositoriesWeightBps';
+      name: 'EditDepositoriesRoutingWeightBps';
       type: {
         kind: 'struct';
         fields: [
@@ -2218,7 +2218,7 @@ export type Uxd = {
             name: 'routerDepositoriesWeightBps';
             type: {
               option: {
-                defined: 'EditRouterDepositoriesWeightBps';
+                defined: 'EditDepositoriesRoutingWeightBps';
               };
             };
           },
@@ -5289,7 +5289,7 @@ export const IDL: Uxd = {
       },
     },
     {
-      name: 'EditRouterDepositoriesWeightBps',
+      name: 'EditDepositoriesRoutingWeightBps',
       type: {
         kind: 'struct',
         fields: [
@@ -5343,7 +5343,7 @@ export const IDL: Uxd = {
             name: 'routerDepositoriesWeightBps',
             type: {
               option: {
-                defined: 'EditRouterDepositoriesWeightBps',
+                defined: 'EditDepositoriesRoutingWeightBps',
               },
             },
           },

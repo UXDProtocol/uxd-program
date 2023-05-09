@@ -66,7 +66,7 @@ pub async fn process_deploy_program(
         authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(redeemable_global_supply_cap),
-            router_depositories_weight_bps: None,
+            depositories_routing_weight_bps: None,
             router_depositories: None,
         },
     )
