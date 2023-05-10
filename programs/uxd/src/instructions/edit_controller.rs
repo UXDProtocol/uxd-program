@@ -1,6 +1,7 @@
 use crate::error::UxdError;
-use crate::events::SetDepositoriesWeightBps;
 use crate::events::SetRedeemableGlobalSupplyCapEvent;
+use crate::events::SetRouterDepositories;
+use crate::events::SetRouterDepositoriesWeightBps;
 use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::BPS_UNIT_CONVERSION;
@@ -23,50 +24,87 @@ pub struct EditController<'info> {
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
-pub struct EditControllerDepositoriesWeightBps {
+pub struct EditDepositoriesRoutingWeightBps {
     pub identity_depository_weight_bps: u16,
-    pub mercurial_vault_depository_0_weight_bps: u16,
-    pub credix_lp_depository_0_weight_bps: u16,
+    pub mercurial_vault_depository_weight_bps: u16,
+    pub credix_lp_depository_weight_bps: u16,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
+pub struct EditRouterDepositories {
+    pub identity_depository: Pubkey,
+    pub mercurial_vault_depository: Pubkey,
+    pub credix_lp_depository: Pubkey,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
 pub struct EditControllerFields {
     pub redeemable_global_supply_cap: Option<u128>,
-    pub depositories_weight_bps: Option<EditControllerDepositoriesWeightBps>,
+    pub depositories_routing_weight_bps: Option<EditDepositoriesRoutingWeightBps>,
+    pub router_depositories: Option<EditRouterDepositories>,
 }
 
 pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
     let controller = &mut ctx.accounts.controller.load_mut()?;
 
-    // Optionally edit all depositories weights
-    if let Some(depositories_weight_bps) = fields.depositories_weight_bps {
-        let identity_depository_weight_bps = depositories_weight_bps.identity_depository_weight_bps;
-        let mercurial_vault_depository_0_weight_bps =
-            depositories_weight_bps.mercurial_vault_depository_0_weight_bps;
-        let credix_lp_depository_0_weight_bps =
-            depositories_weight_bps.credix_lp_depository_0_weight_bps;
+    // Optionally edit all router depositories weights
+    if let Some(depositories_routing_weight_bps) = fields.depositories_routing_weight_bps {
+        let identity_depository_weight_bps =
+            depositories_routing_weight_bps.identity_depository_weight_bps;
+        let mercurial_vault_depository_weight_bps =
+            depositories_routing_weight_bps.mercurial_vault_depository_weight_bps;
+        let credix_lp_depository_weight_bps =
+            depositories_routing_weight_bps.credix_lp_depository_weight_bps;
         msg!(
             "[edit_controller] identity_depository_weight_bps {}",
             identity_depository_weight_bps
         );
         msg!(
-            "[edit_controller] mercurial_vault_depository_0_weight_bps {}",
-            mercurial_vault_depository_0_weight_bps
+            "[edit_controller] mercurial_vault_depository_weight_bps {}",
+            mercurial_vault_depository_weight_bps
         );
         msg!(
-            "[edit_controller] credix_lp_depository_0_weight_bps {}",
-            credix_lp_depository_0_weight_bps
+            "[edit_controller] credix_lp_depository_weight_bps {}",
+            credix_lp_depository_weight_bps
         );
         controller.identity_depository_weight_bps = identity_depository_weight_bps;
-        controller.mercurial_vault_depository_0_weight_bps =
-            mercurial_vault_depository_0_weight_bps;
-        controller.credix_lp_depository_0_weight_bps = credix_lp_depository_0_weight_bps;
-        emit!(SetDepositoriesWeightBps {
-            version: controller.version,
+        controller.mercurial_vault_depository_weight_bps = mercurial_vault_depository_weight_bps;
+        controller.credix_lp_depository_weight_bps = credix_lp_depository_weight_bps;
+        emit!(SetRouterDepositoriesWeightBps {
+            controller_version: controller.version,
             controller: ctx.accounts.controller.key(),
             identity_depository_weight_bps,
-            mercurial_vault_depository_0_weight_bps,
-            credix_lp_depository_0_weight_bps,
+            mercurial_vault_depository_weight_bps,
+            credix_lp_depository_weight_bps,
+        });
+    }
+
+    // Optionally edit all router depositories addresses
+    if let Some(router_depositories) = fields.router_depositories {
+        let identity_depository = router_depositories.identity_depository;
+        let mercurial_vault_depository = router_depositories.mercurial_vault_depository;
+        let credix_lp_depository = router_depositories.credix_lp_depository;
+        msg!(
+            "[edit_controller] identity_depository {}",
+            identity_depository
+        );
+        msg!(
+            "[edit_controller] mercurial_vault_depository {}",
+            mercurial_vault_depository
+        );
+        msg!(
+            "[edit_controller] credix_lp_depository {}",
+            credix_lp_depository
+        );
+        controller.identity_depository = identity_depository;
+        controller.mercurial_vault_depository = mercurial_vault_depository;
+        controller.credix_lp_depository = credix_lp_depository;
+        emit!(SetRouterDepositories {
+            controller_version: controller.version,
+            controller: ctx.accounts.controller.key(),
+            identity_depository,
+            mercurial_vault_depository,
+            credix_lp_depository,
         });
     }
 
@@ -99,13 +137,13 @@ impl<'info> EditController<'info> {
             );
         }
 
-        // Validate the depositories_weight_bps if specified
-        if let Some(depositories_weight_bps) = fields.depositories_weight_bps {
-            let total_weight_bps = depositories_weight_bps
+        // Validate the depositories_routing_weight_bps if specified
+        if let Some(depositories_routing_weight_bps) = fields.depositories_routing_weight_bps {
+            let total_weight_bps = depositories_routing_weight_bps
                 .identity_depository_weight_bps
-                .checked_add(depositories_weight_bps.mercurial_vault_depository_0_weight_bps)
+                .checked_add(depositories_routing_weight_bps.mercurial_vault_depository_weight_bps)
                 .ok_or(UxdError::MathError)?
-                .checked_add(depositories_weight_bps.credix_lp_depository_0_weight_bps)
+                .checked_add(depositories_routing_weight_bps.credix_lp_depository_weight_bps)
                 .ok_or(UxdError::MathError)?;
             require!(
                 u64::from(total_weight_bps) == BPS_UNIT_CONVERSION,
