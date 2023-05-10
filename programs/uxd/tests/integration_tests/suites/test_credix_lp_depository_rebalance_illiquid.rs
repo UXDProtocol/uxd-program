@@ -1,6 +1,7 @@
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
+use spl_token::state::Account;
 
 use uxd::instructions::EditControllerDepositoriesWeightBps;
 use uxd::instructions::EditControllerFields;
@@ -92,6 +93,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         ui_amount_to_native_amount(1000, collateral_mint_decimals);
     let amount_the_user_should_be_able_to_mint =
         ui_amount_to_native_amount(50, collateral_mint_decimals);
+    let amount_that_should_remain_liquid = ui_amount_to_native_amount(20, collateral_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -142,19 +144,6 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     )
     .await?;
 
-    // We have a borrower borrow everything except a small amount from the credix pool, making it partially illiquid
-    program_credix::procedures::process_dummy_borrower(
-        &mut program_test_context,
-        &credix_multisig,
-        &collateral_mint.pubkey(),
-        &collateral_mint,
-        ui_amount_to_native_amount(100_000, collateral_mint_decimals)
-            + amount_the_user_should_be_able_to_mint,
-        0,
-        0,
-    )
-    .await?;
-
     // Minting on credix should work now that everything is set
     program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_test_context,
@@ -168,9 +157,40 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     .await?;
 
     // ---------------------------------------------------------------------
+    // -- Phase 2
+    // -- Drain liquidity from credix pool to make the rebalance only partially possible
+    // ---------------------------------------------------------------------
+
+    // Compute the currently liquid amount
+    let credix_market_seeds = program_credix::accounts::find_market_seeds();
+    let credix_signing_authority =
+        program_credix::accounts::find_signing_authority_pda(&credix_market_seeds).0;
+    let credix_liquidity_collateral = program_credix::accounts::find_liquidity_pool_token_account(
+        &credix_signing_authority,
+        &collateral_mint.pubkey(),
+    );
+    let credix_liquidity_collateral_amount = program_test_context::read_account_packed::<Account>(
+        &mut program_test_context,
+        &credix_liquidity_collateral,
+    )
+    .await?
+    .amount;
+
+    // Have a borrower borrow EVERYTHING except a tiny liquid amount
+    program_credix::procedures::process_dummy_borrower(
+        &mut program_test_context,
+        &credix_multisig,
+        &collateral_mint.pubkey(),
+        &collateral_mint,
+        credix_liquidity_collateral_amount - amount_that_should_remain_liquid,
+        0,
+        0,
+    )
+    .await?;
+
+    // ---------------------------------------------------------------------
     // -- Phase 3
-    // -- Now that credix is overweight, go through the rebalancing process
-    // -- On the first rebalance, the pool will not be liquid enough to handle the whole amount
+    // -- Do a complete rebalance, even if we are only partially liquid
     // ---------------------------------------------------------------------
 
     // Create an epoch (done by credix team usually)
@@ -239,7 +259,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     let expected_credix_redeemable_supply_before_rebalance =
         amount_the_user_should_be_able_to_mint - expected_credix_profits;
     let expected_credix_redeemable_supply_after_rebalance =
-        expected_credix_redeemable_supply_before_rebalance * 25 / 100; // 25% weight on credix
+        expected_credix_redeemable_supply_before_rebalance - amount_that_should_remain_liquid;
 
     // Executing the rebalance request should now work as intended because we are in the execute period
     program_uxd::instructions::process_rebalance_request_execute_from_credix_lp_depository(
@@ -249,8 +269,9 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &credix_multisig.pubkey(),
         &profits_beneficiary_collateral,
         expected_credix_redeemable_supply_before_rebalance
-            - expected_credix_redeemable_supply_after_rebalance,
-        expected_credix_profits - 2, // withdrawal precision loss is taken from the profits
+            - expected_credix_redeemable_supply_after_rebalance
+            - 1, // Precision loss expected here
+        0, // No profits could be withdrawn since we are illiquid
     )
     .await?;
 
