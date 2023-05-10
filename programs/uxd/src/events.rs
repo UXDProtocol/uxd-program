@@ -30,17 +30,28 @@ pub struct SetRedeemableGlobalSupplyCapEvent {
 
 /// Event called in [instructions::edit_controller::handler].
 #[event]
-pub struct SetDepositoriesWeightBps {
-    /// The controller version.
+pub struct SetRouterDepositoriesWeightBps {
     #[index]
-    pub version: u8,
-    /// The controller.
+    pub controller_version: u8,
     #[index]
     pub controller: Pubkey,
     /// The new weights
     pub identity_depository_weight_bps: u16,
-    pub mercurial_vault_depository_0_weight_bps: u16,
-    pub credix_lp_depository_0_weight_bps: u16,
+    pub mercurial_vault_depository_weight_bps: u16,
+    pub credix_lp_depository_weight_bps: u16,
+}
+
+/// Event called in [instructions::edit_controller::handler].
+#[event]
+pub struct SetRouterDepositories {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    /// The new addresses
+    pub identity_depository: Pubkey,
+    pub mercurial_vault_depository: Pubkey,
+    pub credix_lp_depository: Pubkey,
 }
 
 /// Event called in [instructions::register_mercurial_vault_depository::handler].
