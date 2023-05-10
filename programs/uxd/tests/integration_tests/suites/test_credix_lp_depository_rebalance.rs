@@ -142,6 +142,19 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     )
     .await?;
 
+    // We have a borrower borrow everything except a small amount from the credix pool, making it partially illiquid
+    program_credix::procedures::process_dummy_borrower(
+        &mut program_test_context,
+        &credix_multisig,
+        &collateral_mint.pubkey(),
+        &collateral_mint,
+        ui_amount_to_native_amount(100_000, collateral_mint_decimals)
+            + amount_the_user_should_be_able_to_mint,
+        0,
+        0,
+    )
+    .await?;
+
     // Minting on credix should work now that everything is set
     program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_test_context,
@@ -157,6 +170,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     // ---------------------------------------------------------------------
     // -- Phase 3
     // -- Now that credix is overweight, go through the rebalancing process
+    // -- On the first rebalance, the pool will not be liquid enough to handle the whole amount
     // ---------------------------------------------------------------------
 
     // Create an epoch (done by credix team usually)
