@@ -5,9 +5,9 @@ mod test_calculate_depositories_redeemable_amount {
     use proptest::prelude::*;
     use uxd::utils::calculate_depositories_redeemable_amount;
     use uxd::utils::DepositoryInfoForRedeemableAmount;
-    use uxd::ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX;
+    use uxd::ROUTER_CREDIX_LP_DEPOSITORY_INDEX;
     use uxd::ROUTER_IDENTITY_DEPOSITORY_INDEX;
-    use uxd::ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX;
+    use uxd::ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX;
 
     fn ui_to_native_amount(ui_amount: u64) -> u64 {
         ui_amount * 1_000_000
@@ -25,7 +25,7 @@ mod test_calculate_depositories_redeemable_amount {
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(1_500_000).into(),
                 },
-                // mercurial_vault_depository_0 is overflowing by a lot
+                // mercurial_vault_depository is overflowing by a lot
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
@@ -45,11 +45,11 @@ mod test_calculate_depositories_redeemable_amount {
             ui_to_native_amount(250_000),
         );
         assert_eq!(
-            depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
+            depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX],
             ui_to_native_amount(750_000),
         );
         assert_eq!(
-            depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
+            depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
             0, // except illiquid ones
         );
         // Done
@@ -68,7 +68,7 @@ mod test_calculate_depositories_redeemable_amount {
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
                 },
-                // mercurial_vault_depository_0 is overflowing by a lot
+                // mercurial_vault_depository is overflowing by a lot
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
@@ -88,11 +88,11 @@ mod test_calculate_depositories_redeemable_amount {
             0,
         );
         assert_eq!(
-            depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
+            depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX],
             ui_to_native_amount(1_000_000),
         );
         assert_eq!(
-            depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
+            depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
             0, // except illiquid ones
         );
         // Done
@@ -111,7 +111,7 @@ mod test_calculate_depositories_redeemable_amount {
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(1_000_000).into(),
                 },
-                // mercurial_vault_depository_0 is perfectly balanced
+                // mercurial_vault_depository is perfectly balanced
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
                     target_redeemable_amount: ui_to_native_amount(500_000),
@@ -132,11 +132,11 @@ mod test_calculate_depositories_redeemable_amount {
             ui_to_native_amount(1_000_000) * 2 / 3 + 1,
         );
         assert_eq!(
-            depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
+            depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX],
             ui_to_native_amount(1_000_000) / 3,
         );
         assert_eq!(
-            depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
+            depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
             0, // except illiquid ones
         );
 
@@ -155,7 +155,7 @@ mod test_calculate_depositories_redeemable_amount {
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(1_200_000).into(),
                 },
-                // mercurial_vault_depository_0 is overflowing by a little bit (but is smaller)
+                // mercurial_vault_depository is overflowing by a little bit (but is smaller)
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
                     target_redeemable_amount: ui_to_native_amount(500_000),
@@ -176,12 +176,12 @@ mod test_calculate_depositories_redeemable_amount {
             ui_to_native_amount(600_000),
         );
         assert_eq!(
-            depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
+            depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX],
             ui_to_native_amount(400_000),
         );
         assert_eq!(
             // except illiquid ones
-            depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
+            depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
             0,
         );
         // Done
@@ -200,7 +200,7 @@ mod test_calculate_depositories_redeemable_amount {
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(800_000).into(),
                 },
-                // mercurial_vault_depository_0 is underweight (but is smaller)
+                // mercurial_vault_depository is underweight (but is smaller)
                 DepositoryInfoForRedeemableAmount {
                     is_liquid: true,
                     target_redeemable_amount: ui_to_native_amount(500_000),
@@ -221,11 +221,11 @@ mod test_calculate_depositories_redeemable_amount {
             ui_to_native_amount(1_000_000) * 2 / 3 + 1,
         );
         assert_eq!(
-            depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX],
+            depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX],
             ui_to_native_amount(1_000_000) / 3,
         );
         assert_eq!(
-            depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_0_INDEX],
+            depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
             0, // except illiquid ones
         );
         // Done
@@ -237,14 +237,14 @@ mod test_calculate_depositories_redeemable_amount {
         proptest!(|(
             requested_redeemable_amount: u64,
             identity_depository_target_redeemable_amount: u64,
-            mercurial_vault_depository_0_target_redeemable_amount: u64,
+            mercurial_vault_depository_target_redeemable_amount: u64,
             identity_depository_redeemable_amount_under_management: u64,
-            mercurial_vault_depository_0_redeemable_amount_under_management: u64,
+            mercurial_vault_depository_redeemable_amount_under_management: u64,
         )| {
             // Check if the redeemable_amount_under_management will fit inside of a u64
             // If not, this function will not be expected to work
             let total_redeemable_amount_under_management = u128::from(identity_depository_redeemable_amount_under_management)
-                + u128::from(mercurial_vault_depository_0_redeemable_amount_under_management);
+                + u128::from(mercurial_vault_depository_redeemable_amount_under_management);
             if total_redeemable_amount_under_management > u128::from(u64::MAX) {
                 return Ok(());
             }
@@ -252,7 +252,7 @@ mod test_calculate_depositories_redeemable_amount {
             // Check if the target_redeemable_amount will fit inside of a u64
             // If not, this function will not be expected to work
             let total_target_redeemable_amount = u128::from(identity_depository_target_redeemable_amount)
-                + u128::from(mercurial_vault_depository_0_target_redeemable_amount);
+                + u128::from(mercurial_vault_depository_target_redeemable_amount);
             if total_target_redeemable_amount > u128::from(u64::MAX) {
                 return Ok(());
             }
@@ -270,9 +270,9 @@ mod test_calculate_depositories_redeemable_amount {
                         },
                         DepositoryInfoForRedeemableAmount {
                             is_liquid: true,
-                            target_redeemable_amount: mercurial_vault_depository_0_target_redeemable_amount,
+                            target_redeemable_amount: mercurial_vault_depository_target_redeemable_amount,
                             redeemable_amount_under_management:
-                                mercurial_vault_depository_0_redeemable_amount_under_management.into(),
+                                mercurial_vault_depository_redeemable_amount_under_management.into(),
                         },
                         DepositoryInfoForRedeemableAmount {
                             is_liquid: false,
@@ -293,7 +293,7 @@ mod test_calculate_depositories_redeemable_amount {
 
             // The sum of all mint collateral amount should always exactly match the input collateral amount (minus precision loss)
             let total_redeemable_amount = depositories_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX]
-                + depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_0_INDEX];
+                + depositories_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX];
 
             prop_assert_eq!(total_redeemable_amount, requested_redeemable_amount);
         });
