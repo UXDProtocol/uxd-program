@@ -139,7 +139,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
-            depositories_weight_bps: None,
+            depositories_routing_weight_bps: None,
+            router_depositories: None,
         },
     )
     .await?;

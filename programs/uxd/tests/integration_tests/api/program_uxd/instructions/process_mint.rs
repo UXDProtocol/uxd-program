@@ -25,14 +25,14 @@ pub async fn process_mint(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     collateral_mint: &Pubkey,
-    mercurial_vault_depository_0_vault_lp_mint: &Pubkey,
+    mercurial_vault_depository_vault_lp_mint: &Pubkey,
     user: &Keypair,
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
     collateral_amount: u64,
     expected_identity_depository_collateral_amount: u64,
-    expected_mercurial_vault_depository_0_collateral_amount: u64,
-    expected_credix_lp_depository_0_collateral_amount: u64,
+    expected_mercurial_vault_depository_collateral_amount: u64,
+    expected_credix_lp_depository_collateral_amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
@@ -44,54 +44,54 @@ pub async fn process_mint(
         program_uxd::accounts::find_identity_depository_collateral_vault_pda().0;
 
     // Find mercurial related accounts
-    let mercurial_base_0 = program_mercurial::accounts::find_base();
-    let mercurial_vault_depository_0_vault =
-        program_mercurial::accounts::find_vault_pda(collateral_mint, &mercurial_base_0.pubkey()).0;
-    let mercurial_vault_depository_0 = program_uxd::accounts::find_mercurial_vault_depository_pda(
+    let mercurial_base = program_mercurial::accounts::find_base();
+    let mercurial_vault_depository_vault =
+        program_mercurial::accounts::find_vault_pda(collateral_mint, &mercurial_base.pubkey()).0;
+    let mercurial_vault_depository = program_uxd::accounts::find_mercurial_vault_depository_pda(
         collateral_mint,
-        &mercurial_vault_depository_0_vault,
+        &mercurial_vault_depository_vault,
     )
     .0;
-    let mercurial_vault_depository_0_lp_token_vault =
+    let mercurial_vault_depository_lp_token_vault =
         program_uxd::accounts::find_mercurial_vault_depository_lp_token_vault_pda(
             collateral_mint,
-            &mercurial_vault_depository_0_vault,
+            &mercurial_vault_depository_vault,
         )
         .0;
-    let mercurial_vault_depository_0_collateral_token_safe =
-        program_mercurial::accounts::find_token_vault_pda(&mercurial_vault_depository_0_vault).0;
+    let mercurial_vault_depository_collateral_token_safe =
+        program_mercurial::accounts::find_token_vault_pda(&mercurial_vault_depository_vault).0;
 
     // Find credix related accounts
-    let credix_market_seeds_0 = program_credix::accounts::find_market_seeds();
-    let credix_lp_depository_0_global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds_0).0;
-    let credix_lp_depository_0 = program_uxd::accounts::find_credix_lp_depository_pda(
+    let credix_market_seeds = program_credix::accounts::find_market_seeds();
+    let credix_lp_depository_global_market_state =
+        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
+    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository_pda(
         collateral_mint,
-        &credix_lp_depository_0_global_market_state,
+        &credix_lp_depository_global_market_state,
     )
     .0;
-    let credix_lp_depository_0_shares_mint =
-        program_credix::accounts::find_lp_token_mint_pda(&credix_market_seeds_0).0;
-    let credix_lp_depository_0_signing_authority =
-        program_credix::accounts::find_signing_authority_pda(&credix_market_seeds_0).0;
-    let credix_lp_depository_0_liquidity_collateral =
+    let credix_lp_depository_shares_mint =
+        program_credix::accounts::find_lp_token_mint_pda(&credix_market_seeds).0;
+    let credix_lp_depository_signing_authority =
+        program_credix::accounts::find_signing_authority_pda(&credix_market_seeds).0;
+    let credix_lp_depository_liquidity_collateral =
         program_credix::accounts::find_liquidity_pool_token_account(
-            &credix_lp_depository_0_signing_authority,
+            &credix_lp_depository_signing_authority,
             collateral_mint,
         );
-    let credix_lp_depository_0_pass = program_credix::accounts::find_credix_pass_pda(
-        &credix_lp_depository_0_global_market_state,
-        &credix_lp_depository_0,
+    let credix_lp_depository_pass = program_credix::accounts::find_credix_pass_pda(
+        &credix_lp_depository_global_market_state,
+        &credix_lp_depository,
     )
     .0;
-    let credix_lp_depository_0_collateral =
+    let credix_lp_depository_collateral =
         program_uxd::accounts::find_credix_lp_depository_collateral(
-            &credix_lp_depository_0,
+            &credix_lp_depository,
             collateral_mint,
         );
-    let credix_lp_depository_0_shares = program_uxd::accounts::find_credix_lp_depository_shares(
-        &credix_lp_depository_0,
-        &credix_lp_depository_0_shares_mint,
+    let credix_lp_depository_shares = program_uxd::accounts::find_credix_lp_depository_shares(
+        &credix_lp_depository,
+        &credix_lp_depository_shares_mint,
     );
 
     // Read state before
@@ -108,16 +108,16 @@ pub async fn process_mint(
             &identity_depository,
         )
         .await?;
-    let mercurial_vault_depository_0_before = program_test_context::read_account_anchor::<
+    let mercurial_vault_depository_before = program_test_context::read_account_anchor::<
         MercurialVaultDepository,
-    >(
-        program_test_context, &mercurial_vault_depository_0
-    )
+    >(program_test_context, &mercurial_vault_depository)
     .await?;
-    let credix_lp_depository_0_before = program_test_context::read_account_anchor::<
-        CredixLpDepository,
-    >(program_test_context, &credix_lp_depository_0)
-    .await?;
+    let credix_lp_depository_before =
+        program_test_context::read_account_anchor::<CredixLpDepository>(
+            program_test_context,
+            &credix_lp_depository,
+        )
+        .await?;
 
     let user_collateral_amount_before =
         program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
@@ -139,19 +139,19 @@ pub async fn process_mint(
         user_redeemable: *user_redeemable,
         identity_depository,
         identity_depository_collateral_vault,
-        mercurial_vault_depository_0,
-        mercurial_vault_depository_0_vault,
-        mercurial_vault_depository_0_vault_lp_mint: *mercurial_vault_depository_0_vault_lp_mint,
-        mercurial_vault_depository_0_lp_token_vault,
-        mercurial_vault_depository_0_collateral_token_safe,
-        credix_lp_depository_0,
-        credix_lp_depository_0_collateral,
-        credix_lp_depository_0_shares,
-        credix_lp_depository_0_pass,
-        credix_lp_depository_0_global_market_state,
-        credix_lp_depository_0_signing_authority,
-        credix_lp_depository_0_liquidity_collateral,
-        credix_lp_depository_0_shares_mint,
+        mercurial_vault_depository,
+        mercurial_vault_depository_vault,
+        mercurial_vault_depository_vault_lp_mint: *mercurial_vault_depository_vault_lp_mint,
+        mercurial_vault_depository_lp_token_vault,
+        mercurial_vault_depository_collateral_token_safe,
+        credix_lp_depository,
+        credix_lp_depository_collateral,
+        credix_lp_depository_shares,
+        credix_lp_depository_pass,
+        credix_lp_depository_global_market_state,
+        credix_lp_depository_signing_authority,
+        credix_lp_depository_liquidity_collateral,
+        credix_lp_depository_shares_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
@@ -188,16 +188,16 @@ pub async fn process_mint(
             &identity_depository,
         )
         .await?;
-    let mercurial_vault_depository_0_after = program_test_context::read_account_anchor::<
+    let mercurial_vault_depository_after = program_test_context::read_account_anchor::<
         MercurialVaultDepository,
-    >(
-        program_test_context, &mercurial_vault_depository_0
-    )
+    >(program_test_context, &mercurial_vault_depository)
     .await?;
-    let credix_lp_depository_0_after = program_test_context::read_account_anchor::<
-        CredixLpDepository,
-    >(program_test_context, &credix_lp_depository_0)
-    .await?;
+    let credix_lp_depository_after =
+        program_test_context::read_account_anchor::<CredixLpDepository>(
+            program_test_context,
+            &credix_lp_depository,
+        )
+        .await?;
 
     let user_collateral_amount_after =
         program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
@@ -211,40 +211,40 @@ pub async fn process_mint(
     // Compute identity_depository amounts
     let identity_depository_redeemable_amount = expected_identity_depository_collateral_amount;
 
-    // Compute mercurial_vault_depository_0 amounts
-    let mercurial_vault_depository_0_redeemable_amount = calculate_amount_less_fees(
-        expected_mercurial_vault_depository_0_collateral_amount,
-        mercurial_vault_depository_0_before.minting_fee_in_bps,
+    // Compute mercurial_vault_depository amounts
+    let mercurial_vault_depository_redeemable_amount = calculate_amount_less_fees(
+        expected_mercurial_vault_depository_collateral_amount,
+        mercurial_vault_depository_before.minting_fee_in_bps,
     )
     .map_err(program_test_context::ProgramTestError::Anchor)?;
-    let mercurial_vault_depository_0_fees_amount =
-        expected_mercurial_vault_depository_0_collateral_amount
-            - mercurial_vault_depository_0_redeemable_amount;
+    let mercurial_vault_depository_fees_amount =
+        expected_mercurial_vault_depository_collateral_amount
+            - mercurial_vault_depository_redeemable_amount;
 
-    // Compute credix_lp_depository_0 amounts
-    let credix_lp_depository_0_collateral_amount_after_precision_loss =
+    // Compute credix_lp_depository amounts
+    let credix_lp_depository_collateral_amount_after_precision_loss =
         process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
             program_test_context,
             collateral_mint,
-            expected_credix_lp_depository_0_collateral_amount,
+            expected_credix_lp_depository_collateral_amount,
         )
         .await?;
-    let credix_lp_depository_0_redeemable_amount = calculate_amount_less_fees(
-        credix_lp_depository_0_collateral_amount_after_precision_loss,
-        credix_lp_depository_0_before.minting_fee_in_bps,
+    let credix_lp_depository_redeemable_amount = calculate_amount_less_fees(
+        credix_lp_depository_collateral_amount_after_precision_loss,
+        credix_lp_depository_before.minting_fee_in_bps,
     )
     .map_err(program_test_context::ProgramTestError::Anchor)?;
-    let credix_lp_depository_0_fees_amount =
-        credix_lp_depository_0_collateral_amount_after_precision_loss
-            - credix_lp_depository_0_redeemable_amount;
+    let credix_lp_depository_fees_amount =
+        credix_lp_depository_collateral_amount_after_precision_loss
+            - credix_lp_depository_redeemable_amount;
 
     // Compute total amounts
     let total_collateral_amount = expected_identity_depository_collateral_amount
-        + expected_mercurial_vault_depository_0_collateral_amount
-        + expected_credix_lp_depository_0_collateral_amount;
+        + expected_mercurial_vault_depository_collateral_amount
+        + expected_credix_lp_depository_collateral_amount;
     let total_redeemable_amount = identity_depository_redeemable_amount
-        + mercurial_vault_depository_0_redeemable_amount
-        + credix_lp_depository_0_redeemable_amount;
+        + mercurial_vault_depository_redeemable_amount
+        + credix_lp_depository_redeemable_amount;
 
     // redeemable_mint.supply must have increased by the minted amount (equivalent to redeemable_amount)
     let redeemable_mint_supply_before = redeemable_mint_before.supply;
@@ -286,72 +286,71 @@ pub async fn process_mint(
         identity_depository_collateral_amount_deposited_after,
     );
 
-    // mercurial_vault_depository_0.redeemable_amount_under_management must have increased by the minted amount (equivalent to redeemable_amount)
-    let mercurial_vault_depository_0_redeemable_amount_under_management_before =
-        u64::try_from(mercurial_vault_depository_0_before.redeemable_amount_under_management)
+    // mercurial_vault_depository.redeemable_amount_under_management must have increased by the minted amount (equivalent to redeemable_amount)
+    let mercurial_vault_depository_redeemable_amount_under_management_before =
+        u64::try_from(mercurial_vault_depository_before.redeemable_amount_under_management)
             .unwrap();
-    let mercurial_vault_depository_0_redeemable_amount_under_management_after =
-        u64::try_from(mercurial_vault_depository_0_after.redeemable_amount_under_management)
-            .unwrap();
+    let mercurial_vault_depository_redeemable_amount_under_management_after =
+        u64::try_from(mercurial_vault_depository_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
-        mercurial_vault_depository_0_redeemable_amount_under_management_before
-            + mercurial_vault_depository_0_redeemable_amount,
-        mercurial_vault_depository_0_redeemable_amount_under_management_after,
+        mercurial_vault_depository_redeemable_amount_under_management_before
+            + mercurial_vault_depository_redeemable_amount,
+        mercurial_vault_depository_redeemable_amount_under_management_after,
     );
 
-    // mercurial_vault_depository_0.minting_fee_total_accrued must have increased by the fees amount
-    let mercurial_vault_depository_0_minting_fee_total_accrued_before =
-        mercurial_vault_depository_0_before.minting_fee_total_accrued;
-    let mercurial_vault_depository_0_minting_fee_total_accrued_after =
-        mercurial_vault_depository_0_after.minting_fee_total_accrued;
+    // mercurial_vault_depository.minting_fee_total_accrued must have increased by the fees amount
+    let mercurial_vault_depository_minting_fee_total_accrued_before =
+        mercurial_vault_depository_before.minting_fee_total_accrued;
+    let mercurial_vault_depository_minting_fee_total_accrued_after =
+        mercurial_vault_depository_after.minting_fee_total_accrued;
     assert_eq!(
-        mercurial_vault_depository_0_minting_fee_total_accrued_before
-            + u128::from(mercurial_vault_depository_0_fees_amount),
-        mercurial_vault_depository_0_minting_fee_total_accrued_after,
+        mercurial_vault_depository_minting_fee_total_accrued_before
+            + u128::from(mercurial_vault_depository_fees_amount),
+        mercurial_vault_depository_minting_fee_total_accrued_after,
     );
 
-    // mercurial_vault_depository_0.collateral_amount_deposited must have increased by the deposited amount (equivalent to collateral_amount)
-    let mercurial_vault_depository_0_collateral_amount_deposited_before =
-        u64::try_from(mercurial_vault_depository_0_before.collateral_amount_deposited).unwrap();
-    let mercurial_vault_depository_0_collateral_amount_deposited_after =
-        u64::try_from(mercurial_vault_depository_0_after.collateral_amount_deposited).unwrap();
+    // mercurial_vault_depository.collateral_amount_deposited must have increased by the deposited amount (equivalent to collateral_amount)
+    let mercurial_vault_depository_collateral_amount_deposited_before =
+        u64::try_from(mercurial_vault_depository_before.collateral_amount_deposited).unwrap();
+    let mercurial_vault_depository_collateral_amount_deposited_after =
+        u64::try_from(mercurial_vault_depository_after.collateral_amount_deposited).unwrap();
     assert_eq!(
-        mercurial_vault_depository_0_collateral_amount_deposited_before
-            + expected_mercurial_vault_depository_0_collateral_amount,
-        mercurial_vault_depository_0_collateral_amount_deposited_after,
+        mercurial_vault_depository_collateral_amount_deposited_before
+            + expected_mercurial_vault_depository_collateral_amount,
+        mercurial_vault_depository_collateral_amount_deposited_after,
     );
 
-    // credix_lp_depository_0.redeemable_amount_under_management must have increased by the minted amount (equivalent to redeemable_amount)
-    let credix_lp_depository_0_redeemable_amount_under_management_before =
-        u64::try_from(credix_lp_depository_0_before.redeemable_amount_under_management).unwrap();
-    let credix_lp_depository_0_redeemable_amount_under_management_after =
-        u64::try_from(credix_lp_depository_0_after.redeemable_amount_under_management).unwrap();
+    // credix_lp_depository.redeemable_amount_under_management must have increased by the minted amount (equivalent to redeemable_amount)
+    let credix_lp_depository_redeemable_amount_under_management_before =
+        u64::try_from(credix_lp_depository_before.redeemable_amount_under_management).unwrap();
+    let credix_lp_depository_redeemable_amount_under_management_after =
+        u64::try_from(credix_lp_depository_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
-        credix_lp_depository_0_redeemable_amount_under_management_before
-            + credix_lp_depository_0_redeemable_amount,
-        credix_lp_depository_0_redeemable_amount_under_management_after,
+        credix_lp_depository_redeemable_amount_under_management_before
+            + credix_lp_depository_redeemable_amount,
+        credix_lp_depository_redeemable_amount_under_management_after,
     );
 
-    // credix_lp_depository_0.collateral_amount_deposited must have increased by the deposited amount (equivalent to collateral_amount)
-    let credix_lp_depository_0_collateral_amount_deposited_before =
-        u64::try_from(credix_lp_depository_0_before.collateral_amount_deposited).unwrap();
-    let credix_lp_depository_0_collateral_amount_deposited_after =
-        u64::try_from(credix_lp_depository_0_after.collateral_amount_deposited).unwrap();
+    // credix_lp_depository.collateral_amount_deposited must have increased by the deposited amount (equivalent to collateral_amount)
+    let credix_lp_depository_collateral_amount_deposited_before =
+        u64::try_from(credix_lp_depository_before.collateral_amount_deposited).unwrap();
+    let credix_lp_depository_collateral_amount_deposited_after =
+        u64::try_from(credix_lp_depository_after.collateral_amount_deposited).unwrap();
     assert_eq!(
-        credix_lp_depository_0_collateral_amount_deposited_before
-            + expected_credix_lp_depository_0_collateral_amount,
-        credix_lp_depository_0_collateral_amount_deposited_after,
+        credix_lp_depository_collateral_amount_deposited_before
+            + expected_credix_lp_depository_collateral_amount,
+        credix_lp_depository_collateral_amount_deposited_after,
     );
 
-    // credix_lp_depository_0.minting_fee_total_accrued must have increased by the fees amount
-    let credix_lp_depository_0_minting_fee_total_accrued_before =
-        credix_lp_depository_0_before.minting_fee_total_accrued;
-    let credix_lp_depository_0_minting_fee_total_accrued_after =
-        credix_lp_depository_0_after.minting_fee_total_accrued;
+    // credix_lp_depository.minting_fee_total_accrued must have increased by the fees amount
+    let credix_lp_depository_minting_fee_total_accrued_before =
+        credix_lp_depository_before.minting_fee_total_accrued;
+    let credix_lp_depository_minting_fee_total_accrued_after =
+        credix_lp_depository_after.minting_fee_total_accrued;
     assert_eq!(
-        credix_lp_depository_0_minting_fee_total_accrued_before
-            + u128::from(credix_lp_depository_0_fees_amount),
-        credix_lp_depository_0_minting_fee_total_accrued_after,
+        credix_lp_depository_minting_fee_total_accrued_before
+            + u128::from(credix_lp_depository_fees_amount),
+        credix_lp_depository_minting_fee_total_accrued_after,
     );
 
     // user_collateral.amount must have decreased by the deposited amount (equivalent to collateral_amount)

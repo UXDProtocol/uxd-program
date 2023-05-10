@@ -182,11 +182,6 @@ export async function editController({
   controller: Controller;
   uiFields: {
     redeemableGlobalSupplyCap?: number;
-    depositoriesWeightBps?: {
-      identityDepositoryWeightBps: number;
-      mercurialVaultDepository0WeightBps: number;
-      credixLpDepository0WeightBps: number;
-    };
   };
 }): Promise<string> {
   const editControllerIx = uxdClient.createEditControllerInstruction(

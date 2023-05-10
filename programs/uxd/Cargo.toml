@@ -1,6 +1,6 @@
 [package]
 name = "uxd"
-version = "7.0.7"
+version = "7.0.9"
 authors = [
   "acammm <alexcamill@gmail.com>",
   "cnek <ctk2012ac@gmail.com>",
@@ -27,7 +27,7 @@ production = []
 development = []
 
 [dependencies]
-uxd-cpi = { version = "7.0.7", features = ["development"] }
+uxd-cpi = { version = "7.0.9", features = ["development"] }
 
 anchor-lang = "0.26.0"
 anchor-spl = "0.26.0"
@@ -48,3 +48,5 @@ solana-program-test = "1.15.2"
 solana-sdk = "1.15.2"
 spl-token = "3.5.0"
 spl-associated-token-account = "1.1.2"
+
+winnow = "=0.4.1" # This lib introduced a breaking change in a 0.4.6 patch :(
