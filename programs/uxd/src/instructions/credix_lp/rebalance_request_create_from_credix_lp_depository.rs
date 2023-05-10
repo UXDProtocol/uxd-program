@@ -6,6 +6,7 @@ use crate::error::UxdError;
 use crate::events::RebalanceRequestCreateFromCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
+use crate::utils::calculate_depositories_target_redeemable_amount;
 use crate::utils::checked_convert_u128_to_u64;
 use crate::utils::compute_value_for_shares_amount_floor;
 use crate::validate_is_program_frozen;
@@ -26,7 +27,7 @@ pub struct RebalanceRequestCreateFromCredixLpDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
-        constraint = controller.load()?.registered_credix_lp_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
+        constraint = controller.load()?.credix_lp_depository == depository.key() @UxdError::InvalidDepository,
     )]
     pub controller: AccountLoader<'info, Controller>,
 

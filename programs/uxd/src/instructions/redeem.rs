@@ -196,7 +196,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
                 Ok(())
             })),
         },
-        // Mercurial Vault Depository 0 details
+        // Mercurial Vault Depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.mercurial_vault_depository_weight_bps,
             redeemable_amount_under_management: mercurial_vault_depository
@@ -218,7 +218,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
                 Ok(())
             })),
         },
-        // Credix Lp Depository 0 details
+        // Credix Lp Depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.credix_lp_depository_weight_bps,
             redeemable_amount_under_management: credix_lp_depository

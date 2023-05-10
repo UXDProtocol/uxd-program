@@ -37,7 +37,7 @@ pub struct RebalanceRequestExecuteFromCredixLpDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
-        constraint = controller.load()?.registered_credix_lp_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
+        constraint = controller.load()?.credix_lp_depository == depository.key() @UxdError::InvalidDepository,
     )]
     pub controller: AccountLoader<'info, Controller>,
 
