@@ -3,9 +3,9 @@ use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 use spl_token::state::Account;
 
-use uxd::instructions::EditControllerDepositoriesWeightBps;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
+use uxd::instructions::EditDepositoriesRoutingWeightBps;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
@@ -119,11 +119,12 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
-            depositories_weight_bps: Some(EditControllerDepositoriesWeightBps {
+            depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
                 identity_depository_weight_bps: 50 * 100,
-                mercurial_vault_depository_0_weight_bps: 25 * 100,
-                credix_lp_depository_0_weight_bps: 25 * 100,
+                mercurial_vault_depository_weight_bps: 25 * 100,
+                credix_lp_depository_weight_bps: 25 * 100,
             }),
+            router_depositories: None,
         },
     )
     .await?;
