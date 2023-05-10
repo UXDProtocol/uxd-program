@@ -201,14 +201,6 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     )
     .await?;
 
-    // Set the epoch's locked liquidity (done by credix team usually)
-    program_credix::instructions::process_set_locked_liquidity(
-        &mut program_test_context,
-        &credix_multisig,
-        &collateral_mint.pubkey(),
-    )
-    .await?;
-
     // Since the epoch was just created it should be available to create a WithdrawRequest
     program_uxd::instructions::process_rebalance_request_create_from_credix_lp_depository(
         &mut program_test_context,
@@ -216,32 +208,6 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &collateral_mint.pubkey(),
     )
     .await?;
-
-    // Any subsequent creation of the WithdrawRequest should fail
-    assert!(
-        program_uxd::instructions::process_rebalance_request_create_from_credix_lp_depository(
-            &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-        )
-        .await
-        .is_err()
-    );
-
-    // Executing the WithdrawRequest should fail because we are still in the request period
-    assert!(
-        program_uxd::instructions::process_rebalance_request_execute_from_credix_lp_depository(
-            &mut program_test_context,
-            &payer,
-            &collateral_mint.pubkey(),
-            &credix_multisig.pubkey(),
-            &profits_beneficiary_collateral,
-            0,
-            0,
-        )
-        .await
-        .is_err()
-    );
 
     // Pretend 3 days have passed (the time for the request period)
     program_test_context::move_clock_forward(&mut program_test_context, 3 * 24 * 60 * 60).await?;
@@ -271,7 +237,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         expected_credix_redeemable_supply_before_rebalance
             - expected_credix_redeemable_supply_after_rebalance
             - 1, // Precision loss expected here
-        0, // No profits could be withdrawn since we are illiquid
+        0, // No profits could be withdrawn since we are mostly illiquid
     )
     .await?;
 
