@@ -1,15 +1,13 @@
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
+
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditDepositoriesRoutingWeightBps;
 use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
-use uxd::instructions::EditRouterDepositories;
 
-use crate::integration_tests::api::program_credix;
-use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
@@ -202,44 +200,12 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     .await
     .is_err());
 
-    // Find the important PDAs to resolve the depositories address to be whitelisted
-    let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
-
-    let mercurial_base = program_mercurial::accounts::find_base();
-    let mercurial_vault = program_mercurial::accounts::find_vault_pda(
-        &collateral_mint.pubkey(),
-        &mercurial_base.pubkey(),
-    )
-    .0;
-    let mercurial_vault_depository = program_uxd::accounts::find_mercurial_vault_depository_pda(
-        &collateral_mint.pubkey(),
-        &mercurial_vault,
-    )
-    .0;
-
-    let credix_market_seeds = program_credix::accounts::find_market_seeds();
-    let credix_global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
-    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository_pda(
-        &collateral_mint.pubkey(),
-        &credix_global_market_state,
-    )
-    .0;
-
-    // Set the controller's depositories addresses
-    program_uxd::instructions::process_edit_controller(
+    // Now we set the router depositories to the correct PDAs
+    program_uxd::procedures::process_set_router_depositories(
         &mut program_test_context,
         &payer,
         &authority,
-        &EditControllerFields {
-            redeemable_global_supply_cap: None,
-            depositories_routing_weight_bps: None,
-            router_depositories: Some(EditRouterDepositories {
-                identity_depository,
-                mercurial_vault_depository,
-                credix_lp_depository,
-            }),
-        },
+        &collateral_mint.pubkey(),
     )
     .await?;
 

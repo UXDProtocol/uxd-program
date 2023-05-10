@@ -155,6 +155,15 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     )
     .await?;
 
+    // Now we set the router depositories to the correct PDAs
+    program_uxd::procedures::process_set_router_depositories(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+    )
+    .await?;
+
     // ---------------------------------------------------------------------
     // -- Phase 3
     // -- Now that credix is overweight, go through the rebalancing process
