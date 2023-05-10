@@ -167,14 +167,6 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     )
     .await?;
 
-    // Set the epoch's locked liquidity (done by credix team usually)
-    program_credix::instructions::process_set_locked_liquidity(
-        &mut program_test_context,
-        &credix_multisig,
-        &collateral_mint.pubkey(),
-    )
-    .await?;
-
     // Since the epoch was just created it should be available to create a WithdrawRequest
     program_uxd::instructions::process_rebalance_request_create_from_credix_lp_depository(
         &mut program_test_context,
