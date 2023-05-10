@@ -169,23 +169,6 @@ pub(crate) fn handler(
         total_shares_value_before,
     )?;
 
-    msg!(
-        "[mint_with_credix_lp_depository:liquidity_collateral_amount_before:{}]",
-        liquidity_collateral_amount_before
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:outstanding_collateral_amount_before:{}]",
-        outstanding_collateral_amount_before
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:total_shares_supply_before:{}]",
-        total_shares_supply_before
-    );
-    msg!(
-        "[mint_with_credix_lp_depository:total_shares_value_before:{}]",
-        total_shares_value_before
-    );
-
     // Initial amount
     msg!(
         "[mint_with_credix_lp_depository:collateral_amount:{}]",
