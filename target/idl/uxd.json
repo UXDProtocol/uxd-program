@@ -1831,27 +1831,27 @@
             "type": "u128"
           },
           {
-            "name": "routerIdentityDepositoryWeightBps",
+            "name": "identityDepositoryWeightBps",
             "type": "u16"
           },
           {
-            "name": "routerMercurialVaultDepositoryWeightBps",
+            "name": "mercurialVaultDepositoryWeightBps",
             "type": "u16"
           },
           {
-            "name": "routerCredixLpDepositoryWeightBps",
+            "name": "credixLpDepositoryWeightBps",
             "type": "u16"
           },
           {
-            "name": "routerIdentityDepository",
+            "name": "identityDepository",
             "type": "publicKey"
           },
           {
-            "name": "routerMercurialVaultDepository",
+            "name": "mercurialVaultDepository",
             "type": "publicKey"
           },
           {
-            "name": "routerCredixLpDepository",
+            "name": "credixLpDepository",
             "type": "publicKey"
           },
           {
@@ -2217,7 +2217,7 @@
             }
           },
           {
-            "name": "routerDepositoriesWeightBps",
+            "name": "depositoriesRoutingWeightBps",
             "type": {
               "option": {
                 "defined": "EditDepositoriesRoutingWeightBps"

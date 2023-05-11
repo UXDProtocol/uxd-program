@@ -1829,27 +1829,27 @@ export type Uxd = {
             type: 'u128';
           },
           {
-            name: 'routerIdentityDepositoryWeightBps';
+            name: 'identityDepositoryWeightBps';
             type: 'u16';
           },
           {
-            name: 'routerMercurialVaultDepositoryWeightBps';
+            name: 'mercurialVaultDepositoryWeightBps';
             type: 'u16';
           },
           {
-            name: 'routerCredixLpDepositoryWeightBps';
+            name: 'credixLpDepositoryWeightBps';
             type: 'u16';
           },
           {
-            name: 'routerIdentityDepository';
+            name: 'identityDepository';
             type: 'publicKey';
           },
           {
-            name: 'routerMercurialVaultDepository';
+            name: 'mercurialVaultDepository';
             type: 'publicKey';
           },
           {
-            name: 'routerCredixLpDepository';
+            name: 'credixLpDepository';
             type: 'publicKey';
           },
           {
@@ -2215,7 +2215,7 @@ export type Uxd = {
             };
           },
           {
-            name: 'routerDepositoriesWeightBps';
+            name: 'depositoriesRoutingWeightBps';
             type: {
               option: {
                 defined: 'EditDepositoriesRoutingWeightBps';
@@ -4954,27 +4954,27 @@ export const IDL: Uxd = {
             type: 'u128',
           },
           {
-            name: 'routerIdentityDepositoryWeightBps',
+            name: 'identityDepositoryWeightBps',
             type: 'u16',
           },
           {
-            name: 'routerMercurialVaultDepositoryWeightBps',
+            name: 'mercurialVaultDepositoryWeightBps',
             type: 'u16',
           },
           {
-            name: 'routerCredixLpDepositoryWeightBps',
+            name: 'credixLpDepositoryWeightBps',
             type: 'u16',
           },
           {
-            name: 'routerIdentityDepository',
+            name: 'identityDepository',
             type: 'publicKey',
           },
           {
-            name: 'routerMercurialVaultDepository',
+            name: 'mercurialVaultDepository',
             type: 'publicKey',
           },
           {
-            name: 'routerCredixLpDepository',
+            name: 'credixLpDepository',
             type: 'publicKey',
           },
           {
@@ -5340,7 +5340,7 @@ export const IDL: Uxd = {
             },
           },
           {
-            name: 'routerDepositoriesWeightBps',
+            name: 'depositoriesRoutingWeightBps',
             type: {
               option: {
                 defined: 'EditDepositoriesRoutingWeightBps',

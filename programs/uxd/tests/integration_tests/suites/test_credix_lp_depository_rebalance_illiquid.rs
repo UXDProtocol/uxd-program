@@ -6,6 +6,8 @@ use spl_token::state::Account;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditDepositoriesRoutingWeightBps;
+use uxd::instructions::EditIdentityDepositoryFields;
+use uxd::instructions::EditMercurialVaultDepositoryFields;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
@@ -125,6 +127,43 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
                 credix_lp_depository_weight_bps: 25 * 100,
             }),
             router_depositories: None,
+        },
+    )
+    .await?;
+
+    // Now we set the router depositories to the correct PDAs
+    program_uxd::procedures::process_set_router_depositories(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+    )
+    .await?;
+
+    // Set the identity_depository cap and make sure minting is not disabled
+    program_uxd::instructions::process_edit_identity_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditIdentityDepositoryFields {
+            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
+            minting_disabled: Some(false),
+        },
+    )
+    .await?;
+
+    // Set the mercurial_vault_depository cap and make sure minting is not disabled
+    program_uxd::instructions::process_edit_mercurial_vault_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditMercurialVaultDepositoryFields {
+            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
+            minting_fee_in_bps: Some(100),
+            redeeming_fee_in_bps: Some(100),
+            minting_disabled: Some(false),
+            profits_beneficiary_collateral: Some(profits_beneficiary_collateral),
         },
     )
     .await?;
