@@ -130,6 +130,15 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     )
     .await?;
 
+    // Now we set the router depositories to the correct PDAs
+    program_uxd::procedures::process_set_router_depositories(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+    )
+    .await?;
+
     // Set the identity_depository cap and make sure minting is not disabled
     program_uxd::instructions::process_edit_identity_depository(
         &mut program_test_context,
@@ -183,15 +192,6 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &user_collateral,
         &user_redeemable,
         amount_the_user_should_be_able_to_mint,
-    )
-    .await?;
-
-    // Now we set the router depositories to the correct PDAs
-    program_uxd::procedures::process_set_router_depositories(
-        &mut program_test_context,
-        &payer,
-        &authority,
-        &collateral_mint.pubkey(),
     )
     .await?;
 
@@ -254,9 +254,10 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     .await?;
 
     // Compute the expected rebalancing amounts
-    let expected_credix_profits = amount_the_user_should_be_able_to_mint / 100; // minting fees 1%
+    let expected_minted_amount = amount_the_user_should_be_able_to_mint - 1; // precision loss included
+    let expected_credix_profits = expected_minted_amount / 100; // minting fees 1%
     let expected_credix_redeemable_supply_before_rebalance =
-        amount_the_user_should_be_able_to_mint - expected_credix_profits;
+        expected_minted_amount - expected_credix_profits;
     let expected_credix_redeemable_supply_after_rebalance =
         expected_credix_redeemable_supply_before_rebalance * 25 / 100; // 25% weight on credix
 
@@ -268,8 +269,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &credix_multisig.pubkey(),
         &profits_beneficiary_collateral,
         expected_credix_redeemable_supply_before_rebalance
-            - expected_credix_redeemable_supply_after_rebalance
-            + 1,
+            - expected_credix_redeemable_supply_after_rebalance,
         expected_credix_profits - 1, // withdrawal precision loss is taken from the profits
     )
     .await?;
