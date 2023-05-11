@@ -1545,15 +1545,16 @@ dependencies = [
 
 [[package]]
 name = "enum-ordinalize"
-version = "3.1.13"
+version = "3.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4f76552f53cefc9a7f64987c3701b99d982f7690606fd67de1d09712fbf52f1"
+checksum = "a62bb1df8b45ecb7ffa78dca1c17a438fb193eb083db0b1b494d2a61bcb5096a"
 dependencies = [
  "num-bigint 0.4.3",
  "num-traits",
  "proc-macro2 1.0.56",
  "quote 1.0.27",
- "syn 2.0.15",
+ "rustc_version 0.4.0",
+ "syn 1.0.109",
 ]
 
 [[package]]
