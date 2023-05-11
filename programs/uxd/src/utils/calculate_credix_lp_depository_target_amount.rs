@@ -7,7 +7,7 @@ use anchor_lang::prelude::*;
 
 use super::calculate_depositories_target_redeemable_amount;
 
-pub fn calculate_credix_target_amount(
+pub fn calculate_credix_lp_depository_target_amount(
     controller: &AccountLoader<Controller>,
     identity_depository: &AccountLoader<IdentityDepository>,
     mercurial_vault_depository: &AccountLoader<MercurialVaultDepository>,
@@ -16,6 +16,13 @@ pub fn calculate_credix_target_amount(
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
         controller.load()?.redeemable_circulating_supply,
         &vec![
+            // credix is the first in the list
+            DepositoryInfoForTargetRedeemableAmount {
+                weight_bps: controller.load()?.credix_lp_depository_weight_bps,
+                redeemable_amount_under_management_cap: credix_lp_depository
+                    .load()?
+                    .redeemable_amount_under_management_cap,
+            },
             DepositoryInfoForTargetRedeemableAmount {
                 weight_bps: controller.load()?.identity_depository_weight_bps,
                 redeemable_amount_under_management_cap: identity_depository
@@ -28,13 +35,7 @@ pub fn calculate_credix_target_amount(
                     .load()?
                     .redeemable_amount_under_management_cap,
             },
-            DepositoryInfoForTargetRedeemableAmount {
-                weight_bps: controller.load()?.credix_lp_depository_weight_bps,
-                redeemable_amount_under_management_cap: credix_lp_depository
-                    .load()?
-                    .redeemable_amount_under_management_cap,
-            },
         ],
     )?;
-    Ok(depositories_target_redeemable_amount[2])
+    Ok(depositories_target_redeemable_amount[0]) // credix is the first in the list
 }

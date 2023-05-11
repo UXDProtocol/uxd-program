@@ -8,7 +8,7 @@ use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
-use crate::utils::calculate_credix_target_amount;
+use crate::utils::calculate_credix_lp_depository_target_amount;
 use crate::utils::checked_convert_u128_to_u64;
 use crate::utils::compute_value_for_shares_amount_floor;
 use crate::validate_is_program_frozen;
@@ -127,6 +127,7 @@ pub struct RebalanceRequestCreateFromCredixLpDepository<'info> {
 
     /// #14
     /// CHECK: initialized by credix program, not manipulated by us
+    #[account(mut)]
     pub credix_withdraw_request: AccountInfo<'info>,
 
     /// #15
@@ -174,12 +175,17 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
     )?;
 
     let overflow_value = {
-        let redeemable_amount_under_management_target_amount = calculate_credix_target_amount(
-            &ctx.accounts.controller,
-            &ctx.accounts.identity_depository,
-            &ctx.accounts.mercurial_vault_depository,
-            &ctx.accounts.depository,
-        )?;
+        let redeemable_amount_under_management_target_amount =
+            calculate_credix_lp_depository_target_amount(
+                &ctx.accounts.controller,
+                &ctx.accounts.identity_depository,
+                &ctx.accounts.mercurial_vault_depository,
+                &ctx.accounts.depository,
+            )?;
+        msg!(
+                "[rebalance_request_create_from_credix_lp_depository:redeemable_amount_under_management_target_amount:{}]",
+                redeemable_amount_under_management_target_amount
+            );
         if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
             0
         } else {
@@ -210,6 +216,19 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
             .checked_sub(redeemable_amount_under_management)
             .ok_or(UxdError::MathError)?
     };
+
+    msg!(
+        "[rebalance_request_create_from_credix_lp_depository:redeemable_amount_under_management:{}]",
+        redeemable_amount_under_management
+    );
+    msg!(
+        "[rebalance_request_create_from_credix_lp_depository:overflow_value:{}]",
+        overflow_value
+    );
+    msg!(
+        "[rebalance_request_create_from_credix_lp_depository:profits_collateral_amount:{}]",
+        profits_collateral_amount
+    );
 
     // ---------------------------------------------------------------------
     // -- Phase 3
