@@ -7,6 +7,7 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use crate::integration_tests::api::program_credix;
+use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
@@ -17,6 +18,17 @@ pub async fn process_rebalance_request_create_from_credix_lp_depository(
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
+
+    let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
+    let mercurial_base = program_mercurial::accounts::find_base();
+    let mercurial_vault_depository_vault =
+        program_mercurial::accounts::find_vault_pda(collateral_mint, &mercurial_base.pubkey()).0;
+    let mercurial_vault_depository = program_uxd::accounts::find_mercurial_vault_depository_pda(
+        collateral_mint,
+        &mercurial_vault_depository_vault,
+    )
+    .0;
+
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
         program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
@@ -66,6 +78,8 @@ pub async fn process_rebalance_request_create_from_credix_lp_depository(
         payer: payer.pubkey(),
         controller,
         collateral_mint: *collateral_mint,
+        identity_depository,
+        mercurial_vault_depository,
         depository: credix_lp_depository,
         depository_shares: credix_lp_depository_shares,
         credix_global_market_state,

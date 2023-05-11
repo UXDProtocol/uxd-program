@@ -6,6 +6,9 @@ use crate::error::UxdError;
 use crate::events::RebalanceRequestCreateFromCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
+use crate::state::identity_depository::IdentityDepository;
+use crate::state::mercurial_vault_depository::MercurialVaultDepository;
+use crate::utils::calculate_credix_target_amount;
 use crate::utils::checked_convert_u128_to_u64;
 use crate::utils::compute_value_for_shares_amount_floor;
 use crate::validate_is_program_frozen;
@@ -13,6 +16,8 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE;
+use crate::IDENTITY_DEPOSITORY_NAMESPACE;
+use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
 pub struct RebalanceRequestCreateFromCredixLpDepository<'info> {
@@ -25,11 +30,31 @@ pub struct RebalanceRequestCreateFromCredixLpDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
+        constraint = controller.load()?.identity_depository == identity_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
         constraint = controller.load()?.credix_lp_depository == depository.key() @UxdError::InvalidDepository,
     )]
     pub controller: AccountLoader<'info, Controller>,
 
     /// #3
+    #[account(
+        mut,
+        seeds = [IDENTITY_DEPOSITORY_NAMESPACE],
+        bump = identity_depository.load()?.bump,
+    )]
+    pub identity_depository: AccountLoader<'info, IdentityDepository>,
+
+    /// #4
+    #[account(
+        mut,
+        seeds = [MERCURIAL_VAULT_DEPOSITORY_NAMESPACE, mercurial_vault_depository.load()?.mercurial_vault.key().as_ref(), mercurial_vault_depository.load()?.collateral_mint.as_ref()],
+        bump = mercurial_vault_depository.load()?.bump,
+        has_one = controller @UxdError::InvalidController,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
+    )]
+    pub mercurial_vault_depository: AccountLoader<'info, MercurialVaultDepository>,
+
+    /// #5
     #[account(
         mut,
         seeds = [
@@ -48,30 +73,30 @@ pub struct RebalanceRequestCreateFromCredixLpDepository<'info> {
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 
-    /// #4
+    /// #6
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #5
+    /// #7
     #[account(mut)]
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
-    /// #6
+    /// #8
     #[account()]
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 
-    /// #7
+    /// #9
     /// CHECK: unused by us, checked by credix
     pub credix_signing_authority: AccountInfo<'info>,
 
-    /// #8
+    /// #10
     #[account(mut)]
     pub credix_liquidity_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #9
+    /// #11
     #[account(mut)]
     pub credix_shares_mint: Box<Account<'info, Mint>>,
 
-    /// #10
+    /// #12
     #[account(
         owner = credix_client::ID,
         seeds = [
@@ -86,7 +111,7 @@ pub struct RebalanceRequestCreateFromCredixLpDepository<'info> {
     )]
     pub credix_pass: Account<'info, credix_client::CredixPass>,
 
-    /// #11
+    /// #13
     #[account(
         mut,
         owner = credix_client::ID,
@@ -100,13 +125,13 @@ pub struct RebalanceRequestCreateFromCredixLpDepository<'info> {
     )]
     pub credix_withdraw_epoch: Account<'info, credix_client::WithdrawEpoch>,
 
-    /// #12
+    /// #14
     /// CHECK: initialized by credix program, not manipulated by us
     pub credix_withdraw_request: AccountInfo<'info>,
 
-    /// #13
+    /// #15
     pub system_program: Program<'info, System>,
-    /// #14
+    /// #16
     pub credix_program: Program<'info, credix_client::program::Credix>,
 }
 
@@ -149,12 +174,11 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
     )?;
 
     let overflow_value = {
-        let redeemable_amount_under_management_target_amount = checked_convert_u128_to_u64(
-            ctx.accounts
-                .controller
-                .load()?
-                .redeemable_circulating_supply
-                / 4, // TODO
+        let redeemable_amount_under_management_target_amount = calculate_credix_target_amount(
+            &ctx.accounts.controller,
+            &ctx.accounts.identity_depository,
+            &ctx.accounts.mercurial_vault_depository,
+            &ctx.accounts.depository,
         )?;
         if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
             0
