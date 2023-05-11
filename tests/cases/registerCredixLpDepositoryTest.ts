@@ -8,17 +8,17 @@ export const registerCredixLpDepositoryTest = async function ({
   authority,
   controller,
   depository,
-  uiAccountingSupplyRedeemableSoftCap,
   accountingBpsStampFeeMint,
   accountingBpsStampFeeRedeem,
+  uiAccountingSupplyRedeemableSoftCap,
   payer,
 }: {
   authority: Signer;
   controller: Controller;
   depository: CredixLpDepository;
-  uiAccountingSupplyRedeemableSoftCap: number;
   accountingBpsStampFeeMint: number;
   accountingBpsStampFeeRedeem: number;
+  uiAccountingSupplyRedeemableSoftCap: number;
   payer?: Signer;
 }) {
   console.group('🧭 initializeCredixLpDepositoryTest');
@@ -32,9 +32,9 @@ export const registerCredixLpDepositoryTest = async function ({
         payer ?? authority,
         controller,
         depository,
-        uiAccountingSupplyRedeemableSoftCap,
         accountingBpsStampFeeMint,
-        accountingBpsStampFeeRedeem
+        accountingBpsStampFeeRedeem,
+        uiAccountingSupplyRedeemableSoftCap
       );
       console.log(
         `🔗 'https://explorer.solana.com/tx/${txId}?cluster=${CLUSTER}'`
