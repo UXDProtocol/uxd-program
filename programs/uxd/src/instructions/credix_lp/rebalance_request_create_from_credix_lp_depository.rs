@@ -102,17 +102,7 @@ pub struct RebalanceRequestCreateFromCredixLpDepository<'info> {
     pub credix_withdraw_epoch: Account<'info, credix_client::WithdrawEpoch>,
 
     /// #12
-    #[account(
-        mut,
-        seeds = [
-            credix_global_market_state.key().as_ref(),
-            depository.key().as_ref(),
-            &credix_global_market_state.latest_withdraw_epoch_idx.to_le_bytes(),
-            CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE
-        ],
-        bump,
-        seeds::program = credix_client::ID,
-    )]
+    /// CHECK: initialized by credix program, not manipulated by us
     pub credix_withdraw_request: AccountInfo<'info>,
 
     /// #13
