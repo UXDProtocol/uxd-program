@@ -283,6 +283,18 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     )
     .await?;
 
+    // Any subsequent execution should yield zero movement (since we already moved funds)
+    program_uxd::instructions::process_rebalance_request_execute_from_credix_lp_depository(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &credix_multisig.pubkey(),
+        &profits_beneficiary_collateral,
+        0,
+        0,
+    )
+    .await?;
+
     // Done
     Ok(())
 }
