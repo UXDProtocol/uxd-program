@@ -198,6 +198,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     // ---------------------------------------------------------------------
     // -- Phase 3
     // -- Now that credix is overweight, go through the rebalancing process
+    // -- In this case, there should be enough liquidity for a full rebalance+profit collection
     // ---------------------------------------------------------------------
 
     // Create an epoch (done by credix team usually)
@@ -254,12 +255,12 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     .await?;
 
     // Compute the expected rebalancing amounts
-    let expected_minted_amount = amount_the_user_should_be_able_to_mint - 1; // precision loss included
-    let expected_credix_profits = expected_minted_amount / 100; // minting fees 1%
+    let expected_credix_minted_amount = amount_the_user_should_be_able_to_mint - 1; // precision loss included
+    let expected_credix_profits = amount_the_user_should_be_able_to_mint / 100; // minting fees 1%
     let expected_credix_redeemable_supply_before_rebalance =
-        expected_minted_amount - expected_credix_profits;
+        expected_credix_minted_amount - expected_credix_profits;
     let expected_credix_redeemable_supply_after_rebalance =
-        expected_credix_redeemable_supply_before_rebalance * 25 / 100; // 25% weight on credix
+        expected_credix_redeemable_supply_before_rebalance * 25 / 100 + 1; // 25% weight on credix (ceiled)
 
     // Executing the rebalance request should now work as intended because we are in the execute period
     program_uxd::instructions::process_rebalance_request_execute_from_credix_lp_depository(
@@ -270,7 +271,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &profits_beneficiary_collateral,
         expected_credix_redeemable_supply_before_rebalance
             - expected_credix_redeemable_supply_after_rebalance,
-        expected_credix_profits - 1, // withdrawal precision loss is taken from the profits
+        expected_credix_profits - 1, // withdrawal precision loss is expected
     )
     .await?;
 

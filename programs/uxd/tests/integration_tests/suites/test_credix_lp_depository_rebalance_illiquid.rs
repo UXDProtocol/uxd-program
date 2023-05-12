@@ -95,7 +95,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         ui_amount_to_native_amount(1000, collateral_mint_decimals);
     let amount_the_user_should_be_able_to_mint =
         ui_amount_to_native_amount(50, collateral_mint_decimals);
-    let amount_that_should_remain_liquid = ui_amount_to_native_amount(20, collateral_mint_decimals);
+    let amount_that_should_remain_liquid = ui_amount_to_native_amount(10, collateral_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -231,6 +231,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     // ---------------------------------------------------------------------
     // -- Phase 3
     // -- Do a complete rebalance, even if we are only partially liquid
+    // -- In this case, we shouldnt have enough liquidity to withdraw profits, only partially rebalance
     // ---------------------------------------------------------------------
 
     // Create an epoch (done by credix team usually)
@@ -261,9 +262,10 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
     .await?;
 
     // Compute the expected rebalancing amounts
+    let expected_credix_minted_amount = amount_the_user_should_be_able_to_mint - 1; // precision loss included
     let expected_credix_profits = amount_the_user_should_be_able_to_mint / 100; // minting fees 1%
     let expected_credix_redeemable_supply_before_rebalance =
-        amount_the_user_should_be_able_to_mint - expected_credix_profits;
+        expected_credix_minted_amount - expected_credix_profits;
     let expected_credix_redeemable_supply_after_rebalance =
         expected_credix_redeemable_supply_before_rebalance - amount_that_should_remain_liquid;
 
@@ -276,7 +278,7 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &profits_beneficiary_collateral,
         expected_credix_redeemable_supply_before_rebalance
             - expected_credix_redeemable_supply_after_rebalance
-            - 1, // Precision loss expected here
+            - 1, // Precision loss expected
         0, // No profits could be withdrawn since we are mostly illiquid
     )
     .await?;
