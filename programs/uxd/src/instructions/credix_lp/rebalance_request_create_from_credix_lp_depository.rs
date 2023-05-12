@@ -182,10 +182,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
                 &ctx.accounts.mercurial_vault_depository,
                 &ctx.accounts.depository,
             )?;
-        msg!(
-                "[rebalance_request_create_from_credix_lp_depository:redeemable_amount_under_management_target_amount:{}]",
-                redeemable_amount_under_management_target_amount
-            );
         if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
             0
         } else {
@@ -216,19 +212,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
             .checked_sub(redeemable_amount_under_management)
             .ok_or(UxdError::MathError)?
     };
-
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:redeemable_amount_under_management:{}]",
-        redeemable_amount_under_management
-    );
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:overflow_value:{}]",
-        overflow_value
-    );
-    msg!(
-        "[rebalance_request_create_from_credix_lp_depository:profits_collateral_amount:{}]",
-        profits_collateral_amount
-    );
 
     // ---------------------------------------------------------------------
     // -- Phase 3

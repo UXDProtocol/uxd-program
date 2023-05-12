@@ -276,43 +276,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
         total_shares_value_before,
     )?;
 
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:credix_lp_depository_collateral_amount_before:{}]",
-        credix_lp_depository_collateral_amount_before
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:identity_depository_collateral_amount_before:{}]",
-        identity_depository_collateral_amount_before
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:profits_beneficiary_collateral_amount_before:{}]",
-        profits_beneficiary_collateral_amount_before
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:liquidity_collateral_amount_before:{}]",
-        liquidity_collateral_amount_before
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:outstanding_collateral_amount_before:{}]",
-        outstanding_collateral_amount_before
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:total_shares_supply_before:{}]",
-        total_shares_supply_before
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:total_shares_value_before:{}]",
-        total_shares_value_before
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:owned_shares_amount_before:{}]",
-        owned_shares_amount_before
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:owned_shares_value_before:{}]",
-        owned_shares_value_before
-    );
-
     // ---------------------------------------------------------------------
     // -- Phase 3
     // -- Compute the profits and the overflow of the depository we will want to withdraw
@@ -345,19 +308,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
                 .ok_or(UxdError::MathError)?
         }
     };
-
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:redeemable_amount_under_management:{}]",
-        redeemable_amount_under_management
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:profits_collateral_amount:{}]",
-        profits_collateral_amount
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:overflow_value:{}]",
-        overflow_value
-    );
 
     // ---------------------------------------------------------------------
     // -- Phase 4
@@ -403,39 +353,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
         .checked_add(withdrawal_profits_collateral_amount)
         .ok_or(UxdError::MathError)?;
 
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:locked_liquidity:{}]",
-        locked_liquidity
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:investor_total_lp_amount:{}]",
-        investor_total_lp_amount
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:participating_investors_total_lp_amount:{}]",
-        participating_investors_total_lp_amount
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:base_amount_withdrawn:{}]",
-        base_amount_withdrawn
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:withdrawable_total_collateral_amount:{}]",
-        withdrawable_total_collateral_amount
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:withdrawal_overflow_value:{}]",
-        withdrawal_overflow_value
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:withdrawal_profits_collateral_amount:{}]",
-        withdrawal_profits_collateral_amount
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:withdrawal_total_collateral_amount:{}]",
-        withdrawal_total_collateral_amount
-    );
-
     // ---------------------------------------------------------------------
     // -- Phase 5
     // -- Now we have to to predict the precision loss,
@@ -463,22 +380,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
             .checked_sub(withdrawal_overflow_value_after_precision_loss)
             .ok_or(UxdError::MathError)?,
         withdrawal_profits_collateral_amount,
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:withdrawal_total_shares_amount:{}]",
-        withdrawal_total_shares_amount
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:withdrawal_total_collateral_amount_after_precision_loss:{}]",
-        withdrawal_total_collateral_amount_after_precision_loss
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:withdrawal_overflow_value_after_precision_loss:{}]",
-        withdrawal_overflow_value_after_precision_loss
-    );
-    msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:withdrawal_profits_collateral_amount_after_precision_loss:{}]",
-        withdrawal_profits_collateral_amount_after_precision_loss
     );
 
     // ---------------------------------------------------------------------
