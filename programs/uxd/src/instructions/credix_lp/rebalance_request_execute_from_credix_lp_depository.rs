@@ -423,13 +423,15 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     )?;
 
     // Refresh account states after withdrawal
-    ctx.accounts.depository_collateral.reload()?;
-    ctx.accounts.depository_shares.reload()?;
-    ctx.accounts.credix_global_market_state.reload()?;
-    ctx.accounts.credix_liquidity_collateral.reload()?;
-    ctx.accounts.credix_shares_mint.reload()?;
-    ctx.accounts.identity_depository_collateral.reload()?;
-    ctx.accounts.profits_beneficiary_collateral.reload()?;
+    {
+        ctx.accounts.depository_collateral.reload()?;
+        ctx.accounts.depository_shares.reload()?;
+        ctx.accounts.credix_global_market_state.reload()?;
+        ctx.accounts.credix_liquidity_collateral.reload()?;
+        ctx.accounts.credix_shares_mint.reload()?;
+        ctx.accounts.identity_depository_collateral.reload()?;
+        ctx.accounts.profits_beneficiary_collateral.reload()?;
+    }
 
     // ---------------------------------------------------------------------
     // -- Phase 7
