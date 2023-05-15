@@ -230,20 +230,22 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     // -- Check if the withdraw redeem period is active at the moment
     // ---------------------------------------------------------------------
 
-    let start_of_redeem_phase_timestamp = ctx
-        .accounts
-        .credix_withdraw_epoch
-        .go_live
-        .checked_add(ctx.accounts.credix_withdraw_epoch.redeem_seconds.into())
-        .ok_or(UxdError::MathError)?;
-    let end_of_redeem_phase_timestamp = start_of_redeem_phase_timestamp
-        .checked_add(ctx.accounts.credix_withdraw_epoch.redeem_seconds.into())
-        .ok_or(UxdError::MathError)?;
-    require!(
-        (start_of_redeem_phase_timestamp..end_of_redeem_phase_timestamp)
-            .contains(&Clock::get()?.unix_timestamp),
-        UxdError::InvalidCredixWithdrawEpochRequestPeriod,
-    );
+    {
+        let start_of_redeem_phase_timestamp = ctx
+            .accounts
+            .credix_withdraw_epoch
+            .go_live
+            .checked_add(ctx.accounts.credix_withdraw_epoch.redeem_seconds.into())
+            .ok_or(UxdError::MathError)?;
+        let end_of_redeem_phase_timestamp = start_of_redeem_phase_timestamp
+            .checked_add(ctx.accounts.credix_withdraw_epoch.redeem_seconds.into())
+            .ok_or(UxdError::MathError)?;
+        require!(
+            (start_of_redeem_phase_timestamp..end_of_redeem_phase_timestamp)
+                .contains(&Clock::get()?.unix_timestamp),
+            UxdError::InvalidCredixWithdrawEpochRequestPeriod,
+        );
+    }
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -317,27 +319,29 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     // -- And where the withdrawn collateral will be going (profits or rebalanced)
     // ---------------------------------------------------------------------
 
-    // Read credix withdrawal accounts onchain state
-    let locked_liquidity = ctx.accounts.credix_global_market_state.locked_liquidity;
-    let investor_total_lp_amount = ctx
-        .accounts
-        .credix_withdraw_request
-        .investor_total_lp_amount;
-    let participating_investors_total_lp_amount = ctx
-        .accounts
-        .credix_withdraw_epoch
-        .participating_investors_total_lp_amount;
-    let base_amount_withdrawn = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
+    let withdrawable_total_collateral_amount = {
+        // Read credix withdrawal accounts onchain state
+        let locked_liquidity = ctx.accounts.credix_global_market_state.locked_liquidity;
+        let investor_total_lp_amount = ctx
+            .accounts
+            .credix_withdraw_request
+            .investor_total_lp_amount;
+        let participating_investors_total_lp_amount = ctx
+            .accounts
+            .credix_withdraw_epoch
+            .participating_investors_total_lp_amount;
+        let base_amount_withdrawn = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
 
-    // All investors gets an equivalent slice of the locked liquidity,
-    // based on their relative position size in the lp pool
-    let withdrawable_total_collateral_amount = locked_liquidity
-        .checked_mul(investor_total_lp_amount)
-        .ok_or(UxdError::MathError)?
-        .checked_div(participating_investors_total_lp_amount)
-        .ok_or(UxdError::MathError)?
-        .checked_sub(base_amount_withdrawn)
-        .ok_or(UxdError::MathError)?;
+        // All investors gets an equivalent slice of the locked liquidity,
+        // based on their relative position size in the lp pool
+        locked_liquidity
+            .checked_mul(investor_total_lp_amount)
+            .ok_or(UxdError::MathError)?
+            .checked_div(participating_investors_total_lp_amount)
+            .ok_or(UxdError::MathError)?
+            .checked_sub(base_amount_withdrawn)
+            .ok_or(UxdError::MathError)?
+    };
 
     // We prioritize withdrawing the overflow first based on what liquidity is available
     let withdrawal_overflow_value =
