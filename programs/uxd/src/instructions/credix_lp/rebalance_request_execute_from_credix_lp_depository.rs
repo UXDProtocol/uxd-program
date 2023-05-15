@@ -331,7 +331,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
             .credix_withdraw_epoch
             .participating_investors_total_lp_amount;
         let base_amount_withdrawn = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
-
         // All investors gets an equivalent slice of the locked liquidity,
         // based on their relative position size in the lp pool
         locked_liquidity
@@ -448,16 +447,18 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     let profits_beneficiary_collateral_amount_after: u64 =
         ctx.accounts.profits_beneficiary_collateral.amount;
 
-    let liquidity_collateral_amount_after: u64 = ctx.accounts.credix_liquidity_collateral.amount;
-    let outstanding_collateral_amount_after: u64 = ctx
-        .accounts
-        .credix_global_market_state
-        .pool_outstanding_credit;
-
     let total_shares_supply_after: u64 = ctx.accounts.credix_shares_mint.supply;
-    let total_shares_value_after: u64 = liquidity_collateral_amount_after
-        .checked_add(outstanding_collateral_amount_after)
-        .ok_or(UxdError::MathError)?;
+    let total_shares_value_after: u64 = {
+        let liquidity_collateral_amount_after: u64 =
+            ctx.accounts.credix_liquidity_collateral.amount;
+        let outstanding_collateral_amount_after: u64 = ctx
+            .accounts
+            .credix_global_market_state
+            .pool_outstanding_credit;
+        liquidity_collateral_amount_after
+            .checked_add(outstanding_collateral_amount_after)
+            .ok_or(UxdError::MathError)?
+    };
 
     let owned_shares_amount_after: u64 = ctx.accounts.depository_shares.amount;
     let owned_shares_value_after: u64 = compute_value_for_shares_amount_floor(
@@ -550,6 +551,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
         depository: ctx.accounts.depository.key(),
         overflow_value: withdrawal_overflow_value_after_precision_loss,
         profits_collateral_amount: withdrawal_profits_collateral_amount_after_precision_loss,
+        requested_collateral_amount: withdrawal_total_collateral_amount_after_precision_loss,
     });
 
     // Edit onchain accounts

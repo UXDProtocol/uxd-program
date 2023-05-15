@@ -150,6 +150,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
     // -- Phase 1
     // -- Check if the withdraw request period is active at the moment
     // ---------------------------------------------------------------------
+
     {
         let start_of_request_phase_timestamp = ctx.accounts.credix_withdraw_epoch.go_live;
         let end_of_request_phase_timestamp = start_of_request_phase_timestamp
