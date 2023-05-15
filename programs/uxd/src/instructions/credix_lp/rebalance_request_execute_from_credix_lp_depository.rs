@@ -374,7 +374,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
         total_shares_value_before,
     )?;
 
-    if withdrawal_total_shares_amount <= 0 {
+    if withdrawal_total_shares_amount == 0 {
         msg!("[rebalance_request_execute_from_credix_lp_depository:no_withdrawable_liquidity]",);
         return Ok(());
     }
