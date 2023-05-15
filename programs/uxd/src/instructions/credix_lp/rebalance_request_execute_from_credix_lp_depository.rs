@@ -265,7 +265,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
             .accounts
             .credix_global_market_state
             .pool_outstanding_credit;
-
         liquidity_collateral_amount_before
             .checked_add(outstanding_collateral_amount_before)
             .ok_or(UxdError::MathError)?
