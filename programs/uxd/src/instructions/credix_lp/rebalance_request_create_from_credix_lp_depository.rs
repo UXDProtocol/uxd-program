@@ -21,7 +21,8 @@ use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
 pub struct RebalanceRequestCreateFromCredixLpDepository<'info> {
-    /// #1 // Permissionless IX that can be called by anyone at any time
+    /// #1 
+    /// Permissionless IX that can be called by anyone at any time
     #[account(mut)]
     pub payer: Signer<'info>,
 
