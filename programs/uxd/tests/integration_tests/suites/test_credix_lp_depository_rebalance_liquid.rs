@@ -15,8 +15,8 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_context::ProgramTestError>
-{
+async fn test_credix_lp_depository_rebalance_liquid(
+) -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite

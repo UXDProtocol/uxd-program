@@ -16,8 +16,8 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_context::ProgramTestError>
-{
+async fn test_credix_lp_depository_rebalance_illiquid(
+) -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -278,8 +278,9 @@ async fn test_credix_lp_depository_rebalance() -> Result<(), program_test_contex
         &profits_beneficiary_collateral,
         expected_credix_redeemable_supply_before_rebalance
             - expected_credix_redeemable_supply_after_rebalance
-            - 1, // Precision loss expected
-        0, // No profits could be withdrawn since we are mostly illiquid
+            - expected_credix_profits, // Profits are prioritized, reduced rebalancing amount
+        expected_credix_profits // Profits should be prioritized (completely withdrawn)
+         - 1, // Precision loss expected to be taken out of the profits
     )
     .await?;
 

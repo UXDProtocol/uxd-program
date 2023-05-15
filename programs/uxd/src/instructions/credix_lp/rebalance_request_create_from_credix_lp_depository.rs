@@ -8,6 +8,8 @@ use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
+use crate::utils::calculate_credix_lp_depository_target_amount;
+use crate::utils::checked_convert_u128_to_u64;
 use crate::utils::compute_value_for_shares_amount_floor;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -173,23 +175,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
             .redeemable_amount_under_management,
     )?;
 
-    let overflow_value = {
-        let redeemable_amount_under_management_target_amount =
-            calculate_credix_lp_depository_target_amount(
-                &ctx.accounts.controller,
-                &ctx.accounts.identity_depository,
-                &ctx.accounts.mercurial_vault_depository,
-                &ctx.accounts.depository,
-            )?;
-        if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
-            0
-        } else {
-            redeemable_amount_under_management
-                .checked_sub(redeemable_amount_under_management_target_amount)
-                .ok_or(UxdError::MathError)?
-        }
-    };
-
     let profits_collateral_amount = {
         let liquidity_collateral_amount: u64 = ctx.accounts.credix_liquidity_collateral.amount;
         let outstanding_collateral_amount: u64 = ctx
@@ -211,14 +196,31 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
             .ok_or(UxdError::MathError)?
     };
 
+    let overflow_value = {
+        let redeemable_amount_under_management_target_amount =
+            calculate_credix_lp_depository_target_amount(
+                &ctx.accounts.controller,
+                &ctx.accounts.identity_depository,
+                &ctx.accounts.mercurial_vault_depository,
+                &ctx.accounts.depository,
+            )?;
+        if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
+            0
+        } else {
+            redeemable_amount_under_management
+                .checked_sub(redeemable_amount_under_management_target_amount)
+                .ok_or(UxdError::MathError)?
+        }
+    };
+
     // ---------------------------------------------------------------------
     // -- Phase 3
-    // -- We want to withdraw the sum of the profits and collateral at the same time
+    // -- We want to withdraw the sum of the profits and overflow at the same time
     // -- We just create the credix withdraw request with the computed withdrawal amount
     // ---------------------------------------------------------------------
 
-    let requested_collateral_amount = overflow_value
-        .checked_add(profits_collateral_amount)
+    let requested_collateral_amount = profits_collateral_amount
+        .checked_add(overflow_value)
         .ok_or(UxdError::MathError)?;
     msg!(
         "[rebalance_request_create_from_credix_lp_depository:requested_collateral_amount:{}]",

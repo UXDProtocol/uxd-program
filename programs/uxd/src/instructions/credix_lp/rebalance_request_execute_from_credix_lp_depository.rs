@@ -342,19 +342,23 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
             .ok_or(UxdError::MathError)?
     };
 
-    // We prioritize withdrawing the overflow first based on what liquidity is available
-    let withdrawal_overflow_value =
-        std::cmp::min(withdrawable_total_collateral_amount, overflow_value);
-    // Then if liquidity is still available for profits, also withdraw it
+    // We prioritize withdrawing the profits
     let withdrawal_profits_collateral_amount = std::cmp::min(
-        withdrawable_total_collateral_amount
-            .checked_sub(withdrawal_overflow_value)
-            .ok_or(UxdError::MathError)?,
+        withdrawable_total_collateral_amount,
         profits_collateral_amount,
     );
+
+    // then we withdraw depository overflow first based on what liquidity is remaining from there
+    let withdrawal_overflow_value = std::cmp::min(
+        withdrawable_total_collateral_amount
+            .checked_sub(withdrawal_profits_collateral_amount)
+            .ok_or(UxdError::MathError)?,
+        overflow_value,
+    );
+
     // The sum of the two is what we will actually withdraw
-    let withdrawal_total_collateral_amount = withdrawal_overflow_value
-        .checked_add(withdrawal_profits_collateral_amount)
+    let withdrawal_total_collateral_amount = withdrawal_profits_collateral_amount
+        .checked_add(withdrawal_overflow_value)
         .ok_or(UxdError::MathError)?;
 
     // ---------------------------------------------------------------------
@@ -369,21 +373,35 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
         total_shares_supply_before,
         total_shares_value_before,
     )?;
+
+    if withdrawal_total_shares_amount <= 0 {
+        msg!("[rebalance_request_execute_from_credix_lp_depository:no_withdrawable_liquidity]",);
+        return Ok(());
+    }
+
     let withdrawal_total_collateral_amount_after_precision_loss =
         compute_value_for_shares_amount_floor(
             withdrawal_total_shares_amount,
             total_shares_supply_before,
             total_shares_value_before,
         )?;
-    let withdrawal_overflow_value_after_precision_loss = std::cmp::min(
-        withdrawal_total_collateral_amount_after_precision_loss,
-        withdrawal_overflow_value,
-    );
+
+    let withdrawal_precision_loss = withdrawal_total_collateral_amount
+        .checked_sub(withdrawal_total_collateral_amount_after_precision_loss)
+        .ok_or(UxdError::MathError)?;
+
     let withdrawal_profits_collateral_amount_after_precision_loss = std::cmp::min(
-        withdrawal_total_collateral_amount_after_precision_loss
-            .checked_sub(withdrawal_overflow_value_after_precision_loss)
-            .ok_or(UxdError::MathError)?,
+        withdrawal_total_collateral_amount_after_precision_loss,
         withdrawal_profits_collateral_amount,
+    )
+    .checked_sub(withdrawal_precision_loss)
+    .ok_or(UxdError::MathError)?; // The precision loss is taken from the profits, to avoid impacting the redeemable backing
+
+    let withdrawal_overflow_value_after_precision_loss = std::cmp::min(
+        withdrawal_total_collateral_amount_after_precision_loss
+            .checked_sub(withdrawal_profits_collateral_amount_after_precision_loss)
+            .ok_or(UxdError::MathError)?,
+        withdrawal_overflow_value,
     );
 
     // ---------------------------------------------------------------------
@@ -403,17 +421,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     )?;
 
     msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:identity_depository_collateral_transfer:{}]",
-        withdrawal_overflow_value_after_precision_loss
-    );
-    token::transfer(
-        ctx.accounts
-            .into_transfer_depository_collateral_to_identity_depository_collateral_context()
-            .with_signer(depository_pda_signer),
-        withdrawal_overflow_value_after_precision_loss,
-    )?;
-
-    msg!(
         "[rebalance_request_execute_from_credix_lp_depository:profits_beneficiary_collateral_transfer:{}]",
         withdrawal_profits_collateral_amount_after_precision_loss
     );
@@ -422,6 +429,17 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
             .into_transfer_depository_collateral_to_profits_beneficiary_collateral_context()
             .with_signer(depository_pda_signer),
         withdrawal_profits_collateral_amount_after_precision_loss,
+    )?;
+
+    msg!(
+        "[rebalance_request_execute_from_credix_lp_depository:identity_depository_collateral_transfer:{}]",
+        withdrawal_overflow_value_after_precision_loss
+    );
+    token::transfer(
+        ctx.accounts
+            .into_transfer_depository_collateral_to_identity_depository_collateral_context()
+            .with_signer(depository_pda_signer),
+        withdrawal_overflow_value_after_precision_loss,
     )?;
 
     // Refresh account states after withdrawal
@@ -559,6 +577,14 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     let mut depository = ctx.accounts.depository.load_mut()?;
     let mut identity_depository = ctx.accounts.identity_depository.load_mut()?;
 
+    // Profit collection accounting updates
+    controller.update_onchain_accounting_following_profits_collection(
+        withdrawal_profits_collateral_amount_after_precision_loss,
+    )?;
+    depository.update_onchain_accounting_following_profits_collection(
+        withdrawal_profits_collateral_amount_after_precision_loss,
+    )?;
+
     // Collateral amount deposited accounting updates
     depository.collateral_amount_deposited = depository
         .collateral_amount_deposited
@@ -578,14 +604,6 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
         .redeemable_amount_under_management
         .checked_add(withdrawal_overflow_value_after_precision_loss.into())
         .ok_or(UxdError::MathError)?;
-
-    // Profit collection accounting updates
-    controller.update_onchain_accounting_following_profits_collection(
-        withdrawal_profits_collateral_amount_after_precision_loss,
-    )?;
-    depository.update_onchain_accounting_following_profits_collection(
-        withdrawal_profits_collateral_amount_after_precision_loss,
-    )?;
 
     // Done
     Ok(())
