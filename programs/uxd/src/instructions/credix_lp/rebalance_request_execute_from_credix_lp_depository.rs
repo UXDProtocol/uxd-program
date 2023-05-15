@@ -239,12 +239,11 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     let end_of_redeem_phase_timestamp = start_of_redeem_phase_timestamp
         .checked_add(ctx.accounts.credix_withdraw_epoch.redeem_seconds.into())
         .ok_or(UxdError::MathError)?;
-    let current_unix_timestamp = Clock::get()?.unix_timestamp;
-    if current_unix_timestamp < start_of_redeem_phase_timestamp
-        || current_unix_timestamp >= end_of_redeem_phase_timestamp
-    {
-        return Err(UxdError::InvalidCredixWithdrawEpochRequestPeriod.into());
-    }
+    require!(
+        (start_of_redeem_phase_timestamp..end_of_redeem_phase_timestamp)
+            .contains(&Clock::get()?.unix_timestamp),
+        UxdError::InvalidCredixWithdrawEpochRequestPeriod,
+    );
 
     // ---------------------------------------------------------------------
     // -- Phase 2
