@@ -257,16 +257,19 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     let profits_beneficiary_collateral_amount_before: u64 =
         ctx.accounts.profits_beneficiary_collateral.amount;
 
-    let liquidity_collateral_amount_before: u64 = ctx.accounts.credix_liquidity_collateral.amount;
-    let outstanding_collateral_amount_before: u64 = ctx
-        .accounts
-        .credix_global_market_state
-        .pool_outstanding_credit;
-
     let total_shares_supply_before: u64 = ctx.accounts.credix_shares_mint.supply;
-    let total_shares_value_before: u64 = liquidity_collateral_amount_before
-        .checked_add(outstanding_collateral_amount_before)
-        .ok_or(UxdError::MathError)?;
+    let total_shares_value_before: u64 = {
+        let liquidity_collateral_amount_before: u64 =
+            ctx.accounts.credix_liquidity_collateral.amount;
+        let outstanding_collateral_amount_before: u64 = ctx
+            .accounts
+            .credix_global_market_state
+            .pool_outstanding_credit;
+
+        liquidity_collateral_amount_before
+            .checked_add(outstanding_collateral_amount_before)
+            .ok_or(UxdError::MathError)?
+    };
 
     let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
     let owned_shares_value_before: u64 = compute_value_for_shares_amount_floor(
