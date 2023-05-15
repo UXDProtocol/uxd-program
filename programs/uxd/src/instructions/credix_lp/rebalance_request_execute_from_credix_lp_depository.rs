@@ -320,27 +320,29 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     // -- And where the withdrawn collateral will be going (profits or rebalanced)
     // ---------------------------------------------------------------------
 
-    // Read credix withdrawal accounts onchain state
-    let locked_liquidity = ctx.accounts.credix_global_market_state.locked_liquidity;
-    let investor_total_lp_amount = ctx
-        .accounts
-        .credix_withdraw_request
-        .investor_total_lp_amount;
-    let participating_investors_total_lp_amount = ctx
-        .accounts
-        .credix_withdraw_epoch
-        .participating_investors_total_lp_amount;
-    let base_amount_withdrawn = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
+    let withdrawable_total_collateral_amount = {
+        // Read credix withdrawal accounts onchain state
+        let locked_liquidity = ctx.accounts.credix_global_market_state.locked_liquidity;
+        let investor_total_lp_amount = ctx
+            .accounts
+            .credix_withdraw_request
+            .investor_total_lp_amount;
+        let participating_investors_total_lp_amount = ctx
+            .accounts
+            .credix_withdraw_epoch
+            .participating_investors_total_lp_amount;
+        let base_amount_withdrawn = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
 
-    // All investors gets an equivalent slice of the locked liquidity,
-    // based on their relative position size in the lp pool
-    let withdrawable_total_collateral_amount = locked_liquidity
-        .checked_mul(investor_total_lp_amount)
-        .ok_or(UxdError::MathError)?
-        .checked_div(participating_investors_total_lp_amount)
-        .ok_or(UxdError::MathError)?
-        .checked_sub(base_amount_withdrawn)
-        .ok_or(UxdError::MathError)?;
+        // All investors gets an equivalent slice of the locked liquidity,
+        // based on their relative position size in the lp pool
+        locked_liquidity
+            .checked_mul(investor_total_lp_amount)
+            .ok_or(UxdError::MathError)?
+            .checked_div(participating_investors_total_lp_amount)
+            .ok_or(UxdError::MathError)?
+            .checked_sub(base_amount_withdrawn)
+            .ok_or(UxdError::MathError)?
+    };
 
     // We prioritize withdrawing the overflow first based on what liquidity is available
     let withdrawal_overflow_value =
