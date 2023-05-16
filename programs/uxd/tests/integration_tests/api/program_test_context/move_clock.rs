@@ -3,7 +3,6 @@ use solana_program_test::ProgramTestContext;
 
 use crate::integration_tests::api::program_test_context;
 
-#[allow(dead_code)] // This will be used by credix rebalancing tests logic soon
 pub async fn move_clock_forward(
     program_test_context: &mut ProgramTestContext,
     unix_timestamp_delta: i64,
@@ -23,7 +22,6 @@ pub async fn move_clock_forward(
     .await
 }
 
-#[allow(dead_code)] // This will be used by credix rebalancing tests logic soon
 pub async fn move_clock_to(
     program_test_context: &mut ProgramTestContext,
     unix_timestamp: i64,

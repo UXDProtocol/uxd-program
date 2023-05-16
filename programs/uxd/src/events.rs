@@ -256,6 +256,44 @@ pub struct CollectProfitsOfCredixLpDepositoryEvent {
     pub collateral_amount: u64,
 }
 
+/// Event called in [instructions::rebalance_request_create_from_credix_lp_depository::handler].
+#[event]
+pub struct RebalanceRequestCreateFromCredixLpDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    /// The redeemable amount rebalanced in native units. (output)
+    pub overflow_value: u64,
+    /// The collateral amount of profits collected in native units. (output)
+    pub profits_collateral_amount: u64,
+    /// The total amount requested in the credix withdrawal
+    pub requested_collateral_amount: u64,
+}
+
+/// Event called in [instructions::rebalance_request_execute_from_credix_lp_depository::handler].
+#[event]
+pub struct RebalanceRequestExecuteFromCredixLpDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    /// The redeemable amount rebalanced in native units. (output)
+    pub overflow_value: u64,
+    /// The collateral amount of profits collected in native units. (output)
+    pub profits_collateral_amount: u64,
+    /// The total amount requested in the credix withdrawal
+    pub requested_collateral_amount: u64,
+}
+
 /// Event called in [instructions::collect_profit_of_mercurial_vault_depository::handler].
 #[event]
 pub struct CollectProfitsOfMercurialVaultDepositoryEvent {

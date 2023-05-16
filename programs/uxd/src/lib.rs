@@ -36,6 +36,8 @@ pub const IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE: &[u8] = b"IDENTITYDEPOSITORY
 
 pub const CREDIX_LP_DEPOSITORY_NAMESPACE: &[u8] = b"CREDIX_LP_DEPOSITORY";
 pub const CREDIX_LP_EXTERNAL_PASS_NAMESPACE: &[u8] = b"credix-pass";
+pub const CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE: &[u8] = b"withdraw-epoch";
+pub const CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE: &[u8] = b"withdraw-request";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
@@ -271,6 +273,28 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[collect_profits_of_credix_lp_depository]");
         instructions::collect_profits_of_credix_lp_depository::handler(ctx)
+    }
+
+    // Create a rebalance request to collect profits and overflow from credix depository
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn rebalance_request_create_from_credix_lp_depository(
+        ctx: Context<RebalanceRequestCreateFromCredixLpDepository>,
+    ) -> Result<()> {
+        msg!("[rebalance_request_create_from_credix_lp_depository]");
+        instructions::rebalance_request_create_from_credix_lp_depository::handler(ctx)
+    }
+
+    // Execute a previously created rebalance request from credix depository
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn rebalance_request_execute_from_credix_lp_depository(
+        ctx: Context<RebalanceRequestExecuteFromCredixLpDepository>,
+    ) -> Result<()> {
+        msg!("[rebalance_request_execute_from_credix_lp_depository]");
+        instructions::rebalance_request_execute_from_credix_lp_depository::handler(ctx)
     }
 
     /// Freeze or resume all ixs associated with the controller (except this one).
