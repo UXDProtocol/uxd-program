@@ -10,8 +10,7 @@ use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
 use crate::utils::calculate_depositories_mint_collateral_amount;
 use crate::utils::calculate_depositories_mint_collateral_amount::DepositoryInfoForMintCollateralAmount;
-use crate::utils::calculate_depositories_target_redeemable_amount;
-use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
+use crate::utils::calculate_router_target_redeemable_amount;
 use crate::utils::validate_collateral_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -195,36 +194,43 @@ pub struct Mint<'info> {
 }
 
 struct DepositoryInfoForMint<'info> {
-    pub weight_bps: u16,
+    pub target_redeemable_amount: u64,
     pub redeemable_amount_under_management: u128,
-    pub redeemable_amount_under_management_cap: u128,
     pub mint_fn: Box<dyn Fn(u64) -> Result<()> + 'info>,
 }
 
 pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> {
-    // Gather all the onchain states we need (caps, weights and supplies)
-    let controller = ctx.accounts.controller.load()?;
-    let identity_depository = ctx.accounts.identity_depository.load()?;
-    let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
-    let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
-
     // The actual post-mint circulating supply might be slightly lower due to fees and precision loss
     // But the difference is negligible, and the difference will be taken into account
     // When the next mint/redeem IX recompute the new targets based on the new circulating supply
-    let maximum_after_mint_circulating_supply = controller
+    let maximum_after_mint_circulating_supply = ctx
+        .accounts
+        .controller
+        .load()?
         .redeemable_circulating_supply
         .checked_add(collateral_amount.into())
         .ok_or(UxdError::MathError)?;
 
+    // Compute the redeemable target amounts for all router-supported depositories
+    let router_target_redeemable_amount = calculate_router_target_redeemable_amount(
+        maximum_after_mint_circulating_supply,
+        &ctx.accounts.controller,
+        &ctx.accounts.identity_depository,
+        &ctx.accounts.mercurial_vault_depository,
+        &ctx.accounts.credix_lp_depository,
+    )?;
+
     // Build the vector of all known depository participating in the routing system
-    let depository_info = vec![
+    let depositories_info = vec![
         // Identity depository details
         DepositoryInfoForMint {
-            weight_bps: controller.identity_depository_weight_bps,
-            redeemable_amount_under_management: identity_depository
+            target_redeemable_amount: router_target_redeemable_amount
+                .identity_depository_target_redeemable_amount,
+            redeemable_amount_under_management: ctx
+                .accounts
+                .identity_depository
+                .load()?
                 .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: identity_depository
-                .redeemable_amount_under_management_cap,
             mint_fn: Box::new(|collateral_amount| {
                 msg!("[mint:mint_with_identity_depository:{}]", collateral_amount);
                 if collateral_amount > 0 {
@@ -238,11 +244,13 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
         },
         // Mercurial Vault Depository details
         DepositoryInfoForMint {
-            weight_bps: controller.mercurial_vault_depository_weight_bps,
-            redeemable_amount_under_management: mercurial_vault_depository
+            target_redeemable_amount: router_target_redeemable_amount
+                .mercurial_vault_depository_target_redeemable_amount,
+            redeemable_amount_under_management: ctx
+                .accounts
+                .mercurial_vault_depository
+                .load()?
                 .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: mercurial_vault_depository
-                .redeemable_amount_under_management_cap,
             mint_fn: Box::new(|collateral_amount| {
                 msg!(
                     "[mint:mint_with_mercurial_vault_depository:{}]",
@@ -260,11 +268,13 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
         },
         // Credix Lp Depository details
         DepositoryInfoForMint {
-            weight_bps: controller.credix_lp_depository_weight_bps,
-            redeemable_amount_under_management: credix_lp_depository
+            target_redeemable_amount: router_target_redeemable_amount
+                .credix_lp_depository_target_redeemable_amount,
+            redeemable_amount_under_management: ctx
+                .accounts
+                .credix_lp_depository
+                .load()?
                 .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: credix_lp_depository
-                .redeemable_amount_under_management_cap,
             mint_fn: Box::new(|collateral_amount| {
                 msg!(
                     "[mint:mint_with_credix_lp_depository:{}]",
@@ -281,44 +291,22 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
         },
     ];
 
-    drop(controller);
-    drop(identity_depository);
-    drop(mercurial_vault_depository);
-    drop(credix_lp_depository);
-
-    // Compute the desired target amounts for each depository
-    let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
-        maximum_after_mint_circulating_supply,
-        &depository_info
-            .iter()
-            .map(|depository_info| DepositoryInfoForTargetRedeemableAmount {
-                weight_bps: depository_info.weight_bps,
-                redeemable_amount_under_management_cap: depository_info
-                    .redeemable_amount_under_management_cap,
-            })
-            .collect::<Vec<DepositoryInfoForTargetRedeemableAmount>>(),
-    )?;
-
     // Compute the desired mint amounts for each depository
     let depositories_mint_collateral_amount = calculate_depositories_mint_collateral_amount(
         collateral_amount,
-        &std::iter::zip(
-            depository_info.iter(),
-            depositories_target_redeemable_amount.iter(),
-        )
-        .map(|(depository_info, depository_target_redeemable_amount)| {
-            DepositoryInfoForMintCollateralAmount {
-                target_redeemable_amount: *depository_target_redeemable_amount,
+        &depositories_info
+            .iter()
+            .map(|depository_info| DepositoryInfoForMintCollateralAmount {
+                target_redeemable_amount: depository_info.target_redeemable_amount,
                 redeemable_amount_under_management: depository_info
                     .redeemable_amount_under_management,
-            }
-        })
-        .collect::<Vec<DepositoryInfoForMintCollateralAmount>>(),
+            })
+            .collect::<Vec<DepositoryInfoForMintCollateralAmount>>(),
     )?;
 
     // Call all the mint functions with the compute amounts
     std::iter::zip(
-        depository_info.iter(),
+        depositories_info.iter(),
         depositories_mint_collateral_amount.iter(),
     )
     .try_for_each(|(depository_info, depository_mint_collateral_amount)| {

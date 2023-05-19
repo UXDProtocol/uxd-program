@@ -8,7 +8,7 @@ use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
-use crate::utils::calculate_credix_lp_depository_target_amount;
+use crate::utils::calculate_router_target_redeemable_amount;
 use crate::utils::checked_convert_u128_to_u64;
 use crate::utils::compute_value_for_shares_amount_floor;
 use crate::validate_is_program_frozen;
@@ -197,13 +197,20 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
     };
 
     let overflow_value = {
+        let redeemable_circulating_supply = ctx
+            .accounts
+            .controller
+            .load()?
+            .redeemable_circulating_supply;
         let redeemable_amount_under_management_target_amount =
-            calculate_credix_lp_depository_target_amount(
+            calculate_router_target_redeemable_amount(
+                redeemable_circulating_supply,
                 &ctx.accounts.controller,
                 &ctx.accounts.identity_depository,
                 &ctx.accounts.mercurial_vault_depository,
                 &ctx.accounts.depository,
-            )?;
+            )?
+            .credix_lp_depository_target_redeemable_amount;
         if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
             0
         } else {

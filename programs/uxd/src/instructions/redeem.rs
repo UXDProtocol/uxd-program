@@ -11,8 +11,7 @@ use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
 use crate::utils::calculate_depositories_redeemable_amount;
 use crate::utils::calculate_depositories_redeemable_amount::DepositoryInfoForRedeemableAmount;
-use crate::utils::calculate_depositories_target_redeemable_amount;
-use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
+use crate::utils::calculate_router_target_redeemable_amount;
 use crate::utils::validate_redeemable_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -152,36 +151,43 @@ pub struct Redeem<'info> {
 }
 
 struct DepositoryInfoForRedeem<'info> {
-    pub weight_bps: u16,
+    pub target_redeemable_amount: u64,
     pub redeemable_amount_under_management: u128,
-    pub redeemable_amount_under_management_cap: u128,
     pub redeem_fn: Option<Box<dyn Fn(u64) -> Result<()> + 'info>>,
 }
 
 pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()> {
-    // Gather all the onchain states we need (caps, weights and supplies)
-    let controller = ctx.accounts.controller.load()?;
-    let identity_depository = ctx.accounts.identity_depository.load()?;
-    let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
-    let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
-
     // The actual post-redeem circulating supply may be slightly higher
     // Due to redeem fees and precision loss. But the difference should be negligible and
     // Any future mint/redeem will recompute the targets based on the exact future circulating supply anyway
-    let mimimum_after_redeem_circulating_supply = controller
+    let mimimum_after_redeem_circulating_supply = ctx
+        .accounts
+        .controller
+        .load()?
         .redeemable_circulating_supply
         .checked_sub(redeemable_amount.into())
         .ok_or(UxdError::MathError)?;
 
+    // Compute the redeemable target amounts for all router-supported depositories
+    let router_target_redeemable_amount = calculate_router_target_redeemable_amount(
+        mimimum_after_redeem_circulating_supply,
+        &ctx.accounts.controller,
+        &ctx.accounts.identity_depository,
+        &ctx.accounts.mercurial_vault_depository,
+        &ctx.accounts.credix_lp_depository,
+    )?;
+
     // Build the vector of all known depository participating in the routing system
-    let depository_info = vec![
+    let depositories_info = vec![
         // Identity depository details
         DepositoryInfoForRedeem {
-            weight_bps: controller.identity_depository_weight_bps,
-            redeemable_amount_under_management: identity_depository
+            target_redeemable_amount: router_target_redeemable_amount
+                .identity_depository_target_redeemable_amount,
+            redeemable_amount_under_management: ctx
+                .accounts
+                .identity_depository
+                .load()?
                 .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: identity_depository
-                .redeemable_amount_under_management_cap,
             redeem_fn: Some(Box::new(|redeemable_amount| {
                 msg!(
                     "[redeem:redeem_from_identity_depository:{}]",
@@ -198,11 +204,13 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         },
         // Mercurial Vault Depository details
         DepositoryInfoForRedeem {
-            weight_bps: controller.mercurial_vault_depository_weight_bps,
-            redeemable_amount_under_management: mercurial_vault_depository
+            target_redeemable_amount: router_target_redeemable_amount
+                .mercurial_vault_depository_target_redeemable_amount,
+            redeemable_amount_under_management: ctx
+                .accounts
+                .mercurial_vault_depository
+                .load()?
                 .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: mercurial_vault_depository
-                .redeemable_amount_under_management_cap,
             redeem_fn: Some(Box::new(|redeemable_amount| {
                 msg!(
                     "[redeem:redeem_from_mercurial_vault_depository:{}]",
@@ -220,54 +228,36 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         },
         // Credix Lp Depository details
         DepositoryInfoForRedeem {
-            weight_bps: controller.credix_lp_depository_weight_bps,
-            redeemable_amount_under_management: credix_lp_depository
+            target_redeemable_amount: router_target_redeemable_amount
+                .credix_lp_depository_target_redeemable_amount,
+            redeemable_amount_under_management: ctx
+                .accounts
+                .credix_lp_depository
+                .load()?
                 .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: credix_lp_depository
-                .redeemable_amount_under_management_cap,
-            redeem_fn: None, // credix is illiquid
+            redeem_fn: None, // credix is illiquid, not redeemable directly
         },
     ];
-
-    drop(controller);
-    drop(identity_depository);
-    drop(mercurial_vault_depository);
-    drop(credix_lp_depository);
-
-    // Compute the desired target amounts for each depository
-    let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
-        mimimum_after_redeem_circulating_supply,
-        &depository_info
-            .iter()
-            .map(|depository_info| DepositoryInfoForTargetRedeemableAmount {
-                weight_bps: depository_info.weight_bps,
-                redeemable_amount_under_management_cap: depository_info
-                    .redeemable_amount_under_management_cap,
-            })
-            .collect::<Vec<DepositoryInfoForTargetRedeemableAmount>>(),
-    )?;
 
     // Compute the desired mint amounts for each depository
     let depositories_redeemable_amount = calculate_depositories_redeemable_amount(
         redeemable_amount,
-        &std::iter::zip(
-            depository_info.iter(),
-            depositories_target_redeemable_amount.iter(),
-        )
-        .map(|(depository_info, depository_target_redeemable_amount)| {
-            DepositoryInfoForRedeemableAmount {
-                is_liquid: depository_info.redeem_fn.is_some(), // we are liquid if we can redeem
-                target_redeemable_amount: *depository_target_redeemable_amount,
-                redeemable_amount_under_management: depository_info
-                    .redeemable_amount_under_management,
-            }
-        })
-        .collect::<Vec<DepositoryInfoForRedeemableAmount>>(),
+        &depositories_info
+            .iter()
+            .map(|depository_info| {
+                DepositoryInfoForRedeemableAmount {
+                    is_liquid: depository_info.redeem_fn.is_some(), // we are liquid if we can redeem
+                    target_redeemable_amount: depository_info.target_redeemable_amount,
+                    redeemable_amount_under_management: depository_info
+                        .redeemable_amount_under_management,
+                }
+            })
+            .collect::<Vec<DepositoryInfoForRedeemableAmount>>(),
     )?;
 
     // Run all the redeem cpi functions with the redeemable amount if liquid
     std::iter::zip(
-        depository_info.iter(),
+        depositories_info.iter(),
         depositories_redeemable_amount.iter(),
     )
     .try_for_each(
