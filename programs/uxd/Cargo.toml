@@ -1,6 +1,6 @@
 [package]
 name = "uxd"
-version = "7.0.9"
+version = "7.1.0"
 authors = [
   "acammm <alexcamill@gmail.com>",
   "cnek <ctk2012ac@gmail.com>",
