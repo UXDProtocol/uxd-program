@@ -1,4 +1,4 @@
-use anchor_lang::prelude::*;
+use anchor_lang::prelude::Result;
 use anchor_lang::require;
 
 use crate::error::UxdError;
