@@ -1,5 +1,5 @@
 export type Uxd = {
-  version: '7.0.9';
+  version: '7.1.0';
   name: 'uxd';
   instructions: [
     {
@@ -1703,6 +1703,275 @@ export type Uxd = {
       args: [];
     },
     {
+      name: 'rebalanceRequestCreateFromCredixLpDepository';
+      accounts: [
+        {
+          name: 'payer';
+          isMut: true;
+          isSigner: true;
+          docs: [
+            '#1',
+            'Permissionless IX that can be called by anyone at any time'
+          ];
+        },
+        {
+          name: 'controller';
+          isMut: true;
+          isSigner: false;
+          docs: ['#2'];
+        },
+        {
+          name: 'identityDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#3'];
+        },
+        {
+          name: 'mercurialVaultDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#4'];
+        },
+        {
+          name: 'depository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#5'];
+        },
+        {
+          name: 'collateralMint';
+          isMut: false;
+          isSigner: false;
+          docs: ['#6'];
+        },
+        {
+          name: 'depositoryShares';
+          isMut: true;
+          isSigner: false;
+          docs: ['#7'];
+        },
+        {
+          name: 'credixGlobalMarketState';
+          isMut: false;
+          isSigner: false;
+          docs: ['#8'];
+        },
+        {
+          name: 'credixSigningAuthority';
+          isMut: false;
+          isSigner: false;
+          docs: ['#9'];
+        },
+        {
+          name: 'credixLiquidityCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#10'];
+        },
+        {
+          name: 'credixSharesMint';
+          isMut: true;
+          isSigner: false;
+          docs: ['#11'];
+        },
+        {
+          name: 'credixPass';
+          isMut: false;
+          isSigner: false;
+          docs: ['#12'];
+        },
+        {
+          name: 'credixWithdrawEpoch';
+          isMut: true;
+          isSigner: false;
+          docs: ['#13'];
+        },
+        {
+          name: 'credixWithdrawRequest';
+          isMut: true;
+          isSigner: false;
+          docs: ['#14'];
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#15'];
+        },
+        {
+          name: 'credixProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#16'];
+        }
+      ];
+      args: [];
+    },
+    {
+      name: 'rebalanceRequestExecuteFromCredixLpDepository';
+      accounts: [
+        {
+          name: 'payer';
+          isMut: true;
+          isSigner: true;
+          docs: [
+            '#1 // Permissionless IX that can be called by anyone at any time'
+          ];
+        },
+        {
+          name: 'controller';
+          isMut: true;
+          isSigner: false;
+          docs: ['#2'];
+        },
+        {
+          name: 'identityDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#3'];
+        },
+        {
+          name: 'identityDepositoryCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#4'];
+        },
+        {
+          name: 'mercurialVaultDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#5'];
+        },
+        {
+          name: 'depository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#6'];
+        },
+        {
+          name: 'collateralMint';
+          isMut: false;
+          isSigner: false;
+          docs: ['#7'];
+        },
+        {
+          name: 'depositoryCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#8'];
+        },
+        {
+          name: 'depositoryShares';
+          isMut: true;
+          isSigner: false;
+          docs: ['#9'];
+        },
+        {
+          name: 'credixProgramState';
+          isMut: false;
+          isSigner: false;
+          docs: ['#10'];
+        },
+        {
+          name: 'credixGlobalMarketState';
+          isMut: true;
+          isSigner: false;
+          docs: ['#11'];
+        },
+        {
+          name: 'credixSigningAuthority';
+          isMut: false;
+          isSigner: false;
+          docs: ['#12'];
+        },
+        {
+          name: 'credixLiquidityCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#13'];
+        },
+        {
+          name: 'credixSharesMint';
+          isMut: true;
+          isSigner: false;
+          docs: ['#14'];
+        },
+        {
+          name: 'credixPass';
+          isMut: true;
+          isSigner: false;
+          docs: ['#15'];
+        },
+        {
+          name: 'credixTreasuryCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#16'];
+        },
+        {
+          name: 'credixMultisigKey';
+          isMut: false;
+          isSigner: false;
+          docs: ['#17'];
+        },
+        {
+          name: 'credixMultisigCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#18'];
+        },
+        {
+          name: 'credixWithdrawEpoch';
+          isMut: true;
+          isSigner: false;
+          docs: ['#19'];
+        },
+        {
+          name: 'credixWithdrawRequest';
+          isMut: true;
+          isSigner: false;
+          docs: ['#20'];
+        },
+        {
+          name: 'profitsBeneficiaryCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#21'];
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#22'];
+        },
+        {
+          name: 'tokenProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#23'];
+        },
+        {
+          name: 'associatedTokenProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#24'];
+        },
+        {
+          name: 'credixProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#25'];
+        },
+        {
+          name: 'rent';
+          isMut: false;
+          isSigner: false;
+          docs: ['#26'];
+        }
+      ];
+      args: [];
+    },
+    {
       name: 'freezeProgram';
       docs: [
         'Freeze or resume all ixs associated with the controller (except this one).',
@@ -2804,6 +3073,86 @@ export type Uxd = {
       ];
     },
     {
+      name: 'RebalanceRequestCreateFromCredixLpDepositoryEvent';
+      fields: [
+        {
+          name: 'controllerVersion';
+          type: 'u8';
+          index: true;
+        },
+        {
+          name: 'depositoryVersion';
+          type: 'u8';
+          index: true;
+        },
+        {
+          name: 'controller';
+          type: 'publicKey';
+          index: true;
+        },
+        {
+          name: 'depository';
+          type: 'publicKey';
+          index: true;
+        },
+        {
+          name: 'overflowValue';
+          type: 'u64';
+          index: false;
+        },
+        {
+          name: 'profitsCollateralAmount';
+          type: 'u64';
+          index: false;
+        },
+        {
+          name: 'requestedCollateralAmount';
+          type: 'u64';
+          index: false;
+        }
+      ];
+    },
+    {
+      name: 'RebalanceRequestExecuteFromCredixLpDepositoryEvent';
+      fields: [
+        {
+          name: 'controllerVersion';
+          type: 'u8';
+          index: true;
+        },
+        {
+          name: 'depositoryVersion';
+          type: 'u8';
+          index: true;
+        },
+        {
+          name: 'controller';
+          type: 'publicKey';
+          index: true;
+        },
+        {
+          name: 'depository';
+          type: 'publicKey';
+          index: true;
+        },
+        {
+          name: 'overflowValue';
+          type: 'u64';
+          index: false;
+        },
+        {
+          name: 'profitsCollateralAmount';
+          type: 'u64';
+          index: false;
+        },
+        {
+          name: 'requestedCollateralAmount';
+          type: 'u64';
+          index: false;
+        }
+      ];
+    },
+    {
       name: 'CollectProfitsOfMercurialVaultDepositoryEvent';
       fields: [
         {
@@ -3117,6 +3466,16 @@ export type Uxd = {
     },
     {
       code: 6052;
+      name: 'InvalidCredixWithdrawEpochRequestPeriod';
+      msg: "The Credix WithdrawEpoch isn't in its request period.";
+    },
+    {
+      code: 6053;
+      name: 'InvalidCredixWithdrawEpochExecutePeriod';
+      msg: "The Credix WithdrawEpoch isn't in its execute period.";
+    },
+    {
+      code: 6054;
       name: 'Default';
       msg: 'Default - Check the source code for more info.';
     }
@@ -3124,7 +3483,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  version: '7.0.9',
+  version: '7.1.0',
   name: 'uxd',
   instructions: [
     {
@@ -4828,6 +5187,275 @@ export const IDL: Uxd = {
       args: [],
     },
     {
+      name: 'rebalanceRequestCreateFromCredixLpDepository',
+      accounts: [
+        {
+          name: 'payer',
+          isMut: true,
+          isSigner: true,
+          docs: [
+            '#1',
+            'Permissionless IX that can be called by anyone at any time',
+          ],
+        },
+        {
+          name: 'controller',
+          isMut: true,
+          isSigner: false,
+          docs: ['#2'],
+        },
+        {
+          name: 'identityDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#3'],
+        },
+        {
+          name: 'mercurialVaultDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#4'],
+        },
+        {
+          name: 'depository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#5'],
+        },
+        {
+          name: 'collateralMint',
+          isMut: false,
+          isSigner: false,
+          docs: ['#6'],
+        },
+        {
+          name: 'depositoryShares',
+          isMut: true,
+          isSigner: false,
+          docs: ['#7'],
+        },
+        {
+          name: 'credixGlobalMarketState',
+          isMut: false,
+          isSigner: false,
+          docs: ['#8'],
+        },
+        {
+          name: 'credixSigningAuthority',
+          isMut: false,
+          isSigner: false,
+          docs: ['#9'],
+        },
+        {
+          name: 'credixLiquidityCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#10'],
+        },
+        {
+          name: 'credixSharesMint',
+          isMut: true,
+          isSigner: false,
+          docs: ['#11'],
+        },
+        {
+          name: 'credixPass',
+          isMut: false,
+          isSigner: false,
+          docs: ['#12'],
+        },
+        {
+          name: 'credixWithdrawEpoch',
+          isMut: true,
+          isSigner: false,
+          docs: ['#13'],
+        },
+        {
+          name: 'credixWithdrawRequest',
+          isMut: true,
+          isSigner: false,
+          docs: ['#14'],
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#15'],
+        },
+        {
+          name: 'credixProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#16'],
+        },
+      ],
+      args: [],
+    },
+    {
+      name: 'rebalanceRequestExecuteFromCredixLpDepository',
+      accounts: [
+        {
+          name: 'payer',
+          isMut: true,
+          isSigner: true,
+          docs: [
+            '#1 // Permissionless IX that can be called by anyone at any time',
+          ],
+        },
+        {
+          name: 'controller',
+          isMut: true,
+          isSigner: false,
+          docs: ['#2'],
+        },
+        {
+          name: 'identityDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#3'],
+        },
+        {
+          name: 'identityDepositoryCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#4'],
+        },
+        {
+          name: 'mercurialVaultDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#5'],
+        },
+        {
+          name: 'depository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#6'],
+        },
+        {
+          name: 'collateralMint',
+          isMut: false,
+          isSigner: false,
+          docs: ['#7'],
+        },
+        {
+          name: 'depositoryCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#8'],
+        },
+        {
+          name: 'depositoryShares',
+          isMut: true,
+          isSigner: false,
+          docs: ['#9'],
+        },
+        {
+          name: 'credixProgramState',
+          isMut: false,
+          isSigner: false,
+          docs: ['#10'],
+        },
+        {
+          name: 'credixGlobalMarketState',
+          isMut: true,
+          isSigner: false,
+          docs: ['#11'],
+        },
+        {
+          name: 'credixSigningAuthority',
+          isMut: false,
+          isSigner: false,
+          docs: ['#12'],
+        },
+        {
+          name: 'credixLiquidityCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#13'],
+        },
+        {
+          name: 'credixSharesMint',
+          isMut: true,
+          isSigner: false,
+          docs: ['#14'],
+        },
+        {
+          name: 'credixPass',
+          isMut: true,
+          isSigner: false,
+          docs: ['#15'],
+        },
+        {
+          name: 'credixTreasuryCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#16'],
+        },
+        {
+          name: 'credixMultisigKey',
+          isMut: false,
+          isSigner: false,
+          docs: ['#17'],
+        },
+        {
+          name: 'credixMultisigCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#18'],
+        },
+        {
+          name: 'credixWithdrawEpoch',
+          isMut: true,
+          isSigner: false,
+          docs: ['#19'],
+        },
+        {
+          name: 'credixWithdrawRequest',
+          isMut: true,
+          isSigner: false,
+          docs: ['#20'],
+        },
+        {
+          name: 'profitsBeneficiaryCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#21'],
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#22'],
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#23'],
+        },
+        {
+          name: 'associatedTokenProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#24'],
+        },
+        {
+          name: 'credixProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#25'],
+        },
+        {
+          name: 'rent',
+          isMut: false,
+          isSigner: false,
+          docs: ['#26'],
+        },
+      ],
+      args: [],
+    },
+    {
       name: 'freezeProgram',
       docs: [
         'Freeze or resume all ixs associated with the controller (except this one).',
@@ -5929,6 +6557,86 @@ export const IDL: Uxd = {
       ],
     },
     {
+      name: 'RebalanceRequestCreateFromCredixLpDepositoryEvent',
+      fields: [
+        {
+          name: 'controllerVersion',
+          type: 'u8',
+          index: true,
+        },
+        {
+          name: 'depositoryVersion',
+          type: 'u8',
+          index: true,
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'depository',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'overflowValue',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'profitsCollateralAmount',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'requestedCollateralAmount',
+          type: 'u64',
+          index: false,
+        },
+      ],
+    },
+    {
+      name: 'RebalanceRequestExecuteFromCredixLpDepositoryEvent',
+      fields: [
+        {
+          name: 'controllerVersion',
+          type: 'u8',
+          index: true,
+        },
+        {
+          name: 'depositoryVersion',
+          type: 'u8',
+          index: true,
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'depository',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'overflowValue',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'profitsCollateralAmount',
+          type: 'u64',
+          index: false,
+        },
+        {
+          name: 'requestedCollateralAmount',
+          type: 'u64',
+          index: false,
+        },
+      ],
+    },
+    {
       name: 'CollectProfitsOfMercurialVaultDepositoryEvent',
       fields: [
         {
@@ -6242,6 +6950,16 @@ export const IDL: Uxd = {
     },
     {
       code: 6052,
+      name: 'InvalidCredixWithdrawEpochRequestPeriod',
+      msg: "The Credix WithdrawEpoch isn't in its request period.",
+    },
+    {
+      code: 6053,
+      name: 'InvalidCredixWithdrawEpochExecutePeriod',
+      msg: "The Credix WithdrawEpoch isn't in its execute period.",
+    },
+    {
+      code: 6054,
       name: 'Default',
       msg: 'Default - Check the source code for more info.',
     },
