@@ -3073,7 +3073,7 @@ export type Uxd = {
       ];
     },
     {
-      name: 'RebalanceRequestCreateFromCredixLpDepositoryEvent';
+      name: 'RebalanceCreateWithdrawRequestFromCredixLpDepositoryEvent';
       fields: [
         {
           name: 'controllerVersion';
@@ -3113,7 +3113,7 @@ export type Uxd = {
       ];
     },
     {
-      name: 'RebalanceRequestExecuteFromCredixLpDepositoryEvent';
+      name: 'RebalanceRedeemWithdrawRequestFromCredixLpDepositoryEvent';
       fields: [
         {
           name: 'controllerVersion';
@@ -6557,7 +6557,7 @@ export const IDL: Uxd = {
       ],
     },
     {
-      name: 'RebalanceRequestCreateFromCredixLpDepositoryEvent',
+      name: 'RebalanceCreateWithdrawRequestFromCredixLpDepositoryEvent',
       fields: [
         {
           name: 'controllerVersion',
@@ -6597,7 +6597,7 @@ export const IDL: Uxd = {
       ],
     },
     {
-      name: 'RebalanceRequestExecuteFromCredixLpDepositoryEvent',
+      name: 'RebalanceRedeemWithdrawRequestFromCredixLpDepositoryEvent',
       fields: [
         {
           name: 'controllerVersion',

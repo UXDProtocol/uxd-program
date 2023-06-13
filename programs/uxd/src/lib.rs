@@ -279,22 +279,22 @@ pub mod uxd {
     #[access_control(
         ctx.accounts.validate()
     )]
-    pub fn rebalance_request_create_from_credix_lp_depository(
-        ctx: Context<RebalanceRequestCreateFromCredixLpDepository>,
+    pub fn rebalance_create_withdraw_request_from_credix_lp_depository(
+        ctx: Context<RebalanceCreateWithdrawRequestFromCredixLpDepository>,
     ) -> Result<()> {
-        msg!("[rebalance_request_create_from_credix_lp_depository]");
-        instructions::rebalance_request_create_from_credix_lp_depository::handler(ctx)
+        msg!("[rebalance_create_withdraw_request_from_credix_lp_depository]");
+        instructions::rebalance_create_withdraw_request_from_credix_lp_depository::handler(ctx)
     }
 
     // Execute a previously created rebalance request from credix depository
     #[access_control(
         ctx.accounts.validate()
     )]
-    pub fn rebalance_request_execute_from_credix_lp_depository(
-        ctx: Context<RebalanceRequestExecuteFromCredixLpDepository>,
+    pub fn rebalance_redeem_withdraw_request_from_credix_lp_depository(
+        ctx: Context<RebalanceRedeemWithdrawRequestFromCredixLpDepository>,
     ) -> Result<()> {
-        msg!("[rebalance_request_execute_from_credix_lp_depository]");
-        instructions::rebalance_request_execute_from_credix_lp_depository::handler(ctx)
+        msg!("[rebalance_redeem_withdraw_request_from_credix_lp_depository]");
+        instructions::rebalance_redeem_withdraw_request_from_credix_lp_depository::handler(ctx)
     }
 
     /// Freeze or resume all ixs associated with the controller (except this one).

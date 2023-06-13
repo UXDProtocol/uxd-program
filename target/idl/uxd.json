@@ -3075,7 +3075,7 @@
       ]
     },
     {
-      "name": "RebalanceRequestCreateFromCredixLpDepositoryEvent",
+      "name": "RebalanceCreateWithdrawRequestFromCredixLpDepositoryEvent",
       "fields": [
         {
           "name": "controllerVersion",
@@ -3115,7 +3115,7 @@
       ]
     },
     {
-      "name": "RebalanceRequestExecuteFromCredixLpDepositoryEvent",
+      "name": "RebalanceRedeemWithdrawRequestFromCredixLpDepositoryEvent",
       "fields": [
         {
           "name": "controllerVersion",
