@@ -276,7 +276,7 @@ export async function createCredixLpDepositoryDevnetUSDC(): Promise<CredixLpDepo
       ),
       collateralSymbol: 'USDC(CredixDevnet)',
       credixProgramId: new PublicKey(
-        'CRDx2YkdtYtGZXGHZ59wNv1EwKHQndnRc1gT4p8i2vPX'
+        'crdszSnZQu7j36KfsMJ4VEmMUTJgrNYXwoPVHUANpAu'
       ),
     });
   } catch (error) {
