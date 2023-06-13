@@ -58,8 +58,12 @@ pub enum UxdError {
     CollateralMintNotAllowed,
     #[msg("Mint resulted to 0 redeemable token being minted.")]
     MinimumMintedRedeemableAmountError,
+    #[msg("Mint resulted into too much redeemable token being minted.")]
+    MaximumMintedRedeemableAmountError,
     #[msg("Redeem resulted to 0 collateral token being redeemed.")]
     MinimumRedeemedCollateralAmountError,
+    #[msg("Redeem resulted into too much collateral token being redeemed.")]
+    MaximumRedeemedCollateralAmountError,
     #[msg("The depository lp token vault does not match the Depository's one.")]
     InvalidDepositoryLpTokenVault,
     /// Anchor DSL related errors

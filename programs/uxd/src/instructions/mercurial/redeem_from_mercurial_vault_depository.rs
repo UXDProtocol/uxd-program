@@ -170,7 +170,7 @@ pub fn handler(
     ctx.accounts.depository_lp_token_vault.reload()?;
     ctx.accounts.user_collateral.reload()?;
 
-    // 5 - Check that a positive amount of collateral have been redeemed
+    // 5 - Check that a valid amount of collateral have been redeemed
     let after_collateral_balance = ctx.accounts.user_collateral.amount;
 
     let collateral_balance_change = after_collateral_balance
@@ -180,6 +180,10 @@ pub fn handler(
     require!(
         collateral_balance_change > 0,
         UxdError::MinimumRedeemedCollateralAmountError
+    );
+    require!(
+        collateral_balance_change <= redeemable_amount,
+        UxdError::MaximumRedeemedCollateralAmountError
     );
 
     // 6 - Check the amount of paid LP Token when calling mercurial_vault::cpi::withdraw
