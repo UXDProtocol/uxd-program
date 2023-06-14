@@ -14,6 +14,7 @@ pub async fn process_set_repayment_schedule(
     multisig: &Keypair,
     borrower: &Pubkey,
     deal_number: u16,
+    principal: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
@@ -43,17 +44,17 @@ pub async fn process_set_repayment_schedule(
             waterfall_index: 0,
             accrual_in_days: 30,
             calculation_waterfall_index: 0,
-            principal_expected: None,
+            principal_expected: Some(principal),
             time_frame: credix_client::TimeFrame {
                 start: 0,
                 end: 30 * 24 * 60 * 60, // 30 days
             },
         }],
         _waterfall_definitions: vec![credix_client::DistributionWaterfall {
-            waterfall_type: credix_client::DistributionWaterfallType::Revolving,
+            waterfall_type: credix_client::DistributionWaterfallType::Amortization,
             tiers: vec![
                 credix_client::WaterfallTier {
-                    allocations: vec![credix_client::RepaymentAllocation::Interest],
+                    allocations: vec![credix_client::RepaymentAllocation::Principal],
                     tranche_indices: vec![0],
                     charge: true,
                     slash: false,

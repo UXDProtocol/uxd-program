@@ -87,6 +87,7 @@ pub async fn process_dummy_borrower(
         multisig,
         &dummy_borrower.pubkey(),
         0,
+        borrow_principal_amount,
     )
     .await?;
     program_credix::instructions::process_set_tranches(
