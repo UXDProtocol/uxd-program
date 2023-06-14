@@ -96,6 +96,8 @@ pub async fn process_dummy_borrower(
         multisig,
         &dummy_borrower.pubkey(),
         0,
+        borrow_principal_amount,
+        borrow_interest_amount,
     )
     .await?;
     program_credix::instructions::process_open_deal(

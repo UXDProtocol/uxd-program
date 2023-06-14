@@ -21,6 +21,7 @@ pub async fn process_withdraw_from_deal(
     let market_seeds = program_credix::accounts::find_market_seeds();
     let global_market_state =
         program_credix::accounts::find_global_market_state_pda(&market_seeds).0;
+    let market_admins = program_credix::accounts::find_market_admins_pda(&global_market_state).0;
     let signing_authority = program_credix::accounts::find_signing_authority_pda(&market_seeds).0;
     let credix_pass =
         program_credix::accounts::find_credix_pass_pda(&global_market_state, &borrower.pubkey()).0;
@@ -32,21 +33,26 @@ pub async fn process_withdraw_from_deal(
     .0;
     let deal_token_account =
         program_credix::accounts::find_deal_token_account_pda(&global_market_state, &deal).0;
+    let deal_tranches =
+        program_credix::accounts::find_deal_tranches_pda(&global_market_state, &deal).0;
     let repayment_schedule =
         program_credix::accounts::find_repayment_schedule_pda(&global_market_state, &deal).0;
 
     // Execute IX
     let accounts = credix_client::accounts::WithdrawFromDeal {
         global_market_state,
+        market_admins,
         signing_authority,
         borrower: borrower.pubkey(),
         borrower_token_account: *borrower_token_account,
         base_token_mint: *base_token_mint,
         deal,
         deal_token_account,
+        deal_tranches,
         repayment_schedule,
         credix_pass,
-        signer: borrower,
+        signer: borrower.pubkey(),
+        off_ramp_token_account: credix_client::id(), // Not needed, for now
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,

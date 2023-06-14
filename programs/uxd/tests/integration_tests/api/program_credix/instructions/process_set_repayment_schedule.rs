@@ -14,8 +14,6 @@ pub async fn process_set_repayment_schedule(
     multisig: &Keypair,
     borrower: &Pubkey,
     deal_number: u16,
-    principal: u64,
-    interest: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
@@ -40,15 +38,15 @@ pub async fn process_set_repayment_schedule(
         _offset: 0,
         _total_periods: 1,
         _start_ts: 0,
-        _daycount_convention: DaycountConvention,
+        _daycount_convention: credix_client::DaycountConvention::Act365,
         _repayment_period_inputs: vec![credix_client::RepaymentPeriodInput {
             calculation_waterfall_index: 0,
             waterfall_index: 0,
             accrual_in_days: 1,
             principal_expected: None,
-            time_frame: 1,
+            time_frame: credix_client::TimeFrame { start: 1, end: 10 },
         }],
-        _waterfall_definitions: None,
+        _waterfall_definitions: vec![],
     };
     let instruction = Instruction {
         program_id: credix_client::id(),
