@@ -36,6 +36,12 @@ async fn process_instruction_result(
             println!(" - instruction.from: {}", backtrace_line.trim());
         }
     }
+    // Log accounts (only visible when the test fails)
+    let mut idx = 0;
+    for account in instruction.accounts {
+        idx += 1;
+        println!(" - instruction.account: #{:?} {:?}", idx, account.pubkey);
+    }
     // Print result
     if result.is_ok() {
         println!(" - instruction.result: {:?}", "OK");
