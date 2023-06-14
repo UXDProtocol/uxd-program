@@ -113,8 +113,8 @@ pub enum UxdError {
     InvalidCredixTreasuryCollateral,
     #[msg("The Credix WithdrawEpoch isn't in its request period.")]
     InvalidCredixWithdrawEpochRequestPeriod,
-    #[msg("The Credix WithdrawEpoch isn't in its execute period.")]
-    InvalidCredixWithdrawEpochExecutePeriod,
+    #[msg("The Credix WithdrawEpoch isn't in its redeem period.")]
+    InvalidCredixWithdrawEpochRedeemPeriod,
 
     #[msg("Default - Check the source code for more info.")]
     Default,

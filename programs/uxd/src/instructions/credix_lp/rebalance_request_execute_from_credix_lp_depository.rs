@@ -230,22 +230,11 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     // -- Check if the withdraw redeem period is active at the moment
     // ---------------------------------------------------------------------
 
-    {
-        let start_of_redeem_phase_timestamp = ctx
-            .accounts
-            .credix_withdraw_epoch
-            .go_live
-            .checked_add(ctx.accounts.credix_withdraw_epoch.redeem_seconds.into())
-            .ok_or(UxdError::MathError)?;
-        let end_of_redeem_phase_timestamp = start_of_redeem_phase_timestamp
-            .checked_add(ctx.accounts.credix_withdraw_epoch.redeem_seconds.into())
-            .ok_or(UxdError::MathError)?;
-        require!(
-            (start_of_redeem_phase_timestamp..end_of_redeem_phase_timestamp)
-                .contains(&Clock::get()?.unix_timestamp),
-            UxdError::InvalidCredixWithdrawEpochRequestPeriod,
-        );
-    }
+    require!(
+        ctx.accounts.credix_withdraw_epoch.status()?
+            == credix_client::WithdrawEpochStatus::RedeemPhase,
+        UxdError::InvalidCredixWithdrawEpochRedeemPeriod,
+    );
 
     // ---------------------------------------------------------------------
     // -- Phase 2
