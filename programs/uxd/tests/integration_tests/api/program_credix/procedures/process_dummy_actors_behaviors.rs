@@ -37,7 +37,7 @@ pub async fn process_dummy_actors_behaviors(
         base_token_authority,
         dummy_borrower_borrow_principal_amount,
         dummy_borrower_borrow_interest_amount,
-        dummy_borrower_borrow_principal_amount, // repay everything immediately with interests
+        dummy_borrower_borrow_principal_amount + dummy_borrower_borrow_interest_amount, // repay everything immediately with interests
     )
     .await?;
 
