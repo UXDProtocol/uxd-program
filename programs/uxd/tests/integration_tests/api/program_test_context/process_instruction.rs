@@ -36,6 +36,12 @@ async fn process_instruction_result(
             println!(" - instruction.from: {}", backtrace_line.trim());
         }
     }
+    // Print result
+    if result.is_ok() {
+        println!(" - instruction.result: {:?}", "OK");
+    } else {
+        println!(" - instruction.result: {:?}", "ERROR");
+    }
     // Done
     result
 }

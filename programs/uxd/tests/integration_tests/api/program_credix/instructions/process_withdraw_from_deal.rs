@@ -43,6 +43,7 @@ pub async fn process_withdraw_from_deal(
         global_market_state,
         market_admins,
         signing_authority,
+        signer: borrower.pubkey(),
         borrower: borrower.pubkey(),
         borrower_token_account: *borrower_token_account,
         base_token_mint: *base_token_mint,
@@ -51,8 +52,7 @@ pub async fn process_withdraw_from_deal(
         deal_tranches,
         repayment_schedule,
         credix_pass,
-        signer: borrower.pubkey(),
-        off_ramp_token_account: credix_client::id(), // Not needed, for now
+        off_ramp_token_account: credix_client::id(), // Not used
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
