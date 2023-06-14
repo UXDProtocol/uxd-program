@@ -49,4 +49,5 @@ solana-sdk = "=1.14.17"
 spl-token = "3.5.0"
 spl-associated-token-account = "1.1.2"
 
-winnow = "=0.4.1" # This lib introduced a breaking change in a 0.4.6 patch :(
+toml_datetime = "=0.6.1" # This lib introduced a breaking change in 0.6.2
+winnow = "=0.4.1"        # This lib introduced a breaking change in 0.4.6
