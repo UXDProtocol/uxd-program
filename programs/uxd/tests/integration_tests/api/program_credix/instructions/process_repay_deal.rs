@@ -23,6 +23,7 @@ pub async fn process_repay_deal(
     let program_state = program_credix::accounts::find_program_state_pda().0;
     let global_market_state =
         program_credix::accounts::find_global_market_state_pda(&market_seeds).0;
+    let market_admins = program_credix::accounts::find_market_admins_pda(&global_market_state).0;
     let signing_authority = program_credix::accounts::find_signing_authority_pda(&market_seeds).0;
     let liquidity_pool_token_account = program_credix::accounts::find_liquidity_pool_token_account(
         &signing_authority,
@@ -66,7 +67,8 @@ pub async fn process_repay_deal(
         credix_multisig_key: *multisig,
         credix_multisig_token_account,
         credix_pass,
-        system_program: anchor_lang::system_program::ID,
+        signer: *multisig,
+        market_admins, system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,

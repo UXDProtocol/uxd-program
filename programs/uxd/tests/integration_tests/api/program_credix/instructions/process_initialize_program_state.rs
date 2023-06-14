@@ -29,14 +29,6 @@ pub async fn process_initialize_program_state(
             treasury, treasury,
         ],
         _credix_multisig_key: multisig.pubkey(),
-        _credix_service_fee_percentage: credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        },
-        _credix_performance_fee_percentage: credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        },
     };
     let instruction = Instruction {
         program_id: credix_client::id(),

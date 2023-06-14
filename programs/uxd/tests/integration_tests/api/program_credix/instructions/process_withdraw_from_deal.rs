@@ -46,6 +46,7 @@ pub async fn process_withdraw_from_deal(
         deal_token_account,
         repayment_schedule,
         credix_pass,
+        signer: borrower,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,

@@ -37,14 +37,18 @@ pub async fn process_set_repayment_schedule(
         system_program: anchor_lang::system_program::ID,
     };
     let payload = credix_client::instruction::SetRepaymentSchedule {
-        _total_repayments: 1,
         _offset: 0,
+        _total_periods: 1,
+        _start_ts: 0,
+        _daycount_convention: DaycountConvention,
         _repayment_period_inputs: vec![credix_client::RepaymentPeriodInput {
-            principal,
-            interest,
+            calculation_waterfall_index: 0,
+            waterfall_index: 0,
+            accrual_in_days: 1,
+            principal_expected: None,
+            time_frame: 1,
         }],
-        _period_duration: 30,
-        _days_in_year: 360,
+        _waterfall_definitions: None,
     };
     let instruction = Instruction {
         program_id: credix_client::id(),

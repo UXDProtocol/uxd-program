@@ -47,10 +47,7 @@ pub async fn process_set_tranches(
 
     // The LP tranche should take all
     let lp_tranche = credix_client::TrancheConfig {
-        size: credix_client::Fraction {
-            numerator: 1,
-            denominator: 1,
-        },
+        size: 1,
         return_percentage: credix_client::Fraction {
             numerator: 1,
             denominator: 1,
