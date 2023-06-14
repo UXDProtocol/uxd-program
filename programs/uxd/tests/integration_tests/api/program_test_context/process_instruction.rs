@@ -1,5 +1,6 @@
 use solana_program::instruction::Instruction;
-use solana_program_test::{ProgramTestBanksClientExt, ProgramTestContext};
+use solana_program_test::ProgramTestBanksClientExt;
+use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_sdk::transaction::Transaction;
@@ -9,7 +10,7 @@ use crate::integration_tests::api::program_test_context;
 async fn process_instruction_result(
     program_test_context: &mut ProgramTestContext,
     instruction: Instruction,
-    raw_result: Result<(), program_test_context::ProgramTestError>,
+    result: Result<(), program_test_context::ProgramTestError>,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Increment the blockhash, so that the next transaction can run sequentially
     program_test_context.last_blockhash = program_test_context
@@ -36,7 +37,7 @@ async fn process_instruction_result(
         }
     }
     // Done
-    raw_result
+    result
 }
 
 pub async fn process_instruction(
@@ -47,12 +48,12 @@ pub async fn process_instruction(
     let mut transaction: Transaction =
         Transaction::new_with_payer(&[instruction.clone()], Some(&payer.pubkey()));
     transaction.partial_sign(&[payer], program_test_context.last_blockhash);
-    let raw_result = program_test_context
+    let result = program_test_context
         .banks_client
         .process_transaction(transaction)
         .await
         .map_err(program_test_context::ProgramTestError::BanksClient);
-    process_instruction_result(program_test_context, instruction.clone(), raw_result).await
+    process_instruction_result(program_test_context, instruction.clone(), result).await
 }
 
 pub async fn process_instruction_with_signer(
@@ -64,10 +65,10 @@ pub async fn process_instruction_with_signer(
     let mut transaction: Transaction =
         Transaction::new_with_payer(&[instruction.clone()], Some(&payer.pubkey()));
     transaction.partial_sign(&[payer, signer], program_test_context.last_blockhash);
-    let raw_result = program_test_context
+    let result = program_test_context
         .banks_client
         .process_transaction(transaction)
         .await
         .map_err(program_test_context::ProgramTestError::BanksClient);
-    process_instruction_result(program_test_context, instruction.clone(), raw_result).await
+    process_instruction_result(program_test_context, instruction.clone(), result).await
 }

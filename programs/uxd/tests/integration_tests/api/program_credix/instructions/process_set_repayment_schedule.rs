@@ -40,13 +40,36 @@ pub async fn process_set_repayment_schedule(
         _start_ts: 0,
         _daycount_convention: credix_client::DaycountConvention::Act365,
         _repayment_period_inputs: vec![credix_client::RepaymentPeriodInput {
-            calculation_waterfall_index: 0,
             waterfall_index: 0,
-            accrual_in_days: 1,
+            accrual_in_days: 30,
+            calculation_waterfall_index: 0,
             principal_expected: None,
-            time_frame: credix_client::TimeFrame { start: 1, end: 10 },
+            time_frame: credix_client::TimeFrame {
+                start: 0,
+                end: 30 * 24 * 60 * 60, // 30 days
+            },
         }],
-        _waterfall_definitions: vec![],
+        _waterfall_definitions: vec![credix_client::DistributionWaterfall {
+            waterfall_type: credix_client::DistributionWaterfallType::Revolving,
+            tiers: vec![
+                credix_client::WaterfallTier {
+                    allocations: vec![credix_client::RepaymentAllocation::Interest],
+                    tranche_indices: vec![0],
+                    charge: true,
+                    slash: false,
+                },
+                credix_client::WaterfallTier {
+                    allocations: vec![
+                        credix_client::RepaymentAllocation::LateInterestFee,
+                        credix_client::RepaymentAllocation::LatePrincipalFee,
+                        credix_client::RepaymentAllocation::EarlyPrincipalFee,
+                    ],
+                    tranche_indices: vec![0],
+                    charge: true,
+                    slash: false,
+                },
+            ],
+        }],
     };
     let instruction = Instruction {
         program_id: credix_client::id(),
