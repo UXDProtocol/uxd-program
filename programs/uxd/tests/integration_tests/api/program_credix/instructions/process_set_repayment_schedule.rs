@@ -1,5 +1,6 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
+use solana_program::clock::Clock;
 use solana_program::instruction::Instruction;
 use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
@@ -15,7 +16,6 @@ pub async fn process_set_repayment_schedule(
     borrower: &Pubkey,
     deal_number: u16,
     principal: u64,
-    interest: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
@@ -27,6 +27,14 @@ pub async fn process_set_repayment_schedule(
     let repayment_schedule =
         program_credix::accounts::find_repayment_schedule_pda(&global_market_state, &deal).0;
 
+    // Start the deal now
+    let unix_timestamp_now = program_test_context
+        .banks_client
+        .get_sysvar::<Clock>()
+        .await
+        .map_err(program_test_context::ProgramTestError::BanksClient)?
+        .unix_timestamp;
+
     // Execute IX
     let accounts = credix_client::accounts::SetRepaymentSchedule {
         owner: multisig.pubkey(),
@@ -37,14 +45,47 @@ pub async fn process_set_repayment_schedule(
         system_program: anchor_lang::system_program::ID,
     };
     let payload = credix_client::instruction::SetRepaymentSchedule {
-        _total_repayments: 1,
         _offset: 0,
+        _total_periods: 1,
+        _start_ts: unix_timestamp_now,
+        _daycount_convention: credix_client::DaycountConvention::Act365,
         _repayment_period_inputs: vec![credix_client::RepaymentPeriodInput {
-            principal,
-            interest,
+            waterfall_index: 0,
+            accrual_in_days: 30,
+            calculation_waterfall_index: 0,
+            principal_expected: Some(principal),
+            time_frame: credix_client::TimeFrame {
+                start: unix_timestamp_now,
+                end: unix_timestamp_now + 30 * 24 * 60 * 60, // 30 days
+            },
         }],
-        _period_duration: 30,
-        _days_in_year: 360,
+        _waterfall_definitions: vec![credix_client::DistributionWaterfall {
+            waterfall_type: credix_client::DistributionWaterfallType::Amortization,
+            tiers: vec![
+                credix_client::WaterfallTier {
+                    allocations: vec![credix_client::RepaymentAllocation::Interest],
+                    tranche_indices: vec![0],
+                    charge: true,
+                    slash: false,
+                },
+                credix_client::WaterfallTier {
+                    allocations: vec![credix_client::RepaymentAllocation::Principal],
+                    tranche_indices: vec![0],
+                    charge: true,
+                    slash: false,
+                },
+                credix_client::WaterfallTier {
+                    allocations: vec![
+                        credix_client::RepaymentAllocation::LateInterestFee,
+                        credix_client::RepaymentAllocation::LatePrincipalFee,
+                        credix_client::RepaymentAllocation::EarlyPrincipalFee,
+                    ],
+                    tranche_indices: vec![0],
+                    charge: true,
+                    slash: false,
+                },
+            ],
+        }],
     };
     let instruction = Instruction {
         program_id: credix_client::id(),

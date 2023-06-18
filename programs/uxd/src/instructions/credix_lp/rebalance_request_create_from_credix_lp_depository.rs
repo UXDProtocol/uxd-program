@@ -159,20 +159,14 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
 
     // ---------------------------------------------------------------------
     // -- Phase 1
-    // -- Check if the withdraw request period is active at the moment
+    // -- Check if the withdraw epoch request's phase is active at the moment
     // ---------------------------------------------------------------------
 
-    {
-        let start_of_request_phase_timestamp = ctx.accounts.credix_withdraw_epoch.go_live;
-        let end_of_request_phase_timestamp = start_of_request_phase_timestamp
-            .checked_add(ctx.accounts.credix_withdraw_epoch.request_seconds.into())
-            .ok_or(UxdError::MathError)?;
-        require!(
-            (start_of_request_phase_timestamp..end_of_request_phase_timestamp)
-                .contains(&Clock::get()?.unix_timestamp),
-            UxdError::InvalidCredixWithdrawEpochRequestPeriod,
-        );
-    }
+    require!(
+        ctx.accounts.credix_withdraw_epoch.status()?
+            == credix_client::WithdrawEpochStatus::RequestPhase,
+        UxdError::InvalidCredixWithdrawEpochRequestPhase,
+    );
 
     // ---------------------------------------------------------------------
     // -- Phase 2

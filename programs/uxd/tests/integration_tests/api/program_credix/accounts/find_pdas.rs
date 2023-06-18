@@ -1,10 +1,6 @@
 use solana_program::pubkey::Pubkey;
 
 const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";
-const CREDIX_BORROWER_INFO_SEED: &str = "borrower-info";
-
-const CREDIX_WITHDRAW_EPOCH_SEED: &str = "withdraw-epoch";
-const CREDIX_WITHDRAW_REQUEST_SEED: &str = "withdraw-request";
 
 pub fn find_market_seeds() -> String {
     String::from(CREDIX_MARKETPLACE_SEED)
@@ -50,15 +46,7 @@ pub fn find_credix_pass_pda(global_market_state: &Pubkey, pass_holder: &Pubkey) 
 }
 
 pub fn find_borrower_info_pda(global_market_state: &Pubkey, borrower: &Pubkey) -> (Pubkey, u8) {
-    // credix_client::BorrowerInfo::generate_pda(market_seeds, *borrower) // doesnt work
-    Pubkey::find_program_address(
-        &[
-            global_market_state.as_ref(),
-            borrower.as_ref(),
-            CREDIX_BORROWER_INFO_SEED.as_bytes(),
-        ],
-        &credix_client::id(),
-    )
+    credix_client::BorrowerInfo::generate_pda(*global_market_state, *borrower)
 }
 
 pub fn find_deal_pda(
@@ -82,28 +70,13 @@ pub fn find_repayment_schedule_pda(global_market_state: &Pubkey, deal: &Pubkey) 
 }
 
 pub fn find_withdraw_epoch_pda(global_market_state: &Pubkey, epoch_idx: u32) -> (Pubkey, u8) {
-    Pubkey::find_program_address(
-        &[
-            global_market_state.as_ref(),
-            &epoch_idx.to_le_bytes(),
-            CREDIX_WITHDRAW_EPOCH_SEED.as_ref(),
-        ],
-        &credix_client::ID,
-    )
+    credix_client::WithdrawEpoch::generate_pda(*global_market_state, epoch_idx)
 }
 
 pub fn find_withdraw_request_pda(
     global_market_state: &Pubkey,
-    epoch_idx: u32,
     investor: &Pubkey,
+    epoch_idx: u32,
 ) -> (Pubkey, u8) {
-    Pubkey::find_program_address(
-        &[
-            global_market_state.as_ref(),
-            investor.as_ref(),
-            &epoch_idx.to_le_bytes(),
-            CREDIX_WITHDRAW_REQUEST_SEED.as_ref(),
-        ],
-        &credix_client::ID,
-    )
+    credix_client::WithdrawRequest::generate_pda(*global_market_state, *investor, epoch_idx)
 }

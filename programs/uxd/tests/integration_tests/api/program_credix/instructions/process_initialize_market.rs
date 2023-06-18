@@ -52,32 +52,11 @@ pub async fn process_initialize_market(
         _multisig: Some(multisig.pubkey()),
         _managers: None,
         _pass_issuers: None,
-        _grace_period: 10,
-        _performance_fee: credix_client::Fraction {
+        _credix_fee_percentage: credix_client::Fraction {
             numerator: 1,
             denominator: 100,
         },
         _withdrawal_fee: credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        },
-        _fixed_late_fee_percentage: credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        },
-        _variable_late_fee_percentage: credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        },
-        _service_fee_percentage: credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        },
-        _credix_performance_fee_percentage: credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        },
-        _credix_service_fee_percentage: credix_client::Fraction {
             numerator: 1,
             denominator: 100,
         },
