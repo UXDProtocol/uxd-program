@@ -127,6 +127,7 @@ pub struct RebalanceRequestCreateFromCredixLpDepository<'info> {
     pub credix_withdraw_epoch: Account<'info, credix_client::WithdrawEpoch>,
 
     /// #14
+    /// CHECK: initialized by credix program, not manipulated by us
     #[account(
         mut,
         seeds = [
