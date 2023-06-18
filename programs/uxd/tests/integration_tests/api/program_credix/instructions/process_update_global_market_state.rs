@@ -27,12 +27,7 @@ pub async fn process_update_global_market_state(
     };
     let payload = credix_client::instruction::UpdateGlobalMarketState {
         _treasury_pool_token_account: None,
-        _performance_fee: None,
         _withdrawal_fee: None,
-        _service_fee_percentage: None,
-        _grace_period: None,
-        _fixed_late_fee_percentage: None,
-        _variable_late_fee_percentage: None,
         _pool_size_limit_percentage: None,
         _withdraw_epoch_request_seconds: None,
         _withdraw_epoch_redeem_seconds: None,

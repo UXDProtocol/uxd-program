@@ -41,27 +41,11 @@ pub async fn process_create_deal(
     let payload = credix_client::instruction::CreateDeal {
         _max_funding_duration: 128,
         _deal_name: std::format!("Hello I am deal: {}", deal_number),
-        _true_waterfall: true,
-        _slash_principal_to_interest: true,
-        _slash_interest_to_principal: false,
-        _service_fees: 1,
-        _fixed_late_fee_percentage: Some(credix_client::Fraction {
+        _arrangement_fees: 0,
+        _arrangement_fee_percentage: credix_client::Fraction {
             numerator: 1,
             denominator: 100,
-        }),
-        _performance_fee_percentage: Some(credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        }),
-        _grace_period: Some(100),
-        _variable_late_fee_percentage: Some(credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        }),
-        _service_fee_percentage: Some(credix_client::Fraction {
-            numerator: 1,
-            denominator: 100,
-        }),
+        },
         _migrated: false,
     };
     let instruction = Instruction {

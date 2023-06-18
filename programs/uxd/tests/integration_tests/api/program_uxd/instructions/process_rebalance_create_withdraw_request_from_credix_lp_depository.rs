@@ -68,8 +68,8 @@ pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository
     .0;
     let credix_withdraw_request = program_credix::accounts::find_withdraw_request_pda(
         &credix_global_market_state,
-        credix_latest_withdraw_epoch_idx,
         &credix_lp_depository,
+        credix_latest_withdraw_epoch_idx,
     )
     .0;
 

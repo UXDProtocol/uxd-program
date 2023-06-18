@@ -23,6 +23,7 @@ pub async fn process_repay_deal(
     let program_state = program_credix::accounts::find_program_state_pda().0;
     let global_market_state =
         program_credix::accounts::find_global_market_state_pda(&market_seeds).0;
+    let market_admins = program_credix::accounts::find_market_admins_pda(&global_market_state).0;
     let signing_authority = program_credix::accounts::find_signing_authority_pda(&market_seeds).0;
     let liquidity_pool_token_account = program_credix::accounts::find_liquidity_pool_token_account(
         &signing_authority,
@@ -52,9 +53,11 @@ pub async fn process_repay_deal(
     // Execute IX
     let accounts = credix_client::accounts::RepayDeal {
         global_market_state,
+        market_admins,
         signing_authority,
         program_state,
         liquidity_pool_token_account,
+        signer: borrower.pubkey(),
         borrower: borrower.pubkey(),
         borrower_token_account: *borrower_token_account,
         base_token_mint: *base_token_mint,
