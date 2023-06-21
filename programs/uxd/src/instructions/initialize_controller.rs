@@ -85,6 +85,15 @@ pub(crate) fn handler(
     controller.is_frozen = false;
     controller.profits_total_collected = u128::MIN;
 
+    // Routing/balancing fields must be set by edit_controller for the routing to start working
+    // Those default values will make any router-based mint/redeem impossible, on purpose.
+    controller.identity_depository_weight_bps = 0;
+    controller.mercurial_vault_depository_weight_bps = 0;
+    controller.credix_lp_depository_weight_bps = 0;
+    controller.identity_depository = Pubkey::default();
+    controller.mercurial_vault_depository = Pubkey::default();
+    controller.credix_lp_depository = Pubkey::default();
+
     emit!(InitializeControllerEvent {
         version: controller.version,
         controller: ctx.accounts.controller.key(),

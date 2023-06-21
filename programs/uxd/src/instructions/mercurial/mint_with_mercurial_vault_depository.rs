@@ -179,10 +179,14 @@ pub fn handler(
         .checked_sub(redeemable_amount_less_fees)
         .ok_or_else(|| error!(UxdError::MathError))?;
 
-    // 6 - Redeemable amount should be positive
+    // 6 - Redeemable amount should be a valid amount
     require!(
         redeemable_amount_less_fees > 0,
         UxdError::MinimumMintedRedeemableAmountError
+    );
+    require!(
+        redeemable_amount_less_fees <= collateral_amount,
+        UxdError::MaximumMintedRedeemableAmountError
     );
 
     // 7 - Mint redeemable
