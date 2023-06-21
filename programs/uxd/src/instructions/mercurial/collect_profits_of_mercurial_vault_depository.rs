@@ -68,7 +68,10 @@ pub struct CollectProfitsOfMercurialVaultDepository<'info> {
 
     /// #9
     /// Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = mercurial_vault.token_vault == mercurial_vault_collateral_token_safe.key() @UxdError::InvalidMercurialVaultCollateralTokenSafe,
+    )]
     pub mercurial_vault_collateral_token_safe: Box<Account<'info, TokenAccount>>,
 
     /// #10

@@ -187,7 +187,7 @@ pub(crate) fn handler(
     );
     require!(
         shares_amount > 0,
-        UxdError::MinimumRedeemedCollateralAmountError
+        UxdError::MinimumMintedRedeemableAmountError
     );
 
     // Compute the amount of collateral that the received shares are worth (after potential precision loss)
@@ -202,7 +202,7 @@ pub(crate) fn handler(
     );
     require!(
         collateral_amount_after_precision_loss > 0,
-        UxdError::MinimumRedeemedCollateralAmountError
+        UxdError::MinimumMintedRedeemableAmountError
     );
 
     // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
@@ -219,7 +219,11 @@ pub(crate) fn handler(
     );
     require!(
         redeemable_amount_after_fees > 0,
-        UxdError::MinimumRedeemedCollateralAmountError
+        UxdError::MinimumMintedRedeemableAmountError
+    );
+    require!(
+        redeemable_amount_after_fees <= collateral_amount,
+        UxdError::MaximumMintedRedeemableAmountError
     );
 
     // ---------------------------------------------------------------------

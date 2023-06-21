@@ -243,6 +243,10 @@ pub(crate) fn handler(
         collateral_amount_after_precision_loss > 0,
         UxdError::MinimumRedeemedCollateralAmountError
     );
+    require!(
+        collateral_amount_after_precision_loss <= redeemable_amount,
+        UxdError::MaximumRedeemedCollateralAmountError
+    );
 
     // ---------------------------------------------------------------------
     // -- Phase 2

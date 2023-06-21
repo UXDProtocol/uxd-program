@@ -16,6 +16,7 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE;
+use crate::CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 
@@ -127,7 +128,17 @@ pub struct RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
 
     /// #14
     /// CHECK: initialized by credix program, not manipulated by us
-    #[account(mut)]
+    #[account(
+        mut,
+        seeds = [
+            credix_global_market_state.key().as_ref(),
+            depository.key().as_ref(),
+            &credix_global_market_state.latest_withdraw_epoch_idx.to_le_bytes(),
+            CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE
+        ],
+        bump,
+        seeds::program = credix_client::ID,
+    )]
     pub credix_withdraw_request: AccountInfo<'info>,
 
     /// #15
