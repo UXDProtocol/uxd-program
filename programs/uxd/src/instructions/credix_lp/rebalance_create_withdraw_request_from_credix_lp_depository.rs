@@ -3,7 +3,7 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::TokenAccount;
 
 use crate::error::UxdError;
-use crate::events::RebalanceRequestCreateFromCredixLpDepositoryEvent;
+use crate::events::RebalanceCreateWithdrawRequestFromCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
@@ -21,7 +21,7 @@ use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
-pub struct RebalanceRequestCreateFromCredixLpDepository<'info> {
+pub struct RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
     /// #1
     /// Permissionless IX that can be called by anyone at any time
     #[account(mut)]
@@ -147,7 +147,9 @@ pub struct RebalanceRequestCreateFromCredixLpDepository<'info> {
     pub credix_program: Program<'info, credix_client::program::Credix>,
 }
 
-pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>) -> Result<()> {
+pub(crate) fn handler(
+    ctx: Context<RebalanceCreateWithdrawRequestFromCredixLpDepository>,
+) -> Result<()> {
     let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
     let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
     let depository_pda_signer: &[&[&[u8]]] = &[&[
@@ -228,7 +230,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
         .checked_add(overflow_value)
         .ok_or(UxdError::MathError)?;
     msg!(
-        "[rebalance_request_create_from_credix_lp_depository:requested_collateral_amount:{}]",
+        "[rebalance_create_withdraw_request_from_credix_lp_depository:requested_collateral_amount:{}]",
         requested_collateral_amount
     );
     credix_client::cpi::create_withdraw_request(
@@ -243,7 +245,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
     // -- Emit resulting event
     // ---------------------------------------------------------------------
 
-    emit!(RebalanceRequestCreateFromCredixLpDepositoryEvent {
+    emit!(RebalanceCreateWithdrawRequestFromCredixLpDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.load()?.version,
         controller: ctx.accounts.controller.key(),
@@ -258,7 +260,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestCreateFromCredixLpDepository>
 }
 
 // Into functions
-impl<'info> RebalanceRequestCreateFromCredixLpDepository<'info> {
+impl<'info> RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
     pub fn into_create_withdraw_request_from_credix_lp_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::CreateWithdrawRequest<'info>>
@@ -282,7 +284,7 @@ impl<'info> RebalanceRequestCreateFromCredixLpDepository<'info> {
 }
 
 // Validate
-impl<'info> RebalanceRequestCreateFromCredixLpDepository<'info> {
+impl<'info> RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
     pub(crate) fn validate(&self) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
         Ok(())

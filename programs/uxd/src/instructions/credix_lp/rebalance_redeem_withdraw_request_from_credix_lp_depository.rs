@@ -7,7 +7,7 @@ use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 
 use crate::error::UxdError;
-use crate::events::RebalanceRequestExecuteFromCredixLpDepositoryEvent;
+use crate::events::RebalanceRedeemWithdrawRequestFromCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
@@ -30,7 +30,7 @@ use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
-pub struct RebalanceRequestExecuteFromCredixLpDepository<'info> {
+pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
     /// #1 // Permissionless IX that can be called by anyone at any time
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -215,7 +215,9 @@ pub struct RebalanceRequestExecuteFromCredixLpDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository>) -> Result<()> {
+pub(crate) fn handler(
+    ctx: Context<RebalanceRedeemWithdrawRequestFromCredixLpDepository>,
+) -> Result<()> {
     let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
     let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
     let depository_pda_signer: &[&[&[u8]]] = &[&[
@@ -364,7 +366,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     )?;
 
     if withdrawal_total_shares_amount == 0 {
-        msg!("[rebalance_request_execute_from_credix_lp_depository:no_withdrawable_liquidity]",);
+        msg!("[rebalance_redeem_withdraw_request_from_credix_lp_depository:no_withdrawable_liquidity]",);
         return Ok(());
     }
 
@@ -399,7 +401,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     // ---------------------------------------------------------------------
 
     msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:redeem_withdraw_request:{}]",
+        "[rebalance_redeem_withdraw_request_from_credix_lp_depository:redeem_withdraw_request:{}]",
         withdrawal_total_collateral_amount
     );
     credix_client::cpi::redeem_withdraw_request(
@@ -410,7 +412,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     )?;
 
     msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:profits_beneficiary_collateral_transfer:{}]",
+        "[rebalance_redeem_withdraw_request_from_credix_lp_depository:profits_beneficiary_collateral_transfer:{}]",
         withdrawal_profits_collateral_amount_after_precision_loss
     );
     token::transfer(
@@ -421,7 +423,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     )?;
 
     msg!(
-        "[rebalance_request_execute_from_credix_lp_depository:identity_depository_collateral_transfer:{}]",
+        "[rebalance_redeem_withdraw_request_from_credix_lp_depository:identity_depository_collateral_transfer:{}]",
         withdrawal_overflow_value_after_precision_loss
     );
     token::transfer(
@@ -551,7 +553,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
     // ---------------------------------------------------------------------
 
     // Emit event
-    emit!(RebalanceRequestExecuteFromCredixLpDepositoryEvent {
+    emit!(RebalanceRedeemWithdrawRequestFromCredixLpDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.load()?.version,
         controller: ctx.accounts.controller.key(),
@@ -599,7 +601,7 @@ pub(crate) fn handler(ctx: Context<RebalanceRequestExecuteFromCredixLpDepository
 }
 
 // Into functions
-impl<'info> RebalanceRequestExecuteFromCredixLpDepository<'info> {
+impl<'info> RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
     pub fn into_redeem_withdraw_request_from_credix_lp_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::RedeemWithdrawRequest<'info>>
@@ -655,7 +657,7 @@ impl<'info> RebalanceRequestExecuteFromCredixLpDepository<'info> {
 }
 
 // Validate
-impl<'info> RebalanceRequestExecuteFromCredixLpDepository<'info> {
+impl<'info> RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
     pub(crate) fn validate(&self) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
         Ok(())

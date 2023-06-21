@@ -256,9 +256,9 @@ pub struct CollectProfitsOfCredixLpDepositoryEvent {
     pub collateral_amount: u64,
 }
 
-/// Event called in [instructions::rebalance_request_create_from_credix_lp_depository::handler].
+/// Event called in [instructions::rebalance_create_withdraw_request_from_credix_lp_depository::handler].
 #[event]
-pub struct RebalanceRequestCreateFromCredixLpDepositoryEvent {
+pub struct RebalanceCreateWithdrawRequestFromCredixLpDepositoryEvent {
     #[index]
     pub controller_version: u8,
     #[index]
@@ -275,9 +275,9 @@ pub struct RebalanceRequestCreateFromCredixLpDepositoryEvent {
     pub requested_collateral_amount: u64,
 }
 
-/// Event called in [instructions::rebalance_request_execute_from_credix_lp_depository::handler].
+/// Event called in [instructions::rebalance_redeem_withdraw_request_from_credix_lp_depository::handler].
 #[event]
-pub struct RebalanceRequestExecuteFromCredixLpDepositoryEvent {
+pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepositoryEvent {
     #[index]
     pub controller_version: u8,
     #[index]

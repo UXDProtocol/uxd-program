@@ -11,7 +11,7 @@ use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
-pub async fn process_rebalance_request_create_from_credix_lp_depository(
+pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
     collateral_mint: &Pubkey,
@@ -74,7 +74,7 @@ pub async fn process_rebalance_request_create_from_credix_lp_depository(
     .0;
 
     // Execute IX
-    let accounts = uxd::accounts::RebalanceRequestCreateFromCredixLpDepository {
+    let accounts = uxd::accounts::RebalanceCreateWithdrawRequestFromCredixLpDepository {
         payer: payer.pubkey(),
         controller,
         collateral_mint: *collateral_mint,
@@ -92,7 +92,7 @@ pub async fn process_rebalance_request_create_from_credix_lp_depository(
         system_program: anchor_lang::system_program::ID,
         credix_program: credix_client::ID,
     };
-    let payload = uxd::instruction::RebalanceRequestCreateFromCredixLpDepository {};
+    let payload = uxd::instruction::RebalanceCreateWithdrawRequestFromCredixLpDepository {};
     let instruction = Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),

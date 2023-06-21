@@ -243,7 +243,7 @@ async fn test_credix_lp_depository_rebalance_illiquid(
     .await?;
 
     // Since the epoch was just created it should be available to create a WithdrawRequest
-    program_uxd::instructions::process_rebalance_request_create_from_credix_lp_depository(
+    program_uxd::instructions::process_rebalance_create_withdraw_request_from_credix_lp_depository(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
@@ -270,7 +270,7 @@ async fn test_credix_lp_depository_rebalance_illiquid(
         expected_credix_redeemable_supply_before_rebalance - amount_that_should_remain_liquid;
 
     // Executing the rebalance request should now work as intended because we are in the execute period
-    program_uxd::instructions::process_rebalance_request_execute_from_credix_lp_depository(
+    program_uxd::instructions::process_rebalance_redeem_withdraw_request_from_credix_lp_depository(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
@@ -285,7 +285,7 @@ async fn test_credix_lp_depository_rebalance_illiquid(
     .await?;
 
     // Any subsequent execution should yield zero movement (since we already moved funds)
-    program_uxd::instructions::process_rebalance_request_execute_from_credix_lp_depository(
+    program_uxd::instructions::process_rebalance_redeem_withdraw_request_from_credix_lp_depository(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
