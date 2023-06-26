@@ -117,7 +117,7 @@ jobs:
         run: |
           npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
-          npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} build
+          npx @coral-xyz/anchor-cli@${{ env.ANCHOR_VERSION }} build
           solana program deploy ./target/deploy/uxd.so --program-id ${{ env.RESIDENT_PROGRAM_KEYPAIR }} --upgrade-authority ${{ env.CI_DEPLOYMENT_AUTHORITY_WALLET_PATH }}
       - name: Returning funded runner wallet SOLs to the bank
         if: always()
@@ -202,7 +202,7 @@ jobs:
           npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
           sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_SETUP }}/g" ./Anchor.toml
-          npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
+          npx @coral-xyz/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
       - name: Returning funded runner wallet SOLs to the bank
         if: always()
         run: |
@@ -286,7 +286,7 @@ jobs:
           npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
           sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_MERCURIAL }}/g" ./Anchor.toml
-          npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
+          npx @coral-xyz/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
       - name: Returning funded runner wallet SOLs to the bank
         if: always()
         run: |
@@ -370,7 +370,7 @@ jobs:
           npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
           sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_IDENTITY }}/g" ./Anchor.toml
-          npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
+          npx @coral-xyz/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
       - name: Returning funded runner wallet SOLs to the bank
         if: always()
         run: |
@@ -454,7 +454,7 @@ jobs:
           npm ci --ignore-scripts
           ./scripts/swap_ci_resident_program_id.sh
           sed -i.bak "s/${{ env.TEST_DEV }}/${{ env.TEST_CI_CREDIX_LP }}/g" ./Anchor.toml
-          npx @project-serum/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
+          npx @coral-xyz/anchor-cli@${{ env.ANCHOR_VERSION }} test --skip-local-validator --skip-build --skip-deploy
       - name: Returning funded runner wallet SOLs to the bank
         if: always()
         run: |
