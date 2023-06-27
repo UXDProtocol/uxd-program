@@ -124,8 +124,7 @@ impl Controller {
         &mut self,
         credix_lp_depository_id: Pubkey,
     ) -> Result<()> {
-        let mut current_size = usize::from(self.registered_credix_lp_depositories_count);
-        current_size = 0;
+        let current_size = usize::from(self.registered_credix_lp_depositories_count);
         require!(
             current_size < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
             UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached

@@ -1,4 +1,7 @@
 solana config set --url https://api.devnet.solana.com
+solana program dump crdszSnZQu7j36KfsMJ4VEmMUTJgrNYXwoPVHUANpAu executable-devnet.so
+
+solana config set --url https://api.devnet.solana.com
 solana program dump crdRi38zEhQdzpsxnKur73WHBM9BSvXMSfGcbLyJCdP executable-pre-mainnet.so
 
 solana config set --url https://api.mainnet-beta.solana.com
