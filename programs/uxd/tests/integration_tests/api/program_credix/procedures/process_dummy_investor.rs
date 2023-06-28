@@ -77,6 +77,7 @@ pub async fn process_dummy_investor(
             _is_investor: true,
             _is_borrower: false,
             _release_timestamp: 0,
+            _amount_cap: None,
             _disable_withdrawal_fee: false,
             _bypass_withdraw_epochs: false,
         },

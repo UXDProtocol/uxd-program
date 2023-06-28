@@ -36,7 +36,7 @@ mercurial-vault = { git = "https://github.com/mercurial-finance/vault-sdk", feat
   "cpi",
 ], rev = "3724175d8435f7acb7a33077a5a9f1eb58ab3399" }
 
-credix_client = { version = "0.7.1", features = [
+credix_client = { version = "0.7.2", features = [
   "pre-mainnet",
   "cpi",
 ], default-features = false }
