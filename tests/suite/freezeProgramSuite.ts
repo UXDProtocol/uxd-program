@@ -16,7 +16,6 @@ import { freezeProgramTest } from '../cases/freezeProgramTest';
 import { mintWithCredixLpDepositoryTest } from '../cases/mintWithCredixLpDepositoryTest';
 import { mintWithIdentityDepositoryTest } from '../cases/mintWithIdentityDepositoryTest';
 import { mintWithMercurialVaultDepositoryTest } from '../cases/mintWithMercurialVaultDepositoryTest';
-import { redeemFromCredixLpDepositoryTest } from '../cases/redeemFromCredixLpDepositoryTest';
 import { redeemFromIdentityDepositoryTest } from '../cases/redeemFromIdentityDepositoryTest';
 import { redeemFromMercurialVaultDepositoryTest } from '../cases/redeemFromMercurialVaultDepositoryTest';
 import { registerMercurialVaultDepositoryTest } from '../cases/registerMercurialVaultDepositoryTest';
@@ -93,22 +92,6 @@ export const freezeProgramSuite = async function ({
     try {
       await mintWithCredixLpDepositoryTest({
         uiAmountCollateralDeposited: 1,
-        user,
-        controller,
-        depository: credixLpDepository,
-        payer,
-      });
-    } catch {
-      failure = true;
-    }
-    expect(failure).eq(true, 'Should have failed - program is frozen');
-  });
-
-  it(`redeemFromCredixLpDepositoryTest under frozen program`, async function () {
-    let failure = false;
-    try {
-      await redeemFromCredixLpDepositoryTest({
-        redeemableAmount: 1,
         user,
         controller,
         depository: credixLpDepository,

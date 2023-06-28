@@ -4,7 +4,7 @@ import { editControllerTest } from './cases/editControllerTest';
 import { initializeControllerTest } from './cases/initializeControllerTest';
 import { authority, bank, uxdProgramId } from './constants';
 import { credixLpDepositoryEditSuite } from './suite/credixLpDepositoryEditSuite';
-import { credixLpDepositoryMintAndRedeemSuite } from './suite/credixLpDepositoryMintAndRedeemSuite';
+import { credixLpDepositoryMintSuite } from './suite/credixLpDepositoryMintSuite';
 import { credixLpDepositorySetupSuite } from './suite/credixLpDepositorySetupSuite';
 import {
   transferSol,
@@ -79,8 +79,8 @@ import {
       credixLpDepositoryEditSuite({ authority, controller });
     });
 
-    describe('credixLpDepositoryMintAndRedeemSuite', function () {
-      credixLpDepositoryMintAndRedeemSuite({
+    describe('credixLpDepositoryMintSuite', function () {
+      credixLpDepositoryMintSuite({
         authority,
         user,
         payer: bank,

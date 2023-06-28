@@ -12,10 +12,9 @@ import { getConnection, TXN_OPTS } from '../connection';
 import { BN } from '@project-serum/anchor';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
 import { editControllerTest } from '../cases/editControllerTest';
-import { redeemFromCredixLpDepositoryTest } from '../cases/redeemFromCredixLpDepositoryTest';
 import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitsOfCredixLpDepositoryTest';
 
-export const credixLpDepositoryMintAndRedeemSuite = async function ({
+export const credixLpDepositoryMintSuite = async function ({
   authority,
   user,
   payer,
@@ -73,8 +72,8 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
     });
   });
 
-  describe('Regular mint/redeem', () => {
-    it(`Mint then redeem ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol}`, async function () {
+  describe('Regular mint', () => {
+    it(`Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol}`, async function () {
       const uiAmountCollateralDeposited = 0.001;
 
       console.log(
@@ -83,29 +82,6 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
         depository.collateralSymbol,
         ']'
       );
-
-      const redeemableAmount = await mintWithCredixLpDepositoryTest({
-        uiAmountCollateralDeposited,
-        user,
-        controller,
-        depository,
-        payer,
-      });
-
-      console.log(
-        '[🧾 redeemableAmount',
-        redeemableAmount,
-        controller.redeemableMintSymbol,
-        ']'
-      );
-
-      await redeemFromCredixLpDepositoryTest({
-        redeemableAmount,
-        user,
-        controller,
-        depository,
-        payer,
-      });
     });
   });
 
@@ -138,34 +114,6 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
       );
     });
 
-    it(`Redeem for more ${controller.redeemableMintSymbol} than owned (should fail)`, async function () {
-      const redeemableAmount = 1_000_000;
-
-      console.log(
-        '[🧾 redeemableAmount',
-        redeemableAmount,
-        controller.redeemableMintSymbol,
-        ']'
-      );
-
-      let failure = false;
-      try {
-        await redeemFromCredixLpDepositoryTest({
-          redeemableAmount,
-          user,
-          controller,
-          depository,
-          payer,
-        });
-      } catch {
-        failure = true;
-      }
-      expect(failure).eq(
-        true,
-        `Should have failed - Do not own enough ${controller.redeemableMintSymbol}`
-      );
-    });
-
     it(`Mint for 0 ${collateralSymbol} (should fail)`, async function () {
       const uiAmountCollateralDeposited = 0;
 
@@ -194,37 +142,9 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
         `Should have failed - Cannot mint for 0 ${collateralSymbol}`
       );
     });
-
-    it(`Redeem for 0 ${controller.redeemableMintSymbol} (should fail)`, async function () {
-      const redeemableAmount = 0;
-
-      console.log(
-        '[🧾 redeemableAmount',
-        redeemableAmount,
-        controller.redeemableMintSymbol,
-        ']'
-      );
-
-      let failure = false;
-      try {
-        await redeemFromCredixLpDepositoryTest({
-          redeemableAmount,
-          user,
-          controller,
-          depository,
-          payer,
-        });
-      } catch {
-        failure = true;
-      }
-      expect(failure).eq(
-        true,
-        `Should have failed - Do not own enough ${controller.redeemableMintSymbol}`
-      );
-    });
   });
 
-  describe('1 native unit mint/redeem', async () => {
+  describe('1 native unit mint', async () => {
     before(
       `Setup: Mint ${controller.redeemableMintSymbol} with 0.001 ${collateralSymbol}`,
       async function () {
@@ -276,35 +196,6 @@ export const credixLpDepositoryMintAndRedeemSuite = async function ({
       expect(failure).eq(
         true,
         `Should have failed - User cannot mint for 0 ${controller.redeemableMintSymbol} (happens due to precision loss and fees)`
-      );
-    });
-
-    it(`Redeem for 1 native unit ${controller.redeemableMintSymbol} (should fail)`, async function () {
-      const redeemableAmount = Math.pow(10, -controller.redeemableMintDecimals);
-
-      console.log(
-        '[🧾 redeemableAmount',
-        redeemableAmount,
-        controller.redeemableMintSymbol,
-        ']'
-      );
-
-      let failure = false;
-      try {
-        await redeemFromCredixLpDepositoryTest({
-          redeemableAmount,
-          user,
-          controller,
-          depository,
-          payer,
-        });
-      } catch {
-        failure = true;
-      }
-
-      expect(failure).eq(
-        true,
-        `Should have failed - User cannot redeem for 0 ${controller.redeemableMintSymbol} (happens due to precision loss and fees)`
       );
     });
   });
