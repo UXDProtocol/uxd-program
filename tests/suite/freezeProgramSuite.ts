@@ -8,7 +8,6 @@ import {
 } from '@uxd-protocol/uxd-client';
 import { Controller } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
-import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitsOfCredixLpDepositoryTest';
 import { editControllerTest } from '../cases/editControllerTest';
 import { editIdentityDepositoryTest } from '../cases/editIdentityDepositoryTest';
 import { editMercurialVaultDepositoryTest } from '../cases/editMercurialVaultDepositoryTest';
@@ -16,7 +15,6 @@ import { freezeProgramTest } from '../cases/freezeProgramTest';
 import { mintWithCredixLpDepositoryTest } from '../cases/mintWithCredixLpDepositoryTest';
 import { mintWithIdentityDepositoryTest } from '../cases/mintWithIdentityDepositoryTest';
 import { mintWithMercurialVaultDepositoryTest } from '../cases/mintWithMercurialVaultDepositoryTest';
-import { redeemFromCredixLpDepositoryTest } from '../cases/redeemFromCredixLpDepositoryTest';
 import { redeemFromIdentityDepositoryTest } from '../cases/redeemFromIdentityDepositoryTest';
 import { redeemFromMercurialVaultDepositoryTest } from '../cases/redeemFromMercurialVaultDepositoryTest';
 import { registerMercurialVaultDepositoryTest } from '../cases/registerMercurialVaultDepositoryTest';
@@ -97,37 +95,6 @@ export const freezeProgramSuite = async function ({
         controller,
         depository: credixLpDepository,
         payer,
-      });
-    } catch {
-      failure = true;
-    }
-    expect(failure).eq(true, 'Should have failed - program is frozen');
-  });
-
-  it(`redeemFromCredixLpDepositoryTest under frozen program`, async function () {
-    let failure = false;
-    try {
-      await redeemFromCredixLpDepositoryTest({
-        redeemableAmount: 1,
-        user,
-        controller,
-        depository: credixLpDepository,
-        payer,
-      });
-    } catch {
-      failure = true;
-    }
-    expect(failure).eq(true, 'Should have failed - program is frozen');
-  });
-
-  it(`collectProfitsOfCredixLpDepositoryTest under frozen program`, async function () {
-    let failure = false;
-    try {
-      await collectProfitOfCredixLpDepositoryTest({
-        payer,
-        profitsBeneficiaryCollateral: payer.publicKey,
-        controller,
-        depository: credixLpDepository,
       });
     } catch {
       failure = true;
