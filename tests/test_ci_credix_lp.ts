@@ -84,7 +84,6 @@ import {
         authority,
         user,
         payer: bank,
-        profitsBeneficiary,
         controller,
       });
     });

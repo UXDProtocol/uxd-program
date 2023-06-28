@@ -1,8 +1,7 @@
-import { PublicKey, Signer } from '@solana/web3.js';
+import { Signer } from '@solana/web3.js';
 import {
   Controller,
   CredixLpDepository,
-  findATAAddrSync,
   nativeToUi,
 } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
@@ -17,13 +16,11 @@ export const credixLpDepositoryMintSuite = async function ({
   authority,
   user,
   payer,
-  profitsBeneficiary,
   controller,
 }: {
   authority: Signer;
   user: Signer;
   payer: Signer;
-  profitsBeneficiary: Signer;
   controller: Controller;
 }) {
   const collateralSymbol = 'USDC';
