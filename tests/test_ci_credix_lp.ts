@@ -35,34 +35,22 @@ import {
   });
 
   const user: Signer = new Keypair();
-  const profitsBeneficiary: Signer = new Keypair();
 
   const credixLpDepository = await createCredixLpDepositoryDevnetUSDC();
   const collateralMint = credixLpDepository.collateralMint;
   const collateralDecimals = credixLpDepository.collateralDecimals;
 
   describe('Credix Lp integration tests: USDC', async function () {
-    this.beforeAll(
-      'Setup: fund user and profitsBeneficiary',
-      async function () {
-        await transferSol(1, bank, user.publicKey);
-        await transferSol(1, bank, profitsBeneficiary.publicKey);
-        await transferTokens(
-          0.1,
-          collateralMint,
-          collateralDecimals,
-          bank,
-          user.publicKey
-        );
-        await transferTokens(
-          0.1,
-          collateralMint,
-          collateralDecimals,
-          bank,
-          profitsBeneficiary.publicKey
-        );
-      }
-    );
+    this.beforeAll('Setup: fund user', async function () {
+      await transferSol(1, bank, user.publicKey);
+      await transferTokens(
+        0.1,
+        collateralMint,
+        collateralDecimals,
+        bank,
+        user.publicKey
+      );
+    });
 
     describe('credixLpDepositorySetupSuite', function () {
       credixLpDepositorySetupSuite({
@@ -95,14 +83,7 @@ import {
         user,
         bank.publicKey
       );
-      await transferAllTokens(
-        collateralMint,
-        collateralDecimals,
-        profitsBeneficiary,
-        bank.publicKey
-      );
       await transferAllSol(user, bank.publicKey);
-      await transferAllSol(profitsBeneficiary, bank.publicKey);
     });
   });
 })();
