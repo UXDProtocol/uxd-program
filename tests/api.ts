@@ -462,47 +462,6 @@ export async function mintWithCredixLpDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function redeemFromCredixLpDepository(
-  user: Signer,
-  payer: Signer,
-  controller: Controller,
-  depository: CredixLpDepository,
-  redeemableAmount: number
-): Promise<string> {
-  const redeemFromCredixLpDepositoryIx =
-    uxdClient.createRedeemFromCredixLpDepositoryInstruction(
-      controller,
-      depository,
-      user.publicKey,
-      redeemableAmount,
-      TXN_OPTS,
-      payer.publicKey
-    );
-  let signers: Signer[] = [];
-  let tx = new Transaction();
-
-  const [userCollateralAta] = findATAAddrSync(
-    user.publicKey,
-    depository.collateralMint
-  );
-  if (!(await getConnection().getAccountInfo(userCollateralAta))) {
-    const createUserCollateralAtaIx = createAssocTokenIx(
-      user.publicKey,
-      userCollateralAta,
-      depository.collateralMint
-    );
-    tx.add(createUserCollateralAtaIx);
-  }
-
-  tx.add(redeemFromCredixLpDepositoryIx);
-  signers.push(user);
-  if (payer != user) {
-    signers.push(payer);
-  }
-  tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
 export async function editCredixLpDepository(
   authority: Signer,
   controller: Controller,
