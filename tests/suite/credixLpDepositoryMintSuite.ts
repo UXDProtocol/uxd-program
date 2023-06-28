@@ -12,7 +12,6 @@ import { getConnection, TXN_OPTS } from '../connection';
 import { BN } from '@project-serum/anchor';
 import { editCredixLpDepositoryTest } from '../cases/editCredixLpDepositoryTest';
 import { editControllerTest } from '../cases/editControllerTest';
-import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitsOfCredixLpDepositoryTest';
 
 export const credixLpDepositoryMintSuite = async function ({
   authority,

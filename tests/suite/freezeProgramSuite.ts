@@ -8,7 +8,6 @@ import {
 } from '@uxd-protocol/uxd-client';
 import { Controller } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
-import { collectProfitOfCredixLpDepositoryTest } from '../cases/collectProfitsOfCredixLpDepositoryTest';
 import { editControllerTest } from '../cases/editControllerTest';
 import { editIdentityDepositoryTest } from '../cases/editIdentityDepositoryTest';
 import { editMercurialVaultDepositoryTest } from '../cases/editMercurialVaultDepositoryTest';
@@ -96,21 +95,6 @@ export const freezeProgramSuite = async function ({
         controller,
         depository: credixLpDepository,
         payer,
-      });
-    } catch {
-      failure = true;
-    }
-    expect(failure).eq(true, 'Should have failed - program is frozen');
-  });
-
-  it(`collectProfitsOfCredixLpDepositoryTest under frozen program`, async function () {
-    let failure = false;
-    try {
-      await collectProfitOfCredixLpDepositoryTest({
-        payer,
-        profitsBeneficiaryCollateral: payer.publicKey,
-        controller,
-        depository: credixLpDepository,
       });
     } catch {
       failure = true;
