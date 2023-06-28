@@ -252,29 +252,6 @@ pub mod uxd {
         instructions::mint_with_credix_lp_depository::handler(ctx, collateral_amount)
     }
 
-    // Redeem collateral tokens by burning redeemable from credix lp.
-    #[access_control(
-        ctx.accounts.validate(redeemable_amount)
-    )]
-    pub fn redeem_from_credix_lp_depository(
-        ctx: Context<RedeemFromCredixLpDepository>,
-        redeemable_amount: u64,
-    ) -> Result<()> {
-        msg!("[redeem_from_credix_lp_depository]");
-        instructions::redeem_from_credix_lp_depository::handler(ctx, redeemable_amount)
-    }
-
-    // Collect collateral tokens when locked value exceed liabilities (profits).
-    #[access_control(
-        ctx.accounts.validate()
-    )]
-    pub fn collect_profits_of_credix_lp_depository(
-        ctx: Context<CollectProfitsOfCredixLpDepository>,
-    ) -> Result<()> {
-        msg!("[collect_profits_of_credix_lp_depository]");
-        instructions::collect_profits_of_credix_lp_depository::handler(ctx)
-    }
-
     // Create a rebalance request to collect profits and overflow from credix depository
     #[access_control(
         ctx.accounts.validate()

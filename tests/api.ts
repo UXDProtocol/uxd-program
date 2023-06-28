@@ -503,28 +503,6 @@ export async function redeemFromCredixLpDepository(
   return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
 }
 
-export async function collectProfitsOfCredixLpDepository(
-  payer: Signer,
-  profitsBeneficiaryCollateral: PublicKey,
-  controller: Controller,
-  depository: CredixLpDepository
-): Promise<string> {
-  const collectProfitsOfCredixLpDepositoryIx =
-    uxdClient.createCollectProfitsOfCredixLpDepositoryInstruction(
-      controller,
-      depository,
-      payer.publicKey,
-      profitsBeneficiaryCollateral,
-      TXN_OPTS
-    );
-  let signers: Signer[] = [];
-  let tx = new Transaction();
-  tx.add(collectProfitsOfCredixLpDepositoryIx);
-  signers.push(payer);
-  tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
-}
-
 export async function editCredixLpDepository(
   authority: Signer,
   controller: Controller,
