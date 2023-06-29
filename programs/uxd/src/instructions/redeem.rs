@@ -344,7 +344,7 @@ impl<'info> Redeem<'info> {
 impl<'info> Redeem<'info> {
     pub(crate) fn validate(&self, redeemable_amount: u64) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
-        validate_redeemable_amount(&self.user_collateral, redeemable_amount)?;
+        validate_redeemable_amount(&self.user_redeemable, redeemable_amount)?;
         Ok(())
     }
 }
