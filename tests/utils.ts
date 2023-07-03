@@ -45,13 +45,13 @@ export async function sendAndConfirmTransaction(
   transaction: Transaction,
   signers: Signer[]
 ): Promise<string> {
-  const result = anchor.web3.sendAndConfirmTransaction(
+  const result = await anchor.web3.sendAndConfirmTransaction(
     getConnection(),
     transaction,
     signers,
     TXN_OPTS
   );
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
   return result;
 }
 
