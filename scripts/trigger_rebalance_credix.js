@@ -79,9 +79,11 @@ async function createCredixLpDepository() {
 }
 
 async function main() {
+  console.log();
   console.log('------------------------------ ------------------------------');
-  console.log('-------------------------- PREPARE --------------------------');
+  console.log('------------------------ PREPARATION ------------------------');
   console.log('------------------------------ ------------------------------');
+  console.log();
 
   // Dummy payer for mainnet tooling E7N44oZ3APNFjzv95xL6kSxSLgw3wVP3ixM7dgsMApzZ
   const payer = Keypair.fromSeed(
@@ -112,9 +114,11 @@ async function main() {
 
   const uxdClient = new UXDClient(uxdProgramId);
 
+  console.log();
   console.log('------------------------------ ------------------------------');
-  console.log('-------------------------- REQUEST --------------------------');
+  console.log('------------------ CREDIX REBALANCE CREATE ------------------');
   console.log('------------------------------ ------------------------------');
+  console.log();
 
   const rebalanceCreateInstruction =
     uxdClient.createRebalanceCreateWithdrawRequestFromCredixLpDepositoryInstruction(
@@ -141,9 +145,11 @@ async function main() {
     console.log('rebalanceCreateError', rebalanceCreateError);
   }
 
+  console.log();
   console.log('------------------------------ ------------------------------');
-  console.log('-------------------------- REDEEM ---------------------------');
+  console.log('----------------- CREDIX REBALANCE REDEEM -------------------');
   console.log('------------------------------ ------------------------------');
+  console.log();
 
   const rebalanceRedeemInstruction =
     uxdClient.createRebalanceRedeemWithdrawRequestFromCredixLpDepositoryInstruction(
@@ -171,9 +177,11 @@ async function main() {
     console.log('rebalanceRedeemError', rebalanceRedeemError);
   }
 
+  console.log();
   console.log('------------------------------ ------------------------------');
-  console.log('---------------------- ON-CHAIN STATE -----------------------');
+  console.log('------------------- LATEST ON-CHAIN STATE -------------------');
   console.log('------------------------------ ------------------------------');
+  console.log();
 
   const credixBaseDecimals = 6;
 
@@ -182,11 +190,11 @@ async function main() {
   const credixPass = credixLpDepository.credixPass;
   const credixWithdrawEpoch = credixLpDepository.credixWithdrawEpoch;
   const credixWithdrawRequest = credixLpDepository.credixWithdrawRequest;
-
   const credixProgram = CredixLpDepository.getCredixProgram(
     getConnection(),
     credixProgramId
   );
+
   const credixGlobalMarketStateAccount =
     await CredixLpDepository.getCredixGlobalMarketStateAccount(
       credixProgram,
@@ -226,6 +234,7 @@ async function main() {
       credixBaseDecimals
     )
   );
+  console.log();
 
   const credixPassAccount = await CredixLpDepository.getCredixPassAccount(
     credixProgram,
@@ -247,6 +256,7 @@ async function main() {
     'credixPassAccount.releaseTimestamp:',
     new Date(credixPassAccount.releaseTimestamp * 1000)
   );
+  console.log();
 
   const credixWithdrawEpochAccount =
     await CredixLpDepository.getCredixWithdrawEpochAccount(
@@ -297,6 +307,7 @@ async function main() {
       credixBaseDecimals
     )
   );
+  console.log();
 
   const credixWithdrawRequestAccount =
     await CredixLpDepository.getCredixWithdrawRequestAccount(
@@ -322,6 +333,7 @@ async function main() {
       credixBaseDecimals
     )
   );
+  console.log();
 }
 
 main();
