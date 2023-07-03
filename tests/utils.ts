@@ -14,6 +14,7 @@ import {
   ParsedAccountData,
   PublicKey,
   Signer,
+  Transaction,
 } from '@solana/web3.js';
 import * as anchor from '@project-serum/anchor';
 import {
@@ -40,6 +41,20 @@ export function ceilAtDecimals(number: number, decimals: number): number {
   );
 }
 
+export async function sendAndConfirmTransaction(
+  transaction: Transaction,
+  signers: Signer[]
+): Promise<string> {
+  const result = anchor.web3.sendAndConfirmTransaction(
+    getConnection(),
+    transaction,
+    signers,
+    TXN_OPTS
+  );
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  return result;
+}
+
 export function transferSol(
   amountUi: number,
   from: Signer,
@@ -52,12 +67,7 @@ export function transferSol(
       lamports: anchor.web3.LAMPORTS_PER_SOL * amountUi,
     })
   );
-  return anchor.web3.sendAndConfirmTransaction(
-    getConnection(),
-    transaction,
-    [from],
-    TXN_OPTS
-  );
+  return sendAndConfirmTransaction(transaction, [from]);
 }
 
 export async function transferAllSol(
@@ -73,12 +83,7 @@ export async function transferAllSol(
         anchor.web3.LAMPORTS_PER_SOL * fromBalance - SOLANA_FEES_LAMPORT,
     })
   );
-  return anchor.web3.sendAndConfirmTransaction(
-    getConnection(),
-    transaction,
-    [from],
-    TXN_OPTS
-  );
+  return sendAndConfirmTransaction(transaction, [from]);
 }
 
 export async function transferTokens(
@@ -107,12 +112,7 @@ export async function transferTokens(
     uiToNative(amountUi, decimals).toNumber()
   );
   const transaction = new anchor.web3.Transaction().add(transferTokensIx);
-  return anchor.web3.sendAndConfirmTransaction(
-    getConnection(),
-    transaction,
-    [from],
-    TXN_OPTS
-  );
+  return sendAndConfirmTransaction(transaction, [from]);
 }
 
 export async function transferAllTokens(
