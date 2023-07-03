@@ -277,7 +277,7 @@ async function main() {
     )
   );
   console.log(
-    'credixWithdrawEpochAccount.goLive+requestSeconds+redeem:',
+    'credixWithdrawEpochAccount.goLive+request+redeem:',
     new Date(
       credixWithdrawEpochAccount.goLive
         .addn(credixWithdrawEpochAccount.requestSeconds)
