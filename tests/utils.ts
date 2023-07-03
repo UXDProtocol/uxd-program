@@ -51,6 +51,10 @@ export async function sendAndConfirmTransaction(
     signers,
     TXN_OPTS
   );
+  // As a temporary fix to the flakyness of the solana devnet RPC
+  // We add an artificial delay to ensure the transaction went through
+  // And to make sure we can actually proceed with the next transaction
+  // Without risking race conditions, the extra delay remains small tho
   await new Promise((resolve) => setTimeout(resolve, 2000));
   return result;
 }
