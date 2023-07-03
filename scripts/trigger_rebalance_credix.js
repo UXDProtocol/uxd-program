@@ -4,6 +4,7 @@ const {
   IdentityDepository,
   MercurialVaultDepository,
   UXDClient,
+  nativeToUi,
 } = require('@uxd-protocol/uxd-client');
 const {
   Connection,
@@ -78,6 +79,10 @@ async function createCredixLpDepository() {
 }
 
 async function main() {
+  console.log('------------------------------ ------------------------------');
+  console.log('-------------------------- PREPARE --------------------------');
+  console.log('------------------------------ ------------------------------');
+
   // Dummy payer for mainnet tooling E7N44oZ3APNFjzv95xL6kSxSLgw3wVP3ixM7dgsMApzZ
   const payer = Keypair.fromSeed(
     Uint8Array.from([
@@ -107,6 +112,10 @@ async function main() {
 
   const uxdClient = new UXDClient(uxdProgramId);
 
+  console.log('------------------------------ ------------------------------');
+  console.log('-------------------------- REQUEST --------------------------');
+  console.log('------------------------------ ------------------------------');
+
   const rebalanceCreateInstruction =
     uxdClient.createRebalanceCreateWithdrawRequestFromCredixLpDepositoryInstruction(
       controller,
@@ -119,7 +128,6 @@ async function main() {
   const rebalanceCreateTransaction = new Transaction();
   rebalanceCreateTransaction.add(rebalanceCreateInstruction);
   rebalanceCreateTransaction.feePayer = payer.publicKey;
-  console.log('rebalanceCreateTransaction', rebalanceCreateTransaction);
 
   try {
     const rebalanceCreateResult = await web3.sendAndConfirmTransaction(
@@ -132,6 +140,10 @@ async function main() {
   } catch (rebalanceCreateError) {
     console.log('rebalanceCreateError', rebalanceCreateError);
   }
+
+  console.log('------------------------------ ------------------------------');
+  console.log('-------------------------- REDEEM ---------------------------');
+  console.log('------------------------------ ------------------------------');
 
   const rebalanceRedeemInstruction =
     uxdClient.createRebalanceRedeemWithdrawRequestFromCredixLpDepositoryInstruction(
@@ -146,12 +158,11 @@ async function main() {
   const rebalanceRedeemTransaction = new Transaction();
   rebalanceRedeemTransaction.add(rebalanceRedeemInstruction);
   rebalanceRedeemTransaction.feePayer = payer.publicKey;
-  console.log('rebalanceRedeemTransaction', rebalanceRedeemTransaction);
 
   try {
     const rebalanceRedeemResult = await web3.sendAndConfirmTransaction(
       getConnection(),
-      rebalanceCreateTransaction,
+      rebalanceRedeemTransaction,
       [payer],
       TXN_OPTS
     );
@@ -159,6 +170,95 @@ async function main() {
   } catch (rebalanceRedeemError) {
     console.log('rebalanceRedeemError', rebalanceRedeemError);
   }
+
+  console.log('------------------------------ ------------------------------');
+  console.log('------------------------- ON-CHAIN --------------------------');
+  console.log('------------------------------ ------------------------------');
+
+  const credixBaseDecimals = 6;
+
+  const credixProgramId = credixLpDepository.credixProgramId;
+  const credixWithdrawEpoch = credixLpDepository.credixWithdrawEpoch;
+  const credixWithdrawRequest = credixLpDepository.credixWithdrawRequest;
+
+  const credixProgram = CredixLpDepository.getCredixProgram(
+    getConnection(),
+    credixProgramId
+  );
+  const credixWithdrawEpochAccount =
+    await CredixLpDepository.getCredixWithdrawEpochAccount(
+      credixProgram,
+      credixWithdrawEpoch
+    );
+  console.log('credixWithdrawEpochAccount');
+  console.log(
+    'credixWithdrawEpochAccount.goLive:',
+    new Date(credixWithdrawEpochAccount.goLive * 1000)
+  );
+  console.log(
+    'credixWithdrawEpochAccount.goLive+request:',
+    new Date(
+      credixWithdrawEpochAccount.goLive.addn(
+        credixWithdrawEpochAccount.requestSeconds
+      ) * 1000
+    )
+  );
+  console.log(
+    'credixWithdrawEpochAccount.goLive+requestSeconds+redeem:',
+    new Date(
+      credixWithdrawEpochAccount.goLive
+        .addn(credixWithdrawEpochAccount.requestSeconds)
+        .addn(credixWithdrawEpochAccount.redeemSeconds) * 1000
+    )
+  );
+  console.log(
+    'credixWithdrawEpochAccount.goLive+request+redeem+availableLiquidity:',
+    new Date(
+      credixWithdrawEpochAccount.goLive
+        .addn(credixWithdrawEpochAccount.requestSeconds)
+        .addn(credixWithdrawEpochAccount.redeemSeconds)
+        .addn(credixWithdrawEpochAccount.availableLiquiditySeconds) * 1000
+    )
+  );
+  console.log(
+    'credixWithdrawEpochAccount.totalRequestedBaseAmount',
+    nativeToUi(
+      credixWithdrawEpochAccount.totalRequestedBaseAmount,
+      credixBaseDecimals
+    )
+  );
+  console.log(
+    'credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount',
+    nativeToUi(
+      credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount,
+      credixBaseDecimals
+    )
+  );
+
+  const credixWithdrawRequestAccount =
+    await CredixLpDepository.getCredixWithdrawRequestAccount(
+      credixProgram,
+      credixWithdrawRequest
+    );
+  console.log('credixWithdrawRequestAccount');
+  console.log(
+    'credixWithdrawRequestAccount.baseAmount',
+    nativeToUi(credixWithdrawRequestAccount.baseAmount, credixBaseDecimals)
+  );
+  console.log(
+    'credixWithdrawRequestAccount.baseAmountWithdrawn',
+    nativeToUi(
+      credixWithdrawRequestAccount.baseAmountWithdrawn,
+      credixBaseDecimals
+    )
+  );
+  console.log(
+    'credixWithdrawRequestAccount.investorTotalLpAmount',
+    nativeToUi(
+      credixWithdrawRequestAccount.investorTotalLpAmount,
+      credixBaseDecimals
+    )
+  );
 }
 
 main();
