@@ -172,12 +172,14 @@ async function main() {
   }
 
   console.log('------------------------------ ------------------------------');
-  console.log('------------------------- ON-CHAIN --------------------------');
+  console.log('---------------------- ON-CHAIN STATE -----------------------');
   console.log('------------------------------ ------------------------------');
 
   const credixBaseDecimals = 6;
 
   const credixProgramId = credixLpDepository.credixProgramId;
+  const credixGlobalMarketState = credixLpDepository.credixGlobalMarketState;
+  const credixPass = credixLpDepository.credixPass;
   const credixWithdrawEpoch = credixLpDepository.credixWithdrawEpoch;
   const credixWithdrawRequest = credixLpDepository.credixWithdrawRequest;
 
@@ -185,12 +187,73 @@ async function main() {
     getConnection(),
     credixProgramId
   );
+  const credixGlobalMarketStateAccount =
+    await CredixLpDepository.getCredixGlobalMarketStateAccount(
+      credixProgram,
+      credixGlobalMarketState
+    );
+  console.log('> credixGlobalMarketStateAccount');
+  console.log(
+    'credixGlobalMarketStateAccount.credixFeePercentage',
+    credixGlobalMarketStateAccount.credixFeePercentage
+  );
+  console.log(
+    'credixGlobalMarketStateAccount.withdrawalFee',
+    credixGlobalMarketStateAccount.withdrawalFee
+  );
+  console.log(
+    'credixGlobalMarketStateAccount.latestWithdrawEpochEnd:',
+    new Date(credixGlobalMarketStateAccount.latestWithdrawEpochEnd * 1000)
+  );
+  console.log(
+    'credixGlobalMarketStateAccount.poolOutstandingCredit',
+    nativeToUi(
+      credixGlobalMarketStateAccount.poolOutstandingCredit,
+      credixBaseDecimals
+    )
+  );
+  console.log(
+    'credixGlobalMarketStateAccount.lockedLiquidity',
+    nativeToUi(
+      credixGlobalMarketStateAccount.lockedLiquidity,
+      credixBaseDecimals
+    )
+  );
+  console.log(
+    'credixGlobalMarketStateAccount.totalRedeemedBaseAmount',
+    nativeToUi(
+      credixGlobalMarketStateAccount.totalRedeemedBaseAmount,
+      credixBaseDecimals
+    )
+  );
+
+  const credixPassAccount = await CredixLpDepository.getCredixPassAccount(
+    credixProgram,
+    credixPass
+  );
+  console.log('> credixPassAccount');
+  console.log('credixPassAccount.active', credixPassAccount.active);
+  console.log('credixPassAccount.isBorrower', credixPassAccount.isBorrower);
+  console.log('credixPassAccount.isInvestor', credixPassAccount.isInvestor);
+  console.log(
+    'credixPassAccount.disableWithdrawalFee',
+    credixPassAccount.disableWithdrawalFee
+  );
+  console.log(
+    'credixPassAccount.bypassWithdrawEpochs',
+    credixPassAccount.bypassWithdrawEpochs
+  );
+  console.log(
+    'credixPassAccount.releaseTimestamp:',
+    new Date(credixPassAccount.releaseTimestamp * 1000)
+  );
+
   const credixWithdrawEpochAccount =
     await CredixLpDepository.getCredixWithdrawEpochAccount(
       credixProgram,
       credixWithdrawEpoch
     );
-  console.log('credixWithdrawEpochAccount');
+  console.log('> credixWithdrawEpochAccount');
   console.log(
     'credixWithdrawEpochAccount.goLive:',
     new Date(credixWithdrawEpochAccount.goLive * 1000)
@@ -240,7 +303,7 @@ async function main() {
       credixProgram,
       credixWithdrawRequest
     );
-  console.log('credixWithdrawRequestAccount');
+  console.log('> credixWithdrawRequestAccount');
   console.log(
     'credixWithdrawRequestAccount.baseAmount',
     nativeToUi(credixWithdrawRequestAccount.baseAmount, credixBaseDecimals)
