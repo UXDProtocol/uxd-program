@@ -316,7 +316,7 @@ async function main() {
     );
   console.log('> credixWithdrawRequestAccount');
   console.log(
-    'credixWithdrawRequestAccount.baseAmount',
+    'credixWithdrawRequestAccount.baseAmount(requested)',
     nativeToUi(credixWithdrawRequestAccount.baseAmount, credixBaseDecimals)
   );
   console.log(
@@ -330,6 +330,16 @@ async function main() {
     'credixWithdrawRequestAccount.investorTotalLpAmount',
     nativeToUi(
       credixWithdrawRequestAccount.investorTotalLpAmount,
+      credixBaseDecimals
+    )
+  );
+  console.log(
+    'credixWithdrawRequestAccount.baseAmountWithdrawable(computed)',
+    nativeToUi(
+      credixGlobalMarketStateAccount.lockedLiquidity
+        .mul(credixWithdrawRequestAccount.investorTotalLpAmount)
+        .div(credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount)
+        .sub(credixWithdrawRequestAccount.baseAmountWithdrawn),
       credixBaseDecimals
     )
   );
