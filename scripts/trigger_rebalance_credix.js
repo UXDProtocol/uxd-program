@@ -150,7 +150,6 @@ async function main() {
   );
   rebalanceCreateTransaction.feePayer = payer.publicKey;
 
-  /*
   try {
     const rebalanceCreateResult = await web3.sendAndConfirmTransaction(
       getConnection(),
@@ -162,7 +161,6 @@ async function main() {
   } catch (rebalanceCreateError) {
     console.log('rebalanceCreateError', rebalanceCreateError);
   }
-  */
 
   console.log();
   console.log('------------------------------ ------------------------------');
@@ -189,7 +187,6 @@ async function main() {
   );
   rebalanceRedeemTransaction.feePayer = payer.publicKey;
 
-  /*
   try {
     const rebalanceRedeemResult = await web3.sendAndConfirmTransaction(
       getConnection(),
@@ -201,7 +198,6 @@ async function main() {
   } catch (rebalanceRedeemError) {
     console.log('rebalanceRedeemError', rebalanceRedeemError);
   }
-  */
 
   console.log();
   console.log('------------------------------ ------------------------------');
@@ -415,7 +411,7 @@ async function main() {
 
   console.log();
   console.log('------------------------------ ------------------------------');
-  console.log('------------------ REBALANCING ESTIMATIONS ------------------');
+  console.log('----------------- REBALANCING REDEEM MATHS ------------------');
   console.log('------------------------------ ------------------------------');
   console.log();
 
