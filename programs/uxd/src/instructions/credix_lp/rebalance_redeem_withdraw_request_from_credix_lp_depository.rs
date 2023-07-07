@@ -324,14 +324,23 @@ pub(crate) fn handler(
         let base_amount_withdrawn = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
         // All investors gets an equivalent slice of the locked liquidity,
         // based on their relative position size in the lp pool
-        locked_liquidity
-            .checked_mul(investor_total_lp_amount)
-            .ok_or(UxdError::MathError)?
-            .checked_div(participating_investors_total_lp_amount)
-            .ok_or(UxdError::MathError)?
-            .checked_sub(base_amount_withdrawn)
-            .ok_or(UxdError::MathError)?
+        // Note: all intermediary maths is in u128 because we are doing u64 multiplications
+        checked_convert_u128_to_u64(
+            u128::from(locked_liquidity)
+                .checked_mul(investor_total_lp_amount.into())
+                .ok_or(UxdError::MathError)?
+                .checked_div(participating_investors_total_lp_amount.into())
+                .ok_or(UxdError::MathError)?
+                .checked_sub(base_amount_withdrawn.into())
+                .ok_or(UxdError::MathError)?,
+        )?
     };
+
+    // How much we CAN withdraw now (may be lower than how much we want)
+    msg!(
+        "[rebalance_redeem_withdraw_request_from_credix_lp_depository:withdrawable_total_collateral_amount:{}]",
+        withdrawable_total_collateral_amount
+    );
 
     // We prioritize withdrawing the profits
     let withdrawal_profits_collateral_amount = std::cmp::min(
