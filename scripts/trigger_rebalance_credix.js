@@ -11,6 +11,7 @@ const {
   Keypair,
   PublicKey,
   Transaction,
+  ComputeBudgetProgram,
 } = require('@solana/web3.js');
 const { web3 } = require('@project-serum/anchor');
 
@@ -131,6 +132,11 @@ async function main() {
     );
   const rebalanceCreateTransaction = new Transaction();
   rebalanceCreateTransaction.add(rebalanceCreateInstruction);
+  rebalanceCreateTransaction.add(
+    ComputeBudgetProgram.setComputeUnitLimit({
+      units: 400_000,
+    })
+  );
   rebalanceCreateTransaction.feePayer = payer.publicKey;
 
   try {
@@ -163,6 +169,11 @@ async function main() {
     );
   const rebalanceRedeemTransaction = new Transaction();
   rebalanceRedeemTransaction.add(rebalanceRedeemInstruction);
+  rebalanceRedeemTransaction.add(
+    ComputeBudgetProgram.setComputeUnitLimit({
+      units: 400_000,
+    })
+  );
   rebalanceRedeemTransaction.feePayer = payer.publicKey;
 
   try {
