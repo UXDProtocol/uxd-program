@@ -285,6 +285,10 @@ pub(crate) fn handler(
     let profits_collateral_amount = owned_shares_value_before
         .checked_sub(redeemable_amount_under_management)
         .ok_or(UxdError::MathError)?;
+    msg!(
+        "[rebalance_redeem_withdraw_request_from_credix_lp_depository:profits_collateral_amount:{}]",
+        profits_collateral_amount
+    );
 
     let overflow_value = {
         let redeemable_amount_under_management_target_amount =
@@ -302,6 +306,10 @@ pub(crate) fn handler(
                 .ok_or(UxdError::MathError)?
         }
     };
+    msg!(
+        "[rebalance_redeem_withdraw_request_from_credix_lp_depository:overflow_value:{}]",
+        overflow_value
+    );
 
     // ---------------------------------------------------------------------
     // -- Phase 4
