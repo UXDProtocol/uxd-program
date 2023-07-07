@@ -538,32 +538,20 @@ async function main() {
     withdrawal_total_collateral_amount_after_precision_loss.toString()
   );
 
-  const withdrawal_precision_loss = withdrawal_total_collateral_amount.sub(
-    withdrawal_total_collateral_amount_after_precision_loss
-  );
-  console.log(
-    '> withdrawal_precision_loss:',
-    withdrawal_precision_loss.toString()
-  );
-
-  const withdrawal_profits_collateral_amount_after_precision_loss = BN.min(
-    withdrawal_total_collateral_amount_after_precision_loss,
-    withdrawal_profits_collateral_amount
-  ).sub(withdrawal_precision_loss);
-  console.log(
-    '> withdrawal_profits_collateral_amount_after_precision_loss:',
-    withdrawal_profits_collateral_amount_after_precision_loss.toString()
-  );
-
-  let withdrawal_overflow_value_after_precision_loss = BN.min(
-    withdrawal_total_collateral_amount_after_precision_loss.sub(
-      withdrawal_profits_collateral_amount_after_precision_loss
-    ),
-    withdrawal_overflow_value
-  );
+  let withdrawal_overflow_value_after_precision_loss =
+    withdrawal_overflow_value; // Precision loss should be taken from the profits, not the overflow
   console.log(
     '> withdrawal_overflow_value_after_precision_loss:',
     withdrawal_overflow_value_after_precision_loss.toString()
+  );
+
+  let withdrawal_profits_collateral_amount_after_precision_loss =
+    withdrawal_total_collateral_amount_after_precision_loss.sub(
+      withdrawal_overflow_value_after_precision_loss
+    );
+  console.log(
+    '> withdrawal_profits_collateral_amount_after_precision_loss:',
+    withdrawal_profits_collateral_amount_after_precision_loss.toString()
   );
 
   console.log();
