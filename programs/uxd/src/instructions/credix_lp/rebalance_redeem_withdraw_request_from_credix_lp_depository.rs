@@ -394,23 +394,13 @@ pub(crate) fn handler(
             total_shares_value_before,
         )?;
 
-    let withdrawal_precision_loss = withdrawal_total_collateral_amount
-        .checked_sub(withdrawal_total_collateral_amount_after_precision_loss)
-        .ok_or(UxdError::MathError)?;
-
-    let withdrawal_profits_collateral_amount_after_precision_loss = std::cmp::min(
-        withdrawal_total_collateral_amount_after_precision_loss,
-        withdrawal_profits_collateral_amount,
-    )
-    .checked_sub(withdrawal_precision_loss)
-    .ok_or(UxdError::MathError)?; // The precision loss is taken from the profits, to avoid impacting the redeemable backing
-
-    let withdrawal_overflow_value_after_precision_loss = std::cmp::min(
+    // Precision loss should be taken from the profits, not the overflow
+    // Otherwise this means that the precision loss would take out of the backing value
+    let withdrawal_overflow_value_after_precision_loss = withdrawal_overflow_value;
+    let withdrawal_profits_collateral_amount_after_precision_loss =
         withdrawal_total_collateral_amount_after_precision_loss
-            .checked_sub(withdrawal_profits_collateral_amount_after_precision_loss)
-            .ok_or(UxdError::MathError)?,
-        withdrawal_overflow_value,
-    );
+            .checked_sub(withdrawal_overflow_value_after_precision_loss)
+            .ok_or(UxdError::MathError)?;
 
     // ---------------------------------------------------------------------
     // -- Phase 6

@@ -5,14 +5,18 @@ const {
   MercurialVaultDepository,
   UXDClient,
   nativeToUi,
+  uiToNative,
+  CredixLpDepositoryAccount,
 } = require('@uxd-protocol/uxd-client');
 const {
   Connection,
   Keypair,
   PublicKey,
   Transaction,
+  ComputeBudgetProgram,
 } = require('@solana/web3.js');
 const { web3 } = require('@project-serum/anchor');
+const { BN } = require('bn.js');
 
 const TXN_COMMIT = 'confirmed';
 const connectionConfig = {
@@ -104,9 +108,17 @@ async function main() {
   mercurialVaultDepository.info();
   credixLpDepository.info();
 
-  const profitsBeneficiaryCollateral = (
-    await credixLpDepository.getOnchainAccount(getConnection(), TXN_OPTS)
-  ).profitsBeneficiaryCollateral;
+  const controllerAccount = await controller.getOnchainAccount(
+    getConnection(),
+    TXN_OPTS
+  );
+  const credixLpDepositoryAccount = await credixLpDepository.getOnchainAccount(
+    getConnection(),
+    TXN_OPTS
+  );
+
+  const profitsBeneficiaryCollateral =
+    credixLpDepositoryAccount.profitsBeneficiaryCollateral;
   console.log(
     'profitsBeneficiaryCollateral',
     profitsBeneficiaryCollateral.toBase58()
@@ -131,6 +143,11 @@ async function main() {
     );
   const rebalanceCreateTransaction = new Transaction();
   rebalanceCreateTransaction.add(rebalanceCreateInstruction);
+  rebalanceCreateTransaction.add(
+    ComputeBudgetProgram.setComputeUnitLimit({
+      units: 400_000,
+    })
+  );
   rebalanceCreateTransaction.feePayer = payer.publicKey;
 
   try {
@@ -163,6 +180,11 @@ async function main() {
     );
   const rebalanceRedeemTransaction = new Transaction();
   rebalanceRedeemTransaction.add(rebalanceRedeemInstruction);
+  rebalanceRedeemTransaction.add(
+    ComputeBudgetProgram.setComputeUnitLimit({
+      units: 400_000,
+    })
+  );
   rebalanceRedeemTransaction.feePayer = payer.publicKey;
 
   try {
@@ -344,6 +366,207 @@ async function main() {
     )
   );
   console.log();
+
+  const credixSharesMintAccount = await getConnection().getTokenSupply(
+    credixLpDepository.credixSharesMint
+  );
+  console.log('> credixSharesMint');
+  console.log(
+    'credixSharesMint.supply',
+    credixSharesMintAccount.value.uiAmount
+  );
+  console.log();
+
+  const credixLiquidityCollateralAccount =
+    await getConnection().getTokenAccountBalance(
+      credixLpDepository.credixLiquidityCollateral
+    );
+  console.log('> credixLiquidityCollateral');
+  console.log(
+    'credixLiquidityCollateral.amount',
+    credixLiquidityCollateralAccount.value.uiAmount
+  );
+  console.log();
+
+  const depositoryCollateralAccount =
+    await getConnection().getTokenAccountBalance(
+      credixLpDepository.depositoryCollateral
+    );
+  console.log('> depositoryCollateral');
+  console.log(
+    'depositoryCollateral.amount',
+    depositoryCollateralAccount.value.uiAmount
+  );
+  console.log();
+
+  const depositorySharesAccount = await getConnection().getTokenAccountBalance(
+    credixLpDepository.depositoryShares
+  );
+  console.log('> depositoryShares');
+  console.log(
+    'depositoryShares.amount',
+    depositorySharesAccount.value.uiAmount
+  );
+  console.log();
+
+  console.log();
+  console.log('------------------------------ ------------------------------');
+  console.log('----------------- REBALANCING REDEEM MATHS ------------------');
+  console.log('------------------------------ ------------------------------');
+  console.log();
+
+  const total_shares_supply_before = new BN(
+    credixSharesMintAccount.value.amount
+  );
+  console.log(
+    '> total_shares_supply_before:',
+    total_shares_supply_before.toString()
+  );
+
+  const total_shares_value_before = new BN(
+    credixLiquidityCollateralAccount.value.amount
+  ).add(credixGlobalMarketStateAccount.poolOutstandingCredit);
+  console.log(
+    '> total_shares_value_before:',
+    total_shares_value_before.toString()
+  );
+
+  const owned_shares_amount_before = new BN(
+    depositorySharesAccount.value.amount
+  );
+  console.log(
+    '> owned_shares_amount_before:',
+    owned_shares_amount_before.toString()
+  );
+
+  const owned_shares_value_before = compute_value_for_shares_amount_floor(
+    owned_shares_amount_before,
+    total_shares_supply_before,
+    total_shares_value_before
+  );
+  console.log(
+    '> owned_shares_value_before:',
+    owned_shares_value_before.toString()
+  );
+
+  const redeemable_amount_under_management =
+    credixLpDepositoryAccount.redeemableAmountUnderManagement;
+  console.log(
+    '> redeemable_amount_under_management:',
+    redeemable_amount_under_management.toString()
+  );
+
+  const profits_collateral_amount = owned_shares_value_before.sub(
+    redeemable_amount_under_management
+  );
+  console.log(
+    '> profits_collateral_amount:',
+    profits_collateral_amount.toString()
+  );
+
+  const redeemable_amount_under_management_target_amount =
+    controllerAccount.redeemableCirculatingSupply
+      .muln(controllerAccount.credixLpDepositoryWeightBps)
+      .divn(10_000);
+  let overflow_value = redeemable_amount_under_management.sub(
+    redeemable_amount_under_management_target_amount
+  );
+  if (overflow_value < 0) {
+    overflow_value = new BN(0);
+  }
+  console.log('> overflow_value:', overflow_value.toString());
+
+  const withdrawable_total_collateral_amount =
+    credixGlobalMarketStateAccount.lockedLiquidity
+      .mul(credixWithdrawRequestAccount.investorTotalLpAmount)
+      .div(credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount)
+      .sub(credixWithdrawRequestAccount.baseAmountWithdrawn);
+  console.log(
+    '> withdrawable_total_collateral_amount:',
+    withdrawable_total_collateral_amount.toString()
+  );
+
+  const withdrawal_profits_collateral_amount = BN.min(
+    withdrawable_total_collateral_amount,
+    profits_collateral_amount
+  );
+  console.log(
+    '> withdrawal_profits_collateral_amount:',
+    withdrawal_profits_collateral_amount.toString()
+  );
+
+  const withdrawal_overflow_value = BN.min(
+    withdrawable_total_collateral_amount.sub(
+      withdrawal_profits_collateral_amount
+    ),
+    overflow_value
+  );
+  console.log(
+    '> withdrawal_overflow_value:',
+    withdrawal_overflow_value.toString()
+  );
+
+  const withdrawal_total_collateral_amount =
+    withdrawal_profits_collateral_amount.add(withdrawal_overflow_value);
+  console.log(
+    '> withdrawal_total_collateral_amount:',
+    withdrawal_total_collateral_amount.toString()
+  );
+
+  const withdrawal_total_shares_amount = compute_shares_amount_for_value_floor(
+    withdrawal_total_collateral_amount,
+    total_shares_supply_before,
+    total_shares_value_before
+  );
+  console.log(
+    '> withdrawal_total_shares_amount:',
+    withdrawal_total_shares_amount.toString()
+  );
+
+  const withdrawal_total_collateral_amount_after_precision_loss =
+    compute_value_for_shares_amount_floor(
+      withdrawal_total_shares_amount,
+      total_shares_supply_before,
+      total_shares_value_before
+    );
+  console.log(
+    '> withdrawal_total_collateral_amount_after_precision_loss:',
+    withdrawal_total_collateral_amount_after_precision_loss.toString()
+  );
+
+  let withdrawal_overflow_value_after_precision_loss =
+    withdrawal_overflow_value; // Precision loss should be taken from the profits, not the overflow
+  console.log(
+    '> withdrawal_overflow_value_after_precision_loss:',
+    withdrawal_overflow_value_after_precision_loss.toString()
+  );
+
+  let withdrawal_profits_collateral_amount_after_precision_loss =
+    withdrawal_total_collateral_amount_after_precision_loss.sub(
+      withdrawal_overflow_value_after_precision_loss
+    );
+  console.log(
+    '> withdrawal_profits_collateral_amount_after_precision_loss:',
+    withdrawal_profits_collateral_amount_after_precision_loss.toString()
+  );
+
+  console.log();
+}
+
+function compute_value_for_shares_amount_floor(
+  shares_amount,
+  total_shares_supply,
+  total_shares_value
+) {
+  return shares_amount.mul(total_shares_value).div(total_shares_supply);
+}
+
+function compute_shares_amount_for_value_floor(
+  value,
+  total_shares_supply,
+  total_shares_value
+) {
+  return value.mul(total_shares_supply).div(total_shares_value);
 }
 
 main();
