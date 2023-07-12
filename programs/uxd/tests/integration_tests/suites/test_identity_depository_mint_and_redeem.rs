@@ -100,6 +100,7 @@ async fn test_identity_depository_mint_and_redeem(
         program_uxd::instructions::process_mint_with_identity_depository(
             &mut program_test_context,
             &payer,
+            &authority,
             &user,
             &user_collateral,
             &user_redeemable,
@@ -125,6 +126,7 @@ async fn test_identity_depository_mint_and_redeem(
         program_uxd::instructions::process_mint_with_identity_depository(
             &mut program_test_context,
             &payer,
+            &authority,
             &user,
             &user_collateral,
             &user_redeemable,
@@ -152,6 +154,7 @@ async fn test_identity_depository_mint_and_redeem(
         program_uxd::instructions::process_mint_with_identity_depository(
             &mut program_test_context,
             &payer,
+            &authority,
             &user,
             &user_collateral,
             &user_redeemable,
@@ -178,6 +181,7 @@ async fn test_identity_depository_mint_and_redeem(
         program_uxd::instructions::process_mint_with_identity_depository(
             &mut program_test_context,
             &payer,
+            &authority,
             &user,
             &user_collateral,
             &user_redeemable,
@@ -192,6 +196,7 @@ async fn test_identity_depository_mint_and_redeem(
         program_uxd::instructions::process_mint_with_identity_depository(
             &mut program_test_context,
             &payer,
+            &authority,
             &user,
             &user_collateral,
             &user_redeemable,
@@ -213,6 +218,7 @@ async fn test_identity_depository_mint_and_redeem(
     program_uxd::instructions::process_mint_with_identity_depository(
         &mut program_test_context,
         &payer,
+        &authority,
         &user,
         &user_collateral,
         &user_redeemable,
