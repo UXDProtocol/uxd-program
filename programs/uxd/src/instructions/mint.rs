@@ -336,6 +336,7 @@ impl<'info> Mint<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::MintWithIdentityDepository<'info>>
     {
         let cpi_accounts = uxd_cpi::cpi::accounts::MintWithIdentityDepository {
+            //authority: self.controller.to_account_info(),
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),

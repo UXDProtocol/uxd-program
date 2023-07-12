@@ -26,8 +26,8 @@ use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 #[derive(Accounts)]
 #[instruction(redeemable_amount: u64)]
 pub struct RedeemFromCredixLpDepository<'info> {
-    /// #1
-    pub user: Signer<'info>,
+    /// #1 Authored call accessible only to the signer matching Controller.authority
+    pub authority: Signer<'info>,
 
     /// #2
     #[account(mut)]

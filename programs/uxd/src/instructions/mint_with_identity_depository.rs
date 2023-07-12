@@ -17,6 +17,15 @@ use anchor_spl::token::Transfer;
 
 #[derive(Accounts)]
 pub struct MintWithIdentityDepository<'info> {
+    /// #1 This call should only be accessible by the router or the DAO
+    #[account(
+        constraint = (
+            authority.key() == controller.key()
+            || authority.key() == controller.load()?.authority
+        )  @UxdError::InvalidAuthority,
+    )]
+    pub authority: Signer<'info>,
+
     /// #1 Public call accessible to any user
     pub user: Signer<'info>,
 
