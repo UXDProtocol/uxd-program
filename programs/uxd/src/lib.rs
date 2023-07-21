@@ -24,6 +24,7 @@ pub const MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 pub const IDENTITY_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CREDIX_LP_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
+pub const LSD_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
 pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
@@ -33,6 +34,9 @@ pub const MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE: &[u8] =
     b"MERCURIALVAULTDEPOSITORYLPVAULT";
 pub const IDENTITY_DEPOSITORY_NAMESPACE: &[u8] = b"IDENTITYDEPOSITORY";
 pub const IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE: &[u8] = b"IDENTITYDEPOSITORYCOLLATERAL";
+pub const LSD_DEPOSITORY_NAMESPACE: &[u8] = b"LSDDEPOSITORY";
+pub const LSD_DEPOSITORY_COLLATERAL_NAMESPACE: &[u8] = b"LSDDEPOSITORYCOLLATERAL";
+pub const LSD_PROFITS_TOKEN_ACCOUNT_NAMESPACE: &[u8] = b"LSDPROFITSTOKENACCOUNT";
 
 pub const CREDIX_LP_DEPOSITORY_NAMESPACE: &[u8] = b"CREDIX_LP_DEPOSITORY";
 pub const CREDIX_LP_EXTERNAL_PASS_NAMESPACE: &[u8] = b"credix-pass";
@@ -41,7 +45,7 @@ pub const CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE: &[u8] = b"withdraw-requ
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
-pub const DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
+pub const DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP: u64 = 1_000_000; // 1 Million redeemable UI units
 
 pub const ROUTER_DEPOSITORIES_COUNT: usize = 3;
 pub const ROUTER_IDENTITY_DEPOSITORY_INDEX: usize = 0;
@@ -295,6 +299,22 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[rebalance_redeem_withdraw_request_from_credix_lp_depository]");
         instructions::rebalance_redeem_withdraw_request_from_credix_lp_depository::handler(ctx)
+    }
+
+    #[access_control(ctx.accounts.validate())]
+    pub fn initialize_lsd_depository(ctx: Context<InitializeLsdDepository>) -> Result<()> {
+        msg!("[initialize_lsd_depository]");
+        instructions::initialize_lsd_depository::handler(ctx)
+    }
+
+    #[access_control(ctx.accounts.validate(collateral_amount, loan_to_value_bps))]
+    pub fn borrow_from_lsd_depository(
+        ctx: Context<BorrowFromLsdDepository>,
+        collateral_amount: u64,
+        loan_to_value_bps: u8,
+    ) -> Result<()> {
+        msg!("[borrow_from_lsd_depository]");
+        instructions::borrow_from_lsd_depository::handler(ctx, collateral_amount, loan_to_value_bps)
     }
 
     /// Freeze or resume all ixs associated with the controller (except this one).

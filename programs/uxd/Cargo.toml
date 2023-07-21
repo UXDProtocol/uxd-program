@@ -29,7 +29,7 @@ development = []
 [dependencies]
 uxd-cpi = { version = "7.3.1", features = ["development"] }
 
-anchor-lang = "0.26.0"
+anchor-lang = {version = "0.26.0", features = ["init-if-needed"]}
 anchor-spl = "0.26.0"
 
 mercurial-vault = { git = "https://github.com/mercurial-finance/vault-sdk", features = [

@@ -150,6 +150,22 @@ pub struct InitializeIdentityDepositoryEvent {
     pub collateral_mint: Pubkey,
 }
 
+/// Event called in [instructions::initialize_lsd_depository::handler].
+#[event]
+pub struct InitializeLsdDepositoryEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    pub collateral_mint: Pubkey,
+    pub liquidation_mint: Pubkey,
+}
+
 /// Event called in [instructions::mint_with_identity_depository::handler].
 #[event]
 pub struct MintWithIdentityDepositoryEvent {

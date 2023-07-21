@@ -34,7 +34,9 @@
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
@@ -56,19 +58,25 @@
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#5 System Program"]
+          "docs": [
+            "#5 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#6 Token Program"]
+          "docs": [
+            "#6 Token Program"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#7 Rent Sysvar"]
+          "docs": [
+            "#7 Rent Sysvar"
+          ]
         }
       ],
       "args": [
@@ -205,7 +213,9 @@
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         }
       ],
       "args": [
@@ -224,43 +234,57 @@
           "name": "user",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1"]
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#4"]
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#5"]
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#6"]
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#7"]
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "identityDepository",
@@ -274,13 +298,17 @@
           "name": "identityDepositoryCollateralVault",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#9 - Token account holding the collateral from minting"]
+          "docs": [
+            "#9 - Token account holding the collateral from minting"
+          ]
         },
         {
           "name": "mercurialVaultDepository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "mercurialVaultDepositoryLpTokenVault",
@@ -294,13 +322,17 @@
           "name": "mercurialVaultDepositoryVault",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#12"]
+          "docs": [
+            "#12"
+          ]
         },
         {
           "name": "mercurialVaultDepositoryVaultLpMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#13"]
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "mercurialVaultDepositoryCollateralTokenSafe",
@@ -314,91 +346,121 @@
           "name": "credixLpDepository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#15"]
+          "docs": [
+            "#15"
+          ]
         },
         {
           "name": "credixLpDepositoryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#16"]
+          "docs": [
+            "#16"
+          ]
         },
         {
           "name": "credixLpDepositoryShares",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#17"]
+          "docs": [
+            "#17"
+          ]
         },
         {
           "name": "credixLpDepositoryPass",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#18"]
+          "docs": [
+            "#18"
+          ]
         },
         {
           "name": "credixLpDepositoryGlobalMarketState",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#19"]
+          "docs": [
+            "#19"
+          ]
         },
         {
           "name": "credixLpDepositorySigningAuthority",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#20 - CHECK: unused by us, checked by credix"]
+          "docs": [
+            "#20 - CHECK: unused by us, checked by credix"
+          ]
         },
         {
           "name": "credixLpDepositoryLiquidityCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#21"]
+          "docs": [
+            "#21"
+          ]
         },
         {
           "name": "credixLpDepositorySharesMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#22"]
+          "docs": [
+            "#22"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#23"]
+          "docs": [
+            "#23"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#24"]
+          "docs": [
+            "#24"
+          ]
         },
         {
           "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#25"]
+          "docs": [
+            "#25"
+          ]
         },
         {
           "name": "mercurialVaultProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#26"]
+          "docs": [
+            "#26"
+          ]
         },
         {
           "name": "credixProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#27"]
+          "docs": [
+            "#27"
+          ]
         },
         {
           "name": "uxdProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#28"]
+          "docs": [
+            "#28"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#29"]
+          "docs": [
+            "#29"
+          ]
         }
       ],
       "args": [
@@ -415,43 +477,57 @@
           "name": "user",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1"]
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#4"]
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#5"]
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#6"]
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#7"]
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "identityDepository",
@@ -465,13 +541,17 @@
           "name": "identityDepositoryCollateralVault",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#9 - Token account holding the collateral from minting"]
+          "docs": [
+            "#9 - Token account holding the collateral from minting"
+          ]
         },
         {
           "name": "mercurialVaultDepository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "mercurialVaultDepositoryLpTokenVault",
@@ -485,13 +565,17 @@
           "name": "mercurialVaultDepositoryVault",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#12"]
+          "docs": [
+            "#12"
+          ]
         },
         {
           "name": "mercurialVaultDepositoryVaultLpMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#13"]
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "mercurialVaultDepositoryCollateralTokenSafe",
@@ -505,43 +589,57 @@
           "name": "credixLpDepository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#15"]
+          "docs": [
+            "#15"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#16"]
+          "docs": [
+            "#16"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#17"]
+          "docs": [
+            "#17"
+          ]
         },
         {
           "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#18"]
+          "docs": [
+            "#18"
+          ]
         },
         {
           "name": "mercurialVaultProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#19"]
+          "docs": [
+            "#19"
+          ]
         },
         {
           "name": "uxdProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#20"]
+          "docs": [
+            "#20"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#21"]
+          "docs": [
+            "#21"
+          ]
         }
       ],
       "args": [
@@ -558,49 +656,65 @@
           "name": "user",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1"]
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#4"]
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#5"]
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#6"]
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#7"]
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#8"]
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
@@ -615,13 +729,17 @@
           "name": "mercurialVault",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#11"]
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
@@ -636,19 +754,25 @@
           "name": "mercurialVaultProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#13"]
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#14"]
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#15"]
+          "docs": [
+            "#15"
+          ]
         }
       ],
       "args": [
@@ -665,43 +789,57 @@
           "name": "authority",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1"]
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#4"]
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#5"]
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "mercurialVault",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#6"]
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#7"]
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
@@ -716,19 +854,25 @@
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#9"]
+          "docs": [
+            "#9"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#11"]
+          "docs": [
+            "#11"
+          ]
         }
       ],
       "args": [
@@ -753,49 +897,65 @@
           "name": "user",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1"]
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#4"]
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#5"]
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#6"]
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#7"]
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#8"]
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
@@ -810,13 +970,17 @@
           "name": "mercurialVault",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#11"]
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
@@ -831,19 +995,25 @@
           "name": "mercurialVaultProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#13"]
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#14"]
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#15"]
+          "docs": [
+            "#15"
+          ]
         }
       ],
       "args": [
@@ -860,31 +1030,41 @@
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#1"]
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#4"]
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "profitsBeneficiaryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#5"]
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "depositoryLpTokenVault",
@@ -899,13 +1079,17 @@
           "name": "mercurialVault",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#7"]
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "mercurialVaultLpMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#8"]
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "mercurialVaultCollateralTokenSafe",
@@ -920,19 +1104,25 @@
           "name": "mercurialVaultProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#11"]
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#12"]
+          "docs": [
+            "#12"
+          ]
         }
       ],
       "args": []
@@ -952,7 +1142,9 @@
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
@@ -974,31 +1166,42 @@
           "name": "collateralVault",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#5", "Token account holding the collateral from minting"]
+          "docs": [
+            "#5",
+            "Token account holding the collateral from minting"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#6 The collateral mint used by the `depository` instance"]
+          "docs": [
+            "#6 The collateral mint used by the `depository` instance"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#7 System Program"]
+          "docs": [
+            "#7 System Program"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#8 Token Program"]
+          "docs": [
+            "#8 Token Program"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#9 Rent Sysvar"]
+          "docs": [
+            "#9 Rent Sysvar"
+          ]
         }
       ],
       "args": []
@@ -1010,13 +1213,17 @@
           "name": "user",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1 Public call accessible to any user"]
+          "docs": [
+            "#1 Public call accessible to any user"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
@@ -1038,7 +1245,10 @@
           "name": "collateralVault",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#5", "Token account holding the collateral from minting"]
+          "docs": [
+            "#5",
+            "Token account holding the collateral from minting"
+          ]
         },
         {
           "name": "redeemableMint",
@@ -1071,13 +1281,17 @@
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#9"]
+          "docs": [
+            "#9"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#10 Token Program"]
+          "docs": [
+            "#10 Token Program"
+          ]
         }
       ],
       "args": [
@@ -1094,13 +1308,17 @@
           "name": "user",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1 Public call accessible to any user"]
+          "docs": [
+            "#1 Public call accessible to any user"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
@@ -1122,7 +1340,10 @@
           "name": "collateralVault",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#5", "Token account holding the collateral from minting"]
+          "docs": [
+            "#5",
+            "Token account holding the collateral from minting"
+          ]
         },
         {
           "name": "redeemableMint",
@@ -1155,13 +1376,17 @@
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#11"]
+          "docs": [
+            "#11"
+          ]
         }
       ],
       "args": [
@@ -1178,97 +1403,129 @@
           "name": "authority",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1"]
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#4"]
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#5"]
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "depositoryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#6"]
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "depositoryShares",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#7"]
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "credixProgramState",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#8"]
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "credixGlobalMarketState",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#9"]
+          "docs": [
+            "#9"
+          ]
         },
         {
           "name": "credixSigningAuthority",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "credixLiquidityCollateral",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#11"]
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "credixSharesMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#12"]
+          "docs": [
+            "#12"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#13"]
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#14"]
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#15"]
+          "docs": [
+            "#15"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#16"]
+          "docs": [
+            "#16"
+          ]
         }
       ],
       "args": [
@@ -1293,121 +1550,161 @@
           "name": "user",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1"]
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#4"]
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#5"]
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#6"]
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#7"]
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#8"]
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#9"]
+          "docs": [
+            "#9"
+          ]
         },
         {
           "name": "depositoryShares",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "credixGlobalMarketState",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#11"]
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "credixSigningAuthority",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#12"]
+          "docs": [
+            "#12"
+          ]
         },
         {
           "name": "credixLiquidityCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#13"]
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "credixSharesMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#14"]
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "credixPass",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#15"]
+          "docs": [
+            "#15"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#16"]
+          "docs": [
+            "#16"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#17"]
+          "docs": [
+            "#17"
+          ]
         },
         {
           "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#18"]
+          "docs": [
+            "#18"
+          ]
         },
         {
           "name": "credixProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#19"]
+          "docs": [
+            "#19"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#20"]
+          "docs": [
+            "#20"
+          ]
         }
       ],
       "args": [
@@ -1424,145 +1721,193 @@
           "name": "user",
           "isMut": false,
           "isSigner": true,
-          "docs": ["#1"]
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#4"]
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "redeemableMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#5"]
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#6"]
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "userRedeemable",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#7"]
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "userCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#8"]
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#9"]
+          "docs": [
+            "#9"
+          ]
         },
         {
           "name": "depositoryShares",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "credixProgramState",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#11"]
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "credixGlobalMarketState",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#12"]
+          "docs": [
+            "#12"
+          ]
         },
         {
           "name": "credixSigningAuthority",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#13"]
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "credixLiquidityCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#14"]
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "credixSharesMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#15"]
+          "docs": [
+            "#15"
+          ]
         },
         {
           "name": "credixPass",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#16"]
+          "docs": [
+            "#16"
+          ]
         },
         {
           "name": "credixTreasuryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#17"]
+          "docs": [
+            "#17"
+          ]
         },
         {
           "name": "credixMultisigKey",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#18"]
+          "docs": [
+            "#18"
+          ]
         },
         {
           "name": "credixMultisigCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#19"]
+          "docs": [
+            "#19"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#20"]
+          "docs": [
+            "#20"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#21"]
+          "docs": [
+            "#21"
+          ]
         },
         {
           "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#22"]
+          "docs": [
+            "#22"
+          ]
         },
         {
           "name": "credixProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#23"]
+          "docs": [
+            "#23"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#24"]
+          "docs": [
+            "#24"
+          ]
         }
       ],
       "args": [
@@ -1579,127 +1924,169 @@
           "name": "payer",
           "isMut": true,
           "isSigner": true,
-          "docs": ["#1"]
+          "docs": [
+            "#1"
+          ]
         },
         {
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#4"]
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "depositoryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#5"]
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "depositoryShares",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#6"]
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "credixProgramState",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#7"]
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "credixGlobalMarketState",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#8"]
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "credixSigningAuthority",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#9"]
+          "docs": [
+            "#9"
+          ]
         },
         {
           "name": "credixLiquidityCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "credixSharesMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#11"]
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "credixPass",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#12"]
+          "docs": [
+            "#12"
+          ]
         },
         {
           "name": "credixTreasuryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#13"]
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "credixMultisigKey",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#14"]
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "credixMultisigCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#15"]
+          "docs": [
+            "#15"
+          ]
         },
         {
           "name": "profitsBeneficiaryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#16"]
+          "docs": [
+            "#16"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#17"]
+          "docs": [
+            "#17"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#18"]
+          "docs": [
+            "#18"
+          ]
         },
         {
           "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#19"]
+          "docs": [
+            "#19"
+          ]
         },
         {
           "name": "credixProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#20"]
+          "docs": [
+            "#20"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#21"]
+          "docs": [
+            "#21"
+          ]
         }
       ],
       "args": []
@@ -1720,91 +2107,121 @@
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "identityDepository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "mercurialVaultDepository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#4"]
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#5"]
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#6"]
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "depositoryShares",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#7"]
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "credixGlobalMarketState",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#8"]
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "credixSigningAuthority",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#9"]
+          "docs": [
+            "#9"
+          ]
         },
         {
           "name": "credixLiquidityCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "credixSharesMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#11"]
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "credixPass",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#12"]
+          "docs": [
+            "#12"
+          ]
         },
         {
           "name": "credixWithdrawEpoch",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#13"]
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "credixWithdrawRequest",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#14"]
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#15"]
+          "docs": [
+            "#15"
+          ]
         },
         {
           "name": "credixProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#16"]
+          "docs": [
+            "#16"
+          ]
         }
       ],
       "args": []
@@ -1824,151 +2241,201 @@
           "name": "controller",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#2"]
+          "docs": [
+            "#2"
+          ]
         },
         {
           "name": "identityDepository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#3"]
+          "docs": [
+            "#3"
+          ]
         },
         {
           "name": "identityDepositoryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#4"]
+          "docs": [
+            "#4"
+          ]
         },
         {
           "name": "mercurialVaultDepository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#5"]
+          "docs": [
+            "#5"
+          ]
         },
         {
           "name": "depository",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#6"]
+          "docs": [
+            "#6"
+          ]
         },
         {
           "name": "collateralMint",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#7"]
+          "docs": [
+            "#7"
+          ]
         },
         {
           "name": "depositoryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#8"]
+          "docs": [
+            "#8"
+          ]
         },
         {
           "name": "depositoryShares",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#9"]
+          "docs": [
+            "#9"
+          ]
         },
         {
           "name": "credixProgramState",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#10"]
+          "docs": [
+            "#10"
+          ]
         },
         {
           "name": "credixGlobalMarketState",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#11"]
+          "docs": [
+            "#11"
+          ]
         },
         {
           "name": "credixSigningAuthority",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#12"]
+          "docs": [
+            "#12"
+          ]
         },
         {
           "name": "credixLiquidityCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#13"]
+          "docs": [
+            "#13"
+          ]
         },
         {
           "name": "credixSharesMint",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#14"]
+          "docs": [
+            "#14"
+          ]
         },
         {
           "name": "credixPass",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#15"]
+          "docs": [
+            "#15"
+          ]
         },
         {
           "name": "credixTreasuryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#16"]
+          "docs": [
+            "#16"
+          ]
         },
         {
           "name": "credixMultisigKey",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#17"]
+          "docs": [
+            "#17"
+          ]
         },
         {
           "name": "credixMultisigCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#18"]
+          "docs": [
+            "#18"
+          ]
         },
         {
           "name": "credixWithdrawEpoch",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#19"]
+          "docs": [
+            "#19"
+          ]
         },
         {
           "name": "credixWithdrawRequest",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#20"]
+          "docs": [
+            "#20"
+          ]
         },
         {
           "name": "profitsBeneficiaryCollateral",
           "isMut": true,
           "isSigner": false,
-          "docs": ["#21"]
+          "docs": [
+            "#21"
+          ]
         },
         {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#22"]
+          "docs": [
+            "#22"
+          ]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#23"]
+          "docs": [
+            "#23"
+          ]
         },
         {
           "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#24"]
+          "docs": [
+            "#24"
+          ]
         },
         {
           "name": "credixProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#25"]
+          "docs": [
+            "#25"
+          ]
         },
         {
           "name": "rent",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#26"]
+          "docs": [
+            "#26"
+          ]
         }
       ],
       "args": []
@@ -2044,7 +2511,10 @@
           {
             "name": "unused",
             "type": {
-              "array": ["u8", 255]
+              "array": [
+                "u8",
+                255
+              ]
             }
           },
           {
@@ -2062,7 +2532,10 @@
           {
             "name": "unused3",
             "type": {
-              "array": ["u8", 8]
+              "array": [
+                "u8",
+                8
+              ]
             }
           },
           {
@@ -2072,13 +2545,19 @@
           {
             "name": "unused4",
             "type": {
-              "array": ["u8", 8]
+              "array": [
+                "u8",
+                8
+              ]
             }
           },
           {
             "name": "registeredMercurialVaultDepositories",
             "type": {
-              "array": ["publicKey", 4]
+              "array": [
+                "publicKey",
+                4
+              ]
             }
           },
           {
@@ -2088,7 +2567,10 @@
           {
             "name": "registeredCredixLpDepositories",
             "type": {
-              "array": ["publicKey", 4]
+              "array": [
+                "publicKey",
+                4
+              ]
             }
           },
           {
@@ -2126,7 +2608,10 @@
           {
             "name": "reserved",
             "type": {
-              "array": ["u8", 128]
+              "array": [
+                "u8",
+                128
+              ]
             }
           }
         ]
@@ -2224,7 +2709,10 @@
           {
             "name": "reserved",
             "type": {
-              "array": ["u8", 768]
+              "array": [
+                "u8",
+                768
+              ]
             }
           }
         ]
@@ -2290,7 +2778,10 @@
           {
             "name": "reserved",
             "type": {
-              "array": ["u8", 512]
+              "array": [
+                "u8",
+                512
+              ]
             }
           }
         ]
@@ -2388,7 +2879,10 @@
           {
             "name": "reserved",
             "type": {
-              "array": ["u8", 588]
+              "array": [
+                "u8",
+                588
+              ]
             }
           }
         ]
@@ -3491,8 +3985,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "EqMrasrCXsbE6mpXaopUH1qip7auwX4AF5UWWpXaLr6u"
-  }
+  ]
 }

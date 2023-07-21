@@ -120,6 +120,11 @@ pub enum UxdError {
     #[msg("The Credix WithdrawEpoch isn't in its redeem phase.")]
     InvalidCredixWithdrawEpochRedeemPhase,
 
+    #[msg("The provided LTV bps isn't valid.")]
+    InvalidLtvBps,
+    #[msg("The provided LTV is over the depository's maximum value.")]
+    LtvBpsOverLimit,
+
     #[msg("Default - Check the source code for more info.")]
     Default,
 }
