@@ -117,7 +117,7 @@ pub struct BorrowFromLsdDepository<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64, loan_to_value_bps: u8) -> Result<()> {
+pub(crate) fn handler(ctx: Context<BorrowFromLsdDepository>, collateral_amount: u64, loan_to_value_bps: u8) -> Result<()> {
     // - validate inputs
     // - move user collateral to the lsd_position_collateral_token_account
     // - mint redeemable tokens to the user according to LTV to user_redeemable
