@@ -80,7 +80,7 @@ pub struct BorrowFromLsdDepository<'info> {
     pub lsd_position: AccountLoader<'info, LsdPosition>,
 
     /// #
-    /// PDA holding the deposited collateral on behald of the lsd_position
+    /// PDA holding the deposited collateral on behalf of the lsd_position
     #[account(
         init_if_needed,
         seeds = [lsd_position.key().as_ref()],

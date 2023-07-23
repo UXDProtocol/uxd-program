@@ -105,10 +105,10 @@ pub(crate) fn handler(ctx: Context<InitializeLsdDepository>) -> Result<()> {
     depository.redeemable_amount_under_management_cap = DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP
         .checked_mul(redeemable_mint_unit)
         .ok_or_else(|| error!(UxdError::MathError))?;
-    depository.borrowing_fee_bps = 0;
-    depository.repay_fee_bps = 0;
-    depository.loan_to_value_bps = 0;
-    depository.liquidation_fee_bps = 0;
+    depository.borrowing_fee_bps = u8::MIN;
+    depository.repay_fee_bps = u8::MIN;
+    depository.loan_to_value_bps = u8::MIN;
+    depository.liquidation_fee_bps = u8::MIN;
     depository.profits_beneficiary = Pubkey::default();
 
     // Accounting
@@ -139,14 +139,6 @@ impl<'info> InitializeLsdDepository<'info> {
 
     pub(crate) fn validate(&self) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
-
-        // Collateral mint and redeemable mint should share the same decimals to justify their 1:1 swapping
-        require!(
-            self.collateral_mint
-                .decimals
-                .eq(&self.controller.load()?.redeemable_mint_decimals),
-            UxdError::CollateralMintNotAllowed,
-        );
 
         Ok(())
     }
