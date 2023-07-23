@@ -52,8 +52,8 @@ pub const ROUTER_IDENTITY_DEPOSITORY_INDEX: usize = 0;
 pub const ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX: usize = 1;
 pub const ROUTER_CREDIX_LP_DEPOSITORY_INDEX: usize = 2;
 
-const BPS_POW: u8 = 4; // Raise a number to BPS_POW to get order of magnitude of
-pub const BPS_UNIT_CONVERSION: u64 = (10u64).pow(BPS_POW as u32);
+const BPS_DECIMALS: u8 = 4;
+pub const BPS_POWER: u64 = (10u64).pow(BPS_DECIMALS as u32);
 
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
 

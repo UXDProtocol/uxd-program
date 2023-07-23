@@ -4,7 +4,7 @@ use crate::events::SetRouterDepositories;
 use crate::events::SetRouterDepositoriesWeightBps;
 use crate::validate_is_program_frozen;
 use crate::Controller;
-use crate::BPS_UNIT_CONVERSION;
+use crate::BPS_POWER;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP;
 use anchor_lang::prelude::*;
@@ -146,7 +146,7 @@ impl<'info> EditController<'info> {
                 .checked_add(depositories_routing_weight_bps.credix_lp_depository_weight_bps)
                 .ok_or(UxdError::MathError)?;
             require!(
-                u64::from(total_weight_bps) == BPS_UNIT_CONVERSION,
+                u64::from(total_weight_bps) == BPS_POWER,
                 UxdError::InvalidDepositoriesWeightBps
             );
         }
