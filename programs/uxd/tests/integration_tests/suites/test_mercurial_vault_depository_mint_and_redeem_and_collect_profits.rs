@@ -110,6 +110,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
         program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
+            &authority,
             &collateral_mint.pubkey(),
             &mercurial_vault_lp_mint.pubkey(),
             &user,
@@ -137,6 +138,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
         program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
+            &authority,
             &collateral_mint.pubkey(),
             &mercurial_vault_lp_mint.pubkey(),
             &user,
@@ -166,6 +168,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
         program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
+            &authority,
             &collateral_mint.pubkey(),
             &mercurial_vault_lp_mint.pubkey(),
             &user,
@@ -198,6 +201,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
         program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
+            &authority,
             &collateral_mint.pubkey(),
             &mercurial_vault_lp_mint.pubkey(),
             &user,
@@ -214,6 +218,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
         program_uxd::instructions::process_mint_with_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
+            &authority,
             &collateral_mint.pubkey(),
             &mercurial_vault_lp_mint.pubkey(),
             &user,
@@ -237,6 +242,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
     program_uxd::instructions::process_mint_with_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
+        &authority,
         &collateral_mint.pubkey(),
         &mercurial_vault_lp_mint.pubkey(),
         &user,
@@ -250,6 +256,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
     program_uxd::instructions::process_redeem_from_mercurial_vault_depository(
         &mut program_test_context,
         &payer,
+        &authority,
         &collateral_mint.pubkey(),
         &mercurial_vault_lp_mint.pubkey(),
         &user,
@@ -264,6 +271,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
         program_uxd::instructions::process_redeem_from_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
+            &authority,
             &collateral_mint.pubkey(),
             &mercurial_vault_lp_mint.pubkey(),
             &user,
@@ -280,6 +288,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
         program_uxd::instructions::process_redeem_from_mercurial_vault_depository(
             &mut program_test_context,
             &payer,
+            &authority,
             &collateral_mint.pubkey(),
             &mercurial_vault_lp_mint.pubkey(),
             &user,

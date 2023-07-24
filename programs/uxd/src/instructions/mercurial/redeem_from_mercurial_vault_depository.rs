@@ -18,7 +18,7 @@ use anchor_spl::token::TokenAccount;
 
 #[derive(Accounts)]
 pub struct RedeemFromMercurialVaultDepository<'info> {
-    /// #1 This call should only be accessible by the router or the DAO
+    /// #1 This IX should only be accessible by the router or the DAO
     #[account(
         constraint = (
             authority.key() == controller.key()

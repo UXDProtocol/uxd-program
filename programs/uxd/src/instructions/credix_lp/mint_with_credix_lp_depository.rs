@@ -26,7 +26,7 @@ use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 #[derive(Accounts)]
 #[instruction(collateral_amount: u64)]
 pub struct MintWithCredixLpDepository<'info> {
-    /// #1 This call should only be accessible by the router or the DAO
+    /// #1 This IX should only be accessible by the router or the DAO
     #[account(
         constraint = (
             authority.key() == controller.key()

@@ -555,6 +555,14 @@
       "name": "mintWithMercurialVaultDepository",
       "accounts": [
         {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true,
+          "docs": [
+            "#1 This call should only be accessible by the router or the DAO"
+          ]
+        },
+        {
           "name": "user",
           "isMut": false,
           "isSigner": true,
@@ -749,6 +757,14 @@
     {
       "name": "redeemFromMercurialVaultDepository",
       "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true,
+          "docs": [
+            "#1 This call should only be accessible by the router or the DAO"
+          ]
+        },
         {
           "name": "user",
           "isMut": false,
@@ -1007,6 +1023,14 @@
       "name": "mintWithIdentityDepository",
       "accounts": [
         {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true,
+          "docs": [
+            "#1 This call should only be accessible by the Controller or the DAO"
+          ]
+        },
+        {
           "name": "user",
           "isMut": false,
           "isSigner": true,
@@ -1090,6 +1114,14 @@
     {
       "name": "redeemFromIdentityDepository",
       "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true,
+          "docs": [
+            "#1 This call should only be accessible by the router or the DAO"
+          ]
+        },
         {
           "name": "user",
           "isMut": false,
@@ -1289,6 +1321,14 @@
     {
       "name": "mintWithCredixLpDepository",
       "accounts": [
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true,
+          "docs": [
+            "#1 This call should only be accessible by the router or the DAO"
+          ]
+        },
         {
           "name": "user",
           "isMut": false,
@@ -3491,8 +3531,5 @@
       "name": "Default",
       "msg": "Default - Check the source code for more info."
     }
-  ],
-  "metadata": {
-    "address": "EqMrasrCXsbE6mpXaopUH1qip7auwX4AF5UWWpXaLr6u"
-  }
+  ]
 }

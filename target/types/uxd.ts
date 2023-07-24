@@ -553,6 +553,14 @@ export type Uxd = {
       name: 'mintWithMercurialVaultDepository';
       accounts: [
         {
+          name: 'authority';
+          isMut: false;
+          isSigner: true;
+          docs: [
+            '#1 This call should only be accessible by the router or the DAO'
+          ];
+        },
+        {
           name: 'user';
           isMut: false;
           isSigner: true;
@@ -747,6 +755,14 @@ export type Uxd = {
     {
       name: 'redeemFromMercurialVaultDepository';
       accounts: [
+        {
+          name: 'authority';
+          isMut: false;
+          isSigner: true;
+          docs: [
+            '#1 This call should only be accessible by the router or the DAO'
+          ];
+        },
         {
           name: 'user';
           isMut: false;
@@ -1005,6 +1021,14 @@ export type Uxd = {
       name: 'mintWithIdentityDepository';
       accounts: [
         {
+          name: 'authority';
+          isMut: false;
+          isSigner: true;
+          docs: [
+            '#1 This call should only be accessible by the Controller or the DAO'
+          ];
+        },
+        {
           name: 'user';
           isMut: false;
           isSigner: true;
@@ -1088,6 +1112,14 @@ export type Uxd = {
     {
       name: 'redeemFromIdentityDepository';
       accounts: [
+        {
+          name: 'authority';
+          isMut: false;
+          isSigner: true;
+          docs: [
+            '#1 This call should only be accessible by the router or the DAO'
+          ];
+        },
         {
           name: 'user';
           isMut: false;
@@ -1287,6 +1319,14 @@ export type Uxd = {
     {
       name: 'mintWithCredixLpDepository';
       accounts: [
+        {
+          name: 'authority';
+          isMut: false;
+          isSigner: true;
+          docs: [
+            '#1 This call should only be accessible by the router or the DAO'
+          ];
+        },
         {
           name: 'user';
           isMut: false;
@@ -4047,6 +4087,14 @@ export const IDL: Uxd = {
       name: 'mintWithMercurialVaultDepository',
       accounts: [
         {
+          name: 'authority',
+          isMut: false,
+          isSigner: true,
+          docs: [
+            '#1 This call should only be accessible by the router or the DAO',
+          ],
+        },
+        {
           name: 'user',
           isMut: false,
           isSigner: true,
@@ -4241,6 +4289,14 @@ export const IDL: Uxd = {
     {
       name: 'redeemFromMercurialVaultDepository',
       accounts: [
+        {
+          name: 'authority',
+          isMut: false,
+          isSigner: true,
+          docs: [
+            '#1 This call should only be accessible by the router or the DAO',
+          ],
+        },
         {
           name: 'user',
           isMut: false,
@@ -4499,6 +4555,14 @@ export const IDL: Uxd = {
       name: 'mintWithIdentityDepository',
       accounts: [
         {
+          name: 'authority',
+          isMut: false,
+          isSigner: true,
+          docs: [
+            '#1 This call should only be accessible by the Controller or the DAO',
+          ],
+        },
+        {
           name: 'user',
           isMut: false,
           isSigner: true,
@@ -4582,6 +4646,14 @@ export const IDL: Uxd = {
     {
       name: 'redeemFromIdentityDepository',
       accounts: [
+        {
+          name: 'authority',
+          isMut: false,
+          isSigner: true,
+          docs: [
+            '#1 This call should only be accessible by the router or the DAO',
+          ],
+        },
         {
           name: 'user',
           isMut: false,
@@ -4781,6 +4853,14 @@ export const IDL: Uxd = {
     {
       name: 'mintWithCredixLpDepository',
       accounts: [
+        {
+          name: 'authority',
+          isMut: false,
+          isSigner: true,
+          docs: [
+            '#1 This call should only be accessible by the router or the DAO',
+          ],
+        },
         {
           name: 'user',
           isMut: false,
