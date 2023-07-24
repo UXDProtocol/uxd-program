@@ -69,10 +69,10 @@ pub async fn process_repay_deal(
         credix_multisig_key: *multisig,
         credix_multisig_token_account,
         credix_pass,
+        variable_interest_rates: credix_client::id(), // Optional, Not set
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
-        rent: anchor_lang::solana_program::sysvar::rent::ID,
     };
     let payload = credix_client::instruction::RepayDeal { _amount: amount };
     let instruction = Instruction {
