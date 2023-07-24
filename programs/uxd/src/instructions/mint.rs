@@ -347,7 +347,7 @@ impl<'info> Mint<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::MintWithIdentityDepository<'info>>
     {
         let cpi_accounts = uxd_cpi::cpi::accounts::MintWithIdentityDepository {
-            //authority: self.controller.to_account_info(),
+            authority: self.controller.to_account_info(),
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
@@ -373,6 +373,7 @@ impl<'info> Mint<'info> {
         uxd_cpi::cpi::accounts::MintWithMercurialVaultDepository<'info>,
     > {
         let cpi_accounts = uxd_cpi::cpi::accounts::MintWithMercurialVaultDepository {
+            authority: self.controller.to_account_info(),
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
@@ -404,6 +405,7 @@ impl<'info> Mint<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::MintWithCredixLpDepository<'info>>
     {
         let cpi_accounts = uxd_cpi::cpi::accounts::MintWithCredixLpDepository {
+            authority: self.controller.to_account_info(),
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),

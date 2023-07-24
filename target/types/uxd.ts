@@ -1,5 +1,5 @@
 export type Uxd = {
-  version: '7.3.1';
+  version: '8.1.0';
   name: 'uxd';
   instructions: [
     {
@@ -557,7 +557,7 @@ export type Uxd = {
           isMut: false;
           isSigner: true;
           docs: [
-            '#1 This call should only be accessible by the router or the DAO'
+            '#1 This IX should only be accessible by the router or the DAO'
           ];
         },
         {
@@ -760,7 +760,7 @@ export type Uxd = {
           isMut: false;
           isSigner: true;
           docs: [
-            '#1 This call should only be accessible by the router or the DAO'
+            '#1 This IX should only be accessible by the router or the DAO'
           ];
         },
         {
@@ -1025,7 +1025,7 @@ export type Uxd = {
           isMut: false;
           isSigner: true;
           docs: [
-            '#1 This call should only be accessible by the Controller or the DAO'
+            '#1 This IX should only be accessible by the router or the DAO'
           ];
         },
         {
@@ -1117,7 +1117,7 @@ export type Uxd = {
           isMut: false;
           isSigner: true;
           docs: [
-            '#1 This call should only be accessible by the router or the DAO'
+            '#1 This IX should only be accessible by the router or the DAO'
           ];
         },
         {
@@ -1324,7 +1324,7 @@ export type Uxd = {
           isMut: false;
           isSigner: true;
           docs: [
-            '#1 This call should only be accessible by the router or the DAO'
+            '#1 This IX should only be accessible by the router or the DAO'
           ];
         },
         {
@@ -3533,7 +3533,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  version: '7.3.1',
+  version: '8.1.0',
   name: 'uxd',
   instructions: [
     {
@@ -4091,7 +4091,7 @@ export const IDL: Uxd = {
           isMut: false,
           isSigner: true,
           docs: [
-            '#1 This call should only be accessible by the router or the DAO',
+            '#1 This IX should only be accessible by the router or the DAO',
           ],
         },
         {
@@ -4294,7 +4294,7 @@ export const IDL: Uxd = {
           isMut: false,
           isSigner: true,
           docs: [
-            '#1 This call should only be accessible by the router or the DAO',
+            '#1 This IX should only be accessible by the router or the DAO',
           ],
         },
         {
@@ -4559,7 +4559,7 @@ export const IDL: Uxd = {
           isMut: false,
           isSigner: true,
           docs: [
-            '#1 This call should only be accessible by the Controller or the DAO',
+            '#1 This IX should only be accessible by the router or the DAO',
           ],
         },
         {
@@ -4651,7 +4651,7 @@ export const IDL: Uxd = {
           isMut: false,
           isSigner: true,
           docs: [
-            '#1 This call should only be accessible by the router or the DAO',
+            '#1 This IX should only be accessible by the router or the DAO',
           ],
         },
         {
@@ -4858,7 +4858,7 @@ export const IDL: Uxd = {
           isMut: false,
           isSigner: true,
           docs: [
-            '#1 This call should only be accessible by the router or the DAO',
+            '#1 This IX should only be accessible by the router or the DAO',
           ],
         },
         {

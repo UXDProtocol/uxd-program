@@ -297,6 +297,7 @@ impl<'info> Redeem<'info> {
     ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::RedeemFromIdentityDepository<'info>>
     {
         let cpi_accounts = uxd_cpi::cpi::accounts::RedeemFromIdentityDepository {
+            authority: self.controller.to_account_info(),
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
@@ -322,6 +323,7 @@ impl<'info> Redeem<'info> {
         uxd_cpi::cpi::accounts::RedeemFromMercurialVaultDepository<'info>,
     > {
         let cpi_accounts = uxd_cpi::cpi::accounts::RedeemFromMercurialVaultDepository {
+            authority: self.controller.to_account_info(),
             user: self.user.to_account_info(),
             payer: self.payer.to_account_info(),
             controller: self.controller.to_account_info(),
