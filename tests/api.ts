@@ -9,7 +9,7 @@ import {
   IdentityDepository,
   CredixLpDepository,
 } from '@uxd-protocol/uxd-client';
-import { web3 } from '@project-serum/anchor';
+import { sendAndConfirmTransaction } from './utils';
 
 export async function initializeController({
   authority,
@@ -36,7 +36,7 @@ export async function initializeController({
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function mintWithMercurialVaultDepository({
@@ -83,7 +83,7 @@ export async function mintWithMercurialVaultDepository({
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function redeemFromMercurialVaultDepository({
@@ -130,7 +130,7 @@ export async function redeemFromMercurialVaultDepository({
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function registerMercurialVaultDepository({
@@ -170,7 +170,7 @@ export async function registerMercurialVaultDepository({
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function editController({
@@ -196,7 +196,7 @@ export async function editController({
   tx.instructions.push(editControllerIx);
   signers.push(authority);
 
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function editMercurialVaultDepository({
@@ -230,7 +230,7 @@ export async function editMercurialVaultDepository({
   tx.instructions.push(editMercurialVaultDepositoryIx);
   signers.push(authority);
 
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function editIdentityDepository({
@@ -261,7 +261,7 @@ export async function editIdentityDepository({
   tx.instructions.push(editIdentityDepositoryIx);
   signers.push(authority);
 
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function initializeIdentityDepository({
@@ -292,7 +292,7 @@ export async function initializeIdentityDepository({
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function mintWithIdentityDepository({
@@ -339,7 +339,7 @@ export async function mintWithIdentityDepository({
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function redeemFromIdentityDepository({
@@ -386,7 +386,7 @@ export async function redeemFromIdentityDepository({
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function registerCredixLpDepository(
@@ -418,7 +418,7 @@ export async function registerCredixLpDepository(
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function mintWithCredixLpDepository(
@@ -459,7 +459,7 @@ export async function mintWithCredixLpDepository(
     signers.push(payer);
   }
   tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function editCredixLpDepository(
@@ -488,7 +488,7 @@ export async function editCredixLpDepository(
   tx.instructions.push(editCredixLpDepositoryIx);
   signers.push(authority);
 
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function freezeProgram(
@@ -508,7 +508,7 @@ export async function freezeProgram(
   tx.instructions.push(freezeProgramIx);
   signers.push(authority);
 
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }
 
 export async function collectProfitsOfMercurialVaultDepository({
@@ -537,5 +537,5 @@ export async function collectProfitsOfMercurialVaultDepository({
   tx.add(collectInterestsAndFeesFromMercurialVaultDepositoryIx);
   signers.push(payer);
   tx.feePayer = payer.publicKey;
-  return web3.sendAndConfirmTransaction(getConnection(), tx, signers, TXN_OPTS);
+  return sendAndConfirmTransaction(tx, signers);
 }

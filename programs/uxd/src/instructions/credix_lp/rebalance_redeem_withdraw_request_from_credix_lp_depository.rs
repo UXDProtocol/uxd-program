@@ -285,6 +285,10 @@ pub(crate) fn handler(
     let profits_collateral_amount = owned_shares_value_before
         .checked_sub(redeemable_amount_under_management)
         .ok_or(UxdError::MathError)?;
+    msg!(
+        "[rebalance_redeem_withdraw_request_from_credix_lp_depository:profits_collateral_amount:{}]",
+        profits_collateral_amount
+    );
 
     let overflow_value = {
         let redeemable_amount_under_management_target_amount =
@@ -302,6 +306,10 @@ pub(crate) fn handler(
                 .ok_or(UxdError::MathError)?
         }
     };
+    msg!(
+        "[rebalance_redeem_withdraw_request_from_credix_lp_depository:overflow_value:{}]",
+        overflow_value
+    );
 
     // ---------------------------------------------------------------------
     // -- Phase 4
@@ -324,14 +332,23 @@ pub(crate) fn handler(
         let base_amount_withdrawn = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
         // All investors gets an equivalent slice of the locked liquidity,
         // based on their relative position size in the lp pool
-        locked_liquidity
-            .checked_mul(investor_total_lp_amount)
-            .ok_or(UxdError::MathError)?
-            .checked_div(participating_investors_total_lp_amount)
-            .ok_or(UxdError::MathError)?
-            .checked_sub(base_amount_withdrawn)
-            .ok_or(UxdError::MathError)?
+        // Note: all intermediary maths is in u128 because we are doing u64 multiplications
+        checked_convert_u128_to_u64(
+            u128::from(locked_liquidity)
+                .checked_mul(investor_total_lp_amount.into())
+                .ok_or(UxdError::MathError)?
+                .checked_div(participating_investors_total_lp_amount.into())
+                .ok_or(UxdError::MathError)?
+                .checked_sub(base_amount_withdrawn.into())
+                .ok_or(UxdError::MathError)?,
+        )?
     };
+
+    // How much we CAN withdraw now (may be lower than how much we want)
+    msg!(
+        "[rebalance_redeem_withdraw_request_from_credix_lp_depository:withdrawable_total_collateral_amount:{}]",
+        withdrawable_total_collateral_amount
+    );
 
     // We prioritize withdrawing the profits
     let withdrawal_profits_collateral_amount = std::cmp::min(
@@ -377,23 +394,13 @@ pub(crate) fn handler(
             total_shares_value_before,
         )?;
 
-    let withdrawal_precision_loss = withdrawal_total_collateral_amount
-        .checked_sub(withdrawal_total_collateral_amount_after_precision_loss)
-        .ok_or(UxdError::MathError)?;
-
-    let withdrawal_profits_collateral_amount_after_precision_loss = std::cmp::min(
-        withdrawal_total_collateral_amount_after_precision_loss,
-        withdrawal_profits_collateral_amount,
-    )
-    .checked_sub(withdrawal_precision_loss)
-    .ok_or(UxdError::MathError)?; // The precision loss is taken from the profits, to avoid impacting the redeemable backing
-
-    let withdrawal_overflow_value_after_precision_loss = std::cmp::min(
+    // Precision loss should be taken from the profits, not the overflow
+    // Otherwise this means that the precision loss would take out of the backing value
+    let withdrawal_overflow_value_after_precision_loss = withdrawal_overflow_value;
+    let withdrawal_profits_collateral_amount_after_precision_loss =
         withdrawal_total_collateral_amount_after_precision_loss
-            .checked_sub(withdrawal_profits_collateral_amount_after_precision_loss)
-            .ok_or(UxdError::MathError)?,
-        withdrawal_overflow_value,
-    );
+            .checked_sub(withdrawal_overflow_value_after_precision_loss)
+            .ok_or(UxdError::MathError)?;
 
     // ---------------------------------------------------------------------
     // -- Phase 6

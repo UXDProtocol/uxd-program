@@ -9,7 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_TOOLCHAIN: 1.66
-  SOLANA_VERSION: 1.14.17
+  SOLANA_VERSION: 1.14.16
 
 defaults:
   run:
@@ -102,7 +102,5 @@ jobs:
           solana-keygen new -o "$HOME/.config/solana/id.json" --no-passphrase --silent
 
       # Run tests
-      - name: Build program
-        run: cargo build-bpf
       - name: Run tests
         run: cargo test-bpf
