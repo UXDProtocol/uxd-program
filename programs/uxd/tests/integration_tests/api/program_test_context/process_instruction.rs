@@ -89,11 +89,11 @@ pub async fn process_instruction_with_signers(
     program_test_context: &mut ProgramTestContext,
     instruction: Instruction,
     payer: &Keypair,
-    signers: &Vec<&Keypair>,
+    signers: &[&Keypair],
 ) -> Result<(), program_test_context::ProgramTestError> {
     let mut transaction: Transaction =
         Transaction::new_with_payer(&[instruction.clone()], Some(&payer.pubkey()));
-    let mut keypairs = signers.clone();
+    let mut keypairs = signers.to_owned();
     keypairs.push(payer);
     transaction.partial_sign(&keypairs, program_test_context.last_blockhash);
     let result = program_test_context

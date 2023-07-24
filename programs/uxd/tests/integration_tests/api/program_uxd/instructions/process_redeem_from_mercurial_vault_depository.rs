@@ -101,7 +101,7 @@ pub async fn process_redeem_from_mercurial_vault_depository(
         program_test_context,
         instruction,
         payer,
-        &vec![authority, user],
+        &[authority, user],
     )
     .await?;
 

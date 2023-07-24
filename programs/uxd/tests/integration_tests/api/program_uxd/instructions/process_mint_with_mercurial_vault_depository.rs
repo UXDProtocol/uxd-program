@@ -98,7 +98,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
         program_test_context,
         instruction,
         payer,
-        &vec![authority, user],
+        &[authority, user],
     )
     .await?;
 

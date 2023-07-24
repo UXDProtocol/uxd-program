@@ -18,6 +18,7 @@ use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn process_mint_with_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
@@ -119,7 +120,7 @@ pub async fn process_mint_with_credix_lp_depository(
         program_test_context,
         instruction,
         payer,
-        &vec![authority, user],
+        &[authority, user],
     )
     .await?;
 

@@ -77,7 +77,7 @@ pub async fn process_redeem_from_identity_depository(
         program_test_context,
         instruction,
         payer,
-        &vec![authority, user],
+        &[authority, user],
     )
     .await?;
 
