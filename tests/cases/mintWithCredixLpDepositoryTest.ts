@@ -13,12 +13,14 @@ import { getBalance, ceilAtDecimals } from '../utils';
 
 export const mintWithCredixLpDepositoryTest = async function ({
   uiAmountCollateralDeposited,
+  authority,
   user,
   controller,
   depository,
   payer,
 }: {
   uiAmountCollateralDeposited: number;
+  authority: Signer;
   user: Signer;
   controller: Controller;
   depository: CredixLpDepository;
@@ -52,6 +54,7 @@ export const mintWithCredixLpDepositoryTest = async function ({
     // WHEN
     // Simulates user experience from the front end
     const txId = await mintWithCredixLpDepository(
+      authority,
       user,
       payer ?? user,
       controller,

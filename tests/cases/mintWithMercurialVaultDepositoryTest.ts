@@ -13,12 +13,14 @@ import { getBalance } from '../utils';
 
 export const mintWithMercurialVaultDepositoryTest = async function ({
   collateralAmount,
+  authority,
   user,
   controller,
   depository,
   payer,
 }: {
   collateralAmount: number;
+  authority: Signer;
   user: Signer;
   controller: Controller;
   depository: MercurialVaultDepository;
@@ -48,6 +50,7 @@ export const mintWithMercurialVaultDepositoryTest = async function ({
     // WHEN
     // Simulates user experience from the front end
     const txId = await mintWithMercurialVaultDepository({
+      authority,
       user,
       payer: payer ?? user,
       controller,

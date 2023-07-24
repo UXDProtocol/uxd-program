@@ -13,12 +13,14 @@ import { getBalance, ceilAtDecimals } from '../utils';
 
 export const redeemFromMercurialVaultDepositoryTest = async function ({
   redeemableAmount,
+  authority,
   user,
   controller,
   depository,
   payer,
 }: {
   redeemableAmount: number;
+  authority: Signer;
   user: Signer;
   controller: Controller;
   depository: MercurialVaultDepository;
@@ -48,6 +50,7 @@ export const redeemFromMercurialVaultDepositoryTest = async function ({
     // WHEN
     // Simulates user experience from the front end
     const txId = await redeemFromMercurialVaultDepository({
+      authority,
       user,
       payer: payer ?? user,
       controller,

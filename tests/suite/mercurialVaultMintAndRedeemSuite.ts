@@ -112,6 +112,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
 
       await mintWithMercurialVaultDepositoryTest({
         collateralAmount,
+        authority,
         user,
         controller,
         depository,
@@ -134,6 +135,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
 
       await redeemFromMercurialVaultDepositoryTest({
         redeemableAmount: previouslyMintedRedeemableAmount,
+        authority,
         user,
         controller,
         depository,
@@ -157,6 +159,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
       try {
         await mintWithMercurialVaultDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,
@@ -186,6 +189,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
       try {
         await redeemFromMercurialVaultDepositoryTest({
           redeemableAmount,
+          authority,
           user,
           controller,
           depository,
@@ -215,6 +219,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
       try {
         await mintWithMercurialVaultDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,
@@ -244,6 +249,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
       try {
         await redeemFromMercurialVaultDepositoryTest({
           redeemableAmount,
+          authority,
           user,
           controller,
           depository,
@@ -275,6 +281,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
 
         await mintWithMercurialVaultDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,
@@ -300,6 +307,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
       try {
         await mintWithMercurialVaultDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,
@@ -329,6 +337,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
       try {
         await redeemFromMercurialVaultDepositoryTest({
           redeemableAmount,
+          authority,
           user,
           controller,
           depository,
@@ -361,6 +370,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
 
         await redeemFromMercurialVaultDepositoryTest({
           redeemableAmount: previouslyMintedRedeemableAmount,
+          authority,
           user,
           controller,
           depository,
@@ -394,6 +404,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
       try {
         await mintWithMercurialVaultDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,
@@ -460,6 +471,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
       try {
         await mintWithMercurialVaultDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,
@@ -518,6 +530,7 @@ export const mercurialVaultDepositoryMintRedeemSuite = async function ({
       try {
         await mintWithMercurialVaultDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,
