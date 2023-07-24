@@ -21,6 +21,7 @@ use crate::integration_tests::api::program_uxd;
 pub async fn process_mint_with_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
+    authority: &Keypair,
     collateral_mint: &Pubkey,
     user: &Keypair,
     user_collateral: &Pubkey,
@@ -86,8 +87,9 @@ pub async fn process_mint_with_credix_lp_depository(
 
     // Execute IX
     let accounts = uxd::accounts::MintWithCredixLpDepository {
-        payer: payer.pubkey(),
+        authority: authority.pubkey(),
         user: user.pubkey(),
+        payer: payer.pubkey(),
         controller,
         collateral_mint: *collateral_mint,
         redeemable_mint,
@@ -113,11 +115,11 @@ pub async fn process_mint_with_credix_lp_depository(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signer(
+    program_test_context::process_instruction_with_signers(
         program_test_context,
         instruction,
         payer,
-        user,
+        &vec![authority, user],
     )
     .await?;
 

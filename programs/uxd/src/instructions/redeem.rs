@@ -165,6 +165,12 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
 
+    // Make controller signer
+    let controller_pda_signer: &[&[&[u8]]] = &[&[
+        CONTROLLER_NAMESPACE,
+        &[ctx.accounts.controller.load()?.bump],
+    ]];
+
     // The actual post-redeem circulating supply may be slightly higher
     // Due to redeem fees and precision loss. But the difference should be negligible and
     // Any future mint/redeem will recompute the targets based on the exact future circulating supply anyway
@@ -189,7 +195,9 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
                 );
                 if redeemable_amount > 0 {
                     uxd_cpi::cpi::redeem_from_identity_depository(
-                        ctx.accounts.into_redeem_from_identity_depository_context(),
+                        ctx.accounts
+                            .into_redeem_from_identity_depository_context()
+                            .with_signer(controller_pda_signer),
                         redeemable_amount,
                     )?;
                 }
@@ -211,7 +219,8 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
                 if redeemable_amount > 0 {
                     uxd_cpi::cpi::redeem_from_mercurial_vault_depository(
                         ctx.accounts
-                            .into_redeem_from_mercurial_vault_depository_context(),
+                            .into_redeem_from_mercurial_vault_depository_context()
+                            .with_signer(controller_pda_signer),
                         redeemable_amount,
                     )?;
                 }

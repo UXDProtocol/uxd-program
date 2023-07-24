@@ -208,6 +208,12 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
 
+    // Make controller signer
+    let controller_pda_signer: &[&[&[u8]]] = &[&[
+        CONTROLLER_NAMESPACE,
+        &[ctx.accounts.controller.load()?.bump],
+    ]];
+
     // The actual post-mint circulating supply might be slightly lower due to fees and precision loss
     // But the difference is negligible, and the difference will be taken into account
     // When the next mint/redeem IX recompute the new targets based on the new circulating supply
@@ -229,7 +235,9 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
                 msg!("[mint:mint_with_identity_depository:{}]", collateral_amount);
                 if collateral_amount > 0 {
                     uxd_cpi::cpi::mint_with_identity_depository(
-                        ctx.accounts.into_mint_with_identity_depository_context(),
+                        ctx.accounts
+                            .into_mint_with_identity_depository_context()
+                            .with_signer(controller_pda_signer),
                         collateral_amount,
                     )?;
                 }
@@ -251,7 +259,8 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
                 if collateral_amount > 0 {
                     uxd_cpi::cpi::mint_with_mercurial_vault_depository(
                         ctx.accounts
-                            .into_mint_with_mercurial_vault_depository_context(),
+                            .into_mint_with_mercurial_vault_depository_context()
+                            .with_signer(controller_pda_signer),
                         collateral_amount,
                     )?;
                 }
@@ -272,7 +281,9 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
                 );
                 if collateral_amount > 0 {
                     uxd_cpi::cpi::mint_with_credix_lp_depository(
-                        ctx.accounts.into_mint_with_credix_lp_depository_context(),
+                        ctx.accounts
+                            .into_mint_with_credix_lp_depository_context()
+                            .with_signer(controller_pda_signer),
                         collateral_amount,
                     )?;
                 }

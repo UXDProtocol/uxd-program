@@ -130,8 +130,8 @@ pub async fn process_mint(
 
     // Execute IX
     let accounts = uxd::accounts::Mint {
-        payer: payer.pubkey(),
         user: user.pubkey(),
+        payer: payer.pubkey(),
         controller,
         collateral_mint: *collateral_mint,
         redeemable_mint,

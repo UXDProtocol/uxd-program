@@ -18,6 +18,15 @@ use anchor_spl::token::TokenAccount;
 
 #[derive(Accounts)]
 pub struct RedeemFromMercurialVaultDepository<'info> {
+    /// #1 This call should only be accessible by the router or the DAO
+    #[account(
+        constraint = (
+            authority.key() == controller.key()
+            || authority.key() == controller.load()?.authority
+        )  @UxdError::InvalidAuthority,
+    )]
+    pub authority: Signer<'info>,
+
     /// #1
     pub user: Signer<'info>,
 

@@ -17,7 +17,7 @@ use anchor_spl::token::Transfer;
 
 #[derive(Accounts)]
 pub struct MintWithIdentityDepository<'info> {
-    /// #1 This call should only be accessible by the router or the DAO
+    /// #1 This call should only be accessible by the Controller or the DAO
     #[account(
         constraint = (
             authority.key() == controller.key()
