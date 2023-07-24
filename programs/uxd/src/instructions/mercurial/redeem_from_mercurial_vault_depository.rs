@@ -27,14 +27,14 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub authority: Signer<'info>,
 
-    /// #1
+    /// #2
     pub user: Signer<'info>,
 
-    /// #2
+    /// #3
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// #3
+    /// #4
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -44,7 +44,7 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #4
+    /// #5
     #[account(
         mut,
         seeds = [MERCURIAL_VAULT_DEPOSITORY_NAMESPACE, depository.load()?.mercurial_vault.key().as_ref(), depository.load()?.collateral_mint.as_ref()],
@@ -57,7 +57,7 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub depository: AccountLoader<'info, MercurialVaultDepository>,
 
-    /// #5
+    /// #6
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
@@ -65,7 +65,7 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
-    /// #6
+    /// #7
     #[account(
         mut,
         constraint = user_redeemable.mint == controller.load()?.redeemable_mint @UxdError::InvalidRedeemableMint,
@@ -73,10 +73,10 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #7
+    /// #8
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #8
+    /// #9
     #[account(
         mut,
         constraint = user_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
@@ -84,7 +84,7 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #9
+    /// #10
     /// Token account holding the LP tokens minted by depositing collateral on mercurial vault
     #[account(
         mut,
@@ -95,29 +95,29 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub depository_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
-    /// #10
+    /// #11
     #[account(
         mut,
         constraint = mercurial_vault.token_vault == mercurial_vault_collateral_token_safe.key() @UxdError::InvalidMercurialVaultCollateralTokenSafe,
     )]
     pub mercurial_vault: Box<Account<'info, mercurial_vault::state::Vault>>,
 
-    /// #11
+    /// #12
     #[account(mut)]
     pub mercurial_vault_lp_mint: Box<Account<'info, Mint>>,
 
-    /// #12
+    /// #13
     /// Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.
     #[account(mut)]
     pub mercurial_vault_collateral_token_safe: Box<Account<'info, TokenAccount>>,
 
-    /// #13
+    /// #14
     pub mercurial_vault_program: Program<'info, mercurial_vault::program::Vault>,
 
-    /// #14
+    /// #15
     pub system_program: Program<'info, System>,
 
-    /// #15
+    /// #16
     pub token_program: Program<'info, Token>,
 }
 
