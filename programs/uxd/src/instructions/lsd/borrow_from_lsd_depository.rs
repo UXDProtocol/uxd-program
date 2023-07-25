@@ -99,7 +99,7 @@ pub struct BorrowFromLsdDepository<'info> {
         payer = payer,
         bump,
     )]
-    pub lsd_position_collateral_token_account: Box<Account<'info, TokenAccount>>,
+    pub lsd_position_collateral: Box<Account<'info, TokenAccount>>,
 
     /// # price oracle account for the collateral
     #[account(
@@ -274,7 +274,7 @@ impl<'info> BorrowFromLsdDepository<'info> {
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = Transfer {
             from: self.user_collateral.to_account_info(),
-            to: self.lsd_position_collateral_token_account.to_account_info(),
+            to: self.lsd_position_collateral.to_account_info(),
             authority: self.user.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
