@@ -63,7 +63,7 @@ pub(crate) fn handler(
     let controller = &mut ctx.accounts.controller.load_init()?;
     let redeemable_mint_unit = 10_u64
         .checked_pow(redeemable_mint_decimals.into())
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     controller.bump = *ctx
         .bumps
@@ -80,7 +80,7 @@ pub(crate) fn handler(
     // Default to 1 Million redeemable total cap
     controller.redeemable_global_supply_cap = DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP
         .checked_mul(redeemable_mint_unit.into())
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
     controller.redeemable_circulating_supply = u128::MIN;
     controller.is_frozen = false;
     controller.profits_total_collected = u128::MIN;

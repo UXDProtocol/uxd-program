@@ -142,9 +142,9 @@ impl<'info> EditController<'info> {
             let total_weight_bps = depositories_routing_weight_bps
                 .identity_depository_weight_bps
                 .checked_add(depositories_routing_weight_bps.mercurial_vault_depository_weight_bps)
-                .ok_or(UxdError::MathError)?
+                .ok_or(UxdError::MathOverflow)?
                 .checked_add(depositories_routing_weight_bps.credix_lp_depository_weight_bps)
-                .ok_or(UxdError::MathError)?;
+                .ok_or(UxdError::MathOverflow)?;
             require!(
                 u64::from(total_weight_bps) == BPS_POWER,
                 UxdError::InvalidDepositoriesWeightBps

@@ -260,7 +260,7 @@ pub(crate) fn handler(
             .pool_outstanding_credit;
         liquidity_collateral_amount_before
             .checked_add(outstanding_collateral_amount_before)
-            .ok_or(UxdError::MathError)?
+            .ok_or(UxdError::MathOverflow)?
     };
 
     let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
@@ -284,7 +284,7 @@ pub(crate) fn handler(
 
     let profits_collateral_amount = owned_shares_value_before
         .checked_sub(redeemable_amount_under_management)
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
     msg!(
         "[rebalance_redeem_withdraw_request_from_credix_lp_depository:profits_collateral_amount:{}]",
         profits_collateral_amount
@@ -303,7 +303,7 @@ pub(crate) fn handler(
         } else {
             redeemable_amount_under_management
                 .checked_sub(redeemable_amount_under_management_target_amount)
-                .ok_or(UxdError::MathError)?
+                .ok_or(UxdError::MathOverflow)?
         }
     };
     msg!(
@@ -336,11 +336,11 @@ pub(crate) fn handler(
         checked_convert_u128_to_u64(
             u128::from(locked_liquidity)
                 .checked_mul(investor_total_lp_amount.into())
-                .ok_or(UxdError::MathError)?
+                .ok_or(UxdError::MathOverflow)?
                 .checked_div(participating_investors_total_lp_amount.into())
-                .ok_or(UxdError::MathError)?
+                .ok_or(UxdError::MathOverflow)?
                 .checked_sub(base_amount_withdrawn.into())
-                .ok_or(UxdError::MathError)?,
+                .ok_or(UxdError::MathOverflow)?,
         )?
     };
 
@@ -360,14 +360,14 @@ pub(crate) fn handler(
     let withdrawal_overflow_value = std::cmp::min(
         withdrawable_total_collateral_amount
             .checked_sub(withdrawal_profits_collateral_amount)
-            .ok_or(UxdError::MathError)?,
+            .ok_or(UxdError::MathOverflow)?,
         overflow_value,
     );
 
     // The sum of the two is what we will actually withdraw
     let withdrawal_total_collateral_amount = withdrawal_profits_collateral_amount
         .checked_add(withdrawal_overflow_value)
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     // ---------------------------------------------------------------------
     // -- Phase 5
@@ -400,7 +400,7 @@ pub(crate) fn handler(
     let withdrawal_profits_collateral_amount_after_precision_loss =
         withdrawal_total_collateral_amount_after_precision_loss
             .checked_sub(withdrawal_overflow_value_after_precision_loss)
-            .ok_or(UxdError::MathError)?;
+            .ok_or(UxdError::MathOverflow)?;
 
     // ---------------------------------------------------------------------
     // -- Phase 6
@@ -473,7 +473,7 @@ pub(crate) fn handler(
             .pool_outstanding_credit;
         liquidity_collateral_amount_after
             .checked_add(outstanding_collateral_amount_after)
-            .ok_or(UxdError::MathError)?
+            .ok_or(UxdError::MathOverflow)?
     };
 
     let owned_shares_amount_after: u64 = ctx.accounts.depository_shares.amount;
@@ -587,21 +587,21 @@ pub(crate) fn handler(
     depository.collateral_amount_deposited = depository
         .collateral_amount_deposited
         .checked_sub(withdrawal_overflow_value_after_precision_loss.into())
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
     identity_depository.collateral_amount_deposited = identity_depository
         .collateral_amount_deposited
         .checked_add(withdrawal_overflow_value_after_precision_loss.into())
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     // Redeemable under management accounting updates
     depository.redeemable_amount_under_management = depository
         .redeemable_amount_under_management
         .checked_sub(withdrawal_overflow_value_after_precision_loss.into())
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
     identity_depository.redeemable_amount_under_management = identity_depository
         .redeemable_amount_under_management
         .checked_add(withdrawal_overflow_value_after_precision_loss.into())
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     // Done
     Ok(())

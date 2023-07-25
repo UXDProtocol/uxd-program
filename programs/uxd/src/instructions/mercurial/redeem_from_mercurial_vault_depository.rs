@@ -142,7 +142,7 @@ pub fn handler(
 
     let total_paid_fees = base_collateral_amount
         .checked_sub(collateral_amount_less_fees)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     // 2 - Calculate the right amount of lp token to withdraw to match collateral_amount_less_fees
     // This LP amount is subjected to precision loss (we handle this precision loss later)
@@ -175,7 +175,7 @@ pub fn handler(
 
     let collateral_balance_change = after_collateral_balance
         .checked_sub(before_collateral_balance)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     require!(
         collateral_balance_change > 0,
@@ -191,7 +191,7 @@ pub fn handler(
 
     let lp_token_change = before_lp_token_vault_balance
         .checked_sub(after_lp_token_vault_balance)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     require!(
         lp_token_change == lp_token_amount_to_match_collateral_amount_less_fees,
@@ -218,11 +218,11 @@ pub fn handler(
     // 9 - Update Onchain accounting to reflect the changes
     let redeemable_amount_change = i128::from(redeemable_amount)
         .checked_mul(-1)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     let collateral_amount_deposited_change = i128::from(collateral_balance_change)
         .checked_mul(-1)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     ctx.accounts
         .controller
@@ -279,7 +279,7 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
     ) -> Result<u64> {
         let current_time = u64::try_from(Clock::get()?.unix_timestamp)
             .ok()
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
         // Because it's u64 type, we will never withdraw too much due to precision loss, but withdraw less.
         // The user pays for precision loss by getting less collateral.
@@ -289,7 +289,7 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
                 target_collateral_value,
                 self.mercurial_vault_lp_mint.supply,
             )
-            .ok_or_else(|| error!(UxdError::MathError))
+            .ok_or_else(|| error!(UxdError::MathOverflow))
     }
 }
 

@@ -88,7 +88,7 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
                 .redeemable_mint_decimals
                 .into(),
         )
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     // - Initialize Depository state
     let depository = &mut ctx.accounts.depository.load_init()?;
@@ -103,7 +103,7 @@ pub(crate) fn handler(ctx: Context<InitializeIdentityDepository>) -> Result<()> 
     depository.redeemable_amount_under_management_cap =
         u128::from(DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP)
             .checked_mul(redeemable_mint_unit)
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathOverflow))?;
     depository.minting_disabled = true;
 
     depository.mango_collateral_reinjected_wsol = false;

@@ -37,6 +37,8 @@ pub const IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE: &[u8] = b"IDENTITYDEPOSITORY
 pub const LSD_DEPOSITORY_NAMESPACE: &[u8] = b"LSDDEPOSITORY";
 pub const LSD_DEPOSITORY_COLLATERAL_NAMESPACE: &[u8] = b"LSDDEPOSITORYCOLLATERAL";
 pub const LSD_PROFITS_TOKEN_ACCOUNT_NAMESPACE: &[u8] = b"LSDPROFITSTOKENACCOUNT";
+pub const LSD_USER_LIQUIDATION_THREAD_AUTHORITY_NAMESPACE: &[u8] =
+    b"LSDUSERLIQUIDATIONTHREADAUTHORITY";
 
 pub const CREDIX_LP_DEPOSITORY_NAMESPACE: &[u8] = b"CREDIX_LP_DEPOSITORY";
 pub const CREDIX_LP_EXTERNAL_PASS_NAMESPACE: &[u8] = b"credix-pass";
@@ -52,10 +54,15 @@ pub const ROUTER_IDENTITY_DEPOSITORY_INDEX: usize = 0;
 pub const ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX: usize = 1;
 pub const ROUTER_CREDIX_LP_DEPOSITORY_INDEX: usize = 2;
 
+pub const DEFAULT_LSD_MAX_LTV_BPS: u16 = 7500; // 75%
+pub const DEFAULT_LSD_LIQUIDATION_LTV_THRESHOLD_BPS: u16 = 8000; // 85%
+pub const DEFAULT_LSD_LIQUIDATION_FEE_BPS: u16 = 500; // 5%
+
 const BPS_DECIMALS: u8 = 4;
 pub const BPS_POWER: u64 = (10u64).pow(BPS_DECIMALS as u32);
 
 const SOLANA_MAX_MINT_DECIMALS: u8 = 9;
+pub const USD_DECIMALS: u8 = 6;
 
 #[program]
 #[deny(unused_must_use)]
@@ -311,7 +318,7 @@ pub mod uxd {
     pub fn borrow_from_lsd_depository(
         ctx: Context<BorrowFromLsdDepository>,
         collateral_amount: u64,
-        loan_to_value_bps: u8,
+        loan_to_value_bps: u16,
     ) -> Result<()> {
         msg!("[borrow_from_lsd_depository]");
         instructions::borrow_from_lsd_depository::handler(ctx, collateral_amount, loan_to_value_bps)

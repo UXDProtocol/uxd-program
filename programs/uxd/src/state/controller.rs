@@ -1,3 +1,4 @@
+use anchor_lang::prelude::Clock;
 use std::mem::size_of;
 
 use crate::error::UxdError;
@@ -112,7 +113,7 @@ impl Controller {
         self.registered_mercurial_vault_depositories_count = self
             .registered_mercurial_vault_depositories_count
             .checked_add(1)
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathOverflow))?;
         // Add the new Mercurial Vault Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_mercurial_vault_depositories[new_entry_index] =
@@ -133,7 +134,7 @@ impl Controller {
         self.registered_credix_lp_depositories_count = self
             .registered_credix_lp_depositories_count
             .checked_add(1)
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathOverflow))?;
         // Add the new Credix Lp Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_credix_lp_depositories[new_entry_index] = credix_lp_depository_id;
@@ -160,7 +161,16 @@ impl Controller {
         self.profits_total_collected = self
             .profits_total_collected
             .checked_add(profits_collected.into())
-            .ok_or(UxdError::MathError)?;
+            .ok_or(UxdError::MathOverflow)?;
         Ok(())
+    }
+
+    pub fn get_time(&self) -> Result<i64> {
+        let time = Clock::get()?.unix_timestamp;
+        if time > 0 {
+            Ok(time)
+        } else {
+            Err(ProgramError::InvalidAccountData.into())
+        }
     }
 }

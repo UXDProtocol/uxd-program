@@ -176,7 +176,7 @@ pub fn handler(ctx: Context<CollectProfitsOfMercurialVaultDepository>) -> Result
     // 11 - update accounting
     let current_time_as_unix_timestamp = u64::try_from(Clock::get()?.unix_timestamp)
         .ok()
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     ctx.accounts
         .depository
@@ -223,7 +223,7 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
     ) -> Result<u64> {
         let current_time = u64::try_from(Clock::get()?.unix_timestamp)
             .ok()
-            .ok_or(UxdError::MathError)?;
+            .ok_or(UxdError::MathOverflow)?;
 
         // Because it's u64 type, we will never withdraw too much due to precision loss, but withdraw less.
         // We withdraw less interests and fee due to precision loss and that's ok
@@ -234,7 +234,7 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
                 target_value,
                 self.mercurial_vault_lp_mint.supply,
             )
-            .ok_or(UxdError::MathError)?)
+            .ok_or(UxdError::MathOverflow)?)
     }
 
     pub fn calculate_collectable_profits_value(&self) -> Result<u64> {
@@ -249,11 +249,11 @@ impl<'info> CollectProfitsOfMercurialVaultDepository<'info> {
         let redeemable_amount_under_management: u64 =
             u64::try_from(self.depository.load()?.redeemable_amount_under_management)
                 .ok()
-                .ok_or(UxdError::MathError)?;
+                .ok_or(UxdError::MathOverflow)?;
 
         Ok(owned_lp_tokens_value
             .checked_sub(redeemable_amount_under_management)
-            .ok_or(UxdError::MathError)?)
+            .ok_or(UxdError::MathOverflow)?)
     }
 }
 

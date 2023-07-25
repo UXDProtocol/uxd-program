@@ -28,8 +28,8 @@ pub enum UxdError {
     RedeemableMercurialVaultAmountUnderManagementCap,
     #[msg("Minting amount would go past the credix lp depository Redeemable Amount Under Management Cap.")]
     RedeemableCredixLpAmountUnderManagementCap,
-    #[msg("Math error.")]
-    MathError,
+    #[msg("Math overflow.")]
+    MathOverflow,
     #[msg("The order couldn't be executed with the provided slippage.")]
     SlippageReached,
     #[msg("A bump was expected but is missing.")]
@@ -124,6 +124,18 @@ pub enum UxdError {
     InvalidLtvBps,
     #[msg("The provided LTV is over the depository's maximum value.")]
     LtvBpsOverLimit,
+    #[msg("Borrowing is disabled for the current depository.")]
+    BorrowingDisabled,
+    #[msg("Unsupported price oracle")]
+    UnsupportedOracle,
+    #[msg("Invalid oracle account")]
+    InvalidOracleAccount,
+    #[msg("Invalid oracle state")]
+    InvalidOracleState,
+    #[msg("Stale oracle price")]
+    StaleOraclePrice,
+    #[msg("Invalid oracle price")]
+    InvalidOraclePrice,
 
     #[msg("Default - Check the source code for more info.")]
     Default,

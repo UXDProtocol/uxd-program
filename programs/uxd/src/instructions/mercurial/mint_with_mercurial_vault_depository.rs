@@ -177,7 +177,7 @@ pub fn handler(
 
     let total_paid_fees = base_redeemable_amount
         .checked_sub(redeemable_amount_less_fees)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     // 6 - Redeemable amount should be a valid amount
     require!(
