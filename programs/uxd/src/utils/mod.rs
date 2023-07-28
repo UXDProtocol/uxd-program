@@ -17,7 +17,7 @@ pub use calculate_depositories_redeemable_amount::*;
 pub use calculate_depositories_sum_value::*;
 pub use calculate_depositories_target_redeemable_amount::*;
 pub use math::*;
-pub use math::*;
+pub use maths::*;
 pub use validate_collateral_amount::*;
 pub use validate_collateral_mint_usdc::*;
 pub use validate_redeemable_amount::*;
