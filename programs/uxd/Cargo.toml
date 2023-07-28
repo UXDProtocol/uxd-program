@@ -31,7 +31,6 @@ uxd-cpi = { version = "7.3.1", features = ["development"] }
 
 anchor-lang = "0.26.0"
 anchor-spl = "0.26.0"
-
 mercurial-vault = { git = "https://github.com/mercurial-finance/vault-sdk", features = [
   "cpi",
 ], rev = "3724175d8435f7acb7a33077a5a9f1eb58ab3399" }
@@ -40,6 +39,8 @@ credix_client = { version = "0.7.5", features = [
   "pre-mainnet",
   "cpi",
 ], default-features = false }
+num-traits = "0.2.15"
+num = "0.4.0"
 
 [dev-dependencies]
 proptest = "1.0.0"

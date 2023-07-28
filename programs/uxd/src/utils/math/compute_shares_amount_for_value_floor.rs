@@ -11,17 +11,17 @@ pub fn compute_shares_amount_for_value_floor(
     if value == 0 {
         return Ok(0);
     }
-    require!(total_shares_supply > 0, UxdError::MathError);
-    require!(total_shares_value > 0, UxdError::MathError);
+    require!(total_shares_supply > 0, UxdError::MathOverflow);
+    require!(total_shares_value > 0, UxdError::MathOverflow);
     let value: u128 = value.into();
     let total_shares_supply: u128 = total_shares_supply.into();
     let total_shares_value: u128 = total_shares_value.into();
     let shares_amount: u128 = value
         .checked_mul(total_shares_supply)
-        .ok_or(UxdError::MathError)?
+        .ok_or(UxdError::MathOverflow)?
         .checked_div(total_shares_value)
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
     Ok(u64::try_from(shares_amount)
         .ok()
-        .ok_or(UxdError::MathError)?)
+        .ok_or(UxdError::MathOverflow)?)
 }

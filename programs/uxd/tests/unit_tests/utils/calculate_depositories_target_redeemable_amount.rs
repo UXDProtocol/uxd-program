@@ -6,7 +6,7 @@ mod test_calculate_depositories_target_redeemable_amount {
     use uxd::utils::calculate_depositories_target_redeemable_amount;
     use uxd::utils::is_within_range_inclusive;
     use uxd::utils::DepositoryInfoForTargetRedeemableAmount;
-    use uxd::BPS_UNIT_CONVERSION;
+    use uxd::BPS_POWER;
     use uxd::ROUTER_CREDIX_LP_DEPOSITORY_INDEX;
     use uxd::ROUTER_DEPOSITORIES_COUNT;
     use uxd::ROUTER_IDENTITY_DEPOSITORY_INDEX;
@@ -263,13 +263,13 @@ mod test_calculate_depositories_target_redeemable_amount {
 
             let total_weight_arbitrary = identity_depository_weight_arbitrary + mercurial_vault_depository_weight_arbitrary + credix_lp_depository_weight_arbitrary;
 
-            let identity_depository_weight_bps = identity_depository_weight_arbitrary * BPS_UNIT_CONVERSION / total_weight_arbitrary;
-            let mercurial_vault_depository_weight_bps = mercurial_vault_depository_weight_arbitrary * BPS_UNIT_CONVERSION / total_weight_arbitrary;
-            let credix_lp_depository_weight_bps = credix_lp_depository_weight_arbitrary * BPS_UNIT_CONVERSION / total_weight_arbitrary;
+            let identity_depository_weight_bps = identity_depository_weight_arbitrary * BPS_POWER / total_weight_arbitrary;
+            let mercurial_vault_depository_weight_bps = mercurial_vault_depository_weight_arbitrary * BPS_POWER / total_weight_arbitrary;
+            let credix_lp_depository_weight_bps = credix_lp_depository_weight_arbitrary * BPS_POWER / total_weight_arbitrary;
 
             // In case of rounding error, we add the rounding errors to identity depository to keep the sum EXACTLY to 100%
             let total_weight_bps = identity_depository_weight_bps + mercurial_vault_depository_weight_bps + credix_lp_depository_weight_bps;
-            let identity_depository_weight_bps = identity_depository_weight_bps + BPS_UNIT_CONVERSION - total_weight_bps;
+            let identity_depository_weight_bps = identity_depository_weight_bps + BPS_POWER - total_weight_bps;
 
             // Everything else should never panic
             let depositories_target_redeemable_amount =

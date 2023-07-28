@@ -191,7 +191,7 @@ pub(crate) fn handler(
         let total_shares_supply: u64 = ctx.accounts.credix_shares_mint.supply;
         let total_shares_value: u64 = liquidity_collateral_amount
             .checked_add(outstanding_collateral_amount)
-            .ok_or(UxdError::MathError)?;
+            .ok_or(UxdError::MathOverflow)?;
         let owned_shares_amount: u64 = ctx.accounts.depository_shares.amount;
         let owned_shares_value: u64 = compute_value_for_shares_amount_floor(
             owned_shares_amount,
@@ -200,7 +200,7 @@ pub(crate) fn handler(
         )?;
         owned_shares_value
             .checked_sub(redeemable_amount_under_management)
-            .ok_or(UxdError::MathError)?
+            .ok_or(UxdError::MathOverflow)?
     };
 
     let overflow_value = {
@@ -216,7 +216,7 @@ pub(crate) fn handler(
         } else {
             redeemable_amount_under_management
                 .checked_sub(redeemable_amount_under_management_target_amount)
-                .ok_or(UxdError::MathError)?
+                .ok_or(UxdError::MathOverflow)?
         }
     };
 
@@ -228,7 +228,7 @@ pub(crate) fn handler(
 
     let requested_collateral_amount = profits_collateral_amount
         .checked_add(overflow_value)
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
     msg!(
         "[rebalance_create_withdraw_request_from_credix_lp_depository:requested_collateral_amount:{}]",
         requested_collateral_amount

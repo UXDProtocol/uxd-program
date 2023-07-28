@@ -113,7 +113,7 @@ pub struct MintWithMercurialVaultDepository<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handler(
+pub(crate) fn handler(
     ctx: Context<MintWithMercurialVaultDepository>,
     collateral_amount: u64,
 ) -> Result<()> {
@@ -177,7 +177,7 @@ pub fn handler(
 
     let total_paid_fees = base_redeemable_amount
         .checked_sub(redeemable_amount_less_fees)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     // 6 - Redeemable amount should be a valid amount
     require!(

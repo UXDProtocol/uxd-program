@@ -214,7 +214,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     let maximum_after_mint_circulating_supply = controller
         .redeemable_circulating_supply
         .checked_add(collateral_amount.into())
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![

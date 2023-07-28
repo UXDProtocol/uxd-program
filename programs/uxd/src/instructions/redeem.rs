@@ -171,7 +171,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let mimimum_after_redeem_circulating_supply = controller
         .redeemable_circulating_supply
         .checked_sub(redeemable_amount.into())
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![

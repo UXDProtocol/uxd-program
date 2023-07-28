@@ -8,7 +8,7 @@ pub fn compute_amount_fraction_ceil(
     fraction_numerator: u64,
     fraction_denominator: u64,
 ) -> Result<u64> {
-    require!(fraction_denominator > 0, UxdError::MathError);
+    require!(fraction_denominator > 0, UxdError::MathOverflow);
     if fraction_numerator == 0 || amount == 0 {
         return Ok(0);
     }
@@ -17,14 +17,14 @@ pub fn compute_amount_fraction_ceil(
     let fraction_denominator: u128 = fraction_denominator.into();
     let amount_fraction_ceil: u128 = amount
         .checked_mul(fraction_numerator)
-        .ok_or(UxdError::MathError)?
+        .ok_or(UxdError::MathOverflow)?
         .checked_sub(1)
-        .ok_or(UxdError::MathError)?
+        .ok_or(UxdError::MathOverflow)?
         .checked_div(fraction_denominator)
-        .ok_or(UxdError::MathError)?
+        .ok_or(UxdError::MathOverflow)?
         .checked_add(1)
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
     Ok(u64::try_from(amount_fraction_ceil)
         .ok()
-        .ok_or(UxdError::MathError)?)
+        .ok_or(UxdError::MathOverflow)?)
 }

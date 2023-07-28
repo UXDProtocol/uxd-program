@@ -12,7 +12,7 @@ pub fn calculate_lp_tokens_value(
 ) -> Result<u64> {
     let current_time = u64::try_from(Clock::get()?.unix_timestamp)
         .ok()
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     Ok(mercurial_vault
         .get_amount_by_share(
@@ -20,5 +20,5 @@ pub fn calculate_lp_tokens_value(
             lp_token_amount,
             mercurial_vault_lp_mint_supply,
         )
-        .ok_or(UxdError::MathError)?)
+        .ok_or(UxdError::MathOverflow)?)
 }
