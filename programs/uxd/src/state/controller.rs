@@ -1,3 +1,4 @@
+use anchor_lang::prelude::Clock;
 use std::mem::size_of;
 
 use crate::error::UxdError;
@@ -162,5 +163,14 @@ impl Controller {
             .checked_add(profits_collected.into())
             .ok_or(UxdError::MathOverflow)?;
         Ok(())
+    }
+
+    pub fn get_time(&self) -> Result<i64> {
+        let time = Clock::get()?.unix_timestamp;
+        if time > 0 {
+            Ok(time)
+        } else {
+            Err(ProgramError::InvalidAccountData.into())
+        }
     }
 }

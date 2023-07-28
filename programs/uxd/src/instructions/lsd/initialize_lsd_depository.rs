@@ -3,17 +3,20 @@ use anchor_spl::token::Mint;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
-use crate::LSD_PROFITS_TOKEN_ACCOUNT_NAMESPACE;
 use crate::error::UxdError;
 use crate::events::InitializeLsdDepositoryEvent;
-use crate::state::LSD_DEPOSITORY_SPACE;
 use crate::state::LsdDepository;
+use crate::state::LSD_DEPOSITORY_SPACE;
 use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
+use crate::DEFAULT_LSD_LIQUIDATION_FEE_BPS;
+use crate::DEFAULT_LSD_LIQUIDATION_LTV_THRESHOLD_BPS;
+use crate::DEFAULT_LSD_MAX_LTV_BPS;
 use crate::DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP;
 use crate::LSD_DEPOSITORY_ACCOUNT_VERSION;
 use crate::LSD_DEPOSITORY_NAMESPACE;
+use crate::LSD_PROFITS_TOKEN_ACCOUNT_NAMESPACE;
 
 #[derive(Accounts)]
 pub struct InitializeLsdDepository<'info> {
@@ -33,10 +36,10 @@ pub struct InitializeLsdDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #4 
+    /// #4
     #[account(
         init,
-        seeds = [LSD_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()], 
+        seeds = [LSD_DEPOSITORY_NAMESPACE, collateral_mint.key().as_ref()],
         bump,
         payer = payer,
         space = LSD_DEPOSITORY_SPACE,
@@ -88,7 +91,7 @@ pub(crate) fn handler(ctx: Context<InitializeLsdDepository>) -> Result<()> {
                 .redeemable_mint_decimals
                 .into(),
         )
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     let depository = &mut ctx.accounts.depository.load_init()?;
     depository.bump = depository_bump;
@@ -104,11 +107,12 @@ pub(crate) fn handler(ctx: Context<InitializeLsdDepository>) -> Result<()> {
     depository.borrowing_disabled = true;
     depository.redeemable_amount_under_management_cap = DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP
         .checked_mul(redeemable_mint_unit)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
     depository.borrowing_fee_bps = u8::MIN;
     depository.repay_fee_bps = u8::MIN;
-    depository.loan_to_value_bps = u8::MIN;
-    depository.liquidation_fee_bps = u8::MIN;
+    depository.max_loan_to_value_bps = DEFAULT_LSD_MAX_LTV_BPS;
+    depository.liquidation_loan_to_value_threshold_bps = DEFAULT_LSD_LIQUIDATION_LTV_THRESHOLD_BPS;
+    depository.liquidation_fee_bps = DEFAULT_LSD_LIQUIDATION_FEE_BPS;
     depository.profits_beneficiary = Pubkey::default();
 
     // Accounting
@@ -136,7 +140,6 @@ pub(crate) fn handler(ctx: Context<InitializeLsdDepository>) -> Result<()> {
 
 // Validate input arguments
 impl<'info> InitializeLsdDepository<'info> {
-
     pub(crate) fn validate(&self) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
 

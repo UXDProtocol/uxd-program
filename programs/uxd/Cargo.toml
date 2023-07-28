@@ -28,7 +28,6 @@ development = []
 
 [dependencies]
 uxd-cpi = { version = "7.3.1", features = ["development"] }
-
 anchor-lang = {version = "0.26.0", features = ["init-if-needed"]}
 anchor-spl = "0.26.0"
 mercurial-vault = { git = "https://github.com/mercurial-finance/vault-sdk", features = [
@@ -39,6 +38,7 @@ credix_client = { version = "0.7.5", features = [
   "pre-mainnet",
   "cpi",
 ], default-features = false }
+pyth-sdk-solana = "0.7.2"
 num-traits = "0.2.15"
 num = "0.4.0"
 
