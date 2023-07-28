@@ -121,7 +121,7 @@ pub fn calculate_depositories_redeemable_amount(
                 compute_amount_less_fraction_floor(
                     requested_first_redeemable_amount,
                     other_depositories_over_target_redeemable_amount,
-                    total_over_target_redeemable_amount.into(),
+                    total_over_target_redeemable_amount,
                 )?
             } else {
                 0
@@ -135,7 +135,7 @@ pub fn calculate_depositories_redeemable_amount(
                 compute_amount_less_fraction_floor(
                     requested_second_redeemable_amount,
                     other_depositories_under_target_redeemable_amount,
-                    total_under_target_redeemable_amount.into(),
+                    total_under_target_redeemable_amount,
                 )?
             } else {
                 0

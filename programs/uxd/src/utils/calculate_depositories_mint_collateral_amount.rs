@@ -72,7 +72,7 @@ pub fn calculate_depositories_mint_collateral_amount(
             compute_amount_less_fraction_floor(
                 requested_mint_collateral_amount,
                 other_depositories_maximum_mintable_collateral_amount,
-                total_maximum_mintable_collateral_amount.into(),
+                total_maximum_mintable_collateral_amount,
             )
         })
         .collect::<Result<Vec<u64>>>()?;

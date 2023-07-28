@@ -20,7 +20,6 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::LSD_DEPOSITORY_NAMESPACE;
 use crate::LSD_POSITION_SPACE;
 use crate::LSD_PROFITS_TOKEN_ACCOUNT_NAMESPACE;
-use crate::LSD_USER_LIQUIDATION_THREAD_AUTHORITY_NAMESPACE;
 
 // clockwork automation cost per action
 pub const CLOCKWORK_AUTOMATION_FEE: u64 = 1_000;
@@ -140,7 +139,7 @@ pub(crate) fn handler(
         // - 0.1 verify that borrows are enabled
         let lsd_depository = ctx.accounts.depository.load()?;
         require!(
-            lsd_depository.borrowing_disabled == false,
+            !lsd_depository.borrowing_disabled,
             UxdError::BorrowingDisabled
         );
     }
@@ -159,8 +158,7 @@ pub(crate) fn handler(
     }
 
     // - 2 [MINT REDEEMABLES] --------------------------------------------------
-    let redeemable_borrow_amount =
-        collateral_amount / u64::from(loan_to_value_bps) * u64::from(BPS_POWER);
+    let redeemable_borrow_amount = collateral_amount / u64::from(loan_to_value_bps) * BPS_POWER;
     {
         msg!(
             "[mint] {} redeemable to user (ltv {})",
@@ -190,14 +188,11 @@ pub(crate) fn handler(
             curtime,
             false,
         )?;
-        let lsd_price_usd = lsd_price
+        let _lsd_price_usd = lsd_price
             .get_asset_amount_usd(collateral_amount, depository.collateral_mint_decimals)?;
         liquidation_price = maths::checked_mul(
             redeemable_borrow_amount,
-            maths::checked_div(
-                u64::from(depository.max_loan_to_value_bps),
-                u64::from(BPS_POWER),
-            )?,
+            maths::checked_div(u64::from(depository.max_loan_to_value_bps), BPS_POWER)?,
         )?;
 
         // Create a clockwork thread to auto-liquidate when the price is reached
@@ -208,7 +203,7 @@ pub(crate) fn handler(
     // - 3.1 [INITIALIZE LSD POSITION if needed] -------------------------------
     {
         let lsd_position = &mut ctx.accounts.lsd_position.load_mut()?;
-        if lsd_position.is_initialized == false {
+        if !lsd_position.is_initialized {
             lsd_position.is_initialized = true;
             lsd_position.bump = *ctx
                 .bumps
