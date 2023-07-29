@@ -27,7 +27,7 @@ production = []
 development = []
 
 [dependencies]
-uxd-cpi = { version = "7.3.1", features = ["development"] }
+uxd-cpi = { version = "7.3.2", features = ["development"] }
 
 anchor-lang = "0.26.0"
 anchor-spl = "0.26.0"
@@ -44,9 +44,9 @@ num = "0.4.0"
 
 [dev-dependencies]
 proptest = "1.0.0"
-solana-program = "=1.14.17"
-solana-program-test = "=1.14.17"
-solana-sdk = "=1.14.17"
+solana-program = "=1.14.21"
+solana-program-test = "=1.14.21"
+solana-sdk = "=1.14.21"
 spl-token = "3.5.0"
 spl-associated-token-account = "1.1.2"
 
