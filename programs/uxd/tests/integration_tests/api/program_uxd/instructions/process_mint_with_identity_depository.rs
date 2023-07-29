@@ -17,6 +17,7 @@ use crate::integration_tests::api::program_uxd;
 pub async fn process_mint_with_identity_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
+    authority: &Keypair,
     user: &Keypair,
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
@@ -54,6 +55,7 @@ pub async fn process_mint_with_identity_depository(
 
     // Execute IX
     let accounts = uxd::accounts::MintWithIdentityDepository {
+        authority: authority.pubkey(),
         user: user.pubkey(),
         payer: payer.pubkey(),
         controller,
@@ -71,11 +73,11 @@ pub async fn process_mint_with_identity_depository(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signer(
+    program_test_context::process_instruction_with_signers(
         program_test_context,
         instruction,
         payer,
-        user,
+        &[authority, user],
     )
     .await?;
 

@@ -124,6 +124,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
 
       await mintWithIdentityDepositoryTest({
         collateralAmount,
+        authority,
         user,
         controller,
         depository,
@@ -146,6 +147,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
 
       await redeemFromIdentityDepositoryTest({
         redeemableAmount: previouslyMintedRedeemableAmount,
+        authority,
         user,
         controller,
         depository,
@@ -169,6 +171,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
       try {
         await mintWithIdentityDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,
@@ -198,6 +201,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
       try {
         await redeemFromIdentityDepositoryTest({
           redeemableAmount,
+          authority,
           user,
           controller,
           depository,
@@ -227,6 +231,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
       try {
         await mintWithIdentityDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,
@@ -256,6 +261,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
       try {
         await redeemFromIdentityDepositoryTest({
           redeemableAmount,
+          authority,
           user,
           controller,
           depository,
@@ -287,6 +293,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
 
         await mintWithIdentityDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,
@@ -306,6 +313,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
 
       await mintWithIdentityDepositoryTest({
         collateralAmount,
+        authority,
         user,
         controller,
         depository,
@@ -330,6 +338,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
 
         await redeemFromIdentityDepositoryTest({
           redeemableAmount: previouslyMintedRedeemableAmount,
+          authority,
           user,
           controller,
           depository,
@@ -363,6 +372,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
       try {
         await mintWithIdentityDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,
@@ -429,6 +439,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
       try {
         await mintWithIdentityDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,
@@ -487,6 +498,7 @@ export const identityDepositoryMintRedeemSuite = async function ({
       try {
         await mintWithIdentityDepositoryTest({
           collateralAmount,
+          authority,
           user,
           controller,
           depository,

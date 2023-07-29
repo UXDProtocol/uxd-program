@@ -13,12 +13,14 @@ import { getBalance } from '../utils';
 
 export const redeemFromIdentityDepositoryTest = async function ({
   redeemableAmount,
+  authority,
   user,
   controller,
   depository,
   payer,
 }: {
   redeemableAmount: number;
+  authority: Signer;
   user: Signer;
   controller: Controller;
   depository: IdentityDepository;
@@ -48,6 +50,7 @@ export const redeemFromIdentityDepositoryTest = async function ({
     // WHEN
     // Simulates user experience from the front end
     const txId = await redeemFromIdentityDepository({
+      authority,
       user,
       payer: payer ?? user,
       controller,

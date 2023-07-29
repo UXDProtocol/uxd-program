@@ -190,6 +190,7 @@ async fn test_credix_lp_depository_rebalance_illiquid(
     program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_test_context,
         &payer,
+        &authority,
         &collateral_mint.pubkey(),
         &user,
         &user_collateral,

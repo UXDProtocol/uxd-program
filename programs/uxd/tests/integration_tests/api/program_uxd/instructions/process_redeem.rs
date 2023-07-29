@@ -98,8 +98,8 @@ pub async fn process_redeem(
 
     // Execute IX
     let accounts = uxd::accounts::Redeem {
-        payer: payer.pubkey(),
         user: user.pubkey(),
+        payer: payer.pubkey(),
         controller,
         collateral_mint: *collateral_mint,
         redeemable_mint,

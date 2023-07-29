@@ -59,6 +59,7 @@ export const freezeProgramSuite = async function ({
     try {
       await mintWithMercurialVaultDepositoryTest({
         collateralAmount: 1,
+        authority,
         user,
         controller,
         depository: mercurialVaultDepository,
@@ -75,6 +76,7 @@ export const freezeProgramSuite = async function ({
     try {
       await redeemFromMercurialVaultDepositoryTest({
         redeemableAmount: 1,
+        authority,
         user,
         controller,
         depository: mercurialVaultDepository,
@@ -91,6 +93,7 @@ export const freezeProgramSuite = async function ({
     try {
       await mintWithCredixLpDepositoryTest({
         uiAmountCollateralDeposited: 1,
+        authority,
         user,
         controller,
         depository: credixLpDepository,
@@ -147,6 +150,7 @@ export const freezeProgramSuite = async function ({
     try {
       await mintWithIdentityDepositoryTest({
         collateralAmount: 1,
+        authority,
         user,
         controller,
         depository: identityDepository,
@@ -163,6 +167,7 @@ export const freezeProgramSuite = async function ({
     try {
       await redeemFromIdentityDepositoryTest({
         redeemableAmount: 1,
+        authority,
         user,
         controller,
         depository: identityDepository,

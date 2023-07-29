@@ -96,6 +96,7 @@ export const credixLpDepositoryMintSuite = async function ({
       try {
         await mintWithCredixLpDepositoryTest({
           uiAmountCollateralDeposited,
+          authority,
           user,
           controller,
           depository,
@@ -124,6 +125,7 @@ export const credixLpDepositoryMintSuite = async function ({
       try {
         await mintWithCredixLpDepositoryTest({
           uiAmountCollateralDeposited,
+          authority,
           user,
           controller,
           depository,
@@ -155,6 +157,7 @@ export const credixLpDepositoryMintSuite = async function ({
 
         await mintWithCredixLpDepositoryTest({
           uiAmountCollateralDeposited,
+          authority,
           user,
           controller,
           depository,
@@ -180,6 +183,7 @@ export const credixLpDepositoryMintSuite = async function ({
       try {
         await mintWithCredixLpDepositoryTest({
           uiAmountCollateralDeposited,
+          authority,
           user,
           controller,
           depository,
@@ -220,6 +224,7 @@ export const credixLpDepositoryMintSuite = async function ({
       try {
         await mintWithCredixLpDepositoryTest({
           uiAmountCollateralDeposited,
+          authority,
           user,
           controller,
           depository,
@@ -286,6 +291,7 @@ export const credixLpDepositoryMintSuite = async function ({
       try {
         await mintWithCredixLpDepositoryTest({
           uiAmountCollateralDeposited,
+          authority,
           user,
           controller,
           depository,
@@ -344,6 +350,7 @@ export const credixLpDepositoryMintSuite = async function ({
       try {
         await mintWithCredixLpDepositoryTest({
           uiAmountCollateralDeposited,
+          authority,
           user,
           controller,
           depository,
