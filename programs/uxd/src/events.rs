@@ -38,7 +38,8 @@ pub struct SetRouterDepositoriesWeightBps {
     /// The new weights
     pub identity_depository_weight_bps: u16,
     pub mercurial_vault_depository_weight_bps: u16,
-    pub credix_lp_depository_weight_bps: u16,
+    pub credix_lp_depository_marketplace_weight_bps: u16,
+    pub credix_lp_depository_receivables_weight_bps: u16,
 }
 
 /// Event called in [instructions::edit_controller::handler].
@@ -51,7 +52,8 @@ pub struct SetRouterDepositories {
     /// The new addresses
     pub identity_depository: Pubkey,
     pub mercurial_vault_depository: Pubkey,
-    pub credix_lp_depository: Pubkey,
+    pub credix_lp_depository_marketplace: Pubkey,
+    pub credix_lp_depository_receivables: Pubkey,
 }
 
 /// Event called in [instructions::register_mercurial_vault_depository::handler].

@@ -11,7 +11,8 @@ pub fn calculate_credix_lp_depository_target_amount(
     controller: &AccountLoader<Controller>,
     identity_depository: &AccountLoader<IdentityDepository>,
     mercurial_vault_depository: &AccountLoader<MercurialVaultDepository>,
-    credix_lp_depository: &AccountLoader<CredixLpDepository>,
+    credix_lp_depository_marketplace: &AccountLoader<CredixLpDepository>,
+    credix_lp_depository_receivables: &AccountLoader<CredixLpDepository>,
 ) -> Result<u64> {
     let controller = controller.load()?;
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
@@ -27,6 +28,12 @@ pub fn calculate_credix_lp_depository_target_amount(
             DepositoryInfoForTargetRedeemableAmount {
                 weight_bps: controller.identity_depository_weight_bps,
                 redeemable_amount_under_management_cap: identity_depository
+                    .load()?
+                    .redeemable_amount_under_management_cap,
+            },
+            DepositoryInfoForTargetRedeemableAmount {
+                weight_bps: controller.mercurial_vault_depository_weight_bps,
+                redeemable_amount_under_management_cap: mercurial_vault_depository
                     .load()?
                     .redeemable_amount_under_management_cap,
             },

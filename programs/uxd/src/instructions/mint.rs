@@ -38,7 +38,8 @@ pub struct Mint<'info> {
         bump = controller.load()?.bump,
         constraint = controller.load()?.identity_depository == identity_depository.key() @UxdError::InvalidDepository,
         constraint = controller.load()?.mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
-        constraint = controller.load()?.credix_lp_depository == credix_lp_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.credix_lp_depository_marketplace == credix_lp_depository_marketplace.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.credix_lp_depository_receivables == credix_lp_depository_receivables.key() @UxdError::InvalidDepository,
         has_one = redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub controller: AccountLoader<'info, Controller>,
@@ -125,52 +126,102 @@ pub struct Mint<'info> {
     /// #15
     #[account(
         mut,
-        seeds = [CREDIX_LP_DEPOSITORY_NAMESPACE, credix_lp_depository.load()?.credix_global_market_state.key().as_ref(), credix_lp_depository.load()?.collateral_mint.as_ref()],
-        bump = credix_lp_depository.load()?.bump,
+        seeds = [CREDIX_LP_DEPOSITORY_NAMESPACE, credix_lp_depository_marketplace.load()?.credix_global_market_state.key().as_ref(), credix_lp_depository_marketplace.load()?.collateral_mint.as_ref()],
+        bump = credix_lp_depository_marketplace.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
-        constraint = credix_lp_depository.load()?.depository_collateral == credix_lp_depository_collateral.key() @UxdError::InvalidDepositoryCollateral,
-        constraint = credix_lp_depository.load()?.depository_shares == credix_lp_depository_shares.key() @UxdError::InvalidDepositoryShares,
-        constraint = credix_lp_depository.load()?.credix_global_market_state == credix_lp_depository_global_market_state.key() @UxdError::InvalidCredixGlobalMarketState,
-        constraint = credix_lp_depository.load()?.credix_signing_authority == credix_lp_depository_signing_authority.key() @UxdError::InvalidCredixSigningAuthority,
-        constraint = credix_lp_depository.load()?.credix_liquidity_collateral == credix_lp_depository_liquidity_collateral.key() @UxdError::InvalidCredixLiquidityCollateral,
-        constraint = credix_lp_depository.load()?.credix_shares_mint == credix_lp_depository_shares_mint.key() @UxdError::InvalidCredixSharesMint,
+        constraint = credix_lp_depository_marketplace.load()?.depository_collateral == credix_lp_depository_marketplace_collateral.key() @UxdError::InvalidDepositoryCollateral,
+        constraint = credix_lp_depository_marketplace.load()?.depository_shares == credix_lp_depository_marketplace_shares.key() @UxdError::InvalidDepositoryShares,
+        constraint = credix_lp_depository_marketplace.load()?.credix_global_market_state == credix_lp_depository_marketplace_global_market_state.key() @UxdError::InvalidCredixGlobalMarketState,
+        constraint = credix_lp_depository_marketplace.load()?.credix_signing_authority == credix_lp_depository_marketplace_signing_authority.key() @UxdError::InvalidCredixSigningAuthority,
+        constraint = credix_lp_depository_marketplace.load()?.credix_liquidity_collateral == credix_lp_depository_marketplace_liquidity_collateral.key() @UxdError::InvalidCredixLiquidityCollateral,
+        constraint = credix_lp_depository_marketplace.load()?.credix_shares_mint == credix_lp_depository_marketplace_shares_mint.key() @UxdError::InvalidCredixSharesMint,
     )]
-    pub credix_lp_depository: AccountLoader<'info, CredixLpDepository>,
+    pub credix_lp_depository_marketplace: AccountLoader<'info, CredixLpDepository>,
 
     /// #16
     #[account(mut)]
-    pub credix_lp_depository_collateral: Box<Account<'info, TokenAccount>>,
+    pub credix_lp_depository_marketplace_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #17
     #[account(mut)]
-    pub credix_lp_depository_shares: Box<Account<'info, TokenAccount>>,
+    pub credix_lp_depository_marketplace_shares: Box<Account<'info, TokenAccount>>,
 
     /// #18
     #[account(
         owner = credix_client::ID,
-        seeds = [credix_lp_depository_global_market_state.key().as_ref(), credix_lp_depository.key().as_ref(), CREDIX_LP_EXTERNAL_PASS_NAMESPACE],
+        seeds = [credix_lp_depository_marketplace_global_market_state.key().as_ref(), credix_lp_depository_marketplace.key().as_ref(), CREDIX_LP_EXTERNAL_PASS_NAMESPACE],
         bump,
         seeds::program = credix_client::ID,
-        constraint = credix_lp_depository_pass.user == credix_lp_depository.key() @UxdError::InvalidCredixPass,
-        constraint = credix_lp_depository_pass.disable_withdrawal_fee @UxdError::InvalidCredixPassNoFees,
+        constraint = credix_lp_depository_marketplace_pass.user == credix_lp_depository_marketplace.key() @UxdError::InvalidCredixPass,
+        constraint = credix_lp_depository_marketplace_pass.disable_withdrawal_fee @UxdError::InvalidCredixPassNoFees,
     )]
-    pub credix_lp_depository_pass: Account<'info, credix_client::CredixPass>,
+    pub credix_lp_depository_marketplace_pass: Account<'info, credix_client::CredixPass>,
 
     /// #19
-    pub credix_lp_depository_global_market_state:
+    pub credix_lp_depository_marketplace_global_market_state:
         Box<Account<'info, credix_client::GlobalMarketState>>,
 
     /// #20 - CHECK: unused by us, checked by credix
-    pub credix_lp_depository_signing_authority: AccountInfo<'info>,
+    pub credix_lp_depository_marketplace_signing_authority: AccountInfo<'info>,
 
     /// #21
     #[account(mut)]
-    pub credix_lp_depository_liquidity_collateral: Box<Account<'info, TokenAccount>>,
+    pub credix_lp_depository_marketplace_liquidity_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #22
     #[account(mut)]
-    pub credix_lp_depository_shares_mint: Box<Account<'info, anchor_spl::token::Mint>>,
+    pub credix_lp_depository_marketplace_shares_mint: Box<Account<'info, anchor_spl::token::Mint>>,
+
+    /// #15
+    #[account(
+        mut,
+        seeds = [CREDIX_LP_DEPOSITORY_NAMESPACE, credix_lp_depository_receivables.load()?.credix_global_market_state.key().as_ref(), credix_lp_depository_receivables.load()?.collateral_mint.as_ref()],
+        bump = credix_lp_depository_receivables.load()?.bump,
+        has_one = controller @UxdError::InvalidController,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
+        constraint = credix_lp_depository_receivables.load()?.depository_collateral == credix_lp_depository_receivables_collateral.key() @UxdError::InvalidDepositoryCollateral,
+        constraint = credix_lp_depository_receivables.load()?.depository_shares == credix_lp_depository_receivables_shares.key() @UxdError::InvalidDepositoryShares,
+        constraint = credix_lp_depository_receivables.load()?.credix_global_market_state == credix_lp_depository_receivables_global_market_state.key() @UxdError::InvalidCredixGlobalMarketState,
+        constraint = credix_lp_depository_receivables.load()?.credix_signing_authority == credix_lp_depository_receivables_signing_authority.key() @UxdError::InvalidCredixSigningAuthority,
+        constraint = credix_lp_depository_receivables.load()?.credix_liquidity_collateral == credix_lp_depository_receivables_liquidity_collateral.key() @UxdError::InvalidCredixLiquidityCollateral,
+        constraint = credix_lp_depository_receivables.load()?.credix_shares_mint == credix_lp_depository_receivables_shares_mint.key() @UxdError::InvalidCredixSharesMint,
+    )]
+    pub credix_lp_depository_receivables: AccountLoader<'info, CredixLpDepository>,
+
+    /// #16
+    #[account(mut)]
+    pub credix_lp_depository_receivables_collateral: Box<Account<'info, TokenAccount>>,
+
+    /// #17
+    #[account(mut)]
+    pub credix_lp_depository_receivables_shares: Box<Account<'info, TokenAccount>>,
+
+    /// #18
+    #[account(
+        owner = credix_client::ID,
+        seeds = [credix_lp_depository_receivables_global_market_state.key().as_ref(), credix_lp_depository_receivables.key().as_ref(), CREDIX_LP_EXTERNAL_PASS_NAMESPACE],
+        bump,
+        seeds::program = credix_client::ID,
+        constraint = credix_lp_depository_receivables_pass.user == credix_lp_depository_receivables.key() @UxdError::InvalidCredixPass,
+        constraint = credix_lp_depository_receivables_pass.disable_withdrawal_fee @UxdError::InvalidCredixPassNoFees,
+    )]
+    pub credix_lp_depository_receivables_pass: Account<'info, credix_client::CredixPass>,
+
+    /// #19
+    pub credix_lp_depository_receivables_global_market_state:
+        Box<Account<'info, credix_client::GlobalMarketState>>,
+
+    /// #20 - CHECK: unused by us, checked by credix
+    pub credix_lp_depository_receivables_signing_authority: AccountInfo<'info>,
+
+    /// #21
+    #[account(mut)]
+    pub credix_lp_depository_receivables_liquidity_collateral: Box<Account<'info, TokenAccount>>,
+
+    /// #22
+    #[account(mut)]
+    pub credix_lp_depository_receivables_shares_mint: Box<Account<'info, anchor_spl::token::Mint>>,
 
     /// #23
     pub system_program: Program<'info, System>,
@@ -206,7 +257,8 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     let controller = ctx.accounts.controller.load()?;
     let identity_depository = ctx.accounts.identity_depository.load()?;
     let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
-    let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
+    let credix_lp_depository_marketplace = ctx.accounts.credix_lp_depository_marketplace.load()?;
+    let credix_lp_depository_receivables = ctx.accounts.credix_lp_depository_receivables.load()?;
 
     // Make controller signer
     let controller_pda_signer: &[&[&[u8]]] = &[&[
@@ -224,7 +276,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
 
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![
-        // Identity depository details
+        // identity_depository details
         DepositoryInfoForMint {
             weight_bps: controller.identity_depository_weight_bps,
             redeemable_amount_under_management: identity_depository
@@ -244,7 +296,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
                 Ok(())
             }),
         },
-        // Mercurial Vault Depository details
+        // mercurial_vault_depository details
         DepositoryInfoForMint {
             weight_bps: controller.mercurial_vault_depository_weight_bps,
             redeemable_amount_under_management: mercurial_vault_depository
@@ -267,22 +319,45 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
                 Ok(())
             }),
         },
-        // Credix Lp Depository details
+        // credix_lp_depository_marketplace details
         DepositoryInfoForMint {
-            weight_bps: controller.credix_lp_depository_weight_bps,
-            redeemable_amount_under_management: credix_lp_depository
+            weight_bps: controller.credix_lp_depository_marketplace_weight_bps,
+            redeemable_amount_under_management: credix_lp_depository_marketplace
                 .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: credix_lp_depository
+            redeemable_amount_under_management_cap: credix_lp_depository_marketplace
                 .redeemable_amount_under_management_cap,
             mint_fn: Box::new(|collateral_amount| {
                 msg!(
-                    "[mint:mint_with_credix_lp_depository:{}]",
+                    "[mint:mint_with_credix_lp_depository_marketplace:{}]",
                     collateral_amount
                 );
                 if collateral_amount > 0 {
                     uxd_cpi::cpi::mint_with_credix_lp_depository(
                         ctx.accounts
-                            .into_mint_with_credix_lp_depository_context()
+                            .into_mint_with_credix_lp_depository_marketplace_context()
+                            .with_signer(controller_pda_signer),
+                        collateral_amount,
+                    )?;
+                }
+                Ok(())
+            }),
+        },
+        // credix_lp_depository_receivables details
+        DepositoryInfoForMint {
+            weight_bps: controller.credix_lp_depository_receivables_weight_bps,
+            redeemable_amount_under_management: credix_lp_depository_receivables
+                .redeemable_amount_under_management,
+            redeemable_amount_under_management_cap: credix_lp_depository_receivables
+                .redeemable_amount_under_management_cap,
+            mint_fn: Box::new(|collateral_amount| {
+                msg!(
+                    "[mint:mint_with_credix_lp_depository_receivables:{}]",
+                    collateral_amount
+                );
+                if collateral_amount > 0 {
+                    uxd_cpi::cpi::mint_with_credix_lp_depository(
+                        ctx.accounts
+                            .into_mint_with_credix_lp_depository_receivables_context()
                             .with_signer(controller_pda_signer),
                         collateral_amount,
                     )?;
@@ -295,7 +370,8 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     drop(controller);
     drop(identity_depository);
     drop(mercurial_vault_depository);
-    drop(credix_lp_depository);
+    drop(credix_lp_depository_marketplace);
+    drop(credix_lp_depository_receivables);
 
     // Compute the desired target amounts for each depository
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
@@ -400,7 +476,7 @@ impl<'info> Mint<'info> {
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_mint_with_credix_lp_depository_context(
+    pub fn into_mint_with_credix_lp_depository_marketplace_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::MintWithCredixLpDepository<'info>>
     {
@@ -413,20 +489,69 @@ impl<'info> Mint<'info> {
             collateral_mint: self.collateral_mint.to_account_info(),
             user_redeemable: self.user_redeemable.to_account_info(),
             user_collateral: self.user_collateral.to_account_info(),
-            depository: self.credix_lp_depository.to_account_info(),
-            depository_collateral: self.credix_lp_depository_collateral.to_account_info(),
-            depository_shares: self.credix_lp_depository_shares.to_account_info(),
-            credix_pass: self.credix_lp_depository_pass.to_account_info(),
+            depository: self.credix_lp_depository_marketplace.to_account_info(),
+            depository_collateral: self
+                .credix_lp_depository_marketplace_collateral
+                .to_account_info(),
+            depository_shares: self
+                .credix_lp_depository_marketplace_shares
+                .to_account_info(),
+            credix_pass: self.credix_lp_depository_marketplace_pass.to_account_info(),
             credix_global_market_state: self
-                .credix_lp_depository_global_market_state
+                .credix_lp_depository_marketplace_global_market_state
                 .to_account_info(),
             credix_signing_authority: self
-                .credix_lp_depository_signing_authority
+                .credix_lp_depository_marketplace_signing_authority
                 .to_account_info(),
             credix_liquidity_collateral: self
-                .credix_lp_depository_liquidity_collateral
+                .credix_lp_depository_marketplace_liquidity_collateral
                 .to_account_info(),
-            credix_shares_mint: self.credix_lp_depository_shares_mint.to_account_info(),
+            credix_shares_mint: self
+                .credix_lp_depository_marketplace_shares_mint
+                .to_account_info(),
+            system_program: self.system_program.to_account_info(),
+            token_program: self.token_program.to_account_info(),
+            associated_token_program: self.associated_token_program.to_account_info(),
+            credix_program: self.credix_program.to_account_info(),
+            rent: self.rent.to_account_info(),
+        };
+        let cpi_program = self.credix_program.to_account_info();
+        CpiContext::new(cpi_program, cpi_accounts)
+    }
+
+    pub fn into_mint_with_credix_lp_depository_receivables_context(
+        &self,
+    ) -> CpiContext<'_, '_, '_, 'info, uxd_cpi::cpi::accounts::MintWithCredixLpDepository<'info>>
+    {
+        let cpi_accounts = uxd_cpi::cpi::accounts::MintWithCredixLpDepository {
+            authority: self.controller.to_account_info(),
+            user: self.user.to_account_info(),
+            payer: self.payer.to_account_info(),
+            controller: self.controller.to_account_info(),
+            redeemable_mint: self.redeemable_mint.to_account_info(),
+            collateral_mint: self.collateral_mint.to_account_info(),
+            user_redeemable: self.user_redeemable.to_account_info(),
+            user_collateral: self.user_collateral.to_account_info(),
+            depository: self.credix_lp_depository_receivables.to_account_info(),
+            depository_collateral: self
+                .credix_lp_depository_receivables_collateral
+                .to_account_info(),
+            depository_shares: self
+                .credix_lp_depository_receivables_shares
+                .to_account_info(),
+            credix_pass: self.credix_lp_depository_receivables_pass.to_account_info(),
+            credix_global_market_state: self
+                .credix_lp_depository_receivables_global_market_state
+                .to_account_info(),
+            credix_signing_authority: self
+                .credix_lp_depository_receivables_signing_authority
+                .to_account_info(),
+            credix_liquidity_collateral: self
+                .credix_lp_depository_receivables_liquidity_collateral
+                .to_account_info(),
+            credix_shares_mint: self
+                .credix_lp_depository_receivables_shares_mint
+                .to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
             associated_token_program: self.associated_token_program.to_account_info(),

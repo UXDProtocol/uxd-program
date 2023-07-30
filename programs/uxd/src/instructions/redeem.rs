@@ -38,7 +38,8 @@ pub struct Redeem<'info> {
         bump = controller.load()?.bump,
         constraint = controller.load()?.identity_depository == identity_depository.key() @UxdError::InvalidDepository,
         constraint = controller.load()?.mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
-        constraint = controller.load()?.credix_lp_depository == credix_lp_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.credix_lp_depository_marketplace == credix_lp_depository_marketplace.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.credix_lp_depository_receivables == credix_lp_depository_receivables.key() @UxdError::InvalidDepository,
         has_one = redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub controller: AccountLoader<'info, Controller>,
@@ -125,12 +126,22 @@ pub struct Redeem<'info> {
     /// #15
     #[account(
         mut,
-        seeds = [CREDIX_LP_DEPOSITORY_NAMESPACE, credix_lp_depository.load()?.credix_global_market_state.key().as_ref(), credix_lp_depository.load()?.collateral_mint.as_ref()],
-        bump = credix_lp_depository.load()?.bump,
+        seeds = [CREDIX_LP_DEPOSITORY_NAMESPACE, credix_lp_depository_marketplace.load()?.credix_global_market_state.key().as_ref(), credix_lp_depository_marketplace.load()?.collateral_mint.as_ref()],
+        bump = credix_lp_depository_marketplace.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
-    pub credix_lp_depository: AccountLoader<'info, CredixLpDepository>,
+    pub credix_lp_depository_marketplace: AccountLoader<'info, CredixLpDepository>,
+
+    /// #15
+    #[account(
+        mut,
+        seeds = [CREDIX_LP_DEPOSITORY_NAMESPACE, credix_lp_depository_receivables.load()?.credix_global_market_state.key().as_ref(), credix_lp_depository_receivables.load()?.collateral_mint.as_ref()],
+        bump = credix_lp_depository_receivables.load()?.bump,
+        has_one = controller @UxdError::InvalidController,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
+    )]
+    pub credix_lp_depository_receivables: AccountLoader<'info, CredixLpDepository>,
 
     /// #16
     pub system_program: Program<'info, System>,
@@ -163,7 +174,8 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let controller = ctx.accounts.controller.load()?;
     let identity_depository = ctx.accounts.identity_depository.load()?;
     let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
-    let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
+    let credix_lp_depository_marketplace = ctx.accounts.credix_lp_depository_marketplace.load()?;
+    let credix_lp_depository_receivables = ctx.accounts.credix_lp_depository_receivables.load()?;
 
     // Make controller signer
     let controller_pda_signer: &[&[&[u8]]] = &[&[
@@ -181,7 +193,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
 
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![
-        // Identity depository details
+        // identity_depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.identity_depository_weight_bps,
             redeemable_amount_under_management: identity_depository
@@ -204,7 +216,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
                 Ok(())
             })),
         },
-        // Mercurial Vault Depository details
+        // mercurial_vault_depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.mercurial_vault_depository_weight_bps,
             redeemable_amount_under_management: mercurial_vault_depository
@@ -227,21 +239,31 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
                 Ok(())
             })),
         },
-        // Credix Lp Depository details
+        // credix_lp_depository_marketplace details
         DepositoryInfoForRedeem {
-            weight_bps: controller.credix_lp_depository_weight_bps,
-            redeemable_amount_under_management: credix_lp_depository
+            weight_bps: controller.credix_lp_depository_marketplace_weight_bps,
+            redeemable_amount_under_management: credix_lp_depository_marketplace
                 .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: credix_lp_depository
+            redeemable_amount_under_management_cap: credix_lp_depository_marketplace
                 .redeemable_amount_under_management_cap,
-            redeem_fn: None, // credix is illiquid
+            redeem_fn: None, // credix is illiquid (redeemed through periodic rebalancing)
+        },
+        // credix_lp_depository_receivables details
+        DepositoryInfoForRedeem {
+            weight_bps: controller.credix_lp_depository_receivables_weight_bps,
+            redeemable_amount_under_management: credix_lp_depository_receivables
+                .redeemable_amount_under_management,
+            redeemable_amount_under_management_cap: credix_lp_depository_receivables
+                .redeemable_amount_under_management_cap,
+            redeem_fn: None, // credix is illiquid (redeemed through periodic rebalancing)
         },
     ];
 
     drop(controller);
     drop(identity_depository);
     drop(mercurial_vault_depository);
-    drop(credix_lp_depository);
+    drop(credix_lp_depository_marketplace);
+    drop(credix_lp_depository_receivables);
 
     // Compute the desired target amounts for each depository
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(

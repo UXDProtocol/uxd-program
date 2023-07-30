@@ -42,7 +42,8 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
         bump = controller.load()?.bump,
         constraint = controller.load()?.identity_depository == identity_depository.key() @UxdError::InvalidDepository,
         constraint = controller.load()?.mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
-        constraint = controller.load()?.credix_lp_depository == depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.credix_lp_depository_marketplace == depository.key() @UxdError::InvalidDepository,
+        //constraint = controller.load()?.credix_lp_depository_receivables == depository.key() @UxdError::InvalidDepository,
     )]
     pub controller: AccountLoader<'info, Controller>,
 

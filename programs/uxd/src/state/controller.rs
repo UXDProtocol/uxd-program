@@ -8,7 +8,7 @@ pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
 pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
-pub const CONTROLLER_RESERVED_SPACE: usize = 128;
+pub const CONTROLLER_RESERVED_SPACE: usize = 94;
 pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u8>() // bump
     + size_of::<u8>() // redeemable_mint_bump
@@ -30,10 +30,12 @@ pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u128>() // profits_total_collected
     + size_of::<u16>() // identity_depository_weight_bps
     + size_of::<u16>() // mercurial_vault_depository_weight_bps
-    + size_of::<u16>() // credix_lp_depository_weight_bps
+    + size_of::<u16>() // credix_lp_depository_marketplace_weight_bps
     + size_of::<Pubkey>() // identity_depository
     + size_of::<Pubkey>() // mercurial_vault_depository
-    + size_of::<Pubkey>() // credix_lp_depository
+    + size_of::<Pubkey>() // credix_lp_depository_marketplace
+    + size_of::<u16>() // credix_lp_depository_receivables_weight_bps
+    + size_of::<Pubkey>() // credix_lp_depository_receivables
     + CONTROLLER_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -87,12 +89,16 @@ pub struct Controller {
     // The configured router depositories balancing weights
     pub identity_depository_weight_bps: u16,
     pub mercurial_vault_depository_weight_bps: u16,
-    pub credix_lp_depository_weight_bps: u16,
+    pub credix_lp_depository_marketplace_weight_bps: u16,
 
     // The configured router depositories addresses
     pub identity_depository: Pubkey,
     pub mercurial_vault_depository: Pubkey,
-    pub credix_lp_depository: Pubkey,
+    pub credix_lp_depository_marketplace: Pubkey,
+
+    // Added receivables new credix pool
+    pub credix_lp_depository_receivables_weight_bps: u16,
+    pub credix_lp_depository_receivables: Pubkey,
 
     // For future usage
     pub _reserved: [u8; CONTROLLER_RESERVED_SPACE],

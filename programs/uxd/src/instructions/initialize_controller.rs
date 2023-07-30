@@ -89,10 +89,12 @@ pub(crate) fn handler(
     // Those default values will make any router-based mint/redeem impossible, on purpose.
     controller.identity_depository_weight_bps = 0;
     controller.mercurial_vault_depository_weight_bps = 0;
-    controller.credix_lp_depository_weight_bps = 0;
+    controller.credix_lp_depository_marketplace_weight_bps = 0;
+    controller.credix_lp_depository_receivables_weight_bps = 0;
     controller.identity_depository = Pubkey::default();
     controller.mercurial_vault_depository = Pubkey::default();
-    controller.credix_lp_depository = Pubkey::default();
+    controller.credix_lp_depository_marketplace = Pubkey::default();
+    controller.credix_lp_depository_receivables = Pubkey::default();
 
     emit!(InitializeControllerEvent {
         version: controller.version,

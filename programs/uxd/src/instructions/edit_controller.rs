@@ -27,14 +27,16 @@ pub struct EditController<'info> {
 pub struct EditDepositoriesRoutingWeightBps {
     pub identity_depository_weight_bps: u16,
     pub mercurial_vault_depository_weight_bps: u16,
-    pub credix_lp_depository_weight_bps: u16,
+    pub credix_lp_depository_marketplace_weight_bps: u16,
+    pub credix_lp_depository_receivables_weight_bps: u16,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
 pub struct EditRouterDepositories {
     pub identity_depository: Pubkey,
     pub mercurial_vault_depository: Pubkey,
-    pub credix_lp_depository: Pubkey,
+    pub credix_lp_depository_marketplace: Pubkey,
+    pub credix_lp_depository_receivables: Pubkey,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
@@ -53,8 +55,10 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
             depositories_routing_weight_bps.identity_depository_weight_bps;
         let mercurial_vault_depository_weight_bps =
             depositories_routing_weight_bps.mercurial_vault_depository_weight_bps;
-        let credix_lp_depository_weight_bps =
-            depositories_routing_weight_bps.credix_lp_depository_weight_bps;
+        let credix_lp_depository_marketplace_weight_bps =
+            depositories_routing_weight_bps.credix_lp_depository_marketplace_weight_bps;
+        let credix_lp_depository_receivables_weight_bps =
+            depositories_routing_weight_bps.credix_lp_depository_receivables_weight_bps;
         msg!(
             "[edit_controller] identity_depository_weight_bps {}",
             identity_depository_weight_bps
@@ -64,18 +68,26 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
             mercurial_vault_depository_weight_bps
         );
         msg!(
-            "[edit_controller] credix_lp_depository_weight_bps {}",
-            credix_lp_depository_weight_bps
+            "[edit_controller] credix_lp_depository_marketplace_weight_bps {}",
+            credix_lp_depository_marketplace_weight_bps
+        );
+        msg!(
+            "[edit_controller] credix_lp_depository_receivables_weight_bps {}",
+            credix_lp_depository_receivables_weight_bps
         );
         controller.identity_depository_weight_bps = identity_depository_weight_bps;
         controller.mercurial_vault_depository_weight_bps = mercurial_vault_depository_weight_bps;
-        controller.credix_lp_depository_weight_bps = credix_lp_depository_weight_bps;
+        controller.credix_lp_depository_marketplace_weight_bps =
+            credix_lp_depository_marketplace_weight_bps;
+        controller.credix_lp_depository_receivables_weight_bps =
+            credix_lp_depository_receivables_weight_bps;
         emit!(SetRouterDepositoriesWeightBps {
             controller_version: controller.version,
             controller: ctx.accounts.controller.key(),
             identity_depository_weight_bps,
             mercurial_vault_depository_weight_bps,
-            credix_lp_depository_weight_bps,
+            credix_lp_depository_marketplace_weight_bps,
+            credix_lp_depository_receivables_weight_bps,
         });
     }
 
@@ -83,7 +95,8 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
     if let Some(router_depositories) = fields.router_depositories {
         let identity_depository = router_depositories.identity_depository;
         let mercurial_vault_depository = router_depositories.mercurial_vault_depository;
-        let credix_lp_depository = router_depositories.credix_lp_depository;
+        let credix_lp_depository_marketplace = router_depositories.credix_lp_depository_marketplace;
+        let credix_lp_depository_receivables = router_depositories.credix_lp_depository_receivables;
         msg!(
             "[edit_controller] identity_depository {}",
             identity_depository
@@ -93,18 +106,24 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
             mercurial_vault_depository
         );
         msg!(
-            "[edit_controller] credix_lp_depository {}",
-            credix_lp_depository
+            "[edit_controller] credix_lp_depository_marketplace {}",
+            credix_lp_depository_marketplace
+        );
+        msg!(
+            "[edit_controller] credix_lp_depository_receivables {}",
+            credix_lp_depository_receivables
         );
         controller.identity_depository = identity_depository;
         controller.mercurial_vault_depository = mercurial_vault_depository;
-        controller.credix_lp_depository = credix_lp_depository;
+        controller.credix_lp_depository_marketplace = credix_lp_depository_marketplace;
+        controller.credix_lp_depository_receivables = credix_lp_depository_receivables;
         emit!(SetRouterDepositories {
             controller_version: controller.version,
             controller: ctx.accounts.controller.key(),
             identity_depository,
             mercurial_vault_depository,
-            credix_lp_depository,
+            credix_lp_depository_marketplace,
+            credix_lp_depository_receivables,
         });
     }
 
