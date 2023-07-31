@@ -10,8 +10,10 @@ use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
 use crate::utils::calculate_depositories_mint_collateral_amount;
 use crate::utils::calculate_depositories_mint_collateral_amount::DepositoryInfoForMintCollateralAmount;
+use crate::utils::calculate_depositories_sum_value;
 use crate::utils::calculate_depositories_target_redeemable_amount;
 use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
+use crate::utils::checked_convert_u128_to_u64;
 use crate::utils::validate_collateral_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -209,18 +211,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
 
     // Make controller signer
-    let controller_pda_signer: &[&[&[u8]]] = &[&[
-        CONTROLLER_NAMESPACE,
-        &[ctx.accounts.controller.load()?.bump],
-    ]];
-
-    // The actual post-mint circulating supply might be slightly lower due to fees and precision loss
-    // But the difference is negligible, and the difference will be taken into account
-    // When the next mint/redeem IX recompute the new targets based on the new circulating supply
-    let maximum_after_mint_circulating_supply = controller
-        .redeemable_circulating_supply
-        .checked_add(collateral_amount.into())
-        .ok_or(UxdError::MathError)?;
+    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.bump]]];
 
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![
@@ -297,9 +288,25 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     drop(mercurial_vault_depository);
     drop(credix_lp_depository);
 
+    // The actual post-mint circulating supply might be slightly lower due to fees and precision loss
+    // But the difference is negligible, and the difference will be taken into account
+    // When the next mint/redeem IX recompute the new targets based on the new circulating supply
+    let total_redeemable_amount_under_management = calculate_depositories_sum_value(
+        &depository_info
+            .iter()
+            .map(|depository_info| {
+                checked_convert_u128_to_u64(depository_info.redeemable_amount_under_management)
+            })
+            .collect::<Result<Vec<u64>>>()?,
+    )?;
+    let maximum_after_mint_total_redeemable_amount_under_management =
+        total_redeemable_amount_under_management
+            .checked_add(collateral_amount)
+            .ok_or(UxdError::MathError)?;
+
     // Compute the desired target amounts for each depository
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
-        maximum_after_mint_circulating_supply,
+        maximum_after_mint_total_redeemable_amount_under_management,
         &depository_info
             .iter()
             .map(|depository_info| DepositoryInfoForTargetRedeemableAmount {

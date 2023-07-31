@@ -15,15 +15,13 @@ pub struct DepositoryInfoForTargetRedeemableAmount {
 }
 
 pub fn calculate_depositories_target_redeemable_amount(
-    redeemable_circulating_supply: u128,
+    total_redeemable_amount_under_management: u64,
     depositories_info: &Vec<DepositoryInfoForTargetRedeemableAmount>,
 ) -> Result<Vec<u64>> {
     require!(
         depositories_info.len() == ROUTER_DEPOSITORIES_COUNT,
         UxdError::InvalidDepositoriesVector
     );
-
-    let redeemable_circulating_supply = checked_convert_u128_to_u64(redeemable_circulating_supply)?;
 
     // Double check that the weights adds up to 100%
     let depositories_weights_bps = depositories_info
@@ -46,7 +44,7 @@ pub fn calculate_depositories_target_redeemable_amount(
         .iter()
         .map(|depository| {
             compute_amount_fraction_ceil(
-                redeemable_circulating_supply,
+                total_redeemable_amount_under_management,
                 depository.weight_bps.into(),
                 BPS_UNIT_CONVERSION,
             )

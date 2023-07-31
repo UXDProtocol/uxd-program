@@ -11,8 +11,10 @@ use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
 use crate::utils::calculate_depositories_redeemable_amount;
 use crate::utils::calculate_depositories_redeemable_amount::DepositoryInfoForRedeemableAmount;
+use crate::utils::calculate_depositories_sum_value;
 use crate::utils::calculate_depositories_target_redeemable_amount;
 use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
+use crate::utils::checked_convert_u128_to_u64;
 use crate::utils::validate_redeemable_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -166,18 +168,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
 
     // Make controller signer
-    let controller_pda_signer: &[&[&[u8]]] = &[&[
-        CONTROLLER_NAMESPACE,
-        &[ctx.accounts.controller.load()?.bump],
-    ]];
-
-    // The actual post-redeem circulating supply may be slightly higher
-    // Due to redeem fees and precision loss. But the difference should be negligible and
-    // Any future mint/redeem will recompute the targets based on the exact future circulating supply anyway
-    let mimimum_after_redeem_circulating_supply = controller
-        .redeemable_circulating_supply
-        .checked_sub(redeemable_amount.into())
-        .ok_or(UxdError::MathError)?;
+    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.bump]]];
 
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![
@@ -243,9 +234,25 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     drop(mercurial_vault_depository);
     drop(credix_lp_depository);
 
+    // The actual post-redeem circulating supply may be slightly higher
+    // Due to redeem fees and precision loss. But the difference should be negligible and
+    // Any future mint/redeem will recompute the targets based on the exact future circulating supply anyway
+    let total_redeemable_amount_under_management = calculate_depositories_sum_value(
+        &depository_info
+            .iter()
+            .map(|depository_info| {
+                checked_convert_u128_to_u64(depository_info.redeemable_amount_under_management)
+            })
+            .collect::<Result<Vec<u64>>>()?,
+    )?;
+    let minimum_after_mint_total_redeemable_amount_under_management =
+        total_redeemable_amount_under_management
+            .checked_sub(redeemable_amount)
+            .ok_or(UxdError::MathError)?;
+
     // Compute the desired target amounts for each depository
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
-        mimimum_after_redeem_circulating_supply,
+        minimum_after_mint_total_redeemable_amount_under_management,
         &depository_info
             .iter()
             .map(|depository_info| DepositoryInfoForTargetRedeemableAmount {
