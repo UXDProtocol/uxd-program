@@ -157,14 +157,13 @@ pub async fn process_mint_with_credix_lp_depository(
         .await?;
 
     // Compute expected redeemable amount after minting fees and precision loss
+    let redeemable_amount_before_fees = collateral_amount_after_precision_loss;
     let redeemable_amount = calculate_amount_less_fees(
-        collateral_amount_after_precision_loss,
+        redeemable_amount_before_fees,
         credix_lp_depository_before.minting_fee_in_bps,
     )
     .map_err(program_test_context::ProgramTestError::Anchor)?;
-
-    // Compute fees amount
-    let fees_amount = collateral_amount_after_precision_loss - redeemable_amount;
+    let fees_amount = redeemable_amount_before_fees - redeemable_amount;
 
     // redeemable_mint.supply must have increased by the minted amount (equivalent to redeemable_amount)
     let redeemable_mint_supply_before = redeemable_mint_before.supply;

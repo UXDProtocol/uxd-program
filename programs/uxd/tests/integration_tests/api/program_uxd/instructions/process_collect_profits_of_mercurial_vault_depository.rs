@@ -197,12 +197,14 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
         mercurial_vault_lp_mint_supply_before - profits_lp_amount,
         mercurial_vault_lp_mint_supply_after,
     );
+
     let controller_profits_total_collected_before = controller_before.profits_total_collected;
     let controller_profits_total_collected_after = controller_after.profits_total_collected;
     assert_eq!(
         controller_profits_total_collected_before + u128::from(profits_collateral_amount),
         controller_profits_total_collected_after,
     );
+
     let mercurial_vault_depository_profits_total_collected_before =
         mercurial_vault_depository_before.profits_total_collected;
     let mercurial_vault_depository_profits_total_collected_after =

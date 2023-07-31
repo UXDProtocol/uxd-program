@@ -447,7 +447,7 @@ pub(crate) fn handler(
     let mut depository = ctx.accounts.depository.load_mut()?;
     depository.redeeming_fee_accrued(redeeming_fee_paid)?;
     depository.collateral_withdrawn_and_redeemable_burned(
-        collateral_amount_after_precision_loss,
+        collateral_amount_before_precision_loss,
         redeemable_amount,
     )?;
 

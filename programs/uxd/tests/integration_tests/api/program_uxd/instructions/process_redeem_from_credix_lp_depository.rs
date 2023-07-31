@@ -162,24 +162,25 @@ pub async fn process_redeem_from_credix_lp_depository(
             .await?
             .amount;
 
-    // Compute collateral amount deposited after precision loss
-    let redeemable_amount_after_precision_loss =
-        process_redeem_from_credix_lp_depository_redeemable_amount_after_precision_loss(
-            program_test_context,
-            collateral_mint,
-            redeemable_amount,
-        )
-        .await?;
-
-    // Compute expected redeemable amount after minting fees and precision loss
-    let collateral_amount = calculate_amount_less_fees(
-        redeemable_amount_after_precision_loss,
-        credix_lp_depository_before.minting_fee_in_bps,
+    // Compute expected redeemable amount after redeeming fees
+    let redeemable_amount_after_fees = calculate_amount_less_fees(
+        redeemable_amount,
+        credix_lp_depository_before.redeeming_fee_in_bps,
     )
     .map_err(program_test_context::ProgramTestError::Anchor)?;
 
+    // Compute collateral amount withdrawn after precision loss
+    let collateral_amount_before_precision_loss = redeemable_amount_after_fees;
+    let collateral_amount_after_precision_loss =
+        process_redeem_from_credix_lp_depository_collateral_amount_after_precision_loss(
+            program_test_context,
+            collateral_mint,
+            collateral_amount_before_precision_loss,
+        )
+        .await?;
+
     // Compute fees amount
-    let fees_amount = redeemable_amount_after_precision_loss - collateral_amount;
+    let fees_amount = redeemable_amount - redeemable_amount_after_fees;
 
     // redeemable_mint.supply must have decreased by the redeemed amount (equivalent to redeemable_amount)
     let redeemable_mint_supply_before = redeemable_mint_before.supply;
@@ -224,13 +225,13 @@ pub async fn process_redeem_from_credix_lp_depository(
     let collateral_amount_deposited_after =
         u64::try_from(credix_lp_depository_after.collateral_amount_deposited).unwrap();
     assert_eq!(
-        collateral_amount_deposited_before - collateral_amount,
+        collateral_amount_deposited_before - collateral_amount_before_precision_loss,
         collateral_amount_deposited_after,
     );
 
     // user_collateral.amount must have increased by the withdrawn amount (equivalent to collateral_amount)
     assert_eq!(
-        user_collateral_amount_before + collateral_amount,
+        user_collateral_amount_before + collateral_amount_after_precision_loss,
         user_collateral_amount_after,
     );
     // user_redeemable.amount must have decreaed by the minted amount (equivalent to redeemable_amount)
@@ -243,10 +244,10 @@ pub async fn process_redeem_from_credix_lp_depository(
     Ok(())
 }
 
-pub async fn process_redeem_from_credix_lp_depository_redeemable_amount_after_precision_loss(
+pub async fn process_redeem_from_credix_lp_depository_collateral_amount_after_precision_loss(
     program_test_context: &mut ProgramTestContext,
     collateral_mint: &Pubkey,
-    redeemable_amount: u64,
+    collateral_amount: u64,
 ) -> Result<u64, program_test_context::ProgramTestError> {
     // Read on chain accounts that contains the credix useful states
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
@@ -284,12 +285,12 @@ pub async fn process_redeem_from_credix_lp_depository_redeemable_amount_after_pr
 
     // Compute expected redeemable amount after minting fees and precision loss
     let shares_amount = compute_shares_amount_for_value_floor(
-        redeemable_amount,
+        collateral_amount,
         total_shares_supply,
         total_shares_value,
     )
     .map_err(program_test_context::ProgramTestError::Anchor)?;
-    let redeemable_amount_after_precision_loss = compute_value_for_shares_amount_floor(
+    let collateral_amount_after_precision_loss = compute_value_for_shares_amount_floor(
         shares_amount,
         total_shares_supply,
         total_shares_value,
@@ -297,5 +298,5 @@ pub async fn process_redeem_from_credix_lp_depository_redeemable_amount_after_pr
     .map_err(program_test_context::ProgramTestError::Anchor)?;
 
     // Done
-    Ok(redeemable_amount_after_precision_loss)
+    Ok(collateral_amount_after_precision_loss)
 }

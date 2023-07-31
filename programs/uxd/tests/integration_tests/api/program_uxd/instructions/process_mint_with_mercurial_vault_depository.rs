@@ -124,12 +124,13 @@ pub async fn process_mint_with_mercurial_vault_depository(
             .amount;
 
     // Compute expected redeemable amount after minting fees
+    let redeemable_amount_before_fees = collateral_amount;
     let redeemable_amount = calculate_amount_less_fees(
-        collateral_amount,
+        redeemable_amount_before_fees,
         mercurial_vault_depository_before.minting_fee_in_bps,
     )
     .map_err(program_test_context::ProgramTestError::Anchor)?;
-    let fees_amount = collateral_amount - redeemable_amount;
+    let fees_amount = redeemable_amount_before_fees - redeemable_amount;
 
     // redeemable_mint.supply must have increased by the minted amount (equivalent to redeemable_amount)
     let redeemable_mint_supply_before = redeemable_mint_before.supply;

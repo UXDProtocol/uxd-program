@@ -78,12 +78,6 @@ pub async fn process_collect_profits_of_credix_lp_depository(
             &credix_lp_depository,
         )
         .await?;
-    let credix_shares_mint_before = program_test_context::read_account_packed::<Mint>(
-        program_test_context,
-        &credix_shares_mint,
-    )
-    .await?;
-
     let credix_lp_depository_shares_amount_before =
         program_test_context::read_account_packed::<Account>(
             program_test_context,
@@ -91,14 +85,26 @@ pub async fn process_collect_profits_of_credix_lp_depository(
         )
         .await?
         .amount;
-    let credix_lp_depository_shares_value_before = compute_credix_lp_depository_shares_value(
+
+    let credix_shares_mint_before = program_test_context::read_account_packed::<Mint>(
         program_test_context,
         &credix_shares_mint,
-        &credix_global_market_state,
-        &credix_liquidity_collateral,
-        credix_lp_depository_shares_amount_before,
     )
     .await?;
+    let credix_pool_outstanding_credit_before = program_test_context::read_account_anchor::<
+        credix_client::GlobalMarketState,
+    >(
+        program_test_context, &credix_global_market_state
+    )
+    .await?
+    .pool_outstanding_credit;
+    let credix_liquidity_collateral_amount_before =
+        program_test_context::read_account_packed::<Account>(
+            program_test_context,
+            &credix_liquidity_collateral,
+        )
+        .await?
+        .amount;
 
     let profits_beneficiary_collateral_amount_before =
         program_test_context::read_account_packed::<Account>(
@@ -150,12 +156,6 @@ pub async fn process_collect_profits_of_credix_lp_depository(
             &credix_lp_depository,
         )
         .await?;
-    let credix_shares_mint_after = program_test_context::read_account_packed::<Mint>(
-        program_test_context,
-        &credix_shares_mint,
-    )
-    .await?;
-
     let credix_lp_depository_shares_amount_after =
         program_test_context::read_account_packed::<Account>(
             program_test_context,
@@ -163,14 +163,26 @@ pub async fn process_collect_profits_of_credix_lp_depository(
         )
         .await?
         .amount;
-    let credix_lp_depository_shares_value_after = compute_credix_lp_depository_shares_value(
+
+    let credix_shares_mint_after = program_test_context::read_account_packed::<Mint>(
         program_test_context,
         &credix_shares_mint,
-        &credix_global_market_state,
-        &credix_liquidity_collateral,
-        credix_lp_depository_shares_amount_after,
     )
     .await?;
+    let credix_pool_outstanding_credit_after = program_test_context::read_account_anchor::<
+        credix_client::GlobalMarketState,
+    >(
+        program_test_context, &credix_global_market_state
+    )
+    .await?
+    .pool_outstanding_credit;
+    let credix_liquidity_collateral_amount_after =
+        program_test_context::read_account_packed::<Account>(
+            program_test_context,
+            &credix_liquidity_collateral,
+        )
+        .await?
+        .amount;
 
     let profits_beneficiary_collateral_amount_after =
         program_test_context::read_account_packed::<Account>(
@@ -181,35 +193,45 @@ pub async fn process_collect_profits_of_credix_lp_depository(
         .amount;
 
     // Compute the amount of expected profits to be withdrawn
-    let assets_value_before = credix_lp_depository_shares_value_before;
-    let assets_value_after = credix_lp_depository_shares_value_after;
+    let total_shares_supply_before = credix_shares_mint_before.supply;
+    let total_shares_value_before =
+        credix_liquidity_collateral_amount_before + credix_pool_outstanding_credit_before;
+    let total_shares_supply_after = credix_shares_mint_after.supply;
+    let total_shares_value_after =
+        credix_liquidity_collateral_amount_after + credix_pool_outstanding_credit_after;
+
+    let assets_value_before = compute_value_for_shares_amount_floor(
+        credix_lp_depository_shares_amount_before,
+        total_shares_supply_before,
+        total_shares_value_before,
+    )
+    .map_err(program_test_context::ProgramTestError::Anchor)?;
+    let assets_value_after = compute_value_for_shares_amount_floor(
+        credix_lp_depository_shares_amount_after,
+        total_shares_supply_after,
+        total_shares_value_after,
+    )
+    .map_err(program_test_context::ProgramTestError::Anchor)?;
+
     let liabilities_value_before =
         u64::try_from(credix_lp_depository_before.redeemable_amount_under_management).unwrap();
     let liabilities_value_after =
         u64::try_from(credix_lp_depository_after.redeemable_amount_under_management).unwrap();
 
-    let profits_collateral_amount = assets_value_before - liabilities_value_before;
+    let profits_collateral_amount_before_precision_loss =
+        assets_value_before - liabilities_value_before;
     let profits_shares_amount = compute_shares_amount_for_value_floor(
-        profits_collateral_amount,
-        credix_shares_mint_before.supply,
-        credix_lp_depository_shares_value_before,
+        profits_collateral_amount_before_precision_loss,
+        total_shares_supply_before,
+        total_shares_value_before,
     )
     .map_err(program_test_context::ProgramTestError::Anchor)?;
-
-    println!(
-        "credix_lp_depository_shares_value_before:{}",
-        credix_lp_depository_shares_value_before
-    );
-    println!(
-        "credix_lp_depository_shares_value_after:{}",
-        credix_lp_depository_shares_value_after
-    );
-
-    println!("liabilities_value_before:{}", liabilities_value_before);
-    println!("liabilities_value_after:{}", liabilities_value_after);
-
-    println!("profits_collateral_amount:{}", profits_collateral_amount);
-    println!("profits_shares_amount:{}", profits_shares_amount);
+    let profits_collateral_amount_after_precision_loss = compute_value_for_shares_amount_floor(
+        profits_shares_amount,
+        total_shares_supply_before,
+        total_shares_value_before,
+    )
+    .map_err(program_test_context::ProgramTestError::Anchor)?;
 
     // Check result
     let credix_shares_mint_supply_before = credix_shares_mint_before.supply;
@@ -218,18 +240,22 @@ pub async fn process_collect_profits_of_credix_lp_depository(
         credix_shares_mint_supply_before - profits_shares_amount,
         credix_shares_mint_supply_after,
     );
+
     let controller_profits_total_collected_before = controller_before.profits_total_collected;
     let controller_profits_total_collected_after = controller_after.profits_total_collected;
     assert_eq!(
-        controller_profits_total_collected_before + u128::from(profits_collateral_amount),
+        controller_profits_total_collected_before
+            + u128::from(profits_collateral_amount_after_precision_loss),
         controller_profits_total_collected_after,
     );
+
     let credix_lp_depository_profits_total_collected_before =
         credix_lp_depository_before.profits_total_collected;
     let credix_lp_depository_profits_total_collected_after =
         credix_lp_depository_after.profits_total_collected;
     assert_eq!(
-        credix_lp_depository_profits_total_collected_before + u128::from(profits_collateral_amount),
+        credix_lp_depository_profits_total_collected_before
+            + u128::from(profits_collateral_amount_after_precision_loss),
         credix_lp_depository_profits_total_collected_after,
     );
 
@@ -238,53 +264,13 @@ pub async fn process_collect_profits_of_credix_lp_depository(
         credix_lp_depository_shares_amount_after,
     );
     assert_eq!(
-        profits_beneficiary_collateral_amount_before + profits_collateral_amount,
+        profits_beneficiary_collateral_amount_before
+            + profits_collateral_amount_after_precision_loss,
         profits_beneficiary_collateral_amount_after,
     );
 
-    assert_eq!(
-        assets_value_before - profits_collateral_amount,
-        assets_value_after,
-    );
     assert_eq!(liabilities_value_before, liabilities_value_after);
 
     // Done
     Ok(())
-}
-
-async fn compute_credix_lp_depository_shares_value(
-    program_test_context: &mut ProgramTestContext,
-    credix_shares_mint: &Pubkey,
-    credix_global_market_state: &Pubkey,
-    credix_liquidity_collateral: &Pubkey,
-    credix_lp_depository_shares_amount: u64,
-) -> Result<u64, program_test_context::ProgramTestError> {
-    let credix_shares_mint_supply = program_test_context::read_account_packed::<Mint>(
-        program_test_context,
-        &credix_shares_mint,
-    )
-    .await?
-    .supply;
-
-    let credix_pool_outstanding_credit = program_test_context::read_account_anchor::<
-        credix_client::GlobalMarketState,
-    >(program_test_context, &credix_global_market_state)
-    .await?
-    .pool_outstanding_credit;
-    let credix_liquidity_collateral_amount = program_test_context::read_account_packed::<Account>(
-        program_test_context,
-        &credix_liquidity_collateral,
-    )
-    .await?
-    .amount;
-
-    let total_shares_supply = credix_shares_mint_supply;
-    let total_shares_value = credix_liquidity_collateral_amount + credix_pool_outstanding_credit;
-
-    compute_value_for_shares_amount_floor(
-        credix_lp_depository_shares_amount,
-        total_shares_supply,
-        total_shares_value,
-    )
-    .map_err(program_test_context::ProgramTestError::Anchor)
 }

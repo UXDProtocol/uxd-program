@@ -73,7 +73,8 @@ async fn test_identity_depository_mint_and_redeem(
     .await?;
 
     // Useful amounts used during testing scenario
-    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(50, redeemable_mint_decimals);
+    let amount_we_use_as_supply_cap =
+        ui_amount_to_native_amount(50_000_000, redeemable_mint_decimals);
     let amount_bigger_than_the_supply_cap =
         ui_amount_to_native_amount(300_000_000, redeemable_mint_decimals);
 
