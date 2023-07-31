@@ -11,7 +11,8 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_credix_lp_depository_mint_and_redeem_and_collect_profits(
+) -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -53,6 +54,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Main actor
     let user = Keypair::new();
+    let profits_beneficiary = Keypair::new();
 
     // Create a collateral account for our user
     let user_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
@@ -71,6 +73,16 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     )
     .await?;
 
+    // Create a collateral account for our profits_beneficiary
+    let profits_beneficiary_collateral =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            &mut program_test_context,
+            &payer,
+            &collateral_mint.pubkey(),
+            &profits_beneficiary.pubkey(),
+        )
+        .await?;
+
     // Useful amounts used during testing scenario
     let amount_we_use_as_supply_cap = ui_amount_to_native_amount(50, redeemable_mint_decimals);
     let amount_bigger_than_the_supply_cap =
@@ -80,6 +92,9 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
         ui_amount_to_native_amount(1000, collateral_mint_decimals);
     let amount_the_user_should_be_able_to_mint =
         ui_amount_to_native_amount(50, collateral_mint_decimals);
+
+    let amount_the_user_should_be_able_to_redeem =
+        ui_amount_to_native_amount(40, redeemable_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -215,6 +230,8 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     // -- Phase 3
     // -- Everything is ready for minting
     // -- We should now successfully be able to mint
+    // -- After minting, we redeem (and it should succeed)
+    // -- We also test invalid redeem amounts (and it should fail)
     // ---------------------------------------------------------------------
 
     // Minting should work now that everything is set
@@ -227,6 +244,100 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
         &user_collateral,
         &user_redeemable,
         amount_the_user_should_be_able_to_mint,
+    )
+    .await?;
+
+    // Redeeming the correct amount should succeed
+    program_uxd::instructions::process_redeem_from_credix_lp_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &credix_multisig.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_the_user_should_be_able_to_redeem,
+    )
+    .await?;
+
+    // Redeeming too much should fail
+    assert!(
+        program_uxd::instructions::process_redeem_from_credix_lp_depository(
+            &mut program_test_context,
+            &payer,
+            &authority,
+            &collateral_mint.pubkey(),
+            &credix_multisig.pubkey(),
+            &user,
+            &user_collateral,
+            &user_redeemable,
+            amount_bigger_than_the_supply_cap,
+        )
+        .await
+        .is_err()
+    );
+
+    // Redeeming zero should fail
+    assert!(
+        program_uxd::instructions::process_redeem_from_credix_lp_depository(
+            &mut program_test_context,
+            &payer,
+            &authority,
+            &collateral_mint.pubkey(),
+            &credix_multisig.pubkey(),
+            &user,
+            &user_collateral,
+            &user_redeemable,
+            0,
+        )
+        .await
+        .is_err()
+    );
+
+    // ---------------------------------------------------------------------
+    // -- Phase 4
+    // -- After mint/redeem cycle, we should have a small amount of profits
+    // -- We should now successfully be able to collect profits
+    // -- Before that we make sure to test and set the depository flag profits beneficiary
+    // ---------------------------------------------------------------------
+
+    // Collecting profits first should fail because we havent set a profits beneficiary
+    assert!(
+        program_uxd::instructions::process_collect_profits_of_credix_lp_depository(
+            &mut program_test_context,
+            &payer,
+            &collateral_mint.pubkey(),
+            &credix_multisig.pubkey(),
+            &profits_beneficiary_collateral,
+        )
+        .await
+        .is_err()
+    );
+
+    // Setting the profits beneficiary
+    program_uxd::instructions::process_edit_credix_lp_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditCredixLpDepositoryFields {
+            redeemable_amount_under_management_cap: None,
+            minting_fee_in_bps: None,
+            redeeming_fee_in_bps: None,
+            minting_disabled: None,
+            profits_beneficiary_collateral: Some(profits_beneficiary_collateral),
+        },
+    )
+    .await?;
+
+    // Now that profits beneficiary is set, collecting profits should succeed
+    program_uxd::instructions::process_collect_profits_of_credix_lp_depository(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &credix_multisig.pubkey(),
+        &profits_beneficiary_collateral,
     )
     .await?;
 

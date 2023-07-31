@@ -26,14 +26,23 @@ use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 #[derive(Accounts)]
 #[instruction(redeemable_amount: u64)]
 pub struct RedeemFromCredixLpDepository<'info> {
-    /// #1
-    pub user: Signer<'info>,
+    /// #1 This IX should only be accessible by the router or the DAO
+    #[account(
+        constraint = (
+            authority.key() == controller.key()
+            || authority.key() == controller.load()?.authority
+        )  @UxdError::InvalidAuthority,
+    )]
+    pub authority: Signer<'info>,
 
     /// #2
+    pub user: Signer<'info>,
+
+    /// #3
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// #3
+    /// #4
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -43,7 +52,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #4
+    /// #5
     #[account(
         mut,
         seeds = [
@@ -64,14 +73,14 @@ pub struct RedeemFromCredixLpDepository<'info> {
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 
-    /// #5
+    /// #6
     #[account(mut)]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
-    /// #6
+    /// #7
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #7
+    /// #8
     #[account(
         mut,
         constraint = user_redeemable.owner == user.key() @UxdError::InvalidOwner,
@@ -79,7 +88,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #8
+    /// #9
     #[account(
         mut,
         constraint = user_collateral.owner == user.key() @UxdError::InvalidOwner,
@@ -87,40 +96,40 @@ pub struct RedeemFromCredixLpDepository<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #9
+    /// #10
     #[account(mut)]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #10
+    /// #11
     #[account(mut)]
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
-    /// #11
+    /// #12
     #[account(
         has_one = credix_multisig_key @UxdError::InvalidCredixMultisigKey,
     )]
     pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
 
-    /// #12
+    /// #13
     #[account(
         mut,
         constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
     )]
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 
-    /// #13
+    /// #14
     /// CHECK: unused by us, checked by credix
     pub credix_signing_authority: AccountInfo<'info>,
 
-    /// #14
+    /// #15
     #[account(mut)]
     pub credix_liquidity_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #15
+    /// #16
     #[account(mut)]
     pub credix_shares_mint: Box<Account<'info, Mint>>,
 
-    /// #16
+    /// #17
     #[account(
         owner = credix_client::ID,
         seeds = [
@@ -135,18 +144,18 @@ pub struct RedeemFromCredixLpDepository<'info> {
     )]
     pub credix_pass: Account<'info, credix_client::CredixPass>,
 
-    /// #17
+    /// #18
     #[account(
         mut,
         token::mint = collateral_mint,
     )]
     pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #18
+    /// #19
     /// CHECK: not used by us, checked by credix program
     pub credix_multisig_key: AccountInfo<'info>,
 
-    /// #19
+    /// #20
     #[account(
         mut,
         token::authority = credix_multisig_key,
@@ -154,15 +163,15 @@ pub struct RedeemFromCredixLpDepository<'info> {
     )]
     pub credix_multisig_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #20
-    pub system_program: Program<'info, System>,
     /// #21
-    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
     /// #22
-    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub token_program: Program<'info, Token>,
     /// #23
-    pub credix_program: Program<'info, credix_client::program::Credix>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     /// #24
+    pub credix_program: Program<'info, credix_client::program::Credix>,
+    /// #25
     pub rent: Sysvar<'info, Rent>,
 }
 
