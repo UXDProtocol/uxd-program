@@ -17,9 +17,10 @@ pub async fn process_set_router_depositories(
     authority: &Keypair,
     collateral_mint: &Pubkey,
 ) -> Result<(), program_test_context::ProgramTestError> {
-    // Find the important PDAs to resolve the depositories address to be whitelisted
+    // Find identity_depository
     let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
 
+    // Find mercurial_vault_depository
     let mercurial_base = program_mercurial::accounts::find_base();
     let mercurial_vault =
         program_mercurial::accounts::find_vault_pda(collateral_mint, &mercurial_base.pubkey()).0;
@@ -29,12 +30,23 @@ pub async fn process_set_router_depositories(
     )
     .0;
 
-    let credix_market_seeds = program_credix::accounts::find_market_seeds();
-    let credix_global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
-    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository_pda(
+    // Find credix_lp_depository_marketplace
+    let credix_market_seeds_marketplace = program_credix::accounts::find_market_seeds_marketplace();
+    let credix_global_market_state_marketplace =
+        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds_marketplace).0;
+    let credix_lp_depository_marketplace = program_uxd::accounts::find_credix_lp_depository_pda(
         collateral_mint,
-        &credix_global_market_state,
+        &credix_global_market_state_marketplace,
+    )
+    .0;
+
+    // Find credix_lp_depository_receivables
+    let credix_market_seeds_receivables = program_credix::accounts::find_market_seeds_receivables();
+    let credix_global_market_state_receivables =
+        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds_receivables).0;
+    let credix_lp_depository_receivables = program_uxd::accounts::find_credix_lp_depository_pda(
+        collateral_mint,
+        &credix_global_market_state_receivables,
     )
     .0;
 
@@ -49,7 +61,8 @@ pub async fn process_set_router_depositories(
             router_depositories: Some(EditRouterDepositories {
                 identity_depository,
                 mercurial_vault_depository,
-                credix_lp_depository,
+                credix_lp_depository_marketplace,
+                credix_lp_depository_receivables,
             }),
         },
     )

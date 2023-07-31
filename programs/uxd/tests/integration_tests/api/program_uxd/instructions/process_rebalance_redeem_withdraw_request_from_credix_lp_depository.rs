@@ -30,10 +30,12 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     let controller = program_uxd::accounts::find_controller_pda().0;
     let redeemable_mint = program_uxd::accounts::find_redeemable_mint_pda().0;
 
+    // Find identity_depository accounts
     let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
     let identity_depository_collateral =
         program_uxd::accounts::find_identity_depository_collateral_vault_pda().0;
 
+    // Find mercurial_vault_depository accounts
     let mercurial_base = program_mercurial::accounts::find_base();
     let mercurial_vault_depository_vault =
         program_mercurial::accounts::find_vault_pda(collateral_mint, &mercurial_base.pubkey()).0;
@@ -43,6 +45,7 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     )
     .0;
 
+    // Find credix_lp_depository_marketplace accounts
     let credix_program_state_marketplace = program_credix::accounts::find_program_state_pda().0;
     let credix_market_seeds_marketplace = program_credix::accounts::find_market_seeds_marketplace();
     let credix_global_market_state_marketplace =
@@ -77,32 +80,34 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
             credix_multisig_key,
             collateral_mint,
         );
-    let credix_lp_depository_collateral_marketplace =
+    let credix_lp_depository_marketplace_collateral =
         program_uxd::accounts::find_credix_lp_depository_collateral(
             &credix_lp_depository_marketplace,
             collateral_mint,
         );
-    let credix_lp_depository_shares_marketplace =
+    let credix_lp_depository_marketplace_shares =
         program_uxd::accounts::find_credix_lp_depository_shares(
             &credix_lp_depository_marketplace,
             &credix_shares_mint_marketplace,
         );
 
-    // Find the credix withdraw accounts
-    let credix_latest_withdraw_epoch_idx = program_test_context::read_account_anchor::<
-        credix_client::GlobalMarketState,
-    >(program_test_context, &credix_global_market_state)
-    .await?
-    .latest_withdraw_epoch_idx;
-    let credix_withdraw_epoch = program_credix::accounts::find_withdraw_epoch_pda(
-        &credix_global_market_state,
-        credix_latest_withdraw_epoch_idx,
+    // Find the credix_lp_depository_marketplace withdraw accounts
+    let credix_latest_withdraw_epoch_idx_marketplace =
+        program_test_context::read_account_anchor::<credix_client::GlobalMarketState>(
+            program_test_context,
+            &credix_global_market_state_marketplace,
+        )
+        .await?
+        .latest_withdraw_epoch_idx;
+    let credix_withdraw_epoch_marketplace = program_credix::accounts::find_withdraw_epoch_pda(
+        &credix_global_market_state_marketplace,
+        credix_latest_withdraw_epoch_idx_marketplace,
     )
     .0;
-    let credix_withdraw_request = program_credix::accounts::find_withdraw_request_pda(
-        &credix_global_market_state,
-        &credix_lp_depository,
-        credix_latest_withdraw_epoch_idx,
+    let credix_withdraw_request_marketplaces = program_credix::accounts::find_withdraw_request_pda(
+        &credix_global_market_state_marketplace,
+        &credix_lp_depository_marketplace,
+        credix_latest_withdraw_epoch_idx_marketplace,
     )
     .0;
 
@@ -113,10 +118,10 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     let controller_before =
         program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
             .await?;
-    let credix_lp_depository_before =
+    let credix_lp_depository_marketplace_before =
         program_test_context::read_account_anchor::<CredixLpDepository>(
             program_test_context,
-            &credix_lp_depository,
+            &credix_lp_depository_marketplace,
         )
         .await?;
     let identity_depository_before =

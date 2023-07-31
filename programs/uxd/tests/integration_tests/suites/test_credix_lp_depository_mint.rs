@@ -5,6 +5,7 @@ use solana_sdk::signer::Signer;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
 
+use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
@@ -37,6 +38,9 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     let collateral_mint = Keypair::new();
     let mercurial_vault_lp_mint = Keypair::new();
     let credix_multisig = Keypair::new();
+
+    // Manipulate a credix market
+    let credix_market_seeds_marketplace = program_credix::accounts::find_market_seeds_marketplace();
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
@@ -95,6 +99,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
+            &credix_market_seeds_marketplace,
             &payer,
             &authority,
             &collateral_mint.pubkey(),
@@ -122,6 +127,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
+            &credix_market_seeds_marketplace,
             &payer,
             &authority,
             &collateral_mint.pubkey(),
@@ -151,6 +157,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
+            &credix_market_seeds_marketplace,
             &payer,
             &authority,
             &collateral_mint.pubkey(),
@@ -183,6 +190,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
+            &credix_market_seeds_marketplace,
             &payer,
             &authority,
             &collateral_mint.pubkey(),
@@ -199,6 +207,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_mint_with_credix_lp_depository(
             &mut program_test_context,
+            &credix_market_seeds_marketplace,
             &payer,
             &authority,
             &collateral_mint.pubkey(),
@@ -220,6 +229,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
     // Minting should work now that everything is set
     program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_test_context,
+        &credix_market_seeds_marketplace,
         &payer,
         &authority,
         &collateral_mint.pubkey(),

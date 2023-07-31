@@ -4,7 +4,6 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use uxd::instructions::EditControllerFields;
-use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
 
@@ -144,6 +143,52 @@ pub async fn process_deploy_program(
                 mercurial_vault_depository_profits_beneficiary_collateral,
             ),
         },
+    )
+    .await?;
+
+    // Credix onchain dependency program deployment
+    program_credix::procedures::process_deploy_program(
+        program_test_context,
+        credix_multisig,
+        &collateral_mint.pubkey(),
+    )
+    .await?;
+
+    // Prepare and deploy credix_lp_depository_marketplace
+    let credix_market_seeds_marketplace = program_credix::accounts::find_market_seeds_marketplace();
+    program_uxd::procedures::process_deploy_credix(
+        program_test_context,
+        &credix_market_seeds_marketplace,
+        payer,
+        authority,
+        collateral_mint,
+        credix_multisig,
+        collateral_mint_decimals,
+        redeemable_mint_decimals,
+        credix_lp_depository_marketplace_redeemable_amount_under_management_cap,
+        credix_lp_depository_marketplace_minting_fee_in_bps,
+        credix_lp_depository_marketplace_redeeming_fee_in_bps,
+        credix_lp_depository_marketplace_minting_disabled,
+        credix_lp_depository_marketplace_profits_beneficiary_collateral,
+    )
+    .await?;
+
+    // Prepare and deploy credix_lp_depository_receivables
+    let credix_market_seeds_receivables = program_credix::accounts::find_market_seeds_receivables();
+    program_uxd::procedures::process_deploy_credix(
+        program_test_context,
+        &credix_market_seeds_receivables,
+        payer,
+        authority,
+        collateral_mint,
+        credix_multisig,
+        collateral_mint_decimals,
+        redeemable_mint_decimals,
+        credix_lp_depository_receivables_redeemable_amount_under_management_cap,
+        credix_lp_depository_receivables_minting_fee_in_bps,
+        credix_lp_depository_receivables_redeeming_fee_in_bps,
+        credix_lp_depository_receivables_minting_disabled,
+        credix_lp_depository_receivables_profits_beneficiary_collateral,
     )
     .await?;
 
