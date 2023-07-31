@@ -18,13 +18,6 @@ pub fn calculate_credix_lp_depository_target_amount(
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
         controller.redeemable_circulating_supply,
         &vec![
-            // credix is the first in the list
-            DepositoryInfoForTargetRedeemableAmount {
-                weight_bps: controller.credix_lp_depository_weight_bps,
-                redeemable_amount_under_management_cap: credix_lp_depository
-                    .load()?
-                    .redeemable_amount_under_management_cap,
-            },
             DepositoryInfoForTargetRedeemableAmount {
                 weight_bps: controller.identity_depository_weight_bps,
                 redeemable_amount_under_management_cap: identity_depository
@@ -43,8 +36,21 @@ pub fn calculate_credix_lp_depository_target_amount(
                     .load()?
                     .redeemable_amount_under_management_cap,
             },
+            // credix_lp_depository_marketplace is the 4th in the list
+            DepositoryInfoForTargetRedeemableAmount {
+                weight_bps: controller.credix_lp_depository_marketplace_weight_bps,
+                redeemable_amount_under_management_cap: credix_lp_depository_marketplace
+                    .load()?
+                    .redeemable_amount_under_management_cap,
+            },
+            DepositoryInfoForTargetRedeemableAmount {
+                weight_bps: controller.credix_lp_depository_receivables_weight_bps,
+                redeemable_amount_under_management_cap: credix_lp_depository_receivables
+                    .load()?
+                    .redeemable_amount_under_management_cap,
+            },
         ],
     )?;
     drop(controller);
-    Ok(depositories_target_redeemable_amount[0]) // credix is the first in the list
+    Ok(depositories_target_redeemable_amount[3]) // credix is the 4th in the list
 }

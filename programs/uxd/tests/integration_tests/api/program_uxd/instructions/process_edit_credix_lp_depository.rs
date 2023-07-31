@@ -15,6 +15,7 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_edit_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
+    market_seeds: &String,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Pubkey,
@@ -22,9 +23,8 @@ pub async fn process_edit_credix_lp_depository(
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
-    let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
+        program_credix::accounts::find_global_market_state_pda(market_seeds).0;
     let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository_pda(
         collateral_mint,
         &credix_global_market_state,

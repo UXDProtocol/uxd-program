@@ -9,13 +9,13 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_dummy_investor(
     program_test_context: &mut ProgramTestContext,
+    market_seeds: &String,
     multisig: &Keypair,
     base_token_mint: &Pubkey,
     base_token_authority: &Keypair,
     investor_deposit_amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
-    let market_seeds = program_credix::accounts::find_market_seeds();
-    let lp_token_mint = program_credix::accounts::find_lp_token_mint_pda(&market_seeds).0;
+    let lp_token_mint = program_credix::accounts::find_lp_token_mint_pda(market_seeds).0;
 
     // ---------------------------------------------------------------------
     // -- Phase 1
@@ -71,6 +71,7 @@ pub async fn process_dummy_investor(
     // Create the credix-pass for the dummy investor
     program_credix::instructions::process_create_credix_pass(
         program_test_context,
+        market_seeds,
         multisig,
         &dummy_investor.pubkey(),
         &credix_client::instruction::CreateCredixPass {
@@ -87,6 +88,7 @@ pub async fn process_dummy_investor(
     // The dummy investor will do a dummy deposit
     program_credix::instructions::process_deposit_funds(
         program_test_context,
+        market_seeds,
         base_token_mint,
         &dummy_investor,
         &dummy_investor_token_account,

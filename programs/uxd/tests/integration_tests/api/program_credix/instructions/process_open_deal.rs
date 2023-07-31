@@ -11,14 +11,14 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_open_deal(
     program_test_context: &mut ProgramTestContext,
+    market_seeds: &String,
     multisig: &Keypair,
     borrower: &Pubkey,
     deal_number: u16,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
-    let market_seeds = program_credix::accounts::find_market_seeds();
     let global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&market_seeds).0;
+        program_credix::accounts::find_global_market_state_pda(market_seeds).0;
     let market_admins = program_credix::accounts::find_market_admins_pda(&global_market_state).0;
     let deal =
         program_credix::accounts::find_deal_pda(&global_market_state, borrower, deal_number).0;

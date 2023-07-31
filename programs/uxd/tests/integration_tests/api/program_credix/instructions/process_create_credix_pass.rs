@@ -11,15 +11,15 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_create_credix_pass(
     program_test_context: &mut ProgramTestContext,
+    market_seeds: &String,
     multisig: &Keypair,
     pass_holder: &Pubkey,
     fields: &credix_client::instruction::CreateCredixPass,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
-    let market_seeds = program_credix::accounts::find_market_seeds();
     let program_state = program_credix::accounts::find_program_state_pda().0;
     let global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&market_seeds).0;
+        program_credix::accounts::find_global_market_state_pda(market_seeds).0;
     let market_admins = program_credix::accounts::find_market_admins_pda(&global_market_state).0;
     let credix_pass =
         program_credix::accounts::find_credix_pass_pda(&global_market_state, pass_holder).0;

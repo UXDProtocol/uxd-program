@@ -11,6 +11,7 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_repay_deal(
     program_test_context: &mut ProgramTestContext,
+    market_seeds: &String,
     borrower: &Keypair,
     borrower_token_account: &Pubkey,
     multisig: &Pubkey,
@@ -19,12 +20,11 @@ pub async fn process_repay_deal(
     amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
-    let market_seeds = program_credix::accounts::find_market_seeds();
     let program_state = program_credix::accounts::find_program_state_pda().0;
     let global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&market_seeds).0;
+        program_credix::accounts::find_global_market_state_pda(market_seeds).0;
     let market_admins = program_credix::accounts::find_market_admins_pda(&global_market_state).0;
-    let signing_authority = program_credix::accounts::find_signing_authority_pda(&market_seeds).0;
+    let signing_authority = program_credix::accounts::find_signing_authority_pda(market_seeds).0;
     let liquidity_pool_token_account = program_credix::accounts::find_liquidity_pool_token_account(
         &signing_authority,
         base_token_mint,

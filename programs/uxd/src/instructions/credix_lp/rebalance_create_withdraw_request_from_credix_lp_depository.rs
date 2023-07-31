@@ -35,7 +35,7 @@ pub struct RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
         constraint = controller.load()?.identity_depository == identity_depository.key() @UxdError::InvalidDepository,
         constraint = controller.load()?.mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
         constraint = controller.load()?.credix_lp_depository_marketplace == depository.key() @UxdError::InvalidDepository,
-        //constraint = controller.load()?.credix_lp_depository_receivables == depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.credix_lp_depository_receivables == credix_lp_depository_receivables.key() @UxdError::InvalidDepository,
     )]
     pub controller: AccountLoader<'info, Controller>,
 
@@ -142,6 +142,18 @@ pub struct RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
     )]
     pub credix_withdraw_request: AccountInfo<'info>,
 
+    /// #6
+    #[account(
+        mut,
+        seeds = [
+            CREDIX_LP_DEPOSITORY_NAMESPACE,
+            credix_lp_depository_receivables.load()?.credix_global_market_state.key().as_ref(),
+            credix_lp_depository_receivables.load()?.collateral_mint.as_ref()
+        ],
+        bump = credix_lp_depository_receivables.load()?.bump,
+    )]
+    pub credix_lp_depository_receivables: AccountLoader<'info, CredixLpDepository>,
+
     /// #15
     pub system_program: Program<'info, System>,
     /// #16
@@ -211,6 +223,7 @@ pub(crate) fn handler(
                 &ctx.accounts.identity_depository,
                 &ctx.accounts.mercurial_vault_depository,
                 &ctx.accounts.depository,
+                &ctx.accounts.credix_lp_depository_receivables,
             )?;
         if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
             0

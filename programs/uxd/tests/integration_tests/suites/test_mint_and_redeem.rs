@@ -54,6 +54,10 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     )
     .await?;
 
+    // Useful credix seeds
+    let credix_market_seeds_marketplace = program_credix::accounts::find_market_seeds_marketplace();
+    let credix_market_seeds_receivables = program_credix::accounts::find_market_seeds_receivables();
+
     // Main actor
     let user = Keypair::new();
 
@@ -89,7 +93,8 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     // Post mint supply should match the configured weights
     let identity_depository_supply_after_first_mint = amount_for_first_mint * 10 / 100;
     let mercurial_vault_depository_supply_after_first_mint = amount_for_first_mint * 50 / 100;
-    let credix_lp_depository_supply_after_first_mint = amount_for_first_mint * 40 / 100;
+    let credix_lp_depository_marketplace_supply_after_first_mint = amount_for_first_mint * 20 / 100;
+    let credix_lp_depository_receivables_supply_after_first_mint = amount_for_first_mint * 20 / 100;
 
     // Post mint supply should match the configured weights
     let total_supply_after_second_mint = amount_for_first_mint + amount_for_second_mint;
@@ -97,7 +102,10 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         total_supply_after_second_mint * 10 / 100 - 1; // Precision loss as a consequence of the first mint rounding
     let mercurial_vault_depository_supply_after_second_mint =
         total_supply_after_second_mint * 40 / 100 - 1; // Precision loss as a consequence of the first mint rounding
-    let credix_lp_depository_supply_after_second_mint = total_supply_after_second_mint * 50 / 100;
+    let credix_lp_depository_marketplace_supply_after_second_mint =
+        total_supply_after_second_mint * 20 / 100;
+    let credix_lp_depository_receivables_supply_after_second_mint =
+        total_supply_after_second_mint * 30 / 100;
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -126,7 +134,8 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
                 identity_depository_weight_bps: 10 * 100,
                 mercurial_vault_depository_weight_bps: 50 * 100,
-                credix_lp_depository_weight_bps: 40 * 100,
+                credix_lp_depository_marketplace_weight_bps: 20 * 100,
+                credix_lp_depository_receivables_weight_bps: 20 * 100,
             }),
             router_depositories: None,
         },
@@ -164,6 +173,24 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     // Set the depository cap and make sure minting is not disabled
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
+        &credix_market_seeds_marketplace,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &EditCredixLpDepositoryFields {
+            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
+            minting_fee_in_bps: Some(0),
+            redeeming_fee_in_bps: Some(0),
+            minting_disabled: Some(false),
+            profits_beneficiary_collateral: None,
+        },
+    )
+    .await?;
+
+    // Set the depository cap and make sure minting is not disabled
+    program_uxd::instructions::process_edit_credix_lp_depository(
+        &mut program_test_context,
+        &credix_market_seeds_receivables,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -194,7 +221,8 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         amount_for_first_mint,
         identity_depository_supply_after_first_mint,
         mercurial_vault_depository_supply_after_first_mint,
-        credix_lp_depository_supply_after_first_mint,
+        credix_lp_depository_marketplace_supply_after_first_mint,
+        credix_lp_depository_receivables_supply_after_first_mint,
     )
     .await
     .is_err());
@@ -225,7 +253,8 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         amount_for_first_mint,
         identity_depository_supply_after_first_mint,
         mercurial_vault_depository_supply_after_first_mint,
-        credix_lp_depository_supply_after_first_mint,
+        credix_lp_depository_marketplace_supply_after_first_mint,
+        credix_lp_depository_receivables_supply_after_first_mint,
     )
     .await?;
 
@@ -239,7 +268,8 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
                 identity_depository_weight_bps: 10 * 100,
                 mercurial_vault_depository_weight_bps: 40 * 100,
-                credix_lp_depository_weight_bps: 50 * 100,
+                credix_lp_depository_marketplace_weight_bps: 20 * 100,
+                credix_lp_depository_receivables_weight_bps: 30 * 100,
             }),
             router_depositories: None,
         },
@@ -260,8 +290,10 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         identity_depository_supply_after_second_mint - identity_depository_supply_after_first_mint,
         mercurial_vault_depository_supply_after_second_mint
             - mercurial_vault_depository_supply_after_first_mint,
-        credix_lp_depository_supply_after_second_mint
-            - credix_lp_depository_supply_after_first_mint,
+        credix_lp_depository_marketplace_supply_after_second_mint
+            - credix_lp_depository_marketplace_supply_after_first_mint,
+        credix_lp_depository_receivables_supply_after_second_mint
+            - credix_lp_depository_receivables_supply_after_first_mint,
     )
     .await?;
 
@@ -275,7 +307,8 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
                 identity_depository_weight_bps: 0,
                 mercurial_vault_depository_weight_bps: 100 * 100,
-                credix_lp_depository_weight_bps: 0,
+                credix_lp_depository_marketplace_weight_bps: 0,
+                credix_lp_depository_receivables_weight_bps: 0,
             }),
             router_depositories: None,
         },

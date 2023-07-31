@@ -21,6 +21,7 @@ use crate::integration_tests::api::program_uxd;
 #[allow(clippy::too_many_arguments)]
 pub async fn process_mint_with_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
+    market_seeds: &String,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Pubkey,
@@ -32,18 +33,16 @@ pub async fn process_mint_with_credix_lp_depository(
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
     let redeemable_mint = program_uxd::accounts::find_redeemable_mint_pda().0;
-    let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
+        program_credix::accounts::find_global_market_state_pda(market_seeds).0;
     let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository_pda(
         collateral_mint,
         &credix_global_market_state,
     )
     .0;
-    let credix_shares_mint =
-        program_credix::accounts::find_lp_token_mint_pda(&credix_market_seeds).0;
+    let credix_shares_mint = program_credix::accounts::find_lp_token_mint_pda(market_seeds).0;
     let credix_signing_authority =
-        program_credix::accounts::find_signing_authority_pda(&credix_market_seeds).0;
+        program_credix::accounts::find_signing_authority_pda(market_seeds).0;
     let credix_liquidity_collateral = program_credix::accounts::find_liquidity_pool_token_account(
         &credix_signing_authority,
         collateral_mint,
@@ -151,6 +150,7 @@ pub async fn process_mint_with_credix_lp_depository(
     let collateral_amount_after_precision_loss =
         process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
             program_test_context,
+            market_seeds,
             collateral_mint,
             collateral_amount,
         )
@@ -229,17 +229,16 @@ pub async fn process_mint_with_credix_lp_depository(
 
 pub async fn process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
     program_test_context: &mut ProgramTestContext,
+    market_seeds: &String,
     collateral_mint: &Pubkey,
     collateral_amount: u64,
 ) -> Result<u64, program_test_context::ProgramTestError> {
     // Read on chain accounts that contains the credix useful states
-    let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
-    let credix_shares_mint =
-        program_credix::accounts::find_lp_token_mint_pda(&credix_market_seeds).0;
+        program_credix::accounts::find_global_market_state_pda(market_seeds).0;
+    let credix_shares_mint = program_credix::accounts::find_lp_token_mint_pda(market_seeds).0;
     let credix_signing_authority =
-        program_credix::accounts::find_signing_authority_pda(&credix_market_seeds).0;
+        program_credix::accounts::find_signing_authority_pda(market_seeds).0;
     let credix_liquidity_collateral = program_credix::accounts::find_liquidity_pool_token_account(
         &credix_signing_authority,
         collateral_mint,

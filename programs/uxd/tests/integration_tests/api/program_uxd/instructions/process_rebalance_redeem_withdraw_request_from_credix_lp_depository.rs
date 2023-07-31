@@ -43,46 +43,50 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     )
     .0;
 
-    let credix_program_state = program_credix::accounts::find_program_state_pda().0;
-    let credix_market_seeds = program_credix::accounts::find_market_seeds();
-    let credix_global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
-    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository_pda(
+    let credix_program_state_marketplace = program_credix::accounts::find_program_state_pda().0;
+    let credix_market_seeds_marketplace = program_credix::accounts::find_market_seeds_marketplace();
+    let credix_global_market_state_marketplace =
+        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds_marketplace).0;
+    let credix_lp_depository_marketplace = program_uxd::accounts::find_credix_lp_depository_pda(
         collateral_mint,
-        &credix_global_market_state,
+        &credix_global_market_state_marketplace,
     )
     .0;
-    let credix_shares_mint =
-        program_credix::accounts::find_lp_token_mint_pda(&credix_market_seeds).0;
-    let credix_signing_authority =
-        program_credix::accounts::find_signing_authority_pda(&credix_market_seeds).0;
-    let credix_liquidity_collateral = program_credix::accounts::find_liquidity_pool_token_account(
-        &credix_signing_authority,
-        collateral_mint,
-    );
-    let credix_treasury = program_credix::accounts::find_treasury(credix_multisig_key);
-    let credix_treasury_collateral = program_credix::accounts::find_treasury_pool_token_account(
-        &credix_treasury,
-        collateral_mint,
-    );
-    let credix_pass = program_credix::accounts::find_credix_pass_pda(
-        &credix_global_market_state,
-        &credix_lp_depository,
-    )
-    .0;
-    let credix_multisig_collateral = spl_associated_token_account::get_associated_token_address(
-        credix_multisig_key,
-        collateral_mint,
-    );
-    let credix_lp_depository_collateral =
-        program_uxd::accounts::find_credix_lp_depository_collateral(
-            &credix_lp_depository,
+    let credix_shares_mint_marketplace =
+        program_credix::accounts::find_lp_token_mint_pda(&credix_market_seeds_marketplace).0;
+    let credix_signing_authority_marketplace =
+        program_credix::accounts::find_signing_authority_pda(&credix_market_seeds_marketplace).0;
+    let credix_liquidity_collateral_marketplace =
+        program_credix::accounts::find_liquidity_pool_token_account(
+            &credix_signing_authority_marketplace,
             collateral_mint,
         );
-    let credix_lp_depository_shares = program_uxd::accounts::find_credix_lp_depository_shares(
-        &credix_lp_depository,
-        &credix_shares_mint,
-    );
+    let credix_treasury_marketplace = program_credix::accounts::find_treasury(credix_multisig_key);
+    let credix_treasury_collateral_marketplace =
+        program_credix::accounts::find_treasury_pool_token_account(
+            &credix_treasury_marketplace,
+            collateral_mint,
+        );
+    let credix_pass_marketplace = program_credix::accounts::find_credix_pass_pda(
+        &credix_global_market_state_marketplace,
+        &credix_lp_depository_marketplace,
+    )
+    .0;
+    let credix_multisig_collateral_marketplace =
+        spl_associated_token_account::get_associated_token_address(
+            credix_multisig_key,
+            collateral_mint,
+        );
+    let credix_lp_depository_collateral_marketplace =
+        program_uxd::accounts::find_credix_lp_depository_collateral(
+            &credix_lp_depository_marketplace,
+            collateral_mint,
+        );
+    let credix_lp_depository_shares_marketplace =
+        program_uxd::accounts::find_credix_lp_depository_shares(
+            &credix_lp_depository_marketplace,
+            &credix_shares_mint_marketplace,
+        );
 
     // Find the credix withdraw accounts
     let credix_latest_withdraw_epoch_idx = program_test_context::read_account_anchor::<

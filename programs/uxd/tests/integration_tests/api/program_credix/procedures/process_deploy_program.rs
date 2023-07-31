@@ -12,8 +12,6 @@ pub async fn process_deploy_program(
     multisig: &Keypair,
     base_token_mint: &Pubkey,
 ) -> Result<(), program_test_context::ProgramTestError> {
-    let market_seeds = program_credix::accounts::find_market_seeds();
-    let signing_authority = program_credix::accounts::find_signing_authority_pda(&market_seeds).0;
     let treasury = program_credix::accounts::find_treasury(&multisig.pubkey());
 
     // Airdrop funds to the credix authority wallet, the multisig (acting as payer)
@@ -29,13 +27,6 @@ pub async fn process_deploy_program(
         program_test_context,
         multisig,
         base_token_mint,
-        &signing_authority,
-    )
-    .await?;
-    program_spl::instructions::process_associated_token_account_get_or_init(
-        program_test_context,
-        multisig,
-        base_token_mint,
         &treasury,
     )
     .await?;
@@ -43,22 +34,6 @@ pub async fn process_deploy_program(
     // Initialize the program state
     program_credix::instructions::process_initialize_program_state(program_test_context, multisig)
         .await?;
-
-    // Initialize the global market state
-    program_credix::instructions::process_initialize_market(
-        program_test_context,
-        multisig,
-        base_token_mint,
-    )
-    .await?;
-
-    // Turn on the withdrawal epochs
-    program_credix::instructions::process_update_global_market_state(
-        program_test_context,
-        multisig,
-        true,
-    )
-    .await?;
 
     // Ready to use
     Ok(())

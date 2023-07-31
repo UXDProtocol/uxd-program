@@ -12,6 +12,7 @@ use crate::integration_tests::api::program_uxd;
 
 pub async fn process_register_credix_lp_depository(
     program_test_context: &mut ProgramTestContext,
+    market_seeds: &String,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Pubkey,
@@ -22,18 +23,16 @@ pub async fn process_register_credix_lp_depository(
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
     let credix_program_state = program_credix::accounts::find_program_state_pda().0;
-    let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
+        program_credix::accounts::find_global_market_state_pda(market_seeds).0;
     let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository_pda(
         collateral_mint,
         &credix_global_market_state,
     )
     .0;
-    let credix_shares_mint =
-        program_credix::accounts::find_lp_token_mint_pda(&credix_market_seeds).0;
+    let credix_shares_mint = program_credix::accounts::find_lp_token_mint_pda(market_seeds).0;
     let credix_signing_authority =
-        program_credix::accounts::find_signing_authority_pda(&credix_market_seeds).0;
+        program_credix::accounts::find_signing_authority_pda(market_seeds).0;
     let credix_liquidity_collateral = program_credix::accounts::find_liquidity_pool_token_account(
         &credix_signing_authority,
         collateral_mint,

@@ -1,9 +1,14 @@
 use solana_program::pubkey::Pubkey;
 
-const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";
+const CREDIX_MARKET_SEED_MARKETPLACE: &str = "arbitrary-marketplace-key";
+const CREDIX_MARKET_SEED_RECEIVABLES: &str = "arbitrary-receivables-key";
 
-pub fn find_market_seeds() -> String {
-    String::from(CREDIX_MARKETPLACE_SEED)
+pub fn find_market_seeds_marketplace() -> String {
+    String::from(CREDIX_MARKET_SEED_MARKETPLACE)
+}
+
+pub fn find_market_seeds_receivables() -> String {
+    String::from(CREDIX_MARKET_SEED_RECEIVABLES)
 }
 
 pub fn find_program_state_pda() -> (Pubkey, u8) {

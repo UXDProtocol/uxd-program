@@ -10,13 +10,13 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_update_global_market_state(
     program_test_context: &mut ProgramTestContext,
+    market_seeds: &String,
     multisig: &Keypair,
     has_withdrawal_epochs: bool,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
-    let market_seeds = program_credix::accounts::find_market_seeds();
     let global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&market_seeds).0;
+        program_credix::accounts::find_global_market_state_pda(market_seeds).0;
     let market_admins = program_credix::accounts::find_market_admins_pda(&global_market_state).0;
 
     // Execute IX

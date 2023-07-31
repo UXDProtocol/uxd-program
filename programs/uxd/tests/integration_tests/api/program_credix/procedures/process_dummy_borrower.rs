@@ -9,6 +9,7 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn process_dummy_borrower(
     program_test_context: &mut ProgramTestContext,
+    market_seeds: &String,
     multisig: &Keypair,
     base_token_mint: &Pubkey,
     base_token_authority: &Keypair,
@@ -57,6 +58,7 @@ pub async fn process_dummy_borrower(
     // Create the credix-pass for the dummy investor
     program_credix::instructions::process_create_credix_pass(
         program_test_context,
+        market_seeds,
         multisig,
         &dummy_borrower.pubkey(),
         &credix_client::instruction::CreateCredixPass {
@@ -78,6 +80,7 @@ pub async fn process_dummy_borrower(
 
     program_credix::instructions::process_create_deal(
         program_test_context,
+        market_seeds,
         multisig,
         &dummy_borrower.pubkey(),
         0,
@@ -85,6 +88,7 @@ pub async fn process_dummy_borrower(
     .await?;
     program_credix::instructions::process_set_repayment_schedule(
         program_test_context,
+        market_seeds,
         multisig,
         &dummy_borrower.pubkey(),
         0,
@@ -93,6 +97,7 @@ pub async fn process_dummy_borrower(
     .await?;
     program_credix::instructions::process_set_tranches(
         program_test_context,
+        market_seeds,
         multisig,
         &dummy_borrower.pubkey(),
         0,
@@ -102,6 +107,7 @@ pub async fn process_dummy_borrower(
     .await?;
     program_credix::instructions::process_open_deal(
         program_test_context,
+        market_seeds,
         multisig,
         &dummy_borrower.pubkey(),
         0,
@@ -109,6 +115,7 @@ pub async fn process_dummy_borrower(
     .await?;
     program_credix::instructions::process_activate_deal(
         program_test_context,
+        market_seeds,
         multisig,
         &dummy_borrower.pubkey(),
         0,
@@ -124,6 +131,7 @@ pub async fn process_dummy_borrower(
 
     program_credix::instructions::process_withdraw_from_deal(
         program_test_context,
+        market_seeds,
         &dummy_borrower,
         &dummy_borrower_token_account,
         0,
@@ -134,6 +142,7 @@ pub async fn process_dummy_borrower(
 
     program_credix::instructions::process_repay_deal(
         program_test_context,
+        market_seeds,
         &dummy_borrower,
         &dummy_borrower_token_account,
         &multisig.pubkey(),

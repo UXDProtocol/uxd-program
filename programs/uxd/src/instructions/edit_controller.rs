@@ -162,7 +162,13 @@ impl<'info> EditController<'info> {
                 .identity_depository_weight_bps
                 .checked_add(depositories_routing_weight_bps.mercurial_vault_depository_weight_bps)
                 .ok_or(UxdError::MathError)?
-                .checked_add(depositories_routing_weight_bps.credix_lp_depository_weight_bps)
+                .checked_add(
+                    depositories_routing_weight_bps.credix_lp_depository_marketplace_weight_bps,
+                )
+                .ok_or(UxdError::MathError)?
+                .checked_add(
+                    depositories_routing_weight_bps.credix_lp_depository_receivables_weight_bps,
+                )
                 .ok_or(UxdError::MathError)?;
             require!(
                 u64::from(total_weight_bps) == BPS_UNIT_CONVERSION,

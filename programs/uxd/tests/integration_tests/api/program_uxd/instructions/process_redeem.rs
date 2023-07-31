@@ -35,12 +35,12 @@ pub async fn process_redeem(
     let controller = program_uxd::accounts::find_controller_pda().0;
     let redeemable_mint = program_uxd::accounts::find_redeemable_mint_pda().0;
 
-    // Find identity depository related accounts
+    // Find identity_depository related accounts
     let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
     let identity_depository_collateral_vault =
         program_uxd::accounts::find_identity_depository_collateral_vault_pda().0;
 
-    // Find mercurial related accounts
+    // Find mercurial_vault_depository related accounts
     let mercurial_base = program_mercurial::accounts::find_base();
     let mercurial_vault_depository_vault =
         program_mercurial::accounts::find_vault_pda(collateral_mint, &mercurial_base.pubkey()).0;
@@ -58,13 +58,23 @@ pub async fn process_redeem(
     let mercurial_vault_depository_collateral_token_safe =
         program_mercurial::accounts::find_token_vault_pda(&mercurial_vault_depository_vault).0;
 
-    // Find credix related accounts
-    let credix_market_seeds = program_credix::accounts::find_market_seeds();
-    let credix_lp_depository_global_market_state =
-        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
-    let credix_lp_depository = program_uxd::accounts::find_credix_lp_depository_pda(
+    // Find credix_lp_depository_marketplace related accounts
+    let credix_market_seeds_marketplace = program_credix::accounts::find_market_seeds_marketplace();
+    let credix_lp_depository_marketplace_global_market_state =
+        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds_marketplace).0;
+    let credix_lp_depository_marketplace = program_uxd::accounts::find_credix_lp_depository_pda(
         collateral_mint,
-        &credix_lp_depository_global_market_state,
+        &credix_lp_depository_marketplace_global_market_state,
+    )
+    .0;
+
+    // Find credix_lp_depository_receivables related accounts
+    let credix_market_seeds_receivables = program_credix::accounts::find_market_seeds_receivables();
+    let credix_lp_depository_receivables_global_market_state =
+        program_credix::accounts::find_global_market_state_pda(&credix_market_seeds_receivables).0;
+    let credix_lp_depository_receivables = program_uxd::accounts::find_credix_lp_depository_pda(
+        collateral_mint,
+        &credix_lp_depository_receivables_global_market_state,
     )
     .0;
 
@@ -112,7 +122,8 @@ pub async fn process_redeem(
         mercurial_vault_depository_vault_lp_mint: *mercurial_vault_depository_vault_lp_mint,
         mercurial_vault_depository_lp_token_vault,
         mercurial_vault_depository_collateral_token_safe,
-        credix_lp_depository,
+        credix_lp_depository_marketplace,
+        credix_lp_depository_receivables,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,

@@ -36,6 +36,9 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
     let mercurial_vault_lp_mint = Keypair::new();
     let credix_multisig = Keypair::new();
 
+    // Arbitrary market seed
+    let credix_market_seeds = "arbitrary-key";
+
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
         &mut program_test_context,
@@ -74,6 +77,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
     // Change redeemable_amount_under_management_cap
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
+        &credix_market_seeds,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -90,6 +94,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
     // Change minting_fee_in_bps
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
+        &credix_market_seeds,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -106,6 +111,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
     // Change redeeming_fee_in_bps
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
+        &credix_market_seeds,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -122,6 +128,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
     // Change minting_disabled
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
+        &credix_market_seeds,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -138,6 +145,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
     // Change profits_beneficiary_collateral
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
+        &credix_market_seeds,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -160,6 +168,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
     assert!(
         program_uxd::instructions::process_edit_credix_lp_depository(
             &mut program_test_context,
+            &credix_market_seeds,
             &payer,
             &payer,
             &collateral_mint.pubkey(),
@@ -178,6 +187,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
     // Change everything, using the correct authority (should succeed)
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
+        &credix_market_seeds,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -194,6 +204,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
     // Change nothing, using the correct authority (should succeed)
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_test_context,
+        &credix_market_seeds,
         &payer,
         &authority,
         &collateral_mint.pubkey(),

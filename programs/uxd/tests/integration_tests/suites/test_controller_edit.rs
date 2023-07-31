@@ -94,7 +94,8 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
                 identity_depository_weight_bps: 1,
                 mercurial_vault_depository_weight_bps: 1,
-                credix_lp_depository_weight_bps: 1,
+                credix_lp_depository_marketplace_weight_bps: 1,
+                credix_lp_depository_receivables_weight_bps: 1,
             }),
             router_depositories: None,
         },
@@ -110,9 +111,10 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &EditControllerFields {
             redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
-                identity_depository_weight_bps: 25 * 100,        // 25%
-                mercurial_vault_depository_weight_bps: 35 * 100, // 35%
-                credix_lp_depository_weight_bps: 40 * 100,       // 40%
+                identity_depository_weight_bps: 25 * 100,              // 25%
+                mercurial_vault_depository_weight_bps: 35 * 100,       // 35%
+                credix_lp_depository_marketplace_weight_bps: 20 * 100, // 20%
+                credix_lp_depository_receivables_weight_bps: 20 * 100, // 20%
             }),
             router_depositories: None,
         },
@@ -130,7 +132,8 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             router_depositories: Some(EditRouterDepositories {
                 identity_depository: Pubkey::default(),
                 mercurial_vault_depository: Pubkey::default(),
-                credix_lp_depository: Pubkey::default(),
+                credix_lp_depository_marketplace: Pubkey::default(),
+                credix_lp_depository_receivables: Pubkey::default(),
             }),
         },
     )
@@ -157,14 +160,16 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
         &EditControllerFields {
             redeemable_global_supply_cap: Some(100),
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
-                identity_depository_weight_bps: 20 * 100,        // 20%
-                mercurial_vault_depository_weight_bps: 30 * 100, // 30%
-                credix_lp_depository_weight_bps: 50 * 100,       // 50%
+                identity_depository_weight_bps: 20 * 100,              // 20%
+                mercurial_vault_depository_weight_bps: 30 * 100,       // 30%
+                credix_lp_depository_marketplace_weight_bps: 25 * 100, // 25%
+                credix_lp_depository_receivables_weight_bps: 25 * 100, // 25%
             }),
             router_depositories: Some(EditRouterDepositories {
                 identity_depository: Pubkey::default(),
                 mercurial_vault_depository: Pubkey::default(),
-                credix_lp_depository: Pubkey::default(),
+                credix_lp_depository_marketplace: Pubkey::default(),
+                credix_lp_depository_receivables: Pubkey::default(),
             }),
         },
     )
