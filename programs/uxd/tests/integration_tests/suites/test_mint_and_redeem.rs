@@ -75,14 +75,16 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     .await?;
 
     // Useful amounts used during testing scenario
-    let amount_we_use_as_supply_cap = ui_amount_to_native_amount(1000, redeemable_mint_decimals);
+    let amount_we_use_as_supply_cap =
+        ui_amount_to_native_amount(1_000_000_000, redeemable_mint_decimals);
 
-    let amount_for_first_mint = ui_amount_to_native_amount(100, collateral_mint_decimals);
-    let amount_for_second_mint = ui_amount_to_native_amount(200, collateral_mint_decimals);
+    let amount_for_first_mint = ui_amount_to_native_amount(100_000_000, collateral_mint_decimals);
+    let amount_for_second_mint = ui_amount_to_native_amount(200_000_000, collateral_mint_decimals);
 
-    let amount_for_first_redeem = ui_amount_to_native_amount(20, redeemable_mint_decimals);
-    let amount_for_second_redeem = ui_amount_to_native_amount(120, redeemable_mint_decimals);
-    let amount_for_third_redeem = ui_amount_to_native_amount(10, redeemable_mint_decimals);
+    let amount_for_first_redeem = ui_amount_to_native_amount(20_000_000, redeemable_mint_decimals);
+    let amount_for_second_redeem =
+        ui_amount_to_native_amount(120_000_000, redeemable_mint_decimals);
+    let amount_for_third_redeem = ui_amount_to_native_amount(10_000_000, redeemable_mint_decimals);
 
     let amount_of_collateral_airdropped_to_user = amount_for_first_mint + amount_for_second_mint; // Just enough money to mint
 

@@ -177,7 +177,7 @@ pub async fn process_deploy_program(
             _release_timestamp: 0,
             _amount_cap: None,
             _disable_withdrawal_fee: true,
-            _bypass_withdraw_epochs: false,
+            _bypass_withdraw_epochs: true,
         },
     )
     .await?;
