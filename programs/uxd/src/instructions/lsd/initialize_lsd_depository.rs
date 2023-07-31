@@ -114,6 +114,7 @@ pub(crate) fn handler(ctx: Context<InitializeLsdDepository>) -> Result<()> {
     depository.liquidation_loan_to_value_threshold_bps = DEFAULT_LSD_LIQUIDATION_LTV_THRESHOLD_BPS;
     depository.liquidation_fee_bps = DEFAULT_LSD_LIQUIDATION_FEE_BPS;
     depository.profits_beneficiary = Pubkey::default();
+    // TODO: initialize `collateral_oracle_params`
 
     // Accounting
     depository.collateral_amount_deposits = u64::MIN;
