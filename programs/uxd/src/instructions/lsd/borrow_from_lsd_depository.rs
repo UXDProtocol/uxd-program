@@ -158,12 +158,15 @@ pub(crate) fn handler(
     }
 
     // - 2 [MINT REDEEMABLES] --------------------------------------------------
-    let redeemable_borrow_amount = collateral_amount / u64::from(loan_to_value_bps) * BPS_POWER;
+    let redeemable_borrow_amount = maths::checked_div(
+        maths::checked_mul(collateral_amount, u64::from(loan_to_value_bps))?,
+        BPS_POWER,
+    )?;
     {
         msg!(
-            "[mint] {} redeemable to user (ltv {})",
+            "[mint] {} redeemable to user (ltv bps {})",
             collateral_amount,
-            u64::from(loan_to_value_bps) / BPS_POWER,
+            loan_to_value_bps,
         );
         let controller_bump = ctx.accounts.controller.load()?.bump;
         let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller_bump]]];
@@ -190,13 +193,18 @@ pub(crate) fn handler(
         )?;
         let _lsd_price_usd = lsd_price
             .get_asset_amount_usd(collateral_amount, depository.collateral_mint_decimals)?;
-        liquidation_price = maths::checked_mul(
-            redeemable_borrow_amount,
-            maths::checked_div(u64::from(depository.max_loan_to_value_bps), BPS_POWER)?,
+        liquidation_price = maths::checked_div(
+            maths::checked_mul(
+                redeemable_borrow_amount,
+                u64::from(depository.max_loan_to_value_bps),
+            )?,
+            BPS_POWER,
         )?;
 
         // Create a clockwork thread to auto-liquidate when the price is reached
-        {}
+        {
+            // TODO
+        }
         // - - setup/update either another cron or in previous cron: liquidate when running out of funding
     }
 
