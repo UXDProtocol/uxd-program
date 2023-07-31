@@ -86,7 +86,6 @@ pub async fn process_collect_profits_of_credix_lp_depository(
     let credix_lp_depository_shares_value_before = compute_credix_lp_depository_shares_value(
         program_test_context,
         &credix_global_market_state,
-        &credix_shares_mint,
         &credix_liquidity_collateral,
     )
     .await?;
@@ -135,7 +134,13 @@ pub async fn process_collect_profits_of_credix_lp_depository(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, payer).await?;
+    program_test_context::process_instruction_with_signers(
+        program_test_context,
+        instruction,
+        payer,
+        &[authority, user],
+    )
+    .await?;
 
     // Read state after
     let controller_after =
@@ -156,7 +161,6 @@ pub async fn process_collect_profits_of_credix_lp_depository(
     let credix_lp_depository_shares_value_after = compute_credix_lp_depository_shares_value(
         program_test_context,
         &credix_global_market_state,
-        &credix_shares_mint,
         &credix_liquidity_collateral,
     )
     .await?;
@@ -235,7 +239,6 @@ pub async fn process_collect_profits_of_credix_lp_depository(
 async fn compute_credix_lp_depository_shares_value(
     program_test_context: &mut ProgramTestContext,
     credix_global_market_state: &Pubkey,
-    credix_shares_mint: &Pubkey,
     credix_liquidity_collateral: &Pubkey,
 ) -> Result<u64, program_test_context::ProgramTestError> {
     let credix_pool_outstanding_credit = program_test_context::read_account_anchor::<
