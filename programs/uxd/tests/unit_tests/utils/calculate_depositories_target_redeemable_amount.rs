@@ -22,11 +22,11 @@ mod test_calculate_depositories_target_redeemable_amount {
 
     #[test]
     fn test_with_simplest_case() -> Result<()> {
-        let circulating_supply = 1_000_000_000_000;
+        let total_redeemable_amount_under_management = 1_000_000_000_000;
         // Compute
         let depositories_target_redeemable_amount =
             calculate_depositories_target_redeemable_amount(
-                circulating_supply.into(),
+                total_redeemable_amount_under_management,
                 // Weights adds up to 100% and are not evenly distributed
                 // Each depository can fit at least the whole circulating supply (no overflow possible)
                 &vec![
@@ -34,7 +34,7 @@ mod test_calculate_depositories_target_redeemable_amount {
                         weight_bps: percent_to_weight_bps(5),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             100,
-                            circulating_supply,
+                            total_redeemable_amount_under_management,
                         )
                         .into(),
                     },
@@ -42,7 +42,7 @@ mod test_calculate_depositories_target_redeemable_amount {
                         weight_bps: percent_to_weight_bps(10),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             100,
-                            circulating_supply,
+                            total_redeemable_amount_under_management,
                         )
                         .into(),
                     },
@@ -50,7 +50,7 @@ mod test_calculate_depositories_target_redeemable_amount {
                         weight_bps: percent_to_weight_bps(85),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             100,
-                            circulating_supply,
+                            total_redeemable_amount_under_management,
                         )
                         .into(),
                     },
@@ -59,15 +59,15 @@ mod test_calculate_depositories_target_redeemable_amount {
         // The targets should match the raw weights since we dont have any overflow
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
-            percent_of_supply(5, circulating_supply)
+            percent_of_supply(5, total_redeemable_amount_under_management)
         );
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX],
-            percent_of_supply(10, circulating_supply)
+            percent_of_supply(10, total_redeemable_amount_under_management)
         );
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
-            percent_of_supply(85, circulating_supply)
+            percent_of_supply(85, total_redeemable_amount_under_management)
         );
         // Done
         Ok(())
@@ -75,11 +75,11 @@ mod test_calculate_depositories_target_redeemable_amount {
 
     #[test]
     fn test_with_overflow_reallocation() -> Result<()> {
-        let circulating_supply = 1_000_000_000_000;
+        let total_redeemable_amount_under_management = 1_000_000_000_000;
         // Compute
         let depositories_target_redeemable_amount =
             calculate_depositories_target_redeemable_amount(
-                circulating_supply.into(),
+                total_redeemable_amount_under_management,
                 &vec![
                     // Weights adds up to 100% and the identity depository receives everything
                     // The identity depository is fully overflowing, but the other have enough space
@@ -87,7 +87,7 @@ mod test_calculate_depositories_target_redeemable_amount {
                         weight_bps: percent_to_weight_bps(100),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             0,
-                            circulating_supply,
+                            total_redeemable_amount_under_management,
                         )
                         .into(),
                     },
@@ -95,7 +95,7 @@ mod test_calculate_depositories_target_redeemable_amount {
                         weight_bps: percent_to_weight_bps(0),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             100,
-                            circulating_supply,
+                            total_redeemable_amount_under_management,
                         )
                         .into(),
                     },
@@ -103,7 +103,7 @@ mod test_calculate_depositories_target_redeemable_amount {
                         weight_bps: percent_to_weight_bps(0),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             100,
-                            circulating_supply,
+                            total_redeemable_amount_under_management,
                         )
                         .into(),
                     },
@@ -116,11 +116,11 @@ mod test_calculate_depositories_target_redeemable_amount {
         );
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX],
-            percent_of_supply(50, circulating_supply)
+            percent_of_supply(50, total_redeemable_amount_under_management)
         );
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
-            percent_of_supply(50, circulating_supply)
+            percent_of_supply(50, total_redeemable_amount_under_management)
         );
         // Done
         Ok(())
@@ -128,11 +128,11 @@ mod test_calculate_depositories_target_redeemable_amount {
 
     #[test]
     fn test_with_overflow_proportions() -> Result<()> {
-        let circulating_supply = 1_000_000_000_000;
+        let total_redeemable_amount_under_management = 1_000_000_000_000;
         // Compute
         let depositories_target_redeemable_amount =
             calculate_depositories_target_redeemable_amount(
-                circulating_supply.into(),
+                total_redeemable_amount_under_management,
                 &vec![
                     // Weights adds up to 100% and the identity depository receives everything
                     // The identity depository is overflowing, mercurial a lot of space and credix has a tiny space
@@ -140,7 +140,7 @@ mod test_calculate_depositories_target_redeemable_amount {
                         weight_bps: percent_to_weight_bps(100),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             10,
-                            circulating_supply,
+                            total_redeemable_amount_under_management,
                         )
                         .into(),
                     },
@@ -148,7 +148,7 @@ mod test_calculate_depositories_target_redeemable_amount {
                         weight_bps: percent_to_weight_bps(0),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             160,
-                            circulating_supply,
+                            total_redeemable_amount_under_management,
                         )
                         .into(),
                     },
@@ -156,7 +156,7 @@ mod test_calculate_depositories_target_redeemable_amount {
                         weight_bps: percent_to_weight_bps(0),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             20,
-                            circulating_supply,
+                            total_redeemable_amount_under_management,
                         )
                         .into(),
                     },
@@ -167,15 +167,15 @@ mod test_calculate_depositories_target_redeemable_amount {
         // the amounts of overflow should be in the same proportion as the available space
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
-            percent_of_supply(10, circulating_supply) // full
+            percent_of_supply(10, total_redeemable_amount_under_management) // full
         );
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX],
-            percent_of_supply(80, circulating_supply) // half full
+            percent_of_supply(80, total_redeemable_amount_under_management) // half full
         );
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
-            percent_of_supply(10, circulating_supply) // half full
+            percent_of_supply(10, total_redeemable_amount_under_management) // half full
         );
         // Done
         Ok(())
@@ -183,11 +183,11 @@ mod test_calculate_depositories_target_redeemable_amount {
 
     #[test]
     fn test_with_too_big_supply() -> Result<()> {
-        let circulating_supply = 1_000_000_000_000;
+        let total_redeemable_amount_under_management = 1_000_000_000_000;
         // Compute
         let depositories_target_redeemable_amount =
             calculate_depositories_target_redeemable_amount(
-                circulating_supply.into(),
+                total_redeemable_amount_under_management,
                 &vec![
                     // Weights adds up to 100%, somewhat fair split
                     // All depositories are oveflowing, except the identity depository, but the total cannot fit in all depositories
@@ -195,7 +195,7 @@ mod test_calculate_depositories_target_redeemable_amount {
                         weight_bps: percent_to_weight_bps(34),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             40,
-                            circulating_supply,
+                            total_redeemable_amount_under_management,
                         )
                         .into(),
                     },
@@ -203,7 +203,7 @@ mod test_calculate_depositories_target_redeemable_amount {
                         weight_bps: percent_to_weight_bps(33),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             20,
-                            circulating_supply,
+                            total_redeemable_amount_under_management,
                         )
                         .into(),
                     },
@@ -211,7 +211,7 @@ mod test_calculate_depositories_target_redeemable_amount {
                         weight_bps: percent_to_weight_bps(33),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             15,
-                            circulating_supply,
+                            total_redeemable_amount_under_management,
                         )
                         .into(),
                     },
@@ -220,15 +220,15 @@ mod test_calculate_depositories_target_redeemable_amount {
         // We expect all depositories to become filled up to their caps, which is not sufficient for fitting the whole ciculating supply
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
-            percent_of_supply(40, circulating_supply)
+            percent_of_supply(40, total_redeemable_amount_under_management)
         );
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX],
-            percent_of_supply(20, circulating_supply)
+            percent_of_supply(20, total_redeemable_amount_under_management)
         );
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
-            percent_of_supply(15, circulating_supply)
+            percent_of_supply(15, total_redeemable_amount_under_management)
         );
         // Done
         Ok(())
@@ -237,7 +237,7 @@ mod test_calculate_depositories_target_redeemable_amount {
     #[test]
     fn test_no_panic_and_always_over_supply() -> Result<()> {
         proptest!(|(
-            circulating_supply: u64,
+            total_redeemable_amount_under_management: u64,
             identity_depository_weight_random: u16,
             mercurial_vault_depository_weight_random: u16,
             credix_lp_depository_weight_random: u16,
@@ -274,7 +274,7 @@ mod test_calculate_depositories_target_redeemable_amount {
             // Everything else should never panic
             let depositories_target_redeemable_amount =
                 calculate_depositories_target_redeemable_amount(
-                    circulating_supply.into(),
+                    total_redeemable_amount_under_management,
                     &vec![
                         DepositoryInfoForTargetRedeemableAmount {
                             weight_bps: u16::try_from(identity_depository_weight_bps).unwrap(),
@@ -295,7 +295,7 @@ mod test_calculate_depositories_target_redeemable_amount {
             // - equal to the circulating supply
             // - or equal to the sum of all depositories caps
 
-            let maximum_redeemable_amount = std::cmp::min(circulating_supply, u64::try_from(total_hard_caps).unwrap());
+            let maximum_redeemable_amount = std::cmp::min(total_redeemable_amount_under_management, u64::try_from(total_hard_caps).unwrap());
 
             let total_target_redeemable_amount = depositories_target_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX]
                 + depositories_target_redeemable_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX]
