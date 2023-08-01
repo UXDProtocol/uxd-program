@@ -12,6 +12,7 @@ use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
 use uxd::utils::compute_shares_amount_for_value_floor;
 use uxd::utils::compute_value_for_shares_amount_floor;
+use uxd::utils::is_within_range_inclusive;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
@@ -269,6 +270,11 @@ pub async fn process_collect_profits_of_credix_lp_depository(
         profits_beneficiary_collateral_amount_after,
     );
 
+    assert!(is_within_range_inclusive(
+        assets_value_after,
+        assets_value_before - profits_collateral_amount_before_precision_loss,
+        assets_value_before - profits_collateral_amount_after_precision_loss,
+    ));
     assert_eq!(liabilities_value_before, liabilities_value_after);
 
     // Done
