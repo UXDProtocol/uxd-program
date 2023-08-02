@@ -94,6 +94,11 @@ pub(crate) fn handler(
     controller.mercurial_vault_depository = Pubkey::default();
     controller.credix_lp_depository = Pubkey::default();
 
+    // Routing outflow limitation flags
+    controller.limit_outflow_amount_per_day = 0;
+    controller.last_redeem_timestamp = Clock::get()?.unix_timestamp;
+    controller.last_day_outflow_amount = 0;
+
     emit!(InitializeControllerEvent {
         version: controller.version,
         controller: ctx.accounts.controller.key(),

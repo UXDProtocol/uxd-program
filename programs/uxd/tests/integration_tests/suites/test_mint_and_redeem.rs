@@ -129,6 +129,7 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
                 credix_lp_depository_weight_bps: 40 * 100,
             }),
             router_depositories: None,
+            limit_outflow_amount_per_day: None,
         },
     )
     .await?;
@@ -235,13 +236,14 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         &payer,
         &authority,
         &EditControllerFields {
-            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+            redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
                 identity_depository_weight_bps: 10 * 100,
                 mercurial_vault_depository_weight_bps: 40 * 100,
                 credix_lp_depository_weight_bps: 50 * 100,
             }),
             router_depositories: None,
+            limit_outflow_amount_per_day: None,
         },
     )
     .await?;
@@ -271,18 +273,49 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         &payer,
         &authority,
         &EditControllerFields {
-            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+            redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
                 identity_depository_weight_bps: 0,
                 mercurial_vault_depository_weight_bps: 100 * 100,
                 credix_lp_depository_weight_bps: 0,
             }),
             router_depositories: None,
+            limit_outflow_amount_per_day: Some(amount_for_first_redeem / 2), // Outflows configured too low on purpose
         },
     )
     .await?;
 
-    // Redeeming now should not touch mercurial at all since it is underflowing
+    // Redeeming now should fail because that's too much outflows
+    assert!(program_uxd::instructions::process_redeem(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_for_first_redeem,
+        amount_for_first_redeem,
+        0,
+    )
+    .await
+    .is_err());
+
+    // Increase the outflow limit
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: None,
+            depositories_routing_weight_bps: None,
+            router_depositories: None,
+            limit_outflow_amount_per_day: Some(amount_we_use_as_supply_cap),
+        },
+    )
+    .await?;
+
+    // Redeeming now should work and not touch mercurial at all since it is underflowing
     // Meaning that other depositories are overflowing and should be prioritized
     program_uxd::instructions::process_redeem(
         &mut program_test_context,

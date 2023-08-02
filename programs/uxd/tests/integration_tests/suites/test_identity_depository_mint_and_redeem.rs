@@ -145,6 +145,7 @@ async fn test_identity_depository_mint_and_redeem(
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
             depositories_routing_weight_bps: None,
             router_depositories: None,
+            limit_outflow_amount_per_day: None,
         },
     )
     .await?;

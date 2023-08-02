@@ -51,6 +51,8 @@ pub async fn process_set_router_depositories(
                 mercurial_vault_depository,
                 credix_lp_depository,
             }),
+            limit_outflow_amount_per_day: None,
+
         },
     )
     .await?;

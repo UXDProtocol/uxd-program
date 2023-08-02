@@ -159,6 +159,8 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
             depositories_routing_weight_bps: None,
             router_depositories: None,
+            limit_outflow_amount_per_day: None,
+
         },
     )
     .await?;

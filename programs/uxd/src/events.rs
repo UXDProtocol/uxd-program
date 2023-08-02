@@ -30,6 +30,19 @@ pub struct SetRedeemableGlobalSupplyCapEvent {
 
 /// Event called in [instructions::edit_controller::handler].
 #[event]
+pub struct SetLimitOutflowAmountPerDayEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The new cap.
+    pub limit_outflow_amount_per_day: u64,
+}
+
+/// Event called in [instructions::edit_controller::handler].
+#[event]
 pub struct SetRouterDepositoriesWeightBps {
     #[index]
     pub controller_version: u8,

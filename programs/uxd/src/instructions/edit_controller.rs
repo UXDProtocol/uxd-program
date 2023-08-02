@@ -1,4 +1,5 @@
 use crate::error::UxdError;
+use crate::events::SetLimitOutflowAmountPerDayEvent;
 use crate::events::SetRedeemableGlobalSupplyCapEvent;
 use crate::events::SetRouterDepositories;
 use crate::events::SetRouterDepositoriesWeightBps;
@@ -42,6 +43,7 @@ pub struct EditControllerFields {
     pub redeemable_global_supply_cap: Option<u128>,
     pub depositories_routing_weight_bps: Option<EditDepositoriesRoutingWeightBps>,
     pub router_depositories: Option<EditRouterDepositories>,
+    pub limit_outflow_amount_per_day: Option<u64>,
 }
 
 pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
@@ -119,6 +121,20 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
             version: controller.version,
             controller: ctx.accounts.controller.key(),
             redeemable_global_supply_cap
+        });
+    }
+
+    // Optionally edit "limit_outflow_amount_per_day"
+    if let Some(limit_outflow_amount_per_day) = fields.limit_outflow_amount_per_day {
+        msg!(
+            "[edit_controller] limit_outflow_amount_per_day {}",
+            limit_outflow_amount_per_day
+        );
+        controller.limit_outflow_amount_per_day = limit_outflow_amount_per_day;
+        emit!(SetLimitOutflowAmountPerDayEvent {
+            version: controller.version,
+            controller: ctx.accounts.controller.key(),
+            limit_outflow_amount_per_day
         });
     }
     Ok(())

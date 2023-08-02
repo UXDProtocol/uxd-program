@@ -225,10 +225,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     controller.last_redeem_timestamp = now_timestamp;
 
     // Make controller signer
-    let controller_pda_signer: &[&[&[u8]]] = &[&[
-        CONTROLLER_NAMESPACE,
-        &[ctx.accounts.controller.load()?.bump],
-    ]];
+    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.bump]]];
 
     // The actual post-redeem circulating supply may be slightly higher
     // Due to redeem fees and precision loss. But the difference should be negligible and
