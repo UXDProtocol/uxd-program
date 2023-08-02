@@ -27,7 +27,7 @@ pub async fn create_program_test_context() -> ProgramTestContext {
     );
 
     // Use a high max compute units as it can be increased on mainnet transactions
-    program_test.set_compute_max_units(400_000);
+    program_test.set_compute_max_units(600_000);
 
     // Done, generate the ProgramTestContext
     program_test.start_with_context().await
