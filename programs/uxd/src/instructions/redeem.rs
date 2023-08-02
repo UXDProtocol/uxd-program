@@ -211,7 +211,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         0
     };
 
-    // Make sure we are not over the limit!
+    // Make sure we are not over the outflow limit!
     require!(
         u128::from(last_day_outflow_amount) <= limit_outflow_amount_per_day,
         UxdError::MaximumOutflowAmountError

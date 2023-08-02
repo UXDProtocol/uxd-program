@@ -285,7 +285,7 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     )
     .await?;
 
-    // Redeeming now should fail because that's too much outflows
+    // Redeeming now should fail because that's too much daily outflow
     assert!(program_uxd::instructions::process_redeem(
         &mut program_test_context,
         &payer,
@@ -301,7 +301,7 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     .await
     .is_err());
 
-    // Increase the outflow limit
+    // Increase the daily outflow limit to what we want to redeem
     program_uxd::instructions::process_edit_controller(
         &mut program_test_context,
         &payer,
@@ -310,7 +310,10 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
             redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: None,
             router_depositories: None,
-            limit_outflow_amount_per_day: Some(amount_we_use_as_supply_cap),
+            limit_outflow_amount_per_day: Some(std::cmp::max(
+                amount_for_first_redeem,
+                amount_for_second_redeem,
+            )),
         },
     )
     .await?;
@@ -335,6 +338,34 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     // Even if mercurial is underflowing, it is the last liquid redeemable available, so we use it.
     let identity_depository_supply_after_first_redeem =
         identity_depository_supply_after_second_mint - amount_for_first_redeem;
+
+    // It should completely empty the identity depository
+    let expected_identity_depository_redeemable_amount =
+        identity_depository_supply_after_first_redeem;
+    // Then the rest should be taken from mercurial
+    let expected_mercurial_vault_depository_redeemable_amount =
+        amount_for_second_redeem - expected_identity_depository_redeemable_amount;
+
+    // Redeeming immediately should fail because of daily outflow limit
+    assert!(program_uxd::instructions::process_redeem(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_for_second_redeem,
+        expected_identity_depository_redeemable_amount,
+        expected_mercurial_vault_depository_redeemable_amount,
+    )
+    .await
+    .is_err());
+
+    // Move 1 day forward (bypass daily outflow limit)
+    program_test_context::move_clock_forward(&mut program_test_context, 1 * 24 * 60 * 60).await?;
+
+    // It should now succeed doing the same thing after waiting a day
     program_uxd::instructions::process_redeem(
         &mut program_test_context,
         &payer,
@@ -344,10 +375,13 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         &user_collateral,
         &user_redeemable,
         amount_for_second_redeem,
-        identity_depository_supply_after_first_redeem, // It should completely empty the identity depository
-        amount_for_second_redeem - identity_depository_supply_after_first_redeem, // Then the rest should be taken from mercurial
+        expected_identity_depository_redeemable_amount,
+        expected_mercurial_vault_depository_redeemable_amount,
     )
     .await?;
+
+    // Move 1 day forward (bypass daily outflow limit)
+    program_test_context::move_clock_forward(&mut program_test_context, 1 * 24 * 60 * 60).await?;
 
     // Any more redeeming will fail as all the liquid redeem source have been exhausted now
     assert!(program_uxd::instructions::process_redeem(

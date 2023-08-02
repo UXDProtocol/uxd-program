@@ -14,6 +14,7 @@ export const editControllerTest = async function ({
   controller: Controller;
   uiFields: {
     redeemableGlobalSupplyCap?: number;
+    limitOutflowAmountPerDay?: number;
   };
 }) {
   const connection = getConnection();
