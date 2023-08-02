@@ -34,7 +34,7 @@ pub const CONTROLLER_SPACE: usize = 8
     + size_of::<Pubkey>() // identity_depository
     + size_of::<Pubkey>() // mercurial_vault_depository
     + size_of::<Pubkey>() // credix_lp_depository
-    + size_of::<u64>()// limit_redeem_amount_per_day
+    + size_of::<u64>() // limit_redeem_amount_per_day
     + size_of::<u64>() // recently_redeemed_amount
     + size_of::<i64>() // last_redeem_timestamp
     + CONTROLLER_RESERVED_SPACE;
