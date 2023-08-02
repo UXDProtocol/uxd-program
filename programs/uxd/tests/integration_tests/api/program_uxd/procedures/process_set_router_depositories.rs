@@ -52,7 +52,6 @@ pub async fn process_set_router_depositories(
                 credix_lp_depository,
             }),
             limit_outflow_amount_per_day: None,
-
         },
     )
     .await?;

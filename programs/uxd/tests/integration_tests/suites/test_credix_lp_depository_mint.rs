@@ -144,7 +144,6 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
             depositories_routing_weight_bps: None,
             router_depositories: None,
             limit_outflow_amount_per_day: None,
-
         },
     )
     .await?;

@@ -128,7 +128,6 @@ async fn test_credix_lp_depository_rebalance_liquid(
             }),
             router_depositories: None,
             limit_outflow_amount_per_day: None,
-
         },
     )
     .await?;
