@@ -13,14 +13,17 @@ use crate::utils::calculate_depositories_redeemable_amount;
 use crate::utils::calculate_depositories_redeemable_amount::DepositoryInfoForRedeemableAmount;
 use crate::utils::calculate_depositories_target_redeemable_amount;
 use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
+use crate::utils::checked_convert_u128_to_u64;
 use crate::utils::validate_redeemable_amount;
 use crate::validate_is_program_frozen;
+use crate::BPS_UNIT_CONVERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
+use crate::SECONDS_PER_DAY;
 
 #[derive(Accounts)]
 pub struct Redeem<'info> {
@@ -160,10 +163,66 @@ struct DepositoryInfoForRedeem<'info> {
 
 pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()> {
     // Gather all the onchain states we need (caps, weights and supplies)
-    let controller = ctx.accounts.controller.load()?;
+    let mut controller = ctx.accounts.controller.load_mut()?;
     let identity_depository = ctx.accounts.identity_depository.load()?;
     let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
+
+    // How long ago was the last redeem?
+    let now_timestamp = Clock::get()?.unix_timestamp;
+    let last_redeem_seconds_ago = u128::try_from(
+        now_timestamp
+            .checked_sub(controller.last_redeem_timestamp)
+            .ok_or(UxdError::MathError)?,
+    )
+    .ok()
+    .ok_or(UxdError::MathError)?;
+
+    // Limit per day (NO MERGE, this include both options!! we only need one!)
+    let limit_outflow_per_day: u128 = if true {
+        controller.limit_outflow_amount_per_day.into()
+    } else {
+        controller
+            .redeemable_circulating_supply
+            .checked_mul(1000 /* controller.limit_outflow_bps_per_day */)
+            .ok_or(UxdError::MathError)?
+            .checked_div(BPS_UNIT_CONVERSION.into())
+            .ok_or(UxdError::MathError)?
+    };
+
+    // How much was unlocked by waiting since last redeem
+    let extra_unlocked_amount = checked_convert_u128_to_u64(
+        last_redeem_seconds_ago
+            .checked_mul(limit_outflow_per_day)
+            .ok_or(UxdError::MathError)?
+            .checked_div(SECONDS_PER_DAY.into())
+            .ok_or(UxdError::MathError)?,
+    )?;
+
+    // How much outflow after this current redeem IX
+    let post_redeem_outflow_amount = controller
+        .last_day_outflow_amount
+        .checked_add(redeemable_amount)
+        .ok_or(UxdError::MathError)?;
+
+    // How much outflow after this and since last redeem
+    let current_redeem_outflow_amount = if post_redeem_outflow_amount > extra_unlocked_amount {
+        post_redeem_outflow_amount
+            .checked_sub(extra_unlocked_amount)
+            .ok_or(UxdError::MathError)?
+    } else {
+        0
+    };
+
+    // Make sure we are not over the limit!
+    require!(
+        u128::from(current_redeem_outflow_amount) <= limit_outflow_per_day,
+        UxdError::MaximumOutflowAmountError
+    );
+
+    // Update outflow limitations flags
+    controller.last_day_outflow_amount = current_redeem_outflow_amount;
+    controller.last_redeem_timestamp = now_timestamp;
 
     // Make controller signer
     let controller_pda_signer: &[&[&[u8]]] = &[&[

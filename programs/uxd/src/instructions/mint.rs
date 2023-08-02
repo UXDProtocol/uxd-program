@@ -203,16 +203,23 @@ struct DepositoryInfoForMint<'info> {
 
 pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> {
     // Gather all the onchain states we need (caps, weights and supplies)
-    let controller = ctx.accounts.controller.load()?;
+    let mut controller = ctx.accounts.controller.load_mut()?;
     let identity_depository = ctx.accounts.identity_depository.load()?;
     let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
 
+    // Make sure minting reduces the counter of outflows (minting is inflow)
+    controller.last_day_outflow_amount = if controller.last_day_outflow_amount > collateral_amount {
+        controller
+            .last_day_outflow_amount
+            .checked_sub(collateral_amount)
+            .ok_or(UxdError::MathError)?
+    } else {
+        0
+    };
+
     // Make controller signer
-    let controller_pda_signer: &[&[&[u8]]] = &[&[
-        CONTROLLER_NAMESPACE,
-        &[ctx.accounts.controller.load()?.bump],
-    ]];
+    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.bump]]];
 
     // The actual post-mint circulating supply might be slightly lower due to fees and precision loss
     // But the difference is negligible, and the difference will be taken into account
