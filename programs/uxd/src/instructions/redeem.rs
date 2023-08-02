@@ -167,19 +167,10 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let identity_depository = ctx.accounts.identity_depository.load()?;
     let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
-
-    // How long ago was the last redeem?
     let now_timestamp = Clock::get()?.unix_timestamp;
-    let last_redeem_seconds_ago = u128::try_from(
-        now_timestamp
-            .checked_sub(controller.last_redeem_timestamp)
-            .ok_or(UxdError::MathError)?,
-    )
-    .ok()
-    .ok_or(UxdError::MathError)?;
 
-    // Limit per day (NO MERGE, this include both options!! we only need one!)
-    let limit_outflow_per_day: u128 = if true {
+    // Limit per day (NO MERGE, this include both options!! we only need one!!)
+    let limit_outflow_amount_per_day = if true {
         controller.limit_outflow_amount_per_day.into()
     } else {
         controller
@@ -191,24 +182,30 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     };
 
     // How much was unlocked by waiting since last redeem
-    let extra_unlocked_amount = checked_convert_u128_to_u64(
-        last_redeem_seconds_ago
-            .checked_mul(limit_outflow_per_day)
-            .ok_or(UxdError::MathError)?
-            .checked_div(SECONDS_PER_DAY.into())
-            .ok_or(UxdError::MathError)?,
-    )?;
+    let unlocked_outflow_amount = checked_convert_u128_to_u64({
+        u128::try_from(
+            now_timestamp
+                .checked_sub(controller.last_redeem_timestamp)
+                .ok_or(UxdError::MathError)?,
+        )
+        .ok()
+        .ok_or(UxdError::MathError)?
+        .checked_mul(limit_outflow_amount_per_day)
+        .ok_or(UxdError::MathError)?
+        .checked_div(SECONDS_PER_DAY.into())
+        .ok_or(UxdError::MathError)?
+    })?;
 
     // How much outflow after this current redeem IX
-    let post_redeem_outflow_amount = controller
+    let after_redeem_daily_outflow_amount = controller
         .last_day_outflow_amount
         .checked_add(redeemable_amount)
         .ok_or(UxdError::MathError)?;
 
     // How much outflow after this and since last redeem
-    let current_redeem_outflow_amount = if post_redeem_outflow_amount > extra_unlocked_amount {
-        post_redeem_outflow_amount
-            .checked_sub(extra_unlocked_amount)
+    let last_day_outflow_amount = if after_redeem_daily_outflow_amount > unlocked_outflow_amount {
+        after_redeem_daily_outflow_amount
+            .checked_sub(unlocked_outflow_amount)
             .ok_or(UxdError::MathError)?
     } else {
         0
@@ -216,12 +213,12 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
 
     // Make sure we are not over the limit!
     require!(
-        u128::from(current_redeem_outflow_amount) <= limit_outflow_per_day,
+        u128::from(last_day_outflow_amount) <= limit_outflow_amount_per_day,
         UxdError::MaximumOutflowAmountError
     );
 
     // Update outflow limitations flags
-    controller.last_day_outflow_amount = current_redeem_outflow_amount;
+    controller.last_day_outflow_amount = last_day_outflow_amount;
     controller.last_redeem_timestamp = now_timestamp;
 
     // Make controller signer

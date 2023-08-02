@@ -34,8 +34,8 @@ pub const CONTROLLER_SPACE: usize = 8
     + size_of::<Pubkey>() // identity_depository
     + size_of::<Pubkey>() // mercurial_vault_depository
     + size_of::<Pubkey>() // credix_lp_depository
-    + size_of::<u64>() // limit_redeem_amount_per_day
-    + size_of::<u64>() // recently_redeemed_amount
+    + size_of::<u64>() // limit_outflow_amount_per_day
+    + size_of::<u64>() // last_day_outflow_amount
     + size_of::<i64>() // last_redeem_timestamp
     + CONTROLLER_RESERVED_SPACE;
 
@@ -99,8 +99,8 @@ pub struct Controller {
 
     // Redeem limitation flags
     pub limit_outflow_amount_per_day: u64, // or limit_outflow_bps_per_day
-    pub last_redeem_timestamp: i64,
     pub last_day_outflow_amount: u64,
+    pub last_redeem_timestamp: i64,
 
     // For future usage
     pub _reserved: [u8; CONTROLLER_RESERVED_SPACE],
