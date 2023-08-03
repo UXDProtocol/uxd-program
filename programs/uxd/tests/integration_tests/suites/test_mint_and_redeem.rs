@@ -7,6 +7,7 @@ use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditDepositoriesRoutingWeightBps;
 use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
+use uxd::SECONDS_PER_DAY;
 
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
@@ -363,7 +364,8 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     .is_err());
 
     // Move 1 day forward (bypass daily outflow limit)
-    program_test_context::move_clock_forward(&mut program_test_context, 1 * 24 * 60 * 60).await?;
+    program_test_context::move_clock_forward(&mut program_test_context, i64::from(SECONDS_PER_DAY))
+        .await?;
 
     // It should now succeed doing the same thing after waiting a day
     program_uxd::instructions::process_redeem(
@@ -381,7 +383,8 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     .await?;
 
     // Move 1 day forward (bypass daily outflow limit)
-    program_test_context::move_clock_forward(&mut program_test_context, 1 * 24 * 60 * 60).await?;
+    program_test_context::move_clock_forward(&mut program_test_context, i64::from(SECONDS_PER_DAY))
+        .await?;
 
     // Any more redeeming will fail as all the liquid redeem source have been exhausted now
     assert!(program_uxd::instructions::process_redeem(

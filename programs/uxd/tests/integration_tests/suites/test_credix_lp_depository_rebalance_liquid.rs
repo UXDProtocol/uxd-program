@@ -7,6 +7,7 @@ use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditDepositoriesRoutingWeightBps;
 use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
+use uxd::SECONDS_PER_DAY;
 
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_spl;
@@ -247,7 +248,11 @@ async fn test_credix_lp_depository_rebalance_liquid(
     );
 
     // Pretend 3 days have passed (the time for the request period)
-    program_test_context::move_clock_forward(&mut program_test_context, 3 * 24 * 60 * 60).await?;
+    program_test_context::move_clock_forward(
+        &mut program_test_context,
+        i64::from(3 * SECONDS_PER_DAY),
+    )
+    .await?;
 
     // Set the epoch's locked liquidity (done by credix team usually)
     program_credix::instructions::process_set_locked_liquidity(
