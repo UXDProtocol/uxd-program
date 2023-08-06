@@ -69,5 +69,6 @@
     "wsol",
     "WSOLATA"
   ],
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "rust-analyzer.linkedProjects": ["./programs/uxd/Cargo.toml"]
 }

@@ -12,6 +12,7 @@ use crate::utils::calculate_depositories_mint_collateral_amount;
 use crate::utils::calculate_depositories_mint_collateral_amount::DepositoryInfoForMintCollateralAmount;
 use crate::utils::calculate_depositories_target_redeemable_amount;
 use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
+use crate::utils::checked_sub;
 use crate::utils::validate_collateral_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -210,10 +211,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
 
     // Make sure minting reduces the counter of outflow (minting is inflow)
     controller.epoch_outflow_amount = if controller.epoch_outflow_amount > collateral_amount {
-        controller
-            .epoch_outflow_amount
-            .checked_sub(collateral_amount)
-            .ok_or(UxdError::MathError)?
+        checked_sub(controller.epoch_outflow_amount, collateral_amount)?
     } else {
         0
     };
@@ -227,7 +225,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     let maximum_after_mint_circulating_supply = controller
         .redeemable_circulating_supply
         .checked_add(collateral_amount.into())
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![

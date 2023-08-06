@@ -13,10 +13,15 @@ use crate::utils::calculate_depositories_redeemable_amount;
 use crate::utils::calculate_depositories_redeemable_amount::DepositoryInfoForRedeemableAmount;
 use crate::utils::calculate_depositories_target_redeemable_amount;
 use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
-use crate::utils::checked_convert_u128_to_u64;
+use crate::utils::checked_add;
+use crate::utils::checked_as_u128;
+use crate::utils::checked_as_u64;
+use crate::utils::checked_div;
+use crate::utils::checked_mul;
+use crate::utils::checked_sub;
 use crate::utils::validate_redeemable_amount;
 use crate::validate_is_program_frozen;
-use crate::BPS_UNIT_CONVERSION;
+use crate::BPS_POWER;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
@@ -170,46 +175,38 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     // Compute max outflow per epoch (max of bps/amount options)
     let max_outflow_per_epoch_amount = std::cmp::max(
         controller.outflow_limit_per_epoch_amount.into(),
-        controller
-            .redeemable_circulating_supply
-            .checked_mul(controller.outflow_limit_per_epoch_bps.into())
-            .ok_or(UxdError::MathError)?
-            .checked_div(BPS_UNIT_CONVERSION.into())
-            .ok_or(UxdError::MathError)?,
+        checked_div(
+            checked_mul(
+                controller.redeemable_circulating_supply,
+                controller.outflow_limit_per_epoch_bps.into(),
+            )?,
+            BPS_POWER.into(),
+        )?,
     );
 
     // How long ago was the last outflow
     let now_timestamp = Clock::get()?.unix_timestamp;
-    let last_outflow_seconds_ago = now_timestamp
-        .checked_sub(controller.last_outflow_timestamp)
-        .ok_or(UxdError::MathError)?;
+    let last_outflow_seconds_ago = checked_sub(now_timestamp, controller.last_outflow_timestamp)?;
 
     // How much was unlocked by waiting since last redeem
-    let unlocked_outflow_amount = checked_convert_u128_to_u64({
-        u128::try_from(last_outflow_seconds_ago)
-            .ok()
-            .ok_or(UxdError::MathError)?
-            .checked_mul(max_outflow_per_epoch_amount)
-            .ok_or(UxdError::MathError)?
-            .checked_div(controller.seconds_per_epoch.into())
-            .ok_or(UxdError::MathError)?
-    })?;
+    let unlocked_outflow_amount = checked_as_u64(checked_div(
+        checked_mul(
+            checked_as_u128(last_outflow_seconds_ago)?,
+            max_outflow_per_epoch_amount,
+        )?,
+        controller.seconds_per_epoch.into(),
+    )?)?;
 
     // How much outflow in the current epoch right before the redeem IX
     let previous_epoch_outflow_amount = if controller.epoch_outflow_amount > unlocked_outflow_amount
     {
-        controller
-            .epoch_outflow_amount
-            .checked_sub(unlocked_outflow_amount)
-            .ok_or(UxdError::MathError)?
+        checked_sub(controller.epoch_outflow_amount, unlocked_outflow_amount)?
     } else {
         0
     };
 
     // How much outflow right after this current redeem IX
-    let new_epoch_outflow_amount = previous_epoch_outflow_amount
-        .checked_add(redeemable_amount)
-        .ok_or(UxdError::MathError)?;
+    let new_epoch_outflow_amount = checked_add(previous_epoch_outflow_amount, redeemable_amount)?;
 
     // Make sure we are not over the outflow limit!
     require!(
@@ -230,7 +227,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let mimimum_after_redeem_circulating_supply = controller
         .redeemable_circulating_supply
         .checked_sub(redeemable_amount.into())
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![
