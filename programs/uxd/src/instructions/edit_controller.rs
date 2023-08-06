@@ -1,8 +1,10 @@
 use crate::error::UxdError;
-use crate::events::SetLimitOutflowAmountPerDayEvent;
+use crate::events::SetOutflowLimitPerEpochAmountEvent;
+use crate::events::SetOutflowLimitPerEpochBpsEvent;
 use crate::events::SetRedeemableGlobalSupplyCapEvent;
 use crate::events::SetRouterDepositories;
 use crate::events::SetRouterDepositoriesWeightBps;
+use crate::events::SetSecondsPerEpochEvent;
 use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::BPS_UNIT_CONVERSION;
@@ -43,7 +45,9 @@ pub struct EditControllerFields {
     pub redeemable_global_supply_cap: Option<u128>,
     pub depositories_routing_weight_bps: Option<EditDepositoriesRoutingWeightBps>,
     pub router_depositories: Option<EditRouterDepositories>,
-    pub limit_outflow_amount_per_day: Option<u64>,
+    pub outflow_limit_per_epoch_amount: Option<u64>,
+    pub outflow_limit_per_epoch_bps: Option<u16>,
+    pub seconds_per_epoch: Option<u32>,
 }
 
 pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
@@ -124,19 +128,45 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
         });
     }
 
-    // Optionally edit "limit_outflow_amount_per_day"
-    if let Some(limit_outflow_amount_per_day) = fields.limit_outflow_amount_per_day {
+    // Optionally edit "outflow_limit_per_epoch_amount"
+    if let Some(outflow_limit_per_epoch_amount) = fields.outflow_limit_per_epoch_amount {
         msg!(
-            "[edit_controller] limit_outflow_amount_per_day {}",
-            limit_outflow_amount_per_day
+            "[edit_controller] outflow_limit_per_epoch_amount {}",
+            outflow_limit_per_epoch_amount
         );
-        controller.limit_outflow_amount_per_day = limit_outflow_amount_per_day;
-        emit!(SetLimitOutflowAmountPerDayEvent {
+        controller.outflow_limit_per_epoch_amount = outflow_limit_per_epoch_amount;
+        emit!(SetOutflowLimitPerEpochAmountEvent {
             version: controller.version,
             controller: ctx.accounts.controller.key(),
-            limit_outflow_amount_per_day
+            outflow_limit_per_epoch_amount
         });
     }
+
+    // Optionally edit "outflow_limit_per_epoch_bps"
+    if let Some(outflow_limit_per_epoch_bps) = fields.outflow_limit_per_epoch_bps {
+        msg!(
+            "[edit_controller] outflow_limit_per_epoch_bps {}",
+            outflow_limit_per_epoch_bps
+        );
+        controller.outflow_limit_per_epoch_bps = outflow_limit_per_epoch_bps;
+        emit!(SetOutflowLimitPerEpochBpsEvent {
+            version: controller.version,
+            controller: ctx.accounts.controller.key(),
+            outflow_limit_per_epoch_bps
+        });
+    }
+
+    // Optionally edit "seconds_per_epoch"
+    if let Some(seconds_per_epoch) = fields.seconds_per_epoch {
+        msg!("[edit_controller] seconds_per_epoch {}", seconds_per_epoch);
+        controller.seconds_per_epoch = seconds_per_epoch;
+        emit!(SetSecondsPerEpochEvent {
+            version: controller.version,
+            controller: ctx.accounts.controller.key(),
+            seconds_per_epoch
+        });
+    }
+
     Ok(())
 }
 

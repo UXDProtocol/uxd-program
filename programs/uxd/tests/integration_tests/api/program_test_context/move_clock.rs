@@ -5,7 +5,7 @@ use crate::integration_tests::api::program_test_context;
 
 pub async fn move_clock_forward(
     program_test_context: &mut ProgramTestContext,
-    unix_timestamp_delta: i64,
+    unix_timestamp_delta: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Read the context sysvar clock
     let current_clock = program_test_context
@@ -17,7 +17,7 @@ pub async fn move_clock_forward(
     // Move the clock
     move_clock_to(
         program_test_context,
-        current_clock.unix_timestamp + unix_timestamp_delta,
+        current_clock.unix_timestamp + i64::try_from(unix_timestamp_delta).unwrap(),
     )
     .await
 }

@@ -23,7 +23,6 @@ use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
-use crate::SECONDS_PER_DAY;
 
 #[derive(Accounts)]
 pub struct Redeem<'info> {
@@ -167,59 +166,60 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let identity_depository = ctx.accounts.identity_depository.load()?;
     let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
-    let now_timestamp = Clock::get()?.unix_timestamp;
 
-    // Limit per day (NO MERGE, this include both options!! we only need one!!)
-    let limit_outflow_amount_per_day = if true {
-        controller.limit_outflow_amount_per_day.into()
-    } else {
+    // Compute max outflow per epoch (max of bps/amount options)
+    let max_outflow_per_epoch_amount = std::cmp::max(
+        controller.outflow_limit_per_epoch_amount.into(),
         controller
             .redeemable_circulating_supply
-            .checked_mul(1000 /* controller.limit_outflow_bps_per_day */)
+            .checked_mul(controller.outflow_limit_per_epoch_bps.into())
             .ok_or(UxdError::MathError)?
             .checked_div(BPS_UNIT_CONVERSION.into())
-            .ok_or(UxdError::MathError)?
-    };
+            .ok_or(UxdError::MathError)?,
+    );
+
+    // How long ago was the last outflow
+    let now_timestamp = Clock::get()?.unix_timestamp;
+    let last_outflow_seconds_ago = now_timestamp
+        .checked_sub(controller.last_outflow_timestamp)
+        .ok_or(UxdError::MathError)?;
 
     // How much was unlocked by waiting since last redeem
     let unlocked_outflow_amount = checked_convert_u128_to_u64({
-        u128::try_from(
-            now_timestamp
-                .checked_sub(controller.last_redeem_timestamp)
-                .ok_or(UxdError::MathError)?,
-        )
-        .ok()
-        .ok_or(UxdError::MathError)?
-        .checked_mul(limit_outflow_amount_per_day)
-        .ok_or(UxdError::MathError)?
-        .checked_div(SECONDS_PER_DAY.into())
-        .ok_or(UxdError::MathError)?
+        u128::try_from(last_outflow_seconds_ago)
+            .ok()
+            .ok_or(UxdError::MathError)?
+            .checked_mul(max_outflow_per_epoch_amount)
+            .ok_or(UxdError::MathError)?
+            .checked_div(controller.seconds_per_epoch.into())
+            .ok_or(UxdError::MathError)?
     })?;
 
-    // How much outflow after this current redeem IX
-    let after_redeem_daily_outflow_amount = controller
-        .last_day_outflow_amount
-        .checked_add(redeemable_amount)
-        .ok_or(UxdError::MathError)?;
-
-    // How much outflow after this and since last redeem
-    let last_day_outflow_amount = if after_redeem_daily_outflow_amount > unlocked_outflow_amount {
-        after_redeem_daily_outflow_amount
+    // How much outflow in the current epoch right before the redeem IX
+    let previous_epoch_outflow_amount = if controller.epoch_outflow_amount > unlocked_outflow_amount
+    {
+        controller
+            .epoch_outflow_amount
             .checked_sub(unlocked_outflow_amount)
             .ok_or(UxdError::MathError)?
     } else {
         0
     };
 
+    // How much outflow right after this current redeem IX
+    let new_epoch_outflow_amount = previous_epoch_outflow_amount
+        .checked_add(redeemable_amount)
+        .ok_or(UxdError::MathError)?;
+
     // Make sure we are not over the outflow limit!
     require!(
-        u128::from(last_day_outflow_amount) <= limit_outflow_amount_per_day,
+        u128::from(new_epoch_outflow_amount) <= max_outflow_per_epoch_amount,
         UxdError::MaximumOutflowAmountError
     );
 
     // Update outflow limitations flags
-    controller.last_day_outflow_amount = last_day_outflow_amount;
-    controller.last_redeem_timestamp = now_timestamp;
+    controller.epoch_outflow_amount = new_epoch_outflow_amount;
+    controller.last_outflow_timestamp = now_timestamp;
 
     // Make controller signer
     let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.bump]]];

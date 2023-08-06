@@ -2162,21 +2162,29 @@ export type Uxd = {
             type: 'publicKey';
           },
           {
-            name: 'limitOutflowAmountPerDay';
+            name: 'outflowLimitPerEpochAmount';
             type: 'u64';
           },
           {
-            name: 'lastDayOutflowAmount';
+            name: 'outflowLimitPerEpochBps';
+            type: 'u16';
+          },
+          {
+            name: 'secondsPerEpoch';
+            type: 'u32';
+          },
+          {
+            name: 'epochOutflowAmount';
             type: 'u64';
           },
           {
-            name: 'lastRedeemTimestamp';
+            name: 'lastOutflowTimestamp';
             type: 'i64';
           },
           {
             name: 'reserved';
             type: {
-              array: ['u8', 104];
+              array: ['u8', 98];
             };
           }
         ];
@@ -2552,9 +2560,21 @@ export type Uxd = {
             };
           },
           {
-            name: 'limitOutflowAmountPerDay';
+            name: 'outflowLimitPerEpochAmount';
             type: {
               option: 'u64';
+            };
+          },
+          {
+            name: 'outflowLimitPerEpochBps';
+            type: {
+              option: 'u16';
+            };
+          },
+          {
+            name: 'secondsPerEpoch';
+            type: {
+              option: 'u32';
             };
           }
         ];
@@ -2661,7 +2681,7 @@ export type Uxd = {
       ];
     },
     {
-      name: 'SetLimitOutflowAmountPerDayEvent';
+      name: 'SetOutflowLimitPerEpochAmountEvent';
       fields: [
         {
           name: 'version';
@@ -2674,8 +2694,48 @@ export type Uxd = {
           index: false;
         },
         {
-          name: 'limitOutflowAmountPerDay';
+          name: 'outflowLimitPerEpochAmount';
           type: 'u64';
+          index: false;
+        }
+      ];
+    },
+    {
+      name: 'SetOutflowLimitPerEpochBpsEvent';
+      fields: [
+        {
+          name: 'version';
+          type: 'u8';
+          index: false;
+        },
+        {
+          name: 'controller';
+          type: 'publicKey';
+          index: false;
+        },
+        {
+          name: 'outflowLimitPerEpochBps';
+          type: 'u16';
+          index: false;
+        }
+      ];
+    },
+    {
+      name: 'SetSecondsPerEpochEvent';
+      fields: [
+        {
+          name: 'version';
+          type: 'u8';
+          index: false;
+        },
+        {
+          name: 'controller';
+          type: 'publicKey';
+          index: false;
+        },
+        {
+          name: 'secondsPerEpoch';
+          type: 'u32';
           index: false;
         }
       ];
@@ -3434,143 +3494,143 @@ export type Uxd = {
     },
     {
       code: 6030;
-      name: 'MaximumOutflowAmountError';
-      msg: 'Redeem resulted into too much outflow in the last day, please wait or try again with a smaller amount.';
-    },
-    {
-      code: 6031;
       name: 'InvalidDepositoryLpTokenVault';
       msg: "The depository lp token vault does not match the Depository's one.";
     },
     {
-      code: 6032;
+      code: 6031;
       name: 'InvalidAuthority';
       msg: 'Only the Program initializer authority can access this instructions.';
     },
     {
-      code: 6033;
+      code: 6032;
       name: 'InvalidController';
       msg: "The Depository's controller doesn't match the provided Controller.";
     },
     {
-      code: 6034;
+      code: 6033;
       name: 'InvalidDepository';
       msg: 'The Depository provided is not registered with the Controller.';
     },
     {
-      code: 6035;
+      code: 6034;
       name: 'InvalidCollateralMint';
       msg: "The provided collateral mint does not match the depository's collateral mint.";
     },
     {
-      code: 6036;
+      code: 6035;
       name: 'InvalidRedeemableMint';
       msg: "The Redeemable Mint provided does not match the Controller's one.";
     },
     {
-      code: 6037;
+      code: 6036;
       name: 'InvalidOwner';
       msg: 'The provided token account is not owner by the expected party.';
     },
     {
-      code: 6038;
+      code: 6037;
       name: 'InvalidDepositoryCollateral';
       msg: "The provided depository collateral does not match the depository's one.";
     },
     {
-      code: 6039;
+      code: 6038;
       name: 'InvalidDepositoryShares';
       msg: "The provided depository shares does not match the depository's one.";
     },
     {
-      code: 6040;
+      code: 6039;
       name: 'InvalidProfitsBeneficiaryCollateral';
       msg: "The Profits beneficiary collateral provided does not match the depository's one.";
     },
     {
-      code: 6041;
+      code: 6040;
       name: 'InvalidMercurialVault';
       msg: "The provided mercurial vault does not match the Depository's one.";
     },
     {
-      code: 6042;
+      code: 6041;
       name: 'InvalidMercurialVaultCollateralTokenSafe';
       msg: 'The provided mercurial vault collateral token safe does not match the mercurial vault one.';
     },
     {
-      code: 6043;
+      code: 6042;
       name: 'RedeemableIdentityDepositoryAmountUnderManagementCap';
       msg: 'Minting amount would go past the identity depository Redeemable Amount Under Management Cap.';
     },
     {
-      code: 6044;
+      code: 6043;
       name: 'ProgramAlreadyFrozenOrResumed';
       msg: 'Program is already frozen/resumed.';
     },
     {
-      code: 6045;
+      code: 6044;
       name: 'ProgramFrozen';
       msg: 'The program is currently in Frozen state.';
     },
     {
-      code: 6046;
+      code: 6045;
       name: 'InvalidCredixProgramState';
       msg: "The Credix ProgramState isn't the Depository one.";
     },
     {
-      code: 6047;
+      code: 6046;
       name: 'InvalidCredixGlobalMarketState';
       msg: "The Credix GlobalMarketState isn't the Depository one.";
     },
     {
-      code: 6048;
+      code: 6047;
       name: 'InvalidCredixSigningAuthority';
       msg: "The Credix SigningAuthority isn't the Depository one.";
     },
     {
-      code: 6049;
+      code: 6048;
       name: 'InvalidCredixLiquidityCollateral';
       msg: "The Credix LiquidityCollateral isn't the Depository one.";
     },
     {
-      code: 6050;
+      code: 6049;
       name: 'InvalidCredixSharesMint';
       msg: "The Credix SharesMint isn't the Depository one.";
     },
     {
-      code: 6051;
+      code: 6050;
       name: 'InvalidCredixPass';
       msg: "The Credix Pass isn't the one owned by the correct depository.";
     },
     {
-      code: 6052;
+      code: 6051;
       name: 'InvalidCredixPassNoFees';
       msg: "The Credix Pass doesn't have the fees exemption.";
     },
     {
-      code: 6053;
+      code: 6052;
       name: 'InvalidCredixMultisigKey';
       msg: "The Credix Multisig Key isn't the ProgramState one.";
     },
     {
-      code: 6054;
+      code: 6053;
       name: 'InvalidCredixTreasuryCollateral';
       msg: "The Credix TreasuryCollateral isn't the GlobalMarketState one.";
     },
     {
-      code: 6055;
+      code: 6054;
       name: 'InvalidCredixWithdrawEpochRequestPhase';
       msg: "The Credix WithdrawEpoch isn't in its request phase.";
     },
     {
-      code: 6056;
+      code: 6055;
       name: 'InvalidCredixWithdrawEpochRedeemPhase';
       msg: "The Credix WithdrawEpoch isn't in its redeem phase.";
     },
     {
-      code: 6057;
+      code: 6056;
       name: 'Default';
       msg: 'Default - Check the source code for more info.';
+    },
+    {
+      code: 6057;
+      name: 'MaximumOutflowAmountError';
+      msg: 'Redeem resulted into too much outflow in this epoch, please wait or try again with a smaller amount.';
     }
   ];
 };
@@ -5739,21 +5799,29 @@ export const IDL: Uxd = {
             type: 'publicKey',
           },
           {
-            name: 'limitOutflowAmountPerDay',
+            name: 'outflowLimitPerEpochAmount',
             type: 'u64',
           },
           {
-            name: 'lastDayOutflowAmount',
+            name: 'outflowLimitPerEpochBps',
+            type: 'u16',
+          },
+          {
+            name: 'secondsPerEpoch',
+            type: 'u32',
+          },
+          {
+            name: 'epochOutflowAmount',
             type: 'u64',
           },
           {
-            name: 'lastRedeemTimestamp',
+            name: 'lastOutflowTimestamp',
             type: 'i64',
           },
           {
             name: 'reserved',
             type: {
-              array: ['u8', 104],
+              array: ['u8', 98],
             },
           },
         ],
@@ -6129,9 +6197,21 @@ export const IDL: Uxd = {
             },
           },
           {
-            name: 'limitOutflowAmountPerDay',
+            name: 'outflowLimitPerEpochAmount',
             type: {
               option: 'u64',
+            },
+          },
+          {
+            name: 'outflowLimitPerEpochBps',
+            type: {
+              option: 'u16',
+            },
+          },
+          {
+            name: 'secondsPerEpoch',
+            type: {
+              option: 'u32',
             },
           },
         ],
@@ -6238,7 +6318,7 @@ export const IDL: Uxd = {
       ],
     },
     {
-      name: 'SetLimitOutflowAmountPerDayEvent',
+      name: 'SetOutflowLimitPerEpochAmountEvent',
       fields: [
         {
           name: 'version',
@@ -6251,8 +6331,48 @@ export const IDL: Uxd = {
           index: false,
         },
         {
-          name: 'limitOutflowAmountPerDay',
+          name: 'outflowLimitPerEpochAmount',
           type: 'u64',
+          index: false,
+        },
+      ],
+    },
+    {
+      name: 'SetOutflowLimitPerEpochBpsEvent',
+      fields: [
+        {
+          name: 'version',
+          type: 'u8',
+          index: false,
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: false,
+        },
+        {
+          name: 'outflowLimitPerEpochBps',
+          type: 'u16',
+          index: false,
+        },
+      ],
+    },
+    {
+      name: 'SetSecondsPerEpochEvent',
+      fields: [
+        {
+          name: 'version',
+          type: 'u8',
+          index: false,
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: false,
+        },
+        {
+          name: 'secondsPerEpoch',
+          type: 'u32',
           index: false,
         },
       ],
@@ -7011,143 +7131,143 @@ export const IDL: Uxd = {
     },
     {
       code: 6030,
-      name: 'MaximumOutflowAmountError',
-      msg: 'Redeem resulted into too much outflow in the last day, please wait or try again with a smaller amount.',
-    },
-    {
-      code: 6031,
       name: 'InvalidDepositoryLpTokenVault',
       msg: "The depository lp token vault does not match the Depository's one.",
     },
     {
-      code: 6032,
+      code: 6031,
       name: 'InvalidAuthority',
       msg: 'Only the Program initializer authority can access this instructions.',
     },
     {
-      code: 6033,
+      code: 6032,
       name: 'InvalidController',
       msg: "The Depository's controller doesn't match the provided Controller.",
     },
     {
-      code: 6034,
+      code: 6033,
       name: 'InvalidDepository',
       msg: 'The Depository provided is not registered with the Controller.',
     },
     {
-      code: 6035,
+      code: 6034,
       name: 'InvalidCollateralMint',
       msg: "The provided collateral mint does not match the depository's collateral mint.",
     },
     {
-      code: 6036,
+      code: 6035,
       name: 'InvalidRedeemableMint',
       msg: "The Redeemable Mint provided does not match the Controller's one.",
     },
     {
-      code: 6037,
+      code: 6036,
       name: 'InvalidOwner',
       msg: 'The provided token account is not owner by the expected party.',
     },
     {
-      code: 6038,
+      code: 6037,
       name: 'InvalidDepositoryCollateral',
       msg: "The provided depository collateral does not match the depository's one.",
     },
     {
-      code: 6039,
+      code: 6038,
       name: 'InvalidDepositoryShares',
       msg: "The provided depository shares does not match the depository's one.",
     },
     {
-      code: 6040,
+      code: 6039,
       name: 'InvalidProfitsBeneficiaryCollateral',
       msg: "The Profits beneficiary collateral provided does not match the depository's one.",
     },
     {
-      code: 6041,
+      code: 6040,
       name: 'InvalidMercurialVault',
       msg: "The provided mercurial vault does not match the Depository's one.",
     },
     {
-      code: 6042,
+      code: 6041,
       name: 'InvalidMercurialVaultCollateralTokenSafe',
       msg: 'The provided mercurial vault collateral token safe does not match the mercurial vault one.',
     },
     {
-      code: 6043,
+      code: 6042,
       name: 'RedeemableIdentityDepositoryAmountUnderManagementCap',
       msg: 'Minting amount would go past the identity depository Redeemable Amount Under Management Cap.',
     },
     {
-      code: 6044,
+      code: 6043,
       name: 'ProgramAlreadyFrozenOrResumed',
       msg: 'Program is already frozen/resumed.',
     },
     {
-      code: 6045,
+      code: 6044,
       name: 'ProgramFrozen',
       msg: 'The program is currently in Frozen state.',
     },
     {
-      code: 6046,
+      code: 6045,
       name: 'InvalidCredixProgramState',
       msg: "The Credix ProgramState isn't the Depository one.",
     },
     {
-      code: 6047,
+      code: 6046,
       name: 'InvalidCredixGlobalMarketState',
       msg: "The Credix GlobalMarketState isn't the Depository one.",
     },
     {
-      code: 6048,
+      code: 6047,
       name: 'InvalidCredixSigningAuthority',
       msg: "The Credix SigningAuthority isn't the Depository one.",
     },
     {
-      code: 6049,
+      code: 6048,
       name: 'InvalidCredixLiquidityCollateral',
       msg: "The Credix LiquidityCollateral isn't the Depository one.",
     },
     {
-      code: 6050,
+      code: 6049,
       name: 'InvalidCredixSharesMint',
       msg: "The Credix SharesMint isn't the Depository one.",
     },
     {
-      code: 6051,
+      code: 6050,
       name: 'InvalidCredixPass',
       msg: "The Credix Pass isn't the one owned by the correct depository.",
     },
     {
-      code: 6052,
+      code: 6051,
       name: 'InvalidCredixPassNoFees',
       msg: "The Credix Pass doesn't have the fees exemption.",
     },
     {
-      code: 6053,
+      code: 6052,
       name: 'InvalidCredixMultisigKey',
       msg: "The Credix Multisig Key isn't the ProgramState one.",
     },
     {
-      code: 6054,
+      code: 6053,
       name: 'InvalidCredixTreasuryCollateral',
       msg: "The Credix TreasuryCollateral isn't the GlobalMarketState one.",
     },
     {
-      code: 6055,
+      code: 6054,
       name: 'InvalidCredixWithdrawEpochRequestPhase',
       msg: "The Credix WithdrawEpoch isn't in its request phase.",
     },
     {
-      code: 6056,
+      code: 6055,
       name: 'InvalidCredixWithdrawEpochRedeemPhase',
       msg: "The Credix WithdrawEpoch isn't in its redeem phase.",
     },
     {
-      code: 6057,
+      code: 6056,
       name: 'Default',
       msg: 'Default - Check the source code for more info.',
+    },
+    {
+      code: 6057,
+      name: 'MaximumOutflowAmountError',
+      msg: 'Redeem resulted into too much outflow in this epoch, please wait or try again with a smaller amount.',
     },
   ],
 };

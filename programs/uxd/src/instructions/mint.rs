@@ -209,9 +209,9 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
 
     // Make sure minting reduces the counter of outflow (minting is inflow)
-    controller.last_day_outflow_amount = if controller.last_day_outflow_amount > collateral_amount {
+    controller.epoch_outflow_amount = if controller.epoch_outflow_amount > collateral_amount {
         controller
-            .last_day_outflow_amount
+            .epoch_outflow_amount
             .checked_sub(collateral_amount)
             .ok_or(UxdError::MathError)?
     } else {

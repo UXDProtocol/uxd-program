@@ -95,9 +95,11 @@ pub(crate) fn handler(
     controller.credix_lp_depository = Pubkey::default();
 
     // Routing outflow limitation flags
-    controller.limit_outflow_amount_per_day = 0;
-    controller.last_redeem_timestamp = Clock::get()?.unix_timestamp;
-    controller.last_day_outflow_amount = 0;
+    controller.outflow_limit_per_epoch_amount = 0;
+    controller.outflow_limit_per_epoch_bps = 0;
+    controller.seconds_per_epoch = 0;
+    controller.epoch_outflow_amount = 0;
+    controller.last_outflow_timestamp = Clock::get()?.unix_timestamp;
 
     emit!(InitializeControllerEvent {
         version: controller.version,

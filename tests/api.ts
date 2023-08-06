@@ -190,7 +190,6 @@ export async function editController({
   controller: Controller;
   uiFields: {
     redeemableGlobalSupplyCap?: number;
-    limitOutflowAmountPerDay?: number;
   };
 }): Promise<string> {
   const editControllerIx = uxdClient.createEditControllerInstruction(

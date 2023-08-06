@@ -1,3 +1,4 @@
+use solana_program::clock::SECONDS_PER_DAY;
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
@@ -7,7 +8,6 @@ use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditDepositoriesRoutingWeightBps;
 use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
-use uxd::SECONDS_PER_DAY;
 
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
@@ -130,7 +130,9 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
                 credix_lp_depository_weight_bps: 40 * 100,
             }),
             router_depositories: None,
-            limit_outflow_amount_per_day: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            seconds_per_epoch: None,
         },
     )
     .await?;
@@ -244,7 +246,9 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
                 credix_lp_depository_weight_bps: 50 * 100,
             }),
             router_depositories: None,
-            limit_outflow_amount_per_day: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            seconds_per_epoch: None,
         },
     )
     .await?;
@@ -281,12 +285,14 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
                 credix_lp_depository_weight_bps: 0,
             }),
             router_depositories: None,
-            limit_outflow_amount_per_day: Some(amount_for_first_redeem / 2), // Outflows configured too low on purpose
+            outflow_limit_per_epoch_amount: Some(amount_for_first_redeem / 2), // Outflows configured too low on purpose
+            outflow_limit_per_epoch_bps: None,
+            seconds_per_epoch: Some(u32::try_from(SECONDS_PER_DAY).unwrap()),
         },
     )
     .await?;
 
-    // Redeeming now should fail because that's too much daily outflow
+    // Redeeming now should fail because that's too much outflow
     assert!(program_uxd::instructions::process_redeem(
         &mut program_test_context,
         &payer,
@@ -302,7 +308,7 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     .await
     .is_err());
 
-    // Increase the daily outflow limit to what we want to redeem
+    // Increase the outflow limit to over what we want to redeem next
     program_uxd::instructions::process_edit_controller(
         &mut program_test_context,
         &payer,
@@ -311,10 +317,9 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
             redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: None,
             router_depositories: None,
-            limit_outflow_amount_per_day: Some(std::cmp::max(
-                amount_for_first_redeem,
-                amount_for_second_redeem,
-            )),
+            outflow_limit_per_epoch_amount: Some(amount_for_first_redeem),
+            outflow_limit_per_epoch_bps: None,
+            seconds_per_epoch: None,
         },
     )
     .await?;
@@ -335,6 +340,22 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     )
     .await?;
 
+    // Increase the outflow limit to over what we want to redeem next
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: None,
+            depositories_routing_weight_bps: None,
+            router_depositories: None,
+            outflow_limit_per_epoch_amount: Some(amount_for_second_redeem),
+            outflow_limit_per_epoch_bps: None,
+            seconds_per_epoch: None,
+        },
+    )
+    .await?;
+
     // Redeeming after we exhaused the identity depository should fallback to mercurial depository
     // Even if mercurial is underflowing, it is the last liquid redeemable available, so we use it.
     let identity_depository_supply_after_first_redeem =
@@ -347,7 +368,7 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     let expected_mercurial_vault_depository_redeemable_amount =
         amount_for_second_redeem - expected_identity_depository_redeemable_amount;
 
-    // Redeeming immediately should fail because of daily outflow limit
+    // Redeeming immediately should fail because of outflow limit
     assert!(program_uxd::instructions::process_redeem(
         &mut program_test_context,
         &payer,
@@ -363,9 +384,8 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     .await
     .is_err());
 
-    // Move 1 day forward (bypass daily outflow limit)
-    program_test_context::move_clock_forward(&mut program_test_context, i64::from(SECONDS_PER_DAY))
-        .await?;
+    // Move 1 day forward (bypass outflow limit)
+    program_test_context::move_clock_forward(&mut program_test_context, SECONDS_PER_DAY).await?;
 
     // It should now succeed doing the same thing after waiting a day
     program_uxd::instructions::process_redeem(
@@ -382,9 +402,8 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     )
     .await?;
 
-    // Move 1 day forward (bypass daily outflow limit)
-    program_test_context::move_clock_forward(&mut program_test_context, i64::from(SECONDS_PER_DAY))
-        .await?;
+    // Move 1 day forward (bypass outflow limit)
+    program_test_context::move_clock_forward(&mut program_test_context, SECONDS_PER_DAY).await?;
 
     // Any more redeeming will fail as all the liquid redeem source have been exhausted now
     assert!(program_uxd::instructions::process_redeem(

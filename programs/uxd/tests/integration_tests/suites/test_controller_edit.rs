@@ -66,7 +66,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             redeemable_global_supply_cap: Some(42),
             depositories_routing_weight_bps: None,
             router_depositories: None,
-            limit_outflow_amount_per_day: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            seconds_per_epoch: None,
         },
     )
     .await
@@ -81,7 +83,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             redeemable_global_supply_cap: Some(100),
             depositories_routing_weight_bps: None,
             router_depositories: None,
-            limit_outflow_amount_per_day: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            seconds_per_epoch: None,
         },
     )
     .await?;
@@ -99,7 +103,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
                 credix_lp_depository_weight_bps: 1,
             }),
             router_depositories: None,
-            limit_outflow_amount_per_day: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            seconds_per_epoch: None,
         },
     )
     .await
@@ -118,7 +124,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
                 credix_lp_depository_weight_bps: 40 * 100,       // 40%
             }),
             router_depositories: None,
-            limit_outflow_amount_per_day: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            seconds_per_epoch: None,
         },
     )
     .await?;
@@ -136,7 +144,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
                 mercurial_vault_depository: Pubkey::default(),
                 credix_lp_depository: Pubkey::default(),
             }),
-            limit_outflow_amount_per_day: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            seconds_per_epoch: None,
         },
     )
     .await?;
@@ -150,7 +160,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: None,
             router_depositories: None,
-            limit_outflow_amount_per_day: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            seconds_per_epoch: None,
         },
     )
     .await?;
@@ -172,7 +184,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
                 mercurial_vault_depository: Pubkey::default(),
                 credix_lp_depository: Pubkey::default(),
             }),
-            limit_outflow_amount_per_day: Some(42),
+            outflow_limit_per_epoch_amount: Some(42),
+            outflow_limit_per_epoch_bps: Some(42),
+            seconds_per_epoch: Some(42),
         },
     )
     .await?;

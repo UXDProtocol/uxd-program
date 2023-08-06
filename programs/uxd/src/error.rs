@@ -64,8 +64,6 @@ pub enum UxdError {
     MinimumRedeemedCollateralAmountError,
     #[msg("Redeem resulted into too much collateral token being redeemed.")]
     MaximumRedeemedCollateralAmountError,
-    #[msg("Redeem resulted into too much outflow in the last day, please wait or try again with a smaller amount.")]
-    MaximumOutflowAmountError,
     #[msg("The depository lp token vault does not match the Depository's one.")]
     InvalidDepositoryLpTokenVault,
     /// Anchor DSL related errors
@@ -124,4 +122,7 @@ pub enum UxdError {
 
     #[msg("Default - Check the source code for more info.")]
     Default,
+
+    #[msg("Redeem resulted into too much outflow in this epoch, please wait or try again with a smaller amount.")]
+    MaximumOutflowAmountError,
 }

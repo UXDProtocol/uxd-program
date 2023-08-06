@@ -8,7 +8,7 @@ pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
 pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
-pub const CONTROLLER_RESERVED_SPACE: usize = 104;
+pub const CONTROLLER_RESERVED_SPACE: usize = 98;
 pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u8>() // bump
     + size_of::<u8>() // redeemable_mint_bump
@@ -34,9 +34,11 @@ pub const CONTROLLER_SPACE: usize = 8
     + size_of::<Pubkey>() // identity_depository
     + size_of::<Pubkey>() // mercurial_vault_depository
     + size_of::<Pubkey>() // credix_lp_depository
-    + size_of::<u64>() // limit_outflow_amount_per_day
-    + size_of::<u64>() // last_day_outflow_amount
-    + size_of::<i64>() // last_redeem_timestamp
+    + size_of::<u64>() // outflow_limit_per_epoch_amount
+    + size_of::<u16>() // outflow_limit_per_epoch_bps
+    + size_of::<u32>() // seconds_per_epoch
+    + size_of::<u64>() // epoch_outflow_amount
+    + size_of::<i64>() // last_outflow_timestamp
     + CONTROLLER_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -97,10 +99,12 @@ pub struct Controller {
     pub mercurial_vault_depository: Pubkey,
     pub credix_lp_depository: Pubkey,
 
-    // Redeem limitation flags
-    pub limit_outflow_amount_per_day: u64, // or limit_outflow_bps_per_day
-    pub last_day_outflow_amount: u64,
-    pub last_redeem_timestamp: i64,
+    // Flags needed for outflow limitation
+    pub outflow_limit_per_epoch_amount: u64,
+    pub outflow_limit_per_epoch_bps: u16,
+    pub seconds_per_epoch: u32,
+    pub epoch_outflow_amount: u64,
+    pub last_outflow_timestamp: i64,
 
     // For future usage
     pub _reserved: [u8; CONTROLLER_RESERVED_SPACE],
