@@ -219,6 +219,9 @@ async fn test_credix_lp_depository_rebalance_under_requested(
     )
     .await?;
 
+    // Pretend 3 days have passed (the time for the request period)
+    program_test_context::move_clock_forward(&mut program_test_context, 3 * 24 * 60 * 60).await?;
+
     // Minting on credix should work, but happens AFTER the request
     program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_test_context,
@@ -231,9 +234,6 @@ async fn test_credix_lp_depository_rebalance_under_requested(
         amount_the_user_should_be_able_to_mint,
     )
     .await?;
-
-    // Pretend 3 days have passed (the time for the request period)
-    program_test_context::move_clock_forward(&mut program_test_context, 3 * 24 * 60 * 60).await?;
 
     // Set the epoch's locked liquidity (done by credix team usually)
     program_credix::instructions::process_set_locked_liquidity(
