@@ -336,7 +336,6 @@ pub(crate) fn handler(
             .accounts
             .credix_withdraw_epoch
             .participating_investors_total_lp_amount;
-        let base_amount_withdrawn = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
         // All investors gets an equivalent slice of the locked liquidity,
         // based on their relative position size in the lp pool
         // Note: all intermediary maths is in u128 because we are doing u64 multiplications
@@ -347,8 +346,13 @@ pub(crate) fn handler(
             )?,
             u128::from(participating_investors_total_lp_amount),
         )?)?;
-        // Finished, just need to take into account the amount already withdrawn
-        checked_sub(withdrawable_base_amount, base_amount_withdrawn)?
+        // Finished, just need to take into account the amount already withdrawn and the requested amount
+        let base_amount = ctx.accounts.credix_withdraw_request.base_amount;
+        let base_amount_withdrawn = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
+        std::cmp::min(
+            checked_sub(base_amount, base_amount_withdrawn)?,
+            checked_sub(withdrawable_base_amount, base_amount_withdrawn)?,
+        )
     };
 
     // How much we CAN withdraw now (may be lower than how much we want)

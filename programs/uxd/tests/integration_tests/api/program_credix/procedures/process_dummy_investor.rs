@@ -13,6 +13,7 @@ pub async fn process_dummy_investor(
     base_token_mint: &Pubkey,
     base_token_authority: &Keypair,
     investor_deposit_amount: u64,
+    investor_withdraw_request_amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     let market_seeds = program_credix::accounts::find_market_seeds();
     let lp_token_mint = program_credix::accounts::find_lp_token_mint_pda(&market_seeds).0;
@@ -66,6 +67,7 @@ pub async fn process_dummy_investor(
     // ---------------------------------------------------------------------
     // -- Phase 2
     // -- Have our dummy investor invest in the credix lp pool
+    // -- Optionally if specified, have our investor create a withdraw request
     // ---------------------------------------------------------------------
 
     // Create the credix-pass for the dummy investor
@@ -94,6 +96,18 @@ pub async fn process_dummy_investor(
         investor_deposit_amount,
     )
     .await?;
+
+    // The dummy investor will optionally create a dummy withdraw request
+    if investor_withdraw_request_amount > 0 {
+        program_credix::instructions::process_create_withdraw_request(
+            program_test_context,
+            base_token_mint,
+            &dummy_investor,
+            &dummy_investor_lp_token_account,
+            investor_withdraw_request_amount,
+        )
+        .await?;
+    }
 
     // Done
     Ok(())
