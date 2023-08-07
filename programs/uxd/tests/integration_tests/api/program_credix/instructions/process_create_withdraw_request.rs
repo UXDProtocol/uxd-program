@@ -30,10 +30,12 @@ pub async fn process_create_withdraw_request(
     let lp_token_mint = program_credix::accounts::find_lp_token_mint_pda(&market_seeds).0;
 
     // Find the next withdraw epoch account
-    let epoch_idx = program_test_context::read_account_anchor::<
-    credix_client::GlobalMarketState,
->(program_test_context, &global_market_state)
-.await?.latest_withdraw_epoch_idx;
+    let epoch_idx = program_test_context::read_account_anchor::<credix_client::GlobalMarketState>(
+        program_test_context,
+        &global_market_state,
+    )
+    .await?
+    .latest_withdraw_epoch_idx;
     let withdraw_epoch =
         program_credix::accounts::find_withdraw_epoch_pda(&global_market_state, epoch_idx).0;
     let withdraw_request = program_credix::accounts::find_withdraw_request_pda(
