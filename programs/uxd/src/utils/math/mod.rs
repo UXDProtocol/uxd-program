@@ -1,5 +1,4 @@
 pub mod checked_add_u128_and_i128;
-pub mod checked_convert_u128_to_u64;
 pub mod compute_amount_fraction_ceil;
 pub mod compute_amount_less_fraction_floor;
 pub mod compute_decrease;
@@ -10,7 +9,6 @@ pub mod compute_value_for_single_share_ceil;
 pub mod is_within_range_inclusive;
 
 pub use checked_add_u128_and_i128::*;
-pub use checked_convert_u128_to_u64::*;
 pub use compute_amount_fraction_ceil::*;
 pub use compute_amount_less_fraction_floor::*;
 pub use compute_decrease::*;

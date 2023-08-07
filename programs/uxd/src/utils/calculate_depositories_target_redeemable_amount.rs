@@ -3,10 +3,10 @@ use anchor_lang::require;
 
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
+use crate::utils::checked_as_u64;
 use crate::BPS_POWER;
 use crate::ROUTER_DEPOSITORIES_COUNT;
 
-use super::checked_convert_u128_to_u64;
 use super::compute_amount_fraction_ceil;
 
 pub struct DepositoryInfoForTargetRedeemableAmount {
@@ -23,7 +23,7 @@ pub fn calculate_depositories_target_redeemable_amount(
         UxdError::InvalidDepositoriesVector
     );
 
-    let redeemable_circulating_supply = checked_convert_u128_to_u64(redeemable_circulating_supply)?;
+    let redeemable_circulating_supply = checked_as_u64(redeemable_circulating_supply)?;
 
     // Double check that the weights adds up to 100%
     let depositories_weights_bps = depositories_info
@@ -64,7 +64,7 @@ pub fn calculate_depositories_target_redeemable_amount(
     let depositories_hard_cap_amount = depositories_info
         .iter()
         .map(|depository| {
-            checked_convert_u128_to_u64(depository.redeemable_amount_under_management_cap)
+            checked_as_u64(depository.redeemable_amount_under_management_cap)
         })
         .collect::<Result<Vec<u64>>>()?;
 
