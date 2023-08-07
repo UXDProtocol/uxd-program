@@ -1,5 +1,5 @@
-use solana_program::clock::SECONDS_PER_DAY;
 use solana_program_test::tokio;
+use solana_sdk::clock::SECONDS_PER_DAY;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 

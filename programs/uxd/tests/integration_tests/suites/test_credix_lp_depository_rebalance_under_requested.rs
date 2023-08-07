@@ -1,4 +1,5 @@
 use solana_program_test::tokio;
+use solana_sdk::clock::SECONDS_PER_DAY;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -131,6 +132,9 @@ async fn test_credix_lp_depository_rebalance_under_requested(
                 credix_lp_depository_weight_bps: 50 * 100,
             }),
             router_depositories: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -249,7 +253,8 @@ async fn test_credix_lp_depository_rebalance_under_requested(
     .await?;
 
     // Pretend 3 days have passed (the time for the request period)
-    program_test_context::move_clock_forward(&mut program_test_context, 3 * 24 * 60 * 60).await?;
+    program_test_context::move_clock_forward(&mut program_test_context, 3 * SECONDS_PER_DAY, 1)
+        .await?;
 
     // Set the epoch's locked liquidity (done by credix team usually)
     program_credix::instructions::process_set_locked_liquidity(
