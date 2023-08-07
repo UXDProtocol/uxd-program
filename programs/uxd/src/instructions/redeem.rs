@@ -173,7 +173,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
 
     // Compute max outflow per epoch (max of bps/amount options)
-    let max_outflow_per_epoch_amount = std::cmp::max(
+    let current_outflow_limit_per_epoch_amount = std::cmp::max(
         controller.outflow_limit_per_epoch_amount.into(),
         checked_div(
             checked_mul(
@@ -192,7 +192,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let unlocked_outflow_amount = checked_as_u64(checked_div(
         checked_mul(
             checked_as_u128(last_outflow_seconds_ago)?,
-            max_outflow_per_epoch_amount,
+            current_outflow_limit_per_epoch_amount,
         )?,
         controller.seconds_per_epoch.into(),
     )?)?;
@@ -210,7 +210,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
 
     // Make sure we are not over the outflow limit!
     require!(
-        u128::from(new_epoch_outflow_amount) <= max_outflow_per_epoch_amount,
+        u128::from(new_epoch_outflow_amount) <= current_outflow_limit_per_epoch_amount,
         UxdError::MaximumOutflowAmountError
     );
 
