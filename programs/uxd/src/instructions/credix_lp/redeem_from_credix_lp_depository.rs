@@ -12,6 +12,7 @@ use crate::events::RedeemFromCredixLpDepositoryEvent;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::utils::calculate_amount_less_fees;
+use crate::utils::checked_add;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value_floor;
@@ -188,9 +189,10 @@ pub(crate) fn handler(
         .pool_outstanding_credit;
 
     let total_shares_supply_before: u64 = ctx.accounts.credix_shares_mint.supply;
-    let total_shares_value_before: u64 = liquidity_collateral_amount_before
-        .checked_add(outstanding_collateral_amount_before)
-        .ok_or(UxdError::MathOverflow)?;
+    let total_shares_value_before: u64 = checked_add(
+        liquidity_collateral_amount_before,
+        outstanding_collateral_amount_before,
+    )?;
 
     let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
     let owned_shares_value_before: u64 = compute_value_for_shares_amount_floor(
@@ -315,9 +317,10 @@ pub(crate) fn handler(
         .pool_outstanding_credit;
 
     let total_shares_supply_after: u64 = ctx.accounts.credix_shares_mint.supply;
-    let total_shares_value_after: u64 = liquidity_collateral_amount_after
-        .checked_add(outstanding_collateral_amount_after)
-        .ok_or(UxdError::MathOverflow)?;
+    let total_shares_value_after: u64 = checked_add(
+        liquidity_collateral_amount_after,
+        outstanding_collateral_amount_after,
+    )?;
 
     let owned_shares_amount_after: u64 = ctx.accounts.depository_shares.amount;
     let owned_shares_value_after: u64 = compute_value_for_shares_amount_floor(
