@@ -347,11 +347,11 @@ pub(crate) fn handler(
             u128::from(participating_investors_total_lp_amount),
         )?)?;
         // Finished, just need to take into account the amount already withdrawn and the requested amount
-        let base_amount = ctx.accounts.credix_withdraw_request.base_amount;
-        let base_amount_withdrawn = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
+        let requested_base_amount = ctx.accounts.credix_withdraw_request.base_amount;
+        let withdrawn_base_amount = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
         std::cmp::min(
-            checked_sub(base_amount, base_amount_withdrawn)?,
-            checked_sub(withdrawable_base_amount, base_amount_withdrawn)?,
+            checked_sub(requested_base_amount, withdrawn_base_amount)?,
+            checked_sub(withdrawable_base_amount, withdrawn_base_amount)?,
         )
     };
 
