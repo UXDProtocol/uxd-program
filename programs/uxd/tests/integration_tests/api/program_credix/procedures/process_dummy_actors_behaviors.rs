@@ -26,6 +26,7 @@ pub async fn process_dummy_actors_behaviors(
         base_token_mint,
         base_token_authority,
         dummy_investor_deposit_amount,
+        0, // no withdraw request needed
     )
     .await?;
 
