@@ -1,6 +1,6 @@
 [package]
 name = "uxd"
-version = "7.3.1"
+version = "8.1.0"
 authors = [
   "acammm <alexcamill@gmail.com>",
   "cnek <ctk2012ac@gmail.com>",
@@ -27,7 +27,7 @@ production = []
 development = []
 
 [dependencies]
-uxd-cpi = { version = "7.3.2", features = ["development"] }
+uxd-cpi = { version = "8.1.2", features = ["development"] }
 
 anchor-lang = "0.26.0"
 anchor-spl = "0.26.0"

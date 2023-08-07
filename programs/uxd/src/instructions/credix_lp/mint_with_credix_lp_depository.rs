@@ -26,14 +26,23 @@ use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 #[derive(Accounts)]
 #[instruction(collateral_amount: u64)]
 pub struct MintWithCredixLpDepository<'info> {
-    /// #1
-    pub user: Signer<'info>,
+    /// #1 This IX should only be accessible by the router or the DAO
+    #[account(
+        constraint = (
+            authority.key() == controller.key()
+            || authority.key() == controller.load()?.authority
+        )  @UxdError::InvalidAuthority,
+    )]
+    pub authority: Signer<'info>,
 
     /// #2
+    pub user: Signer<'info>,
+
+    /// #3
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// #3
+    /// #4
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -43,7 +52,7 @@ pub struct MintWithCredixLpDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #4
+    /// #5
     #[account(
         mut,
         seeds = [
@@ -63,14 +72,14 @@ pub struct MintWithCredixLpDepository<'info> {
     )]
     pub depository: AccountLoader<'info, CredixLpDepository>,
 
-    /// #5
+    /// #6
     #[account(mut)]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
-    /// #6
+    /// #7
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #7
+    /// #8
     #[account(
         mut,
         constraint = user_redeemable.owner == user.key() @UxdError::InvalidOwner,
@@ -78,7 +87,7 @@ pub struct MintWithCredixLpDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #8
+    /// #9
     #[account(
         mut,
         constraint = user_collateral.owner == user.key() @UxdError::InvalidOwner,
@@ -86,30 +95,30 @@ pub struct MintWithCredixLpDepository<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #9
+    /// #10
     #[account(mut)]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #10
+    /// #11
     #[account(mut)]
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
-    /// #11
+    /// #12
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 
-    /// #12
+    /// #13
     /// CHECK: unused by us, checked by credix
     pub credix_signing_authority: AccountInfo<'info>,
 
-    /// #13
+    /// #14
     #[account(mut)]
     pub credix_liquidity_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #14
+    /// #15
     #[account(mut)]
     pub credix_shares_mint: Box<Account<'info, Mint>>,
 
-    /// #15
+    /// #16
     #[account(
         owner = credix_client::ID,
         seeds = [
@@ -124,15 +133,15 @@ pub struct MintWithCredixLpDepository<'info> {
     )]
     pub credix_pass: Account<'info, credix_client::CredixPass>,
 
-    /// #16
-    pub system_program: Program<'info, System>,
     /// #17
-    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
     /// #18
-    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub token_program: Program<'info, Token>,
     /// #19
-    pub credix_program: Program<'info, credix_client::program::Credix>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     /// #20
+    pub credix_program: Program<'info, credix_client::program::Credix>,
+    /// #21
     pub rent: Sysvar<'info, Rent>,
 }
 

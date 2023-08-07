@@ -13,12 +13,14 @@ import { getBalance } from '../utils';
 
 export const mintWithIdentityDepositoryTest = async function ({
   collateralAmount,
+  authority,
   user,
   controller,
   depository,
   payer,
 }: {
   collateralAmount: number;
+  authority: Signer;
   user: Signer;
   controller: Controller;
   depository: IdentityDepository;
@@ -48,6 +50,7 @@ export const mintWithIdentityDepositoryTest = async function ({
     // WHEN
     // Simulates user experience from the front end
     const txId = await mintWithIdentityDepository({
+      authority,
       user,
       payer: payer ?? user,
       controller,

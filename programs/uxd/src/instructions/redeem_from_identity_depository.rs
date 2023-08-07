@@ -17,14 +17,23 @@ use anchor_spl::token::Transfer;
 
 #[derive(Accounts)]
 pub struct RedeemFromIdentityDepository<'info> {
-    /// #1 Public call accessible to any user
-    pub user: Signer<'info>,
+    /// #1 This IX should only be accessible by the router or the DAO
+    #[account(
+        constraint = (
+            authority.key() == controller.key()
+            || authority.key() == controller.load()?.authority
+        )  @UxdError::InvalidAuthority,
+    )]
+    pub authority: Signer<'info>,
 
     /// #2
+    pub user: Signer<'info>,
+
+    /// #3
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// #3 The top level UXDProgram on chain account managing the redeemable mint
+    /// #4 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -33,7 +42,7 @@ pub struct RedeemFromIdentityDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #4 UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming
+    /// #5 UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming
     #[account(
         mut,
         seeds = [IDENTITY_DEPOSITORY_NAMESPACE],
@@ -41,7 +50,7 @@ pub struct RedeemFromIdentityDepository<'info> {
     )]
     pub depository: AccountLoader<'info, IdentityDepository>,
 
-    /// #5
+    /// #6
     /// Token account holding the collateral from minting
     #[account(
         mut,
