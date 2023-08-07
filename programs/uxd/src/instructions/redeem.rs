@@ -155,9 +155,6 @@ pub struct Redeem<'info> {
 
     /// #21
     pub rent: Sysvar<'info, Rent>,
-
-    /// #22
-    pub clock: Sysvar<'info, Clock>,
 }
 
 struct DepositoryInfoForRedeem<'info> {
@@ -188,7 +185,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     );
 
     // How long ago was the last outflow
-    let current_slot = ctx.accounts.clock.slot;
+    let current_slot = Clock::get()?.slot;
     let last_outflow_elapsed_slots = std::cmp::min(
         checked_as_u64(checked_sub(current_slot, controller.last_outflow_slot)?)?,
         controller.slots_per_epoch,
