@@ -199,6 +199,14 @@ impl<'info> EditController<'info> {
             );
         }
 
+        // Validate the outflow_limit_per_epoch_bps if specified
+        if let Some(outflow_limit_per_epoch_bps) = fields.outflow_limit_per_epoch_bps {
+            require!(
+                u64::from(outflow_limit_per_epoch_bps) <= BPS_POWER,
+                UxdError::InvalidOutflowLimitPerEpochBps
+            );
+        }
+
         Ok(())
     }
 }
