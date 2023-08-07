@@ -119,7 +119,6 @@ pub async fn process_redeem(
         mercurial_vault_program: mercurial_vault::ID,
         uxd_program: uxd::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
-        clock: anchor_lang::solana_program::sysvar::clock::ID,
     };
     let payload = uxd::instruction::Redeem { redeemable_amount };
     let instruction = Instruction {
