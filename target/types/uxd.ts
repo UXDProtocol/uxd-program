@@ -1,5 +1,5 @@
 export type Uxd = {
-  version: '8.1.0';
+  version: '8.1.3';
   name: 'uxd';
   instructions: [
     {
@@ -540,6 +540,12 @@ export type Uxd = {
           isMut: false;
           isSigner: false;
           docs: ['#21'];
+        },
+        {
+          name: 'clock';
+          isMut: false;
+          isSigner: false;
+          docs: ['#22'];
         }
       ];
       args: [
@@ -2170,21 +2176,21 @@ export type Uxd = {
             type: 'u16';
           },
           {
-            name: 'secondsPerEpoch';
-            type: 'u32';
+            name: 'slotsPerEpoch';
+            type: 'u64';
           },
           {
             name: 'epochOutflowAmount';
             type: 'u64';
           },
           {
-            name: 'lastOutflowTimestamp';
-            type: 'i64';
+            name: 'lastOutflowSlot';
+            type: 'u64';
           },
           {
             name: 'reserved';
             type: {
-              array: ['u8', 98];
+              array: ['u8', 94];
             };
           }
         ];
@@ -2572,9 +2578,9 @@ export type Uxd = {
             };
           },
           {
-            name: 'secondsPerEpoch';
+            name: 'slotsPerEpoch';
             type: {
-              option: 'u32';
+              option: 'u64';
             };
           }
         ];
@@ -2721,7 +2727,7 @@ export type Uxd = {
       ];
     },
     {
-      name: 'SetSecondsPerEpochEvent';
+      name: 'SetSlotsPerEpochEvent';
       fields: [
         {
           name: 'version';
@@ -2734,8 +2740,8 @@ export type Uxd = {
           index: false;
         },
         {
-          name: 'secondsPerEpoch';
-          type: 'u32';
+          name: 'slotsPerEpoch';
+          type: 'u64';
           index: false;
         }
       ];
@@ -3636,7 +3642,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  version: '8.1.0',
+  version: '8.1.3',
   name: 'uxd',
   instructions: [
     {
@@ -4177,6 +4183,12 @@ export const IDL: Uxd = {
           isMut: false,
           isSigner: false,
           docs: ['#21'],
+        },
+        {
+          name: 'clock',
+          isMut: false,
+          isSigner: false,
+          docs: ['#22'],
         },
       ],
       args: [
@@ -5807,21 +5819,21 @@ export const IDL: Uxd = {
             type: 'u16',
           },
           {
-            name: 'secondsPerEpoch',
-            type: 'u32',
+            name: 'slotsPerEpoch',
+            type: 'u64',
           },
           {
             name: 'epochOutflowAmount',
             type: 'u64',
           },
           {
-            name: 'lastOutflowTimestamp',
-            type: 'i64',
+            name: 'lastOutflowSlot',
+            type: 'u64',
           },
           {
             name: 'reserved',
             type: {
-              array: ['u8', 98],
+              array: ['u8', 94],
             },
           },
         ],
@@ -6209,9 +6221,9 @@ export const IDL: Uxd = {
             },
           },
           {
-            name: 'secondsPerEpoch',
+            name: 'slotsPerEpoch',
             type: {
-              option: 'u32',
+              option: 'u64',
             },
           },
         ],
@@ -6358,7 +6370,7 @@ export const IDL: Uxd = {
       ],
     },
     {
-      name: 'SetSecondsPerEpochEvent',
+      name: 'SetSlotsPerEpochEvent',
       fields: [
         {
           name: 'version',
@@ -6371,8 +6383,8 @@ export const IDL: Uxd = {
           index: false,
         },
         {
-          name: 'secondsPerEpoch',
-          type: 'u32',
+          name: 'slotsPerEpoch',
+          type: 'u64',
           index: false,
         },
       ],

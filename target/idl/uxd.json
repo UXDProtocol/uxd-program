@@ -1,5 +1,5 @@
 {
-  "version": "8.1.0",
+  "version": "8.1.3",
   "name": "uxd",
   "instructions": [
     {
@@ -542,6 +542,12 @@
           "isMut": false,
           "isSigner": false,
           "docs": ["#21"]
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false,
+          "docs": ["#22"]
         }
       ],
       "args": [
@@ -2172,21 +2178,21 @@
             "type": "u16"
           },
           {
-            "name": "secondsPerEpoch",
-            "type": "u32"
+            "name": "slotsPerEpoch",
+            "type": "u64"
           },
           {
             "name": "epochOutflowAmount",
             "type": "u64"
           },
           {
-            "name": "lastOutflowTimestamp",
-            "type": "i64"
+            "name": "lastOutflowSlot",
+            "type": "u64"
           },
           {
             "name": "reserved",
             "type": {
-              "array": ["u8", 98]
+              "array": ["u8", 94]
             }
           }
         ]
@@ -2574,9 +2580,9 @@
             }
           },
           {
-            "name": "secondsPerEpoch",
+            "name": "slotsPerEpoch",
             "type": {
-              "option": "u32"
+              "option": "u64"
             }
           }
         ]
@@ -2723,7 +2729,7 @@
       ]
     },
     {
-      "name": "SetSecondsPerEpochEvent",
+      "name": "SetSlotsPerEpochEvent",
       "fields": [
         {
           "name": "version",
@@ -2736,8 +2742,8 @@
           "index": false
         },
         {
-          "name": "secondsPerEpoch",
-          "type": "u32",
+          "name": "slotsPerEpoch",
+          "type": "u64",
           "index": false
         }
       ]
