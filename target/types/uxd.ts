@@ -540,12 +540,6 @@ export type Uxd = {
           isMut: false;
           isSigner: false;
           docs: ['#21'];
-        },
-        {
-          name: 'clock';
-          isMut: false;
-          isSigner: false;
-          docs: ['#22'];
         }
       ];
       args: [
@@ -4183,12 +4177,6 @@ export const IDL: Uxd = {
           isMut: false,
           isSigner: false,
           docs: ['#21'],
-        },
-        {
-          name: 'clock',
-          isMut: false,
-          isSigner: false,
-          docs: ['#22'],
         },
       ],
       args: [
