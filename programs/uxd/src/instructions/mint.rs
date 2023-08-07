@@ -12,6 +12,7 @@ use crate::utils::calculate_depositories_mint_collateral_amount;
 use crate::utils::calculate_depositories_mint_collateral_amount::DepositoryInfoForMintCollateralAmount;
 use crate::utils::calculate_depositories_target_redeemable_amount;
 use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
+use crate::utils::checked_add;
 use crate::utils::checked_sub;
 use crate::utils::validate_collateral_amount;
 use crate::validate_is_program_frozen;
@@ -222,10 +223,10 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     // The actual post-mint circulating supply might be slightly lower due to fees and precision loss
     // But the difference is negligible, and the difference will be taken into account
     // When the next mint/redeem IX recompute the new targets based on the new circulating supply
-    let maximum_after_mint_circulating_supply = controller
-        .redeemable_circulating_supply
-        .checked_add(collateral_amount.into())
-        .ok_or(UxdError::MathOverflow)?;
+    let maximum_after_mint_circulating_supply = checked_add(
+        controller.redeemable_circulating_supply,
+        collateral_amount.into(),
+    )?;
 
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![

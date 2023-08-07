@@ -224,10 +224,10 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     // The actual post-redeem circulating supply may be slightly higher
     // Due to redeem fees and precision loss. But the difference should be negligible and
     // Any future mint/redeem will recompute the targets based on the exact future circulating supply anyway
-    let mimimum_after_redeem_circulating_supply = controller
-        .redeemable_circulating_supply
-        .checked_sub(redeemable_amount.into())
-        .ok_or(UxdError::MathOverflow)?;
+    let mimimum_after_redeem_circulating_supply = checked_sub(
+        controller.redeemable_circulating_supply,
+        redeemable_amount.into(),
+    )?;
 
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![

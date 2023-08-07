@@ -1,5 +1,7 @@
 use crate::error::UxdError;
 use crate::events::InitializeControllerEvent;
+use crate::utils::checked_mul;
+use crate::utils::checked_pow;
 use crate::Controller;
 use crate::CONTROLLER_ACCOUNT_VERSION;
 use crate::CONTROLLER_NAMESPACE;
@@ -61,9 +63,7 @@ pub(crate) fn handler(
     redeemable_mint_decimals: u8,
 ) -> Result<()> {
     let controller = &mut ctx.accounts.controller.load_init()?;
-    let redeemable_mint_unit = 10_u64
-        .checked_pow(redeemable_mint_decimals.into())
-        .ok_or_else(|| error!(UxdError::MathOverflow))?;
+    let redeemable_mint_unit = checked_pow(10_u64, redeemable_mint_decimals.into())?;
 
     controller.bump = *ctx
         .bumps
@@ -78,9 +78,10 @@ pub(crate) fn handler(
     controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
     controller.redeemable_mint_decimals = redeemable_mint_decimals;
     // Default to 1 Million redeemable total cap
-    controller.redeemable_global_supply_cap = DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP
-        .checked_mul(redeemable_mint_unit.into())
-        .ok_or_else(|| error!(UxdError::MathOverflow))?;
+    controller.redeemable_global_supply_cap = checked_mul(
+        DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP,
+        redeemable_mint_unit.into(),
+    )?;
     controller.redeemable_circulating_supply = u128::MIN;
     controller.is_frozen = false;
     controller.profits_total_collected = u128::MIN;

@@ -6,6 +6,7 @@ use crate::events::SetRouterDepositories;
 use crate::events::SetRouterDepositoriesWeightBps;
 use crate::events::SetSecondsPerEpochEvent;
 use crate::validate_is_program_frozen;
+use crate::utils::checked_add;
 use crate::Controller;
 use crate::BPS_POWER;
 use crate::CONTROLLER_NAMESPACE;
@@ -185,12 +186,13 @@ impl<'info> EditController<'info> {
 
         // Validate the depositories_routing_weight_bps if specified
         if let Some(depositories_routing_weight_bps) = fields.depositories_routing_weight_bps {
-            let total_weight_bps = depositories_routing_weight_bps
-                .identity_depository_weight_bps
-                .checked_add(depositories_routing_weight_bps.mercurial_vault_depository_weight_bps)
-                .ok_or(UxdError::MathOverflow)?
-                .checked_add(depositories_routing_weight_bps.credix_lp_depository_weight_bps)
-                .ok_or(UxdError::MathOverflow)?;
+            let total_weight_bps = checked_add(
+                checked_add(
+                    depositories_routing_weight_bps.identity_depository_weight_bps,
+                    depositories_routing_weight_bps.mercurial_vault_depository_weight_bps,
+                )?,
+                depositories_routing_weight_bps.credix_lp_depository_weight_bps,
+            )?;
             require!(
                 u64::from(total_weight_bps) == BPS_POWER,
                 UxdError::InvalidDepositoriesWeightBps
