@@ -3631,6 +3631,11 @@ export type Uxd = {
       code: 6057;
       name: 'MaximumOutflowAmountError';
       msg: 'Redeem resulted into too much outflow in this epoch, please wait or try again with a smaller amount.';
+    },
+    {
+      code: 6058;
+      name: 'InvalidOutflowLimitPerEpochBps';
+      msg: 'The outflow_limit_per_epoch_bps is invalid: over 100%.';
     }
   ];
 };
@@ -7268,6 +7273,11 @@ export const IDL: Uxd = {
       code: 6057,
       name: 'MaximumOutflowAmountError',
       msg: 'Redeem resulted into too much outflow in this epoch, please wait or try again with a smaller amount.',
+    },
+    {
+      code: 6058,
+      name: 'InvalidOutflowLimitPerEpochBps',
+      msg: 'The outflow_limit_per_epoch_bps is invalid: over 100%.',
     },
   ],
 };

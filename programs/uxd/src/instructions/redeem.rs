@@ -206,7 +206,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         .epoch_outflow_amount
         .saturating_sub(unlocked_outflow_amount);
 
-    // How much outflow right after this current redeem IX
+    // How much outflow in the current epoch right after this current redeem IX
     let new_epoch_outflow_amount = checked_add(previous_epoch_outflow_amount, redeemable_amount)?;
 
     // Make sure we are not over the outflow limit!
