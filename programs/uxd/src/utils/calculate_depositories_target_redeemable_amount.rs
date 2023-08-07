@@ -63,9 +63,7 @@ pub fn calculate_depositories_target_redeemable_amount(
     // Read the minting caps of each depository
     let depositories_hard_cap_amount = depositories_info
         .iter()
-        .map(|depository| {
-            checked_as_u64(depository.redeemable_amount_under_management_cap)
-        })
+        .map(|depository| checked_as_u64(depository.redeemable_amount_under_management_cap))
         .collect::<Result<Vec<u64>>>()?;
 
     // Compute the depository_overflow amount of raw target that doesn't fit within the cap of each depository

@@ -247,11 +247,21 @@ async fn test_credix_lp_depository_rebalance_under_requested(
     let expected_credix_profits_during_first_mint = amount_the_user_should_be_able_to_mint / 100; // 1% profit
     let expected_credix_profits_during_second_mint = amount_the_user_should_be_able_to_mint / 100; // 1% profit
 
-    let expected_credix_first_minted_amount = amount_the_user_should_be_able_to_mint - 1; // precision loss included
+    let expected_credix_first_mint_amount = amount_the_user_should_be_able_to_mint - 1; // precision loss included
+    let expected_credix_second_mint_amount = amount_the_user_should_be_able_to_mint - 1; // precision loss included
+
     let expected_credix_supply_after_first_mint =
-        expected_credix_first_minted_amount - expected_credix_profits_during_first_mint;
+        expected_credix_first_mint_amount - expected_credix_profits_during_first_mint;
+
+    let expected_credix_supply_after_second_mint = expected_credix_supply_after_first_mint
+        + expected_credix_second_mint_amount
+        - expected_credix_profits_during_second_mint;
+
     let expected_credix_overflow_after_first_mint =
         expected_credix_supply_after_first_mint * 50 / 100; // 50% overflow (since credix is 50% weight)
+
+    let expected_credix_overflow_after_second_mint =
+        expected_credix_supply_after_second_mint * 50 / 100; // 50% overflow (since credix is 50% weight)
 
     // Executing the rebalance request should now work as intended because we are in the execute period
     program_uxd::instructions::process_rebalance_redeem_withdraw_request_from_credix_lp_depository(
