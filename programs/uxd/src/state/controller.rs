@@ -1,7 +1,9 @@
 use std::mem::size_of;
 
 use crate::error::UxdError;
+use crate::utils::checked_add;
 use crate::utils::checked_add_u128_and_i128;
+use crate::utils::checked_as_u128;
 use anchor_lang::prelude::*;
 
 pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
@@ -121,10 +123,8 @@ impl Controller {
             UxdError::MaxNumberOfMercurialVaultDepositoriesRegisteredReached
         );
         // Increment registered Mercurial Pool Depositories count
-        self.registered_mercurial_vault_depositories_count = self
-            .registered_mercurial_vault_depositories_count
-            .checked_add(1)
-            .ok_or_else(|| error!(UxdError::MathOverflow))?;
+        self.registered_mercurial_vault_depositories_count =
+            checked_add(self.registered_mercurial_vault_depositories_count, 1)?;
         // Add the new Mercurial Vault Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_mercurial_vault_depositories[new_entry_index] =
@@ -142,10 +142,8 @@ impl Controller {
             UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached
         );
         // Increment registered Credix Lp Depositories count
-        self.registered_credix_lp_depositories_count = self
-            .registered_credix_lp_depositories_count
-            .checked_add(1)
-            .ok_or_else(|| error!(UxdError::MathOverflow))?;
+        self.registered_credix_lp_depositories_count =
+            checked_add(self.registered_credix_lp_depositories_count, 1)?;
         // Add the new Credix Lp Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_credix_lp_depositories[new_entry_index] = credix_lp_depository_id;
@@ -169,10 +167,10 @@ impl Controller {
         &mut self,
         profits_collected: u64,
     ) -> Result<()> {
-        self.profits_total_collected = self
-            .profits_total_collected
-            .checked_add(profits_collected.into())
-            .ok_or(UxdError::MathOverflow)?;
+        self.profits_total_collected = checked_add(
+            self.profits_total_collected,
+            checked_as_u128(profits_collected)?,
+        )?;
         Ok(())
     }
 }

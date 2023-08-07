@@ -172,16 +172,17 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
 
-    // Compute max outflow per epoch (max of bps/amount options)
-    let current_outflow_limit_per_epoch_amount = std::cmp::max(
-        controller.outflow_limit_per_epoch_amount.into(),
-        checked_div(
+    // Compute real outflow limit for this epoch (max of bps/amount options)
+    // Note: intermediary maths forced to use u128 to be able to multiply u64s safely
+    let outflow_limit_per_epoch_amount = std::cmp::max(
+        controller.outflow_limit_per_epoch_amount,
+        checked_as_u64(checked_div(
             checked_mul(
-                controller.redeemable_circulating_supply,
-                controller.outflow_limit_per_epoch_bps.into(),
+                checked_as_u128(controller.redeemable_circulating_supply)?,
+                checked_as_u128(controller.outflow_limit_per_epoch_bps)?,
             )?,
-            BPS_POWER.into(),
-        )?,
+            checked_as_u128(BPS_POWER)?,
+        )?)?,
     );
 
     // How long ago was the last outflow
@@ -189,12 +190,13 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let last_outflow_seconds_ago = checked_sub(now_timestamp, controller.last_outflow_timestamp)?;
 
     // How much was unlocked by waiting since last redeem
+    // Note: intermediary maths forced to use u128 to be able to multiply u64s safely
     let unlocked_outflow_amount = checked_as_u64(checked_div(
         checked_mul(
             checked_as_u128(last_outflow_seconds_ago)?,
-            current_outflow_limit_per_epoch_amount,
+            checked_as_u128(outflow_limit_per_epoch_amount)?,
         )?,
-        controller.seconds_per_epoch.into(),
+        checked_as_u128(controller.seconds_per_epoch)?,
     )?)?;
 
     // How much outflow in the current epoch right before the redeem IX
@@ -210,7 +212,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
 
     // Make sure we are not over the outflow limit!
     require!(
-        u128::from(new_epoch_outflow_amount) <= current_outflow_limit_per_epoch_amount,
+        new_epoch_outflow_amount <= outflow_limit_per_epoch_amount,
         UxdError::MaximumOutflowAmountError
     );
 
@@ -226,7 +228,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     // Any future mint/redeem will recompute the targets based on the exact future circulating supply anyway
     let mimimum_after_redeem_circulating_supply = checked_sub(
         controller.redeemable_circulating_supply,
-        redeemable_amount.into(),
+        checked_as_u128(redeemable_amount)?,
     )?;
 
     // Build the vector of all known depository participating in the routing system
