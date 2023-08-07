@@ -125,16 +125,16 @@ pub(crate) fn handler(
         depository.collateral_amount_deposited = depository
             .collateral_amount_deposited
             .checked_sub(collateral_amount.into())
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathOverflow))?;
         depository.redeemable_amount_under_management = depository
             .redeemable_amount_under_management
             .checked_sub(redeemable_amount.into())
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathOverflow))?;
         // Controller
         controller.redeemable_circulating_supply = controller
             .redeemable_circulating_supply
             .checked_sub(redeemable_amount.into())
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathOverflow))?;
     }
 
     // - 5 [EVENT LOGGING] ----------------------------------------------------

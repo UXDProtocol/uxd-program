@@ -109,7 +109,7 @@ impl MercurialVaultDepository {
         self.profits_total_collected = self
             .profits_total_collected
             .checked_add(collected_profits.into())
-            .ok_or(UxdError::MathError)?;
+            .ok_or(UxdError::MathOverflow)?;
 
         self.last_profits_collection_unix_timestamp = current_time_as_unix_timestamp;
 
