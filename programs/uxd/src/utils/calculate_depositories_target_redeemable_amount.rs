@@ -3,7 +3,7 @@ use anchor_lang::require;
 
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
-use crate::BPS_UNIT_CONVERSION;
+use crate::BPS_POWER;
 use crate::ROUTER_DEPOSITORIES_COUNT;
 
 use super::checked_convert_u128_to_u64;
@@ -32,7 +32,7 @@ pub fn calculate_depositories_target_redeemable_amount(
         .collect::<Vec<u64>>();
     let total_weight_bps = calculate_depositories_sum_value(&depositories_weights_bps)?;
     require!(
-        total_weight_bps == BPS_UNIT_CONVERSION,
+        total_weight_bps == BPS_POWER,
         UxdError::InvalidDepositoriesWeightBps,
     );
 
@@ -48,7 +48,7 @@ pub fn calculate_depositories_target_redeemable_amount(
             compute_amount_fraction_ceil(
                 redeemable_circulating_supply,
                 depository.weight_bps.into(),
-                BPS_UNIT_CONVERSION,
+                BPS_POWER,
             )
         })
         .collect::<Result<Vec<u64>>>()?;
@@ -80,7 +80,7 @@ pub fn calculate_depositories_target_redeemable_amount(
             }
             Ok(depository_raw_target_redeemable_amount
                 .checked_sub(*depository_hard_cap_amount)
-                .ok_or(UxdError::MathError)?)
+                .ok_or(UxdError::MathOverflow)?)
         },
     )
     .collect::<Result<Vec<u64>>>()?;
@@ -97,7 +97,7 @@ pub fn calculate_depositories_target_redeemable_amount(
             }
             Ok(depository_hard_cap_amount
                 .checked_sub(*depository_raw_target_redeemable_amount)
-                .ok_or(UxdError::MathError)?)
+                .ok_or(UxdError::MathOverflow)?)
         },
     )
     .collect::<Result<Vec<u64>>>()?;
@@ -154,9 +154,9 @@ pub fn calculate_depositories_target_redeemable_amount(
                 };
             let final_target = depository_raw_target_redeemable_amount
                 .checked_add(overflow_amount_reallocated_from_other_depositories)
-                .ok_or(UxdError::MathError)?
+                .ok_or(UxdError::MathOverflow)?
                 .checked_sub(*depository_overflow_amount)
-                .ok_or(UxdError::MathError)?;
+                .ok_or(UxdError::MathOverflow)?;
             Ok(final_target)
         },
     )

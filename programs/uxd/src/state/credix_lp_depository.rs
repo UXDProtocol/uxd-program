@@ -101,11 +101,11 @@ impl CredixLpDepository {
         self.collateral_amount_deposited = self
             .collateral_amount_deposited
             .checked_add(collateral_amount_added.into())
-            .ok_or(UxdError::MathError)?;
+            .ok_or(UxdError::MathOverflow)?;
         self.redeemable_amount_under_management = self
             .redeemable_amount_under_management
             .checked_add(redeemable_amount_added.into())
-            .ok_or(UxdError::MathError)?;
+            .ok_or(UxdError::MathOverflow)?;
         Ok(())
     }
 
@@ -128,11 +128,11 @@ impl CredixLpDepository {
         self.collateral_amount_deposited = self
             .collateral_amount_deposited
             .checked_sub(collateral_amount_removed.into())
-            .ok_or(UxdError::MathError)?;
+            .ok_or(UxdError::MathOverflow)?;
         self.redeemable_amount_under_management = self
             .redeemable_amount_under_management
             .checked_sub(redeemable_amount_removed.into())
-            .ok_or(UxdError::MathError)?;
+            .ok_or(UxdError::MathOverflow)?;
         Ok(())
     }
 
@@ -141,7 +141,7 @@ impl CredixLpDepository {
         self.minting_fee_total_accrued = self
             .minting_fee_total_accrued
             .checked_add(minting_fee_paid.into())
-            .ok_or(UxdError::MathError)?;
+            .ok_or(UxdError::MathOverflow)?;
         Ok(())
     }
 
@@ -150,7 +150,7 @@ impl CredixLpDepository {
         self.redeeming_fee_total_accrued = self
             .redeeming_fee_total_accrued
             .checked_add(redeeming_fee_paid.into())
-            .ok_or(UxdError::MathError)?;
+            .ok_or(UxdError::MathOverflow)?;
         Ok(())
     }
 
@@ -162,7 +162,7 @@ impl CredixLpDepository {
         self.profits_total_collected = self
             .profits_total_collected
             .checked_add(profits_collected.into())
-            .ok_or(UxdError::MathError)?;
+            .ok_or(UxdError::MathOverflow)?;
         Ok(())
     }
 }

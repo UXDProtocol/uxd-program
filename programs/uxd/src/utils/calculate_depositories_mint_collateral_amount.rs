@@ -39,7 +39,7 @@ pub fn calculate_depositories_mint_collateral_amount(
             Ok(depository
                 .target_redeemable_amount
                 .checked_sub(depository_redeemable_amount_under_management)
-                .ok_or(UxdError::MathError)?)
+                .ok_or(UxdError::MathOverflow)?)
         })
         .collect::<Result<Vec<u64>>>()?;
 
@@ -68,7 +68,7 @@ pub fn calculate_depositories_mint_collateral_amount(
             let other_depositories_maximum_mintable_collateral_amount =
                 total_maximum_mintable_collateral_amount
                     .checked_sub(*depository_mintable_collateral_amount)
-                    .ok_or(UxdError::MathError)?;
+                    .ok_or(UxdError::MathOverflow)?;
             compute_amount_less_fraction_floor(
                 requested_mint_collateral_amount,
                 other_depositories_maximum_mintable_collateral_amount,

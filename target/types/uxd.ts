@@ -3306,8 +3306,8 @@ export type Uxd = {
     },
     {
       code: 6012;
-      name: 'MathError';
-      msg: 'Math error.';
+      name: 'MathOverflow';
+      msg: 'Math overflow.';
     },
     {
       code: 6013;
@@ -6840,8 +6840,8 @@ export const IDL: Uxd = {
     },
     {
       code: 6012,
-      name: 'MathError',
-      msg: 'Math error.',
+      name: 'MathOverflow',
+      msg: 'Math overflow.',
     },
     {
       code: 6013,

@@ -190,7 +190,7 @@ pub(crate) fn handler(
     let total_shares_supply_before: u64 = ctx.accounts.credix_shares_mint.supply;
     let total_shares_value_before: u64 = liquidity_collateral_amount_before
         .checked_add(outstanding_collateral_amount_before)
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
     let owned_shares_value_before: u64 = compute_value_for_shares_amount_floor(
@@ -317,7 +317,7 @@ pub(crate) fn handler(
     let total_shares_supply_after: u64 = ctx.accounts.credix_shares_mint.supply;
     let total_shares_value_after: u64 = liquidity_collateral_amount_after
         .checked_add(outstanding_collateral_amount_after)
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     let owned_shares_amount_after: u64 = ctx.accounts.depository_shares.amount;
     let owned_shares_value_after: u64 = compute_value_for_shares_amount_floor(
