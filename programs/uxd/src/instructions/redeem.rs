@@ -178,8 +178,8 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     // Note: intermediary maths forced to use u128 to be able to multiply u64s safely
     let outflow_limit_per_epoch_amount = std::cmp::max(
         controller.outflow_limit_per_epoch_amount,
-        checked_as_u64(checked_div(
-            checked_mul(
+        checked_as_u64(checked_div::<u128>(
+            checked_mul::<u128>(
                 controller.redeemable_circulating_supply,
                 u128::from(controller.outflow_limit_per_epoch_bps),
             )?,
@@ -196,8 +196,8 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
 
     // How much was unlocked by waiting since last redeem
     // Note: intermediary maths forced to use u128 to be able to multiply u64s safely
-    let unlocked_outflow_amount = checked_as_u64(checked_div(
-        checked_mul(
+    let unlocked_outflow_amount = checked_as_u64(checked_div::<u128>(
+        checked_mul::<u128>(
             u128::from(last_outflow_elapsed_slots),
             u128::from(outflow_limit_per_epoch_amount),
         )?,

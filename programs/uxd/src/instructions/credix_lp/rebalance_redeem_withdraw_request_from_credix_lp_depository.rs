@@ -339,8 +339,8 @@ pub(crate) fn handler(
         // All investors gets an equivalent slice of the locked liquidity,
         // based on their relative position size in the lp pool
         // Note: all intermediary maths is in u128 because we are doing u64 multiplications
-        let withdrawable_base_amount = checked_as_u64(checked_div(
-            checked_mul(
+        let withdrawable_base_amount = checked_as_u64(checked_div::<u128>(
+            checked_mul::<u128>(
                 u128::from(locked_liquidity),
                 u128::from(investor_total_lp_amount),
             )?,
