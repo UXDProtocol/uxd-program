@@ -132,7 +132,7 @@ async fn test_credix_lp_depository_rebalance_illiquid(
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -258,7 +258,7 @@ async fn test_credix_lp_depository_rebalance_illiquid(
     .await?;
 
     // Pretend 3 days have passed (the time for the request period)
-    program_test_context::move_clock_forward(&mut program_test_context, 3 * SECONDS_PER_DAY)
+    program_test_context::move_clock_forward(&mut program_test_context, 3 * SECONDS_PER_DAY, 1)
         .await?;
 
     // Set the epoch's locked liquidity (done by credix team usually)

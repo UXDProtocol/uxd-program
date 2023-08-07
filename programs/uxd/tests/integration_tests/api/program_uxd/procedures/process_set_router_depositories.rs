@@ -53,7 +53,7 @@ pub async fn process_set_router_depositories(
             }),
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await?;

@@ -161,7 +161,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await?;

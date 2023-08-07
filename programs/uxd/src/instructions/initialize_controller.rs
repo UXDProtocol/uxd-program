@@ -90,9 +90,9 @@ pub(crate) fn handler(
     // Routing outflow limitation flags
     controller.outflow_limit_per_epoch_amount = 0;
     controller.outflow_limit_per_epoch_bps = 0;
-    controller.seconds_per_epoch = 0;
+    controller.slots_per_epoch = 0;
     controller.epoch_outflow_amount = 0;
-    controller.last_outflow_timestamp = Clock::get()?.unix_timestamp;
+    controller.last_outflow_slot = 0;
 
     emit!(InitializeControllerEvent {
         version: controller.version,

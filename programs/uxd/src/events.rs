@@ -37,7 +37,7 @@ pub struct SetOutflowLimitPerEpochAmountEvent {
     /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The new cap.
+    /// The flat amount redeemable per epoch
     pub outflow_limit_per_epoch_amount: u64,
 }
 
@@ -50,21 +50,21 @@ pub struct SetOutflowLimitPerEpochBpsEvent {
     /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The new cap.
+    /// The portion of supply redeemable per epoch
     pub outflow_limit_per_epoch_bps: u16,
 }
 
 /// Event called in [instructions::edit_controller::handler].
 #[event]
-pub struct SetSecondsPerEpochEvent {
+pub struct SetSlotsPerEpochEvent {
     /// The controller version.
     #[index]
     pub version: u8,
     /// The controller.
     #[index]
     pub controller: Pubkey,
-    /// The new cap.
-    pub seconds_per_epoch: u32,
+    /// How many slot for an epoch
+    pub slots_per_epoch: u64,
 }
 
 /// Event called in [instructions::edit_controller::handler].

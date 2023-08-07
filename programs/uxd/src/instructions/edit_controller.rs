@@ -4,7 +4,7 @@ use crate::events::SetOutflowLimitPerEpochBpsEvent;
 use crate::events::SetRedeemableGlobalSupplyCapEvent;
 use crate::events::SetRouterDepositories;
 use crate::events::SetRouterDepositoriesWeightBps;
-use crate::events::SetSecondsPerEpochEvent;
+use crate::events::SetSlotsPerEpochEvent;
 use crate::utils::checked_add;
 use crate::validate_is_program_frozen;
 use crate::Controller;
@@ -48,7 +48,7 @@ pub struct EditControllerFields {
     pub router_depositories: Option<EditRouterDepositories>,
     pub outflow_limit_per_epoch_amount: Option<u64>,
     pub outflow_limit_per_epoch_bps: Option<u16>,
-    pub seconds_per_epoch: Option<u32>,
+    pub slots_per_epoch: Option<u64>,
 }
 
 pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
@@ -157,14 +157,14 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
         });
     }
 
-    // Optionally edit "seconds_per_epoch"
-    if let Some(seconds_per_epoch) = fields.seconds_per_epoch {
-        msg!("[edit_controller] seconds_per_epoch {}", seconds_per_epoch);
-        controller.seconds_per_epoch = seconds_per_epoch;
-        emit!(SetSecondsPerEpochEvent {
+    // Optionally edit "slots_per_epoch"
+    if let Some(slots_per_epoch) = fields.slots_per_epoch {
+        msg!("[edit_controller] slots_per_epoch {}", slots_per_epoch);
+        controller.slots_per_epoch = slots_per_epoch;
+        emit!(SetSlotsPerEpochEvent {
             version: controller.version,
             controller: ctx.accounts.controller.key(),
-            seconds_per_epoch
+            slots_per_epoch
         });
     }
 

@@ -14,7 +14,6 @@ use crate::utils::calculate_depositories_redeemable_amount::DepositoryInfoForRed
 use crate::utils::calculate_depositories_target_redeemable_amount;
 use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
 use crate::utils::checked_add;
-use crate::utils::checked_as_u128;
 use crate::utils::checked_as_u64;
 use crate::utils::checked_div;
 use crate::utils::checked_mul;
@@ -156,6 +155,9 @@ pub struct Redeem<'info> {
 
     /// #21
     pub rent: Sysvar<'info, Rent>,
+
+    /// #22
+    pub clock: Sysvar<'info, Clock>,
 }
 
 struct DepositoryInfoForRedeem<'info> {
@@ -178,34 +180,34 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         controller.outflow_limit_per_epoch_amount,
         checked_as_u64(checked_div(
             checked_mul(
-                checked_as_u128(controller.redeemable_circulating_supply)?,
-                checked_as_u128(controller.outflow_limit_per_epoch_bps)?,
+                controller.redeemable_circulating_supply,
+                u128::from(controller.outflow_limit_per_epoch_bps),
             )?,
-            checked_as_u128(BPS_POWER)?,
+            u128::from(BPS_POWER),
         )?)?,
     );
 
     // How long ago was the last outflow
-    let now_timestamp = Clock::get()?.unix_timestamp;
-    let last_outflow_seconds_ago = checked_sub(now_timestamp, controller.last_outflow_timestamp)?;
+    let current_slot = ctx.accounts.clock.slot;
+    let last_outflow_elapsed_slots = std::cmp::min(
+        checked_as_u64(checked_sub(current_slot, controller.last_outflow_slot)?)?,
+        controller.slots_per_epoch,
+    );
 
     // How much was unlocked by waiting since last redeem
     // Note: intermediary maths forced to use u128 to be able to multiply u64s safely
     let unlocked_outflow_amount = checked_as_u64(checked_div(
         checked_mul(
-            checked_as_u128(last_outflow_seconds_ago)?,
-            checked_as_u128(outflow_limit_per_epoch_amount)?,
+            u128::from(last_outflow_elapsed_slots),
+            u128::from(outflow_limit_per_epoch_amount),
         )?,
-        checked_as_u128(controller.seconds_per_epoch)?,
+        u128::from(controller.slots_per_epoch),
     )?)?;
 
     // How much outflow in the current epoch right before the redeem IX
-    let previous_epoch_outflow_amount = if controller.epoch_outflow_amount > unlocked_outflow_amount
-    {
-        checked_sub(controller.epoch_outflow_amount, unlocked_outflow_amount)?
-    } else {
-        0
-    };
+    let previous_epoch_outflow_amount = controller
+        .epoch_outflow_amount
+        .saturating_sub(unlocked_outflow_amount);
 
     // How much outflow right after this current redeem IX
     let new_epoch_outflow_amount = checked_add(previous_epoch_outflow_amount, redeemable_amount)?;
@@ -218,7 +220,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
 
     // Update outflow limitations flags
     controller.epoch_outflow_amount = new_epoch_outflow_amount;
-    controller.last_outflow_timestamp = now_timestamp;
+    controller.last_outflow_slot = current_slot;
 
     // Make controller signer
     let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.bump]]];
@@ -226,9 +228,9 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     // The actual post-redeem circulating supply may be slightly higher
     // Due to redeem fees and precision loss. But the difference should be negligible and
     // Any future mint/redeem will recompute the targets based on the exact future circulating supply anyway
-    let mimimum_after_redeem_circulating_supply = checked_sub(
+    let minimum_after_redeem_circulating_supply = checked_sub(
         controller.redeemable_circulating_supply,
-        checked_as_u128(redeemable_amount)?,
+        u128::from(redeemable_amount),
     )?;
 
     // Build the vector of all known depository participating in the routing system
@@ -297,7 +299,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
 
     // Compute the desired target amounts for each depository
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
-        mimimum_after_redeem_circulating_supply,
+        minimum_after_redeem_circulating_supply,
         &depository_info
             .iter()
             .map(|depository_info| DepositoryInfoForTargetRedeemableAmount {

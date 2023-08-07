@@ -13,8 +13,6 @@ use crate::utils::calculate_depositories_mint_collateral_amount::DepositoryInfoF
 use crate::utils::calculate_depositories_target_redeemable_amount;
 use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
 use crate::utils::checked_add;
-use crate::utils::checked_as_u128;
-use crate::utils::checked_sub;
 use crate::utils::validate_collateral_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -212,11 +210,9 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
 
     // Make sure minting reduces the counter of outflow (minting is inflow)
-    controller.epoch_outflow_amount = if controller.epoch_outflow_amount > collateral_amount {
-        checked_sub(controller.epoch_outflow_amount, collateral_amount)?
-    } else {
-        0
-    };
+    controller.epoch_outflow_amount = controller
+        .epoch_outflow_amount
+        .saturating_sub(collateral_amount);
 
     // Make controller signer
     let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.bump]]];
@@ -226,7 +222,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     // When the next mint/redeem IX recompute the new targets based on the new circulating supply
     let maximum_after_mint_circulating_supply = checked_add(
         controller.redeemable_circulating_supply,
-        checked_as_u128(collateral_amount)?,
+        u128::from(collateral_amount),
     )?;
 
     // Build the vector of all known depository participating in the routing system

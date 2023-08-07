@@ -3,14 +3,13 @@ use std::mem::size_of;
 use crate::error::UxdError;
 use crate::utils::checked_add;
 use crate::utils::checked_add_u128_and_i128;
-use crate::utils::checked_as_u128;
 use anchor_lang::prelude::*;
 
 pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
 pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
-pub const CONTROLLER_RESERVED_SPACE: usize = 98;
+pub const CONTROLLER_RESERVED_SPACE: usize = 94;
 pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u8>() // bump
     + size_of::<u8>() // redeemable_mint_bump
@@ -38,9 +37,9 @@ pub const CONTROLLER_SPACE: usize = 8
     + size_of::<Pubkey>() // credix_lp_depository
     + size_of::<u64>() // outflow_limit_per_epoch_amount
     + size_of::<u16>() // outflow_limit_per_epoch_bps
-    + size_of::<u32>() // seconds_per_epoch
+    + size_of::<u64>() // slots_per_epoch
     + size_of::<u64>() // epoch_outflow_amount
-    + size_of::<i64>() // last_outflow_timestamp
+    + size_of::<u64>() // last_outflow_slot
     + CONTROLLER_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -104,9 +103,9 @@ pub struct Controller {
     // Flags needed for outflow limitation
     pub outflow_limit_per_epoch_amount: u64,
     pub outflow_limit_per_epoch_bps: u16,
-    pub seconds_per_epoch: u32,
+    pub slots_per_epoch: u64,
     pub epoch_outflow_amount: u64,
-    pub last_outflow_timestamp: i64,
+    pub last_outflow_slot: u64,
 
     // For future usage
     pub _reserved: [u8; CONTROLLER_RESERVED_SPACE],
@@ -167,10 +166,8 @@ impl Controller {
         &mut self,
         profits_collected: u64,
     ) -> Result<()> {
-        self.profits_total_collected = checked_add(
-            self.profits_total_collected,
-            checked_as_u128(profits_collected)?,
-        )?;
+        self.profits_total_collected =
+            checked_add(self.profits_total_collected, u128::from(profits_collected))?;
         Ok(())
     }
 }

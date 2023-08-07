@@ -1,4 +1,3 @@
-use solana_program::clock::SECONDS_PER_DAY;
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
@@ -100,6 +99,9 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         total_supply_after_second_mint * 40 / 100 - 1; // Precision loss as a consequence of the first mint rounding
     let credix_lp_depository_supply_after_second_mint = total_supply_after_second_mint * 50 / 100;
 
+    // Outflow epoch slot count
+    let slots_per_epoch = 1000;
+
     // ---------------------------------------------------------------------
     // -- Phase 2
     // -- Airdrop collateral to our user, so we will be able to mint
@@ -132,7 +134,7 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -248,7 +250,7 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -287,7 +289,7 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
             router_depositories: None,
             outflow_limit_per_epoch_amount: Some(amount_for_first_redeem / 2), // Outflows configured too low on purpose
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: Some(u32::try_from(SECONDS_PER_DAY).unwrap()),
+            slots_per_epoch: Some(slots_per_epoch),
         },
     )
     .await?;
@@ -319,7 +321,7 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
             router_depositories: None,
             outflow_limit_per_epoch_amount: Some(amount_for_first_redeem),
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -351,12 +353,12 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
             router_depositories: None,
             outflow_limit_per_epoch_amount: Some(amount_for_second_redeem),
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
 
-    // Redeeming after we exhaused the identity depository should fallback to mercurial depository
+    // Redeeming after we exhausted the identity depository should fallback to mercurial depository
     // Even if mercurial is underflowing, it is the last liquid redeemable available, so we use it.
     let identity_depository_supply_after_first_redeem =
         identity_depository_supply_after_second_mint - amount_for_first_redeem;
@@ -384,8 +386,8 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     .await
     .is_err());
 
-    // Move 1 day forward (bypass outflow limit)
-    program_test_context::move_clock_forward(&mut program_test_context, SECONDS_PER_DAY).await?;
+    // Move 1 epoch forward (bypass outflow limit)
+    program_test_context::move_clock_forward(&mut program_test_context, 1, slots_per_epoch).await?;
 
     // It should now succeed doing the same thing after waiting a day
     program_uxd::instructions::process_redeem(
@@ -402,8 +404,8 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     )
     .await?;
 
-    // Move 1 day forward (bypass outflow limit)
-    program_test_context::move_clock_forward(&mut program_test_context, SECONDS_PER_DAY).await?;
+    // Move 1 epoch forward (bypass outflow limit)
+    program_test_context::move_clock_forward(&mut program_test_context, 1, slots_per_epoch).await?;
 
     // Any more redeeming will fail as all the liquid redeem source have been exhausted now
     assert!(program_uxd::instructions::process_redeem(

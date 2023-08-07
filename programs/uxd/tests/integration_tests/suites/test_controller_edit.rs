@@ -68,7 +68,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await
@@ -85,7 +85,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -105,7 +105,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await
@@ -126,7 +126,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -146,7 +146,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             }),
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -162,7 +162,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
-            seconds_per_epoch: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -186,7 +186,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             }),
             outflow_limit_per_epoch_amount: Some(42),
             outflow_limit_per_epoch_bps: Some(42),
-            seconds_per_epoch: Some(42),
+            slots_per_epoch: Some(42),
         },
     )
     .await?;
