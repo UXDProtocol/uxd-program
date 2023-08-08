@@ -99,6 +99,9 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         total_supply_after_second_mint * 40 / 100 - 1; // Precision loss as a consequence of the first mint rounding
     let credix_lp_depository_supply_after_second_mint = total_supply_after_second_mint * 50 / 100;
 
+    // Outflow epoch slot count
+    let slots_per_epoch = 1000;
+
     // ---------------------------------------------------------------------
     // -- Phase 2
     // -- Airdrop collateral to our user, so we will be able to mint
@@ -129,6 +132,9 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
                 credix_lp_depository_weight_bps: 40 * 100,
             }),
             router_depositories: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -235,13 +241,16 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         &payer,
         &authority,
         &EditControllerFields {
-            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+            redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
                 identity_depository_weight_bps: 10 * 100,
                 mercurial_vault_depository_weight_bps: 40 * 100,
                 credix_lp_depository_weight_bps: 50 * 100,
             }),
             router_depositories: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -271,18 +280,53 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         &payer,
         &authority,
         &EditControllerFields {
-            redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
+            redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
                 identity_depository_weight_bps: 0,
                 mercurial_vault_depository_weight_bps: 100 * 100,
                 credix_lp_depository_weight_bps: 0,
             }),
             router_depositories: None,
+            outflow_limit_per_epoch_amount: Some(amount_for_first_redeem / 2), // Outflows configured too low on purpose
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: Some(slots_per_epoch),
         },
     )
     .await?;
 
-    // Redeeming now should not touch mercurial at all since it is underflowing
+    // Redeeming now should fail because that's too much outflow
+    assert!(program_uxd::instructions::process_redeem(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_for_first_redeem,
+        amount_for_first_redeem,
+        0,
+    )
+    .await
+    .is_err());
+
+    // Increase the outflow limit to over what we want to redeem next
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: None,
+            depositories_routing_weight_bps: None,
+            router_depositories: None,
+            outflow_limit_per_epoch_amount: Some(amount_for_first_redeem),
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
+        },
+    )
+    .await?;
+
+    // Redeeming now should work and not touch mercurial at all since it is underflowing
     // Meaning that other depositories are overflowing and should be prioritized
     program_uxd::instructions::process_redeem(
         &mut program_test_context,
@@ -298,10 +342,54 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     )
     .await?;
 
-    // Redeeming after we exhaused the identity depository should fallback to mercurial depository
+    // Increase the outflow limit to over what we want to redeem next
+    program_uxd::instructions::process_edit_controller(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: None,
+            depositories_routing_weight_bps: None,
+            router_depositories: None,
+            outflow_limit_per_epoch_amount: Some(amount_for_second_redeem),
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
+        },
+    )
+    .await?;
+
+    // Redeeming after we exhausted the identity depository should fallback to mercurial depository
     // Even if mercurial is underflowing, it is the last liquid redeemable available, so we use it.
     let identity_depository_supply_after_first_redeem =
         identity_depository_supply_after_second_mint - amount_for_first_redeem;
+
+    // It should completely empty the identity depository
+    let expected_identity_depository_redeemable_amount =
+        identity_depository_supply_after_first_redeem;
+    // Then the rest should be taken from mercurial
+    let expected_mercurial_vault_depository_redeemable_amount =
+        amount_for_second_redeem - expected_identity_depository_redeemable_amount;
+
+    // Redeeming immediately should fail because of outflow limit
+    assert!(program_uxd::instructions::process_redeem(
+        &mut program_test_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &mercurial_vault_lp_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_for_second_redeem,
+        expected_identity_depository_redeemable_amount,
+        expected_mercurial_vault_depository_redeemable_amount,
+    )
+    .await
+    .is_err());
+
+    // Move 1 epoch forward (bypass outflow limit)
+    program_test_context::move_clock_forward(&mut program_test_context, 1, slots_per_epoch).await?;
+
+    // It should now succeed doing the same thing after waiting a day
     program_uxd::instructions::process_redeem(
         &mut program_test_context,
         &payer,
@@ -311,10 +399,13 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
         &user_collateral,
         &user_redeemable,
         amount_for_second_redeem,
-        identity_depository_supply_after_first_redeem, // It should completely empty the identity depository
-        amount_for_second_redeem - identity_depository_supply_after_first_redeem, // Then the rest should be taken from mercurial
+        expected_identity_depository_redeemable_amount,
+        expected_mercurial_vault_depository_redeemable_amount,
     )
     .await?;
+
+    // Move 1 epoch forward (bypass outflow limit)
+    program_test_context::move_clock_forward(&mut program_test_context, 1, slots_per_epoch).await?;
 
     // Any more redeeming will fail as all the liquid redeem source have been exhausted now
     assert!(program_uxd::instructions::process_redeem(

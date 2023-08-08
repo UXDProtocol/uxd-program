@@ -12,6 +12,7 @@ use crate::utils::calculate_depositories_mint_collateral_amount;
 use crate::utils::calculate_depositories_mint_collateral_amount::DepositoryInfoForMintCollateralAmount;
 use crate::utils::calculate_depositories_target_redeemable_amount;
 use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
+use crate::utils::checked_add;
 use crate::utils::validate_collateral_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -203,24 +204,26 @@ struct DepositoryInfoForMint<'info> {
 
 pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> {
     // Gather all the onchain states we need (caps, weights and supplies)
-    let controller = ctx.accounts.controller.load()?;
+    let mut controller = ctx.accounts.controller.load_mut()?;
     let identity_depository = ctx.accounts.identity_depository.load()?;
     let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
 
+    // Make sure minting reduces the counter of outflow (minting is inflow)
+    controller.epoch_outflow_amount = controller
+        .epoch_outflow_amount
+        .saturating_sub(collateral_amount);
+
     // Make controller signer
-    let controller_pda_signer: &[&[&[u8]]] = &[&[
-        CONTROLLER_NAMESPACE,
-        &[ctx.accounts.controller.load()?.bump],
-    ]];
+    let controller_pda_signer: &[&[&[u8]]] = &[&[CONTROLLER_NAMESPACE, &[controller.bump]]];
 
     // The actual post-mint circulating supply might be slightly lower due to fees and precision loss
     // But the difference is negligible, and the difference will be taken into account
     // When the next mint/redeem IX recompute the new targets based on the new circulating supply
-    let maximum_after_mint_circulating_supply = controller
-        .redeemable_circulating_supply
-        .checked_add(collateral_amount.into())
-        .ok_or(UxdError::MathOverflow)?;
+    let maximum_after_mint_circulating_supply = checked_add(
+        controller.redeemable_circulating_supply,
+        u128::from(collateral_amount),
+    )?;
 
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![

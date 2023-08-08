@@ -1,5 +1,5 @@
 export type Uxd = {
-  version: '8.1.0';
+  version: '8.1.4';
   name: 'uxd';
   instructions: [
     {
@@ -2162,9 +2162,29 @@ export type Uxd = {
             type: 'publicKey';
           },
           {
+            name: 'outflowLimitPerEpochAmount';
+            type: 'u64';
+          },
+          {
+            name: 'outflowLimitPerEpochBps';
+            type: 'u16';
+          },
+          {
+            name: 'slotsPerEpoch';
+            type: 'u64';
+          },
+          {
+            name: 'epochOutflowAmount';
+            type: 'u64';
+          },
+          {
+            name: 'lastOutflowSlot';
+            type: 'u64';
+          },
+          {
             name: 'reserved';
             type: {
-              array: ['u8', 128];
+              array: ['u8', 94];
             };
           }
         ];
@@ -2538,6 +2558,24 @@ export type Uxd = {
                 defined: 'EditRouterDepositories';
               };
             };
+          },
+          {
+            name: 'outflowLimitPerEpochAmount';
+            type: {
+              option: 'u64';
+            };
+          },
+          {
+            name: 'outflowLimitPerEpochBps';
+            type: {
+              option: 'u16';
+            };
+          },
+          {
+            name: 'slotsPerEpoch';
+            type: {
+              option: 'u64';
+            };
           }
         ];
       };
@@ -2638,6 +2676,66 @@ export type Uxd = {
         {
           name: 'redeemableGlobalSupplyCap';
           type: 'u128';
+          index: false;
+        }
+      ];
+    },
+    {
+      name: 'SetOutflowLimitPerEpochAmountEvent';
+      fields: [
+        {
+          name: 'version';
+          type: 'u8';
+          index: false;
+        },
+        {
+          name: 'controller';
+          type: 'publicKey';
+          index: false;
+        },
+        {
+          name: 'outflowLimitPerEpochAmount';
+          type: 'u64';
+          index: false;
+        }
+      ];
+    },
+    {
+      name: 'SetOutflowLimitPerEpochBpsEvent';
+      fields: [
+        {
+          name: 'version';
+          type: 'u8';
+          index: false;
+        },
+        {
+          name: 'controller';
+          type: 'publicKey';
+          index: false;
+        },
+        {
+          name: 'outflowLimitPerEpochBps';
+          type: 'u16';
+          index: false;
+        }
+      ];
+    },
+    {
+      name: 'SetSlotsPerEpochEvent';
+      fields: [
+        {
+          name: 'version';
+          type: 'u8';
+          index: false;
+        },
+        {
+          name: 'controller';
+          type: 'publicKey';
+          index: false;
+        },
+        {
+          name: 'slotsPerEpoch';
+          type: 'u64';
           index: false;
         }
       ];
@@ -3528,12 +3626,22 @@ export type Uxd = {
       code: 6056;
       name: 'Default';
       msg: 'Default - Check the source code for more info.';
+    },
+    {
+      code: 6057;
+      name: 'MaximumOutflowAmountError';
+      msg: 'Redeem resulted into too much outflow in this epoch, please wait or try again with a smaller amount.';
+    },
+    {
+      code: 6058;
+      name: 'InvalidOutflowLimitPerEpochBps';
+      msg: 'The outflow_limit_per_epoch_bps is invalid: over 100%.';
     }
   ];
 };
 
 export const IDL: Uxd = {
-  version: '8.1.0',
+  version: '8.1.4',
   name: 'uxd',
   instructions: [
     {
@@ -5696,9 +5804,29 @@ export const IDL: Uxd = {
             type: 'publicKey',
           },
           {
+            name: 'outflowLimitPerEpochAmount',
+            type: 'u64',
+          },
+          {
+            name: 'outflowLimitPerEpochBps',
+            type: 'u16',
+          },
+          {
+            name: 'slotsPerEpoch',
+            type: 'u64',
+          },
+          {
+            name: 'epochOutflowAmount',
+            type: 'u64',
+          },
+          {
+            name: 'lastOutflowSlot',
+            type: 'u64',
+          },
+          {
             name: 'reserved',
             type: {
-              array: ['u8', 128],
+              array: ['u8', 94],
             },
           },
         ],
@@ -6073,6 +6201,24 @@ export const IDL: Uxd = {
               },
             },
           },
+          {
+            name: 'outflowLimitPerEpochAmount',
+            type: {
+              option: 'u64',
+            },
+          },
+          {
+            name: 'outflowLimitPerEpochBps',
+            type: {
+              option: 'u16',
+            },
+          },
+          {
+            name: 'slotsPerEpoch',
+            type: {
+              option: 'u64',
+            },
+          },
         ],
       },
     },
@@ -6172,6 +6318,66 @@ export const IDL: Uxd = {
         {
           name: 'redeemableGlobalSupplyCap',
           type: 'u128',
+          index: false,
+        },
+      ],
+    },
+    {
+      name: 'SetOutflowLimitPerEpochAmountEvent',
+      fields: [
+        {
+          name: 'version',
+          type: 'u8',
+          index: false,
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: false,
+        },
+        {
+          name: 'outflowLimitPerEpochAmount',
+          type: 'u64',
+          index: false,
+        },
+      ],
+    },
+    {
+      name: 'SetOutflowLimitPerEpochBpsEvent',
+      fields: [
+        {
+          name: 'version',
+          type: 'u8',
+          index: false,
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: false,
+        },
+        {
+          name: 'outflowLimitPerEpochBps',
+          type: 'u16',
+          index: false,
+        },
+      ],
+    },
+    {
+      name: 'SetSlotsPerEpochEvent',
+      fields: [
+        {
+          name: 'version',
+          type: 'u8',
+          index: false,
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: false,
+        },
+        {
+          name: 'slotsPerEpoch',
+          type: 'u64',
           index: false,
         },
       ],
@@ -7062,6 +7268,16 @@ export const IDL: Uxd = {
       code: 6056,
       name: 'Default',
       msg: 'Default - Check the source code for more info.',
+    },
+    {
+      code: 6057,
+      name: 'MaximumOutflowAmountError',
+      msg: 'Redeem resulted into too much outflow in this epoch, please wait or try again with a smaller amount.',
+    },
+    {
+      code: 6058,
+      name: 'InvalidOutflowLimitPerEpochBps',
+      msg: 'The outflow_limit_per_epoch_bps is invalid: over 100%.',
     },
   ],
 };

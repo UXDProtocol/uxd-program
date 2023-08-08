@@ -121,4 +121,9 @@ pub enum UxdError {
     InvalidCredixWithdrawEpochRedeemPhase,
     #[msg("Default - Check the source code for more info.")]
     Default,
+
+    #[msg("Redeem resulted into too much outflow in this epoch, please wait or try again with a smaller amount.")]
+    MaximumOutflowAmountError,
+    #[msg("The outflow_limit_per_epoch_bps is invalid: over 100%.")]
+    InvalidOutflowLimitPerEpochBps,
 }

@@ -4,7 +4,6 @@ use crate::Controller;
 use crate::CONTROLLER_ACCOUNT_VERSION;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CONTROLLER_SPACE;
-use crate::DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP;
 use crate::REDEEMABLE_MINT_NAMESPACE;
 use crate::SOLANA_MAX_MINT_DECIMALS;
 use anchor_lang::prelude::*;
@@ -61,9 +60,6 @@ pub(crate) fn handler(
     redeemable_mint_decimals: u8,
 ) -> Result<()> {
     let controller = &mut ctx.accounts.controller.load_init()?;
-    let redeemable_mint_unit = 10_u64
-        .checked_pow(redeemable_mint_decimals.into())
-        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     controller.bump = *ctx
         .bumps
@@ -77,10 +73,7 @@ pub(crate) fn handler(
     controller.authority = ctx.accounts.authority.key();
     controller.redeemable_mint = ctx.accounts.redeemable_mint.key();
     controller.redeemable_mint_decimals = redeemable_mint_decimals;
-    // Default to 1 Million redeemable total cap
-    controller.redeemable_global_supply_cap = DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP
-        .checked_mul(redeemable_mint_unit.into())
-        .ok_or_else(|| error!(UxdError::MathOverflow))?;
+    controller.redeemable_global_supply_cap = 0;
     controller.redeemable_circulating_supply = u128::MIN;
     controller.is_frozen = false;
     controller.profits_total_collected = u128::MIN;
@@ -93,6 +86,13 @@ pub(crate) fn handler(
     controller.identity_depository = Pubkey::default();
     controller.mercurial_vault_depository = Pubkey::default();
     controller.credix_lp_depository = Pubkey::default();
+
+    // Routing outflow limitation flags
+    controller.outflow_limit_per_epoch_amount = 0;
+    controller.outflow_limit_per_epoch_bps = 0;
+    controller.slots_per_epoch = 0;
+    controller.epoch_outflow_amount = 0;
+    controller.last_outflow_slot = 0;
 
     emit!(InitializeControllerEvent {
         version: controller.version,

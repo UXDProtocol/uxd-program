@@ -66,6 +66,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             redeemable_global_supply_cap: Some(42),
             depositories_routing_weight_bps: None,
             router_depositories: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
         },
     )
     .await
@@ -80,6 +83,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             redeemable_global_supply_cap: Some(100),
             depositories_routing_weight_bps: None,
             router_depositories: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -97,6 +103,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
                 credix_lp_depository_weight_bps: 1,
             }),
             router_depositories: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
         },
     )
     .await
@@ -115,6 +124,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
                 credix_lp_depository_weight_bps: 40 * 100,       // 40%
             }),
             router_depositories: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -132,6 +144,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
                 mercurial_vault_depository: Pubkey::default(),
                 credix_lp_depository: Pubkey::default(),
             }),
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -145,6 +160,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
             redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: None,
             router_depositories: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
         },
     )
     .await?;
@@ -166,6 +184,9 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
                 mercurial_vault_depository: Pubkey::default(),
                 credix_lp_depository: Pubkey::default(),
             }),
+            outflow_limit_per_epoch_amount: Some(42),
+            outflow_limit_per_epoch_bps: Some(42),
+            slots_per_epoch: Some(42),
         },
     )
     .await?;

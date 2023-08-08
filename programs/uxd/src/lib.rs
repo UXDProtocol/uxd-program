@@ -40,8 +40,6 @@ pub const CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE: &[u8] = b"withdraw-epoch"
 pub const CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE: &[u8] = b"withdraw-request";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
-pub const DEFAULT_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = 1_000_000; // 1 Million redeemable UI units
-pub const DEFAULT_REDEEMABLE_UNDER_MANAGEMENT_CAP: u64 = 1_000_000; // 1 Million redeemable UI units
 
 pub const ROUTER_DEPOSITORIES_COUNT: usize = 3;
 pub const ROUTER_IDENTITY_DEPOSITORY_INDEX: usize = 0;

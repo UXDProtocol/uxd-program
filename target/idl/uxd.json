@@ -1,5 +1,5 @@
 {
-  "version": "8.1.0",
+  "version": "8.1.4",
   "name": "uxd",
   "instructions": [
     {
@@ -2164,9 +2164,29 @@
             "type": "publicKey"
           },
           {
+            "name": "outflowLimitPerEpochAmount",
+            "type": "u64"
+          },
+          {
+            "name": "outflowLimitPerEpochBps",
+            "type": "u16"
+          },
+          {
+            "name": "slotsPerEpoch",
+            "type": "u64"
+          },
+          {
+            "name": "epochOutflowAmount",
+            "type": "u64"
+          },
+          {
+            "name": "lastOutflowSlot",
+            "type": "u64"
+          },
+          {
             "name": "reserved",
             "type": {
-              "array": ["u8", 128]
+              "array": ["u8", 94]
             }
           }
         ]
@@ -2540,6 +2560,24 @@
                 "defined": "EditRouterDepositories"
               }
             }
+          },
+          {
+            "name": "outflowLimitPerEpochAmount",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "outflowLimitPerEpochBps",
+            "type": {
+              "option": "u16"
+            }
+          },
+          {
+            "name": "slotsPerEpoch",
+            "type": {
+              "option": "u64"
+            }
           }
         ]
       }
@@ -2640,6 +2678,66 @@
         {
           "name": "redeemableGlobalSupplyCap",
           "type": "u128",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "SetOutflowLimitPerEpochAmountEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "outflowLimitPerEpochAmount",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "SetOutflowLimitPerEpochBpsEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "outflowLimitPerEpochBps",
+          "type": "u16",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "SetSlotsPerEpochEvent",
+      "fields": [
+        {
+          "name": "version",
+          "type": "u8",
+          "index": false
+        },
+        {
+          "name": "controller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "slotsPerEpoch",
+          "type": "u64",
           "index": false
         }
       ]
@@ -3530,6 +3628,16 @@
       "code": 6056,
       "name": "Default",
       "msg": "Default - Check the source code for more info."
+    },
+    {
+      "code": 6057,
+      "name": "MaximumOutflowAmountError",
+      "msg": "Redeem resulted into too much outflow in this epoch, please wait or try again with a smaller amount."
+    },
+    {
+      "code": 6058,
+      "name": "InvalidOutflowLimitPerEpochBps",
+      "msg": "The outflow_limit_per_epoch_bps is invalid: over 100%."
     }
   ],
   "metadata": {

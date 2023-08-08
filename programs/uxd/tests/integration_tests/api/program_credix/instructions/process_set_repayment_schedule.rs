@@ -4,6 +4,7 @@ use solana_program::clock::Clock;
 use solana_program::instruction::Instruction;
 use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
+use solana_sdk::clock::SECONDS_PER_DAY;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -56,7 +57,7 @@ pub async fn process_set_repayment_schedule(
             principal_expected: Some(principal),
             time_frame: credix_client::TimeFrame {
                 start: unix_timestamp_now,
-                end: unix_timestamp_now + 30 * 24 * 60 * 60, // 30 days
+                end: unix_timestamp_now + 30 * i64::try_from(SECONDS_PER_DAY).unwrap(),
             },
         }],
         _waterfall_definitions: vec![credix_client::DistributionWaterfall {
