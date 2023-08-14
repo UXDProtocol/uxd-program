@@ -68,6 +68,9 @@ pub async fn process_deploy_program(
             redeemable_global_supply_cap: Some(redeemable_global_supply_cap),
             depositories_routing_weight_bps: None,
             router_depositories: None,
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
         },
     )
     .await?;

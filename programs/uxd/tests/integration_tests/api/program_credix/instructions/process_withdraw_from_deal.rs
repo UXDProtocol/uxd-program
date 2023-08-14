@@ -52,7 +52,7 @@ pub async fn process_withdraw_from_deal(
         deal_tranches,
         repayment_schedule,
         credix_pass,
-        off_ramp_token_account: credix_client::id(), // Not used
+        off_ramp_token_account: credix_client::id(), // Optional, Not set
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,

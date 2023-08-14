@@ -68,6 +68,7 @@ pub async fn process_set_tranches(
             numerator: 1,
             denominator: 100,
         },
+        variable_rate: credix_client::VariableRate::None,
     };
 
     // Execute IX

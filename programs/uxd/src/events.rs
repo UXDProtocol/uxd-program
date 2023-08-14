@@ -30,6 +30,45 @@ pub struct SetRedeemableGlobalSupplyCapEvent {
 
 /// Event called in [instructions::edit_controller::handler].
 #[event]
+pub struct SetOutflowLimitPerEpochAmountEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The flat amount redeemable per epoch
+    pub outflow_limit_per_epoch_amount: u64,
+}
+
+/// Event called in [instructions::edit_controller::handler].
+#[event]
+pub struct SetOutflowLimitPerEpochBpsEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// The portion of supply redeemable per epoch
+    pub outflow_limit_per_epoch_bps: u16,
+}
+
+/// Event called in [instructions::edit_controller::handler].
+#[event]
+pub struct SetSlotsPerEpochEvent {
+    /// The controller version.
+    #[index]
+    pub version: u8,
+    /// The controller.
+    #[index]
+    pub controller: Pubkey,
+    /// How many slot for an epoch
+    pub slots_per_epoch: u64,
+}
+
+/// Event called in [instructions::edit_controller::handler].
+#[event]
 pub struct SetRouterDepositoriesWeightBps {
     #[index]
     pub controller_version: u8,

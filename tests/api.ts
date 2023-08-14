@@ -40,12 +40,14 @@ export async function initializeController({
 }
 
 export async function mintWithMercurialVaultDepository({
+  authority,
   user,
   payer,
   controller,
   depository,
   collateralAmount,
 }: {
+  authority: Signer;
   user: Signer;
   payer: Signer;
   controller: Controller;
@@ -56,6 +58,7 @@ export async function mintWithMercurialVaultDepository({
     uxdClient.createMintWithMercurialVaultDepositoryInstruction(
       controller,
       depository,
+      authority.publicKey,
       user.publicKey,
       collateralAmount,
       TXN_OPTS,
@@ -78,6 +81,7 @@ export async function mintWithMercurialVaultDepository({
   }
 
   tx.add(mintWithMercurialVaultDepositoryIx);
+  signers.push(authority);
   signers.push(user);
   if (payer != user) {
     signers.push(payer);
@@ -87,12 +91,14 @@ export async function mintWithMercurialVaultDepository({
 }
 
 export async function redeemFromMercurialVaultDepository({
+  authority,
   user,
   payer,
   controller,
   depository,
   redeemableAmount,
 }: {
+  authority: Signer;
   user: Signer;
   payer: Signer;
   controller: Controller;
@@ -103,6 +109,7 @@ export async function redeemFromMercurialVaultDepository({
     uxdClient.createRedeemFromMercurialVaultDepositoryInstruction(
       controller,
       depository,
+      authority.publicKey,
       user.publicKey,
       redeemableAmount,
       TXN_OPTS,
@@ -125,6 +132,7 @@ export async function redeemFromMercurialVaultDepository({
   }
 
   tx.add(redeemFromMercurialVaultDepositoryIx);
+  signers.push(authority);
   signers.push(user);
   if (payer != user) {
     signers.push(payer);
@@ -296,12 +304,14 @@ export async function initializeIdentityDepository({
 }
 
 export async function mintWithIdentityDepository({
+  authority,
   user,
   payer,
   controller,
   depository,
   collateralAmount,
 }: {
+  authority: Signer;
   user: Signer;
   payer: Signer;
   controller: Controller;
@@ -312,6 +322,7 @@ export async function mintWithIdentityDepository({
     uxdClient.createMintWithIdentityDepositoryInstruction(
       controller,
       depository,
+      authority.publicKey,
       user.publicKey,
       collateralAmount,
       TXN_OPTS,
@@ -334,6 +345,7 @@ export async function mintWithIdentityDepository({
   }
 
   tx.add(mintWithIdentityDepositoryIx);
+  signers.push(authority);
   signers.push(user);
   if (payer != user) {
     signers.push(payer);
@@ -343,12 +355,14 @@ export async function mintWithIdentityDepository({
 }
 
 export async function redeemFromIdentityDepository({
+  authority,
   user,
   payer,
   controller,
   depository,
   redeemableAmount,
 }: {
+  authority: Signer;
   user: Signer;
   payer: Signer;
   controller: Controller;
@@ -359,6 +373,7 @@ export async function redeemFromIdentityDepository({
     uxdClient.createRedeemFromIdentityDepositoryInstruction(
       controller,
       depository,
+      authority.publicKey,
       user.publicKey,
       redeemableAmount,
       TXN_OPTS,
@@ -381,6 +396,7 @@ export async function redeemFromIdentityDepository({
   }
 
   tx.add(redeemFromIdentityDepositoryIx);
+  signers.push(authority);
   signers.push(user);
   if (payer != user) {
     signers.push(payer);
@@ -422,6 +438,7 @@ export async function registerCredixLpDepository(
 }
 
 export async function mintWithCredixLpDepository(
+  authority: Signer,
   user: Signer,
   payer: Signer,
   controller: Controller,
@@ -432,6 +449,7 @@ export async function mintWithCredixLpDepository(
     uxdClient.createMintWithCredixLpDepositoryInstruction(
       controller,
       depository,
+      authority.publicKey,
       user.publicKey,
       collateralAmount,
       TXN_OPTS,
@@ -454,6 +472,7 @@ export async function mintWithCredixLpDepository(
   }
 
   tx.add(mintWithCredixLpDepositoryIx);
+  signers.push(authority);
   signers.push(user);
   if (payer != user) {
     signers.push(payer);

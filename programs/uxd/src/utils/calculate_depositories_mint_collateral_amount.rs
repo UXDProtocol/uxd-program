@@ -3,9 +3,9 @@ use anchor_lang::require;
 
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
+use crate::utils::checked_as_u64;
 use crate::ROUTER_DEPOSITORIES_COUNT;
 
-use super::checked_convert_u128_to_u64;
 use super::compute_amount_less_fraction_floor;
 
 pub struct DepositoryInfoForMintCollateralAmount {
@@ -31,7 +31,7 @@ pub fn calculate_depositories_mint_collateral_amount(
         .iter()
         .map(|depository| {
             let depository_redeemable_amount_under_management =
-                checked_convert_u128_to_u64(depository.redeemable_amount_under_management)?;
+                checked_as_u64(depository.redeemable_amount_under_management)?;
             if depository.target_redeemable_amount <= depository_redeemable_amount_under_management
             {
                 return Ok(0);
@@ -39,7 +39,7 @@ pub fn calculate_depositories_mint_collateral_amount(
             Ok(depository
                 .target_redeemable_amount
                 .checked_sub(depository_redeemable_amount_under_management)
-                .ok_or(UxdError::MathError)?)
+                .ok_or(UxdError::MathOverflow)?)
         })
         .collect::<Result<Vec<u64>>>()?;
 
@@ -68,7 +68,7 @@ pub fn calculate_depositories_mint_collateral_amount(
             let other_depositories_maximum_mintable_collateral_amount =
                 total_maximum_mintable_collateral_amount
                     .checked_sub(*depository_mintable_collateral_amount)
-                    .ok_or(UxdError::MathError)?;
+                    .ok_or(UxdError::MathOverflow)?;
             compute_amount_less_fraction_floor(
                 requested_mint_collateral_amount,
                 other_depositories_maximum_mintable_collateral_amount,

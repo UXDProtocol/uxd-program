@@ -28,8 +28,8 @@ pub async fn process_redeem(
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
     redeemable_amount: u64,
-    identity_depository_redeemable_amount: u64,
-    mercurial_vault_depository_redeemable_amount: u64,
+    expected_identity_depository_redeemable_amount: u64,
+    expected_mercurial_vault_depository_redeemable_amount: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
@@ -98,8 +98,8 @@ pub async fn process_redeem(
 
     // Execute IX
     let accounts = uxd::accounts::Redeem {
-        payer: payer.pubkey(),
         user: user.pubkey(),
+        payer: payer.pubkey(),
         controller,
         collateral_mint: *collateral_mint,
         redeemable_mint,
@@ -163,20 +163,21 @@ pub async fn process_redeem(
             .amount;
 
     // Compute identity_depository amounts
-    let identity_depository_collateral_amount = identity_depository_redeemable_amount;
+    let identity_depository_collateral_amount = expected_identity_depository_redeemable_amount;
 
     // Compute mercurial_vault_depository amounts
     let mercurial_vault_depository_collateral_amount = calculate_amount_less_fees(
-        mercurial_vault_depository_redeemable_amount,
+        expected_mercurial_vault_depository_redeemable_amount,
         mercurial_vault_depository_before.redeeming_fee_in_bps,
     )
     .map_err(program_test_context::ProgramTestError::Anchor)?;
     let mercurial_vault_depository_fees_amount =
-        mercurial_vault_depository_redeemable_amount - mercurial_vault_depository_collateral_amount;
+        expected_mercurial_vault_depository_redeemable_amount
+            - mercurial_vault_depository_collateral_amount;
 
     // Compute total amounts
-    let total_redeemable_amount =
-        identity_depository_redeemable_amount + mercurial_vault_depository_redeemable_amount;
+    let total_redeemable_amount = expected_identity_depository_redeemable_amount
+        + expected_mercurial_vault_depository_redeemable_amount;
     let total_collateral_amount =
         identity_depository_collateral_amount + mercurial_vault_depository_collateral_amount;
 
@@ -205,7 +206,7 @@ pub async fn process_redeem(
         u64::try_from(identity_depository_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
         identity_depository_redeemable_amount_under_management_before
-            - identity_depository_redeemable_amount,
+            - expected_identity_depository_redeemable_amount,
         identity_depository_redeemable_amount_under_management_after,
     );
 
@@ -228,7 +229,7 @@ pub async fn process_redeem(
         u64::try_from(mercurial_vault_depository_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
         mercurial_vault_depository_redeemable_amount_under_management_before
-            - mercurial_vault_depository_redeemable_amount,
+            - expected_mercurial_vault_depository_redeemable_amount,
         mercurial_vault_depository_redeemable_amount_under_management_after,
     );
 

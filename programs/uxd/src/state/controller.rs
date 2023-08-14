@@ -1,6 +1,7 @@
 use std::mem::size_of;
 
 use crate::error::UxdError;
+use crate::utils::checked_add;
 use crate::utils::checked_add_u128_and_i128;
 use anchor_lang::prelude::*;
 
@@ -8,7 +9,7 @@ pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
 pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
-pub const CONTROLLER_RESERVED_SPACE: usize = 128;
+pub const CONTROLLER_RESERVED_SPACE: usize = 94;
 pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u8>() // bump
     + size_of::<u8>() // redeemable_mint_bump
@@ -34,6 +35,11 @@ pub const CONTROLLER_SPACE: usize = 8
     + size_of::<Pubkey>() // identity_depository
     + size_of::<Pubkey>() // mercurial_vault_depository
     + size_of::<Pubkey>() // credix_lp_depository
+    + size_of::<u64>() // outflow_limit_per_epoch_amount
+    + size_of::<u16>() // outflow_limit_per_epoch_bps
+    + size_of::<u64>() // slots_per_epoch
+    + size_of::<u64>() // epoch_outflow_amount
+    + size_of::<u64>() // last_outflow_slot
     + CONTROLLER_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -94,6 +100,13 @@ pub struct Controller {
     pub mercurial_vault_depository: Pubkey,
     pub credix_lp_depository: Pubkey,
 
+    // Flags needed for outflow limitation
+    pub outflow_limit_per_epoch_amount: u64,
+    pub outflow_limit_per_epoch_bps: u16,
+    pub slots_per_epoch: u64,
+    pub epoch_outflow_amount: u64,
+    pub last_outflow_slot: u64,
+
     // For future usage
     pub _reserved: [u8; CONTROLLER_RESERVED_SPACE],
 }
@@ -109,10 +122,8 @@ impl Controller {
             UxdError::MaxNumberOfMercurialVaultDepositoriesRegisteredReached
         );
         // Increment registered Mercurial Pool Depositories count
-        self.registered_mercurial_vault_depositories_count = self
-            .registered_mercurial_vault_depositories_count
-            .checked_add(1)
-            .ok_or_else(|| error!(UxdError::MathError))?;
+        self.registered_mercurial_vault_depositories_count =
+            checked_add(self.registered_mercurial_vault_depositories_count, 1)?;
         // Add the new Mercurial Vault Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_mercurial_vault_depositories[new_entry_index] =
@@ -130,10 +141,8 @@ impl Controller {
             UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached
         );
         // Increment registered Credix Lp Depositories count
-        self.registered_credix_lp_depositories_count = self
-            .registered_credix_lp_depositories_count
-            .checked_add(1)
-            .ok_or_else(|| error!(UxdError::MathError))?;
+        self.registered_credix_lp_depositories_count =
+            checked_add(self.registered_credix_lp_depositories_count, 1)?;
         // Add the new Credix Lp Depository ID to the array of registered Depositories
         let new_entry_index = current_size;
         self.registered_credix_lp_depositories[new_entry_index] = credix_lp_depository_id;
@@ -157,10 +166,8 @@ impl Controller {
         &mut self,
         profits_collected: u64,
     ) -> Result<()> {
-        self.profits_total_collected = self
-            .profits_total_collected
-            .checked_add(profits_collected.into())
-            .ok_or(UxdError::MathError)?;
+        self.profits_total_collected =
+            checked_add(self.profits_total_collected, u128::from(profits_collected))?;
         Ok(())
     }
 }

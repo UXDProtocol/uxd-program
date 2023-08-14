@@ -17,14 +17,23 @@ use anchor_spl::token::Transfer;
 
 #[derive(Accounts)]
 pub struct MintWithIdentityDepository<'info> {
-    /// #1 Public call accessible to any user
-    pub user: Signer<'info>,
+    /// #1 This IX should only be accessible by the router or the DAO
+    #[account(
+        constraint = (
+            authority.key() == controller.key()
+            || authority.key() == controller.load()?.authority
+        )  @UxdError::InvalidAuthority,
+    )]
+    pub authority: Signer<'info>,
 
     /// #2
+    pub user: Signer<'info>,
+
+    /// #3
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// #3 The top level UXDProgram on chain account managing the redeemable mint
+    /// #4 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -33,7 +42,7 @@ pub struct MintWithIdentityDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #4 UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming
+    /// #5 UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming
     #[account(
         mut,
         seeds = [IDENTITY_DEPOSITORY_NAMESPACE],
@@ -41,7 +50,7 @@ pub struct MintWithIdentityDepository<'info> {
     )]
     pub depository: AccountLoader<'info, IdentityDepository>,
 
-    /// #5
+    /// #6
     /// Token account holding the collateral from minting
     #[account(
         mut,
@@ -52,7 +61,7 @@ pub struct MintWithIdentityDepository<'info> {
     )]
     pub collateral_vault: Box<Account<'info, TokenAccount>>,
 
-    /// #6 The redeemable mint managed by the `controller` instance
+    /// #7 The redeemable mint managed by the `controller` instance
     /// Tokens will be minted during this instruction
     #[account(
         mut,
@@ -61,7 +70,7 @@ pub struct MintWithIdentityDepository<'info> {
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
-    /// #7 The `user`'s TA for the `depository` `collateral_mint`
+    /// #8 The `user`'s TA for the `depository` `collateral_mint`
     /// Will be debited during this instruction
     #[account(
         mut,
@@ -70,7 +79,7 @@ pub struct MintWithIdentityDepository<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #8 The `user`'s TA for the `controller`'s `redeemable_mint`
+    /// #9 The `user`'s TA for the `controller`'s `redeemable_mint`
     /// Will be credited during this instruction
     #[account(
         mut,
@@ -79,10 +88,10 @@ pub struct MintWithIdentityDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #9
+    /// #10
     pub system_program: Program<'info, System>,
 
-    /// #10 Token Program
+    /// #11 Token Program
     pub token_program: Program<'info, Token>,
 }
 
@@ -118,16 +127,16 @@ pub(crate) fn handler(
         depository.collateral_amount_deposited = depository
             .collateral_amount_deposited
             .checked_add(collateral_amount.into())
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathOverflow))?;
         depository.redeemable_amount_under_management = depository
             .redeemable_amount_under_management
             .checked_add(redeemable_amount.into())
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathOverflow))?;
         // Controller
         controller.redeemable_circulating_supply = controller
             .redeemable_circulating_supply
             .checked_add(redeemable_amount.into())
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathOverflow))?;
     }
 
     // - 4 [SANITY CHECKS] ----------------------------------------------------

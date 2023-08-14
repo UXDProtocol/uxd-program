@@ -11,11 +11,11 @@ pub fn check_collateral_value_changed_to_match_target(
     // Lp token precision loss + withdraw collateral precision loss
     let maximum_allowed_precision_loss = possible_lp_token_precision_loss_collateral_value
         .checked_add(1)
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     let target_minimal_allowed_value = target
         .checked_sub(maximum_allowed_precision_loss)
-        .ok_or(UxdError::MathError)?;
+        .ok_or(UxdError::MathOverflow)?;
 
     require!(
         is_within_range_inclusive(

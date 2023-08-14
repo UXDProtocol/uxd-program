@@ -18,14 +18,23 @@ use anchor_spl::token::TokenAccount;
 
 #[derive(Accounts)]
 pub struct RedeemFromMercurialVaultDepository<'info> {
-    /// #1
-    pub user: Signer<'info>,
+    /// #1 This IX should only be accessible by the router or the DAO
+    #[account(
+        constraint = (
+            authority.key() == controller.key()
+            || authority.key() == controller.load()?.authority
+        )  @UxdError::InvalidAuthority,
+    )]
+    pub authority: Signer<'info>,
 
     /// #2
+    pub user: Signer<'info>,
+
+    /// #3
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// #3
+    /// #4
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -35,7 +44,7 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #4
+    /// #5
     #[account(
         mut,
         seeds = [MERCURIAL_VAULT_DEPOSITORY_NAMESPACE, depository.load()?.mercurial_vault.key().as_ref(), depository.load()?.collateral_mint.as_ref()],
@@ -48,7 +57,7 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub depository: AccountLoader<'info, MercurialVaultDepository>,
 
-    /// #5
+    /// #6
     #[account(
         mut,
         seeds = [REDEEMABLE_MINT_NAMESPACE],
@@ -56,7 +65,7 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
-    /// #6
+    /// #7
     #[account(
         mut,
         constraint = user_redeemable.mint == controller.load()?.redeemable_mint @UxdError::InvalidRedeemableMint,
@@ -64,10 +73,10 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #7
+    /// #8
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #8
+    /// #9
     #[account(
         mut,
         constraint = user_collateral.mint == depository.load()?.collateral_mint @UxdError::InvalidCollateralMint,
@@ -75,7 +84,7 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #9
+    /// #10
     /// Token account holding the LP tokens minted by depositing collateral on mercurial vault
     #[account(
         mut,
@@ -86,33 +95,33 @@ pub struct RedeemFromMercurialVaultDepository<'info> {
     )]
     pub depository_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
-    /// #10
+    /// #11
     #[account(
         mut,
         constraint = mercurial_vault.token_vault == mercurial_vault_collateral_token_safe.key() @UxdError::InvalidMercurialVaultCollateralTokenSafe,
     )]
     pub mercurial_vault: Box<Account<'info, mercurial_vault::state::Vault>>,
 
-    /// #11
+    /// #12
     #[account(mut)]
     pub mercurial_vault_lp_mint: Box<Account<'info, Mint>>,
 
-    /// #12
+    /// #13
     /// Token account owned by the mercurial vault program. Hold the collateral deposited in the mercurial vault.
     #[account(mut)]
     pub mercurial_vault_collateral_token_safe: Box<Account<'info, TokenAccount>>,
 
-    /// #13
+    /// #14
     pub mercurial_vault_program: Program<'info, mercurial_vault::program::Vault>,
 
-    /// #14
+    /// #15
     pub system_program: Program<'info, System>,
 
-    /// #15
+    /// #16
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handler(
+pub(crate) fn handler(
     ctx: Context<RedeemFromMercurialVaultDepository>,
     redeemable_amount: u64,
 ) -> Result<()> {
@@ -142,7 +151,7 @@ pub fn handler(
 
     let total_paid_fees = base_collateral_amount
         .checked_sub(collateral_amount_less_fees)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     // 2 - Calculate the right amount of lp token to withdraw to match collateral_amount_less_fees
     // This LP amount is subjected to precision loss (we handle this precision loss later)
@@ -175,7 +184,7 @@ pub fn handler(
 
     let collateral_balance_change = after_collateral_balance
         .checked_sub(before_collateral_balance)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     require!(
         collateral_balance_change > 0,
@@ -191,7 +200,7 @@ pub fn handler(
 
     let lp_token_change = before_lp_token_vault_balance
         .checked_sub(after_lp_token_vault_balance)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     require!(
         lp_token_change == lp_token_amount_to_match_collateral_amount_less_fees,
@@ -218,11 +227,11 @@ pub fn handler(
     // 9 - Update Onchain accounting to reflect the changes
     let redeemable_amount_change = i128::from(redeemable_amount)
         .checked_mul(-1)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     let collateral_amount_deposited_change = i128::from(collateral_balance_change)
         .checked_mul(-1)
-        .ok_or_else(|| error!(UxdError::MathError))?;
+        .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
     ctx.accounts
         .controller
@@ -279,7 +288,7 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
     ) -> Result<u64> {
         let current_time = u64::try_from(Clock::get()?.unix_timestamp)
             .ok()
-            .ok_or_else(|| error!(UxdError::MathError))?;
+            .ok_or_else(|| error!(UxdError::MathOverflow))?;
 
         // Because it's u64 type, we will never withdraw too much due to precision loss, but withdraw less.
         // The user pays for precision loss by getting less collateral.
@@ -289,7 +298,7 @@ impl<'info> RedeemFromMercurialVaultDepository<'info> {
                 target_collateral_value,
                 self.mercurial_vault_lp_mint.supply,
             )
-            .ok_or_else(|| error!(UxdError::MathError))
+            .ok_or_else(|| error!(UxdError::MathOverflow))
     }
 }
 

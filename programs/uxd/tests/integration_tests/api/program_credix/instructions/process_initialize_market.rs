@@ -3,6 +3,7 @@ use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
 use solana_program::pubkey::Pubkey;
 use solana_program_test::ProgramTestContext;
+use solana_sdk::clock::SECONDS_PER_DAY;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -29,6 +30,9 @@ pub async fn process_initialize_market(
     let treasury = program_credix::accounts::find_treasury(&multisig.pubkey());
     let treasury_pool_token_account =
         program_credix::accounts::find_treasury_pool_token_account(&treasury, base_token_mint);
+
+    // Each withdraw epoch will last 3 days each
+    let withdraw_epochs_seconds = 3 * u32::try_from(SECONDS_PER_DAY).unwrap();
 
     // Execute IX
     let accounts = credix_client::accounts::InitializeMarket {
@@ -60,9 +64,9 @@ pub async fn process_initialize_market(
             numerator: 1,
             denominator: 100,
         },
-        _withdraw_epoch_redeem_seconds: 3 * 24 * 60 * 60, // 3 days
-        _withdraw_epoch_available_liquidity_seconds: 3 * 24 * 60 * 60, // 3 days
-        _withdraw_epoch_request_seconds: 3 * 24 * 60 * 60, // 3 days
+        _withdraw_epoch_redeem_seconds: withdraw_epochs_seconds,
+        _withdraw_epoch_available_liquidity_seconds: withdraw_epochs_seconds,
+        _withdraw_epoch_request_seconds: withdraw_epochs_seconds,
     };
     let instruction = Instruction {
         program_id: credix_client::id(),

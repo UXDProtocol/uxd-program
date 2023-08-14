@@ -16,7 +16,7 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_credix_lp_depository_rebalance_no_overflow(
+async fn test_credix_lp_depository_rebalance_under_requested(
 ) -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
@@ -90,17 +90,22 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
 
     // Useful amounts used during testing scenario
     let amount_we_use_as_supply_cap =
-        ui_amount_to_native_amount(50_000_000, redeemable_mint_decimals);
+        ui_amount_to_native_amount(100_000_000, redeemable_mint_decimals);
 
     let amount_of_collateral_airdropped_to_user =
         ui_amount_to_native_amount(1_000_000_000, collateral_mint_decimals);
     let amount_the_user_should_be_able_to_mint =
         ui_amount_to_native_amount(50_000_000, collateral_mint_decimals);
 
+    let amount_deposited_by_competing_investor =
+        ui_amount_to_native_amount(200_000_000, collateral_mint_decimals);
+    let amount_requested_by_competing_investor =
+        ui_amount_to_native_amount(200_000_000, collateral_mint_decimals);
+
     // ---------------------------------------------------------------------
     // -- Phase 2
     // -- Prepare the program state to be ready,
-    // -- Mint a bunch using credix to fill it up above its target
+    // -- Set all depository caps for proper target computation
     // ---------------------------------------------------------------------
 
     // Airdrop collateral to our user
@@ -122,9 +127,9 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
-                identity_depository_weight_bps: 0,
-                mercurial_vault_depository_weight_bps: 0,
-                credix_lp_depository_weight_bps: 100 * 100,
+                identity_depository_weight_bps: 25 * 100,
+                mercurial_vault_depository_weight_bps: 25 * 100,
+                credix_lp_depository_weight_bps: 50 * 100,
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
@@ -187,7 +192,14 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
     )
     .await?;
 
-    // Minting on credix should work now that everything is set
+    // ---------------------------------------------------------------------
+    // -- Phase 3
+    // -- Mint some and then start the rebalancing process
+    // -- In between request and redeem, also do a new mint
+    // -- In this case, there should be enough liquidity, but not enough requested
+    // ---------------------------------------------------------------------
+
+    // Minting on credix should work, happens BEFORE the request
     program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_test_context,
         &payer,
@@ -199,11 +211,6 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
         amount_the_user_should_be_able_to_mint,
     )
     .await?;
-
-    // ---------------------------------------------------------------------
-    // -- Phase 2
-    // -- Do a complete rebalance, but no overflow should be needed, only profits
-    // ---------------------------------------------------------------------
 
     // Create an epoch (done by credix team usually)
     program_credix::instructions::process_create_withdraw_epoch(
@@ -221,6 +228,30 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
     )
     .await?;
 
+    // Minting on credix should work, but happens AFTER the request
+    program_uxd::instructions::process_mint_with_credix_lp_depository(
+        &mut program_test_context,
+        &payer,
+        &authority,
+        &collateral_mint.pubkey(),
+        &user,
+        &user_collateral,
+        &user_redeemable,
+        amount_the_user_should_be_able_to_mint,
+    )
+    .await?;
+
+    // Simulate a competing investor that will compete for our withdraw liquidity
+    program_credix::procedures::process_dummy_investor(
+        &mut program_test_context,
+        &credix_multisig,
+        &collateral_mint.pubkey(),
+        &collateral_mint,
+        amount_deposited_by_competing_investor,
+        amount_requested_by_competing_investor,
+    )
+    .await?;
+
     // Pretend 3 days have passed (the time for the request period)
     program_test_context::move_clock_forward(&mut program_test_context, 3 * SECONDS_PER_DAY, 1)
         .await?;
@@ -233,17 +264,27 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
     )
     .await?;
 
+    // Compute the expected rebalancing amounts
+    let expected_credix_profits_during_first_mint = amount_the_user_should_be_able_to_mint / 100; // 1% profit
+    let expected_credix_profits_during_second_mint = amount_the_user_should_be_able_to_mint / 100; // 1% profit
+
+    let expected_credix_first_mint_amount = amount_the_user_should_be_able_to_mint - 1; // precision loss included
+
+    let expected_credix_supply_after_first_mint =
+        expected_credix_first_mint_amount - expected_credix_profits_during_first_mint;
+
+    let expected_credix_overflow_after_first_mint =
+        expected_credix_supply_after_first_mint * 50 / 100; // 50% overflow (since credix is 50% weight)
+
     // Executing the rebalance request should now work as intended because we are in the execute period
-    let expected_credix_profits = amount_the_user_should_be_able_to_mint / 100; // minting fees 1%
     program_uxd::instructions::process_rebalance_redeem_withdraw_request_from_credix_lp_depository(
         &mut program_test_context,
         &payer,
         &collateral_mint.pubkey(),
         &credix_multisig.pubkey(),
         &profits_beneficiary_collateral,
-        0, // No overflow, no need to withdraw anything
-        expected_credix_profits // Profits should be withdrawn
-         - 1, // Precision loss expected to be taken out of the profits
+        expected_credix_overflow_after_first_mint - expected_credix_profits_during_second_mint - 1, // only a little rebalance (not enough requested)
+        expected_credix_profits_during_first_mint + expected_credix_profits_during_second_mint, // all profits withdrawn
     )
     .await?;
 

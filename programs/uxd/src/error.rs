@@ -28,8 +28,8 @@ pub enum UxdError {
     RedeemableMercurialVaultAmountUnderManagementCap,
     #[msg("Minting amount would go past the credix lp depository Redeemable Amount Under Management Cap.")]
     RedeemableCredixLpAmountUnderManagementCap,
-    #[msg("Math error.")]
-    MathError,
+    #[msg("Math overflow.")]
+    MathOverflow,
     #[msg("The order couldn't be executed with the provided slippage.")]
     SlippageReached,
     #[msg("A bump was expected but is missing.")]
@@ -119,7 +119,11 @@ pub enum UxdError {
     InvalidCredixWithdrawEpochRequestPhase,
     #[msg("The Credix WithdrawEpoch isn't in its redeem phase.")]
     InvalidCredixWithdrawEpochRedeemPhase,
-
     #[msg("Default - Check the source code for more info.")]
     Default,
+
+    #[msg("Redeem resulted into too much outflow in this epoch, please wait or try again with a smaller amount.")]
+    MaximumOutflowAmountError,
+    #[msg("The outflow_limit_per_epoch_bps is invalid: over 100%.")]
+    InvalidOutflowLimitPerEpochBps,
 }

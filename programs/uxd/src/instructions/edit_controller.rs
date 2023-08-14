@@ -1,10 +1,14 @@
 use crate::error::UxdError;
+use crate::events::SetOutflowLimitPerEpochAmountEvent;
+use crate::events::SetOutflowLimitPerEpochBpsEvent;
 use crate::events::SetRedeemableGlobalSupplyCapEvent;
 use crate::events::SetRouterDepositories;
 use crate::events::SetRouterDepositoriesWeightBps;
+use crate::events::SetSlotsPerEpochEvent;
+use crate::utils::checked_add;
 use crate::validate_is_program_frozen;
 use crate::Controller;
-use crate::BPS_UNIT_CONVERSION;
+use crate::BPS_POWER;
 use crate::CONTROLLER_NAMESPACE;
 use crate::MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP;
 use anchor_lang::prelude::*;
@@ -42,6 +46,9 @@ pub struct EditControllerFields {
     pub redeemable_global_supply_cap: Option<u128>,
     pub depositories_routing_weight_bps: Option<EditDepositoriesRoutingWeightBps>,
     pub router_depositories: Option<EditRouterDepositories>,
+    pub outflow_limit_per_epoch_amount: Option<u64>,
+    pub outflow_limit_per_epoch_bps: Option<u16>,
+    pub slots_per_epoch: Option<u64>,
 }
 
 pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerFields) -> Result<()> {
@@ -121,6 +128,46 @@ pub(crate) fn handler(ctx: Context<EditController>, fields: &EditControllerField
             redeemable_global_supply_cap
         });
     }
+
+    // Optionally edit "outflow_limit_per_epoch_amount"
+    if let Some(outflow_limit_per_epoch_amount) = fields.outflow_limit_per_epoch_amount {
+        msg!(
+            "[edit_controller] outflow_limit_per_epoch_amount {}",
+            outflow_limit_per_epoch_amount
+        );
+        controller.outflow_limit_per_epoch_amount = outflow_limit_per_epoch_amount;
+        emit!(SetOutflowLimitPerEpochAmountEvent {
+            version: controller.version,
+            controller: ctx.accounts.controller.key(),
+            outflow_limit_per_epoch_amount
+        });
+    }
+
+    // Optionally edit "outflow_limit_per_epoch_bps"
+    if let Some(outflow_limit_per_epoch_bps) = fields.outflow_limit_per_epoch_bps {
+        msg!(
+            "[edit_controller] outflow_limit_per_epoch_bps {}",
+            outflow_limit_per_epoch_bps
+        );
+        controller.outflow_limit_per_epoch_bps = outflow_limit_per_epoch_bps;
+        emit!(SetOutflowLimitPerEpochBpsEvent {
+            version: controller.version,
+            controller: ctx.accounts.controller.key(),
+            outflow_limit_per_epoch_bps
+        });
+    }
+
+    // Optionally edit "slots_per_epoch"
+    if let Some(slots_per_epoch) = fields.slots_per_epoch {
+        msg!("[edit_controller] slots_per_epoch {}", slots_per_epoch);
+        controller.slots_per_epoch = slots_per_epoch;
+        emit!(SetSlotsPerEpochEvent {
+            version: controller.version,
+            controller: ctx.accounts.controller.key(),
+            slots_per_epoch
+        });
+    }
+
     Ok(())
 }
 
@@ -139,15 +186,24 @@ impl<'info> EditController<'info> {
 
         // Validate the depositories_routing_weight_bps if specified
         if let Some(depositories_routing_weight_bps) = fields.depositories_routing_weight_bps {
-            let total_weight_bps = depositories_routing_weight_bps
-                .identity_depository_weight_bps
-                .checked_add(depositories_routing_weight_bps.mercurial_vault_depository_weight_bps)
-                .ok_or(UxdError::MathError)?
-                .checked_add(depositories_routing_weight_bps.credix_lp_depository_weight_bps)
-                .ok_or(UxdError::MathError)?;
+            let total_weight_bps = checked_add(
+                checked_add(
+                    depositories_routing_weight_bps.identity_depository_weight_bps,
+                    depositories_routing_weight_bps.mercurial_vault_depository_weight_bps,
+                )?,
+                depositories_routing_weight_bps.credix_lp_depository_weight_bps,
+            )?;
             require!(
-                u64::from(total_weight_bps) == BPS_UNIT_CONVERSION,
+                u64::from(total_weight_bps) == BPS_POWER,
                 UxdError::InvalidDepositoriesWeightBps
+            );
+        }
+
+        // Validate the outflow_limit_per_epoch_bps if specified
+        if let Some(outflow_limit_per_epoch_bps) = fields.outflow_limit_per_epoch_bps {
+            require!(
+                u64::from(outflow_limit_per_epoch_bps) <= BPS_POWER,
+                UxdError::InvalidOutflowLimitPerEpochBps
             );
         }
 

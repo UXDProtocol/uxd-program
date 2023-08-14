@@ -20,6 +20,7 @@ use crate::integration_tests::api::program_uxd;
 pub async fn process_mint_with_mercurial_vault_depository(
     program_test_context: &mut ProgramTestContext,
     payer: &Keypair,
+    authority: &Keypair,
     collateral_mint: &Pubkey,
     mercurial_vault_lp_mint: &Pubkey,
     user: &Keypair,
@@ -70,8 +71,9 @@ pub async fn process_mint_with_mercurial_vault_depository(
 
     // Execute IX
     let accounts = uxd::accounts::MintWithMercurialVaultDepository {
-        payer: payer.pubkey(),
+        authority: authority.pubkey(),
         user: user.pubkey(),
+        payer: payer.pubkey(),
         controller,
         collateral_mint: *collateral_mint,
         redeemable_mint,
@@ -92,11 +94,11 @@ pub async fn process_mint_with_mercurial_vault_depository(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signer(
+    program_test_context::process_instruction_with_signers(
         program_test_context,
         instruction,
         payer,
-        user,
+        &[authority, user],
     )
     .await?;
 
