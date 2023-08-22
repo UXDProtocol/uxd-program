@@ -5216,6 +5216,7 @@ dependencies = [
  "num 0.4.1",
  "num-traits",
  "proptest",
+ "solana-client",
  "solana-program",
  "solana-program-test",
  "solana-sdk",
