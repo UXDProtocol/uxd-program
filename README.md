@@ -2,7 +2,7 @@
 
 [![Anchor Test](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-anchor-test.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-anchor-test.yml)
 [![Lint and Test](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-lint-test.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-lint-test.yml)
-[![Sec3 Vulnerability Scanning](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-sec3-vulnerability-scanning.yml/badge.svg)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-sec3-vulnerability-scanning.yml)
+[![Sec3 Vulnerability Scanning](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-sec3-vulnerability-scanning.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-sec3-vulnerability-scanning.yml)
 [![Cargo Audit](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-audit.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-audit.yml)
 
 The actual deployed state of each contract should live in a protected master branch. The latest master should always reflect the code deployed to all relevant chains
