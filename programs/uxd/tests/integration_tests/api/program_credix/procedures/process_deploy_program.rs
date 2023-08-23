@@ -1,5 +1,5 @@
 use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -8,7 +8,7 @@ use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 
 pub async fn process_deploy_program(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     multisig: &Keypair,
     base_token_mint: &Pubkey,
 ) -> Result<(), program_test_context::ProgramTestError> {
@@ -18,7 +18,7 @@ pub async fn process_deploy_program(
 
     // Airdrop funds to the credix authority wallet, the multisig (acting as payer)
     program_spl::instructions::process_lamports_airdrop(
-        program_test_context,
+        program_runner,
         &multisig.pubkey(),
         1_000_000_000_000,
     )
@@ -26,14 +26,14 @@ pub async fn process_deploy_program(
 
     // Create associated token accounts for the authorities wallets
     program_spl::instructions::process_associated_token_account_get_or_init(
-        program_test_context,
+        program_runner,
         multisig,
         base_token_mint,
         &signing_authority,
     )
     .await?;
     program_spl::instructions::process_associated_token_account_get_or_init(
-        program_test_context,
+        program_runner,
         multisig,
         base_token_mint,
         &treasury,
@@ -41,12 +41,12 @@ pub async fn process_deploy_program(
     .await?;
 
     // Initialize the program state
-    program_credix::instructions::process_initialize_program_state(program_test_context, multisig)
+    program_credix::instructions::process_initialize_program_state(program_runner, multisig)
         .await?;
 
     // Initialize the global market state
     program_credix::instructions::process_initialize_market(
-        program_test_context,
+        program_runner,
         multisig,
         base_token_mint,
     )
@@ -54,7 +54,7 @@ pub async fn process_deploy_program(
 
     // Turn on the withdrawal epochs
     program_credix::instructions::process_update_global_market_state(
-        program_test_context,
+        program_runner,
         multisig,
         true,
     )

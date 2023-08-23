@@ -1,5 +1,5 @@
 use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -16,7 +16,7 @@ use crate::integration_tests::api::program_uxd;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn process_deploy_program(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Keypair,
@@ -44,7 +44,7 @@ pub async fn process_deploy_program(
 
     // Create the collateral mint
     program_spl::instructions::process_token_mint_init(
-        program_test_context,
+        program_runner,
         payer,
         collateral_mint,
         collateral_mint_decimals,
@@ -54,14 +54,14 @@ pub async fn process_deploy_program(
 
     // Controller setup
     program_uxd::instructions::process_initialize_controller(
-        program_test_context,
+        program_runner,
         payer,
         authority,
         redeemable_mint_decimals,
     )
     .await?;
     program_uxd::instructions::process_edit_controller(
-        program_test_context,
+        program_runner,
         payer,
         authority,
         &EditControllerFields {
@@ -77,14 +77,14 @@ pub async fn process_deploy_program(
 
     // Identity depository setup
     program_uxd::instructions::process_initialize_identity_depository(
-        program_test_context,
+        program_runner,
         payer,
         authority,
         &collateral_mint.pubkey(),
     )
     .await?;
     program_uxd::instructions::process_edit_identity_depository(
-        program_test_context,
+        program_runner,
         payer,
         authority,
         &EditIdentityDepositoryFields {
@@ -100,7 +100,7 @@ pub async fn process_deploy_program(
     let mercurial_admin = Keypair::new();
     let mercurial_vault_lp_mint_decimals = collateral_mint_decimals;
     program_mercurial::procedures::process_deploy_program(
-        program_test_context,
+        program_runner,
         &mercurial_admin,
         &collateral_mint.pubkey(),
         mercurial_vault_lp_mint,
@@ -108,7 +108,7 @@ pub async fn process_deploy_program(
     )
     .await?;
     program_mercurial::procedures::process_dummy_actors_behaviors(
-        program_test_context,
+        program_runner,
         collateral_mint,
         &mercurial_vault_lp_mint.pubkey(),
     )
@@ -116,7 +116,7 @@ pub async fn process_deploy_program(
 
     // Mercurial vault depository setup
     program_uxd::instructions::process_register_mercurial_vault_depository(
-        program_test_context,
+        program_runner,
         payer,
         authority,
         &collateral_mint.pubkey(),
@@ -127,7 +127,7 @@ pub async fn process_deploy_program(
     )
     .await?;
     program_uxd::instructions::process_edit_mercurial_vault_depository(
-        program_test_context,
+        program_runner,
         payer,
         authority,
         &collateral_mint.pubkey(),
@@ -147,13 +147,13 @@ pub async fn process_deploy_program(
 
     // Credix onchain dependency program deployment
     program_credix::procedures::process_deploy_program(
-        program_test_context,
+        program_runner,
         credix_multisig,
         &collateral_mint.pubkey(),
     )
     .await?;
     program_credix::procedures::process_dummy_actors_behaviors(
-        program_test_context,
+        program_runner,
         credix_multisig,
         &collateral_mint.pubkey(),
         collateral_mint,
@@ -171,7 +171,7 @@ pub async fn process_deploy_program(
     )
     .0;
     program_credix::instructions::process_create_credix_pass(
-        program_test_context,
+        program_runner,
         credix_multisig,
         &credix_lp_depository,
         &credix_client::instruction::CreateCredixPass {
@@ -187,7 +187,7 @@ pub async fn process_deploy_program(
 
     // Credix lp depository setup
     program_uxd::instructions::process_register_credix_lp_depository(
-        program_test_context,
+        program_runner,
         payer,
         authority,
         &collateral_mint.pubkey(),
@@ -197,7 +197,7 @@ pub async fn process_deploy_program(
     )
     .await?;
     program_uxd::instructions::process_edit_credix_lp_depository(
-        program_test_context,
+        program_runner,
         payer,
         authority,
         &collateral_mint.pubkey(),

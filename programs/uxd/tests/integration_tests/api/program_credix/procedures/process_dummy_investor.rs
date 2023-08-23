@@ -1,5 +1,5 @@
 use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -8,7 +8,7 @@ use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 
 pub async fn process_dummy_investor(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     multisig: &Keypair,
     base_token_mint: &Pubkey,
     base_token_authority: &Keypair,
@@ -29,7 +29,7 @@ pub async fn process_dummy_investor(
 
     // Airdrop lamports to the dummy investor wallet
     program_spl::instructions::process_lamports_airdrop(
-        program_test_context,
+        program_runner,
         &dummy_investor.pubkey(),
         1_000_000_000_000,
     )
@@ -38,7 +38,7 @@ pub async fn process_dummy_investor(
     // Create the investor ATAs
     let dummy_investor_token_account =
         program_spl::instructions::process_associated_token_account_get_or_init(
-            program_test_context,
+            program_runner,
             &dummy_investor,
             base_token_mint,
             &dummy_investor.pubkey(),
@@ -46,7 +46,7 @@ pub async fn process_dummy_investor(
         .await?;
     let dummy_investor_lp_token_account =
         program_spl::instructions::process_associated_token_account_get_or_init(
-            program_test_context,
+            program_runner,
             &dummy_investor,
             &lp_token_mint,
             &dummy_investor.pubkey(),
@@ -55,7 +55,7 @@ pub async fn process_dummy_investor(
 
     // Give collateral (base token) to our dummy investor
     program_spl::instructions::process_token_mint_to(
-        program_test_context,
+        program_runner,
         &dummy_investor,
         base_token_mint,
         base_token_authority,
@@ -72,7 +72,7 @@ pub async fn process_dummy_investor(
 
     // Create the credix-pass for the dummy investor
     program_credix::instructions::process_create_credix_pass(
-        program_test_context,
+        program_runner,
         multisig,
         &dummy_investor.pubkey(),
         &credix_client::instruction::CreateCredixPass {
@@ -88,7 +88,7 @@ pub async fn process_dummy_investor(
 
     // The dummy investor will do a dummy deposit
     program_credix::instructions::process_deposit_funds(
-        program_test_context,
+        program_runner,
         base_token_mint,
         &dummy_investor,
         &dummy_investor_token_account,
@@ -100,7 +100,7 @@ pub async fn process_dummy_investor(
     // The dummy investor will optionally create a dummy withdraw request
     if investor_withdraw_request_amount > 0 {
         program_credix::instructions::process_create_withdraw_request(
-            program_test_context,
+            program_runner,
             base_token_mint,
             &dummy_investor,
             &dummy_investor_lp_token_account,

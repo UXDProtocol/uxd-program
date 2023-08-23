@@ -1,5 +1,5 @@
 use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -12,7 +12,7 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_set_router_depositories(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Pubkey,
@@ -40,7 +40,7 @@ pub async fn process_set_router_depositories(
 
     // Set the controller's depositories addresses
     program_uxd::instructions::process_edit_controller(
-        program_test_context,
+        program_runner,
         payer,
         authority,
         &EditControllerFields {

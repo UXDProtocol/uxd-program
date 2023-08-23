@@ -15,12 +15,12 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
     // -- Setup basic context and accounts needed for this test suite
     // ---------------------------------------------------------------------
 
-    let mut program_test_context = program_test_context::create_program_test_context().await;
+    let mut program_runner = program_test_context::create_program_test_context().await;
 
     // Fund payer
     let payer = Keypair::new();
     program_spl::instructions::process_lamports_airdrop(
-        &mut program_test_context,
+        &mut program_runner,
         &payer.pubkey(),
         1_000_000_000_000,
     )
@@ -38,7 +38,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint,
@@ -51,7 +51,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
 
     // Initialize some ATAs
     let payer_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &collateral_mint.pubkey(),
         &payer.pubkey(),
@@ -59,7 +59,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
     .await?;
     let authority_collateral =
         program_spl::instructions::process_associated_token_account_get_or_init(
-            &mut program_test_context,
+            &mut program_runner,
             &payer,
             &collateral_mint.pubkey(),
             &authority.pubkey(),
@@ -73,7 +73,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
 
     // Change redeemable_amount_under_management_cap
     program_uxd::instructions::process_edit_credix_lp_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -89,7 +89,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
 
     // Change minting_fee_in_bps
     program_uxd::instructions::process_edit_credix_lp_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -105,7 +105,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
 
     // Change redeeming_fee_in_bps
     program_uxd::instructions::process_edit_credix_lp_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -121,7 +121,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
 
     // Change minting_disabled
     program_uxd::instructions::process_edit_credix_lp_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -137,7 +137,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
 
     // Change profits_beneficiary_collateral
     program_uxd::instructions::process_edit_credix_lp_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -159,7 +159,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
     // Change everything, using the wrong authority (should fail)
     assert!(
         program_uxd::instructions::process_edit_credix_lp_depository(
-            &mut program_test_context,
+            &mut program_runner,
             &payer,
             &payer,
             &collateral_mint.pubkey(),
@@ -177,7 +177,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
 
     // Change everything, using the correct authority (should succeed)
     program_uxd::instructions::process_edit_credix_lp_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -193,7 +193,7 @@ async fn test_credix_lp_depository_edit() -> Result<(), program_test_context::Pr
 
     // Change nothing, using the correct authority (should succeed)
     program_uxd::instructions::process_edit_credix_lp_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint.pubkey(),

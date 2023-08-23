@@ -18,12 +18,12 @@ async fn test_identity_depository_mint_and_redeem(
     // -- Setup basic context and accounts needed for this test suite
     // ---------------------------------------------------------------------
 
-    let mut program_test_context = program_test_context::create_program_test_context().await;
+    let mut program_runner = program_test_context::create_program_test_context().await;
 
     // Fund payer
     let payer = Keypair::new();
     program_spl::instructions::process_lamports_airdrop(
-        &mut program_test_context,
+        &mut program_runner,
         &payer.pubkey(),
         1_000_000_000_000,
     )
@@ -41,7 +41,7 @@ async fn test_identity_depository_mint_and_redeem(
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint,
@@ -57,7 +57,7 @@ async fn test_identity_depository_mint_and_redeem(
 
     // Create a collateral account for our user
     let user_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &collateral_mint.pubkey(),
         &user.pubkey(),
@@ -65,7 +65,7 @@ async fn test_identity_depository_mint_and_redeem(
     .await?;
     // Create a redeemable account for our user
     let user_redeemable = program_spl::instructions::process_associated_token_account_get_or_init(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &program_uxd::accounts::find_redeemable_mint_pda().0,
         &user.pubkey(),
@@ -98,7 +98,7 @@ async fn test_identity_depository_mint_and_redeem(
     // Minting should fail because the user doesnt have collateral yet
     assert!(
         program_uxd::instructions::process_mint_with_identity_depository(
-            &mut program_test_context,
+            &mut program_runner,
             &payer,
             &authority,
             &user,
@@ -112,7 +112,7 @@ async fn test_identity_depository_mint_and_redeem(
 
     // Airdrop collateral to our user
     program_spl::instructions::process_token_mint_to(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &collateral_mint.pubkey(),
         &collateral_mint,
@@ -124,7 +124,7 @@ async fn test_identity_depository_mint_and_redeem(
     // Minting should fail because the controller cap is too low
     assert!(
         program_uxd::instructions::process_mint_with_identity_depository(
-            &mut program_test_context,
+            &mut program_runner,
             &payer,
             &authority,
             &user,
@@ -138,7 +138,7 @@ async fn test_identity_depository_mint_and_redeem(
 
     // Set the controller cap
     program_uxd::instructions::process_edit_controller(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditControllerFields {
@@ -155,7 +155,7 @@ async fn test_identity_depository_mint_and_redeem(
     // Minting should fail because the depository cap is too low
     assert!(
         program_uxd::instructions::process_mint_with_identity_depository(
-            &mut program_test_context,
+            &mut program_runner,
             &payer,
             &authority,
             &user,
@@ -169,7 +169,7 @@ async fn test_identity_depository_mint_and_redeem(
 
     // Set the depository cap and make sure minting is not disabled
     program_uxd::instructions::process_edit_identity_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditIdentityDepositoryFields {
@@ -182,7 +182,7 @@ async fn test_identity_depository_mint_and_redeem(
     // Minting too much should fail (above cap, but enough collateral)
     assert!(
         program_uxd::instructions::process_mint_with_identity_depository(
-            &mut program_test_context,
+            &mut program_runner,
             &payer,
             &authority,
             &user,
@@ -197,7 +197,7 @@ async fn test_identity_depository_mint_and_redeem(
     // Minting zero should fail
     assert!(
         program_uxd::instructions::process_mint_with_identity_depository(
-            &mut program_test_context,
+            &mut program_runner,
             &payer,
             &authority,
             &user,
@@ -219,7 +219,7 @@ async fn test_identity_depository_mint_and_redeem(
 
     // Minting should work now that everything is set
     program_uxd::instructions::process_mint_with_identity_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &user,
@@ -231,7 +231,7 @@ async fn test_identity_depository_mint_and_redeem(
 
     // Redeeming the correct amount should succeed
     program_uxd::instructions::process_redeem_from_identity_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &user,
@@ -244,7 +244,7 @@ async fn test_identity_depository_mint_and_redeem(
     // Redeeming too much should fail
     assert!(
         program_uxd::instructions::process_redeem_from_identity_depository(
-            &mut program_test_context,
+            &mut program_runner,
             &payer,
             &authority,
             &user,
@@ -259,7 +259,7 @@ async fn test_identity_depository_mint_and_redeem(
     // Redeeming zero should fail
     assert!(
         program_uxd::instructions::process_redeem_from_identity_depository(
-            &mut program_test_context,
+            &mut program_runner,
             &payer,
             &authority,
             &user,

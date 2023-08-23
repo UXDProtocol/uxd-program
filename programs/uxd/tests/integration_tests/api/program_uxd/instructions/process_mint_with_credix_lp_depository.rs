@@ -2,7 +2,7 @@ use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
 use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use spl_token::state::Account;
@@ -20,7 +20,7 @@ use crate::integration_tests::api::program_uxd;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn process_mint_with_credix_lp_depository(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Pubkey,
@@ -65,24 +65,23 @@ pub async fn process_mint_with_credix_lp_depository(
 
     // Read state before
     let redeemable_mint_before =
-        program_test_context::read_account_packed::<Mint>(program_test_context, &redeemable_mint)
-            .await?;
+        program_test_context::read_account_packed::<Mint>(program_runner, &redeemable_mint).await?;
     let controller_before =
-        program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
+        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
             .await?;
     let credix_lp_depository_before =
         program_test_context::read_account_anchor::<CredixLpDepository>(
-            program_test_context,
+            program_runner,
             &credix_lp_depository,
         )
         .await?;
 
     let user_collateral_amount_before =
-        program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
+        program_test_context::read_account_packed::<Account>(program_runner, user_collateral)
             .await?
             .amount;
     let user_redeemable_amount_before =
-        program_test_context::read_account_packed::<Account>(program_test_context, user_redeemable)
+        program_test_context::read_account_packed::<Account>(program_runner, user_redeemable)
             .await?
             .amount;
 
@@ -117,7 +116,7 @@ pub async fn process_mint_with_credix_lp_depository(
         data: payload.data(),
     };
     program_test_context::process_instruction_with_signers(
-        program_test_context,
+        program_runner,
         instruction,
         payer,
         &[authority, user],
@@ -126,31 +125,30 @@ pub async fn process_mint_with_credix_lp_depository(
 
     // Read state after
     let redeemable_mint_after =
-        program_test_context::read_account_packed::<Mint>(program_test_context, &redeemable_mint)
-            .await?;
+        program_test_context::read_account_packed::<Mint>(program_runner, &redeemable_mint).await?;
     let controller_after =
-        program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
+        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
             .await?;
     let credix_lp_depository_after =
         program_test_context::read_account_anchor::<CredixLpDepository>(
-            program_test_context,
+            program_runner,
             &credix_lp_depository,
         )
         .await?;
 
     let user_collateral_amount_after =
-        program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
+        program_test_context::read_account_packed::<Account>(program_runner, user_collateral)
             .await?
             .amount;
     let user_redeemable_amount_after =
-        program_test_context::read_account_packed::<Account>(program_test_context, user_redeemable)
+        program_test_context::read_account_packed::<Account>(program_runner, user_redeemable)
             .await?
             .amount;
 
     // Compute collateral amount deposited after precision loss
     let collateral_amount_after_precision_loss =
         process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
-            program_test_context,
+            program_runner,
             collateral_mint,
             collateral_amount,
         )
@@ -228,7 +226,7 @@ pub async fn process_mint_with_credix_lp_depository(
 }
 
 pub async fn process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     collateral_mint: &Pubkey,
     collateral_amount: u64,
 ) -> Result<u64, program_test_context::ProgramTestError> {
@@ -246,19 +244,17 @@ pub async fn process_mint_with_credix_lp_depository_collateral_amount_after_prec
     );
 
     // Fetch information from onchain credix lp pool, to be able to predict precision loss
-    let credix_shares_mint_supply = program_test_context::read_account_packed::<Mint>(
-        program_test_context,
-        &credix_shares_mint,
-    )
-    .await?
-    .supply;
+    let credix_shares_mint_supply =
+        program_test_context::read_account_packed::<Mint>(program_runner, &credix_shares_mint)
+            .await?
+            .supply;
     let credix_pool_outstanding_credit = program_test_context::read_account_anchor::<
         credix_client::GlobalMarketState,
-    >(program_test_context, &credix_global_market_state)
+    >(program_runner, &credix_global_market_state)
     .await?
     .pool_outstanding_credit;
     let credix_liquidity_collateral_amount = program_test_context::read_account_packed::<Account>(
-        program_test_context,
+        program_runner,
         &credix_liquidity_collateral,
     )
     .await?

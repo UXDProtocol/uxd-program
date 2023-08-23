@@ -23,12 +23,12 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
     // -- Setup basic context and accounts needed for this test suite
     // ---------------------------------------------------------------------
 
-    let mut program_test_context = program_test_context::create_program_test_context().await;
+    let mut program_runner = program_test_context::create_program_test_context().await;
 
     // Fund payer
     let payer = Keypair::new();
     program_spl::instructions::process_lamports_airdrop(
-        &mut program_test_context,
+        &mut program_runner,
         &payer.pubkey(),
         1_000_000_000_000,
     )
@@ -46,7 +46,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint,
@@ -63,7 +63,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
 
     // Create a collateral account for our user
     let user_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &collateral_mint.pubkey(),
         &user.pubkey(),
@@ -71,7 +71,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
     .await?;
     // Create a redeemable account for our user
     let user_redeemable = program_spl::instructions::process_associated_token_account_get_or_init(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &program_uxd::accounts::find_redeemable_mint_pda().0,
         &user.pubkey(),
@@ -81,7 +81,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
     // Create a collateral account for our profits_beneficiary
     let profits_beneficiary_collateral =
         program_spl::instructions::process_associated_token_account_get_or_init(
-            &mut program_test_context,
+            &mut program_runner,
             &payer,
             &collateral_mint.pubkey(),
             &profits_beneficiary.pubkey(),
@@ -105,7 +105,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
 
     // Airdrop collateral to our user
     program_spl::instructions::process_token_mint_to(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &collateral_mint.pubkey(),
         &collateral_mint,
@@ -116,7 +116,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
 
     // Set the controller cap and the weights
     program_uxd::instructions::process_edit_controller(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditControllerFields {
@@ -136,7 +136,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
 
     // Now we set the router depositories to the correct PDAs
     program_uxd::procedures::process_set_router_depositories(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -145,7 +145,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
 
     // Set the identity_depository cap and make sure minting is not disabled
     program_uxd::instructions::process_edit_identity_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditIdentityDepositoryFields {
@@ -157,7 +157,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
 
     // Set the mercurial_vault_depository cap and make sure minting is not disabled
     program_uxd::instructions::process_edit_mercurial_vault_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -173,7 +173,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
 
     // Set the credix_lp_depository cap and make sure minting is not disabled
     program_uxd::instructions::process_edit_credix_lp_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -189,7 +189,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
 
     // Minting on credix should work now that everything is set
     program_uxd::instructions::process_mint_with_credix_lp_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
@@ -207,7 +207,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
 
     // Create an epoch (done by credix team usually)
     program_credix::instructions::process_create_withdraw_epoch(
-        &mut program_test_context,
+        &mut program_runner,
         &credix_multisig,
         1,
     )
@@ -215,19 +215,18 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
 
     // Since the epoch was just created it should be available to create a WithdrawRequest
     program_uxd::instructions::process_rebalance_create_withdraw_request_from_credix_lp_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &collateral_mint.pubkey(),
     )
     .await?;
 
     // Pretend 3 days have passed (the time for the request period)
-    program_test_context::move_clock_forward(&mut program_test_context, 3 * SECONDS_PER_DAY, 1)
-        .await?;
+    program_test_context::move_clock_forward(&mut program_runner, 3 * SECONDS_PER_DAY, 1).await?;
 
     // Set the epoch's locked liquidity (done by credix team usually)
     program_credix::instructions::process_set_locked_liquidity(
-        &mut program_test_context,
+        &mut program_runner,
         &credix_multisig,
         &collateral_mint.pubkey(),
     )
@@ -236,7 +235,7 @@ async fn test_credix_lp_depository_rebalance_no_overflow(
     // Executing the rebalance request should now work as intended because we are in the execute period
     let expected_credix_profits = amount_the_user_should_be_able_to_mint / 100; // minting fees 1%
     program_uxd::instructions::process_rebalance_redeem_withdraw_request_from_credix_lp_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &collateral_mint.pubkey(),
         &credix_multisig.pubkey(),

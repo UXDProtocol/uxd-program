@@ -2,7 +2,6 @@ use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
 use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -14,7 +13,7 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_edit_mercurial_vault_depository(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Pubkey,
@@ -34,7 +33,7 @@ pub async fn process_edit_mercurial_vault_depository(
     // Read state before
     let mercurial_vault_depository_before = program_test_context::read_account_anchor::<
         MercurialVaultDepository,
-    >(program_test_context, &mercurial_vault_depository)
+    >(program_runner, &mercurial_vault_depository)
     .await?;
 
     // Execute IX
@@ -50,7 +49,7 @@ pub async fn process_edit_mercurial_vault_depository(
         data: payload.data(),
     };
     program_test_context::process_instruction_with_signer(
-        program_test_context,
+        program_runner,
         instruction,
         payer,
         authority,
@@ -60,7 +59,7 @@ pub async fn process_edit_mercurial_vault_depository(
     // Read state after
     let mercurial_vault_depository_after = program_test_context::read_account_anchor::<
         MercurialVaultDepository,
-    >(program_test_context, &mercurial_vault_depository)
+    >(program_runner, &mercurial_vault_depository)
     .await?;
 
     // redeemable_amount_under_management_cap must have been updated if specified in fields

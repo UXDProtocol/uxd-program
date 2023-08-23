@@ -2,7 +2,7 @@ use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
 use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use spl_token::state::Account;
@@ -15,7 +15,7 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_mint_with_identity_depository(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     payer: &Keypair,
     authority: &Keypair,
     user: &Keypair,
@@ -32,24 +32,23 @@ pub async fn process_mint_with_identity_depository(
 
     // Read state before
     let redeemable_mint_before =
-        program_test_context::read_account_packed::<Mint>(program_test_context, &redeemable_mint)
-            .await?;
+        program_test_context::read_account_packed::<Mint>(program_runner, &redeemable_mint).await?;
     let controller_before =
-        program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
+        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
             .await?;
     let identity_depository_before =
         program_test_context::read_account_anchor::<IdentityDepository>(
-            program_test_context,
+            program_runner,
             &identity_depository,
         )
         .await?;
 
     let user_collateral_amount_before =
-        program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
+        program_test_context::read_account_packed::<Account>(program_runner, user_collateral)
             .await?
             .amount;
     let user_redeemable_amount_before =
-        program_test_context::read_account_packed::<Account>(program_test_context, user_redeemable)
+        program_test_context::read_account_packed::<Account>(program_runner, user_redeemable)
             .await?
             .amount;
 
@@ -74,7 +73,7 @@ pub async fn process_mint_with_identity_depository(
         data: payload.data(),
     };
     program_test_context::process_instruction_with_signers(
-        program_test_context,
+        program_runner,
         instruction,
         payer,
         &[authority, user],
@@ -83,24 +82,23 @@ pub async fn process_mint_with_identity_depository(
 
     // Read state after
     let redeemable_mint_after =
-        program_test_context::read_account_packed::<Mint>(program_test_context, &redeemable_mint)
-            .await?;
+        program_test_context::read_account_packed::<Mint>(program_runner, &redeemable_mint).await?;
     let controller_after =
-        program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
+        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
             .await?;
     let identity_depository_after =
         program_test_context::read_account_anchor::<IdentityDepository>(
-            program_test_context,
+            program_runner,
             &identity_depository,
         )
         .await?;
 
     let user_collateral_amount_after =
-        program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
+        program_test_context::read_account_packed::<Account>(program_runner, user_collateral)
             .await?
             .amount;
     let user_redeemable_amount_after =
-        program_test_context::read_account_packed::<Account>(program_test_context, user_redeemable)
+        program_test_context::read_account_packed::<Account>(program_runner, user_redeemable)
             .await?
             .amount;
 

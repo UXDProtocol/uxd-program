@@ -2,7 +2,7 @@ use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
 use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -10,7 +10,7 @@ use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
 
 pub async fn process_repay_deal(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     borrower: &Keypair,
     borrower_token_account: &Pubkey,
     multisig: &Pubkey,
@@ -80,5 +80,5 @@ pub async fn process_repay_deal(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, borrower).await
+    program_test_context::process_instruction(program_runner, instruction, borrower).await
 }

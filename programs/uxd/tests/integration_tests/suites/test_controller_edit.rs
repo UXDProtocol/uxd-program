@@ -18,12 +18,12 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
     // -- Setup basic context and accounts needed for this test suite
     // ---------------------------------------------------------------------
 
-    let mut program_test_context = program_test_context::create_program_test_context().await;
+    let mut program_runner = program_test_context::create_program_test_context().await;
 
     // Fund payer
     let payer = Keypair::new();
     program_spl::instructions::process_lamports_airdrop(
-        &mut program_test_context,
+        &mut program_runner,
         &payer.pubkey(),
         1_000_000_000_000,
     )
@@ -41,7 +41,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint,
@@ -59,7 +59,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
 
     // Using the wrong authority should fail
     assert!(program_uxd::instructions::process_edit_controller(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &payer,
         &EditControllerFields {
@@ -76,7 +76,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
 
     // Using the correct authority should succeed
     program_uxd::instructions::process_edit_controller(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditControllerFields {
@@ -92,7 +92,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
 
     // Setting weights that dont add up to 100% should fail
     assert!(program_uxd::instructions::process_edit_controller(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditControllerFields {
@@ -113,7 +113,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
 
     // Setting weights that add up to 100% should succeed
     program_uxd::instructions::process_edit_controller(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditControllerFields {
@@ -133,7 +133,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
 
     // Using the correct authority should allow to edit depositories addresses
     program_uxd::instructions::process_edit_controller(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditControllerFields {
@@ -153,7 +153,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
 
     // Using None should succeed
     program_uxd::instructions::process_edit_controller(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditControllerFields {
@@ -169,7 +169,7 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
 
     // Setting everything at once should succeed
     program_uxd::instructions::process_edit_controller(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditControllerFields {

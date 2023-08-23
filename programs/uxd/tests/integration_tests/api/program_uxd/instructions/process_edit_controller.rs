@@ -1,7 +1,7 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
-use solana_program_test::ProgramTestContext;
+
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -12,7 +12,7 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_edit_controller(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     payer: &Keypair,
     authority: &Keypair,
     fields: &EditControllerFields,
@@ -22,7 +22,7 @@ pub async fn process_edit_controller(
 
     // Read state before
     let controller_before =
-        program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
+        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
             .await?;
 
     // Execute IX
@@ -37,7 +37,7 @@ pub async fn process_edit_controller(
         data: payload.data(),
     };
     program_test_context::process_instruction_with_signer(
-        program_test_context,
+        program_runner,
         instruction,
         payer,
         authority,
@@ -46,7 +46,7 @@ pub async fn process_edit_controller(
 
     // Read state after
     let controller_after =
-        program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
+        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
             .await?;
 
     // redeemable_global_supply_cap must have been updated if specified in fields

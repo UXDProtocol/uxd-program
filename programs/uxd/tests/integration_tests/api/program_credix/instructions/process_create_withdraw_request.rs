@@ -2,7 +2,7 @@ use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
 use solana_program::instruction::Instruction;
 use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -10,7 +10,7 @@ use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
 
 pub async fn process_create_withdraw_request(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     base_token_mint: &Pubkey,
     investor: &Keypair,
     investor_lp_token_account: &Pubkey,
@@ -31,7 +31,7 @@ pub async fn process_create_withdraw_request(
 
     // Find the next withdraw epoch account
     let epoch_idx = program_test_context::read_account_anchor::<credix_client::GlobalMarketState>(
-        program_test_context,
+        program_runner,
         &global_market_state,
     )
     .await?
@@ -65,5 +65,5 @@ pub async fn process_create_withdraw_request(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, investor).await
+    program_test_context::process_instruction(program_runner, instruction, investor).await
 }

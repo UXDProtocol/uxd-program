@@ -15,12 +15,12 @@ async fn test_identity_depository_edit() -> Result<(), program_test_context::Pro
     // -- Setup basic context and accounts needed for this test suite
     // ---------------------------------------------------------------------
 
-    let mut program_test_context = program_test_context::create_program_test_context().await;
+    let mut program_runner = program_test_context::create_program_test_context().await;
 
     // Fund payer
     let payer = Keypair::new();
     program_spl::instructions::process_lamports_airdrop(
-        &mut program_test_context,
+        &mut program_runner,
         &payer.pubkey(),
         1_000_000_000_000,
     )
@@ -38,7 +38,7 @@ async fn test_identity_depository_edit() -> Result<(), program_test_context::Pro
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &collateral_mint,
@@ -56,7 +56,7 @@ async fn test_identity_depository_edit() -> Result<(), program_test_context::Pro
 
     // Change redeemable_amount_under_management_cap
     program_uxd::instructions::process_edit_identity_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditIdentityDepositoryFields {
@@ -68,7 +68,7 @@ async fn test_identity_depository_edit() -> Result<(), program_test_context::Pro
 
     // Change minting_disabled
     program_uxd::instructions::process_edit_identity_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditIdentityDepositoryFields {
@@ -85,7 +85,7 @@ async fn test_identity_depository_edit() -> Result<(), program_test_context::Pro
 
     // Change everything, using the wrong authority (should fail)
     assert!(program_uxd::instructions::process_edit_identity_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &payer,
         &EditIdentityDepositoryFields {
@@ -98,7 +98,7 @@ async fn test_identity_depository_edit() -> Result<(), program_test_context::Pro
 
     // Change everything, using the correct authority (should succeed)
     program_uxd::instructions::process_edit_identity_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditIdentityDepositoryFields {
@@ -110,7 +110,7 @@ async fn test_identity_depository_edit() -> Result<(), program_test_context::Pro
 
     // Change nothing, using the correct authority (should succeed)
     program_uxd::instructions::process_edit_identity_depository(
-        &mut program_test_context,
+        &mut program_runner,
         &payer,
         &authority,
         &EditIdentityDepositoryFields {

@@ -1,9 +1,7 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
-use solana_program::clock::Clock;
 use solana_program::instruction::Instruction;
 use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
 use solana_sdk::clock::SECONDS_PER_DAY;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
@@ -12,7 +10,7 @@ use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_test_context;
 
 pub async fn process_set_repayment_schedule(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     multisig: &Keypair,
     borrower: &Pubkey,
     deal_number: u16,
@@ -29,12 +27,7 @@ pub async fn process_set_repayment_schedule(
         program_credix::accounts::find_repayment_schedule_pda(&global_market_state, &deal).0;
 
     // Start the deal now
-    let unix_timestamp_now = program_test_context
-        .banks_client
-        .get_sysvar::<Clock>()
-        .await
-        .map_err(program_test_context::ProgramTestError::BanksClient)?
-        .unix_timestamp;
+    let unix_timestamp_now = program_runner.get_clock_unix_timestamp().await?;
 
     // Execute IX
     let accounts = credix_client::accounts::SetRepaymentSchedule {
@@ -93,5 +86,5 @@ pub async fn process_set_repayment_schedule(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, multisig).await
+    program_test_context::process_instruction(program_runner, instruction, multisig).await
 }

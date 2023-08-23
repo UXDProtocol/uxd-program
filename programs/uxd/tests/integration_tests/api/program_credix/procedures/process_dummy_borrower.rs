@@ -1,5 +1,5 @@
 use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -8,7 +8,7 @@ use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 
 pub async fn process_dummy_borrower(
-    program_test_context: &mut ProgramTestContext,
+    program_runner: &mut dyn program_test_context::ProgramRunner,
     multisig: &Keypair,
     base_token_mint: &Pubkey,
     base_token_authority: &Keypair,
@@ -27,7 +27,7 @@ pub async fn process_dummy_borrower(
 
     // Airdrop lamports to the dummy borrower wallet
     program_spl::instructions::process_lamports_airdrop(
-        program_test_context,
+        program_runner,
         &dummy_borrower.pubkey(),
         1_000_000_000_000,
     )
@@ -36,7 +36,7 @@ pub async fn process_dummy_borrower(
     // Create the borrower ATAs
     let dummy_borrower_token_account =
         program_spl::instructions::process_associated_token_account_get_or_init(
-            program_test_context,
+            program_runner,
             &dummy_borrower,
             base_token_mint,
             &dummy_borrower.pubkey(),
@@ -45,7 +45,7 @@ pub async fn process_dummy_borrower(
 
     // Give some collateral (base token) to our dummy borrower
     program_spl::instructions::process_token_mint_to(
-        program_test_context,
+        program_runner,
         &dummy_borrower,
         base_token_mint,
         base_token_authority,
@@ -56,7 +56,7 @@ pub async fn process_dummy_borrower(
 
     // Create the credix-pass for the dummy investor
     program_credix::instructions::process_create_credix_pass(
-        program_test_context,
+        program_runner,
         multisig,
         &dummy_borrower.pubkey(),
         &credix_client::instruction::CreateCredixPass {
@@ -77,14 +77,14 @@ pub async fn process_dummy_borrower(
     // ---------------------------------------------------------------------
 
     program_credix::instructions::process_create_deal(
-        program_test_context,
+        program_runner,
         multisig,
         &dummy_borrower.pubkey(),
         0,
     )
     .await?;
     program_credix::instructions::process_set_repayment_schedule(
-        program_test_context,
+        program_runner,
         multisig,
         &dummy_borrower.pubkey(),
         0,
@@ -92,7 +92,7 @@ pub async fn process_dummy_borrower(
     )
     .await?;
     program_credix::instructions::process_set_tranches(
-        program_test_context,
+        program_runner,
         multisig,
         &dummy_borrower.pubkey(),
         0,
@@ -101,14 +101,14 @@ pub async fn process_dummy_borrower(
     )
     .await?;
     program_credix::instructions::process_open_deal(
-        program_test_context,
+        program_runner,
         multisig,
         &dummy_borrower.pubkey(),
         0,
     )
     .await?;
     program_credix::instructions::process_activate_deal(
-        program_test_context,
+        program_runner,
         multisig,
         &dummy_borrower.pubkey(),
         0,
@@ -123,7 +123,7 @@ pub async fn process_dummy_borrower(
     // ---------------------------------------------------------------------
 
     program_credix::instructions::process_withdraw_from_deal(
-        program_test_context,
+        program_runner,
         &dummy_borrower,
         &dummy_borrower_token_account,
         0,
@@ -133,7 +133,7 @@ pub async fn process_dummy_borrower(
     .await?;
 
     program_credix::instructions::process_repay_deal(
-        program_test_context,
+        program_runner,
         &dummy_borrower,
         &dummy_borrower_token_account,
         &multisig.pubkey(),
