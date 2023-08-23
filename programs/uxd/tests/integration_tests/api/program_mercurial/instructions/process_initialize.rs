@@ -5,15 +5,15 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_mercurial;
-use crate::integration_tests::api::program_test_context;
 
 pub async fn process_initialize(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     admin: &Keypair,
     token_mint: &Pubkey,
     lp_mint: &Pubkey,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let base = program_mercurial::accounts::find_base();
     let vault = program_mercurial::accounts::find_vault_pda(token_mint, &base.pubkey()).0;
@@ -40,6 +40,6 @@ pub async fn process_initialize(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signer(program_runner, instruction, admin, &base)
+    program_context::process_instruction_with_signer(program_context, instruction, admin, &base)
         .await
 }

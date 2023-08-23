@@ -5,17 +5,17 @@ use solana_sdk::signer::Signer;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditRouterDepositories;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
-use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_set_router_depositories(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Pubkey,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find the important PDAs to resolve the depositories address to be whitelisted
     let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
 
@@ -39,7 +39,7 @@ pub async fn process_set_router_depositories(
 
     // Set the controller's depositories addresses
     program_uxd::instructions::process_edit_controller(
-        program_runner,
+        program_context,
         payer,
         authority,
         &EditControllerFields {

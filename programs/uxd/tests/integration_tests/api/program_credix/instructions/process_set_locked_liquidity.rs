@@ -5,14 +5,14 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
-use crate::integration_tests::api::program_test_context;
 
 pub async fn process_set_locked_liquidity(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     multisig: &Keypair,
     base_token_mint: &Pubkey,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
     let global_market_state =
@@ -24,9 +24,9 @@ pub async fn process_set_locked_liquidity(
     );
 
     // Find the current withdraw request account
-    let latest_withdraw_epoch_idx = program_test_context::read_account_anchor::<
+    let latest_withdraw_epoch_idx = program_context::read_account_anchor::<
         credix_client::GlobalMarketState,
-    >(program_runner, &global_market_state)
+    >(program_context, &global_market_state)
     .await?
     .latest_withdraw_epoch_idx;
     let withdraw_epoch = program_credix::accounts::find_withdraw_epoch_pda(
@@ -50,5 +50,5 @@ pub async fn process_set_locked_liquidity(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_runner, instruction, multisig).await
+    program_context::process_instruction(program_context, instruction, multisig).await
 }

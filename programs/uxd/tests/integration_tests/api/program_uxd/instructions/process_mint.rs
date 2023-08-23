@@ -13,15 +13,15 @@ use uxd::state::IdentityDepository;
 use uxd::state::MercurialVaultDepository;
 use uxd::utils::calculate_amount_less_fees;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
-use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::api::program_uxd::instructions::process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn process_mint(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     collateral_mint: &Pubkey,
     mercurial_vault_depository_vault_lp_mint: &Pubkey,
@@ -32,7 +32,7 @@ pub async fn process_mint(
     expected_identity_depository_collateral_amount: u64,
     expected_mercurial_vault_depository_collateral_amount: u64,
     expected_credix_lp_depository_collateral_amount: u64,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
     let redeemable_mint = program_uxd::accounts::find_redeemable_mint_pda().0;
@@ -95,34 +95,31 @@ pub async fn process_mint(
 
     // Read state before
     let redeemable_mint_before =
-        program_test_context::read_account_packed::<Mint>(program_runner, &redeemable_mint).await?;
+        program_context::read_account_packed::<Mint>(program_context, &redeemable_mint).await?;
     let controller_before =
-        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
-            .await?;
+        program_context::read_account_anchor::<Controller>(program_context, &controller).await?;
 
-    let identity_depository_before =
-        program_test_context::read_account_anchor::<IdentityDepository>(
-            program_runner,
-            &identity_depository,
-        )
-        .await?;
-    let mercurial_vault_depository_before = program_test_context::read_account_anchor::<
-        MercurialVaultDepository,
-    >(program_runner, &mercurial_vault_depository)
+    let identity_depository_before = program_context::read_account_anchor::<IdentityDepository>(
+        program_context,
+        &identity_depository,
+    )
     .await?;
-    let credix_lp_depository_before =
-        program_test_context::read_account_anchor::<CredixLpDepository>(
-            program_runner,
-            &credix_lp_depository,
-        )
-        .await?;
+    let mercurial_vault_depository_before = program_context::read_account_anchor::<
+        MercurialVaultDepository,
+    >(program_context, &mercurial_vault_depository)
+    .await?;
+    let credix_lp_depository_before = program_context::read_account_anchor::<CredixLpDepository>(
+        program_context,
+        &credix_lp_depository,
+    )
+    .await?;
 
     let user_collateral_amount_before =
-        program_test_context::read_account_packed::<Account>(program_runner, user_collateral)
+        program_context::read_account_packed::<Account>(program_context, user_collateral)
             .await?
             .amount;
     let user_redeemable_amount_before =
-        program_test_context::read_account_packed::<Account>(program_runner, user_redeemable)
+        program_context::read_account_packed::<Account>(program_context, user_redeemable)
             .await?
             .amount;
 
@@ -164,39 +161,36 @@ pub async fn process_mint(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signer(program_runner, instruction, payer, user)
+    program_context::process_instruction_with_signer(program_context, instruction, payer, user)
         .await?;
 
     // Read state after
     let redeemable_mint_after =
-        program_test_context::read_account_packed::<Mint>(program_runner, &redeemable_mint).await?;
+        program_context::read_account_packed::<Mint>(program_context, &redeemable_mint).await?;
     let controller_after =
-        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
-            .await?;
+        program_context::read_account_anchor::<Controller>(program_context, &controller).await?;
 
-    let identity_depository_after =
-        program_test_context::read_account_anchor::<IdentityDepository>(
-            program_runner,
-            &identity_depository,
-        )
-        .await?;
-    let mercurial_vault_depository_after = program_test_context::read_account_anchor::<
-        MercurialVaultDepository,
-    >(program_runner, &mercurial_vault_depository)
+    let identity_depository_after = program_context::read_account_anchor::<IdentityDepository>(
+        program_context,
+        &identity_depository,
+    )
     .await?;
-    let credix_lp_depository_after =
-        program_test_context::read_account_anchor::<CredixLpDepository>(
-            program_runner,
-            &credix_lp_depository,
-        )
-        .await?;
+    let mercurial_vault_depository_after = program_context::read_account_anchor::<
+        MercurialVaultDepository,
+    >(program_context, &mercurial_vault_depository)
+    .await?;
+    let credix_lp_depository_after = program_context::read_account_anchor::<CredixLpDepository>(
+        program_context,
+        &credix_lp_depository,
+    )
+    .await?;
 
     let user_collateral_amount_after =
-        program_test_context::read_account_packed::<Account>(program_runner, user_collateral)
+        program_context::read_account_packed::<Account>(program_context, user_collateral)
             .await?
             .amount;
     let user_redeemable_amount_after =
-        program_test_context::read_account_packed::<Account>(program_runner, user_redeemable)
+        program_context::read_account_packed::<Account>(program_context, user_redeemable)
             .await?
             .amount;
 
@@ -208,7 +202,7 @@ pub async fn process_mint(
         expected_mercurial_vault_depository_collateral_amount,
         mercurial_vault_depository_before.minting_fee_in_bps,
     )
-    .map_err(program_test_context::ProgramTestError::Anchor)?;
+    .map_err(program_context::ProgramError::Anchor)?;
     let mercurial_vault_depository_fees_amount =
         expected_mercurial_vault_depository_collateral_amount
             - mercurial_vault_depository_redeemable_amount;
@@ -216,7 +210,7 @@ pub async fn process_mint(
     // Compute credix_lp_depository amounts
     let credix_lp_depository_collateral_amount_after_precision_loss =
         process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
-            program_runner,
+            program_context,
             collateral_mint,
             expected_credix_lp_depository_collateral_amount,
         )
@@ -225,7 +219,7 @@ pub async fn process_mint(
         credix_lp_depository_collateral_amount_after_precision_loss,
         credix_lp_depository_before.minting_fee_in_bps,
     )
-    .map_err(program_test_context::ProgramTestError::Anchor)?;
+    .map_err(program_context::ProgramError::Anchor)?;
     let credix_lp_depository_fees_amount =
         credix_lp_depository_collateral_amount_after_precision_loss
             - credix_lp_depository_redeemable_amount;

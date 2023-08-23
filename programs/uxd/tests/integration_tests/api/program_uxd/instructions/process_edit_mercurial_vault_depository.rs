@@ -8,17 +8,17 @@ use solana_sdk::signer::Signer;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
 use uxd::state::MercurialVaultDepository;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_mercurial;
-use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_edit_mercurial_vault_depository(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Pubkey,
     fields: &EditMercurialVaultDepositoryFields,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
     let mercurial_base = program_mercurial::accounts::find_base();
@@ -31,9 +31,9 @@ pub async fn process_edit_mercurial_vault_depository(
     .0;
 
     // Read state before
-    let mercurial_vault_depository_before = program_test_context::read_account_anchor::<
+    let mercurial_vault_depository_before = program_context::read_account_anchor::<
         MercurialVaultDepository,
-    >(program_runner, &mercurial_vault_depository)
+    >(program_context, &mercurial_vault_depository)
     .await?;
 
     // Execute IX
@@ -48,8 +48,8 @@ pub async fn process_edit_mercurial_vault_depository(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signer(
-        program_runner,
+    program_context::process_instruction_with_signer(
+        program_context,
         instruction,
         payer,
         authority,
@@ -57,9 +57,9 @@ pub async fn process_edit_mercurial_vault_depository(
     .await?;
 
     // Read state after
-    let mercurial_vault_depository_after = program_test_context::read_account_anchor::<
+    let mercurial_vault_depository_after = program_context::read_account_anchor::<
         MercurialVaultDepository,
-    >(program_runner, &mercurial_vault_depository)
+    >(program_context, &mercurial_vault_depository)
     .await?;
 
     // redeemable_amount_under_management_cap must have been updated if specified in fields

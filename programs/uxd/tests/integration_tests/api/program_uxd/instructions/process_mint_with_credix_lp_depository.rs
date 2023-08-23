@@ -13,13 +13,13 @@ use uxd::utils::calculate_amount_less_fees;
 use uxd::utils::compute_shares_amount_for_value_floor;
 use uxd::utils::compute_value_for_shares_amount_floor;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
-use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn process_mint_with_credix_lp_depository(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Pubkey,
@@ -27,7 +27,7 @@ pub async fn process_mint_with_credix_lp_depository(
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
     collateral_amount: u64,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
     let redeemable_mint = program_uxd::accounts::find_redeemable_mint_pda().0;
@@ -64,23 +64,21 @@ pub async fn process_mint_with_credix_lp_depository(
 
     // Read state before
     let redeemable_mint_before =
-        program_test_context::read_account_packed::<Mint>(program_runner, &redeemable_mint).await?;
+        program_context::read_account_packed::<Mint>(program_context, &redeemable_mint).await?;
     let controller_before =
-        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
-            .await?;
-    let credix_lp_depository_before =
-        program_test_context::read_account_anchor::<CredixLpDepository>(
-            program_runner,
-            &credix_lp_depository,
-        )
-        .await?;
+        program_context::read_account_anchor::<Controller>(program_context, &controller).await?;
+    let credix_lp_depository_before = program_context::read_account_anchor::<CredixLpDepository>(
+        program_context,
+        &credix_lp_depository,
+    )
+    .await?;
 
     let user_collateral_amount_before =
-        program_test_context::read_account_packed::<Account>(program_runner, user_collateral)
+        program_context::read_account_packed::<Account>(program_context, user_collateral)
             .await?
             .amount;
     let user_redeemable_amount_before =
-        program_test_context::read_account_packed::<Account>(program_runner, user_redeemable)
+        program_context::read_account_packed::<Account>(program_context, user_redeemable)
             .await?
             .amount;
 
@@ -114,8 +112,8 @@ pub async fn process_mint_with_credix_lp_depository(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signers(
-        program_runner,
+    program_context::process_instruction_with_signers(
+        program_context,
         instruction,
         payer,
         &[authority, user],
@@ -124,30 +122,28 @@ pub async fn process_mint_with_credix_lp_depository(
 
     // Read state after
     let redeemable_mint_after =
-        program_test_context::read_account_packed::<Mint>(program_runner, &redeemable_mint).await?;
+        program_context::read_account_packed::<Mint>(program_context, &redeemable_mint).await?;
     let controller_after =
-        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
-            .await?;
-    let credix_lp_depository_after =
-        program_test_context::read_account_anchor::<CredixLpDepository>(
-            program_runner,
-            &credix_lp_depository,
-        )
-        .await?;
+        program_context::read_account_anchor::<Controller>(program_context, &controller).await?;
+    let credix_lp_depository_after = program_context::read_account_anchor::<CredixLpDepository>(
+        program_context,
+        &credix_lp_depository,
+    )
+    .await?;
 
     let user_collateral_amount_after =
-        program_test_context::read_account_packed::<Account>(program_runner, user_collateral)
+        program_context::read_account_packed::<Account>(program_context, user_collateral)
             .await?
             .amount;
     let user_redeemable_amount_after =
-        program_test_context::read_account_packed::<Account>(program_runner, user_redeemable)
+        program_context::read_account_packed::<Account>(program_context, user_redeemable)
             .await?
             .amount;
 
     // Compute collateral amount deposited after precision loss
     let collateral_amount_after_precision_loss =
         process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
-            program_runner,
+            program_context,
             collateral_mint,
             collateral_amount,
         )
@@ -158,7 +154,7 @@ pub async fn process_mint_with_credix_lp_depository(
         collateral_amount_after_precision_loss,
         credix_lp_depository_before.minting_fee_in_bps,
     )
-    .map_err(program_test_context::ProgramTestError::Anchor)?;
+    .map_err(program_context::ProgramError::Anchor)?;
 
     // Compute fees amount
     let fees_amount = collateral_amount_after_precision_loss - redeemable_amount;
@@ -225,10 +221,10 @@ pub async fn process_mint_with_credix_lp_depository(
 }
 
 pub async fn process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     collateral_mint: &Pubkey,
     collateral_amount: u64,
-) -> Result<u64, program_test_context::ProgramTestError> {
+) -> Result<u64, program_context::ProgramError> {
     // Read on chain accounts that contains the credix useful states
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
@@ -244,16 +240,16 @@ pub async fn process_mint_with_credix_lp_depository_collateral_amount_after_prec
 
     // Fetch information from onchain credix lp pool, to be able to predict precision loss
     let credix_shares_mint_supply =
-        program_test_context::read_account_packed::<Mint>(program_runner, &credix_shares_mint)
+        program_context::read_account_packed::<Mint>(program_context, &credix_shares_mint)
             .await?
             .supply;
-    let credix_pool_outstanding_credit = program_test_context::read_account_anchor::<
+    let credix_pool_outstanding_credit = program_context::read_account_anchor::<
         credix_client::GlobalMarketState,
-    >(program_runner, &credix_global_market_state)
+    >(program_context, &credix_global_market_state)
     .await?
     .pool_outstanding_credit;
-    let credix_liquidity_collateral_amount = program_test_context::read_account_packed::<Account>(
-        program_runner,
+    let credix_liquidity_collateral_amount = program_context::read_account_packed::<Account>(
+        program_context,
         &credix_liquidity_collateral,
     )
     .await?
@@ -267,13 +263,13 @@ pub async fn process_mint_with_credix_lp_depository_collateral_amount_after_prec
         total_shares_supply,
         total_shares_value,
     )
-    .map_err(program_test_context::ProgramTestError::Anchor)?;
+    .map_err(program_context::ProgramError::Anchor)?;
     let collateral_amount_after_precision_loss = compute_value_for_shares_amount_floor(
         shares_amount,
         total_shares_supply,
         total_shares_value,
     )
-    .map_err(program_test_context::ProgramTestError::Anchor)?;
+    .map_err(program_context::ProgramError::Anchor)?;
 
     // Done
     Ok(collateral_amount_after_precision_loss)

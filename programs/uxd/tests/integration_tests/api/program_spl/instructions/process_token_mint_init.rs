@@ -4,16 +4,16 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use spl_token::state::Mint;
 
-use crate::integration_tests::api::program_test_context;
+use crate::integration_tests::api::program_context;
 
 pub async fn process_token_mint_init(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     mint: &Keypair,
     decimals: u8,
     authority: &Pubkey,
-) -> Result<(), program_test_context::ProgramTestError> {
-    let minimum_balance = program_runner.get_minimum_balance(Mint::LEN).await?;
+) -> Result<(), program_context::ProgramError> {
+    let minimum_balance = program_context.get_minimum_balance(Mint::LEN).await?;
 
     let instruction_create = solana_sdk::system_instruction::create_account(
         &payer.pubkey(),
@@ -22,8 +22,8 @@ pub async fn process_token_mint_init(
         Mint::LEN as u64,
         &spl_token::id(),
     );
-    program_test_context::process_instruction_with_signer(
-        program_runner,
+    program_context::process_instruction_with_signer(
+        program_context,
         instruction_create,
         payer,
         mint,
@@ -37,9 +37,9 @@ pub async fn process_token_mint_init(
         Some(authority),
         decimals,
     )
-    .map_err(program_test_context::ProgramTestError::Program)?;
+    .map_err(program_context::ProgramError::Program)?;
 
-    program_test_context::process_instruction(program_runner, instruction_init, payer).await?;
+    program_context::process_instruction(program_context, instruction_init, payer).await?;
 
     Ok(())
 }

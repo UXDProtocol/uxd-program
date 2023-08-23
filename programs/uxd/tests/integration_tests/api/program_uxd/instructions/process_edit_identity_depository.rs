@@ -7,26 +7,25 @@ use solana_sdk::signer::Signer;
 use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::state::IdentityDepository;
 
-use crate::integration_tests::api::program_test_context;
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_edit_identity_depository(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     authority: &Keypair,
     fields: &EditIdentityDepositoryFields,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
     let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
 
     // Read state before
-    let identity_depository_before =
-        program_test_context::read_account_anchor::<IdentityDepository>(
-            program_runner,
-            &identity_depository,
-        )
-        .await?;
+    let identity_depository_before = program_context::read_account_anchor::<IdentityDepository>(
+        program_context,
+        &identity_depository,
+    )
+    .await?;
 
     // Execute IX
     let accounts = uxd::accounts::EditIdentityDepository {
@@ -40,8 +39,8 @@ pub async fn process_edit_identity_depository(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signer(
-        program_runner,
+    program_context::process_instruction_with_signer(
+        program_context,
         instruction,
         payer,
         authority,
@@ -49,12 +48,11 @@ pub async fn process_edit_identity_depository(
     .await?;
 
     // Read state after
-    let identity_depository_after =
-        program_test_context::read_account_anchor::<IdentityDepository>(
-            program_runner,
-            &identity_depository,
-        )
-        .await?;
+    let identity_depository_after = program_context::read_account_anchor::<IdentityDepository>(
+        program_context,
+        &identity_depository,
+    )
+    .await?;
 
     // redeemable_amount_under_management_cap must have been updated if specified in fields
     let redeemable_amount_under_management_cap_before =

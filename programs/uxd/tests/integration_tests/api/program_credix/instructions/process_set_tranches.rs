@@ -5,17 +5,17 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
-use crate::integration_tests::api::program_test_context;
 
 pub async fn process_set_tranches(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     multisig: &Keypair,
     borrower: &Pubkey,
     deal_number: u16,
     principal: u64,
     interest: u64,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
     let global_market_state =
@@ -88,5 +88,5 @@ pub async fn process_set_tranches(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_runner, instruction, multisig).await
+    program_context::process_instruction(program_context, instruction, multisig).await
 }

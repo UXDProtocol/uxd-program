@@ -5,16 +5,16 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
-use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     collateral_mint: &Pubkey,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
 
@@ -55,9 +55,9 @@ pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository
     );
 
     // Find the credix withdraw accounts
-    let credix_latest_withdraw_epoch_idx = program_test_context::read_account_anchor::<
+    let credix_latest_withdraw_epoch_idx = program_context::read_account_anchor::<
         credix_client::GlobalMarketState,
-    >(program_runner, &credix_global_market_state)
+    >(program_context, &credix_global_market_state)
     .await?
     .latest_withdraw_epoch_idx;
     let credix_withdraw_epoch = program_credix::accounts::find_withdraw_epoch_pda(
@@ -97,7 +97,7 @@ pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_runner, instruction, payer).await?;
+    program_context::process_instruction(program_context, instruction, payer).await?;
 
     // Done
     Ok(())

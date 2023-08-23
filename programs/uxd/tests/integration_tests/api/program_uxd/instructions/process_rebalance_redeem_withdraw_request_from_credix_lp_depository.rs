@@ -11,20 +11,20 @@ use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
 use uxd::state::IdentityDepository;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
-use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     collateral_mint: &Pubkey,
     credix_multisig_key: &Pubkey,
     profits_beneficiary_collateral: &Pubkey,
     expected_withdrawal_overflow_value: u64,
     expected_withdrawal_profits_amount: u64,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
     let redeemable_mint = program_uxd::accounts::find_redeemable_mint_pda().0;
@@ -84,9 +84,9 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     );
 
     // Find the credix withdraw accounts
-    let credix_latest_withdraw_epoch_idx = program_test_context::read_account_anchor::<
+    let credix_latest_withdraw_epoch_idx = program_context::read_account_anchor::<
         credix_client::GlobalMarketState,
-    >(program_runner, &credix_global_market_state)
+    >(program_context, &credix_global_market_state)
     .await?
     .latest_withdraw_epoch_idx;
     let credix_withdraw_epoch = program_credix::accounts::find_withdraw_epoch_pda(
@@ -103,32 +103,29 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
 
     // Read state before
     let redeemable_mint_before =
-        program_test_context::read_account_packed::<Mint>(program_runner, &redeemable_mint).await?;
+        program_context::read_account_packed::<Mint>(program_context, &redeemable_mint).await?;
     let controller_before =
-        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
-            .await?;
-    let credix_lp_depository_before =
-        program_test_context::read_account_anchor::<CredixLpDepository>(
-            program_runner,
-            &credix_lp_depository,
-        )
-        .await?;
-    let identity_depository_before =
-        program_test_context::read_account_anchor::<IdentityDepository>(
-            program_runner,
-            &identity_depository,
-        )
-        .await?;
+        program_context::read_account_anchor::<Controller>(program_context, &controller).await?;
+    let credix_lp_depository_before = program_context::read_account_anchor::<CredixLpDepository>(
+        program_context,
+        &credix_lp_depository,
+    )
+    .await?;
+    let identity_depository_before = program_context::read_account_anchor::<IdentityDepository>(
+        program_context,
+        &identity_depository,
+    )
+    .await?;
     let identity_depository_collateral_amount_before =
-        program_test_context::read_account_packed::<Account>(
-            program_runner,
+        program_context::read_account_packed::<Account>(
+            program_context,
             &identity_depository_collateral,
         )
         .await?
         .amount;
     let profits_beneficiary_collateral_amount_before =
-        program_test_context::read_account_packed::<Account>(
-            program_runner,
+        program_context::read_account_packed::<Account>(
+            program_context,
             profits_beneficiary_collateral,
         )
         .await?
@@ -169,36 +166,33 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_runner, instruction, payer).await?;
+    program_context::process_instruction(program_context, instruction, payer).await?;
 
     // Read state after
     let redeemable_mint_after =
-        program_test_context::read_account_packed::<Mint>(program_runner, &redeemable_mint).await?;
+        program_context::read_account_packed::<Mint>(program_context, &redeemable_mint).await?;
     let controller_after =
-        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
-            .await?;
-    let credix_lp_depository_after =
-        program_test_context::read_account_anchor::<CredixLpDepository>(
-            program_runner,
-            &credix_lp_depository,
-        )
-        .await?;
-    let identity_depository_after =
-        program_test_context::read_account_anchor::<IdentityDepository>(
-            program_runner,
-            &identity_depository,
-        )
-        .await?;
+        program_context::read_account_anchor::<Controller>(program_context, &controller).await?;
+    let credix_lp_depository_after = program_context::read_account_anchor::<CredixLpDepository>(
+        program_context,
+        &credix_lp_depository,
+    )
+    .await?;
+    let identity_depository_after = program_context::read_account_anchor::<IdentityDepository>(
+        program_context,
+        &identity_depository,
+    )
+    .await?;
     let identity_depository_collateral_amount_after =
-        program_test_context::read_account_packed::<Account>(
-            program_runner,
+        program_context::read_account_packed::<Account>(
+            program_context,
             &identity_depository_collateral,
         )
         .await?
         .amount;
     let profits_beneficiary_collateral_amount_after =
-        program_test_context::read_account_packed::<Account>(
-            program_runner,
+        program_context::read_account_packed::<Account>(
+            program_context,
             profits_beneficiary_collateral,
         )
         .await?

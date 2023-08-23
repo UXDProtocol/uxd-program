@@ -10,18 +10,18 @@ use spl_token::state::Mint;
 use uxd::state::Controller;
 use uxd::state::MercurialVaultDepository;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_mercurial;
-use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn process_collect_profits_of_mercurial_vault_depository(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     collateral_mint: &Pubkey,
     mercurial_vault_lp_mint: &Pubkey,
     profits_beneficiary_collateral: &Pubkey,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
     let mercurial_base = program_mercurial::accounts::find_base();
@@ -43,40 +43,38 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
 
     // Read state before
     let controller_before =
-        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
-            .await?;
-    let mercurial_vault_depository_before = program_test_context::read_account_anchor::<
+        program_context::read_account_anchor::<Controller>(program_context, &controller).await?;
+    let mercurial_vault_depository_before = program_context::read_account_anchor::<
         MercurialVaultDepository,
-    >(program_runner, &mercurial_vault_depository)
+    >(program_context, &mercurial_vault_depository)
     .await?;
-    let mercurial_vault_before =
-        program_test_context::read_account_anchor::<mercurial_vault::Vault>(
-            program_runner,
-            &mercurial_vault,
-        )
-        .await?;
+    let mercurial_vault_before = program_context::read_account_anchor::<mercurial_vault::Vault>(
+        program_context,
+        &mercurial_vault,
+    )
+    .await?;
     let mercurial_vault_lp_mint_before =
-        program_test_context::read_account_packed::<Mint>(program_runner, mercurial_vault_lp_mint)
+        program_context::read_account_packed::<Mint>(program_context, mercurial_vault_lp_mint)
             .await?;
 
     let mercurial_vault_depository_lp_token_vault_amount_before =
-        program_test_context::read_account_packed::<Account>(
-            program_runner,
+        program_context::read_account_packed::<Account>(
+            program_context,
             &mercurial_vault_depository_lp_token_vault,
         )
         .await?
         .amount;
 
     let profits_beneficiary_collateral_amount_before =
-        program_test_context::read_account_packed::<Account>(
-            program_runner,
+        program_context::read_account_packed::<Account>(
+            program_context,
             profits_beneficiary_collateral,
         )
         .await?
         .amount;
 
     let unix_timestamp_before =
-        u64::try_from(program_runner.get_clock_unix_timestamp().await?).unwrap();
+        u64::try_from(program_context.get_clock_unix_timestamp().await?).unwrap();
 
     // Execute IX
     let accounts = uxd::accounts::CollectProfitsOfMercurialVaultDepository {
@@ -99,44 +97,42 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_runner, instruction, payer).await?;
+    program_context::process_instruction(program_context, instruction, payer).await?;
 
     // Read state after
     let controller_after =
-        program_test_context::read_account_anchor::<Controller>(program_runner, &controller)
-            .await?;
-    let mercurial_vault_depository_after = program_test_context::read_account_anchor::<
+        program_context::read_account_anchor::<Controller>(program_context, &controller).await?;
+    let mercurial_vault_depository_after = program_context::read_account_anchor::<
         MercurialVaultDepository,
-    >(program_runner, &mercurial_vault_depository)
+    >(program_context, &mercurial_vault_depository)
     .await?;
-    let mercurial_vault_after =
-        program_test_context::read_account_anchor::<mercurial_vault::Vault>(
-            program_runner,
-            &mercurial_vault,
-        )
-        .await?;
+    let mercurial_vault_after = program_context::read_account_anchor::<mercurial_vault::Vault>(
+        program_context,
+        &mercurial_vault,
+    )
+    .await?;
     let mercurial_vault_lp_mint_after =
-        program_test_context::read_account_packed::<Mint>(program_runner, mercurial_vault_lp_mint)
+        program_context::read_account_packed::<Mint>(program_context, mercurial_vault_lp_mint)
             .await?;
 
     let mercurial_vault_depository_lp_token_vault_amount_after =
-        program_test_context::read_account_packed::<Account>(
-            program_runner,
+        program_context::read_account_packed::<Account>(
+            program_context,
             &mercurial_vault_depository_lp_token_vault,
         )
         .await?
         .amount;
 
     let profits_beneficiary_collateral_amount_after =
-        program_test_context::read_account_packed::<Account>(
-            program_runner,
+        program_context::read_account_packed::<Account>(
+            program_context,
             profits_beneficiary_collateral,
         )
         .await?
         .amount;
 
     let unix_timestamp_after =
-        u64::try_from(program_runner.get_clock_unix_timestamp().await?).unwrap();
+        u64::try_from(program_context.get_clock_unix_timestamp().await?).unwrap();
 
     // Compute Assets and Liabilities
     let assets_value_before = mercurial_vault_before

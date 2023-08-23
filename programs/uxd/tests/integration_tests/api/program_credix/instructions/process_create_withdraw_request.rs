@@ -5,16 +5,16 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
-use crate::integration_tests::api::program_test_context;
 
 pub async fn process_create_withdraw_request(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     base_token_mint: &Pubkey,
     investor: &Keypair,
     investor_lp_token_account: &Pubkey,
     amount: u64,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
     let global_market_state =
@@ -29,8 +29,8 @@ pub async fn process_create_withdraw_request(
     let lp_token_mint = program_credix::accounts::find_lp_token_mint_pda(&market_seeds).0;
 
     // Find the next withdraw epoch account
-    let epoch_idx = program_test_context::read_account_anchor::<credix_client::GlobalMarketState>(
-        program_runner,
+    let epoch_idx = program_context::read_account_anchor::<credix_client::GlobalMarketState>(
+        program_context,
         &global_market_state,
     )
     .await?
@@ -64,5 +64,5 @@ pub async fn process_create_withdraw_request(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_runner, instruction, investor).await
+    program_context::process_instruction(program_context, instruction, investor).await
 }
