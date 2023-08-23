@@ -21,7 +21,7 @@ async fn test_credix_lp_depository_mint() -> Result<(), program_test_context::Pr
 
     // Fund payer
     let payer = Keypair::new();
-    program_spl::instructions::process_lamports_airdrop(
+    program_test_context::ProgramRunner::process_airdrop(
         &mut program_runner,
         &payer.pubkey(),
         1_000_000_000_000,

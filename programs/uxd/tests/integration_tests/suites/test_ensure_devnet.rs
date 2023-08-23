@@ -8,94 +8,10 @@ use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 use solana_client::nonblocking::rpc_client::RpcClient;
-use solana_program::instruction::Instruction;
 use solana_sdk::system_instruction;
-use solana_sdk::transaction::Transaction;
-
-pub async fn process_instruction(
-    rpc_client: &RpcClient,
-    instruction: Instruction,
-    payer: &Keypair,
-) -> Result<(), program_test_context::ProgramTestError> {
-    let latest_blockhash = rpc_client
-        .get_latest_blockhash()
-        .await
-        .map_err(program_test_context::ProgramTestError::Client)?;
-
-    let mut transaction: Transaction = Transaction::new_signed_with_payer(
-        &[instruction.clone()],
-        Some(&payer.pubkey()),
-        &[payer],
-        latest_blockhash,
-    );
-
-    println!("transaction: {:?}", transaction);
-    println!("transaction.is_signed(): {:?}", transaction.is_signed());
-    println!(
-        "transaction.verify_with_results(): {:?}",
-        transaction.verify_with_results()
-    );
-    println!(
-        "transaction.verify(): {:?}",
-        transaction
-            .verify()
-            .map_err(program_test_context::ProgramTestError::Transaction)?
-    );
-
-    let result = rpc_client
-        .send_transaction(&transaction)
-        .await
-        .map_err(program_test_context::ProgramTestError::Client)?;
-
-    println!("result: {:?}", result);
-
-    Ok(())
-}
-
-pub async fn process_instruction_with_signer(
-    rpc_client: &RpcClient,
-    instruction: Instruction,
-    payer: &Keypair,
-    signer: &Keypair,
-) -> Result<(), program_test_context::ProgramTestError> {
-    let latest_blockhash = rpc_client
-        .get_latest_blockhash()
-        .await
-        .map_err(program_test_context::ProgramTestError::Client)?;
-
-    let mut transaction: Transaction =
-        Transaction::new_with_payer(&[instruction.clone()], Some(&payer.pubkey()));
-    println!("transaction: {:?}", transaction);
-    transaction
-        .try_sign(&[signer, payer, signer], latest_blockhash)
-        .map_err(program_test_context::ProgramTestError::Signer)?;
-
-    println!("transaction: {:?}", transaction);
-    println!("transaction.is_signed(): {:?}", transaction.is_signed());
-    println!(
-        "transaction.verify_with_results(): {:?}",
-        transaction.verify_with_results()
-    );
-    println!(
-        "transaction.verify(): {:?}",
-        transaction
-            .verify()
-            .map_err(program_test_context::ProgramTestError::Transaction)?
-    );
-
-    let result = rpc_client
-        .send_transaction(&transaction)
-        .await
-        .map_err(program_test_context::ProgramTestError::Client)?;
-
-    println!("result: {:?}", result);
-    assert!(false);
-
-    Ok(())
-}
 
 pub async fn check_balance(
-    rpc_client: &RpcClient,
+    rpc_client: &mut RpcClient,
     public_key: &Pubkey,
 ) -> Result<u64, program_test_context::ProgramTestError> {
     Ok(rpc_client
@@ -105,14 +21,14 @@ pub async fn check_balance(
 }
 
 pub async fn transfer_funds(
-    rpc_client: &RpcClient,
+    rpc_client: &mut RpcClient,
     sender_keypair: &Keypair,
     receiver_pub_key: &Pubkey,
     lamports: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
     let ix = system_instruction::transfer(&sender_keypair.pubkey(), receiver_pub_key, lamports);
 
-    process_instruction(rpc_client, ix, sender_keypair).await?;
+    program_test_context::process_instruction(rpc_client, ix, sender_keypair).await?;
 
     Ok(())
 }
@@ -124,7 +40,7 @@ fn create_keypair(secret: [u8; 64]) -> Result<Keypair, program_test_context::Pro
 
 #[tokio::test]
 async fn test_ensure_devnet() -> Result<(), program_test_context::ProgramTestError> {
-    let rpc_client = RpcClient::new("https://api.devnet.solana.com".to_string());
+    let mut rpc_client = RpcClient::new("https://api.devnet.solana.com".to_string());
 
     let payer = create_keypair([
         132, 55, 4, 19, 225, 250, 7, 65, 89, 245, 162, 71, 109, 45, 216, 164, 16, 234, 143, 19,
@@ -146,7 +62,7 @@ async fn test_ensure_devnet() -> Result<(), program_test_context::ProgramTestErr
     println!("payer.is_on_curve: {:?}", payer.pubkey().is_on_curve());
     println!(
         "payer.balance: {:?}",
-        check_balance(&rpc_client, &payer.pubkey()).await?
+        check_balance(&mut rpc_client, &payer.pubkey()).await?
     );
 
     println!("receiver: {:?}", receiver.pubkey());
@@ -156,10 +72,10 @@ async fn test_ensure_devnet() -> Result<(), program_test_context::ProgramTestErr
     );
     println!(
         "receiver.balance: {:?}",
-        check_balance(&rpc_client, &receiver.pubkey()).await?
+        check_balance(&mut rpc_client, &receiver.pubkey()).await?
     );
 
-    transfer_funds(&rpc_client, &payer, &receiver.pubkey(), 1_000_000).await?;
+    transfer_funds(&mut rpc_client, &payer, &receiver.pubkey(), 1_000_000).await?;
 
     assert!(false);
     // Done

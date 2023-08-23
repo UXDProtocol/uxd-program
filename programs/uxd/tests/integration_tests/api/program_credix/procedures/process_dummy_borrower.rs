@@ -1,5 +1,4 @@
 use solana_sdk::pubkey::Pubkey;
-
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -26,12 +25,9 @@ pub async fn process_dummy_borrower(
     let dummy_borrower = Keypair::new();
 
     // Airdrop lamports to the dummy borrower wallet
-    program_spl::instructions::process_lamports_airdrop(
-        program_runner,
-        &dummy_borrower.pubkey(),
-        1_000_000_000_000,
-    )
-    .await?;
+    program_runner
+        .process_airdrop(&dummy_borrower.pubkey(), 1_000_000_000_000)
+        .await?;
 
     // Create the borrower ATAs
     let dummy_borrower_token_account =

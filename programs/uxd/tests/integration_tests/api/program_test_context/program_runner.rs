@@ -37,7 +37,7 @@ pub trait ProgramRunner {
         transaction: Transaction,
     ) -> Result<(), program_test_context::ProgramTestError>;
 
-    async fn process_aidrop(
+    async fn process_airdrop(
         &mut self,
         to: &Pubkey,
         lamports: u64,
@@ -99,7 +99,7 @@ impl ProgramRunner for ProgramTestContext {
             .map_err(program_test_context::ProgramTestError::BanksClient)
     }
 
-    async fn process_aidrop(
+    async fn process_airdrop(
         &mut self,
         to: &Pubkey,
         lamports: u64,
@@ -121,15 +121,15 @@ impl ProgramRunner for RpcClient {
     async fn get_latest_blockhash(
         &mut self,
     ) -> Result<Hash, program_test_context::ProgramTestError> {
-        self.get_latest_blockhash()
-            .await
+        self.get_latest_blockhash().await
     }
 
     async fn get_minimum_balance(
         &mut self,
         space: usize,
     ) -> Result<u64, program_test_context::ProgramTestError> {
-        self.get_minimum_balance_for_rent_exemption(space).await
+        self.get_minimum_balance_for_rent_exemption(space)
+            .await
             .map_err(program_test_context::ProgramTestError::Client)
     }
 
@@ -143,24 +143,23 @@ impl ProgramRunner for RpcClient {
         &mut self,
         address: &Pubkey,
     ) -> Result<Option<Account>, program_test_context::ProgramTestError> {
-        self.get_account(address)
-            .await
+        self.get_account(address).await
     }
 
     async fn process_transaction(
         &mut self,
         transaction: Transaction,
     ) -> Result<(), program_test_context::ProgramTestError> {
-        let signature = self.send_and_confirm_transaction(&transaction)
+        self.send_and_confirm_transaction(&transaction)
             .await
             .map_err(program_test_context::ProgramTestError::Client)?;
         Ok(())
     }
 
-    async fn process_aidrop(
+    async fn process_airdrop(
         &mut self,
-        to: &Pubkey,
-        lamports: u64,
+        _to: &Pubkey,
+        _lamports: u64,
     ) -> Result<(), program_test_context::ProgramTestError> {
         Ok(()) // TODO
     }

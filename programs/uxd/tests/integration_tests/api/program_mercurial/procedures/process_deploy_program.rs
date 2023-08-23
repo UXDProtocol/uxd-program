@@ -1,5 +1,4 @@
 use solana_sdk::pubkey::Pubkey;
-
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -20,12 +19,9 @@ pub async fn process_deploy_program(
     let treasury = program_mercurial::accounts::find_treasury();
 
     // Airdrop funds to the mercurial admin wallet (acting as payer)
-    program_spl::instructions::process_lamports_airdrop(
-        program_runner,
-        &admin.pubkey(),
-        1_000_000_000_000,
-    )
-    .await?;
+    program_runner
+        .process_airdrop(&admin.pubkey(), 1_000_000_000_000)
+        .await?;
 
     // Create the lp mint
     program_spl::instructions::process_token_mint_init(

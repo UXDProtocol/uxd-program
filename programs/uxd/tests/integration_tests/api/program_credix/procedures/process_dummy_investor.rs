@@ -1,5 +1,4 @@
 use solana_sdk::pubkey::Pubkey;
-
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -28,12 +27,9 @@ pub async fn process_dummy_investor(
     let dummy_investor = Keypair::new();
 
     // Airdrop lamports to the dummy investor wallet
-    program_spl::instructions::process_lamports_airdrop(
-        program_runner,
-        &dummy_investor.pubkey(),
-        1_000_000_000_000,
-    )
-    .await?;
+    program_runner
+        .process_airdrop(&dummy_investor.pubkey(), 1_000_000_000_000)
+        .await?;
 
     // Create the investor ATAs
     let dummy_investor_token_account =

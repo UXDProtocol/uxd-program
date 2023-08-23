@@ -24,7 +24,7 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
 
     // Fund payer
     let payer = Keypair::new();
-    program_spl::instructions::process_lamports_airdrop(
+    program_test_context::ProgramRunner::process_airdrop(
         &mut program_runner,
         &payer.pubkey(),
         1_000_000_000_000,

@@ -19,7 +19,7 @@ async fn test_identity_depository_edit() -> Result<(), program_test_context::Pro
 
     // Fund payer
     let payer = Keypair::new();
-    program_spl::instructions::process_lamports_airdrop(
+    program_test_context::ProgramRunner::process_airdrop(
         &mut program_runner,
         &payer.pubkey(),
         1_000_000_000_000,

@@ -21,7 +21,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
 
     // Fund payer
     let payer = Keypair::new();
-    program_spl::instructions::process_lamports_airdrop(
+    program_test_context::ProgramRunner::process_airdrop(
         &mut program_runner,
         &payer.pubkey(),
         1_000_000_000_000,
