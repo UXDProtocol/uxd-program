@@ -9,13 +9,8 @@ use crate::integration_tests::api::program_uxd;
 
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_program::instruction::Instruction;
-use solana_sdk::commitment_config::CommitmentConfig;
-use solana_sdk::native_token::LAMPORTS_PER_SOL;
-use solana_sdk::signature::Signature;
 use solana_sdk::system_instruction;
 use solana_sdk::transaction::Transaction;
-use std::error::Error;
-use std::time::Duration;
 
 pub async fn process_instruction(
     rpc_client: &RpcClient,

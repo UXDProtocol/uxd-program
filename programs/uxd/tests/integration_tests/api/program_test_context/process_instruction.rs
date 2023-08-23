@@ -1,5 +1,4 @@
 use solana_program::instruction::Instruction;
-
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_sdk::transaction::Transaction;
@@ -7,7 +6,6 @@ use solana_sdk::transaction::Transaction;
 use crate::integration_tests::api::program_test_context;
 
 async fn process_instruction_result(
-    program_runner: &mut dyn program_test_context::ProgramRunner,
     instruction: Instruction,
     result: Result<(), program_test_context::ProgramTestError>,
 ) -> Result<(), program_test_context::ProgramTestError> {
@@ -54,11 +52,8 @@ pub async fn process_instruction(
     let mut transaction: Transaction =
         Transaction::new_with_payer(&[instruction.clone()], Some(&payer.pubkey()));
     transaction.partial_sign(&[payer], latest_blockhash);
-    let result = program_runner
-        .process_transaction(transaction)
-        .await
-        .map_err(program_test_context::ProgramTestError::BanksClient);
-    process_instruction_result(program_runner, instruction.clone(), result).await
+    let result = program_runner.process_transaction(transaction).await;
+    process_instruction_result(instruction.clone(), result).await
 }
 
 pub async fn process_instruction_with_signer(
@@ -71,11 +66,8 @@ pub async fn process_instruction_with_signer(
     let mut transaction: Transaction =
         Transaction::new_with_payer(&[instruction.clone()], Some(&payer.pubkey()));
     transaction.partial_sign(&[payer, signer], latest_blockhash);
-    let result = program_runner
-        .process_transaction(transaction)
-        .await
-        .map_err(program_test_context::ProgramTestError::BanksClient);
-    process_instruction_result(program_runner, instruction.clone(), result).await
+    let result = program_runner.process_transaction(transaction).await;
+    process_instruction_result(instruction.clone(), result).await
 }
 
 pub async fn process_instruction_with_signers(
@@ -90,9 +82,6 @@ pub async fn process_instruction_with_signers(
     let mut keypairs = signers.to_owned();
     keypairs.push(payer);
     transaction.partial_sign(&keypairs, latest_blockhash);
-    let result = program_runner
-        .process_transaction(transaction)
-        .await
-        .map_err(program_test_context::ProgramTestError::BanksClient);
-    process_instruction_result(program_runner, instruction.clone(), result).await
+    let result = program_runner.process_transaction(transaction).await;
+    process_instruction_result(instruction.clone(), result).await
 }

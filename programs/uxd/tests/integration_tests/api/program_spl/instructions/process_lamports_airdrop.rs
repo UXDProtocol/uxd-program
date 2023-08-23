@@ -1,4 +1,4 @@
-use solana_program::pubkey::Pubkey;
+use solana_sdk::pubkey::Pubkey;
 
 use crate::integration_tests::api::program_test_context;
 
@@ -7,5 +7,5 @@ pub async fn process_lamports_airdrop(
     to: &Pubkey,
     lamports: u64,
 ) -> Result<(), program_test_context::ProgramTestError> {
-    program_runner.process_aidrop(to, lamports).await?
+    program_runner.process_aidrop(to, lamports).await
 }

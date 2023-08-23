@@ -1,4 +1,4 @@
-use solana_program::pubkey::Pubkey;
+use solana_sdk::pubkey::Pubkey;
 
 const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";
 

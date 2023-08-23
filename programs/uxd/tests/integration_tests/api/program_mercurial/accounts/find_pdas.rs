@@ -1,4 +1,4 @@
-use solana_program::pubkey::Pubkey;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 
 pub fn find_base() -> Keypair {

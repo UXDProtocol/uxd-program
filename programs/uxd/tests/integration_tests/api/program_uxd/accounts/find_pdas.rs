@@ -1,4 +1,4 @@
-use solana_program::pubkey::Pubkey;
+use solana_sdk::pubkey::Pubkey;
 
 pub fn find_controller_pda() -> (Pubkey, u8) {
     Pubkey::find_program_address(&[uxd::CONTROLLER_NAMESPACE], &uxd::id())

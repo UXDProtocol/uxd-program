@@ -1,8 +1,7 @@
 use anchor_lang::AccountDeserialize;
 use solana_program::program_pack::IsInitialized;
 use solana_program::program_pack::Pack;
-use solana_program::pubkey::Pubkey;
-
+use solana_sdk::pubkey::Pubkey;
 
 use crate::integration_tests::api::program_test_context;
 
