@@ -64,7 +64,7 @@ pub async fn process_register_credix_lp_depository(
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
-        rent: anchor_lang::solana_program::sysvar::rent::ID,
+        rent: solana_sdk::sysvar::rent::ID,
     };
     let payload = uxd::instruction::RegisterCredixLpDepository {
         minting_fee_in_bps,

@@ -1,6 +1,6 @@
 use solana_client::client_error::ClientError;
-use solana_program::program_error::ProgramError;
 use solana_program_test::BanksClientError;
+use solana_sdk::program_error::ProgramError;
 use solana_sdk::signer::SignerError;
 use solana_sdk::transaction::TransactionError;
 

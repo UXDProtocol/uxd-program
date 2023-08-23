@@ -161,7 +161,7 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
         credix_program: credix_client::ID,
-        rent: anchor_lang::solana_program::sysvar::rent::ID,
+        rent: solana_sdk::sysvar::rent::ID,
     };
     let payload = uxd::instruction::RebalanceRedeemWithdrawRequestFromCredixLpDepository {};
     let instruction = Instruction {

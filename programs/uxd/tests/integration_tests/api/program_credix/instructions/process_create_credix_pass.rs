@@ -32,7 +32,7 @@ pub async fn process_create_credix_pass(
         credix_pass,
         market_admins,
         system_program: anchor_lang::system_program::ID,
-        rent: anchor_lang::solana_program::sysvar::rent::ID,
+        rent: solana_sdk::sysvar::rent::ID,
     };
     let instruction = Instruction {
         program_id: credix_client::id(),

@@ -25,7 +25,7 @@ pub async fn process_initialize_controller(
         redeemable_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
-        rent: anchor_lang::solana_program::sysvar::rent::ID,
+        rent: solana_sdk::sysvar::rent::ID,
     };
     let payload = uxd::instruction::InitializeController {
         redeemable_mint_decimals,

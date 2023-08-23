@@ -156,7 +156,7 @@ pub async fn process_mint(
         mercurial_vault_program: mercurial_vault::ID,
         credix_program: credix_client::ID,
         uxd_program: uxd::ID,
-        rent: anchor_lang::solana_program::sysvar::rent::ID,
+        rent: solana_sdk::sysvar::rent::ID,
     };
     let payload = uxd::instruction::Mint { collateral_amount };
     let instruction = Instruction {

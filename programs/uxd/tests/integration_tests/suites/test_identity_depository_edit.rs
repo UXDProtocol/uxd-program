@@ -4,7 +4,6 @@ use solana_sdk::signer::Signer;
 
 use uxd::instructions::EditIdentityDepositoryFields;
 
-use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 

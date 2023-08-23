@@ -1,5 +1,5 @@
-use anchor_lang::prelude::Pubkey;
 use solana_program_test::tokio;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -18,19 +18,6 @@ pub async fn check_balance(
         .get_balance(&public_key)
         .await
         .map_err(program_test_context::ProgramTestError::Client)?)
-}
-
-pub async fn transfer_funds(
-    rpc_client: &mut RpcClient,
-    sender_keypair: &Keypair,
-    receiver_pub_key: &Pubkey,
-    lamports: u64,
-) -> Result<(), program_test_context::ProgramTestError> {
-    let ix = system_instruction::transfer(&sender_keypair.pubkey(), receiver_pub_key, lamports);
-
-    program_test_context::process_instruction(rpc_client, ix, sender_keypair).await?;
-
-    Ok(())
 }
 
 fn create_keypair(secret: [u8; 64]) -> Result<Keypair, program_test_context::ProgramTestError> {

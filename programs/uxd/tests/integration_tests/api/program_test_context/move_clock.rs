@@ -1,5 +1,5 @@
-use solana_program::clock::Clock;
 use solana_program_test::ProgramTestContext;
+use solana_sdk::clock::Clock;
 
 use crate::integration_tests::api::program_test_context;
 

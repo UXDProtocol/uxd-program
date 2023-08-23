@@ -106,7 +106,7 @@ pub async fn process_mint_with_credix_lp_depository(
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
         credix_program: credix_client::ID,
-        rent: anchor_lang::solana_program::sysvar::rent::ID,
+        rent: solana_sdk::sysvar::rent::ID,
     };
     let payload = uxd::instruction::MintWithCredixLpDepository { collateral_amount };
     let instruction = Instruction {

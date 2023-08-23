@@ -49,7 +49,7 @@ pub async fn process_register_mercurial_vault_depository(
         mercurial_vault_lp_mint: *mercurial_vault_lp_mint,
         system_program: anchor_lang::system_program::ID,
         token_program: anchor_spl::token::ID,
-        rent: anchor_lang::solana_program::sysvar::rent::ID,
+        rent: solana_sdk::sysvar::rent::ID,
     };
     let payload = uxd::instruction::RegisterMercurialVaultDepository {
         minting_fee_in_bps,

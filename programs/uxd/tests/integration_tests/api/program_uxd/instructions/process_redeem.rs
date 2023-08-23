@@ -116,7 +116,7 @@ pub async fn process_redeem(
         associated_token_program: anchor_spl::associated_token::ID,
         mercurial_vault_program: mercurial_vault::ID,
         uxd_program: uxd::ID,
-        rent: anchor_lang::solana_program::sysvar::rent::ID,
+        rent: solana_sdk::sysvar::rent::ID,
     };
     let payload = uxd::instruction::Redeem { redeemable_amount };
     let instruction = Instruction {

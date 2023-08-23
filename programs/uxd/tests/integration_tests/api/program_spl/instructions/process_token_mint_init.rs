@@ -1,4 +1,4 @@
-use solana_program::program_pack::Pack;
+use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
@@ -15,7 +15,7 @@ pub async fn process_token_mint_init(
 ) -> Result<(), program_test_context::ProgramTestError> {
     let minimum_balance = program_runner.get_minimum_balance(Mint::LEN).await?;
 
-    let instruction_create = solana_program::system_instruction::create_account(
+    let instruction_create = solana_sdk::system_instruction::create_account(
         &payer.pubkey(),
         &mint.pubkey(),
         minimum_balance,

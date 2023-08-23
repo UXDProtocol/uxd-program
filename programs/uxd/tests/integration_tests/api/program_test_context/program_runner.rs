@@ -106,8 +106,7 @@ impl ProgramRunner for ProgramTestContext {
     ) -> Result<(), program_test_context::ProgramTestError> {
         let from = Keypair::from_bytes(&self.payer.to_bytes())
             .map_err(|e| program_test_context::ProgramTestError::Signature(e.to_string()))?;
-        let instruction =
-            solana_program::system_instruction::transfer(&from.pubkey(), to, lamports);
+        let instruction = solana_sdk::system_instruction::transfer(&from.pubkey(), to, lamports);
         let latest_blockhash = self.get_latest_blockhash().await?;
         let mut transaction: Transaction =
             Transaction::new_with_payer(&[instruction.clone()], Some(&from.pubkey()));

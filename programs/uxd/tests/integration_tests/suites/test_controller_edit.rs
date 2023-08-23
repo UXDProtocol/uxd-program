@@ -1,5 +1,5 @@
-use anchor_lang::prelude::Pubkey;
 use solana_program_test::tokio;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
