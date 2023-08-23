@@ -94,7 +94,6 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     // ---------------------------------------------------------------------
 
     let controller = program_uxd::accounts::find_controller_pda().0;
-    let redeemable_mint = program_uxd::accounts::find_redeemable_mint_pda().0;
 
     if !program_context::read_account_exists(&mut program_context, &controller).await? {
         program_uxd::instructions::process_initialize_controller(

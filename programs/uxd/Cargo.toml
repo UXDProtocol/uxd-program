@@ -44,14 +44,13 @@ num = "0.4.0"
 
 [dev-dependencies]
 proptest = "1.0.0"
+async-trait = "0.1.73"
 solana-program = "=1.16.8"
 solana-program-test = "=1.16.8"
 solana-sdk = "=1.16.8"
 solana-client = "=1.16.8"
 spl-token = "3.5.0"
 spl-associated-token-account = "1.1.2"
-
-async-trait = "0.1.73"
 
 toml_datetime = "=0.6.1" # This lib introduced a breaking change in 0.6.2
 winnow = "=0.4.1"        # This lib introduced a breaking change in 0.4.6
