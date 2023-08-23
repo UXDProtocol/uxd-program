@@ -28,8 +28,7 @@ async fn test_credix_lp_depository_rebalance_illiquid(
 
     // Fund payer
     let payer = Keypair::new();
-    program_test_context::ProgramRunner::process_airdrop(
-        &mut program_runner,
+    program_runner.process_airdrop(
         &payer.pubkey(),
         1_000_000_000_000,
     )
@@ -258,7 +257,9 @@ async fn test_credix_lp_depository_rebalance_illiquid(
     .await?;
 
     // Pretend 3 days have passed (the time for the request period)
-    program_test_context::move_clock_forward(&mut program_runner, 3 * SECONDS_PER_DAY, 1).await?;
+    program_runner
+        .move_clock_forward(3 * SECONDS_PER_DAY, 1)
+        .await?;
 
     // Set the epoch's locked liquidity (done by credix team usually)
     program_credix::instructions::process_set_locked_liquidity(

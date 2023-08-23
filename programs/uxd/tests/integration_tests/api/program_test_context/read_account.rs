@@ -4,6 +4,14 @@ use solana_sdk::program_pack::IsInitialized;
 use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
 
+pub async fn read_account_exist(
+    program_runner: &mut dyn program_test_context::ProgramRunner,
+    address: &Pubkey,
+) -> Result<bool, program_test_context::ProgramTestError> {
+    let maybe_account = program_runner.get_account(address).await?;
+    Ok(maybe_account.is_some())
+}
+
 pub async fn read_account_data(
     program_runner: &mut dyn program_test_context::ProgramRunner,
     address: &Pubkey,

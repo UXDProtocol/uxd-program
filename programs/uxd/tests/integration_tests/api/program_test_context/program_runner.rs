@@ -42,6 +42,12 @@ pub trait ProgramRunner {
         to: &Pubkey,
         lamports: u64,
     ) -> Result<(), program_test_context::ProgramTestError>;
+
+    async fn move_clock_forward(
+        &mut self,
+        unix_timestamp_delta: u64,
+        slot_delta: u64,
+    ) -> Result<(), program_test_context::ProgramTestError>;
 }
 
 #[async_trait]
@@ -113,6 +119,25 @@ impl ProgramRunner for ProgramTestContext {
         transaction.partial_sign(&[&from], latest_blockhash);
         self.process_transaction(transaction).await
     }
+
+    async fn move_clock_forward(
+        &mut self,
+        unix_timestamp_delta: u64,
+        slot_delta: u64,
+    ) -> Result<(), program_test_context::ProgramTestError> {
+        let current_clock = self
+            .banks_client
+            .get_sysvar::<Clock>()
+            .await
+            .map_err(program_test_context::ProgramTestError::BanksClient)?;
+        let mut forwarded_clock = current_clock;
+        forwarded_clock.epoch += 1;
+        forwarded_clock.slot = current_clock.slot + slot_delta;
+        forwarded_clock.unix_timestamp =
+            current_clock.unix_timestamp + i64::try_from(unix_timestamp_delta).unwrap();
+        self.set_sysvar::<Clock>(&forwarded_clock);
+        Ok(())
+    }
 }
 
 #[async_trait]
@@ -160,6 +185,18 @@ impl ProgramRunner for RpcClient {
         _to: &Pubkey,
         _lamports: u64,
     ) -> Result<(), program_test_context::ProgramTestError> {
-        Ok(()) // TODO
+        Err(program_test_context::ProgramTestError::Custom(
+            "Not supported",
+        ))
+    }
+
+    async fn move_clock_forward(
+        &mut self,
+        _unix_timestamp_delta: u64,
+        _slot_delta: u64,
+    ) -> Result<(), program_test_context::ProgramTestError> {
+        Err(program_test_context::ProgramTestError::Custom(
+            "Not supported",
+        ))
     }
 }

@@ -21,12 +21,9 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
 
     // Fund payer
     let payer = Keypair::new();
-    program_test_context::ProgramRunner::process_airdrop(
-        &mut program_runner,
-        &payer.pubkey(),
-        1_000_000_000_000,
-    )
-    .await?;
+    program_runner
+        .process_airdrop(&payer.pubkey(), 1_000_000_000_000)
+        .await?;
 
     // Hardcode mints decimals
     let collateral_mint_decimals = 6;

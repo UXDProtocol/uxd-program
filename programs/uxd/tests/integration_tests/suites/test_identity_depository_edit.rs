@@ -18,12 +18,9 @@ async fn test_identity_depository_edit() -> Result<(), program_test_context::Pro
 
     // Fund payer
     let payer = Keypair::new();
-    program_test_context::ProgramRunner::process_airdrop(
-        &mut program_runner,
-        &payer.pubkey(),
-        1_000_000_000_000,
-    )
-    .await?;
+    program_runner
+        .process_airdrop(&payer.pubkey(), 1_000_000_000_000)
+        .await?;
 
     // Hardcode mints decimals
     let collateral_mint_decimals = 6;

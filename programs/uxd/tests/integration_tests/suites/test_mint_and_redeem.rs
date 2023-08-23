@@ -10,6 +10,7 @@ use uxd::instructions::EditMercurialVaultDepositoryFields;
 
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
+use crate::integration_tests::api::program_test_context::ProgramRunner;
 use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
@@ -20,16 +21,14 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     // -- Setup basic context and accounts needed for this test suite
     // ---------------------------------------------------------------------
 
-    let mut program_runner = program_test_context::create_program_test_context().await;
+    let mut program_runner: Box<dyn ProgramRunner> =
+        Box::new(program_test_context::create_program_test_context().await);
 
     // Fund payer
     let payer = Keypair::new();
-    program_test_context::ProgramRunner::process_airdrop(
-        &mut program_runner,
-        &payer.pubkey(),
-        1_000_000_000_000,
-    )
-    .await?;
+    program_runner
+        .process_airdrop(&payer.pubkey(), 1_000_000_000_000)
+        .await?;
 
     // Hardcode mints decimals
     let collateral_mint_decimals = 6;
@@ -387,7 +386,9 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     .is_err());
 
     // Move 1 epoch forward (bypass outflow limit)
-    program_test_context::move_clock_forward(&mut program_runner, 1, slots_per_epoch).await?;
+    program_runner
+        .move_clock_forward(1, slots_per_epoch)
+        .await?;
 
     // It should now succeed doing the same thing after waiting a day
     program_uxd::instructions::process_redeem(
@@ -405,7 +406,9 @@ async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestE
     .await?;
 
     // Move 1 epoch forward (bypass outflow limit)
-    program_test_context::move_clock_forward(&mut program_runner, 1, slots_per_epoch).await?;
+    program_runner
+        .move_clock_forward(1, slots_per_epoch)
+        .await?;
 
     // Any more redeeming will fail as all the liquid redeem source have been exhausted now
     assert!(program_uxd::instructions::process_redeem(

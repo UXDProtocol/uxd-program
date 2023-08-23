@@ -9,6 +9,7 @@ use uxd::instructions::EditRouterDepositories;
 
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_test_context;
+use crate::integration_tests::api::program_test_context::ProgramRunner;
 use crate::integration_tests::api::program_uxd;
 
 #[tokio::test]
@@ -18,16 +19,14 @@ async fn test_controller_edit() -> Result<(), program_test_context::ProgramTestE
     // -- Setup basic context and accounts needed for this test suite
     // ---------------------------------------------------------------------
 
-    let mut program_runner = program_test_context::create_program_test_context().await;
+    let mut program_runner: solana_program_test::ProgramTestContext =
+        program_test_context::create_program_test_context().await;
 
     // Fund payer
     let payer = Keypair::new();
-    program_test_context::ProgramRunner::process_airdrop(
-        &mut program_runner,
-        &payer.pubkey(),
-        1_000_000_000_000,
-    )
-    .await?;
+    program_runner
+        .process_airdrop(&payer.pubkey(), 1_000_000_000_000)
+        .await?;
 
     // Hardcode mints decimals
     let collateral_mint_decimals = 6;
