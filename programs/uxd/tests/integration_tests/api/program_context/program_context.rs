@@ -168,9 +168,20 @@ impl ProgramContext for RpcClient {
         &mut self,
         transaction: Transaction,
     ) -> Result<(), program_context::ProgramError> {
-        self.send_and_confirm_transaction(&transaction)
+        let signature = self
+            .send_transaction(&transaction)
             .await
             .map_err(program_context::ProgramError::Client)?;
+        println!("process_transaction signature:{:?}", signature);
+        loop {
+            let confirmed = self
+                .confirm_transaction(&signature)
+                .await
+                .map_err(program_context::ProgramError::Client)?;
+            if confirmed {
+                break;
+            }
+        }
         Ok(())
     }
 
@@ -179,7 +190,9 @@ impl ProgramContext for RpcClient {
         _to: &Pubkey,
         _lamports: u64,
     ) -> Result<(), program_context::ProgramError> {
-        Err(program_context::ProgramError::Custom("Not supported"))
+        Err(program_context::ProgramError::Custom(
+            "Airdrop not supported",
+        ))
     }
 
     async fn move_clock_forward(
@@ -187,6 +200,8 @@ impl ProgramContext for RpcClient {
         _unix_timestamp_delta: u64,
         _slot_delta: u64,
     ) -> Result<(), program_context::ProgramError> {
-        Err(program_context::ProgramError::Custom("Not supported"))
+        Err(program_context::ProgramError::Custom(
+            "Clock forward not supported",
+        ))
     }
 }

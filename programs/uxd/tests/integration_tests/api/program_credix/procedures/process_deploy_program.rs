@@ -15,11 +15,6 @@ pub async fn process_deploy_program(
     let signing_authority = program_credix::accounts::find_signing_authority_pda(&market_seeds).0;
     let treasury = program_credix::accounts::find_treasury(&multisig.pubkey());
 
-    // Airdrop funds to the credix authority wallet, the multisig (acting as payer)
-    program_context
-        .process_airdrop(&multisig.pubkey(), 1_000_000_000_000)
-        .await?;
-
     // Create associated token accounts for the authorities wallets
     program_spl::instructions::process_associated_token_account_get_or_init(
         program_context,

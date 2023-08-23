@@ -18,11 +18,6 @@ pub async fn process_deploy_program(
     let vault = program_mercurial::accounts::find_vault_pda(token_mint, &base.pubkey()).0;
     let treasury = program_mercurial::accounts::find_treasury();
 
-    // Airdrop funds to the mercurial admin wallet (acting as payer)
-    program_context
-        .process_airdrop(&admin.pubkey(), 1_000_000_000_000)
-        .await?;
-
     // Create the lp mint
     program_spl::instructions::process_token_mint_init(
         program_context,

@@ -97,13 +97,15 @@ pub async fn process_deploy_program(
 
     // Mercurial onchain dependency program deployment
     let mercurial_admin = Keypair::new();
-    let mercurial_vault_lp_mint_decimals = collateral_mint_decimals;
+    program_context
+        .process_airdrop(&mercurial_admin.pubkey(), 1_000_000_000_000)
+        .await?;
     program_mercurial::procedures::process_deploy_program(
         program_context,
         &mercurial_admin,
         &collateral_mint.pubkey(),
         mercurial_vault_lp_mint,
-        mercurial_vault_lp_mint_decimals,
+        collateral_mint_decimals,
     )
     .await?;
     program_mercurial::procedures::process_dummy_actors_behaviors(
@@ -145,6 +147,9 @@ pub async fn process_deploy_program(
     .await?;
 
     // Credix onchain dependency program deployment
+    program_context
+        .process_airdrop(&credix_multisig.pubkey(), 1_000_000_000_000)
+        .await?;
     program_credix::procedures::process_deploy_program(
         program_context,
         credix_multisig,
