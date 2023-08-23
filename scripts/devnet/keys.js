@@ -1,14 +1,19 @@
 const web3 = require('@solana/web3.js');
-const bs58 = require('bs58');
 
 exports.payer = web3.Keypair.fromSecretKey(
-  bs58.decode(
-    '5MaiiCavjCmn9Hs1o3eznqDEhRwxo7pXiAYez7keQUviUkauRiTMD8DrESdrNjN8zd9mTmVhRvBJeg5vhyvgrAhG'
-  )
+  new Uint8Array([
+    132, 55, 4, 19, 225, 250, 7, 65, 89, 245, 162, 71, 109, 45, 216, 164, 16,
+    234, 143, 19, 127, 37, 141, 115, 118, 187, 215, 154, 154, 168, 79, 76, 80,
+    166, 74, 214, 184, 69, 164, 24, 1, 86, 144, 9, 157, 201, 9, 66, 252, 95, 21,
+    185, 205, 70, 167, 141, 127, 176, 35, 149, 244, 172, 45, 119,
+  ])
 );
 
 exports.collateralMint = web3.Keypair.fromSecretKey(
-  bs58.decode(
-    '7MbiiCavjCmn9Hs1o4eznqDEhRwxo7pXiAYez7keQUviUkauRiTMD8DrESdrNjN8zd9mTmVhRvBJeg5vhyvgrAhG'
-  )
+  new Uint8Array([
+    220, 61, 168, 61, 76, 248, 30, 169, 234, 135, 65, 81, 253, 127, 83, 70, 54,
+    122, 121, 230, 58, 91, 213, 249, 142, 5, 144, 136, 74, 253, 196, 21, 227,
+    226, 242, 115, 178, 10, 175, 61, 164, 129, 180, 11, 58, 110, 222, 58, 137,
+    147, 124, 239, 241, 87, 157, 27, 3, 18, 56, 185, 124, 199, 37, 17,
+  ])
 );
