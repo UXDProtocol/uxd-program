@@ -40,7 +40,7 @@ pub async fn process_deposit_funds(
         liquidity_pool_token_account,
         base_token_mint: *base_token_mint,
         lp_token_mint,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
         rent: solana_sdk::sysvar::rent::ID,

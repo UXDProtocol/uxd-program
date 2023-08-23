@@ -78,7 +78,7 @@ pub async fn process_set_tranches(
         deal_tranches,
         repayment_schedule,
         global_market_state,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
     };
     let payload = credix_client::instruction::SetTranches {
         _tranche_configs: vec![lp_tranche],

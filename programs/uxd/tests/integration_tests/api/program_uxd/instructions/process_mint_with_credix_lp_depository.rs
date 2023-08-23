@@ -102,7 +102,7 @@ pub async fn process_mint_with_credix_lp_depository(
         credix_liquidity_collateral,
         credix_shares_mint,
         credix_pass,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
         credix_program: credix_client::ID,

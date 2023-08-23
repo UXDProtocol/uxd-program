@@ -111,7 +111,7 @@ pub async fn process_redeem(
         mercurial_vault_depository_lp_token_vault,
         mercurial_vault_depository_collateral_token_safe,
         credix_lp_depository,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
         mercurial_vault_program: mercurial_vault::ID,

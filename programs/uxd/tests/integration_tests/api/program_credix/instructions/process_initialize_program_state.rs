@@ -19,7 +19,7 @@ pub async fn process_initialize_program_state(
     let accounts = credix_client::accounts::InitializeProgramState {
         owner: multisig.pubkey(),
         program_state,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         rent: solana_sdk::sysvar::rent::ID,
     };
     let payload = credix_client::instruction::InitializeProgramState {

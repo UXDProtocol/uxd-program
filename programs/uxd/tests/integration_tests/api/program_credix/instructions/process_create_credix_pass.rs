@@ -31,7 +31,7 @@ pub async fn process_create_credix_pass(
         global_market_state,
         credix_pass,
         market_admins,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         rent: solana_sdk::sysvar::rent::ID,
     };
     let instruction = Instruction {

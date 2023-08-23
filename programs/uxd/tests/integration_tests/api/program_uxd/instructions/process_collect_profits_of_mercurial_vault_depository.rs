@@ -89,7 +89,7 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
         mercurial_vault_lp_mint: *mercurial_vault_lp_mint,
         mercurial_vault_collateral_token_safe,
         profits_beneficiary_collateral: *profits_beneficiary_collateral,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         mercurial_vault_program: mercurial_vault::ID,
     };

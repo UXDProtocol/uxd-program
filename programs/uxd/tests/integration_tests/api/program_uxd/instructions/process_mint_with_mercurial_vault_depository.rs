@@ -82,7 +82,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
         mercurial_vault,
         mercurial_vault_lp_mint: *mercurial_vault_lp_mint,
         mercurial_vault_collateral_token_safe,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         mercurial_vault_program: mercurial_vault::ID,
     };

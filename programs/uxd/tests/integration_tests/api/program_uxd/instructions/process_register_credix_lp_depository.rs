@@ -61,7 +61,7 @@ pub async fn process_register_credix_lp_depository(
         credix_signing_authority,
         credix_liquidity_collateral,
         credix_shares_mint,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
         rent: solana_sdk::sysvar::rent::ID,

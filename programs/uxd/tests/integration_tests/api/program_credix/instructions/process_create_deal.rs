@@ -35,7 +35,7 @@ pub async fn process_create_deal(
         global_market_state,
         deal,
         market_admins,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
     };
     let payload = credix_client::instruction::CreateDeal {
         _max_funding_duration: 128,

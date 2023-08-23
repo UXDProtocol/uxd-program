@@ -69,7 +69,7 @@ pub async fn process_repay_deal(
         credix_multisig_token_account,
         credix_pass,
         variable_interest_rates: credix_client::id(), // Optional, Not set
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
     };

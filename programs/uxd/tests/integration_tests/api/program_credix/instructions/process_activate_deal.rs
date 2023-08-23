@@ -50,7 +50,7 @@ pub async fn process_activate_deal(
         repayment_schedule,
         market_admins,
         credix_pass,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
         rent: solana_sdk::sysvar::rent::ID,

@@ -62,7 +62,7 @@ pub async fn process_mint_with_identity_depository(
         redeemable_mint,
         user_collateral: *user_collateral,
         user_redeemable: *user_redeemable,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
     };
     let payload = uxd::instruction::MintWithIdentityDepository { collateral_amount };

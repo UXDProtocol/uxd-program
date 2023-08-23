@@ -88,7 +88,7 @@ pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository
         credix_pass,
         credix_withdraw_epoch,
         credix_withdraw_request,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         credix_program: credix_client::ID,
     };
     let payload = uxd::instruction::RebalanceCreateWithdrawRequestFromCredixLpDepository {};

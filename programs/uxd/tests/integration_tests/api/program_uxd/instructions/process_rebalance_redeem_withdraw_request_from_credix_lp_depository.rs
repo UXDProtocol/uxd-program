@@ -157,7 +157,7 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
         identity_depository,
         identity_depository_collateral,
         mercurial_vault_depository,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
         credix_program: credix_client::ID,

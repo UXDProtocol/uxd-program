@@ -150,7 +150,7 @@ pub async fn process_mint(
         credix_lp_depository_signing_authority,
         credix_lp_depository_liquidity_collateral,
         credix_lp_depository_shares_mint,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
         mercurial_vault_program: mercurial_vault::ID,
