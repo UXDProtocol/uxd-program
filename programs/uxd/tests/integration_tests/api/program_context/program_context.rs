@@ -1,4 +1,5 @@
 use solana_client::nonblocking::rpc_client::RpcClient;
+use solana_program_test::ProgramTestBanksClientExt;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::account::Account;
 use solana_sdk::commitment_config::CommitmentConfig;
@@ -89,7 +90,8 @@ impl ProgramContext for ProgramTestContext {
         transaction: Transaction,
     ) -> Result<(), program_context::ProgramError> {
         self.last_blockhash = self
-            .get_new_latest_blockhash()
+            .banks_client
+            .get_new_latest_blockhash(&self.last_blockhash)
             .await
             .map_err(program_context::ProgramError::Io)?;
         self.banks_client
