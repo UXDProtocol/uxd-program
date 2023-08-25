@@ -2,9 +2,9 @@ name: Cargo Audit
 
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, devnet]
   push:
-    branches: [main, develop]
+    branches: [main, develop, devnet]
 
 env:
   CARGO_TERM_COLOR: always

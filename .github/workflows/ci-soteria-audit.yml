@@ -3,9 +3,9 @@ name:
   # Update to match your branch names and requirements
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, devnet]
   push:
-    branches: [main, develop]
+    branches: [main, develop, devnet]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
