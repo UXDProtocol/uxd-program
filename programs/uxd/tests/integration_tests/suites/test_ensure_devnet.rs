@@ -21,8 +21,8 @@ use crate::integration_tests::utils::ui_amount_to_native_amount;
 use solana_client::nonblocking::rpc_client::RpcClient;
 
 fn create_keypair(secret: [u8; 64]) -> Result<Keypair, program_context::ProgramError> {
-    return Keypair::from_bytes(&secret)
-        .map_err(|e| program_context::ProgramError::Signature(e.to_string()));
+    Keypair::from_bytes(&secret)
+        .map_err(|e| program_context::ProgramError::Signature(e.to_string()))
 }
 
 #[tokio::test]
