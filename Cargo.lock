@@ -5191,7 +5191,7 @@ checksum = "79daa5ed5740825c40b389c5e50312b9c86df53fccd33f281df655642b43869d"
 
 [[package]]
 name = "uxd"
-version = "8.1.4"
+version = "8.1.6"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -5215,9 +5215,9 @@ dependencies = [
 
 [[package]]
 name = "uxd-cpi"
-version = "8.1.4"
+version = "8.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "287f52df0ec25823413af8782539a474996c647ff98121d461e5636e901c3fc1"
+checksum = "f772083c95af0708ea71233bd429fb4760f2241fc069cc1233d603c4ae86816d"
 dependencies = [
  "anchor-gen",
  "anchor-lang",
