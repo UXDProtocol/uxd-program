@@ -35,7 +35,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         Box::new(RpcClient::new("https://api.devnet.solana.com".to_string()));
 
     // Eyh77zP5b7arPtPgpnCT8vsGmq9p5Z9HHnBSeQLnAFQi
-    let bank = create_keypair([
+    let payer = create_keypair([
         219, 139, 131, 236, 34, 125, 165, 13, 18, 248, 93, 160, 73, 236, 214, 251, 179, 235, 124,
         126, 56, 47, 222, 28, 166, 239, 130, 126, 66, 127, 26, 187, 207, 173, 205, 133, 48, 102, 2,
         219, 20, 234, 72, 102, 53, 122, 175, 166, 198, 11, 198, 248, 59, 40, 137, 208, 193, 138,
@@ -56,7 +56,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     let profits_beneficiary_collateral =
         program_spl::instructions::process_associated_token_account_get_or_init(
             &mut program_context,
-            &bank,
+            &payer,
             &collateral_mint,
             &authority.pubkey(),
         )
@@ -72,7 +72,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     let authority_collateral =
         program_spl::instructions::process_associated_token_account_get_or_init(
             &mut program_context,
-            &bank,
+            &payer,
             &collateral_mint,
             &authority.pubkey(),
         )
@@ -80,7 +80,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     let authority_redeemable =
         program_spl::instructions::process_associated_token_account_get_or_init(
             &mut program_context,
-            &bank,
+            &payer,
             &program_uxd::accounts::find_redeemable_mint_pda().0,
             &authority.pubkey(),
         )
@@ -105,7 +105,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     {
         program_mercurial::procedures::process_deploy_program(
             &mut program_context,
-            &bank,
+            &payer,
             &collateral_mint,
             &mercurial_vault_lp_mint,
             6,
@@ -116,7 +116,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     let authority_mercurial_lp =
         program_spl::instructions::process_associated_token_account_get_or_init(
             &mut program_context,
-            &bank,
+            &payer,
             &mercurial_vault_lp_mint.pubkey(),
             &authority.pubkey(),
         )
@@ -140,7 +140,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     if !program_context::read_account_exists(&mut program_context, &controller).await? {
         program_uxd::instructions::process_initialize_controller(
             &mut program_context,
-            &bank,
+            &payer,
             &authority,
             6,
         )
@@ -149,7 +149,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
 
     program_uxd::instructions::process_edit_controller(
         &mut program_context,
-        &bank,
+        &payer,
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: Some(supply_cap),
@@ -170,7 +170,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     if !program_context::read_account_exists(&mut program_context, &identity_depository).await? {
         program_uxd::instructions::process_initialize_identity_depository(
             &mut program_context,
-            &bank,
+            &payer,
             &authority,
             &collateral_mint,
         )
@@ -178,7 +178,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     }
     program_uxd::instructions::process_edit_identity_depository(
         &mut program_context,
-        &bank,
+        &payer,
         &authority,
         &EditIdentityDepositoryFields {
             redeemable_amount_under_management_cap: Some(supply_cap),
@@ -205,7 +205,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     {
         program_uxd::instructions::process_register_mercurial_vault_depository(
             &mut program_context,
-            &bank,
+            &payer,
             &authority,
             &collateral_mint,
             &mercurial_vault_lp_mint.pubkey(),
@@ -217,7 +217,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     }
     program_uxd::instructions::process_edit_mercurial_vault_depository(
         &mut program_context,
-        &bank,
+        &payer,
         &authority,
         &collateral_mint,
         &EditMercurialVaultDepositoryFields {
@@ -246,7 +246,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     if !program_context::read_account_exists(&mut program_context, &credix_lp_depository).await? {
         program_uxd::instructions::process_register_credix_lp_depository(
             &mut program_context,
-            &bank,
+            &payer,
             &authority,
             &collateral_mint,
             0,
@@ -257,7 +257,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     }
     program_uxd::instructions::process_edit_credix_lp_depository(
         &mut program_context,
-        &bank,
+        &payer,
         &authority,
         &collateral_mint,
         &EditCredixLpDepositoryFields {
@@ -276,7 +276,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
 
     program_uxd::instructions::process_edit_controller(
         &mut program_context,
-        &bank,
+        &payer,
         &authority,
         &EditControllerFields {
             redeemable_global_supply_cap: None,
@@ -298,21 +298,42 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     .await?;
 
     // ---------------------------------------------------------------------
-    // -- Mint router should work
+    // -- Check that all mints work
     // ---------------------------------------------------------------------
 
-    program_uxd::instructions::process_mint(
+    program_uxd::instructions::process_mint_with_identity_depository(
         &mut program_context,
-        &bank,
+        &payer,
+        &authority,
+        &authority,
+        &authority_collateral,
+        &authority_redeemable,
+        100,
+    )
+    .await?;
+
+    program_uxd::instructions::process_mint_with_mercurial_vault_depository(
+        &mut program_context,
+        &payer,
+        &authority,
         &collateral_mint,
         &mercurial_vault_lp_mint.pubkey(),
         &authority,
         &authority_collateral,
         &authority_redeemable,
         100,
-        34,
-        33,
-        33,
+    )
+    .await?;
+
+    program_uxd::instructions::process_mint_with_credix_lp_depository(
+        &mut program_context,
+        &payer,
+        &authority,
+        &collateral_mint,
+        &authority,
+        &authority_collateral,
+        &authority_redeemable,
+        100,
     )
     .await?;
 
