@@ -128,7 +128,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         &authority,
         &authority_collateral,
         &authority_mercurial_lp,
-        100,
+        10_000, // 0.01 collateral
     )
     .await?;
 
@@ -308,7 +308,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         &authority,
         &authority_collateral,
         &authority_redeemable,
-        100,
+        10_000, // 0.01 collateral
     )
     .await?;
 
@@ -321,7 +321,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         &authority,
         &authority_collateral,
         &authority_redeemable,
-        100,
+        10_000, // 0.01 collateral
     )
     .await?;
 
@@ -333,7 +333,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         &authority,
         &authority_collateral,
         &authority_redeemable,
-        100,
+        10_000, // 0.01 collateral
     )
     .await?;
 
