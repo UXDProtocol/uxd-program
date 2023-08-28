@@ -66,35 +66,77 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     let supply_cap = u128::from(ui_amount_to_native_amount(1_000_000_000, 6));
 
     // ---------------------------------------------------------------------
+    // -- Useful ATAs
+    // ---------------------------------------------------------------------
+
+    let authority_collateral =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            &mut program_context,
+            &bank,
+            &collateral_mint,
+            &authority.pubkey(),
+        )
+        .await?;
+    let authority_redeemable =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            &mut program_context,
+            &bank,
+            &program_uxd::accounts::find_redeemable_mint_pda().0,
+            &authority.pubkey(),
+        )
+        .await?;
+
+    // ---------------------------------------------------------------------
     // -- Setup mercurial instance
     // ---------------------------------------------------------------------
 
-    let mercurial_lp_mint = create_keypair([
+    let mercurial_vault_lp_mint = create_keypair([
         90, 138, 35, 214, 209, 183, 0, 86, 76, 138, 199, 70, 48, 104, 9, 227, 94, 43, 67, 26, 233,
         128, 61, 117, 130, 99, 181, 114, 127, 100, 200, 129, 13, 59, 134, 19, 81, 172, 155, 180,
         150, 234, 35, 53, 105, 199, 116, 239, 239, 77, 142, 60, 202, 215, 83, 80, 173, 34, 95, 47,
         34, 66, 44, 26,
     ])?;
 
-    if !program_context::read_account_exists(&mut program_context, &mercurial_lp_mint.pubkey())
-        .await?
+    if !program_context::read_account_exists(
+        &mut program_context,
+        &mercurial_vault_lp_mint.pubkey(),
+    )
+    .await?
     {
         program_mercurial::procedures::process_deploy_program(
             &mut program_context,
             &bank,
             &collateral_mint,
-            &mercurial_lp_mint,
+            &mercurial_vault_lp_mint,
             6,
         )
         .await?;
     }
+
+    let authority_mercurial_lp =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            &mut program_context,
+            &bank,
+            &mercurial_vault_lp_mint.pubkey(),
+            &authority.pubkey(),
+        )
+        .await?;
+    program_mercurial::instructions::process_deposit(
+        &mut program_context,
+        &collateral_mint,
+        &mercurial_vault_lp_mint.pubkey(),
+        &authority,
+        &authority_collateral,
+        &authority_mercurial_lp,
+        100,
+    )
+    .await?;
 
     // ---------------------------------------------------------------------
     // -- Setup controller
     // ---------------------------------------------------------------------
 
     let controller = program_uxd::accounts::find_controller_pda().0;
-
     if !program_context::read_account_exists(&mut program_context, &controller).await? {
         program_uxd::instructions::process_initialize_controller(
             &mut program_context,
@@ -104,6 +146,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         )
         .await?;
     }
+
     program_uxd::instructions::process_edit_controller(
         &mut program_context,
         &bank,
@@ -124,7 +167,6 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     // ---------------------------------------------------------------------
 
     let identity_depository = program_uxd::accounts::find_identity_depository_pda().0;
-
     if !program_context::read_account_exists(&mut program_context, &identity_depository).await? {
         program_uxd::instructions::process_initialize_identity_depository(
             &mut program_context,
@@ -166,7 +208,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
             &bank,
             &authority,
             &collateral_mint,
-            &mercurial_lp_mint.pubkey(),
+            &mercurial_vault_lp_mint.pubkey(),
             0,
             0,
             0,
@@ -252,6 +294,25 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
             outflow_limit_per_epoch_bps: None,
             slots_per_epoch: None,
         },
+    )
+    .await?;
+
+    // ---------------------------------------------------------------------
+    // -- Mint router should work
+    // ---------------------------------------------------------------------
+
+    program_uxd::instructions::process_mint(
+        &mut program_context,
+        &bank,
+        &collateral_mint,
+        &mercurial_vault_lp_mint.pubkey(),
+        &authority,
+        &authority_collateral,
+        &authority_redeemable,
+        100,
+        34,
+        33,
+        33,
     )
     .await?;
 
