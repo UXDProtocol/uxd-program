@@ -70,10 +70,5 @@
     "WSOLATA"
   ],
   "editor.formatOnSave": true,
-  "rust-analyzer.linkedProjects": ["./programs/uxd/Cargo.toml"],
-  "workbench.colorCustomizations": {
-    "activityBar.background": "#073144",
-    "titleBar.activeBackground": "#094560",
-    "titleBar.activeForeground": "#F7FCFE"
-  }
+  "rust-analyzer.linkedProjects": ["./programs/uxd/Cargo.toml"]
 }
