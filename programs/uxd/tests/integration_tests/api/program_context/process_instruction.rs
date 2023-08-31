@@ -85,22 +85,3 @@ pub async fn process_instruction_with_signers(
     let result = program_context.process_transaction(transaction).await;
     process_instruction_result(instruction.clone(), result).await
 }
-
-pub async fn process_instruction_with_signers(
-    program_test_context: &mut ProgramTestContext,
-    instruction: Instruction,
-    payer: &Keypair,
-    signers: &[&Keypair],
-) -> Result<(), program_test_context::ProgramTestError> {
-    let mut transaction: Transaction =
-        Transaction::new_with_payer(&[instruction.clone()], Some(&payer.pubkey()));
-    let mut keypairs = signers.to_owned();
-    keypairs.push(payer);
-    transaction.partial_sign(&keypairs, program_test_context.last_blockhash);
-    let result = program_test_context
-        .banks_client
-        .process_transaction(transaction)
-        .await
-        .map_err(program_test_context::ProgramTestError::BanksClient);
-    process_instruction_result(program_test_context, instruction.clone(), result).await
-}

@@ -24,7 +24,11 @@ pub async fn process_create_withdraw_request(
         &signing_authority,
         base_token_mint,
     );
-    program_credix::accounts::find_credix_pass_pda(&global_market_state, &investor.pubkey()).0;
+    let credix_pass =
+        program_credix::accounts::find_credix_pass_pda(&global_market_state, &investor.pubkey()).0;
+    let lp_token_mint = program_credix::accounts::find_lp_token_mint_pda(&market_seeds).0;
+
+    // Find the next withdraw epoch account
     let epoch_idx = program_context::read_account_anchor::<credix_client::GlobalMarketState>(
         program_context,
         &global_market_state,

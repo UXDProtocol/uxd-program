@@ -5232,7 +5232,6 @@ dependencies = [
  "num-traits",
  "proptest",
  "solana-client",
- "solana-program",
  "solana-program-test",
  "solana-sdk",
  "spl-associated-token-account",
