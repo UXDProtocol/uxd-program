@@ -2,18 +2,16 @@
 
 [![Anchor Test](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-anchor-test.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-anchor-test.yml)
 [![Lint and Test](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-lint-test.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-lint-test.yml)
-[![Soteria Audit](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-soteria-audit.yml/badge.svg)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-soteria-audit.yml)
+[![Sec3 Vulnerability Scanning](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-sec3-vulnerability-scanning.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-sec3-vulnerability-scanning.yml)
 [![Cargo Audit](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-audit.yml/badge.svg?branch=main)](https://github.com/UXDProtocol/uxd-program/actions/workflows/ci-cargo-audit.yml)
 
 The actual deployed state of each contract should live in a protected master branch. The latest master should always reflect the code deployed to all relevant chains
 
 It currently sits at:
 
-<!-- ### Solana -->
-
 - mainnet-beta `UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr`
 
-- devnet `55NneSZjuFv6cVDQxYKZ1UF99JoximnzP9aY65fJ4JT9` (Used by CI, this address should be update accordingly in ci files)
+- devnet `BLaLouDQKDDf8T9WCgQpzxCBRtcJ4nbqv7fVQeE9PuCY` (Used by CI, this address should be update accordingly in ci files)
 
 ## Getting start
 
@@ -23,8 +21,6 @@ If you want to learn more about the high level concept of UXDProtocol, the [UXDP
 
 The program (smart contract) is contained in `programs/uxd/`.
 Its instructions are in `programs/uxd/src/instructions/`.
-
-The project follows the code org as done in [Jet protocol](https://github.com/jet-lab/jet-v1) codebase.
 
 The project uses `Anchor` for safety, maintainability and readability.
 
@@ -51,8 +47,7 @@ $> npm link @uxd-protocol/uxd-client
 
 ## Audits
 
-The Program has been audited by Bramah Systems and Sec3.dev (previously Soteria) three times in the past.
-It is currently under continuous audit by Sec3.dev.
+The Program has been audited by Bramah Systems and Sec3.
 
 Audit reports are available at <https://docs.uxd.fi/uxdprogram-solana/welcome/audits>.
 
@@ -116,15 +111,15 @@ Crates security vulnerability checking [tool](https://github.com/RustSec/rustsec
 
 Runs cargo fmt, clippy, test and test-bpf.
 
-### Soteria audit test - ci-soteria-audit.yml
+### Sec3 vulnerabilty scanning test - ci-sec3-vulnerability-scanning.yml
 
-Solana smart contract vulnerability scanning [tool](https://github.com/silas-x/soteria-action), by Soteria.
+Solana smart contract vulnerability scanning [tool](https://github.com/silas-x/soteria-action), by Sec3.
 
 ## Branches and Tags
 
-Branch off from `main` for new development changes. Pull requests should always target to `main` as well.
+Branch off from `develop` for new development changes. Pull requests should always target to `develop` as well.
 
-After passing the continuous audit by Sec3.dev, program would get deployed and merged to `main` and tagged with the version name as `v*.*.*`.
+The program binary should be built from `develop` and merged to `main` after successful deployment and tagged with the version name as `v*.*.*`.
 
 Check the [Releases](https://github.com/UXDProtocol/uxd-program/releases) for previous deployed program on mainnet.
 
