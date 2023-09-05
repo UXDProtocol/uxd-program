@@ -7,6 +7,7 @@ use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
+use solana_sdk::transaction::VersionedTransaction;
 
 use async_trait::async_trait;
 
@@ -14,7 +15,7 @@ use crate::integration_tests::api::program_context;
 
 #[async_trait]
 impl program_context::ProgramContext for ProgramTestContext {
-    async fn get_latest_blockhash(&mut self) -> Result<Hash, program_context::ProgramError> {
+    async fn get_latest_blockhash(&self) -> Result<Hash, program_context::ProgramError> {
         Ok(self.last_blockhash)
     }
 
@@ -37,6 +38,10 @@ impl program_context::ProgramContext for ProgramTestContext {
             .await
             .map_err(program_context::ProgramError::BanksClient)?;
         Ok(clock)
+    }
+
+    async fn get_slot(&self) -> Result<u64, program_context::ProgramError> {
+        Ok(0) // TODO
     }
 
     async fn get_account(
@@ -62,6 +67,15 @@ impl program_context::ProgramContext for ProgramTestContext {
             .process_transaction(transaction)
             .await
             .map_err(program_context::ProgramError::BanksClient)
+    }
+
+    async fn process_transaction_versionned(
+        &mut self,
+        _transaction: VersionedTransaction,
+    ) -> Result<(), program_context::ProgramError> {
+        Err(program_context::ProgramError::Custom(
+            "VersionedTransaction not supported",
+        ))
     }
 
     async fn process_airdrop(

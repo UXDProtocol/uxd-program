@@ -6,6 +6,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::sysvar::Sysvar;
 use solana_sdk::transaction::Transaction;
+use solana_sdk::transaction::VersionedTransaction;
 
 use async_trait::async_trait;
 
@@ -13,7 +14,7 @@ use crate::integration_tests::api::program_context;
 
 #[async_trait]
 impl program_context::ProgramContext for RpcClient {
-    async fn get_latest_blockhash(&mut self) -> Result<Hash, program_context::ProgramError> {
+    async fn get_latest_blockhash(&self) -> Result<Hash, program_context::ProgramError> {
         RpcClient::get_latest_blockhash(self)
             .await
             .map_err(program_context::ProgramError::Client)
@@ -30,6 +31,12 @@ impl program_context::ProgramContext for RpcClient {
 
     async fn get_clock(&mut self) -> Result<Clock, program_context::ProgramError> {
         Clock::get().map_err(program_context::ProgramError::Program)
+    }
+
+    async fn get_slot(&self) -> Result<u64, program_context::ProgramError> {
+        self.get_slot()
+            .await
+            .map_err(program_context::ProgramError::Client)
     }
 
     async fn get_account(
@@ -64,6 +71,26 @@ impl program_context::ProgramContext for RpcClient {
         Ok(())
     }
 
+    async fn process_transaction_versionned(
+        &mut self,
+        transaction: VersionedTransaction,
+    ) -> Result<(), program_context::ProgramError> {
+        let signature = self
+            .send_transaction(&transaction)
+            .await
+            .map_err(program_context::ProgramError::Client)?;
+        println!("process_transaction_versionned signature:{:?}", signature);
+        loop {
+            let confirmed = self
+                .confirm_transaction(&signature)
+                .await
+                .map_err(program_context::ProgramError::Client)?;
+            if confirmed {
+                break;
+            }
+        }
+        Ok(())
+    }
     async fn process_airdrop(
         &mut self,
         _to: &Pubkey,

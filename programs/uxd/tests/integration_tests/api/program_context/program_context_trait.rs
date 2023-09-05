@@ -3,6 +3,7 @@ use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
+use solana_sdk::transaction::VersionedTransaction;
 
 use async_trait::async_trait;
 
@@ -10,7 +11,7 @@ use crate::integration_tests::api::program_context;
 
 #[async_trait]
 pub trait ProgramContext {
-    async fn get_latest_blockhash(&mut self) -> Result<Hash, program_context::ProgramError>;
+    async fn get_latest_blockhash(&self) -> Result<Hash, program_context::ProgramError>;
 
     async fn get_rent_minimum_balance(
         &mut self,
@@ -18,6 +19,8 @@ pub trait ProgramContext {
     ) -> Result<u64, program_context::ProgramError>;
 
     async fn get_clock(&mut self) -> Result<Clock, program_context::ProgramError>;
+
+    async fn get_slot(&self) -> Result<u64, program_context::ProgramError>;
 
     async fn get_account(
         &mut self,
@@ -27,6 +30,11 @@ pub trait ProgramContext {
     async fn process_transaction(
         &mut self,
         transaction: Transaction,
+    ) -> Result<(), program_context::ProgramError>;
+
+    async fn process_transaction_versionned(
+        &mut self,
+        transaction: VersionedTransaction,
     ) -> Result<(), program_context::ProgramError>;
 
     async fn process_airdrop(

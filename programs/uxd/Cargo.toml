@@ -50,6 +50,7 @@ solana-client = "=1.14.21"
 solana-program-test = "=1.14.21"
 spl-token = "3.5.0"
 spl-associated-token-account = "1.1.2"
+solana-address-lookup-table-program = "=1.14.21"
 
 toml_datetime = "=0.6.1" # This lib introduced a breaking change in 0.6.2
 winnow = "=0.4.1"        # This lib introduced a breaking change in 0.4.6

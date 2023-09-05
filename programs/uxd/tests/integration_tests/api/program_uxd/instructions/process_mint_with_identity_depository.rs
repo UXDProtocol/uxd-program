@@ -62,6 +62,35 @@ pub async fn process_mint_with_identity_depository(
         user_redeemable: *user_redeemable,
         system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
+        unused12: uxd::id(), // unused
+        unused13: uxd::id(), // unused
+        unused14: uxd::id(), // unused
+        unused15: uxd::id(), // unused
+        unused16: uxd::id(), // unused
+        unused17: uxd::id(), // unused
+        unused18: uxd::id(), // unused
+        unused19: uxd::id(), // unused
+        unused20: uxd::id(), // unused
+        unused21: uxd::id(), // unused
+        unused22: uxd::id(), // unused
+        unused23: uxd::id(), // unused
+        unused24: uxd::id(), // unused
+        unused25: uxd::id(), // unused
+        unused26: uxd::id(), // unused
+        unused27: uxd::id(), // unused
+        unused28: uxd::id(), // unused
+        unused29: uxd::id(), // unused
+        unused30: uxd::id(), // unused
+        unused31: uxd::id(), // unused
+        unused32: uxd::id(), // unused
+        unused33: uxd::id(), // unused
+        unused34: uxd::id(), // unused
+        unused35: uxd::id(), // unused
+        unused36: uxd::id(), // unused
+        unused37: uxd::id(), // unused
+        unused38: uxd::id(), // unused
+        unused39: uxd::id(), // unused
+        unused40: uxd::id(), // unused
     };
     let payload = uxd::instruction::MintWithIdentityDepository { collateral_amount };
     let instruction = Instruction {

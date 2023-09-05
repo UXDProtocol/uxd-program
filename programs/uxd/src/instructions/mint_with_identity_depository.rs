@@ -93,6 +93,65 @@ pub struct MintWithIdentityDepository<'info> {
 
     /// #11 Token Program
     pub token_program: Program<'info, Token>,
+
+    /// #12 CHECK: spam account to saturate account limit
+    pub unused12: AccountInfo<'info>,
+    /// #13 CHECK: spam account to saturate account limit
+    pub unused13: AccountInfo<'info>,
+    /// #14 CHECK: spam account to saturate account limit
+    pub unused14: AccountInfo<'info>,
+    /// #15 CHECK: spam account to saturate account limit
+    pub unused15: AccountInfo<'info>,
+    /// #16 CHECK: spam account to saturate account limit
+    pub unused16: AccountInfo<'info>,
+    /// #17 CHECK: spam account to saturate account limit
+    pub unused17: AccountInfo<'info>,
+    /// #18 CHECK: spam account to saturate account limit
+    pub unused18: AccountInfo<'info>,
+    /// #19 CHECK: spam account to saturate account limit
+    pub unused19: AccountInfo<'info>,
+    /// #20 CHECK: spam account to saturate account limit
+    pub unused20: AccountInfo<'info>,
+    /// #21 CHECK: spam account to saturate account limit
+    pub unused21: AccountInfo<'info>,
+    /// #22 CHECK: spam account to saturate account limit
+    pub unused22: AccountInfo<'info>,
+    /// #23 CHECK: spam account to saturate account limit
+    pub unused23: AccountInfo<'info>,
+    /// #24 CHECK: spam account to saturate account limit
+    pub unused24: AccountInfo<'info>,
+    /// #25 CHECK: spam account to saturate account limit
+    pub unused25: AccountInfo<'info>,
+    /// #26 CHECK: spam account to saturate account limit
+    pub unused26: AccountInfo<'info>,
+    /// #27 CHECK: spam account to saturate account limit
+    pub unused27: AccountInfo<'info>,
+    /// #28 CHECK: spam account to saturate account limit
+    pub unused28: AccountInfo<'info>,
+    /// #29 CHECK: spam account to saturate account limit
+    pub unused29: AccountInfo<'info>,
+    /// #30 CHECK: spam account to saturate account limit
+    pub unused30: AccountInfo<'info>,
+    /// #31 CHECK: spam account to saturate account limit
+    pub unused31: AccountInfo<'info>,
+    /// #32 CHECK: spam account to saturate account limit
+    pub unused32: AccountInfo<'info>,
+    /// #33 CHECK: spam account to saturate account limit
+    pub unused33: AccountInfo<'info>,
+    /// #34 CHECK: spam account to saturate account limit
+    pub unused34: AccountInfo<'info>,
+    /// #35 CHECK: spam account to saturate account limit
+    pub unused35: AccountInfo<'info>,
+    /// #36 CHECK: spam account to saturate account limit
+    pub unused36: AccountInfo<'info>,
+    /// #37 CHECK: spam account to saturate account limit
+    pub unused37: AccountInfo<'info>,
+    /// #38 CHECK: spam account to saturate account limit
+    pub unused38: AccountInfo<'info>,
+    /// #39 CHECK: spam account to saturate account limit
+    pub unused39: AccountInfo<'info>,
+    /// #40 CHECK: spam account to saturate account limit
+    pub unused40: AccountInfo<'info>,
 }
 
 pub(crate) fn handler(

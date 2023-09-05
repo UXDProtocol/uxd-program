@@ -5201,6 +5201,7 @@ dependencies = [
  "num 0.4.1",
  "num-traits",
  "proptest",
+ "solana-address-lookup-table-program",
  "solana-client",
  "solana-program-test",
  "solana-sdk",
