@@ -1,10 +1,14 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
-use solana_program::instruction::Instruction;
-use solana_program::pubkey::Pubkey;
+use solana_address_lookup_table_program::state::AddressLookupTable;
+use solana_program::message::v0;
+use solana_program::message::VersionedMessage;
 use solana_program_test::ProgramTestContext;
+use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
+use solana_sdk::transaction::VersionedTransaction;
 use spl_token::state::Account;
 use spl_token::state::Mint;
 
@@ -17,6 +21,9 @@ use uxd::utils::calculate_amount_less_fees;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_test_context;
+use crate::integration_tests::api::program_test_context::get_clock_slot;
+use crate::integration_tests::api::program_test_context::process_instruction;
+use crate::integration_tests::api::program_test_context::read_account_packed;
 use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::api::program_uxd::instructions::process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss;
 
@@ -128,6 +135,19 @@ pub async fn process_mint(
             .await?
             .amount;
 
+    let recent_slot = get_clock_slot(program_test_context).await?;
+
+    let (create_ix, table_pk) =
+        solana_address_lookup_table_program::instruction::create_lookup_table(
+            payer.pubkey(),
+            payer.pubkey(),
+            recent_slot,
+        );
+
+    let dudu = read_account_packed::<AddressLookupTable>(program_test_context, &table_pk).await?;
+
+    process_instruction(program_test_context, create_ix, payer).await?;
+
     // Execute IX
     let accounts = uxd::accounts::Mint {
         user: user.pubkey(),
@@ -159,20 +179,61 @@ pub async fn process_mint(
         credix_program: credix_client::ID,
         uxd_program: uxd::ID,
         rent: anchor_lang::solana_program::sysvar::rent::ID,
+        unused0: uxd::ID,
+        unused1: uxd::ID,
+        unused2: uxd::ID,
+        unused3: uxd::ID,
+        unused4: uxd::ID,
+        unused5: uxd::ID,
+        unused6: uxd::ID,
+        unused7: uxd::ID,
+        unused8: uxd::ID,
     };
+
+    let accounts_keys = accounts
+        .to_account_metas(None)
+        .iter()
+        .map(|e| e.pubkey)
+        .collect::<Vec<Pubkey>>();
+
+    let extend_ix = solana_address_lookup_table_program::instruction::extend_lookup_table(
+        table_pk,
+        payer.pubkey(),
+        Some(payer.pubkey()),
+        accounts_keys.clone(),
+    );
+
+    process_instruction(program_test_context, extend_ix, payer).await?;
+
     let payload = uxd::instruction::Mint { collateral_amount };
     let instruction = Instruction {
         program_id: uxd::id(),
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signer(
-        program_test_context,
-        instruction,
-        payer,
-        user,
+
+    let blockhash = program_test_context.last_blockhash;
+
+    let tx = VersionedTransaction::try_new(
+        VersionedMessage::V0(
+            v0::Message::try_compile(
+                &payer.pubkey(),
+                &[instruction],
+                &[
+                    solana_program::address_lookup_table_account::AddressLookupTableAccount {
+                        key: table_pk,
+                        addresses: accounts_keys.clone(),
+                    },
+                ],
+                blockhash,
+            )
+            .map_err(program_test_context::ProgramTestError::Compile)?,
+        ),
+        &[payer, user],
     )
-    .await?;
+    .map_err(program_test_context::ProgramTestError::Signer)?;
+
+    program_test_context::process_transaction(program_test_context, tx).await?;
 
     // Read state after
     let redeemable_mint_after =

@@ -193,6 +193,33 @@ pub struct Mint<'info> {
 
     /// #29
     pub rent: Sysvar<'info, Rent>,
+
+    /// #30 - CHECK: Unused, for saturating account limit
+    pub unused0: AccountInfo<'info>,
+
+    /// #31 - CHECK: Unused, for saturating account limit
+    pub unused1: AccountInfo<'info>,
+
+    /// #32 - CHECK: Unused, for saturating account limit
+    pub unused2: AccountInfo<'info>,
+
+    /// #33 - CHECK: Unused, for saturating account limit
+    pub unused3: AccountInfo<'info>,
+
+    /// #34 - CHECK: Unused, for saturating account limit
+    pub unused4: AccountInfo<'info>,
+
+    /// #35 - CHECK: Unused, for saturating account limit
+    pub unused5: AccountInfo<'info>,
+
+    /// #36 - CHECK: Unused, for saturating account limit
+    pub unused6: AccountInfo<'info>,
+
+    /// #37 - CHECK: Unused, for saturating account limit
+    pub unused7: AccountInfo<'info>,
+
+    /// #38 - CHECK: Unused, for saturating account limit
+    pub unused8: AccountInfo<'info>,
 }
 
 struct DepositoryInfoForMint<'info> {
@@ -203,6 +230,18 @@ struct DepositoryInfoForMint<'info> {
 }
 
 pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> {
+    msg!("[mint:unused0:{}]", ctx.accounts.unused0.key());
+    msg!("[mint:unused1:{}]", ctx.accounts.unused1.key());
+    msg!("[mint:unused2:{}]", ctx.accounts.unused2.key());
+    msg!("[mint:unused3:{}]", ctx.accounts.unused3.key());
+    msg!("[mint:unused4:{}]", ctx.accounts.unused4.key());
+    msg!("[mint:unused5:{}]", ctx.accounts.unused5.key());
+    msg!("[mint:unused6:{}]", ctx.accounts.unused6.key());
+    msg!("[mint:unused7:{}]", ctx.accounts.unused7.key());
+    msg!("[mint:unused8:{}]", ctx.accounts.unused8.key());
+
+    require!(false, UxdError::MathOverflow);
+
     // Gather all the onchain states we need (caps, weights and supplies)
     let mut controller = ctx.accounts.controller.load_mut()?;
     let identity_depository = ctx.accounts.identity_depository.load()?;

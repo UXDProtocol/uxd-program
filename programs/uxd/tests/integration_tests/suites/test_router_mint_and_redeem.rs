@@ -14,7 +14,7 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_mint_and_redeem() -> Result<(), program_test_context::ProgramTestError> {
+async fn test_router_mint_and_redeem() -> Result<(), program_test_context::ProgramTestError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite

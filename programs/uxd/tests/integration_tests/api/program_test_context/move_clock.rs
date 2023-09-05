@@ -1,7 +1,20 @@
-use solana_program::clock::Clock;
+use solana_program::{clock::Clock, slot_history::Slot};
 use solana_program_test::ProgramTestContext;
 
 use crate::integration_tests::api::program_test_context;
+
+pub async fn get_clock_slot(
+    program_test_context: &mut ProgramTestContext,
+) -> Result<Slot, program_test_context::ProgramTestError> {
+    // Read the context sysvar clock
+    let current_clock = program_test_context
+        .banks_client
+        .get_sysvar::<Clock>()
+        .await
+        .map_err(program_test_context::ProgramTestError::BanksClient)?;
+
+    Ok(current_clock.slot)
+}
 
 pub async fn move_clock_forward(
     program_test_context: &mut ProgramTestContext,
