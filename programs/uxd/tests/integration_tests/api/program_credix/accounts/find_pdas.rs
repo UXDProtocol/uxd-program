@@ -1,6 +1,5 @@
-use solana_program::pubkey::Pubkey;
-
-const CREDIX_MARKETPLACE_SEED: &str = "this-can-be-whatever";
+use solana_sdk::pubkey::Pubkey;
+const CREDIX_MARKETPLACE_SEED: &str = "credix-marketplace";
 
 pub fn find_market_seeds() -> String {
     String::from(CREDIX_MARKETPLACE_SEED)

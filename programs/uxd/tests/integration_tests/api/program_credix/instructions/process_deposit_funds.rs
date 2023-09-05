@@ -1,22 +1,21 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
-use solana_program::instruction::Instruction;
-use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
-use crate::integration_tests::api::program_test_context;
 
 pub async fn process_deposit_funds(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     base_token_mint: &Pubkey,
     investor: &Keypair,
     investor_token_account: &Pubkey,
     investor_lp_token_account: &Pubkey,
     amount: u64,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
     let global_market_state =
@@ -41,10 +40,10 @@ pub async fn process_deposit_funds(
         liquidity_pool_token_account,
         base_token_mint: *base_token_mint,
         lp_token_mint,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
-        rent: anchor_lang::solana_program::sysvar::rent::ID,
+        rent: solana_sdk::sysvar::rent::ID,
     };
     let payload = credix_client::instruction::DepositFunds { _amount: amount };
     let instruction = Instruction {
@@ -52,5 +51,5 @@ pub async fn process_deposit_funds(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, investor).await
+    program_context::process_instruction(program_context, instruction, investor).await
 }

@@ -1,25 +1,24 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
-use solana_program::instruction::Instruction;
-use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
 use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::state::CredixLpDepository;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
-use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 pub async fn process_edit_credix_lp_depository(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Pubkey,
     fields: &EditCredixLpDepositoryFields,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
@@ -32,12 +31,11 @@ pub async fn process_edit_credix_lp_depository(
     .0;
 
     // Read state before
-    let credix_lp_depository_before =
-        program_test_context::read_account_anchor::<CredixLpDepository>(
-            program_test_context,
-            &credix_lp_depository,
-        )
-        .await?;
+    let credix_lp_depository_before = program_context::read_account_anchor::<CredixLpDepository>(
+        program_context,
+        &credix_lp_depository,
+    )
+    .await?;
 
     // Execute IX
     let accounts = uxd::accounts::EditCredixLpDepository {
@@ -51,8 +49,8 @@ pub async fn process_edit_credix_lp_depository(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signer(
-        program_test_context,
+    program_context::process_instruction_with_signer(
+        program_context,
         instruction,
         payer,
         authority,
@@ -60,12 +58,11 @@ pub async fn process_edit_credix_lp_depository(
     .await?;
 
     // Read state after
-    let credix_lp_depository_after =
-        program_test_context::read_account_anchor::<CredixLpDepository>(
-            program_test_context,
-            &credix_lp_depository,
-        )
-        .await?;
+    let credix_lp_depository_after = program_context::read_account_anchor::<CredixLpDepository>(
+        program_context,
+        &credix_lp_depository,
+    )
+    .await?;
 
     // redeemable_amount_under_management_cap must have been updated if specified in fields
     let redeemable_amount_under_management_cap_before =

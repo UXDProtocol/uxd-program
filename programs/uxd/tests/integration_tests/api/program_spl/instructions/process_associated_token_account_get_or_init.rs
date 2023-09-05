@@ -1,16 +1,15 @@
-use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-use crate::integration_tests::api::program_test_context;
+use crate::integration_tests::api::program_context;
 
 pub async fn process_associated_token_account_get_or_init(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     mint: &Pubkey,
     wallet: &Pubkey,
-) -> Result<Pubkey, program_test_context::ProgramTestError> {
+) -> Result<Pubkey, program_context::ProgramError> {
     let instruction =
         spl_associated_token_account::instruction::create_associated_token_account_idempotent(
             &payer.pubkey(),
@@ -18,7 +17,7 @@ pub async fn process_associated_token_account_get_or_init(
             mint,
             &spl_token::id(),
         );
-    program_test_context::process_instruction(program_test_context, instruction, payer).await?;
+    program_context::process_instruction(program_context, instruction, payer).await?;
     Ok(spl_associated_token_account::get_associated_token_address(
         wallet, mint,
     ))

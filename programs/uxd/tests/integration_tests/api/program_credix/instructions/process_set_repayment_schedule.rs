@@ -1,23 +1,21 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
-use solana_program::clock::Clock;
-use solana_program::instruction::Instruction;
-use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
 use solana_sdk::clock::SECONDS_PER_DAY;
+use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
-use crate::integration_tests::api::program_test_context;
 
 pub async fn process_set_repayment_schedule(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     multisig: &Keypair,
     borrower: &Pubkey,
     deal_number: u16,
     principal: u64,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
     let global_market_state =
@@ -29,12 +27,7 @@ pub async fn process_set_repayment_schedule(
         program_credix::accounts::find_repayment_schedule_pda(&global_market_state, &deal).0;
 
     // Start the deal now
-    let unix_timestamp_now = program_test_context
-        .banks_client
-        .get_sysvar::<Clock>()
-        .await
-        .map_err(program_test_context::ProgramTestError::BanksClient)?
-        .unix_timestamp;
+    let unix_timestamp_now = program_context.get_clock().await?.unix_timestamp;
 
     // Execute IX
     let accounts = credix_client::accounts::SetRepaymentSchedule {
@@ -43,7 +36,7 @@ pub async fn process_set_repayment_schedule(
         market_admins,
         repayment_schedule,
         global_market_state,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
     };
     let payload = credix_client::instruction::SetRepaymentSchedule {
         _offset: 0,
@@ -93,5 +86,5 @@ pub async fn process_set_repayment_schedule(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, multisig).await
+    program_context::process_instruction(program_context, instruction, multisig).await
 }
