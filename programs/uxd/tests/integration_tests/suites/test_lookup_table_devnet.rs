@@ -184,8 +184,6 @@ async fn test_lookup_table_devnet() -> Result<(), program_context::ProgramError>
 
     program_context.process_transaction_versionned(tx).await?;
 
-    assert!(false);
-
     // Done
     Ok(())
 }
