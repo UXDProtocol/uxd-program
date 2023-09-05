@@ -1,3 +1,4 @@
+use solana_address_lookup_table_program::state::AddressLookupTable;
 use solana_program::message::VersionedMessage;
 use solana_program_test::ProgramTestBanksClientExt;
 use solana_program_test::ProgramTestContext;
@@ -9,9 +10,32 @@ use crate::integration_tests::api::program_test_context;
 
 use super::move_clock_forward;
 
-fn process_transaction_message_v0(message: &MessageV0) {
+async fn process_transaction_message_v0(
+    program_test_context: &mut ProgramTestContext,
+    message: &MessageV0,
+) -> Result<(), program_test_context::ProgramTestError> {
     let account_keys = &message.account_keys;
-    return;
+
+    for address_table_lookup in &message.address_table_lookups {
+        let dudu = program_test_context::read_account_data(
+            program_test_context,
+            &address_table_lookup.account_key,
+        )
+        .await?;
+        let lookup = AddressLookupTable::deserialize(&dudu)
+            .map_err(program_test_context::ProgramTestError::Instruction)?;
+
+        let mut idx = 0;
+        for address in lookup.addresses.to_vec() {
+            println!(
+                " - lookup-table.address: #{:?} {:?}",
+                idx,
+                address.to_string()
+            );
+            idx += 1;
+        }
+    }
+
     // Inspect all instructions one by one
     for instruction in &message.instructions {
         // Log the instruction program_id and data
@@ -44,6 +68,8 @@ fn process_transaction_message_v0(message: &MessageV0) {
             );
         }
     }
+
+    return Ok(());
 }
 
 fn process_transaction_message_legacy(message: &MessageLegacy) {
@@ -82,11 +108,16 @@ fn process_transaction_message_legacy(message: &MessageLegacy) {
     }
 }
 
-fn process_transaction_logs(transaction: &VersionedTransaction) {
+async fn process_transaction_logs(
+    program_test_context: &mut ProgramTestContext,
+    transaction: &VersionedTransaction,
+) -> Result<(), program_test_context::ProgramTestError> {
     println!(" -------- PROCESSING TRANSACTION --------");
     match &transaction.message {
-        VersionedMessage::Legacy(message) => process_transaction_message_legacy(message),
-        VersionedMessage::V0(message) => process_transaction_message_v0(message),
+        VersionedMessage::Legacy(message) => Ok(process_transaction_message_legacy(message)),
+        VersionedMessage::V0(message) => {
+            process_transaction_message_v0(program_test_context, message).await
+        }
     }
 }
 
@@ -96,7 +127,7 @@ pub async fn process_transaction(
 ) -> Result<(), program_test_context::ProgramTestError> {
     let versionned_transaction: VersionedTransaction = transaction.into();
     // Log details about the transaction, useful for debugging as STDOUT is displayed only when a test fails
-    process_transaction_logs(&versionned_transaction);
+    process_transaction_logs(program_test_context, &versionned_transaction).await?;
     move_clock_forward(program_test_context, 1, 1).await?;
     // Actually process the transaction
     let result = program_test_context

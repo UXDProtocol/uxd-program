@@ -21,11 +21,7 @@ use uxd::utils::calculate_amount_less_fees;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_test_context;
-use crate::integration_tests::api::program_test_context::get_clock_slot;
-use crate::integration_tests::api::program_test_context::process_instruction;
-use crate::integration_tests::api::program_test_context::read_account_packed;
 use crate::integration_tests::api::program_uxd;
-use crate::integration_tests::api::program_uxd::instructions::process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn process_mint(
@@ -135,7 +131,7 @@ pub async fn process_mint(
             .await?
             .amount;
 
-    let recent_slot = get_clock_slot(program_test_context).await?;
+    let recent_slot = program_test_context::get_clock_slot(program_test_context).await? - 2;
 
     let (create_ix, table_pk) =
         solana_address_lookup_table_program::instruction::create_lookup_table(
@@ -144,9 +140,10 @@ pub async fn process_mint(
             recent_slot,
         );
 
-    let dudu = read_account_packed::<AddressLookupTable>(program_test_context, &table_pk).await?;
+    program_test_context::process_instruction(program_test_context, create_ix, payer).await?;
 
-    process_instruction(program_test_context, create_ix, payer).await?;
+    let dudu = program_test_context::read_account_data(program_test_context, &table_pk).await?;
+    let lookup = AddressLookupTable::deserialize(&dudu);
 
     // Execute IX
     let accounts = uxd::accounts::Mint {
@@ -203,7 +200,7 @@ pub async fn process_mint(
         accounts_keys.clone(),
     );
 
-    process_instruction(program_test_context, extend_ix, payer).await?;
+    program_test_context::process_instruction(program_test_context, extend_ix, payer).await?;
 
     let payload = uxd::instruction::Mint { collateral_amount };
     let instruction = Instruction {
@@ -284,7 +281,7 @@ pub async fn process_mint(
 
     // Compute credix_lp_depository amounts
     let credix_lp_depository_collateral_amount_after_precision_loss =
-        process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
+    program_uxd::instructions::process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
             program_test_context,
             collateral_mint,
             expected_credix_lp_depository_collateral_amount,
