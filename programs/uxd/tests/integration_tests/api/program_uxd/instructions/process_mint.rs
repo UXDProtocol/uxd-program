@@ -4,6 +4,7 @@ use solana_address_lookup_table_program::state::AddressLookupTable;
 use solana_program::message::v0;
 use solana_program::message::VersionedMessage;
 use solana_program_test::ProgramTestContext;
+use solana_sdk::commitment_config::CommitmentLevel;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -11,6 +12,7 @@ use solana_sdk::signer::Signer;
 use solana_sdk::transaction::VersionedTransaction;
 use spl_token::state::Account;
 use spl_token::state::Mint;
+use tarpc::context;
 
 use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
@@ -131,7 +133,11 @@ pub async fn process_mint(
             .await?
             .amount;
 
-    let recent_slot = program_test_context::get_clock_slot(program_test_context).await? - 2;
+    let recent_slot = program_test_context
+        .banks_client
+        .get_slot_with_context(context::current(), CommitmentLevel::Finalized)
+        .await
+        .map_err(program_test_context::ProgramTestError::BanksClient)?;
 
     let (create_ix, table_pk) =
         solana_address_lookup_table_program::instruction::create_lookup_table(
