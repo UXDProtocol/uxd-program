@@ -4,8 +4,8 @@ use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::sysvar::clock::Clock;
-use solana_sdk::transaction::Transaction;
 use solana_sdk::sysvar::Sysvar;
+use solana_sdk::transaction::Transaction;
 
 use async_trait::async_trait;
 
