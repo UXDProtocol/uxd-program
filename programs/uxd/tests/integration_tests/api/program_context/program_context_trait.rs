@@ -11,7 +11,7 @@ use crate::integration_tests::api::program_context;
 
 #[async_trait]
 pub trait ProgramContext {
-    async fn get_latest_blockhash(&self) -> Result<Hash, program_context::ProgramError>;
+    async fn get_latest_blockhash(&mut self) -> Result<Hash, program_context::ProgramError>;
 
     async fn get_rent_minimum_balance(
         &mut self,

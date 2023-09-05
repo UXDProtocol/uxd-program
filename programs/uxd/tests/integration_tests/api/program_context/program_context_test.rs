@@ -15,7 +15,7 @@ use crate::integration_tests::api::program_context;
 
 #[async_trait]
 impl program_context::ProgramContext for ProgramTestContext {
-    async fn get_latest_blockhash(&self) -> Result<Hash, program_context::ProgramError> {
+    async fn get_latest_blockhash(&mut self) -> Result<Hash, program_context::ProgramError> {
         Ok(self.last_blockhash)
     }
 

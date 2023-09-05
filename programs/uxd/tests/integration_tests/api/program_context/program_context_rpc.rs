@@ -14,7 +14,7 @@ use crate::integration_tests::api::program_context;
 
 #[async_trait]
 impl program_context::ProgramContext for RpcClient {
-    async fn get_latest_blockhash(&self) -> Result<Hash, program_context::ProgramError> {
+    async fn get_latest_blockhash(&mut self) -> Result<Hash, program_context::ProgramError> {
         RpcClient::get_latest_blockhash(self)
             .await
             .map_err(program_context::ProgramError::Client)
