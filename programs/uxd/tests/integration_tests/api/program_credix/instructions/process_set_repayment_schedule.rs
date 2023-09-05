@@ -27,7 +27,7 @@ pub async fn process_set_repayment_schedule(
         program_credix::accounts::find_repayment_schedule_pda(&global_market_state, &deal).0;
 
     // Start the deal now
-    let unix_timestamp_now = program_context.get_clock_unix_timestamp().await?;
+    let unix_timestamp_now = program_context.get_clock().await?.unix_timestamp;
 
     // Execute IX
     let accounts = credix_client::accounts::SetRepaymentSchedule {

@@ -18,7 +18,7 @@ impl program_context::ProgramContext for ProgramTestContext {
         Ok(self.last_blockhash)
     }
 
-    async fn get_minimum_balance(
+    async fn get_rent_minimum_balance(
         &mut self,
         space: usize,
     ) -> Result<u64, program_context::ProgramError> {
@@ -30,13 +30,13 @@ impl program_context::ProgramContext for ProgramTestContext {
         Ok(rent.minimum_balance(space))
     }
 
-    async fn get_clock_unix_timestamp(&mut self) -> Result<i64, program_context::ProgramError> {
+    async fn get_clock(&mut self) -> Result<Clock, program_context::ProgramError> {
         let clock = self
             .banks_client
             .get_sysvar::<Clock>()
             .await
             .map_err(program_context::ProgramError::BanksClient)?;
-        Ok(clock.unix_timestamp)
+        Ok(clock)
     }
 
     async fn get_account(

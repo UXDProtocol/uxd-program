@@ -3,7 +3,9 @@ use solana_sdk::account::Account;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
+use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
+use solana_sdk::sysvar::Sysvar;
 
 use async_trait::async_trait;
 
@@ -17,7 +19,7 @@ impl program_context::ProgramContext for RpcClient {
             .map_err(program_context::ProgramError::Client)
     }
 
-    async fn get_minimum_balance(
+    async fn get_rent_minimum_balance(
         &mut self,
         space: usize,
     ) -> Result<u64, program_context::ProgramError> {
@@ -26,8 +28,8 @@ impl program_context::ProgramContext for RpcClient {
             .map_err(program_context::ProgramError::Client)
     }
 
-    async fn get_clock_unix_timestamp(&mut self) -> Result<i64, program_context::ProgramError> {
-        Ok(0) // TODO
+    async fn get_clock(&mut self) -> Result<Clock, program_context::ProgramError> {
+        Clock::get().map_err(program_context::ProgramError::Program)
     }
 
     async fn get_account(

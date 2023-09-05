@@ -74,7 +74,7 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
         .amount;
 
     let unix_timestamp_before =
-        u64::try_from(program_context.get_clock_unix_timestamp().await?).unwrap();
+        u64::try_from(program_context.get_clock().await?.unix_timestamp).unwrap();
 
     // Execute IX
     let accounts = uxd::accounts::CollectProfitsOfMercurialVaultDepository {
@@ -132,7 +132,7 @@ pub async fn process_collect_profits_of_mercurial_vault_depository(
         .amount;
 
     let unix_timestamp_after =
-        u64::try_from(program_context.get_clock_unix_timestamp().await?).unwrap();
+        u64::try_from(program_context.get_clock().await?.unix_timestamp).unwrap();
 
     // Compute Assets and Liabilities
     let assets_value_before = mercurial_vault_before

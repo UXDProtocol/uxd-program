@@ -1,6 +1,7 @@
 use solana_sdk::account::Account;
 use solana_sdk::hash::Hash;
 use solana_sdk::pubkey::Pubkey;
+use solana_sdk::sysvar::clock::Clock;
 use solana_sdk::transaction::Transaction;
 
 use async_trait::async_trait;
@@ -11,12 +12,12 @@ use crate::integration_tests::api::program_context;
 pub trait ProgramContext {
     async fn get_latest_blockhash(&mut self) -> Result<Hash, program_context::ProgramError>;
 
-    async fn get_minimum_balance(
+    async fn get_rent_minimum_balance(
         &mut self,
         space: usize,
     ) -> Result<u64, program_context::ProgramError>;
 
-    async fn get_clock_unix_timestamp(&mut self) -> Result<i64, program_context::ProgramError>;
+    async fn get_clock(&mut self) -> Result<Clock, program_context::ProgramError>;
 
     async fn get_account(
         &mut self,

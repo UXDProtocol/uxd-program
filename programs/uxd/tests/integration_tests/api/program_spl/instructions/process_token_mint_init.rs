@@ -13,13 +13,14 @@ pub async fn process_token_mint_init(
     decimals: u8,
     authority: &Pubkey,
 ) -> Result<(), program_context::ProgramError> {
-    let minimum_balance = program_context.get_minimum_balance(Mint::LEN).await?;
+    let rent_space = Mint::LEN;
+    let rent_minimum_balance = program_context.get_rent_minimum_balance(rent_space).await?;
 
     let instruction_create = solana_sdk::system_instruction::create_account(
         &payer.pubkey(),
         &mint.pubkey(),
-        minimum_balance,
-        Mint::LEN as u64,
+        rent_minimum_balance,
+        rent_space as u64,
         &spl_token::id(),
     );
     program_context::process_instruction_with_signer(
