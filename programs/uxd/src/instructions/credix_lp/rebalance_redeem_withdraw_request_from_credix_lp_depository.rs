@@ -15,8 +15,6 @@ use crate::state::mercurial_vault_depository::MercurialVaultDepository;
 use crate::utils::calculate_credix_lp_depository_target_amount;
 use crate::utils::checked_add;
 use crate::utils::checked_as_u64;
-use crate::utils::checked_div;
-use crate::utils::checked_mul;
 use crate::utils::checked_sub;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
@@ -28,7 +26,6 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE;
-use crate::CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
@@ -113,14 +110,14 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
 
     /// #10
     #[account(
-        has_one = credix_multisig_key @UxdError::InvalidCredixMultisigKey,
+        has_one = credix_treasury @UxdError::InvalidCredixMultisigKey,
     )]
     pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
 
     /// #11
     #[account(
         mut,
-        constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
+        constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_pool_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
     )]
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 
@@ -148,7 +145,7 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
         bump,
         seeds::program = credix_client::ID,
         constraint = credix_pass.user == depository.key() @UxdError::InvalidCredixPass,
-        constraint = credix_pass.disable_withdrawal_fee @UxdError::InvalidCredixPassNoFees,
+        constraint = credix_pass.disable_withdrawal_fee() @UxdError::InvalidCredixPassNoFees,
     )]
     pub credix_pass: Account<'info, credix_client::CredixPass>,
 
@@ -157,19 +154,19 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
         mut,
         token::mint = collateral_mint,
     )]
-    pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,
+    pub credix_treasury_pool_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #17
     /// CHECK: not used by us, checked by credix program
-    pub credix_multisig_key: AccountInfo<'info>,
+    pub credix_treasury: AccountInfo<'info>,
 
     /// #18
     #[account(
         mut,
-        token::authority = credix_multisig_key,
+        token::authority = credix_treasury,
         token::mint = collateral_mint,
     )]
-    pub credix_multisig_collateral: Box<Account<'info, TokenAccount>>,
+    pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #19
     #[account(
@@ -188,34 +185,19 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
     /// #20
     #[account(
         mut,
-        owner = credix_client::ID,
-        seeds = [
-            credix_global_market_state.key().as_ref(),
-            depository.key().as_ref(),
-            &credix_global_market_state.latest_withdraw_epoch_idx.to_le_bytes(),
-            CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE
-        ],
-        bump,
-        seeds::program = credix_client::ID,
-    )]
-    pub credix_withdraw_request: Account<'info, credix_client::WithdrawRequest>,
-
-    /// #21
-    #[account(
-        mut,
         token::mint = collateral_mint,
     )]
     pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #22
+    /// #21
     pub system_program: Program<'info, System>,
-    /// #23
+    /// #22
     pub token_program: Program<'info, Token>,
-    /// #24
+    /// #23
     pub associated_token_program: Program<'info, AssociatedToken>,
-    /// #25
+    /// #24
     pub credix_program: Program<'info, credix_client::program::Credix>,
-    /// #26
+    /// #25
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -325,35 +307,11 @@ pub(crate) fn handler(
     // -- And where the withdrawn collateral will be going (profits or rebalanced)
     // ---------------------------------------------------------------------
 
-    let withdrawable_total_collateral_amount = {
-        // Read credix withdrawal accounts onchain state
-        let locked_liquidity = ctx.accounts.credix_global_market_state.locked_liquidity;
-        let investor_total_lp_amount = ctx
-            .accounts
-            .credix_withdraw_request
-            .investor_total_lp_amount;
-        let participating_investors_total_lp_amount = ctx
-            .accounts
-            .credix_withdraw_epoch
-            .participating_investors_total_lp_amount;
-        // All investors gets an equivalent slice of the locked liquidity,
-        // based on their relative position size in the lp pool
-        // Note: all intermediary maths is in u128 because we are doing u64 multiplications
-        let withdrawable_base_amount = checked_as_u64(checked_div::<u128>(
-            checked_mul::<u128>(
-                u128::from(locked_liquidity),
-                u128::from(investor_total_lp_amount),
-            )?,
-            u128::from(participating_investors_total_lp_amount),
-        )?)?;
-        // Finished, just need to take into account the amount already withdrawn and the requested amount
-        let requested_base_amount = ctx.accounts.credix_withdraw_request.base_amount;
-        let withdrawn_base_amount = ctx.accounts.credix_withdraw_request.base_amount_withdrawn;
-        std::cmp::min(
-            checked_sub(requested_base_amount, withdrawn_base_amount)?,
-            checked_sub(withdrawable_base_amount, withdrawn_base_amount)?,
-        )
-    };
+    let withdrawable_total_collateral_amount =
+        ctx.accounts.credix_withdraw_epoch.max_withdrawable_amount(
+            &ctx.accounts.credix_global_market_state.load()?,
+            ctx.accounts.depository.key(),
+        )?;
 
     // How much we CAN withdraw now (may be lower than how much we want)
     msg!(
@@ -638,11 +596,10 @@ impl<'info> RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
             liquidity_pool_token_account: self.credix_liquidity_collateral.to_account_info(),
             lp_token_mint: self.credix_shares_mint.to_account_info(),
             credix_pass: self.credix_pass.to_account_info(),
-            treasury_pool_token_account: self.credix_treasury_collateral.to_account_info(),
-            credix_multisig_key: self.credix_multisig_key.to_account_info(),
-            credix_multisig_token_account: self.credix_multisig_collateral.to_account_info(),
+            treasury_pool_token_account: self.credix_treasury_pool_collateral.to_account_info(),
+            credix_treasury: self.credix_treasury.to_account_info(),
+            credix_treasury_token_account: self.credix_treasury_collateral.to_account_info(),
             withdraw_epoch: self.credix_withdraw_epoch.to_account_info(),
-            withdraw_request: self.credix_withdraw_request.to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
             associated_token_program: self.associated_token_program.to_account_info(),

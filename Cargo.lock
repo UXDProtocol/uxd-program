@@ -1026,9 +1026,9 @@ dependencies = [
 
 [[package]]
 name = "credix_client"
-version = "0.7.5"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbf5e6e889e67a801774577ace6a711e4e79c50d88264578ca557d2bf39a471a"
+checksum = "7bfcae67c8c1c89979d09b036dad0fa52747fdd5da125a34bb890a94ed96a09a"
 dependencies = [
  "anchor-gen",
  "anchor-lang",

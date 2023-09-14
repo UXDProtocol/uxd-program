@@ -36,6 +36,14 @@ pub fn find_treasury(multisig: &Pubkey) -> Pubkey {
     *multisig // The treasury is the same key as the multisig on mainnet
 }
 
+pub fn find_treasury_token_account(treasury: &Pubkey, base_token_mint: &Pubkey) -> Pubkey {
+    spl_associated_token_account::get_associated_token_address(treasury, base_token_mint)
+}
+
+pub fn find_treasury_pool(multisig: &Pubkey) -> Pubkey {
+    *multisig // The manager is the same key as the multisig on mainnet
+}
+
 pub fn find_treasury_pool_token_account(treasury: &Pubkey, base_token_mint: &Pubkey) -> Pubkey {
     spl_associated_token_account::get_associated_token_address(treasury, base_token_mint)
 }

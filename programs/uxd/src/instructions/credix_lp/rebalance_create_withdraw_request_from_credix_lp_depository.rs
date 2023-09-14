@@ -18,7 +18,6 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE;
-use crate::CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE;
 use crate::IDENTITY_DEPOSITORY_NAMESPACE;
 use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 
@@ -110,7 +109,7 @@ pub struct RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
         bump,
         seeds::program = credix_client::ID,
         constraint = credix_pass.user == depository.key() @UxdError::InvalidCredixPass,
-        constraint = credix_pass.disable_withdrawal_fee @UxdError::InvalidCredixPassNoFees,
+        constraint = credix_pass.disable_withdrawal_fee() @UxdError::InvalidCredixPassNoFees,
     )]
     pub credix_pass: Account<'info, credix_client::CredixPass>,
 
@@ -129,23 +128,8 @@ pub struct RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
     pub credix_withdraw_epoch: Account<'info, credix_client::WithdrawEpoch>,
 
     /// #14
-    /// CHECK: initialized by credix program, not manipulated by us
-    #[account(
-        mut,
-        seeds = [
-            credix_global_market_state.key().as_ref(),
-            depository.key().as_ref(),
-            &credix_global_market_state.latest_withdraw_epoch_idx.to_le_bytes(),
-            CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE
-        ],
-        bump,
-        seeds::program = credix_client::ID,
-    )]
-    pub credix_withdraw_request: AccountInfo<'info>,
-
-    /// #15
     pub system_program: Program<'info, System>,
-    /// #16
+    /// #15
     pub credix_program: Program<'info, credix_client::program::Credix>,
 }
 
@@ -273,7 +257,6 @@ impl<'info> RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
             lp_token_mint: self.credix_shares_mint.to_account_info(),
             credix_pass: self.credix_pass.to_account_info(),
             withdraw_epoch: self.credix_withdraw_epoch.to_account_info(),
-            withdraw_request: self.credix_withdraw_request.to_account_info(),
             system_program: self.system_program.to_account_info(),
         };
         let cpi_program = self.credix_program.to_account_info();
