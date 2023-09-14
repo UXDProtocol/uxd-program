@@ -33,7 +33,7 @@ pub fn find_liquidity_pool_token_account(
 }
 
 pub fn find_treasury(multisig: &Pubkey) -> Pubkey {
-    *multisig // The treasury is the same key as the multisig on mainnet
+    *multisig // The treasury is an abritrary wallet that collect the fees
 }
 
 pub fn find_treasury_token_account(treasury: &Pubkey, base_token_mint: &Pubkey) -> Pubkey {
@@ -41,11 +41,14 @@ pub fn find_treasury_token_account(treasury: &Pubkey, base_token_mint: &Pubkey) 
 }
 
 pub fn find_treasury_pool(multisig: &Pubkey) -> Pubkey {
-    *multisig // The manager is the same key as the multisig on mainnet
+    *multisig // The treasury_pool is an abritrary wallet that collect the fees
 }
 
-pub fn find_treasury_pool_token_account(treasury: &Pubkey, base_token_mint: &Pubkey) -> Pubkey {
-    spl_associated_token_account::get_associated_token_address(treasury, base_token_mint)
+pub fn find_treasury_pool_token_account(
+    treasury_pool: &Pubkey,
+    base_token_mint: &Pubkey,
+) -> Pubkey {
+    spl_associated_token_account::get_associated_token_address(treasury_pool, base_token_mint)
 }
 
 pub fn find_credix_pass_pda(global_market_state: &Pubkey, pass_holder: &Pubkey) -> (Pubkey, u8) {
@@ -78,12 +81,4 @@ pub fn find_repayment_schedule_pda(global_market_state: &Pubkey, deal: &Pubkey) 
 
 pub fn find_withdraw_epoch_pda(global_market_state: &Pubkey, epoch_idx: u32) -> (Pubkey, u8) {
     credix_client::WithdrawEpoch::generate_pda(*global_market_state, epoch_idx)
-}
-
-pub fn find_withdraw_request_pda(
-    global_market_state: &Pubkey,
-    investor: &Pubkey,
-    epoch_idx: u32,
-) -> (Pubkey, u8) {
-    credix_client::WithdrawRequest::generate_pda(*global_market_state, *investor, epoch_idx)
 }

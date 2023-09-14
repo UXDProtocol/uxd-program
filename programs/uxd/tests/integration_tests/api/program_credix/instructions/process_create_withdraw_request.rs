@@ -37,12 +37,6 @@ pub async fn process_create_withdraw_request(
     .latest_withdraw_epoch_idx;
     let withdraw_epoch =
         program_credix::accounts::find_withdraw_epoch_pda(&global_market_state, epoch_idx).0;
-    let withdraw_request = program_credix::accounts::find_withdraw_request_pda(
-        &global_market_state,
-        &investor.pubkey(),
-        epoch_idx,
-    )
-    .0;
 
     // Execute IX
     let accounts = credix_client::accounts::CreateWithdrawRequest {
@@ -52,7 +46,6 @@ pub async fn process_create_withdraw_request(
         signing_authority,
         credix_pass,
         withdraw_epoch,
-        withdraw_request,
         investor_lp_token_account: *investor_lp_token_account,
         liquidity_pool_token_account,
         lp_token_mint,

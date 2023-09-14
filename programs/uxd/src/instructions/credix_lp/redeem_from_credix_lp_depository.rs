@@ -98,7 +98,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
 
     /// #11
     #[account(
-        has_one = credix_multisig_key @UxdError::InvalidCredixMultisigKey,
+        has_one = credix_treasury @UxdError::InvalidCredixMultisigKey,
     )]
     pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
 
@@ -145,12 +145,12 @@ pub struct RedeemFromCredixLpDepository<'info> {
 
     /// #18
     /// CHECK: not used by us, checked by credix program
-    pub credix_treasur: AccountInfo<'info>,
+    pub credix_treasury: AccountInfo<'info>,
 
     /// #19
     #[account(
         mut,
-        token::authority = credix_treasur,
+        token::authority = credix_treasury,
         token::mint = collateral_mint,
     )]
     pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,

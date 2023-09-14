@@ -309,7 +309,7 @@ pub(crate) fn handler(
 
     let withdrawable_total_collateral_amount =
         ctx.accounts.credix_withdraw_epoch.max_withdrawable_amount(
-            &ctx.accounts.credix_global_market_state.load()?,
+            &ctx.accounts.credix_global_market_state,
             ctx.accounts.depository.key(),
         )?;
 

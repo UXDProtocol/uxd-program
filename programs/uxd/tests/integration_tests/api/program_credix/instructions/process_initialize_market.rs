@@ -26,9 +26,9 @@ pub async fn process_initialize_market(
         &signing_authority,
         base_token_mint,
     );
-    let treasury = program_credix::accounts::find_treasury(&multisig.pubkey());
+    let treasury_pool = program_credix::accounts::find_treasury_pool(&multisig.pubkey());
     let treasury_pool_token_account =
-        program_credix::accounts::find_treasury_pool_token_account(&treasury, base_token_mint);
+        program_credix::accounts::find_treasury_pool_token_account(&treasury_pool, base_token_mint);
 
     // Each withdraw epoch will last 3 days each
     let withdraw_epochs_seconds = 3 * u32::try_from(SECONDS_PER_DAY).unwrap();
@@ -43,7 +43,7 @@ pub async fn process_initialize_market(
         base_token_mint: *base_token_mint,
         signing_authority,
         liquidity_pool_token_account,
-        treasury,
+        treasury: treasury_pool,
         treasury_pool_token_account,
         system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,

@@ -43,6 +43,18 @@ pub async fn process_set_repayment_schedule(
         _total_periods: 1,
         _start_ts: unix_timestamp_now,
         _daycount_convention: credix_client::DaycountConvention::Act365,
+        _repayment_periods: vec![credix_client::RepaymentPeriod {
+            waterfall_index: 0,
+            accrual_in_days: 30,
+            principal_expected: Some(principal),
+            time_frame: credix_client::TimeFrame {
+                start: unix_timestamp_now,
+                end: unix_timestamp_now + 30 * i64::try_from(SECONDS_PER_DAY).unwrap(),
+            },
+            calculation_waterfall_index: 0,
+            calculation_date: unix_timestamp_now,
+        }],
+        /*
         _repayment_period_inputs: vec![credix_client::RepaymentPeriodInput {
             waterfall_index: 0,
             accrual_in_days: 30,
@@ -53,6 +65,7 @@ pub async fn process_set_repayment_schedule(
                 end: unix_timestamp_now + 30 * i64::try_from(SECONDS_PER_DAY).unwrap(),
             },
         }],
+         */
         _waterfall_definitions: vec![credix_client::DistributionWaterfall {
             waterfall_type: credix_client::DistributionWaterfallType::Amortization,
             tiers: vec![
