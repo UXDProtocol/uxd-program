@@ -32,12 +32,15 @@ pub fn find_liquidity_pool_token_account(
     spl_associated_token_account::get_associated_token_address(signing_authority, base_token_mint)
 }
 
-pub fn find_treasury(multisig: &Pubkey) -> Pubkey {
+pub fn find_credix_treasury(multisig: &Pubkey) -> Pubkey {
     *multisig // The treasury is an abritrary wallet that collect the fees
 }
 
-pub fn find_treasury_token_account(treasury: &Pubkey, base_token_mint: &Pubkey) -> Pubkey {
-    spl_associated_token_account::get_associated_token_address(treasury, base_token_mint)
+pub fn find_credix_treasury_token_account(
+    credix_treasury: &Pubkey,
+    base_token_mint: &Pubkey,
+) -> Pubkey {
+    spl_associated_token_account::get_associated_token_address(credix_treasury, base_token_mint)
 }
 
 pub fn find_treasury_pool(multisig: &Pubkey) -> Pubkey {

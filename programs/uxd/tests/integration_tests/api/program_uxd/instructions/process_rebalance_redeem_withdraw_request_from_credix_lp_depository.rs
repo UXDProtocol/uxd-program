@@ -65,9 +65,11 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
             &credix_treasury_pool,
             collateral_mint,
         );
-    let credix_treasury = program_credix::accounts::find_treasury(credix_multisig);
-    let credix_treasury_collateral =
-        program_credix::accounts::find_treasury_token_account(&credix_treasury, collateral_mint);
+    let credix_treasury = program_credix::accounts::find_credix_treasury(credix_multisig);
+    let credix_treasury_collateral = program_credix::accounts::find_credix_treasury_token_account(
+        &credix_treasury,
+        collateral_mint,
+    );
     let credix_pass = program_credix::accounts::find_credix_pass_pda(
         &credix_global_market_state,
         &credix_lp_depository,

@@ -14,7 +14,7 @@ pub async fn process_deploy_program(
     let market_seeds = program_credix::accounts::find_market_seeds();
     let signing_authority = program_credix::accounts::find_signing_authority_pda(&market_seeds).0;
     let treasury_pool = program_credix::accounts::find_treasury_pool(&multisig.pubkey());
-    let credix_treasury = program_credix::accounts::find_treasury(&multisig.pubkey());
+    let credix_treasury = program_credix::accounts::find_credix_treasury(&multisig.pubkey());
 
     // Create associated token accounts for the authorities wallets
     program_spl::instructions::process_associated_token_account_get_or_init(

@@ -46,9 +46,12 @@ pub async fn process_repay_deal(
     let repayment_schedule =
         program_credix::accounts::find_repayment_schedule_pda(&global_market_state, &deal).0;
 
-    let credix_treasury = program_credix::accounts::find_treasury(multisig);
+    let credix_treasury = program_credix::accounts::find_credix_treasury(multisig);
     let credix_treasury_token_account =
-        program_credix::accounts::find_treasury_token_account(&credix_treasury, base_token_mint);
+        program_credix::accounts::find_credix_treasury_token_account(
+            &credix_treasury,
+            base_token_mint,
+        );
 
     // Execute IX
     let accounts = credix_client::accounts::RepayDeal {
