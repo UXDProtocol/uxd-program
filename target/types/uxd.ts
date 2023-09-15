@@ -1555,19 +1555,19 @@ export type Uxd = {
           docs: ['#16'];
         },
         {
-          name: 'credixTreasuryCollateral';
+          name: 'credixTreasuryPoolCollateral';
           isMut: true;
           isSigner: false;
           docs: ['#17'];
         },
         {
-          name: 'credixMultisigKey';
+          name: 'credixTreasury';
           isMut: false;
           isSigner: false;
           docs: ['#18'];
         },
         {
-          name: 'credixMultisigCollateral';
+          name: 'credixTreasuryCollateral';
           isMut: true;
           isSigner: false;
           docs: ['#19'];
@@ -1686,19 +1686,19 @@ export type Uxd = {
           docs: ['#12'];
         },
         {
-          name: 'credixTreasuryCollateral';
+          name: 'credixTreasuryPoolCollateral';
           isMut: true;
           isSigner: false;
           docs: ['#13'];
         },
         {
-          name: 'credixMultisigKey';
+          name: 'credixTreasury';
           isMut: false;
           isSigner: false;
           docs: ['#14'];
         },
         {
-          name: 'credixMultisigCollateral';
+          name: 'credixTreasuryCollateral';
           isMut: true;
           isSigner: false;
           docs: ['#15'];
@@ -1827,22 +1827,16 @@ export type Uxd = {
           docs: ['#13'];
         },
         {
-          name: 'credixWithdrawRequest';
-          isMut: true;
-          isSigner: false;
-          docs: ['#14'];
-        },
-        {
           name: 'systemProgram';
           isMut: false;
           isSigner: false;
-          docs: ['#15'];
+          docs: ['#14'];
         },
         {
           name: 'credixProgram';
           isMut: false;
           isSigner: false;
-          docs: ['#16'];
+          docs: ['#15'];
         }
       ];
       args: [];
@@ -1943,19 +1937,19 @@ export type Uxd = {
           docs: ['#15'];
         },
         {
-          name: 'credixTreasuryCollateral';
+          name: 'credixTreasuryPoolCollateral';
           isMut: true;
           isSigner: false;
           docs: ['#16'];
         },
         {
-          name: 'credixMultisigKey';
+          name: 'credixTreasury';
           isMut: false;
           isSigner: false;
           docs: ['#17'];
         },
         {
-          name: 'credixMultisigCollateral';
+          name: 'credixTreasuryCollateral';
           isMut: true;
           isSigner: false;
           docs: ['#18'];
@@ -1967,46 +1961,40 @@ export type Uxd = {
           docs: ['#19'];
         },
         {
-          name: 'credixWithdrawRequest';
+          name: 'profitsBeneficiaryCollateral';
           isMut: true;
           isSigner: false;
           docs: ['#20'];
         },
         {
-          name: 'profitsBeneficiaryCollateral';
-          isMut: true;
-          isSigner: false;
-          docs: ['#21'];
-        },
-        {
           name: 'systemProgram';
           isMut: false;
           isSigner: false;
-          docs: ['#22'];
+          docs: ['#21'];
         },
         {
           name: 'tokenProgram';
           isMut: false;
           isSigner: false;
-          docs: ['#23'];
+          docs: ['#22'];
         },
         {
           name: 'associatedTokenProgram';
           isMut: false;
           isSigner: false;
-          docs: ['#24'];
+          docs: ['#23'];
         },
         {
           name: 'credixProgram';
           isMut: false;
           isSigner: false;
-          docs: ['#25'];
+          docs: ['#24'];
         },
         {
           name: 'rent';
           isMut: false;
           isSigner: false;
-          docs: ['#26'];
+          docs: ['#25'];
         }
       ];
       args: [];
@@ -5197,19 +5185,19 @@ export const IDL: Uxd = {
           docs: ['#16'],
         },
         {
-          name: 'credixTreasuryCollateral',
+          name: 'credixTreasuryPoolCollateral',
           isMut: true,
           isSigner: false,
           docs: ['#17'],
         },
         {
-          name: 'credixMultisigKey',
+          name: 'credixTreasury',
           isMut: false,
           isSigner: false,
           docs: ['#18'],
         },
         {
-          name: 'credixMultisigCollateral',
+          name: 'credixTreasuryCollateral',
           isMut: true,
           isSigner: false,
           docs: ['#19'],
@@ -5328,19 +5316,19 @@ export const IDL: Uxd = {
           docs: ['#12'],
         },
         {
-          name: 'credixTreasuryCollateral',
+          name: 'credixTreasuryPoolCollateral',
           isMut: true,
           isSigner: false,
           docs: ['#13'],
         },
         {
-          name: 'credixMultisigKey',
+          name: 'credixTreasury',
           isMut: false,
           isSigner: false,
           docs: ['#14'],
         },
         {
-          name: 'credixMultisigCollateral',
+          name: 'credixTreasuryCollateral',
           isMut: true,
           isSigner: false,
           docs: ['#15'],
@@ -5469,22 +5457,16 @@ export const IDL: Uxd = {
           docs: ['#13'],
         },
         {
-          name: 'credixWithdrawRequest',
-          isMut: true,
-          isSigner: false,
-          docs: ['#14'],
-        },
-        {
           name: 'systemProgram',
           isMut: false,
           isSigner: false,
-          docs: ['#15'],
+          docs: ['#14'],
         },
         {
           name: 'credixProgram',
           isMut: false,
           isSigner: false,
-          docs: ['#16'],
+          docs: ['#15'],
         },
       ],
       args: [],
@@ -5585,19 +5567,19 @@ export const IDL: Uxd = {
           docs: ['#15'],
         },
         {
-          name: 'credixTreasuryCollateral',
+          name: 'credixTreasuryPoolCollateral',
           isMut: true,
           isSigner: false,
           docs: ['#16'],
         },
         {
-          name: 'credixMultisigKey',
+          name: 'credixTreasury',
           isMut: false,
           isSigner: false,
           docs: ['#17'],
         },
         {
-          name: 'credixMultisigCollateral',
+          name: 'credixTreasuryCollateral',
           isMut: true,
           isSigner: false,
           docs: ['#18'],
@@ -5609,46 +5591,40 @@ export const IDL: Uxd = {
           docs: ['#19'],
         },
         {
-          name: 'credixWithdrawRequest',
+          name: 'profitsBeneficiaryCollateral',
           isMut: true,
           isSigner: false,
           docs: ['#20'],
         },
         {
-          name: 'profitsBeneficiaryCollateral',
-          isMut: true,
-          isSigner: false,
-          docs: ['#21'],
-        },
-        {
           name: 'systemProgram',
           isMut: false,
           isSigner: false,
-          docs: ['#22'],
+          docs: ['#21'],
         },
         {
           name: 'tokenProgram',
           isMut: false,
           isSigner: false,
-          docs: ['#23'],
+          docs: ['#22'],
         },
         {
           name: 'associatedTokenProgram',
           isMut: false,
           isSigner: false,
-          docs: ['#24'],
+          docs: ['#23'],
         },
         {
           name: 'credixProgram',
           isMut: false,
           isSigner: false,
-          docs: ['#25'],
+          docs: ['#24'],
         },
         {
           name: 'rent',
           isMut: false,
           isSigner: false,
-          docs: ['#26'],
+          docs: ['#25'],
         },
       ],
       args: [],
