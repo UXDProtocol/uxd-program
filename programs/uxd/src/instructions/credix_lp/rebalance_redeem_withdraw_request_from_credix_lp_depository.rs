@@ -110,14 +110,14 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
 
     /// #10
     #[account(
-        has_one = credix_treasury @UxdError::InvalidCredixMultisigKey,
+        has_one = credix_treasury @UxdError::InvalidCredixTreasury,
     )]
     pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
 
     /// #11
     #[account(
         mut,
-        constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_pool_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
+        constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_pool_collateral.key() @UxdError::InvalidCredixTreasuryPoolCollateral,
     )]
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 

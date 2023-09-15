@@ -1,5 +1,5 @@
 export type Uxd = {
-  version: '8.1.6';
+  version: '8.2.0';
   name: 'uxd';
   instructions: [
     {
@@ -3592,13 +3592,13 @@ export type Uxd = {
     },
     {
       code: 6052;
-      name: 'InvalidCredixMultisigKey';
-      msg: "The Credix Multisig Key isn't the ProgramState one.";
+      name: 'InvalidCredixTreasury';
+      msg: "The Credix Treasury isn't the ProgramState one.";
     },
     {
       code: 6053;
-      name: 'InvalidCredixTreasuryCollateral';
-      msg: "The Credix TreasuryCollateral isn't the GlobalMarketState one.";
+      name: 'InvalidCredixTreasuryPoolCollateral';
+      msg: "The Credix TreasuryPool isn't the GlobalMarketState one.";
     },
     {
       code: 6054;
@@ -3629,7 +3629,7 @@ export type Uxd = {
 };
 
 export const IDL: Uxd = {
-  version: '8.1.6',
+  version: '8.2.0',
   name: 'uxd',
   instructions: [
     {
@@ -7222,13 +7222,13 @@ export const IDL: Uxd = {
     },
     {
       code: 6052,
-      name: 'InvalidCredixMultisigKey',
-      msg: "The Credix Multisig Key isn't the ProgramState one.",
+      name: 'InvalidCredixTreasury',
+      msg: "The Credix Treasury isn't the ProgramState one.",
     },
     {
       code: 6053,
-      name: 'InvalidCredixTreasuryCollateral',
-      msg: "The Credix TreasuryCollateral isn't the GlobalMarketState one.",
+      name: 'InvalidCredixTreasuryPoolCollateral',
+      msg: "The Credix TreasuryPool isn't the GlobalMarketState one.",
     },
     {
       code: 6054,

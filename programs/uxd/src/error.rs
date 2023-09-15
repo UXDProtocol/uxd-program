@@ -111,10 +111,10 @@ pub enum UxdError {
     InvalidCredixPass,
     #[msg("The Credix Pass doesn't have the fees exemption.")]
     InvalidCredixPassNoFees,
-    #[msg("The Credix Multisig Key isn't the ProgramState one.")]
-    InvalidCredixMultisigKey,
-    #[msg("The Credix TreasuryCollateral isn't the GlobalMarketState one.")]
-    InvalidCredixTreasuryCollateral,
+    #[msg("The Credix Treasury isn't the ProgramState one.")]
+    InvalidCredixTreasury,
+    #[msg("The Credix TreasuryPool isn't the GlobalMarketState one.")]
+    InvalidCredixTreasuryPoolCollateral,
     #[msg("The Credix WithdrawEpoch isn't in its request phase.")]
     InvalidCredixWithdrawEpochRequestPhase,
     #[msg("The Credix WithdrawEpoch isn't in its redeem phase.")]

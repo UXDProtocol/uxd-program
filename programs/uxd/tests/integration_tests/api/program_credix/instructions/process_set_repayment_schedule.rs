@@ -54,18 +54,6 @@ pub async fn process_set_repayment_schedule(
             calculation_waterfall_index: 0,
             calculation_date: unix_timestamp_now,
         }],
-        /*
-        _repayment_period_inputs: vec![credix_client::RepaymentPeriodInput {
-            waterfall_index: 0,
-            accrual_in_days: 30,
-            calculation_waterfall_index: 0,
-            principal_expected: Some(principal),
-            time_frame: credix_client::TimeFrame {
-                start: unix_timestamp_now,
-                end: unix_timestamp_now + 30 * i64::try_from(SECONDS_PER_DAY).unwrap(),
-            },
-        }],
-         */
         _waterfall_definitions: vec![credix_client::DistributionWaterfall {
             waterfall_type: credix_client::DistributionWaterfallType::Amortization,
             tiers: vec![
