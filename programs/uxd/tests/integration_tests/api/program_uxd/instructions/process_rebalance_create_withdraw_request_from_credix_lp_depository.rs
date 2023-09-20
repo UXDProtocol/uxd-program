@@ -65,12 +65,6 @@ pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository
         credix_latest_withdraw_epoch_idx,
     )
     .0;
-    let credix_withdraw_request = program_credix::accounts::find_withdraw_request_pda(
-        &credix_global_market_state,
-        &credix_lp_depository,
-        credix_latest_withdraw_epoch_idx,
-    )
-    .0;
 
     // Execute IX
     let accounts = uxd::accounts::RebalanceCreateWithdrawRequestFromCredixLpDepository {
@@ -87,7 +81,6 @@ pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository
         credix_shares_mint,
         credix_pass,
         credix_withdraw_epoch,
-        credix_withdraw_request,
         system_program: solana_sdk::system_program::ID,
         credix_program: credix_client::ID,
     };

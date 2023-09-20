@@ -5,8 +5,6 @@ const {
   MercurialVaultDepository,
   UXDClient,
   nativeToUi,
-  uiToNative,
-  CredixLpDepositoryAccount,
 } = require('@uxd-protocol/uxd-client');
 const {
   Connection,
@@ -331,42 +329,6 @@ async function main() {
   );
   console.log();
 
-  const credixWithdrawRequestAccount =
-    await CredixLpDepository.getCredixWithdrawRequestAccount(
-      credixProgram,
-      credixWithdrawRequest
-    );
-  console.log('> credixWithdrawRequestAccount');
-  console.log(
-    'credixWithdrawRequestAccount.baseAmount(requested)',
-    nativeToUi(credixWithdrawRequestAccount.baseAmount, credixBaseDecimals)
-  );
-  console.log(
-    'credixWithdrawRequestAccount.baseAmountWithdrawn',
-    nativeToUi(
-      credixWithdrawRequestAccount.baseAmountWithdrawn,
-      credixBaseDecimals
-    )
-  );
-  console.log(
-    'credixWithdrawRequestAccount.investorTotalLpAmount',
-    nativeToUi(
-      credixWithdrawRequestAccount.investorTotalLpAmount,
-      credixBaseDecimals
-    )
-  );
-  console.log(
-    'credixWithdrawRequestAccount.baseAmountWithdrawable(computed)',
-    nativeToUi(
-      credixGlobalMarketStateAccount.lockedLiquidity
-        .mul(credixWithdrawRequestAccount.investorTotalLpAmount)
-        .div(credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount)
-        .sub(credixWithdrawRequestAccount.baseAmountWithdrawn),
-      credixBaseDecimals
-    )
-  );
-  console.log();
-
   const credixSharesMintAccount = await getConnection().getTokenSupply(
     credixLpDepository.credixSharesMint
   );
@@ -476,80 +438,6 @@ async function main() {
   }
   console.log('> overflow_value:', overflow_value.toString());
 
-  const withdrawable_total_collateral_amount =
-    credixGlobalMarketStateAccount.lockedLiquidity
-      .mul(credixWithdrawRequestAccount.investorTotalLpAmount)
-      .div(credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount)
-      .sub(credixWithdrawRequestAccount.baseAmountWithdrawn);
-  console.log(
-    '> withdrawable_total_collateral_amount:',
-    withdrawable_total_collateral_amount.toString()
-  );
-
-  const withdrawal_profits_collateral_amount = BN.min(
-    withdrawable_total_collateral_amount,
-    profits_collateral_amount
-  );
-  console.log(
-    '> withdrawal_profits_collateral_amount:',
-    withdrawal_profits_collateral_amount.toString()
-  );
-
-  const withdrawal_overflow_value = BN.min(
-    withdrawable_total_collateral_amount.sub(
-      withdrawal_profits_collateral_amount
-    ),
-    overflow_value
-  );
-  console.log(
-    '> withdrawal_overflow_value:',
-    withdrawal_overflow_value.toString()
-  );
-
-  const withdrawal_total_collateral_amount =
-    withdrawal_profits_collateral_amount.add(withdrawal_overflow_value);
-  console.log(
-    '> withdrawal_total_collateral_amount:',
-    withdrawal_total_collateral_amount.toString()
-  );
-
-  const withdrawal_total_shares_amount = compute_shares_amount_for_value_floor(
-    withdrawal_total_collateral_amount,
-    total_shares_supply_before,
-    total_shares_value_before
-  );
-  console.log(
-    '> withdrawal_total_shares_amount:',
-    withdrawal_total_shares_amount.toString()
-  );
-
-  const withdrawal_total_collateral_amount_after_precision_loss =
-    compute_value_for_shares_amount_floor(
-      withdrawal_total_shares_amount,
-      total_shares_supply_before,
-      total_shares_value_before
-    );
-  console.log(
-    '> withdrawal_total_collateral_amount_after_precision_loss:',
-    withdrawal_total_collateral_amount_after_precision_loss.toString()
-  );
-
-  let withdrawal_overflow_value_after_precision_loss =
-    withdrawal_overflow_value; // Precision loss should be taken from the profits, not the overflow
-  console.log(
-    '> withdrawal_overflow_value_after_precision_loss:',
-    withdrawal_overflow_value_after_precision_loss.toString()
-  );
-
-  let withdrawal_profits_collateral_amount_after_precision_loss =
-    withdrawal_total_collateral_amount_after_precision_loss.sub(
-      withdrawal_overflow_value_after_precision_loss
-    );
-  console.log(
-    '> withdrawal_profits_collateral_amount_after_precision_loss:',
-    withdrawal_profits_collateral_amount_after_precision_loss.toString()
-  );
-
   console.log();
 }
 
@@ -559,14 +447,6 @@ function compute_value_for_shares_amount_floor(
   total_shares_value
 ) {
   return shares_amount.mul(total_shares_value).div(total_shares_supply);
-}
-
-function compute_shares_amount_for_value_floor(
-  value,
-  total_shares_supply,
-  total_shares_value
-) {
-  return value.mul(total_shares_supply).div(total_shares_value);
 }
 
 main();

@@ -98,14 +98,14 @@ pub struct RedeemFromCredixLpDepository<'info> {
 
     /// #11
     #[account(
-        has_one = credix_multisig_key @UxdError::InvalidCredixMultisigKey,
+        has_one = credix_treasury @UxdError::InvalidCredixTreasury,
     )]
     pub credix_program_state: Box<Account<'info, credix_client::ProgramState>>,
 
     /// #12
     #[account(
         mut,
-        constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_collateral.key() @UxdError::InvalidCredixTreasuryCollateral,
+        constraint = credix_global_market_state.treasury_pool_token_account == credix_treasury_pool_collateral.key() @UxdError::InvalidCredixTreasuryPoolCollateral,
     )]
     pub credix_global_market_state: Box<Account<'info, credix_client::GlobalMarketState>>,
 
@@ -132,7 +132,7 @@ pub struct RedeemFromCredixLpDepository<'info> {
         bump,
         seeds::program = credix_client::ID,
         constraint = credix_pass.user == depository.key() @UxdError::InvalidCredixPass,
-        constraint = credix_pass.disable_withdrawal_fee @UxdError::InvalidCredixPassNoFees,
+        constraint = credix_pass.disable_withdrawal_fee() @UxdError::InvalidCredixPassNoFees,
     )]
     pub credix_pass: Account<'info, credix_client::CredixPass>,
 
@@ -141,19 +141,19 @@ pub struct RedeemFromCredixLpDepository<'info> {
         mut,
         token::mint = collateral_mint,
     )]
-    pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,
+    pub credix_treasury_pool_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #18
     /// CHECK: not used by us, checked by credix program
-    pub credix_multisig_key: AccountInfo<'info>,
+    pub credix_treasury: AccountInfo<'info>,
 
     /// #19
     #[account(
         mut,
-        token::authority = credix_multisig_key,
+        token::authority = credix_treasury,
         token::mint = collateral_mint,
     )]
-    pub credix_multisig_collateral: Box<Account<'info, TokenAccount>>,
+    pub credix_treasury_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #20
     pub system_program: Program<'info, System>,
@@ -469,9 +469,9 @@ impl<'info> RedeemFromCredixLpDepository<'info> {
             liquidity_pool_token_account: self.credix_liquidity_collateral.to_account_info(),
             lp_token_mint: self.credix_shares_mint.to_account_info(),
             credix_pass: self.credix_pass.to_account_info(),
-            treasury_pool_token_account: self.credix_treasury_collateral.to_account_info(),
-            credix_multisig_key: self.credix_multisig_key.to_account_info(),
-            credix_multisig_token_account: self.credix_multisig_collateral.to_account_info(),
+            treasury_pool_token_account: self.credix_treasury_pool_collateral.to_account_info(),
+            credix_treasury: self.credix_treasury.to_account_info(),
+            credix_treasury_token_account: self.credix_treasury_collateral.to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
             associated_token_program: self.associated_token_program.to_account_info(),

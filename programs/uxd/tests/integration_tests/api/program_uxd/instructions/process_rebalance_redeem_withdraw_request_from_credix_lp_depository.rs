@@ -20,7 +20,7 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     collateral_mint: &Pubkey,
-    credix_multisig_key: &Pubkey,
+    credix_multisig: &Pubkey,
     profits_beneficiary_collateral: &Pubkey,
     expected_withdrawal_overflow_value: u64,
     expected_withdrawal_profits_amount: u64,
@@ -59,8 +59,14 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
         &credix_signing_authority,
         collateral_mint,
     );
-    let credix_treasury = program_credix::accounts::find_treasury(credix_multisig_key);
-    let credix_treasury_collateral = program_credix::accounts::find_treasury_pool_token_account(
+    let credix_treasury_pool = program_credix::accounts::find_treasury_pool(credix_multisig);
+    let credix_treasury_pool_collateral =
+        program_credix::accounts::find_treasury_pool_token_account(
+            &credix_treasury_pool,
+            collateral_mint,
+        );
+    let credix_treasury = program_credix::accounts::find_credix_treasury(credix_multisig);
+    let credix_treasury_collateral = program_credix::accounts::find_credix_treasury_token_account(
         &credix_treasury,
         collateral_mint,
     );
@@ -69,10 +75,6 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
         &credix_lp_depository,
     )
     .0;
-    let credix_multisig_collateral = spl_associated_token_account::get_associated_token_address(
-        credix_multisig_key,
-        collateral_mint,
-    );
     let credix_lp_depository_collateral =
         program_uxd::accounts::find_credix_lp_depository_collateral(
             &credix_lp_depository,
@@ -91,12 +93,6 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     .latest_withdraw_epoch_idx;
     let credix_withdraw_epoch = program_credix::accounts::find_withdraw_epoch_pda(
         &credix_global_market_state,
-        credix_latest_withdraw_epoch_idx,
-    )
-    .0;
-    let credix_withdraw_request = program_credix::accounts::find_withdraw_request_pda(
-        &credix_global_market_state,
-        &credix_lp_depository,
         credix_latest_withdraw_epoch_idx,
     )
     .0;
@@ -146,10 +142,9 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
         credix_shares_mint,
         credix_pass,
         credix_withdraw_epoch,
-        credix_withdraw_request,
+        credix_treasury_pool_collateral,
+        credix_treasury,
         credix_treasury_collateral,
-        credix_multisig_key: *credix_multisig_key,
-        credix_multisig_collateral,
         profits_beneficiary_collateral: *profits_beneficiary_collateral,
         identity_depository,
         identity_depository_collateral,

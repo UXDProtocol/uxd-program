@@ -1026,9 +1026,9 @@ dependencies = [
 
 [[package]]
 name = "credix_client"
-version = "0.7.5"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbf5e6e889e67a801774577ace6a711e4e79c50d88264578ca557d2bf39a471a"
+checksum = "7bfcae67c8c1c89979d09b036dad0fa52747fdd5da125a34bb890a94ed96a09a"
 dependencies = [
  "anchor-gen",
  "anchor-lang",
@@ -5191,7 +5191,7 @@ checksum = "79daa5ed5740825c40b389c5e50312b9c86df53fccd33f281df655642b43869d"
 
 [[package]]
 name = "uxd"
-version = "8.1.6"
+version = "8.2.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -5214,9 +5214,9 @@ dependencies = [
 
 [[package]]
 name = "uxd-cpi"
-version = "8.1.6"
+version = "8.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f772083c95af0708ea71233bd429fb4760f2241fc069cc1233d603c4ae86816d"
+checksum = "5e6d1988191fb42cd9d73b7a5de2b17ad746d3661718c483b7d33ba8c2e7708f"
 dependencies = [
  "anchor-gen",
  "anchor-lang",
