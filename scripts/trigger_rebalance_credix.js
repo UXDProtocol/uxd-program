@@ -449,12 +449,4 @@ function compute_value_for_shares_amount_floor(
   return shares_amount.mul(total_shares_value).div(total_shares_supply);
 }
 
-function compute_shares_amount_for_value_floor(
-  value,
-  total_shares_supply,
-  total_shares_value
-) {
-  return value.mul(total_shares_supply).div(total_shares_value);
-}
-
 main();

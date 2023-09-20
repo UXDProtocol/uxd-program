@@ -10,6 +10,10 @@ pub async fn process_associated_token_account_get_or_init(
     mint: &Pubkey,
     wallet: &Pubkey,
 ) -> Result<Pubkey, program_context::ProgramError> {
+    let pda = spl_associated_token_account::get_associated_token_address(wallet, mint);
+    if program_context::read_account_exists(program_context, &pda).await? {
+        return Ok(pda);
+    }
     let instruction =
         spl_associated_token_account::instruction::create_associated_token_account_idempotent(
             &payer.pubkey(),
@@ -18,7 +22,5 @@ pub async fn process_associated_token_account_get_or_init(
             &spl_token::id(),
         );
     program_context::process_instruction(program_context, instruction, payer).await?;
-    Ok(spl_associated_token_account::get_associated_token_address(
-        wallet, mint,
-    ))
+    Ok(pda)
 }
