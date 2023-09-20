@@ -5,8 +5,6 @@ const {
   MercurialVaultDepository,
   UXDClient,
   nativeToUi,
-  uiToNative,
-  CredixLpDepositoryAccount,
 } = require('@uxd-protocol/uxd-client');
 const {
   Connection,
@@ -326,42 +324,6 @@ async function main() {
     'credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount',
     nativeToUi(
       credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount,
-      credixBaseDecimals
-    )
-  );
-  console.log();
-
-  const credixWithdrawRequestAccount =
-    await CredixLpDepository.getCredixWithdrawRequestAccount(
-      credixProgram,
-      credixWithdrawRequest
-    );
-  console.log('> credixWithdrawRequestAccount');
-  console.log(
-    'credixWithdrawRequestAccount.baseAmount(requested)',
-    nativeToUi(credixWithdrawRequestAccount.baseAmount, credixBaseDecimals)
-  );
-  console.log(
-    'credixWithdrawRequestAccount.baseAmountWithdrawn',
-    nativeToUi(
-      credixWithdrawRequestAccount.baseAmountWithdrawn,
-      credixBaseDecimals
-    )
-  );
-  console.log(
-    'credixWithdrawRequestAccount.investorTotalLpAmount',
-    nativeToUi(
-      credixWithdrawRequestAccount.investorTotalLpAmount,
-      credixBaseDecimals
-    )
-  );
-  console.log(
-    'credixWithdrawRequestAccount.baseAmountWithdrawable(computed)',
-    nativeToUi(
-      credixGlobalMarketStateAccount.lockedLiquidity
-        .mul(credixWithdrawRequestAccount.investorTotalLpAmount)
-        .div(credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount)
-        .sub(credixWithdrawRequestAccount.baseAmountWithdrawn),
       credixBaseDecimals
     )
   );
