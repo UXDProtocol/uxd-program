@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::error::UxdError;
 use crate::events::RegisterMercurialVaultDepositoryEvent;
 use crate::state::MercurialVaultDepository;

@@ -72,7 +72,6 @@ pub struct RegisterAlloyxVaultDepository<'info> {
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
     /// #8
-    #[account]
     pub alloyx_vault: Box<Account<'info, alloyx_vault::VaultInfo>>,
 
     /// #9
@@ -139,13 +138,13 @@ pub(crate) fn handler(
     depository.minting_disabled = false;
 
     // Depository accounting
-    depository.collateral_amount_deposited = u128::MIN;
-    depository.redeemable_amount_under_management = u128::MIN;
-    depository.minting_fee_total_accrued = u128::MIN;
-    depository.redeeming_fee_total_accrued = u128::MIN;
+    depository.collateral_amount_deposited = 0;
+    depository.redeemable_amount_under_management = 0;
+    depository.minting_fee_total_accrued = 0;
+    depository.redeeming_fee_total_accrued = 0;
 
     // Profits collection
-    depository.profits_total_collected = u128::MIN;
+    depository.profits_total_collected = 0;
 
     // Add the depository to the controller
     ctx.accounts

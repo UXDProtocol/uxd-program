@@ -13,6 +13,7 @@ use crate::state::alloyx_vault_depository::AlloyxVaultDepository;
 use crate::state::controller::Controller;
 use crate::utils::calculate_amount_less_fees;
 use crate::utils::checked_add;
+use crate::utils::checked_sub;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value_floor;
@@ -95,7 +96,6 @@ pub struct RedeemFromAlloyxVaultDepository<'info> {
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
     /// #12
-    #[account]
     pub alloyx_vault: Box<Account<'info, alloyx_vault::VaultInfo>>,
 
     /// #13

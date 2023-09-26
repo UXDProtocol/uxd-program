@@ -7,9 +7,10 @@ use anchor_lang::prelude::*;
 
 pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
 pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
+pub const MAX_REGISTERED_ALLOYX_VAULT_DEPOSITORIES: usize = 2; // TODO - resize to 4
 
 // Total should be 885 bytes
-pub const CONTROLLER_RESERVED_SPACE: usize = 94;
+pub const CONTROLLER_RESERVED_SPACE: usize = 29;
 pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u8>() // bump
     + size_of::<u8>() // redeemable_mint_bump
@@ -40,6 +41,8 @@ pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u64>() // slots_per_epoch
     + size_of::<u64>() // epoch_outflow_amount
     + size_of::<u64>() // last_outflow_slot
+    + size_of::<Pubkey>() * MAX_REGISTERED_ALLOYX_VAULT_DEPOSITORIES // registered_alloyx_vault_depositories
+    + size_of::<u8>() // registered_alloyx_vault_depositories_count
     + CONTROLLER_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -78,12 +81,12 @@ pub struct Controller {
     pub redeemable_circulating_supply: u128,
     pub _unused4: [u8; 8],
     //
-    // The Mercurial Vault Depositories registered with this Controller
+    // The mercurial_vault Depositories registered with this Controller
     pub registered_mercurial_vault_depositories:
         [Pubkey; MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES],
     pub registered_mercurial_vault_depositories_count: u8,
     //
-    // The Credix Lp Depositories registered with this Controller
+    // The credix_lp Depositories registered with this Controller
     pub registered_credix_lp_depositories: [Pubkey; MAX_REGISTERED_CREDIX_LP_DEPOSITORIES],
     pub registered_credix_lp_depositories_count: u8,
     //
@@ -106,6 +109,10 @@ pub struct Controller {
     pub slots_per_epoch: u64,
     pub epoch_outflow_amount: u64,
     pub last_outflow_slot: u64,
+
+    // The alloyx_vault depositories registered with this Controller
+    pub registered_alloyx_vault_depositories: [Pubkey; MAX_REGISTERED_ALLOYX_VAULT_DEPOSITORIES],
+    pub registered_alloyx_vault_depositories_count: u8,
 
     // For future usage
     pub _reserved: [u8; CONTROLLER_RESERVED_SPACE],
@@ -140,12 +147,30 @@ impl Controller {
             current_size < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
             UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached
         );
-        // Increment registered Credix Lp Depositories count
+        // Increment registered credix_lp depositories count
         self.registered_credix_lp_depositories_count =
             checked_add(self.registered_credix_lp_depositories_count, 1)?;
-        // Add the new Credix Lp Depository ID to the array of registered Depositories
+        // Add the new credix_lp depository ID to the array of registered depositories
         let new_entry_index = current_size;
         self.registered_credix_lp_depositories[new_entry_index] = credix_lp_depository_id;
+        Ok(())
+    }
+
+    pub(crate) fn add_registered_alloyx_vault_depository_entry(
+        &mut self,
+        alloyx_vault_depository_id: Pubkey,
+    ) -> Result<()> {
+        let current_size = usize::from(self.registered_alloyx_vault_depositories_count);
+        require!(
+            current_size < MAX_REGISTERED_ALLOYX_VAULT_DEPOSITORIES,
+            UxdError::MaxNumberOfAlloyxVaultDepositoriesRegisteredReached
+        );
+        // Increment registered alloyx_vault depositories count
+        self.registered_alloyx_vault_depositories_count =
+            checked_add(self.registered_alloyx_vault_depositories_count, 1)?;
+        // Add the new alloyx_vault depository ID to the array of registered depositories
+        let new_entry_index = current_size;
+        self.registered_alloyx_vault_depositories[new_entry_index] = alloyx_vault_depository_id;
         Ok(())
     }
 
