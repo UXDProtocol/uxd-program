@@ -10,6 +10,7 @@ pub mod mint;
 pub mod mint_with_identity_depository;
 pub mod redeem;
 pub mod redeem_from_identity_depository;
+pub mod register_alloyx_vault_depository;
 pub mod register_mercurial_vault_depository;
 
 pub use credix_lp::*;
@@ -24,4 +25,5 @@ pub use mint::*;
 pub use mint_with_identity_depository::*;
 pub use redeem::*;
 pub use redeem_from_identity_depository::*;
+pub use register_alloyx_vault_depository::*;
 pub use register_mercurial_vault_depository::*;
