@@ -1,47 +1,39 @@
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token;
+use anchor_spl::token::Burn;
 use anchor_spl::token::Mint;
-use anchor_spl::token::MintTo;
 use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 use anchor_spl::token::Transfer;
 
 use crate::error::UxdError;
-use crate::events::MintWithAlloyxVaultDepositoryEvent;
+use crate::events::RedeemFromAlloyxVaultDepositoryEvent;
 use crate::state::alloyx_vault_depository::AlloyxVaultDepository;
 use crate::state::controller::Controller;
 use crate::utils::calculate_amount_less_fees;
+use crate::utils::checked_add;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value_floor;
 use crate::utils::compute_value_for_shares_amount_floor;
 use crate::utils::is_within_range_inclusive;
-use crate::utils::validate_collateral_amount;
+use crate::utils::validate_redeemable_amount;
 use crate::validate_is_program_frozen;
 use crate::ALLOYX_VAULT_DEPOSITORY_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 
 #[derive(Accounts)]
-#[instruction(collateral_amount: u64)]
-pub struct MintWithAlloyxVaultDepository<'info> {
-    /// #1 This IX should only be accessible by the router or the DAO
-    #[account(
-        constraint = (
-            authority.key() == controller.key()
-            || authority.key() == controller.load()?.authority
-        )  @UxdError::InvalidAuthority,
-    )]
-    pub authority: Signer<'info>,
-
-    /// #2
+#[instruction(redeemable_amount: u64)]
+pub struct RedeemFromAlloyxVaultDepository<'info> {
+    /// #1
     pub user: Signer<'info>,
 
-    /// #3
+    /// #2
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    /// #4
+    /// #3
     #[account(
         mut,
         seeds = [CONTROLLER_NAMESPACE],
@@ -51,12 +43,12 @@ pub struct MintWithAlloyxVaultDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #5
+    /// #4
     #[account(
         mut,
         seeds = [
             ALLOYX_VAULT_DEPOSITORY_NAMESPACE,
-            depository.load()?.alloyx_vault.key().as_ref(),
+            depository.load()?.alloyx_global_market_state.key().as_ref(),
             depository.load()?.collateral_mint.as_ref()
         ],
         bump = depository.load()?.bump,
@@ -71,14 +63,14 @@ pub struct MintWithAlloyxVaultDepository<'info> {
     )]
     pub depository: AccountLoader<'info, AlloyxVaultDepository>,
 
-    /// #6
+    /// #5
     #[account(mut)]
     pub redeemable_mint: Box<Account<'info, Mint>>,
 
-    /// #7
+    /// #6
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #8
+    /// #7
     #[account(
         mut,
         constraint = user_redeemable.owner == user.key() @UxdError::InvalidOwner,
@@ -86,19 +78,19 @@ pub struct MintWithAlloyxVaultDepository<'info> {
     )]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
 
-    /// #9
+    /// #8
     #[account(
         mut,
         constraint = user_collateral.owner == user.key() @UxdError::InvalidOwner,
-        constraint = user_collateral.mint == collateral_mint.key() @UxdError::InvalidCollateralMint,
+        constraint = user_collateral.mint == collateral_mint.key() @UxdError::InvalidCollateralMint
     )]
     pub user_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #10
+    /// #9
     #[account(mut)]
     pub depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #11
+    /// #10
     #[account(mut)]
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
@@ -124,21 +116,21 @@ pub struct MintWithAlloyxVaultDepository<'info> {
     )]
     pub alloyx_vault_pass: Account<'info, alloyx_vault::PassInfo>,
 
-    /// #17
-    pub system_program: Program<'info, System>,
-    /// #18
-    pub token_program: Program<'info, Token>,
-    /// #19
-    pub associated_token_program: Program<'info, AssociatedToken>,
     /// #20
-    pub credix_program: Program<'info, credix_client::program::Credix>,
+    pub system_program: Program<'info, System>,
     /// #21
+    pub token_program: Program<'info, Token>,
+    /// #22
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    /// #23
+    pub alloyx_program: Program<'info, alloyx_client::program::Credix>,
+    /// #24
     pub rent: Sysvar<'info, Rent>,
 }
 
 pub(crate) fn handler(
-    ctx: Context<MintWithAlloyxVaultDepository>,
-    collateral_amount: u64,
+    ctx: Context<RedeemFromAlloyxVaultDepository>,
+    redeemable_amount: u64,
 ) -> Result<()> {
     // ---------------------------------------------------------------------
     // -- Phase 1
@@ -146,7 +138,7 @@ pub(crate) fn handler(
     // -- and predict all future final state after mutation
     // ---------------------------------------------------------------------
 
-    // Read all state before deposit
+    // Read all state before withdrawal
     let depository_collateral_amount_before: u64 = ctx.accounts.depository_collateral.amount;
     let user_collateral_amount_before: u64 = ctx.accounts.user_collateral.amount;
     let user_redeemable_amount_before: u64 = ctx.accounts.user_redeemable.amount;
@@ -171,71 +163,57 @@ pub(crate) fn handler(
 
     // Initial amount
     msg!(
-        "[mint_with_alloyx_vault_depository:collateral_amount:{}]",
-        collateral_amount
+        "[redeem_from_alloyx_vault_depository:redeemable_amount:{}]",
+        redeemable_amount
     );
 
-    // Compute the amount of shares that we will get for our collateral
+    // Apply the redeeming fees
+    let redeemable_amount_after_fees: u64 = calculate_amount_less_fees(
+        redeemable_amount,
+        ctx.accounts.depository.load()?.redeeming_fee_in_bps,
+    )?;
+    msg!(
+        "[redeem_from_alloyx_vault_depository:redeemable_amount_after_fees:{}]",
+        redeemable_amount_after_fees
+    );
+
+    // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
+    let collateral_amount_before_precision_loss: u64 = redeemable_amount_after_fees;
+
+    // Compute the amount of shares that we need to withdraw based on the amount of wanted collateral
     let shares_amount: u64 = compute_shares_amount_for_value_floor(
-        collateral_amount,
+        collateral_amount_before_precision_loss,
         total_shares_supply_before,
         total_shares_value_before,
     )?;
     msg!(
-        "[mint_with_alloyx_vault_depository:shares_amount:{}]",
+        "[redeem_from_alloyx_vault_depository:shares_amount:{}]",
         shares_amount
     );
-    require!(
-        shares_amount > 0,
-        UxdError::MinimumMintedRedeemableAmountError
-    );
 
-    // Compute the amount of collateral that the received shares are worth (after potential precision loss)
+    // Compute the amount of collateral that the withdrawn shares are worth (after potential precision loss)
     let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount_floor(
         shares_amount,
         total_shares_supply_before,
         total_shares_value_before,
     )?;
     msg!(
-        "[mint_with_alloyx_vault_depository:collateral_amount_after_precision_loss:{}]",
+        "[redeem_from_alloyx_vault_depository:collateral_amount_after_precision_loss:{}]",
         collateral_amount_after_precision_loss
     );
     require!(
         collateral_amount_after_precision_loss > 0,
-        UxdError::MinimumMintedRedeemableAmountError
-    );
-
-    // Assumes and enforce a collateral/redeemable 1:1 relationship on purpose
-    let redeemable_amount_before_fees: u64 = collateral_amount_after_precision_loss;
-
-    // Apply the redeeming fees
-    let redeemable_amount_after_fees: u64 = calculate_amount_less_fees(
-        redeemable_amount_before_fees,
-        ctx.accounts.depository.load()?.minting_fee_in_bps,
-    )?;
-    msg!(
-        "[mint_with_alloyx_vault_depository:redeemable_amount_after_fees:{}]",
-        redeemable_amount_after_fees
+        UxdError::MinimumRedeemedCollateralAmountError
     );
     require!(
-        redeemable_amount_after_fees > 0,
-        UxdError::MinimumMintedRedeemableAmountError
-    );
-    require!(
-        redeemable_amount_after_fees <= collateral_amount,
-        UxdError::MaximumMintedRedeemableAmountError
+        collateral_amount_after_precision_loss <= redeemable_amount,
+        UxdError::MaximumRedeemedCollateralAmountError
     );
 
     // ---------------------------------------------------------------------
     // -- Phase 2
     // -- Actually runs the onchain mutation based on computed parameters
     // ---------------------------------------------------------------------
-
-    // Make controller signer
-    let controller_pda_signer: &[&[&[u8]]] = &[&[
-        CONTROLLER_NAMESPACE,
-        &[ctx.accounts.controller.load()?.bump],
-    ]];
 
     // Make depository signer
     let alloyx_vault = ctx.accounts.depository.load()?.alloyx_vault;
@@ -247,30 +225,29 @@ pub(crate) fn handler(
         &[ctx.accounts.depository.load()?.bump],
     ]];
 
-    // Transfer the collateral to an account owned by the depository
-    msg!("[mint_with_alloyx_vault_depository:collateral_transfer]",);
+    // Burn the user's redeemable
+    msg!("[redeem_from_alloyx_vault_depository:redeemable_burn]",);
+    token::burn(
+        ctx.accounts.into_burn_redeemable_context(),
+        redeemable_amount,
+    )?;
+
+    // Run a withdraw CPI from alloyx into the depository
+    msg!("[redeem_from_alloyx_vault_depository:withdraw_controller]",);
+    alloyx_vault::cpi::withdraw_controller(
+        ctx.accounts
+            .into_withdraw_shares_from_alloyx_vault_context()
+            .with_signer(depository_pda_signer),
+        shares_amount,
+    )?;
+
+    // Transfer the received collateral from the depository to the end user
+    msg!("[redeem_from_alloyx_vault_depository:collateral_transfer]",);
     token::transfer(
         ctx.accounts
-            .into_transfer_user_collateral_to_depository_collateral_context(),
-        collateral_amount,
-    )?;
-
-    // Do the deposit by placing collateral owned by the depository into the pool
-    msg!("[mint_with_alloyx_vault_depository:deposit_controller]",);
-    alloyx_vault::cpi::deposit_controller(
-        ctx.accounts
-            .into_deposit_collateral_to_alloyx_vault_context()
+            .into_transfer_depository_collateral_to_user_collateral_context()
             .with_signer(depository_pda_signer),
-        collateral_amount,
-    )?;
-
-    // Mint redeemable to the user
-    msg!("[mint_with_alloyx_vault_depository:mint_redeemable]",);
-    token::mint_to(
-        ctx.accounts
-            .into_mint_redeemable_context()
-            .with_signer(controller_pda_signer),
-        redeemable_amount_after_fees,
+        collateral_amount_after_precision_loss,
     )?;
 
     // Refresh account states after deposit
@@ -288,7 +265,7 @@ pub(crate) fn handler(
     // -- after mutation exactly match previous predictions
     // ---------------------------------------------------------------------
 
-    // Read all state after deposit
+    // Read all state after withdrawal
     let depository_collateral_amount_after: u64 = ctx.accounts.depository_collateral.amount;
     let user_collateral_amount_after: u64 = ctx.accounts.user_collateral.amount;
     let user_redeemable_amount_after: u64 = ctx.accounts.user_redeemable.amount;
@@ -312,45 +289,45 @@ pub(crate) fn handler(
     )?;
 
     // Compute changes in states
-    let user_collateral_amount_decrease: u64 =
-        compute_decrease(user_collateral_amount_before, user_collateral_amount_after)?;
-    let user_redeemable_amount_increase: u64 =
-        compute_increase(user_redeemable_amount_before, user_redeemable_amount_after)?;
+    let user_collateral_amount_increase: u64 =
+        compute_increase(user_collateral_amount_before, user_collateral_amount_after)?;
+    let user_redeemable_amount_decrease: u64 =
+        compute_decrease(user_redeemable_amount_before, user_redeemable_amount_after)?;
 
-    let total_shares_supply_increase: u64 =
-        compute_increase(total_shares_supply_before, total_shares_supply_after)?;
-    let total_shares_value_increase: u64 =
-        compute_increase(total_shares_value_before, total_shares_value_after)?;
+    let total_shares_supply_decrease: u64 =
+        compute_decrease(total_shares_supply_before, total_shares_supply_after)?;
+    let total_shares_value_decrease: u64 =
+        compute_decrease(total_shares_value_before, total_shares_value_after)?;
 
-    let owned_shares_amount_increase: u64 =
-        compute_increase(owned_shares_amount_before, owned_shares_amount_after)?;
-    let owned_shares_value_increase: u64 =
-        compute_increase(owned_shares_value_before, owned_shares_value_after)?;
+    let owned_shares_amount_decrease: u64 =
+        compute_decrease(owned_shares_amount_before, owned_shares_amount_after)?;
+    let owned_shares_value_decrease: u64 =
+        compute_decrease(owned_shares_value_before, owned_shares_value_after)?;
 
     // Log deltas for debriefing the changes
     msg!(
-        "[mint_with_alloyx_vault_depository:user_collateral_amount_decrease:{}]",
-        user_collateral_amount_decrease
+        "[redeem_from_alloyx_vault_depository:user_collateral_amount_increase:{}]",
+        user_collateral_amount_increase
     );
     msg!(
-        "[mint_with_alloyx_vault_depository:user_redeemable_amount_increase:{}]",
-        user_redeemable_amount_increase
+        "[redeem_from_alloyx_vault_depository:user_redeemable_amount_decrease:{}]",
+        user_redeemable_amount_decrease
     );
     msg!(
-        "[mint_with_alloyx_vault_depository:total_shares_supply_increase:{}]",
-        total_shares_supply_increase
+        "[redeem_from_alloyx_vault_depository:total_shares_supply_decrease:{}]",
+        total_shares_supply_decrease
     );
     msg!(
-        "[mint_with_alloyx_vault_depository:total_shares_value_increase:{}]",
-        total_shares_value_increase
+        "[redeem_from_alloyx_vault_depository:total_shares_value_decrease:{}]",
+        total_shares_value_decrease
     );
     msg!(
-        "[mint_with_alloyx_vault_depository:owned_shares_amount_increase:{}]",
-        owned_shares_amount_increase
+        "[redeem_from_alloyx_vault_depository:owned_shares_amount_decrease:{}]",
+        owned_shares_amount_decrease
     );
     msg!(
-        "[mint_with_alloyx_vault_depository:owned_shares_value_increase:{}]",
-        owned_shares_value_increase
+        "[redeem_from_alloyx_vault_depository:owned_shares_value_decrease:{}]",
+        owned_shares_value_decrease
     );
 
     // The depository collateral account should always be empty
@@ -361,38 +338,38 @@ pub(crate) fn handler(
 
     // Validate that the locked value moved exactly to the correct place
     require!(
-        user_collateral_amount_decrease == collateral_amount,
+        user_collateral_amount_increase == collateral_amount_after_precision_loss,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        user_redeemable_amount_increase == redeemable_amount_after_fees,
+        user_redeemable_amount_decrease == redeemable_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
-    // Check that we received the correct amount of shares
+    // Check that we withdrew the correct amount of shares
     require!(
-        total_shares_supply_increase == shares_amount,
+        total_shares_supply_decrease == shares_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
     require!(
-        owned_shares_amount_increase == shares_amount,
+        owned_shares_amount_decrease == shares_amount,
         UxdError::CollateralDepositAmountsDoesntMatch,
     );
 
     // Check that the new state of the pool still makes sense
     require!(
         is_within_range_inclusive(
-            total_shares_value_increase,
+            total_shares_value_decrease,
             collateral_amount_after_precision_loss,
-            collateral_amount
+            collateral_amount_before_precision_loss,
         ),
         UxdError::CollateralDepositDoesntMatchTokenValue,
     );
     require!(
         is_within_range_inclusive(
-            owned_shares_value_increase,
+            owned_shares_value_decrease,
             collateral_amount_after_precision_loss,
-            collateral_amount
+            collateral_amount_before_precision_loss,
         ),
         UxdError::CollateralDepositDoesntMatchTokenValue,
     );
@@ -403,103 +380,94 @@ pub(crate) fn handler(
     // ---------------------------------------------------------------------
 
     // Compute how much fees was paid
-    let minting_fee_paid: u64 =
-        compute_decrease(redeemable_amount_before_fees, redeemable_amount_after_fees)?;
+    let redeeming_fee_paid: u64 =
+        compute_decrease(redeemable_amount, redeemable_amount_after_fees)?;
 
     // Emit event
-    emit!(MintWithAlloyxVaultDepositoryEvent {
+    emit!(RedeemFromAlloyxVaultDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
         depository_version: ctx.accounts.depository.load()?.version,
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         user: ctx.accounts.user.key(),
-        collateral_amount,
-        redeemable_amount: redeemable_amount_after_fees,
-        minting_fee_paid,
+        redeemable_amount,
+        collateral_amount: collateral_amount_after_precision_loss,
+        redeeming_fee_paid,
     });
 
     // Accouting for depository
     let mut depository = ctx.accounts.depository.load_mut()?;
-    depository.minting_fee_accrued(minting_fee_paid)?;
-    depository.collateral_deposited_and_redeemable_minted(
-        collateral_amount,
-        redeemable_amount_after_fees,
+    depository.redeeming_fee_accrued(redeeming_fee_paid)?;
+    depository.collateral_withdrawn_and_redeemable_burned(
+        collateral_amount_after_precision_loss,
+        redeemable_amount,
     )?;
-    require!(
-        depository.redeemable_amount_under_management
-            <= depository.redeemable_amount_under_management_cap,
-        UxdError::RedeemableAlloyxVaultAmountUnderManagementCap
-    );
 
     // Accouting for controller
-    let redeemable_amount_change: i128 = redeemable_amount_after_fees.into();
+    let redeemable_amount_change: i128 = -i128::from(redeemable_amount);
     let mut controller = ctx.accounts.controller.load_mut()?;
     controller.update_onchain_accounting_following_mint_or_redeem(redeemable_amount_change)?;
-    require!(
-        controller.redeemable_circulating_supply <= controller.redeemable_global_supply_cap,
-        UxdError::RedeemableGlobalSupplyCapReached
-    );
 
     // Done
     Ok(())
 }
 
 // Into functions
-impl<'info> MintWithAlloyxVaultDepository<'info> {
-    pub fn into_deposit_collateral_to_alloyx_vault_context(
+impl<'info> RedeemFromAlloyxVaultDepository<'info> {
+    pub fn into_withdraw_shares_from_alloyx_vault_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::DepositFunds<'info>> {
-        let cpi_accounts = credix_client::cpi::accounts::DepositFunds {
+    ) -> CpiContext<'_, '_, '_, 'info, alloyx_client::cpi::accounts::WithdrawFunds<'info>> {
+        let cpi_accounts = alloyx_client::cpi::accounts::WithdrawFunds {
             base_token_mint: self.collateral_mint.to_account_info(),
             investor: self.depository.to_account_info(),
             investor_token_account: self.depository_collateral.to_account_info(),
             investor_lp_token_account: self.depository_shares.to_account_info(),
-            global_market_state: self.alloyx_vault.to_account_info(),
-            signing_authority: self.alloyx_vault_collateral.to_account_info(),
-            liquidity_pool_token_account: self.alloyx_vault_shares.to_account_info(),
-            lp_token_mint: self.alloyx_vault_mint.to_account_info(),
-            credix_pass: self.credix_pass.to_account_info(),
+            program_state: self.alloyx_program_state.to_account_info(),
+            global_market_state: self.alloyx_global_market_state.to_account_info(),
+            signing_authority: self.alloyx_signing_authority.to_account_info(),
+            liquidity_pool_token_account: self.alloyx_liquidity_collateral.to_account_info(),
+            lp_token_mint: self.alloyx_shares_mint.to_account_info(),
+            alloyx_pass: self.alloyx_pass.to_account_info(),
+            treasury_pool_token_account: self.alloyx_treasury_pool_collateral.to_account_info(),
+            alloyx_treasury: self.alloyx_treasury.to_account_info(),
+            alloyx_treasury_token_account: self.alloyx_treasury_collateral.to_account_info(),
             system_program: self.system_program.to_account_info(),
             token_program: self.token_program.to_account_info(),
             associated_token_program: self.associated_token_program.to_account_info(),
             rent: self.rent.to_account_info(),
         };
-        let cpi_program = self.credix_program.to_account_info();
+        let cpi_program = self.alloyx_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_transfer_user_collateral_to_depository_collateral_context(
+    pub fn into_transfer_depository_collateral_to_user_collateral_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
-            from: self.user_collateral.to_account_info(),
-            to: self.depository_collateral.to_account_info(),
-            authority: self.user.to_account_info(),
+            from: self.depository_collateral.to_account_info(),
+            to: self.user_collateral.to_account_info(),
+            authority: self.depository.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
-    pub fn into_mint_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+    pub fn into_burn_redeemable_context(&self) -> CpiContext<'_, '_, '_, 'info, Burn<'info>> {
         let cpi_program = self.token_program.to_account_info();
-        let cpi_accounts = MintTo {
+        let cpi_accounts = Burn {
             mint: self.redeemable_mint.to_account_info(),
-            to: self.user_redeemable.to_account_info(),
-            authority: self.controller.to_account_info(),
+            from: self.user_redeemable.to_account_info(),
+            authority: self.user.to_account_info(),
         };
         CpiContext::new(cpi_program, cpi_accounts)
     }
 }
 
 // Validate
-impl<'info> MintWithAlloyxVaultDepository<'info> {
-    pub(crate) fn validate(&self, collateral_amount: u64) -> Result<()> {
+impl<'info> RedeemFromAlloyxVaultDepository<'info> {
+    pub(crate) fn validate(&self, redeemable_amount: u64) -> Result<()> {
         validate_is_program_frozen(self.controller.load()?)?;
-        validate_collateral_amount(&self.user_collateral, collateral_amount)?;
-        require!(
-            !&self.depository.load()?.minting_disabled,
-            UxdError::MintingDisabled
-        );
+        validate_redeemable_amount(&self.user_redeemable, redeemable_amount)?;
         Ok(())
     }
 }
