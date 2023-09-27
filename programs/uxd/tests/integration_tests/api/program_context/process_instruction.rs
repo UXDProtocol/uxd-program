@@ -1,23 +1,14 @@
-use solana_program::instruction::Instruction;
-use solana_program_test::ProgramTestBanksClientExt;
-use solana_program_test::ProgramTestContext;
+use solana_sdk::instruction::Instruction;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use solana_sdk::transaction::Transaction;
 
-use crate::integration_tests::api::program_test_context;
+use crate::integration_tests::api::program_context;
 
 async fn process_instruction_result(
-    program_test_context: &mut ProgramTestContext,
     instruction: Instruction,
-    result: Result<(), program_test_context::ProgramTestError>,
-) -> Result<(), program_test_context::ProgramTestError> {
-    // Increment the blockhash, so that the next transaction can run sequentially
-    program_test_context.last_blockhash = program_test_context
-        .banks_client
-        .get_new_latest_blockhash(&program_test_context.last_blockhash)
-        .await
-        .map_err(program_test_context::ProgramTestError::Io)?;
+    result: Result<(), program_context::ProgramError>,
+) -> Result<(), program_context::ProgramError> {
     // Log the result, useful for debugging as STDOUT is displayed when a test fails
     println!(" -------- PROCESSING INSTRUCTION --------");
     println!(
@@ -53,53 +44,44 @@ async fn process_instruction_result(
 }
 
 pub async fn process_instruction(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     instruction: Instruction,
     payer: &Keypair,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
+    let latest_blockhash = program_context.get_latest_blockhash().await?;
     let mut transaction: Transaction =
         Transaction::new_with_payer(&[instruction.clone()], Some(&payer.pubkey()));
-    transaction.partial_sign(&[payer], program_test_context.last_blockhash);
-    let result = program_test_context
-        .banks_client
-        .process_transaction(transaction)
-        .await
-        .map_err(program_test_context::ProgramTestError::BanksClient);
-    process_instruction_result(program_test_context, instruction.clone(), result).await
+    transaction.partial_sign(&[payer], latest_blockhash);
+    let result = program_context.process_transaction(transaction).await;
+    process_instruction_result(instruction.clone(), result).await
 }
 
 pub async fn process_instruction_with_signer(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     instruction: Instruction,
     payer: &Keypair,
     signer: &Keypair,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
+    let latest_blockhash = program_context.get_latest_blockhash().await?;
     let mut transaction: Transaction =
         Transaction::new_with_payer(&[instruction.clone()], Some(&payer.pubkey()));
-    transaction.partial_sign(&[payer, signer], program_test_context.last_blockhash);
-    let result = program_test_context
-        .banks_client
-        .process_transaction(transaction)
-        .await
-        .map_err(program_test_context::ProgramTestError::BanksClient);
-    process_instruction_result(program_test_context, instruction.clone(), result).await
+    transaction.partial_sign(&[payer, signer], latest_blockhash);
+    let result = program_context.process_transaction(transaction).await;
+    process_instruction_result(instruction.clone(), result).await
 }
 
 pub async fn process_instruction_with_signers(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     instruction: Instruction,
     payer: &Keypair,
     signers: &[&Keypair],
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
+    let latest_blockhash = program_context.get_latest_blockhash().await?;
     let mut transaction: Transaction =
         Transaction::new_with_payer(&[instruction.clone()], Some(&payer.pubkey()));
     let mut keypairs = signers.to_owned();
     keypairs.push(payer);
-    transaction.partial_sign(&keypairs, program_test_context.last_blockhash);
-    let result = program_test_context
-        .banks_client
-        .process_transaction(transaction)
-        .await
-        .map_err(program_test_context::ProgramTestError::BanksClient);
-    process_instruction_result(program_test_context, instruction.clone(), result).await
+    transaction.partial_sign(&keypairs, latest_blockhash);
+    let result = program_context.process_transaction(transaction).await;
+    process_instruction_result(instruction.clone(), result).await
 }

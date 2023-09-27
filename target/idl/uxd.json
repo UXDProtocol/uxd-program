@@ -1,5 +1,5 @@
 {
-  "version": "8.1.4",
+  "version": "8.2.0",
   "name": "uxd",
   "instructions": [
     {
@@ -1557,19 +1557,19 @@
           "docs": ["#16"]
         },
         {
-          "name": "credixTreasuryCollateral",
+          "name": "credixTreasuryPoolCollateral",
           "isMut": true,
           "isSigner": false,
           "docs": ["#17"]
         },
         {
-          "name": "credixMultisigKey",
+          "name": "credixTreasury",
           "isMut": false,
           "isSigner": false,
           "docs": ["#18"]
         },
         {
-          "name": "credixMultisigCollateral",
+          "name": "credixTreasuryCollateral",
           "isMut": true,
           "isSigner": false,
           "docs": ["#19"]
@@ -1688,19 +1688,19 @@
           "docs": ["#12"]
         },
         {
-          "name": "credixTreasuryCollateral",
+          "name": "credixTreasuryPoolCollateral",
           "isMut": true,
           "isSigner": false,
           "docs": ["#13"]
         },
         {
-          "name": "credixMultisigKey",
+          "name": "credixTreasury",
           "isMut": false,
           "isSigner": false,
           "docs": ["#14"]
         },
         {
-          "name": "credixMultisigCollateral",
+          "name": "credixTreasuryCollateral",
           "isMut": true,
           "isSigner": false,
           "docs": ["#15"]
@@ -1829,22 +1829,16 @@
           "docs": ["#13"]
         },
         {
-          "name": "credixWithdrawRequest",
-          "isMut": true,
-          "isSigner": false,
-          "docs": ["#14"]
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#15"]
+          "docs": ["#14"]
         },
         {
           "name": "credixProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#16"]
+          "docs": ["#15"]
         }
       ],
       "args": []
@@ -1945,19 +1939,19 @@
           "docs": ["#15"]
         },
         {
-          "name": "credixTreasuryCollateral",
+          "name": "credixTreasuryPoolCollateral",
           "isMut": true,
           "isSigner": false,
           "docs": ["#16"]
         },
         {
-          "name": "credixMultisigKey",
+          "name": "credixTreasury",
           "isMut": false,
           "isSigner": false,
           "docs": ["#17"]
         },
         {
-          "name": "credixMultisigCollateral",
+          "name": "credixTreasuryCollateral",
           "isMut": true,
           "isSigner": false,
           "docs": ["#18"]
@@ -1969,46 +1963,40 @@
           "docs": ["#19"]
         },
         {
-          "name": "credixWithdrawRequest",
+          "name": "profitsBeneficiaryCollateral",
           "isMut": true,
           "isSigner": false,
           "docs": ["#20"]
         },
         {
-          "name": "profitsBeneficiaryCollateral",
-          "isMut": true,
-          "isSigner": false,
-          "docs": ["#21"]
-        },
-        {
           "name": "systemProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#22"]
+          "docs": ["#21"]
         },
         {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#23"]
+          "docs": ["#22"]
         },
         {
           "name": "associatedTokenProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#24"]
+          "docs": ["#23"]
         },
         {
           "name": "credixProgram",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#25"]
+          "docs": ["#24"]
         },
         {
           "name": "rent",
           "isMut": false,
           "isSigner": false,
-          "docs": ["#26"]
+          "docs": ["#25"]
         }
       ],
       "args": []
@@ -3606,13 +3594,13 @@
     },
     {
       "code": 6052,
-      "name": "InvalidCredixMultisigKey",
-      "msg": "The Credix Multisig Key isn't the ProgramState one."
+      "name": "InvalidCredixTreasury",
+      "msg": "The Credix Treasury isn't the ProgramState one."
     },
     {
       "code": 6053,
-      "name": "InvalidCredixTreasuryCollateral",
-      "msg": "The Credix TreasuryCollateral isn't the GlobalMarketState one."
+      "name": "InvalidCredixTreasuryPoolCollateral",
+      "msg": "The Credix TreasuryPool isn't the GlobalMarketState one."
     },
     {
       "code": 6054,
@@ -3641,6 +3629,6 @@
     }
   ],
   "metadata": {
-    "address": "EqMrasrCXsbE6mpXaopUH1qip7auwX4AF5UWWpXaLr6u"
+    "address": "CW5VzSk7WC4NPyuNt19VFev9FUHhyk5xxHTj2DUWBexu"
   }
 }

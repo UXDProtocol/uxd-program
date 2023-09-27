@@ -1,5 +1,4 @@
-use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -8,15 +7,15 @@ use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_spl;
-use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn process_deploy_program(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Keypair,
@@ -24,7 +23,7 @@ pub async fn process_deploy_program(
     credix_multisig: &Keypair,
     collateral_mint_decimals: u8,
     redeemable_mint_decimals: u8,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Use restictive default values for all tests
     // Can be modified in individual test cases through edits
     // This forces all tests be explicit about their requirements
@@ -44,7 +43,7 @@ pub async fn process_deploy_program(
 
     // Create the collateral mint
     program_spl::instructions::process_token_mint_init(
-        program_test_context,
+        program_context,
         payer,
         collateral_mint,
         collateral_mint_decimals,
@@ -54,14 +53,14 @@ pub async fn process_deploy_program(
 
     // Controller setup
     program_uxd::instructions::process_initialize_controller(
-        program_test_context,
+        program_context,
         payer,
         authority,
         redeemable_mint_decimals,
     )
     .await?;
     program_uxd::instructions::process_edit_controller(
-        program_test_context,
+        program_context,
         payer,
         authority,
         &EditControllerFields {
@@ -77,14 +76,14 @@ pub async fn process_deploy_program(
 
     // Identity depository setup
     program_uxd::instructions::process_initialize_identity_depository(
-        program_test_context,
+        program_context,
         payer,
         authority,
         &collateral_mint.pubkey(),
     )
     .await?;
     program_uxd::instructions::process_edit_identity_depository(
-        program_test_context,
+        program_context,
         payer,
         authority,
         &EditIdentityDepositoryFields {
@@ -98,17 +97,19 @@ pub async fn process_deploy_program(
 
     // Mercurial onchain dependency program deployment
     let mercurial_admin = Keypair::new();
-    let mercurial_vault_lp_mint_decimals = collateral_mint_decimals;
+    program_context
+        .process_airdrop(&mercurial_admin.pubkey(), 1_000_000_000_000)
+        .await?;
     program_mercurial::procedures::process_deploy_program(
-        program_test_context,
+        program_context,
         &mercurial_admin,
         &collateral_mint.pubkey(),
         mercurial_vault_lp_mint,
-        mercurial_vault_lp_mint_decimals,
+        collateral_mint_decimals,
     )
     .await?;
     program_mercurial::procedures::process_dummy_actors_behaviors(
-        program_test_context,
+        program_context,
         collateral_mint,
         &mercurial_vault_lp_mint.pubkey(),
     )
@@ -116,7 +117,7 @@ pub async fn process_deploy_program(
 
     // Mercurial vault depository setup
     program_uxd::instructions::process_register_mercurial_vault_depository(
-        program_test_context,
+        program_context,
         payer,
         authority,
         &collateral_mint.pubkey(),
@@ -127,7 +128,7 @@ pub async fn process_deploy_program(
     )
     .await?;
     program_uxd::instructions::process_edit_mercurial_vault_depository(
-        program_test_context,
+        program_context,
         payer,
         authority,
         &collateral_mint.pubkey(),
@@ -146,14 +147,17 @@ pub async fn process_deploy_program(
     .await?;
 
     // Credix onchain dependency program deployment
+    program_context
+        .process_airdrop(&credix_multisig.pubkey(), 1_000_000_000_000)
+        .await?;
     program_credix::procedures::process_deploy_program(
-        program_test_context,
+        program_context,
         credix_multisig,
         &collateral_mint.pubkey(),
     )
     .await?;
     program_credix::procedures::process_dummy_actors_behaviors(
-        program_test_context,
+        program_context,
         credix_multisig,
         &collateral_mint.pubkey(),
         collateral_mint,
@@ -171,7 +175,7 @@ pub async fn process_deploy_program(
     )
     .0;
     program_credix::instructions::process_create_credix_pass(
-        program_test_context,
+        program_context,
         credix_multisig,
         &credix_lp_depository,
         &credix_client::instruction::CreateCredixPass {
@@ -187,7 +191,7 @@ pub async fn process_deploy_program(
 
     // Credix lp depository setup
     program_uxd::instructions::process_register_credix_lp_depository(
-        program_test_context,
+        program_context,
         payer,
         authority,
         &collateral_mint.pubkey(),
@@ -197,7 +201,7 @@ pub async fn process_deploy_program(
     )
     .await?;
     program_uxd::instructions::process_edit_credix_lp_depository(
-        program_test_context,
+        program_context,
         payer,
         authority,
         &collateral_mint.pubkey(),

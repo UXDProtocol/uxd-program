@@ -15,7 +15,7 @@ pub mod utils;
 // CI Uses F3UToS4WKQkyAAs5TwM_21ANq2xNfDRB7tGRWx4DxapaR on Devnet
 // (it's auto swapped by the script, keypair are held in target/deployment)
 #[cfg(feature = "development")]
-declare_id!("EqMrasrCXsbE6mpXaopUH1qip7auwX4AF5UWWpXaLr6u");
+declare_id!("CW5VzSk7WC4NPyuNt19VFev9FUHhyk5xxHTj2DUWBexu");
 #[cfg(feature = "production")]
 declare_id!("UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr");
 
@@ -37,7 +37,6 @@ pub const IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE: &[u8] = b"IDENTITYDEPOSITORY
 pub const CREDIX_LP_DEPOSITORY_NAMESPACE: &[u8] = b"CREDIX_LP_DEPOSITORY";
 pub const CREDIX_LP_EXTERNAL_PASS_NAMESPACE: &[u8] = b"credix-pass";
 pub const CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE: &[u8] = b"withdraw-epoch";
-pub const CREDIX_LP_EXTERNAL_WITHDRAW_REQUEST_NAMESPACE: &[u8] = b"withdraw-request";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 

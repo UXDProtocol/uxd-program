@@ -154,7 +154,7 @@ pub struct Mint<'info> {
         bump,
         seeds::program = credix_client::ID,
         constraint = credix_lp_depository_pass.user == credix_lp_depository.key() @UxdError::InvalidCredixPass,
-        constraint = credix_lp_depository_pass.disable_withdrawal_fee @UxdError::InvalidCredixPassNoFees,
+        constraint = credix_lp_depository_pass.disable_withdrawal_fee() @UxdError::InvalidCredixPassNoFees,
     )]
     pub credix_lp_depository_pass: Account<'info, credix_client::CredixPass>,
 

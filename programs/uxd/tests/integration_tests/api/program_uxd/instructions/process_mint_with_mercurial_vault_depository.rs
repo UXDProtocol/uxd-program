@@ -1,8 +1,7 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
-use solana_program::instruction::Instruction;
-use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 use spl_token::state::Account;
@@ -12,13 +11,13 @@ use uxd::state::Controller;
 use uxd::state::MercurialVaultDepository;
 use uxd::utils::calculate_amount_less_fees;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_mercurial;
-use crate::integration_tests::api::program_test_context;
 use crate::integration_tests::api::program_uxd;
 
 #[allow(clippy::too_many_arguments)]
 pub async fn process_mint_with_mercurial_vault_depository(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     authority: &Keypair,
     collateral_mint: &Pubkey,
@@ -27,7 +26,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
     collateral_amount: u64,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
     let redeemable_mint = program_uxd::accounts::find_redeemable_mint_pda().0;
@@ -50,22 +49,20 @@ pub async fn process_mint_with_mercurial_vault_depository(
 
     // Read state before
     let redeemable_mint_before =
-        program_test_context::read_account_packed::<Mint>(program_test_context, &redeemable_mint)
-            .await?;
+        program_context::read_account_packed::<Mint>(program_context, &redeemable_mint).await?;
     let controller_before =
-        program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
-            .await?;
-    let mercurial_vault_depository_before = program_test_context::read_account_anchor::<
+        program_context::read_account_anchor::<Controller>(program_context, &controller).await?;
+    let mercurial_vault_depository_before = program_context::read_account_anchor::<
         MercurialVaultDepository,
-    >(program_test_context, &mercurial_vault_depository)
+    >(program_context, &mercurial_vault_depository)
     .await?;
 
     let user_collateral_amount_before =
-        program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
+        program_context::read_account_packed::<Account>(program_context, user_collateral)
             .await?
             .amount;
     let user_redeemable_amount_before =
-        program_test_context::read_account_packed::<Account>(program_test_context, user_redeemable)
+        program_context::read_account_packed::<Account>(program_context, user_redeemable)
             .await?
             .amount;
 
@@ -84,7 +81,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
         mercurial_vault,
         mercurial_vault_lp_mint: *mercurial_vault_lp_mint,
         mercurial_vault_collateral_token_safe,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         mercurial_vault_program: mercurial_vault::ID,
     };
@@ -94,8 +91,8 @@ pub async fn process_mint_with_mercurial_vault_depository(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signers(
-        program_test_context,
+    program_context::process_instruction_with_signers(
+        program_context,
         instruction,
         payer,
         &[authority, user],
@@ -104,22 +101,20 @@ pub async fn process_mint_with_mercurial_vault_depository(
 
     // Read state after
     let redeemable_mint_after =
-        program_test_context::read_account_packed::<Mint>(program_test_context, &redeemable_mint)
-            .await?;
+        program_context::read_account_packed::<Mint>(program_context, &redeemable_mint).await?;
     let controller_after =
-        program_test_context::read_account_anchor::<Controller>(program_test_context, &controller)
-            .await?;
-    let mercurial_vault_depository_after = program_test_context::read_account_anchor::<
+        program_context::read_account_anchor::<Controller>(program_context, &controller).await?;
+    let mercurial_vault_depository_after = program_context::read_account_anchor::<
         MercurialVaultDepository,
-    >(program_test_context, &mercurial_vault_depository)
+    >(program_context, &mercurial_vault_depository)
     .await?;
 
     let user_collateral_amount_after =
-        program_test_context::read_account_packed::<Account>(program_test_context, user_collateral)
+        program_context::read_account_packed::<Account>(program_context, user_collateral)
             .await?
             .amount;
     let user_redeemable_amount_after =
-        program_test_context::read_account_packed::<Account>(program_test_context, user_redeemable)
+        program_context::read_account_packed::<Account>(program_context, user_redeemable)
             .await?
             .amount;
 
@@ -128,7 +123,7 @@ pub async fn process_mint_with_mercurial_vault_depository(
         collateral_amount,
         mercurial_vault_depository_before.minting_fee_in_bps,
     )
-    .map_err(program_test_context::ProgramTestError::Anchor)?;
+    .map_err(program_context::ProgramError::Anchor)?;
     let fees_amount = collateral_amount - redeemable_amount;
 
     // redeemable_mint.supply must have increased by the minted amount (equivalent to redeemable_amount)

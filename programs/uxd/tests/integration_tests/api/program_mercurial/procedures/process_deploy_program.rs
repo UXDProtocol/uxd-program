@@ -1,35 +1,26 @@
-use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_spl;
-use crate::integration_tests::api::program_test_context;
 
 pub async fn process_deploy_program(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     admin: &Keypair,
     token_mint: &Pubkey,
     lp_mint: &Keypair,
     lp_mint_decimals: u8,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let base = program_mercurial::accounts::find_base();
     let vault = program_mercurial::accounts::find_vault_pda(token_mint, &base.pubkey()).0;
     let treasury = program_mercurial::accounts::find_treasury();
 
-    // Airdrop funds to the mercurial admin wallet (acting as payer)
-    program_spl::instructions::process_lamports_airdrop(
-        program_test_context,
-        &admin.pubkey(),
-        1_000_000_000_000,
-    )
-    .await?;
-
     // Create the lp mint
     program_spl::instructions::process_token_mint_init(
-        program_test_context,
+        program_context,
         admin,
         lp_mint,
         lp_mint_decimals,
@@ -39,7 +30,7 @@ pub async fn process_deploy_program(
 
     // Create the fee_vault, which is the treasury ATA
     program_spl::instructions::process_associated_token_account_get_or_init(
-        program_test_context,
+        program_context,
         admin,
         &lp_mint.pubkey(),
         &treasury,
@@ -48,7 +39,7 @@ pub async fn process_deploy_program(
 
     // Vault initialize
     program_mercurial::instructions::process_initialize(
-        program_test_context,
+        program_context,
         admin,
         token_mint,
         &lp_mint.pubkey(),

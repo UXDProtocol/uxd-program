@@ -1,20 +1,19 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
-use solana_program::instruction::Instruction;
-use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_mercurial;
-use crate::integration_tests::api::program_test_context;
 
 pub async fn process_initialize(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     admin: &Keypair,
     token_mint: &Pubkey,
     lp_mint: &Pubkey,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let base = program_mercurial::accounts::find_base();
     let vault = program_mercurial::accounts::find_vault_pda(token_mint, &base.pubkey()).0;
@@ -31,9 +30,9 @@ pub async fn process_initialize(
         token_mint: *token_mint,
         fee_vault,
         lp_mint: *lp_mint,
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
-        rent: anchor_lang::solana_program::sysvar::rent::ID,
+        rent: solana_sdk::sysvar::rent::ID,
     };
     let payload = mercurial_vault::instruction::Initialize {};
     let instruction = Instruction {
@@ -41,11 +40,6 @@ pub async fn process_initialize(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction_with_signer(
-        program_test_context,
-        instruction,
-        admin,
-        &base,
-    )
-    .await
+    program_context::process_instruction_with_signer(program_context, instruction, admin, &base)
+        .await
 }

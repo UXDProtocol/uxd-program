@@ -1,23 +1,22 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
-use solana_program::instruction::Instruction;
-use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
-use crate::integration_tests::api::program_test_context;
 
 pub async fn process_repay_deal(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     borrower: &Keypair,
     borrower_token_account: &Pubkey,
     multisig: &Pubkey,
     deal_number: u16,
     base_token_mint: &Pubkey,
     amount: u64,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let market_seeds = program_credix::accounts::find_market_seeds();
     let program_state = program_credix::accounts::find_program_state_pda().0;
@@ -29,9 +28,9 @@ pub async fn process_repay_deal(
         &signing_authority,
         base_token_mint,
     );
-    let treasury = program_credix::accounts::find_treasury(multisig);
+    let treasury_pool = program_credix::accounts::find_treasury_pool(multisig);
     let treasury_pool_token_account =
-        program_credix::accounts::find_treasury_pool_token_account(&treasury, base_token_mint);
+        program_credix::accounts::find_treasury_pool_token_account(&treasury_pool, base_token_mint);
     let credix_pass =
         program_credix::accounts::find_credix_pass_pda(&global_market_state, &borrower.pubkey()).0;
     let deal = program_credix::accounts::find_deal_pda(
@@ -47,8 +46,12 @@ pub async fn process_repay_deal(
     let repayment_schedule =
         program_credix::accounts::find_repayment_schedule_pda(&global_market_state, &deal).0;
 
-    let credix_multisig_token_account =
-        spl_associated_token_account::get_associated_token_address(multisig, base_token_mint);
+    let credix_treasury = program_credix::accounts::find_credix_treasury(multisig);
+    let credix_treasury_token_account =
+        program_credix::accounts::find_credix_treasury_token_account(
+            &credix_treasury,
+            base_token_mint,
+        );
 
     // Execute IX
     let accounts = credix_client::accounts::RepayDeal {
@@ -66,11 +69,11 @@ pub async fn process_repay_deal(
         deal_token_account,
         deal_tranches,
         repayment_schedule,
-        credix_multisig_key: *multisig,
-        credix_multisig_token_account,
+        credix_treasury,
+        credix_treasury_token_account,
         credix_pass,
         variable_interest_rates: credix_client::id(), // Optional, Not set
-        system_program: anchor_lang::system_program::ID,
+        system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
     };
@@ -80,5 +83,5 @@ pub async fn process_repay_deal(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, borrower).await
+    program_context::process_instruction(program_context, instruction, borrower).await
 }

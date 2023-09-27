@@ -1,23 +1,22 @@
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
-use solana_program::instruction::Instruction;
-use solana_program::pubkey::Pubkey;
-use solana_program_test::ProgramTestContext;
+use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_mercurial;
-use crate::integration_tests::api::program_test_context;
 
 pub async fn process_deposit(
-    program_test_context: &mut ProgramTestContext,
+    program_context: &mut Box<dyn program_context::ProgramContext>,
     token_mint: &Pubkey,
     lp_mint: &Pubkey,
     user: &Keypair,
     user_token: &Pubkey,
     user_lp: &Pubkey,
     token_amount: u64,
-) -> Result<(), program_test_context::ProgramTestError> {
+) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let base = program_mercurial::accounts::find_base();
     let vault = program_mercurial::accounts::find_vault_pda(token_mint, &base.pubkey()).0;
@@ -42,5 +41,5 @@ pub async fn process_deposit(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_test_context::process_instruction(program_test_context, instruction, user).await
+    program_context::process_instruction(program_context, instruction, user).await
 }
