@@ -15,9 +15,7 @@ pub fn calculate_depositories_sum_value(depositories_values: &Vec<u64>) -> Resul
     let sum = depositories_values
         .iter()
         .try_fold(0u64, |accumulator: u64, value: &u64| {
-            accumulator
-                .checked_add(*value)
-                .ok_or(UxdError::MathOverflow)
+            checked_add(accumulator, *value)
         })?;
     Ok(sum)
 }

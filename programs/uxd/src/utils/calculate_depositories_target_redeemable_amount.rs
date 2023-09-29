@@ -76,9 +76,10 @@ pub fn calculate_depositories_target_redeemable_amount(
             if depository_raw_target_redeemable_amount <= depository_hard_cap_amount {
                 return Ok(0);
             }
-            Ok(depository_raw_target_redeemable_amount
-                .checked_sub(*depository_hard_cap_amount)
-                .ok_or(UxdError::MathOverflow)?)
+            Ok(checked_sub(
+                depository_raw_target_redeemable_amount,
+                *depository_hard_cap_amount,
+            )?)
         },
     )
     .collect::<Result<Vec<u64>>>()?;
@@ -93,9 +94,10 @@ pub fn calculate_depositories_target_redeemable_amount(
             if depository_raw_target_redeemable_amount >= depository_hard_cap_amount {
                 return Ok(0);
             }
-            Ok(depository_hard_cap_amount
-                .checked_sub(*depository_raw_target_redeemable_amount)
-                .ok_or(UxdError::MathOverflow)?)
+            Ok(checked_sub(
+                depository_hard_cap_amount,
+                *depository_raw_target_redeemable_amount,
+            )?)
         },
     )
     .collect::<Result<Vec<u64>>>()?;
@@ -150,11 +152,13 @@ pub fn calculate_depositories_target_redeemable_amount(
                 } else {
                     0
                 };
-            let final_target = depository_raw_target_redeemable_amount
-                .checked_add(overflow_amount_reallocated_from_other_depositories)
-                .ok_or(UxdError::MathOverflow)?
-                .checked_sub(*depository_overflow_amount)
-                .ok_or(UxdError::MathOverflow)?;
+            let final_target = checked_sub(
+                checked_add(
+                    depository_raw_target_redeemable_amount,
+                    overflow_amount_reallocated_from_other_depositories,
+                )?,
+                *depository_overflow_amount,
+            )?;
             Ok(final_target)
         },
     )

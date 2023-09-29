@@ -1,4 +1,7 @@
 use crate::error::UxdError;
+use crate::utils::checked_as_u64;
+use crate::utils::checked_div;
+use crate::utils::checked_mul;
 use anchor_lang::prelude::*;
 
 // Precision loss may lower the returned value amount.
@@ -13,13 +16,9 @@ pub fn compute_value_for_shares_amount_floor(
     }
     require!(total_shares_supply > 0, UxdError::MathOverflow);
     require!(total_shares_value > 0, UxdError::MathOverflow);
-    let shares_amount: u128 = shares_amount.into();
-    let total_shares_supply: u128 = total_shares_supply.into();
-    let total_shares_value: u128 = total_shares_value.into();
-    let value: u128 = shares_amount
-        .checked_mul(total_shares_value)
-        .ok_or(UxdError::MathOverflow)?
-        .checked_div(total_shares_supply)
-        .ok_or(UxdError::MathOverflow)?;
-    Ok(u64::try_from(value).ok().ok_or(UxdError::MathOverflow)?)
+    let value: u128 = checked_div::<u128>(
+        checked_mul::<u128>(u128::from(shares_amount), u128::from(total_shares_value))?,
+        u128::from(total_shares_supply),
+    )?;
+    Ok(checked_as_u64(value)?)
 }
