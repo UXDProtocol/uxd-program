@@ -27,5 +27,5 @@ pub fn compute_amount_less_fraction_floor(
         )?,
         u128::from(fraction_denominator),
     )?;
-    Ok(checked_as_u64(amount_less_fraction)?)
+    checked_as_u64(amount_less_fraction)
 }

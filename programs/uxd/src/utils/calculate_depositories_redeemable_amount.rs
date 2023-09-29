@@ -44,10 +44,10 @@ pub fn calculate_depositories_redeemable_amount(
             {
                 return Ok(0);
             }
-            Ok(checked_sub(
+            checked_sub(
                 depository_redeemable_amount_under_management,
                 depository.target_redeemable_amount,
-            )?)
+            )
         })
         .collect::<Result<Vec<u64>>>()?;
 

@@ -20,5 +20,5 @@ pub fn compute_shares_amount_for_value_floor(
         checked_mul::<u128>(u128::from(value), u128::from(total_shares_supply))?,
         u128::from(total_shares_value),
     )?;
-    Ok(checked_as_u64(shares_amount)?)
+    checked_as_u64(shares_amount)
 }
