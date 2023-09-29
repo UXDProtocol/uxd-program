@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc f9ab1b4b6e6f2e7964e7dfd580aacf5947d0371e03f77e689537198126502895 # shrinks to identity_depository_value = 8525210805432806364, mercurial_vault_depository_value = 6325146226306932897, credix_lp_depository_value = 3596387041969812355

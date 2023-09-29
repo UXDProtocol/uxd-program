@@ -2,6 +2,7 @@ use anchor_lang::prelude::Result;
 use anchor_lang::require;
 
 use crate::error::UxdError;
+use crate::utils::checked_add;
 use crate::ROUTER_DEPOSITORIES_COUNT;
 
 /**

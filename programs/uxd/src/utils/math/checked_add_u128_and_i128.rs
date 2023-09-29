@@ -1,4 +1,7 @@
 use crate::error::UxdError;
+use crate::utils::checked_add;
+use crate::utils::checked_sub;
+use crate::utils::checked_as_u128;
 use anchor_lang::prelude::*;
 
 pub fn checked_add_u128_and_i128(value_before: u128, change_delta: i128) -> Result<u128> {

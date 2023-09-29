@@ -3,6 +3,8 @@ use anchor_lang::require;
 
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
+use crate::utils::checked_add;
+use crate::utils::checked_sub;
 use crate::utils::checked_as_u64;
 use crate::BPS_POWER;
 use crate::ROUTER_DEPOSITORIES_COUNT;
@@ -77,7 +79,7 @@ pub fn calculate_depositories_target_redeemable_amount(
                 return Ok(0);
             }
             Ok(checked_sub(
-                depository_raw_target_redeemable_amount,
+                *depository_raw_target_redeemable_amount,
                 *depository_hard_cap_amount,
             )?)
         },
@@ -95,7 +97,7 @@ pub fn calculate_depositories_target_redeemable_amount(
                 return Ok(0);
             }
             Ok(checked_sub(
-                depository_hard_cap_amount,
+                *depository_hard_cap_amount,
                 *depository_raw_target_redeemable_amount,
             )?)
         },
@@ -154,7 +156,7 @@ pub fn calculate_depositories_target_redeemable_amount(
                 };
             let final_target = checked_sub(
                 checked_add(
-                    depository_raw_target_redeemable_amount,
+                    *depository_raw_target_redeemable_amount,
                     overflow_amount_reallocated_from_other_depositories,
                 )?,
                 *depository_overflow_amount,
