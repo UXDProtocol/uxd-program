@@ -8,5 +8,5 @@ pub fn compute_value_for_single_share_ceil(
 ) -> Result<u64> {
     require!(total_shares_value > 0, UxdError::MathOverflow);
     require!(total_shares_supply > 0, UxdError::MathOverflow);
-    Ok(checked_ceil_div(total_shares_value, total_shares_supply)?)
+    checked_ceil_div(total_shares_value, total_shares_supply)
 }

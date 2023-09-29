@@ -3,8 +3,8 @@ use anchor_lang::require;
 
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
-use crate::utils::checked_sub;
 use crate::utils::checked_as_u64;
+use crate::utils::checked_sub;
 use crate::ROUTER_DEPOSITORIES_COUNT;
 
 use super::compute_amount_less_fraction_floor;
@@ -37,10 +37,10 @@ pub fn calculate_depositories_mint_collateral_amount(
             {
                 return Ok(0);
             }
-            Ok(checked_sub(
+            checked_sub(
                 depository.target_redeemable_amount,
                 depository_redeemable_amount_under_management,
-            )?)
+            )
         })
         .collect::<Result<Vec<u64>>>()?;
 

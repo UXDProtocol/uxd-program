@@ -4,8 +4,8 @@ use anchor_lang::require;
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
 use crate::utils::checked_add;
-use crate::utils::checked_sub;
 use crate::utils::checked_as_u64;
+use crate::utils::checked_sub;
 use crate::ROUTER_DEPOSITORIES_COUNT;
 
 use super::compute_amount_less_fraction_floor;
@@ -146,10 +146,10 @@ pub fn calculate_depositories_redeemable_amount(
                 0
             };
             // The combo of the two gives our depository amount
-            Ok(checked_add(
+            checked_add(
                 depository_first_redeemable_amount,
                 depository_second_redeemable_amount,
-            )?)
+            )
         },
     )
     .collect::<Result<Vec<u64>>>()?;

@@ -19,5 +19,5 @@ pub fn compute_amount_fraction_ceil(
         checked_mul::<u128>(u128::from(amount), u128::from(fraction_numerator))?,
         u128::from(fraction_denominator),
     )?;
-    Ok(checked_as_u64(amount_fraction_ceil)?)
+    checked_as_u64(amount_fraction_ceil)
 }
