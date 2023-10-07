@@ -18,7 +18,7 @@ pub fn compute_shares_amount_for_value_floor(
     let total_shares_value: u128 = total_shares_value.into();
     let shares_amount: u128 = value
         .checked_mul(total_shares_supply)
-        .ok_or(UxdError::MathOverflow)? // TODO - use new maths
+        .ok_or(UxdError::MathOverflow)?
         .checked_div(total_shares_value)
         .ok_or(UxdError::MathOverflow)?;
     Ok(u64::try_from(shares_amount)
