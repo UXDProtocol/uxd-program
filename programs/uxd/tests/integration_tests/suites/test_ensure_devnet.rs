@@ -290,6 +290,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
                 identity_depository,
                 mercurial_vault_depository,
                 credix_lp_depository,
+                alloyx_vault_depository,
             }),
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
