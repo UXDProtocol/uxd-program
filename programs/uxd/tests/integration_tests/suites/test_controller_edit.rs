@@ -98,6 +98,7 @@ async fn test_controller_edit() -> Result<(), program_context::ProgramError> {
                 identity_depository_weight_bps: 1,
                 mercurial_vault_depository_weight_bps: 1,
                 credix_lp_depository_weight_bps: 1,
+                alloyx_vault_depository_weight_bps: 1,
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
@@ -119,6 +120,7 @@ async fn test_controller_edit() -> Result<(), program_context::ProgramError> {
                 identity_depository_weight_bps: 25 * 100,        // 25%
                 mercurial_vault_depository_weight_bps: 35 * 100, // 35%
                 credix_lp_depository_weight_bps: 40 * 100,       // 40%
+                alloyx_vault_depository_weight_bps: 0,           // 0%
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
@@ -140,6 +142,7 @@ async fn test_controller_edit() -> Result<(), program_context::ProgramError> {
                 identity_depository: Pubkey::default(),
                 mercurial_vault_depository: Pubkey::default(),
                 credix_lp_depository: Pubkey::default(),
+                alloyx_vault_depository: Pubkey::default(),
             }),
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,
@@ -175,11 +178,13 @@ async fn test_controller_edit() -> Result<(), program_context::ProgramError> {
                 identity_depository_weight_bps: 20 * 100,        // 20%
                 mercurial_vault_depository_weight_bps: 30 * 100, // 30%
                 credix_lp_depository_weight_bps: 50 * 100,       // 50%
+                alloyx_vault_depository_weight_bps: 0,           // 0%
             }),
             router_depositories: Some(EditRouterDepositories {
                 identity_depository: Pubkey::default(),
                 mercurial_vault_depository: Pubkey::default(),
                 credix_lp_depository: Pubkey::default(),
+                alloyx_vault_depository: Pubkey::default(),
             }),
             outflow_limit_per_epoch_amount: Some(42),
             outflow_limit_per_epoch_bps: Some(42),

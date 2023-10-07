@@ -334,18 +334,6 @@ pub mod uxd {
         instructions::mint_with_alloyx_vault_depository::handler(ctx, collateral_amount)
     }
 
-    // Redeem collateral tokens by burning redeemable from alloyx_vault.
-    #[access_control(
-        ctx.accounts.validate(redeemable_amount)
-    )]
-    pub fn redeem_from_alloyx_vault_depository(
-        ctx: Context<RedeemFromAlloyxVaultDepository>,
-        redeemable_amount: u64,
-    ) -> Result<()> {
-        msg!("[redeem_from_alloyx_vault_depository]");
-        instructions::redeem_from_alloyx_vault_depository::handler(ctx, redeemable_amount)
-    }
-
     /// Freeze or resume all ixs associated with the controller (except this one).
     ///
     /// Parameters:

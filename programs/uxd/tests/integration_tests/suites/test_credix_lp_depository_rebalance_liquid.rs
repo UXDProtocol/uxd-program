@@ -123,6 +123,7 @@ async fn test_credix_lp_depository_rebalance_liquid() -> Result<(), program_cont
                 identity_depository_weight_bps: 50 * 100,
                 mercurial_vault_depository_weight_bps: 25 * 100,
                 credix_lp_depository_weight_bps: 25 * 100,
+                alloyx_vault_depository_weight_bps: 0,
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,

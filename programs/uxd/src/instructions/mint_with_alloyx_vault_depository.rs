@@ -13,7 +13,6 @@ use crate::state::alloyx_vault_depository::AlloyxVaultDepository;
 use crate::state::controller::Controller;
 use crate::utils::calculate_amount_less_fees;
 use crate::utils::checked_add;
-use crate::utils::checked_sub;
 use crate::utils::compute_decrease;
 use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value_floor;
@@ -48,7 +47,7 @@ pub struct MintWithAlloyxVaultDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
-        constraint = controller.load()?.registered_alloyx_vault_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
+        constraint = controller.load()?.alloyx_vault_depository == depository.key() @UxdError::InvalidDepository,
         has_one = redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub controller: AccountLoader<'info, Controller>,
