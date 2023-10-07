@@ -146,12 +146,6 @@ pub(crate) fn handler(
     // Profits collection
     depository.profits_total_collected = 0;
 
-    // Add the depository to the controller
-    ctx.accounts
-        .controller
-        .load_mut()?
-        .add_registered_alloyx_vault_depository_entry(ctx.accounts.depository.key())?;
-
     // Emit event
     emit!(RegisterAlloyxVaultDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,

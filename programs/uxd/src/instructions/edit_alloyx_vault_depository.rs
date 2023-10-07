@@ -21,7 +21,6 @@ pub struct EditAlloyxVaultDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
-        constraint = controller.load()?.registered_alloyx_vault_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
         has_one = authority @UxdError::InvalidAuthority,
     )]
     pub controller: AccountLoader<'info, Controller>,
