@@ -120,6 +120,15 @@ pub mod uxd {
         instructions::edit_credix_lp_depository::handler(ctx, &fields)
     }
 
+    #[access_control(ctx.accounts.validate())]
+    pub fn edit_alloyx_vault_depository(
+        ctx: Context<EditAlloyxVaultDepository>,
+        fields: EditAlloyxVaultDepositoryFields,
+    ) -> Result<()> {
+        msg!("[edit_alloyx_vault_depository]");
+        instructions::edit_alloyx_vault_depository::handler(ctx, &fields)
+    }
+
     #[access_control(
         ctx.accounts.validate(collateral_amount)
     )]

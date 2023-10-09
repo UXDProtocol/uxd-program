@@ -57,7 +57,7 @@ pub struct MintWithAlloyxVaultDepository<'info> {
         mut,
         seeds = [
             ALLOYX_VAULT_DEPOSITORY_NAMESPACE,
-            depository.load()?.alloyx_vault.key().as_ref(),
+            depository.load()?.alloyx_vault_info.key().as_ref(),
             depository.load()?.collateral_mint.as_ref()
         ],
         bump = depository.load()?.bump,
@@ -65,7 +65,7 @@ pub struct MintWithAlloyxVaultDepository<'info> {
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
         has_one = depository_collateral @UxdError::InvalidDepositoryCollateral,
         has_one = depository_shares @UxdError::InvalidDepositoryShares,
-        has_one = alloyx_vault @UxdError::InvalidAlloyxVault,
+        has_one = alloyx_vault_info @UxdError::InvalidAlloyxVaultInfo,
         has_one = alloyx_vault_collateral @UxdError::InvalidAlloyxVaultCollateral,
         has_one = alloyx_vault_shares @UxdError::InvalidAlloyxVaultShares,
         has_one = alloyx_vault_mint @UxdError::InvalidAlloyxVaultMint,
@@ -104,7 +104,7 @@ pub struct MintWithAlloyxVaultDepository<'info> {
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
     /// #12
-    pub alloyx_vault: Box<Account<'info, alloyx_cpi::VaultInfo>>,
+    pub alloyx_vault_info: Box<Account<'info, alloyx_cpi::VaultInfo>>,
 
     /// #13
     #[account(mut)]
@@ -131,7 +131,7 @@ pub struct MintWithAlloyxVaultDepository<'info> {
     /// #19
     pub associated_token_program: Program<'info, AssociatedToken>,
     /// #20
-    pub alloyx_program: Program<'info, alloyx_cpi::program::Alloyx>,
+    pub alloyx_program: Program<'info, alloyx_cpi::program::AlloyxSolana>,
     /// #21
     pub rent: Sysvar<'info, Rent>,
 }
@@ -154,7 +154,7 @@ pub(crate) fn handler(
     let alloyx_vault_base_collateral_amount_before: u64 =
         ctx.accounts.alloyx_vault_collateral.amount;
     let alloyx_vault_desk_collateral_amount_before: u64 =
-        ctx.accounts.alloyx_vault.wallet_desk_usdc_value;
+        ctx.accounts.alloyx_vault_info.wallet_desk_usdc_value;
 
     let total_shares_supply_before: u64 = ctx.accounts.alloyx_vault_mint.supply;
     let total_shares_value_before: u64 = checked_add(
@@ -238,11 +238,11 @@ pub(crate) fn handler(
     ]];
 
     // Make depository signer
-    let alloyx_vault = ctx.accounts.depository.load()?.alloyx_vault;
+    let alloyx_vault_info = ctx.accounts.depository.load()?.alloyx_vault_info;
     let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         ALLOYX_VAULT_DEPOSITORY_NAMESPACE,
-        alloyx_vault.as_ref(),
+        alloyx_vault_info.as_ref(),
         collateral_mint.as_ref(),
         &[ctx.accounts.depository.load()?.bump],
     ]];
@@ -257,10 +257,11 @@ pub(crate) fn handler(
 
     // Do the deposit by placing collateral owned by the depository into the pool
     msg!("[mint_with_alloyx_vault_depository:deposit_controller]",);
-    alloyx_cpi::cpi::deposit_controller(
+    alloyx_cpi::cpi::deposit(
         ctx.accounts
             .into_deposit_collateral_to_alloyx_vault_context()
             .with_signer(depository_pda_signer),
+        "hello".to_string(),
         collateral_amount,
     )?;
 
@@ -278,7 +279,7 @@ pub(crate) fn handler(
     ctx.accounts.depository_shares.reload()?;
     ctx.accounts.user_collateral.reload()?;
     ctx.accounts.user_redeemable.reload()?;
-    ctx.accounts.alloyx_vault.reload()?;
+    ctx.accounts.alloyx_vault_info.reload()?;
     ctx.accounts.alloyx_vault_collateral.reload()?;
     ctx.accounts.alloyx_vault_mint.reload()?;
 
@@ -296,7 +297,7 @@ pub(crate) fn handler(
     let alloyx_vault_base_collateral_amount_after: u64 =
         ctx.accounts.alloyx_vault_collateral.amount;
     let alloyx_vault_desk_collateral_amount_after: u64 =
-        ctx.accounts.alloyx_vault.wallet_desk_usdc_value;
+        ctx.accounts.alloyx_vault_info.wallet_desk_usdc_value;
 
     let total_shares_supply_after: u64 = ctx.accounts.alloyx_vault_mint.supply;
     let total_shares_value_after: u64 = checked_add(
@@ -448,11 +449,11 @@ pub(crate) fn handler(
 impl<'info> MintWithAlloyxVaultDepository<'info> {
     pub fn into_deposit_collateral_to_alloyx_vault_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, alloyx_cpi::cpi::accounts::DepositController<'info>> {
-        let cpi_accounts = alloyx_cpi::cpi::accounts::DepositController {
+    ) -> CpiContext<'_, '_, '_, 'info, alloyx_cpi::cpi::accounts::Deposit<'info>> {
+        let cpi_accounts = alloyx_cpi::cpi::accounts::Deposit {
             signer: self.depository.to_account_info(),
             investor_pass: self.alloyx_vault_pass.to_account_info(),
-            vault_info_account: self.alloyx_vault.to_account_info(),
+            vault_info_account: self.alloyx_vault_info.to_account_info(),
             usdc_vault_account: self.alloyx_vault_collateral.to_account_info(),
             usdc_mint: self.collateral_mint.to_account_info(),
             alloyx_vault_account: self.alloyx_vault_shares.to_account_info(),

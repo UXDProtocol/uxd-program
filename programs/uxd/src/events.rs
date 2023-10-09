@@ -362,7 +362,7 @@ pub struct RegisterAlloyxVaultDepositoryEvent {
     #[index]
     pub depository: Pubkey,
     pub collateral_mint: Pubkey,
-    pub alloyx_vault: Pubkey,
+    pub alloyx_vault_info: Pubkey,
 }
 
 /// Event called in [instructions::mint_with_alloyx_vault_depository::handler].

@@ -38,6 +38,7 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
     let collateral_mint = Keypair::new();
     let mercurial_vault_lp_mint = Keypair::new();
     let credix_multisig = Keypair::new();
+    let alloyx_vault_mint = Keypair::new();
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
@@ -47,6 +48,7 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
         &collateral_mint,
         &mercurial_vault_lp_mint,
         &credix_multisig,
+        &alloyx_vault_mint,
         collateral_mint_decimals,
         redeemable_mint_decimals,
     )
@@ -285,6 +287,7 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
                 identity_depository_weight_bps: 0,
                 mercurial_vault_depository_weight_bps: 100 * 100,
                 credix_lp_depository_weight_bps: 0,
+                alloyx_vault_depository_weight_bps: 0,
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: Some(amount_for_first_redeem / 2), // Outflows configured too low on purpose

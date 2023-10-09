@@ -26,6 +26,13 @@ pub async fn create_program_test_context() -> ProgramTestContext {
         None,
     );
 
+    // Deploy the alloyx program using a downloaded alloyx compiled binary
+    program_test.add_program(
+        "tests/integration_tests/api/program_alloyx/binaries/executable-devnet",
+        alloyx_cpi::id(),
+        None,
+    );
+
     // Use a high max compute units as it can be increased on mainnet transactions
     program_test.set_compute_max_units(400_000);
 

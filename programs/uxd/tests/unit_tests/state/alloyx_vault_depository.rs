@@ -7,7 +7,7 @@ mod test_alloyx_vault_depository {
 
     #[test]
     fn test_alloyx_vault_depository_space() -> Result<()> {
-        assert_eq!(ALLOYX_VAULT_DEPOSITORY_SPACE, 1197);
+        assert_eq!(ALLOYX_VAULT_DEPOSITORY_SPACE, 1149);
         assert_eq!(
             size_of::<uxd::state::alloyx_vault_depository::AlloyxVaultDepository>(),
             ALLOYX_VAULT_DEPOSITORY_SPACE - 8

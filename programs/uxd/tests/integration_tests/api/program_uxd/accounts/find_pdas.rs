@@ -70,3 +70,31 @@ pub fn find_credix_lp_depository_shares(
 ) -> Pubkey {
     spl_associated_token_account::get_associated_token_address(depository, credix_shares_mint)
 }
+
+pub fn find_alloyx_vault_depository_pda(
+    alloyx_vault_info: &Pubkey,
+    collateral_mint: &Pubkey,
+) -> (Pubkey, u8) {
+    Pubkey::find_program_address(
+        &[
+            uxd::ALLOYX_VAULT_DEPOSITORY_NAMESPACE,
+            alloyx_vault_info.as_ref(),
+            collateral_mint.as_ref(),
+        ],
+        &uxd::id(),
+    )
+}
+
+pub fn find_alloyx_vault_depository_collateral(
+    depository: &Pubkey,
+    collateral_mint: &Pubkey,
+) -> Pubkey {
+    spl_associated_token_account::get_associated_token_address(depository, collateral_mint)
+}
+
+pub fn find_alloyx_vault_depository_shares(
+    depository: &Pubkey,
+    alloyx_vault_mint: &Pubkey,
+) -> Pubkey {
+    spl_associated_token_account::get_associated_token_address(depository, alloyx_vault_mint)
+}

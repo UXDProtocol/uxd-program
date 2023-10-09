@@ -30,7 +30,7 @@ pub struct EditAlloyxVaultDepository<'info> {
         mut,
         seeds = [
             ALLOYX_VAULT_DEPOSITORY_NAMESPACE,
-            depository.load()?.alloyx_vault.as_ref(),
+            depository.load()?.alloyx_vault_info.as_ref(),
             depository.load()?.collateral_mint.as_ref()
         ],
         bump = depository.load()?.bump,
@@ -67,7 +67,9 @@ pub(crate) fn handler(
             version: ctx.accounts.controller.load()?.version,
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
-            redeemable_amount_under_management_cap: u128::from(redeemable_amount_under_management_cap)
+            redeemable_amount_under_management_cap: u128::from(
+                redeemable_amount_under_management_cap
+            )
         });
     }
 

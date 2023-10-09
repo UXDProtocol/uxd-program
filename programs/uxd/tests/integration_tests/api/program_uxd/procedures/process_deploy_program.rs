@@ -2,11 +2,13 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use uxd::instructions::EditAlloyxVaultDepositoryFields;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
 
+use crate::integration_tests::api::program_alloyx;
 use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
@@ -21,6 +23,7 @@ pub async fn process_deploy_program(
     collateral_mint: &Keypair,
     mercurial_vault_lp_mint: &Keypair,
     credix_multisig: &Keypair,
+    alloyx_vault_mint: &Keypair,
     collateral_mint_decimals: u8,
     redeemable_mint_decimals: u8,
 ) -> Result<(), program_context::ProgramError> {
@@ -40,6 +43,16 @@ pub async fn process_deploy_program(
     let credix_lp_depository_redeeming_fee_in_bps = 255;
     let credix_lp_depository_minting_disabled = true;
     let credix_lp_depository_profits_beneficiary_collateral = Pubkey::default();
+    let alloyx_vault_depository_redeemable_amount_under_management_cap = 0;
+    let alloyx_vault_depository_minting_fee_in_bps = 255;
+    let alloyx_vault_depository_redeeming_fee_in_bps = 255;
+    let alloyx_vault_depository_minting_disabled = true;
+    let alloyx_vault_depository_profits_beneficiary_collateral = Pubkey::default();
+
+    // Airdrop lamports to our authority wallet, which will own various markets/vaults deployed
+    program_context
+        .process_airdrop(&authority.pubkey(), 1_000_000_000_000)
+        .await?;
 
     // Create the collateral mint
     program_spl::instructions::process_token_mint_init(
@@ -96,13 +109,9 @@ pub async fn process_deploy_program(
     .await?;
 
     // Mercurial onchain dependency program deployment
-    let mercurial_admin = Keypair::new();
-    program_context
-        .process_airdrop(&mercurial_admin.pubkey(), 1_000_000_000_000)
-        .await?;
     program_mercurial::procedures::process_deploy_program(
         program_context,
-        &mercurial_admin,
+        authority,
         &collateral_mint.pubkey(),
         mercurial_vault_lp_mint,
         collateral_mint_decimals,
@@ -214,6 +223,53 @@ pub async fn process_deploy_program(
             minting_disabled: Some(credix_lp_depository_minting_disabled),
             profits_beneficiary_collateral: Some(
                 credix_lp_depository_profits_beneficiary_collateral,
+            ),
+        },
+    )
+    .await?;
+
+    // Alloyx onchain dependency program setup
+    program_alloyx::procedures::process_deploy_program(
+        program_context,
+        &authority,
+        &collateral_mint.pubkey(),
+        alloyx_vault_mint,
+        collateral_mint_decimals,
+    )
+    .await?;
+    program_alloyx::procedures::process_dummy_actors_behaviors(
+        program_context,
+        collateral_mint,
+        &alloyx_vault_mint.pubkey(),
+    )
+    .await?;
+
+    // alloyx_vault_depository setup
+    program_uxd::instructions::process_register_alloyx_vault_depository(
+        program_context,
+        payer,
+        authority,
+        &collateral_mint.pubkey(),
+        &alloyx_vault_mint.pubkey(),
+        0,
+        0,
+        0,
+    )
+    .await?;
+    program_uxd::instructions::process_edit_alloyx_vault_depository(
+        program_context,
+        payer,
+        authority,
+        &collateral_mint.pubkey(),
+        &EditAlloyxVaultDepositoryFields {
+            redeemable_amount_under_management_cap: Some(
+                alloyx_vault_depository_redeemable_amount_under_management_cap,
+            ),
+            minting_fee_in_bps: Some(alloyx_vault_depository_minting_fee_in_bps),
+            redeeming_fee_in_bps: Some(alloyx_vault_depository_redeeming_fee_in_bps),
+            minting_disabled: Some(alloyx_vault_depository_minting_disabled),
+            profits_beneficiary_collateral: Some(
+                alloyx_vault_depository_profits_beneficiary_collateral,
             ),
         },
     )

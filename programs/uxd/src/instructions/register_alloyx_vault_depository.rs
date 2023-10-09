@@ -37,7 +37,7 @@ pub struct RegisterAlloyxVaultDepository<'info> {
         init,
         seeds = [
             ALLOYX_VAULT_DEPOSITORY_NAMESPACE,
-            alloyx_vault.key().as_ref(),
+            alloyx_vault_info.key().as_ref(),
             collateral_mint.key().as_ref()
         ],
         bump,
@@ -48,8 +48,8 @@ pub struct RegisterAlloyxVaultDepository<'info> {
 
     /// #5
     #[account(
-        constraint = collateral_mint.key() == alloyx_vault.usdc_mint @UxdError::CollateralMintMismatch,
-        constraint = collateral_mint.key() != alloyx_vault.alloyx_mint @UxdError::CollateralMintConflict
+        constraint = collateral_mint.key() == alloyx_vault_info.usdc_mint @UxdError::CollateralMintMismatch,
+        constraint = collateral_mint.key() != alloyx_vault_info.alloyx_mint @UxdError::CollateralMintConflict
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
@@ -72,7 +72,7 @@ pub struct RegisterAlloyxVaultDepository<'info> {
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
     /// #8
-    pub alloyx_vault: Box<Account<'info, alloyx_cpi::VaultInfo>>,
+    pub alloyx_vault_info: Box<Account<'info, alloyx_cpi::VaultInfo>>,
 
     /// #9
     #[account(
@@ -88,8 +88,8 @@ pub struct RegisterAlloyxVaultDepository<'info> {
 
     /// #11
     #[account(
-        constraint = alloyx_vault_mint.key() == alloyx_vault.alloyx_mint @UxdError::CustomMintMismatch,
-        constraint = alloyx_vault_mint.key() != alloyx_vault.usdc_mint @UxdError::CustomMintConflict
+        constraint = alloyx_vault_mint.key() == alloyx_vault_info.alloyx_mint @UxdError::CustomMintMismatch,
+        constraint = alloyx_vault_mint.key() != alloyx_vault_info.usdc_mint @UxdError::CustomMintConflict
     )]
     pub alloyx_vault_mint: Box<Account<'info, Mint>>,
 
@@ -126,7 +126,7 @@ pub(crate) fn handler(
     depository.depository_shares = ctx.accounts.depository_shares.key();
 
     // We register all necessary credix accounts to facilitate other instructions safety checks
-    depository.alloyx_vault = ctx.accounts.alloyx_vault.key();
+    depository.alloyx_vault_info = ctx.accounts.alloyx_vault_info.key();
     depository.alloyx_vault_collateral = ctx.accounts.alloyx_vault_collateral.key();
     depository.alloyx_vault_shares = ctx.accounts.alloyx_vault_shares.key();
     depository.alloyx_vault_mint = ctx.accounts.alloyx_vault_mint.key();
@@ -153,7 +153,7 @@ pub(crate) fn handler(
         controller: ctx.accounts.controller.key(),
         depository: ctx.accounts.depository.key(),
         collateral_mint: ctx.accounts.collateral_mint.key(),
-        alloyx_vault: ctx.accounts.alloyx_vault.key(),
+        alloyx_vault_info: ctx.accounts.alloyx_vault_info.key(),
     });
 
     // Done

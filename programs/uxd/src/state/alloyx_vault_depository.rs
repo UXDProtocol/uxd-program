@@ -17,22 +17,22 @@ pub const ALLOYX_VAULT_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<Pubkey>() // depository_collateral
  + size_of::<Pubkey>() // depository_shares
 
- + size_of::<Pubkey>() // alloyx_vault
+ + size_of::<Pubkey>() // alloyx_vault_info
  + size_of::<Pubkey>() // alloyx_vault_collateral
  + size_of::<Pubkey>() // alloyx_vault_shares
  + size_of::<Pubkey>() // alloyx_vault_mint
 
- + size_of::<u128>() // redeemable_amount_under_management_cap
+ + size_of::<u64>() // redeemable_amount_under_management_cap
  + size_of::<u8>() // minting_fee_in_bps
  + size_of::<u8>() // redeeming_fee_in_bps
  + size_of::<bool>() // minting_disabled
 
- + size_of::<u128>() // collateral_amount_deposited
- + size_of::<u128>() // redeemable_amount_under_management
- + size_of::<u128>() // minting_fee_total_accrued
- + size_of::<u128>() // redeeming_fee_total_accrued
+ + size_of::<u64>() // collateral_amount_deposited
+ + size_of::<u64>() // redeemable_amount_under_management
+ + size_of::<u64>() // minting_fee_total_accrued
+ + size_of::<u64>() // redeeming_fee_total_accrued
 
- + size_of::<u128>() // profits_total_collected
+ + size_of::<u64>() // profits_total_collected
  + size_of::<Pubkey>() // profits_beneficiary_collateral
 
  + ALLOYX_VAULT_DEPOSITORY_RESERVED_SPACE;
@@ -56,7 +56,7 @@ pub struct AlloyxVaultDepository {
     pub depository_shares: Pubkey,
 
     // Alloyx vault accounts enforced at registration
-    pub alloyx_vault: Pubkey,
+    pub alloyx_vault_info: Pubkey,
     pub alloyx_vault_collateral: Pubkey,
     pub alloyx_vault_shares: Pubkey,
     pub alloyx_vault_mint: Pubkey,
