@@ -35,6 +35,8 @@ mercurial-vault = { git = "https://github.com/mercurial-finance/vault-sdk", feat
   "cpi",
 ], rev = "3724175d8435f7acb7a33077a5a9f1eb58ab3399" }
 
+alloyx-cpi = { version = "0.0.1" }
+
 credix_client = { version = "0.9.1", features = [
   "pre-mainnet",
   "cpi",

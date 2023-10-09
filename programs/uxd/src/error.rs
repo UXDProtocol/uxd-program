@@ -126,4 +126,29 @@ pub enum UxdError {
     MaximumOutflowAmountError,
     #[msg("The outflow_limit_per_epoch_bps is invalid: over 100%.")]
     InvalidOutflowLimitPerEpochBps,
+
+    #[msg("The collateral_mint is not matching with the integration's collateral mint.")]
+    CollateralMintMismatch,
+    #[msg("The collateral_mint should not be equal to the integration's custom mint.")]
+    CollateralMintConflict,
+
+    #[msg("The passed custom mint is not matching with the integration's stored custom mint.")]
+    CustomMintMismatch,
+    #[msg("The passed custom mint should not be equal to the integration's stored collateral mint.")]
+    CustomMintConflict,
+
+    #[msg("The current depository mint operation overflows past the redeemable_amount_under_management_cap")]
+    RedeemableUnderManagementCapReached,
+
+    #[msg("The alloyx_vault account isn't the depository's one.")]
+    InvalidAlloyxVault,
+    #[msg("The alloyx_vault_collateral account isn't the depository's one.")]
+    InvalidAlloyxVaultCollateral,
+    #[msg("The alloyx_vault_shares account isn't the depository's one.")]
+    InvalidAlloyxVaultShares,
+    #[msg("The alloyx_vault_mint account isn't the depository's one.")]
+    InvalidAlloyxVaultMint,
+    #[msg("The alloyx_vault_pass account isn't for the correct investor.")]
+    InvalidAlloyxVaultPass,
+
 }

@@ -41,7 +41,7 @@ pub struct EditAlloyxVaultDepository<'info> {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
 pub struct EditAlloyxVaultDepositoryFields {
-    pub redeemable_amount_under_management_cap: Option<u128>,
+    pub redeemable_amount_under_management_cap: Option<u64>,
     pub minting_fee_in_bps: Option<u8>,
     pub redeeming_fee_in_bps: Option<u8>,
     pub minting_disabled: Option<bool>,
@@ -67,7 +67,7 @@ pub(crate) fn handler(
             version: ctx.accounts.controller.load()?.version,
             controller: ctx.accounts.controller.key(),
             depository: ctx.accounts.depository.key(),
-            redeemable_amount_under_management_cap
+            redeemable_amount_under_management_cap: u128::from(redeemable_amount_under_management_cap)
         });
     }
 

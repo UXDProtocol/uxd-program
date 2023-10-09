@@ -48,8 +48,8 @@ pub struct RegisterAlloyxVaultDepository<'info> {
 
     /// #5
     #[account(
-        constraint = collateral_mint.key() == alloyx_vault.usdc_mint @UxdError::AlloyxVaultDoNotMatchCollateral,
-        constraint = collateral_mint.key() != alloyx_vault.alloyx_mint @UxdError::CollateralMintEqualToSharesMint
+        constraint = collateral_mint.key() == alloyx_vault.usdc_mint @UxdError::CollateralMintMismatch,
+        constraint = collateral_mint.key() != alloyx_vault.alloyx_mint @UxdError::CollateralMintConflict
     )]
     pub collateral_mint: Box<Account<'info, Mint>>,
 
@@ -72,7 +72,7 @@ pub struct RegisterAlloyxVaultDepository<'info> {
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
     /// #8
-    pub alloyx_vault: Box<Account<'info, alloyx_vault::VaultInfo>>,
+    pub alloyx_vault: Box<Account<'info, alloyx_cpi::VaultInfo>>,
 
     /// #9
     #[account(
@@ -88,8 +88,8 @@ pub struct RegisterAlloyxVaultDepository<'info> {
 
     /// #11
     #[account(
-        constraint = alloyx_vault_mint.key() != alloyx_vault.usdc_mint @UxdError::AlloyxVaultDoNotMatchCollateral,
-        constraint = alloyx_vault_mint.key() == alloyx_vault.alloyx_mint @UxdError::CollateralMintEqualToSharesMint
+        constraint = alloyx_vault_mint.key() == alloyx_vault.alloyx_mint @UxdError::CustomMintMismatch,
+        constraint = alloyx_vault_mint.key() != alloyx_vault.usdc_mint @UxdError::CustomMintConflict
     )]
     pub alloyx_vault_mint: Box<Account<'info, Mint>>,
 
@@ -107,7 +107,7 @@ pub(crate) fn handler(
     ctx: Context<RegisterAlloyxVaultDepository>,
     minting_fee_in_bps: u8,
     redeeming_fee_in_bps: u8,
-    redeemable_amount_under_management_cap: u128,
+    redeemable_amount_under_management_cap: u64,
 ) -> Result<()> {
     // Read some of the depositories required informations
     let depository_bump = *ctx.bumps.get("depository").ok_or(UxdError::BumpError)?;

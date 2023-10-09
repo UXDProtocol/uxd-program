@@ -311,7 +311,7 @@ pub mod uxd {
         ctx: Context<RegisterAlloyxVaultDepository>,
         minting_fee_in_bps: u8,
         redeeming_fee_in_bps: u8,
-        redeemable_amount_under_management_cap: u128,
+        redeemable_amount_under_management_cap: u64,
     ) -> Result<()> {
         msg!("[register_alloyx_vault_depository]");
         instructions::register_alloyx_vault_depository::handler(

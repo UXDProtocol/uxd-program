@@ -65,10 +65,10 @@ pub struct MintWithAlloyxVaultDepository<'info> {
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
         has_one = depository_collateral @UxdError::InvalidDepositoryCollateral,
         has_one = depository_shares @UxdError::InvalidDepositoryShares,
-        has_one = alloyx_vault @UxdError::InvalidCredixGlobalMarketState, // TODO - error fix pass
-        has_one = alloyx_vault_collateral @UxdError::InvalidCredixSigningAuthority,
-        has_one = alloyx_vault_shares @UxdError::InvalidCredixLiquidityCollateral,
-        has_one = alloyx_vault_mint @UxdError::InvalidCredixSharesMint,
+        has_one = alloyx_vault @UxdError::InvalidAlloyxVault,
+        has_one = alloyx_vault_collateral @UxdError::InvalidAlloyxVaultCollateral,
+        has_one = alloyx_vault_shares @UxdError::InvalidAlloyxVaultShares,
+        has_one = alloyx_vault_mint @UxdError::InvalidAlloyxVaultMint,
     )]
     pub depository: AccountLoader<'info, AlloyxVaultDepository>,
 
@@ -104,7 +104,7 @@ pub struct MintWithAlloyxVaultDepository<'info> {
     pub depository_shares: Box<Account<'info, TokenAccount>>,
 
     /// #12
-    pub alloyx_vault: Box<Account<'info, alloyx_vault::VaultInfo>>,
+    pub alloyx_vault: Box<Account<'info, alloyx_cpi::VaultInfo>>,
 
     /// #13
     #[account(mut)]
@@ -120,9 +120,9 @@ pub struct MintWithAlloyxVaultDepository<'info> {
 
     /// #16
     #[account(
-        constraint = alloyx_vault_pass.investor == depository.key() @UxdError::InvalidCredixPass,
+        constraint = alloyx_vault_pass.investor == depository.key() @UxdError::InvalidAlloyxVaultPass,
     )]
-    pub alloyx_vault_pass: Account<'info, alloyx_vault::PassInfo>,
+    pub alloyx_vault_pass: Account<'info, alloyx_cpi::PassInfo>,
 
     /// #17
     pub system_program: Program<'info, System>,
@@ -131,7 +131,7 @@ pub struct MintWithAlloyxVaultDepository<'info> {
     /// #19
     pub associated_token_program: Program<'info, AssociatedToken>,
     /// #20
-    pub credix_program: Program<'info, credix_client::program::Credix>,
+    pub alloyx_program: Program<'info, alloyx_cpi::program::Alloyx>,
     /// #21
     pub rent: Sysvar<'info, Rent>,
 }
@@ -257,7 +257,7 @@ pub(crate) fn handler(
 
     // Do the deposit by placing collateral owned by the depository into the pool
     msg!("[mint_with_alloyx_vault_depository:deposit_controller]",);
-    alloyx_vault::cpi::deposit_controller(
+    alloyx_cpi::cpi::deposit_controller(
         ctx.accounts
             .into_deposit_collateral_to_alloyx_vault_context()
             .with_signer(depository_pda_signer),
@@ -428,7 +428,7 @@ pub(crate) fn handler(
     require!(
         depository.redeemable_amount_under_management
             <= depository.redeemable_amount_under_management_cap,
-        UxdError::RedeemableAlloyxVaultAmountUnderManagementCap
+        UxdError::RedeemableUnderManagementCapReached
     );
 
     // Accouting for controller
@@ -448,23 +448,22 @@ pub(crate) fn handler(
 impl<'info> MintWithAlloyxVaultDepository<'info> {
     pub fn into_deposit_collateral_to_alloyx_vault_context(
         &self,
-    ) -> CpiContext<'_, '_, '_, 'info, credix_client::cpi::accounts::DepositFunds<'info>> {
-        let cpi_accounts = credix_client::cpi::accounts::DepositFunds {
-            base_token_mint: self.collateral_mint.to_account_info(),
-            investor: self.depository.to_account_info(),
-            investor_token_account: self.depository_collateral.to_account_info(),
-            investor_lp_token_account: self.depository_shares.to_account_info(),
-            global_market_state: self.alloyx_vault.to_account_info(),
-            signing_authority: self.alloyx_vault_collateral.to_account_info(),
-            liquidity_pool_token_account: self.alloyx_vault_shares.to_account_info(),
-            lp_token_mint: self.alloyx_vault_mint.to_account_info(),
-            credix_pass: self.credix_pass.to_account_info(),
-            system_program: self.system_program.to_account_info(),
+    ) -> CpiContext<'_, '_, '_, 'info, alloyx_cpi::cpi::accounts::DepositController<'info>> {
+        let cpi_accounts = alloyx_cpi::cpi::accounts::DepositController {
+            signer: self.depository.to_account_info(),
+            investor_pass: self.alloyx_vault_pass.to_account_info(),
+            vault_info_account: self.alloyx_vault.to_account_info(),
+            usdc_vault_account: self.alloyx_vault_collateral.to_account_info(),
+            usdc_mint: self.collateral_mint.to_account_info(),
+            alloyx_vault_account: self.alloyx_vault_shares.to_account_info(),
+            alloyx_mint: self.alloyx_vault_mint.to_account_info(),
+            user_usdc_account: self.depository_collateral.to_account_info(),
+            user_alloyx_account: self.depository_shares.to_account_info(),
             token_program: self.token_program.to_account_info(),
             associated_token_program: self.associated_token_program.to_account_info(),
-            rent: self.rent.to_account_info(),
+            system_program: self.system_program.to_account_info(),
         };
-        let cpi_program = self.credix_program.to_account_info();
+        let cpi_program = self.alloyx_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
