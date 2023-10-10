@@ -132,15 +132,10 @@ pub enum UxdError {
     #[msg("The collateral_mint should not be equal to the integration's custom mint.")]
     CollateralMintConflict,
 
-    #[msg("The passed custom mint is not matching with the integration's stored custom mint.")]
+    #[msg("The passed custom mint is not matching with the integration's mint.")]
     CustomMintMismatch,
-    #[msg(
-        "The passed custom mint should not be equal to the integration's stored collateral mint."
-    )]
+    #[msg("The passed custom mint should not be equal to the collateral mint.")]
     CustomMintConflict,
-
-    #[msg("The current depository mint operation overflows past the redeemable_amount_under_management_cap")]
-    RedeemableUnderManagementCapReached,
 
     #[msg("The alloyx_vault_info account isn't the depository's one.")]
     InvalidAlloyxVaultInfo,
