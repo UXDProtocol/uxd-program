@@ -219,6 +219,15 @@ pub async fn process_deploy_program(
     )
     .await?;
 
+    // Make sure the controller has the proper router depositories set
+    program_uxd::procedures::process_set_router_depositories(
+        program_context,
+        payer,
+        authority,
+        &collateral_mint.pubkey(),
+    )
+    .await?;
+
     // Done
     Ok(())
 }
