@@ -190,6 +190,16 @@ export async function editController({
   controller: Controller;
   uiFields: {
     redeemableGlobalSupplyCap?: number;
+    depositoriesRoutingWeightBps?: {
+      identityDepositoryWeightBps: number;
+      mercurialVaultDepositoryWeightBps: number;
+      credixLpDepositoryWeightBps: number;
+    };
+    routerDepositories?: {
+      identityDepository: PublicKey;
+      mercurialVaultDepository: PublicKey;
+      credixLpDepository: PublicKey;
+    };
   };
 }): Promise<string> {
   const editControllerIx = uxdClient.createEditControllerInstruction(

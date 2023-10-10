@@ -1,4 +1,4 @@
-import { Signer } from '@solana/web3.js';
+import { PublicKey, Signer } from '@solana/web3.js';
 import { Controller, nativeToUi } from '@uxd-protocol/uxd-client';
 import { expect } from 'chai';
 import { editController } from '../api';
@@ -14,6 +14,16 @@ export const editControllerTest = async function ({
   controller: Controller;
   uiFields: {
     redeemableGlobalSupplyCap?: number;
+    depositoriesRoutingWeightBps?: {
+      identityDepositoryWeightBps: number;
+      mercurialVaultDepositoryWeightBps: number;
+      credixLpDepositoryWeightBps: number;
+    };
+    routerDepositories?: {
+      identityDepository: PublicKey;
+      mercurialVaultDepository: PublicKey;
+      credixLpDepository: PublicKey;
+    };
   };
 }) {
   const connection = getConnection();
