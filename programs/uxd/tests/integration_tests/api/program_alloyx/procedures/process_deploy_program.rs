@@ -13,13 +13,17 @@ pub async fn process_deploy_program(
     alloyx_vault_mint: &Keypair,
     alloyx_vault_mint_decimals: u8,
 ) -> Result<(), program_context::ProgramError> {
+    // Find needed accounts
+    let vault_id = program_alloyx::accounts::find_vault_id();
+    let vault_alloyx_token = program_alloyx::accounts::find_vault_alloyx_token(&vault_id).0;
+
     // Create the vault mint
     program_spl::instructions::process_token_mint_init(
         program_context,
         authority,
         alloyx_vault_mint,
         alloyx_vault_mint_decimals,
-        &authority.pubkey(),
+        &vault_alloyx_token,
     )
     .await?;
     // Vault initialize

@@ -64,7 +64,7 @@ pub async fn process_dummy_actors_behaviors(
         &dummy_investor,
         &dummy_investor_collateral,
         &dummy_investor_alloyx,
-        1_000_000_000,
+        1_000,
     )
     .await?;
 
