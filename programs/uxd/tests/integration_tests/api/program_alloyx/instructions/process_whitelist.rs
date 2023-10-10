@@ -16,7 +16,7 @@ pub async fn process_whitelist(
     // Find needed accounts
     let vault_id = program_alloyx::accounts::find_vault_id();
     let vault_info = program_alloyx::accounts::find_vault_info(&vault_id).0;
-    let investor_pass = program_alloyx::accounts::find_investor_pass(&vault_id, &investor).0;
+    let investor_pass = program_alloyx::accounts::find_investor_pass(&vault_id, investor).0;
 
     // Execute IX
     let accounts = alloyx_cpi::accounts::Whitelist {
