@@ -108,9 +108,9 @@ dependencies = [
 
 [[package]]
 name = "alloyx-cpi"
-version = "0.0.1"
+version = "0.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02190c929c52792c27139b7e38451c9bff985a77ce68245517bd13c4465ea2ea"
+checksum = "bf089d7c93c529afba9665482316c4436a772f63fb8b3ab2a97c7fe75cc5dddb"
 dependencies = [
  "anchor-gen",
  "anchor-lang",
