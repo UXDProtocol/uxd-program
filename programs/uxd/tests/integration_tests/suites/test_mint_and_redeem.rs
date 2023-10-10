@@ -203,6 +203,7 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
                 identity_depository: Pubkey::default(),
                 mercurial_vault_depository: Pubkey::default(),
                 credix_lp_depository: Pubkey::default(),
+                alloyx_vault_depository: Pubkey::default(),
             }),
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,

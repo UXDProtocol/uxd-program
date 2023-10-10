@@ -331,18 +331,6 @@ pub mod uxd {
         )
     }
 
-    // Mint Redeemable tokens by depositing Collateral to alloyx_vault.
-    #[access_control(
-        ctx.accounts.validate(collateral_amount)
-    )]
-    pub fn mint_with_alloyx_vault_depository(
-        ctx: Context<MintWithAlloyxVaultDepository>,
-        collateral_amount: u64,
-    ) -> Result<()> {
-        msg!("[mint_with_alloyx_vault_depository]");
-        instructions::mint_with_alloyx_vault_depository::handler(ctx, collateral_amount)
-    }
-
     /// Freeze or resume all ixs associated with the controller (except this one).
     ///
     /// Parameters:

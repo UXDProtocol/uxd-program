@@ -1,5 +1,4 @@
 pub mod test_alloyx_vault_depository_edit;
-pub mod test_alloyx_vault_depository_mint;
 pub mod test_controller_edit;
 pub mod test_credix_lp_depository_edit;
 pub mod test_credix_lp_depository_mint;
