@@ -239,8 +239,24 @@ pub async fn process_deploy_program(
     .await?;
     program_alloyx::procedures::process_dummy_actors_behaviors(
         program_context,
+        authority,
         collateral_mint,
         &alloyx_vault_mint.pubkey(),
+    )
+    .await?;
+
+    // Create alloyx investor pass
+    let alloyx_vault_id = program_alloyx::accounts::find_vault_id();
+    let alloyx_vault_info = program_alloyx::accounts::find_vault_info(&alloyx_vault_id).0;
+    let alloyx_vault_depository = program_uxd::accounts::find_alloyx_vault_depository_pda(
+        &alloyx_vault_info,
+        &collateral_mint.pubkey(),
+    )
+    .0;
+    program_alloyx::instructions::process_whitelist(
+        program_context,
+        authority,
+        &alloyx_vault_depository,
     )
     .await?;
 

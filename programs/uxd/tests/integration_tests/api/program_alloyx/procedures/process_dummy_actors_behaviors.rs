@@ -8,6 +8,7 @@ use crate::integration_tests::api::program_spl;
 
 pub async fn process_dummy_actors_behaviors(
     program_context: &mut Box<dyn program_context::ProgramContext>,
+    authority: &Keypair,
     collateral_mint: &Keypair,
     alloyx_vault_mint: &Pubkey,
 ) -> Result<(), program_context::ProgramError> {
@@ -44,6 +45,14 @@ pub async fn process_dummy_actors_behaviors(
         collateral_mint,
         &dummy_investor_collateral,
         1_000_000_000,
+    )
+    .await?;
+
+    // Whitelist our dummy investor
+    program_alloyx::instructions::process_whitelist(
+        program_context,
+        authority,
+        &dummy_investor.pubkey(),
     )
     .await?;
 
