@@ -129,12 +129,6 @@ pub fn handler(
     // enable minting by default
     depository.minting_disabled = false;
 
-    // 2 - Update Controller state
-    ctx.accounts
-        .controller
-        .load_mut()?
-        .add_registered_mercurial_vault_depository_entry(ctx.accounts.depository.key())?;
-
     // 3 - Emit event
     emit!(RegisterMercurialVaultDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,

@@ -1,12 +1,8 @@
 use std::mem::size_of;
 
-use crate::error::UxdError;
 use crate::utils::checked_add;
 use crate::utils::checked_add_u128_and_i128;
 use anchor_lang::prelude::*;
-
-pub const MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES: usize = 4;
-pub const MAX_REGISTERED_CREDIX_LP_DEPOSITORIES: usize = 4;
 
 // Total should be 885 bytes
 pub const CONTROLLER_RESERVED_SPACE: usize = 60;
@@ -23,11 +19,7 @@ pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u128>() // redeemable_global_supply_cap
     + 8 // _unused3
     + size_of::<u128>() // redeemable_circulating_supply
-    + 8 // _unused4
-    + size_of::<Pubkey>() * MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES // registered_mercurial_vault_depositories
-    + size_of::<u8>() // registered_mercurial_vault_depositories_count
-    + size_of::<Pubkey>() * MAX_REGISTERED_CREDIX_LP_DEPOSITORIES // registered_credix_lp_depositories
-    + size_of::<u8>() // registered_credix_lp_depositories_count
+    + 266 // _unused4
     + size_of::<u128>() // profits_total_collected
     + size_of::<u16>() // identity_depository_weight_bps
     + size_of::<u16>() // mercurial_vault_depository_weight_bps
@@ -78,16 +70,8 @@ pub struct Controller {
     // This should always be equal to the sum of all Depositories' `redeemable_amount_under_management`
     //  in redeemable Redeemable Native Amount
     pub redeemable_circulating_supply: u128,
-    pub _unused4: [u8; 8],
-    //
-    // The mercurial_vault Depositories registered with this Controller
-    pub registered_mercurial_vault_depositories:
-        [Pubkey; MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES],
-    pub registered_mercurial_vault_depositories_count: u8,
-    //
-    // The credix_lp Depositories registered with this Controller
-    pub registered_credix_lp_depositories: [Pubkey; MAX_REGISTERED_CREDIX_LP_DEPOSITORIES],
-    pub registered_credix_lp_depositories_count: u8,
+    // Padding for data that is no longer needed
+    pub _unused4: [u8; 266],
     //
     // Total amount of profits collected into the treasury by any depository
     pub profits_total_collected: u128,
@@ -118,43 +102,6 @@ pub struct Controller {
 }
 
 impl Controller {
-    pub fn add_registered_mercurial_vault_depository_entry(
-        &mut self,
-        mercurial_vault_depository_id: Pubkey,
-    ) -> Result<()> {
-        let current_size = usize::from(self.registered_mercurial_vault_depositories_count);
-        require!(
-            current_size < MAX_REGISTERED_MERCURIAL_VAULT_DEPOSITORIES,
-            UxdError::MaxNumberOfMercurialVaultDepositoriesRegisteredReached
-        );
-        // Increment registered Mercurial Pool Depositories count
-        self.registered_mercurial_vault_depositories_count =
-            checked_add(self.registered_mercurial_vault_depositories_count, 1)?;
-        // Add the new Mercurial Vault Depository ID to the array of registered Depositories
-        let new_entry_index = current_size;
-        self.registered_mercurial_vault_depositories[new_entry_index] =
-            mercurial_vault_depository_id;
-        Ok(())
-    }
-
-    pub(crate) fn add_registered_credix_lp_depository_entry(
-        &mut self,
-        credix_lp_depository_id: Pubkey,
-    ) -> Result<()> {
-        let current_size = usize::from(self.registered_credix_lp_depositories_count);
-        require!(
-            current_size < MAX_REGISTERED_CREDIX_LP_DEPOSITORIES,
-            UxdError::MaxNumberOfCredixLpDepositoriesRegisteredReached
-        );
-        // Increment registered credix_lp depositories count
-        self.registered_credix_lp_depositories_count =
-            checked_add(self.registered_credix_lp_depositories_count, 1)?;
-        // Add the new credix_lp depository ID to the array of registered depositories
-        let new_entry_index = current_size;
-        self.registered_credix_lp_depositories[new_entry_index] = credix_lp_depository_id;
-        Ok(())
-    }
-
     // provides numbers + or - depending on the change
     pub fn update_onchain_accounting_following_mint_or_redeem(
         &mut self,
