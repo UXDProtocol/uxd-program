@@ -28,7 +28,7 @@ pub async fn process_deposit(
     // Execute IX
     let accounts = alloyx_cpi::accounts::Deposit {
         signer: investor.pubkey(),
-        investor_pass: investor_pass,
+        investor_pass,
         vault_info_account: vault_info,
         usdc_vault_account: vault_usdc_token,
         usdc_mint: *collateral_mint,
@@ -49,5 +49,5 @@ pub async fn process_deposit(
         accounts: accounts.to_account_metas(None),
         data: payload.data(),
     };
-    program_context::process_instruction(program_context, instruction, &investor).await
+    program_context::process_instruction(program_context, instruction, investor).await
 }

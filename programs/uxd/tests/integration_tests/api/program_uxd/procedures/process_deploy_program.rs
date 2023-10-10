@@ -231,7 +231,7 @@ pub async fn process_deploy_program(
     // Alloyx onchain dependency program setup
     program_alloyx::procedures::process_deploy_program(
         program_context,
-        &authority,
+        authority,
         &collateral_mint.pubkey(),
         alloyx_vault_mint,
         collateral_mint_decimals,
