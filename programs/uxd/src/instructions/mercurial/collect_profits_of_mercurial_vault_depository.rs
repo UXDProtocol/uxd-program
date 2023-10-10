@@ -25,7 +25,7 @@ pub struct CollectProfitsOfMercurialVaultDepository<'info> {
         mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
-        constraint = controller.load()?.registered_mercurial_vault_depositories.contains(&depository.key()) @UxdError::InvalidDepository,
+        constraint = controller.load()?.mercurial_vault_depository == depository.key() @UxdError::InvalidDepository,
     )]
     pub controller: AccountLoader<'info, Controller>,
 

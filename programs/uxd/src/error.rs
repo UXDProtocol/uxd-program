@@ -72,7 +72,7 @@ pub enum UxdError {
     InvalidAuthority,
     #[msg("The Depository's controller doesn't match the provided Controller.")]
     InvalidController,
-    #[msg("The Depository provided is not registered with the Controller.")]
+    #[msg("The Depository provided is not matching the one stored in the Controller.")]
     InvalidDepository,
     #[msg("The provided collateral mint does not match the depository's collateral mint.")]
     InvalidCollateralMint,
