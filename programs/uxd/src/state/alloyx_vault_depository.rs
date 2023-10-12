@@ -6,7 +6,7 @@ use crate::error::UxdError;
 use crate::utils::checked_add;
 use crate::utils::checked_sub;
 
-pub const ALLOYX_VAULT_DEPOSITORY_RESERVED_SPACE: usize = 800;
+pub const ALLOYX_VAULT_DEPOSITORY_RESERVED_SPACE: usize = 803;
 pub const ALLOYX_VAULT_DEPOSITORY_SPACE: usize = 8 // anchor-pad
  + size_of::<u8>() // bump
  + size_of::<u8>() // version
