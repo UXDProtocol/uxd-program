@@ -5,7 +5,7 @@ use crate::utils::checked_add_u128_and_i128;
 use anchor_lang::prelude::*;
 
 // Total should be 885 bytes
-pub const CONTROLLER_RESERVED_SPACE: usize = 94;
+pub const CONTROLLER_RESERVED_SPACE: usize = 60;
 pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u8>() // bump
     + size_of::<u8>() // redeemable_mint_bump
@@ -32,6 +32,8 @@ pub const CONTROLLER_SPACE: usize = 8
     + size_of::<u64>() // slots_per_epoch
     + size_of::<u64>() // epoch_outflow_amount
     + size_of::<u64>() // last_outflow_slot
+    + size_of::<Pubkey>() // alloyx_vault_depository
+    + size_of::<u16>() // alloyx_vault_depository_weight_bps
     + CONTROLLER_RESERVED_SPACE;
 
 #[account(zero_copy)]
@@ -90,6 +92,10 @@ pub struct Controller {
     pub slots_per_epoch: u64,
     pub epoch_outflow_amount: u64,
     pub last_outflow_slot: u64,
+
+    // The configured router depository for alloyx's vault
+    pub alloyx_vault_depository: Pubkey,
+    pub alloyx_vault_depository_weight_bps: u16,
 
     // For future usage
     pub _reserved: [u8; CONTROLLER_RESERVED_SPACE],

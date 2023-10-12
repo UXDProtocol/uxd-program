@@ -216,6 +216,41 @@ export type Uxd = {
       ];
     },
     {
+      name: 'editAlloyxVaultDepository';
+      accounts: [
+        {
+          name: 'authority';
+          isMut: false;
+          isSigner: true;
+          docs: [
+            '#1 Authored call accessible only to the signer matching Controller.authority'
+          ];
+        },
+        {
+          name: 'controller';
+          isMut: true;
+          isSigner: false;
+          docs: [
+            '#2 The top level UXDProgram on chain account managing the redeemable mint'
+          ];
+        },
+        {
+          name: 'depository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#3'];
+        }
+      ];
+      args: [
+        {
+          name: 'fields';
+          type: {
+            defined: 'EditAlloyxVaultDepositoryFields';
+          };
+        }
+      ];
+    },
+    {
       name: 'mint';
       accounts: [
         {
@@ -2000,6 +2035,115 @@ export type Uxd = {
       args: [];
     },
     {
+      name: 'registerAlloyxVaultDepository';
+      accounts: [
+        {
+          name: 'authority';
+          isMut: false;
+          isSigner: true;
+          docs: ['#1'];
+        },
+        {
+          name: 'payer';
+          isMut: true;
+          isSigner: true;
+          docs: ['#2'];
+        },
+        {
+          name: 'controller';
+          isMut: true;
+          isSigner: false;
+          docs: ['#3'];
+        },
+        {
+          name: 'depository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#4'];
+        },
+        {
+          name: 'collateralMint';
+          isMut: false;
+          isSigner: false;
+          docs: ['#5'];
+        },
+        {
+          name: 'depositoryCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#6'];
+        },
+        {
+          name: 'depositoryShares';
+          isMut: true;
+          isSigner: false;
+          docs: ['#7'];
+        },
+        {
+          name: 'alloyxVaultInfo';
+          isMut: false;
+          isSigner: false;
+          docs: ['#8'];
+        },
+        {
+          name: 'alloyxVaultCollateral';
+          isMut: false;
+          isSigner: false;
+          docs: ['#9'];
+        },
+        {
+          name: 'alloyxVaultShares';
+          isMut: false;
+          isSigner: false;
+          docs: ['#10'];
+        },
+        {
+          name: 'alloyxVaultMint';
+          isMut: false;
+          isSigner: false;
+          docs: ['#11'];
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#12'];
+        },
+        {
+          name: 'tokenProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#13'];
+        },
+        {
+          name: 'associatedTokenProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#14'];
+        },
+        {
+          name: 'rent';
+          isMut: false;
+          isSigner: false;
+          docs: ['#15'];
+        }
+      ];
+      args: [
+        {
+          name: 'mintingFeeInBps';
+          type: 'u8';
+        },
+        {
+          name: 'redeemingFeeInBps';
+          type: 'u8';
+        },
+        {
+          name: 'redeemableAmountUnderManagementCap';
+          type: 'u64';
+        }
+      ];
+    },
+    {
       name: 'freezeProgram';
       docs: [
         'Freeze or resume all ixs associated with the controller (except this one).',
@@ -2038,6 +2182,100 @@ export type Uxd = {
     }
   ];
   accounts: [
+    {
+      name: 'alloyxVaultDepository';
+      type: {
+        kind: 'struct';
+        fields: [
+          {
+            name: 'bump';
+            type: 'u8';
+          },
+          {
+            name: 'version';
+            type: 'u8';
+          },
+          {
+            name: 'controller';
+            type: 'publicKey';
+          },
+          {
+            name: 'collateralMint';
+            type: 'publicKey';
+          },
+          {
+            name: 'depositoryCollateral';
+            type: 'publicKey';
+          },
+          {
+            name: 'depositoryShares';
+            type: 'publicKey';
+          },
+          {
+            name: 'alloyxVaultInfo';
+            type: 'publicKey';
+          },
+          {
+            name: 'alloyxVaultCollateral';
+            type: 'publicKey';
+          },
+          {
+            name: 'alloyxVaultShares';
+            type: 'publicKey';
+          },
+          {
+            name: 'alloyxVaultMint';
+            type: 'publicKey';
+          },
+          {
+            name: 'redeemableAmountUnderManagementCap';
+            type: 'u64';
+          },
+          {
+            name: 'mintingFeeInBps';
+            type: 'u8';
+          },
+          {
+            name: 'redeemingFeeInBps';
+            type: 'u8';
+          },
+          {
+            name: 'mintingDisabled';
+            type: 'bool';
+          },
+          {
+            name: 'collateralAmountDeposited';
+            type: 'u64';
+          },
+          {
+            name: 'redeemableAmountUnderManagement';
+            type: 'u64';
+          },
+          {
+            name: 'mintingFeeTotalAccrued';
+            type: 'u64';
+          },
+          {
+            name: 'redeemingFeeTotalAccrued';
+            type: 'u64';
+          },
+          {
+            name: 'profitsTotalCollected';
+            type: 'u64';
+          },
+          {
+            name: 'profitsBeneficiaryCollateral';
+            type: 'publicKey';
+          },
+          {
+            name: 'reserved';
+            type: {
+              array: ['u8', 800];
+            };
+          }
+        ];
+      };
+    },
     {
       name: 'controller';
       type: {
@@ -2098,28 +2336,8 @@ export type Uxd = {
           {
             name: 'unused4';
             type: {
-              array: ['u8', 8];
+              array: ['u8', 266];
             };
-          },
-          {
-            name: 'registeredMercurialVaultDepositories';
-            type: {
-              array: ['publicKey', 4];
-            };
-          },
-          {
-            name: 'registeredMercurialVaultDepositoriesCount';
-            type: 'u8';
-          },
-          {
-            name: 'registeredCredixLpDepositories';
-            type: {
-              array: ['publicKey', 4];
-            };
-          },
-          {
-            name: 'registeredCredixLpDepositoriesCount';
-            type: 'u8';
           },
           {
             name: 'profitsTotalCollected';
@@ -2170,9 +2388,17 @@ export type Uxd = {
             type: 'u64';
           },
           {
+            name: 'alloyxVaultDepository';
+            type: 'publicKey';
+          },
+          {
+            name: 'alloyxVaultDepositoryWeightBps';
+            type: 'u16';
+          },
+          {
             name: 'reserved';
             type: {
-              array: ['u8', 94];
+              array: ['u8', 60];
             };
           }
         ];
@@ -2481,6 +2707,44 @@ export type Uxd = {
       };
     },
     {
+      name: 'EditAlloyxVaultDepositoryFields';
+      type: {
+        kind: 'struct';
+        fields: [
+          {
+            name: 'redeemableAmountUnderManagementCap';
+            type: {
+              option: 'u64';
+            };
+          },
+          {
+            name: 'mintingFeeInBps';
+            type: {
+              option: 'u8';
+            };
+          },
+          {
+            name: 'redeemingFeeInBps';
+            type: {
+              option: 'u8';
+            };
+          },
+          {
+            name: 'mintingDisabled';
+            type: {
+              option: 'bool';
+            };
+          },
+          {
+            name: 'profitsBeneficiaryCollateral';
+            type: {
+              option: 'publicKey';
+            };
+          }
+        ];
+      };
+    },
+    {
       name: 'EditDepositoriesRoutingWeightBps';
       type: {
         kind: 'struct';
@@ -2495,6 +2759,10 @@ export type Uxd = {
           },
           {
             name: 'credixLpDepositoryWeightBps';
+            type: 'u16';
+          },
+          {
+            name: 'alloyxVaultDepositoryWeightBps';
             type: 'u16';
           }
         ];
@@ -2515,6 +2783,10 @@ export type Uxd = {
           },
           {
             name: 'credixLpDepository';
+            type: 'publicKey';
+          },
+          {
+            name: 'alloyxVaultDepository';
             type: 'publicKey';
           }
         ];
@@ -2755,6 +3027,11 @@ export type Uxd = {
           name: 'credixLpDepositoryWeightBps';
           type: 'u16';
           index: false;
+        },
+        {
+          name: 'alloyxVaultDepositoryWeightBps';
+          type: 'u16';
+          index: false;
         }
       ];
     },
@@ -2783,6 +3060,11 @@ export type Uxd = {
         },
         {
           name: 'credixLpDepository';
+          type: 'publicKey';
+          index: false;
+        },
+        {
+          name: 'alloyxVaultDepository';
           type: 'publicKey';
           index: false;
         }
@@ -3309,6 +3591,41 @@ export type Uxd = {
       ];
     },
     {
+      name: 'RegisterAlloyxVaultDepositoryEvent';
+      fields: [
+        {
+          name: 'controllerVersion';
+          type: 'u8';
+          index: true;
+        },
+        {
+          name: 'depositoryVersion';
+          type: 'u8';
+          index: true;
+        },
+        {
+          name: 'controller';
+          type: 'publicKey';
+          index: true;
+        },
+        {
+          name: 'depository';
+          type: 'publicKey';
+          index: true;
+        },
+        {
+          name: 'collateralMint';
+          type: 'publicKey';
+          index: false;
+        },
+        {
+          name: 'alloyxVaultInfo';
+          type: 'publicKey';
+          index: false;
+        }
+      ];
+    },
+    {
       name: 'FreezeProgramEvent';
       fields: [
         {
@@ -3498,7 +3815,7 @@ export type Uxd = {
     {
       code: 6033;
       name: 'InvalidDepository';
-      msg: 'The Depository provided is not registered with the Controller.';
+      msg: 'The Depository provided is not matching the one stored in the Controller.';
     },
     {
       code: 6034;
@@ -3624,6 +3941,51 @@ export type Uxd = {
       code: 6058;
       name: 'InvalidOutflowLimitPerEpochBps';
       msg: 'The outflow_limit_per_epoch_bps is invalid: over 100%.';
+    },
+    {
+      code: 6059;
+      name: 'CollateralMintMismatch';
+      msg: "The collateral_mint is not matching with the integration's collateral mint.";
+    },
+    {
+      code: 6060;
+      name: 'CollateralMintConflict';
+      msg: "The collateral_mint should not be equal to the integration's custom mint.";
+    },
+    {
+      code: 6061;
+      name: 'CustomMintMismatch';
+      msg: "The passed custom mint is not matching with the integration's mint.";
+    },
+    {
+      code: 6062;
+      name: 'CustomMintConflict';
+      msg: 'The passed custom mint should not be equal to the collateral mint.';
+    },
+    {
+      code: 6063;
+      name: 'InvalidAlloyxVaultInfo';
+      msg: "The alloyx_vault_info account isn't the depository's one.";
+    },
+    {
+      code: 6064;
+      name: 'InvalidAlloyxVaultCollateral';
+      msg: "The alloyx_vault_collateral account isn't the depository's one.";
+    },
+    {
+      code: 6065;
+      name: 'InvalidAlloyxVaultShares';
+      msg: "The alloyx_vault_shares account isn't the depository's one.";
+    },
+    {
+      code: 6066;
+      name: 'InvalidAlloyxVaultMint';
+      msg: "The alloyx_vault_mint account isn't the depository's one.";
+    },
+    {
+      code: 6067;
+      name: 'InvalidAlloyxVaultPass';
+      msg: "The alloyx_vault_pass account isn't for the correct investor.";
     }
   ];
 };
@@ -3841,6 +4203,41 @@ export const IDL: Uxd = {
           name: 'fields',
           type: {
             defined: 'EditCredixLpDepositoryFields',
+          },
+        },
+      ],
+    },
+    {
+      name: 'editAlloyxVaultDepository',
+      accounts: [
+        {
+          name: 'authority',
+          isMut: false,
+          isSigner: true,
+          docs: [
+            '#1 Authored call accessible only to the signer matching Controller.authority',
+          ],
+        },
+        {
+          name: 'controller',
+          isMut: true,
+          isSigner: false,
+          docs: [
+            '#2 The top level UXDProgram on chain account managing the redeemable mint',
+          ],
+        },
+        {
+          name: 'depository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#3'],
+        },
+      ],
+      args: [
+        {
+          name: 'fields',
+          type: {
+            defined: 'EditAlloyxVaultDepositoryFields',
           },
         },
       ],
@@ -5630,6 +6027,115 @@ export const IDL: Uxd = {
       args: [],
     },
     {
+      name: 'registerAlloyxVaultDepository',
+      accounts: [
+        {
+          name: 'authority',
+          isMut: false,
+          isSigner: true,
+          docs: ['#1'],
+        },
+        {
+          name: 'payer',
+          isMut: true,
+          isSigner: true,
+          docs: ['#2'],
+        },
+        {
+          name: 'controller',
+          isMut: true,
+          isSigner: false,
+          docs: ['#3'],
+        },
+        {
+          name: 'depository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#4'],
+        },
+        {
+          name: 'collateralMint',
+          isMut: false,
+          isSigner: false,
+          docs: ['#5'],
+        },
+        {
+          name: 'depositoryCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#6'],
+        },
+        {
+          name: 'depositoryShares',
+          isMut: true,
+          isSigner: false,
+          docs: ['#7'],
+        },
+        {
+          name: 'alloyxVaultInfo',
+          isMut: false,
+          isSigner: false,
+          docs: ['#8'],
+        },
+        {
+          name: 'alloyxVaultCollateral',
+          isMut: false,
+          isSigner: false,
+          docs: ['#9'],
+        },
+        {
+          name: 'alloyxVaultShares',
+          isMut: false,
+          isSigner: false,
+          docs: ['#10'],
+        },
+        {
+          name: 'alloyxVaultMint',
+          isMut: false,
+          isSigner: false,
+          docs: ['#11'],
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#12'],
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#13'],
+        },
+        {
+          name: 'associatedTokenProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#14'],
+        },
+        {
+          name: 'rent',
+          isMut: false,
+          isSigner: false,
+          docs: ['#15'],
+        },
+      ],
+      args: [
+        {
+          name: 'mintingFeeInBps',
+          type: 'u8',
+        },
+        {
+          name: 'redeemingFeeInBps',
+          type: 'u8',
+        },
+        {
+          name: 'redeemableAmountUnderManagementCap',
+          type: 'u64',
+        },
+      ],
+    },
+    {
       name: 'freezeProgram',
       docs: [
         'Freeze or resume all ixs associated with the controller (except this one).',
@@ -5668,6 +6174,100 @@ export const IDL: Uxd = {
     },
   ],
   accounts: [
+    {
+      name: 'alloyxVaultDepository',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'bump',
+            type: 'u8',
+          },
+          {
+            name: 'version',
+            type: 'u8',
+          },
+          {
+            name: 'controller',
+            type: 'publicKey',
+          },
+          {
+            name: 'collateralMint',
+            type: 'publicKey',
+          },
+          {
+            name: 'depositoryCollateral',
+            type: 'publicKey',
+          },
+          {
+            name: 'depositoryShares',
+            type: 'publicKey',
+          },
+          {
+            name: 'alloyxVaultInfo',
+            type: 'publicKey',
+          },
+          {
+            name: 'alloyxVaultCollateral',
+            type: 'publicKey',
+          },
+          {
+            name: 'alloyxVaultShares',
+            type: 'publicKey',
+          },
+          {
+            name: 'alloyxVaultMint',
+            type: 'publicKey',
+          },
+          {
+            name: 'redeemableAmountUnderManagementCap',
+            type: 'u64',
+          },
+          {
+            name: 'mintingFeeInBps',
+            type: 'u8',
+          },
+          {
+            name: 'redeemingFeeInBps',
+            type: 'u8',
+          },
+          {
+            name: 'mintingDisabled',
+            type: 'bool',
+          },
+          {
+            name: 'collateralAmountDeposited',
+            type: 'u64',
+          },
+          {
+            name: 'redeemableAmountUnderManagement',
+            type: 'u64',
+          },
+          {
+            name: 'mintingFeeTotalAccrued',
+            type: 'u64',
+          },
+          {
+            name: 'redeemingFeeTotalAccrued',
+            type: 'u64',
+          },
+          {
+            name: 'profitsTotalCollected',
+            type: 'u64',
+          },
+          {
+            name: 'profitsBeneficiaryCollateral',
+            type: 'publicKey',
+          },
+          {
+            name: 'reserved',
+            type: {
+              array: ['u8', 800],
+            },
+          },
+        ],
+      },
+    },
     {
       name: 'controller',
       type: {
@@ -5728,28 +6328,8 @@ export const IDL: Uxd = {
           {
             name: 'unused4',
             type: {
-              array: ['u8', 8],
+              array: ['u8', 266],
             },
-          },
-          {
-            name: 'registeredMercurialVaultDepositories',
-            type: {
-              array: ['publicKey', 4],
-            },
-          },
-          {
-            name: 'registeredMercurialVaultDepositoriesCount',
-            type: 'u8',
-          },
-          {
-            name: 'registeredCredixLpDepositories',
-            type: {
-              array: ['publicKey', 4],
-            },
-          },
-          {
-            name: 'registeredCredixLpDepositoriesCount',
-            type: 'u8',
           },
           {
             name: 'profitsTotalCollected',
@@ -5800,9 +6380,17 @@ export const IDL: Uxd = {
             type: 'u64',
           },
           {
+            name: 'alloyxVaultDepository',
+            type: 'publicKey',
+          },
+          {
+            name: 'alloyxVaultDepositoryWeightBps',
+            type: 'u16',
+          },
+          {
             name: 'reserved',
             type: {
-              array: ['u8', 94],
+              array: ['u8', 60],
             },
           },
         ],
@@ -6111,6 +6699,44 @@ export const IDL: Uxd = {
       },
     },
     {
+      name: 'EditAlloyxVaultDepositoryFields',
+      type: {
+        kind: 'struct',
+        fields: [
+          {
+            name: 'redeemableAmountUnderManagementCap',
+            type: {
+              option: 'u64',
+            },
+          },
+          {
+            name: 'mintingFeeInBps',
+            type: {
+              option: 'u8',
+            },
+          },
+          {
+            name: 'redeemingFeeInBps',
+            type: {
+              option: 'u8',
+            },
+          },
+          {
+            name: 'mintingDisabled',
+            type: {
+              option: 'bool',
+            },
+          },
+          {
+            name: 'profitsBeneficiaryCollateral',
+            type: {
+              option: 'publicKey',
+            },
+          },
+        ],
+      },
+    },
+    {
       name: 'EditDepositoriesRoutingWeightBps',
       type: {
         kind: 'struct',
@@ -6125,6 +6751,10 @@ export const IDL: Uxd = {
           },
           {
             name: 'credixLpDepositoryWeightBps',
+            type: 'u16',
+          },
+          {
+            name: 'alloyxVaultDepositoryWeightBps',
             type: 'u16',
           },
         ],
@@ -6145,6 +6775,10 @@ export const IDL: Uxd = {
           },
           {
             name: 'credixLpDepository',
+            type: 'publicKey',
+          },
+          {
+            name: 'alloyxVaultDepository',
             type: 'publicKey',
           },
         ],
@@ -6386,6 +7020,11 @@ export const IDL: Uxd = {
           type: 'u16',
           index: false,
         },
+        {
+          name: 'alloyxVaultDepositoryWeightBps',
+          type: 'u16',
+          index: false,
+        },
       ],
     },
     {
@@ -6413,6 +7052,11 @@ export const IDL: Uxd = {
         },
         {
           name: 'credixLpDepository',
+          type: 'publicKey',
+          index: false,
+        },
+        {
+          name: 'alloyxVaultDepository',
           type: 'publicKey',
           index: false,
         },
@@ -6939,6 +7583,41 @@ export const IDL: Uxd = {
       ],
     },
     {
+      name: 'RegisterAlloyxVaultDepositoryEvent',
+      fields: [
+        {
+          name: 'controllerVersion',
+          type: 'u8',
+          index: true,
+        },
+        {
+          name: 'depositoryVersion',
+          type: 'u8',
+          index: true,
+        },
+        {
+          name: 'controller',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'depository',
+          type: 'publicKey',
+          index: true,
+        },
+        {
+          name: 'collateralMint',
+          type: 'publicKey',
+          index: false,
+        },
+        {
+          name: 'alloyxVaultInfo',
+          type: 'publicKey',
+          index: false,
+        },
+      ],
+    },
+    {
       name: 'FreezeProgramEvent',
       fields: [
         {
@@ -7128,7 +7807,7 @@ export const IDL: Uxd = {
     {
       code: 6033,
       name: 'InvalidDepository',
-      msg: 'The Depository provided is not registered with the Controller.',
+      msg: 'The Depository provided is not matching the one stored in the Controller.',
     },
     {
       code: 6034,
@@ -7254,6 +7933,51 @@ export const IDL: Uxd = {
       code: 6058,
       name: 'InvalidOutflowLimitPerEpochBps',
       msg: 'The outflow_limit_per_epoch_bps is invalid: over 100%.',
+    },
+    {
+      code: 6059,
+      name: 'CollateralMintMismatch',
+      msg: "The collateral_mint is not matching with the integration's collateral mint.",
+    },
+    {
+      code: 6060,
+      name: 'CollateralMintConflict',
+      msg: "The collateral_mint should not be equal to the integration's custom mint.",
+    },
+    {
+      code: 6061,
+      name: 'CustomMintMismatch',
+      msg: "The passed custom mint is not matching with the integration's mint.",
+    },
+    {
+      code: 6062,
+      name: 'CustomMintConflict',
+      msg: 'The passed custom mint should not be equal to the collateral mint.',
+    },
+    {
+      code: 6063,
+      name: 'InvalidAlloyxVaultInfo',
+      msg: "The alloyx_vault_info account isn't the depository's one.",
+    },
+    {
+      code: 6064,
+      name: 'InvalidAlloyxVaultCollateral',
+      msg: "The alloyx_vault_collateral account isn't the depository's one.",
+    },
+    {
+      code: 6065,
+      name: 'InvalidAlloyxVaultShares',
+      msg: "The alloyx_vault_shares account isn't the depository's one.",
+    },
+    {
+      code: 6066,
+      name: 'InvalidAlloyxVaultMint',
+      msg: "The alloyx_vault_mint account isn't the depository's one.",
+    },
+    {
+      code: 6067,
+      name: 'InvalidAlloyxVaultPass',
+      msg: "The alloyx_vault_pass account isn't for the correct investor.",
     },
   ],
 };

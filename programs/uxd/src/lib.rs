@@ -24,6 +24,7 @@ pub const MERCURIAL_VAULT_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CONTROLLER_ACCOUNT_VERSION: u8 = 1;
 pub const IDENTITY_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 pub const CREDIX_LP_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
+pub const ALLOYX_VAULT_DEPOSITORY_ACCOUNT_VERSION: u8 = 1;
 
 // These are just "namespaces" seeds for the PDA creations.
 pub const REDEEMABLE_MINT_NAMESPACE: &[u8] = b"REDEEMABLE";
@@ -38,12 +39,15 @@ pub const CREDIX_LP_DEPOSITORY_NAMESPACE: &[u8] = b"CREDIX_LP_DEPOSITORY";
 pub const CREDIX_LP_EXTERNAL_PASS_NAMESPACE: &[u8] = b"credix-pass";
 pub const CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE: &[u8] = b"withdraw-epoch";
 
+pub const ALLOYX_VAULT_DEPOSITORY_NAMESPACE: &[u8] = b"ALLOYXVAULTDEPOSITORY";
+
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 
 pub const ROUTER_DEPOSITORIES_COUNT: usize = 3;
 pub const ROUTER_IDENTITY_DEPOSITORY_INDEX: usize = 0;
 pub const ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX: usize = 1;
 pub const ROUTER_CREDIX_LP_DEPOSITORY_INDEX: usize = 2;
+pub const ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX: usize = 3;
 
 const BPS_DECIMALS: u8 = 4;
 pub const BPS_POWER: u64 = (10u64).pow(BPS_DECIMALS as u32);
@@ -85,6 +89,7 @@ pub mod uxd {
         ctx: Context<EditController>,
         fields: EditControllerFields,
     ) -> Result<()> {
+        msg!("[edit_controller]");
         instructions::edit_controller::handler(ctx, &fields)
     }
 
@@ -93,6 +98,7 @@ pub mod uxd {
         ctx: Context<EditMercurialVaultDepository>,
         fields: EditMercurialVaultDepositoryFields,
     ) -> Result<()> {
+        msg!("[edit_mercurial_vault_depository]");
         instructions::edit_mercurial_vault_depository::handler(ctx, &fields)
     }
 
@@ -101,6 +107,7 @@ pub mod uxd {
         ctx: Context<EditIdentityDepository>,
         fields: EditIdentityDepositoryFields,
     ) -> Result<()> {
+        msg!("[edit_identity_depository]");
         instructions::edit_identity_depository::handler(ctx, &fields)
     }
 
@@ -109,7 +116,17 @@ pub mod uxd {
         ctx: Context<EditCredixLpDepository>,
         fields: EditCredixLpDepositoryFields,
     ) -> Result<()> {
+        msg!("[edit_credix_lp_depository]");
         instructions::edit_credix_lp_depository::handler(ctx, &fields)
+    }
+
+    #[access_control(ctx.accounts.validate())]
+    pub fn edit_alloyx_vault_depository(
+        ctx: Context<EditAlloyxVaultDepository>,
+        fields: EditAlloyxVaultDepositoryFields,
+    ) -> Result<()> {
+        msg!("[edit_alloyx_vault_depository]");
+        instructions::edit_alloyx_vault_depository::handler(ctx, &fields)
     }
 
     #[access_control(
@@ -292,6 +309,26 @@ pub mod uxd {
     ) -> Result<()> {
         msg!("[rebalance_redeem_withdraw_request_from_credix_lp_depository]");
         instructions::rebalance_redeem_withdraw_request_from_credix_lp_depository::handler(ctx)
+    }
+
+    // Create and Register a new `AlloyxVaultDepository` to the `Controller`.
+    // Each `Depository` account manages a specific credix lp.
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn register_alloyx_vault_depository(
+        ctx: Context<RegisterAlloyxVaultDepository>,
+        minting_fee_in_bps: u8,
+        redeeming_fee_in_bps: u8,
+        redeemable_amount_under_management_cap: u64,
+    ) -> Result<()> {
+        msg!("[register_alloyx_vault_depository]");
+        instructions::register_alloyx_vault_depository::handler(
+            ctx,
+            minting_fee_in_bps,
+            redeeming_fee_in_bps,
+            redeemable_amount_under_management_cap,
+        )
     }
 
     /// Freeze or resume all ixs associated with the controller (except this one).

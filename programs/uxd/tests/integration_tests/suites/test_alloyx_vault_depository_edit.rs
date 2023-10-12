@@ -2,14 +2,14 @@ use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
-use uxd::instructions::EditMercurialVaultDepositoryFields;
+use uxd::instructions::EditAlloyxVaultDepositoryFields;
 
 use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_spl;
 use crate::integration_tests::api::program_uxd;
 
 #[tokio::test]
-async fn test_mercurial_vault_depository_edit() -> Result<(), program_context::ProgramError> {
+async fn test_alloyx_vault_depository_edit() -> Result<(), program_context::ProgramError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -72,12 +72,12 @@ async fn test_mercurial_vault_depository_edit() -> Result<(), program_context::P
     // ---------------------------------------------------------------------
 
     // Change redeemable_amount_under_management_cap
-    program_uxd::instructions::process_edit_mercurial_vault_depository(
+    program_uxd::instructions::process_edit_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditMercurialVaultDepositoryFields {
+        &EditAlloyxVaultDepositoryFields {
             redeemable_amount_under_management_cap: Some(100),
             minting_fee_in_bps: None,
             redeeming_fee_in_bps: None,
@@ -88,12 +88,12 @@ async fn test_mercurial_vault_depository_edit() -> Result<(), program_context::P
     .await?;
 
     // Change minting_fee_in_bps
-    program_uxd::instructions::process_edit_mercurial_vault_depository(
+    program_uxd::instructions::process_edit_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditMercurialVaultDepositoryFields {
+        &EditAlloyxVaultDepositoryFields {
             redeemable_amount_under_management_cap: None,
             minting_fee_in_bps: Some(100),
             redeeming_fee_in_bps: None,
@@ -104,12 +104,12 @@ async fn test_mercurial_vault_depository_edit() -> Result<(), program_context::P
     .await?;
 
     // Change redeeming_fee_in_bps
-    program_uxd::instructions::process_edit_mercurial_vault_depository(
+    program_uxd::instructions::process_edit_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditMercurialVaultDepositoryFields {
+        &EditAlloyxVaultDepositoryFields {
             redeemable_amount_under_management_cap: None,
             minting_fee_in_bps: None,
             redeeming_fee_in_bps: Some(100),
@@ -120,12 +120,12 @@ async fn test_mercurial_vault_depository_edit() -> Result<(), program_context::P
     .await?;
 
     // Change minting_disabled
-    program_uxd::instructions::process_edit_mercurial_vault_depository(
+    program_uxd::instructions::process_edit_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditMercurialVaultDepositoryFields {
+        &EditAlloyxVaultDepositoryFields {
             redeemable_amount_under_management_cap: None,
             minting_fee_in_bps: None,
             redeeming_fee_in_bps: None,
@@ -136,12 +136,12 @@ async fn test_mercurial_vault_depository_edit() -> Result<(), program_context::P
     .await?;
 
     // Change profits_beneficiary_collateral
-    program_uxd::instructions::process_edit_mercurial_vault_depository(
+    program_uxd::instructions::process_edit_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditMercurialVaultDepositoryFields {
+        &EditAlloyxVaultDepositoryFields {
             redeemable_amount_under_management_cap: None,
             minting_fee_in_bps: None,
             redeeming_fee_in_bps: None,
@@ -158,12 +158,12 @@ async fn test_mercurial_vault_depository_edit() -> Result<(), program_context::P
 
     // Change everything, using the wrong authority (should fail)
     assert!(
-        program_uxd::instructions::process_edit_mercurial_vault_depository(
+        program_uxd::instructions::process_edit_alloyx_vault_depository(
             &mut program_context,
             &payer,
             &payer,
             &collateral_mint.pubkey(),
-            &EditMercurialVaultDepositoryFields {
+            &EditAlloyxVaultDepositoryFields {
                 redeemable_amount_under_management_cap: Some(9999),
                 minting_fee_in_bps: Some(41),
                 redeeming_fee_in_bps: Some(42),
@@ -176,12 +176,12 @@ async fn test_mercurial_vault_depository_edit() -> Result<(), program_context::P
     );
 
     // Change everything, using the correct authority (should succeed)
-    program_uxd::instructions::process_edit_mercurial_vault_depository(
+    program_uxd::instructions::process_edit_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditMercurialVaultDepositoryFields {
+        &EditAlloyxVaultDepositoryFields {
             redeemable_amount_under_management_cap: Some(9999),
             minting_fee_in_bps: Some(41),
             redeeming_fee_in_bps: Some(42),
@@ -192,12 +192,12 @@ async fn test_mercurial_vault_depository_edit() -> Result<(), program_context::P
     .await?;
 
     // Change nothing, using the correct authority (should succeed)
-    program_uxd::instructions::process_edit_mercurial_vault_depository(
+    program_uxd::instructions::process_edit_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditMercurialVaultDepositoryFields {
+        &EditAlloyxVaultDepositoryFields {
             redeemable_amount_under_management_cap: None,
             minting_fee_in_bps: None,
             redeeming_fee_in_bps: None,

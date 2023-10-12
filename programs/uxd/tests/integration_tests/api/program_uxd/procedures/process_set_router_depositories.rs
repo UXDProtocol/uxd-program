@@ -49,6 +49,7 @@ pub async fn process_set_router_depositories(
                 identity_depository,
                 mercurial_vault_depository,
                 credix_lp_depository,
+                alloyx_vault_depository: Pubkey::default(), // TODO - router integration
             }),
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,

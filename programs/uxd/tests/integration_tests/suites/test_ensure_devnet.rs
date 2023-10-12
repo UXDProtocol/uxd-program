@@ -284,11 +284,13 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
                 identity_depository_weight_bps: 34 * 100,        // 34%
                 mercurial_vault_depository_weight_bps: 33 * 100, // 33%
                 credix_lp_depository_weight_bps: 33 * 100,       // 33%
+                alloyx_vault_depository_weight_bps: 0,           // 0%
             }),
             router_depositories: Some(EditRouterDepositories {
                 identity_depository,
                 mercurial_vault_depository,
                 credix_lp_depository,
+                alloyx_vault_depository: Pubkey::default(), // TODO - router integration
             }),
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,

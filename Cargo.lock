@@ -107,6 +107,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "alloyx-cpi"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf089d7c93c529afba9665482316c4436a772f63fb8b3ab2a97c7fe75cc5dddb"
+dependencies = [
+ "anchor-gen",
+ "anchor-lang",
+ "borsh 0.9.3",
+ "solana-program",
+]
+
+[[package]]
 name = "anchor-attribute-access-control"
 version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5188,6 +5200,7 @@ checksum = "79daa5ed5740825c40b389c5e50312b9c86df53fccd33f281df655642b43869d"
 name = "uxd"
 version = "8.2.0"
 dependencies = [
+ "alloyx-cpi",
  "anchor-lang",
  "anchor-spl",
  "async-trait",
