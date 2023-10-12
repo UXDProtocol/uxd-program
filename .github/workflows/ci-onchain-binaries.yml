@@ -52,4 +52,4 @@ jobs:
       - name: Download deployed integration binaries
         run: sh scripts/download_integrations_binaries.sh
       - name: Check if there is any uncommited changed
-        run: git status --porcelain
+        run: git diff --exit-code
