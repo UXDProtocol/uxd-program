@@ -1,0 +1,23 @@
+name:
+  Check onchain deployed binaries
+  # Update to match your branch names and requirements
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check-out the repository
+        uses: actions/checkout@v2
+      - name: Download deployed integration binaries
+        run: sh scripts/download_integrations_binaries.sh
+      - name: Check if there is any uncommited changed
+        run: git status --porcelain
