@@ -11,12 +11,44 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  CARGO_TERM_COLOR: always
+  RUST_TOOLCHAIN: 1.66
+  SOLANA_VERSION: 1.14.21
+  ANCHOR_VERSION: 0.27.0
+
 jobs:
   onchain-binaries:
     runs-on: ubuntu-latest
     steps:
+      # Checkout repository
       - name: Check-out the repository
         uses: actions/checkout@v2
+      # Install Rust
+      - name: Rust toolchain installation
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          override: true
+          profile: minimal
+      # Install solana
+      - name: Cache Solana Tool Suite
+        uses: actions/cache@v2
+        id: cache-solana
+        with:
+          path: |
+            ~/.cache/solana/
+            ~/.local/share/solana/
+          key: solana-${{ runner.os }}-v0000-${{ env.SOLANA_VERSION }}
+      - name: install solana
+        if: steps.cache-solana.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config build-essential libudev-dev
+          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
+      - name: Add Solana to PATH
+        run: echo "/home/runner/.local/share/solana/install/active_release/bin:$PATH" >> $GITHUB_PATH
+      # Download the binaries and check for diff
       - name: Download deployed integration binaries
         run: sh scripts/download_integrations_binaries.sh
       - name: Check if there is any uncommited changed
