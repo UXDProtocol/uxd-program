@@ -280,10 +280,12 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         // alloyx_vault_depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.alloyx_vault_depository_weight_bps,
-            redeemable_amount_under_management: alloyx_vault_depository
-                .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: alloyx_vault_depository
-                .redeemable_amount_under_management_cap,
+            redeemable_amount_under_management: u128::from(
+                alloyx_vault_depository.redeemable_amount_under_management,
+            ),
+            redeemable_amount_under_management_cap: u128::from(
+                alloyx_vault_depository.redeemable_amount_under_management_cap,
+            ),
             redeem_fn: None, // credix is not immediately liquid (require rebalancing)
         },
     ];

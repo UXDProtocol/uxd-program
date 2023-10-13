@@ -23,7 +23,6 @@ use crate::utils::compute_shares_amount_for_value_floor;
 use crate::utils::compute_value_for_shares_amount_floor;
 use crate::utils::is_within_range_inclusive;
 use crate::validate_is_program_frozen;
-use crate::ALLOYX_VAULT_DEPOSITORY_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;

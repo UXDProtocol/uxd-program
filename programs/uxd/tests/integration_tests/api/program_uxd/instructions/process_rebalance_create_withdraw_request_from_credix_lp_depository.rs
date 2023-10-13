@@ -29,6 +29,7 @@ pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository
     )
     .0;
 
+    // Find all needed credix_lp_depository accounts
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
         program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
@@ -55,14 +56,6 @@ pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository
         &credix_shares_mint,
     );
 
-    let alloyx_vault_id = program_alloyx::accounts::find_vault_id();
-    let alloyx_vault_info = program_alloyx::accounts::find_vault_info(&alloyx_vault_id).0;
-    let alloyx_vault_depository = program_uxd::accounts::find_alloyx_vault_depository_pda(
-        &alloyx_vault_info,
-        collateral_mint,
-    )
-    .0;
-
     // Find the credix withdraw accounts
     let credix_latest_withdraw_epoch_idx = program_context::read_account_anchor::<
         credix_client::GlobalMarketState,
@@ -72,6 +65,15 @@ pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository
     let credix_withdraw_epoch = program_credix::accounts::find_withdraw_epoch_pda(
         &credix_global_market_state,
         credix_latest_withdraw_epoch_idx,
+    )
+    .0;
+
+    // alloyx related accounts
+    let alloyx_vault_id = program_alloyx::accounts::find_vault_id();
+    let alloyx_vault_info = program_alloyx::accounts::find_vault_info(&alloyx_vault_id).0;
+    let alloyx_vault_depository = program_uxd::accounts::find_alloyx_vault_depository_pda(
+        &alloyx_vault_info,
+        collateral_mint,
     )
     .0;
 

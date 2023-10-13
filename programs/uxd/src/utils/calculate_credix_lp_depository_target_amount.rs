@@ -38,11 +38,17 @@ pub fn calculate_credix_lp_depository_target_amount(
                     .load()?
                     .redeemable_amount_under_management_cap,
             },
+            DepositoryInfoForTargetRedeemableAmount {
+                weight_bps: controller.alloyx_vault_depository_weight_bps,
+                redeemable_amount_under_management_cap: u128::from(
+                    alloyx_vault_depository
+                        .load()?
+                        .redeemable_amount_under_management_cap,
+                ),
+            },
         ],
     )?;
     drop(controller);
-
-    Ok()
 
     Ok(depositories_target_redeemable_amount[0]) // credix is the first in the list
 }

@@ -12,6 +12,7 @@ use uxd::state::IdentityDepository;
 use uxd::state::MercurialVaultDepository;
 use uxd::utils::calculate_amount_less_fees;
 
+use crate::integration_tests::api::program_alloyx;
 use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
@@ -67,6 +68,15 @@ pub async fn process_redeem(
     )
     .0;
 
+    // Find alloyx related accounts
+    let alloyx_vault_id = program_alloyx::accounts::find_vault_id();
+    let alloyx_vault_info = program_alloyx::accounts::find_vault_info(&alloyx_vault_id).0;
+    let alloyx_vault_depository = program_uxd::accounts::find_alloyx_vault_depository_pda(
+        &alloyx_vault_info,
+        collateral_mint,
+    )
+    .0;
+
     // Read state before
     let redeemable_mint_before =
         program_context::read_account_packed::<Mint>(program_context, &redeemable_mint).await?;
@@ -109,6 +119,7 @@ pub async fn process_redeem(
         mercurial_vault_depository_lp_token_vault,
         mercurial_vault_depository_collateral_token_safe,
         credix_lp_depository,
+        alloyx_vault_depository,
         system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,

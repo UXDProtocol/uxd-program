@@ -8,6 +8,7 @@ use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
+use crate::state::AlloyxVaultDepository;
 use crate::utils::calculate_depositories_mint_collateral_amount;
 use crate::utils::calculate_depositories_mint_collateral_amount::DepositoryInfoForMintCollateralAmount;
 use crate::utils::calculate_depositories_target_redeemable_amount;
@@ -157,6 +158,14 @@ pub struct Mint<'info> {
     #[account(mut)]
     pub credix_lp_depository_shares_mint: Box<Account<'info, anchor_spl::token::Mint>>,
 
+    /// #6
+    #[account(
+        mut,
+        has_one = controller @UxdError::InvalidController,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint
+    )]
+    pub alloyx_vault_depository: AccountLoader<'info, AlloyxVaultDepository>,
+
     /// #23
     pub system_program: Program<'info, System>,
 
@@ -183,7 +192,7 @@ struct DepositoryInfoForMint<'info> {
     pub weight_bps: u16,
     pub redeemable_amount_under_management: u128,
     pub redeemable_amount_under_management_cap: u128,
-    pub mint_fn: Box<dyn Fn(u64) -> Result<()> + 'info>,
+    pub mint_fn: Option<Box<dyn Fn(u64) -> Result<()> + 'info>>,
 }
 
 pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> {
@@ -219,7 +228,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: identity_depository
                 .redeemable_amount_under_management_cap,
-            mint_fn: Box::new(|collateral_amount| {
+            mint_fn: Some(Box::new(|collateral_amount| {
                 msg!("[mint:mint_with_identity_depository:{}]", collateral_amount);
                 if collateral_amount > 0 {
                     uxd_cpi::cpi::mint_with_identity_depository(
@@ -230,7 +239,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
                     )?;
                 }
                 Ok(())
-            }),
+            })),
         },
         // mercurial_vault_depository details
         DepositoryInfoForMint {
@@ -239,7 +248,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: mercurial_vault_depository
                 .redeemable_amount_under_management_cap,
-            mint_fn: Box::new(|collateral_amount| {
+            mint_fn: Some(Box::new(|collateral_amount| {
                 msg!(
                     "[mint:mint_with_mercurial_vault_depository:{}]",
                     collateral_amount
@@ -253,7 +262,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
                     )?;
                 }
                 Ok(())
-            }),
+            })),
         },
         // credix_lp_depository details
         DepositoryInfoForMint {
@@ -262,7 +271,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: credix_lp_depository
                 .redeemable_amount_under_management_cap,
-            mint_fn: Box::new(|collateral_amount| {
+            mint_fn: Some(Box::new(|collateral_amount| {
                 msg!(
                     "[mint:mint_with_credix_lp_depository:{}]",
                     collateral_amount
@@ -276,30 +285,18 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
                     )?;
                 }
                 Ok(())
-            }),
+            })),
         },
         // alloyx_vault_depository details
         DepositoryInfoForMint {
             weight_bps: controller.alloyx_vault_depository_weight_bps,
-            redeemable_amount_under_management: alloyx_vault_depository
-                .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: alloyx_vault_depository
-                .redeemable_amount_under_management_cap,
-            mint_fn: Box::new(|collateral_amount| {
-                msg!(
-                    "[mint:mint_with_alloyx_vault_depository:{}]",
-                    collateral_amount
-                );
-                if collateral_amount > 0 {
-                    uxd_cpi::cpi::mint_with_alloyx_vault_depository(
-                        ctx.accounts
-                            .into_mint_with_alloyx_vault_depository_context()
-                            .with_signer(controller_pda_signer),
-                        collateral_amount,
-                    )?;
-                }
-                Ok(())
-            }),
+            redeemable_amount_under_management: u128::from(
+                alloyx_vault_depository.redeemable_amount_under_management,
+            ),
+            redeemable_amount_under_management_cap: u128::from(
+                alloyx_vault_depository.redeemable_amount_under_management_cap,
+            ),
+            mint_fn: None, // alloyx is minted through rebalancing
         },
     ];
 
@@ -307,6 +304,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     drop(identity_depository);
     drop(mercurial_vault_depository);
     drop(credix_lp_depository);
+    drop(alloyx_vault_depository);
 
     // Compute the desired target amounts for each depository
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
@@ -344,7 +342,10 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
         depositories_mint_collateral_amount.iter(),
     )
     .try_for_each(|(depository_info, depository_mint_collateral_amount)| {
-        (depository_info.mint_fn)(*depository_mint_collateral_amount)
+        match &depository_info.mint_fn {
+            Some(mint_fn) => mint_fn(*depository_mint_collateral_amount),
+            None => Ok(()),
+        }
     })?;
 
     // Done
