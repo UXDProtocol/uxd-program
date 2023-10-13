@@ -196,6 +196,7 @@ pub(crate) fn handler(
                 &ctx.accounts.identity_depository,
                 &ctx.accounts.mercurial_vault_depository,
                 &ctx.accounts.credix_lp_depository,
+                &ctx.accounts.alloyx_vault_depository,
             )?;
         if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
             0
