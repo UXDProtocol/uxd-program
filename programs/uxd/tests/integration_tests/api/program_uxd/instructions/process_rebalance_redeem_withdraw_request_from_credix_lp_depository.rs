@@ -11,6 +11,7 @@ use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
 use uxd::state::IdentityDepository;
 
+use crate::integration_tests::api::program_alloyx;
 use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
@@ -85,6 +86,14 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
         &credix_shares_mint,
     );
 
+    let alloyx_vault_id = program_alloyx::accounts::find_vault_id();
+    let alloyx_vault_info = program_alloyx::accounts::find_vault_info(&alloyx_vault_id).0;
+    let alloyx_vault_depository = program_uxd::accounts::find_alloyx_vault_depository_pda(
+        &alloyx_vault_info,
+        collateral_mint,
+    )
+    .0;
+
     // Find the credix withdraw accounts
     let credix_latest_withdraw_epoch_idx = program_context::read_account_anchor::<
         credix_client::GlobalMarketState,
@@ -132,9 +141,13 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
         payer: payer.pubkey(),
         controller,
         collateral_mint: *collateral_mint,
-        depository: credix_lp_depository,
-        depository_collateral: credix_lp_depository_collateral,
-        depository_shares: credix_lp_depository_shares,
+        identity_depository,
+        identity_depository_collateral,
+        mercurial_vault_depository,
+        credix_lp_depository,
+        credix_lp_depository_collateral,
+        credix_lp_depository_shares,
+        alloyx_vault_depository,
         credix_program_state,
         credix_global_market_state,
         credix_signing_authority,
@@ -146,9 +159,6 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
         credix_treasury,
         credix_treasury_collateral,
         profits_beneficiary_collateral: *profits_beneficiary_collateral,
-        identity_depository,
-        identity_depository_collateral,
-        mercurial_vault_depository,
         system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,

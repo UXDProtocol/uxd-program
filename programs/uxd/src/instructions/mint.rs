@@ -40,6 +40,7 @@ pub struct Mint<'info> {
         constraint = controller.load()?.identity_depository == identity_depository.key() @UxdError::InvalidDepository,
         constraint = controller.load()?.mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
         constraint = controller.load()?.credix_lp_depository == credix_lp_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.alloyx_vault_depository == alloyx_vault_depository.key() @UxdError::InvalidDepository,
         has_one = redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub controller: AccountLoader<'info, Controller>,
@@ -70,26 +71,18 @@ pub struct Mint<'info> {
     /// #8 - UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming
     #[account(
         mut,
-        seeds = [IDENTITY_DEPOSITORY_NAMESPACE],
-        bump = identity_depository.load()?.bump,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
+        constraint = identity_depository.load()?.collateral_vault == identity_depository_collateral_vault.key() @UxdError::InvalidDepositoryCollateral,
     )]
     pub identity_depository: AccountLoader<'info, IdentityDepository>,
 
     /// #9 - Token account holding the collateral from minting
-    #[account(
-        mut,
-        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE],
-        token::authority = identity_depository,
-        token::mint = identity_depository.load()?.collateral_mint,
-        bump = identity_depository.load()?.collateral_vault_bump,
-    )]
+    #[account(mut)]
     pub identity_depository_collateral_vault: Box<Account<'info, TokenAccount>>,
 
     /// #10
     #[account(
         mut,
-        seeds = [MERCURIAL_VAULT_DEPOSITORY_NAMESPACE, mercurial_vault_depository.load()?.mercurial_vault.key().as_ref(), mercurial_vault_depository.load()?.collateral_mint.as_ref()],
-        bump = mercurial_vault_depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
         constraint = mercurial_vault_depository.load()?.mercurial_vault == mercurial_vault_depository_vault.key() @UxdError::InvalidMercurialVault,
