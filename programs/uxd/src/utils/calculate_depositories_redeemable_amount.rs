@@ -9,7 +9,7 @@ use crate::ROUTER_DEPOSITORIES_COUNT;
 use super::compute_amount_less_fraction_floor;
 
 pub struct DepositoryInfoForRedeemableAmount {
-    pub is_liquid: bool,
+    pub directly_redeemable: bool,
     pub target_redeemable_amount: u64,
     pub redeemable_amount_under_management: u128,
 }
@@ -33,7 +33,7 @@ pub fn calculate_depositories_redeemable_amount(
     let depositories_over_target_redeemable_amount = depositories_info
         .iter()
         .map(|depository| {
-            if !depository.is_liquid {
+            if !depository.directly_redeemable {
                 return Ok(0);
             }
             let depository_redeemable_amount_under_management =
@@ -61,7 +61,7 @@ pub fn calculate_depositories_redeemable_amount(
     let depositories_under_target_redeemable_amount = depositories_info
         .iter()
         .map(|depository| {
-            if !depository.is_liquid {
+            if !depository.directly_redeemable {
                 return Ok(0);
             }
             let depository_redeemable_amount_under_management =
@@ -164,7 +164,7 @@ pub fn calculate_depositories_redeemable_amount(
 
     for i in 0..depositories_info.len() {
         let depository = &depositories_info[i];
-        if !depository.is_liquid {
+        if !depository.directly_redeemable {
             continue;
         }
         let depository_remaining_after_redeem =

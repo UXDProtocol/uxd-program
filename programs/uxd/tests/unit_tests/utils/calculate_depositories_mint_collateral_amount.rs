@@ -6,6 +6,7 @@ mod test_calculate_depositories_mint_collateral_amount {
     use uxd::utils::calculate_depositories_mint_collateral_amount;
     use uxd::utils::is_within_range_inclusive;
     use uxd::utils::DepositoryInfoForMintCollateralAmount;
+    use uxd::ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX;
     use uxd::ROUTER_CREDIX_LP_DEPOSITORY_INDEX;
     use uxd::ROUTER_DEPOSITORIES_COUNT;
     use uxd::ROUTER_IDENTITY_DEPOSITORY_INDEX;
@@ -23,22 +24,31 @@ mod test_calculate_depositories_mint_collateral_amount {
             &vec![
                 // identity_depository has available space to mint
                 DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
                 },
                 // mercurial_vault_depository has available space to mint
                 DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(800_000).into(),
                 },
                 // credix_lp_depository has available space to mint
                 DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(700_000).into(),
                 },
+                // alloyx_vault_depository has available space (but cannot be directly minted)
+                DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: false,
+                    target_redeemable_amount: ui_to_native_amount(1_000_000),
+                    redeemable_amount_under_management: ui_to_native_amount(100_000).into(),
+                },
             ],
         )?;
-        // All depositories should mint since they all have space
+        // All depositories should mint since they all have space (for depositories that can be directly minted to)
         assert_eq!(
             depositories_mint_collateral_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
             ui_to_native_amount(500_000),
@@ -50,6 +60,10 @@ mod test_calculate_depositories_mint_collateral_amount {
         assert_eq!(
             depositories_mint_collateral_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
             ui_to_native_amount(300_000),
+        );
+        assert_eq!(
+            depositories_mint_collateral_amount[ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX],
+            ui_to_native_amount(0),
         );
         // Done
         Ok(())
@@ -63,22 +77,31 @@ mod test_calculate_depositories_mint_collateral_amount {
             &vec![
                 // identity_depository is overflowing
                 DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(1_500_000).into(),
                 },
                 // mercurial_vault_depository has available space to mint (a lot of it)
                 DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(0).into(),
                 },
                 // credix_lp_depository has available space to mint (a little of it)
                 DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
                 },
+                // alloyx_vault_depository is overflowing (but cannot be directly minted)
+                DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: false,
+                    target_redeemable_amount: ui_to_native_amount(1_000_000),
+                    redeemable_amount_under_management: ui_to_native_amount(1_500_000).into(),
+                },
             ],
         )?;
-        // Identity should not mint, others should mint in proportion of their available space
+        // Identity should not mint, others should mint in proportion of their available space (for depositories that can be directly minted to)
         assert_eq!(
             depositories_mint_collateral_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
             ui_to_native_amount(0),
@@ -90,6 +113,10 @@ mod test_calculate_depositories_mint_collateral_amount {
         assert_eq!(
             depositories_mint_collateral_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
             ui_to_native_amount(1_000_000) / 3,
+        );
+        assert_eq!(
+            depositories_mint_collateral_amount[ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX],
+            ui_to_native_amount(0),
         );
         // Done
         Ok(())
@@ -103,18 +130,27 @@ mod test_calculate_depositories_mint_collateral_amount {
             &vec![
                 // identity_depository is overflowing
                 DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(1_500_000).into(),
                 },
                 // mercurial_vault_depository has available space to mint (a lot of it)
                 DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(0).into(),
                 },
                 // credix_lp_depository has no space
                 DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(1_000_000).into(),
+                },
+                // alloyx_vault_depository has space (but cannot be directly minted)
+                DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: false,
+                    target_redeemable_amount: ui_to_native_amount(1_000_000),
+                    redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
                 },
             ],
         )?;
@@ -129,6 +165,10 @@ mod test_calculate_depositories_mint_collateral_amount {
         );
         assert_eq!(
             depositories_mint_collateral_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
+            ui_to_native_amount(0),
+        );
+        assert_eq!(
+            depositories_mint_collateral_amount[ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX],
             ui_to_native_amount(0),
         );
         // Done
@@ -143,16 +183,25 @@ mod test_calculate_depositories_mint_collateral_amount {
             &vec![
                 // identity_depository is overflowing
                 DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(1_500_000).into(),
                 },
                 // mercurial_vault_depository is almost overflowing (but has a tiny space)
                 DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(900_000).into(),
                 },
                 // credix_lp_depository has available space to mint (not enough of it)
                 DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: true,
+                    target_redeemable_amount: ui_to_native_amount(1_000_000),
+                    redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
+                },
+                // alloyx_vault_depository has available space to mint (but cannot be directly minted)
+                DepositoryInfoForMintCollateralAmount {
+                    directly_mintable: false,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
                     redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
                 },
@@ -170,15 +219,18 @@ mod test_calculate_depositories_mint_collateral_amount {
             identity_depository_target_redeemable_amount: u64,
             mercurial_vault_depository_target_redeemable_amount: u64,
             credix_lp_depository_target_redeemable_amount: u64,
+            alloyx_vault_depository_target_redeemable_amount: u64,
             identity_depository_redeemable_amount_under_management: u64,
             mercurial_vault_depository_redeemable_amount_under_management: u64,
             credix_lp_depository_redeemable_amount_under_management: u64,
+            alloyx_vault_depository_redeemable_amount_under_management: u64,
         )| {
             // Check if the redeemable_amount_under_management will fit inside of a u64
             // If not, this function will not be expected to work
             let total_redeemable_amount_under_management = u128::from(identity_depository_redeemable_amount_under_management)
                 + u128::from(mercurial_vault_depository_redeemable_amount_under_management)
-                + u128::from(credix_lp_depository_redeemable_amount_under_management);
+                + u128::from(credix_lp_depository_redeemable_amount_under_management)
+                + u128::from(alloyx_vault_depository_redeemable_amount_under_management);
             if total_redeemable_amount_under_management > u128::from(u64::MAX) {
                 return Ok(());
             }
@@ -187,7 +239,8 @@ mod test_calculate_depositories_mint_collateral_amount {
             // If not, this function will not be expected to work
             let total_target_redeemable_amount = u128::from(identity_depository_target_redeemable_amount)
                 + u128::from(mercurial_vault_depository_target_redeemable_amount)
-                + u128::from(credix_lp_depository_target_redeemable_amount);
+                + u128::from(credix_lp_depository_target_redeemable_amount)
+                + u128::from(alloyx_vault_depository_target_redeemable_amount);
             if total_target_redeemable_amount > u128::from(u64::MAX) {
                 return Ok(());
             }
@@ -197,17 +250,25 @@ mod test_calculate_depositories_mint_collateral_amount {
                 requested_mint_collateral_amount,
                 &vec![
                     DepositoryInfoForMintCollateralAmount {
+                        directly_mintable: true,
                         target_redeemable_amount: identity_depository_target_redeemable_amount,
                         redeemable_amount_under_management: identity_depository_redeemable_amount_under_management.into(),
                     },
                     DepositoryInfoForMintCollateralAmount {
+                        directly_mintable: true,
                         target_redeemable_amount: mercurial_vault_depository_target_redeemable_amount,
                         redeemable_amount_under_management: mercurial_vault_depository_redeemable_amount_under_management.into(),
                     },
                     DepositoryInfoForMintCollateralAmount {
+                        directly_mintable: true,
                         target_redeemable_amount: credix_lp_depository_target_redeemable_amount,
                         redeemable_amount_under_management: credix_lp_depository_redeemable_amount_under_management.into(),
-                    }
+                    },
+                    DepositoryInfoForMintCollateralAmount {
+                        directly_mintable: false,
+                        target_redeemable_amount: alloyx_vault_depository_target_redeemable_amount,
+                        redeemable_amount_under_management: alloyx_vault_depository_redeemable_amount_under_management.into(),
+                    },
                 ],
             );
 
@@ -227,9 +288,11 @@ mod test_calculate_depositories_mint_collateral_amount {
                     credix_lp_depository_redeemable_amount_under_management,
                     credix_lp_depository_target_redeemable_amount,
                 );
+            let alloyx_vault_depository_mintable_collateral_amount = 0; // not directly mintable
             let total_mintable_collateral_amount = identity_depository_mintable_collateral_amount
                 + mercurial_vault_depository_mintable_collateral_amount
-                + credix_lp_depository_mintable_collateral_amount;
+                + credix_lp_depository_mintable_collateral_amount
+                + alloyx_vault_depository_mintable_collateral_amount;
 
             if requested_mint_collateral_amount > total_mintable_collateral_amount {
                 prop_assert!(result.is_err());
@@ -243,6 +306,11 @@ mod test_calculate_depositories_mint_collateral_amount {
             let total_mint_collateral_amount = depositories_mint_collateral_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX]
                 + depositories_mint_collateral_amount[ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX]
                 + depositories_mint_collateral_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX];
+
+            // The not directly mintable depositories should not be used
+            prop_assert!(
+                depositories_mint_collateral_amount[ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX] == 0
+            );
 
             // Check for equality while allowing 1 of precision loss per depository (rounding errors)
             let allowed_precision_loss = u64::try_from(ROUTER_DEPOSITORIES_COUNT).unwrap();

@@ -331,6 +331,21 @@ pub mod uxd {
         )
     }
 
+    // Permissionless rebalance, to try on a best effort basis to:
+    // - Transfer from alloyx_vault_depository to identity_depository when overweight
+    // - Transfer from identity_depository to alloyx_vault_depository when underweight
+    // - Collect profits when possible
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn rebalance_alloyx_vault_depository(
+        ctx: Context<RebalanceAlloyxVaultDepository>,
+        vault_id: String,
+    ) -> Result<()> {
+        msg!("[rebalance_alloyx_vault_depository]");
+        instructions::rebalance_alloyx_vault_depository::handler(ctx, &vault_id)
+    }
+
     /// Freeze or resume all ixs associated with the controller (except this one).
     ///
     /// Parameters:

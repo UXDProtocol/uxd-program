@@ -9,6 +9,7 @@ use crate::ROUTER_DEPOSITORIES_COUNT;
 use super::compute_amount_less_fraction_floor;
 
 pub struct DepositoryInfoForMintCollateralAmount {
+    pub directly_mintable: bool,
     pub target_redeemable_amount: u64,
     pub redeemable_amount_under_management: u128,
 }
@@ -30,6 +31,9 @@ pub fn calculate_depositories_mint_collateral_amount(
     let depositories_maximum_mintable_collateral_amount = depositories_info
         .iter()
         .map(|depository| {
+            if !depository.directly_mintable {
+                return Ok(0);
+            }
             let depository_redeemable_amount_under_management =
                 checked_as_u64(depository.redeemable_amount_under_management)?;
             if depository.target_redeemable_amount <= depository_redeemable_amount_under_management
@@ -64,10 +68,10 @@ pub fn calculate_depositories_mint_collateral_amount(
 
     let depositories_mint_collateral_amount = depositories_maximum_mintable_collateral_amount
         .iter()
-        .map(|depository_mintable_collateral_amount| {
+        .map(|depository_maximum_mintable_collateral_amount| {
             let other_depositories_maximum_mintable_collateral_amount =
                 total_maximum_mintable_collateral_amount
-                    .checked_sub(*depository_mintable_collateral_amount)
+                    .checked_sub(*depository_maximum_mintable_collateral_amount)
                     .ok_or(UxdError::MathOverflow)?;
             compute_amount_less_fraction_floor(
                 requested_mint_collateral_amount,

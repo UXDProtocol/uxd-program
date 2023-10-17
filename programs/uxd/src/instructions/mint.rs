@@ -296,7 +296,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
             redeemable_amount_under_management_cap: u128::from(
                 alloyx_vault_depository.redeemable_amount_under_management_cap,
             ),
-            mint_fn: None, // alloyx is minted through rebalancing
+            mint_fn: None, // minted through asynchronous rebalancing
         },
     ];
 
@@ -328,6 +328,7 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
         )
         .map(|(depository_info, depository_target_redeemable_amount)| {
             DepositoryInfoForMintCollateralAmount {
+                directly_mintable: depository_info.mint_fn.is_some(),
                 target_redeemable_amount: *depository_target_redeemable_amount,
                 redeemable_amount_under_management: depository_info
                     .redeemable_amount_under_management,

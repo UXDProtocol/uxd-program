@@ -275,7 +275,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
                 .redeemable_amount_under_management,
             redeemable_amount_under_management_cap: credix_lp_depository
                 .redeemable_amount_under_management_cap,
-            redeem_fn: None, // credix is not immediately liquid (require rebalancing)
+            redeem_fn: None, // redeemed through asynchronous rebalancing
         },
         // alloyx_vault_depository details
         DepositoryInfoForRedeem {
@@ -286,7 +286,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
             redeemable_amount_under_management_cap: u128::from(
                 alloyx_vault_depository.redeemable_amount_under_management_cap,
             ),
-            redeem_fn: None, // credix is not immediately liquid (require rebalancing)
+            redeem_fn: None, // redeemed through asynchronous rebalancing
         },
     ];
 
@@ -318,7 +318,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         )
         .map(|(depository_info, depository_target_redeemable_amount)| {
             DepositoryInfoForRedeemableAmount {
-                is_liquid: depository_info.redeem_fn.is_some(), // we are liquid if we can redeem
+                directly_redeemable: depository_info.redeem_fn.is_some(), // we are liquid if we can redeem
                 target_redeemable_amount: *depository_target_redeemable_amount,
                 redeemable_amount_under_management: depository_info
                     .redeemable_amount_under_management,

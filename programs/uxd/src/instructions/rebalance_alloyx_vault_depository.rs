@@ -1,11 +1,10 @@
 use crate::error::UxdError;
-use crate::events::RebalanceAlloyxVaultDepositoryEvent;
-use crate::state::alloyx_vault_depository::ALLOYX_VAULT_DEPOSITORY_SPACE;
+use crate::state::identity_depository::IdentityDepository;
+use crate::state::mercurial_vault_depository::MercurialVaultDepository;
 use crate::state::AlloyxVaultDepository;
-use crate::utils::validate_collateral_mint_usdc;
+use crate::state::CredixLpDepository;
 use crate::validate_is_program_frozen;
 use crate::Controller;
-use crate::ALLOYX_VAULT_DEPOSITORY_ACCOUNT_VERSION;
 use crate::ALLOYX_VAULT_DEPOSITORY_NAMESPACE;
 use crate::CONTROLLER_NAMESPACE;
 use anchor_lang::prelude::*;
@@ -35,33 +34,61 @@ pub struct RebalanceAlloyxVaultDepository<'info> {
     /// #3
     pub collateral_mint: Box<Account<'info, Mint>>,
 
+    /// #3
+    #[account(
+        mut,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
+        constraint = identity_depository.load()?.collateral_vault == identity_depository_collateral.key() @UxdError::InvalidDepositoryCollateral,
+    )]
+    pub identity_depository: AccountLoader<'info, IdentityDepository>,
+
+    /// #4
+    #[account(mut)]
+    pub identity_depository_collateral: Box<Account<'info, TokenAccount>>,
+
+    /// #5
+    #[account(
+        mut,
+        has_one = controller @UxdError::InvalidController,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
+    )]
+    pub mercurial_vault_depository: AccountLoader<'info, MercurialVaultDepository>,
+
+    /// #6
+    #[account(
+        mut,
+        has_one = controller @UxdError::InvalidController,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
+    )]
+    pub credix_lp_depository: AccountLoader<'info, CredixLpDepository>,
+
     /// #4
     #[account(
         mut,
         seeds = [
             ALLOYX_VAULT_DEPOSITORY_NAMESPACE,
-            depository.load()?.alloyx_vault_info.key().as_ref(),
-            depository.load()?.collateral_mint.as_ref()
+            alloyx_vault_depository.load()?.alloyx_vault_info.key().as_ref(),
+            alloyx_vault_depository.load()?.collateral_mint.as_ref()
         ],
-        bump = depository.load()?.bump,
+        bump = alloyx_vault_depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
-        has_one = depository_collateral @UxdError::InvalidDepositoryCollateral,
-        has_one = depository_shares @UxdError::InvalidDepositoryShares,
+        constraint = alloyx_vault_depository.load()?.depository_collateral == alloyx_vault_depository_collateral.key() @UxdError::InvalidDepositoryCollateral,
+        constraint = alloyx_vault_depository.load()?.depository_shares == alloyx_vault_depository_shares.key() @UxdError::InvalidDepositoryShares,
         has_one = alloyx_vault_info @UxdError::InvalidAlloyxVaultInfo,
         has_one = alloyx_vault_collateral @UxdError::InvalidAlloyxVaultCollateral,
         has_one = alloyx_vault_shares @UxdError::InvalidAlloyxVaultShares,
         has_one = alloyx_vault_mint @UxdError::InvalidAlloyxVaultMint,
     )]
-    pub depository: AccountLoader<'info, AlloyxVaultDepository>,
+    pub alloyx_vault_depository: AccountLoader<'info, AlloyxVaultDepository>,
 
     /// #10
     #[account(mut)]
-    pub depository_collateral: Box<Account<'info, TokenAccount>>,
+    pub alloyx_vault_depository_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #11
     #[account(mut)]
-    pub depository_shares: Box<Account<'info, TokenAccount>>,
+    pub alloyx_vault_depository_shares: Box<Account<'info, TokenAccount>>,
 
     /// #12
     pub alloyx_vault_info: Box<Account<'info, alloyx_cpi::VaultInfo>>,
@@ -80,7 +107,7 @@ pub struct RebalanceAlloyxVaultDepository<'info> {
 
     /// #16
     #[account(
-        constraint = alloyx_vault_pass.investor == depository.key() @UxdError::InvalidAlloyxVaultPass,
+        constraint = alloyx_vault_pass.investor == alloyx_vault_depository.key() @UxdError::InvalidAlloyxVaultPass,
     )]
     pub alloyx_vault_pass: Account<'info, alloyx_cpi::PassInfo>,
 
@@ -105,53 +132,6 @@ pub(crate) fn handler(
     ctx: Context<RebalanceAlloyxVaultDepository>,
     vault_id: &String,
 ) -> Result<()> {
-    // Read some of the depositories required informations
-    let depository_bump = *ctx.bumps.get("depository").ok_or(UxdError::BumpError)?;
-
-    // Initialize the depository account
-    let depository = &mut ctx.accounts.depository.load_init()?;
-
-    // Initialize depository state
-    depository.bump = depository_bump;
-    depository.version = ALLOYX_VAULT_DEPOSITORY_ACCOUNT_VERSION;
-
-    depository.controller = ctx.accounts.controller.key();
-    depository.collateral_mint = ctx.accounts.collateral_mint.key();
-
-    depository.depository_collateral = ctx.accounts.depository_collateral.key();
-    depository.depository_shares = ctx.accounts.depository_shares.key();
-
-    // We register all necessary credix accounts to facilitate other instructions safety checks
-    depository.alloyx_vault_info = ctx.accounts.alloyx_vault_info.key();
-    depository.alloyx_vault_collateral = ctx.accounts.alloyx_vault_collateral.key();
-    depository.alloyx_vault_shares = ctx.accounts.alloyx_vault_shares.key();
-    depository.alloyx_vault_mint = ctx.accounts.alloyx_vault_mint.key();
-
-    // Depository configuration
-    depository.redeemable_amount_under_management_cap = redeemable_amount_under_management_cap;
-    depository.minting_fee_in_bps = minting_fee_in_bps;
-    depository.redeeming_fee_in_bps = redeeming_fee_in_bps;
-    depository.minting_disabled = false;
-
-    // Depository accounting
-    depository.collateral_amount_deposited = 0;
-    depository.redeemable_amount_under_management = 0;
-    depository.minting_fee_total_accrued = 0;
-    depository.redeeming_fee_total_accrued = 0;
-
-    // Profits collection
-    depository.profits_total_collected = 0;
-
-    // Emit event
-    emit!(RebalanceAlloyxVaultDepositoryEvent {
-        controller_version: ctx.accounts.controller.load()?.version,
-        depository_version: depository.version,
-        controller: ctx.accounts.controller.key(),
-        depository: ctx.accounts.depository.key(),
-        collateral_mint: ctx.accounts.collateral_mint.key(),
-        alloyx_vault_info: ctx.accounts.alloyx_vault_info.key(),
-    });
-
     // Done
     Ok(())
 }
