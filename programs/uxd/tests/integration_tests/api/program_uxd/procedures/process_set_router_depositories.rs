@@ -5,6 +5,7 @@ use solana_sdk::signer::Signer;
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditRouterDepositories;
 
+use crate::integration_tests::api::program_alloyx;
 use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
@@ -37,6 +38,14 @@ pub async fn process_set_router_depositories(
     )
     .0;
 
+    let alloyx_vault_id = program_alloyx::accounts::find_vault_id();
+    let alloyx_vault_info = program_alloyx::accounts::find_vault_info(&alloyx_vault_id).0;
+    let alloyx_vault_depository = program_uxd::accounts::find_alloyx_vault_depository_pda(
+        &alloyx_vault_info,
+        collateral_mint,
+    )
+    .0;
+
     // Set the controller's depositories addresses
     program_uxd::instructions::process_edit_controller(
         program_context,
@@ -49,7 +58,7 @@ pub async fn process_set_router_depositories(
                 identity_depository,
                 mercurial_vault_depository,
                 credix_lp_depository,
-                alloyx_vault_depository: Pubkey::default(), // TODO - router integration
+                alloyx_vault_depository,
             }),
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,

@@ -8,11 +8,11 @@ use anchor_spl::token::Transfer;
 
 use crate::error::UxdError;
 use crate::events::RebalanceRedeemWithdrawRequestFromCredixLpDepositoryEvent;
+use crate::state::alloyx_vault_depository::AlloyxVaultDepository;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
-use crate::state::AlloyxVaultDepository;
 use crate::utils::calculate_credix_lp_depository_target_amount;
 use crate::utils::checked_add;
 use crate::utils::checked_as_u64;

@@ -1,8 +1,8 @@
 use crate::error::UxdError;
+use crate::state::alloyx_vault_depository::AlloyxVaultDepository;
+use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
-use crate::state::AlloyxVaultDepository;
-use crate::state::CredixLpDepository;
 use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::ALLOYX_VAULT_DEPOSITORY_NAMESPACE;

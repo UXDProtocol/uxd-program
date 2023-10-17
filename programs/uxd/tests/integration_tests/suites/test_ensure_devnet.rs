@@ -3,6 +3,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 use std::str::FromStr;
+use uxd::instructions::EditAlloyxVaultDepositoryFields;
 
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
@@ -11,6 +12,7 @@ use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
 use uxd::instructions::EditRouterDepositories;
 
+use crate::integration_tests::api::program_alloyx;
 use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
@@ -63,7 +65,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         .await?;
 
     // Set all caps to a very large amount (1B)
-    let supply_cap = u128::from(ui_amount_to_native_amount(1_000_000_000, 6));
+    let supply_cap = ui_amount_to_native_amount(1_000_000_000, 6);
 
     // ---------------------------------------------------------------------
     // -- Useful ATAs
@@ -87,7 +89,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         .await?;
 
     // ---------------------------------------------------------------------
-    // -- Setup mercurial instance
+    // -- Setup onchain dependency mercurial vault instance
     // ---------------------------------------------------------------------
 
     let mercurial_vault_lp_mint = create_keypair([
@@ -113,7 +115,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         .await?;
     }
 
-    let authority_mercurial_lp =
+    let authority_mercurial_shares =
         program_spl::instructions::process_associated_token_account_get_or_init(
             &mut program_context,
             &payer,
@@ -127,7 +129,54 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         &mercurial_vault_lp_mint.pubkey(),
         &authority,
         &authority_collateral,
-        &authority_mercurial_lp,
+        &authority_mercurial_shares,
+        10_000, // 0.01 collateral
+    )
+    .await?;
+
+    // ---------------------------------------------------------------------
+    // -- Setup onchain dependency alloyx vault instance
+    // ---------------------------------------------------------------------
+
+    let alloyx_vault_mint = create_keypair([
+        63, 191, 40, 86, 112, 155, 244, 202, 140, 192, 84, 160, 91, 86, 176, 161, 82, 103, 142,
+        128, 33, 64, 195, 167, 78, 189, 197, 208, 9, 108, 135, 239, 122, 229, 53, 123, 214, 171,
+        162, 213, 109, 160, 147, 128, 87, 69, 128, 99, 140, 157, 104, 96, 224, 207, 42, 70, 207,
+        103, 64, 189, 107, 35, 142, 226,
+    ])?;
+    if !program_context::read_account_exists(&mut program_context, &alloyx_vault_mint.pubkey())
+        .await?
+    {
+        program_alloyx::procedures::process_deploy_program(
+            &mut program_context,
+            &payer,
+            &collateral_mint,
+            &alloyx_vault_mint,
+            6,
+        )
+        .await?;
+    }
+    let authority_alloyx_shares =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            &mut program_context,
+            &payer,
+            &alloyx_vault_mint.pubkey(),
+            &authority.pubkey(),
+        )
+        .await?;
+    program_alloyx::instructions::process_whitelist(
+        &mut program_context,
+        &payer,
+        &authority.pubkey(),
+    )
+    .await?;
+    program_alloyx::instructions::process_deposit(
+        &mut program_context,
+        &collateral_mint,
+        &alloyx_vault_mint.pubkey(),
+        &authority,
+        &authority_collateral,
+        &authority_alloyx_shares,
         10_000, // 0.01 collateral
     )
     .await?;
@@ -152,7 +201,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         &payer,
         &authority,
         &EditControllerFields {
-            redeemable_global_supply_cap: Some(supply_cap),
+            redeemable_global_supply_cap: Some(u128::from(supply_cap)),
             depositories_routing_weight_bps: None,
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
@@ -181,7 +230,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         &payer,
         &authority,
         &EditIdentityDepositoryFields {
-            redeemable_amount_under_management_cap: Some(supply_cap),
+            redeemable_amount_under_management_cap: Some(u128::from(supply_cap)),
             minting_disabled: Some(false),
         },
     )
@@ -221,7 +270,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         &authority,
         &collateral_mint,
         &EditMercurialVaultDepositoryFields {
-            redeemable_amount_under_management_cap: Some(supply_cap),
+            redeemable_amount_under_management_cap: Some(u128::from(supply_cap)),
             minting_fee_in_bps: Some(100),
             redeeming_fee_in_bps: Some(100),
             minting_disabled: Some(false),
@@ -261,6 +310,46 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         &authority,
         &collateral_mint,
         &EditCredixLpDepositoryFields {
+            redeemable_amount_under_management_cap: Some(u128::from(supply_cap)),
+            minting_fee_in_bps: Some(100),
+            redeeming_fee_in_bps: Some(100),
+            minting_disabled: Some(false),
+            profits_beneficiary_collateral: Some(profits_beneficiary_collateral),
+        },
+    )
+    .await?;
+
+    // ---------------------------------------------------------------------
+    // -- Setup alloyx_vault_depository
+    // ---------------------------------------------------------------------
+
+    let alloyx_vault_id = program_alloyx::accounts::find_vault_id();
+    let alloyx_vault_info = program_alloyx::accounts::find_vault_info(&alloyx_vault_id).0;
+    let alloyx_vault_depository = program_uxd::accounts::find_alloyx_vault_depository_pda(
+        &alloyx_vault_info,
+        &collateral_mint,
+    )
+    .0;
+    if !program_context::read_account_exists(&mut program_context, &alloyx_vault_depository).await?
+    {
+        program_uxd::instructions::process_register_alloyx_vault_depository(
+            &mut program_context,
+            &payer,
+            &authority,
+            &collateral_mint,
+            &alloyx_vault_mint.pubkey(),
+            0,
+            0,
+            0,
+        )
+        .await?;
+    }
+    program_uxd::instructions::process_edit_alloyx_vault_depository(
+        &mut program_context,
+        &payer,
+        &authority,
+        &collateral_mint,
+        &EditAlloyxVaultDepositoryFields {
             redeemable_amount_under_management_cap: Some(supply_cap),
             minting_fee_in_bps: Some(100),
             redeeming_fee_in_bps: Some(100),
@@ -281,16 +370,16 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         &EditControllerFields {
             redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
-                identity_depository_weight_bps: 34 * 100,        // 34%
-                mercurial_vault_depository_weight_bps: 33 * 100, // 33%
-                credix_lp_depository_weight_bps: 33 * 100,       // 33%
-                alloyx_vault_depository_weight_bps: 0,           // 0%
+                identity_depository_weight_bps: 30 * 100,        // 30%
+                mercurial_vault_depository_weight_bps: 30 * 100, // 30%
+                credix_lp_depository_weight_bps: 30 * 100,       // 30%
+                alloyx_vault_depository_weight_bps: 10 * 100,    // 10%
             }),
             router_depositories: Some(EditRouterDepositories {
                 identity_depository,
                 mercurial_vault_depository,
                 credix_lp_depository,
-                alloyx_vault_depository: Pubkey::default(), // TODO - router integration
+                alloyx_vault_depository,
             }),
             outflow_limit_per_epoch_amount: None,
             outflow_limit_per_epoch_bps: None,

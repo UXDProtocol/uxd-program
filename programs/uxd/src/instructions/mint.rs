@@ -4,11 +4,11 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
 use crate::error::UxdError;
+use crate::state::alloyx_vault_depository::AlloyxVaultDepository;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
-use crate::state::AlloyxVaultDepository;
 use crate::utils::calculate_depositories_mint_collateral_amount;
 use crate::utils::calculate_depositories_mint_collateral_amount::DepositoryInfoForMintCollateralAmount;
 use crate::utils::calculate_depositories_target_redeemable_amount;
