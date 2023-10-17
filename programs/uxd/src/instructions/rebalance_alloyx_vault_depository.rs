@@ -129,9 +129,10 @@ pub struct RebalanceAlloyxVaultDepository<'info> {
 }
 
 pub(crate) fn handler(
-    ctx: Context<RebalanceAlloyxVaultDepository>,
-    vault_id: &String,
+    _ctx: Context<RebalanceAlloyxVaultDepository>,
+    _vault_id: &str,
 ) -> Result<()> {
+    // TODO - run rebalance logic
     // Done
     Ok(())
 }

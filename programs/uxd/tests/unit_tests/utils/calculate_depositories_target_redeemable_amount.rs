@@ -81,24 +81,36 @@ mod test_calculate_depositories_target_redeemable_amount {
                     // Weights adds up to 100% and the identity depository receives most of the weight
                     // The identity depository is fully overflowing, but the others have enough space (with various proportions)
                     DepositoryInfoForTargetRedeemableAmount {
-                        weight_bps: percent_to_weight_bps(90),
+                        weight_bps: percent_to_weight_bps(60),
                         redeemable_amount_under_management_cap: 0,
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(0),
-                        redeemable_amount_under_management_cap: circulating_supply.into(),
-                    },
-                    DepositoryInfoForTargetRedeemableAmount {
-                        weight_bps: percent_to_weight_bps(0),
-                        redeemable_amount_under_management_cap: circulating_supply.into(),
+                        redeemable_amount_under_management_cap: percent_of_supply(
+                            100,
+                            circulating_supply,
+                        )
+                        .into(),
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(10),
-                        redeemable_amount_under_management_cap: circulating_supply.into(),
+                        redeemable_amount_under_management_cap: percent_of_supply(
+                            60,
+                            circulating_supply,
+                        )
+                        .into(),
+                    },
+                    DepositoryInfoForTargetRedeemableAmount {
+                        weight_bps: percent_to_weight_bps(30),
+                        redeemable_amount_under_management_cap: percent_of_supply(
+                            80,
+                            circulating_supply,
+                        )
+                        .into(),
                     },
                 ],
             )?;
-        // We expect the identity depository to be at the cap, and the overflow to be pushed to other depositories
+        // We expect the identity depository to be at the cap, and the overflow to be pushed to other depositories properly based on proportions
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
             0
@@ -109,11 +121,11 @@ mod test_calculate_depositories_target_redeemable_amount {
         );
         assert_eq!(
             depositories_target_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
-            percent_of_supply(30, circulating_supply)
+            percent_of_supply(25, circulating_supply)
         );
         assert_eq!(
-            depositories_target_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
-            percent_of_supply(40, circulating_supply)
+            depositories_target_redeemable_amount[ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX],
+            percent_of_supply(45, circulating_supply)
         );
         // Done
         Ok(())
@@ -271,7 +283,8 @@ mod test_calculate_depositories_target_redeemable_amount {
             // If not, this function will not be expected to work
             let total_hard_caps = u128::from(identity_depository_hard_cap)
                 + u128::from(mercurial_vault_depository_hard_cap)
-                + u128::from(credix_lp_depository_hard_cap)+ u128::from(alloyx_vault_depository_hard_cap);
+                + u128::from(credix_lp_depository_hard_cap)
+                + u128::from(alloyx_vault_depository_hard_cap);
             if total_hard_caps > u128::from(u64::MAX) {
                 return Ok(());
             }
@@ -284,7 +297,10 @@ mod test_calculate_depositories_target_redeemable_amount {
             let credix_lp_depository_weight_arbitrary = u64::from(credix_lp_depository_weight_random) + 1;
             let alloyx_vault_depository_weight_arbitrary = u64::from(alloyx_vault_depository_weight_random) + 1;
 
-            let total_weight_arbitrary = identity_depository_weight_arbitrary + mercurial_vault_depository_weight_arbitrary + credix_lp_depository_weight_arbitrary + alloyx_vault_depository_weight_arbitrary;
+            let total_weight_arbitrary = identity_depository_weight_arbitrary
+                + mercurial_vault_depository_weight_arbitrary
+                + credix_lp_depository_weight_arbitrary
+                + alloyx_vault_depository_weight_arbitrary;
 
             let identity_depository_weight_bps = identity_depository_weight_arbitrary * BPS_POWER / total_weight_arbitrary;
             let mercurial_vault_depository_weight_bps = mercurial_vault_depository_weight_arbitrary * BPS_POWER / total_weight_arbitrary;
@@ -292,7 +308,11 @@ mod test_calculate_depositories_target_redeemable_amount {
             let alloyx_vault_depository_weight_bps = alloyx_vault_depository_weight_arbitrary * BPS_POWER / total_weight_arbitrary;
 
             // In case of rounding error, we add the rounding errors to identity depository to keep the sum EXACTLY to 100%
-            let total_weight_bps = identity_depository_weight_bps + mercurial_vault_depository_weight_bps + credix_lp_depository_weight_bps + alloyx_vault_depository_weight_bps;
+            let total_weight_bps = identity_depository_weight_bps
+                + mercurial_vault_depository_weight_bps
+                + credix_lp_depository_weight_bps
+                + alloyx_vault_depository_weight_bps;
+
             let identity_depository_weight_bps = identity_depository_weight_bps + BPS_POWER - total_weight_bps;
 
             // Everything else should never panic
@@ -330,8 +350,10 @@ mod test_calculate_depositories_target_redeemable_amount {
                 + depositories_target_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX]
                 + depositories_target_redeemable_amount[ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX];
 
-            // Check for equality while allowing 1 of rounding errors per depository
-            let allowed_precision_loss = u64::try_from(ROUTER_DEPOSITORIES_COUNT).unwrap();
+            // Check for equality while allowing 2 native unit of rounding errors per depository
+            // We need 2 native units because: the raw target based on weight could create 1 native unit of rounding error
+            // And also when sharing extra overflow, splitting the overflow accross remaining depositories can also result in 1 native unit of rounding error
+            let allowed_precision_loss = u64::try_from(ROUTER_DEPOSITORIES_COUNT * 2).unwrap();
 
             let value_min = maximum_redeemable_amount;
             let value_max = maximum_redeemable_amount + allowed_precision_loss;
