@@ -9,7 +9,7 @@ use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
-use crate::utils::calculate_credix_lp_depository_target_amount;
+use crate::utils::calculate_router_depositories_target_redeemable_amount;
 use crate::utils::checked_add;
 use crate::utils::checked_as_u64;
 use crate::utils::checked_sub;
@@ -191,13 +191,14 @@ pub(crate) fn handler(
 
     let overflow_value = {
         let redeemable_amount_under_management_target_amount =
-            calculate_credix_lp_depository_target_amount(
+            calculate_router_depositories_target_redeemable_amount(
                 &ctx.accounts.controller,
                 &ctx.accounts.identity_depository,
                 &ctx.accounts.mercurial_vault_depository,
                 &ctx.accounts.credix_lp_depository,
                 &ctx.accounts.alloyx_vault_depository,
-            )?;
+            )?
+            .credix_lp_depository_target_redeemable_amount;
         if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
             0
         } else {

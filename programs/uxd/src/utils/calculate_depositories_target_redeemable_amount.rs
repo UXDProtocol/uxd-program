@@ -9,6 +9,7 @@ use crate::ROUTER_DEPOSITORIES_COUNT;
 
 use super::compute_amount_fraction_ceil;
 
+#[derive(Clone, Copy)]
 pub struct DepositoryInfoForTargetRedeemableAmount {
     pub weight_bps: u16,
     pub redeemable_amount_under_management_cap: u128,
