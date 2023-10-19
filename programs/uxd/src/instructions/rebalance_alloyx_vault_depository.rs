@@ -120,10 +120,12 @@ pub struct RebalanceAlloyxVaultDepository<'info> {
     /// #14
     pub associated_token_program: Program<'info, AssociatedToken>,
     /// #15
+    pub alloyx_program: Program<'info, alloyx_cpi::program::Alloyx>,
+    /// #16
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &str) -> Result<()> {
+pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &String) -> Result<()> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Compute all amounts we need for profits collection and rebalancing
@@ -201,15 +203,17 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
     // -- Also updates accounting when needed
     // ---------------------------------------------------------------------
 
-    let withdrawn_profits_collateral_amount = ctx.withdraw_from_alloyx_vault_to(
+    let withdrawn_profits_collateral_amount = ctx.accounts.withdraw_from_alloyx_vault_to(
         profits_collateral_amount,
-        ctx.accounts.profits_beneficiary_collateral,
+        ctx.accounts.profits_beneficiary_collateral, vault_id
     )?;
     msg!(
         "[rebalance_alloyx_vault_depository:withdrawn_profits_collateral_amount:{}]",
         withdrawn_profits_collateral_amount
     );
     if withdrawn_profits_collateral_amount > 0 {
+        let mut controller = ctx.accounts.controller.load_mut()?;
+        let mut alloyx_vault_depository = ctx.accounts.alloyx_vault_depository.load_mut()?;
         // Profit collection accounting updates
         controller.update_onchain_accounting_following_profits_collection(
             withdrawn_profits_collateral_amount,
@@ -226,31 +230,33 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
     // -- Also updates accounting when needed
     // ---------------------------------------------------------------------
 
-    let withdrawn_overflow_collateral = ctx.withdraw_from_alloyx_vault_to(
+    let withdrawn_overflow_collateral = ctx.accounts.withdraw_from_alloyx_vault_to(
         overflow_value,
-        ctx.accounts.identity_depository_collateral,
+        ctx.accounts.identity_depository_collateral, vault_id
     )?;
     msg!(
         "[rebalance_alloyx_vault_depository:withdrawn_overflow_collateral:{}]",
         withdrawn_overflow_collateral
     );
     if withdrawn_overflow_collateral > 0 {
+        let mut identity_depository = ctx.accounts.identity_depository.load_mut()?;
+        let mut alloyx_vault_depository = ctx.accounts.alloyx_vault_depository.load_mut()?;
         // Collateral amount deposited accounting updates
-        alloyx_vault_depository.collateral_amount_deposited = checked_sub(
-            alloyx_vault_depository.collateral_amount_deposited,
-            withdrawn_overflow_collateral.into(),
-        )?;
         identity_depository.collateral_amount_deposited = checked_add(
             identity_depository.collateral_amount_deposited,
             withdrawn_overflow_collateral.into(),
         )?;
-        // Redeemable under management accounting updates
-        alloyx_vault_depository.redeemable_amount_under_management = checked_sub(
-            alloyx_vault_depository.redeemable_amount_under_management,
+        alloyx_vault_depository.collateral_amount_deposited = checked_sub(
+            alloyx_vault_depository.collateral_amount_deposited,
             withdrawn_overflow_collateral.into(),
         )?;
+        // Redeemable under management accounting updates
         identity_depository.redeemable_amount_under_management = checked_add(
             identity_depository.redeemable_amount_under_management,
+            withdrawn_overflow_collateral.into(),
+        )?;
+        alloyx_vault_depository.redeemable_amount_under_management = checked_sub(
+            alloyx_vault_depository.redeemable_amount_under_management,
             withdrawn_overflow_collateral.into(),
         )?;
     }
@@ -262,28 +268,30 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
     // -- Also updates accounting when needed
     // ---------------------------------------------------------------------
 
-    let deposited_underflow_collateral = ctx.deposit_to_alloyx_vault(underflow_value)?;
+    let deposited_underflow_collateral = ctx.accounts.deposit_to_alloyx_vault_from_identity_depository(underflow_value, vault_id)?;
     msg!(
         "[rebalance_alloyx_vault_depository:deposited_underflow_collateral:{}]",
         deposited_underflow_collateral
     );
     if deposited_underflow_collateral > 0 {
+        let mut identity_depository = ctx.accounts.identity_depository.load_mut()?;
+        let mut alloyx_vault_depository = ctx.accounts.alloyx_vault_depository.load_mut()?;
         // Collateral amount deposited accounting updates
-        alloyx_vault_depository.collateral_amount_deposited = checked_add(
-            alloyx_vault_depository.collateral_amount_deposited,
-            deposited_underflow_collateral.into(),
-        )?;
         identity_depository.collateral_amount_deposited = checked_sub(
             identity_depository.collateral_amount_deposited,
             deposited_underflow_collateral.into(),
         )?;
-        // Redeemable under management accounting updates
-        alloyx_vault_depository.redeemable_amount_under_management = checked_add(
-            alloyx_vault_depository.redeemable_amount_under_management,
+        alloyx_vault_depository.collateral_amount_deposited = checked_add(
+            alloyx_vault_depository.collateral_amount_deposited,
             deposited_underflow_collateral.into(),
         )?;
+        // Redeemable under management accounting updates
         identity_depository.redeemable_amount_under_management = checked_sub(
             identity_depository.redeemable_amount_under_management,
+            deposited_underflow_collateral.into(),
+        )?;
+        alloyx_vault_depository.redeemable_amount_under_management = checked_add(
+            alloyx_vault_depository.redeemable_amount_under_management,
             deposited_underflow_collateral.into(),
         )?;
     }
@@ -300,6 +308,7 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
         &self,
         desired_collateral_amount: u64,
         destination_collateral: Box<Account<'info, TokenAccount>>,
+        vault_id: &String,
     ) -> Result<u64> {
         if desired_collateral_amount <= 0 {
             return Ok(0);
@@ -308,16 +317,16 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
         // Read onchain state before CPI
         let destination_collateral_amount_before: u64 = destination_collateral.amount;
         let alloyx_vault_depository_collateral_amount_before: u64 =
-            ctx.accounts.alloyx_vault_depository_collateral.amount;
-        let liquidity_collateral_amount_before: u64 = ctx.accounts.alloyx_vault_collateral.amount;
+            self.alloyx_vault_depository_collateral.amount;
+        let liquidity_collateral_amount_before: u64 = self.alloyx_vault_collateral.amount;
         let outstanding_collateral_amount_before: u64 =
-            ctx.accounts.alloyx_vault_info.wallet_desk_usdc_value;
-        let total_shares_supply_before: u64 = ctx.accounts.alloyx_vault_mint.supply;
+            self.alloyx_vault_info.wallet_desk_usdc_value;
+        let total_shares_supply_before: u64 = self.alloyx_vault_mint.supply;
         let total_shares_value_before: u64 = checked_add(
             liquidity_collateral_amount_before,
             outstanding_collateral_amount_before,
         )?;
-        let owned_shares_amount_before: u64 = ctx.accounts.alloyx_vault_depository_shares.amount;
+        let owned_shares_amount_before: u64 = self.alloyx_vault_depository_shares.amount;
         let owned_shares_value_before: u64 = compute_value_for_shares_amount_floor(
             owned_shares_amount_before,
             total_shares_supply_before,
@@ -347,26 +356,25 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
         }
 
         // Actually runs the CPI
-        let alloyx_vault_info = ctx
-            .accounts
+        let alloyx_vault_info = self
             .alloyx_vault_depository
             .load()?
             .alloyx_vault_info;
-        let collateral_mint = ctx.accounts.alloyx_vault_depository.load()?.collateral_mint;
+        let collateral_mint = self.alloyx_vault_depository.load()?.collateral_mint;
         let alloyx_vault_depository_pda_signer: &[&[&[u8]]] = &[&[
             ALLOYX_VAULT_DEPOSITORY_NAMESPACE,
             alloyx_vault_info.as_ref(),
             collateral_mint.as_ref(),
-            &[ctx.accounts.alloyx_vault_depository.load()?.bump],
+            &[self.alloyx_vault_depository.load()?.bump],
         ]];
         alloyx_cpi::cpi::withdraw(
-            ctx.accounts
+            self
                 .into_withdraw_from_alloyx_vault_context()
                 .with_signer(alloyx_vault_depository_pda_signer),
-            shares_amount,
+            *vault_id,shares_amount, 
         )?;
         token::transfer(
-            ctx.accounts
+            self
                 .into_transfer_alloyx_vault_depository_collateral_to_destination_collateral_context(
                     destination_collateral,
                 )
@@ -376,25 +384,25 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
 
         // Reload onchain data
         destination_collateral.reload()?;
-        ctx.accounts.alloyx_vault_depository_collateral.reload()?;
-        ctx.accounts.alloyx_vault_depository_shares.reload()?;
-        ctx.accounts.alloyx_vault_info.reload()?;
-        ctx.accounts.alloyx_vault_collateral.reload()?;
-        ctx.accounts.alloyx_vault_mint.reload()?;
+        self.alloyx_vault_depository_collateral.reload()?;
+        self.alloyx_vault_depository_shares.reload()?;
+        self.alloyx_vault_info.reload()?;
+        self.alloyx_vault_collateral.reload()?;
+        self.alloyx_vault_mint.reload()?;
 
         // Read onchain state after CPI
         let destination_collateral_amount_after: u64 = destination_collateral.amount;
         let alloyx_vault_depository_collateral_amount_after: u64 =
-            ctx.accounts.alloyx_vault_depository_collateral.amount;
-        let liquidity_collateral_amount_after: u64 = ctx.accounts.alloyx_vault_collateral.amount;
+            self.alloyx_vault_depository_collateral.amount;
+        let liquidity_collateral_amount_after: u64 = self.alloyx_vault_collateral.amount;
         let outstanding_collateral_amount_after: u64 =
-            ctx.accounts.alloyx_vault_info.wallet_desk_usdc_value;
-        let total_shares_supply_after: u64 = ctx.accounts.alloyx_vault_mint.supply;
+            self.alloyx_vault_info.wallet_desk_usdc_value;
+        let total_shares_supply_after: u64 = self.alloyx_vault_mint.supply;
         let total_shares_value_after: u64 = checked_add(
             liquidity_collateral_amount_after,
             outstanding_collateral_amount_after,
         )?;
-        let owned_shares_amount_after: u64 = ctx.accounts.alloyx_vault_depository_shares.amount;
+        let owned_shares_amount_after: u64 = self.alloyx_vault_depository_shares.amount;
         let owned_shares_value_after: u64 = compute_value_for_shares_amount_floor(
             owned_shares_amount_after,
             total_shares_supply_after,
@@ -460,6 +468,7 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
     pub(crate) fn deposit_to_alloyx_vault_from_identity_depository(
         &self,
         desired_collateral_amount: u64,
+        vault_id: &String,
     ) -> Result<u64> {
         if desired_collateral_amount <= 0 {
             return Ok(0);
@@ -467,18 +476,18 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
 
         // Read onchain state before CPI
         let identity_depository_collateral_amount_before: u64 =
-            ctx.accounts.identity_depository_collateral.amount;
+            self.identity_depository_collateral.amount;
         let alloyx_vault_depository_collateral_amount_before: u64 =
-            ctx.accounts.alloyx_vault_depository_collateral.amount;
-        let liquidity_collateral_amount_before: u64 = ctx.accounts.alloyx_vault_collateral.amount;
+            self.alloyx_vault_depository_collateral.amount;
+        let liquidity_collateral_amount_before: u64 = self.alloyx_vault_collateral.amount;
         let outstanding_collateral_amount_before: u64 =
-            ctx.accounts.alloyx_vault_info.wallet_desk_usdc_value;
-        let total_shares_supply_before: u64 = ctx.accounts.alloyx_vault_mint.supply;
+            self.alloyx_vault_info.wallet_desk_usdc_value;
+        let total_shares_supply_before: u64 = self.alloyx_vault_mint.supply;
         let total_shares_value_before: u64 = checked_add(
             liquidity_collateral_amount_before,
             outstanding_collateral_amount_before,
         )?;
-        let owned_shares_amount_before: u64 = ctx.accounts.alloyx_vault_depository_shares.amount;
+        let owned_shares_amount_before: u64 = self.alloyx_vault_depository_shares.amount;
         let owned_shares_value_before: u64 = compute_value_for_shares_amount_floor(
             owned_shares_amount_before,
             total_shares_supply_before,
@@ -508,57 +517,56 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
         }
 
         // Actually runs the CPI
-        let alloyx_vault_info = ctx
-            .accounts
+        let alloyx_vault_info = self
             .alloyx_vault_depository
             .load()?
             .alloyx_vault_info;
-        let collateral_mint = ctx.accounts.alloyx_vault_depository.load()?.collateral_mint;
+        let collateral_mint = self.alloyx_vault_depository.load()?.collateral_mint;
         let identity_depository_pda_signer: &[&[&[u8]]] = &[&[
             IDENTITY_DEPOSITORY_NAMESPACE,
-            &[ctx.accounts.identity_depository.load()?.bump],
+            &[self.identity_depository.load()?.bump],
         ]];
         let alloyx_vault_depository_pda_signer: &[&[&[u8]]] = &[&[
             ALLOYX_VAULT_DEPOSITORY_NAMESPACE,
             alloyx_vault_info.as_ref(),
             collateral_mint.as_ref(),
-            &[ctx.accounts.alloyx_vault_depository.load()?.bump],
+            &[self.alloyx_vault_depository.load()?.bump],
         ]];
         token::transfer(
-            ctx.accounts
+            self
                 .into_transfer_identity_depository_collateral_to_alloyx_vault_depository_collateral_context()
                 .with_signer(identity_depository_pda_signer),
             collateral_amount_after_precision_loss,
         )?;
         alloyx_cpi::cpi::deposit(
-            ctx.accounts
+            self
                 .into_redeem_withdraw_request_from_alloyx_vault_context()
                 .with_signer(alloyx_vault_depository_pda_signer),
-            collateral_amount_after_precision_loss,
+            *vault_id,collateral_amount_after_precision_loss, 
         )?;
 
         // Reload onchain data
-        ctx.accounts.identity_depository_collateral.reload()?;
-        ctx.accounts.alloyx_vault_depository_collateral.reload()?;
-        ctx.accounts.alloyx_vault_depository_shares.reload()?;
-        ctx.accounts.alloyx_vault_info.reload()?;
-        ctx.accounts.alloyx_vault_collateral.reload()?;
-        ctx.accounts.alloyx_vault_mint.reload()?;
+        self.identity_depository_collateral.reload()?;
+        self.alloyx_vault_depository_collateral.reload()?;
+        self.alloyx_vault_depository_shares.reload()?;
+        self.alloyx_vault_info.reload()?;
+        self.alloyx_vault_collateral.reload()?;
+        self.alloyx_vault_mint.reload()?;
 
         // Read onchain state after CPI
         let identity_depository_collateral_amount_after: u64 =
-            ctx.accounts.identity_depository_collateral.amount;
+            self.identity_depository_collateral.amount;
         let alloyx_vault_depository_collateral_amount_after: u64 =
-            ctx.accounts.alloyx_vault_depository_collateral.amount;
-        let liquidity_collateral_amount_after: u64 = ctx.accounts.alloyx_vault_collateral.amount;
+            self.alloyx_vault_depository_collateral.amount;
+        let liquidity_collateral_amount_after: u64 = self.alloyx_vault_collateral.amount;
         let outstanding_collateral_amount_after: u64 =
-            ctx.accounts.alloyx_vault_info.wallet_desk_usdc_value;
-        let total_shares_supply_after: u64 = ctx.accounts.alloyx_vault_mint.supply;
+            self.alloyx_vault_info.wallet_desk_usdc_value;
+        let total_shares_supply_after: u64 = self.alloyx_vault_mint.supply;
         let total_shares_value_after: u64 = checked_add(
             liquidity_collateral_amount_after,
             outstanding_collateral_amount_after,
         )?;
-        let owned_shares_amount_after: u64 = ctx.accounts.alloyx_vault_depository_shares.amount;
+        let owned_shares_amount_after: u64 = self.alloyx_vault_depository_shares.amount;
         let owned_shares_value_after: u64 = compute_value_for_shares_amount_floor(
             owned_shares_amount_after,
             total_shares_supply_after,
@@ -669,7 +677,7 @@ impl<'info> RedeemFromCredixLpDepository<'info> {
             associated_token_program: self.associated_token_program.to_account_info(),
             rent: self.rent.to_account_info(),
         };
-        let cpi_program = self.credix_program.to_account_info();
+        let cpi_program = self.alloyx_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 
@@ -695,7 +703,7 @@ impl<'info> RedeemFromCredixLpDepository<'info> {
             associated_token_program: self.associated_token_program.to_account_info(),
             rent: self.rent.to_account_info(),
         };
-        let cpi_program = self.credix_program.to_account_info();
+        let cpi_program = self.alloyx_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
     }
 }
