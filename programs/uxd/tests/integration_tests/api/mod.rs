@@ -1,3 +1,4 @@
+pub mod program_alloyx;
 pub mod program_context;
 pub mod program_credix;
 pub mod program_mercurial;

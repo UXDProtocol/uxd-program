@@ -72,7 +72,7 @@ pub enum UxdError {
     InvalidAuthority,
     #[msg("The Depository's controller doesn't match the provided Controller.")]
     InvalidController,
-    #[msg("The Depository provided is not registered with the Controller.")]
+    #[msg("The Depository provided is not matching the one stored in the Controller.")]
     InvalidDepository,
     #[msg("The provided collateral mint does not match the depository's collateral mint.")]
     InvalidCollateralMint,
@@ -126,4 +126,25 @@ pub enum UxdError {
     MaximumOutflowAmountError,
     #[msg("The outflow_limit_per_epoch_bps is invalid: over 100%.")]
     InvalidOutflowLimitPerEpochBps,
+
+    #[msg("The collateral_mint is not matching with the integration's collateral mint.")]
+    CollateralMintMismatch,
+    #[msg("The collateral_mint should not be equal to the integration's custom mint.")]
+    CollateralMintConflict,
+
+    #[msg("The passed custom mint is not matching with the integration's mint.")]
+    CustomMintMismatch,
+    #[msg("The passed custom mint should not be equal to the collateral mint.")]
+    CustomMintConflict,
+
+    #[msg("The alloyx_vault_info account isn't the depository's one.")]
+    InvalidAlloyxVaultInfo,
+    #[msg("The alloyx_vault_collateral account isn't the depository's one.")]
+    InvalidAlloyxVaultCollateral,
+    #[msg("The alloyx_vault_shares account isn't the depository's one.")]
+    InvalidAlloyxVaultShares,
+    #[msg("The alloyx_vault_mint account isn't the depository's one.")]
+    InvalidAlloyxVaultMint,
+    #[msg("The alloyx_vault_pass account isn't for the correct investor.")]
+    InvalidAlloyxVaultPass,
 }

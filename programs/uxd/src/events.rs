@@ -78,6 +78,7 @@ pub struct SetRouterDepositoriesWeightBps {
     pub identity_depository_weight_bps: u16,
     pub mercurial_vault_depository_weight_bps: u16,
     pub credix_lp_depository_weight_bps: u16,
+    pub alloyx_vault_depository_weight_bps: u16,
 }
 
 /// Event called in [instructions::edit_controller::handler].
@@ -91,6 +92,7 @@ pub struct SetRouterDepositories {
     pub identity_depository: Pubkey,
     pub mercurial_vault_depository: Pubkey,
     pub credix_lp_depository: Pubkey,
+    pub alloyx_vault_depository: Pubkey,
 }
 
 /// Event called in [instructions::register_mercurial_vault_depository::handler].
@@ -346,6 +348,21 @@ pub struct CollectProfitsOfMercurialVaultDepositoryEvent {
     pub depository: Pubkey,
     /// The collateral amount in native units. (output)
     pub collateral_amount: u64,
+}
+
+/// Event called in [instructions::register_alloyx_vault_depository::handler].
+#[event]
+pub struct RegisterAlloyxVaultDepositoryEvent {
+    #[index]
+    pub controller_version: u8,
+    #[index]
+    pub depository_version: u8,
+    #[index]
+    pub controller: Pubkey,
+    #[index]
+    pub depository: Pubkey,
+    pub collateral_mint: Pubkey,
+    pub alloyx_vault_info: Pubkey,
 }
 
 /// Event called in [instructions::freeze_program::handler].

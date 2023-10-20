@@ -1,4 +1,5 @@
 use solana_program_test::tokio;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
@@ -7,6 +8,7 @@ use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditDepositoriesRoutingWeightBps;
 use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
+use uxd::instructions::EditRouterDepositories;
 
 use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_spl;
@@ -38,6 +40,7 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
     let collateral_mint = Keypair::new();
     let mercurial_vault_lp_mint = Keypair::new();
     let credix_multisig = Keypair::new();
+    let alloyx_vault_mint = Keypair::new();
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
@@ -47,6 +50,7 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
         &collateral_mint,
         &mercurial_vault_lp_mint,
         &credix_multisig,
+        &alloyx_vault_mint,
         collateral_mint_decimals,
         redeemable_mint_decimals,
     )
@@ -128,6 +132,7 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
                 identity_depository_weight_bps: 10 * 100,
                 mercurial_vault_depository_weight_bps: 50 * 100,
                 credix_lp_depository_weight_bps: 40 * 100,
+                alloyx_vault_depository_weight_bps: 0,
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
@@ -185,6 +190,27 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
     // -- Phase 3
     // -- Verify that mint is not possible until we set the depositories address on controller
     // ---------------------------------------------------------------------
+
+    // Artificially unset the router_depositories
+    program_uxd::instructions::process_edit_controller(
+        &mut program_context,
+        &payer,
+        &authority,
+        &EditControllerFields {
+            redeemable_global_supply_cap: None,
+            depositories_routing_weight_bps: None,
+            router_depositories: Some(EditRouterDepositories {
+                identity_depository: Pubkey::default(),
+                mercurial_vault_depository: Pubkey::default(),
+                credix_lp_depository: Pubkey::default(),
+                alloyx_vault_depository: Pubkey::default(),
+            }),
+            outflow_limit_per_epoch_amount: None,
+            outflow_limit_per_epoch_bps: None,
+            slots_per_epoch: None,
+        },
+    )
+    .await?;
 
     // Minting should fail now, as the depositories are not set yet
     assert!(program_uxd::instructions::process_mint(
@@ -244,6 +270,7 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
                 identity_depository_weight_bps: 10 * 100,
                 mercurial_vault_depository_weight_bps: 40 * 100,
                 credix_lp_depository_weight_bps: 50 * 100,
+                alloyx_vault_depository_weight_bps: 0,
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
@@ -283,6 +310,7 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
                 identity_depository_weight_bps: 0,
                 mercurial_vault_depository_weight_bps: 100 * 100,
                 credix_lp_depository_weight_bps: 0,
+                alloyx_vault_depository_weight_bps: 0,
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: Some(amount_for_first_redeem / 2), // Outflows configured too low on purpose

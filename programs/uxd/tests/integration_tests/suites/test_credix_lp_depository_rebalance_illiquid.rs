@@ -42,6 +42,7 @@ async fn test_credix_lp_depository_rebalance_illiquid() -> Result<(), program_co
     let collateral_mint = Keypair::new();
     let mercurial_vault_lp_mint = Keypair::new();
     let credix_multisig = Keypair::new();
+    let alloyx_vault_mint = Keypair::new();
 
     // Initialize basic UXD program state
     program_uxd::procedures::process_deploy_program(
@@ -51,6 +52,7 @@ async fn test_credix_lp_depository_rebalance_illiquid() -> Result<(), program_co
         &collateral_mint,
         &mercurial_vault_lp_mint,
         &credix_multisig,
+        &alloyx_vault_mint,
         collateral_mint_decimals,
         redeemable_mint_decimals,
     )
@@ -126,6 +128,7 @@ async fn test_credix_lp_depository_rebalance_illiquid() -> Result<(), program_co
                 identity_depository_weight_bps: 50 * 100,
                 mercurial_vault_depository_weight_bps: 25 * 100,
                 credix_lp_depository_weight_bps: 25 * 100,
+                alloyx_vault_depository_weight_bps: 0,
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,

@@ -35,6 +35,8 @@ mercurial-vault = { git = "https://github.com/mercurial-finance/vault-sdk", feat
   "cpi",
 ], rev = "3724175d8435f7acb7a33077a5a9f1eb58ab3399" }
 
+alloyx-cpi = { version = "0.0.2" }
+
 credix_client = { version = "0.9.1", features = [
   "pre-mainnet",
   "cpi",
@@ -54,3 +56,4 @@ spl-associated-token-account = "1.1.2"
 toml_datetime = "=0.6.1" # This lib introduced a breaking change in 0.6.2
 winnow = "=0.4.1"        # This lib introduced a breaking change in 0.4.6
 time-macros = "=0.2.10"  # This lib introduced a breaking change in 0.2.11
+regex = "=1.9.6"         # This lib introduced a breaking change in 1.10.0

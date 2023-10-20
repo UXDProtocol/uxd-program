@@ -1,8 +1,7 @@
-use std::str::FromStr;
-
 use crate::error::UxdError;
 use crate::events::RegisterMercurialVaultDepositoryEvent;
 use crate::state::MercurialVaultDepository;
+use crate::utils::validate_collateral_mint_usdc;
 use crate::validate_is_program_frozen;
 use crate::Controller;
 use crate::CONTROLLER_NAMESPACE;
@@ -130,12 +129,6 @@ pub fn handler(
     // enable minting by default
     depository.minting_disabled = false;
 
-    // 2 - Update Controller state
-    ctx.accounts
-        .controller
-        .load_mut()?
-        .add_registered_mercurial_vault_depository_entry(ctx.accounts.depository.key())?;
-
     // 3 - Emit event
     emit!(RegisterMercurialVaultDepositoryEvent {
         version: ctx.accounts.controller.load()?.version,
@@ -152,21 +145,6 @@ pub fn handler(
 
 // Validate
 impl<'info> RegisterMercurialVaultDepository<'info> {
-    // Only few stablecoin collateral mint are whitelisted
-    // This check exists to avoid the creation of an imbalanced mercurial vault depository
-    // Redeemable and collateral should always be 1:1
-    pub fn validate_collateral_mint(&self) -> Result<()> {
-        let usdc_mint: Pubkey =
-            Pubkey::from_str("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").unwrap();
-
-        require!(
-            self.collateral_mint.key().eq(&usdc_mint),
-            UxdError::CollateralMintNotAllowed,
-        );
-
-        Ok(())
-    }
-
     pub fn validate(
         &self,
         _minting_fee_in_bps: u8,
@@ -181,27 +159,7 @@ impl<'info> RegisterMercurialVaultDepository<'info> {
                 .eq(&self.collateral_mint.key()),
             UxdError::MercurialVaultDoNotMatchCollateral,
         );
-
-        // Collateral mint should be different than redeemable mint
-        require!(
-            self.collateral_mint
-                .key()
-                .ne(&self.controller.load()?.redeemable_mint),
-            UxdError::CollateralMintEqualToRedeemableMint,
-        );
-
-        // Collateral mint and redeemable mint should share the same decimals
-        // due to the fact that decimal delta is not handled in the mint/redeem instructions
-        require!(
-            self.collateral_mint
-                .decimals
-                .eq(&self.controller.load()?.redeemable_mint_decimals),
-            UxdError::CollateralMintNotAllowed,
-        );
-
-        #[cfg(feature = "production")]
-        self.validate_collateral_mint()?;
-
+        validate_collateral_mint_usdc(&self.collateral_mint, &self.controller)?;
         Ok(())
     }
 }

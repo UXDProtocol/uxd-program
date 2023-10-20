@@ -150,12 +150,6 @@ pub(crate) fn handler(
     // Profits collection
     depository.profits_total_collected = u128::MIN;
 
-    // Add the depository to the controller
-    ctx.accounts
-        .controller
-        .load_mut()?
-        .add_registered_credix_lp_depository_entry(ctx.accounts.depository.key())?;
-
     // Emit event
     emit!(RegisterCredixLpDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,

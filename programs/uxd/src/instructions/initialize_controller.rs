@@ -83,9 +83,11 @@ pub(crate) fn handler(
     controller.identity_depository_weight_bps = 0;
     controller.mercurial_vault_depository_weight_bps = 0;
     controller.credix_lp_depository_weight_bps = 0;
+    controller.alloyx_vault_depository_weight_bps = 0;
     controller.identity_depository = Pubkey::default();
     controller.mercurial_vault_depository = Pubkey::default();
     controller.credix_lp_depository = Pubkey::default();
+    controller.alloyx_vault_depository = Pubkey::default();
 
     // Routing outflow limitation flags
     controller.outflow_limit_per_epoch_amount = 0;
