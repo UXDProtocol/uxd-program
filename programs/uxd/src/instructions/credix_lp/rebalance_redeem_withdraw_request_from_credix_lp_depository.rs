@@ -46,10 +46,10 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #7
+    /// #3
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #3
+    /// #4
     #[account(
         mut,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
@@ -57,11 +57,11 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
     )]
     pub identity_depository: AccountLoader<'info, IdentityDepository>,
 
-    /// #4
+    /// #5
     #[account(mut)]
     pub identity_depository_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #5
+    /// #6
     #[account(
         mut,
         has_one = controller @UxdError::InvalidController,
@@ -69,7 +69,7 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
     )]
     pub mercurial_vault_depository: AccountLoader<'info, MercurialVaultDepository>,
 
-    /// #6
+    /// #7
     #[account(
         mut,
         has_one = controller @UxdError::InvalidController,
@@ -167,7 +167,7 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
     )]
     pub credix_withdraw_epoch: Account<'info, credix_client::WithdrawEpoch>,
 
-    /// #6
+    /// #20
     #[account(
         mut,
         has_one = controller @UxdError::InvalidController,
@@ -175,22 +175,22 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
     )]
     pub alloyx_vault_depository: AccountLoader<'info, AlloyxVaultDepository>,
 
-    /// #20
+    /// #21
     #[account(
         mut,
         token::mint = collateral_mint,
     )]
     pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #21
-    pub system_program: Program<'info, System>,
     /// #22
-    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
     /// #23
-    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub token_program: Program<'info, Token>,
     /// #24
-    pub credix_program: Program<'info, credix_client::program::Credix>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     /// #25
+    pub credix_program: Program<'info, credix_client::program::Credix>,
+    /// #26
     pub rent: Sysvar<'info, Rent>,
 }
 

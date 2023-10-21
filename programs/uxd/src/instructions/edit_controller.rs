@@ -208,7 +208,10 @@ impl<'info> EditController<'info> {
                     depositories_routing_weight_bps.identity_depository_weight_bps,
                     depositories_routing_weight_bps.mercurial_vault_depository_weight_bps,
                 )?,
-                depositories_routing_weight_bps.credix_lp_depository_weight_bps,
+                checked_add(
+                    depositories_routing_weight_bps.credix_lp_depository_weight_bps,
+                    depositories_routing_weight_bps.alloyx_vault_depository_weight_bps,
+                )?,
             )?;
             require!(
                 u64::from(total_weight_bps) == BPS_POWER,

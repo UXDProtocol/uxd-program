@@ -39,17 +39,17 @@ pub struct RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
     )]
     pub controller: AccountLoader<'info, Controller>,
 
-    /// #6
+    /// #3
     pub collateral_mint: Box<Account<'info, Mint>>,
 
-    /// #3
+    /// #4
     #[account(
         mut,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
     pub identity_depository: AccountLoader<'info, IdentityDepository>,
 
-    /// #4
+    /// #5
     #[account(
         mut,
         has_one = controller @UxdError::InvalidController,
@@ -57,7 +57,7 @@ pub struct RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
     )]
     pub mercurial_vault_depository: AccountLoader<'info, MercurialVaultDepository>,
 
-    /// #5
+    /// #6
     #[account(
         mut,
         has_one = controller @UxdError::InvalidController,
@@ -118,7 +118,7 @@ pub struct RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
     )]
     pub credix_withdraw_epoch: Account<'info, credix_client::WithdrawEpoch>,
 
-    /// #6
+    /// #14
     #[account(
         mut,
         has_one = controller @UxdError::InvalidController,
@@ -126,9 +126,9 @@ pub struct RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
     )]
     pub alloyx_vault_depository: AccountLoader<'info, AlloyxVaultDepository>,
 
-    /// #14
-    pub system_program: Program<'info, System>,
     /// #15
+    pub system_program: Program<'info, System>,
+    /// #16
     pub credix_program: Program<'info, credix_client::program::Credix>,
 }
 

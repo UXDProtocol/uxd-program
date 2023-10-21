@@ -4,10 +4,7 @@ use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
 use uxd::instructions::EditControllerFields;
-use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditDepositoriesRoutingWeightBps;
-use uxd::instructions::EditIdentityDepositoryFields;
-use uxd::instructions::EditMercurialVaultDepositoryFields;
 use uxd::instructions::EditRouterDepositories;
 
 use crate::integration_tests::api::program_context;
@@ -89,7 +86,7 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
     let amount_of_collateral_airdropped_to_user = amount_for_first_mint + amount_for_second_mint; // Just enough money to mint
 
     // Post mint supply should match the configured weights
-    let identity_depository_supply_after_first_mint = amount_for_first_mint * 10 / 100;
+    let identity_depository_supply_after_first_mint = amount_for_first_mint * 30 / 100;
     let mercurial_vault_depository_supply_after_first_mint = amount_for_first_mint * 50 / 100;
     let credix_lp_depository_supply_after_first_mint = amount_for_first_mint * 40 / 100;
 
@@ -129,10 +126,10 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
-                identity_depository_weight_bps: 10 * 100,
-                mercurial_vault_depository_weight_bps: 50 * 100,
-                credix_lp_depository_weight_bps: 40 * 100,
-                alloyx_vault_depository_weight_bps: 0,
+                identity_depository_weight_bps: 10 * 100,        // 10%
+                mercurial_vault_depository_weight_bps: 30 * 100, // 30%
+                credix_lp_depository_weight_bps: 30 * 100,       // 30%
+                alloyx_vault_depository_weight_bps: 30 * 100,    // 30%
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
@@ -142,47 +139,17 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
     )
     .await?;
 
-    // Set the depository cap and make sure minting is not disabled
-    program_uxd::instructions::process_edit_identity_depository(
-        &mut program_context,
-        &payer,
-        &authority,
-        &EditIdentityDepositoryFields {
-            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
-            minting_disabled: Some(false),
-        },
-    )
-    .await?;
-
-    // Set the depository cap and make sure minting is not disabled
-    program_uxd::instructions::process_edit_mercurial_vault_depository(
+    // Setup the fees, caps and profits beneficiary for router depositories
+    program_uxd::procedures::process_setup_router_depositories_fields(
         &mut program_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditMercurialVaultDepositoryFields {
-            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
-            minting_fee_in_bps: Some(0),
-            redeeming_fee_in_bps: Some(0),
-            minting_disabled: Some(false),
-            profits_beneficiary_collateral: None,
-        },
-    )
-    .await?;
-
-    // Set the depository cap and make sure minting is not disabled
-    program_uxd::instructions::process_edit_credix_lp_depository(
-        &mut program_context,
-        &payer,
-        &authority,
-        &collateral_mint.pubkey(),
-        &EditCredixLpDepositoryFields {
-            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
-            minting_fee_in_bps: Some(0),
-            redeeming_fee_in_bps: Some(0),
-            minting_disabled: Some(false),
-            profits_beneficiary_collateral: None,
-        },
+        amount_we_use_as_supply_cap,
+        Some(0),
+        Some(0),
+        Some(false),
+        None,
     )
     .await?;
 
@@ -230,7 +197,7 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
     .is_err());
 
     // Now we set the router depositories to the correct PDAs
-    program_uxd::procedures::process_set_router_depositories(
+    program_uxd::procedures::process_set_controller_router_depositories(
         &mut program_context,
         &payer,
         &authority,
@@ -267,10 +234,10 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
         &EditControllerFields {
             redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
-                identity_depository_weight_bps: 10 * 100,
-                mercurial_vault_depository_weight_bps: 40 * 100,
-                credix_lp_depository_weight_bps: 50 * 100,
-                alloyx_vault_depository_weight_bps: 0,
+                identity_depository_weight_bps: 10 * 100,        // 10%
+                mercurial_vault_depository_weight_bps: 30 * 100, // 30%
+                credix_lp_depository_weight_bps: 50 * 100,       // 50%
+                alloyx_vault_depository_weight_bps: 10 * 100,    // 10%
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,

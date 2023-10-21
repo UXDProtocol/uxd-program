@@ -11,7 +11,7 @@ use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_uxd;
 
-pub async fn process_set_router_depositories(
+pub async fn process_set_controller_router_depositories(
     program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,
     authority: &Keypair,
