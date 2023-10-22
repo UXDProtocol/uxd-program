@@ -1,10 +1,10 @@
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 
+use uxd::instructions::EditAlloyxVaultDepositoryFields;
 use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditIdentityDepositoryFields;
 use uxd::instructions::EditMercurialVaultDepositoryFields;
-use uxd::instructions::EditAlloyxVaultDepositoryFields;
 
 use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_uxd;
