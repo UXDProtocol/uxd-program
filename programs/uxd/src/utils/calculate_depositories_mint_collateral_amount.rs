@@ -3,7 +3,6 @@ use anchor_lang::require;
 
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
-use crate::utils::checked_as_u64;
 use crate::ROUTER_DEPOSITORIES_COUNT;
 
 use super::compute_amount_less_fraction_floor;
@@ -36,12 +35,14 @@ pub fn calculate_depositories_mint_collateral_amount(
             if !depository.directly_mintable {
                 return Ok(0);
             }
-            let depository_redeemable_amount_under_management =
-                checked_as_u64(depository.redeemable_amount_under_management)?;
-            Ok(std::cmp::min(
-                depository_redeemable_amount_under_management,
-                depository.target_redeemable_amount,
-            ))
+            if depository.target_redeemable_amount <= depository.redeemable_amount_under_management
+            {
+                return Ok(0);
+            }
+            Ok(depository
+                .target_redeemable_amount
+                .checked_sub(depository.redeemable_amount_under_management)
+                .ok_or(UxdError::MathOverflow)?)
         })
         .collect::<Result<Vec<u64>>>()?;
 
