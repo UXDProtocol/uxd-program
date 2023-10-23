@@ -65,14 +65,18 @@ pub fn calculate_depositories_mint_collateral_amount(
             if !depository.directly_mintable {
                 return Ok(0);
             }
+            let depository_after_target_redeemable_amount = std::cmp::max(
+                depository.redeemable_amount_under_management,
+                depository.target_redeemable_amount,
+            );
             if depository.redeemable_amount_under_management_cap
-                <= depository.target_redeemable_amount
+                <= depository_after_target_redeemable_amount
             {
                 return Ok(0);
             }
             checked_sub(
                 depository.redeemable_amount_under_management_cap,
-                depository.target_redeemable_amount,
+                depository_after_target_redeemable_amount,
             )
         })
         .collect::<Result<Vec<u64>>>()?;
