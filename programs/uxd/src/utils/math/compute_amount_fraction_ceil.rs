@@ -1,4 +1,7 @@
 use crate::error::UxdError;
+use crate::utils::checked_as_u64;
+use crate::utils::checked_ceil_div;
+use crate::utils::checked_mul;
 use anchor_lang::prelude::*;
 
 // Rounding error may increase the returned amount.
@@ -12,19 +15,9 @@ pub fn compute_amount_fraction_ceil(
     if fraction_numerator == 0 || amount == 0 {
         return Ok(0);
     }
-    let amount: u128 = amount.into();
-    let fraction_numerator: u128 = fraction_numerator.into();
-    let fraction_denominator: u128 = fraction_denominator.into();
-    let amount_fraction_ceil: u128 = amount
-        .checked_mul(fraction_numerator)
-        .ok_or(UxdError::MathOverflow)?
-        .checked_sub(1)
-        .ok_or(UxdError::MathOverflow)?
-        .checked_div(fraction_denominator)
-        .ok_or(UxdError::MathOverflow)?
-        .checked_add(1)
-        .ok_or(UxdError::MathOverflow)?;
-    Ok(u64::try_from(amount_fraction_ceil)
-        .ok()
-        .ok_or(UxdError::MathOverflow)?)
+    let amount_fraction_ceil: u128 = checked_ceil_div::<u128>(
+        checked_mul::<u128>(u128::from(amount), u128::from(fraction_numerator))?,
+        u128::from(fraction_denominator),
+    )?;
+    checked_as_u64(amount_fraction_ceil)
 }
