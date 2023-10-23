@@ -11,6 +11,7 @@ where
     if let Some(res) = arg1.checked_add(&arg2) {
         Ok(res)
     } else {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} + {}", arg1, arg2);
         err!(UxdError::MathOverflow)
     }
@@ -23,6 +24,7 @@ where
     if let Some(res) = arg1.checked_sub(&arg2) {
         Ok(res)
     } else {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} - {}", arg1, arg2);
         err!(UxdError::MathOverflow)
     }
@@ -35,6 +37,7 @@ where
     if let Some(res) = arg1.checked_div(&arg2) {
         Ok(res)
     } else {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} / {}", arg1, arg2);
         err!(UxdError::MathOverflow)
     }
@@ -45,11 +48,13 @@ where
     T: num_traits::Float + Display,
 {
     if arg2 == T::zero() {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} / {}", arg1, arg2);
         return err!(UxdError::MathOverflow);
     }
     let res = arg1 / arg2;
     if !res.is_finite() {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} / {}", arg1, arg2);
         err!(UxdError::MathOverflow)
     } else {
@@ -68,12 +73,14 @@ where
         if let Some(res) = (arg1 - T::one()).checked_div(&arg2) {
             Ok(res + T::one())
         } else {
+            #[cfg(target_os = "solana")]
             msg!("Error: Overflow in {} / {}", arg1, arg2);
             err!(UxdError::MathOverflow)
         }
     } else if let Some(res) = arg1.checked_div(&arg2) {
         Ok(res)
     } else {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} / {}", arg1, arg2);
         err!(UxdError::MathOverflow)
     }
@@ -87,6 +94,7 @@ pub fn checked_decimal_div(
     target_exponent: i32,
 ) -> Result<u64> {
     if coefficient2 == 0 {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} / {}", coefficient1, coefficient2);
         return err!(UxdError::MathOverflow);
     }
@@ -137,6 +145,7 @@ pub fn checked_decimal_ceil_div(
     target_exponent: i32,
 ) -> Result<u64> {
     if coefficient2 == 0 {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} / {}", coefficient1, coefficient2);
         return err!(UxdError::MathOverflow);
     }
@@ -205,6 +214,7 @@ where
     if let Some(res) = arg1.checked_mul(&arg2) {
         Ok(res)
     } else {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} * {}", arg1, arg2);
         err!(UxdError::MathOverflow)
     }
@@ -216,6 +226,7 @@ where
 {
     let res = arg1 * arg2;
     if !res.is_finite() {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} * {}", arg1, arg2);
         err!(UxdError::MathOverflow)
     } else {
@@ -297,6 +308,7 @@ where
     if let Some(res) = num_traits::checked_pow(arg, exp) {
         Ok(res)
     } else {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} ^ {}", arg, exp);
         err!(UxdError::MathOverflow)
     }
@@ -307,6 +319,7 @@ pub fn checked_powf(arg: f64, exp: f64) -> Result<f64> {
     if res.is_finite() {
         Ok(res)
     } else {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} ^ {}", arg, exp);
         err!(UxdError::MathOverflow)
     }
@@ -322,6 +335,7 @@ pub fn checked_powi(arg: f64, exp: i32) -> Result<f64> {
     if res.is_finite() {
         Ok(res)
     } else {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} ^ {}", arg, exp);
         err!(UxdError::MathOverflow)
     }
@@ -335,6 +349,7 @@ where
     if let Some(res) = option {
         Ok(res)
     } else {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} as usize", arg);
         err!(UxdError::MathOverflow)
     }
@@ -348,6 +363,7 @@ where
     if let Some(res) = option {
         Ok(res)
     } else {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} as u64", arg);
         err!(UxdError::MathOverflow)
     }
@@ -361,6 +377,7 @@ where
     if let Some(res) = option {
         Ok(res)
     } else {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} as u128", arg);
         err!(UxdError::MathOverflow)
     }
@@ -374,6 +391,7 @@ where
     if let Some(res) = option {
         Ok(res)
     } else {
+        #[cfg(target_os = "solana")]
         msg!("Error: Overflow in {} as f64", arg);
         err!(UxdError::MathOverflow)
     }
