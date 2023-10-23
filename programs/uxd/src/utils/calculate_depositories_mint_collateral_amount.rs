@@ -142,8 +142,8 @@ pub fn calculate_depositories_mint_collateral_amount(
                 0
             };
             // The combo of the two gives our depository amount
-            Ok(requested_primary_collateral_amount
-                .checked_add(requested_backup_collateral_amount)
+            Ok(depository_primary_collateral_amount
+                .checked_add(depository_backup_collateral_amount)
                 .ok_or(UxdError::MathOverflow)?)
         },
     )

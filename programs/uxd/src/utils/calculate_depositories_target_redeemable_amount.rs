@@ -12,11 +12,11 @@ use super::compute_amount_fraction_ceil;
 #[derive(Clone, Copy)]
 pub struct DepositoryInfoForTargetRedeemableAmount {
     pub weight_bps: u16,
-    pub redeemable_amount_under_management_cap: u128,
+    pub redeemable_amount_under_management_cap: u64,
 }
 
 pub fn calculate_depositories_target_redeemable_amount(
-    redeemable_circulating_supply: u128,
+    redeemable_circulating_supply: u64,
     depositories_info: &Vec<DepositoryInfoForTargetRedeemableAmount>,
 ) -> Result<Vec<u64>> {
     require!(

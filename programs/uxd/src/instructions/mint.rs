@@ -14,6 +14,7 @@ use crate::utils::calculate_depositories_mint_collateral_amount::DepositoryInfoF
 use crate::utils::calculate_depositories_target_redeemable_amount;
 use crate::utils::calculate_depositories_target_redeemable_amount::DepositoryInfoForTargetRedeemableAmount;
 use crate::utils::checked_add;
+use crate::utils::checked_as_u64;
 use crate::utils::validate_collateral_amount;
 use crate::validate_is_program_frozen;
 use crate::CONTROLLER_NAMESPACE;
@@ -190,8 +191,8 @@ pub struct Mint<'info> {
 
 struct DepositoryInfoForMint<'info> {
     pub weight_bps: u16,
-    pub redeemable_amount_under_management: u128,
-    pub redeemable_amount_under_management_cap: u128,
+    pub redeemable_amount_under_management: u64,
+    pub redeemable_amount_under_management_cap: u64,
     pub mint_fn: Option<Box<dyn Fn(u64) -> Result<()> + 'info>>,
 }
 
@@ -215,8 +216,8 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
     // But the difference is negligible, and the difference will be taken into account
     // When the next mint/redeem IX recompute the new targets based on the new circulating supply
     let maximum_after_mint_circulating_supply = checked_add(
-        controller.redeemable_circulating_supply,
-        u128::from(collateral_amount),
+        checked_as_u64(controller.redeemable_circulating_supply)?,
+        collateral_amount,
     )?;
 
     // Build the vector of all known depository participating in the routing system
@@ -224,10 +225,12 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
         // identity_depository details
         DepositoryInfoForMint {
             weight_bps: controller.identity_depository_weight_bps,
-            redeemable_amount_under_management: identity_depository
-                .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: identity_depository
-                .redeemable_amount_under_management_cap,
+            redeemable_amount_under_management: checked_as_u64(
+                identity_depository.redeemable_amount_under_management,
+            )?,
+            redeemable_amount_under_management_cap: checked_as_u64(
+                identity_depository.redeemable_amount_under_management_cap,
+            )?,
             mint_fn: Some(Box::new(|collateral_amount| {
                 msg!("[mint:mint_with_identity_depository:{}]", collateral_amount);
                 if collateral_amount > 0 {
@@ -244,10 +247,12 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
         // mercurial_vault_depository details
         DepositoryInfoForMint {
             weight_bps: controller.mercurial_vault_depository_weight_bps,
-            redeemable_amount_under_management: mercurial_vault_depository
-                .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: mercurial_vault_depository
-                .redeemable_amount_under_management_cap,
+            redeemable_amount_under_management: checked_as_u64(
+                mercurial_vault_depository.redeemable_amount_under_management,
+            )?,
+            redeemable_amount_under_management_cap: checked_as_u64(
+                mercurial_vault_depository.redeemable_amount_under_management_cap,
+            )?,
             mint_fn: Some(Box::new(|collateral_amount| {
                 msg!(
                     "[mint:mint_with_mercurial_vault_depository:{}]",
@@ -267,10 +272,12 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
         // credix_lp_depository details
         DepositoryInfoForMint {
             weight_bps: controller.credix_lp_depository_weight_bps,
-            redeemable_amount_under_management: credix_lp_depository
-                .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: credix_lp_depository
-                .redeemable_amount_under_management_cap,
+            redeemable_amount_under_management: checked_as_u64(
+                credix_lp_depository.redeemable_amount_under_management,
+            )?,
+            redeemable_amount_under_management_cap: checked_as_u64(
+                credix_lp_depository.redeemable_amount_under_management_cap,
+            )?,
             mint_fn: Some(Box::new(|collateral_amount| {
                 msg!(
                     "[mint:mint_with_credix_lp_depository:{}]",
@@ -290,12 +297,12 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
         // alloyx_vault_depository details
         DepositoryInfoForMint {
             weight_bps: controller.alloyx_vault_depository_weight_bps,
-            redeemable_amount_under_management: u128::from(
-                alloyx_vault_depository.redeemable_amount_under_management,
-            ),
-            redeemable_amount_under_management_cap: u128::from(
-                alloyx_vault_depository.redeemable_amount_under_management_cap,
-            ),
+            redeemable_amount_under_management: alloyx_vault_depository
+                .redeemable_amount_under_management,
+
+            redeemable_amount_under_management_cap: alloyx_vault_depository
+                .redeemable_amount_under_management_cap,
+
             mint_fn: None, // minted through asynchronous rebalancing
         },
     ];
@@ -332,6 +339,9 @@ pub(crate) fn handler(ctx: Context<Mint>, collateral_amount: u64) -> Result<()> 
                 target_redeemable_amount: *depository_target_redeemable_amount,
                 redeemable_amount_under_management: depository_info
                     .redeemable_amount_under_management,
+
+                redeemable_amount_under_management_cap: depository_info
+                    .redeemable_amount_under_management_cap,
             }
         })
         .collect::<Vec<DepositoryInfoForMintCollateralAmount>>(),

@@ -3,7 +3,6 @@ use anchor_lang::require;
 
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
-use crate::utils::checked_as_u64;
 use crate::ROUTER_DEPOSITORIES_COUNT;
 
 use super::compute_amount_less_fraction_floor;
@@ -11,7 +10,7 @@ use super::compute_amount_less_fraction_floor;
 pub struct DepositoryInfoForRedeemableAmount {
     pub directly_redeemable: bool,
     pub target_redeemable_amount: u64,
-    pub redeemable_amount_under_management: u128,
+    pub redeemable_amount_under_management: u64,
 }
 
 pub fn calculate_depositories_redeemable_amount(
@@ -36,13 +35,12 @@ pub fn calculate_depositories_redeemable_amount(
             if !depository.directly_redeemable {
                 return Ok(0);
             }
-            let depository_redeemable_amount_under_management =
-                checked_as_u64(depository.redeemable_amount_under_management)?;
-            if depository_redeemable_amount_under_management <= depository.target_redeemable_amount
+            if depository.redeemable_amount_under_management <= depository.target_redeemable_amount
             {
                 return Ok(0);
             }
-            Ok(depository_redeemable_amount_under_management
+            Ok(depository
+                .redeemable_amount_under_management
                 .checked_sub(depository.target_redeemable_amount)
                 .ok_or(UxdError::MathOverflow)?)
         })
@@ -64,10 +62,8 @@ pub fn calculate_depositories_redeemable_amount(
             if !depository.directly_redeemable {
                 return Ok(0);
             }
-            let depository_redeemable_amount_under_management =
-                checked_as_u64(depository.redeemable_amount_under_management)?;
             Ok(std::cmp::min(
-                depository_redeemable_amount_under_management,
+                depository.redeemable_amount_under_management,
                 depository.target_redeemable_amount,
             ))
         })
@@ -166,10 +162,10 @@ pub fn calculate_depositories_redeemable_amount(
         if !depository.directly_redeemable {
             continue;
         }
-        let depository_remaining_after_redeem =
-            checked_as_u64(depository.redeemable_amount_under_management)?
-                .checked_sub(depositories_redeemable_amount[i])
-                .ok_or(UxdError::MathOverflow)?;
+        let depository_remaining_after_redeem = depository
+            .redeemable_amount_under_management
+            .checked_sub(depositories_redeemable_amount[i])
+            .ok_or(UxdError::MathOverflow)?;
         let depository_rounding_correction =
             std::cmp::min(depository_remaining_after_redeem, rounding_errors);
         depositories_redeemable_amount[i] = depositories_redeemable_amount[i]

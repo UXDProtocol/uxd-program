@@ -148,8 +148,8 @@ pub struct Redeem<'info> {
 
 struct DepositoryInfoForRedeem<'info> {
     pub weight_bps: u16,
-    pub redeemable_amount_under_management: u128,
-    pub redeemable_amount_under_management_cap: u128,
+    pub redeemable_amount_under_management: u64,
+    pub redeemable_amount_under_management_cap: u64,
     pub redeem_fn: Option<Box<dyn Fn(u64) -> Result<()> + 'info>>,
 }
 
@@ -216,8 +216,8 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     // Due to redeem fees and precision loss. But the difference should be negligible and
     // Any future mint/redeem will recompute the targets based on the exact future circulating supply anyway
     let minimum_after_redeem_circulating_supply = checked_sub(
-        controller.redeemable_circulating_supply,
-        u128::from(redeemable_amount),
+        checked_as_u64(controller.redeemable_circulating_supply)?,
+        redeemable_amount,
     )?;
 
     // Build the vector of all known depository participating in the routing system
@@ -225,10 +225,12 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         // identity_depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.identity_depository_weight_bps,
-            redeemable_amount_under_management: identity_depository
-                .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: identity_depository
-                .redeemable_amount_under_management_cap,
+            redeemable_amount_under_management: checked_as_u64(
+                identity_depository.redeemable_amount_under_management,
+            )?,
+            redeemable_amount_under_management_cap: checked_as_u64(
+                identity_depository.redeemable_amount_under_management_cap,
+            )?,
             redeem_fn: Some(Box::new(|redeemable_amount| {
                 msg!(
                     "[redeem:redeem_from_identity_depository:{}]",
@@ -248,10 +250,12 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         // mercurial_vault_depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.mercurial_vault_depository_weight_bps,
-            redeemable_amount_under_management: mercurial_vault_depository
-                .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: mercurial_vault_depository
-                .redeemable_amount_under_management_cap,
+            redeemable_amount_under_management: checked_as_u64(
+                mercurial_vault_depository.redeemable_amount_under_management,
+            )?,
+            redeemable_amount_under_management_cap: checked_as_u64(
+                mercurial_vault_depository.redeemable_amount_under_management_cap,
+            )?,
             redeem_fn: Some(Box::new(|redeemable_amount| {
                 msg!(
                     "[redeem:redeem_from_mercurial_vault_depository:{}]",
@@ -271,21 +275,21 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         // credix_lp_depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.credix_lp_depository_weight_bps,
-            redeemable_amount_under_management: credix_lp_depository
-                .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: credix_lp_depository
-                .redeemable_amount_under_management_cap,
+            redeemable_amount_under_management: checked_as_u64(
+                credix_lp_depository.redeemable_amount_under_management,
+            )?,
+            redeemable_amount_under_management_cap: checked_as_u64(
+                credix_lp_depository.redeemable_amount_under_management_cap,
+            )?,
             redeem_fn: None, // redeemed through asynchronous rebalancing
         },
         // alloyx_vault_depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.alloyx_vault_depository_weight_bps,
-            redeemable_amount_under_management: u128::from(
-                alloyx_vault_depository.redeemable_amount_under_management,
-            ),
-            redeemable_amount_under_management_cap: u128::from(
-                alloyx_vault_depository.redeemable_amount_under_management_cap,
-            ),
+            redeemable_amount_under_management: alloyx_vault_depository
+                .redeemable_amount_under_management,
+            redeemable_amount_under_management_cap: alloyx_vault_depository
+                .redeemable_amount_under_management_cap,
             redeem_fn: None, // redeemed through asynchronous rebalancing
         },
     ];

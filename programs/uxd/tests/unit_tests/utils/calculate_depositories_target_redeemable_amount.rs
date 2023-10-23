@@ -27,25 +27,25 @@ mod test_calculate_depositories_target_redeemable_amount {
         // Compute
         let depositories_target_redeemable_amount =
             calculate_depositories_target_redeemable_amount(
-                circulating_supply.into(),
+                circulating_supply,
                 // Weights adds up to 100% and are not evenly distributed
                 // Each depository can fit at least the whole circulating supply (no overflow possible)
                 &vec![
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(5),
-                        redeemable_amount_under_management_cap: circulating_supply.into(),
+                        redeemable_amount_under_management_cap: circulating_supply,
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(10),
-                        redeemable_amount_under_management_cap: circulating_supply.into(),
+                        redeemable_amount_under_management_cap: circulating_supply,
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(65),
-                        redeemable_amount_under_management_cap: circulating_supply.into(),
+                        redeemable_amount_under_management_cap: circulating_supply,
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(20),
-                        redeemable_amount_under_management_cap: circulating_supply.into(),
+                        redeemable_amount_under_management_cap: circulating_supply,
                     },
                 ],
             )?;
@@ -76,7 +76,7 @@ mod test_calculate_depositories_target_redeemable_amount {
         // Compute
         let depositories_target_redeemable_amount =
             calculate_depositories_target_redeemable_amount(
-                circulating_supply.into(),
+                circulating_supply,
                 &vec![
                     // Weights adds up to 100% and the identity depository receives most of the weight
                     // The identity depository is fully overflowing, but the others have enough space (with various proportions)
@@ -137,7 +137,7 @@ mod test_calculate_depositories_target_redeemable_amount {
         // Compute
         let depositories_target_redeemable_amount =
             calculate_depositories_target_redeemable_amount(
-                circulating_supply.into(),
+                circulating_supply,
                 &vec![
                     // Weights adds up to 100% and the identity depository receives most of the weight
                     // The identity depository is overflowing
@@ -207,7 +207,7 @@ mod test_calculate_depositories_target_redeemable_amount {
         // Compute
         let depositories_target_redeemable_amount =
             calculate_depositories_target_redeemable_amount(
-                circulating_supply.into(),
+                circulating_supply,
                 &vec![
                     // Weights adds up to 100%, somewhat fair split
                     // All depositories are oveflowing, except the identity depository, but the total cannot fit in all depositories
@@ -318,7 +318,7 @@ mod test_calculate_depositories_target_redeemable_amount {
             // Everything else should never panic
             let depositories_target_redeemable_amount =
                 calculate_depositories_target_redeemable_amount(
-                    circulating_supply.into(),
+                    circulating_supply,
                     &vec![
                         DepositoryInfoForTargetRedeemableAmount {
                             weight_bps: u16::try_from(identity_depository_weight_bps).unwrap(),
