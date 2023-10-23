@@ -1,6 +1,7 @@
 //! Common math routines.
 
 #![allow(dead_code)]
+#![allow(clippy::redundant_clone)] // the solana target macro triggers this warning on non-solana builds
 
 use {crate::error::UxdError, anchor_lang::prelude::*, std::fmt::Display};
 
