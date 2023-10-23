@@ -89,24 +89,21 @@ mod test_calculate_depositories_target_redeemable_amount {
                         redeemable_amount_under_management_cap: percent_of_supply(
                             100,
                             circulating_supply,
-                        )
-                        .into(),
+                        ),
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(10),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             60,
                             circulating_supply,
-                        )
-                        .into(),
+                        ),
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(30),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             80,
                             circulating_supply,
-                        )
-                        .into(),
+                        ),
                     },
                 ],
             )?;
@@ -149,32 +146,28 @@ mod test_calculate_depositories_target_redeemable_amount {
                         redeemable_amount_under_management_cap: percent_of_supply(
                             10,
                             circulating_supply,
-                        )
-                        .into(),
+                        ),
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(0),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             140,
                             circulating_supply,
-                        )
-                        .into(),
+                        ),
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(0),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             20,
                             circulating_supply,
-                        )
-                        .into(),
+                        ),
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(10),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             10,
                             circulating_supply,
-                        )
-                        .into(),
+                        ),
                     },
                 ],
             )?;
@@ -216,32 +209,28 @@ mod test_calculate_depositories_target_redeemable_amount {
                         redeemable_amount_under_management_cap: percent_of_supply(
                             40,
                             circulating_supply,
-                        )
-                        .into(),
+                        ),
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(25),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             20,
                             circulating_supply,
-                        )
-                        .into(),
+                        ),
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(25),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             10,
                             circulating_supply,
-                        )
-                        .into(),
+                        ),
                     },
                     DepositoryInfoForTargetRedeemableAmount {
                         weight_bps: percent_to_weight_bps(25),
                         redeemable_amount_under_management_cap: percent_of_supply(
                             5,
                             circulating_supply,
-                        )
-                        .into(),
+                        ),
                     },
                 ],
             )?;
@@ -322,19 +311,19 @@ mod test_calculate_depositories_target_redeemable_amount {
                     &vec![
                         DepositoryInfoForTargetRedeemableAmount {
                             weight_bps: u16::try_from(identity_depository_weight_bps).unwrap(),
-                            redeemable_amount_under_management_cap: identity_depository_hard_cap.into(),
+                            redeemable_amount_under_management_cap: identity_depository_hard_cap,
                         },
                         DepositoryInfoForTargetRedeemableAmount {
                             weight_bps: u16::try_from(mercurial_vault_depository_weight_bps).unwrap(),
-                            redeemable_amount_under_management_cap: mercurial_vault_depository_hard_cap.into(),
+                            redeemable_amount_under_management_cap: mercurial_vault_depository_hard_cap,
                         },
                         DepositoryInfoForTargetRedeemableAmount {
                             weight_bps: u16::try_from(credix_lp_depository_weight_bps).unwrap(),
-                            redeemable_amount_under_management_cap: credix_lp_depository_hard_cap.into(),
+                            redeemable_amount_under_management_cap: credix_lp_depository_hard_cap,
                         },
                         DepositoryInfoForTargetRedeemableAmount {
                             weight_bps: u16::try_from(alloyx_vault_depository_weight_bps).unwrap(),
-                            redeemable_amount_under_management_cap: alloyx_vault_depository_hard_cap.into(),
+                            redeemable_amount_under_management_cap: alloyx_vault_depository_hard_cap,
                         },
                     ],
                 )?;

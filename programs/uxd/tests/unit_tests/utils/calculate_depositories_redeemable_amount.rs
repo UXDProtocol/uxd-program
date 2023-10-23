@@ -24,13 +24,13 @@ mod test_calculate_depositories_redeemable_amount {
                 DepositoryInfoForRedeemableAmount {
                     directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(1_500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(1_500_000),
                 },
                 // mercurial_vault_depository is overflowing by a lot
                 DepositoryInfoForRedeemableAmount {
                     directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(2_500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(2_500_000),
                 },
                 // credix_lp_depository cannot be directly redeemed
                 DepositoryInfoForRedeemableAmount {
@@ -77,13 +77,13 @@ mod test_calculate_depositories_redeemable_amount {
                 DepositoryInfoForRedeemableAmount {
                     directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(500_000),
                 },
                 // mercurial_vault_depository is overflowing by a lot
                 DepositoryInfoForRedeemableAmount {
                     directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(2_500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(2_500_000),
                 },
                 // credix_lp_depository is not directly redeemable
                 DepositoryInfoForRedeemableAmount {
@@ -130,13 +130,13 @@ mod test_calculate_depositories_redeemable_amount {
                 DepositoryInfoForRedeemableAmount {
                     directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(1_000_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(1_000_000),
                 },
                 // mercurial_vault_depository is perfectly balanced
                 DepositoryInfoForRedeemableAmount {
                     directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(500_000),
-                    redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(500_000),
                 },
                 // credix_lp_depository is not directly redeemable
                 DepositoryInfoForRedeemableAmount {
@@ -184,13 +184,13 @@ mod test_calculate_depositories_redeemable_amount {
                 DepositoryInfoForRedeemableAmount {
                     directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(1_200_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(1_200_000),
                 },
                 // mercurial_vault_depository is overflowing by a little bit (but is smaller)
                 DepositoryInfoForRedeemableAmount {
                     directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(500_000),
-                    redeemable_amount_under_management: ui_to_native_amount(700_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(700_000),
                 },
                 // credix_lp_depository is not directly redeemable
                 DepositoryInfoForRedeemableAmount {
@@ -235,13 +235,13 @@ mod test_calculate_depositories_redeemable_amount {
                 DepositoryInfoForRedeemableAmount {
                     directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(800_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(800_000),
                 },
                 // mercurial_vault_depository is underweight (but is smaller)
                 DepositoryInfoForRedeemableAmount {
                     directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(500_000),
-                    redeemable_amount_under_management: ui_to_native_amount(400_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(400_000),
                 },
                 // credix_lp_depository is not directly redeemable
                 DepositoryInfoForRedeemableAmount {
@@ -313,13 +313,13 @@ mod test_calculate_depositories_redeemable_amount {
                             directly_redeemable: true,
                             target_redeemable_amount: identity_depository_target_redeemable_amount,
                             redeemable_amount_under_management:
-                                identity_depository_redeemable_amount_under_management.into(),
+                                identity_depository_redeemable_amount_under_management,
                         },
                         DepositoryInfoForRedeemableAmount {
                             directly_redeemable: true,
                             target_redeemable_amount: mercurial_vault_depository_target_redeemable_amount,
                             redeemable_amount_under_management:
-                                mercurial_vault_depository_redeemable_amount_under_management.into(),
+                                mercurial_vault_depository_redeemable_amount_under_management,
                         },
                         DepositoryInfoForRedeemableAmount {
                             directly_redeemable: false,

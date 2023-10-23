@@ -3,6 +3,9 @@ use anchor_lang::require;
 
 use crate::error::UxdError;
 use crate::utils::calculate_depositories_sum_value;
+use crate::utils::checked_add;
+use crate::utils::checked_as_u64;
+use crate::utils::checked_sub;
 use crate::ROUTER_DEPOSITORIES_COUNT;
 
 use super::compute_amount_less_fraction_floor;
@@ -39,10 +42,10 @@ pub fn calculate_depositories_redeemable_amount(
             {
                 return Ok(0);
             }
-            Ok(depository
-                .redeemable_amount_under_management
-                .checked_sub(depository.target_redeemable_amount)
-                .ok_or(UxdError::MathOverflow)?)
+            checked_sub(
+                depository.redeemable_amount_under_management,
+                depository.target_redeemable_amount,
+            )
         })
         .collect::<Result<Vec<u64>>>()?;
 
@@ -78,9 +81,10 @@ pub fn calculate_depositories_redeemable_amount(
     // -- to be able to fullfill the user's redeemable requested amount
     // ---------------------------------------------------------------------
 
-    let total_overall_redeemable_amount = total_over_target_redeemable_amount
-        .checked_add(total_under_target_redeemable_amount)
-        .ok_or(UxdError::MathOverflow)?;
+    let total_overall_redeemable_amount = checked_add(
+        total_over_target_redeemable_amount,
+        total_under_target_redeemable_amount,
+    )?;
     require!(
         total_overall_redeemable_amount >= requested_redeemable_amount,
         UxdError::InvalidRedeemableAmount
@@ -100,16 +104,16 @@ pub fn calculate_depositories_redeemable_amount(
     )
     .map(
         |(depository_over_target_redeemable_amount, depository_under_target_redeemable_amount)| {
-            // Step 1, try to use the over_target amounts, weighted for each depository
+            // Step 2, try to use the over_target amounts, weighted for each depository
             let requested_primary_redeemable_amount = std::cmp::min(
                 requested_redeemable_amount,
                 total_over_target_redeemable_amount,
             );
             let depository_primary_redeemable_amount = if total_over_target_redeemable_amount > 0 {
-                let other_depositories_over_target_redeemable_amount =
-                    total_over_target_redeemable_amount
-                        .checked_sub(*depository_over_target_redeemable_amount)
-                        .ok_or(UxdError::MathOverflow)?;
+                let other_depositories_over_target_redeemable_amount = checked_sub(
+                    total_over_target_redeemable_amount,
+                    *depository_over_target_redeemable_amount,
+                )?;
                 compute_amount_less_fraction_floor(
                     requested_primary_redeemable_amount,
                     other_depositories_over_target_redeemable_amount,
@@ -119,14 +123,15 @@ pub fn calculate_depositories_redeemable_amount(
                 0
             };
             // Step 2, anything under_target must be used as backup
-            let requested_backup_redeemable_amount = requested_redeemable_amount
-                .checked_sub(requested_primary_redeemable_amount)
-                .ok_or(UxdError::MathOverflow)?;
+            let requested_backup_redeemable_amount = checked_sub(
+                requested_redeemable_amount,
+                requested_primary_redeemable_amount,
+            )?;
             let depository_backup_redeemable_amount = if total_under_target_redeemable_amount > 0 {
-                let other_depositories_under_target_redeemable_amount =
-                    total_under_target_redeemable_amount
-                        .checked_sub(*depository_under_target_redeemable_amount)
-                        .ok_or(UxdError::MathOverflow)?;
+                let other_depositories_under_target_redeemable_amount = checked_sub(
+                    total_under_target_redeemable_amount,
+                    *depository_under_target_redeemable_amount,
+                )?;
                 compute_amount_less_fraction_floor(
                     requested_backup_redeemable_amount,
                     other_depositories_under_target_redeemable_amount,
@@ -136,9 +141,10 @@ pub fn calculate_depositories_redeemable_amount(
                 0
             };
             // The combo of the two gives our depository amount
-            Ok(depository_primary_redeemable_amount
-                .checked_add(depository_backup_redeemable_amount)
-                .ok_or(UxdError::MathOverflow)?)
+            checked_add(
+                depository_primary_redeemable_amount,
+                depository_backup_redeemable_amount,
+            )
         },
     )
     .collect::<Result<Vec<u64>>>()?;
@@ -153,27 +159,24 @@ pub fn calculate_depositories_redeemable_amount(
     let total_redeemable_amount =
         calculate_depositories_sum_value(&depositories_redeemable_amount)?;
 
-    let mut rounding_errors = requested_redeemable_amount
-        .checked_sub(total_redeemable_amount)
-        .ok_or(UxdError::MathOverflow)?;
+    let mut rounding_errors = checked_sub(requested_redeemable_amount, total_redeemable_amount)?;
 
     for i in 0..depositories_info.len() {
         let depository = &depositories_info[i];
         if !depository.directly_redeemable {
             continue;
         }
-        let depository_remaining_after_redeem = depository
-            .redeemable_amount_under_management
-            .checked_sub(depositories_redeemable_amount[i])
-            .ok_or(UxdError::MathOverflow)?;
+        let depository_remaining_after_redeem = checked_sub(
+            checked_as_u64(depository.redeemable_amount_under_management)?,
+            depositories_redeemable_amount[i],
+        )?;
         let depository_rounding_correction =
             std::cmp::min(depository_remaining_after_redeem, rounding_errors);
-        depositories_redeemable_amount[i] = depositories_redeemable_amount[i]
-            .checked_add(depository_rounding_correction)
-            .ok_or(UxdError::MathOverflow)?;
-        rounding_errors = rounding_errors
-            .checked_sub(depository_rounding_correction)
-            .ok_or(UxdError::MathOverflow)?;
+        depositories_redeemable_amount[i] = checked_add(
+            depositories_redeemable_amount[i],
+            depository_rounding_correction,
+        )?;
+        rounding_errors = checked_sub(rounding_errors, depository_rounding_correction)?;
     }
 
     // Done

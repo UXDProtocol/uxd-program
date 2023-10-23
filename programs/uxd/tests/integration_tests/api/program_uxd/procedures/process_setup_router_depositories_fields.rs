@@ -9,6 +9,7 @@ use uxd::instructions::EditMercurialVaultDepositoryFields;
 use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_uxd;
 
+#[allow(clippy::too_many_arguments)]
 pub async fn process_setup_router_depositories_fields(
     program_context: &mut Box<dyn program_context::ProgramContext>,
     payer: &Keypair,

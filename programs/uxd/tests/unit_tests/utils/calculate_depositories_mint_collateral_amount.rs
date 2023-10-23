@@ -26,25 +26,29 @@ mod test_calculate_depositories_mint_collateral_amount {
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(500_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
                 // mercurial_vault_depository has available space to mint
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(800_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(800_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
                 // credix_lp_depository has available space to mint
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(700_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(700_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
                 // alloyx_vault_depository has available space (but cannot be directly minted)
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: false,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(100_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(100_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
             ],
         )?;
@@ -79,25 +83,29 @@ mod test_calculate_depositories_mint_collateral_amount {
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(1_500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(1_500_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
                 // mercurial_vault_depository has available space to mint (a lot of it)
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(0).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(0),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
                 // credix_lp_depository has available space to mint (a little of it)
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(500_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
                 // alloyx_vault_depository is overflowing (but cannot be directly minted)
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: false,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(1_500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(1_500_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
             ],
         )?;
@@ -132,25 +140,29 @@ mod test_calculate_depositories_mint_collateral_amount {
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(1_500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(1_500_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
                 // mercurial_vault_depository has available space to mint (a lot of it)
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(0).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(0),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
                 // credix_lp_depository has no space
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(1_000_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(1_000_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
                 // alloyx_vault_depository has space (but cannot be directly minted)
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: false,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(500_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
             ],
         )?;
@@ -185,25 +197,29 @@ mod test_calculate_depositories_mint_collateral_amount {
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(1_500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(1_500_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
                 // mercurial_vault_depository is almost overflowing (but has a tiny space)
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(900_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(900_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
                 // credix_lp_depository has available space to mint (not enough of it)
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(500_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
                 // alloyx_vault_depository has available space to mint (but cannot be directly minted)
                 DepositoryInfoForMintCollateralAmount {
                     directly_mintable: false,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(500_000),
+                    redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                 },
             ],
         );
@@ -252,22 +268,26 @@ mod test_calculate_depositories_mint_collateral_amount {
                     DepositoryInfoForMintCollateralAmount {
                         directly_mintable: true,
                         target_redeemable_amount: identity_depository_target_redeemable_amount,
-                        redeemable_amount_under_management: identity_depository_redeemable_amount_under_management.into(),
+                        redeemable_amount_under_management: identity_depository_redeemable_amount_under_management,
+                        redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                     },
                     DepositoryInfoForMintCollateralAmount {
                         directly_mintable: true,
                         target_redeemable_amount: mercurial_vault_depository_target_redeemable_amount,
-                        redeemable_amount_under_management: mercurial_vault_depository_redeemable_amount_under_management.into(),
+                        redeemable_amount_under_management: mercurial_vault_depository_redeemable_amount_under_management,
+                        redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                     },
                     DepositoryInfoForMintCollateralAmount {
                         directly_mintable: true,
                         target_redeemable_amount: credix_lp_depository_target_redeemable_amount,
-                        redeemable_amount_under_management: credix_lp_depository_redeemable_amount_under_management.into(),
+                        redeemable_amount_under_management: credix_lp_depository_redeemable_amount_under_management,
+                        redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                     },
                     DepositoryInfoForMintCollateralAmount {
                         directly_mintable: false,
                         target_redeemable_amount: alloyx_vault_depository_target_redeemable_amount,
-                        redeemable_amount_under_management: alloyx_vault_depository_redeemable_amount_under_management.into(),
+                        redeemable_amount_under_management: alloyx_vault_depository_redeemable_amount_under_management,
+                        redeemable_amount_under_management_cap: ui_to_native_amount(1_000_000_000_000), // no-cap
                     },
                 ],
             );
