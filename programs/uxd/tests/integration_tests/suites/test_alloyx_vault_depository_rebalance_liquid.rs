@@ -90,7 +90,7 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
     let amount_of_collateral_airdropped_to_user =
         ui_amount_to_native_amount(1_000_000_000, collateral_mint_decimals);
     let amount_the_user_should_be_able_to_mint =
-        ui_amount_to_native_amount(50_000_000, collateral_mint_decimals);
+        ui_amount_to_native_amount(50, collateral_mint_decimals); // TODO - bigger value after alloyx's fix
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -173,7 +173,7 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        0,
+        (amount_the_user_should_be_able_to_mint / 10).into(), // mint from 0 to 10% (from empty to matching target)
         0,
     )
     .await?;

@@ -202,7 +202,7 @@ pub async fn process_rebalance_alloyx_vault_depository(
         identity_depository_after.redeemable_amount_under_management;
     assert_eq!(
         i128::try_from(identity_depository_redeemable_amount_under_management_before).unwrap()
-            + expected_rebalance_delta_value,
+            - expected_rebalance_delta_value,
         i128::try_from(identity_depository_redeemable_amount_under_management_after).unwrap(),
     );
     // alloyx_vault_depository.redeemable_amount_under_management must have moved by the expected rebalance amount
@@ -212,7 +212,7 @@ pub async fn process_rebalance_alloyx_vault_depository(
         alloyx_vault_depository_after.redeemable_amount_under_management;
     assert_eq!(
         i128::from(alloyx_vault_depository_redeemable_amount_under_management_before)
-            - expected_rebalance_delta_value,
+            + expected_rebalance_delta_value,
         i128::from(alloyx_vault_depository_redeemable_amount_under_management_after),
     );
 
@@ -223,7 +223,7 @@ pub async fn process_rebalance_alloyx_vault_depository(
         identity_depository_after.collateral_amount_deposited;
     assert_eq!(
         i128::try_from(identity_depository_collateral_amount_deposited_before).unwrap()
-            + expected_rebalance_delta_value,
+            - expected_rebalance_delta_value,
         i128::try_from(identity_depository_collateral_amount_deposited_after).unwrap(),
     );
     // alloyx_vault_depository.collateral_amount_deposited must have moved by the expected rebalance amount
@@ -233,7 +233,7 @@ pub async fn process_rebalance_alloyx_vault_depository(
         alloyx_vault_depository_after.collateral_amount_deposited;
     assert_eq!(
         i128::from(alloyx_vault_depository_collateral_amount_deposited_before)
-            - expected_rebalance_delta_value,
+            + expected_rebalance_delta_value,
         i128::from(alloyx_vault_depository_collateral_amount_deposited_after),
     );
 
