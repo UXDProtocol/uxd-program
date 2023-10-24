@@ -2,11 +2,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
-use uxd::instructions::EditAlloyxVaultDepositoryFields;
 use uxd::instructions::EditControllerFields;
-use uxd::instructions::EditCredixLpDepositoryFields;
-use uxd::instructions::EditIdentityDepositoryFields;
-use uxd::instructions::EditMercurialVaultDepositoryFields;
 
 use crate::integration_tests::api::program_alloyx;
 use crate::integration_tests::api::program_context;
@@ -27,27 +23,7 @@ pub async fn process_deploy_program(
     collateral_mint_decimals: u8,
     redeemable_mint_decimals: u8,
 ) -> Result<(), program_context::ProgramError> {
-    // Use restictive default values for all tests
-    // Can be modified in individual test cases through edits
-    // This forces all tests be explicit about their requirements
     let redeemable_global_supply_cap = 0;
-    let identity_depository_redeemable_amount_under_management_cap = 0;
-    let identity_depository_minting_disabled = true;
-    let mercurial_vault_depository_redeemable_amount_under_management_cap = 0;
-    let mercurial_vault_depository_minting_fee_in_bps = 255;
-    let mercurial_vault_depository_redeeming_fee_in_bps = 255;
-    let mercurial_vault_depository_minting_disabled = true;
-    let mercurial_vault_depository_profits_beneficiary_collateral = Pubkey::default();
-    let credix_lp_depository_redeemable_amount_under_management_cap = 0;
-    let credix_lp_depository_minting_fee_in_bps = 255;
-    let credix_lp_depository_redeeming_fee_in_bps = 255;
-    let credix_lp_depository_minting_disabled = true;
-    let credix_lp_depository_profits_beneficiary_collateral = Pubkey::default();
-    let alloyx_vault_depository_redeemable_amount_under_management_cap = 0;
-    let alloyx_vault_depository_minting_fee_in_bps = 255;
-    let alloyx_vault_depository_redeeming_fee_in_bps = 255;
-    let alloyx_vault_depository_minting_disabled = true;
-    let alloyx_vault_depository_profits_beneficiary_collateral = Pubkey::default();
 
     // Airdrop lamports to our authority wallet, which will own various markets/vaults deployed
     program_context
@@ -95,18 +71,6 @@ pub async fn process_deploy_program(
         &collateral_mint.pubkey(),
     )
     .await?;
-    program_uxd::instructions::process_edit_identity_depository(
-        program_context,
-        payer,
-        authority,
-        &EditIdentityDepositoryFields {
-            redeemable_amount_under_management_cap: Some(
-                identity_depository_redeemable_amount_under_management_cap,
-            ),
-            minting_disabled: Some(identity_depository_minting_disabled),
-        },
-    )
-    .await?;
 
     // Mercurial onchain dependency program deployment
     program_mercurial::procedures::process_deploy_program(
@@ -134,24 +98,6 @@ pub async fn process_deploy_program(
         0,
         0,
         0,
-    )
-    .await?;
-    program_uxd::instructions::process_edit_mercurial_vault_depository(
-        program_context,
-        payer,
-        authority,
-        &collateral_mint.pubkey(),
-        &EditMercurialVaultDepositoryFields {
-            redeemable_amount_under_management_cap: Some(
-                mercurial_vault_depository_redeemable_amount_under_management_cap,
-            ),
-            minting_fee_in_bps: Some(mercurial_vault_depository_minting_fee_in_bps),
-            redeeming_fee_in_bps: Some(mercurial_vault_depository_redeeming_fee_in_bps),
-            minting_disabled: Some(mercurial_vault_depository_minting_disabled),
-            profits_beneficiary_collateral: Some(
-                mercurial_vault_depository_profits_beneficiary_collateral,
-            ),
-        },
     )
     .await?;
 
@@ -209,24 +155,6 @@ pub async fn process_deploy_program(
         0,
     )
     .await?;
-    program_uxd::instructions::process_edit_credix_lp_depository(
-        program_context,
-        payer,
-        authority,
-        &collateral_mint.pubkey(),
-        &EditCredixLpDepositoryFields {
-            redeemable_amount_under_management_cap: Some(
-                credix_lp_depository_redeemable_amount_under_management_cap,
-            ),
-            minting_fee_in_bps: Some(credix_lp_depository_minting_fee_in_bps),
-            redeeming_fee_in_bps: Some(credix_lp_depository_redeeming_fee_in_bps),
-            minting_disabled: Some(credix_lp_depository_minting_disabled),
-            profits_beneficiary_collateral: Some(
-                credix_lp_depository_profits_beneficiary_collateral,
-            ),
-        },
-    )
-    .await?;
 
     // Alloyx onchain dependency program setup
     program_alloyx::procedures::process_deploy_program(
@@ -272,24 +200,6 @@ pub async fn process_deploy_program(
         0,
     )
     .await?;
-    program_uxd::instructions::process_edit_alloyx_vault_depository(
-        program_context,
-        payer,
-        authority,
-        &collateral_mint.pubkey(),
-        &EditAlloyxVaultDepositoryFields {
-            redeemable_amount_under_management_cap: Some(
-                alloyx_vault_depository_redeemable_amount_under_management_cap,
-            ),
-            minting_fee_in_bps: Some(alloyx_vault_depository_minting_fee_in_bps),
-            redeeming_fee_in_bps: Some(alloyx_vault_depository_redeeming_fee_in_bps),
-            minting_disabled: Some(alloyx_vault_depository_minting_disabled),
-            profits_beneficiary_collateral: Some(
-                alloyx_vault_depository_profits_beneficiary_collateral,
-            ),
-        },
-    )
-    .await?;
 
     // Make sure the controller has the proper router depositories set
     program_uxd::procedures::process_set_controller_router_depositories(
@@ -297,6 +207,23 @@ pub async fn process_deploy_program(
         payer,
         authority,
         &collateral_mint.pubkey(),
+    )
+    .await?;
+
+    // Setup the fees, caps and profits beneficiary for router depositories
+    // Use restictive default values for all tests
+    // Can be modified in individual test cases through edits
+    // This forces all tests be explicit about their requirements
+    program_uxd::procedures::process_setup_router_depositories_fields(
+        program_context,
+        payer,
+        authority,
+        &collateral_mint.pubkey(),
+        0,
+        Some(255),
+        Some(255),
+        Some(true),
+        Some(Pubkey::default()),
     )
     .await?;
 
