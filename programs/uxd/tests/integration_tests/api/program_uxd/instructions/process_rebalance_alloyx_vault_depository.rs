@@ -226,7 +226,7 @@ pub async fn process_rebalance_alloyx_vault_depository(
     );
 
     // controller.profits_amount_collected must have increased by the profits amount
-    let controller_profits_total_collected_before: u64 =
+    let controller_profits_total_collected_before =
         u64::try_from(controller_before.profits_total_collected).unwrap();
     let controller_profits_total_collected_after =
         u64::try_from(controller_after.profits_total_collected).unwrap();
@@ -244,7 +244,7 @@ pub async fn process_rebalance_alloyx_vault_depository(
     );
 
     // alloyx_vault_depository.profits_amount_collected must have increased by the expected profits amount
-    let alloyx_vault_depository_profits_total_collected_before: u64 =
+    let alloyx_vault_depository_profits_total_collected_before =
         alloyx_vault_depository_before.profits_total_collected;
     let alloyx_vault_depository_profits_total_collected_after =
         alloyx_vault_depository_after.profits_total_collected;

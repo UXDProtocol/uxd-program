@@ -165,34 +165,33 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
         .alloyx_vault_depository_target_redeemable_amount;
 
     let profits_collateral_amount = {
-        let liquidity_collateral_amount: u64 = ctx.accounts.alloyx_vault_collateral.amount;
+        let liquidity_collateral_amount = ctx.accounts.alloyx_vault_collateral.amount;
         msg!(
             "[rebalance_alloyx_vault_depository:liquidity_collateral_amount:{}]",
             liquidity_collateral_amount
         );
-        let outstanding_collateral_amount: u64 =
-            ctx.accounts.alloyx_vault_info.wallet_desk_usdc_value;
+        let outstanding_collateral_amount = ctx.accounts.alloyx_vault_info.wallet_desk_usdc_value;
         msg!(
             "[rebalance_alloyx_vault_depository:outstanding_collateral_amount:{}]",
             outstanding_collateral_amount
         );
-        let total_shares_supply: u64 = ctx.accounts.alloyx_vault_mint.supply;
+        let total_shares_supply = ctx.accounts.alloyx_vault_mint.supply;
         msg!(
             "[rebalance_alloyx_vault_depository:total_shares_supply:{}]",
             total_shares_supply
         );
-        let total_shares_value: u64 =
+        let total_shares_value =
             checked_add(liquidity_collateral_amount, outstanding_collateral_amount)?;
         msg!(
             "[rebalance_alloyx_vault_depository:total_shares_value:{}]",
             total_shares_value
         );
-        let owned_shares_amount: u64 = ctx.accounts.alloyx_vault_depository_shares.amount;
+        let owned_shares_amount = ctx.accounts.alloyx_vault_depository_shares.amount;
         msg!(
             "[rebalance_alloyx_vault_depository:owned_shares_amount:{}]",
             owned_shares_amount
         );
-        let owned_shares_value: u64 = compute_value_for_shares_amount_floor(
+        let owned_shares_value = compute_value_for_shares_amount_floor(
             owned_shares_amount,
             total_shares_supply,
             total_shares_value,

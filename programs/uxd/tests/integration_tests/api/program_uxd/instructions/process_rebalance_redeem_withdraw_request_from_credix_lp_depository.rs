@@ -221,7 +221,7 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     );
 
     // controller.profits_amount_collected must have increased by the profits amount
-    let controller_profits_total_collected_before: u64 =
+    let controller_profits_total_collected_before =
         u64::try_from(controller_before.profits_total_collected).unwrap();
     let controller_profits_total_collected_after =
         u64::try_from(controller_after.profits_total_collected).unwrap();
@@ -271,7 +271,7 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     );
 
     // credix_lp_depository.profits_amount_collected must have increased by the profits amount
-    let credix_lp_depository_profits_total_collected_before: u64 =
+    let credix_lp_depository_profits_total_collected_before =
         u64::try_from(credix_lp_depository_before.profits_total_collected).unwrap();
     let credix_lp_depository_profits_total_collected_after =
         u64::try_from(credix_lp_depository_after.profits_total_collected).unwrap();

@@ -1,8 +1,8 @@
 use solana_program_test::tokio;
 use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
-
 use spl_token::state::Account;
+
 use uxd::instructions::EditControllerFields;
 use uxd::instructions::EditDepositoriesRoutingWeightBps;
 
@@ -13,8 +13,8 @@ use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::utils::ui_amount_to_native_amount;
 
 #[tokio::test]
-async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_context::ProgramError>
-{
+async fn test_alloyx_vault_depository_rebalance_illiquid(
+) -> Result<(), program_context::ProgramError> {
     // ---------------------------------------------------------------------
     // -- Phase 1
     // -- Setup basic context and accounts needed for this test suite
@@ -155,8 +155,8 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
                 identity_depository_weight_bps: 40 * 100,        // 40%
                 mercurial_vault_depository_weight_bps: 25 * 100, // 25%
-                credix_lp_depository_weight_bps: 25 * 100,       // 25%
-                alloyx_vault_depository_weight_bps: 10 * 100,    // 10%
+                credix_lp_depository_weight_bps: 15 * 100,       // 15%
+                alloyx_vault_depository_weight_bps: 20 * 100,    // 20%
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
@@ -204,97 +204,25 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
     // ---------------------------------------------------------------------
     // -- Phase 3
     // -- Now that identity_depository has some over-weight and alloyx is underweight
-    // -- Trigger a rebalance, then change the weights and rebalance again.
-    // -- Then change the weights again to make alloyx overweight and rebalance again
+    // -- We trigger a rebalance to make a deposit into the alloyx vault.
+    // -- After that we siphon off the liquidity from the alloyx vault, we simulate profits.
+    // -- Rebalancing should be blocked until liquidity comes back
     // ---------------------------------------------------------------------
 
-    // Alloyx should be 10% underweight, so rebalancing should deposit 10% of the supply into alloyx
+    // The first rebalance will deposit 20% of supply to alloyx
+    let amount_first_deposited_into_alloyx = amount_the_user_should_be_able_to_mint * 20 / 100;
+
+    // Alloyx should be 20% underweight, so rebalancing should deposit 20% of the supply into alloyx
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        i128::from(amount_the_user_should_be_able_to_mint * 10 / 100), // 10% deposit
+        i128::from(amount_first_deposited_into_alloyx), // 20% deposit
         0,
     )
     .await?;
-
-    // Set the controller's router weights (increase alloyx weight)
-    program_uxd::instructions::process_edit_controller(
-        &mut program_context,
-        &payer,
-        &authority,
-        &EditControllerFields {
-            redeemable_global_supply_cap: None,
-            depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
-                identity_depository_weight_bps: 40 * 100,        // 40%
-                mercurial_vault_depository_weight_bps: 25 * 100, // 25%
-                credix_lp_depository_weight_bps: 20 * 100,       // 20%
-                alloyx_vault_depository_weight_bps: 15 * 100,    // 15%
-            }),
-            router_depositories: None,
-            outflow_limit_per_epoch_amount: None,
-            outflow_limit_per_epoch_bps: None,
-            slots_per_epoch: None,
-        },
-    )
-    .await?;
-
-    // Alloyx should be 5% underweight, so rebalancing should deposit 5% of the supply into alloyx
-    program_uxd::instructions::process_rebalance_alloyx_vault_depository(
-        &mut program_context,
-        &payer,
-        &collateral_mint.pubkey(),
-        &alloyx_vault_mint.pubkey(),
-        &profits_beneficiary_collateral,
-        i128::from(amount_the_user_should_be_able_to_mint * 5 / 100), // 5% deposit
-        0,
-    )
-    .await?;
-
-    // Set the controller's router weights (decrease alloyx weight)
-    program_uxd::instructions::process_edit_controller(
-        &mut program_context,
-        &payer,
-        &authority,
-        &EditControllerFields {
-            redeemable_global_supply_cap: None,
-            depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
-                identity_depository_weight_bps: 40 * 100,        // 40%
-                mercurial_vault_depository_weight_bps: 25 * 100, // 25%
-                credix_lp_depository_weight_bps: 30 * 100,       // 30%
-                alloyx_vault_depository_weight_bps: 5 * 100,     // 5%
-            }),
-            router_depositories: None,
-            outflow_limit_per_epoch_amount: None,
-            outflow_limit_per_epoch_bps: None,
-            slots_per_epoch: None,
-        },
-    )
-    .await?;
-
-    // Alloyx should be 10% overweight, so rebalancing should withdraw 10% of the supply into alloyx
-    program_uxd::instructions::process_rebalance_alloyx_vault_depository(
-        &mut program_context,
-        &payer,
-        &collateral_mint.pubkey(),
-        &alloyx_vault_mint.pubkey(),
-        &profits_beneficiary_collateral,
-        -i128::from(amount_the_user_should_be_able_to_mint * 10 / 100), // 10% withdrawal
-        0,
-    )
-    .await?;
-
-    // ---------------------------------------------------------------------
-    // -- Phase 4
-    // -- Simulate profits generation inside of the alloyx vault by depositing collaeral
-    // -- Rebalancing should withdraw the expected profits while while also rebalancing to the desired weight at the same time
-    // ---------------------------------------------------------------------
-
-    // At profit generation time, the collateral inside of the vault is 5% of supply
-    let amount_deposited_in_alloyx_vault_at_profit_time =
-        amount_the_user_should_be_able_to_mint * 5 / 100;
 
     // Compute how much profits we are expected to be able to collect
     let alloyx_vault_id = program_alloyx::accounts::find_vault_id();
@@ -318,22 +246,10 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
     ) + alloyx_vault_collateral_before.amount;
 
     let expected_profits_collateral_amount = u64::try_from(
-        u128::from(amount_deposited_in_alloyx_vault_at_profit_time)
-            * u128::from(amount_of_generated_profits)
+        u128::from(amount_first_deposited_into_alloyx) * u128::from(amount_of_generated_profits)
             / u128::from(alloyx_vault_total_collateral_before),
     )
     .unwrap();
-
-    // Airdrop collateral to our authority, this collateral will be used for depositing as profits to alloyx vault
-    program_spl::instructions::process_token_mint_to(
-        &mut program_context,
-        &payer,
-        &collateral_mint.pubkey(),
-        &collateral_mint,
-        &authority_collateral,
-        amount_of_generated_profits,
-    )
-    .await?;
 
     // Notify that the vault has generated profits
     program_alloyx::instructions::process_set_vault_info(
@@ -344,16 +260,16 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
     )
     .await?;
 
-    // Deposit collateral into the alloyx vault, this collateral will be considered as profit
-    program_alloyx::instructions::process_transfer_usdc_in(
+    // Siphon all of the liquidity out of the alloyx vault
+    program_alloyx::instructions::process_transfer_usdc_out(
         &mut program_context,
         &authority,
         &collateral_mint.pubkey(),
-        amount_of_generated_profits,
+        alloyx_vault_collateral_before.amount,
     )
     .await?;
 
-    // Set the controller's router weights (increase alloyx weight)
+    // Set the controller's router weights (decrease alloyx weight)
     program_uxd::instructions::process_edit_controller(
         &mut program_context,
         &payer,
@@ -361,10 +277,10 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
         &EditControllerFields {
             redeemable_global_supply_cap: None,
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
-                identity_depository_weight_bps: 40 * 100,        // 40%
-                mercurial_vault_depository_weight_bps: 20 * 100, // 20%
-                credix_lp_depository_weight_bps: 30 * 100,       // 30%
-                alloyx_vault_depository_weight_bps: 10 * 100,    // 10%
+                identity_depository_weight_bps: 45 * 100,        // 45%
+                mercurial_vault_depository_weight_bps: 25 * 100, // 25%
+                credix_lp_depository_weight_bps: 25 * 100,       // 25%
+                alloyx_vault_depository_weight_bps: 5 * 100,     // 5%
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
@@ -374,16 +290,97 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
     )
     .await?;
 
-    // Alloyx should be 5% underweight, so rebalancing should deposit 5% of the supply into alloyx
-    // It should also withdraw the expected amount of profits at the same time
+    // Alloyx should be 15% overweight, so rebalancing should try to withdraw 15% of the supply into alloyx
+    // No available liquidity is there tho, so nothing can be done yet
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        i128::from(amount_the_user_should_be_able_to_mint * 5 / 100), // 5% deposit
+        0, // nothing can happen yet
+        0, // nothing can happen yet
+    )
+    .await?;
+
+    // ---------------------------------------------------------------------
+    // -- Phase 4
+    // -- Now that there is zero liquidity in the vault, drip back some liquidity
+    // -- Then we watch the rebalancing do its best effort to collect profit and do rebalancing when liquidity becomes available
+    // ---------------------------------------------------------------------
+
+    // Return a little bit of liquidity back to the vault
+    program_alloyx::instructions::process_transfer_usdc_in(
+        &mut program_context,
+        &authority,
+        &collateral_mint.pubkey(),
         expected_profits_collateral_amount,
+    )
+    .await?;
+
+    // The rebalancing should prioritize profits
+    program_uxd::instructions::process_rebalance_alloyx_vault_depository(
+        &mut program_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &alloyx_vault_mint.pubkey(),
+        &profits_beneficiary_collateral,
+        0,
+        expected_profits_collateral_amount,
+    )
+    .await?;
+
+    // Return a little bit of liquidity back to the vault
+    program_alloyx::instructions::process_transfer_usdc_in(
+        &mut program_context,
+        &authority,
+        &collateral_mint.pubkey(),
+        amount_first_deposited_into_alloyx / 2,
+    )
+    .await?;
+
+    // The rebalancing can start rebalancing once all profits was collected
+    program_uxd::instructions::process_rebalance_alloyx_vault_depository(
+        &mut program_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &alloyx_vault_mint.pubkey(),
+        &profits_beneficiary_collateral,
+        -i128::from(amount_first_deposited_into_alloyx / 2), // partial rebalancing
+        0,                                                   // no more profits to collect
+    )
+    .await?;
+
+    // Return a little bit of liquidity back to the vault
+    program_alloyx::instructions::process_transfer_usdc_in(
+        &mut program_context,
+        &authority,
+        &collateral_mint.pubkey(),
+        amount_first_deposited_into_alloyx / 2,
+    )
+    .await?;
+
+    // The rebalancing can start rebalancing once all profits was collected
+    program_uxd::instructions::process_rebalance_alloyx_vault_depository(
+        &mut program_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &alloyx_vault_mint.pubkey(),
+        &profits_beneficiary_collateral,
+        -i128::from(amount_first_deposited_into_alloyx / 2), // partial rebalancing
+        0,                                                   // no more profits to collect
+    )
+    .await?;
+
+    // The rebalancing can start rebalancing once all profits was collected
+    program_uxd::instructions::process_rebalance_alloyx_vault_depository(
+        &mut program_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &alloyx_vault_mint.pubkey(),
+        &profits_beneficiary_collateral,
+        0, // finished rebalancing
+        0, // no more profits to collect
     )
     .await?;
 

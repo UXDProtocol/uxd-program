@@ -83,7 +83,7 @@ pub async fn process_dummy_actors_behaviors(
         &dummy_investor,
         &dummy_investor_collateral,
         &dummy_investor_alloyx,
-        1_000,
+        1_000_000,
     )
     .await?;
 
@@ -92,7 +92,7 @@ pub async fn process_dummy_actors_behaviors(
         program_context,
         authority,
         &collateral_mint.pubkey(),
-        1_000,
+        1_000_000,
     )
     .await?;
 
@@ -101,7 +101,7 @@ pub async fn process_dummy_actors_behaviors(
         program_context,
         authority,
         &collateral_mint.pubkey(),
-        1_000,
+        1_000_000,
     )
     .await?;
 

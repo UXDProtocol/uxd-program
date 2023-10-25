@@ -1,4 +1,5 @@
 pub mod test_alloyx_vault_depository_edit;
+pub mod test_alloyx_vault_depository_rebalance_illiquid;
 pub mod test_alloyx_vault_depository_rebalance_liquid;
 pub mod test_controller_edit;
 pub mod test_credix_lp_depository_edit;
