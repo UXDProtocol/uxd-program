@@ -1,7 +1,0 @@
-# Seeds for failure cases proptest has generated in the past. It is
-# automatically read and these particular cases re-run before any
-# novel cases are generated.
-#
-# It is recommended to check this file in to source control so that
-# everyone who runs the test benefits from these saved cases.
-cc 47d6472c27e462e509cc209b79fc5409648d171d3e4ea4ce60da6162570c3010 # shrinks to requested_mint_collateral_amount = 9143507455596000913, identity_depository_target_redeemable_amount = 0, mercurial_vault_depository_target_redeemable_amount = 0, credix_lp_depository_target_redeemable_amount = 3223267510270299246, alloyx_vault_depository_target_redeemable_amount = 1686780530188197228, identity_depository_redeemable_amount_under_management = 4222630775251553577, mercurial_vault_depository_redeemable_amount_under_management = 2271880388902068943, credix_lp_depository_redeemable_amount_under_management = 2808725453959928183, alloyx_vault_depository_redeemable_amount_under_management = 0
