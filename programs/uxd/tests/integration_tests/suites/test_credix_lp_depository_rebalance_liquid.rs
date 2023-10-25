@@ -53,7 +53,7 @@ async fn test_credix_lp_depository_rebalance_liquid() -> Result<(), program_cont
     )
     .await?;
 
-    // Main actor
+    // Main actors
     let user = Keypair::new();
     let profits_beneficiary = Keypair::new();
 

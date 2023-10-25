@@ -54,7 +54,7 @@ async fn test_credix_lp_depository_rebalance_under_requested(
     )
     .await?;
 
-    // Main actor
+    // Main actors
     let user = Keypair::new();
     let profits_beneficiary = Keypair::new();
 

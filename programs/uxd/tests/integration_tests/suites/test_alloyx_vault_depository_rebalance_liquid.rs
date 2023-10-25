@@ -54,9 +54,18 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
     )
     .await?;
 
-    // Main actor
+    // Main actors
     let user = Keypair::new();
     let profits_beneficiary = Keypair::new();
+
+    // Create a collateral account for our payer
+    let payer_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
+        &mut program_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &payer.pubkey(),
+    )
+    .await?;
 
     // Create a collateral account for our user
     let user_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
@@ -113,6 +122,17 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
     // -- Set all depository caps for proper target computation
     // -- Mint a bunch using identity_depository to fill it up above its target
     // ---------------------------------------------------------------------
+
+    // Airdrop a tiny amount of collateral to our payer (to pay rebalance precision loss)
+    program_spl::instructions::process_token_mint_to(
+        &mut program_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &collateral_mint,
+        &payer_collateral,
+        1_000,
+    )
+    .await?;
 
     // Airdrop collateral to our user
     program_spl::instructions::process_token_mint_to(
