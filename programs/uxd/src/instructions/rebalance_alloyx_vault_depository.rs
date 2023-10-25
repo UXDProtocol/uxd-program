@@ -158,17 +158,41 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
 
     let profits_collateral_amount = {
         let liquidity_collateral_amount: u64 = ctx.accounts.alloyx_vault_collateral.amount;
+        msg!(
+            "[rebalance_alloyx_vault_depository:liquidity_collateral_amount:{}]",
+            liquidity_collateral_amount
+        );
         let outstanding_collateral_amount: u64 =
             ctx.accounts.alloyx_vault_info.wallet_desk_usdc_value;
+        msg!(
+            "[rebalance_alloyx_vault_depository:outstanding_collateral_amount:{}]",
+            outstanding_collateral_amount
+        );
         let total_shares_supply: u64 = ctx.accounts.alloyx_vault_mint.supply;
+        msg!(
+            "[rebalance_alloyx_vault_depository:total_shares_supply:{}]",
+            total_shares_supply
+        );
         let total_shares_value: u64 =
             checked_add(liquidity_collateral_amount, outstanding_collateral_amount)?;
+        msg!(
+            "[rebalance_alloyx_vault_depository:total_shares_value:{}]",
+            total_shares_value
+        );
         let owned_shares_amount: u64 = ctx.accounts.alloyx_vault_depository_shares.amount;
+        msg!(
+            "[rebalance_alloyx_vault_depository:owned_shares_amount:{}]",
+            owned_shares_amount
+        );
         let owned_shares_value: u64 = compute_value_for_shares_amount_floor(
             owned_shares_amount,
             total_shares_supply,
             total_shares_value,
         )?;
+        msg!(
+            "[rebalance_alloyx_vault_depository:owned_shares_value:{}]",
+            owned_shares_value
+        );
         checked_sub(owned_shares_value, redeemable_amount_under_management)?
     };
     msg!(
@@ -214,7 +238,7 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
 
     let withdrawn_profits_collateral_amount =
         ctx.accounts
-            .withdraw_from_alloyx_vault_to(profits_collateral_amount, true, vault_id)?;
+            .withdraw_from_alloyx_vault(profits_collateral_amount, true, vault_id)?;
     msg!(
         "[rebalance_alloyx_vault_depository:withdrawn_profits_collateral_amount:{}]",
         withdrawn_profits_collateral_amount
@@ -240,7 +264,7 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
 
     let withdrawn_overflow_collateral =
         ctx.accounts
-            .withdraw_from_alloyx_vault_to(overflow_value, false, vault_id)?;
+            .withdraw_from_alloyx_vault(overflow_value, false, vault_id)?;
     msg!(
         "[rebalance_alloyx_vault_depository:withdrawn_overflow_collateral:{}]",
         withdrawn_overflow_collateral
@@ -313,7 +337,7 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
     // Withdraw from alloyx's vault toward the destination_collateral,
     // on a best effort basis, while double-checking all the output results
     // returns the exact amount withdrawn
-    pub(crate) fn withdraw_from_alloyx_vault_to(
+    pub(crate) fn withdraw_from_alloyx_vault(
         &mut self,
         desired_collateral_amount: u64,
         is_profits: bool,
@@ -351,22 +375,47 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
             desired_collateral_amount,
             liquidity_collateral_amount_before,
         );
-        let shares_amount: u64 = compute_shares_amount_for_value_floor(
+        let shares_amount_before_precision_loss: u64 = compute_shares_amount_for_value_floor(
             collateral_amount_before_precision_loss,
             total_shares_supply_before,
             total_shares_value_before,
         )?;
-        if shares_amount == 0 {
+        if shares_amount_before_precision_loss == 0 {
             return Ok(0);
         }
         let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount_floor(
-            shares_amount,
+            shares_amount_before_precision_loss,
             total_shares_supply_before,
             total_shares_value_before,
         )?;
         if collateral_amount_after_precision_loss == 0 {
             return Ok(0);
         }
+        let shares_amount_after_precision_loss: u64 = compute_shares_amount_for_value_floor(
+            collateral_amount_after_precision_loss,
+            total_shares_supply_before,
+            total_shares_value_before,
+        )?;
+        if shares_amount_after_precision_loss == 0 {
+            return Ok(0);
+        }
+
+        msg!(
+            "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault:collateral_amount_before_precision_loss:{}]",
+            collateral_amount_before_precision_loss
+        );
+        msg!(
+            "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault:shares_amount_before_precision_loss:{}]",
+            shares_amount_before_precision_loss
+        );
+        msg!(
+            "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault:collateral_amount_after_precision_loss:{}]",
+            collateral_amount_after_precision_loss
+        );
+        msg!(
+            "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault:shares_amount_after_precision_loss:{}]",
+            shares_amount_after_precision_loss
+        );
 
         // Actually runs the CPI
         let alloyx_vault_info = self.alloyx_vault_depository.load()?.alloyx_vault_info;
@@ -381,7 +430,7 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
             self.into_withdraw_from_alloyx_vault_context()
                 .with_signer(alloyx_vault_depository_pda_signer),
             vault_id.to_owned(),
-            shares_amount,
+            shares_amount_after_precision_loss,
         )?;
         token::transfer(
             self
@@ -445,6 +494,27 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
         let owned_shares_value_decrease: u64 =
             compute_decrease(owned_shares_value_before, owned_shares_value_after)?;
 
+        msg!(
+                "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault:destination_collateral_amount_increase:{}]",
+                destination_collateral_amount_increase
+            );
+        msg!(
+                "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault:total_shares_supply_decrease:{}]",
+                total_shares_supply_decrease
+            );
+        msg!(
+                "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault:total_shares_value_decrease:{}]",
+                total_shares_value_decrease
+            );
+        msg!(
+                "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault:owned_shares_amount_decrease:{}]",
+                owned_shares_amount_decrease
+            );
+        msg!(
+                "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault:owned_shares_value_decrease:{}]",
+                owned_shares_value_decrease
+            );
+
         // Verify that everything went exactly like according to plan
         require!(
             destination_collateral_amount_increase == collateral_amount_after_precision_loss,
@@ -456,11 +526,11 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
             UxdError::CollateralDepositHasRemainingDust
         );
         require!(
-            total_shares_supply_decrease == shares_amount,
+            total_shares_supply_decrease == shares_amount_after_precision_loss,
             UxdError::CollateralDepositAmountsDoesntMatch,
         );
         require!(
-            owned_shares_amount_decrease == shares_amount,
+            owned_shares_amount_decrease == shares_amount_after_precision_loss,
             UxdError::CollateralDepositAmountsDoesntMatch,
         );
         require!(
@@ -521,22 +591,47 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
             desired_collateral_amount,
             identity_depository_collateral_amount_before,
         );
-        let shares_amount: u64 = compute_shares_amount_for_value_floor(
+        let shares_amount_before_precision_loss: u64 = compute_shares_amount_for_value_floor(
             collateral_amount_before_precision_loss,
             total_shares_supply_before,
             total_shares_value_before,
         )?;
-        if shares_amount == 0 {
+        if shares_amount_before_precision_loss == 0 {
             return Ok(0);
         }
         let collateral_amount_after_precision_loss: u64 = compute_value_for_shares_amount_floor(
-            shares_amount,
+            shares_amount_before_precision_loss,
             total_shares_supply_before,
             total_shares_value_before,
         )?;
         if collateral_amount_after_precision_loss == 0 {
             return Ok(0);
         }
+        let shares_amount_after_precision_loss: u64 = compute_shares_amount_for_value_floor(
+            collateral_amount_after_precision_loss,
+            total_shares_supply_before,
+            total_shares_value_before,
+        )?;
+        if shares_amount_after_precision_loss == 0 {
+            return Ok(0);
+        }
+
+        msg!(
+            "[rebalance_alloyx_vault_depository:deposit_to_alloyx_vault_from_identity_depository:collateral_amount_before_precision_loss:{}]",
+            collateral_amount_before_precision_loss
+        );
+        msg!(
+            "[rebalance_alloyx_vault_depository:deposit_to_alloyx_vault_from_identity_depository:shares_amount_before_precision_loss:{}]",
+            shares_amount_before_precision_loss
+        );
+        msg!(
+            "[rebalance_alloyx_vault_depository:deposit_to_alloyx_vault_from_identity_depository:collateral_amount_after_precision_loss:{}]",
+            collateral_amount_after_precision_loss
+        );
+        msg!(
+            "[rebalance_alloyx_vault_depository:deposit_to_alloyx_vault_from_identity_depository:shares_amount_after_precision_loss:{}]",
+            shares_amount_after_precision_loss
+        );
 
         // Actually runs the CPI
         let alloyx_vault_info = self.alloyx_vault_depository.load()?.alloyx_vault_info;
@@ -606,6 +701,27 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
         let owned_shares_value_increase: u64 =
             compute_increase(owned_shares_value_before, owned_shares_value_after)?;
 
+        msg!(
+            "[rebalance_alloyx_vault_depository:deposit_to_alloyx_vault_from_identity_depository:identity_depository_collateral_amount_decrease:{}]",
+            identity_depository_collateral_amount_decrease
+        );
+        msg!(
+            "[rebalance_alloyx_vault_depository:deposit_to_alloyx_vault_from_identity_depository:total_shares_supply_increase:{}]",
+            total_shares_supply_increase
+        );
+        msg!(
+            "[rebalance_alloyx_vault_depository:deposit_to_alloyx_vault_from_identity_depository:total_shares_value_increase:{}]",
+            total_shares_value_increase
+        );
+        msg!(
+            "[rebalance_alloyx_vault_depository:deposit_to_alloyx_vault_from_identity_depository:owned_shares_amount_increase:{}]",
+            owned_shares_amount_increase
+        );
+        msg!(
+            "[rebalance_alloyx_vault_depository:deposit_to_alloyx_vault_from_identity_depository:owned_shares_value_increase:{}]",
+            owned_shares_value_increase
+        );
+
         // Verify that everything went exactly like according to plan
         require!(
             identity_depository_collateral_amount_decrease
@@ -618,11 +734,11 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
             UxdError::CollateralDepositHasRemainingDust
         );
         require!(
-            total_shares_supply_increase == shares_amount,
+            total_shares_supply_increase == shares_amount_after_precision_loss,
             UxdError::CollateralDepositAmountsDoesntMatch,
         );
         require!(
-            owned_shares_amount_increase == shares_amount,
+            owned_shares_amount_increase == shares_amount_after_precision_loss,
             UxdError::CollateralDepositAmountsDoesntMatch,
         );
         require!(

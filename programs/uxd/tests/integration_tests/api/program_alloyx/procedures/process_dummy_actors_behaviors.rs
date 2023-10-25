@@ -19,7 +19,15 @@ pub async fn process_dummy_actors_behaviors(
         .process_airdrop(&dummy_investor.pubkey(), 1_000_000_000_000)
         .await?;
 
-    // Create dummy investor ATAs
+    // Create ATAs
+    let authority_collateral =
+        program_spl::instructions::process_associated_token_account_get_or_init(
+            program_context,
+            authority,
+            &collateral_mint.pubkey(),
+            &authority.pubkey(),
+        )
+        .await?;
     let dummy_investor_collateral =
         program_spl::instructions::process_associated_token_account_get_or_init(
             program_context,
@@ -36,6 +44,17 @@ pub async fn process_dummy_actors_behaviors(
             &dummy_investor.pubkey(),
         )
         .await?;
+
+    // Airdrop some collateral to our authority
+    program_spl::instructions::process_token_mint_to(
+        program_context,
+        authority,
+        &collateral_mint.pubkey(),
+        collateral_mint,
+        &authority_collateral,
+        1_000_000_000,
+    )
+    .await?;
 
     // Airdrop some collateral to our dummy investor
     program_spl::instructions::process_token_mint_to(
@@ -64,6 +83,24 @@ pub async fn process_dummy_actors_behaviors(
         &dummy_investor,
         &dummy_investor_collateral,
         &dummy_investor_alloyx,
+        1_000,
+    )
+    .await?;
+
+    // Simulate that the vault has generated profits
+    program_alloyx::instructions::process_set_vault_info(
+        program_context,
+        authority,
+        &collateral_mint.pubkey(),
+        1_000,
+    )
+    .await?;
+
+    // Deposit collateral into the alloyx vault, this collateral will be considered as profit
+    program_alloyx::instructions::process_transfer_usdc_in(
+        program_context,
+        authority,
+        &collateral_mint.pubkey(),
         1_000,
     )
     .await?;
