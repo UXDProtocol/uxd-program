@@ -309,16 +309,21 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
     // -- Then we watch the rebalancing do its best effort to collect profit and do rebalancing when liquidity becomes available
     // ---------------------------------------------------------------------
 
+    let amount_of_liquidity_collateral_first_unlock =
+        ui_amount_to_native_amount(10, collateral_mint_decimals);
+
+    let amount_of_liquidity_collateral_second_unlocked = amount_first_deposited_into_alloyx;
+
     // Return a little bit of liquidity back to the vault
     program_alloyx::instructions::process_transfer_usdc_in(
         &mut program_context,
         &authority,
         &collateral_mint.pubkey(),
-        expected_profits_collateral_amount,
+        amount_of_liquidity_collateral_first_unlock,
     )
     .await?;
 
-    // The rebalancing should prioritize profits
+    // The rebalancing should prioritize profits on a best-effort
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
         &mut program_context,
         &payer,
@@ -326,7 +331,7 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
         0,
-        expected_profits_collateral_amount,
+        amount_of_liquidity_collateral_first_unlock,
     )
     .await?;
 
