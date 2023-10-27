@@ -114,7 +114,7 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         ui_amount_to_native_amount(50_000_000, collateral_mint_decimals);
 
     let amount_of_generated_profits =
-        ui_amount_to_native_amount(10_000_000, collateral_mint_decimals);
+        ui_amount_to_native_amount(1_000_000, collateral_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -122,6 +122,17 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
     // -- Set all depository caps for proper target computation
     // -- Mint a bunch using identity_depository to fill it up above its target
     // ---------------------------------------------------------------------
+
+    // Airdrop collateral to our authority, this collateral will be used for depositing as profits to alloyx vault
+    program_spl::instructions::process_token_mint_to(
+        &mut program_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &collateral_mint,
+        &authority_collateral,
+        amount_of_generated_profits,
+    )
+    .await?;
 
     // Airdrop a tiny amount of collateral to our payer (to pay rebalance precision loss)
     program_spl::instructions::process_token_mint_to(
@@ -312,7 +323,13 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
     let amount_of_liquidity_collateral_first_unlock =
         ui_amount_to_native_amount(10, collateral_mint_decimals);
 
-    let amount_of_liquidity_collateral_second_unlocked = amount_first_deposited_into_alloyx;
+    let amount_of_liquidity_collateral_second_unlock =
+        ui_amount_to_native_amount(5_000_000, collateral_mint_decimals);
+
+    let amount_of_liquidity_collateral_third_unlock = amount_of_generated_profits
+        + alloyx_vault_collateral_before.amount
+        - amount_of_liquidity_collateral_first_unlock
+        - amount_of_liquidity_collateral_second_unlock;
 
     // Return a little bit of liquidity back to the vault
     program_alloyx::instructions::process_transfer_usdc_in(
@@ -330,8 +347,8 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        0,
-        amount_of_liquidity_collateral_first_unlock,
+        0,                                           // no liquidity available for rebalancing
+        amount_of_liquidity_collateral_first_unlock, // all liquidity goes toward profits
     )
     .await?;
 
@@ -340,19 +357,23 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &mut program_context,
         &authority,
         &collateral_mint.pubkey(),
-        amount_first_deposited_into_alloyx / 2,
+        amount_of_liquidity_collateral_second_unlock,
     )
     .await?;
 
-    // The rebalancing can start rebalancing once all profits was collected
+    // The rebalancing can start rebalancing only once all profits was collected
+    let amount_of_profits_for_second_unlock =
+        expected_profits_collateral_amount - amount_of_liquidity_collateral_first_unlock - 2;
+    let amount_of_rebalancing_for_second_unlock =
+        amount_of_liquidity_collateral_second_unlock - amount_of_profits_for_second_unlock - 2;
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        -i128::from(amount_first_deposited_into_alloyx / 2), // partial rebalancing
-        0,                                                   // no more profits to collect
+        -i128::from(amount_of_rebalancing_for_second_unlock), // partial rebalancing if possible
+        amount_of_profits_for_second_unlock,                  // profits prioritized
     )
     .await?;
 
@@ -361,18 +382,23 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &mut program_context,
         &authority,
         &collateral_mint.pubkey(),
-        amount_first_deposited_into_alloyx / 2,
+        amount_of_liquidity_collateral_third_unlock,
     )
     .await?;
 
     // The rebalancing can start rebalancing once all profits was collected
+    let amount_final_expected_in_alloyx_depository =
+        amount_the_user_should_be_able_to_mint * 5 / 100; // 5% weight
+    let amount_of_rebalancing_for_third_unlock = amount_first_deposited_into_alloyx
+        - amount_final_expected_in_alloyx_depository
+        - amount_of_rebalancing_for_second_unlock;
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        -i128::from(amount_first_deposited_into_alloyx / 2), // partial rebalancing
+        -i128::from(amount_of_rebalancing_for_third_unlock), // partial rebalancing
         0,                                                   // no more profits to collect
     )
     .await?;

@@ -188,7 +188,12 @@ pub async fn process_rebalance_alloyx_vault_depository(
         i128::try_from(identity_depository_redeemable_amount_under_management_before).unwrap()
             - expected_rebalance_delta_value,
         i128::try_from(identity_depository_redeemable_amount_under_management_after).unwrap(),
-        "invalid identity_depository.redeemable_amount_under_management"
+        "invalid identity_depository.redeemable_amount_under_management: {} + {} -> {} ({})",
+        identity_depository_redeemable_amount_under_management_before,
+        expected_rebalance_delta_value,
+        identity_depository_redeemable_amount_under_management_after,
+        i128::try_from(identity_depository_redeemable_amount_under_management_before).unwrap()
+            - i128::try_from(identity_depository_redeemable_amount_under_management_after).unwrap()
     );
     // alloyx_vault_depository.redeemable_amount_under_management must have moved by the expected rebalance amount
     let alloyx_vault_depository_redeemable_amount_under_management_before =
@@ -233,7 +238,11 @@ pub async fn process_rebalance_alloyx_vault_depository(
     assert_eq!(
         controller_profits_total_collected_before + expected_profits_amount,
         controller_profits_total_collected_after,
-        "invalid controller.profits_total_collected"
+        "invalid controller.profits_total_collected: {} + {} -> {} ({})",
+        controller_profits_total_collected_before,
+        expected_profits_amount,
+        controller_profits_total_collected_after,
+        controller_profits_total_collected_after - controller_profits_total_collected_before
     );
 
     // profits_beneficiary_collateral.amount must have increased by the expected profits amount

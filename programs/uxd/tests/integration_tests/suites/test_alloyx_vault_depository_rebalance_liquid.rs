@@ -123,6 +123,17 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
     // -- Mint a bunch using identity_depository to fill it up above its target
     // ---------------------------------------------------------------------
 
+    // Airdrop collateral to our authority, this collateral will be used for depositing as profits to alloyx vault
+    program_spl::instructions::process_token_mint_to(
+        &mut program_context,
+        &payer,
+        &collateral_mint.pubkey(),
+        &collateral_mint,
+        &authority_collateral,
+        amount_of_generated_profits,
+    )
+    .await?;
+
     // Airdrop a tiny amount of collateral to our payer (to pay rebalance precision loss)
     program_spl::instructions::process_token_mint_to(
         &mut program_context,
@@ -323,17 +334,6 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
             / u128::from(alloyx_vault_total_collateral_before),
     )
     .unwrap();
-
-    // Airdrop collateral to our authority, this collateral will be used for depositing as profits to alloyx vault
-    program_spl::instructions::process_token_mint_to(
-        &mut program_context,
-        &payer,
-        &collateral_mint.pubkey(),
-        &collateral_mint,
-        &authority_collateral,
-        amount_of_generated_profits,
-    )
-    .await?;
 
     // Notify that the vault has generated profits
     program_alloyx::instructions::process_set_vault_info(
