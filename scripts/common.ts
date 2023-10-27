@@ -3,6 +3,7 @@ import {
   Connection,
   ConnectionConfig,
   ConfirmOptions,
+  Keypair,
 } from '@solana/web3.js';
 import {
   IdentityDepository,
@@ -73,3 +74,12 @@ export async function createCredixLpDepository() {
     throw error;
   }
 }
+
+// Dummy payer for mainnet tooling E7N44oZ3APNFjzv95xL6kSxSLgw3wVP3ixM7dgsMApzZ
+export const payer = Keypair.fromSeed(
+  Uint8Array.from([
+    1, 56, 76, 89, 32, 55, 1, 128, 98, 23, 56, 22, 30, 12, 76, 23, 2, 9, 3, 5,
+    1, 22, 120, 109, 0, 8, 5, 3, 2, 7, 6, 8,
+  ])
+);
+console.log('payer', payer.publicKey.toBase58());

@@ -4,11 +4,7 @@ const {
   UXDClient,
   nativeToUi,
 } = require('@uxd-protocol/uxd-client');
-const {
-  Keypair,
-  Transaction,
-  ComputeBudgetProgram,
-} = require('@solana/web3.js');
+const { Transaction, ComputeBudgetProgram } = require('@solana/web3.js');
 const { web3 } = require('@project-serum/anchor');
 const { BN } = require('bn.js');
 const {
@@ -16,6 +12,7 @@ const {
   createIdentityDepository,
   createMercurialVaultDepository,
   getConnection,
+  payer,
   TXN_OPTS,
   uxdProgramId,
 } = require('./common');
@@ -26,15 +23,6 @@ async function main() {
   console.log('------------------------ PREPARATION ------------------------');
   console.log('------------------------------ ------------------------------');
   console.log();
-
-  // Dummy payer for mainnet tooling E7N44oZ3APNFjzv95xL6kSxSLgw3wVP3ixM7dgsMApzZ
-  const payer = Keypair.fromSeed(
-    Uint8Array.from([
-      1, 56, 76, 89, 32, 55, 1, 128, 98, 23, 56, 22, 30, 12, 76, 23, 2, 9, 3, 5,
-      1, 22, 120, 109, 0, 8, 5, 3, 2, 7, 6, 8,
-    ])
-  );
-  console.log('payer', payer.publicKey.toBase58());
 
   const controller = new Controller('UXD', 6, uxdProgramId);
   const identityDepository = createIdentityDepository();
