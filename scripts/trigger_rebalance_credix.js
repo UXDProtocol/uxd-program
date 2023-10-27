@@ -1,84 +1,24 @@
 const {
   Controller,
   CredixLpDepository,
-  IdentityDepository,
-  MercurialVaultDepository,
   UXDClient,
   nativeToUi,
 } = require('@uxd-protocol/uxd-client');
 const {
-  Connection,
   Keypair,
-  PublicKey,
   Transaction,
   ComputeBudgetProgram,
 } = require('@solana/web3.js');
 const { web3 } = require('@project-serum/anchor');
 const { BN } = require('bn.js');
-
-const TXN_COMMIT = 'confirmed';
-const connectionConfig = {
-  commitment: TXN_COMMIT,
-  disableRetryOnRateLimit: false,
-  confirmTransactionInitialTimeout: 10000,
-};
-const TXN_OPTS = {
-  commitment: TXN_COMMIT,
-  preflightCommitment: TXN_COMMIT,
-  skipPreflight: true,
-};
-
-const uxdProgramId = new PublicKey(
-  'UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr'
-);
-const usdcMint = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
-
-function getConnection() {
-  const connection = new Connection(
-    'https://api.mainnet-beta.solana.com',
-    connectionConfig
-  );
-  return connection;
-}
-
-function createIdentityDepository() {
-  return new IdentityDepository(usdcMint, 'USDC', 6, uxdProgramId);
-}
-
-async function createMercurialVaultDepository() {
-  try {
-    return await MercurialVaultDepository.initialize({
-      connection: getConnection(),
-      collateralMint: {
-        mint: usdcMint,
-        name: 'USDC',
-        symbol: 'USDC',
-        decimals: 6,
-      },
-      uxdProgramId,
-    });
-  } catch (error) {
-    console.error('Failed to initialize mercurial depository');
-    throw error;
-  }
-}
-
-async function createCredixLpDepository() {
-  try {
-    return await CredixLpDepository.initialize({
-      connection: getConnection(),
-      uxdProgramId: uxdProgramId,
-      collateralMint: usdcMint,
-      collateralSymbol: 'USDC',
-      credixProgramId: new PublicKey(
-        'CRDx2YkdtYtGZXGHZ59wNv1EwKHQndnRc1gT4p8i2vPX'
-      ),
-    });
-  } catch (error) {
-    console.error('Failed to initialize credix depository');
-    throw error;
-  }
-}
+const {
+  createCredixLpDepository,
+  createIdentityDepository,
+  createMercurialVaultDepository,
+  getConnection,
+  TXN_OPTS,
+  uxdProgramId,
+} = require('./common');
 
 async function main() {
   console.log();
@@ -209,7 +149,6 @@ async function main() {
   const credixGlobalMarketState = credixLpDepository.credixGlobalMarketState;
   const credixPass = credixLpDepository.credixPass;
   const credixWithdrawEpoch = credixLpDepository.credixWithdrawEpoch;
-  const credixWithdrawRequest = credixLpDepository.credixWithdrawRequest;
   const credixProgram = CredixLpDepository.getCredixProgram(
     getConnection(),
     credixProgramId
