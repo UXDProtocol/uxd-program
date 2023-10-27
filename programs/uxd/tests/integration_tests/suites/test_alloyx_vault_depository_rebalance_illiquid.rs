@@ -251,10 +251,8 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &alloyx_vault_collateral,
     )
     .await?;
-    let alloyx_vault_total_collateral_before = ui_amount_to_native_amount(
-        alloyx_vault_info_before.wallet_desk_usdc_value,
-        collateral_mint_decimals,
-    ) + alloyx_vault_collateral_before.amount;
+    let alloyx_vault_total_collateral_before = alloyx_vault_info_before.wallet_desk_usdc_value
+     + alloyx_vault_collateral_before.amount;
 
     let expected_profits_collateral_amount = u64::try_from(
         u128::from(amount_first_deposited_into_alloyx) * u128::from(amount_of_generated_profits)

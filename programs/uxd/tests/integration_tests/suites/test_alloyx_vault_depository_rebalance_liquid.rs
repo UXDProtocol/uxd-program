@@ -226,7 +226,7 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        i128::from(amount_the_user_should_be_able_to_mint * 10 / 100), // 10% deposit
+        i128::from(amount_the_user_should_be_able_to_mint * 10 / 100) - 1, // 10% deposit (hardcoded precision loss to keep things simple)
         0,
     )
     .await?;
@@ -259,7 +259,7 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        i128::from(amount_the_user_should_be_able_to_mint * 5 / 100), // 5% deposit
+        i128::from(amount_the_user_should_be_able_to_mint * 5 / 100) - 1, // 5% deposit (hardcoded precision loss to keep things simple)
         0,
     )
     .await?;
@@ -323,10 +323,10 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
         &alloyx_vault_collateral,
     )
     .await?;
-    let alloyx_vault_total_collateral_before = ui_amount_to_native_amount(
-        alloyx_vault_info_before.wallet_desk_usdc_value,
-        collateral_mint_decimals,
-    ) + alloyx_vault_collateral_before.amount;
+    let alloyx_vault_total_collateral_before = 
+        alloyx_vault_info_before.wallet_desk_usdc_value
+    
+     + alloyx_vault_collateral_before.amount;
 
     let expected_profits_collateral_amount = u64::try_from(
         u128::from(amount_deposited_in_alloyx_vault_at_profit_time)
