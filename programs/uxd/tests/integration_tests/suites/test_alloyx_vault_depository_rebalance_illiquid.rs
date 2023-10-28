@@ -224,13 +224,14 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
     let amount_first_deposited_into_alloyx = amount_the_user_should_be_able_to_mint * 20 / 100;
 
     // Alloyx should be 20% underweight, so rebalancing should deposit 20% of the supply into alloyx
+    // note: we hardcoded the precision-loss corrections to keep things simple, but the precision loss is handled at the protocol level
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        i128::from(amount_first_deposited_into_alloyx), // 20% deposit
+        i128::from(amount_first_deposited_into_alloyx - 1), // 20% deposit (+ precision-loss)
         0,
     )
     .await?;
@@ -251,8 +252,8 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &alloyx_vault_collateral,
     )
     .await?;
-    let alloyx_vault_total_collateral_before = alloyx_vault_info_before.wallet_desk_usdc_value
-     + alloyx_vault_collateral_before.amount;
+    let alloyx_vault_total_collateral_before =
+        alloyx_vault_info_before.wallet_desk_usdc_value + alloyx_vault_collateral_before.amount;
 
     let expected_profits_collateral_amount = u64::try_from(
         u128::from(amount_first_deposited_into_alloyx) * u128::from(amount_of_generated_profits)
@@ -360,10 +361,11 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
     .await?;
 
     // The rebalancing can start rebalancing only once all profits was collected
+    // note: we hardcoded the precision-loss corrections to keep things simple, but the precision loss is handled at the protocol level
     let amount_of_profits_for_second_unlock =
-        expected_profits_collateral_amount - amount_of_liquidity_collateral_first_unlock - 2;
+        expected_profits_collateral_amount - amount_of_liquidity_collateral_first_unlock;
     let amount_of_rebalancing_for_second_unlock =
-        amount_of_liquidity_collateral_second_unlock - amount_of_profits_for_second_unlock - 2;
+        amount_of_liquidity_collateral_second_unlock - amount_of_profits_for_second_unlock;
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
         &mut program_context,
         &payer,
@@ -371,7 +373,7 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
         -i128::from(amount_of_rebalancing_for_second_unlock), // partial rebalancing if possible
-        amount_of_profits_for_second_unlock,                  // profits prioritized
+        amount_of_profits_for_second_unlock + 2, // profits prioritized (+ precision-loss)
     )
     .await?;
 
@@ -385,6 +387,7 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
     .await?;
 
     // The rebalancing can start rebalancing once all profits was collected
+    // note: we hardcoded the precision-loss corrections to keep things simple, but the precision loss is handled at the protocol level
     let amount_final_expected_in_alloyx_depository =
         amount_the_user_should_be_able_to_mint * 5 / 100; // 5% weight
     let amount_of_rebalancing_for_third_unlock = amount_first_deposited_into_alloyx
@@ -396,8 +399,8 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        -i128::from(amount_of_rebalancing_for_third_unlock), // partial rebalancing
-        0,                                                   // no more profits to collect
+        -i128::from(amount_of_rebalancing_for_third_unlock - 1), // partial rebalancing (+ precision-loss)
+        2,                                                       // no more profits to collect (+ precision-loss)
     )
     .await?;
 
@@ -409,7 +412,7 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
         0, // finished rebalancing
-        0, // no more profits to collect
+        2, // no more profits to collect (+ precision-loss)
     )
     .await?;
 

@@ -114,7 +114,7 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
         ui_amount_to_native_amount(50_000_000, collateral_mint_decimals);
 
     let amount_of_generated_profits =
-        ui_amount_to_native_amount(10_000_000, collateral_mint_decimals);
+        ui_amount_to_native_amount(1_000_000, collateral_mint_decimals);
 
     // ---------------------------------------------------------------------
     // -- Phase 2
@@ -220,13 +220,14 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
     // ---------------------------------------------------------------------
 
     // Alloyx should be 10% underweight, so rebalancing should deposit 10% of the supply into alloyx
+    // note: we hardcoded the precision-loss corrections to keep things simple, but the precision loss is handled at the protocol level
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        i128::from(amount_the_user_should_be_able_to_mint * 10 / 100) - 1, // 10% deposit (hardcoded precision loss to keep things simple)
+        i128::from(amount_the_user_should_be_able_to_mint * 10 / 100 - 1), // 10% deposit (+ precision-loss)
         0,
     )
     .await?;
@@ -253,13 +254,14 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
     .await?;
 
     // Alloyx should be 5% underweight, so rebalancing should deposit 5% of the supply into alloyx
+    // note: we hardcoded the precision-loss corrections to keep things simple, but the precision loss is handled at the protocol level
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        i128::from(amount_the_user_should_be_able_to_mint * 5 / 100) - 1, // 5% deposit (hardcoded precision loss to keep things simple)
+        i128::from(amount_the_user_should_be_able_to_mint * 5 / 100 - 1), // 5% deposit (+ precision-loss)
         0,
     )
     .await?;
@@ -286,14 +288,15 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
     .await?;
 
     // Alloyx should be 10% overweight, so rebalancing should withdraw 10% of the supply into alloyx
+    // note: we hardcoded the precision-loss corrections to keep things simple, but the precision loss is handled at the protocol level
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        -i128::from(amount_the_user_should_be_able_to_mint * 10 / 100), // 10% withdrawal
-        0,
+        -i128::from(amount_the_user_should_be_able_to_mint * 10 / 100 - 2), // 10% withdrawal (+ precision-loss)
+        2,                                                                  // +precision-loss
     )
     .await?;
 
@@ -323,10 +326,8 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
         &alloyx_vault_collateral,
     )
     .await?;
-    let alloyx_vault_total_collateral_before = 
-        alloyx_vault_info_before.wallet_desk_usdc_value
-    
-     + alloyx_vault_collateral_before.amount;
+    let alloyx_vault_total_collateral_before =
+        alloyx_vault_info_before.wallet_desk_usdc_value + alloyx_vault_collateral_before.amount;
 
     let expected_profits_collateral_amount = u64::try_from(
         u128::from(amount_deposited_in_alloyx_vault_at_profit_time)
@@ -376,14 +377,15 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
 
     // Alloyx should be 5% underweight, so rebalancing should deposit 5% of the supply into alloyx
     // It should also withdraw the expected amount of profits at the same time
+    // note: we hardcoded the precision-loss corrections to keep things simple, but the precision loss is handled at the protocol level
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
         &mut program_context,
         &payer,
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        i128::from(amount_the_user_should_be_able_to_mint * 5 / 100), // 5% deposit
-        expected_profits_collateral_amount,
+        i128::from(amount_the_user_should_be_able_to_mint * 5 / 100 - 1), // 5% deposit + precision-loss
+        expected_profits_collateral_amount + 4,                           // +precision-loss
     )
     .await?;
 

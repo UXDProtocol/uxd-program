@@ -203,10 +203,7 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
 
     let withdrawn_profits_collateral_amount = ctx
         .accounts
-        .withdraw_from_alloyx_vault_to_identity_depository(
-            profits_collateral_amount,
-            vault_id,
-        )?;
+        .withdraw_from_alloyx_vault_to_identity_depository(profits_collateral_amount, vault_id)?;
     msg!(
         "[rebalance_alloyx_vault_depository:withdrawn_profits_collateral_amount:{}]",
         withdrawn_profits_collateral_amount
@@ -223,6 +220,8 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
                 .with_signer(identity_depository_pda_signer),
                 withdrawn_profits_collateral_amount,
         )?;
+        // Reload after transfer
+        ctx.accounts.identity_depository_collateral.reload()?;
         // Profit collection accounting updates
         let mut controller = ctx.accounts.controller.load_mut()?;
         let mut alloyx_vault_depository = ctx.accounts.alloyx_vault_depository.load_mut()?;
@@ -658,7 +657,8 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
 
         // Read onchain state before CPI
         let payer_collateral_amount_before = self.payer_collateral.amount;
-        let identity_depository_collateral_amount_before = self.identity_depository_collateral.amount;
+        let identity_depository_collateral_amount_before =
+            self.identity_depository_collateral.amount;
         let alloyx_vault_depository_collateral_amount_before =
             self.alloyx_vault_depository_collateral.amount;
         let liquidity_collateral_amount_before = self.alloyx_vault_collateral.amount;
@@ -682,6 +682,14 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
         msg!(
             "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault_to_identity_depository:outstanding_collateral_amount_before:{}]",
             outstanding_collateral_amount_before
+        );
+        msg!(
+            "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault_to_identity_depository:total_shares_supply_before:{}]",
+            total_shares_supply_before
+        );
+        msg!(
+            "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault_to_identity_depository:total_shares_value_before:{}]",
+            total_shares_value_before
         );
         msg!(
             "[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault_to_identity_depository:owned_shares_amount_before:{}]",
@@ -744,24 +752,21 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
             collateral_mint.as_ref(),
             &[self.alloyx_vault_depository.load()?.bump],
         ]];
-        msg!("[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault_to_identity_depository:withdraw]",);
+        msg!("[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault_to_identity_depository:withdraw:{}]", shares_amount);
         alloyx_cpi::cpi::withdraw(
             self.into_withdraw_from_alloyx_vault_to_alloyx_vault_depository_context()
                 .with_signer(alloyx_vault_depository_pda_signer),
             vault_id.to_owned(),
             shares_amount,
         )?;
-        msg!("[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault_to_identity_depository:transfer_payer]",);
+        msg!("[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault_to_identity_depository:transfer_payer:{}]", collateral_amount_delta_precision_loss);
         token::transfer(
-            self.into_transfer_payer_collateral_to_identity_depository_collateral_context(
-            ),
+            self.into_transfer_payer_collateral_to_identity_depository_collateral_context(),
             collateral_amount_delta_precision_loss,
         )?;
-        msg!("[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault_to_identity_depository:transfer_content]",);
+        msg!("[rebalance_alloyx_vault_depository:withdraw_from_alloyx_vault_to_identity_depository:transfer_content:{}]", collateral_amount_after_precision_loss);
         token::transfer(
-            self
-                .into_transfer_alloyx_vault_depository_collateral_to_identity_depository_collateral_context(
-                )
+            self.into_transfer_alloyx_vault_depository_collateral_to_identity_depository_collateral_context()
                 .with_signer(alloyx_vault_depository_pda_signer),
             collateral_amount_after_precision_loss,
         )?;
@@ -777,7 +782,8 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
 
         // Read onchain state after CPI
         let payer_collateral_amount_after = self.payer_collateral.amount;
-        let identity_depository_collateral_amount_after = self.identity_depository_collateral.amount;
+        let identity_depository_collateral_amount_after =
+            self.identity_depository_collateral.amount;
         let alloyx_vault_depository_collateral_amount_after =
             self.alloyx_vault_depository_collateral.amount;
         let liquidity_collateral_amount_after = self.alloyx_vault_collateral.amount;
@@ -843,7 +849,8 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
             UxdError::CollateralDepositAmountsDoesntMatch,
         );
         require!(
-            identity_depository_collateral_amount_increase == collateral_amount_before_precision_loss,
+            identity_depository_collateral_amount_increase
+                == collateral_amount_before_precision_loss,
             UxdError::CollateralDepositAmountsDoesntMatch,
         );
         require!(
@@ -883,7 +890,6 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
 
 // Into functions
 impl<'info> RebalanceAlloyxVaultDepository<'info> {
-
     pub fn into_transfer_identity_depository_collateral_to_profits_beneficiary_collateral_context(
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
