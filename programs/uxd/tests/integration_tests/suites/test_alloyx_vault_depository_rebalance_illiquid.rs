@@ -400,7 +400,7 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
         -i128::from(amount_of_rebalancing_for_third_unlock - 1), // partial rebalancing (+ precision-loss)
-        2,                                                       // no more profits to collect (+ precision-loss)
+        2, // no more profits to collect (+ precision-loss)
     )
     .await?;
 
