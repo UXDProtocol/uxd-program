@@ -511,8 +511,7 @@ impl<'info> RebalanceAlloyxVaultDepository<'info> {
             &[self.alloyx_vault_depository.load()?.bump],
         ]];
         token::transfer(
-            self
-                .into_transfer_identity_depository_collateral_to_alloyx_vault_depository_collateral_context()
+            self.into_transfer_identity_depository_collateral_to_alloyx_vault_depository_collateral_context()
                 .with_signer(identity_depository_pda_signer),
             collateral_amount_after_precision_loss,
         )?;

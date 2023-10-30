@@ -86,8 +86,8 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
     let amount_of_collateral_airdropped_to_user = amount_for_first_mint + amount_for_second_mint; // Just enough money to mint
 
     // Post mint supply should match the configured weights
-    let identity_depository_supply_after_first_mint = amount_for_first_mint * 30 / 100;
-    let mercurial_vault_depository_supply_after_first_mint = amount_for_first_mint * 50 / 100;
+    let identity_depository_supply_after_first_mint = amount_for_first_mint * 20 / 100;
+    let mercurial_vault_depository_supply_after_first_mint = amount_for_first_mint * 40 / 100;
     let credix_lp_depository_supply_after_first_mint = amount_for_first_mint * 40 / 100;
 
     // Post mint supply should match the configured weights
@@ -220,9 +220,9 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
         &user_collateral,
         &user_redeemable,
         amount_for_first_mint,
-        identity_depository_supply_after_first_mint,
-        mercurial_vault_depository_supply_after_first_mint,
-        credix_lp_depository_supply_after_first_mint,
+        identity_depository_supply_after_first_mint - 1,
+        mercurial_vault_depository_supply_after_first_mint - 1,
+        credix_lp_depository_supply_after_first_mint - 1, // precision loss
     )
     .await?;
 

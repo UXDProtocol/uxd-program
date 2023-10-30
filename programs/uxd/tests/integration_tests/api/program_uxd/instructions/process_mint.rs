@@ -249,6 +249,7 @@ pub async fn process_mint(
     assert_eq!(
         redeemable_mint_supply_before + total_redeemable_amount,
         redeemable_mint_supply_after,
+        "invalid redeemable_mint.supply",
     );
 
     // controller.redeemable_circulating_supply must have increased by the minted amount (equivalent to redeemable_amount)
@@ -259,6 +260,7 @@ pub async fn process_mint(
     assert_eq!(
         redeemable_circulating_supply_before + total_redeemable_amount,
         redeemable_circulating_supply_after,
+        "invalid controller.redeemable_circulating_supply",
     );
 
     // identity_depository.redeemable_amount_under_management must have increased by the minted amount (equivalent to redeemable_amount)
@@ -270,6 +272,7 @@ pub async fn process_mint(
         identity_depository_redeemable_amount_under_management_before
             + identity_depository_redeemable_amount,
         identity_depository_redeemable_amount_under_management_after,
+        "invalid identity_depository.redeemable_amount_under_management",
     );
 
     // identity_depository.collateral_amount_deposited must have increased by the deposited amount (equivalent to collateral_amount)
@@ -281,6 +284,7 @@ pub async fn process_mint(
         identity_depository_collateral_amount_deposited_before
             + expected_identity_depository_collateral_amount,
         identity_depository_collateral_amount_deposited_after,
+        "invalid identity_depository.collateral_amount_deposited",
     );
 
     // mercurial_vault_depository.redeemable_amount_under_management must have increased by the minted amount (equivalent to redeemable_amount)
@@ -293,6 +297,7 @@ pub async fn process_mint(
         mercurial_vault_depository_redeemable_amount_under_management_before
             + mercurial_vault_depository_redeemable_amount,
         mercurial_vault_depository_redeemable_amount_under_management_after,
+        "invalid mercurial_vault_depository.redeemable_amount_under_management",
     );
 
     // mercurial_vault_depository.minting_fee_total_accrued must have increased by the fees amount
@@ -304,6 +309,7 @@ pub async fn process_mint(
         mercurial_vault_depository_minting_fee_total_accrued_before
             + u128::from(mercurial_vault_depository_fees_amount),
         mercurial_vault_depository_minting_fee_total_accrued_after,
+        "invalid mercurial_vault_depository.minting_fee_total_accrued",
     );
 
     // mercurial_vault_depository.collateral_amount_deposited must have increased by the deposited amount (equivalent to collateral_amount)
@@ -315,6 +321,7 @@ pub async fn process_mint(
         mercurial_vault_depository_collateral_amount_deposited_before
             + expected_mercurial_vault_depository_collateral_amount,
         mercurial_vault_depository_collateral_amount_deposited_after,
+        "invalid mercurial_vault_depository.collateral_amount_deposited"
     );
 
     // credix_lp_depository.redeemable_amount_under_management must have increased by the minted amount (equivalent to redeemable_amount)
@@ -326,6 +333,7 @@ pub async fn process_mint(
         credix_lp_depository_redeemable_amount_under_management_before
             + credix_lp_depository_redeemable_amount,
         credix_lp_depository_redeemable_amount_under_management_after,
+        "invalid credix_lp_depositor.redeemable_amount_under_management"
     );
 
     // credix_lp_depository.collateral_amount_deposited must have increased by the deposited amount (equivalent to collateral_amount)
@@ -337,6 +345,7 @@ pub async fn process_mint(
         credix_lp_depository_collateral_amount_deposited_before
             + expected_credix_lp_depository_collateral_amount,
         credix_lp_depository_collateral_amount_deposited_after,
+        "invalid credix_lp_depository.collateral_amount_deposited"
     );
 
     // credix_lp_depository.minting_fee_total_accrued must have increased by the fees amount
@@ -348,17 +357,20 @@ pub async fn process_mint(
         credix_lp_depository_minting_fee_total_accrued_before
             + u128::from(credix_lp_depository_fees_amount),
         credix_lp_depository_minting_fee_total_accrued_after,
+        "invalid credix_lp_depository.minting_fee_total_accrued"
     );
 
     // user_collateral.amount must have decreased by the deposited amount (equivalent to collateral_amount)
     assert_eq!(
         user_collateral_amount_before - total_collateral_amount,
         user_collateral_amount_after,
+        "invalid user_collateral.amount"
     );
     // user_redeemable.amount must have increased by the minted amount (equivalent to redeemable_amount)
     assert_eq!(
         user_redeemable_amount_before + total_redeemable_amount,
         user_redeemable_amount_after,
+        "invalid user_redeemable.amount"
     );
 
     // Done
