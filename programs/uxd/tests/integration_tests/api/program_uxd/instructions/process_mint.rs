@@ -20,6 +20,12 @@ use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_uxd;
 use crate::integration_tests::api::program_uxd::instructions::process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss;
 
+pub struct ProcessMintExpectedMints {
+    pub identity_depository_collateral_amount: u64,
+    pub mercurial_vault_depository_collateral_amount: u64,
+    pub credix_lp_depository_collateral_amount: u64,
+}
+
 #[allow(clippy::too_many_arguments)]
 pub async fn process_mint(
     program_context: &mut Box<dyn program_context::ProgramContext>,
@@ -30,9 +36,7 @@ pub async fn process_mint(
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
     collateral_amount: u64,
-    expected_identity_depository_collateral_amount: u64,
-    expected_mercurial_vault_depository_collateral_amount: u64,
-    expected_credix_lp_depository_collateral_amount: u64,
+    expected_mints: Option<ProcessMintExpectedMints>,
 ) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
@@ -175,6 +179,12 @@ pub async fn process_mint(
     program_context::process_instruction_with_signer(program_context, instruction, payer, user)
         .await?;
 
+    // If we dont need to check the exact amounts, succeed if the instruction succeeded
+    if expected_mints.is_none() {
+        return Ok(());
+    }
+    let expected_mints = expected_mints.unwrap();
+
     // Read state after
     let redeemable_mint_after =
         program_context::read_account_packed::<Mint>(program_context, &redeemable_mint).await?;
@@ -205,25 +215,32 @@ pub async fn process_mint(
             .await?
             .amount;
 
+    // Expected minted amounts
+    let minted_identity_depository_collateral_amount =
+        expected_mints.identity_depository_collateral_amount;
+    let minted_mercurial_vault_depository_collateral_amount =
+        expected_mints.mercurial_vault_depository_collateral_amount;
+    let minted_credix_lp_depository_collateral_amount =
+        expected_mints.credix_lp_depository_collateral_amount;
+
     // Compute identity_depository amounts
-    let identity_depository_redeemable_amount = expected_identity_depository_collateral_amount;
+    let identity_depository_redeemable_amount = minted_identity_depository_collateral_amount;
 
     // Compute mercurial_vault_depository amounts
     let mercurial_vault_depository_redeemable_amount = calculate_amount_less_fees(
-        expected_mercurial_vault_depository_collateral_amount,
+        minted_mercurial_vault_depository_collateral_amount,
         mercurial_vault_depository_before.minting_fee_in_bps,
     )
     .map_err(program_context::ProgramError::Anchor)?;
-    let mercurial_vault_depository_fees_amount =
-        expected_mercurial_vault_depository_collateral_amount
-            - mercurial_vault_depository_redeemable_amount;
+    let mercurial_vault_depository_fees_amount = minted_mercurial_vault_depository_collateral_amount
+        - mercurial_vault_depository_redeemable_amount;
 
     // Compute credix_lp_depository amounts
     let credix_lp_depository_collateral_amount_after_precision_loss =
         process_mint_with_credix_lp_depository_collateral_amount_after_precision_loss(
             program_context,
             collateral_mint,
-            expected_credix_lp_depository_collateral_amount,
+            minted_credix_lp_depository_collateral_amount,
         )
         .await?;
     let credix_lp_depository_redeemable_amount = calculate_amount_less_fees(
@@ -236,32 +253,12 @@ pub async fn process_mint(
             - credix_lp_depository_redeemable_amount;
 
     // Compute total amounts
-    let total_collateral_amount = expected_identity_depository_collateral_amount
-        + expected_mercurial_vault_depository_collateral_amount
-        + expected_credix_lp_depository_collateral_amount;
+    let total_collateral_amount = minted_identity_depository_collateral_amount
+        + minted_mercurial_vault_depository_collateral_amount
+        + minted_credix_lp_depository_collateral_amount;
     let total_redeemable_amount = identity_depository_redeemable_amount
         + mercurial_vault_depository_redeemable_amount
         + credix_lp_depository_redeemable_amount;
-
-    // redeemable_mint.supply must have increased by the minted amount (equivalent to redeemable_amount)
-    let redeemable_mint_supply_before = redeemable_mint_before.supply;
-    let redeemable_mint_supply_after = redeemable_mint_after.supply;
-    assert_eq!(
-        redeemable_mint_supply_before + total_redeemable_amount,
-        redeemable_mint_supply_after,
-        "invalid redeemable_mint.supply",
-    );
-
-    // controller.redeemable_circulating_supply must have increased by the minted amount (equivalent to redeemable_amount)
-    let redeemable_circulating_supply_before =
-        u64::try_from(controller_before.redeemable_circulating_supply).unwrap();
-    let redeemable_circulating_supply_after =
-        u64::try_from(controller_after.redeemable_circulating_supply).unwrap();
-    assert_eq!(
-        redeemable_circulating_supply_before + total_redeemable_amount,
-        redeemable_circulating_supply_after,
-        "invalid controller.redeemable_circulating_supply",
-    );
 
     // identity_depository.redeemable_amount_under_management must have increased by the minted amount (equivalent to redeemable_amount)
     let identity_depository_redeemable_amount_under_management_before =
@@ -282,7 +279,7 @@ pub async fn process_mint(
         u64::try_from(identity_depository_after.collateral_amount_deposited).unwrap();
     assert_eq!(
         identity_depository_collateral_amount_deposited_before
-            + expected_identity_depository_collateral_amount,
+            + minted_identity_depository_collateral_amount,
         identity_depository_collateral_amount_deposited_after,
         "invalid identity_depository.collateral_amount_deposited",
     );
@@ -319,7 +316,7 @@ pub async fn process_mint(
         u64::try_from(mercurial_vault_depository_after.collateral_amount_deposited).unwrap();
     assert_eq!(
         mercurial_vault_depository_collateral_amount_deposited_before
-            + expected_mercurial_vault_depository_collateral_amount,
+            + minted_mercurial_vault_depository_collateral_amount,
         mercurial_vault_depository_collateral_amount_deposited_after,
         "invalid mercurial_vault_depository.collateral_amount_deposited"
     );
@@ -343,7 +340,7 @@ pub async fn process_mint(
         u64::try_from(credix_lp_depository_after.collateral_amount_deposited).unwrap();
     assert_eq!(
         credix_lp_depository_collateral_amount_deposited_before
-            + expected_credix_lp_depository_collateral_amount,
+            + minted_credix_lp_depository_collateral_amount,
         credix_lp_depository_collateral_amount_deposited_after,
         "invalid credix_lp_depository.collateral_amount_deposited"
     );
@@ -358,6 +355,26 @@ pub async fn process_mint(
             + u128::from(credix_lp_depository_fees_amount),
         credix_lp_depository_minting_fee_total_accrued_after,
         "invalid credix_lp_depository.minting_fee_total_accrued"
+    );
+
+    // redeemable_mint.supply must have increased by the minted amount (equivalent to redeemable_amount)
+    let redeemable_mint_supply_before = redeemable_mint_before.supply;
+    let redeemable_mint_supply_after = redeemable_mint_after.supply;
+    assert_eq!(
+        redeemable_mint_supply_before + total_redeemable_amount,
+        redeemable_mint_supply_after,
+        "invalid redeemable_mint.supply",
+    );
+
+    // controller.redeemable_circulating_supply must have increased by the minted amount (equivalent to redeemable_amount)
+    let redeemable_circulating_supply_before =
+        u64::try_from(controller_before.redeemable_circulating_supply).unwrap();
+    let redeemable_circulating_supply_after =
+        u64::try_from(controller_after.redeemable_circulating_supply).unwrap();
+    assert_eq!(
+        redeemable_circulating_supply_before + total_redeemable_amount,
+        redeemable_circulating_supply_after,
+        "invalid controller.redeemable_circulating_supply",
     );
 
     // user_collateral.amount must have decreased by the deposited amount (equivalent to collateral_amount)

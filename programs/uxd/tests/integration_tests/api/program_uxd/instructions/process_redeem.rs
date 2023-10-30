@@ -18,6 +18,11 @@ use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
 use crate::integration_tests::api::program_uxd;
 
+pub struct ProcessRedeemExpectedRedeems {
+    pub identity_depository_redeemable_amount: u64,
+    pub mercurial_vault_depository_redeemable_amount: u64,
+}
+
 #[allow(clippy::too_many_arguments)]
 pub async fn process_redeem(
     program_context: &mut Box<dyn program_context::ProgramContext>,
@@ -28,8 +33,7 @@ pub async fn process_redeem(
     user_collateral: &Pubkey,
     user_redeemable: &Pubkey,
     redeemable_amount: u64,
-    expected_identity_depository_redeemable_amount: u64,
-    expected_mercurial_vault_depository_redeemable_amount: u64,
+    expected_redeems: Option<ProcessRedeemExpectedRedeems>,
 ) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
@@ -136,6 +140,12 @@ pub async fn process_redeem(
     program_context::process_instruction_with_signer(program_context, instruction, payer, user)
         .await?;
 
+    // If we dont need to check the exact amounts, succeed if the instruction succeeded
+    if expected_redeems.is_none() {
+        return Ok(());
+    }
+    let expected_redeems = expected_redeems.unwrap();
+
     // Read state after
     let redeemable_mint_after =
         program_context::read_account_packed::<Mint>(program_context, &redeemable_mint).await?;
@@ -161,42 +171,30 @@ pub async fn process_redeem(
             .await?
             .amount;
 
+    // Important expected amounts
+    let redeemed_identity_depository_redeemable_amount =
+        expected_redeems.identity_depository_redeemable_amount;
+    let redeemed_mercurial_vault_depository_redeemable_amount =
+        expected_redeems.mercurial_vault_depository_redeemable_amount;
+
     // Compute identity_depository amounts
-    let identity_depository_collateral_amount = expected_identity_depository_redeemable_amount;
+    let identity_depository_collateral_amount = redeemed_identity_depository_redeemable_amount;
 
     // Compute mercurial_vault_depository amounts
     let mercurial_vault_depository_collateral_amount = calculate_amount_less_fees(
-        expected_mercurial_vault_depository_redeemable_amount,
+        redeemed_mercurial_vault_depository_redeemable_amount,
         mercurial_vault_depository_before.redeeming_fee_in_bps,
     )
     .map_err(program_context::ProgramError::Anchor)?;
     let mercurial_vault_depository_fees_amount =
-        expected_mercurial_vault_depository_redeemable_amount
+        redeemed_mercurial_vault_depository_redeemable_amount
             - mercurial_vault_depository_collateral_amount;
 
     // Compute total amounts
-    let total_redeemable_amount = expected_identity_depository_redeemable_amount
-        + expected_mercurial_vault_depository_redeemable_amount;
+    let total_redeemable_amount = redeemed_identity_depository_redeemable_amount
+        + redeemed_mercurial_vault_depository_redeemable_amount;
     let total_collateral_amount =
         identity_depository_collateral_amount + mercurial_vault_depository_collateral_amount;
-
-    // redeemable_mint.supply must have decreased by the redeemed amount (equivalent to redeemable_amount)
-    let redeemable_mint_supply_before = redeemable_mint_before.supply;
-    let redeemable_mint_supply_after = redeemable_mint_after.supply;
-    assert_eq!(
-        redeemable_mint_supply_before - total_redeemable_amount,
-        redeemable_mint_supply_after,
-    );
-
-    // controller.redeemable_circulating_supply must have decreased by the redeemed amount (equivalent to redeemable_amount)
-    let redeemable_circulating_supply_before =
-        u64::try_from(controller_before.redeemable_circulating_supply).unwrap();
-    let redeemable_circulating_supply_after =
-        u64::try_from(controller_after.redeemable_circulating_supply).unwrap();
-    assert_eq!(
-        redeemable_circulating_supply_before - total_redeemable_amount,
-        redeemable_circulating_supply_after,
-    );
 
     // identity_depository.redeemable_amount_under_management must have decreased by the redeemed amount (equivalent to redeemable_amount)
     let identity_depository_redeemable_amount_under_management_before =
@@ -205,8 +203,9 @@ pub async fn process_redeem(
         u64::try_from(identity_depository_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
         identity_depository_redeemable_amount_under_management_before
-            - expected_identity_depository_redeemable_amount,
+            - redeemed_identity_depository_redeemable_amount,
         identity_depository_redeemable_amount_under_management_after,
+        "invalid identity_depository.redeemable_amount_under_management",
     );
 
     // identity_depository.collateral_amount_deposited must have decreased by the withdrawn amount (equivalent to collateral_amount)
@@ -218,6 +217,7 @@ pub async fn process_redeem(
         identity_depository_collateral_amount_deposited_before
             - identity_depository_collateral_amount,
         identity_depository_collateral_amount_deposited_after,
+        "invalid identity_depository.collateral_amount_deposited",
     );
 
     // mercurial_vault_depository.redeemable_amount_under_management must have decreased by the redeemed amount (equivalent to redeemable_amount)
@@ -228,8 +228,9 @@ pub async fn process_redeem(
         u64::try_from(mercurial_vault_depository_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
         mercurial_vault_depository_redeemable_amount_under_management_before
-            - expected_mercurial_vault_depository_redeemable_amount,
+            - redeemed_mercurial_vault_depository_redeemable_amount,
         mercurial_vault_depository_redeemable_amount_under_management_after,
+        "invalid mercurial_vault_depository.redeemable_amount_under_management",
     );
 
     // mercurial_vault_depository.redeeming_fee_total_accrued must have increased by the fees amount
@@ -241,6 +242,7 @@ pub async fn process_redeem(
         mercurial_vault_depository_redeeming_fee_total_accrued_before
             + u128::from(mercurial_vault_depository_fees_amount),
         mercurial_vault_depository_redeeming_fee_total_accrued_after,
+        "invalid mercurial_vault_depository.redeeming_fee_total_accrued",
     );
 
     // mercurial_vault_depository.collateral_amount_deposited must have decreased by the withdrawn amount (equivalent to collateral_amount)
@@ -252,17 +254,40 @@ pub async fn process_redeem(
         mercurial_vault_depository_collateral_amount_deposited_before
             - mercurial_vault_depository_collateral_amount,
         mercurial_vault_depository_collateral_amount_deposited_after,
+        "invalid mercurial_vault_depository.collateral_amount_deposited",
+    );
+
+    // redeemable_mint.supply must have decreased by the redeemed amount (equivalent to redeemable_amount)
+    let redeemable_mint_supply_before = redeemable_mint_before.supply;
+    let redeemable_mint_supply_after = redeemable_mint_after.supply;
+    assert_eq!(
+        redeemable_mint_supply_before - total_redeemable_amount,
+        redeemable_mint_supply_after,
+        "invalid redeemable_mint.supply",
+    );
+
+    // controller.redeemable_circulating_supply must have decreased by the redeemed amount (equivalent to redeemable_amount)
+    let redeemable_circulating_supply_before =
+        u64::try_from(controller_before.redeemable_circulating_supply).unwrap();
+    let redeemable_circulating_supply_after =
+        u64::try_from(controller_after.redeemable_circulating_supply).unwrap();
+    assert_eq!(
+        redeemable_circulating_supply_before - total_redeemable_amount,
+        redeemable_circulating_supply_after,
+        "invalid controller.redeemable_circulating_supply",
     );
 
     // user_collateral.amount must have increased by the withdrawn amount (equivalent to collateral_amount)
     assert_eq!(
         user_collateral_amount_before + total_collateral_amount,
         user_collateral_amount_after,
+        "invalid user_collateral.amount",
     );
     // user_redeemable.amount must have decreased by the redeemed amount (equivalent to redeemable_amount)
     assert_eq!(
         user_redeemable_amount_before - total_redeemable_amount,
         user_redeemable_amount_after,
+        "invalid user_redeemable.amount",
     );
 
     // Done
