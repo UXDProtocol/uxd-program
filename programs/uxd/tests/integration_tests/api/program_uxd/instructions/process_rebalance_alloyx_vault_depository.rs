@@ -24,8 +24,8 @@ pub async fn process_rebalance_alloyx_vault_depository(
     collateral_mint: &Pubkey,
     alloyx_vault_mint: &Pubkey,
     profits_beneficiary_collateral: &Pubkey,
-    expected_rebalance_delta_value: i128,
-    expected_profits_amount: u64,
+    expected_rebalance_delta_value: Option<i128>,
+    expected_profits_amount: Option<u64>,
 ) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let payer_collateral = program_spl::instructions::process_associated_token_account_get_or_init(
@@ -94,17 +94,35 @@ pub async fn process_rebalance_alloyx_vault_depository(
         &identity_depository,
     )
     .await?;
+    let identity_depository_collateral_before = program_context::read_account_packed::<Account>(
+        program_context,
+        &identity_depository_collateral,
+    )
+    .await?;
+    let alloyx_vault_mint_before =
+        program_context::read_account_packed::<Mint>(program_context, alloyx_vault_mint).await?;
+    let alloyx_vault_info_before = program_context::read_account_anchor::<alloyx_cpi::VaultInfo>(
+        program_context,
+        &alloyx_vault_info,
+    )
+    .await?;
+    let alloyx_vault_collateral_before =
+        program_context::read_account_packed::<Account>(program_context, &alloyx_vault_collateral)
+            .await?;
     let alloyx_vault_depository_before = program_context::read_account_anchor::<
         AlloyxVaultDepository,
     >(program_context, &alloyx_vault_depository)
     .await?;
-    let profits_beneficiary_collateral_amount_before =
-        program_context::read_account_packed::<Account>(
-            program_context,
-            profits_beneficiary_collateral,
-        )
-        .await?
-        .amount;
+    let alloyx_vault_depository_shares_before = program_context::read_account_packed::<Account>(
+        program_context,
+        &alloyx_vault_depository_shares,
+    )
+    .await?;
+    let profits_beneficiary_collateral_before = program_context::read_account_packed::<Account>(
+        program_context,
+        profits_beneficiary_collateral,
+    )
+    .await?;
 
     // Execute IX
     let accounts = uxd::accounts::RebalanceAlloyxVaultDepository {
@@ -150,19 +168,57 @@ pub async fn process_rebalance_alloyx_vault_depository(
         &identity_depository,
     )
     .await?;
+    let identity_depository_collateral_after = program_context::read_account_packed::<Account>(
+        program_context,
+        &identity_depository_collateral,
+    )
+    .await?;
+    let alloyx_vault_mint_after =
+        program_context::read_account_packed::<Mint>(program_context, alloyx_vault_mint).await?;
+    let alloyx_vault_info_after = program_context::read_account_anchor::<alloyx_cpi::VaultInfo>(
+        program_context,
+        &alloyx_vault_info,
+    )
+    .await?;
+    let alloyx_vault_collateral_after =
+        program_context::read_account_packed::<Account>(program_context, &alloyx_vault_collateral)
+            .await?;
     let alloyx_vault_depository_after =
         program_context::read_account_anchor::<AlloyxVaultDepository>(
             program_context,
             &alloyx_vault_depository,
         )
         .await?;
-    let profits_beneficiary_collateral_amount_after =
-        program_context::read_account_packed::<Account>(
-            program_context,
-            profits_beneficiary_collateral,
-        )
-        .await?
-        .amount;
+    let alloyx_vault_depository_shares_after = program_context::read_account_packed::<Account>(
+        program_context,
+        &alloyx_vault_depository_shares,
+    )
+    .await?;
+    let profits_beneficiary_collateral_after = program_context::read_account_packed::<Account>(
+        program_context,
+        profits_beneficiary_collateral,
+    )
+    .await?;
+
+    // MOST IMPORTANT: Ensure that we never lose value for the protocol!
+    let protocol_alloyx_value_before = u128::from(alloyx_vault_depository_shares_before.amount)
+        * (u128::from(alloyx_vault_info_before.wallet_desk_usdc_value)
+            + u128::from(alloyx_vault_collateral_before.amount))
+        / u128::from(alloyx_vault_mint_before.supply);
+    let protocol_alloyx_value_after = u128::from(alloyx_vault_depository_shares_after.amount)
+        * (u128::from(alloyx_vault_info_after.wallet_desk_usdc_value)
+            + u128::from(alloyx_vault_collateral_after.amount))
+        / u128::from(alloyx_vault_mint_after.supply);
+    let protocol_total_value_before = protocol_alloyx_value_before
+        + u128::from(identity_depository_collateral_before.amount)
+        + u128::from(profits_beneficiary_collateral_before.amount);
+    let protocol_total_value_after = protocol_alloyx_value_after
+        + u128::from(identity_depository_collateral_after.amount)
+        + u128::from(profits_beneficiary_collateral_after.amount);
+    assert!(
+        protocol_total_value_before <= protocol_total_value_after,
+        "protocol value loss!"
+    );
 
     // redeemable_mint.supply must stay unchanged
     let redeemable_mint_supply_before = redeemable_mint_before.supply;
@@ -179,80 +235,89 @@ pub async fn process_rebalance_alloyx_vault_depository(
         redeemable_circulating_supply_after,
     );
 
-    // identity_depository.redeemable_amount_under_management must have moved by the expected rebalance amount
-    let identity_depository_redeemable_amount_under_management_before =
-        identity_depository_before.redeemable_amount_under_management;
-    let identity_depository_redeemable_amount_under_management_after =
-        identity_depository_after.redeemable_amount_under_management;
-    assert_eq!(
-        i128::try_from(identity_depository_redeemable_amount_under_management_before).unwrap()
-            - expected_rebalance_delta_value,
-        i128::try_from(identity_depository_redeemable_amount_under_management_after).unwrap(),
-        "invalid identity_depository.redeemable_amount_under_management",
-    );
-    // alloyx_vault_depository.redeemable_amount_under_management must have moved by the expected rebalance amount
-    let alloyx_vault_depository_redeemable_amount_under_management_before =
-        alloyx_vault_depository_before.redeemable_amount_under_management;
-    let alloyx_vault_depository_redeemable_amount_under_management_after =
-        alloyx_vault_depository_after.redeemable_amount_under_management;
-    assert_eq!(
-        i128::from(alloyx_vault_depository_redeemable_amount_under_management_before)
-            + expected_rebalance_delta_value,
-        i128::from(alloyx_vault_depository_redeemable_amount_under_management_after),
-        "invalid alloyx_vault_depository.redeemable_amount_under_management"
-    );
+    // If we want to check that the rebalance delta is valid
+    if let Some(expected_rebalance_delta_value) = expected_rebalance_delta_value {
+        // identity_depository.redeemable_amount_under_management must have moved by the expected rebalance amount
+        let identity_depository_redeemable_amount_under_management_before =
+            identity_depository_before.redeemable_amount_under_management;
+        let identity_depository_redeemable_amount_under_management_after =
+            identity_depository_after.redeemable_amount_under_management;
+        assert_eq!(
+            i128::try_from(identity_depository_redeemable_amount_under_management_before).unwrap()
+                - expected_rebalance_delta_value,
+            i128::try_from(identity_depository_redeemable_amount_under_management_after).unwrap(),
+            "invalid identity_depository.redeemable_amount_under_management",
+        );
+        // alloyx_vault_depository.redeemable_amount_under_management must have moved by the expected rebalance amount
+        let alloyx_vault_depository_redeemable_amount_under_management_before =
+            alloyx_vault_depository_before.redeemable_amount_under_management;
+        let alloyx_vault_depository_redeemable_amount_under_management_after =
+            alloyx_vault_depository_after.redeemable_amount_under_management;
+        assert_eq!(
+            i128::from(alloyx_vault_depository_redeemable_amount_under_management_before)
+                + expected_rebalance_delta_value,
+            i128::from(alloyx_vault_depository_redeemable_amount_under_management_after),
+            "invalid alloyx_vault_depository.redeemable_amount_under_management"
+        );
 
-    // identity_depository.collateral_amount_deposited must have moved by the expected rebalance amount
-    let identity_depository_collateral_amount_deposited_before =
-        identity_depository_before.collateral_amount_deposited;
-    let identity_depository_collateral_amount_deposited_after =
-        identity_depository_after.collateral_amount_deposited;
-    assert_eq!(
-        i128::try_from(identity_depository_collateral_amount_deposited_before).unwrap()
-            - expected_rebalance_delta_value,
-        i128::try_from(identity_depository_collateral_amount_deposited_after).unwrap(),
-        "invalid identity_depository.collateral_amount_deposited"
-    );
-    // alloyx_vault_depository.collateral_amount_deposited must have moved by the expected rebalance amount
-    let alloyx_vault_depository_collateral_amount_deposited_before =
-        alloyx_vault_depository_before.collateral_amount_deposited;
-    let alloyx_vault_depository_collateral_amount_deposited_after =
-        alloyx_vault_depository_after.collateral_amount_deposited;
-    assert_eq!(
-        i128::from(alloyx_vault_depository_collateral_amount_deposited_before)
-            + expected_rebalance_delta_value,
-        i128::from(alloyx_vault_depository_collateral_amount_deposited_after),
-        "invalid alloyx_vault_depository.collateral_amount_deposited"
-    );
+        // identity_depository.collateral_amount_deposited must have moved by the expected rebalance amount
+        let identity_depository_collateral_amount_deposited_before =
+            identity_depository_before.collateral_amount_deposited;
+        let identity_depository_collateral_amount_deposited_after =
+            identity_depository_after.collateral_amount_deposited;
+        assert_eq!(
+            i128::try_from(identity_depository_collateral_amount_deposited_before).unwrap()
+                - expected_rebalance_delta_value,
+            i128::try_from(identity_depository_collateral_amount_deposited_after).unwrap(),
+            "invalid identity_depository.collateral_amount_deposited"
+        );
+        // alloyx_vault_depository.collateral_amount_deposited must have moved by the expected rebalance amount
+        let alloyx_vault_depository_collateral_amount_deposited_before =
+            alloyx_vault_depository_before.collateral_amount_deposited;
+        let alloyx_vault_depository_collateral_amount_deposited_after =
+            alloyx_vault_depository_after.collateral_amount_deposited;
+        assert_eq!(
+            i128::from(alloyx_vault_depository_collateral_amount_deposited_before)
+                + expected_rebalance_delta_value,
+            i128::from(alloyx_vault_depository_collateral_amount_deposited_after),
+            "invalid alloyx_vault_depository.collateral_amount_deposited"
+        );
+    }
 
-    // controller.profits_amount_collected must have increased by the profits amount
-    let controller_profits_total_collected_before =
-        u64::try_from(controller_before.profits_total_collected).unwrap();
-    let controller_profits_total_collected_after =
-        u64::try_from(controller_after.profits_total_collected).unwrap();
-    assert_eq!(
-        controller_profits_total_collected_before + expected_profits_amount,
-        controller_profits_total_collected_after,
-        "invalid controller.profits_total_collected",
-    );
+    if let Some(expected_profits_amount) = expected_profits_amount {
+        // controller.profits_amount_collected must have increased by the profits amount
+        let controller_profits_total_collected_before =
+            u64::try_from(controller_before.profits_total_collected).unwrap();
+        let controller_profits_total_collected_after =
+            u64::try_from(controller_after.profits_total_collected).unwrap();
+        assert_eq!(
+            controller_profits_total_collected_before + expected_profits_amount,
+            controller_profits_total_collected_after,
+            "invalid controller.profits_total_collected",
+        );
 
-    // profits_beneficiary_collateral.amount must have increased by the expected profits amount
-    assert_eq!(
-        profits_beneficiary_collateral_amount_before + expected_profits_amount,
-        profits_beneficiary_collateral_amount_after,
-        "invalid profits_beneficiary_collateral.amount"
-    );
+        // profits_beneficiary_collateral.amount must have increased by the expected profits amount
+        let profits_beneficiary_collateral_amount_before =
+            profits_beneficiary_collateral_before.amount;
+        let profits_beneficiary_collateral_amount_after =
+            profits_beneficiary_collateral_after.amount;
+        assert_eq!(
+            profits_beneficiary_collateral_amount_before + expected_profits_amount,
+            profits_beneficiary_collateral_amount_after,
+            "invalid profits_beneficiary_collateral.amount"
+        );
 
-    // alloyx_vault_depository.profits_amount_collected must have increased by the expected profits amount
-    let alloyx_vault_depository_profits_total_collected_before =
-        alloyx_vault_depository_before.profits_total_collected;
-    let alloyx_vault_depository_profits_total_collected_after =
-        alloyx_vault_depository_after.profits_total_collected;
-    assert_eq!(
-        alloyx_vault_depository_profits_total_collected_before + expected_profits_amount,
-        alloyx_vault_depository_profits_total_collected_after,
-        "invalid alloyx_vault_depository.profits_amount_collected",
-    );
+        // alloyx_vault_depository.profits_amount_collected must have increased by the expected profits amount
+        let alloyx_vault_depository_profits_total_collected_before =
+            alloyx_vault_depository_before.profits_total_collected;
+        let alloyx_vault_depository_profits_total_collected_after =
+            alloyx_vault_depository_after.profits_total_collected;
+        assert_eq!(
+            alloyx_vault_depository_profits_total_collected_before + expected_profits_amount,
+            alloyx_vault_depository_profits_total_collected_after,
+            "invalid alloyx_vault_depository.profits_amount_collected",
+        );
+    }
 
     // Done
     Ok(())
