@@ -94,17 +94,35 @@ pub async fn process_rebalance_alloyx_vault_depository(
         &identity_depository,
     )
     .await?;
+    let identity_depository_collateral_before = program_context::read_account_packed::<Account>(
+        program_context,
+        &identity_depository_collateral,
+    )
+    .await?;
+    let alloyx_vault_mint_before =
+        program_context::read_account_packed::<Mint>(program_context, alloyx_vault_mint).await?;
+    let alloyx_vault_info_before = program_context::read_account_anchor::<alloyx_cpi::VaultInfo>(
+        program_context,
+        &alloyx_vault_info,
+    )
+    .await?;
+    let alloyx_vault_collateral_before =
+        program_context::read_account_packed::<Account>(program_context, &alloyx_vault_collateral)
+            .await?;
     let alloyx_vault_depository_before = program_context::read_account_anchor::<
         AlloyxVaultDepository,
     >(program_context, &alloyx_vault_depository)
     .await?;
-    let profits_beneficiary_collateral_amount_before =
-        program_context::read_account_packed::<Account>(
-            program_context,
-            profits_beneficiary_collateral,
-        )
-        .await?
-        .amount;
+    let alloyx_vault_depository_shares_before = program_context::read_account_packed::<Account>(
+        program_context,
+        &alloyx_vault_depository_shares,
+    )
+    .await?;
+    let profits_beneficiary_collateral_before = program_context::read_account_packed::<Account>(
+        program_context,
+        profits_beneficiary_collateral,
+    )
+    .await?;
 
     // Execute IX
     let accounts = uxd::accounts::RebalanceAlloyxVaultDepository {
@@ -150,19 +168,57 @@ pub async fn process_rebalance_alloyx_vault_depository(
         &identity_depository,
     )
     .await?;
+    let identity_depository_collateral_after = program_context::read_account_packed::<Account>(
+        program_context,
+        &identity_depository_collateral,
+    )
+    .await?;
+    let alloyx_vault_mint_after =
+        program_context::read_account_packed::<Mint>(program_context, alloyx_vault_mint).await?;
+    let alloyx_vault_info_after = program_context::read_account_anchor::<alloyx_cpi::VaultInfo>(
+        program_context,
+        &alloyx_vault_info,
+    )
+    .await?;
+    let alloyx_vault_collateral_after =
+        program_context::read_account_packed::<Account>(program_context, &alloyx_vault_collateral)
+            .await?;
     let alloyx_vault_depository_after =
         program_context::read_account_anchor::<AlloyxVaultDepository>(
             program_context,
             &alloyx_vault_depository,
         )
         .await?;
-    let profits_beneficiary_collateral_amount_after =
-        program_context::read_account_packed::<Account>(
-            program_context,
-            profits_beneficiary_collateral,
-        )
-        .await?
-        .amount;
+    let alloyx_vault_depository_shares_after = program_context::read_account_packed::<Account>(
+        program_context,
+        &alloyx_vault_depository_shares,
+    )
+    .await?;
+    let profits_beneficiary_collateral_after = program_context::read_account_packed::<Account>(
+        program_context,
+        profits_beneficiary_collateral,
+    )
+    .await?;
+
+    // MOST IMPORTANT: Ensure that we never lose value for the protocol!
+    let protocol_alloyx_value_before = u128::from(alloyx_vault_depository_shares_before.amount)
+        * (u128::from(alloyx_vault_info_before.wallet_desk_usdc_value)
+            + u128::from(alloyx_vault_collateral_before.amount))
+        / u128::from(alloyx_vault_mint_before.supply);
+    let protocol_alloyx_value_after = u128::from(alloyx_vault_depository_shares_after.amount)
+        * (u128::from(alloyx_vault_info_after.wallet_desk_usdc_value)
+            + u128::from(alloyx_vault_collateral_after.amount))
+        / u128::from(alloyx_vault_mint_after.supply);
+    let protocol_total_value_before = protocol_alloyx_value_before
+        + u128::from(identity_depository_collateral_before.amount)
+        + u128::from(profits_beneficiary_collateral_before.amount);
+    let protocol_total_value_after = protocol_alloyx_value_after
+        + u128::from(identity_depository_collateral_after.amount)
+        + u128::from(profits_beneficiary_collateral_after.amount);
+    assert!(
+        protocol_total_value_before <= protocol_total_value_after,
+        "protocol value loss!"
+    );
 
     // redeemable_mint.supply must stay unchanged
     let redeemable_mint_supply_before = redeemable_mint_before.supply;
@@ -237,6 +293,8 @@ pub async fn process_rebalance_alloyx_vault_depository(
     );
 
     // profits_beneficiary_collateral.amount must have increased by the expected profits amount
+    let profits_beneficiary_collateral_amount_before = profits_beneficiary_collateral_before.amount;
+    let profits_beneficiary_collateral_amount_after = profits_beneficiary_collateral_after.amount;
     assert_eq!(
         profits_beneficiary_collateral_amount_before + expected_profits_amount,
         profits_beneficiary_collateral_amount_after,
