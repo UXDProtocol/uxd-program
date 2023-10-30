@@ -243,7 +243,8 @@ async fn test_mint_and_redeem() -> Result<(), program_context::ProgramError> {
 
     // Post mint supply should match the configured weights
     let total_supply_after_second_mint = amount_for_first_mint + amount_for_second_mint;
-    let identity_depository_supply_after_second_mint = total_supply_after_second_mint * 50 / 100 - 2; // Precision loss as a consequence of roundings
+    let identity_depository_supply_after_second_mint =
+        total_supply_after_second_mint * 50 / 100 - 2; // Precision loss as a consequence of roundings
     let mercurial_vault_depository_supply_after_second_mint =
         total_supply_after_second_mint * 20 / 100 - 1; // Precision loss as a consequence of the first mint rounding
     let credix_lp_depository_supply_after_second_mint = total_supply_after_second_mint * 30 / 100;
