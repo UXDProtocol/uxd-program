@@ -231,8 +231,8 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        i128::from(amount_first_deposited_into_alloyx - 1), // 20% deposit (+ precision-loss)
-        0,
+        Some(i128::from(amount_first_deposited_into_alloyx - 1)), // 20% deposit (+ precision-loss)
+        Some(0),
     )
     .await?;
 
@@ -308,8 +308,8 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        0, // nothing can happen yet
-        0, // nothing can happen yet
+        Some(0), // nothing can happen yet
+        Some(0), // nothing can happen yet
     )
     .await?;
 
@@ -346,8 +346,8 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        0,                                           // no liquidity available for rebalancing
-        amount_of_liquidity_collateral_first_unlock, // all liquidity goes toward profits
+        Some(0), // no liquidity available for rebalancing
+        Some(amount_of_liquidity_collateral_first_unlock), // all liquidity goes toward profits
     )
     .await?;
 
@@ -372,8 +372,8 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        -i128::from(amount_of_rebalancing_for_second_unlock), // partial rebalancing if possible
-        amount_of_profits_for_second_unlock + 2, // profits prioritized (+ precision-loss)
+        Some(-i128::from(amount_of_rebalancing_for_second_unlock)), // partial rebalancing if possible
+        Some(amount_of_profits_for_second_unlock + 2), // profits prioritized (+ precision-loss)
     )
     .await?;
 
@@ -399,8 +399,8 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        -i128::from(amount_of_rebalancing_for_third_unlock - 1), // partial rebalancing (+ precision-loss)
-        2, // no more profits to collect (+ precision-loss)
+        Some(-i128::from(amount_of_rebalancing_for_third_unlock - 1)), // partial rebalancing (+ precision-loss)
+        Some(2), // no more profits to collect (+ precision-loss)
     )
     .await?;
 
@@ -411,8 +411,8 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        0, // finished rebalancing
-        2, // no more profits to collect (+ precision-loss)
+        Some(0), // finished rebalancing
+        Some(2), // no more profits to collect (+ precision-loss)
     )
     .await?;
 

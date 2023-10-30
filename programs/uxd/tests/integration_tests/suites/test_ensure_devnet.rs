@@ -139,10 +139,10 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     // ---------------------------------------------------------------------
 
     let alloyx_vault_mint = create_keypair([
-        63, 191, 40, 86, 112, 155, 244, 202, 140, 192, 84, 160, 91, 86, 176, 161, 82, 103, 142,
-        128, 33, 64, 195, 167, 78, 189, 197, 208, 9, 108, 135, 239, 122, 229, 53, 123, 214, 171,
-        162, 213, 109, 160, 147, 128, 87, 69, 128, 99, 140, 157, 104, 96, 224, 207, 42, 70, 207,
-        103, 64, 189, 107, 35, 142, 226,
+        24, 152, 214, 2, 31, 95, 161, 3, 227, 120, 36, 77, 192, 51, 24, 16, 64, 187, 121, 207, 7,
+        13, 244, 15, 232, 77, 205, 88, 244, 20, 110, 43, 166, 27, 17, 120, 31, 187, 68, 35, 240,
+        48, 173, 183, 137, 158, 95, 45, 136, 43, 150, 41, 190, 10, 108, 96, 249, 84, 99, 61, 60,
+        216, 62, 30,
     ])?;
     if !program_context::read_account_exists(&mut program_context, &alloyx_vault_mint.pubkey())
         .await?
@@ -358,6 +358,12 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         },
     )
     .await?;
+    program_alloyx::instructions::process_whitelist(
+        &mut program_context,
+        &payer,
+        &alloyx_vault_depository,
+    )
+    .await?;
 
     // ---------------------------------------------------------------------
     // -- Setup router
@@ -425,6 +431,17 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         &authority_collateral,
         &authority_redeemable,
         10_000, // 0.01 collateral
+    )
+    .await?;
+
+    program_uxd::instructions::process_rebalance_alloyx_vault_depository(
+        &mut program_context,
+        &payer,
+        &collateral_mint,
+        &alloyx_vault_mint.pubkey(),
+        &profits_beneficiary_collateral,
+        None, // We dont care about the output, just that it suceeded
+        None, // We dont care about the output, just that it suceeded
     )
     .await?;
 

@@ -39,7 +39,7 @@ pub const CREDIX_LP_DEPOSITORY_NAMESPACE: &[u8] = b"CREDIX_LP_DEPOSITORY";
 pub const CREDIX_LP_EXTERNAL_PASS_NAMESPACE: &[u8] = b"credix-pass";
 pub const CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE: &[u8] = b"withdraw-epoch";
 
-pub const ALLOYX_VAULT_DEPOSITORY_NAMESPACE: &[u8] = b"ALLOYXVAULTDEPOSITORY";
+pub const ALLOYX_VAULT_DEPOSITORY_NAMESPACE: &[u8] = b"ALLOYX_VAULT_DEPOSITORY";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 
@@ -312,7 +312,7 @@ pub mod uxd {
     }
 
     // Create and Register a new `AlloyxVaultDepository` to the `Controller`.
-    // Each `Depository` account manages a specific credix lp.
+    // Each `Depository` account manages a specific alloyx_vault.
     #[access_control(
         ctx.accounts.validate()
     )]

@@ -227,8 +227,10 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        i128::from(amount_the_user_should_be_able_to_mint * 10 / 100 - 1), // 10% deposit (+ precision-loss)
-        0,
+        Some(i128::from(
+            amount_the_user_should_be_able_to_mint * 10 / 100 - 1,
+        )), // 10% deposit (+ precision-loss)
+        Some(0),
     )
     .await?;
 
@@ -261,8 +263,10 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        i128::from(amount_the_user_should_be_able_to_mint * 5 / 100 - 1), // 5% deposit (+ precision-loss)
-        0,
+        Some(i128::from(
+            amount_the_user_should_be_able_to_mint * 5 / 100 - 1,
+        )), // 5% deposit (+ precision-loss)
+        Some(0),
     )
     .await?;
 
@@ -295,8 +299,10 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        -i128::from(amount_the_user_should_be_able_to_mint * 10 / 100 - 2), // 10% withdrawal (+ precision-loss)
-        2,                                                                  // +precision-loss
+        Some(-i128::from(
+            amount_the_user_should_be_able_to_mint * 10 / 100 - 2,
+        )), // 10% withdrawal (+ precision-loss)
+        Some(2), // +precision-loss
     )
     .await?;
 
@@ -384,8 +390,10 @@ async fn test_alloyx_vault_depository_rebalance_liquid() -> Result<(), program_c
         &collateral_mint.pubkey(),
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
-        i128::from(amount_the_user_should_be_able_to_mint * 5 / 100 - 1), // 5% deposit + precision-loss
-        expected_profits_collateral_amount + 4,                           // +precision-loss
+        Some(i128::from(
+            amount_the_user_should_be_able_to_mint * 5 / 100 - 1,
+        )), // 5% deposit + precision-loss
+        Some(expected_profits_collateral_amount + 4), // +precision-loss
     )
     .await?;
 
