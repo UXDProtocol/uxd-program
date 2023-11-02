@@ -478,7 +478,7 @@ pub(crate) fn handler(
     let owned_shares_value_decrease: u64 =
         compute_decrease(owned_shares_value_before, owned_shares_value_after)?;
 
-    // The credix lp credix_lp_depository collateral account should always be empty
+    // The credix_lp_depository collateral account should always be empty
     require!(
         credix_lp_depository_collateral_amount_before
             == credix_lp_depository_collateral_amount_after,

@@ -104,7 +104,7 @@ pub fn calculate_depositories_redeemable_amount(
     )
     .map(
         |(depository_over_target_redeemable_amount, depository_under_target_redeemable_amount)| {
-            // Step 2, try to use the over_target amounts, weighted for each depository
+            // Step 1, try to use the over_target amounts, weighted for each depository
             let requested_primary_redeemable_amount = std::cmp::min(
                 requested_redeemable_amount,
                 total_over_target_redeemable_amount,
