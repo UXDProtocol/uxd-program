@@ -92,13 +92,13 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     // -- Setup onchain dependency mercurial vault instance
     // ---------------------------------------------------------------------
 
+    // tewho86AFqTGmMvtKEvnNegHZfce4tTzDYENa58TLCq
     let mercurial_vault_lp_mint = create_keypair([
         90, 138, 35, 214, 209, 183, 0, 86, 76, 138, 199, 70, 48, 104, 9, 227, 94, 43, 67, 26, 233,
         128, 61, 117, 130, 99, 181, 114, 127, 100, 200, 129, 13, 59, 134, 19, 81, 172, 155, 180,
         150, 234, 35, 53, 105, 199, 116, 239, 239, 77, 142, 60, 202, 215, 83, 80, 173, 34, 95, 47,
         34, 66, 44, 26,
     ])?;
-
     if !program_context::read_account_exists(
         &mut program_context,
         &mercurial_vault_lp_mint.pubkey(),
@@ -138,6 +138,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     // -- Setup onchain dependency alloyx vault instance
     // ---------------------------------------------------------------------
 
+    // CBQcnyoVjdCyPf2nnhPjbMJL18FEtTuPA9nQPrS7wJPF
     let alloyx_vault_mint = create_keypair([
         24, 152, 214, 2, 31, 95, 161, 3, 227, 120, 36, 77, 192, 51, 24, 16, 64, 187, 121, 207, 7,
         13, 244, 15, 232, 77, 205, 88, 244, 20, 110, 43, 166, 27, 17, 120, 31, 187, 68, 35, 240,
