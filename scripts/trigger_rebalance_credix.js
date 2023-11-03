@@ -1,6 +1,7 @@
 const {
   Controller,
   CredixLpDepository,
+  AlloyxVaultDepository,
   IdentityDepository,
   MercurialVaultDepository,
   UXDClient,
@@ -76,6 +77,23 @@ async function createCredixLpDepository() {
     });
   } catch (error) {
     console.error('Failed to initialize credix depository');
+    throw error;
+  }
+}
+
+async function createAlloyxVaultDepository() {
+  try {
+    return await AlloyxVaultDepository.initialize({
+      connection: getConnection(),
+      uxdProgramId: uxdProgramId,
+      collateralMint: usdcMint,
+      collateralSymbol: 'USDC',
+      alloyxProgramId: new PublicKey(
+        'CRDx2YkdtYtGZXGHZ59wNv1EwKHQndnRc1gT4p8i2vPX'
+      ),
+    });
+  } catch (error) {
+    console.error('Failed to initialize alloyx_vault_depository');
     throw error;
   }
 }
