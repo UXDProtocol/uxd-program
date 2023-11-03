@@ -7,6 +7,7 @@ import { Transaction, ComputeBudgetProgram } from '@solana/web3.js';
 import { web3, BN } from '@project-serum/anchor';
 import {
   createAlloyxVaultDepository,
+  createClient,
   createController,
   createCredixLpDepository,
   createIdentityDepository,
@@ -40,13 +41,11 @@ async function main() {
     getConnection(),
     TXN_OPTS
   );
-  const credixLpDepositoryAccount = await credixLpDepository.getOnchainAccount(
-    getConnection(),
-    TXN_OPTS
-  );
+  const alloyxVaultDepositoryAccount =
+    await alloyxVaultDepository.getOnchainAccount(getConnection(), TXN_OPTS);
 
   const profitsBeneficiaryCollateral =
-    credixLpDepositoryAccount.profitsBeneficiaryCollateral;
+    alloyxVaultDepositoryAccount.profitsBeneficiaryCollateral;
   console.log(
     'profitsBeneficiaryCollateral',
     profitsBeneficiaryCollateral.toBase58()

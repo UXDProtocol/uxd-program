@@ -27,13 +27,13 @@ production = []
 development = []
 
 [dependencies]
-uxd-cpi = { version = "8.2.0", features = ["development"] }
+uxd-cpi = { version = "9.0.0", features = ["development"] }
 
-anchor-lang = "0.26.0"
-anchor-spl = "0.26.0"
+anchor-lang = "0.28.0"
+anchor-spl = "0.28.0"
 mercurial-vault = { git = "https://github.com/mercurial-finance/vault-sdk", features = [
   "cpi",
-], rev = "3724175d8435f7acb7a33077a5a9f1eb58ab3399" }
+], rev = "c590d6ba19ecb58d80dbe8b33fa8056a1ddbff43" }
 
 alloyx-cpi = { version = "0.0.2" }
 

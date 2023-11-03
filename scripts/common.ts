@@ -11,6 +11,7 @@ import {
   AlloyxVaultDepository,
   CredixLpDepository,
   Controller,
+  UXDClient,
 } from '@uxd-protocol/uxd-client';
 
 const TXN_COMMIT = 'confirmed';
@@ -36,6 +37,10 @@ export function getConnection() {
     connectionConfig
   );
   return connection;
+}
+
+export function createClient() {
+  return new UXDClient(uxdProgramId);
 }
 
 export function createController() {
