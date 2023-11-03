@@ -8,7 +8,9 @@ import {
 import {
   IdentityDepository,
   MercurialVaultDepository,
+  AlloyxVaultDepository,
   CredixLpDepository,
+  Controller,
 } from '@uxd-protocol/uxd-client';
 
 const TXN_COMMIT = 'confirmed';
@@ -36,6 +38,10 @@ export function getConnection() {
   return connection;
 }
 
+export function createController() {
+  return new Controller('UXD', 6, uxdProgramId);
+}
+
 export function createIdentityDepository() {
   return new IdentityDepository(usdcMint, 'USDC', 6, uxdProgramId);
 }
@@ -53,7 +59,7 @@ export async function createMercurialVaultDepository() {
       uxdProgramId,
     });
   } catch (error) {
-    console.error('Failed to initialize mercurial depository');
+    console.error('Failed to initialize mercurial_vault_depository');
     throw error;
   }
 }
@@ -70,7 +76,28 @@ export async function createCredixLpDepository() {
       ),
     });
   } catch (error) {
-    console.error('Failed to initialize credix depository');
+    console.error('Failed to initialize credix_lp_depository');
+    throw error;
+  }
+}
+
+export async function createAlloyxVaultDepository() {
+  try {
+    return await AlloyxVaultDepository.initialize({
+      connection: getConnection(),
+      uxdProgramId: uxdProgramId,
+      collateralMint: usdcMint,
+      collateralSymbol: 'USDC',
+      alloyxVaultId: 'uxd-debug', // TODO - which vault_id to use on mainnet?
+      alloyxVaultMint: new PublicKey(
+        'CBQcnyoVjdCyPf2nnhPjbMJL18FEtTuPA9nQPrS7wJPF' // TODO - which vault mint to use on mainnet?
+      ),
+      alloyxProgramId: new PublicKey(
+        '8U29WVwDFLxFud36okhqrngUquaZqVnVL9uE5G8DzX5c'
+      ),
+    });
+  } catch (error) {
+    console.error('Failed to initialize alloyx_vault_depository');
     throw error;
   }
 }
@@ -82,4 +109,5 @@ export const payer = Keypair.fromSeed(
     1, 22, 120, 109, 0, 8, 5, 3, 2, 7, 6, 8,
   ])
 );
+
 console.log('payer', payer.publicKey.toBase58());

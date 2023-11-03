@@ -5198,7 +5198,7 @@ checksum = "79daa5ed5740825c40b389c5e50312b9c86df53fccd33f281df655642b43869d"
 
 [[package]]
 name = "uxd"
-version = "8.2.0"
+version = "9.0.0"
 dependencies = [
  "alloyx-cpi",
  "anchor-lang",

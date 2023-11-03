@@ -1,8 +1,9 @@
 import { web3 } from '@project-serum/anchor';
 import { amountToUiAmount } from '@solana/spl-token';
 import { Transaction } from '@solana/web3.js';
-import { Controller, UXDClient } from '@uxd-protocol/uxd-client';
+import { UXDClient } from '@uxd-protocol/uxd-client';
 import {
+  createController,
   createMercurialVaultDepository,
   getConnection,
   payer,
@@ -11,7 +12,7 @@ import {
 } from './common';
 
 async function main() {
-  const controller = new Controller('UXD', 6, uxdProgramId);
+  const controller = createController();
   const depository = await createMercurialVaultDepository();
 
   controller.info();

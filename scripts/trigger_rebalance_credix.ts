@@ -1,13 +1,13 @@
-const {
-  Controller,
+import {
   CredixLpDepository,
   UXDClient,
   nativeToUi,
-} = require('@uxd-protocol/uxd-client');
-const { Transaction, ComputeBudgetProgram } = require('@solana/web3.js');
-const { web3 } = require('@project-serum/anchor');
-const { BN } = require('bn.js');
-const {
+} from '@uxd-protocol/uxd-client';
+import { Transaction, ComputeBudgetProgram } from '@solana/web3.js';
+import { web3, BN } from '@project-serum/anchor';
+import {
+  createAlloyxVaultDepository,
+  createController,
   createCredixLpDepository,
   createIdentityDepository,
   createMercurialVaultDepository,
@@ -15,7 +15,7 @@ const {
   payer,
   TXN_OPTS,
   uxdProgramId,
-} = require('./common');
+} from './common';
 
 async function main() {
   console.log();
@@ -24,10 +24,11 @@ async function main() {
   console.log('------------------------------ ------------------------------');
   console.log();
 
-  const controller = new Controller('UXD', 6, uxdProgramId);
+  const controller = createController();
   const identityDepository = createIdentityDepository();
   const mercurialVaultDepository = await createMercurialVaultDepository();
   const credixLpDepository = await createCredixLpDepository();
+  const alloyxVaultDepository = await createAlloyxVaultDepository();
 
   controller.info();
   identityDepository.info();
@@ -64,6 +65,7 @@ async function main() {
       identityDepository,
       mercurialVaultDepository,
       credixLpDepository,
+      alloyxVaultDepository,
       payer.publicKey,
       TXN_OPTS
     );
@@ -100,6 +102,7 @@ async function main() {
       identityDepository,
       mercurialVaultDepository,
       credixLpDepository,
+      alloyxVaultDepository,
       payer.publicKey,
       profitsBeneficiaryCollateral,
       TXN_OPTS
@@ -360,7 +363,7 @@ async function main() {
   let overflow_value = redeemable_amount_under_management.sub(
     redeemable_amount_under_management_target_amount
   );
-  if (overflow_value < 0) {
+  if (overflow_value.isNeg()) {
     overflow_value = new BN(0);
   }
   console.log('> overflow_value:', overflow_value.toString());
@@ -369,9 +372,9 @@ async function main() {
 }
 
 function compute_value_for_shares_amount_floor(
-  shares_amount,
-  total_shares_supply,
-  total_shares_value
+  shares_amount: BN,
+  total_shares_supply: BN,
+  total_shares_value: BN
 ) {
   return shares_amount.mul(total_shares_value).div(total_shares_supply);
 }

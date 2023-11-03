@@ -16,7 +16,7 @@ import {
   Signer,
   Transaction,
 } from '@solana/web3.js';
-import * as anchor from '@project-serum/anchor';
+import { web3, BN } from '@project-serum/anchor';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   NATIVE_MINT,
@@ -31,7 +31,6 @@ import {
   MERCURIAL_USDC_DEVNET_DECIMALS,
   uxdProgramId,
 } from './constants';
-import { BN } from 'bn.js';
 
 const SOLANA_FEES_LAMPORT: number = 1238880;
 
@@ -45,7 +44,7 @@ export async function sendAndConfirmTransaction(
   transaction: Transaction,
   signers: Signer[]
 ): Promise<string> {
-  const result = await anchor.web3.sendAndConfirmTransaction(
+  const result = await web3.sendAndConfirmTransaction(
     getConnection(),
     transaction,
     signers,
@@ -64,11 +63,11 @@ export function transferSol(
   from: Signer,
   to: PublicKey
 ): Promise<string> {
-  const transaction = new anchor.web3.Transaction().add(
-    anchor.web3.SystemProgram.transfer({
+  const transaction = new web3.Transaction().add(
+    web3.SystemProgram.transfer({
       fromPubkey: from.publicKey,
       toPubkey: to,
-      lamports: anchor.web3.LAMPORTS_PER_SOL * amountUi,
+      lamports: web3.LAMPORTS_PER_SOL * amountUi,
     })
   );
   return sendAndConfirmTransaction(transaction, [from]);
@@ -79,12 +78,11 @@ export async function transferAllSol(
   to: PublicKey
 ): Promise<string> {
   const fromBalance = await getSolBalance(from.publicKey);
-  const transaction = new anchor.web3.Transaction().add(
-    anchor.web3.SystemProgram.transfer({
+  const transaction = new web3.Transaction().add(
+    web3.SystemProgram.transfer({
       fromPubkey: from.publicKey,
       toPubkey: to,
-      lamports:
-        anchor.web3.LAMPORTS_PER_SOL * fromBalance - SOLANA_FEES_LAMPORT,
+      lamports: web3.LAMPORTS_PER_SOL * fromBalance - SOLANA_FEES_LAMPORT,
     })
   );
   return sendAndConfirmTransaction(transaction, [from]);
@@ -115,7 +113,7 @@ export async function transferTokens(
     from.publicKey,
     uiToNative(amountUi, decimals).toNumber()
   );
-  const transaction = new anchor.web3.Transaction().add(transferTokensIx);
+  const transaction = new web3.Transaction().add(transferTokensIx);
   return sendAndConfirmTransaction(transaction, [from]);
 }
 
@@ -196,22 +194,22 @@ function findAssociatedTokenAddress(
 
 // simple shorthand
 function findAddr(seeds: Buffer[], programId: PublicKey) {
-  return anchor.utils.publicKey.findProgramAddressSync(seeds, programId)[0];
+  return PublicKey.findProgramAddressSync(seeds, programId)[0];
 }
 
 /**
  *
- * @param {anchor.web3.PublicKey} fromKey
- * @param {anchor.web3.PublicKey} toKey
+ * @param {web3.PublicKey} fromKey
+ * @param {web3.PublicKey} toKey
  * @param {number} amountNative
- * @returns {anchor.web3.TransactionInstruction}
+ * @returns {web3.TransactionInstruction}
  */
 const transferSolItx = (
   fromKey: PublicKey,
   toKey: PublicKey,
   amountNative: number
 ) =>
-  anchor.web3.SystemProgram.transfer({
+  web3.SystemProgram.transfer({
     fromPubkey: fromKey,
     toPubkey: toKey,
     lamports: amountNative,
@@ -247,20 +245,20 @@ export function createAssociatedTokenAccountItx(
 ) {
   const assocKey = findAssociatedTokenAddress(walletKey, mintKey);
 
-  return new anchor.web3.TransactionInstruction({
+  return new web3.TransactionInstruction({
     keys: [
       { pubkey: payerKey, isSigner: true, isWritable: true },
       { pubkey: assocKey, isSigner: false, isWritable: true },
       { pubkey: walletKey, isSigner: false, isWritable: false },
       { pubkey: mintKey, isSigner: false, isWritable: false },
       {
-        pubkey: anchor.web3.SystemProgram.programId,
+        pubkey: web3.SystemProgram.programId,
         isSigner: false,
         isWritable: false,
       },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
       {
-        pubkey: anchor.web3.SYSVAR_RENT_PUBKEY,
+        pubkey: web3.SYSVAR_RENT_PUBKEY,
         isSigner: false,
         isWritable: false,
       },
