@@ -44,14 +44,12 @@ pub struct RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
 
     /// #4
     #[account(
-        mut,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
     pub identity_depository: AccountLoader<'info, IdentityDepository>,
 
     /// #5
     #[account(
-        mut,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
@@ -120,7 +118,6 @@ pub struct RebalanceCreateWithdrawRequestFromCredixLpDepository<'info> {
 
     /// #14
     #[account(
-        mut,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]

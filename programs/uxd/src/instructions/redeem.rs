@@ -113,36 +113,34 @@ pub struct Redeem<'info> {
 
     /// #15
     #[account(
-        mut,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
     pub credix_lp_depository: AccountLoader<'info, CredixLpDepository>,
 
-    /// #15
+    /// #16
     #[account(
-        mut,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
     pub alloyx_vault_depository: AccountLoader<'info, AlloyxVaultDepository>,
 
-    /// #16
+    /// #17
     pub system_program: Program<'info, System>,
 
-    /// #17
+    /// #18
     pub token_program: Program<'info, Token>,
 
-    /// #18
+    /// #19
     pub associated_token_program: Program<'info, AssociatedToken>,
 
-    /// #19
+    /// #20
     pub mercurial_vault_program: Program<'info, mercurial_vault::program::Vault>,
 
-    /// #20
+    /// #21
     pub uxd_program: Program<'info, crate::program::Uxd>,
 
-    /// #21
+    /// #22
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -160,6 +158,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
     let alloyx_vault_depository = ctx.accounts.alloyx_vault_depository.load()?;
+    let current_slot = Clock::get()?.slot;
 
     // Compute real outflow limit for this epoch (max of bps/amount options)
     // Note: intermediary maths forced to use u128 to be able to multiply u64s safely
@@ -174,30 +173,29 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         )?)?,
     );
 
-    // How long ago was the last outflow
-    let current_slot = Clock::get()?.slot;
-    let last_outflow_elapsed_slots = std::cmp::min(
-        checked_as_u64(checked_sub(current_slot, controller.last_outflow_slot)?)?,
-        controller.slots_per_epoch,
-    );
-
-    // How much was unlocked by waiting since last redeem
-    // Note: intermediary maths forced to use u128 to be able to multiply u64s safely
-    let unlocked_outflow_amount = checked_as_u64(checked_div::<u128>(
-        checked_mul::<u128>(
-            u128::from(last_outflow_elapsed_slots),
-            u128::from(outflow_limit_per_epoch_amount),
-        )?,
-        u128::from(controller.slots_per_epoch),
-    )?)?;
-
-    // How much outflow in the current epoch right before the redeem IX
-    let previous_epoch_outflow_amount = controller
-        .epoch_outflow_amount
-        .saturating_sub(unlocked_outflow_amount);
-
     // How much outflow in the current epoch right after this current redeem IX
-    let new_epoch_outflow_amount = checked_add(previous_epoch_outflow_amount, redeemable_amount)?;
+    let new_epoch_outflow_amount = {
+        // How long ago was the last outflow
+        let last_outflow_elapsed_slots = std::cmp::min(
+            checked_as_u64(checked_sub(current_slot, controller.last_outflow_slot)?)?,
+            controller.slots_per_epoch,
+        );
+        // How much was unlocked by waiting since last redeem
+        // Note: intermediary maths forced to use u128 to be able to multiply u64s safely
+        let unlocked_outflow_amount = checked_as_u64(checked_div::<u128>(
+            checked_mul::<u128>(
+                u128::from(last_outflow_elapsed_slots),
+                u128::from(outflow_limit_per_epoch_amount),
+            )?,
+            u128::from(controller.slots_per_epoch),
+        )?)?;
+        // How much outflow in the current epoch right before the redeem IX
+        let previous_epoch_outflow_amount = controller
+            .epoch_outflow_amount
+            .saturating_sub(unlocked_outflow_amount);
+        // Add the current redeem to the outflow counter
+        checked_add(previous_epoch_outflow_amount, redeemable_amount)?
+    };
 
     // Make sure we are not over the outflow limit!
     require!(

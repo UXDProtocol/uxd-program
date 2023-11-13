@@ -159,33 +159,32 @@ pub struct Mint<'info> {
     #[account(mut)]
     pub credix_lp_depository_shares_mint: Box<Account<'info, anchor_spl::token::Mint>>,
 
-    /// #6
+    /// #23
     #[account(
-        mut,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint
     )]
     pub alloyx_vault_depository: AccountLoader<'info, AlloyxVaultDepository>,
 
-    /// #23
+    /// #24
     pub system_program: Program<'info, System>,
 
-    /// #24
+    /// #25
     pub token_program: Program<'info, Token>,
 
-    /// #25
+    /// #26
     pub associated_token_program: Program<'info, AssociatedToken>,
 
-    /// #26
+    /// #27
     pub mercurial_vault_program: Program<'info, mercurial_vault::program::Vault>,
 
-    /// #27
+    /// #28
     pub credix_program: Program<'info, credix_client::program::Credix>,
 
-    /// #28
+    /// #29
     pub uxd_program: Program<'info, crate::program::Uxd>,
 
-    /// #29
+    /// #30
     pub rent: Sysvar<'info, Rent>,
 }
 

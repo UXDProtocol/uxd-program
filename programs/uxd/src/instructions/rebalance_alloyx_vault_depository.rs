@@ -67,7 +67,6 @@ pub struct RebalanceAlloyxVaultDepository<'info> {
 
     /// #7
     #[account(
-        mut,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
@@ -75,7 +74,6 @@ pub struct RebalanceAlloyxVaultDepository<'info> {
 
     /// #8
     #[account(
-        mut,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]

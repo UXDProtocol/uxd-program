@@ -63,7 +63,6 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
 
     /// #6
     #[account(
-        mut,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
@@ -169,7 +168,6 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
 
     /// #20
     #[account(
-        mut,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
