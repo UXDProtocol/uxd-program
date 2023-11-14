@@ -75,11 +75,8 @@ export async function createCredixLpDepository() {
   }
 }
 
-// Dummy payer for mainnet tooling E7N44oZ3APNFjzv95xL6kSxSLgw3wVP3ixM7dgsMApzZ
-export const payer = Keypair.fromSeed(
-  Uint8Array.from([
-    1, 56, 76, 89, 32, 55, 1, 128, 98, 23, 56, 22, 30, 12, 76, 23, 2, 9, 3, 5,
-    1, 22, 120, 109, 0, 8, 5, 3, 2, 7, 6, 8,
-  ])
+// CI script payer on mainnet: 4NtUyktW5evy1Ez4BgfnRBdU7PLsmDRiZiH5HfBPGRSs
+export const payer = Keypair.fromSecretKey(
+  Buffer.from(JSON.parse(require('fs').readFileSync('./payer.json', 'utf-8')))
 );
 console.log('payer', payer.publicKey.toBase58());
