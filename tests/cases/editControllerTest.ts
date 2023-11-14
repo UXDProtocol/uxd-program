@@ -18,11 +18,13 @@ export const editControllerTest = async function ({
       identityDepositoryWeightBps: number;
       mercurialVaultDepositoryWeightBps: number;
       credixLpDepositoryWeightBps: number;
+      alloyxVaultDepositoryWeightBps: number;
     };
     routerDepositories?: {
       identityDepository: PublicKey;
       mercurialVaultDepository: PublicKey;
       credixLpDepository: PublicKey;
+      alloyxVaultDepository: PublicKey;
     };
   };
 }) {

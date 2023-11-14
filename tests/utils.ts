@@ -8,6 +8,7 @@ import {
   IdentityDepository,
   USDC_DECIMALS,
   USDC_DEVNET,
+  AlloyxVaultDepository,
 } from '@uxd-protocol/uxd-client';
 import {
   Connection,
@@ -270,23 +271,13 @@ export function createAssociatedTokenAccountItx(
   });
 }
 
-export async function createCredixLpDepositoryDevnetUSDC(): Promise<CredixLpDepository> {
-  try {
-    return await CredixLpDepository.initialize({
-      connection: getConnection(),
-      uxdProgramId: uxdProgramId,
-      collateralMint: new PublicKey(
-        'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr'
-      ),
-      collateralSymbol: 'USDC(CredixDevnet)',
-      credixProgramId: new PublicKey(
-        'crdRi38zEhQdzpsxnKur73WHBM9BSvXMSfGcbLyJCdP'
-      ),
-    });
-  } catch (error) {
-    console.error('Failed to initialize devnet credix depository');
-    throw error;
-  }
+export function createIdentityDepositoryDevnet(): IdentityDepository {
+  return new IdentityDepository(
+    USDC_DEVNET,
+    'USDC',
+    USDC_DECIMALS,
+    uxdProgramId
+  );
 }
 
 export async function createMercurialVaultDepositoryDevnet(): Promise<MercurialVaultDepository> {
@@ -302,16 +293,49 @@ export async function createMercurialVaultDepositoryDevnet(): Promise<MercurialV
       uxdProgramId,
     });
   } catch (error) {
-    console.error('Failed to initialize devnet mercurial depository');
+    console.error('Failed to initialize devnet mercurial_vault_depository');
     throw error;
   }
 }
 
-export function createIdentityDepositoryDevnet(): IdentityDepository {
-  return new IdentityDepository(
-    USDC_DEVNET,
-    'USDC',
-    USDC_DECIMALS,
-    uxdProgramId
-  );
+export async function createCredixLpDepositoryDevnetUSDC(): Promise<CredixLpDepository> {
+  try {
+    return await CredixLpDepository.initialize({
+      connection: getConnection(),
+      uxdProgramId: uxdProgramId,
+      collateralMint: new PublicKey(
+        'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr'
+      ),
+      collateralSymbol: 'USDC(Devnet)',
+      credixProgramId: new PublicKey(
+        'crdRi38zEhQdzpsxnKur73WHBM9BSvXMSfGcbLyJCdP'
+      ),
+    });
+  } catch (error) {
+    console.error('Failed to initialize devnet credix_lp_depository');
+    throw error;
+  }
+}
+
+export async function createAlloyxVaultDepositoryDevnetUSDC(): Promise<AlloyxVaultDepository> {
+  try {
+    return await AlloyxVaultDepository.initialize({
+      connection: getConnection(),
+      uxdProgramId: uxdProgramId,
+      collateralMint: new PublicKey(
+        'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr'
+      ),
+      collateralSymbol: 'USDC(Devnet)',
+      alloyxVaultId: 'uxd-debug',
+      alloyxVaultMint: new PublicKey(
+        'CBQcnyoVjdCyPf2nnhPjbMJL18FEtTuPA9nQPrS7wJPF'
+      ),
+      alloyxProgramId: new PublicKey(
+        '8U29WVwDFLxFud36okhqrngUquaZqVnVL9uE5G8DzX5c'
+      ),
+    });
+  } catch (error) {
+    console.error('Failed to initialize devnet alloyx_vault_depository');
+    throw error;
+  }
 }

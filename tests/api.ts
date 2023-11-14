@@ -194,11 +194,13 @@ export async function editController({
       identityDepositoryWeightBps: number;
       mercurialVaultDepositoryWeightBps: number;
       credixLpDepositoryWeightBps: number;
+      alloyxVaultDepositoryWeightBps: number;
     };
     routerDepositories?: {
       identityDepository: PublicKey;
       mercurialVaultDepository: PublicKey;
       credixLpDepository: PublicKey;
+      alloyxVaultDepository: PublicKey;
     };
   };
 }): Promise<string> {
