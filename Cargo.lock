@@ -108,9 +108,9 @@ dependencies = [
 
 [[package]]
 name = "alloyx-cpi"
-version = "0.0.2"
+version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf089d7c93c529afba9665482316c4436a772f63fb8b3ab2a97c7fe75cc5dddb"
+checksum = "520d60c708c6cea710b3e1f3e0d9202f897bc4ec511c61eeada8a088ea05da18"
 dependencies = [
  "anchor-gen",
  "anchor-lang",
@@ -5198,7 +5198,7 @@ checksum = "79daa5ed5740825c40b389c5e50312b9c86df53fccd33f281df655642b43869d"
 
 [[package]]
 name = "uxd"
-version = "8.2.0"
+version = "9.0.0"
 dependencies = [
  "alloyx-cpi",
  "anchor-lang",
@@ -5223,9 +5223,9 @@ dependencies = [
 
 [[package]]
 name = "uxd-cpi"
-version = "8.2.0"
+version = "9.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e6d1988191fb42cd9d73b7a5de2b17ad746d3661718c483b7d33ba8c2e7708f"
+checksum = "84d81c1db06e21b8a560399d4ed9f77877181764b408d2ef383e656f1a8fa7e2"
 dependencies = [
  "anchor-gen",
  "anchor-lang",
