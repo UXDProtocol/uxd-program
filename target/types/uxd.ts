@@ -228,7 +228,7 @@ export type Uxd = {
         },
         {
           name: 'controller';
-          isMut: true;
+          isMut: false;
           isSigner: false;
           docs: [
             '#2 The top level UXDProgram on chain account managing the redeemable mint'
@@ -392,46 +392,52 @@ export type Uxd = {
           docs: ['#22'];
         },
         {
-          name: 'systemProgram';
+          name: 'alloyxVaultDepository';
           isMut: false;
           isSigner: false;
           docs: ['#23'];
         },
         {
-          name: 'tokenProgram';
+          name: 'systemProgram';
           isMut: false;
           isSigner: false;
           docs: ['#24'];
         },
         {
-          name: 'associatedTokenProgram';
+          name: 'tokenProgram';
           isMut: false;
           isSigner: false;
           docs: ['#25'];
         },
         {
-          name: 'mercurialVaultProgram';
+          name: 'associatedTokenProgram';
           isMut: false;
           isSigner: false;
           docs: ['#26'];
         },
         {
-          name: 'credixProgram';
+          name: 'mercurialVaultProgram';
           isMut: false;
           isSigner: false;
           docs: ['#27'];
         },
         {
-          name: 'uxdProgram';
+          name: 'credixProgram';
           isMut: false;
           isSigner: false;
           docs: ['#28'];
         },
         {
-          name: 'rent';
+          name: 'uxdProgram';
           isMut: false;
           isSigner: false;
           docs: ['#29'];
+        },
+        {
+          name: 'rent';
+          isMut: false;
+          isSigner: false;
+          docs: ['#30'];
         }
       ];
       args: [
@@ -536,45 +542,51 @@ export type Uxd = {
         },
         {
           name: 'credixLpDepository';
-          isMut: true;
+          isMut: false;
           isSigner: false;
           docs: ['#15'];
         },
         {
-          name: 'systemProgram';
+          name: 'alloyxVaultDepository';
           isMut: false;
           isSigner: false;
           docs: ['#16'];
         },
         {
-          name: 'tokenProgram';
+          name: 'systemProgram';
           isMut: false;
           isSigner: false;
           docs: ['#17'];
         },
         {
-          name: 'associatedTokenProgram';
+          name: 'tokenProgram';
           isMut: false;
           isSigner: false;
           docs: ['#18'];
         },
         {
-          name: 'mercurialVaultProgram';
+          name: 'associatedTokenProgram';
           isMut: false;
           isSigner: false;
           docs: ['#19'];
         },
         {
-          name: 'uxdProgram';
+          name: 'mercurialVaultProgram';
           isMut: false;
           isSigner: false;
           docs: ['#20'];
         },
         {
-          name: 'rent';
+          name: 'uxdProgram';
           isMut: false;
           isSigner: false;
           docs: ['#21'];
+        },
+        {
+          name: 'rent';
+          isMut: false;
+          isSigner: false;
+          docs: ['#22'];
         }
       ];
       args: [
@@ -1796,31 +1808,31 @@ export type Uxd = {
           docs: ['#2'];
         },
         {
-          name: 'identityDepository';
-          isMut: true;
+          name: 'collateralMint';
+          isMut: false;
           isSigner: false;
           docs: ['#3'];
         },
         {
-          name: 'mercurialVaultDepository';
-          isMut: true;
+          name: 'identityDepository';
+          isMut: false;
           isSigner: false;
           docs: ['#4'];
         },
         {
-          name: 'depository';
-          isMut: true;
+          name: 'mercurialVaultDepository';
+          isMut: false;
           isSigner: false;
           docs: ['#5'];
         },
         {
-          name: 'collateralMint';
-          isMut: false;
+          name: 'credixLpDepository';
+          isMut: true;
           isSigner: false;
           docs: ['#6'];
         },
         {
-          name: 'depositoryShares';
+          name: 'credixLpDepositoryShares';
           isMut: true;
           isSigner: false;
           docs: ['#7'];
@@ -1862,16 +1874,22 @@ export type Uxd = {
           docs: ['#13'];
         },
         {
-          name: 'systemProgram';
+          name: 'alloyxVaultDepository';
           isMut: false;
           isSigner: false;
           docs: ['#14'];
         },
         {
-          name: 'credixProgram';
+          name: 'systemProgram';
           isMut: false;
           isSigner: false;
           docs: ['#15'];
+        },
+        {
+          name: 'credixProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#16'];
         }
       ];
       args: [];
@@ -1894,43 +1912,43 @@ export type Uxd = {
           docs: ['#2'];
         },
         {
-          name: 'identityDepository';
-          isMut: true;
+          name: 'collateralMint';
+          isMut: false;
           isSigner: false;
           docs: ['#3'];
         },
         {
-          name: 'identityDepositoryCollateral';
+          name: 'identityDepository';
           isMut: true;
           isSigner: false;
           docs: ['#4'];
         },
         {
-          name: 'mercurialVaultDepository';
+          name: 'identityDepositoryCollateral';
           isMut: true;
           isSigner: false;
           docs: ['#5'];
         },
         {
-          name: 'depository';
-          isMut: true;
+          name: 'mercurialVaultDepository';
+          isMut: false;
           isSigner: false;
           docs: ['#6'];
         },
         {
-          name: 'collateralMint';
-          isMut: false;
+          name: 'credixLpDepository';
+          isMut: true;
           isSigner: false;
           docs: ['#7'];
         },
         {
-          name: 'depositoryCollateral';
+          name: 'credixLpDepositoryCollateral';
           isMut: true;
           isSigner: false;
           docs: ['#8'];
         },
         {
-          name: 'depositoryShares';
+          name: 'credixLpDepositoryShares';
           isMut: true;
           isSigner: false;
           docs: ['#9'];
@@ -1996,40 +2014,46 @@ export type Uxd = {
           docs: ['#19'];
         },
         {
+          name: 'alloyxVaultDepository';
+          isMut: false;
+          isSigner: false;
+          docs: ['#20'];
+        },
+        {
           name: 'profitsBeneficiaryCollateral';
           isMut: true;
           isSigner: false;
-          docs: ['#20'];
+          docs: ['#21'];
         },
         {
           name: 'systemProgram';
           isMut: false;
           isSigner: false;
-          docs: ['#21'];
+          docs: ['#22'];
         },
         {
           name: 'tokenProgram';
           isMut: false;
           isSigner: false;
-          docs: ['#22'];
+          docs: ['#23'];
         },
         {
           name: 'associatedTokenProgram';
           isMut: false;
           isSigner: false;
-          docs: ['#23'];
+          docs: ['#24'];
         },
         {
           name: 'credixProgram';
           isMut: false;
           isSigner: false;
-          docs: ['#24'];
+          docs: ['#25'];
         },
         {
           name: 'rent';
           isMut: false;
           isSigner: false;
-          docs: ['#25'];
+          docs: ['#26'];
         }
       ];
       args: [];
@@ -2140,6 +2164,145 @@ export type Uxd = {
         {
           name: 'redeemableAmountUnderManagementCap';
           type: 'u64';
+        }
+      ];
+    },
+    {
+      name: 'rebalanceAlloyxVaultDepository';
+      accounts: [
+        {
+          name: 'payer';
+          isMut: true;
+          isSigner: true;
+          docs: ['#1'];
+        },
+        {
+          name: 'payerCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: [
+            '#2 - This account will be responsible for paying the precision loss'
+          ];
+        },
+        {
+          name: 'controller';
+          isMut: true;
+          isSigner: false;
+          docs: ['#3'];
+        },
+        {
+          name: 'collateralMint';
+          isMut: false;
+          isSigner: false;
+          docs: ['#4'];
+        },
+        {
+          name: 'identityDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#5'];
+        },
+        {
+          name: 'identityDepositoryCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#6'];
+        },
+        {
+          name: 'mercurialVaultDepository';
+          isMut: false;
+          isSigner: false;
+          docs: ['#7'];
+        },
+        {
+          name: 'credixLpDepository';
+          isMut: false;
+          isSigner: false;
+          docs: ['#8'];
+        },
+        {
+          name: 'alloyxVaultDepository';
+          isMut: true;
+          isSigner: false;
+          docs: ['#9'];
+        },
+        {
+          name: 'alloyxVaultDepositoryCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#10'];
+        },
+        {
+          name: 'alloyxVaultDepositoryShares';
+          isMut: true;
+          isSigner: false;
+          docs: ['#11'];
+        },
+        {
+          name: 'alloyxVaultInfo';
+          isMut: false;
+          isSigner: false;
+          docs: ['#12'];
+        },
+        {
+          name: 'alloyxVaultCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#13'];
+        },
+        {
+          name: 'alloyxVaultShares';
+          isMut: true;
+          isSigner: false;
+          docs: ['#14'];
+        },
+        {
+          name: 'alloyxVaultMint';
+          isMut: true;
+          isSigner: false;
+          docs: ['#15'];
+        },
+        {
+          name: 'alloyxVaultPass';
+          isMut: false;
+          isSigner: false;
+          docs: ['#16'];
+        },
+        {
+          name: 'profitsBeneficiaryCollateral';
+          isMut: true;
+          isSigner: false;
+          docs: ['#17'];
+        },
+        {
+          name: 'systemProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#18'];
+        },
+        {
+          name: 'tokenProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#19'];
+        },
+        {
+          name: 'associatedTokenProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#20'];
+        },
+        {
+          name: 'alloyxProgram';
+          isMut: false;
+          isSigner: false;
+          docs: ['#21'];
+        }
+      ];
+      args: [
+        {
+          name: 'vaultId';
+          type: 'string';
         }
       ];
     },
@@ -2270,7 +2433,7 @@ export type Uxd = {
           {
             name: 'reserved';
             type: {
-              array: ['u8', 800];
+              array: ['u8', 803];
             };
           }
         ];
@@ -4220,7 +4383,7 @@ export const IDL: Uxd = {
         },
         {
           name: 'controller',
-          isMut: true,
+          isMut: false,
           isSigner: false,
           docs: [
             '#2 The top level UXDProgram on chain account managing the redeemable mint',
@@ -4384,46 +4547,52 @@ export const IDL: Uxd = {
           docs: ['#22'],
         },
         {
-          name: 'systemProgram',
+          name: 'alloyxVaultDepository',
           isMut: false,
           isSigner: false,
           docs: ['#23'],
         },
         {
-          name: 'tokenProgram',
+          name: 'systemProgram',
           isMut: false,
           isSigner: false,
           docs: ['#24'],
         },
         {
-          name: 'associatedTokenProgram',
+          name: 'tokenProgram',
           isMut: false,
           isSigner: false,
           docs: ['#25'],
         },
         {
-          name: 'mercurialVaultProgram',
+          name: 'associatedTokenProgram',
           isMut: false,
           isSigner: false,
           docs: ['#26'],
         },
         {
-          name: 'credixProgram',
+          name: 'mercurialVaultProgram',
           isMut: false,
           isSigner: false,
           docs: ['#27'],
         },
         {
-          name: 'uxdProgram',
+          name: 'credixProgram',
           isMut: false,
           isSigner: false,
           docs: ['#28'],
         },
         {
-          name: 'rent',
+          name: 'uxdProgram',
           isMut: false,
           isSigner: false,
           docs: ['#29'],
+        },
+        {
+          name: 'rent',
+          isMut: false,
+          isSigner: false,
+          docs: ['#30'],
         },
       ],
       args: [
@@ -4528,45 +4697,51 @@ export const IDL: Uxd = {
         },
         {
           name: 'credixLpDepository',
-          isMut: true,
+          isMut: false,
           isSigner: false,
           docs: ['#15'],
         },
         {
-          name: 'systemProgram',
+          name: 'alloyxVaultDepository',
           isMut: false,
           isSigner: false,
           docs: ['#16'],
         },
         {
-          name: 'tokenProgram',
+          name: 'systemProgram',
           isMut: false,
           isSigner: false,
           docs: ['#17'],
         },
         {
-          name: 'associatedTokenProgram',
+          name: 'tokenProgram',
           isMut: false,
           isSigner: false,
           docs: ['#18'],
         },
         {
-          name: 'mercurialVaultProgram',
+          name: 'associatedTokenProgram',
           isMut: false,
           isSigner: false,
           docs: ['#19'],
         },
         {
-          name: 'uxdProgram',
+          name: 'mercurialVaultProgram',
           isMut: false,
           isSigner: false,
           docs: ['#20'],
         },
         {
-          name: 'rent',
+          name: 'uxdProgram',
           isMut: false,
           isSigner: false,
           docs: ['#21'],
+        },
+        {
+          name: 'rent',
+          isMut: false,
+          isSigner: false,
+          docs: ['#22'],
         },
       ],
       args: [
@@ -5788,31 +5963,31 @@ export const IDL: Uxd = {
           docs: ['#2'],
         },
         {
-          name: 'identityDepository',
-          isMut: true,
+          name: 'collateralMint',
+          isMut: false,
           isSigner: false,
           docs: ['#3'],
         },
         {
-          name: 'mercurialVaultDepository',
-          isMut: true,
+          name: 'identityDepository',
+          isMut: false,
           isSigner: false,
           docs: ['#4'],
         },
         {
-          name: 'depository',
-          isMut: true,
+          name: 'mercurialVaultDepository',
+          isMut: false,
           isSigner: false,
           docs: ['#5'],
         },
         {
-          name: 'collateralMint',
-          isMut: false,
+          name: 'credixLpDepository',
+          isMut: true,
           isSigner: false,
           docs: ['#6'],
         },
         {
-          name: 'depositoryShares',
+          name: 'credixLpDepositoryShares',
           isMut: true,
           isSigner: false,
           docs: ['#7'],
@@ -5854,16 +6029,22 @@ export const IDL: Uxd = {
           docs: ['#13'],
         },
         {
-          name: 'systemProgram',
+          name: 'alloyxVaultDepository',
           isMut: false,
           isSigner: false,
           docs: ['#14'],
         },
         {
-          name: 'credixProgram',
+          name: 'systemProgram',
           isMut: false,
           isSigner: false,
           docs: ['#15'],
+        },
+        {
+          name: 'credixProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#16'],
         },
       ],
       args: [],
@@ -5886,43 +6067,43 @@ export const IDL: Uxd = {
           docs: ['#2'],
         },
         {
-          name: 'identityDepository',
-          isMut: true,
+          name: 'collateralMint',
+          isMut: false,
           isSigner: false,
           docs: ['#3'],
         },
         {
-          name: 'identityDepositoryCollateral',
+          name: 'identityDepository',
           isMut: true,
           isSigner: false,
           docs: ['#4'],
         },
         {
-          name: 'mercurialVaultDepository',
+          name: 'identityDepositoryCollateral',
           isMut: true,
           isSigner: false,
           docs: ['#5'],
         },
         {
-          name: 'depository',
-          isMut: true,
+          name: 'mercurialVaultDepository',
+          isMut: false,
           isSigner: false,
           docs: ['#6'],
         },
         {
-          name: 'collateralMint',
-          isMut: false,
+          name: 'credixLpDepository',
+          isMut: true,
           isSigner: false,
           docs: ['#7'],
         },
         {
-          name: 'depositoryCollateral',
+          name: 'credixLpDepositoryCollateral',
           isMut: true,
           isSigner: false,
           docs: ['#8'],
         },
         {
-          name: 'depositoryShares',
+          name: 'credixLpDepositoryShares',
           isMut: true,
           isSigner: false,
           docs: ['#9'],
@@ -5988,40 +6169,46 @@ export const IDL: Uxd = {
           docs: ['#19'],
         },
         {
+          name: 'alloyxVaultDepository',
+          isMut: false,
+          isSigner: false,
+          docs: ['#20'],
+        },
+        {
           name: 'profitsBeneficiaryCollateral',
           isMut: true,
           isSigner: false,
-          docs: ['#20'],
+          docs: ['#21'],
         },
         {
           name: 'systemProgram',
           isMut: false,
           isSigner: false,
-          docs: ['#21'],
+          docs: ['#22'],
         },
         {
           name: 'tokenProgram',
           isMut: false,
           isSigner: false,
-          docs: ['#22'],
+          docs: ['#23'],
         },
         {
           name: 'associatedTokenProgram',
           isMut: false,
           isSigner: false,
-          docs: ['#23'],
+          docs: ['#24'],
         },
         {
           name: 'credixProgram',
           isMut: false,
           isSigner: false,
-          docs: ['#24'],
+          docs: ['#25'],
         },
         {
           name: 'rent',
           isMut: false,
           isSigner: false,
-          docs: ['#25'],
+          docs: ['#26'],
         },
       ],
       args: [],
@@ -6132,6 +6319,145 @@ export const IDL: Uxd = {
         {
           name: 'redeemableAmountUnderManagementCap',
           type: 'u64',
+        },
+      ],
+    },
+    {
+      name: 'rebalanceAlloyxVaultDepository',
+      accounts: [
+        {
+          name: 'payer',
+          isMut: true,
+          isSigner: true,
+          docs: ['#1'],
+        },
+        {
+          name: 'payerCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: [
+            '#2 - This account will be responsible for paying the precision loss',
+          ],
+        },
+        {
+          name: 'controller',
+          isMut: true,
+          isSigner: false,
+          docs: ['#3'],
+        },
+        {
+          name: 'collateralMint',
+          isMut: false,
+          isSigner: false,
+          docs: ['#4'],
+        },
+        {
+          name: 'identityDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#5'],
+        },
+        {
+          name: 'identityDepositoryCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#6'],
+        },
+        {
+          name: 'mercurialVaultDepository',
+          isMut: false,
+          isSigner: false,
+          docs: ['#7'],
+        },
+        {
+          name: 'credixLpDepository',
+          isMut: false,
+          isSigner: false,
+          docs: ['#8'],
+        },
+        {
+          name: 'alloyxVaultDepository',
+          isMut: true,
+          isSigner: false,
+          docs: ['#9'],
+        },
+        {
+          name: 'alloyxVaultDepositoryCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#10'],
+        },
+        {
+          name: 'alloyxVaultDepositoryShares',
+          isMut: true,
+          isSigner: false,
+          docs: ['#11'],
+        },
+        {
+          name: 'alloyxVaultInfo',
+          isMut: false,
+          isSigner: false,
+          docs: ['#12'],
+        },
+        {
+          name: 'alloyxVaultCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#13'],
+        },
+        {
+          name: 'alloyxVaultShares',
+          isMut: true,
+          isSigner: false,
+          docs: ['#14'],
+        },
+        {
+          name: 'alloyxVaultMint',
+          isMut: true,
+          isSigner: false,
+          docs: ['#15'],
+        },
+        {
+          name: 'alloyxVaultPass',
+          isMut: false,
+          isSigner: false,
+          docs: ['#16'],
+        },
+        {
+          name: 'profitsBeneficiaryCollateral',
+          isMut: true,
+          isSigner: false,
+          docs: ['#17'],
+        },
+        {
+          name: 'systemProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#18'],
+        },
+        {
+          name: 'tokenProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#19'],
+        },
+        {
+          name: 'associatedTokenProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#20'],
+        },
+        {
+          name: 'alloyxProgram',
+          isMut: false,
+          isSigner: false,
+          docs: ['#21'],
+        },
+      ],
+      args: [
+        {
+          name: 'vaultId',
+          type: 'string',
         },
       ],
     },
@@ -6262,7 +6588,7 @@ export const IDL: Uxd = {
           {
             name: 'reserved',
             type: {
-              array: ['u8', 800],
+              array: ['u8', 803],
             },
           },
         ],

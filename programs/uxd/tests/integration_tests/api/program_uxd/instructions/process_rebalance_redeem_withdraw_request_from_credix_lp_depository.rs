@@ -11,6 +11,7 @@ use uxd::state::Controller;
 use uxd::state::CredixLpDepository;
 use uxd::state::IdentityDepository;
 
+use crate::integration_tests::api::program_alloyx;
 use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
@@ -22,8 +23,8 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     collateral_mint: &Pubkey,
     credix_multisig: &Pubkey,
     profits_beneficiary_collateral: &Pubkey,
-    expected_withdrawal_overflow_value: u64,
-    expected_withdrawal_profits_amount: u64,
+    expected_overflow_value: u64,
+    expected_profits_amount: u64,
 ) -> Result<(), program_context::ProgramError> {
     // Find needed accounts
     let controller = program_uxd::accounts::find_controller_pda().0;
@@ -42,6 +43,7 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     )
     .0;
 
+    // Find all needed credix_lp_depository accounts
     let credix_program_state = program_credix::accounts::find_program_state_pda().0;
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
@@ -97,6 +99,15 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     )
     .0;
 
+    // alloyx related accounts
+    let alloyx_vault_id = program_alloyx::accounts::find_vault_id();
+    let alloyx_vault_info = program_alloyx::accounts::find_vault_info(&alloyx_vault_id).0;
+    let alloyx_vault_depository = program_uxd::accounts::find_alloyx_vault_depository_pda(
+        &alloyx_vault_info,
+        collateral_mint,
+    )
+    .0;
+
     // Read state before
     let redeemable_mint_before =
         program_context::read_account_packed::<Mint>(program_context, &redeemable_mint).await?;
@@ -132,9 +143,12 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
         payer: payer.pubkey(),
         controller,
         collateral_mint: *collateral_mint,
-        depository: credix_lp_depository,
-        depository_collateral: credix_lp_depository_collateral,
-        depository_shares: credix_lp_depository_shares,
+        identity_depository,
+        identity_depository_collateral,
+        mercurial_vault_depository,
+        credix_lp_depository,
+        credix_lp_depository_collateral,
+        credix_lp_depository_shares,
         credix_program_state,
         credix_global_market_state,
         credix_signing_authority,
@@ -145,10 +159,8 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
         credix_treasury_pool_collateral,
         credix_treasury,
         credix_treasury_collateral,
+        alloyx_vault_depository,
         profits_beneficiary_collateral: *profits_beneficiary_collateral,
-        identity_depository,
-        identity_depository_collateral,
-        mercurial_vault_depository,
         system_program: solana_sdk::system_program::ID,
         token_program: anchor_spl::token::ID,
         associated_token_program: anchor_spl::associated_token::ID,
@@ -208,14 +220,23 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
         redeemable_circulating_supply_after,
     );
 
+    // controller.profits_amount_collected must have increased by the profits amount
+    let controller_profits_total_collected_before =
+        u64::try_from(controller_before.profits_total_collected).unwrap();
+    let controller_profits_total_collected_after =
+        u64::try_from(controller_after.profits_total_collected).unwrap();
+    assert_eq!(
+        controller_profits_total_collected_before + expected_profits_amount,
+        controller_profits_total_collected_after,
+    );
+
     // credix_lp_depository.redeemable_amount_under_management must have decreased by the withdraw overflow
     let credix_lp_depository_redeemable_amount_under_management_before =
         u64::try_from(credix_lp_depository_before.redeemable_amount_under_management).unwrap();
     let credix_lp_depository_redeemable_amount_under_management_after =
         u64::try_from(credix_lp_depository_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
-        credix_lp_depository_redeemable_amount_under_management_before
-            - expected_withdrawal_overflow_value,
+        credix_lp_depository_redeemable_amount_under_management_before - expected_overflow_value,
         credix_lp_depository_redeemable_amount_under_management_after,
     );
 
@@ -225,8 +246,7 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     let identity_depository_redeemable_amount_under_management_after =
         u64::try_from(identity_depository_after.redeemable_amount_under_management).unwrap();
     assert_eq!(
-        identity_depository_redeemable_amount_under_management_before
-            + expected_withdrawal_overflow_value,
+        identity_depository_redeemable_amount_under_management_before + expected_overflow_value,
         identity_depository_redeemable_amount_under_management_after,
     );
 
@@ -236,8 +256,7 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     let credix_lp_depository_collateral_amount_deposited_after =
         u64::try_from(credix_lp_depository_after.collateral_amount_deposited).unwrap();
     assert_eq!(
-        credix_lp_depository_collateral_amount_deposited_before
-            - expected_withdrawal_overflow_value,
+        credix_lp_depository_collateral_amount_deposited_before - expected_overflow_value,
         credix_lp_depository_collateral_amount_deposited_after,
     );
 
@@ -247,29 +266,29 @@ pub async fn process_rebalance_redeem_withdraw_request_from_credix_lp_depository
     let identity_depository_collateral_amount_deposited_after =
         u64::try_from(identity_depository_after.collateral_amount_deposited).unwrap();
     assert_eq!(
-        identity_depository_collateral_amount_deposited_before + expected_withdrawal_overflow_value,
+        identity_depository_collateral_amount_deposited_before + expected_overflow_value,
         identity_depository_collateral_amount_deposited_after,
     );
 
     // credix_lp_depository.profits_amount_collected must have increased by the profits amount
-    let profits_total_collected_before: u64 =
+    let credix_lp_depository_profits_total_collected_before =
         u64::try_from(credix_lp_depository_before.profits_total_collected).unwrap();
-    let profits_total_collected_after =
+    let credix_lp_depository_profits_total_collected_after =
         u64::try_from(credix_lp_depository_after.profits_total_collected).unwrap();
     assert_eq!(
-        profits_total_collected_before + expected_withdrawal_profits_amount,
-        profits_total_collected_after,
+        credix_lp_depository_profits_total_collected_before + expected_profits_amount,
+        credix_lp_depository_profits_total_collected_after,
     );
 
     // identity_depository_collateral.amount must have increased by the overflow amount
     assert_eq!(
-        identity_depository_collateral_amount_before + expected_withdrawal_overflow_value,
+        identity_depository_collateral_amount_before + expected_overflow_value,
         identity_depository_collateral_amount_after,
     );
 
     // profits_beneficiary_collateral.amount must have increased by the profits amount
     assert_eq!(
-        profits_beneficiary_collateral_amount_before + expected_withdrawal_profits_amount,
+        profits_beneficiary_collateral_amount_before + expected_profits_amount,
         profits_beneficiary_collateral_amount_after,
     );
 

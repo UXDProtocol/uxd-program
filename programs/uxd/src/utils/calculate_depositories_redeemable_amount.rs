@@ -11,9 +11,9 @@ use crate::ROUTER_DEPOSITORIES_COUNT;
 use super::compute_amount_less_fraction_floor;
 
 pub struct DepositoryInfoForRedeemableAmount {
-    pub is_liquid: bool,
+    pub directly_redeemable: bool,
     pub target_redeemable_amount: u64,
-    pub redeemable_amount_under_management: u128,
+    pub redeemable_amount_under_management: u64,
 }
 
 pub fn calculate_depositories_redeemable_amount(
@@ -35,17 +35,15 @@ pub fn calculate_depositories_redeemable_amount(
     let depositories_over_target_redeemable_amount = depositories_info
         .iter()
         .map(|depository| {
-            if !depository.is_liquid {
+            if !depository.directly_redeemable {
                 return Ok(0);
             }
-            let depository_redeemable_amount_under_management =
-                checked_as_u64(depository.redeemable_amount_under_management)?;
-            if depository_redeemable_amount_under_management <= depository.target_redeemable_amount
+            if depository.redeemable_amount_under_management <= depository.target_redeemable_amount
             {
                 return Ok(0);
             }
             checked_sub(
-                depository_redeemable_amount_under_management,
+                depository.redeemable_amount_under_management,
                 depository.target_redeemable_amount,
             )
         })
@@ -58,19 +56,17 @@ pub fn calculate_depositories_redeemable_amount(
     // -- Phase 2
     // -- Calculate the under_target redeemable amount for each depository
     // -- This amount is what remains redeemable after we redeemed the over_target amount
-    // -- This amount will be used as a last-ditch effort to fullfull the redeem when needed
+    // -- This amount will be used as a last-ditch effort to fullfill the redeem when needed
     // ---------------------------------------------------------------------
 
     let depositories_under_target_redeemable_amount = depositories_info
         .iter()
         .map(|depository| {
-            if !depository.is_liquid {
+            if !depository.directly_redeemable {
                 return Ok(0);
             }
-            let depository_redeemable_amount_under_management =
-                checked_as_u64(depository.redeemable_amount_under_management)?;
             Ok(std::cmp::min(
-                depository_redeemable_amount_under_management,
+                depository.redeemable_amount_under_management,
                 depository.target_redeemable_amount,
             ))
         })
@@ -108,37 +104,36 @@ pub fn calculate_depositories_redeemable_amount(
     )
     .map(
         |(depository_over_target_redeemable_amount, depository_under_target_redeemable_amount)| {
-            // Total possible redeemable amounts for both steps
-            let requested_first_redeemable_amount = std::cmp::min(
+            // Step 1, try to use the over_target amounts, weighted for each depository
+            let requested_primary_redeemable_amount = std::cmp::min(
                 requested_redeemable_amount,
                 total_over_target_redeemable_amount,
             );
-            let requested_second_redeemable_amount = checked_sub(
-                requested_redeemable_amount,
-                requested_first_redeemable_amount,
-            )?;
-            // First step, try to use the over_target amounts, weighted for each depository
-            let depository_first_redeemable_amount = if total_over_target_redeemable_amount > 0 {
+            let depository_primary_redeemable_amount = if total_over_target_redeemable_amount > 0 {
                 let other_depositories_over_target_redeemable_amount = checked_sub(
                     total_over_target_redeemable_amount,
                     *depository_over_target_redeemable_amount,
                 )?;
                 compute_amount_less_fraction_floor(
-                    requested_first_redeemable_amount,
+                    requested_primary_redeemable_amount,
                     other_depositories_over_target_redeemable_amount,
                     total_over_target_redeemable_amount,
                 )?
             } else {
                 0
             };
-            // Second step, anything under_target must be taken as backup
-            let depository_second_redeemable_amount = if total_under_target_redeemable_amount > 0 {
+            // Step 2, anything under_target must be used as backup
+            let requested_backup_redeemable_amount = checked_sub(
+                requested_redeemable_amount,
+                requested_primary_redeemable_amount,
+            )?;
+            let depository_backup_redeemable_amount = if total_under_target_redeemable_amount > 0 {
                 let other_depositories_under_target_redeemable_amount = checked_sub(
                     total_under_target_redeemable_amount,
                     *depository_under_target_redeemable_amount,
                 )?;
                 compute_amount_less_fraction_floor(
-                    requested_second_redeemable_amount,
+                    requested_backup_redeemable_amount,
                     other_depositories_under_target_redeemable_amount,
                     total_under_target_redeemable_amount,
                 )?
@@ -147,8 +142,8 @@ pub fn calculate_depositories_redeemable_amount(
             };
             // The combo of the two gives our depository amount
             checked_add(
-                depository_first_redeemable_amount,
-                depository_second_redeemable_amount,
+                depository_primary_redeemable_amount,
+                depository_backup_redeemable_amount,
             )
         },
     )
@@ -168,7 +163,7 @@ pub fn calculate_depositories_redeemable_amount(
 
     for i in 0..depositories_info.len() {
         let depository = &depositories_info[i];
-        if !depository.is_liquid {
+        if !depository.directly_redeemable {
             continue;
         }
         let depository_remaining_after_redeem = checked_sub(

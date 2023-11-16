@@ -6,7 +6,7 @@ const ALLOYX_TOKEN_SEED: &[u8] = b"alloyx_token";
 const PASS_SEED: &[u8] = b"pass";
 
 pub fn find_vault_id() -> String {
-    String::from("hello?")
+    String::from("uxd-debug")
 }
 
 pub fn find_vault_info(vault_id: &String) -> (Pubkey, u8) {

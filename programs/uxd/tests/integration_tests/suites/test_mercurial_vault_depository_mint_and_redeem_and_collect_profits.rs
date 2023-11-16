@@ -51,7 +51,7 @@ async fn test_mercurial_vault_depository_mint_and_redeem_and_collect_profits(
     )
     .await?;
 
-    // Main actor
+    // Main actors
     let user = Keypair::new();
     let profits_beneficiary = Keypair::new();
 

@@ -5,6 +5,7 @@ use anchor_spl::token::Token;
 use anchor_spl::token::TokenAccount;
 
 use crate::error::UxdError;
+use crate::state::alloyx_vault_depository::AlloyxVaultDepository;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
@@ -22,11 +23,6 @@ use crate::utils::validate_redeemable_amount;
 use crate::validate_is_program_frozen;
 use crate::BPS_POWER;
 use crate::CONTROLLER_NAMESPACE;
-use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
-use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
-use crate::IDENTITY_DEPOSITORY_NAMESPACE;
-use crate::MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE;
-use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
 pub struct Redeem<'info> {
@@ -45,6 +41,7 @@ pub struct Redeem<'info> {
         constraint = controller.load()?.identity_depository == identity_depository.key() @UxdError::InvalidDepository,
         constraint = controller.load()?.mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
         constraint = controller.load()?.credix_lp_depository == credix_lp_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.alloyx_vault_depository == alloyx_vault_depository.key() @UxdError::InvalidDepository,
         has_one = redeemable_mint @UxdError::InvalidRedeemableMint
     )]
     pub controller: AccountLoader<'info, Controller>,
@@ -75,26 +72,18 @@ pub struct Redeem<'info> {
     /// #8 - UXDProgram on chain account bound to a Controller instance that represent the blank minting/redeeming
     #[account(
         mut,
-        seeds = [IDENTITY_DEPOSITORY_NAMESPACE],
-        bump = identity_depository.load()?.bump,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
+        constraint = identity_depository.load()?.collateral_vault == identity_depository_collateral_vault.key() @UxdError::InvalidDepositoryCollateral,
     )]
     pub identity_depository: AccountLoader<'info, IdentityDepository>,
 
     /// #9 - Token account holding the collateral from minting
-    #[account(
-        mut,
-        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE],
-        token::authority = identity_depository,
-        token::mint = identity_depository.load()?.collateral_mint,
-        bump = identity_depository.load()?.collateral_vault_bump,
-    )]
+    #[account(mut)]
     pub identity_depository_collateral_vault: Box<Account<'info, TokenAccount>>,
 
     /// #10
     #[account(
         mut,
-        seeds = [MERCURIAL_VAULT_DEPOSITORY_NAMESPACE, mercurial_vault_depository.load()?.mercurial_vault.key().as_ref(), mercurial_vault_depository.load()?.collateral_mint.as_ref()],
-        bump = mercurial_vault_depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
         constraint = mercurial_vault_depository.load()?.mercurial_vault == mercurial_vault_depository_vault.key() @UxdError::InvalidMercurialVault,
@@ -104,13 +93,7 @@ pub struct Redeem<'info> {
     pub mercurial_vault_depository: AccountLoader<'info, MercurialVaultDepository>,
 
     /// #11 - Token account holding the LP tokens minted by depositing collateral on mercurial vault
-    #[account(
-        mut,
-        seeds = [MERCURIAL_VAULT_DEPOSITORY_LP_TOKEN_VAULT_NAMESPACE, mercurial_vault_depository_vault.key().as_ref(), collateral_mint.key().as_ref()],
-        token::authority = mercurial_vault_depository,
-        token::mint = mercurial_vault_depository_vault_lp_mint,
-        bump = mercurial_vault_depository.load()?.lp_token_vault_bump,
-    )]
+    #[account(mut)]
     pub mercurial_vault_depository_lp_token_vault: Box<Account<'info, TokenAccount>>,
 
     /// #12
@@ -130,37 +113,41 @@ pub struct Redeem<'info> {
 
     /// #15
     #[account(
-        mut,
-        seeds = [CREDIX_LP_DEPOSITORY_NAMESPACE, credix_lp_depository.load()?.credix_global_market_state.key().as_ref(), credix_lp_depository.load()?.collateral_mint.as_ref()],
-        bump = credix_lp_depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
     pub credix_lp_depository: AccountLoader<'info, CredixLpDepository>,
 
     /// #16
-    pub system_program: Program<'info, System>,
+    #[account(
+        has_one = controller @UxdError::InvalidController,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
+    )]
+    pub alloyx_vault_depository: AccountLoader<'info, AlloyxVaultDepository>,
 
     /// #17
-    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
 
     /// #18
-    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub token_program: Program<'info, Token>,
 
     /// #19
-    pub mercurial_vault_program: Program<'info, mercurial_vault::program::Vault>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
 
     /// #20
-    pub uxd_program: Program<'info, crate::program::Uxd>,
+    pub mercurial_vault_program: Program<'info, mercurial_vault::program::Vault>,
 
     /// #21
+    pub uxd_program: Program<'info, crate::program::Uxd>,
+
+    /// #22
     pub rent: Sysvar<'info, Rent>,
 }
 
 struct DepositoryInfoForRedeem<'info> {
     pub weight_bps: u16,
-    pub redeemable_amount_under_management: u128,
-    pub redeemable_amount_under_management_cap: u128,
+    pub redeemable_amount_under_management: u64,
+    pub redeemable_amount_under_management_cap: u64,
     pub redeem_fn: Option<Box<dyn Fn(u64) -> Result<()> + 'info>>,
 }
 
@@ -170,6 +157,8 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     let identity_depository = ctx.accounts.identity_depository.load()?;
     let mercurial_vault_depository = ctx.accounts.mercurial_vault_depository.load()?;
     let credix_lp_depository = ctx.accounts.credix_lp_depository.load()?;
+    let alloyx_vault_depository = ctx.accounts.alloyx_vault_depository.load()?;
+    let current_slot = Clock::get()?.slot;
 
     // Compute real outflow limit for this epoch (max of bps/amount options)
     // Note: intermediary maths forced to use u128 to be able to multiply u64s safely
@@ -184,30 +173,29 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         )?)?,
     );
 
-    // How long ago was the last outflow
-    let current_slot = Clock::get()?.slot;
-    let last_outflow_elapsed_slots = std::cmp::min(
-        checked_as_u64(checked_sub(current_slot, controller.last_outflow_slot)?)?,
-        controller.slots_per_epoch,
-    );
-
-    // How much was unlocked by waiting since last redeem
-    // Note: intermediary maths forced to use u128 to be able to multiply u64s safely
-    let unlocked_outflow_amount = checked_as_u64(checked_div::<u128>(
-        checked_mul::<u128>(
-            u128::from(last_outflow_elapsed_slots),
-            u128::from(outflow_limit_per_epoch_amount),
-        )?,
-        u128::from(controller.slots_per_epoch),
-    )?)?;
-
-    // How much outflow in the current epoch right before the redeem IX
-    let previous_epoch_outflow_amount = controller
-        .epoch_outflow_amount
-        .saturating_sub(unlocked_outflow_amount);
-
     // How much outflow in the current epoch right after this current redeem IX
-    let new_epoch_outflow_amount = checked_add(previous_epoch_outflow_amount, redeemable_amount)?;
+    let new_epoch_outflow_amount = {
+        // How long ago was the last outflow
+        let last_outflow_elapsed_slots = std::cmp::min(
+            checked_as_u64(checked_sub(current_slot, controller.last_outflow_slot)?)?,
+            controller.slots_per_epoch,
+        );
+        // How much was unlocked by waiting since last redeem
+        // Note: intermediary maths forced to use u128 to be able to multiply u64s safely
+        let unlocked_outflow_amount = checked_as_u64(checked_div::<u128>(
+            checked_mul::<u128>(
+                u128::from(last_outflow_elapsed_slots),
+                u128::from(outflow_limit_per_epoch_amount),
+            )?,
+            u128::from(controller.slots_per_epoch),
+        )?)?;
+        // How much outflow in the current epoch right before the redeem IX
+        let previous_epoch_outflow_amount = controller
+            .epoch_outflow_amount
+            .saturating_sub(unlocked_outflow_amount);
+        // Add the current redeem to the outflow counter
+        checked_add(previous_epoch_outflow_amount, redeemable_amount)?
+    };
 
     // Make sure we are not over the outflow limit!
     require!(
@@ -226,19 +214,21 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     // Due to redeem fees and precision loss. But the difference should be negligible and
     // Any future mint/redeem will recompute the targets based on the exact future circulating supply anyway
     let minimum_after_redeem_circulating_supply = checked_sub(
-        controller.redeemable_circulating_supply,
-        u128::from(redeemable_amount),
+        checked_as_u64(controller.redeemable_circulating_supply)?,
+        redeemable_amount,
     )?;
 
     // Build the vector of all known depository participating in the routing system
     let depository_info = vec![
-        // Identity depository details
+        // identity_depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.identity_depository_weight_bps,
-            redeemable_amount_under_management: identity_depository
-                .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: identity_depository
-                .redeemable_amount_under_management_cap,
+            redeemable_amount_under_management: checked_as_u64(
+                identity_depository.redeemable_amount_under_management,
+            )?,
+            redeemable_amount_under_management_cap: checked_as_u64(
+                identity_depository.redeemable_amount_under_management_cap,
+            )?,
             redeem_fn: Some(Box::new(|redeemable_amount| {
                 msg!(
                     "[redeem:redeem_from_identity_depository:{}]",
@@ -255,13 +245,15 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
                 Ok(())
             })),
         },
-        // Mercurial Vault Depository details
+        // mercurial_vault_depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.mercurial_vault_depository_weight_bps,
-            redeemable_amount_under_management: mercurial_vault_depository
-                .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: mercurial_vault_depository
-                .redeemable_amount_under_management_cap,
+            redeemable_amount_under_management: checked_as_u64(
+                mercurial_vault_depository.redeemable_amount_under_management,
+            )?,
+            redeemable_amount_under_management_cap: checked_as_u64(
+                mercurial_vault_depository.redeemable_amount_under_management_cap,
+            )?,
             redeem_fn: Some(Box::new(|redeemable_amount| {
                 msg!(
                     "[redeem:redeem_from_mercurial_vault_depository:{}]",
@@ -278,14 +270,25 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
                 Ok(())
             })),
         },
-        // Credix Lp Depository details
+        // credix_lp_depository details
         DepositoryInfoForRedeem {
             weight_bps: controller.credix_lp_depository_weight_bps,
-            redeemable_amount_under_management: credix_lp_depository
+            redeemable_amount_under_management: checked_as_u64(
+                credix_lp_depository.redeemable_amount_under_management,
+            )?,
+            redeemable_amount_under_management_cap: checked_as_u64(
+                credix_lp_depository.redeemable_amount_under_management_cap,
+            )?,
+            redeem_fn: None, // redeemed through asynchronous rebalancing
+        },
+        // alloyx_vault_depository details
+        DepositoryInfoForRedeem {
+            weight_bps: controller.alloyx_vault_depository_weight_bps,
+            redeemable_amount_under_management: alloyx_vault_depository
                 .redeemable_amount_under_management,
-            redeemable_amount_under_management_cap: credix_lp_depository
+            redeemable_amount_under_management_cap: alloyx_vault_depository
                 .redeemable_amount_under_management_cap,
-            redeem_fn: None, // credix is illiquid
+            redeem_fn: None, // redeemed through asynchronous rebalancing
         },
     ];
 
@@ -293,6 +296,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
     drop(identity_depository);
     drop(mercurial_vault_depository);
     drop(credix_lp_depository);
+    drop(alloyx_vault_depository);
 
     // Compute the desired target amounts for each depository
     let depositories_target_redeemable_amount = calculate_depositories_target_redeemable_amount(
@@ -316,7 +320,7 @@ pub(crate) fn handler(ctx: Context<Redeem>, redeemable_amount: u64) -> Result<()
         )
         .map(|(depository_info, depository_target_redeemable_amount)| {
             DepositoryInfoForRedeemableAmount {
-                is_liquid: depository_info.redeem_fn.is_some(), // we are liquid if we can redeem
+                directly_redeemable: depository_info.redeem_fn.is_some(), // we are liquid if we can redeem
                 target_redeemable_amount: *depository_target_redeemable_amount,
                 redeemable_amount_under_management: depository_info
                     .redeemable_amount_under_management,

@@ -5,6 +5,7 @@ import { editControllerTest } from '../cases/editControllerTest';
 import { createIdentityDepositoryDevnet } from '../utils';
 import { createCredixLpDepositoryDevnetUSDC } from '../utils';
 import { createMercurialVaultDepositoryDevnet } from '../utils';
+import { createAlloyxVaultDepositoryDevnetUSDC } from '../utils';
 
 export class controllerIntegrationSuiteParameters {
   public globalSupplyCap: number;
@@ -35,6 +36,7 @@ export const controllerIntegrationSuite = function ({
     const credixLpDepository = await createCredixLpDepositoryDevnetUSDC();
     const mercurialVaultDepository =
       await createMercurialVaultDepositoryDevnet();
+    const alloyxVaultDepository = await createAlloyxVaultDepositoryDevnetUSDC();
     editControllerTest({
       authority,
       controller,
@@ -43,6 +45,7 @@ export const controllerIntegrationSuite = function ({
           identityDepository: identityDepository.pda,
           mercurialVaultDepository: mercurialVaultDepository.pda,
           credixLpDepository: credixLpDepository.pda,
+          alloyxVaultDepository: alloyxVaultDepository.pda,
         },
       },
     });

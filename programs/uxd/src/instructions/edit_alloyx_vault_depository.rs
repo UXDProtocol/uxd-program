@@ -18,7 +18,6 @@ pub struct EditAlloyxVaultDepository<'info> {
 
     /// #2 The top level UXDProgram on chain account managing the redeemable mint
     #[account(
-        mut,
         seeds = [CONTROLLER_NAMESPACE],
         bump = controller.load()?.bump,
         has_one = authority @UxdError::InvalidAuthority,

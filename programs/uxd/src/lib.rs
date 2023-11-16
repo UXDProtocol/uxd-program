@@ -39,11 +39,11 @@ pub const CREDIX_LP_DEPOSITORY_NAMESPACE: &[u8] = b"CREDIX_LP_DEPOSITORY";
 pub const CREDIX_LP_EXTERNAL_PASS_NAMESPACE: &[u8] = b"credix-pass";
 pub const CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE: &[u8] = b"withdraw-epoch";
 
-pub const ALLOYX_VAULT_DEPOSITORY_NAMESPACE: &[u8] = b"ALLOYXVAULTDEPOSITORY";
+pub const ALLOYX_VAULT_DEPOSITORY_NAMESPACE: &[u8] = b"ALLOYX_VAULT_DEPOSITORY";
 
 pub const MAX_REDEEMABLE_GLOBAL_SUPPLY_CAP: u128 = u128::MAX;
 
-pub const ROUTER_DEPOSITORIES_COUNT: usize = 3;
+pub const ROUTER_DEPOSITORIES_COUNT: usize = 4;
 pub const ROUTER_IDENTITY_DEPOSITORY_INDEX: usize = 0;
 pub const ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX: usize = 1;
 pub const ROUTER_CREDIX_LP_DEPOSITORY_INDEX: usize = 2;
@@ -312,7 +312,7 @@ pub mod uxd {
     }
 
     // Create and Register a new `AlloyxVaultDepository` to the `Controller`.
-    // Each `Depository` account manages a specific credix lp.
+    // Each `Depository` account manages a specific alloyx_vault.
     #[access_control(
         ctx.accounts.validate()
     )]
@@ -329,6 +329,21 @@ pub mod uxd {
             redeeming_fee_in_bps,
             redeemable_amount_under_management_cap,
         )
+    }
+
+    // Permissionless rebalance, to try on a best effort basis to:
+    // - Transfer from alloyx_vault_depository to identity_depository when overweight
+    // - Transfer from identity_depository to alloyx_vault_depository when underweight
+    // - Collect profits when possible
+    #[access_control(
+        ctx.accounts.validate()
+    )]
+    pub fn rebalance_alloyx_vault_depository(
+        ctx: Context<RebalanceAlloyxVaultDepository>,
+        vault_id: String,
+    ) -> Result<()> {
+        msg!("[rebalance_alloyx_vault_depository]");
+        instructions::rebalance_alloyx_vault_depository::handler(ctx, &vault_id)
     }
 
     /// Freeze or resume all ixs associated with the controller (except this one).

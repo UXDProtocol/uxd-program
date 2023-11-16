@@ -5,6 +5,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
 
+use crate::integration_tests::api::program_alloyx;
 use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
 use crate::integration_tests::api::program_mercurial;
@@ -28,6 +29,7 @@ pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository
     )
     .0;
 
+    // Find all needed credix_lp_depository accounts
     let credix_market_seeds = program_credix::accounts::find_market_seeds();
     let credix_global_market_state =
         program_credix::accounts::find_global_market_state_pda(&credix_market_seeds).0;
@@ -66,6 +68,15 @@ pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository
     )
     .0;
 
+    // alloyx related accounts
+    let alloyx_vault_id = program_alloyx::accounts::find_vault_id();
+    let alloyx_vault_info = program_alloyx::accounts::find_vault_info(&alloyx_vault_id).0;
+    let alloyx_vault_depository = program_uxd::accounts::find_alloyx_vault_depository_pda(
+        &alloyx_vault_info,
+        collateral_mint,
+    )
+    .0;
+
     // Execute IX
     let accounts = uxd::accounts::RebalanceCreateWithdrawRequestFromCredixLpDepository {
         payer: payer.pubkey(),
@@ -73,14 +84,15 @@ pub async fn process_rebalance_create_withdraw_request_from_credix_lp_depository
         collateral_mint: *collateral_mint,
         identity_depository,
         mercurial_vault_depository,
-        depository: credix_lp_depository,
-        depository_shares: credix_lp_depository_shares,
+        credix_lp_depository,
+        credix_lp_depository_shares,
         credix_global_market_state,
         credix_signing_authority,
         credix_liquidity_collateral,
         credix_shares_mint,
         credix_pass,
         credix_withdraw_epoch,
+        alloyx_vault_depository,
         system_program: solana_sdk::system_program::ID,
         credix_program: credix_client::ID,
     };

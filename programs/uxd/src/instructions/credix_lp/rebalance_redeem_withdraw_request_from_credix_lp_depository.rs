@@ -8,11 +8,12 @@ use anchor_spl::token::Transfer;
 
 use crate::error::UxdError;
 use crate::events::RebalanceRedeemWithdrawRequestFromCredixLpDepositoryEvent;
+use crate::state::alloyx_vault_depository::AlloyxVaultDepository;
 use crate::state::controller::Controller;
 use crate::state::credix_lp_depository::CredixLpDepository;
 use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
-use crate::utils::calculate_credix_lp_depository_target_amount;
+use crate::utils::calculate_router_depositories_target_redeemable_amount;
 use crate::utils::checked_add;
 use crate::utils::checked_as_u64;
 use crate::utils::checked_sub;
@@ -26,9 +27,6 @@ use crate::CONTROLLER_NAMESPACE;
 use crate::CREDIX_LP_DEPOSITORY_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_PASS_NAMESPACE;
 use crate::CREDIX_LP_EXTERNAL_WITHDRAW_EPOCH_NAMESPACE;
-use crate::IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE;
-use crate::IDENTITY_DEPOSITORY_NAMESPACE;
-use crate::MERCURIAL_VAULT_DEPOSITORY_NAMESPACE;
 
 #[derive(Accounts)]
 pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
@@ -43,51 +41,40 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
         bump = controller.load()?.bump,
         constraint = controller.load()?.identity_depository == identity_depository.key() @UxdError::InvalidDepository,
         constraint = controller.load()?.mercurial_vault_depository == mercurial_vault_depository.key() @UxdError::InvalidDepository,
-        constraint = controller.load()?.credix_lp_depository == depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.credix_lp_depository == credix_lp_depository.key() @UxdError::InvalidDepository,
+        constraint = controller.load()?.alloyx_vault_depository == alloyx_vault_depository.key() @UxdError::InvalidDepository,
     )]
     pub controller: AccountLoader<'info, Controller>,
 
     /// #3
-    #[account(
-        mut,
-        seeds = [IDENTITY_DEPOSITORY_NAMESPACE],
-        bump = identity_depository.load()?.bump,
-    )]
-    pub identity_depository: AccountLoader<'info, IdentityDepository>,
+    pub collateral_mint: Box<Account<'info, Mint>>,
 
     /// #4
     #[account(
         mut,
-        seeds = [IDENTITY_DEPOSITORY_COLLATERAL_NAMESPACE],
-        token::authority = identity_depository,
-        token::mint = identity_depository.load()?.collateral_mint,
-        bump = identity_depository.load()?.collateral_vault_bump,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
+        constraint = identity_depository.load()?.collateral_vault == identity_depository_collateral.key() @UxdError::InvalidDepositoryCollateral,
     )]
-    pub identity_depository_collateral: Box<Account<'info, TokenAccount>>,
+    pub identity_depository: AccountLoader<'info, IdentityDepository>,
 
     /// #5
+    #[account(mut)]
+    pub identity_depository_collateral: Box<Account<'info, TokenAccount>>,
+
+    /// #6
     #[account(
-        mut,
-        seeds = [MERCURIAL_VAULT_DEPOSITORY_NAMESPACE, mercurial_vault_depository.load()?.mercurial_vault.key().as_ref(), mercurial_vault_depository.load()?.collateral_mint.as_ref()],
-        bump = mercurial_vault_depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
     )]
     pub mercurial_vault_depository: AccountLoader<'info, MercurialVaultDepository>,
 
-    /// #6
+    /// #7
     #[account(
         mut,
-        seeds = [
-            CREDIX_LP_DEPOSITORY_NAMESPACE,
-            depository.load()?.credix_global_market_state.key().as_ref(),
-            depository.load()?.collateral_mint.as_ref()
-        ],
-        bump = depository.load()?.bump,
         has_one = controller @UxdError::InvalidController,
         has_one = collateral_mint @UxdError::InvalidCollateralMint,
-        has_one = depository_collateral @UxdError::InvalidDepositoryCollateral,
-        has_one = depository_shares @UxdError::InvalidDepositoryShares,
+        constraint = credix_lp_depository.load()?.depository_collateral == credix_lp_depository_collateral.key() @UxdError::InvalidDepositoryCollateral,
+        constraint = credix_lp_depository.load()?.depository_shares == credix_lp_depository_shares.key() @UxdError::InvalidDepositoryShares,
         has_one = credix_program_state @UxdError::InvalidCredixProgramState,
         has_one = credix_global_market_state @UxdError::InvalidCredixGlobalMarketState,
         has_one = credix_signing_authority @UxdError::InvalidCredixSigningAuthority,
@@ -95,18 +82,15 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
         has_one = credix_shares_mint @UxdError::InvalidCredixSharesMint,
         has_one = profits_beneficiary_collateral @UxdError::InvalidProfitsBeneficiaryCollateral,
     )]
-    pub depository: AccountLoader<'info, CredixLpDepository>,
-
-    /// #7
-    pub collateral_mint: Box<Account<'info, Mint>>,
+    pub credix_lp_depository: AccountLoader<'info, CredixLpDepository>,
 
     /// #8
     #[account(mut)]
-    pub depository_collateral: Box<Account<'info, TokenAccount>>,
+    pub credix_lp_depository_collateral: Box<Account<'info, TokenAccount>>,
 
     /// #9
     #[account(mut)]
-    pub depository_shares: Box<Account<'info, TokenAccount>>,
+    pub credix_lp_depository_shares: Box<Account<'info, TokenAccount>>,
 
     /// #10
     #[account(
@@ -139,12 +123,12 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
         owner = credix_client::ID,
         seeds = [
             credix_global_market_state.key().as_ref(),
-            depository.key().as_ref(),
+            credix_lp_depository.key().as_ref(),
             CREDIX_LP_EXTERNAL_PASS_NAMESPACE
         ],
         bump,
         seeds::program = credix_client::ID,
-        constraint = credix_pass.user == depository.key() @UxdError::InvalidCredixPass,
+        constraint = credix_pass.user == credix_lp_depository.key() @UxdError::InvalidCredixPass,
         constraint = credix_pass.disable_withdrawal_fee() @UxdError::InvalidCredixPassNoFees,
     )]
     pub credix_pass: Account<'info, credix_client::CredixPass>,
@@ -184,33 +168,44 @@ pub struct RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
 
     /// #20
     #[account(
+        has_one = controller @UxdError::InvalidController,
+        has_one = collateral_mint @UxdError::InvalidCollateralMint,
+    )]
+    pub alloyx_vault_depository: AccountLoader<'info, AlloyxVaultDepository>,
+
+    /// #21
+    #[account(
         mut,
         token::mint = collateral_mint,
     )]
     pub profits_beneficiary_collateral: Box<Account<'info, TokenAccount>>,
 
-    /// #21
-    pub system_program: Program<'info, System>,
     /// #22
-    pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
     /// #23
-    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub token_program: Program<'info, Token>,
     /// #24
-    pub credix_program: Program<'info, credix_client::program::Credix>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     /// #25
+    pub credix_program: Program<'info, credix_client::program::Credix>,
+    /// #26
     pub rent: Sysvar<'info, Rent>,
 }
 
 pub(crate) fn handler(
     ctx: Context<RebalanceRedeemWithdrawRequestFromCredixLpDepository>,
 ) -> Result<()> {
-    let credix_global_market_state = ctx.accounts.depository.load()?.credix_global_market_state;
-    let collateral_mint = ctx.accounts.depository.load()?.collateral_mint;
+    let credix_global_market_state = ctx
+        .accounts
+        .credix_lp_depository
+        .load()?
+        .credix_global_market_state;
+    let collateral_mint = ctx.accounts.credix_lp_depository.load()?.collateral_mint;
     let depository_pda_signer: &[&[&[u8]]] = &[&[
         CREDIX_LP_DEPOSITORY_NAMESPACE,
         credix_global_market_state.as_ref(),
         collateral_mint.as_ref(),
-        &[ctx.accounts.depository.load()?.bump],
+        &[ctx.accounts.credix_lp_depository.load()?.bump],
     ]];
 
     // ---------------------------------------------------------------------
@@ -230,7 +225,7 @@ pub(crate) fn handler(
     // ---------------------------------------------------------------------
 
     let credix_lp_depository_collateral_amount_before: u64 =
-        ctx.accounts.depository_collateral.amount;
+        ctx.accounts.credix_lp_depository_collateral.amount;
     let identity_depository_collateral_amount_before: u64 =
         ctx.accounts.identity_depository_collateral.amount;
     let profits_beneficiary_collateral_amount_before: u64 =
@@ -250,7 +245,7 @@ pub(crate) fn handler(
         )?
     };
 
-    let owned_shares_amount_before: u64 = ctx.accounts.depository_shares.amount;
+    let owned_shares_amount_before: u64 = ctx.accounts.credix_lp_depository_shares.amount;
     let owned_shares_value_before: u64 = compute_value_for_shares_amount_floor(
         owned_shares_amount_before,
         total_shares_supply_before,
@@ -259,12 +254,12 @@ pub(crate) fn handler(
 
     // ---------------------------------------------------------------------
     // -- Phase 3
-    // -- Compute the profits and the overflow of the depository we will want to withdraw
+    // -- Compute the profits and the overflow of the credix_lp_depository we will want to withdraw
     // ---------------------------------------------------------------------
 
     let redeemable_amount_under_management = checked_as_u64(
         ctx.accounts
-            .depository
+            .credix_lp_depository
             .load()?
             .redeemable_amount_under_management,
     )?;
@@ -280,12 +275,14 @@ pub(crate) fn handler(
 
     let overflow_value = {
         let redeemable_amount_under_management_target_amount =
-            calculate_credix_lp_depository_target_amount(
+            calculate_router_depositories_target_redeemable_amount(
                 &ctx.accounts.controller,
                 &ctx.accounts.identity_depository,
                 &ctx.accounts.mercurial_vault_depository,
-                &ctx.accounts.depository,
-            )?;
+                &ctx.accounts.credix_lp_depository,
+                &ctx.accounts.alloyx_vault_depository,
+            )?
+            .credix_lp_depository_target_redeemable_amount;
         if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
             0
         } else {
@@ -310,7 +307,7 @@ pub(crate) fn handler(
     let withdrawable_total_collateral_amount =
         ctx.accounts.credix_withdraw_epoch.max_withdrawable_amount(
             &ctx.accounts.credix_global_market_state,
-            ctx.accounts.depository.key(),
+            ctx.accounts.credix_lp_depository.key(),
         )?;
 
     // How much we CAN withdraw now (may be lower than how much we want)
@@ -325,7 +322,7 @@ pub(crate) fn handler(
         profits_collateral_amount,
     );
 
-    // then we withdraw depository overflow first based on what liquidity is remaining from there
+    // then we withdraw credix_lp_depository overflow first based on what liquidity is remaining from there
     let withdrawal_overflow_value = std::cmp::min(
         checked_sub(
             withdrawable_total_collateral_amount,
@@ -413,8 +410,8 @@ pub(crate) fn handler(
 
     // Refresh account states after withdrawal
     {
-        ctx.accounts.depository_collateral.reload()?;
-        ctx.accounts.depository_shares.reload()?;
+        ctx.accounts.credix_lp_depository_collateral.reload()?;
+        ctx.accounts.credix_lp_depository_shares.reload()?;
         ctx.accounts.credix_global_market_state.reload()?;
         ctx.accounts.credix_liquidity_collateral.reload()?;
         ctx.accounts.credix_shares_mint.reload()?;
@@ -428,7 +425,7 @@ pub(crate) fn handler(
     // ---------------------------------------------------------------------
 
     let credix_lp_depository_collateral_amount_after: u64 =
-        ctx.accounts.depository_collateral.amount;
+        ctx.accounts.credix_lp_depository_collateral.amount;
     let identity_depository_collateral_amount_after: u64 =
         ctx.accounts.identity_depository_collateral.amount;
     let profits_beneficiary_collateral_amount_after: u64 =
@@ -448,7 +445,7 @@ pub(crate) fn handler(
         )?
     };
 
-    let owned_shares_amount_after: u64 = ctx.accounts.depository_shares.amount;
+    let owned_shares_amount_after: u64 = ctx.accounts.credix_lp_depository_shares.amount;
     let owned_shares_value_after: u64 = compute_value_for_shares_amount_floor(
         owned_shares_amount_after,
         total_shares_supply_after,
@@ -479,7 +476,7 @@ pub(crate) fn handler(
     let owned_shares_value_decrease: u64 =
         compute_decrease(owned_shares_value_before, owned_shares_value_after)?;
 
-    // The credix lp depository collateral account should always be empty
+    // The credix_lp_depository collateral account should always be empty
     require!(
         credix_lp_depository_collateral_amount_before
             == credix_lp_depository_collateral_amount_after,
@@ -534,9 +531,9 @@ pub(crate) fn handler(
     // Emit event
     emit!(RebalanceRedeemWithdrawRequestFromCredixLpDepositoryEvent {
         controller_version: ctx.accounts.controller.load()?.version,
-        depository_version: ctx.accounts.depository.load()?.version,
+        depository_version: ctx.accounts.credix_lp_depository.load()?.version,
         controller: ctx.accounts.controller.key(),
-        depository: ctx.accounts.depository.key(),
+        depository: ctx.accounts.credix_lp_depository.key(),
         overflow_value: withdrawal_overflow_value_after_precision_loss,
         profits_collateral_amount: withdrawal_profits_collateral_amount_after_precision_loss,
         requested_collateral_amount: withdrawal_total_collateral_amount_after_precision_loss,
@@ -544,20 +541,20 @@ pub(crate) fn handler(
 
     // Edit onchain accounts
     let mut controller = ctx.accounts.controller.load_mut()?;
-    let mut depository = ctx.accounts.depository.load_mut()?;
+    let mut credix_lp_depository = ctx.accounts.credix_lp_depository.load_mut()?;
     let mut identity_depository = ctx.accounts.identity_depository.load_mut()?;
 
     // Profit collection accounting updates
     controller.update_onchain_accounting_following_profits_collection(
         withdrawal_profits_collateral_amount_after_precision_loss,
     )?;
-    depository.update_onchain_accounting_following_profits_collection(
+    credix_lp_depository.update_onchain_accounting_following_profits_collection(
         withdrawal_profits_collateral_amount_after_precision_loss,
     )?;
 
     // Collateral amount deposited accounting updates
-    depository.collateral_amount_deposited = checked_sub(
-        depository.collateral_amount_deposited,
+    credix_lp_depository.collateral_amount_deposited = checked_sub(
+        credix_lp_depository.collateral_amount_deposited,
         withdrawal_overflow_value_after_precision_loss.into(),
     )?;
     identity_depository.collateral_amount_deposited = checked_add(
@@ -566,8 +563,8 @@ pub(crate) fn handler(
     )?;
 
     // Redeemable under management accounting updates
-    depository.redeemable_amount_under_management = checked_sub(
-        depository.redeemable_amount_under_management,
+    credix_lp_depository.redeemable_amount_under_management = checked_sub(
+        credix_lp_depository.redeemable_amount_under_management,
         withdrawal_overflow_value_after_precision_loss.into(),
     )?;
     identity_depository.redeemable_amount_under_management = checked_add(
@@ -587,9 +584,9 @@ impl<'info> RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
     {
         let cpi_accounts = credix_client::cpi::accounts::RedeemWithdrawRequest {
             base_token_mint: self.collateral_mint.to_account_info(),
-            investor: self.depository.to_account_info(),
-            investor_token_account: self.depository_collateral.to_account_info(),
-            investor_lp_token_account: self.depository_shares.to_account_info(),
+            investor: self.credix_lp_depository.to_account_info(),
+            investor_token_account: self.credix_lp_depository_collateral.to_account_info(),
+            investor_lp_token_account: self.credix_lp_depository_shares.to_account_info(),
             program_state: self.credix_program_state.to_account_info(),
             global_market_state: self.credix_global_market_state.to_account_info(),
             signing_authority: self.credix_signing_authority.to_account_info(),
@@ -613,9 +610,9 @@ impl<'info> RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
-            from: self.depository_collateral.to_account_info(),
+            from: self.credix_lp_depository_collateral.to_account_info(),
             to: self.identity_depository_collateral.to_account_info(),
-            authority: self.depository.to_account_info(),
+            authority: self.credix_lp_depository.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)
@@ -625,9 +622,9 @@ impl<'info> RebalanceRedeemWithdrawRequestFromCredixLpDepository<'info> {
         &self,
     ) -> CpiContext<'_, '_, '_, 'info, token::Transfer<'info>> {
         let cpi_accounts = Transfer {
-            from: self.depository_collateral.to_account_info(),
+            from: self.credix_lp_depository_collateral.to_account_info(),
             to: self.profits_beneficiary_collateral.to_account_info(),
-            authority: self.depository.to_account_info(),
+            authority: self.credix_lp_depository.to_account_info(),
         };
         let cpi_program = self.token_program.to_account_info();
         CpiContext::new(cpi_program, cpi_accounts)

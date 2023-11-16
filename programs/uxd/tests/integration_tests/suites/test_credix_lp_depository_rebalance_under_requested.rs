@@ -4,10 +4,7 @@ use solana_sdk::signer::keypair::Keypair;
 use solana_sdk::signer::Signer;
 
 use uxd::instructions::EditControllerFields;
-use uxd::instructions::EditCredixLpDepositoryFields;
 use uxd::instructions::EditDepositoriesRoutingWeightBps;
-use uxd::instructions::EditIdentityDepositoryFields;
-use uxd::instructions::EditMercurialVaultDepositoryFields;
 
 use crate::integration_tests::api::program_context;
 use crate::integration_tests::api::program_credix;
@@ -57,7 +54,7 @@ async fn test_credix_lp_depository_rebalance_under_requested(
     )
     .await?;
 
-    // Main actor
+    // Main actors
     let user = Keypair::new();
     let profits_beneficiary = Keypair::new();
 
@@ -127,10 +124,10 @@ async fn test_credix_lp_depository_rebalance_under_requested(
         &EditControllerFields {
             redeemable_global_supply_cap: Some(amount_we_use_as_supply_cap.into()),
             depositories_routing_weight_bps: Some(EditDepositoriesRoutingWeightBps {
-                identity_depository_weight_bps: 25 * 100,
-                mercurial_vault_depository_weight_bps: 25 * 100,
-                credix_lp_depository_weight_bps: 50 * 100,
-                alloyx_vault_depository_weight_bps: 0,
+                identity_depository_weight_bps: 15 * 100,        // 15%
+                mercurial_vault_depository_weight_bps: 25 * 100, // 25%
+                credix_lp_depository_weight_bps: 50 * 100,       // 50%
+                alloyx_vault_depository_weight_bps: 10 * 100,    // 10%
             }),
             router_depositories: None,
             outflow_limit_per_epoch_amount: None,
@@ -141,7 +138,7 @@ async fn test_credix_lp_depository_rebalance_under_requested(
     .await?;
 
     // Now we set the router depositories to the correct PDAs
-    program_uxd::procedures::process_set_router_depositories(
+    program_uxd::procedures::process_set_controller_router_depositories(
         &mut program_context,
         &payer,
         &authority,
@@ -149,47 +146,17 @@ async fn test_credix_lp_depository_rebalance_under_requested(
     )
     .await?;
 
-    // Set the identity_depository cap and make sure minting is not disabled
-    program_uxd::instructions::process_edit_identity_depository(
-        &mut program_context,
-        &payer,
-        &authority,
-        &EditIdentityDepositoryFields {
-            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
-            minting_disabled: Some(false),
-        },
-    )
-    .await?;
-
-    // Set the mercurial_vault_depository cap and make sure minting is not disabled
-    program_uxd::instructions::process_edit_mercurial_vault_depository(
+    // Setup the fees, caps and profits beneficiary for router depositories
+    program_uxd::procedures::process_setup_router_depositories_fields(
         &mut program_context,
         &payer,
         &authority,
         &collateral_mint.pubkey(),
-        &EditMercurialVaultDepositoryFields {
-            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
-            minting_fee_in_bps: Some(100),
-            redeeming_fee_in_bps: Some(100),
-            minting_disabled: Some(false),
-            profits_beneficiary_collateral: Some(profits_beneficiary_collateral),
-        },
-    )
-    .await?;
-
-    // Set the credix_lp_depository cap and make sure minting is not disabled
-    program_uxd::instructions::process_edit_credix_lp_depository(
-        &mut program_context,
-        &payer,
-        &authority,
-        &collateral_mint.pubkey(),
-        &EditCredixLpDepositoryFields {
-            redeemable_amount_under_management_cap: Some(amount_we_use_as_supply_cap.into()),
-            minting_fee_in_bps: Some(100),
-            redeeming_fee_in_bps: Some(100),
-            minting_disabled: Some(false),
-            profits_beneficiary_collateral: Some(profits_beneficiary_collateral),
-        },
+        amount_we_use_as_supply_cap,
+        Some(100),
+        Some(100),
+        Some(false),
+        Some(profits_beneficiary_collateral),
     )
     .await?;
 

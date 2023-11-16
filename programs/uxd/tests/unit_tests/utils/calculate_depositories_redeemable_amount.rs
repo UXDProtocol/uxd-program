@@ -5,6 +5,7 @@ mod test_calculate_depositories_redeemable_amount {
     use proptest::prelude::*;
     use uxd::utils::calculate_depositories_redeemable_amount;
     use uxd::utils::DepositoryInfoForRedeemableAmount;
+    use uxd::ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX;
     use uxd::ROUTER_CREDIX_LP_DEPOSITORY_INDEX;
     use uxd::ROUTER_IDENTITY_DEPOSITORY_INDEX;
     use uxd::ROUTER_MERCURIAL_VAULT_DEPOSITORY_INDEX;
@@ -21,25 +22,31 @@ mod test_calculate_depositories_redeemable_amount {
             &vec![
                 // identity_depository is overflowing by a little bit
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: true,
+                    directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(1_500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(1_500_000),
                 },
                 // mercurial_vault_depository is overflowing by a lot
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: true,
+                    directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(2_500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(2_500_000),
                 },
-                // credix_lp_depository is illiquid and cannot be redeemed from
+                // credix_lp_depository cannot be directly redeemed
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: false,
-                    target_redeemable_amount: 99, // this should not matter on illiquid dppository
-                    redeemable_amount_under_management: 42, // this should not matter on illiquid depository
+                    directly_redeemable: false,
+                    target_redeemable_amount: 99, // this should not matter
+                    redeemable_amount_under_management: 42, // this should not matter
+                },
+                // alloyx_vault_depository cannot be directly redeemed
+                DepositoryInfoForRedeemableAmount {
+                    directly_redeemable: false,
+                    target_redeemable_amount: 99, // this should not matter
+                    redeemable_amount_under_management: 42, // this should not matter
                 },
             ],
         )?;
-        // All depositories should be withdrawn from, weighted by the amount of overflow
+        // All redeemablable depositories should be withdrawn from, weighted by the amount of overflow
         assert_eq!(
             depositories_redeemable_amount[ROUTER_IDENTITY_DEPOSITORY_INDEX],
             ui_to_native_amount(250_000),
@@ -50,7 +57,11 @@ mod test_calculate_depositories_redeemable_amount {
         );
         assert_eq!(
             depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
-            0, // except illiquid ones
+            0, // cannot be redeemed directly
+        );
+        assert_eq!(
+            depositories_redeemable_amount[ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX],
+            0, // cannot be redeemed directly
         );
         // Done
         Ok(())
@@ -64,21 +75,27 @@ mod test_calculate_depositories_redeemable_amount {
             &vec![
                 // identity_depository is not filled up (underflow)
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: true,
+                    directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(500_000),
                 },
                 // mercurial_vault_depository is overflowing by a lot
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: true,
+                    directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(2_500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(2_500_000),
                 },
-                // credix_lp_depository is illiquid and cannot be redeemed from
+                // credix_lp_depository is not directly redeemable
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: false,
-                    target_redeemable_amount: 99, // this should not matter on illiquid dppository
-                    redeemable_amount_under_management: 42, // this should not matter on illiquid depository
+                    directly_redeemable: false,
+                    target_redeemable_amount: 99, // this should not matter
+                    redeemable_amount_under_management: 42, // this should not matter
+                },
+                // alloyx_vault_depository is not directly redeemable
+                DepositoryInfoForRedeemableAmount {
+                    directly_redeemable: false,
+                    target_redeemable_amount: 99, // this should not matter
+                    redeemable_amount_under_management: 42, // this should not matter
                 },
             ],
         )?;
@@ -93,7 +110,11 @@ mod test_calculate_depositories_redeemable_amount {
         );
         assert_eq!(
             depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
-            0, // except illiquid ones
+            0, // cannot be redeemed directly
+        );
+        assert_eq!(
+            depositories_redeemable_amount[ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX],
+            0, // cannot be redeemed directly
         );
         // Done
         Ok(())
@@ -107,21 +128,27 @@ mod test_calculate_depositories_redeemable_amount {
             &vec![
                 // identity_depository is perfectly balanced
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: true,
+                    directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(1_000_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(1_000_000),
                 },
                 // mercurial_vault_depository is perfectly balanced
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: true,
+                    directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(500_000),
-                    redeemable_amount_under_management: ui_to_native_amount(500_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(500_000),
                 },
-                // credix_lp_depository is illiquid and cannot be redeemed from
+                // credix_lp_depository is not directly redeemable
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: false,
-                    target_redeemable_amount: 99, // this should not matter on illiquid dppository
-                    redeemable_amount_under_management: 42, // this should not matter on illiquid depository
+                    directly_redeemable: false,
+                    target_redeemable_amount: 99, // this should not matter
+                    redeemable_amount_under_management: 42, // this should not matter
+                },
+                // alloyx_vault_depository is not directly redeemable
+                DepositoryInfoForRedeemableAmount {
+                    directly_redeemable: false,
+                    target_redeemable_amount: 99, // this should not matter
+                    redeemable_amount_under_management: 42, // this should not matter
                 },
             ],
         )?;
@@ -137,7 +164,11 @@ mod test_calculate_depositories_redeemable_amount {
         );
         assert_eq!(
             depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
-            0, // except illiquid ones
+            0, // cannot be redeemed directly
+        );
+        assert_eq!(
+            depositories_redeemable_amount[ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX],
+            0, // cannot be redeemed directly
         );
 
         Ok(())
@@ -151,21 +182,27 @@ mod test_calculate_depositories_redeemable_amount {
             &vec![
                 // identity_depository is overflowing by a little bit
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: true,
+                    directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(1_200_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(1_200_000),
                 },
                 // mercurial_vault_depository is overflowing by a little bit (but is smaller)
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: true,
+                    directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(500_000),
-                    redeemable_amount_under_management: ui_to_native_amount(700_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(700_000),
                 },
-                // credix_lp_depository is illiquid and cannot be redeemed from
+                // credix_lp_depository is not directly redeemable
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: false,
-                    target_redeemable_amount: 99, // this should not matter on illiquid dppository
-                    redeemable_amount_under_management: 42, // this should not matter on illiquid depository
+                    directly_redeemable: false,
+                    target_redeemable_amount: 99, // this should not matter
+                    redeemable_amount_under_management: 42, // this should not matter
+                },
+                // alloyx_vault_depository is not directly redeemable
+                DepositoryInfoForRedeemableAmount {
+                    directly_redeemable: false,
+                    target_redeemable_amount: 99, // this should not matter
+                    redeemable_amount_under_management: 42, // this should not matter
                 },
             ],
         )?;
@@ -196,21 +233,27 @@ mod test_calculate_depositories_redeemable_amount {
             &vec![
                 // identity_depository is underweight
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: true,
+                    directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(1_000_000),
-                    redeemable_amount_under_management: ui_to_native_amount(800_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(800_000),
                 },
                 // mercurial_vault_depository is underweight (but is smaller)
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: true,
+                    directly_redeemable: true,
                     target_redeemable_amount: ui_to_native_amount(500_000),
-                    redeemable_amount_under_management: ui_to_native_amount(400_000).into(),
+                    redeemable_amount_under_management: ui_to_native_amount(400_000),
                 },
-                // credix_lp_depository is illiquid and cannot be redeemed from
+                // credix_lp_depository is not directly redeemable
                 DepositoryInfoForRedeemableAmount {
-                    is_liquid: false,
-                    target_redeemable_amount: 99, // this should not matter on illiquid dppository
-                    redeemable_amount_under_management: 42, // this should not matter on illiquid depository
+                    directly_redeemable: false,
+                    target_redeemable_amount: 99, // this should not matter
+                    redeemable_amount_under_management: 42, // this should not matter
+                },
+                // alloyx_vault_depository is not directly redeemable
+                DepositoryInfoForRedeemableAmount {
+                    directly_redeemable: false,
+                    target_redeemable_amount: 99, // this should not matter
+                    redeemable_amount_under_management: 42, // this should not matter
                 },
             ],
         )?;
@@ -226,7 +269,11 @@ mod test_calculate_depositories_redeemable_amount {
         );
         assert_eq!(
             depositories_redeemable_amount[ROUTER_CREDIX_LP_DEPOSITORY_INDEX],
-            0, // except illiquid ones
+            0, // cannot be redeemed directly
+        );
+        assert_eq!(
+            depositories_redeemable_amount[ROUTER_ALLOYX_VAULT_DEPOSITORY_INDEX],
+            0, // cannot be redeemed directly
         );
         // Done
         Ok(())
@@ -263,21 +310,26 @@ mod test_calculate_depositories_redeemable_amount {
                     requested_redeemable_amount,
                     &vec![
                         DepositoryInfoForRedeemableAmount {
-                            is_liquid: true,
+                            directly_redeemable: true,
                             target_redeemable_amount: identity_depository_target_redeemable_amount,
                             redeemable_amount_under_management:
-                                identity_depository_redeemable_amount_under_management.into(),
+                                identity_depository_redeemable_amount_under_management,
                         },
                         DepositoryInfoForRedeemableAmount {
-                            is_liquid: true,
+                            directly_redeemable: true,
                             target_redeemable_amount: mercurial_vault_depository_target_redeemable_amount,
                             redeemable_amount_under_management:
-                                mercurial_vault_depository_redeemable_amount_under_management.into(),
+                                mercurial_vault_depository_redeemable_amount_under_management,
                         },
                         DepositoryInfoForRedeemableAmount {
-                            is_liquid: false,
-                            target_redeemable_amount: 99, // this should not matter on illiquid dppository
-                            redeemable_amount_under_management: 42, // this should not matter on illiquid depository
+                            directly_redeemable: false,
+                            target_redeemable_amount: 99, // this should not matter
+                            redeemable_amount_under_management: 42, // this should not matter
+                        },
+                        DepositoryInfoForRedeemableAmount {
+                            directly_redeemable: false,
+                            target_redeemable_amount: 99, // this should not matter
+                            redeemable_amount_under_management: 42, // this should not matter
                         },
                     ],
                 );
