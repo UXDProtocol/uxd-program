@@ -24,7 +24,7 @@ Its instructions are in `programs/uxd/src/instructions/`.
 
 The project uses `Anchor` for safety, maintainability and readability.
 
-This program contains 2 set of instructions, one permissionned and one permissionless. Permissionned instruction are called by [our DAO](https://governance.uxd.fi/dao/UXP).
+This program contains 2 sets of instructions, one permissionned and one permissionless. Permissionned instructions are called by [our DAO](https://governance.uxd.fi/dao/UXP).
 
 Please refer to the [UXDProgram Git book](https://docs.uxd.fi/uxdprogram-solana/welcome/purpose-and-philosophy) for the program architecture.
 
@@ -32,7 +32,7 @@ Please refer to the [UXDProgram Git book](https://docs.uxd.fi/uxdprogram-solana/
 
 [UXD Client](https://github.com/UXDProtocol/uxd-client) is the open source typescript client of UXD Program.
 
-Each version of program is expected to pair with a specific version of the client, so any enhancement to the program that change the IDL must have a corresponding update on the client as well.
+Each version of the program is expected to pair with a specific version of the client, so any enhancement to the program that changes the IDL must have a corresponding update on the client as well.
 
 To run the integration test with a specific client, please specify the version of `@uxd-protocol/uxd-client` in the `package.json` file.
 
@@ -80,16 +80,16 @@ If you made changes to the Rust code, you have to re-run the lengthy :
 $> anchor test
 ```
 
-Loop theses as many time as you want, and if you want a clean slate, just reset the program_id with the script (`./script/reset_program_id.sh`).
+Loop these as many times as you want, and if you want a clean slate, just reset the program_id with the script (`./script/reset_program_id.sh`).
 
 ## Testing strategy with CI
 
-Four workflow would be kick started for PR branches merging to `main`.
+Four workflows would be kickstarted for PR branches merging to `main`.
 
 ### Anchor test - ci-anchor-test.yml
 
 E2E test.
-There are a few script in the test folder with following the `test_ci_*.ts`, these are related to the github workflow.
+There are a few scripts in the test folder following the `test_ci_*.ts`, these are related to the github workflow.
 
 The CI strategy for E2E :
 
@@ -97,11 +97,11 @@ The CI strategy for E2E :
 - use it's upgrade authority stored in `target/deploy/ci-resident-upgrade-authority.json` for deployment
 - upgrade program
 - start `test_ci_setup.ts`, to setup controller and all depositories on the resident program, no mint/redeem testing is involved on this test suite, global settings like supply cap and insurance fund should be tested here.
-- then starts test suites in series for each depositories.
+- then starts test suites in series for each depository.
 - here is the job dependencies
   ![ci anchor test flow](ci_workflow.png)
 
-Note that it don't do concurrent run of this workflow, as they test some internal state of the program and would collide.
+Note that it doesn't do concurrent run of this workflow, as they test some internal state of the program and would collide.
 
 ### Cargo audit test - ci-cargo-audit.yml
 
@@ -111,7 +111,7 @@ Crates security vulnerability checking [tool](https://github.com/RustSec/rustsec
 
 Runs cargo fmt, clippy, test and test-bpf.
 
-### Sec3 vulnerabilty scanning test - ci-sec3-vulnerability-scanning.yml
+### Sec3 vulnerability scanning test - ci-sec3-vulnerability-scanning.yml
 
 Solana smart contract vulnerability scanning [tool](https://github.com/silas-x/soteria-action), by Sec3.
 
@@ -129,7 +129,7 @@ By default the program builds with the `development` feature, and the ProgramID 
 
 Building for mainnet uses `anchor build -- --no-default-features --features production`
 
-The program upgrade are done through our [DAO](https://governance.uxd.fi/dao/UXP).
+The program upgrades are done through our [DAO](https://governance.uxd.fi/dao/UXP).
 
 It required to build for release then to prepare a buffer with :
 
