@@ -1,27 +1,30 @@
 import { web3 } from '@project-serum/anchor';
 import { amountToUiAmount } from '@solana/spl-token';
 import { Transaction } from '@solana/web3.js';
-import { Controller, UXDClient } from '@uxd-protocol/uxd-client';
+import { UXDClient } from '@uxd-protocol/uxd-client';
 import {
-  createMercurialVaultDepository,
-  getConnection,
+  createControllerMainnet,
+  createMercurialVaultDepositoryMainnet,
+  getConnectionMainnet,
   payer,
   TXN_OPTS,
-  uxdProgramId,
+  uxdProgramIdMainnet,
 } from './common';
 
 async function main() {
-  const controller = new Controller('UXD', 6, uxdProgramId);
-  const depository = await createMercurialVaultDepository();
+  const controller = createControllerMainnet();
+  const depository = await createMercurialVaultDepositoryMainnet();
 
   controller.info();
   depository.info();
 
   const profitsBeneficiaryCollateral = (
-    await depository.getOnchainAccount(getConnection(), TXN_OPTS)
+    await depository.getOnchainAccount(getConnectionMainnet(), TXN_OPTS)
   ).profitsBeneficiaryCollateral;
   const profitsBeneficiaryCollateralAmountBefore = (
-    await getConnection().getTokenAccountBalance(profitsBeneficiaryCollateral)
+    await getConnectionMainnet().getTokenAccountBalance(
+      profitsBeneficiaryCollateral
+    )
   ).value.uiAmount;
   console.log(
     'profitsBeneficiaryCollateral',
@@ -33,11 +36,11 @@ async function main() {
   );
 
   const estimatedProfitsCollectedAmount = await amountToUiAmount(
-    getConnection(),
+    getConnectionMainnet(),
     payer,
     depository.collateralMint.mint,
     (
-      await depository.calculateProfitsValue(getConnection(), TXN_OPTS)
+      await depository.calculateProfitsValue(getConnectionMainnet(), TXN_OPTS)
     ).toNumber()
   );
   console.log(
@@ -45,7 +48,7 @@ async function main() {
     estimatedProfitsCollectedAmount
   );
 
-  const uxdClient = new UXDClient(uxdProgramId);
+  const uxdClient = new UXDClient(uxdProgramIdMainnet);
 
   const collectProfitsOfMercurialVaultDepositoryIx =
     uxdClient.createCollectProfitsOfMercurialVaultDepositoryInstruction(
@@ -61,7 +64,7 @@ async function main() {
 
   try {
     const txId = await web3.sendAndConfirmTransaction(
-      getConnection(),
+      getConnectionMainnet(),
       tx,
       [payer],
       TXN_OPTS
@@ -69,7 +72,9 @@ async function main() {
     console.log(`🔗 'https://explorer.solana.com/tx/${txId}'`);
 
     const profitsBeneficiaryCollateralAmountAfter = (
-      await getConnection().getTokenAccountBalance(profitsBeneficiaryCollateral)
+      await getConnectionMainnet().getTokenAccountBalance(
+        profitsBeneficiaryCollateral
+      )
     ).value.uiAmount;
     console.log(
       'profitsBeneficiaryCollateral amount after',
