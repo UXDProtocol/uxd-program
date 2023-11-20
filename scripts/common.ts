@@ -100,7 +100,7 @@ export async function createAlloyxVaultDepositoryMainnet() {
         'CBQcnyoVjdCyPf2nnhPjbMJL18FEtTuPA9nQPrS7wJPF' // TODO - need to wait for alloyx to supply the correct mint address
       ),
       alloyxProgramId: new PublicKey(
-        '8U29WVwDFLxFud36okhqrngUquaZqVnVL9uE5G8DzX5c'
+        '5fuCN8tquSXRJ97f5TP31cLwViuzHmdkyqiprqtz2DTx'
       ),
     });
   } catch (error) {
