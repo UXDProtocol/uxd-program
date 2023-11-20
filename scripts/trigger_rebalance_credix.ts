@@ -135,7 +135,6 @@ async function main() {
   const credixProgramId = credixLpDepository.credixProgramId;
   const credixGlobalMarketState = credixLpDepository.credixGlobalMarketState;
   const credixPass = credixLpDepository.credixPass;
-  const credixWithdrawEpoch = credixLpDepository.credixWithdrawEpoch;
   const credixProgram = CredixLpDepository.getCredixProgram(
     getConnection(),
     credixProgramId
