@@ -97,7 +97,7 @@ export async function createAlloyxVaultDepositoryMainnet() {
       collateralSymbol: 'USDC',
       alloyxVaultId: 'diversified_public_credit',
       alloyxVaultMint: new PublicKey(
-        'CBQcnyoVjdCyPf2nnhPjbMJL18FEtTuPA9nQPrS7wJPF' // TODO - need to wait for alloyx to supply the correct mint address
+        'EF6UUehY8YHUiNBp9yp6HVj1nknK1vW2kgTdZwZT2px7'
       ),
       alloyxProgramId: new PublicKey(
         '5fuCN8tquSXRJ97f5TP31cLwViuzHmdkyqiprqtz2DTx'
