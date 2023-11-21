@@ -20,6 +20,5 @@ solana program dump CRDx2YkdtYtGZXGHZ59wNv1EwKHQndnRc1gT4p8i2vPX programs/uxd/te
 solana config set --url https://api.devnet.solana.com
 solana program dump 8U29WVwDFLxFud36okhqrngUquaZqVnVL9uE5G8DzX5c programs/uxd/tests/integration_tests/api/program_alloyx/binaries/executable-devnet.so
 
-# Alloyx not main-net live yet
-# solana config set --url https://api.mainnet-beta.solana.com
-# solana program dump 8U29WVwDFLxFud36okhqrngUquaZqVnVL9uE5G8DzX5c programs/uxd/tests/integration_tests/api/program_alloyx/binaries/executable-mainnet-beta.so
+solana config set --url https://api.mainnet-beta.solana.com
+solana program dump 5fuCN8tquSXRJ97f5TP31cLwViuzHmdkyqiprqtz2DTx programs/uxd/tests/integration_tests/api/program_alloyx/binaries/executable-mainnet-beta.so

@@ -9,6 +9,8 @@ import {
   IdentityDepository,
   MercurialVaultDepository,
   CredixLpDepository,
+  AlloyxVaultDepository,
+  Controller,
 } from '@uxd-protocol/uxd-client';
 
 const TXN_COMMIT = 'confirmed';
@@ -23,12 +25,14 @@ export const TXN_OPTS = {
   skipPreflight: true,
 } as ConfirmOptions;
 
-export const uxdProgramId = new PublicKey(
+export const uxdProgramIdMainnet = new PublicKey(
   'UXD8m9cvwk4RcSxnX2HZ9VudQCEeDH6fRnB4CAP57Dr'
 );
-const usdcMint = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+const usdcMintMainnet = new PublicKey(
+  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+);
 
-export function getConnection() {
+export function getConnectionMainnet() {
   const connection = new Connection(
     'https://api.mainnet-beta.solana.com',
     connectionConfig
@@ -36,21 +40,30 @@ export function getConnection() {
   return connection;
 }
 
-export function createIdentityDepository() {
-  return new IdentityDepository(usdcMint, 'USDC', 6, uxdProgramId);
+export function createControllerMainnet() {
+  return new Controller('UXD', 6, uxdProgramIdMainnet);
 }
 
-export async function createMercurialVaultDepository() {
+export function createIdentityDepositoryMainnet() {
+  return new IdentityDepository(
+    usdcMintMainnet,
+    'USDC',
+    6,
+    uxdProgramIdMainnet
+  );
+}
+
+export async function createMercurialVaultDepositoryMainnet() {
   try {
     return await MercurialVaultDepository.initialize({
-      connection: getConnection(),
+      connection: getConnectionMainnet(),
       collateralMint: {
-        mint: usdcMint,
+        mint: usdcMintMainnet,
         name: 'USDC',
         symbol: 'USDC',
         decimals: 6,
       },
-      uxdProgramId,
+      uxdProgramId: uxdProgramIdMainnet,
     });
   } catch (error) {
     console.error('Failed to initialize mercurial depository');
@@ -58,15 +71,36 @@ export async function createMercurialVaultDepository() {
   }
 }
 
-export async function createCredixLpDepository() {
+export async function createCredixLpDepositoryMainnet() {
   try {
     return await CredixLpDepository.initialize({
-      connection: getConnection(),
-      uxdProgramId: uxdProgramId,
-      collateralMint: usdcMint,
+      connection: getConnectionMainnet(),
+      uxdProgramId: uxdProgramIdMainnet,
+      collateralMint: usdcMintMainnet,
       collateralSymbol: 'USDC',
       credixProgramId: new PublicKey(
         'CRDx2YkdtYtGZXGHZ59wNv1EwKHQndnRc1gT4p8i2vPX'
+      ),
+    });
+  } catch (error) {
+    console.error('Failed to initialize credix depository');
+    throw error;
+  }
+}
+
+export async function createAlloyxVaultDepositoryMainnet() {
+  try {
+    return await AlloyxVaultDepository.initialize({
+      connection: getConnectionMainnet(),
+      uxdProgramId: uxdProgramIdMainnet,
+      collateralMint: usdcMintMainnet,
+      collateralSymbol: 'USDC',
+      alloyxVaultId: 'diversified_public_credit',
+      alloyxVaultMint: new PublicKey(
+        'EF6UUehY8YHUiNBp9yp6HVj1nknK1vW2kgTdZwZT2px7'
+      ),
+      alloyxProgramId: new PublicKey(
+        '5fuCN8tquSXRJ97f5TP31cLwViuzHmdkyqiprqtz2DTx'
       ),
     });
   } catch (error) {

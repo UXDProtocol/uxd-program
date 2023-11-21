@@ -36,6 +36,8 @@
     "target-deploy-format-check": "prettier --check 'target/deploy'",
     "target-types-format-check": "prettier --check 'target/types'",
     "target-format-check": "npm run target-idl-format-check && npm run target-deploy-format-check && npm run target-types-format-check",
+    "maintenance-collect-profits-mercurial": "npx ts-node scripts/trigger_collect_profits_mercurial.ts",
+    "maintenance-rebalance-credix": "npx ts-node scripts/trigger_rebalance_credix.ts",
     "lint": "npm run source-lint && npm run tests-lint",
     "format": "npm run source-format && npm run tests-format && npm run target-format",
     "format-check": "npm run source-format-check && npm run tests-format-check && npm run target-format-check",

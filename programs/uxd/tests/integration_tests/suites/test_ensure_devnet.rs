@@ -423,6 +423,8 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
     )
     .await?;
 
+    /* TODO - temporarily disabled as credix disabled their minting for now */
+    /*
     program_uxd::instructions::process_mint_with_credix_lp_depository(
         &mut program_context,
         &payer,
@@ -434,6 +436,7 @@ async fn test_ensure_devnet() -> Result<(), program_context::ProgramError> {
         10_000, // 0.01 collateral
     )
     .await?;
+    */
 
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
         &mut program_context,

@@ -1,21 +1,21 @@
-const {
-  Controller,
+import {
   CredixLpDepository,
   UXDClient,
   nativeToUi,
-} = require('@uxd-protocol/uxd-client');
-const { Transaction, ComputeBudgetProgram } = require('@solana/web3.js');
-const { web3 } = require('@project-serum/anchor');
-const { BN } = require('bn.js');
-const {
-  createCredixLpDepository,
-  createIdentityDepository,
-  createMercurialVaultDepository,
-  getConnection,
+} from '@uxd-protocol/uxd-client';
+import { Transaction, ComputeBudgetProgram } from '@solana/web3.js';
+import { BN, web3 } from '@project-serum/anchor';
+import {
+  createCredixLpDepositoryMainnet,
+  createIdentityDepositoryMainnet,
+  createMercurialVaultDepositoryMainnet,
+  createAlloyxVaultDepositoryMainnet,
+  getConnectionMainnet,
   payer,
   TXN_OPTS,
-  uxdProgramId,
-} = require('./common');
+  createControllerMainnet,
+  uxdProgramIdMainnet,
+} from './common';
 
 async function main() {
   console.log();
@@ -24,22 +24,25 @@ async function main() {
   console.log('------------------------------ ------------------------------');
   console.log();
 
-  const controller = new Controller('UXD', 6, uxdProgramId);
-  const identityDepository = createIdentityDepository();
-  const mercurialVaultDepository = await createMercurialVaultDepository();
-  const credixLpDepository = await createCredixLpDepository();
+  const controller = createControllerMainnet();
+  const identityDepository = createIdentityDepositoryMainnet();
+  const mercurialVaultDepository =
+    await createMercurialVaultDepositoryMainnet();
+  const credixLpDepository = await createCredixLpDepositoryMainnet();
+  const alloyxVaultDepository = await createAlloyxVaultDepositoryMainnet();
 
   controller.info();
   identityDepository.info();
   mercurialVaultDepository.info();
   credixLpDepository.info();
+  alloyxVaultDepository.info();
 
   const controllerAccount = await controller.getOnchainAccount(
-    getConnection(),
+    getConnectionMainnet(),
     TXN_OPTS
   );
   const credixLpDepositoryAccount = await credixLpDepository.getOnchainAccount(
-    getConnection(),
+    getConnectionMainnet(),
     TXN_OPTS
   );
 
@@ -50,7 +53,7 @@ async function main() {
     profitsBeneficiaryCollateral.toBase58()
   );
 
-  const uxdClient = new UXDClient(uxdProgramId);
+  const uxdClient = new UXDClient(uxdProgramIdMainnet);
 
   console.log();
   console.log('------------------------------ ------------------------------');
@@ -64,6 +67,7 @@ async function main() {
       identityDepository,
       mercurialVaultDepository,
       credixLpDepository,
+      alloyxVaultDepository,
       payer.publicKey,
       TXN_OPTS
     );
@@ -78,7 +82,7 @@ async function main() {
 
   try {
     const rebalanceCreateResult = await web3.sendAndConfirmTransaction(
-      getConnection(),
+      getConnectionMainnet(),
       rebalanceCreateTransaction,
       [payer],
       TXN_OPTS
@@ -100,6 +104,7 @@ async function main() {
       identityDepository,
       mercurialVaultDepository,
       credixLpDepository,
+      alloyxVaultDepository,
       payer.publicKey,
       profitsBeneficiaryCollateral,
       TXN_OPTS
@@ -115,7 +120,7 @@ async function main() {
 
   try {
     const rebalanceRedeemResult = await web3.sendAndConfirmTransaction(
-      getConnection(),
+      getConnectionMainnet(),
       rebalanceRedeemTransaction,
       [payer],
       TXN_OPTS
@@ -138,7 +143,7 @@ async function main() {
   const credixPass = credixLpDepository.credixPass;
   const credixWithdrawEpoch = credixLpDepository.credixWithdrawEpoch;
   const credixProgram = CredixLpDepository.getCredixProgram(
-    getConnection(),
+    getConnectionMainnet(),
     credixProgramId
   );
 
@@ -158,7 +163,9 @@ async function main() {
   );
   console.log(
     'credixGlobalMarketStateAccount.latestWithdrawEpochEnd:',
-    new Date(credixGlobalMarketStateAccount.latestWithdrawEpochEnd * 1000)
+    new Date(
+      credixGlobalMarketStateAccount.latestWithdrawEpochEnd.toNumber() * 1000
+    )
   );
   console.log(
     'credixGlobalMarketStateAccount.poolOutstandingCredit',
@@ -189,6 +196,7 @@ async function main() {
   );
   console.log('> credixPassAccount');
   console.log('credixPassAccount.active', credixPassAccount.active);
+  /*
   console.log('credixPassAccount.isBorrower', credixPassAccount.isBorrower);
   console.log('credixPassAccount.isInvestor', credixPassAccount.isInvestor);
   console.log(
@@ -203,6 +211,7 @@ async function main() {
     'credixPassAccount.releaseTimestamp:',
     new Date(credixPassAccount.releaseTimestamp * 1000)
   );
+  */
   console.log();
 
   const credixWithdrawEpochAccount =
@@ -213,14 +222,14 @@ async function main() {
   console.log('> credixWithdrawEpochAccount');
   console.log(
     'credixWithdrawEpochAccount.goLive:',
-    new Date(credixWithdrawEpochAccount.goLive * 1000)
+    new Date(credixWithdrawEpochAccount.goLive.toNumber() * 1000)
   );
   console.log(
     'credixWithdrawEpochAccount.goLive+request:',
     new Date(
-      credixWithdrawEpochAccount.goLive.addn(
-        credixWithdrawEpochAccount.requestSeconds
-      ) * 1000
+      credixWithdrawEpochAccount.goLive
+        .addn(credixWithdrawEpochAccount.requestSeconds)
+        .toNumber() * 1000
     )
   );
   console.log(
@@ -228,7 +237,8 @@ async function main() {
     new Date(
       credixWithdrawEpochAccount.goLive
         .addn(credixWithdrawEpochAccount.requestSeconds)
-        .addn(credixWithdrawEpochAccount.redeemSeconds) * 1000
+        .addn(credixWithdrawEpochAccount.redeemSeconds)
+        .toNumber() * 1000
     )
   );
   console.log(
@@ -237,26 +247,13 @@ async function main() {
       credixWithdrawEpochAccount.goLive
         .addn(credixWithdrawEpochAccount.requestSeconds)
         .addn(credixWithdrawEpochAccount.redeemSeconds)
-        .addn(credixWithdrawEpochAccount.availableLiquiditySeconds) * 1000
-    )
-  );
-  console.log(
-    'credixWithdrawEpochAccount.totalRequestedBaseAmount',
-    nativeToUi(
-      credixWithdrawEpochAccount.totalRequestedBaseAmount,
-      credixBaseDecimals
-    )
-  );
-  console.log(
-    'credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount',
-    nativeToUi(
-      credixWithdrawEpochAccount.participatingInvestorsTotalLpAmount,
-      credixBaseDecimals
+        .addn(credixWithdrawEpochAccount.availableLiquiditySeconds)
+        .toNumber() * 1000
     )
   );
   console.log();
 
-  const credixSharesMintAccount = await getConnection().getTokenSupply(
+  const credixSharesMintAccount = await getConnectionMainnet().getTokenSupply(
     credixLpDepository.credixSharesMint
   );
   console.log('> credixSharesMint');
@@ -267,7 +264,7 @@ async function main() {
   console.log();
 
   const credixLiquidityCollateralAccount =
-    await getConnection().getTokenAccountBalance(
+    await getConnectionMainnet().getTokenAccountBalance(
       credixLpDepository.credixLiquidityCollateral
     );
   console.log('> credixLiquidityCollateral');
@@ -278,7 +275,7 @@ async function main() {
   console.log();
 
   const depositoryCollateralAccount =
-    await getConnection().getTokenAccountBalance(
+    await getConnectionMainnet().getTokenAccountBalance(
       credixLpDepository.depositoryCollateral
     );
   console.log('> depositoryCollateral');
@@ -288,9 +285,10 @@ async function main() {
   );
   console.log();
 
-  const depositorySharesAccount = await getConnection().getTokenAccountBalance(
-    credixLpDepository.depositoryShares
-  );
+  const depositorySharesAccount =
+    await getConnectionMainnet().getTokenAccountBalance(
+      credixLpDepository.depositoryShares
+    );
   console.log('> depositoryShares');
   console.log(
     'depositoryShares.amount',
@@ -360,7 +358,7 @@ async function main() {
   let overflow_value = redeemable_amount_under_management.sub(
     redeemable_amount_under_management_target_amount
   );
-  if (overflow_value < 0) {
+  if (overflow_value.isNeg()) {
     overflow_value = new BN(0);
   }
   console.log('> overflow_value:', overflow_value.toString());
@@ -369,9 +367,9 @@ async function main() {
 }
 
 function compute_value_for_shares_amount_floor(
-  shares_amount,
-  total_shares_supply,
-  total_shares_value
+  shares_amount: BN,
+  total_shares_supply: BN,
+  total_shares_value: BN
 ) {
   return shares_amount.mul(total_shares_value).div(total_shares_supply);
 }
