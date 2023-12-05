@@ -7,6 +7,7 @@ use crate::utils::calculate_router_depositories_target_redeemable_amount;
 use crate::utils::checked_add;
 use crate::utils::checked_sub;
 use crate::utils::compute_decrease;
+use crate::utils::checked_as_u64;
 use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value_floor;
 use crate::utils::compute_value_for_shares_amount_floor;
@@ -141,19 +142,102 @@ pub struct RebalanceAlloyxVaultDepository<'info> {
 }
 
 pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &str) -> Result<()> {
-    let identity_depository_redeemable_amount_under_management = ctx
+    // ---------------------------------------------------------------------
+    // -- Phase 1
+    // -- Compute the targets and redeemable amounts,
+    // -- We can then decide if we want to withdraw or deposit
+    // ---------------------------------------------------------------------
+
+    let router_depositories_target_redeemable_amount =
+        calculate_router_depositories_target_redeemable_amount(
+            &ctx.accounts.controller,
+            &ctx.accounts.identity_depository,
+            &ctx.accounts.mercurial_vault_depository,
+            &ctx.accounts.credix_lp_depository,
+            &ctx.accounts.alloyx_vault_depository,
+        )?;
+
+    let identity_depository_target_redeemable_amount =
+        router_depositories_target_redeemable_amount.identity_depository_target_redeemable_amount;
+    let alloyx_vault_depository_target_redeemable_amount =
+        router_depositories_target_redeemable_amount
+            .alloyx_vault_depository_target_redeemable_amount;
+
+    let identity_depository_redeemable_amount_under_management = checked_as_u64(ctx
         .accounts
         .identity_depository
         .load()?
-        .redeemable_amount_under_management;
+        .redeemable_amount_under_management)?;
     let alloyx_vault_depository_redeemable_amount_under_management = ctx
         .accounts
         .alloyx_vault_depository
         .load()?
         .redeemable_amount_under_management;
 
+    let identity_depository_underflow_value = identity_depository_target_redeemable_amount
+        .saturating_sub(identity_depository_redeemable_amount_under_management);
+    let alloyx_vault_depository_underflow_value = alloyx_vault_depository_target_redeemable_amount
+        .saturating_sub(alloyx_vault_depository_redeemable_amount_under_management);
+
+    let identity_depository_overflow_value = identity_depository_redeemable_amount_under_management
+        .saturating_sub(identity_depository_target_redeemable_amount);
+    let alloyx_vault_depository_overflow_value =
+        alloyx_vault_depository_redeemable_amount_under_management
+            .saturating_sub(alloyx_vault_depository_target_redeemable_amount);
+
+    let withdraw_redeemable_amount = std::cmp::max(
+        identity_depository_underflow_value,
+        alloyx_vault_depository_overflow_value,
+    );
+    let deposit_redeemable_amount = std::cmp::min(
+        identity_depository_overflow_value,
+        alloyx_vault_depository_underflow_value,
+    );
+
+    msg!(
+        "[rebalance_identity_depository:identity_depository_target_redeemable_amount:{}]",
+        identity_depository_target_redeemable_amount
+    );
+    msg!(
+        "[rebalance_identity_depository:alloyx_vault_depository_target_redeemable_amount:{}]",
+        alloyx_vault_depository_target_redeemable_amount
+    );
+    msg!(
+        "[rebalance_identity_depository:identity_depository_redeemable_amount_under_management:{}]",
+        identity_depository_redeemable_amount_under_management
+    );
+    msg!(
+        "[rebalance_identity_depository:alloyx_vault_depository_redeemable_amount_under_management:{}]",
+        alloyx_vault_depository_redeemable_amount_under_management
+    );
+    msg!(
+        "[rebalance_identity_depository:identity_depository_underflow_value:{}]",
+        identity_depository_underflow_value
+    );
+    msg!(
+        "[rebalance_alloyx_vault_depository:alloyx_vault_depository_underflow_value:{}]",
+        alloyx_vault_depository_underflow_value
+    );
+    msg!(
+        "[rebalance_identity_depository:identity_depository_overflow_value:{}]",
+        identity_depository_overflow_value
+    );
+    msg!(
+        "[rebalance_alloyx_vault_depository:alloyx_vault_depository_overflow_value:{}]",
+        alloyx_vault_depository_overflow_value
+    );
+
+    msg!(
+        "[rebalance_alloyx_vault_depository:withdraw_redeemable_amount:{}]",
+        withdraw_redeemable_amount
+    );
+    msg!(
+        "[rebalance_alloyx_vault_depository:deposit_redeemable_amount:{}]",
+        deposit_redeemable_amount
+    );
+
     // ---------------------------------------------------------------------
-    // -- Phase 1
+    // -- Phase 2
     // -- If possible, starts with actually withdrawing all profits we can
     // ---------------------------------------------------------------------
 
@@ -208,109 +292,74 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
     }
 
     // ---------------------------------------------------------------------
-    // -- Phase 2
-    // -- Compute the target redeemable amount, then we can decide if we withdraw or deposit
-    // ---------------------------------------------------------------------
-
-    let router_depositories_target_redeemable_amount =
-        calculate_router_depositories_target_redeemable_amount(
-            &ctx.accounts.controller,
-            &ctx.accounts.identity_depository,
-            &ctx.accounts.mercurial_vault_depository,
-            &ctx.accounts.credix_lp_depository,
-            &ctx.accounts.alloyx_vault_depository,
-        )?;
-
-    let alloyx_vault_depository_target_redeemable_amount =
-        router_depositories_target_redeemable_amount
-            .alloyx_vault_depository_target_redeemable_amount;
-
-    let identity_depository_target_redeemable_amount =
-        router_depositories_target_redeemable_amount.identity_depository_target_redeemable_amount;
-
-    // ---------------------------------------------------------------------
     // -- Phase 3
-    // -- If the alloyx depository is under-target
-    // -- We withdraw what we can from identity_depository
-    // -- then deposit into alloyx_vault_depository's vault
-    // ---------------------------------------------------------------------
-    if redeemable_amount_under_management < redeemable_amount_under_management_target_amount {
-        let underflow_value = checked_sub(
-            redeemable_amount_under_management_target_amount,
-            redeemable_amount_under_management,
-        )?;
-        msg!(
-            "[rebalance_alloyx_vault_depository:underflow_value:{}]",
-            underflow_value
-        );
-        let deposited_underflow_collateral = ctx
-            .accounts
-            .deposit_to_alloyx_vault_from_identity_depository(underflow_value, vault_id)?;
-        if deposited_underflow_collateral > 0 {
-            // Update accounting
-            let mut identity_depository = ctx.accounts.identity_depository.load_mut()?;
-            let mut alloyx_vault_depository = ctx.accounts.alloyx_vault_depository.load_mut()?;
-            // Collateral amount deposited accounting updates
-            identity_depository.collateral_amount_deposited = checked_sub(
-                identity_depository.collateral_amount_deposited,
-                deposited_underflow_collateral.into(),
-            )?;
-            alloyx_vault_depository.collateral_amount_deposited = checked_add(
-                alloyx_vault_depository.collateral_amount_deposited,
-                deposited_underflow_collateral,
-            )?;
-            // Redeemable under management accounting updates
-            identity_depository.redeemable_amount_under_management = checked_sub(
-                identity_depository.redeemable_amount_under_management,
-                deposited_underflow_collateral.into(),
-            )?;
-            alloyx_vault_depository.redeemable_amount_under_management = checked_add(
-                alloyx_vault_depository.redeemable_amount_under_management,
-                deposited_underflow_collateral,
-            )?;
-        }
-        // If we just treated an underflow, we dont't need to continue checking for overflow
-        return Ok(());
-    }
-
-    // ---------------------------------------------------------------------
-    // -- Phase 4
     // -- If the alloyx depository is over-target
     // -- We withdraw what we can from the available liquidity of alloyx_vault_depository's vault
     // -- then deposit it into the identity_depository
     // ---------------------------------------------------------------------
-    let overflow_value = checked_sub(
-        redeemable_amount_under_management,
-        redeemable_amount_under_management_target_amount,
-    )?;
-    msg!(
-        "[rebalance_alloyx_vault_depository:overflow_value:{}]",
-        overflow_value
-    );
-    let withdrawn_overflow_collateral = ctx
+    if withdraw_redeemable_amount > 0 {
+        let withdrawn_overflow_collateral = ctx
+            .accounts
+            .withdraw_from_alloyx_vault_to_identity_depository(
+                withdraw_redeemable_amount,
+                vault_id,
+            )?;
+        if withdrawn_overflow_collateral > 0 {
+            // Update accounting
+            let mut identity_depository = ctx.accounts.identity_depository.load_mut()?;
+            let mut alloyx_vault_depository = ctx.accounts.alloyx_vault_depository.load_mut()?;
+            // Collateral amount deposited accounting updates
+            identity_depository.collateral_amount_deposited = checked_add(
+                identity_depository.collateral_amount_deposited,
+                withdrawn_overflow_collateral.into(),
+            )?;
+            alloyx_vault_depository.collateral_amount_deposited = checked_sub(
+                alloyx_vault_depository.collateral_amount_deposited,
+                withdrawn_overflow_collateral,
+            )?;
+            // Redeemable under management accounting updates
+            identity_depository.redeemable_amount_under_management = checked_add(
+                identity_depository.redeemable_amount_under_management,
+                withdrawn_overflow_collateral.into(),
+            )?;
+            alloyx_vault_depository.redeemable_amount_under_management = checked_sub(
+                alloyx_vault_depository.redeemable_amount_under_management,
+                withdrawn_overflow_collateral,
+            )?;
+            return Ok(());
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // -- Phase 4
+    // -- If the alloyx depository is under-target
+    // -- We withdraw what we can from identity_depository
+    // -- then deposit into alloyx_vault_depository's vault
+    // ---------------------------------------------------------------------
+    let deposited_underflow_collateral = ctx
         .accounts
-        .withdraw_from_alloyx_vault_to_identity_depository(overflow_value, vault_id)?;
-    if withdrawn_overflow_collateral > 0 {
+        .deposit_to_alloyx_vault_from_identity_depository(deposit_redeemable_amount, vault_id)?;
+    if deposited_underflow_collateral > 0 {
         // Update accounting
         let mut identity_depository = ctx.accounts.identity_depository.load_mut()?;
         let mut alloyx_vault_depository = ctx.accounts.alloyx_vault_depository.load_mut()?;
         // Collateral amount deposited accounting updates
-        identity_depository.collateral_amount_deposited = checked_add(
+        identity_depository.collateral_amount_deposited = checked_sub(
             identity_depository.collateral_amount_deposited,
-            withdrawn_overflow_collateral.into(),
+            deposited_underflow_collateral.into(),
         )?;
-        alloyx_vault_depository.collateral_amount_deposited = checked_sub(
+        alloyx_vault_depository.collateral_amount_deposited = checked_add(
             alloyx_vault_depository.collateral_amount_deposited,
-            withdrawn_overflow_collateral,
+            deposited_underflow_collateral,
         )?;
         // Redeemable under management accounting updates
-        identity_depository.redeemable_amount_under_management = checked_add(
+        identity_depository.redeemable_amount_under_management = checked_sub(
             identity_depository.redeemable_amount_under_management,
-            withdrawn_overflow_collateral.into(),
+            deposited_underflow_collateral.into(),
         )?;
-        alloyx_vault_depository.redeemable_amount_under_management = checked_sub(
+        alloyx_vault_depository.redeemable_amount_under_management = checked_add(
             alloyx_vault_depository.redeemable_amount_under_management,
-            withdrawn_overflow_collateral,
+            deposited_underflow_collateral,
         )?;
     }
 
