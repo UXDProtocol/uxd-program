@@ -141,7 +141,12 @@ pub struct RebalanceAlloyxVaultDepository<'info> {
 }
 
 pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &str) -> Result<()> {
-    let redeemable_amount_under_management = ctx
+    let identity_depository_redeemable_amount_under_management = ctx
+        .accounts
+        .identity_depository
+        .load()?
+        .redeemable_amount_under_management;
+    let alloyx_vault_depository_redeemable_amount_under_management = ctx
         .accounts
         .alloyx_vault_depository
         .load()?
@@ -164,7 +169,10 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
             total_shares_supply,
             total_shares_value,
         )?;
-        checked_sub(owned_shares_value, redeemable_amount_under_management)?
+        checked_sub(
+            owned_shares_value,
+            alloyx_vault_depository_redeemable_amount_under_management,
+        )?
     };
     msg!(
         "[rebalance_alloyx_vault_depository:profits_collateral_amount:{}]",
@@ -204,15 +212,21 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
     // -- Compute the target redeemable amount, then we can decide if we withdraw or deposit
     // ---------------------------------------------------------------------
 
-    let redeemable_amount_under_management_target_amount =
+    let router_depositories_target_redeemable_amount =
         calculate_router_depositories_target_redeemable_amount(
             &ctx.accounts.controller,
             &ctx.accounts.identity_depository,
             &ctx.accounts.mercurial_vault_depository,
             &ctx.accounts.credix_lp_depository,
             &ctx.accounts.alloyx_vault_depository,
-        )?
-        .alloyx_vault_depository_target_redeemable_amount;
+        )?;
+
+    let alloyx_vault_depository_target_redeemable_amount =
+        router_depositories_target_redeemable_amount
+            .alloyx_vault_depository_target_redeemable_amount;
+
+    let identity_depository_target_redeemable_amount =
+        router_depositories_target_redeemable_amount.identity_depository_target_redeemable_amount;
 
     // ---------------------------------------------------------------------
     // -- Phase 3
