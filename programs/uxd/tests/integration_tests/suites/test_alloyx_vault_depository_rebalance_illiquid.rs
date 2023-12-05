@@ -415,7 +415,7 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         Some(2), // no more profits to collect (+ precision-loss)
     )
     .await?;
-    
+
     // ---------------------------------------------------------------------
     // -- Phase 5
     // -- After all this, syphoon liquidity out of identity_depository
@@ -423,8 +423,9 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
     // ---------------------------------------------------------------------
 
     let amount_of_removed_liquidity = amount_the_user_should_be_able_to_mint * 95 / 100;
-    let amount_of_backup_liquidity = (amount_the_user_should_be_able_to_mint - amount_of_removed_liquidity) * 95 / 100;
-    
+    let amount_of_backup_liquidity =
+        (amount_the_user_should_be_able_to_mint - amount_of_removed_liquidity) * 95 / 100;
+
     // Removing the liquidity from the identity_depository should make the alloyx_vault_depository want to withdraw to fill it up
     program_uxd::instructions::process_redeem_from_identity_depository(
         &mut program_context,
@@ -433,8 +434,9 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &user,
         &user_collateral,
         &user_redeemable,
-        amount_of_removed_liquidity
-    ).await?;
+        amount_of_removed_liquidity,
+    )
+    .await?;
 
     // The alloyx_vault_depository should sacrifice itself to fill up the identity_depository
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
@@ -444,10 +446,10 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &alloyx_vault_mint.pubkey(),
         &profits_beneficiary_collateral,
         Some(-i128::from(amount_of_backup_liquidity)), // try to fill the missing liquidity by emptying itself
-        Some(0), // no more profits to collect
+        Some(0),                                       // no more profits to collect
     )
     .await?;
-    
+
     // Putting back the liquidity in the identity_depository should make the alloyx_vault_depository want to replenish itself up
     program_uxd::instructions::process_mint_with_identity_depository(
         &mut program_context,
@@ -456,8 +458,9 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         &user,
         &user_collateral,
         &user_redeemable,
-        amount_of_removed_liquidity
-    ).await?;
+        amount_of_removed_liquidity,
+    )
+    .await?;
 
     // The alloyx_vault_depository should want to replenish itself
     program_uxd::instructions::process_rebalance_alloyx_vault_depository(
@@ -470,7 +473,7 @@ async fn test_alloyx_vault_depository_rebalance_illiquid(
         Some(2), // no more profits to collect (+precision-loss)
     )
     .await?;
-    
+
     // Done
     Ok(())
 }

@@ -5,9 +5,9 @@ use crate::state::identity_depository::IdentityDepository;
 use crate::state::mercurial_vault_depository::MercurialVaultDepository;
 use crate::utils::calculate_router_depositories_target_redeemable_amount;
 use crate::utils::checked_add;
+use crate::utils::checked_as_u64;
 use crate::utils::checked_sub;
 use crate::utils::compute_decrease;
-use crate::utils::checked_as_u64;
 use crate::utils::compute_increase;
 use crate::utils::compute_shares_amount_for_value_floor;
 use crate::utils::compute_value_for_shares_amount_floor;
@@ -163,11 +163,12 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
         router_depositories_target_redeemable_amount
             .alloyx_vault_depository_target_redeemable_amount;
 
-    let identity_depository_redeemable_amount_under_management = checked_as_u64(ctx
-        .accounts
-        .identity_depository
-        .load()?
-        .redeemable_amount_under_management)?;
+    let identity_depository_redeemable_amount_under_management = checked_as_u64(
+        ctx.accounts
+            .identity_depository
+            .load()?
+            .redeemable_amount_under_management,
+    )?;
     let alloyx_vault_depository_redeemable_amount_under_management = ctx
         .accounts
         .alloyx_vault_depository
@@ -211,10 +212,8 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
             total_shares_supply,
             total_shares_value,
         )?;
-        checked_sub(
-            owned_shares_value,
-            alloyx_vault_depository_redeemable_amount_under_management,
-        )?
+        owned_shares_value
+            .saturating_sub(alloyx_vault_depository_redeemable_amount_under_management)
     };
     msg!(
         "[rebalance_alloyx_vault_depository:profits_collateral_amount:{}]",
