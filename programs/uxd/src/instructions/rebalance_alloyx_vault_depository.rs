@@ -186,22 +186,22 @@ pub(crate) fn handler(ctx: Context<RebalanceAlloyxVaultDepository>, vault_id: &s
         alloyx_vault_depository_redeemable_amount_under_management
             .saturating_sub(alloyx_vault_depository_target_redeemable_amount);
 
-    let withdraw_redeemable_amount = std::cmp::max(
+            let deposit_redeemable_amount = std::cmp::min(
+                identity_depository_overflow_value,
+                alloyx_vault_depository_underflow_value,
+            );
+            let withdraw_redeemable_amount = std::cmp::max(
         identity_depository_underflow_value,
         alloyx_vault_depository_overflow_value,
     );
-    let deposit_redeemable_amount = std::cmp::min(
-        identity_depository_overflow_value,
-        alloyx_vault_depository_underflow_value,
-    );
 
-    msg!(
-        "[rebalance_alloyx_vault_depository:withdraw_redeemable_amount:{}]",
-        withdraw_redeemable_amount
-    );
     msg!(
         "[rebalance_alloyx_vault_depository:deposit_redeemable_amount:{}]",
         deposit_redeemable_amount
+    );
+    msg!(
+        "[rebalance_alloyx_vault_depository:withdraw_redeemable_amount:{}]",
+        withdraw_redeemable_amount
     );
 
     // ---------------------------------------------------------------------
